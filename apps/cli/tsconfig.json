@@ -36,6 +36,9 @@
       "path": "../../packages/host/apiproxy"
     },
     {
+      "path": "../../packages/host/electron-ipc"
+    },
+    {
       "path": "../../packages/host/webserver"
     },
     {

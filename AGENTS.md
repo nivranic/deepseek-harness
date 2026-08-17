@@ -32,6 +32,7 @@ packages/    @deepseek-ai/dsh-<pkg> workspaces at packages/<group>/<pkg>/
   plan/        plan mode as logged state
   preset/      per-session agent composition from preset cordis.yml files
   guard/       loop-hygiene + tool-timeout plugins
+  host/        GUI carriers: webserver + desktop scheme bridge
   self-modification/  the agent inspects/mounts its own plugins
   hooks/       Claude Code/Codex hook bridges + wire-protocol library
   session/     durable session data: persistence, projection, titles, telemetry
@@ -60,23 +61,23 @@ Package groups: [packages/README.md](packages/README.md).
 
 ```sh
 pnpm install            # pnpm workspaces, node ^22.19 || >=24
-pnpm run clean           # remove build outputs and safe residue from deleted packages
+pnpm run clean           # remove build outputs and deleted-package residue
 pnpm run test           # vitest unit tests
 pnpm run test:coverage  # CI coverage gate: per-file 100% on packages/*/*/src
 pnpm run test:e2e       # real-API tests; self-skip without DEEPSEEK_API_KEY
-pnpm run test:snapshot  # keyless ACP/headless replay vs expected outputs; filter: -t <name>
+pnpm run test:snapshot  # keyless ACP/headless replay vs expected outputs
 pnpm run test:snapshot:record  # re-record expected outputs (needs key)
 pnpm run typecheck
 pnpm run lint
 pnpm run duplication    # cross-file TypeScript clone detection
 pnpm run build          # tsc emits lib/types, tsdown bundles runtime
 pnpm run hygiene        # knip + publint + workspace constraints + NodeNext consumer check
-pnpm run check:windows-wine  # ONLY when diagnosing a known Windows failure (needs wine); CI owns this signal
+pnpm run check:windows-wine  # ONLY when diagnosing a known Windows failure (needs wine)
 pnpm run doc-sync       # all documentation gates; leaf list in scripts/run-gates.ts
 pnpm run website:build  # VitePress build (doubles as dead-link check)
-pnpm dsh --profile headless "task"  # run one task from source (needs DEEPSEEK_API_KEY)
+pnpm dsh --profile headless "task"  # run one task from source (needs key)
 pnpm run demo:cordis    # the agent modifies its own runtime (needs key)
-pnpm run demo:acp       # ACP automation server (needs DEEPSEEK_API_KEY)
+pnpm run demo:acp       # ACP automation server (needs key)
 ```
 
 ### Host sandbox failures

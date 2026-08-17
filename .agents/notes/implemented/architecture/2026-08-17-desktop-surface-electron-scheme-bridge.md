@@ -1,0 +1,33 @@
+# Agent Note: Desktop surface over Electron's privileged-scheme bridge
+
+Status: implemented
+
+English | [中文](2026-08-17-desktop-surface-electron-scheme-bridge.zh.md)
+
+## Problem
+
+The browser surface shipped with exactly one physical carrier: `dsh-host-webserver` binds a loopback HTTP server, the connection node half registers the `/api` route and WebSocket downlinks on it, `dsh-host-frontend-static` claims the fallback seat for the dist, and `dsh-client-modules` taps index.html to inject the boot manifest. A desktop application (an exe the user launches, no browser, no open port) needs the same composed surface without the socket: the webserver README already reserved that shape ("Electron loads dist … and carries fetch over an IPC bridge") but no seam existed to build it — every web-carrier plugin required `webServer` at plugin level, so a webless composition could not activate them, and the client half hardcoded the fetch+WebSocket browser carrier.
+
+## Decision
+
+The desktop surface is a fourth profile (`desktop`, template `dsh-base` + `dsh-desktop-app`) whose carrier is in-process, not HTTP:
+
+- `packages/host/electron-ipc` (`dsh-host-electron-ipc`) provides `desktopGateway`: one `handle(request)` dispatch answering the renderer's privileged-scheme fetches — `/api` through the Connection shared-channel chain (interceptor claims ahead of `toFetchHandler(apiProxy)`), `/plugins/<id>/client.js` through the module registry, everything else through the boot-manifest-injected dist with the frontend-static semantics (403 traversal, SPA fallback, octet-stream misses). It injects `clientModules`, `connection`, `apiProxy` and binds no socket. The HTTP trust fence does not apply on the bridge: every request arrives from this process's own renderer, so the loopback-pinned privileged methods stay reachable.
+- `apps/desktop` is the Electron shell: it registers the `dsh:` scheme as privileged (standard, secure, fetch-able, streaming) before ready, boots the `desktop` profile through the shared `profile-boot` launcher, wires `protocol.handle` to the gateway (requests queue on the boot promise), and disposes the tree through the bounded shutdown when the window closes. No preload: the scheme itself is the bridge, so `contextIsolation` stays on with nothing exposed. Event streams ride SSE over the streaming scheme handler; the browser-only WebSocket override is never selected.
+- The carrier plugins became carrier-conditional instead of webServer-required: the connection node half provides its registry service unconditionally and binds routes/upgrades only while a webServer exists (present-now binds synchronously, a watcher rebinds on later appearance); `dsh-client-modules` binds its bundle route and index tap the same way; `dsh-host-directory-picker-auto` reads the bind fact from a new `bindHost` config when the composition declares it (the desktop patch declares `127.0.0.1`) and waits for the webServer otherwise.
+- The client connection half selects the carrier from the page protocol: a present non-http(s) protocol selects `IpcApiClient` (the base fetch+SSE client — the bridge answers both), http(s) keeps `WebApiClient`, `?fixture` keeps the fixture. The desktop handle reports loopback-same-origin by construction.
+- The desktop bundle patch mirrors the web patch minus its carrier rows (no webserver, no web-startup, no client-hmr, no URL line/shell variable) plus the electron-ipc row, and its glue registers an `app:desktop-surface` prompt section carrying the no-URL contract.
+
+## Alternatives considered
+
+**`file://` loading with an ipcMain fetch bridge.** The README's literal sentence. Rejected during implementation: `file://` gives no injection point for the boot manifest before the shell bundle runs, breaks same-origin fetch for assets, and the ipcMain variant then requires hand-rolled Request/Response serialization plus chunked streaming in both directions — duplicating what `protocol.handle` carries natively. The privileged scheme keeps the renderer's real fetch/SSE stack untouched and the bridge is still in-process IPC.
+
+**Keep the webserver row and point a BrowserWindow at loopback.** One day of work, zero new code. Rejected per the pre-release foundation stance: it leaves an open socket the desktop does not need, contradicts the reserved no-socket shape, and every trust fence, URL line, and HMR route would stay mounted dead.
+
+**Tauri/WebView2 shell over a bundled Node sidecar.** Smaller binaries, but the entire harness is Node: the sidecar would re-implement this change one process over, adding IPC lifetime management without deleting any owned code.
+
+**Split the connection client half into its own package for the webless roster row.** The dual-face row is what puts the browser half in the boot graph; splitting was restructuring for its own sake once the node half became carrier-conditional.
+
+## Consequences
+
+Cost: four web-carrier plugins now carry conditional-binding branches (each pinned by tests), and the desktop composition is a second roster that must track the web roster's browser-side changes. Bought: a socket-free desktop surface that reuses the entire composed stack — gateway, interceptor plane, boot graph, session plane — with one thin app shell, verified end-to-end by `apps/cli/tests/desktop-composition.e2e.ts` (every row activates; index, bundles, unary, interceptor plane, and SSE all dispatch through the gateway). Packaging (`scripts/build-desktop-exe.ts`) stages the `pnpm deploy` closure outside the repo tree, materializes links that escape the stage, supplements workspace packages reachable only through peer edges and declares them as stage dependencies so electron-builder's manifest-graph collector packs them, and runs electron-builder unsigned with `npmRebuild: false` (node-pty ships N-API prebuilds, no toolchain required). The app tree is packaged with `asar: false`: at boot the launcher heals the shared `$DSH_HOME/profiles/node_modules` fallback into junctions targeting the installation's packages, and Node's CJS resolution from those junctions cannot enter an archive — an asar-packed build served an empty browser boot graph because `ClientModuleRegistry` silently negative-caches every unresolvable package. Electron must be ≥39: the harness runtime imports `stripTypeScriptTypes` from `node:module` and `createZstdDecompress` from `node:zlib`, which Electron 33's bundled Node 20 lacks; Electron 39 bundles Node 22.20, inside the repo engines range.

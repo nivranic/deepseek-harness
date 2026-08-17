@@ -1,12 +1,13 @@
 /**
- * Browser wire client. The plugin selects fixture or HTTP transport, provides
- * the shared API client, and lets the runtime object layer start the stream
- * controller with its sinks.
+ * Browser wire client. The plugin selects fixture, desktop, or HTTP transport,
+ * provides the shared API client, and lets the runtime object layer start the
+ * stream controller with its sinks.
  */
 import type { Context } from '@deepseek-ai/cordis'
 import type { HostDescription, IApiClient } from './api.ts'
 import { ConnectionController, type ConnectionConfig, type ConnectionSinks, type ConnectionState } from './connection.ts'
 import { FixtureApiClient } from './fixture.ts'
+import { IpcApiClient } from './ipc-api-client.ts'
 import { WebApiClient } from './web-api-client.ts'
 import { createWebConnectionRpc } from './rpc.ts'
 import { isLoopbackHostname } from '../loopback-hostname.ts'
@@ -58,9 +59,11 @@ export const inject: string[] = []
  * is ready — connection stays consumer-agnostic).
  */
 export interface ConnectionHandle {
-  /** Shared api client (fixture or real, decided at boot from the page URL). */
+  /** Shared api client (fixture, desktop IPC, or HTTP, decided at boot from the page URL). */
   readonly api: IApiClient
-  /** Whether the current page authority is loopback; non-browser contexts default to true. */
+  /** Whether the current page authority is loopback-same-origin; non-browser
+   * contexts and the desktop surface (in-process bridge, no network) default
+   * to true. */
   readonly isLoopback: boolean
   /** Generation-scoped Host facts, including native path-open capability. */
   readonly hostDescription: HostDescriptionSource
@@ -84,8 +87,14 @@ export interface ConnectionHandle {
 export function apply(ctx: Context): void {
   const pageLocation = typeof location === 'undefined' ? undefined : location
   const fixture = pageLocation !== undefined && new URLSearchParams(pageLocation.search).has('fixture')
+  // The desktop surface loads the shell from the host's privileged app
+  // scheme: a present non-http(s) protocol is that surface by construction
+  // (a browser always serves this shell over http(s), fixtures included).
+  // An absent protocol (hand-built test locations) stays a web default.
+  const protocol = pageLocation?.protocol
+  const desktop = protocol !== undefined && protocol !== 'http:' && protocol !== 'https:'
   const fixtureClient = fixture ? new FixtureApiClient() : undefined
-  const api: IApiClient = fixtureClient ?? new WebApiClient()
+  const api: IApiClient = fixtureClient ?? (desktop ? new IpcApiClient() : new WebApiClient())
   const rpc = fixtureClient?.rpc ?? createWebConnectionRpc()
   let started = false
   let description: HostDescription | undefined
@@ -103,7 +112,7 @@ export function apply(ctx: Context): void {
   }
   const handle: ConnectionHandle = {
     api,
-    isLoopback: pageLocation === undefined || isLoopbackHostname(pageLocation.hostname),
+    isLoopback: desktop || pageLocation === undefined || isLoopbackHostname(pageLocation.hostname),
     hostDescription: {
       getSnapshot: () => description,
       subscribe: (listener) => {

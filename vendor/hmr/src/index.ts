@@ -217,8 +217,11 @@ class Hmr extends Service {
 
     // Collect externals before opening the watcher so every post-ready change
     // is observed by listeners that already have their classification state.
-    const mainUrl = pathToFileURL(resolve(process.argv[1])).href
-    const mainJob = this.internal.loadCache.get(mainUrl)
+    // Non-script entry points (Electron main launched without arguments,
+    // `node -e`) leave argv[1] undefined; there is no main module job to
+    // classify against, so skip the external scan instead of crashing resolve.
+    const mainUrl = process.argv[1] === undefined ? undefined : pathToFileURL(resolve(process.argv[1])).href
+    const mainJob = mainUrl === undefined ? undefined : this.internal.loadCache.get(mainUrl)
     if (mainJob) {
       this.externals = await loadDependencies(mainJob)
     } else {

@@ -15,6 +15,7 @@ import type { Context } from '@deepseek-ai/cordis'
 // Empty type imports carry the `loader` and `webServer` Context merges for the reads below.
 import type {} from '@deepseek-ai/cordis-plugin-loader'
 import type {} from '@deepseek-ai/dsh-host-webserver'
+import z from '@deepseek-ai/schemastery'
 import { canExecute, hasLinuxChooserBinary } from './probe.ts'
 import type { DirectoryPickerBackendKind } from './resolve.ts'
 import { resolveDirectoryPickerBackend } from './resolve.ts'
@@ -25,8 +26,45 @@ export { resolveDirectoryPickerBackend } from './resolve.ts'
 
 /** Cordis plugin name. */
 export const name = 'directory-picker-auto'
-/** Required services: the effective bind host (`webServer`) and the entry tree the backend mounts into (`loader`). */
-export const inject = ['webServer', 'loader']
+/**
+ * Required services: the entry tree the backend mounts into (`loader`). The
+ * bind fact reads the effective `webServer` when the composition serves one;
+ * a webless surface declares the fact through {@link Config.bindHost} instead.
+ */
+export const inject = ['loader']
+
+/** Plugin config: the bind fact a webless composition declares directly. */
+export interface Config {
+  /**
+   * The effective bind host, declared by a composition that runs no
+   * webserver (the desktop app binds no socket and declares its loopback
+   * posture here). Absent on a served composition, where the webServer's
+   * bind is the fact.
+   */
+  bindHost?: '127.0.0.1' | '0.0.0.0'
+}
+
+export const Config: z<Config> = z.object({
+  bindHost: z.union([z.const('127.0.0.1'), z.const('0.0.0.0')]),
+})
+
+/**
+ * The effective bind host: the webServer's bind when one exists now or
+ * appears (a served composition), else the declared fact. A composition that
+ * names this plugin with neither waits for a webServer that never comes —
+ * the Loader settlement audit reports the stuck row.
+ * @param ctx - plugin context.
+ * @param declared - the composition-declared fact, if any.
+ * @returns the bind host the resolution samples.
+ */
+function resolveBindHost(ctx: Context, declared: Config['bindHost']): Promise<'127.0.0.1' | '0.0.0.0'> {
+  if (declared !== undefined) return Promise.resolve(declared)
+  const current = ctx.get('webServer')?.host
+  if (current !== undefined) return Promise.resolve(current)
+  return new Promise((resolve) => {
+    ctx.inject(['webServer'], (webCtx) => { resolve(webCtx.webServer.host) })
+  })
+}
 
 /**
  * Host backend package per resolved kind — fixed composition vocabulary, not a
@@ -57,11 +95,12 @@ export const SURFACE_PACKAGES: Record<DirectoryPickerBackendKind, string> = {
  * surface as Loader entries; the effect's disposer removes both entries and
  * joins their fibers' teardown, so unloading this plugin returns only after
  * both faces of the mounted interaction (and their dependents) quiesced.
- * @param ctx - cordis context carrying the injected `webServer` and `loader`.
+ * @param ctx - cordis context carrying the injected `loader`.
+ * @param config - validated {@link Config}.
  */
-export async function apply(ctx: Context): Promise<void> {
+export async function apply(ctx: Context, config?: Config): Promise<void> {
   const backend = resolveDirectoryPickerBackend({
-    bindHost: ctx.webServer.host,
+    bindHost: await resolveBindHost(ctx, config?.bindHost),
     platform: process.platform,
     env: process.env,
     linuxChooser: hasLinuxChooserBinary(process.env.PATH, canExecute),

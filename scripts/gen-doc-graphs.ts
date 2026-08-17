@@ -514,6 +514,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Plain node:http carrier: named-route registry, index transform taps, and the static dist fallback; web-transport plugins register their own routes.',
   },
   {
+    key: 'desktopGateway',
+    pkg: 'electron-ipc',
+    title: 'Desktop scheme bridge',
+    mode: 'core',
+    note: "In-process desktop carrier: answers the Electron renderer's privileged-scheme fetches with the shared /api chain, the client plugin bundles, and the boot-manifest-injected dist; binds no socket.",
+  },
+  {
     key: 'clientModules',
     pkg: 'modules',
     title: 'Client plugin graph host',

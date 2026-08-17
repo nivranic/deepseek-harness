@@ -1,0 +1,37 @@
+{
+  "name": "@deepseek-ai/dsh-desktop",
+  "description": "Electron app shell for the desktop surface: registers the privileged dsh: scheme, boots the desktop profile through the dsh profile launcher, wires the scheme to the desktopGateway, and owns the window and shutdown lifecycle",
+  "version": "0.1.0-rc.5",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "apps/desktop"
+  },
+  "type": "module",
+  "main": "lib/main.js",
+  "files": [
+    "lib/*.js"
+  ],
+  "scripts": {
+    "start": "electron lib/main.js",
+    "dist:win": "tsx ../../scripts/build-desktop-exe.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@deepseek-ai/dsh": "workspace:^",
+    "@deepseek-ai/dsh-app-boot": "workspace:^",
+    "@deepseek-ai/dsh-desktop-app": "workspace:^",
+    "@deepseek-ai/dsh-host-electron-ipc": "workspace:^"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "workspace:^"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "workspace:^",
+    "electron": "^39.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}

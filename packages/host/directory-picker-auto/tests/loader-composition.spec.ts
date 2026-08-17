@@ -87,21 +87,33 @@ afterEach(async () => {
   renameControl.remainingFailures = 0
 })
 
-/** Write a two-row cordis.yml (webserver + chooser), then boot it through the real Loader. */
+/** Write a chooser composition (webserver row unless webless), then boot it through the real Loader. */
 async function loadComposition(
   bindHost: '127.0.0.1' | '0.0.0.0',
-  options: { failSurface?: boolean } = {},
+  options: { failSurface?: boolean; noWebServer?: boolean } = {},
 ): Promise<{ ctx: Context; configPath: string }> {
   root = await mkdtemp(join(tmpdir(), 'dsh-directory-picker-auto-'))
   const configPath = join(root, 'cordis.yml')
-  await writeFile(configPath, [
-    "- name: '@deepseek-ai/dsh-host-webserver'",
-    '  config:',
-    `    host: '${bindHost}'`,
-    '    port: 0',
-    `- name: '${AUTO}'`,
-    '',
-  ].join('\n'))
+  const rows: string[] = []
+  if (options.noWebServer !== true) {
+    rows.push(
+      "- name: '@deepseek-ai/dsh-host-webserver'",
+      '  config:',
+      `    host: '${bindHost}'`,
+      '    port: 0',
+    )
+  }
+  rows.push(`- name: '${AUTO}'`)
+  // The webless composition declares the bind fact the served shape reads
+  // off its webserver (the desktop patch's own declaration).
+  if (options.noWebServer === true) {
+    rows.push(
+      '  config:',
+      `    bindHost: '${bindHost}'`,
+    )
+  }
+  rows.push('')
+  await writeFile(configPath, rows.join('\n'))
 
   context = new Context()
   context.baseUrl = pathToFileURL(root).href + '/'
@@ -213,6 +225,47 @@ describe('real Loader composition', () => {
     expect(entryNames(ctx)).toContain(BROWSE_SURFACE)
     expect(entryNames(ctx)).not.toContain(NATIVE)
     expect(entryNames(ctx)).not.toContain(NATIVE_SURFACE)
+  })
+
+  it('resolves the declared bind without a webServer (the desktop shape)', { timeout: 60_000 }, async () => {
+    stubAttendedHost()
+    const { ctx } = await loadComposition('127.0.0.1', { noWebServer: true })
+
+    // No bind exists, so the chooser reads the composition's declared
+    // loopback fact: an attended desktop mounts the native backend.
+    expect(entryNames(ctx)).toContain(NATIVE)
+    expect(entryNames(ctx)).toContain(NATIVE_SURFACE)
+    const picker = ctx.get('directoryPicker') as DirectoryPicker
+    expect(picker.capability().kind).toBe('native')
+  })
+
+  it('resolves a declared all-interfaces fact to browse without a webServer', { timeout: 60_000 }, async () => {
+    stubAttendedHost()
+    const { ctx } = await loadComposition('0.0.0.0', { noWebServer: true })
+
+    expect(entryNames(ctx)).toContain(BROWSE)
+    expect(entryNames(ctx)).toContain(BROWSE_SURFACE)
+  })
+
+  it('samples the bind host synchronously when the webServer already exists', async () => {
+    stubAttendedHost()
+    // A hand-built context whose webServer precedes the chooser: the
+    // present-bind early return, which the Loader composition reaches only
+    // through the inject wait (bind lands after the chooser starts).
+    const ctx = new Context()
+    const created: string[] = []
+    ctx.provide('webServer', { host: '127.0.0.1' } as never)
+    ctx.provide('loader', {
+      store: {},
+      create: async (options: { name: string }) => {
+        created.push(options.name)
+        return options.name
+      },
+      remove: async () => {},
+    } as never)
+    await DirectoryPickerAuto.apply(ctx)
+    expect(created).toEqual([NATIVE, NATIVE_SURFACE])
+    await ctx.fiber.dispose()
   })
 
   it('unmounts the backend when the surface entry fails to load', { timeout: 60_000 }, async () => {

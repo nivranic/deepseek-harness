@@ -65,6 +65,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   compaction: 'compaction.md',
   cordisInspect: 'extensions.md',
   credentials: 'credentials.md',
+  desktopGateway: 'web-server.md',
   directoryPicker: 'workspace.md',
   dynamicCordisRunner: 'extensions.md',
   e2b: 'subprocess.md',
@@ -500,6 +501,8 @@ export const FOUNDATION_TYPE_NAMES: ReadonlySet<string> = new Set([
   'Promise',
   'Record',
   'Readonly',
+  'Request',
+  'Response',
   'Uint8Array',
 ])
 

@@ -259,6 +259,55 @@ describe('connection node half', () => {
     expect(routes).toHaveLength(0)
   })
 
+  it('keeps a channel registry-only without a webServer and binds when one appears later', async () => {
+    const ctx = new Context()
+    const routes: WebRoute[] = []
+    ctx.provide('apiProxy', {} as unknown as ApiProxy)
+    const fiber = ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+    const connection = ctx.get('connection') as HostConnectionHandle
+    // The desktop shape: no webServer exists, so the channel stays
+    // registry-only — even after the carrier watcher settles.
+    const removeWebless = connection.rpc.handle('/rpc', async () => ({ ok: true, value: null }), {
+      authority: 'trusted-host',
+    })
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(routes.find(candidate => candidate.path === '/rpc')).toBeUndefined()
+    await removeWebless()
+    // A webServer appearing later (a webserver fiber restart) rebinds the
+    // channel through the watcher.
+    const removeLate = connection.rpc.handle('/late', async () => ({ ok: true, value: null }), {
+      authority: 'trusted-host',
+    })
+    ctx.provide('webServer', fakeHttpServer(routes, []) as WebServer)
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(routes.find(candidate => candidate.path === '/late')).toBeDefined()
+    await removeLate()
+    expect(routes.find(candidate => candidate.path === '/late')).toBeUndefined()
+    await fiber.dispose()
+  })
+
+  it('keeps one route when the carrier watcher re-fires on an already bound channel', async () => {
+    const ctx = new Context()
+    const routes: WebRoute[] = []
+    ctx.provide('webServer', fakeHttpServer(routes, []) as WebServer)
+    const fiber = ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+    const connection = ctx.get('connection') as HostConnectionHandle
+    const remove = connection.rpc.handle('/rpc', async () => ({ ok: true, value: null }), {
+      authority: 'trusted-host',
+    })
+    expect(routes.filter(candidate => candidate.path === '/rpc')).toHaveLength(1)
+    // The watcher fires one microtask later against the same webServer; the
+    // already-bound guard keeps exactly one route (the fake throws on a
+    // duplicate).
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(routes.filter(candidate => candidate.path === '/rpc')).toHaveLength(1)
+    await remove()
+    expect(routes.find(candidate => candidate.path === '/rpc')).toBeUndefined()
+    await fiber.dispose()
+  })
+
   it('dispatches claimed /api endpoints before the API Proxy fallback and withdraws the claim', async () => {
     const ctx = new Context()
     const routes: WebRoute[] = []

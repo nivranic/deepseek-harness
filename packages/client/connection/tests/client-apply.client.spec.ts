@@ -8,9 +8,10 @@ import { apply, type ConnectionHandle } from '../src/client/index.ts'
 import type { RpcMessage } from '../src/client/api.ts'
 import { RpcId } from '../src/client/api.ts'
 import { FixtureApiClient } from '../src/client/fixture.ts'
+import { IpcApiClient } from '../src/client/ipc-api-client.ts'
 import { WebApiClient } from '../src/client/web-api-client.ts'
 
-type Win = { location?: { hostname: string; search: string; origin?: string } }
+type Win = { location?: { hostname: string; search: string; origin?: string; protocol?: string } }
 type WebSocketGlobal = { WebSocket?: typeof WebSocket }
 
 const originalWebSocket = globalThis.WebSocket
@@ -82,6 +83,56 @@ describe('connection client apply', () => {
   it('reports non-loopback page authority through the connection handle', async () => {
     ;(globalThis as Win).location = { hostname: '192.0.2.20', search: '' }
     expect((await mount()).isLoopback).toBe(false)
+  })
+
+  it('selects the desktop IPC carrier for a privileged app scheme and rides fetch-SSE without WebSocket', async () => {
+    ;(globalThis as Win).location = { protocol: 'dsh:', hostname: 'desktop', origin: 'dsh://desktop', search: '' }
+    const handle = await mount()
+    expect(handle.api).toBeInstanceOf(IpcApiClient)
+    // The in-process bridge is loopback-same-origin by construction, whatever
+    // the scheme host names.
+    expect(handle.isLoopback).toBe(true)
+
+    const calls: string[] = []
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const target = input instanceof Request ? input.url : input instanceof URL ? input.href : input
+      calls.push(target)
+      if (target.endsWith('/api/events.mux')) {
+        // SSE open line only: the stream establishes and ends without frames.
+        const body = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(': connected\n\n'))
+            controller.close()
+          },
+        })
+        return new Response(body, { status: 200 })
+      }
+      // postJson sends a JSON.stringify'd string body on both carriers.
+      const message = JSON.parse(init?.body as string) as { rpcId: string }
+      return Response.json({
+        type: 'server-response',
+        rpcId: message.rpcId,
+        result: {
+          ok: true,
+          value: { version: 'test', cwd: '/tmp', attachedSessions: 0, canOpenPath: true },
+        },
+      })
+    }
+    try {
+      const described = await handle.api.host.describe({})
+      expect(described.result.ok).toBe(true)
+      const signal = new AbortController().signal
+      const frames: unknown[] = []
+      for await (const frame of handle.api.events.mux({}, signal)) frames.push(frame)
+      expect(frames).toEqual([])
+      // The desktop carrier never opens a WebSocket: both legs rode fetch.
+      expect(sockets).toHaveLength(0)
+      expect(calls.some(call => call.startsWith('dsh://desktop/api/'))).toBe(true)
+      expect(calls.some(call => call.endsWith('/api/events.mux'))).toBe(true)
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 
   it('start() hands out one loop, rejects a second consumer, and stop() aborts the streams', async () => {

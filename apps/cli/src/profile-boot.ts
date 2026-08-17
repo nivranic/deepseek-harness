@@ -262,12 +262,18 @@ export async function runProfile(options: RunProfileOptions): Promise<{ ctx: Con
   // setup is still in flight — a signal, or a fast one-shot's appExit. Loader
   // presence and fiber state own liveness; the initial check skips a tree
   // that already exited, and the catch below re-checks for an exit that
-  // landed mid-setup. Watching is unconditional: a one-shot surface exits
-  // through its bounded shutdown, which disposes the watchers before the
-  // loop drains.
+  // landed mid-setup. A one-shot surface exits through its bounded shutdown,
+  // which disposes the watchers before the loop drains.
+  const loader = ctx.get('loader')
+  // HMR needs the Node-internal ESM loader: the hmr plugin fails loud without
+  // it, and `internal` stays undefined where the require-builtin addon cannot
+  // introspect the host binary (Electron). Those embedders boot without live
+  // patch reload; the composed patch layer still applies at boot.
+  /* v8 ignore next -- plain Node always exposes the internal loader; the packaged Electron app exercises the skip */
+  const hmrCapable = loader !== undefined && loader.internal !== undefined
   if (!signalShutdown.signal.aborted
     && ctx.fiber.state === FiberState.ACTIVE
-    && ctx.get('loader') !== undefined) {
+    && hmrCapable) {
     try {
       // Config-only HMR for the live profile patch layer: the web bundle
       // disables the shared module-reload `hmr` row (its reload lifecycle is

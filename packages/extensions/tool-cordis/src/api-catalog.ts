@@ -380,8 +380,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'clientModules',
-    summary: 'The web plugin table service: incremental `dsh.client` scan + wire composition + bundle route + index tap.',
-    description: 'The web plugin table service: incremental `dsh.client` scan + wire composition + bundle route + index tap. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
+    summary: 'The web plugin table service: incremental `dsh.client` scan + wire composition.',
+    description: 'The web plugin table service: incremental `dsh.client` scan + wire composition. The bundle route and index tap bind only while a webServer exists; a webless surface (the desktop app) reads graph and clientPath through its own carrier. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
     methods: [
       {
         signature: 'graph(): WebBootGraph',
@@ -522,6 +522,19 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'abstract unset(ref: CredentialRef): Promise<void>',
         description: 'Remove one reference from the provider-managed writable source; removing an absent reference is a no-op. Rejects while a read-only source shadows the reference, like set.',
         parameters: [{ name: 'ref', description: 'the reference to remove.' }],
+      },
+    ],
+  },
+  {
+    key: 'desktopGateway',
+    summary: 'The desktop request target: the app shell hands every renderer fetch of its privileged scheme to DesktopGateway.handle and returns the answer unchanged.',
+    description: 'The desktop request target: the app shell hands every renderer fetch of its privileged scheme to DesktopGateway.handle and returns the answer unchanged.',
+    methods: [
+      {
+        signature: 'handle(request: Request): Promise<Response>',
+        description: 'Answer one renderer request carried by the desktop bridge.',
+        parameters: [{ name: 'request', description: 'the renderer\'s fetch request, unmodified.' }],
+        returns: 'the complete or streaming response.',
       },
     ],
   },
