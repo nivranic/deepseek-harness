@@ -1,7 +1,8 @@
 /**
  * ic_ds_* icon set for the dsh web UI. All glyphs render fill="currentColor"
  * and take {size, className}. Batch A mirrors the deepsuite icon library
- * (same figma source); batch B glyphs are harness-only figma extracts.
+ * (same figma source); batch B glyphs are harness-only figma extracts; the
+ * info ring is harness-drawn (no figma source).
  */
 import type { IconProps } from './props.ts'
 
@@ -868,5 +869,22 @@ export const IconArchiveOutline20 = ({ size = 20, className }: IconProps) => (
       fill="currentColor"
     />
     <path d="M12.7962 12.5661V11.0832H7.20548V12.5661L12.7962 12.5661Z" fill="currentColor" />
+  </svg>
+)
+
+/** ic_info_outline_16: ring + i, the About nav glyph. Harness-drawn to the
+ *  ic_ds outline stroke weight (1.4 units); no figma source. */
+export const IconInfoOutline16 = ({ size = 16, className }: IconProps) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M8 0.3a7.7 7.7 0 1 0 0 15.4 7.7 7.7 0 1 0 0-15.4ZM8 1.7a6.3 6.3 0 1 0 0 12.6 6.3 6.3 0 1 0 0-12.6Z"
+      fill="currentColor"
+    />
+    <path
+      d="M8 4.15a1.05 1.05 0 1 0 0 2.1 1.05 1.05 0 1 0 0-2.1ZM8 7.15a1.05 1.05 0 0 1 1.05 1.05v2.75a1.05 1.05 0 0 1-2.1 0V8.2A1.05 1.05 0 0 1 8 7.15Z"
+      fill="currentColor"
+    />
   </svg>
 )
