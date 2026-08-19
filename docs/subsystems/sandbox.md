@@ -115,7 +115,7 @@ interface RunnerFailureRule {
 }
 ```
 
-`ConfinedArgv` is what the consumer spawns. Besides the replacement argv, it carries the backend's enforcement fact and two orthogonal stderr classifiers. `denialSignatures` identify the confined command being blocked while the sandbox works correctly. `runnerFailureRules` identify the sandbox runner refusing or failing before it executes the command; consumers check these first and surface a sandbox infrastructure failure, never an ordinary task failure.
+`ConfinedArgv` is what the consumer spawns. Besides the replacement argv, it carries any environment additions the runner's own invocation requires, the backend's enforcement fact, and two orthogonal stderr classifiers. `denialSignatures` identify the confined command being blocked while the sandbox works correctly. `runnerFailureRules` identify the sandbox runner refusing or failing before it executes the command; consumers check these first and surface a sandbox infrastructure failure, never an ordinary task failure.
 
 ```ts type-equiv
 /**
@@ -126,6 +126,17 @@ interface RunnerFailureRule {
 interface ConfinedArgv {
   /** The wrapped argv (runner, profile, separator, then the caller's argv). */
   argv: string[]
+  /**
+   * Environment additions the runner's own invocation requires before the
+   * wrapped argv can execute (absent for runners that are plain
+   * executables). A consumer spawning {@link argv} must merge these into
+   * the child environment: the Windows ACL runner reuses the host process's
+   * binary as its Node runtime, which under the Electron desktop exe only
+   * runs scripts in `ELECTRON_RUN_AS_NODE` mode. The runner deletes the
+   * entry again before starting the confined command, so it never reaches
+   * the wrapped process.
+   */
+  env?: Readonly<Record<string, string>>
   /** How completely the selected backend enforces the policy's file effects. */
   enforcement: SandboxEnforcement
   /**

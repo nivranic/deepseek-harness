@@ -95,6 +95,17 @@ export interface RunnerFailureRule {
 export interface ConfinedArgv {
   /** The wrapped argv (runner, profile, separator, then the caller's argv). */
   argv: string[]
+  /**
+   * Environment additions the runner's own invocation requires before the
+   * wrapped argv can execute (absent for runners that are plain
+   * executables). A consumer spawning {@link argv} must merge these into
+   * the child environment: the Windows ACL runner reuses the host process's
+   * binary as its Node runtime, which under the Electron desktop exe only
+   * runs scripts in `ELECTRON_RUN_AS_NODE` mode. The runner deletes the
+   * entry again before starting the confined command, so it never reaches
+   * the wrapped process.
+   */
+  env?: Readonly<Record<string, string>>
   /** How completely the selected backend enforces the policy's file effects. */
   enforcement: SandboxEnforcement
   /**
@@ -169,8 +180,9 @@ export abstract class SandboxProvider extends Service {
    *   `['bash', '-c', command]`.
    * @param policy - the file-effect policy this execution runs under,
    *   carried per call (see {@link SandboxPolicy}).
-   * @returns the argv to spawn instead, plus the enforcement completeness
-   *   the selected backend achieves for it.
+   * @returns the argv to spawn instead, any environment additions the
+   *   runner's invocation requires, and the enforcement completeness the
+   *   selected backend achieves for it.
    */
   abstract confine(argv: readonly string[], policy: SandboxPolicy): ConfinedArgv
 }

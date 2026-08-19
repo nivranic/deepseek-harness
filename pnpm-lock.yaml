@@ -5087,6 +5087,9 @@ importers:
       '@deepseek-ai/dsh-native-command':
         specifier: workspace:^
         version: link:../../util/native-command
+      '@deepseek-ai/dsh-node-spawn':
+        specifier: workspace:^
+        version: link:../../util/node-spawn
       koffi:
         specifier: ^3.1.0
         version: 3.1.1
@@ -5892,6 +5895,9 @@ importers:
 
   packages/sandbox/sandbox-local:
     dependencies:
+      '@deepseek-ai/dsh-node-spawn':
+        specifier: workspace:^
+        version: link:../../util/node-spawn
       '@deepseek-ai/dsh-sandbox-windows-acl':
         specifier: workspace:^
         version: link:../sandbox-windows-acl
@@ -8171,6 +8177,15 @@ importers:
         version: link:../../runtime-diagnostics/invariants
 
   packages/util/native-command:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+
+  packages/util/node-spawn:
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: workspace:^

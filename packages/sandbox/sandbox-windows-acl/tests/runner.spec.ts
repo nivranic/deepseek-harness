@@ -25,10 +25,11 @@ function pwshAvailable(): boolean {
   return spawnSync(resolvePwshPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', '$true'], { encoding: 'utf8' }).status === 0
 }
 
-function runRunner(args: string[], timeoutMs = 30_000) {
+function runRunner(args: string[], timeoutMs = 30_000, env?: NodeJS.ProcessEnv) {
   return spawnSync(process.execPath, ['--import', 'tsx/esm', runnerEntry, ...args], {
     timeout: timeoutMs,
     encoding: 'utf8',
+    ...env === undefined ? {} : { env },
   })
 }
 
@@ -458,4 +459,19 @@ describe.skipIf(!isWin32 || !pwshAvailable())('windows-acl runner', () => {
       expect(result.stderr).toContain('windows-acl-run: ')
     }
   }, 15_000)
+
+  it('the seam\'s RunAsNode launch entry never reaches the confined child', () => {
+    // The Electron desktop host starts the runner with
+    // ELECTRON_RUN_AS_NODE=1; the runner deletes the entry from its own
+    // environment before the child inherits the block, so an Electron-based
+    // program the command runs boots normally.
+    const result = runRunner([
+      '--workspace', writableDir, '--temp', isolatedTemp, '--mode', 'read-only',
+      '--', 'pwsh', '/NoLogo', '/NonInteractive', '/NoProfile', '/Command',
+      "'ENV:' + $env:ELECTRON_RUN_AS_NODE",
+    ], 30_000, { ...process.env, ELECTRON_RUN_AS_NODE: '1' })
+    expect(result.status, `stderr: ${result.stderr}`).toBe(0)
+    expect(result.stdout).toContain('ENV:')
+    expect(result.stdout).not.toContain('ENV:1')
+  }, 30_000)
 })

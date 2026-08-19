@@ -450,4 +450,43 @@ describe('the windows-acl probe (runner invocation contract)', () => {
     const confined = sandbox.confine(['true'], RO)
     expect(confined.argv.slice(0, 2)).toEqual([process.execPath, builtEntry])
   })
+
+  it('carries the Electron host\'s RunAsNode env on every windows-acl wrap', async () => {
+    // The packaged desktop exe re-runs itself as the runner's Node runtime;
+    // without the env entry that executable boots the whole app instead.
+    const nodeSpawn = () => ({
+      command: 'C:/app/DeepSeek Harness.exe',
+      env: { ELECTRON_RUN_AS_NODE: '1' },
+    })
+    const { sandbox } = await setup({}, {
+      chain: ['windows-acl', 'bwrap'],
+      probeWindowsAcl: () => true,
+      windowsAclRunnerEntry: absentRunnerEntry(),
+      nodeSpawn,
+    })
+    const confined = sandbox.confine(['true'], RO)
+    expect(confined.argv[0]).toBe('C:/app/DeepSeek Harness.exe')
+    expect(confined.env).toEqual({ ELECTRON_RUN_AS_NODE: '1' })
+  })
+
+  it('under plain Node, wraps carry no runner env; an argv override never does', async () => {
+    const electronHost = () => ({
+      command: 'C:/app/DeepSeek Harness.exe',
+      env: { ELECTRON_RUN_AS_NODE: '1' },
+    })
+    const plain = await setup({}, {
+      chain: ['windows-acl', 'bwrap'],
+      probeWindowsAcl: () => true,
+      windowsAclRunnerEntry: absentRunnerEntry(),
+    })
+    expect(plain.sandbox.confine(['true'], RO).env).toBeUndefined()
+
+    const overridden = await setup({}, {
+      chain: ['windows-acl', 'bwrap'],
+      probeWindowsAcl: () => true,
+      windowsAclRunnerArgs: ['node', 'windows-acl-runner.js'],
+      nodeSpawn: electronHost,
+    })
+    expect(overridden.sandbox.confine(['true'], RO).env).toEqual({})
+  })
 })

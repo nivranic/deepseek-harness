@@ -324,3 +324,50 @@ describe.skipIf(!pwshAvailable())('SandboxPwshExecutor', () => {
     expect(proc.sandbox).toBeUndefined()
   }, 30_000)
 })
+
+describe('runner env threading (real subprocess, node runner argv)', () => {
+  // A confiner returning a plain-node argv keeps this block pwsh-free: the
+  // child observes exactly the environment the executor handed the runner.
+  const RO: SandboxExecutionPolicy = { mode: 'read-only', workspaceRoot: '/ws' }
+  const runnerProbe = [
+    process.execPath,
+    '-e',
+    'console.log(process.env.DSH_RUNNER_ENV_VAR + "/" + process.env.SEAM_VAR)',
+  ]
+
+  it('run() merges the confined runner env over the spec env for the runner process', async () => {
+    const { executor } = await setup(() => ({
+      argv: runnerProbe,
+      env: { DSH_RUNNER_ENV_VAR: 'from-runner', SEAM_VAR: 'from-runner' },
+      enforcement: 'full',
+      denialSignatures: [],
+      runnerFailureRules: [],
+    }))
+    const spec = executor.resolve({
+      command: 'echo never-reached',
+      sandboxPolicy: RO,
+      env: { SEAM_VAR: 'from-spec' },
+    })
+    const result = await executor.run(spec)
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout.text.trim()).toBe('from-runner/from-runner')
+  }, 30_000)
+
+  it('start() merges the confined runner env into background spawns too', async () => {
+    const { executor } = await setup(() => ({
+      argv: runnerProbe,
+      env: { DSH_RUNNER_ENV_VAR: 'from-runner' },
+      enforcement: 'full',
+      denialSignatures: [],
+      runnerFailureRules: [],
+    }))
+    const proc = executor.start(executor.resolve({ command: 'echo never-reached', sandboxPolicy: RO }))
+    await proc.done
+    let output = ''
+    for (let attempt = 0; attempt < 100 && output === ''; attempt++) {
+      output = proc.readOutput().delta
+      if (output === '') await new Promise((resolve) => { setTimeout(resolve, 50) })
+    }
+    expect(output).toContain('from-runner')
+  }, 30_000)
+})

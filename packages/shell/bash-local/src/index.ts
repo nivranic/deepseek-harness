@@ -177,6 +177,7 @@ export class LocalBashExecutor extends ShellExecutor {
     argv: readonly string[],
     stdoutMaxBytes: number,
     signal: AbortSignal | undefined,
+    runnerEnv?: Readonly<Record<string, string>>,
   ): SubprocessSpawnSpec {
     const collect = (maxBytes: number): SubprocessCollect =>
       ({ maxBytes, spill: { maxBytes: this.config.maxSpillBytes } })
@@ -192,8 +193,10 @@ export class LocalBashExecutor extends ShellExecutor {
       signal,
       // One explicit env map for the seam, layered so the trusted dshEnv
       // snapshot beats both the caller's env and the terminal overrides; the
-      // subprocess service merges the whole map after its ambient scrub.
-      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.dshEnv },
+      // subprocess service merges the whole map after its ambient scrub. A
+      // confining runner's own invocation preconditions (the argv's spawn
+      // facts) merge LAST, above all environment content.
+      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.dshEnv, ...runnerEnv },
     }
   }
 
@@ -218,12 +221,18 @@ export class LocalBashExecutor extends ShellExecutor {
    * after replacing the public command's shell argv at an execution boundary.
    * @param spec - resolved execution settings and caller-owned command metadata.
    * @param argv - exact executable and arguments to hand to `ctx.subprocess`.
+   * @param runnerEnv - environment additions the confining runner's own
+   *   invocation requires, merged over the spec's environment.
    * @returns the settled foreground result with collected output and cause facts.
    */
-  protected async runArgv(spec: ShellExecSpec, argv: readonly string[]): Promise<ShellRunResult> {
+  protected async runArgv(
+    spec: ShellExecSpec,
+    argv: readonly string[],
+    runnerEnv?: Readonly<Record<string, string>>,
+  ): Promise<ShellRunResult> {
     // One deadline combines timeout and upstream cancellation; disposal clears its timer.
     using d = deadline(spec.signal, spec.timeoutMs, 'BASH_TIMEOUT')
-    const handle = this.ctx.subprocess.spawn(this.spawnSpec(spec, argv, spec.stdoutMaxBytes, d.signal))
+    const handle = this.ctx.subprocess.spawn(this.spawnSpec(spec, argv, spec.stdoutMaxBytes, d.signal, runnerEnv))
     const outcome = await handle.done
     const collected = LocalBashExecutor.collected(handle)
     // Only this executor's timeout reason counts as timedOut; outer deadlines count as aborts.
@@ -250,11 +259,17 @@ export class LocalBashExecutor extends ShellExecutor {
    * execution boundary.
    * @param spec - resolved execution settings and caller-owned command metadata.
    * @param argv - exact executable and arguments to hand to `ctx.subprocess`.
+   * @param runnerEnv - environment additions the confining runner's own
+   *   invocation requires, merged over the spec's environment.
    * @returns the live background handle; spawn rejection settles it as killed.
    */
-  protected startArgv(spec: ShellExecSpec, argv: readonly string[]): ShellProcess {
+  protected startArgv(
+    spec: ShellExecSpec,
+    argv: readonly string[],
+    runnerEnv?: Readonly<Record<string, string>>,
+  ): ShellProcess {
     // Background runs ignore timeoutMs; callers stop them through kill() or spec.signal.
-    const running = this.ctx.subprocess.spawn(this.spawnSpec(spec, argv, this.config.maxOutputBytes, spec.signal))
+    const running = this.ctx.subprocess.spawn(this.spawnSpec(spec, argv, this.config.maxOutputBytes, spec.signal, runnerEnv))
     const collected = LocalBashExecutor.collected(running)
 
     // A spawn failure produces no process output, so the subprocess service has nothing

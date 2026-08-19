@@ -138,6 +138,14 @@ async function main(): Promise<number> {
     fail(`SetConsoleCtrlHandler failed (Win32 ${api.getLastError()})`)
   }
 
+  // The seam starts this runner with ELECTRON_RUN_AS_NODE when the host
+  // process is the Electron desktop exe; that entry is this process's launch
+  // mode, not a fact about the confined command. The child inherits this
+  // process's environment block verbatim (lpEnvironment NULL), so an
+  // Electron-based program the command runs would silently boot as plain
+  // Node. Delete the entry before any child exists.
+  delete process.env.ELECTRON_RUN_AS_NODE
+
   let ownedTempDir: string | undefined
   let sandbox: AclSandbox | undefined
   let initialized = false
