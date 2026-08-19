@@ -5,7 +5,10 @@ import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-runtime/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-test-runtime'
+// Type-only: the appInfo Context merge the bench provides.
+import type {} from '@deepseek-ai/dsh-client-modules/client'
 import { apply, inject } from '@deepseek-ai/dsh-client-ui-settings-general/client'
+import { AboutSection } from '../src/client/AboutSection.tsx'
 import { CloseLabel, HeaderContent, TriggerContent } from '../src/client/chrome.tsx'
 import { GeneralSection } from '../src/client/GeneralSection.tsx'
 import { SettingsDocumentAction } from '../src/client/SettingsDocumentAction.tsx'
@@ -21,8 +24,16 @@ const SEATS = [
   ['settings.header', HeaderContent],
   ['settings.action', SettingsDocumentAction],
   ['settings.close', CloseLabel],
-  ['settings.section', GeneralSection],
 ] as const
+
+/** The settings.section components in registration order with their nav rows. */
+const SECTIONS = [
+  [GeneralSection, { id: 'general', order: 0, label: '通用设置' }],
+  [AboutSection, { id: 'about', order: 30, label: '关于' }],
+] as const
+
+/** Every slot name this plugin touches. */
+const SLOT_NAMES = [...SEATS.map(([name]) => name), 'settings.section'] as const
 
 async function bench(isLoopback = true) {
   const ctx = new Context()
@@ -48,6 +59,7 @@ async function bench(isLoopback = true) {
     api: { settings: { describe: settingsDescribe, openDocument: settingsOpenDocument } },
     isLoopback,
   } as never)
+  ctx.provide('appInfo', { version: '0.1.0-test' })
   return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, settingsDescribe, settingsOpenDocument }
 }
 
@@ -73,9 +85,13 @@ function generalEntry(slots: SlotRegistry) {
   return slots.entries('settings.section').find(e => e.component === GeneralSection)
 }
 
+function aboutEntry(slots: SlotRegistry) {
+  return slots.entries('settings.section').find(e => e.component === AboutSection)
+}
+
 describe('ui-settings-general apply', () => {
   it('declares the services it uses', () => {
-    expect(inject).toEqual(['slots', 'locale', 'connection'])
+    expect(inject).toEqual(['slots', 'locale', 'connection', 'appInfo'])
   })
 
   it('fills all five seats for declarations before or after apply', async () => {
@@ -91,6 +107,12 @@ describe('ui-settings-general apply', () => {
     expect(resolveSlotLabel(entry.options.label)).toBe('通用设置')
     expect(before.slots.spec('settings.general.item')).toEqual({ kind: 'list', scope: 'root' })
     expect(before.slots.entries('settings.general.item')).toEqual([])
+    // About closes the nav: the boot document's installation facts reach the
+    // section through the inject face.
+    const about = aboutEntry(before.slots)!
+    expect(about.options).toMatchObject({ id: 'about', order: 30 })
+    expect(resolveSlotLabel(about.options.label)).toBe('关于')
+    expect((about.inject as () => { appInfo: { version: string } })().appInfo.version).toBe('0.1.0-test')
     // The onboarding hole stays declared for feature-owned steps; this plugin
     // no longer seats one.
     expect(before.slots.entries('settings.onboarding')).toEqual([])
@@ -102,9 +124,12 @@ describe('ui-settings-general apply', () => {
     for (const [name] of SEATS) {
       expect(before.slots.entries(name)[0]!.locale).toBe('settings')
     }
+    for (const [component] of SECTIONS) {
+      expect(before.slots.entries('settings.section').find(e => e.component === component)!.locale).toBe('settings')
+    }
     const after = await bench()
     await after.ctx.plugin({ inject: [...inject], apply }).await()
-    for (const [name] of SEATS) expect(after.slots.entries(name)).toHaveLength(0)
+    for (const name of SLOT_NAMES) expect(after.slots.entries(name)).toHaveLength(0)
     declare(after.slots)
     await Promise.resolve()
     for (const [name, component] of SEATS) {
@@ -112,6 +137,7 @@ describe('ui-settings-general apply', () => {
       // The self-inflicted ledger notifications hit the duplicate guard.
       expect(after.slots.entries(name)).toHaveLength(1)
     }
+    expect(after.slots.entries('settings.section').map(e => e.component)).toEqual(SECTIONS.map(([c]) => c))
     await vi.waitFor(() => {
       expect(after.slots.spec('settings.general.item')).toEqual({ kind: 'list', scope: 'root' })
     })
@@ -145,8 +171,10 @@ describe('ui-settings-general apply', () => {
       expect(b.slots.entries(name)).toHaveLength(1)
     })
     expect(resolveSlotLabel(generalEntry(b.slots)!.options.label)).toBe('General')
+    expect(resolveSlotLabel(aboutEntry(b.slots)!.options.label)).toBe('About')
     b.locale.setLocale('zh')
     expect(resolveSlotLabel(generalEntry(b.slots)!.options.label)).toBe('通用设置')
+    expect(resolveSlotLabel(aboutEntry(b.slots)!.options.label)).toBe('关于')
   })
 
   it('refreshes loaded document availability on reconnect without reading it eagerly', async () => {
@@ -171,7 +199,7 @@ describe('ui-settings-general apply', () => {
     expect(b.slots.entries('settings.action')).toEqual([])
     expect(b.settingsDescribe).not.toHaveBeenCalled()
     await fiber.dispose()
-    for (const [name] of SEATS) expect(b.slots.entries(name)).toEqual([])
+    for (const name of SLOT_NAMES) expect(b.slots.entries(name)).toEqual([])
   })
 
   it('re-registers after an HMR collapse of the declaring chain (stale disposers must not block)', async () => {
@@ -181,13 +209,14 @@ describe('ui-settings-general apply', () => {
     // Declarer unload: the cascade removes every seat entry and the item
     // declaration while our local disposers go stale.
     redeclare()
-    for (const [name] of SEATS) expect(b.slots.entries(name)).toHaveLength(0)
+    for (const name of SLOT_NAMES) expect(b.slots.entries(name)).toHaveLength(0)
     expect(b.slots.spec('settings.general.item')).toBeUndefined()
     declare(b.slots)
     await Promise.resolve()
     for (const [name, component] of SEATS) {
       expect(b.slots.entries(name)[0]!.component).toBe(component)
     }
+    expect(b.slots.entries('settings.section').map(e => e.component)).toEqual(SECTIONS.map(([c]) => c))
     expect(b.slots.entries('settings.general.item')).toEqual([])
     expect(b.slots.spec('settings.general.item')).toEqual({ kind: 'list', scope: 'root' })
     // The recovered registrations still ride the locale path.
@@ -203,7 +232,7 @@ describe('ui-settings-general apply', () => {
     await fiber.await()
     expect(b.slots.spec('settings.general.item')).toBeDefined()
     await fiber.dispose()
-    for (const [name] of SEATS) expect(b.slots.entries(name)).toHaveLength(0)
+    for (const name of SLOT_NAMES) expect(b.slots.entries(name)).toHaveLength(0)
     expect(b.slots.spec('settings.general.item')).toBeUndefined()
   })
 })

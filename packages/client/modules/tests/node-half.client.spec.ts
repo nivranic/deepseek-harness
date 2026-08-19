@@ -1,7 +1,8 @@
 /** Node-half composition diagnostics for package metadata and built client bundles. */
 
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -81,6 +82,18 @@ describe('client bundle activation', () => {
     mkdirSync(dirname(clientPath), { recursive: true })
     writeFileSync(clientPath, 'module.exports = {}\n')
     expect(construct([currentName]).graph().entries.map(entry => entry.id)).toEqual([currentName])
+  })
+
+  it('stamps the composing installation version on the graph', () => {
+    const packageName = '@fixture/versioned-graph'
+    const clientPath = writePackage(packageName)
+    mkdirSync(dirname(clientPath), { recursive: true })
+    writeFileSync(clientPath, 'module.exports = {}\n')
+    const own = JSON.parse(readFileSync(
+      createRequire(import.meta.url).resolve('@deepseek-ai/dsh-client-modules/package.json'),
+      'utf8',
+    )) as { version: string }
+    expect(construct([packageName]).graph().version).toBe(own.version)
   })
 
   it('groups missing bundles under one source-build instruction with a package/path list', () => {

@@ -29,35 +29,30 @@
  * {@link ClientModuleSystem}. The package root is the host-side service that
  * composes the wire.
  */
-
-import type {} from '@deepseek-ai/cordis'
 import type { ClientModuleSystem } from './system.ts'
-
 declare module '@deepseek-ai/cordis' {
   interface Context {
     /** The client module system the web shell builds at boot (provided by the `./client` wrapper plugin). */
     modules: ClientModuleLoader
     /**
-     * Installation facts carried on the boot document (provided by the
-     * `./client` wrapper plugin from the parsed manifest).
-     */
+         * Installation facts carried on the boot document (provided by the
+         * `./client` wrapper plugin from the parsed manifest).
+         */
     appInfo: AppInfo
   }
 }
-
 /**
  * Installation facts the host stamps on the boot document. Display-only: a
  * consumer renders these, never branches product behavior on them.
  */
 export interface AppInfo {
   /**
-   * The dsh installation version this graph was composed by (the composing
-   * package's own release version); undefined when an older host composed the
-   * document without one.
-   */
+     * The dsh installation version this graph was composed by (the composing
+     * package's own release version); undefined when an older host composed the
+     * document without one.
+     */
   version: string | undefined
 }
-
 /**
  * One composed client entry pushed by the host (a graph row). Wire
  * single source: the host node half (package root) produces this same shape.
@@ -77,7 +72,6 @@ export interface WebBootEntry {
   /** Stage-one prefetch mark: load the script for factory registration during module-face boot. */
   immediately?: boolean
 }
-
 /** The composed client entry graph the host injects as `window.__DSH_BOOT__`. */
 export interface WebBootGraph {
   /** Consistency anchor over the whole graph (content + bundle hashes). */
@@ -85,13 +79,12 @@ export interface WebBootGraph {
   /** Composed entries; order carries no semantics (activation order is fiber inject waiting). */
   entries: WebBootEntry[]
   /**
-   * The dsh installation version this graph was composed by (the composing
-   * package's own release version — the release flow bumps every package in
-   * lockstep). Absent from documents composed before the field existed.
-   */
+     * The dsh installation version this graph was composed by (the composing
+     * package's own release version — the release flow bumps every package in
+     * lockstep). Absent from documents composed before the field existed.
+     */
   version?: string
 }
-
 /** The npm-package view of one boot row: what the module table needs to fetch the bundle. */
 export interface BootModuleRow {
   /** Entry name == package name (module-table key). */
@@ -101,7 +94,6 @@ export interface BootModuleRow {
   /** Bundle content hash. */
   rev: string
 }
-
 /** The cordis-plugin view of one boot row: what entry composition needs (optional wire fields normalized). */
 export interface BootPluginRow {
   /** Entry name == package name. */
@@ -111,7 +103,6 @@ export interface BootPluginRow {
   /** Stage-one prefetch tier (false when the wire omits it). */
   immediately: boolean
 }
-
 /** The parsed boot manifest: one wire, two consumer views. */
 export interface BootManifest {
   /** Consistency anchor over the whole graph. */
@@ -123,7 +114,6 @@ export interface BootManifest {
   /** The dsh installation version; undefined when the host document omits it. */
   version: string | undefined
 }
-
 /**
  * Parse `window.__DSH_BOOT__` into the two consumer views. Wire boundary:
  * a missing or malformed graph throws (the shell shows the loud failure —
@@ -131,74 +121,34 @@ export interface BootManifest {
  * @param wire - the raw `window.__DSH_BOOT__` value.
  * @returns the manifest with optional plugin-view fields normalized.
  */
-export function parseBootManifest(wire: unknown): BootManifest {
-  if (typeof wire !== 'object' || wire === null) {
-    throw new Error('client-modules: window.__DSH_BOOT__ is missing or not an object')
-  }
-  const graph = wire as Record<string, unknown>
-  if (typeof graph.rev !== 'string') {
-    throw new Error('client-modules: boot manifest rev must be a string')
-  }
-  if (graph.version !== undefined && typeof graph.version !== 'string') {
-    throw new Error('client-modules: boot manifest version must be a string')
-  }
-  if (!Array.isArray(graph.entries)) {
-    throw new Error('client-modules: boot manifest entries must be an array')
-  }
-  const modules: BootModuleRow[] = []
-  const plugins: BootPluginRow[] = []
-  for (const value of graph.entries as unknown[]) {
-    if (typeof value !== 'object' || value === null) {
-      throw new Error('client-modules: boot manifest entry is not an object')
-    }
-    const row = value as Record<string, unknown>
-    const where = typeof row.id === 'string' ? `"${row.id}"` : JSON.stringify(row)
-    if (typeof row.id !== 'string' || typeof row.url !== 'string' || typeof row.rev !== 'string') {
-      throw new Error(`client-modules: boot manifest entry ${where} must carry string id/url/rev`)
-    }
-    if (row.inject !== undefined && (!Array.isArray(row.inject) || row.inject.some(i => typeof i !== 'string'))) {
-      throw new Error(`client-modules: boot manifest entry ${where} inject must be a string array`)
-    }
-    if (row.immediately !== undefined && typeof row.immediately !== 'boolean') {
-      throw new Error(`client-modules: boot manifest entry ${where} immediately must be a boolean`)
-    }
-    modules.push({ id: row.id, url: row.url, rev: row.rev })
-    plugins.push({
-      id: row.id,
-      inject: row.inject === undefined ? [] : [...row.inject as string[]],
-      immediately: row.immediately === true,
-    })
-  }
-  return { rev: graph.rev, modules, plugins, version: graph.version }
-}
-
+export declare function parseBootManifest(wire: unknown): BootManifest
 /** The shape a client bundle hands to `window.__ModuleLoader__.load` (registration handoff). */
 export interface ClientPluginHandoff {
   /** Plugin id (package name) — the registration key; must match the graph row being executed. */
   id: string
   /**
-   * Closure factory holding the whole bundle body: receives the synchronous
-   * require bound to the module table and returns the bundle's exports. Runs
-   * once, at materialization.
-   */
+     * Closure factory holding the whole bundle body: receives the synchronous
+     * require bound to the module table and returns the bundle's exports. Runs
+     * once, at materialization.
+     */
   factory: (require: (spec: string) => unknown) => Record<string, unknown>
 }
-
 /** Window API of the web boot protocol: the host-injected graph, registration sink, and kernel handoff slot. */
 export interface DshWindow {
   /** Host-composed entry graph, injected before the shell bundle runs; wire-boundary raw until {@link parseBootManifest}. */
   __DSH_BOOT__?: unknown
   /** Bundle registration sink; installed once per page by the {@link ClientModuleSystem} constructor. */
-  __ModuleLoader__?: { load(handoff: ClientPluginHandoff): void }
+  __ModuleLoader__?: {
+    load(handoff: ClientPluginHandoff): void
+  }
   /**
-   * Kernel handoff slot: the shell kernel stores the instance here right
-   * after construction (before cordis exists) so the `./client` wrapper
-   * plugin can provide it as `ctx.modules`. Missing slot at wrapper apply
-   * time = kernel sequencing bug, thrown loud.
-   */
+     * Kernel handoff slot: the shell kernel stores the instance here right
+     * after construction (before cordis exists) so the `./client` wrapper
+     * plugin can provide it as `ctx.modules`. Missing slot at wrapper apply
+     * time = kernel sequencing bug, thrown loud.
+     */
   __DSH_MODULES__?: ClientModuleSystem
 }
-
 /** Per-module bookkeeping in {@link ClientModuleLoader.loadCache} (module-graph boundary, flat today). */
 export interface ClientModuleRecord {
   /** Module id (entry name / package name). */
@@ -210,7 +160,6 @@ export interface ClientModuleRecord {
   /** Observed `require()` edges (module-graph boundary; only table words can appear today). */
   edges: Set<string>
 }
-
 /**
  * The internal-contract subset the vendored Loader and the client HMR plugin
  * consume. Mounted on `ctx.loader.internal` by the shell boot and provided
@@ -222,39 +171,38 @@ export interface ClientModuleLoader {
   /** Materialized-module registry: id → record. The governance-side read API for entry exports. */
   loadCache: Map<string, ClientModuleRecord>
   /**
-   * Internal contract consumed by the vendored Loader's `tree.import`. Resolves
-   * `specifier` through the branch order documented on the module, fetching
-   * and executing a bundle when needed.
-   * @param specifier - module specifier (entry name or table word).
-   * @param parentURL - importer URL (unused — the client module graph is flat).
-   * @param attrs - Import attributes (unused; interface parity with Node's loader contract).
-   * @returns the module's exports.
-   */
+     * Internal contract consumed by the vendored Loader's `tree.import`. Resolves
+     * `specifier` through the branch order documented on the module, fetching
+     * and executing a bundle when needed.
+     * @param specifier - module specifier (entry name or table word).
+     * @param parentURL - importer URL (unused — the client module graph is flat).
+     * @param attrs - Import attributes (unused; interface parity with Node's loader contract).
+     * @returns the module's exports.
+     */
   import(specifier: string, parentURL: string, attrs: Record<string, unknown>): Promise<unknown>
   /**
-   * Register a shell-own module (app-shell — code that ships inside the shell
-   * bundle and never arrives as a plugin bundle).
-   * @param id - entry name (shell-owned pseudo id).
-   * @param module - the statically imported module namespace.
-   */
+     * Register a shell-own module (app-shell — code that ships inside the shell
+     * bundle and never arrives as a plugin bundle).
+     * @param id - entry name (shell-owned pseudo id).
+     * @param module - the statically imported module namespace.
+     */
   registerStatic(id: string, module: unknown): void
   /**
-   * Stage-one arrival: load the entry's script to register its factory (no
-   * materialization — module side effects wait for import).
-   * No-op for static-registered ids and ids whose factory is already
-   * registered; concurrent calls share one in-flight task. To force a fresh
-   * load (HMR), {@link invalidate} first.
-   * @param id - graph entry name.
-   */
+     * Stage-one arrival: load the entry's script to register its factory (no
+     * materialization — module side effects wait for import).
+     * No-op for static-registered ids and ids whose factory is already
+     * registered; concurrent calls share one in-flight task. To force a fresh
+     * load (HMR), {@link invalidate} first.
+     * @param id - graph entry name.
+     */
   prefetch(id: string): Promise<void>
   /**
-   * Full reset of one module: drop its registered factory and materialized
-   * record so the next prefetch/import reloads it (the HMR invalidation hook).
-   * @param id - entry name to invalidate.
-   */
+     * Full reset of one module: drop its registered factory and materialized
+     * record so the next prefetch/import reloads it (the HMR invalidation hook).
+     * @param id - entry name to invalidate.
+     */
   invalidate(id: string): void
 }
-
 /** Options for {@link ClientModuleSystem} (assembled by the web shell kernel at boot). */
 export interface ClientModuleSystemOptions {
   /** Boot rows in the module-table view (from {@link parseBootManifest}). */
@@ -264,3 +212,4 @@ export interface ClientModuleSystemOptions {
   /** Bundle-load hook. Defaults to a same-origin classic `<script src>` element. */
   loadBundle?: (url: string) => Promise<void>
 }
+//# sourceMappingURL=manifest.d.ts.map

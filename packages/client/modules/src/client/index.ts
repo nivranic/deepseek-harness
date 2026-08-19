@@ -10,17 +10,18 @@
  * @module @deepseek-ai/dsh-client-modules/client
  */
 import type { Context } from '@deepseek-ai/cordis'
-import type { DshWindow } from './manifest.ts'
+import { parseBootManifest, type DshWindow } from './manifest.ts'
 
 export { ClientModuleSystem } from './system.ts'
 export { parseBootManifest } from './manifest.ts'
 export type {
-  BootManifest, BootModuleRow, BootPluginRow, ClientModuleLoader, ClientModuleRecord,
+  AppInfo, BootManifest, BootModuleRow, BootPluginRow, ClientModuleLoader, ClientModuleRecord,
   ClientModuleSystemOptions, ClientPluginHandoff, DshWindow, WebBootEntry, WebBootGraph,
 } from './manifest.ts'
 
 /**
- * Enroll the kernel-built module system as `ctx.modules`.
+ * Enroll the kernel-built module system as `ctx.modules` and provide the boot
+ * document's installation facts as `ctx.appInfo`.
  * @param ctx - client root context.
  */
 export function apply(ctx: Context): void {
@@ -31,4 +32,8 @@ export function apply(ctx: Context): void {
     throw new Error('client-modules: window.__DSH_MODULES__ missing — the shell kernel must construct the module system before plugin boot')
   }
   ctx.reflect.provide('modules', modules)
+  // The kernel already parsed the same document successfully (boot would not
+  // have reached plugin adoption otherwise); re-parsing is the validated read
+  // of the wire fact, so a throw here names a kernel/parser divergence.
+  ctx.reflect.provide('appInfo', { version: parseBootManifest((globalThis as DshWindow).__DSH_BOOT__).version })
 }

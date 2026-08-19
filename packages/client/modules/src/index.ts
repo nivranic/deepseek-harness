@@ -197,7 +197,8 @@ export class ClientModuleRegistry extends Service {
   private readonly resolvePkgJson: (spec: string) => string
   private flushQueued = false
   private composed: WebBootGraph
-
+  /** The installation version stamped on every composed graph. */
+  private readonly version: string
   /**
    * Build the service: subscribe, seed, and run the activation flush.
    * @param ctx - plugin context carrying the loader.
@@ -213,6 +214,15 @@ export class ClientModuleRegistry extends Service {
     }
     const require = createRequire(ctx.baseUrl)
     this.resolvePkgJson = spec => require.resolve(`${spec}/package.json`)
+    // The graph carries the composing installation's version for display (the
+    // About settings section reads it through the boot document): the release
+    // flow bumps every package in lockstep, so this package's own manifest
+    // version IS the installation version. Self-resolution stays inside the
+    // package in both the src and lib layouts.
+    this.version = (JSON.parse(readFileSync(
+      createRequire(import.meta.url).resolve('@deepseek-ai/dsh-client-modules/package.json'),
+      'utf8',
+    )) as { version: string }).version
 
     // Subscribe before seeding so a fiber arriving mid-activation lands in the
     // same dirty set (Set idempotence makes the overlap harmless). An entry-less
@@ -328,7 +338,7 @@ export class ClientModuleRegistry extends Service {
 
   private compose(): WebBootGraph {
     const entries = [...this.table.values()].map(record => record.entry)
-    return { rev: shortHash(JSON.stringify(entries)), entries }
+    return { rev: shortHash(JSON.stringify(entries)), entries, version: this.version }
   }
 
   private notifyGraphChanged(): void {

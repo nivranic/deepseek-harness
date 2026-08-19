@@ -2,6 +2,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-web-react'
+import type { AboutSectionComponentProps } from '../src/client/AboutSection.tsx'
+import { AboutSection } from '../src/client/AboutSection.tsx'
 import type { GeneralSectionComponentProps } from '../src/client/GeneralSection.tsx'
 import { GeneralSection } from '../src/client/GeneralSection.tsx'
 import { CloseLabel, HeaderContent, TriggerContent } from '../src/client/chrome.tsx'
@@ -55,6 +57,26 @@ describe('GeneralSection', () => {
     const { renderSlot } = mount()
     expect(renderSlot).toHaveBeenCalledWith('settings.general.item', {})
     expect(screen.getByTestId('slot-settings.general.item')).toBeTruthy()
+  })
+})
+
+describe('AboutSection', () => {
+  function mount(version: string | undefined) {
+    const props: AboutSectionComponentProps = { ...kit, close: vi.fn(), t, appInfo: { version } }
+    return render(<AboutSection {...props} />)
+  }
+
+  it('renders the product identity and the installation version', () => {
+    mount('0.1.0-rc.7')
+    expect(screen.getByText('Product')).toBeTruthy()
+    expect(screen.getByText('DeepSeek Harness')).toBeTruthy()
+    expect(screen.getByText('Version')).toBeTruthy()
+    expect(screen.getByText('0.1.0-rc.7')).toBeTruthy()
+  })
+
+  it('renders a placeholder when the boot document carried no version', () => {
+    mount(undefined)
+    expect(screen.getByText('—')).toBeTruthy()
   })
 })
 

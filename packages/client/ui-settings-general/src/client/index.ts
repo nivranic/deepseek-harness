@@ -3,12 +3,14 @@
  * `sidebar.settings` occupant — panel chrome, section navigation, and the
  * onboarding stage — and registers everything on the Settings pages that
  * belongs to no single feature: the trigger/header chrome content,
- * local-document action, General section, and `settings` dictionaries.
- * Feature-owned rows and sections stay with their features.
+ * local-document action, General section, the About section, and `settings`
+ * dictionaries. Feature-owned rows and sections stay with their features.
  * Export discipline: packages/client/AGENTS.md.
  */
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
+// Type-only: the boot document's installation facts Context merge (appInfo).
+import type {} from '@deepseek-ai/dsh-client-modules/client'
 import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
 import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-web-react'
 // Type-only: the settings slot declarations plus the ctx.settingsScope Context
@@ -22,6 +24,8 @@ import type {
 } from './shell-contract.ts'
 import { SettingsRoot } from './SettingsRoot.tsx'
 import { CloseLabel, HeaderContent, TriggerContent } from './chrome.tsx'
+import { AboutSection } from './AboutSection.tsx'
+import type { AboutSectionInjected } from './AboutSection.tsx'
 import { GeneralSection } from './GeneralSection.tsx'
 import { SettingsDocumentAction } from './SettingsDocumentAction.tsx'
 import type { SettingsDocumentActionInjected } from './SettingsDocumentAction.tsx'
@@ -34,6 +38,7 @@ export type {
 export type {
   GeneralSectionComponentProps,
 } from './GeneralSection.tsx'
+export type { AboutSectionComponentProps, AboutSectionInjected } from './AboutSection.tsx'
 export type { SettingsDocumentActionInjected, SettingsDocumentActionProps } from './SettingsDocumentAction.tsx'
 export type { SettingsDocumentState } from './settings-document-store.ts'
 export { SettingsDocumentStore } from './settings-document-store.ts'
@@ -53,8 +58,10 @@ const NS = 'settings'
  * Required services (cordis fiber inject). The target slots are declared by
  * ui-settings' apply, whose activation order relative to this one is NOT
  * constrained; registrations depend on their slots through `slots.inject()`.
+ * `appInfo` arrives from the client-modules wrapper (the modules row mounts in
+ * every browser composition).
  */
-export const inject = ['slots', 'locale', 'connection']
+export const inject = ['slots', 'locale', 'connection', 'appInfo']
 
 /**
  * Register the `settings` dictionaries, the chrome content, and the General
@@ -175,4 +182,16 @@ export function apply(ctx: ClientContext): void {
     locale: NS,
     children: { 'settings.general.item': { kind: 'list', scope: 'root' } },
   }, GeneralSection))
+
+  // About comes last in the nav: product identity and the installation
+  // version from the boot document, owned here as ownerless product copy.
+  const aboutInjected = (): AboutSectionInjected => ({ appInfo: ctx.appInfo })
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section',
+    id: 'about',
+    order: 30,
+    label: () => t('about.nav'),
+    locale: NS,
+    inject: aboutInjected,
+  }, AboutSection))
 }
