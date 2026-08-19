@@ -13,9 +13,9 @@
  * introduces (`pnpm deploy` dirties the root status fingerprint). The
  * pre-clean kills a still-running packaged app, whose exe file would otherwise
  * lock the output directory and fail the builder's empty-dir step. The fixed
- * install at %LOCALAPPDATA%\Programs\deepseek-harness plus the desktop
- * shortcut pointing into it keep working across rebuilds: the output directory
- * is emptied every run, the install location and exe name never change.
+ * install at F:\deepseek-harness plus the desktop shortcut pointing into it
+ * keep working across rebuilds: the output directory is emptied every run,
+ * the install location and exe name never change.
  * @module build-desktop-release
  */
 
@@ -32,10 +32,9 @@ const APP_EXE = join(WIN_UNPACKED, APP_PROCESS)
 const SMOKE_SHOT = join(root, 'dist-desktop', 'smoke.png')
 const SMOKE_LOG = join(root, 'dist-desktop', 'smoke.log')
 
-if (process.env.LOCALAPPDATA === undefined) {
-  fail('LOCALAPPDATA is unset; the fixed install directory cannot be resolved')
-}
-const STABLE_DIR = join(process.env.LOCALAPPDATA, 'Programs', 'deepseek-harness')
+// Fixed per-user install on a data drive, off the system disk; robocopy
+// creates the directory on first use.
+const STABLE_DIR = 'F:\\deepseek-harness'
 const STABLE_EXE = join(STABLE_DIR, APP_PROCESS)
 const SHORTCUT_NAME = 'DeepSeek Harness.lnk'
 
