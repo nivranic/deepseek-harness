@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-host-electron-ipc",
   "description": "Desktop carrier for the browser surface: answers the renderer's in-process fetch bridge with the shared /api chain, the client plugin bundles, and the boot-manifest-injected frontend dist; binds no socket",
-  "version": "0.1.0-rc.5",
+  "version": "0.1.0-rc.7",
   "publishConfig": {
     "access": "public"
   },
