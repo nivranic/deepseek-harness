@@ -3,7 +3,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createRequire } from 'node:module'
-import { tmpdir } from 'node:os'
+import { release, tmpdir, type as osType } from 'node:os'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
@@ -94,6 +94,20 @@ describe('client bundle activation', () => {
       'utf8',
     )) as { version: string }
     expect(construct([packageName]).graph().version).toBe(own.version)
+  })
+
+  it('stamps the host runtime environment on the graph', () => {
+    const packageName = '@fixture/runtime-graph'
+    const clientPath = writePackage(packageName)
+    mkdirSync(dirname(clientPath), { recursive: true })
+    writeFileSync(clientPath, 'module.exports = {}\n')
+    const runtime = construct([packageName]).graph().runtime
+    expect(runtime).toBeDefined()
+    expect(runtime!.node).toBe(process.versions.node)
+    expect(runtime!.os).toBe(`${osType()} ${process.arch} ${release()}`)
+    // A plain-Node host carries no Electron process facts.
+    expect(runtime!.electron).toBeUndefined()
+    expect(runtime!.chrome).toBeUndefined()
   })
 
   it('groups missing bundles under one source-build instruction with a package/path list', () => {

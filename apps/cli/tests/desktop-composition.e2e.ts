@@ -106,6 +106,10 @@ describe('the shipped desktop composition', () => {
     expect(html).toContain('window.__DSH_BOOT__')
     // The boot graph carries the browser roster the modules half composed.
     expect(html).toContain('@deepseek-ai/dsh-client-connection')
+    // The graph also stamps the host runtime facts; this gateway runs in plain
+    // Node, so the wire block carries node/os and JSON-drops the Electron-only
+    // chrome/electron fields.
+    expect(html).toContain(`"runtime":{"node":"${process.versions.node}"`)
   })
 
   it('serves client plugin bundles through the gateway', async () => {

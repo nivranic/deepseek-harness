@@ -11,6 +11,10 @@ export const zh = {
   'about.nav': '关于',
   'about.product': '产品',
   'about.version': '版本',
+  'about.kernel': '内核',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': '操作系统',
 } satisfies Record<string, string>
 
 /** The settings namespace key union. */
@@ -27,4 +31,8 @@ export const en = {
   'about.nav': 'About',
   'about.product': 'Product',
   'about.version': 'Version',
+  'about.kernel': 'Kernel',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'Operating System',
 } satisfies Record<SettingsKey, string>

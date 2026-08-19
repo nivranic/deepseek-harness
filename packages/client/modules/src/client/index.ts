@@ -16,7 +16,7 @@ export { ClientModuleSystem } from './system.ts'
 export { parseBootManifest } from './manifest.ts'
 export type {
   AppInfo, BootManifest, BootModuleRow, BootPluginRow, ClientModuleLoader, ClientModuleRecord,
-  ClientModuleSystemOptions, ClientPluginHandoff, DshWindow, WebBootEntry, WebBootGraph,
+  ClientPluginHandoff, ClientModuleSystemOptions, DshWindow, HostRuntimeInfo, WebBootEntry, WebBootGraph,
 } from './manifest.ts'
 
 /**
@@ -34,6 +34,7 @@ export function apply(ctx: Context): void {
   ctx.reflect.provide('modules', modules)
   // The kernel already parsed the same document successfully (boot would not
   // have reached plugin adoption otherwise); re-parsing is the validated read
-  // of the wire fact, so a throw here names a kernel/parser divergence.
-  ctx.reflect.provide('appInfo', { version: parseBootManifest((globalThis as DshWindow).__DSH_BOOT__).version })
+  // of the wire facts, so a throw here names a kernel/parser divergence.
+  const manifest = parseBootManifest((globalThis as DshWindow).__DSH_BOOT__)
+  ctx.reflect.provide('appInfo', { version: manifest.version, runtime: manifest.runtime })
 }

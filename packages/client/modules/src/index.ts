@@ -25,15 +25,16 @@ import { readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createRequire } from 'node:module'
+import { release, type as osType } from 'node:os'
 import { dirname, join } from 'node:path'
 import { Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
 import type {} from '@deepseek-ai/dsh-host-webserver'
-import type { WebBootEntry, WebBootGraph } from './client/manifest.ts'
+import type { HostRuntimeInfo, WebBootEntry, WebBootGraph } from './client/manifest.ts'
 
 export type {
-  BootManifest, BootModuleRow, BootPluginRow, WebBootEntry, WebBootGraph,
+  BootManifest, BootModuleRow, BootPluginRow, HostRuntimeInfo, WebBootEntry, WebBootGraph,
 } from './client/manifest.ts'
 
 declare module '@deepseek-ai/cordis' {
@@ -199,6 +200,8 @@ export class ClientModuleRegistry extends Service {
   private composed: WebBootGraph
   /** The installation version stamped on every composed graph. */
   private readonly version: string
+  /** The host runtime environment facts stamped on every composed graph. */
+  private readonly runtime: HostRuntimeInfo
   /**
    * Build the service: subscribe, seed, and run the activation flush.
    * @param ctx - plugin context carrying the loader.
@@ -223,6 +226,15 @@ export class ClientModuleRegistry extends Service {
       createRequire(import.meta.url).resolve('@deepseek-ai/dsh-client-modules/package.json'),
       'utf8',
     )) as { version: string }).version
+    // The About settings section renders these beside the version. Only an
+    // Electron main process carries chrome/electron versions; a plain-Node
+    // host leaves both undefined and JSON.stringify drops them from the wire.
+    this.runtime = {
+      node: process.versions.node,
+      chrome: process.versions.chrome,
+      electron: process.versions.electron,
+      os: `${osType()} ${process.arch} ${release()}`,
+    }
 
     // Subscribe before seeding so a fiber arriving mid-activation lands in the
     // same dirty set (Set idempotence makes the overlap harmless). An entry-less
@@ -338,7 +350,7 @@ export class ClientModuleRegistry extends Service {
 
   private compose(): WebBootGraph {
     const entries = [...this.table.values()].map(record => record.entry)
-    return { rev: shortHash(JSON.stringify(entries)), entries, version: this.version }
+    return { rev: shortHash(JSON.stringify(entries)), entries, version: this.version, runtime: this.runtime }
   }
 
   private notifyGraphChanged(): void {

@@ -59,7 +59,7 @@ async function bench(isLoopback = true) {
     api: { settings: { describe: settingsDescribe, openDocument: settingsOpenDocument } },
     isLoopback,
   } as never)
-  ctx.provide('appInfo', { version: '0.1.0-test' })
+  ctx.provide('appInfo', { version: '0.1.0-test', runtime: undefined })
   return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, settingsDescribe, settingsOpenDocument }
 }
 

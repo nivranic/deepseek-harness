@@ -22,7 +22,7 @@ async function bench() {
     isLoopback: false,
   } as never)
   ctx.provide('remote', { $on: () => () => {} } as never)
-  ctx.provide('appInfo', { version: '0.1.0-test' })
+  ctx.provide('appInfo', { version: '0.1.0-test', runtime: undefined })
   return { ctx, slots: ctx.get('slots') as SlotRegistry }
 }
 

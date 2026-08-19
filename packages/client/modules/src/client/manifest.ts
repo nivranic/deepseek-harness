@@ -56,6 +56,27 @@ export interface AppInfo {
    * document without one.
    */
   version: string | undefined
+  /**
+   * Host runtime environment facts; undefined when an older host composed the
+   * document without the block.
+   */
+  runtime: HostRuntimeInfo | undefined
+}
+
+/**
+ * Host runtime environment facts of the composing process. The
+ * Electron/Chromium fields stay undefined under a plain-Node host (the
+ * web-server surface), which drops them from the wire document.
+ */
+export interface HostRuntimeInfo {
+  /** Node.js version of the composing host process. */
+  node: string
+  /** Chromium version; present only when the host runs inside an Electron main process. */
+  chrome: string | undefined
+  /** Electron version; present only when the host runs inside an Electron main process. */
+  electron: string | undefined
+  /** One-line OS identification, e.g. `Windows_NT x64 10.0.26200`. */
+  os: string
 }
 
 /**
@@ -90,6 +111,8 @@ export interface WebBootGraph {
    * lockstep). Absent from documents composed before the field existed.
    */
   version?: string
+  /** Host runtime environment facts; absent from documents composed before the field existed. */
+  runtime?: HostRuntimeInfo
 }
 
 /** The npm-package view of one boot row: what the module table needs to fetch the bundle. */
@@ -122,6 +145,8 @@ export interface BootManifest {
   plugins: BootPluginRow[]
   /** The dsh installation version; undefined when the host document omits it. */
   version: string | undefined
+  /** Host runtime environment facts; undefined when the host document omits them. */
+  runtime: HostRuntimeInfo | undefined
 }
 
 /**
@@ -141,6 +166,23 @@ export function parseBootManifest(wire: unknown): BootManifest {
   }
   if (graph.version !== undefined && typeof graph.version !== 'string') {
     throw new Error('client-modules: boot manifest version must be a string')
+  }
+  let runtime: HostRuntimeInfo | undefined
+  if (graph.runtime !== undefined) {
+    if (typeof graph.runtime !== 'object' || graph.runtime === null) {
+      throw new Error('client-modules: boot manifest runtime must be an object')
+    }
+    const { node, os, chrome, electron } = graph.runtime as Record<string, unknown>
+    if (typeof node !== 'string' || typeof os !== 'string') {
+      throw new Error('client-modules: boot manifest runtime.node and runtime.os must be strings')
+    }
+    if (chrome !== undefined && typeof chrome !== 'string') {
+      throw new Error('client-modules: boot manifest runtime.chrome must be a string')
+    }
+    if (electron !== undefined && typeof electron !== 'string') {
+      throw new Error('client-modules: boot manifest runtime.electron must be a string')
+    }
+    runtime = { node, os, chrome, electron }
   }
   if (!Array.isArray(graph.entries)) {
     throw new Error('client-modules: boot manifest entries must be an array')
@@ -169,7 +211,7 @@ export function parseBootManifest(wire: unknown): BootManifest {
       immediately: row.immediately === true,
     })
   }
-  return { rev: graph.rev, modules, plugins, version: graph.version }
+  return { rev: graph.rev, modules, plugins, version: graph.version, runtime }
 }
 
 /** The shape a client bundle hands to `window.__ModuleLoader__.load` (registration handoff). */
