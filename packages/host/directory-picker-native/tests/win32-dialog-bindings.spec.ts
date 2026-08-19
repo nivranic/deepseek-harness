@@ -9,6 +9,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { readNativeUtf16 } from '../src/win32-dialog-bindings.ts'
 import { HRESULT_CANCELLED, runFolderDialog } from '../src/win32-dialog-logic.ts'
 
 const E_FAIL = 0x80004005 | 0
@@ -106,6 +107,8 @@ function installFakeKoffi(world: ComWorld): void {
             }
             case 'CoTaskMemFree': return (ptr: unknown) => { world.freed.push(ptr) }
             case 'GetCurrentThreadId': return () => 31337
+            case 'lstrlenW': return (ptr: FakePtr) => (ptr.text as string).length
+            case 'RtlMoveMemory': return (dst: Buffer, src: FakePtr, _bytes: number) => { dst.write(src.text as string, 'utf16le') }
             case 'SetThreadDpiAwarenessContext': {
               if (!world.hasThreadDpi) throw new Error(`${dll}: SetThreadDpiAwarenessContext not found`)
               return (context: unknown) => {
@@ -127,15 +130,13 @@ function installFakeKoffi(world: ComWorld): void {
       proto: (declaration: string) => ({ declaration }),
       pointer: (type: unknown) => type,
       sizeof: (type: string) => { void type; return FAKE_POINTER_SIZE },
-      view: (value: unknown, len: number): ArrayBuffer => {
-        const bytes = Buffer.alloc(len)
-        bytes.write((value as FakePtr).text as string, 'utf16le')
-        return bytes.buffer
-      },
+      // Regression guard: external ArrayBuffers over native memory fatally
+      // reject under the packaged Electron-as-Node runtime, so the bindings
+      // must never go through view() again.
+      view: () => { throw new Error('koffi.view must not be used: external ArrayBuffer fatal under Electron-as-Node') },
       register: (fn: (hwnd: unknown, lparam: unknown) => number) => { world.registered += 1; return { fn } },
       unregister: () => { world.unregistered += 1 },
       decode: (value: unknown, offsetOrType: unknown): unknown => {
-        if (offsetOrType === 'str16') return (value as FakePtr).text
         if (typeof offsetOrType === 'number') {
           // Vtable slot read: offsets must be multiples of the fake width.
           if (offsetOrType % FAKE_POINTER_SIZE !== 0) throw new Error(`vtable offset ${offsetOrType} is not pointer-aligned`)
@@ -262,6 +263,50 @@ describe('closeThreadWindows over the fake COM world', () => {
     await expect(closeThreadWindows(777)).rejects.toThrow('EnumThreadWindows refused')
     expect(world.unregistered).toBe(1)
   })
+})
+
+describe('readNativeUtf16 against a real shell item', () => {
+  // win32-only: the packaged app's selection path died here — a real
+  // GetDisplayName address read through the old koffi.view external
+  // ArrayBuffer. This pins the replacement against real COM memory on every
+  // win32 host, under whatever heap the test runner itself uses.
+  it.skipIf(process.platform !== 'win32')('reads the filesystem path of a real GetDisplayName result', async () => {
+    const koffi = (await import('koffi')).default as unknown as import('../src/win32-dialog-bindings.ts').Koffi
+    const ole32 = koffi.load('ole32.dll')
+    const shell32 = koffi.load('shell32.dll')
+    const kernel32 = koffi.load('kernel32.dll')
+    const coInitializeEx = ole32.func('__stdcall', 'CoInitializeEx', 'int32', ['void *', 'uint32'])
+    const coTaskMemFree = ole32.func('__stdcall', 'CoTaskMemFree', 'void', ['void *'])
+    const shCreateItemFromParsingName = shell32.func('__stdcall', 'SHCreateItemFromParsingName', 'int32', ['str16', 'void *', 'void *', 'void *'])
+    const lstrlenW = kernel32.func('__stdcall', 'lstrlenW', 'int32', ['void *'])
+    const moveMemory = kernel32.func('__stdcall', 'RtlMoveMemory', 'void', ['void *', 'void *', 'size_t'])
+    expect(coInitializeEx(null, 2)).toBeGreaterThanOrEqual(0)
+
+    // IID_IShellItem in the little-endian GUID byte layout CoCreateInstance-style APIs expect.
+    const iid = Buffer.alloc(16)
+    iid.writeUInt32LE(0x43826d1e, 0)
+    iid.writeUInt16LE(0xe718, 4)
+    iid.writeUInt16LE(0x42ee, 6)
+    Buffer.from('bc55a1e261c37bfe', 'hex').copy(iid, 8)
+    const pointerSize = koffi.sizeof('void *')
+    const itemOut = Buffer.alloc(pointerSize)
+    const hr = shCreateItemFromParsingName(process.cwd(), null, iid, itemOut)
+    expect(hr, 'SHCreateItemFromParsingName').toBeGreaterThanOrEqual(0)
+
+    const item = koffi.decode(itemOut, 'void *')
+    const vtable = koffi.decode(item, 'void *')
+    const getDisplayName = koffi.decode(vtable, 5 * pointerSize, 'void *')
+    const protoGetDisplayName = koffi.proto('int32 __stdcall DshItemGetDisplayName(void *self, int32 form, _Out_ void **name)')
+    try {
+      const nameOut: unknown[] = [null]
+      const SIGDN_FILESYSPATH = 0x80058000 | 0
+      expect(koffi.call(getDisplayName, protoGetDisplayName, item, SIGDN_FILESYSPATH, nameOut)).toBe(0)
+      expect(readNativeUtf16(lstrlenW, moveMemory, nameOut[0]).toLowerCase()).toBe(process.cwd().toLowerCase())
+      coTaskMemFree(nameOut[0])
+    } finally {
+      koffi.call(koffi.decode(vtable, 2 * pointerSize, 'void *'), koffi.proto('uint32 __stdcall DshComRelease(void *self)'), item)
+    }
+  }, 30_000)
 })
 
 describe('the worker entry over a mocked process boundary', () => {
