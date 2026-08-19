@@ -1,7 +1,7 @@
 /**
  * One-shot desktop release build: dependency resync → workspace build → exe
- * packaging → packaged-app smoke → final resync. One command, artifacts under
- * dist-desktop/out:
+ * packaging → fixed-location install → packaged-app smoke → desktop shortcut →
+ * final resync. One command, artifacts under dist-desktop/out:
  *
  *   node --import tsx/esm scripts/build-desktop-release.ts
  *
@@ -12,20 +12,32 @@
  * root. The trailing resync cures the same drift the packaging run itself
  * introduces (`pnpm deploy` dirties the root status fingerprint). The
  * pre-clean kills a still-running packaged app, whose exe file would otherwise
- * lock the output directory and fail the builder's empty-dir step.
+ * lock the output directory and fail the builder's empty-dir step. The fixed
+ * install at %LOCALAPPDATA%\Programs\deepseek-harness plus the desktop
+ * shortcut pointing into it keep working across rebuilds: the output directory
+ * is emptied every run, the install location and exe name never change.
  * @module build-desktop-release
  */
 
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { closeSync, existsSync, openSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT_DIR = join(root, 'dist-desktop', 'out')
-const APP_EXE = join(OUT_DIR, 'win-unpacked', 'DeepSeek Harness.exe')
-const SMOKE_SHOT = join(root, 'dist-desktop', 'smoke.png')
 const APP_PROCESS = 'DeepSeek Harness.exe'
+const OUT_DIR = join(root, 'dist-desktop', 'out')
+const WIN_UNPACKED = join(OUT_DIR, 'win-unpacked')
+const APP_EXE = join(WIN_UNPACKED, APP_PROCESS)
+const SMOKE_SHOT = join(root, 'dist-desktop', 'smoke.png')
+const SMOKE_LOG = join(root, 'dist-desktop', 'smoke.log')
+
+if (process.env.LOCALAPPDATA === undefined) {
+  fail('LOCALAPPDATA is unset; the fixed install directory cannot be resolved')
+}
+const STABLE_DIR = join(process.env.LOCALAPPDATA, 'Programs', 'deepseek-harness')
+const STABLE_EXE = join(STABLE_DIR, APP_PROCESS)
+const SHORTCUT_NAME = 'DeepSeek Harness.lnk'
 
 // Constrained-network defaults; an explicit environment value always wins.
 process.env.ELECTRON_MIRROR ??= 'https://npmmirror.com/mirrors/electron/'
@@ -89,42 +101,127 @@ function cleanOutputDir(): void {
 }
 
 /**
- * Launch the packaged exe under the built-in smoke-shot hook and await the
- * capture. The screenshot is the verdict: the failed-boot page captures ~20 KB
- * while a settled real UI is several times that, so an undersized shot fails
- * the build and names the file to inspect.
+ * Mirror the freshly packaged win-unpacked tree into the fixed per-user
+ * install directory, replacing the previous release whole (robocopy /MIR; exit
+ * codes below 8 are its success range, 1 = files copied). The leading app kill
+ * freed the files; anything still locked fails loud here.
  */
-async function smoke(): Promise<void> {
-  rmSync(SMOKE_SHOT, { force: true })
+function syncStableInstall(): void {
   if (!existsSync(APP_EXE)) fail(`packaged exe missing at ${APP_EXE}`)
-  const child = spawn(APP_EXE, ['--enable-logging'], {
-    cwd: root,
-    detached: true,
-    stdio: 'ignore',
-    shell: false,
-    env: { ...process.env, DSH_DESKTOP_SMOKE_SHOT: SMOKE_SHOT },
-  })
-  child.unref()
-  log(`smoke: launched pid ${String(child.pid)}, awaiting the settled-UI capture`)
-  const deadline = Date.now() + 90_000
-  while (Date.now() < deadline) {
-    await new Promise((resolveTick) => { setTimeout(resolveTick, 3000) })
-    if (!existsSync(SMOKE_SHOT)) continue
-    const size = statSync(SMOKE_SHOT).size
-    if (size < 40_000) {
-      fail(`smoke shot is only ${String(size)} bytes (a failed boot captures ~20 KB); inspect ${SMOKE_SHOT}`)
-    }
-    log(`smoke: settled UI captured (${String(size)} bytes) at ${SMOKE_SHOT}`)
-    return
-  }
-  fail(`no smoke shot after 90 s; run the app manually to inspect: ${APP_EXE}`)
+  log(`installing the new build to the fixed location ${STABLE_DIR}`)
+  const result = spawnSync(
+    'robocopy',
+    [WIN_UNPACKED, STABLE_DIR, '/MIR', '/NFL', '/NDL', '/NJH', '/NJS', '/NP', '/R:2', '/W:1'],
+    { stdio: 'ignore' },
+  )
+  const code = result.status ?? 1
+  if (code >= 8) fail(`robocopy exited ${String(code)} syncing ${STABLE_DIR}; close any process holding it and retry`)
+  if (!existsSync(STABLE_EXE)) fail(`stable install incomplete: ${STABLE_EXE} missing after robocopy`)
 }
 
-/** Print the artifact inventory with sizes. */
+/**
+ * Create or refresh the desktop shortcut pointing at the fixed install.
+ * Best effort: on failure the run still succeeds and the fallback is manual —
+ * right-click the exe → Send to → Desktop (create shortcut).
+ */
+function ensureDesktopShortcut(): void {
+  if (process.platform !== 'win32') return
+  // PowerShell single-quoted literal: no interpolation, embedded quotes doubled.
+  const psLiteral = (value: string): string => `'${value.replaceAll("'", "''")}'`
+  // One argv element through spawn (no shell quoting on the Node side).
+  const script = [
+    '$desktop = [Environment]::GetFolderPath("Desktop")',
+    '$shell = New-Object -ComObject WScript.Shell',
+    `$link = $shell.CreateShortcut((Join-Path $desktop ${psLiteral(SHORTCUT_NAME)}))`,
+    `$link.TargetPath = ${psLiteral(STABLE_EXE)}`,
+    `$link.WorkingDirectory = ${psLiteral(STABLE_DIR)}`,
+    '$link.Save()',
+    'Write-Output $desktop',
+  ].join('; ')
+  const result = spawnSync(
+    'powershell',
+    ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
+    { encoding: 'utf8' },
+  )
+  if (result.status !== 0) {
+    log(`warning: desktop shortcut not created automatically; make one by hand from ${STABLE_EXE}`)
+    return
+  }
+  log(`desktop shortcut ready at ${join(result.stdout.trim(), SHORTCUT_NAME)}`)
+}
+
+/**
+ * Launch the FIXED install under the built-in smoke-shot hook and await the
+ * capture, so the verdict covers exactly what the desktop shortcut launches.
+ * The screenshot is the decision: the failed-boot page captures ~20 KB while a
+ * settled real UI is several times that. App output lands in smoke.log and a
+ * failed attempt prints its tail — without it a broken launch leaves nothing
+ * to diagnose. One retry absorbs the first-launch transient of a freshly
+ * synced install (real-time antivirus scanning the new files); the retried
+ * attempt must still clear the full settled-UI bar.
+ */
+async function smoke(): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      rmSync(SMOKE_SHOT, { force: true })
+      if (!existsSync(STABLE_EXE)) fail(`stable install exe missing at ${STABLE_EXE}`)
+      const logFd = openSync(SMOKE_LOG, 'w')
+      try {
+        const child = spawn(STABLE_EXE, ['--enable-logging'], {
+          cwd: root,
+          detached: true,
+          stdio: ['ignore', logFd, logFd],
+          shell: false,
+          env: { ...process.env, DSH_DESKTOP_SMOKE_SHOT: SMOKE_SHOT },
+        })
+        child.unref()
+        log(`smoke: launched pid ${String(child.pid)} (attempt ${String(attempt)}), awaiting the settled-UI capture; app output: ${SMOKE_LOG}`)
+        const deadline = Date.now() + 90_000
+        while (Date.now() < deadline) {
+          await new Promise((resolveTick) => { setTimeout(resolveTick, 3000) })
+          if (!existsSync(SMOKE_SHOT)) continue
+          const size = statSync(SMOKE_SHOT).size
+          if (size >= 40_000) {
+            log(`smoke: settled UI captured (${String(size)} bytes) at ${SMOKE_SHOT}`)
+            return
+          }
+          throw new Error(`smoke shot is only ${String(size)} bytes (a failed boot captures ~20 KB); inspect ${SMOKE_SHOT}`)
+        }
+        throw new Error(`no smoke shot after 90 s; run the app manually to inspect: ${STABLE_EXE}`)
+      } finally {
+        closeSync(logFd)
+      }
+    } catch (error: unknown) {
+      printSmokeLogTail()
+      if (attempt >= 2) fail(String(error))
+      log('smoke: retrying once after a cool-down')
+      // A timeout leaves the app running; free its files before relaunching.
+      spawnSync('taskkill', ['/F', '/IM', APP_PROCESS], { shell: true, stdio: 'ignore' })
+      await new Promise((resolveTick) => { setTimeout(resolveTick, 15_000) })
+    }
+  }
+}
+
+/** Print the tail of the captured app output so a failed attempt names its cause. */
+function printSmokeLogTail(): void {
+  try {
+    const lines = readFileSync(SMOKE_LOG, 'utf8').trim().split('\n')
+    if (lines.length === 0) return
+    log('smoke.log tail:')
+    for (const line of lines.slice(-30)) console.log(`  | ${line}`)
+  } catch {
+    // The app wrote no output before the failure; the screenshot is the evidence.
+  }
+}
+
+/** Print the artifact inventory with sizes, the fixed install first. */
 function reportArtifacts(): void {
-  const names = [...readdirSync(OUT_DIR).filter(name => name.endsWith('.exe')), APP_EXE]
+  const paths = [
+    STABLE_EXE,
+    ...readdirSync(OUT_DIR).filter(name => name.endsWith('.exe')).map(name => join(OUT_DIR, name)),
+  ]
   log('artifacts:')
-  for (const path of names) {
+  for (const path of paths) {
     log(`  ${String(statSync(path).size).padStart(10)} bytes  ${path}`)
   }
 }
@@ -138,7 +235,9 @@ async function main(): Promise<void> {
   await run('pnpm', ['run', 'build'], 'pnpm run build', true)
   log('packaging the exe (fresh stage + electron-builder)')
   await run(process.execPath, ['--import', 'tsx/esm', 'scripts/build-desktop-exe.ts'], 'build-desktop-exe', false)
+  syncStableInstall()
   await smoke()
+  ensureDesktopShortcut()
   reportArtifacts()
   log('resyncing dependencies again (packaging dirties the root status fingerprint)')
   await run('pnpm', ['install'], 'final pnpm install', true)

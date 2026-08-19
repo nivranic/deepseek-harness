@@ -239,10 +239,23 @@ describe('healProfilesModuleFallback', () => {
     expect(before).toContain('dep-of-a')
   })
 
-  it('throws when a fallback entry is a real directory', () => {
+  it('takes over an empty real directory left by an interrupted junction create', () => {
+    // Windows junction creation is directory-then-reparse-point; a hard kill
+    // between the steps leaves exactly this empty plain directory.
     const anchor = stageInstallation({})
     const home = tmp()
-    mkdirSync(join(home, 'profiles', 'node_modules', 'dsh-app'), { recursive: true })
+    const fallback = join(home, 'profiles', 'node_modules')
+    mkdirSync(join(fallback, 'dsh-app'), { recursive: true })
+    healProfilesModuleFallback(anchor, home)
+    expect(lstatSync(join(fallback, 'dsh-app')).isSymbolicLink()).toBe(true)
+  })
+
+  it('throws when a fallback entry is a real directory with content', () => {
+    const anchor = stageInstallation({})
+    const home = tmp()
+    const stray = join(home, 'profiles', 'node_modules', 'dsh-app')
+    mkdirSync(stray, { recursive: true })
+    writeFileSync(join(stray, 'keep.txt'), 'user content\n')
     expect(() => { healProfilesModuleFallback(anchor, home) }).toThrow('is not a symlink')
   })
 

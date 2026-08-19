@@ -3,14 +3,15 @@
  * privileged `dsh:` scheme before ready, boots the `desktop` profile through
  * the shared dsh profile launcher, wires every renderer request of the scheme
  * to the tree-provided desktopGateway (the in-process fetch bridge), and owns
- * the window and bounded-shutdown lifecycle. No preload is needed: the carrier
+ * the window, its shell menu (Help → About carries the version), and the
+ * bounded-shutdown lifecycle. No preload is needed: the carrier
  * is the scheme itself, so `contextIsolation` stays on with nothing exposed.
  * @module @deepseek-ai/dsh-desktop/main
  */
 
 /* v8 ignore file -- exercised by the packaged app and the desktop e2e boot. */
 
-import { app, BrowserWindow, protocol } from 'electron'
+import { app, BrowserWindow, dialog, Menu, protocol } from 'electron'
 import { writeFile } from 'node:fs/promises'
 import { loadLayeredEnv } from '@deepseek-ai/dsh-app-boot'
 import type { Context } from '@deepseek-ai/cordis'
@@ -100,7 +101,40 @@ function armSmokeShot(window: BrowserWindow): void {
   })
 }
 
+/**
+ * The shell menu: the platform edit/view/window roles plus Help → About. The
+ * About dialog carries the packaged version (`app.getVersion()` reads the
+ * staged manifest, so it names the release the exe was built from) beside the
+ * bundled engine versions.
+ */
+function installMenu(): void {
+  const about = (): void => {
+    const options = {
+      type: 'info' as const,
+      title: 'About DeepSeek Harness',
+      message: 'DeepSeek Harness',
+      detail: [
+        `Version: ${app.getVersion()}`,
+        `Electron: ${process.versions.electron}`,
+        `Node: ${process.versions.node}`,
+        `Chromium: ${process.versions.chrome}`,
+      ].join('\n'),
+      buttons: ['OK'],
+    }
+    const window = BrowserWindow.getAllWindows()[0]
+    if (window === undefined) void dialog.showMessageBox(options)
+    else void dialog.showMessageBox(window, options)
+  }
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    { role: 'editMenu' },
+    { role: 'viewMenu' },
+    { role: 'windowMenu' },
+    { label: 'Help', submenu: [{ label: 'About DeepSeek Harness', click: about }] },
+  ]))
+}
+
 void app.whenReady().then(() => {
+  installMenu()
   // Register before any window: renderer fetches queue on the promise until
   // the tree settles, so an early request never sees an unhandled scheme.
   const gatewayReady = startGateway()

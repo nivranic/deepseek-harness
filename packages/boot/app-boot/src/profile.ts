@@ -24,7 +24,8 @@
 
 import { createRequire } from 'node:module'
 import {
-  existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, symlinkSync, unlinkSync, writeFileSync,
+  existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, rmdirSync,
+  symlinkSync, unlinkSync, writeFileSync,
 } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
@@ -180,12 +181,22 @@ function ensureSymlink(link: string, target: string): void {
   }
   if (stat !== undefined) {
     if (!stat.isSymbolicLink()) {
-      throw new Error(`dsh: ${link} exists and is not a symlink; remove it so dsh can manage the installation fallback`)
+      // A Windows junction is created as a plain directory and only then given
+      // its reparse point; a hard kill between the two steps leaves an empty
+      // directory at the link path. That residue is this heal's own
+      // interrupted create, so the next run removes and redoes it; real
+      // content still fails loud.
+      if (stat.isDirectory() && readdirSync(link).length === 0) {
+        rmdirSync(link)
+      } else {
+        throw new Error(`dsh: ${link} exists and is not a symlink; remove it so dsh can manage the installation fallback`)
+      }
+    } else {
+      if (readlinkSync(link) === target) return
+      // unlink deletes the reparse point itself on Windows too; rmSync treats a
+      // junction as a directory and throws EISDIR unless recursive.
+      unlinkSync(link)
     }
-    if (readlinkSync(link) === target) return
-    // unlink deletes the reparse point itself on Windows too; rmSync treats a
-    // junction as a directory and throws EISDIR unless recursive.
-    unlinkSync(link)
   }
   try {
     symlinkSync(target, link, 'junction')
