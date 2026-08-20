@@ -4,7 +4,10 @@
  * the shared dsh profile launcher, wires every renderer request of the scheme
  * to the tree-provided desktopGateway (the in-process fetch bridge), and owns
  * the window and the bounded-shutdown lifecycle — the menu bar is removed and
- * the version surface lives in the web Settings dialog. No preload is needed:
+ * the version surface lives in the web Settings dialog. The close button
+ * follows the tree's `desktop` settings namespace (hide to the tray by
+ * default, or quit), read live at close time; the app runs single-instance so
+ * a second launch reveals the hidden window. No preload is needed:
  * the carrier
  * is the scheme itself, so `contextIsolation` stays on with nothing exposed.
  * @module @deepseek-ai/dsh-desktop/main
@@ -12,13 +15,32 @@
 
 /* v8 ignore file -- exercised by the packaged app and the desktop e2e boot. */
 
-import { app, BrowserWindow, Menu, protocol } from 'electron'
+import { app, BrowserWindow, Menu, powerMonitor, protocol, screen, Tray } from 'electron'
 import { writeFile } from 'node:fs/promises'
 import { loadLayeredEnv } from '@deepseek-ai/dsh-app-boot'
 import type { Context } from '@deepseek-ai/cordis'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
+import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import { runProfile } from '@deepseek-ai/dsh/profile-boot'
 import { DSH_SCHEME, ENTRY_URL } from './scheme.ts'
+
+/**
+ * The settings namespace the ui-desktop host half registers — a local mirror
+ * of `DESKTOP_SETTINGS_NAMESPACE`, kept honest by the desktop composition e2e
+ * (it round-trips the real namespace the composition serves). The package
+ * itself stays unimported here: any import would pull its sources into this
+ * host project (TS6307), and a project reference would drag its client half
+ * into the typert host-face programs.
+ */
+const desktopNamespace = settingsNamespace('desktop')
+
+/** What the desktop window's close button does (mirror of the ui-desktop schema's union). */
+type DesktopCloseAction = 'tray' | 'quit'
+
+/** The `desktop` settings section (mirror of the ui-desktop package's type). */
+interface DesktopSettings {
+  closeAction: DesktopCloseAction
+}
 
 // The package name carries a scope slash, which is invalid inside the
 // userData directory path; pin a filesystem-safe app name before any path is
@@ -73,6 +95,110 @@ const PRELUDE_URL = `data:text/html,${encodeURIComponent(`<!doctype html>
 /** The booted tree, kept for window-close teardown. */
 let booted: { ctx: Context; shutdown: { shutdown(code: number): Promise<void> } } | undefined
 
+/** The application window, tracked for tray restore and second-instance focus. */
+let mainWindow: BrowserWindow | undefined
+/** The tray holding the hidden window; created on the first close-to-tray. */
+let tray: Tray | undefined
+/** Set while the application is already quitting: the close handler must not intercept. */
+let quitting = false
+/** Set when a tray build failed: closing must never strand a hidden window again. */
+let trayBroken = false
+/** Whether this run already showed the closed-to-tray balloon hint. */
+let hinted = false
+/** Whether the missing close-behavior service was already reported. */
+let reportedMissingBehavior = false
+
+/**
+ * The close-button behavior from the booted tree's `desktop` settings
+ * namespace: `tray` hides the window, `quit` tears down. The fallback is the
+ * schema default, so a tree that is still booting or has drifted keeps the
+ * window closable instead of stranding it.
+ */
+function closeAction(): DesktopCloseAction {
+  const section = booted?.ctx.get('settings')?.get(desktopNamespace) as DesktopSettings | undefined
+  const action = section?.closeAction
+  if (action === 'tray' || action === 'quit') return action
+  if (!reportedMissingBehavior) {
+    reportedMissingBehavior = true
+    console.error(
+      'dsh desktop: the desktop close-action setting is unreadable (tree still booting, or the ui-desktop '
+      + 'roster row drifted); closing defaults to tray',
+    )
+  }
+  return 'tray'
+}
+
+/** Tray affordance copy follows the OS locale: the tray lives outside the web locale. */
+function trayLabels(): { open: string; quit: string; hintTitle: string; hintBody: string } {
+  const os = app.getLocale().toLowerCase()
+  return os.startsWith('zh')
+    ? {
+      open: '打开 DeepSeek Harness',
+      quit: '退出',
+      hintTitle: 'DeepSeek Harness 仍在运行',
+      hintBody: '窗口已缩小到系统托盘，点击托盘图标可恢复。',
+    }
+    : {
+      open: 'Open DeepSeek Harness',
+      quit: 'Quit',
+      hintTitle: 'DeepSeek Harness is still running',
+      hintBody: 'The window was closed to the system tray. Click the tray icon to restore it.',
+    }
+}
+
+/** Bring the window back from the tray (or the taskbar) and focus it. */
+function showWindow(): void {
+  const window = mainWindow
+  if (window === undefined || window.isDestroyed()) return
+  if (window.isMinimized()) window.restore()
+  window.show()
+  window.focus()
+}
+
+/**
+ * Materialize the tray icon the first time the window hides to it. The icon
+ * is the packaged exe's own (Windows icon extraction — the only desktop
+ * target this shell ships), rendered at the tray's scale.
+ */
+async function ensureTray(): Promise<void> {
+  if (tray !== undefined) return
+  const size = screen.getPrimaryDisplay().scaleFactor >= 2 ? 'normal' : 'small'
+  const icon = await app.getFileIcon(process.execPath, { size })
+  const labels = trayLabels()
+  const composed = new Tray(icon)
+  composed.setToolTip('DeepSeek Harness')
+  composed.setContextMenu(Menu.buildFromTemplate([
+    { label: labels.open, click: () => { showWindow() } },
+    { type: 'separator' },
+    { label: labels.quit, click: () => { app.quit() } },
+  ]))
+  composed.on('click', () => { showWindow() })
+  tray = composed
+}
+
+/**
+ * Hide the window to the tray: the affordance is built FIRST, so the window
+ * never vanishes with nothing to bring it back. A tray that cannot be built
+ * (icon extraction failed) closes the window for real, exiting through the
+ * normal teardown; the balloon hint shows once per run.
+ */
+async function hideToTray(window: BrowserWindow): Promise<void> {
+  try {
+    await ensureTray()
+  } catch (error) {
+    trayBroken = true
+    console.error('dsh desktop: building the tray failed; closing the window for real', error)
+    window.close()
+    return
+  }
+  window.hide()
+  if (hinted) return
+  hinted = true
+  const { hintTitle: title, hintBody: content } = trayLabels()
+  tray?.displayBalloon({ iconType: 'info', title, content })
+}
+
+
 /** Settle the tree and return the gateway, or throw once boot cannot serve. */
 async function startGateway(): Promise<DesktopGateway> {
   const started = await runProfile({
@@ -116,7 +242,16 @@ function createWindow(gatewayReady: Promise<unknown>): BrowserWindow {
       sandbox: true,
     },
   })
+  mainWindow = window
   window.once('ready-to-show', () => { window.show() })
+  window.on('close', (event) => {
+    // Real exits (`before-quit`, Windows session end) must pass through, and a
+    // platform without the tray's icon extraction — or a tray that failed to
+    // build — must never hide a window it cannot bring back.
+    if (quitting || trayBroken || process.platform !== 'win32' || closeAction() !== 'tray') return
+    event.preventDefault()
+    void hideToTray(window)
+  })
   void window.loadURL(PRELUDE_URL)
   void gatewayReady.then(() => {
     if (!window.isDestroyed()) void window.loadURL(entryUrl())
@@ -163,19 +298,38 @@ function clearMenuBar(): void {
   Menu.setApplicationMenu(null)
 }
 
-void app.whenReady().then(() => {
-  clearMenuBar()
-  // Register before any window: renderer fetches queue on the promise until
-  // the tree settles, so an early request never sees an unhandled scheme.
-  const gatewayReady = startGateway()
-  protocol.handle(DSH_SCHEME, request => gatewayReady.then(gateway => gateway.handle(request)))
-  const window = createWindow(gatewayReady)
-  armSmokeShot(window)
+// One instance owns the launch path: with close-to-tray as the default, a
+// second launch must reveal the hidden window instead of stacking a second
+// tree. The packaged smoke run is alone (the release chain stops the app
+// before packaging).
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', () => { showWindow() })
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow(gatewayReady)
+  void app.whenReady().then(() => {
+    clearMenuBar()
+    // Windows derives notification origin from the AppUserModelId; pin one so
+    // the closed-to-tray balloon names the app, not the exe path.
+    app.setAppUserModelId('com.deepseek-ai.dsh-desktop')
+    // Register before any window: renderer fetches queue on the promise until
+    // the tree settles, so an early request never sees an unhandled scheme.
+    const gatewayReady = startGateway()
+    protocol.handle(DSH_SCHEME, request => gatewayReady.then(gateway => gateway.handle(request)))
+    const window = createWindow(gatewayReady)
+    armSmokeShot(window)
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow(gatewayReady)
+    })
   })
-})
+}
+
+// The tray's Quit, the smoke shutdown, and anything else that calls
+// app.quit() pass through the close handler without interception.
+app.on('before-quit', () => { quitting = true })
+// System shutdown/logoff: never intercept the session's close of the window.
+void app.whenReady().then(() => { powerMonitor.on('shutdown', () => { quitting = true }) })
 
 app.on('window-all-closed', () => {
   // The desktop surface is single-window by construction: closing it tears

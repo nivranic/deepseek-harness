@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
+import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import { RpcId } from '@deepseek-ai/dsh-host-apiproxy/api'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
@@ -112,10 +113,27 @@ describe('the shipped desktop composition', () => {
     // The official brand row fills the sidebar and conversation hero slots;
     // without it the shell falls back to the "DSH Local Build" wordmark.
     expect(html).toContain('@deepseek-ai/dsh-client-ui-brand-official')
+    // The desktop preference row (what the close button does) is desktop-only:
+    // the web roster never composes it, so the web surface sees no row and no
+    // `desktop` settings namespace.
+    expect(html).toContain('@deepseek-ai/dsh-client-ui-desktop')
     // The graph also stamps the host runtime facts; this gateway runs in plain
     // Node, so the wire block carries node/os and JSON-drops the Electron-only
     // chrome/electron fields.
     expect(html).toContain(`"runtime":{"node":"${process.versions.node}"`)
+  })
+
+  it('registers the desktop close-button preference with the tray default', async () => {
+    // The namespace is the composition contract the Electron close handler
+    // reads through the settings service; the round trip proves the section
+    // resolves (and re-resolves on every commit) with the schema default.
+    const settings = ctx.get('settings')!
+    const ns = settingsNamespace('desktop')
+    expect(settings.get(ns)).toEqual({ closeAction: 'tray' })
+    await settings.update(ns, { closeAction: 'quit' })
+    expect(settings.get(ns)).toEqual({ closeAction: 'quit' })
+    await settings.update(ns, { closeAction: 'tray' })
+    expect(settings.get(ns)).toEqual({ closeAction: 'tray' })
   })
 
   it('serves client plugin bundles through the gateway', async () => {
