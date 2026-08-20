@@ -15,7 +15,8 @@
 
 /* v8 ignore file -- exercised by the packaged app and the desktop e2e boot. */
 
-import { app, BrowserWindow, Menu, powerMonitor, protocol, screen, Tray } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, powerMonitor, protocol, screen, Tray } from 'electron'
+import { join } from 'node:path'
 import { writeFile } from 'node:fs/promises'
 import { loadLayeredEnv } from '@deepseek-ai/dsh-app-boot'
 import type { Context } from '@deepseek-ai/cordis'
@@ -157,13 +158,19 @@ function showWindow(): void {
 
 /**
  * Materialize the tray icon the first time the window hides to it. The icon
- * is the packaged exe's own (Windows icon extraction — the only desktop
- * target this shell ships), rendered at the tray's scale.
+ * is the app's own transparent PNG resource: extracting it from the exe with
+ * `app.getFileIcon` instead loses the alpha channel on the way through the
+ * HICON conversion, and the tray renders the circle on an opaque white
+ * square. Resizing to the tray's physical slot avoids Explorer's own
+ * rescaling, which is another alpha-losing path.
  */
-async function ensureTray(): Promise<void> {
+function ensureTray(): void {
   if (tray !== undefined) return
-  const size = screen.getPrimaryDisplay().scaleFactor >= 2 ? 'normal' : 'small'
-  const icon = await app.getFileIcon(process.execPath, { size })
+  const factor = screen.getPrimaryDisplay().scaleFactor
+  const slot = Math.min(32, Math.max(16, Math.round(16 * factor)))
+  const source = nativeImage.createFromPath(join(app.getAppPath(), 'resources', 'tray-icon.png'))
+  if (source.isEmpty()) throw new Error('tray-icon.png missing or unreadable under the app path')
+  const icon = source.resize({ width: slot, height: slot })
   const labels = trayLabels()
   const composed = new Tray(icon)
   composed.setToolTip('DeepSeek Harness')
@@ -179,12 +186,12 @@ async function ensureTray(): Promise<void> {
 /**
  * Hide the window to the tray: the affordance is built FIRST, so the window
  * never vanishes with nothing to bring it back. A tray that cannot be built
- * (icon extraction failed) closes the window for real, exiting through the
+ * (resource unreadable) closes the window for real, exiting through the
  * normal teardown; the balloon hint shows once per run.
  */
-async function hideToTray(window: BrowserWindow): Promise<void> {
+function hideToTray(window: BrowserWindow): void {
   try {
-    await ensureTray()
+    ensureTray()
   } catch (error) {
     trayBroken = true
     console.error('dsh desktop: building the tray failed; closing the window for real', error)
@@ -250,7 +257,7 @@ function createWindow(gatewayReady: Promise<unknown>): BrowserWindow {
     // build — must never hide a window it cannot bring back.
     if (quitting || trayBroken || process.platform !== 'win32' || closeAction() !== 'tray') return
     event.preventDefault()
-    void hideToTray(window)
+    hideToTray(window)
   })
   void window.loadURL(PRELUDE_URL)
   void gatewayReady.then(() => {

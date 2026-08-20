@@ -90,9 +90,11 @@ async function main(): Promise<void> {
   })
   if (deployCode !== 0) fail(`pnpm deploy exited ${String(deployCode)}`)
 
-  // The shell's bundled entries ride beside the closure's package.json; a
-  // files-filtered deploy may omit them, so always lay them down.
+  // The shell's bundled entries and static resources ride beside the
+  // closure's package.json; a files-filtered deploy may omit them, so always
+  // lay them down.
   cpSync(join(root, 'apps', 'desktop', 'lib'), join(STAGE_DIR, 'lib'), { recursive: true, force: true })
+  cpSync(join(root, 'apps', 'desktop', 'resources'), join(STAGE_DIR, 'resources'), { recursive: true, force: true })
 
   // Materialize every link that escapes the stage: file-linked workspace
   // packages land in the closure as junctions back into the repository, and
@@ -154,6 +156,7 @@ async function main(): Promise<void> {
     `  output: ${JSON.stringify(OUT_DIR)}`,
     'files:',
     '  - lib/**/*.js',
+    '  - resources/**',
     '  - package.json',
     // The packaged tree must stay real directories: at boot the launcher
     // heals the shared $DSH_HOME/profiles/node_modules fallback into
