@@ -13,6 +13,7 @@ import { mkdir, readdir, readFile, rm, unlink, writeFile } from 'node:fs/promise
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { officialClientBuildEnvironment, readClientBuildRecord } from './client-build-environment.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // The stage lives OUTSIDE the repository tree: inside it, electron-builder's
@@ -70,6 +71,10 @@ async function main(): Promise<void> {
   if (!existsSync(join(root, 'apps', 'cli', 'lib', 'profile-boot.js'))) {
     fail('apps/cli/lib/profile-boot.js not found; run `pnpm run build` first')
   }
+  // The packaged exe is a public artifact: its client bundles must embed the
+  // official profile (brand wordmark, window title), and the record's digest
+  // check also rejects stale dist trees from a plain `pnpm run build`.
+  readClientBuildRecord(root, officialClientBuildEnvironment(root))
   const electronManifest = await readJson<{ version: string }>(
     join(root, 'apps', 'desktop', 'node_modules', 'electron', 'package.json'),
     'the Electron runtime',

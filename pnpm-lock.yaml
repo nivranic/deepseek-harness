@@ -1293,6 +1293,9 @@ importers:
       '@deepseek-ai/dsh-client-ui-agent-preset':
         specifier: workspace:^
         version: link:../../client/ui-agent-preset
+      '@deepseek-ai/dsh-client-ui-brand-official':
+        specifier: workspace:^
+        version: link:../../client/ui-brand-official
       '@deepseek-ai/dsh-client-ui-commands':
         specifier: workspace:^
         version: link:../../client/ui-commands

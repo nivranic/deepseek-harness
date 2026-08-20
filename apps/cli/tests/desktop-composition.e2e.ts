@@ -109,6 +109,9 @@ describe('the shipped desktop composition', () => {
     // The renderer row is the mount contract: without it no plugin provides
     // uiRenderer and the browser shell waits on "Loading plugins…" forever.
     expect(html).toContain('@deepseek-ai/dsh-client-ui-renderer')
+    // The official brand row fills the sidebar and conversation hero slots;
+    // without it the shell falls back to the "DSH Local Build" wordmark.
+    expect(html).toContain('@deepseek-ai/dsh-client-ui-brand-official')
     // The graph also stamps the host runtime facts; this gateway runs in plain
     // Node, so the wire block carries node/os and JSON-drops the Electron-only
     // chrome/electron fields.
