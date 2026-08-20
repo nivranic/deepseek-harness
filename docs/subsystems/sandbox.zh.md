@@ -189,13 +189,14 @@ Abstract process-sandbox service. confine must return enforcing argv or fail clo
  *   `['bash', '-c', command]`.
  * @param policy - the file-effect policy this execution runs under,
  *   carried per call (see {@link SandboxPolicy}).
- * @returns the argv to spawn instead, plus the enforcement completeness
- *   the selected backend achieves for it.
+ * @returns the argv to spawn instead, any environment additions the
+ *   runner's invocation requires, and the enforcement completeness the
+ *   selected backend achieves for it.
  */
 abstract confine(argv: readonly string[], policy: SandboxPolicy): ConfinedArgv
 ```
 
-Source: [`packages/sandbox/sandbox/src/index.ts:158`](../../packages/sandbox/sandbox/src/index.ts)
+Source: [`packages/sandbox/sandbox/src/index.ts:169`](../../packages/sandbox/sandbox/src/index.ts)
 
 <a id="ctxsandboxpolicy--sandboxpolicyservice"></a>
 

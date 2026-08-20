@@ -1,21 +1,16 @@
 /**
  * Boot-manifest wire parsing for the version and runtime fields (present,
  * absent, invalid) and the client wrapper's appInfo enrollment from the
- * parsed document.
+ * kernel-parsed manifest.
  */
 
 import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import { apply } from '../src/client/index.ts'
-import type { DshWindow } from '../src/client/manifest.ts'
+import { describe, expect, it } from 'vitest'
+import { apply, createClientModuleSystem } from '../src/client/index.ts'
+import type { ClientModuleLoaderTarget } from '../src/client/index.ts'
 import { parseBootManifest } from '../src/client/manifest.ts'
 
 const validGraph = { rev: 'r', entries: [{ id: 'p', url: '/plugins/p/client.js?rev=1', rev: '1' }] }
-
-afterEach(() => {
-  delete (globalThis as DshWindow).__DSH_BOOT__
-  delete (globalThis as DshWindow).__DSH_MODULES__
-})
 
 describe('parseBootManifest version', () => {
   it('carries a present version through', () => {
@@ -73,23 +68,29 @@ describe('parseBootManifest runtime', () => {
 })
 
 describe('client wrapper enrollment', () => {
-  it('provides appInfo from the parsed boot document', () => {
-    (globalThis as DshWindow).__DSH_MODULES__ = {} as never
-    ;(globalThis as DshWindow).__DSH_BOOT__ = {
-      ...validGraph,
-      version: '0.2.0',
-      runtime: { node: '22.19.0', os: 'Windows_NT x64 10.0.26200' },
+  it('provides appInfo from the kernel-parsed boot document', () => {
+    const target: ClientModuleLoaderTarget = {
+      mode: 'queue',
+      pendingQueue: [],
+      load: () => {},
+      create: options => createClientModuleSystem(target, {
+        id: '@deepseek-ai/dsh-client-modules',
+        exports: {},
+      }, options),
     }
+    target.create({
+      boot: {
+        ...validGraph,
+        version: '0.2.0',
+        runtime: { node: '22.19.0', os: 'Windows_NT x64 10.0.26200' },
+      },
+      staticModules: {},
+    })
     const ctx = new Context()
     apply(ctx)
     expect(ctx.appInfo).toEqual({
       version: '0.2.0',
       runtime: { node: '22.19.0', os: 'Windows_NT x64 10.0.26200' },
     })
-  })
-
-  it('is loud when the kernel slot is missing', () => {
-    (globalThis as DshWindow).__DSH_BOOT__ = validGraph
-    expect(() => { apply(new Context()) }).toThrow('__DSH_MODULES__ missing')
   })
 })
