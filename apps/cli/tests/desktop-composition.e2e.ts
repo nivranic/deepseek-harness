@@ -106,6 +106,9 @@ describe('the shipped desktop composition', () => {
     expect(html).toContain('window.__DSH_BOOT__')
     // The boot graph carries the browser roster the modules half composed.
     expect(html).toContain('@deepseek-ai/dsh-client-connection')
+    // The renderer row is the mount contract: without it no plugin provides
+    // uiRenderer and the browser shell waits on "Loading plugins…" forever.
+    expect(html).toContain('@deepseek-ai/dsh-client-ui-renderer')
     // The graph also stamps the host runtime facts; this gateway runs in plain
     // Node, so the wire block carries node/os and JSON-drops the Electron-only
     // chrome/electron fields.
