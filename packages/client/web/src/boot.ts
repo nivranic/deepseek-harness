@@ -28,14 +28,31 @@ export class AppWebEntry {
   private manifest!: BootManifest
 
   /**
-   * Draw the boot page; {@link run} starts the loader.
-   * @param container - Application mount point.
-   * @param seams - Optional module transport replacement.
-   */
+ * Draw the boot page; {@link run} starts the loader.
+ * @param container - Application mount point.
+ * @param seams - Optional module transport replacement.
+ */
   constructor(container: HTMLElement, seams?: BootSeams) {
     this.container = container
     this.seams = seams
     this.page = new BootPage(container)
+    this.hideOverlaysInSmokeMode()
+  }
+
+  /**
+ * Keep blocking dialog overlays visually hidden in smoke mode
+ * (`?dsh-smoke=1` on the entry URL): a first-run notice would otherwise
+ * cover the settled UI the packaging capture judges, and acknowledging it
+ * from the smoke run would consume the real user's one-time notice. The
+ * acknowledgement state stays untouched; only the pixels change. The style
+ * lives in the page because a main-process renderer round-trip mid-boot
+ * stalls the plugin load.
+ */
+  private hideOverlaysInSmokeMode(): void {
+    if (!new URLSearchParams(globalThis.location.search).has('dsh-smoke')) return
+    const style = document.createElement('style')
+    style.textContent = '[role="presentation"]{display:none!important}'
+    document.head.append(style)
   }
 
   /**

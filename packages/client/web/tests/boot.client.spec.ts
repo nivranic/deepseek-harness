@@ -79,6 +79,35 @@ describe('bootstrap failure rendering', () => {
   })
 })
 
+describe('smoke-mode overlay hiding', () => {
+  const SMOKE_RULE = '[role="presentation"]{display:none!important}'
+
+  it('hides dialog overlays when the entry URL carries the smoke flag', () => {
+    const original = window.location.href
+    window.history.replaceState(null, '', '/?dsh-smoke=1')
+    try {
+      const container = document.createElement('div')
+      document.body.append(container)
+      new AppWebEntry(container)
+      const rules = [...document.head.querySelectorAll('style')].map(el => el.textContent)
+      expect(rules).toContain(SMOKE_RULE)
+    } finally {
+      window.history.replaceState(null, '', original)
+      for (const el of [...document.head.querySelectorAll('style')]) {
+        if (el.textContent === SMOKE_RULE) el.remove()
+      }
+    }
+  })
+
+  it('adds no style without the flag', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    new AppWebEntry(container)
+    const rules = [...document.head.querySelectorAll('style')].map(el => el.textContent)
+    expect(rules).not.toContain(SMOKE_RULE)
+  })
+})
+
 describe('plugin activation', () => {
   it('allows a modules-dependent row to be created before the modules row', async () => {
     const events: string[] = []

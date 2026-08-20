@@ -76,7 +76,11 @@ function createWindow(): BrowserWindow {
     },
   })
   window.once('ready-to-show', () => { window.show() })
-  void window.loadURL(ENTRY_URL)
+  // Smoke mode rides the entry URL, not an inter-process call: the shell
+  // hides blocking overlays itself, because a main-process renderer
+  // round-trip mid-boot stalls the plugin load.
+  const smoke = process.env.DSH_DESKTOP_SMOKE_SHOT
+  void window.loadURL(smoke === undefined || smoke === '' ? ENTRY_URL : `${ENTRY_URL}?dsh-smoke=1`)
   return window
 }
 
