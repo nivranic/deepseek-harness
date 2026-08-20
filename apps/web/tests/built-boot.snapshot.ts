@@ -32,6 +32,13 @@ const clientBuildEnvironment: unknown = Reflect.get(record, 'environment')
 if (typeof clientBuildEnvironment !== 'object' || clientBuildEnvironment === null) {
   throw new TypeError('client build record environment must be an object')
 }
+const buildProfileRaw: unknown = Reflect.get(clientBuildEnvironment, 'DSH_CLIENT_BUILD_PROFILE')
+// A plain `pnpm run build` records only the commit hash; the profile key
+// exists exactly when the official environment built the dist.
+const buildProfile = buildProfileRaw === undefined ? 'local' : buildProfileRaw
+if (typeof buildProfile !== 'string') {
+  throw new TypeError('client build record DSH_CLIENT_BUILD_PROFILE must be a string')
+}
 
 function isBuildRecordReader(value: unknown): value is (root: string) => unknown {
   return typeof value === 'function'
@@ -42,8 +49,15 @@ it('boots the built plugin graph and renders a fixture session end to end', asyn
 
   // The sidebar renders from the boot graph: every inject layer activated.
   const tree = await screen.findByRole('tree', { name: 'Sessions' }, { timeout: 10_000 })
-  expect(document.querySelector('svg[viewBox="26 0 156 24"]')).not.toBeNull()
-  expect(screen.queryByText('DSH Local Build')).toBeNull()
+  // The brand occupant follows the dist's build profile: the official mark
+  // under `build:official`, the shell's local-build wordmark otherwise.
+  if (buildProfile === 'official') {
+    expect(document.querySelector('svg[viewBox="26 0 156 24"]')).not.toBeNull()
+    expect(screen.queryByText('DSH Local Build')).toBeNull()
+  } else {
+    expect(document.querySelector('svg[viewBox="26 0 156 24"]')).toBeNull()
+    expect(screen.getByText('DSH Local Build')).not.toBeNull()
+  }
   // The compact layout dropped group session counts; the fixture workspace
   // group row renders immediately with its sessions beneath it.
   const fixtureGroup = (await within(tree).findAllByText('fixture'))
