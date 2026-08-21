@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-21-desktop-first-launch-latency.md
-2026-08-21-desktop-first-launch-latency.md: 0f5b8deae5c57d096c8b58cb63f9bc9f31ef05ba
-2026-08-21-desktop-first-launch-latency.zh.md: 9c27944edb73bf0efca081e2ce1fbcbd2518f817
+2026-08-21-desktop-first-launch-latency.md: f47471e0346abed20abb8d150b2ad7c8432cf1cb
+2026-08-21-desktop-first-launch-latency.zh.md: a18805c1eba27cf82c1b08cfea3fa0f47b82c50f

@@ -16,8 +16,8 @@
 /* v8 ignore file -- exercised by the packaged app and the desktop e2e boot. */
 
 import { app, BrowserWindow, Menu, nativeImage, powerMonitor, protocol, screen, Tray } from 'electron'
-import { join } from 'node:path'
-import { writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { open, readdir, stat, writeFile } from 'node:fs/promises'
 import type { Context } from '@deepseek-ai/cordis'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
@@ -45,6 +45,73 @@ interface DesktopSettings {
 // userData directory path; pin a filesystem-safe app name before any path is
 // derived from it.
 app.name = 'deepseek-harness-desktop'
+
+/** Files above this size are not prefetched; see {@link prefetchInstallTree}. */
+const PREFETCH_SKIP_ABOVE_BYTES = 64 << 20
+
+/**
+ * Page-cache warmup for the packaged install's renderer hot set: cold-launch
+ * file I/O — not CPU — dominates the gap between warm (~1s) and cold (~4s)
+ * startup, because the `.pak` resources and small DLLs are demand-paged in
+ * scattered faults when the renderer spawns. Reading the same bytes
+ * sequentially ahead of that spawn (measured: the ~100MB hot set in ~150ms on
+ * the install's NVMe) makes the renderer's load instant instead of a 2-3s
+ * race it usually loses, so this warms the install root's files and the two
+ * locale paks the UI can pick, chunk-reading each through one shared buffer,
+ * size-ascending. Files above {@link PREFETCH_SKIP_ABOVE_BYTES} are skipped:
+ * the ~200MB exe is its own image, largely resident as the process runs, and
+ * streaming it competes with everything else for the disk. Best-effort by
+ * contract: an unreadable file leaves the on-demand path exactly as it was.
+ * Undefined when unpackaged, where the "install" would be the repository
+ * checkout — the window then skips the bounded wait below.
+ */
+async function prefetchInstallTree(): Promise<void> {
+  /** Chunk size for the shared read buffer; large enough to keep reads sequential. */
+  const CHUNK = 1 << 20
+  const buffer = Buffer.alloc(CHUNK)
+  const warmFile = async (path: string): Promise<void> => {
+    let handle
+    try {
+      handle = await open(path, 'r')
+      // Read to EOF through the shared buffer; the page cache keeps the bytes.
+      let bytesRead = CHUNK
+      while (bytesRead === CHUNK) bytesRead = (await handle.read(buffer, 0, CHUNK, null)).bytesRead
+    } catch {
+      // Best-effort prefetch: a locked or unreadable file keeps its normal
+      // on-demand read, so nothing here may fail the boot.
+      return
+    } finally {
+      try { await handle?.close() } catch { /* the warmup read already got what it could */ }
+    }
+  }
+  const installRoot = dirname(dirname(app.getAppPath()))
+  try {
+    // Size-ascending order: the megabyte-scale resources the renderer needs
+    // first, any multi-megabyte tail last.
+    const batch: { path: string; size: number }[] = []
+    for (const entry of await readdir(installRoot, { withFileTypes: true })) {
+      if (entry.isDirectory()) continue
+      const path = join(installRoot, entry.name)
+      const size = (await stat(path)).size
+      if (size > PREFETCH_SKIP_ABOVE_BYTES) continue
+      batch.push({ path, size })
+    }
+    // Every locale pak is large but exactly one is read at boot; warm the two
+    // the UI locale can resolve to. A missing pak sizes 0 — warmFile's own
+    // catch then skips it without aborting the batch.
+    for (const locale of ['zh-CN.pak', 'en-US.pak']) {
+      const path = join(installRoot, 'locales', locale)
+      batch.push({ path, size: (await stat(path).catch(() => ({ size: 0 }))).size })
+    }
+    batch.sort((left, right) => left.size - right.size)
+    for (const file of batch) await warmFile(file.path)
+  } catch {
+    // The install root vanished or is unreadable mid-walk: the on-demand
+    // reads (and their loud failures) own the rest.
+    return
+  }
+}
+const installWarmup = app.isPackaged ? prefetchInstallTree() : undefined
 
 /** Privileged-scheme flags: standard URLs, secure origin, fetch-able, streaming bodies (SSE), cached compiled scripts. */
 protocol.registerSchemesAsPrivileged([
@@ -208,11 +275,12 @@ function hideToTray(window: BrowserWindow): void {
  * Settle the tree and return the gateway, or throw once boot cannot serve.
  *
  * The boot graph (`dsh/profile-boot` and its module-fallback heal) loads
- * DYNAMICALLY here: statically imported, its evaluation — including the
- * heal's manifest walk across the installation — runs before `app.whenReady`
- * resolves and delays the prelude window behind cold file I/O. Imported
- * inside this function, the window is already on screen while that work
- * proceeds.
+ * DYNAMICALLY here so the call can start at module top, before `app.ready`:
+ * the tree boot's ~2s of parse/execute then overlaps Electron's core
+ * initialization instead of starting after it. The heal's synchronous prefix
+ * (a stamped no-op walk when the install is unchanged, a full manifest walk
+ * after each rebuild) may hold the main thread for its own duration before
+ * `ready` fires — paid back by the boot finishing that much earlier.
  */
 async function startGateway(): Promise<DesktopGateway> {
   const [{ runProfile }, { loadLayeredEnv }] = await Promise.all([
@@ -328,25 +396,34 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on('second-instance', () => { showWindow() })
 
-  void app.whenReady().then(() => {
+  // The gateway settles into this deferred: renderer fetches queue on it
+  // until the tree boots, so an early request never sees an unhandled
+  // scheme, and the window swaps to the entry URL the moment it resolves.
+  // Boot starts at module top, not in `whenReady`: its tree-mount CPU then
+  // overlaps Electron's core initialization rather than following it, which
+  // is the difference between the entry page swapping in at ~2.5s and ~4s.
+  // Boot failures surface through fail-loud (it owns the process exit); the
+  // prelude page stays on screen until it lands.
+  let resolveGateway!: (gateway: DesktopGateway) => void
+  const gatewayReady = new Promise<DesktopGateway>((resolve) => { resolveGateway = resolve })
+  void startGateway().then(resolveGateway)
+
+  void app.whenReady().then(async () => {
     clearMenuBar()
     // Windows derives notification origin from the AppUserModelId; pin one so
     // the closed-to-tray balloon names the app, not the exe path.
     app.setAppUserModelId('com.deepseek-ai.dsh-desktop')
-    // The gateway settles into this deferred: renderer fetches queue on it
-    // until the tree boots, so an early request never sees an unhandled
-    // scheme, and the window swaps to the entry URL the moment it resolves.
-    let resolveGateway!: (gateway: DesktopGateway) => void
-    const gatewayReady = new Promise<DesktopGateway>((resolve) => { resolveGateway = resolve })
     protocol.handle(DSH_SCHEME, request => gatewayReady.then(gateway => gateway.handle(request)))
-    // The window and its prelude paint FIRST; starting the gateway before
-    // `createWindow` would run the boot graph's synchronous prefix (the
-    // module-fallback heal's manifest walk) with the prelude still unpainted.
+    // The window waits — bounded to half a second — for the renderer hot set
+    // warmup (usually long finished by ready): spawning the renderer into
+    // guaranteed-warm resources costs ~0, while racing the warmup made the
+    // renderer's load a 2-3s coin flip on cold installs. Past the bound the
+    // window proceeds regardless, never slower than the un-waited launch.
+    await (installWarmup === undefined
+      ? undefined
+      : Promise.race([installWarmup, new Promise((resolve) => { setTimeout(resolve, 500) })]))
     const window = createWindow(gatewayReady)
     armSmokeShot(window)
-    // Boot failures surface through fail-loud (it owns the process exit);
-    // the prelude page stays on screen until it lands.
-    void startGateway().then(resolveGateway)
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow(gatewayReady)
