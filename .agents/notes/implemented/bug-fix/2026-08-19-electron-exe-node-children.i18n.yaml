@@ -3,4 +3,4 @@
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-19-electron-exe-node-children.md
 2026-08-19-electron-exe-node-children.md: d852761554e602323baa801f1e2f7f1293aa1c38
-2026-08-19-electron-exe-node-children.zh.md: 511b65506dc7305b91640d19dd3094e5acb56dfc
+2026-08-19-electron-exe-node-children.zh.md: 96c6811c5f8a5f37a11222d449907f17c3ecd367

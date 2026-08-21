@@ -3,4 +3,4 @@
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/host/electron-ipc/README.md
 README.md: 9a305d2d5ae84388c57c025ec6c620e6c82d782f
-README.zh.md: 9f88dafb2ed49c46084d9229a60057b06afa7895
+README.zh.md: 33faa2e49d558ff84c706553cdece90d521a5aa5

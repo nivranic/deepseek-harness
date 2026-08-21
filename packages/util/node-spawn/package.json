@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-node-spawn",
   "description": "Zero-dependency spawn facts for running a script as plain Node from the current process: process.execPath plus ELECTRON_RUN_AS_NODE under the Electron desktop binary (nodeSpawnCommand)",
-  "version": "0.1.0-rc.8",
+  "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },

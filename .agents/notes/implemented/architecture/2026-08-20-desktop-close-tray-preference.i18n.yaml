@@ -3,4 +3,4 @@
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-20-desktop-close-tray-preference.md
 2026-08-20-desktop-close-tray-preference.md: df1ed92eea0c2122eb75a1ab42385188427068fd
-2026-08-20-desktop-close-tray-preference.zh.md: 1dff5f507f1b4b6c51862f55c90e33010086dcdd
+2026-08-20-desktop-close-tray-preference.zh.md: 1c947de6124f0e5e78246cd744cb3fb5566dc143

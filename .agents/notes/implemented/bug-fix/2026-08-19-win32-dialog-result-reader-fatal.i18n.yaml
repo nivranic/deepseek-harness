@@ -3,4 +3,4 @@
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-19-win32-dialog-result-reader-fatal.md
 2026-08-19-win32-dialog-result-reader-fatal.md: 568b6769b540451fc667978038cc226f40a89771
-2026-08-19-win32-dialog-result-reader-fatal.zh.md: 7995f638acbd1aa01afe3db8dbafc051870bddf8
+2026-08-19-win32-dialog-result-reader-fatal.zh.md: 38be4a17d2575293c39906c113945474cdcce901

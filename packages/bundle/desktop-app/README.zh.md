@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-dsh 桌面表面的 bundle。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-base`](../base/README.md) 之上：设置编码 persona，插入桌面宿主行（API 网关、workspace、投影缓存、storage、[`electron-ipc`](../../host/electron-ipc/README.md) 载体）以及 Web 表面的浏览器插件花名册外加一行桌面专属行（[ui-desktop](../../client/ui-desktop/README.md)，关闭按钮偏好），并挂载本包的 `desktop-runtime` 粘合插件（配置 `{surfaceContext}`）。该表面与 [`dsh-web-app`](../web-app/README.md) 的差异恰恰在载体：不绑定 webserver 行、不解析 `webStartup` 旗标，Connection 行以空信任清单保持挂载，提供其传输无关的注册表服务与浏览器半。electron-ipc 行提供 `desktopGateway`，由 Electron 应用壳（`apps/desktop`）挂到其特权协议上；自适应目录选择器通过 `bindHost` 声明其回环绑定事实，因为没有可读的服务器绑定。粘合插件在 `surfaceContext` 为 true 时注册 harness-source 与 `app:desktop-surface` 提示词段落：桌面窗口定向、无 URL 约定，以及不要启动 `dsh web` 替代服务器的指示。本表面没有 URL 行、shell 变量或 HTTP 席位。
+dsh 桌面表面的 bundle。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-base`](../base/README.zh.md) 之上：设置编码 persona，插入桌面宿主行（API 网关、workspace、投影缓存、storage、[`electron-ipc`](../../host/electron-ipc/README.zh.md) 载体）以及 Web 表面的浏览器插件花名册外加一行桌面专属行（[ui-desktop](../../client/ui-desktop/README.zh.md)，关闭按钮偏好），并挂载本包的 `desktop-runtime` 粘合插件（配置 `{surfaceContext}`）。该表面与 [`dsh-web-app`](../web-app/README.zh.md) 的差异恰恰在载体：不绑定 webserver 行、不解析 `webStartup` 旗标，Connection 行以空信任清单保持挂载，提供其传输无关的注册表服务与浏览器半。electron-ipc 行提供 `desktopGateway`，由 Electron 应用壳（`apps/desktop`）挂到其特权协议上；自适应目录选择器通过 `bindHost` 声明其回环绑定事实，因为没有可读的服务器绑定。粘合插件在 `surfaceContext` 为 true 时注册 harness-source 与 `app:desktop-surface` 提示词段落：桌面窗口定向、无 URL 约定，以及不要启动 `dsh web` 替代服务器的指示。本表面没有 URL 行、shell 变量或 HTTP 席位。
 
 ## Model Experience
 

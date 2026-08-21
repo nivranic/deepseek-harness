@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-浏览器桌面的桌面载体：一个函数插件（注入 `clientModules`、`connection`、`apiProxy`），提供 `desktopGateway`——Electron 应用壳挂到其特权 `dsh:` 协议上的进程内 fetch 目标，即 [webserver 文档](../webserver/README.md)为桌面形态预留的 IPC 桥。本包不绑定任何套接字。`handle(request)` 按三分支分发：`/api` 走 Connection 共享通道链（拦截器认领优先于 `toFetchHandler(apiProxy)` 回退，且不套用 HTTP 信任围栏——每个请求都来自本进程自己的渲染端、从不经过网络，因此回环限定的特权方法在 GUI 中保持可达）；`/plugins/<id>/client.js`（含 `.map`）经模块注册表供给客户端插件 bundle；其余路径供给构建后的前端 dist——越出 dist 根目录的遍历返回 403，任何未命中以 200 回退到 index.html（SPA 路由），未知扩展名按 octet-stream 发送，且每个 index 响应都携带最新注入的启动清单（对当前图执行 `injectBootManifest`）。dist 位置是组装知识，经 `@deepseek-ai/dsh-web-frontend` 的 exports 解析，从不配置。
+浏览器桌面的桌面载体：一个函数插件（注入 `clientModules`、`connection`、`apiProxy`），提供 `desktopGateway`——Electron 应用壳挂到其特权 `dsh:` 协议上的进程内 fetch 目标，即 [webserver 文档](../webserver/README.zh.md)为桌面形态预留的 IPC 桥。本包不绑定任何套接字。`handle(request)` 按三分支分发：`/api` 走 Connection 共享通道链（拦截器认领优先于 `toFetchHandler(apiProxy)` 回退，且不套用 HTTP 信任围栏——每个请求都来自本进程自己的渲染端、从不经过网络，因此回环限定的特权方法在 GUI 中保持可达）；`/plugins/<id>/client.js`（含 `.map`）经模块注册表供给客户端插件 bundle；其余路径供给构建后的前端 dist——越出 dist 根目录的遍历返回 403，任何未命中以 200 回退到 index.html（SPA 路由），未知扩展名按 octet-stream 发送，且每个 index 响应都携带最新注入的启动清单（对当前图执行 `injectBootManifest`）。dist 位置是组装知识，经 `@deepseek-ai/dsh-web-frontend` 的 exports 解析，从不配置。
 
 ## Model Experience
 

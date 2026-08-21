@@ -118,7 +118,7 @@ describe('electron-ipc desktop gateway', () => {
     expect(index.status).toBe(200)
     expect(index.headers.get('content-type')).toContain('text/html')
     const html = await index.text()
-    expect(html).toContain('window.__DSH_BOOT__')
+    expect(html).toContain('globalThis["__DSH_BOOT__"]')
     expect(html).toContain('graph-rev')
 
     const asset = await gateway.handle(new Request(url('/assets/app.js')))
@@ -134,7 +134,7 @@ describe('electron-ipc desktop gateway', () => {
     // SPA fallback: a miss answers the boot-injected index with 200.
     const fallback = await gateway.handle(new Request(url('/session/unknown')))
     expect(fallback.status).toBe(200)
-    expect(await fallback.text()).toContain('window.__DSH_BOOT__')
+    expect(await fallback.text()).toContain('globalThis["__DSH_BOOT__"]')
     await dispose()
   })
 

@@ -10,7 +10,7 @@ Status: implemented
 
 ## Decision
 
-一个共享事实，一个包：[`dsh-node-spawn`](../../../../packages/util/node-spawn/README.md) 解析当前进程如何以纯 Node 重新运行自身——`process.execPath`，加上 `process.versions.electron` 存在时的 `ELECTRON_RUN_AS_NODE=1`，否则不加任何条目。对话框 worker 直接以这些事实 spawn。沙盒 seam 的 `ConfinedArgv` 增加可选的 `env` 片段（纯可执行 runner 时缺省），因为 runner 的调用就是 argv 加环境；`dsh-sandbox-local` 把 windows-acl 档的 spawn 事实环境挂到每次包装上，pwsh/bash 沙盒执行器把它合并进 spawn 环境、置于所有 spec 自有环境内容之上（这是 spawn 前置条件，不是命令内容），runner 在受限子进程继承环境块（`lpEnvironment` 为 NULL）之前从自身环境中删除 `ELECTRON_RUN_AS_NODE`，因此用户从受限 shell 运行的 Electron 程序仍能正常启动。桌面打包保持 Electron 的 `RunAsNode` fuse 开启；若未来加固构建禁用它，必须随应用附带真正的 Node 可执行文件。
+一个共享事实，一个包：[`dsh-node-spawn`](../../../../packages/util/node-spawn/README.zh.md) 解析当前进程如何以纯 Node 重新运行自身——`process.execPath`，加上 `process.versions.electron` 存在时的 `ELECTRON_RUN_AS_NODE=1`，否则不加任何条目。对话框 worker 直接以这些事实 spawn。沙盒 seam 的 `ConfinedArgv` 增加可选的 `env` 片段（纯可执行 runner 时缺省），因为 runner 的调用就是 argv 加环境；`dsh-sandbox-local` 把 windows-acl 档的 spawn 事实环境挂到每次包装上，pwsh/bash 沙盒执行器把它合并进 spawn 环境、置于所有 spec 自有环境内容之上（这是 spawn 前置条件，不是命令内容），runner 在受限子进程继承环境块（`lpEnvironment` 为 NULL）之前从自身环境中删除 `ELECTRON_RUN_AS_NODE`，因此用户从受限 shell 运行的 Electron 程序仍能正常启动。桌面打包保持 Electron 的 `RunAsNode` fuse 开启；若未来加固构建禁用它，必须随应用附带真正的 Node 可执行文件。
 
 ## Alternatives considered
 

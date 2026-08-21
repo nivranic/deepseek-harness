@@ -6,7 +6,7 @@ Status: implemented
 
 ## Problem
 
-[2026-08-19-electron-exe-node-children](2026-08-19-electron-exe-node-children.md) 让对话框 worker 在打包 exe 下以 Node 模式启动之后，**完成一次文件夹选择**仍会杀死 worker：用户确认目录的瞬间应用报 "win32 folder dialog worker exited before reporting a result"，而取消路径一直正常，同一份代码在纯 Node 开发启动下也从不复现。死亡点是 `readUtf16`——取消路径永远不会执行它：`koffi.view(address, 32768)` 在原生内存上创建 external ArrayBuffer，而打包应用以 Electron-as-Node 运行时，N-API 层对这种创建直接致命拒绝（立即 `napi_fatal_error`、退出码 134——没有 JS 异常、没有 IPC 消息，驱动只能看到退出）。同一调用还有两个事实：固定 32 KB 的物化在 `view` 可用的运行时里也会越界读 CoTaskMem 的小字符串分配；koffi 的 `_Out_ void **` 出参数组在成功时确实会回填原生指针（两种运行时均已实证），所以周边的出参代码从来不是缺陷所在。
+[2026-08-19-electron-exe-node-children](2026-08-19-electron-exe-node-children.zh.md) 让对话框 worker 在打包 exe 下以 Node 模式启动之后，**完成一次文件夹选择**仍会杀死 worker：用户确认目录的瞬间应用报 "win32 folder dialog worker exited before reporting a result"，而取消路径一直正常，同一份代码在纯 Node 开发启动下也从不复现。死亡点是 `readUtf16`——取消路径永远不会执行它：`koffi.view(address, 32768)` 在原生内存上创建 external ArrayBuffer，而打包应用以 Electron-as-Node 运行时，N-API 层对这种创建直接致命拒绝（立即 `napi_fatal_error`、退出码 134——没有 JS 异常、没有 IPC 消息，驱动只能看到退出）。同一调用还有两个事实：固定 32 KB 的物化在 `view` 可用的运行时里也会越界读 CoTaskMem 的小字符串分配；koffi 的 `_Out_ void **` 出参数组在成功时确实会回填原生指针（两种运行时均已实证），所以周边的出参代码从来不是缺陷所在。
 
 ## Decision
 

@@ -115,7 +115,7 @@ describe('connection client apply', () => {
         rpcId: message.rpcId,
         result: {
           ok: true,
-          value: { version: 'test', cwd: '/tmp', attachedSessions: 0, canOpenPath: true },
+          value: { version: 'test', cwd: '/tmp', attachedSessions: 0, home: '/home/test', canOpenPath: true },
         },
       })
     }

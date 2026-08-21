@@ -18,7 +18,8 @@ import { dirname, extname, join, normalize, resolve, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 // Activates the apiProxy, clientModules, and connection Context merges.
 import { toFetchHandler } from '@deepseek-ai/dsh-host-apiproxy'
-import { injectBootManifest } from '@deepseek-ai/dsh-client-modules'
+import { bootInjections } from '@deepseek-ai/dsh-client-modules'
+import { renderIndexInjections } from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@deepseek-ai/dsh-client-connection'
 
 /** Stable Cordis plugin name. */
@@ -161,7 +162,7 @@ export function apply(ctx: Context): void {
   const distIndex = internals.resolveDistIndex()
   const distRoot = dirname(distIndex)
   const renderIndex = async (): Promise<string> =>
-    injectBootManifest(await readFile(distIndex, 'utf8'), ctx.clientModules.graph())
+    renderIndexInjections(await readFile(distIndex, 'utf8'), bootInjections(ctx.clientModules.graph()))
   // Interceptor claims (the Typert gateway) must apply on the desktop exactly
   // as on the web HTTP route; the fallback is the bare gateway. The HTTP trust
   // fence does not apply: every request arrives from this process's own
