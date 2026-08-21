@@ -4,7 +4,7 @@
  * empty-root composition, and the installation module-fallback healing.
  */
 
-import { lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, rmSync, statSync, symlinkSync, unlinkSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -281,5 +281,38 @@ describe('healProfilesModuleFallback', () => {
     healProfilesModuleFallback(anchor, home) // second healer sees the correct link
     const fallback = join(home, 'profiles', 'node_modules')
     expect(lstatSync(join(fallback, 'dsh-app')).isSymbolicLink()).toBe(true)
+  })
+
+  it('skips manifest reads via the stamp, and any anchor or manifest change re-heals', () => {
+    const anchor = stageInstallation({ 'bundle-a': { patch: '[]\n', deps: { 'dep-of-a': '0.0.0' } } })
+    const modules = join(anchor, '..', 'node_modules')
+    mkdirSync(join(modules, 'dep-of-a'), { recursive: true })
+    const depManifest = join(modules, 'dep-of-a', 'package.json')
+    const depJson = JSON.stringify({ name: 'dep-of-a', version: '0.0.0' })
+    writeFileSync(depManifest, depJson)
+    const home = tmp()
+    healProfilesModuleFallback(anchor, home)
+    // Replace the manifest with same-size INVALID JSON and restore the
+    // stamped mtime: the stamp trusts file identity (stat), so the fast path
+    // must return without reading — the full walk would fail loud right here.
+    const depStat = statSync(depManifest)
+    writeFileSync(depManifest, 'x'.repeat(depJson.length))
+    utimesSync(depManifest, depStat.atime, depStat.mtime)
+    expect(() => { healProfilesModuleFallback(anchor, home) }).not.toThrow()
+    // Any anchor stat change invalidates the stamp; the full walk then reads
+    // the broken manifest and fails loud.
+    writeFileSync(anchor, readFileSync(anchor, 'utf8'))
+    expect(() => { healProfilesModuleFallback(anchor, home) }).toThrow()
+  })
+
+  it('re-heals and repairs when a stamped link was retargeted', () => {
+    const anchor = stageInstallation({ 'bundle-a': { patch: '[]\n' } })
+    const home = tmp()
+    healProfilesModuleFallback(anchor, home)
+    const fallback = join(home, 'profiles', 'node_modules')
+    unlinkSync(join(fallback, 'bundle-a'))
+    symlinkSync(tmp(), join(fallback, 'bundle-a'), 'junction')
+    healProfilesModuleFallback(anchor, home)
+    expect(readlinkSync(join(fallback, 'bundle-a'))).toContain('bundle-a')
   })
 })

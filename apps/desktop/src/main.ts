@@ -18,11 +18,9 @@
 import { app, BrowserWindow, Menu, nativeImage, powerMonitor, protocol, screen, Tray } from 'electron'
 import { join } from 'node:path'
 import { writeFile } from 'node:fs/promises'
-import { loadLayeredEnv } from '@deepseek-ai/dsh-app-boot'
 import type { Context } from '@deepseek-ai/cordis'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
-import { runProfile } from '@deepseek-ai/dsh/profile-boot'
 import { DSH_SCHEME, ENTRY_URL } from './scheme.ts'
 
 /**
@@ -206,8 +204,21 @@ function hideToTray(window: BrowserWindow): void {
 }
 
 
-/** Settle the tree and return the gateway, or throw once boot cannot serve. */
+/**
+ * Settle the tree and return the gateway, or throw once boot cannot serve.
+ *
+ * The boot graph (`dsh/profile-boot` and its module-fallback heal) loads
+ * DYNAMICALLY here: statically imported, its evaluation — including the
+ * heal's manifest walk across the installation — runs before `app.whenReady`
+ * resolves and delays the prelude window behind cold file I/O. Imported
+ * inside this function, the window is already on screen while that work
+ * proceeds.
+ */
 async function startGateway(): Promise<DesktopGateway> {
+  const [{ runProfile }, { loadLayeredEnv }] = await Promise.all([
+    import('@deepseek-ai/dsh/profile-boot'),
+    import('@deepseek-ai/dsh-app-boot'),
+  ])
   const started = await runProfile({
     environment: loadLayeredEnv('dsh'),
     profile: 'desktop',
@@ -236,7 +247,13 @@ function entryUrl(): string {
   return smoke === undefined || smoke === '' ? ENTRY_URL : `${ENTRY_URL}?dsh-smoke=1`
 }
 
-/** Create the application window: prelude first, the gateway-backed entry page when it can answer. */
+/**
+ * Create the application window: prelude first, the gateway-backed entry page
+ * when it can answer. `gatewayReady` never rejects — a boot failure surfaces
+ * through fail-loud, which owns the process exit while the prelude page stays
+ * on screen — so the swap needs no rejection arm.
+ * @param gatewayReady - settles once the booted tree's gateway is live.
+ */
 function createWindow(gatewayReady: Promise<unknown>): BrowserWindow {
   const window = new BrowserWindow({
     width: 1200,
@@ -262,9 +279,6 @@ function createWindow(gatewayReady: Promise<unknown>): BrowserWindow {
   void window.loadURL(PRELUDE_URL)
   void gatewayReady.then(() => {
     if (!window.isDestroyed()) void window.loadURL(entryUrl())
-  }, () => {
-    // Boot failure: fail-loud owns the process exit, and the prelude page is
-    // what stays on screen until it lands.
   })
   return window
 }
@@ -319,12 +333,20 @@ if (!app.requestSingleInstanceLock()) {
     // Windows derives notification origin from the AppUserModelId; pin one so
     // the closed-to-tray balloon names the app, not the exe path.
     app.setAppUserModelId('com.deepseek-ai.dsh-desktop')
-    // Register before any window: renderer fetches queue on the promise until
-    // the tree settles, so an early request never sees an unhandled scheme.
-    const gatewayReady = startGateway()
+    // The gateway settles into this deferred: renderer fetches queue on it
+    // until the tree boots, so an early request never sees an unhandled
+    // scheme, and the window swaps to the entry URL the moment it resolves.
+    let resolveGateway!: (gateway: DesktopGateway) => void
+    const gatewayReady = new Promise<DesktopGateway>((resolve) => { resolveGateway = resolve })
     protocol.handle(DSH_SCHEME, request => gatewayReady.then(gateway => gateway.handle(request)))
+    // The window and its prelude paint FIRST; starting the gateway before
+    // `createWindow` would run the boot graph's synchronous prefix (the
+    // module-fallback heal's manifest walk) with the prelude still unpainted.
     const window = createWindow(gatewayReady)
     armSmokeShot(window)
+    // Boot failures surface through fail-loud (it owns the process exit);
+    // the prelude page stays on screen until it lands.
+    void startGateway().then(resolveGateway)
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow(gatewayReady)

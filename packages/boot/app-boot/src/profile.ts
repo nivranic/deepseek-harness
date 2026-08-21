@@ -25,7 +25,7 @@
 import { createRequire } from 'node:module'
 import {
   existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, rmdirSync,
-  symlinkSync, unlinkSync, writeFileSync,
+  statSync, symlinkSync, unlinkSync, writeFileSync,
 } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
@@ -229,6 +229,12 @@ function ensureSymlink(link: string, target: string): void {
  * Idempotent: correct links are kept and moved installations are
  * re-pointed; a stale link to a vanished package stays until its name is
  * reused (dangling links are invisible to resolution).
+ *
+ * Re-deriving the closure re-reads every dependency manifest in the
+ * installation — hundreds of files on a cold data drive — so the result is
+ * stamped beside the links and an unchanged install heals from the stamp
+ * (stat checks only, no manifest reads): any anchor, link, or target-manifest
+ * change invalidates the stamp and re-runs the full walk.
  * @param installAnchor - absolute path of the dsh app's package.json.
  * @param home - the Harness home; defaults to {@link resolveDshHome}.
  */
@@ -236,10 +242,18 @@ export function healProfilesModuleFallback(installAnchor: string, home: string =
   const profilesDir = join(home, PROFILES_DIR)
   const modulesDir = join(profilesDir, 'node_modules')
   mkdirSync(modulesDir, { recursive: true })
+  if (healedFromStamp(installAnchor, modulesDir)) return
+  const anchorStat = statSync(installAnchor)
   const appManifest = JSON.parse(readFileSync(installAnchor, 'utf8')) as ProfileManifest
-  const links = new Map<string, string>()
+  const links = new Map<string, HealLink>()
   /* v8 ignore next -- a real app manifest always declares its name */
-  if (appManifest.name !== undefined) links.set(appManifest.name, dirname(installAnchor))
+  if (appManifest.name !== undefined) {
+    links.set(appManifest.name, {
+      target: dirname(installAnchor),
+      manifestMtimeMs: anchorStat.mtimeMs,
+      manifestSize: anchorStat.size,
+    })
+  }
   // BFS over the resolvable dependency graph; the visited set is the link
   // map itself (first resolution wins, matching Node's own nearest-wins).
   const queue: { anchor: string; manifest: ProfileManifest }[] = [{ anchor: installAnchor, manifest: appManifest }]
@@ -254,16 +268,84 @@ export function healProfilesModuleFallback(installAnchor: string, home: string =
       // A declared-but-uninstalled dependency cannot be a loader-visible
       // plugin; skip it rather than fail the whole boot.
       if (dir === undefined) continue
-      links.set(dep, dir)
       const manifestPath = join(dir, 'package.json')
+      const manifestStat = statSync(manifestPath)
+      links.set(dep, { target: dir, manifestMtimeMs: manifestStat.mtimeMs, manifestSize: manifestStat.size })
       queue.push({ anchor: manifestPath, manifest: JSON.parse(readFileSync(manifestPath, 'utf8')) as ProfileManifest })
     }
   }
-  for (const [packageName, target] of links) {
-    const link = join(modulesDir, packageName)
-    mkdirSync(dirname(link), { recursive: true })
-    ensureSymlink(link, target)
+  for (const [packageName, link] of links) {
+    const linkPath = join(modulesDir, packageName)
+    mkdirSync(dirname(linkPath), { recursive: true })
+    ensureSymlink(linkPath, link.target)
   }
+  writeFileSync(join(modulesDir, HEAL_STAMP_FILENAME), JSON.stringify({
+    anchor: installAnchor,
+    anchorMtimeMs: anchorStat.mtimeMs,
+    anchorSize: anchorStat.size,
+    links: [...links].map(([name, link]) => ({ name, ...link })),
+  }))
+}
+
+/** Stamp filename beside the fallback links, recording the last full heal. */
+const HEAL_STAMP_FILENAME = '.dsh-heal-stamp.json'
+
+/** One fallback link plus the stat of its target's manifest when healed. */
+interface HealLink {
+  /** Absolute junction target. */
+  target: string
+  /** Target `package.json` modification time when healed. */
+  manifestMtimeMs: number
+  /** Target `package.json` size when healed. */
+  manifestSize: number
+}
+
+/** One serialized stamp entry: the link's package name plus its {@link HealLink} stat. */
+interface HealStampLink extends HealLink {
+  /** Package name (the link's basename). */
+  name: string
+}
+
+/**
+ * Stamp check for {@link healProfilesModuleFallback}: the anchor, every link,
+ * and every target manifest still carry the stats the full heal recorded, so
+ * the fallback on disk is exactly what that heal produced. Validation reads
+ * file stats only — a stamp trusts file identity, not file contents — and any
+ * miss, unreadable path, or absent stamp reports `false` so the full heal
+ * re-derives and re-stamps. Modification times compare rounded to
+ * milliseconds: external time-stamp restore tooling truncates below that, and
+ * every real closure change (deploy, install, edit) moves a manifest by far
+ * more than half a millisecond.
+ * @param installAnchor - absolute path of the dsh app's package.json.
+ * @param modulesDir - the flat fallback directory.
+ * @returns whether the fallback was verified intact without re-walking.
+ */
+function healedFromStamp(installAnchor: string, modulesDir: string): boolean {
+  let stamp: { anchor: string; anchorMtimeMs: number; anchorSize: number; links: HealStampLink[] }
+  try {
+    stamp = JSON.parse(readFileSync(join(modulesDir, HEAL_STAMP_FILENAME), 'utf8')) as typeof stamp
+  } catch {
+    // Absent, torn, or stale-format stamp: the full heal rewrites it.
+    return false
+  }
+  if (stamp.anchor !== installAnchor || !Array.isArray(stamp.links)) return false
+  try {
+    const anchorStat = statSync(installAnchor)
+    if (Math.round(stamp.anchorMtimeMs) !== Math.round(anchorStat.mtimeMs)
+      || stamp.anchorSize !== anchorStat.size) return false
+    for (const link of stamp.links) {
+      const linkPath = join(modulesDir, link.name)
+      if (!lstatSync(linkPath).isSymbolicLink() || readlinkSync(linkPath) !== link.target) return false
+      const manifestStat = statSync(join(link.target, 'package.json'))
+      if (Math.round(manifestStat.mtimeMs) !== Math.round(link.manifestMtimeMs)
+        || manifestStat.size !== link.manifestSize) return false
+    }
+  } catch {
+    // A vanished target or unreadable link contradicts the stamp; the full
+    // heal below owns every such repair and the loud failures.
+    return false
+  }
+  return true
 }
 
 /**
