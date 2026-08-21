@@ -50,24 +50,23 @@ interface DesktopSettings {
 // derived from it.
 app.name = 'deepseek-harness-desktop'
 
-/** Files above this size are not prefetched; see {@link prefetchInstallTree}. */
-const PREFETCH_SKIP_ABOVE_BYTES = 64 << 20
-
 /**
- * Page-cache warmup for the packaged install's renderer hot set: cold-launch
- * file I/O — not CPU — dominates the gap between warm (~1s) and cold (~4s)
- * startup, because the `.pak` resources and small DLLs are demand-paged in
- * scattered faults when the renderer spawns. Reading the same bytes
- * sequentially ahead of that spawn (measured: the ~100MB hot set in ~150ms on
- * the install's NVMe) makes the renderer's load instant instead of a 2-3s
- * race it usually loses, so this warms the install root's files and the two
- * locale paks the UI can pick, chunk-reading each through one shared buffer,
- * size-ascending. Files above {@link PREFETCH_SKIP_ABOVE_BYTES} are skipped:
- * the ~200MB exe is its own image, largely resident as the process runs, and
- * streaming it competes with everything else for the disk. Best-effort by
- * contract: an unreadable file leaves the on-demand path exactly as it was.
- * Undefined when unpackaged, where the "install" would be the repository
- * checkout — the window then skips the bounded wait below.
+ * Page-cache warmup for the packaged install: cold-launch file I/O — not CPU
+ * — dominates the gap between warm (~1s) and cold (~4s) startup, because the
+ * `.pak` resources, the DLLs, and the exe's own image section are demand-paged
+ * in scattered faults while the main process initializes and again when the
+ * renderer and GPU processes map the same image. Reading the same bytes
+ * sequentially AHEAD of those faults (measured on the install's NVMe,
+ * eviction-cold: renderer resource load 1.6s → 0.3s, core init ≈ 0.9s → ≈
+ * 0.7s) warms the install root's every file and the two locale paks the UI
+ * can pick, chunk-reading each through one shared buffer, size-ascending so
+ * the megabyte-scale resources land before the ~200MB exe tail. The window's
+ * bounded wait is what makes this a win instead of a race: an earlier variant
+ * that streamed the exe while the renderer spawned merely competed with it
+ * for the disk. Best-effort by contract: an unreadable file leaves the
+ * on-demand path exactly as it was. Undefined when unpackaged, where the
+ * "install" would be the repository checkout — the window then skips the
+ * bounded wait below.
  */
 async function prefetchInstallTree(): Promise<void> {
   /** Chunk size for the shared read buffer; large enough to keep reads sequential. */
@@ -96,9 +95,7 @@ async function prefetchInstallTree(): Promise<void> {
     for (const entry of await readdir(installRoot, { withFileTypes: true })) {
       if (entry.isDirectory()) continue
       const path = join(installRoot, entry.name)
-      const size = (await stat(path)).size
-      if (size > PREFETCH_SKIP_ABOVE_BYTES) continue
-      batch.push({ path, size })
+      batch.push({ path, size: (await stat(path)).size })
     }
     // Every locale pak is large but exactly one is read at boot; warm the two
     // the UI locale can resolve to. A missing pak sizes 0 — warmFile's own
@@ -483,14 +480,15 @@ if (!app.requestSingleInstanceLock()) {
     // the closed-to-tray balloon names the app, not the exe path.
     app.setAppUserModelId('com.deepseek-ai.dsh-desktop')
     protocol.handle(DSH_SCHEME, request => gatewayReady.then(gateway => gateway.handle(request)))
-    // The window waits — bounded to half a second — for the renderer hot set
-    // warmup (usually long finished by ready): spawning the renderer into
-    // guaranteed-warm resources costs ~0, while racing the warmup made the
-    // renderer's load a 2-3s coin flip on cold installs. Past the bound the
-    // window proceeds regardless, never slower than the un-waited launch.
+    // The window waits — bounded to 1.2s — for the install warmup (warm
+    // launches finish in ~100ms; an eviction-cold read of everything,
+    // exe included, lands well inside the bound): spawning the renderer into
+    // guaranteed-warm resources costs ~0.3s instead of the 1.6s its cold
+    // scattered faults pay. Past the bound the window proceeds regardless,
+    // never slower than the un-waited launch.
     await (installWarmup === undefined
       ? undefined
-      : Promise.race([installWarmup, new Promise((resolve) => { setTimeout(resolve, 500) })]))
+      : Promise.race([installWarmup, new Promise((resolve) => { setTimeout(resolve, 1_200) })]))
     const window = createWindow(gatewayReady)
     armSmokeShot(window)
 
