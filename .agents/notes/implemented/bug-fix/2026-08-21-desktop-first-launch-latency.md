@@ -32,6 +32,8 @@ Where the numbers landed: warm UI ≈ 2.5 s; the eviction proxy — the closest 
 
 **Moving the gateway tree to a child process.** Would parallelize tree-mount CPU with core init on another core, but the tree already starts at module top and the wall time is the max of the two, not the sum; not worth the IPC bridge for the desktop surface today.
 
+**Start the gateway after only the small-file warmup phase, streaming the exe concurrently.** Tested on eviction-cold installs and rejected: the tree mount's ~1.6 s of main-thread parse/execute starves the renderer's spawn supervision, so the renderer window went 0.36 s → 1.55 s and the ~0.25 s the gateway gained was given straight back (UI 2.96-2.98 s versus 2.99-3.02 s serialized). The main process is the one thread both phases share; warmup-then-renderer-then-gateway is the optimum of that ordering.
+
 ## Consequences
 
 A cold first launch paints the prelude behind only the Electron core startup (prefetched: ≈ 1.2 s) while the tree mounts concurrently, and the entry page swaps in when the gateway settles; unchanged installs skip ~272 manifest reads per launch, and the first launch after each rebuild still walks once (the anchor stat changes, exactly when the closure may have changed). Without the Defender exclusion the real-time scan of the exe and DLLs remains the dominant cold term; with it, that floor is gone. The stamp adds one heal-owned file inside `$DSH_HOME/profiles/node_modules`; a torn or stale stamp falls back to the full walk, so it cannot brick a launch. The warmup reads a few hundred MB into the evictable standby set on every packaged launch and is skipped entirely when unpackaged.
