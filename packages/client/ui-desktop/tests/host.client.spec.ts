@@ -15,18 +15,21 @@ class MemorySettings extends SettingsProvider {
 }
 
 describe('ui-desktop host', () => {
-  it('registers the close-button namespace with the tray default and re-resolves every commit', async () => {
+  it('registers the desktop namespace with tray-close and autostart-off defaults, re-resolving every commit', async () => {
     const ctx = new Context()
     await ctx.plugin(MemorySettings).await()
     const fiber = ctx.plugin({ apply })
     await fiber.await()
     const ns = settingsNamespace(DESKTOP_SETTINGS_NAMESPACE)
-    expect(ctx.settings.get(ns)).toEqual({ closeAction: 'tray' })
+    expect(ctx.settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: false })
     await ctx.settings.update(ns, { closeAction: 'quit' })
-    expect(ctx.settings.get(ns)).toEqual({ closeAction: 'quit' })
-    // The schema is the only validity gate: anything outside the union refuses
+    expect(ctx.settings.get(ns)).toEqual({ closeAction: 'quit', launchAtLogin: false })
+    // The schema is the only validity gate: anything outside the unions refuses
     // the write before anything persists.
     await expect(ctx.settings.update(ns, { closeAction: 'minimize' })).rejects.toThrow()
+    await expect(ctx.settings.update(ns, { launchAtLogin: 'yes' })).rejects.toThrow()
+    await ctx.settings.update(ns, { launchAtLogin: true })
+    expect(ctx.settings.get(ns)).toEqual({ closeAction: 'quit', launchAtLogin: true })
     await fiber.dispose()
     expect(ctx.settings.describe().map(row => row.ns)).not.toContain(ns)
   })

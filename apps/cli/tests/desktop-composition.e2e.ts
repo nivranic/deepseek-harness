@@ -123,17 +123,21 @@ describe('the shipped desktop composition', () => {
     expect(html).toContain(`"runtime":{"node":"${process.versions.node}"`)
   })
 
-  it('registers the desktop close-button preference with the tray default', async () => {
-    // The namespace is the composition contract the Electron close handler
-    // reads through the settings service; the round trip proves the section
-    // resolves (and re-resolves on every commit) with the schema default.
+  it('registers the desktop preferences with the tray and autostart-off defaults', async () => {
+    // The namespace is the composition contract the Electron shell reads
+    // through the settings service (the close handler at close time, the
+    // login-entry sync on every commit); the round trip proves the section
+    // resolves (and re-resolves on every commit) with the schema defaults —
+    // autostart stays OFF until the user opts in.
     const settings = ctx.get('settings')!
     const ns = settingsNamespace('desktop')
-    expect(settings.get(ns)).toEqual({ closeAction: 'tray' })
+    expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: false })
     await settings.update(ns, { closeAction: 'quit' })
-    expect(settings.get(ns)).toEqual({ closeAction: 'quit' })
-    await settings.update(ns, { closeAction: 'tray' })
-    expect(settings.get(ns)).toEqual({ closeAction: 'tray' })
+    expect(settings.get(ns)).toEqual({ closeAction: 'quit', launchAtLogin: false })
+    await settings.update(ns, { closeAction: 'tray', launchAtLogin: true })
+    expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: true })
+    await settings.update(ns, { launchAtLogin: false })
+    expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: false })
   })
 
   it('serves client plugin bundles through the gateway', async () => {

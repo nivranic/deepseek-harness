@@ -6,7 +6,9 @@
  * the window and the bounded-shutdown lifecycle — the menu bar is removed and
  * the version surface lives in the web Settings dialog. The close button
  * follows the tree's `desktop` settings namespace (hide to the tray by
- * default, or quit), read live at close time; the app runs single-instance so
+ * default, or quit), read live at close time; the namespace's `launchAtLogin`
+ * (default off) owns the OS login entry, which starts the app hidden in the
+ * tray so a later reveal is instant; the app runs single-instance so
  * a second launch reveals the hidden window. No preload is needed:
  * the carrier
  * is the scheme itself, so `contextIsolation` stays on with nothing exposed.
@@ -39,6 +41,8 @@ type DesktopCloseAction = 'tray' | 'quit'
 /** The `desktop` settings section (mirror of the ui-desktop package's type). */
 interface DesktopSettings {
   closeAction: DesktopCloseAction
+  /** Mirror of the schema's `launchAtLogin`: OS login autostart, default off. */
+  launchAtLogin: boolean
 }
 
 // The package name carries a scope slash, which is invalid inside the
@@ -163,6 +167,8 @@ let booted: { ctx: Context; shutdown: { shutdown(code: number): Promise<void> } 
 
 /** The application window, tracked for tray restore and second-instance focus. */
 let mainWindow: BrowserWindow | undefined
+/** A login-autostart launch (`--hidden` from the OS login entry): stay in the tray until revealed. */
+const hiddenLaunch = process.argv.includes('--hidden')
 /** The tray holding the hidden window; created on the first close-to-tray. */
 let tray: Tray | undefined
 /** Set while the application is already quitting: the close handler must not intercept. */
@@ -173,6 +179,46 @@ let trayBroken = false
 let hinted = false
 /** Whether the missing close-behavior service was already reported. */
 let reportedMissingBehavior = false
+/** Whether the missing launch-at-login setting was already reported. */
+let reportedMissingLaunchSetting = false
+
+/**
+ * The OS login entry follows the `desktop` namespace's `launchAtLogin`
+ * (default off): a login-hidden start is what makes a later reveal instant,
+ * and the registry entry must exist BEFORE the next login for that to happen,
+ * so the shell syncs it once the tree serves settings and again on every
+ * settings commit — a toggle takes effect immediately.
+ * @param section - the freshly resolved `desktop` section.
+ */
+function syncLaunchAtLogin(section: unknown): void {
+  const enabled = (section as DesktopSettings | undefined)?.launchAtLogin
+  if (enabled !== true && enabled !== false) {
+    if (!reportedMissingLaunchSetting) {
+      reportedMissingLaunchSetting = true
+      console.error(
+        'dsh desktop: the launch-at-login setting is unreadable (the ui-desktop roster row drifted); '
+        + 'the OS login entry keeps its current state',
+      )
+    }
+    return
+  }
+  app.setLoginItemSettings({ openAtLogin: enabled, args: ['--hidden'] })
+}
+
+/**
+ * Apply the launch-at-login preference once the tree serves settings and
+ * follow every `settings/updated` commit afterwards: the event carries the
+ * namespace's resolved section, so the OS login entry tracks the toggle
+ * without polling.
+ */
+function watchLaunchAtLogin(): void {
+  const ctx = booted?.ctx
+  if (ctx === undefined) return
+  syncLaunchAtLogin(ctx.get('settings')?.get(desktopNamespace))
+  ctx.on('settings/updated', (ns: string, next: unknown) => {
+    if (ns === desktopNamespace) syncLaunchAtLogin(next)
+  })
+}
 
 /**
  * The close-button behavior from the booted tree's `desktop` settings
@@ -335,7 +381,21 @@ function createWindow(gatewayReady: Promise<unknown>): BrowserWindow {
     },
   })
   mainWindow = window
-  window.once('ready-to-show', () => { window.show() })
+  window.once('ready-to-show', () => {
+    if (!hiddenLaunch) {
+      window.show()
+      return
+    }
+    // The login entry starts the app in the tray state: the tree boots and
+    // the entry page swaps in while hidden, so a later reveal is instant. A
+    // tray that cannot be built must never strand the window invisible.
+    try {
+      ensureTray()
+    } catch (error) {
+      console.error('dsh desktop: hidden launch cannot build the tray; showing the window instead', error)
+      window.show()
+    }
+  })
   window.on('close', (event) => {
     // Real exits (`before-quit`, Windows session end) must pass through, and a
     // platform without the tray's icon extraction — or a tray that failed to
@@ -399,14 +459,23 @@ if (!app.requestSingleInstanceLock()) {
   // The gateway settles into this deferred: renderer fetches queue on it
   // until the tree boots, so an early request never sees an unhandled
   // scheme, and the window swaps to the entry URL the moment it resolves.
-  // Boot starts at module top, not in `whenReady`: its tree-mount CPU then
-  // overlaps Electron's core initialization rather than following it, which
-  // is the difference between the entry page swapping in at ~2.5s and ~4s.
-  // Boot failures surface through fail-loud (it owns the process exit); the
-  // prelude page stays on screen until it lands.
+  // Boot starts at module top — its tree-mount CPU overlaps Electron's core
+  // initialization rather than following it — but only AFTER the install
+  // warmup finishes: the tree boot's ~1100 file opens and the warmup's bulk
+  // reads share one disk, and racing them made both slower (measured: the
+  // renderer window lost ~1.5s to the contention). Boot failures surface
+  // through fail-loud (it owns the process exit); the prelude page stays on
+  // screen until it lands.
   let resolveGateway!: (gateway: DesktopGateway) => void
   const gatewayReady = new Promise<DesktopGateway>((resolve) => { resolveGateway = resolve })
-  void startGateway().then(resolveGateway)
+  void (installWarmup ?? Promise.resolve()).then(() => {
+    void startGateway().then((gateway) => {
+      // Settings serve from here on: apply the login preference once, then
+      // follow every commit so the toggle lands in the registry immediately.
+      watchLaunchAtLogin()
+      resolveGateway(gateway)
+    })
+  })
 
   void app.whenReady().then(async () => {
     clearMenuBar()

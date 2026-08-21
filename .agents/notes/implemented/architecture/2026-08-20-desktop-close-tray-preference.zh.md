@@ -8,15 +8,19 @@ Status: implemented
 
 关闭桌面窗口会拆掉整个 harness：`window-all-closed` 走有界关闭，杀掉所有运行中的会话。桌面用户期望关闭按钮把应用收进系统托盘继续运行，但这必须是可配置的——有用户要的就是"关闭即退出"——且只能存在于 exe 表面：Web 设置弹窗不能推销一个浏览器窗口兑现不了的托盘选项。默认值为托盘。
 
+一年内的一个延迟事实促使同一命名空间长出第二个字段：冷首次启动的几秒钟是 OS 以下任何代码都消不掉的（见[首次启动延迟笔记](../bug-fix/2026-08-21-desktop-first-launch-latency.md)），而登录时就启动的实例全热——"打开应用"要秒开，只有应用早先启动过才做得到。这同样必须是主动选择的偏好，绝不是默认。
+
 ## Decision
 
 该偏好是一个由新双面包 `packages/client/ui-desktop`（`dsh-client-ui-desktop`）拥有的设置命名空间：
 
-- 宿主半注册 `desktop` 命名空间（`closeAction: 'tray' | 'quit'`，schema 默认 `tray`），别无一物——刻意做成无 surface 的 locale 宿主半形态：typert 工作区发现只在其宿主入口声明 Context/Events 成员时才把包指到 HOST 面，而一旦有了宿主面注册，该包的客户端半（经其单一包 tsconfig）就会被拖进某个宿主批程序，与 `core/agent` 的 `TypertContextMap.agent` 撞上 `client/runtime` 刻意的客户端面镜像。因此 Electron 壳经 settings 服务在关闭按钮按下时读取取值——`booted.ctx.get('settings')?.get(namespace)`——无需该包自建任何服务。按下时读取（而非启动时缓存）让设置行的写入对下一次按下立即生效，壳侧无需任何事件管线。
-- 浏览器半是一行 `settings.general.item`（id `desktop-close`），经 `ctx.settingsScope.bind` 绑定，从共享 describe 镜像渲染一个双选项 radio 组；`select` 走 scope 的带 revision 栅栏的 mutate 路径。
-- 表面之门是组合而非运行时事实：只有 `dsh-desktop-app` 的 patch 携带此行，Web 组合从不注册该命名空间，其 settings describe 无从暴露。`appInfo` 运行时事实按其文档契约保持仅作展示——该行绝不据此分支。
+- 宿主半注册 `desktop` 命名空间（`closeAction: 'tray' | 'quit'`，schema 默认 `tray`；`launchAtLogin: boolean`，默认 `false`），别无一物——刻意做成无 surface 的 locale 宿主半形态：typert 工作区发现只在其宿主入口声明 Context/Events 成员时才把包指到 HOST 面，而一旦有了宿主面注册，该包的客户端半（经其单一包 tsconfig）就会被拖进某个宿主批程序，与 `core/agent` 的 `TypertContextMap.agent` 撞上 `client/runtime` 刻意的客户端面镜像。因此 Electron 壳经 settings 服务在关闭按钮按下时读取取值——`booted.ctx.get('settings')?.get(namespace)`——无需该包自建任何服务。按下时读取（而非启动时缓存）让设置行的写入对下一次按下立即生效，壳侧无需任何事件管线。
+- 浏览器半渲染两行 `settings.general.item`（id `desktop-close`、`desktop-launch-at-login`），经 `ctx.settingsScope.bind` 绑定，各自由共享 describe 镜像渲染一个双选项 radio 组；`select` 走 scope 的带 revision 栅栏的 mutate 路径。
+- 表面之门是组合而非运行时事实：只有 `dsh-desktop-app` 的 patch 携带这些行，Web 组合从不注册该命名空间，其 settings describe 无从暴露。`appInfo` 运行时事实按其文档契约保持仅作展示——这些行绝不据此分支。
 - 壳（`apps/desktop/src/main.ts`）拦截 `close`：值为 `tray` 时先建托盘（透明 32×32 PNG 素材 `apps/desktop/resources/tray-icon.png`，缩放到托盘的物理槽位），再隐藏窗口并在每次运行显示一次气泡提示。`quit` 或托盘构建失败（含素材缺失）都真实关闭——隐藏后无从唤回的窗口永远不可接受，`trayBroken` 锁存该失败。`before-quit` 与 Windows `session-end` 置 `quitting` 旗标，真实退出（托盘"退出"、冒烟关闭、OS 注销）不被拦截。因为托盘关闭是默认，壳取单实例锁，再次启动唤出隐藏窗口而非叠起第二棵树。节不可读（树仍在启动、花名册漂移）时回退 `tray` 并留一次日志报告——schema 默认让窗口保持可关而不是被搁置，桌面组合 e2e 钉死注册，漂移无法无声到达。
 - 托盘与气泡文案跟随 OS 语言（`app.getLocale`）：托盘活在 Web 表面及其 locale 服务之外。
+
+`launchAtLogin` 是登录自启的主动选择，与关闭行为不同，它需要壳在**写入时**就行动而不只是事后读取：OS 登录项必须在下一次登录前就已存在，隐藏启动才会发生，所以壳在树首次可服务设置时、以及此后 `desktop` 命名空间的每次 `settings/updated` 提交时，把它同步进 `app.setLoginItemSettings({ openAtLogin, args: ['--hidden'] })`——拨动开关立即落进注册表。登录项以 `--hidden` 启动，壳据此跳过窗口的 `ready-to-show` 显示、改建托盘：整棵树在隐藏状态完成启动、入口页照常换入，唤出（点托盘或经单实例路径的桌面快捷方式）即刻可用。隐藏启动下托盘建不起来则直接显示窗口，绝不搁浅。
 
 ## Alternatives considered
 
@@ -28,6 +32,8 @@ Status: implemented
 
 **偏好走渲染端→主进程 IPC。**否决：壳本就进程内消费树服务（`desktopGateway` 模式），scheme 即桥的设计没有 preload，且主进程本身就持有 settings 服务。
 
+**自启默认开启。**否决：登录时的内存占用由用户说了算。它买到的保证（唤出即秒开）只有接受这份开销的用户需要；默认冷启动保持诚实的基线。
+
 ## Consequences
 
-桌面花名册从此比 Web 多一行浏览器行——该表面既有的漂移代价再付一次：此行同时活在 bundle 的 `package.json` 依赖与 `cordis.patch.yml` client 行块，`apps/cli/tests/desktop-composition.e2e.ts` 同时钉死 boot 图中的行与"命名空间 + 托盘默认值"（以及每次提交后的节再解析）。打包路径也变了形状：exe 构建暂存 `apps/desktop` 的 manifest 闭包，新依赖照常被打入——但冒烟启动现在要求应用未在运行（发布链本就先停掉它），因为第二个实例是唤出而非启动。托盘默认意味着退出经由托盘菜单的"退出"或真实的 `quit` 设置；会话在关窗后存活，这正是本改动的目的。
+桌面花名册从此比 Web 多一行浏览器行——该表面既有的漂移代价再付一次（自启行搭同一行/同一包的便车，不新增花名册面）：此行同时活在 bundle 的 `package.json` 依赖与 `cordis.patch.yml` client 行块，`apps/cli/tests/desktop-composition.e2e.ts` 同时钉死 boot 图中的行与"命名空间 + 托盘/自启关默认值"（以及每次提交后的节再解析）。打包路径也变了形状：exe 构建暂存 `apps/desktop` 的 manifest 闭包，新依赖照常被打入——但冒烟启动现在要求应用未在运行（发布链本就先停掉它），因为第二个实例是唤出而非启动。托盘默认意味着退出经由托盘菜单的"退出"或真实的 `quit` 设置；会话在关窗后存活，这正是本改动的目的。`launchAtLogin` 开启后，会话连重启都存活——登录启动的实例就是快捷方式唤出的那棵单实例树。

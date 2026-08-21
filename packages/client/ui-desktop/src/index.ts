@@ -1,9 +1,11 @@
 /**
  * Host half of the desktop-surface preference plugin: it registers the
- * `desktop` settings namespace carrying the close-button behavior. The
- * Electron app shell reads the namespace through the settings service at
- * close-button time; only the desktop composition mounts this row, so the
- * web surface never registers the namespace and never shows its preference.
+ * `desktop` settings namespace carrying the close-button behavior and the
+ * login-autostart switch. The Electron app shell reads the namespace through
+ * the settings service — the close behavior at close-button time, the
+ * autostart synced into the OS login entry on every commit; only the desktop
+ * composition mounts these rows, so the web surface never registers the
+ * namespace and never shows its preferences.
  * @module @deepseek-ai/dsh-client-ui-desktop
  */
 
