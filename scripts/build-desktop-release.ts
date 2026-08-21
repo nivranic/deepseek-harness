@@ -102,11 +102,14 @@ function cleanOutputDir(): void {
 /**
  * Mirror the freshly packaged win-unpacked tree into the fixed per-user
  * install directory, replacing the previous release whole (robocopy /MIR; exit
- * codes below 8 are its success range, 1 = files copied). The leading app kill
- * freed the files; anything still locked fails loud here.
+ * codes below 8 are its success range, 1 = files copied). The app is killed
+ * again here — the build minutes between the leading kill and this sync are
+ * enough for a relaunch (tray-resident close-to-tray) to relock the install;
+ * anything still locked after that fails loud here.
  */
 function syncStableInstall(): void {
   if (!existsSync(APP_EXE)) fail(`packaged exe missing at ${APP_EXE}`)
+  killRunningApp()
   log(`installing the new build to the fixed location ${STABLE_DIR}`)
   const result = spawnSync(
     'robocopy',
