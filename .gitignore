@@ -40,3 +40,6 @@ apps/web/dist/
 worktrees/
 .agents/worktrees/
 .typert-*/
+
+# glm-hybrid-router 插件本地运行时产物
+.glm-router/
