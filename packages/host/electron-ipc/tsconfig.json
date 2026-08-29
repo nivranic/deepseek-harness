@@ -12,13 +12,16 @@
       "path": "../../../vendor/cordis"
     },
     {
+      "path": "../../api/gateway/tsconfig.host.json"
+    },
+    {
       "path": "../../client/modules"
     },
     {
       "path": "../../client/connection/tsconfig.host.json"
     },
     {
-      "path": "../apiproxy"
+      "path": "../webserver"
     },
     {
       "path": "../../runtime-diagnostics/invariants"

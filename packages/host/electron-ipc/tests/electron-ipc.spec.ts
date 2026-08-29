@@ -1,6 +1,7 @@
 /**
- * Desktop carrier gateway: the /api shared-chain dispatch, the client-plugin
- * bundle route, and the boot-manifest-injected dist serving (traversal,
+ * Desktop carrier gateway: the /api shared-chain dispatch, the /dsh-stream
+ * Remote-stream carrier, the client-plugin bundle dispatch, and the
+ * transport-bootstrap plus boot-manifest-injected dist serving (traversal,
  * SPA fallback, method policy) over fake services.
  */
 
@@ -9,8 +10,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { RpcId } from '@deepseek-ai/dsh-host-apiproxy/api'
-import type { ApiProxy } from '@deepseek-ai/dsh-host-apiproxy/api'
+import { RpcId } from '@deepseek-ai/dsh-client-connection'
 import { apply, inject, internals, name, type DesktopGateway } from '../src/index.ts'
 
 let dist: string | undefined
@@ -36,39 +36,60 @@ function stageDist(): { index: string; asset: string } {
   return { index, asset }
 }
 
-/** A client-module registry fake: fixed graph, caller-chosen bundle paths. */
-function fakeModules(clientPaths: Record<string, string> = {}) {
+/** A client-module registry fake: fixed graph plus a URL-keyed bundle cache. */
+function fakeModules(bundles: Record<string, string> = {}) {
   return {
-    graph: () => ({ rev: 'graph-rev', entries: [] }),
-    clientPath: (id: string) => clientPaths[id],
+    graph: () => ({ rev: 'graph-rev', entries: [], batches: [] }),
+    bundleFetch: (request: Request): Response => {
+      if (request.method !== 'GET' && request.method !== 'HEAD') {
+        return new Response(null, { status: 405 })
+      }
+      const url = new URL(request.url)
+      const body = bundles[`${url.pathname}${url.search}`]
+      return body === undefined
+        ? new Response(null, { status: 404 })
+        : new Response(request.method === 'HEAD' ? null : body, {
+          status: 200,
+          headers: {
+            'content-type': url.pathname.endsWith('.map') ? 'application/json' : 'text/javascript',
+            'cache-control': 'no-cache',
+          },
+        })
+    },
   }
 }
 
-/** An API Proxy fake answering only host.describe plus an empty mux stream. */
-function fakeApiProxy(): ApiProxy {
+/** A Typert gateway fake: one wire stream answering scripted items or a failure. */
+function fakeTypertGateway(items: unknown[] = [], failure?: { code: string; message: string; details: object }) {
+  const opened: Array<{ endpoint: string; payload: unknown }> = []
   return {
-    host: {
-      describe: (request: { rpcId: string }) => Promise.resolve({
-        rpcId: request.rpcId,
-        result: { ok: true, value: { version: 'test', cwd: '/tmp' } },
-      }),
+    opened,
+    service: {
+      wireStream: {
+        open: async (endpoint: string, payload: unknown) => {
+          opened.push({ endpoint, payload })
+          if (failure !== undefined) throw new Error(failure.message)
+          return (async function* () {
+            for (const item of items) yield item
+          })()
+        },
+        failure: (error: unknown) => failure ?? {
+          code: 'internal',
+          message: (error as Error).message,
+          details: {},
+        },
+      },
     },
-    events: {
-      // An empty frame stream: the carrier shape (SSE headers + open line)
-      // is what the gateway dispatch must preserve.
-      mux: async function* () {},
-      host: async function* () {},
-    },
-  } as unknown as ApiProxy
+  }
 }
 
-/** Connection fake: one claimed endpoint short-circuits; everything else falls through. */
+/** Connection fake: one claimed endpoint answers; everything else 404s. */
 function fakeConnection() {
   const claims = new Map<string, (payload: unknown) => unknown>()
   return {
     claims,
     service: {
-      createSharedFetchHandler: (_channel: '/api', fallback: { fetch(request: Request): Promise<Response> }) => ({
+      createSharedFetchHandler: (_channel: '/api') => ({
         fetch: async (request: Request) => {
           const url = new URL(request.url)
           if (request.method === 'POST' && url.pathname.startsWith('/api/')) {
@@ -83,7 +104,7 @@ function fakeConnection() {
               })
             }
           }
-          return fallback.fetch(request)
+          return new Response('not found', { status: 404 })
         },
       }),
     },
@@ -91,34 +112,43 @@ function fakeConnection() {
 }
 
 /** Mount the carrier plugin over the three fake services. */
-async function mounted(clientPaths: Record<string, string> = {}): Promise<{
+async function mounted(options: {
+  bundles?: Record<string, string>
+  streamItems?: unknown[]
+  streamFailure?: { code: string; message: string; details: object }
+} = {}): Promise<{
   gateway: DesktopGateway
   connection: ReturnType<typeof fakeConnection>
+  typertGateway: ReturnType<typeof fakeTypertGateway>
   dispose: () => Promise<void>
 }> {
   const ctx = new Context()
-  ctx.provide('clientModules', fakeModules(clientPaths) as never)
+  ctx.provide('clientModules', fakeModules(options.bundles) as never)
   const connection = fakeConnection()
   ctx.provide('connection', connection.service as never)
-  ctx.provide('apiProxy', fakeApiProxy())
+  const typertGateway = fakeTypertGateway(options.streamItems, options.streamFailure)
+  ctx.provide('typertGateway', typertGateway.service as never)
   const fiber = ctx.plugin({ name, inject: [...inject], apply })
   await fiber.await()
   const gateway = ctx.get('desktopGateway')
   if (gateway === undefined) throw new Error('desktopGateway was not provided')
-  return { gateway, connection, dispose: () => fiber.dispose() }
+  return { gateway, connection, typertGateway, dispose: () => fiber.dispose() }
 }
 
 const url = (path: string): string => `dsh://desktop${path}`
 
 describe('electron-ipc desktop gateway', () => {
-  it('serves the index with the injected boot manifest and assets from the dist', async () => {
+  it('serves the index with the transport bootstrap and injected boot manifest, plus dist assets', async () => {
     stageDist()
     const { gateway, dispose } = await mounted()
     const index = await gateway.handle(new Request(url('/')))
     expect(index.status).toBe(200)
     expect(index.headers.get('content-type')).toContain('text/html')
     const html = await index.text()
-    expect(html).toContain('globalThis["__DSH_BOOT__"]')
+    // The transport global installs ahead of every boot-manifest row.
+    expect(html.indexOf('window.__DSH_TRANSPORT__')).toBeGreaterThanOrEqual(0)
+    expect(html.indexOf('window.__DSH_TRANSPORT__')).toBeLessThan(html.indexOf('globalThis["__DSH_BOOT__"]'))
+    expect(html).toContain('ownsHost')
     expect(html).toContain('graph-rev')
 
     const asset = await gateway.handle(new Request(url('/assets/app.js')))
@@ -150,32 +180,27 @@ describe('electron-ipc desktop gateway', () => {
     await dispose()
   })
 
-  it('serves registered client bundles and their source maps, 404ing every miss', async () => {
-    const bundleRoot = mkdtempSync(join(tmpdir(), 'dsh-electron-ipc-bundle-'))
-    const bundle = join(bundleRoot, 'client.js')
-    writeFileSync(bundle, 'register()')
-    writeFileSync(`${bundle}.map`, '{"version":3}')
-    try {
-      const { gateway, dispose } = await mounted({ '@scope/plugin': bundle, '@scope/unbuilt': join(bundleRoot, 'missing', 'client.js') })
-      const script = await gateway.handle(new Request(url('/plugins/@scope/plugin/client.js')))
-      expect(script.status).toBe(200)
-      expect(script.headers.get('content-type')).toContain('text/javascript')
-      expect(await script.text()).toBe('register()')
-      const map = await gateway.handle(new Request(url('/plugins/@scope/plugin/client.js.map')))
-      expect(map.status).toBe(200)
-      expect(map.headers.get('content-type')).toContain('application/json')
-      // Unknown id, foreign suffix, unwritten bundle, and wrong methods.
-      expect((await gateway.handle(new Request(url('/plugins/@scope/other/client.js')))).status).toBe(404)
-      expect((await gateway.handle(new Request(url('/plugins/foreign.js')))).status).toBe(404)
-      expect((await gateway.handle(new Request(url('/plugins/@scope/unbuilt/client.js')))).status).toBe(404)
-      expect((await gateway.handle(new Request(url('/plugins/@scope/plugin/client.js'), { method: 'POST' }))).status).toBe(405)
-      await dispose()
-    } finally {
-      rmSync(bundleRoot, { recursive: true, force: true })
-    }
+  it('serves plugin combo bundles through the registry cache and 404s every miss', async () => {
+    const { gateway, dispose } = await mounted({
+      bundles: {
+        '/plugins/@scope/plugin/client.js': 'register()',
+        '/plugins/@scope/plugin/client.js.map': '{"version":3}',
+      },
+    })
+    const script = await gateway.handle(new Request(url('/plugins/@scope/plugin/client.js')))
+    expect(script.status).toBe(200)
+    expect(script.headers.get('content-type')).toContain('text/javascript')
+    expect(await script.text()).toBe('register()')
+    const map = await gateway.handle(new Request(url('/plugins/@scope/plugin/client.js.map')))
+    expect(map.status).toBe(200)
+    expect(map.headers.get('content-type')).toContain('application/json')
+    // Unknown resources and wrong methods mirror the registry's dispatch.
+    expect((await gateway.handle(new Request(url('/plugins/@scope/other/client.js')))).status).toBe(404)
+    expect((await gateway.handle(new Request(url('/plugins/@scope/plugin/client.js'), { method: 'POST' }))).status).toBe(405)
+    await dispose()
   })
 
-  it('dispatches /api through the shared chain: interceptor claims first, then the gateway', async () => {
+  it('dispatches /api through the connection shared fetch handler', async () => {
     stageDist()
     const { gateway, connection, dispose } = await mounted()
     connection.claims.set('claimed/endpoint', () => ({ claimed: true }))
@@ -191,22 +216,52 @@ describe('electron-ipc desktop gateway', () => {
       result: { ok: true, value: { claimed: true } },
     })
 
-    const describe = await gateway.handle(new Request(url('/api/host.describe'), {
+    // No interceptor claim and no fallback: the shared chain's own 404.
+    const missed = await gateway.handle(new Request(url('/api/host.describe'), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ type: 'client-request', rpcId: RpcId('rpc-describe'), method: 'host.describe', payload: {} }),
     }))
-    expect(describe.status).toBe(200)
-    expect(await describe.json()).toMatchObject({
-      rpcId: 'rpc-describe',
-      result: { ok: true, value: { version: 'test' } },
-    })
+    expect(missed.status).toBe(404)
+    await dispose()
+  })
 
-    // The event streams ride the same chain as SSE GETs.
-    const stream = await gateway.handle(new Request(url('/api/events.mux')))
-    expect(stream.status).toBe(200)
-    expect(stream.headers.get('content-type')).toContain('text/event-stream')
-    await stream.body?.cancel()
+  it('carries Gateway Remote streams as NDJSON frames over the scheme fetch', async () => {
+    stageDist()
+    const { gateway, typertGateway, dispose } = await mounted({ streamItems: [{ first: true }, { second: 2 }] })
+    const response = await gateway.handle(new Request(url('/dsh-stream/remote-event/stream'), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ client: 'spec' }),
+    }))
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('application/x-ndjson')
+    expect(typertGateway.opened).toEqual([{ endpoint: 'remote-event/stream', payload: { client: 'spec' } }])
+    const body = await response.text()
+    expect(body).toBe('{"k":"v","v":{"first":true}}\n{"k":"v","v":{"second":2}}\n')
+    await dispose()
+  })
+
+  it('terminates a failing stream with the gateway failure frame', async () => {
+    stageDist()
+    const { gateway, dispose } = await mounted({
+      streamFailure: { code: 'stream-refused', message: 'no source registered', details: { hint: 1 } },
+    })
+    const response = await gateway.handle(new Request(url('/dsh-stream/remote-event/stream'), {
+      method: 'POST',
+      body: 'null',
+    }))
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe('{"k":"e","c":"stream-refused","m":"no source registered","d":{"hint":1}}\n')
+    await dispose()
+  })
+
+  it('rejects malformed stream routes without reaching the gateway', async () => {
+    stageDist()
+    const { gateway, typertGateway, dispose } = await mounted()
+    expect((await gateway.handle(new Request(url('/dsh-stream/'), { method: 'POST', body: 'null' }))).status).toBe(404)
+    expect((await gateway.handle(new Request(url('/dsh-stream/$events'), { method: 'GET' }))).status).toBe(405)
+    expect(typertGateway.opened).toEqual([])
     await dispose()
   })
 

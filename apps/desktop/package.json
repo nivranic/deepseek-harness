@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-desktop",
   "description": "Electron app shell for the desktop surface: registers the privileged dsh: scheme, boots the desktop profile through the dsh profile launcher, wires the scheme to the desktopGateway, and owns the window, the close-to-tray behavior, and the shutdown lifecycle",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.2-alpha.1",
   "publishConfig": {
     "access": "public"
   },

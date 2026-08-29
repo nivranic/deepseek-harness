@@ -12,9 +12,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
+import { RpcId } from '@deepseek-ai/dsh-client-connection'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
-import { RpcId } from '@deepseek-ai/dsh-host-apiproxy/api'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -65,7 +65,7 @@ async function bootDesktop(settingsFile: string): Promise<Context> {
   // Bare plugin names resolve through the profile module fallback, the same
   // mechanism the real desktop boot uses.
   const home = dirname(settingsFile)
-  healProfilesModuleFallback(INSTALL_ANCHOR, home)
+  await healProfilesModuleFallback({ installAnchor: INSTALL_ANCHOR, home })
   const profileDir = join(home, 'profiles', 'spec')
   await mkdir(profileDir, { recursive: true })
   const rootConfig = join(profileDir, 'cordis.yml')
@@ -140,15 +140,18 @@ describe('the shipped desktop composition', () => {
     expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: false })
   })
 
-  it('serves client plugin bundles through the gateway', async () => {
+  it('serves the initial combo bundles the boot manifest advertises', async () => {
     const gateway = ctx.get('desktopGateway') as DesktopGateway
-    const script = await gateway.handle(new Request('dsh://desktop/plugins/@deepseek-ai/dsh-client-connection/client.js'))
+    const modules = ctx.get('clientModules')!
+    const batch = modules.graph().batches[0]
+    expect(batch).toBeDefined()
+    const script = await gateway.handle(new Request(`dsh://desktop${batch!.url}`))
     expect(script.status).toBe(200)
     expect(script.headers.get('content-type')).toContain('text/javascript')
     expect((await gateway.handle(new Request('dsh://desktop/plugins/@deepseek-ai/dsh-no-such/client.js'))).status).toBe(404)
   })
 
-  it('dispatches /api unary calls and the interceptor plane over the same bridge', async () => {
+  it('dispatches /api through the gateway interceptor plane over the bridge', async () => {
     const gateway = ctx.get('desktopGateway') as DesktopGateway
     const post = (endpoint: string, method: string, payload: unknown, rpcId: string): Promise<Response> =>
       gateway.handle(new Request(`dsh://desktop/api/${endpoint}`, {
@@ -157,34 +160,28 @@ describe('the shipped desktop composition', () => {
         body: JSON.stringify({ type: 'client-request', rpcId: RpcId(rpcId), method, payload }),
       }))
 
-    // The gateway plane: a loopback-pinned privileged method stays reachable
-    // on the desktop, because the bridge never crosses the network.
-    const describeHost = await post('host.describe', 'host.describe', {}, 'desktop-describe')
-    expect(describeHost.status).toBe(200)
-    const described = await describeHost.json() as { result: { ok: boolean } }
-    expect(described.result.ok).toBe(true)
-
-    // The interceptor plane: the typert gateway claims its endpoints ahead
-    // of the gateway fallback. `commands/list` is gateway-dispatched; a
-    // business error (unknown session) proves the dispatch reached the
-    // commands remote, where the fallback would have answered 404.
-    const listed = await post('commands/list', 'commands/list', { args: { agentId: 'desktop-none' } }, 'desktop-commands')
-    expect(listed.status).toBe(200)
-    const commands = await listed.json() as { result: { ok: boolean; error?: { code: string } } }
-    expect(commands.result.ok).toBe(false)
-    expect(commands.result.error?.code).toBe('session-not-found')
-
-    const sessions = await post('session.list', 'session.list', {}, 'desktop-sessions')
+    // The Typert gateway claims its Remote endpoints on the connection
+    // service; the desktop bridge dispatches into the same shared chain the
+    // web HTTP route uses.
+    const sessions = await post('session/list', 'session/list', {}, 'desktop-sessions')
     expect(sessions.status).toBe(200)
     const sessionList = await sessions.json() as { result: { ok: boolean } }
     expect(sessionList.result.ok).toBe(true)
+
+    // An endpoint no interceptor claims answers the shared chain's own 404.
+    const missed = await post('no/such/endpoint', 'no/such/endpoint', {}, 'desktop-miss')
+    expect(missed.status).toBe(404)
   })
 
-  it('streams session events over the bridge as SSE', async () => {
+  it('carries Gateway Remote streams over the bridge as NDJSON', async () => {
     const gateway = ctx.get('desktopGateway') as DesktopGateway
-    const stream = await gateway.handle(new Request('dsh://desktop/api/events.mux'))
+    const stream = await gateway.handle(new Request('dsh://desktop/dsh-stream/$events', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ args: {} }),
+    }))
     expect(stream.status).toBe(200)
-    expect(stream.headers.get('content-type')).toContain('text/event-stream')
+    expect(stream.headers.get('content-type')).toContain('application/x-ndjson')
     await stream.body?.cancel()
   })
 })

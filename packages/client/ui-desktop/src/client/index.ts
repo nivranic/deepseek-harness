@@ -8,11 +8,13 @@
  * Export discipline: packages/client/AGENTS.md.
  */
 
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
-// Type-only: pulls ctx.locale and ctx.settingsScope Context merges into this
-// program. Cross-plugin collaboration goes through the service, never a value
-// import (client bundle purity gate).
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
+// Type-only: pulls ctx.locale, ctx.slots, and ctx.settingsScope Context merges
+// into this program. Cross-plugin collaboration goes through the service,
+// never a value import (client bundle purity gate).
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+// Type-only: the slots Context merge the injected registry reads.
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { CloseActionRow } from './CloseActionRow.tsx'
 import type { CloseActionRowInjected } from './CloseActionRow.tsx'

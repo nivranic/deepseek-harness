@@ -7,7 +7,7 @@
  * dictionaries. Feature-owned rows and sections stay with their features.
  * Export discipline: packages/client/AGENTS.md.
  */
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
 // Type-only: the boot document's installation facts Context merge (appInfo).
 import type {} from '@deepseek-ai/dsh-client-modules/client'
@@ -18,6 +18,8 @@ import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 // Type-only: pulls ctx.locale into this program.
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
+import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {
   SettingsOnboardingStep, SettingsRootInjected, SettingsSectionRow,
 } from './shell-contract.ts'
@@ -57,11 +59,12 @@ const NS = 'settings'
  * Required services (cordis fiber inject). The target slots are declared by
  * ui-settings' apply, whose activation order relative to this one is NOT
  * constrained; registrations depend on their slots through `slots.inject()`.
- * `appInfo` arrives from the client-modules wrapper (the modules row mounts in
- * every browser composition); `settingsScope` feeds the document action's
- * describe mirror.
+ * `remote.settings` carries the Settings mirror the document action reads;
+ * `appInfo` arrives from the client-modules wrapper (the modules row mounts
+ * in every browser composition) and feeds the About section; `settingsScope`
+ * feeds the document action's describe mirror.
  */
-export const inject = ['slots', 'locale', 'connection', 'appInfo', 'settingsScope']
+export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.settings', 'appInfo', 'settingsScope']
 
 /**
  * Register the `settings` dictionaries, the chrome content, and the General
@@ -76,10 +79,9 @@ export function apply(ctx: ClientContext): void {
   // locale/change re-registration wiring.
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
-  // The action follows the shared describe mirror, whose owning plugin
-  // already refreshes it on document commits and reconnects.
+  // The shared SettingsScope mirror updates after document commits and reconnects.
   const documentController = connection.isLoopback
-    ? new SettingsDocumentStore(connection.api, ctx.settingsScope.describe())
+    ? new SettingsDocumentStore(ctx.remote, ctx.settingsScope.describe())
     : undefined
   const documentInjected = documentController === undefined
     ? undefined

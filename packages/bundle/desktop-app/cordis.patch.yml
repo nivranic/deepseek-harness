@@ -98,10 +98,9 @@
     - id: plugin-inventory
       name: '@deepseek-ai/dsh-host-plugin-inventory'
 
-    # The API gateway: the transport-agnostic dispatch face every client shape
-    # shares. The base layer's agent-default-model service owns the default model.
-    - id: api-gateway
-      name: '@deepseek-ai/dsh-host-apiproxy'
+    # The Typert gateway row (`typert-gateway`, @deepseek-ai/dsh-api-gateway)
+    # comes from the base layer; the desktop carrier dispatches into it through
+    # the connection service's shared fetch handler and its wireStream adapter.
 
     - id: cordis-host-runner
       name: '@deepseek-ai/dsh-cordis-host-runner'
@@ -110,8 +109,9 @@
 
     # The desktop carrier: provides desktopGateway, which the app shell wires
     # to the renderer's privileged-scheme fetch. It serves the shared /api
-    # chain, the /plugins bundles, and the boot-manifest-injected dist, and
-    # binds no socket.
+    # chain, the /dsh-stream Remote-stream carrier, the /plugins combo
+    # bundles, and the transport-bootstrap plus boot-manifest-injected dist,
+    # and binds no socket.
     - id: electron-ipc
       name: '@deepseek-ai/dsh-host-electron-ipc'
 
@@ -144,9 +144,6 @@
 
     - id: api-remotes
       name: '@deepseek-ai/dsh-api-remotes'
-
-    - id: client-runtime
-      name: '@deepseek-ai/dsh-client-runtime'
 
     - id: cordis-client-runner
       name: '@deepseek-ai/dsh-cordis-client-runner'

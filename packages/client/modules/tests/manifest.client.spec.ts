@@ -10,7 +10,11 @@ import { apply, createClientModuleSystem } from '../src/client/index.ts'
 import type { ClientModuleLoaderTarget } from '../src/client/index.ts'
 import { parseBootManifest } from '../src/client/manifest.ts'
 
-const validGraph = { rev: 'r', entries: [{ id: 'p', url: '/plugins/p/client.js?rev=1', rev: '1' }] }
+const validGraph = {
+  rev: 'r',
+  entries: [{ id: 'p', url: '/plugins/p/client.js?rev=1', rev: '1' }],
+  batches: [{ phase: 'application', url: '/plugins/??p/client.js&rev=1', rev: '1', entries: ['p'] }],
+}
 
 describe('parseBootManifest version', () => {
   it('carries a present version through', () => {

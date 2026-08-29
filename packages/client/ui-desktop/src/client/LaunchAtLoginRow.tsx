@@ -5,7 +5,8 @@
  */
 
 import type { DesktopSettings } from '../desktop-settings.ts'
-import type { ObservableSnapshot, SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
+import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 // The preference-row layout this package already owns (title/description plus
 // a two-option segmented control); shared, not forked.

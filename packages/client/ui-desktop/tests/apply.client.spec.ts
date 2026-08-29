@@ -6,19 +6,13 @@
 
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { SlotRegistry } from '@deepseek-ai/dsh-client-runtime/client'
+import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
 import { apply as settingsApply, inject as settingsInject } from '@deepseek-ai/dsh-client-ui-settings/client'
 import { apply, inject } from '../src/client/index.ts'
 import type { CloseActionRowInjected, LaunchAtLoginRowInjected } from '../src/client/index.ts'
 import { DesktopSettingsSchema, DESKTOP_SETTINGS_NAMESPACE } from '../src/desktop-settings.ts'
-
-let rpc = 0
-
-function ok<T>(value: T): { rpcId: string; result: { ok: true; value: T } } {
-  return { rpcId: `desktop-${rpc++}`, result: { ok: true, value } }
-}
 
 function view(closeAction: 'tray' | 'quit', revision: number, launchAtLogin = false) {
   return {
@@ -38,19 +32,19 @@ async function bench() {
   const locale = new LocaleRuntime(ctx)
   locale.setLocale('zh')
   ctx.provide('locale', locale)
-  new TestRemote(ctx)
-  ctx.provide('connection', {
-    isLoopback: true,
-    api: {
-      settings: {
-        describe: () => Promise.resolve(ok({ writable: true, hasDocument: true, namespaces: [view('tray', 1)] })),
-        mutate: (payload: unknown) => {
-          mutate(payload)
-          return Promise.resolve(ok(view('quit', 2)))
-        },
+  ctx.provide('connection', { isLoopback: true } as never)
+  new TestRemote(ctx, {
+    settings: {
+      describe: () => Promise.resolve({
+        ok: true as const,
+        value: { writable: true, hasDocument: true, namespaces: [view('tray', 1)] },
+      }),
+      mutate: (...args: unknown[]) => {
+        mutate(...args)
+        return Promise.resolve({ ok: true as const, value: view('quit', 2) })
       },
     },
-  } as never)
+  })
   ctx.get('slots')!.register({
     name: 'root',
     children: { 'settings.general.item': { kind: 'list', scope: 'root' } },
@@ -91,11 +85,11 @@ describe('ui-desktop apply', () => {
     await vi.waitFor(() => {
       expect(closeFace.hooks.desktopClose.getSnapshot().value).toEqual({ closeAction: 'quit', launchAtLogin: false })
     })
-    expect(mutate).toHaveBeenCalledWith({
-      ns: DESKTOP_SETTINGS_NAMESPACE,
-      ops: [{ op: 'set', path: ['closeAction'], value: 'quit' }],
-      expectedRevision: 1,
-    })
+    expect(mutate).toHaveBeenCalledWith(
+      DESKTOP_SETTINGS_NAMESPACE,
+      [{ op: 'set', path: ['closeAction'], value: 'quit' }],
+      1,
+    )
   })
 
   it('binds the launch row to the same namespace and writes the boolean through mutate', async () => {
@@ -106,10 +100,10 @@ describe('ui-desktop apply', () => {
     await vi.waitFor(() => {
       expect(launchFace.hooks.desktopLaunch.getSnapshot().value).toEqual({ closeAction: 'quit', launchAtLogin: false })
     })
-    expect(mutate).toHaveBeenCalledWith({
-      ns: DESKTOP_SETTINGS_NAMESPACE,
-      ops: [{ op: 'set', path: ['launchAtLogin'], value: true }],
-      expectedRevision: 1,
-    })
+    expect(mutate).toHaveBeenCalledWith(
+      DESKTOP_SETTINGS_NAMESPACE,
+      [{ op: 'set', path: ['launchAtLogin'], value: true }],
+      1,
+    )
   })
 })

@@ -5,7 +5,8 @@
  */
 
 import type { DesktopCloseAction, DesktopSettings } from '../desktop-settings.ts'
-import type { ObservableSnapshot, SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
+import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopSettingsKey } from './locales.ts'
 import css from './CloseActionRow.module.css'

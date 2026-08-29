@@ -1,8 +1,27 @@
+---
+description: "Desktop-surface preferences: General-settings rows for the window close action (tray or quit) and login autostart, bound to the desktop-only settings namespace."
+kind: "package-reference"
+---
+
 # dsh-client-ui-desktop
 
 English | [中文](README.zh.md)
 
+## Summary
+
 The desktop-surface preferences: General-settings rows choosing what the window's close button does — hide to the system tray (the default) or quit the application — and whether the app auto-starts at OS login, hidden in the tray (off by default). The package is dual-face: the host half registers the `desktop` settings namespace, and the browser half renders the rows bound to that namespace through the shared settings scope.
+
+## Table of Contents
+
+- [Summary](#summary)
+- [Composition is the surface gate](#composition-is-the-surface-gate)
+- [What the shell does with it](#what-the-shell-does-with-it)
+- [When a row is absent](#when-a-row-is-absent)
+- [Model Experience](#model-experience)
+- [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
+- [Dev Note](#dev-note)
+
+-----
 
 ## Composition is the surface gate
 
@@ -17,6 +36,15 @@ The Electron app shell ([`apps/desktop`](../../../apps/desktop)) reads the names
 ## When a row is absent
 
 While the namespace is loading, not yet accepted, or not exposed to this client, each row renders nothing — the same degradation every settings-scope row uses. A read-only settings document disables the options without hiding the row.
+
+## Dev Note
+
+<details>
+<summary>Working context for maintainers — click to expand</summary>
+
+The tray and login-entry implementation lives in the Electron app shell (`apps/desktop`); this package only owns the settings namespace and the rows.
+
+</details>
 
 ## Model Experience
 

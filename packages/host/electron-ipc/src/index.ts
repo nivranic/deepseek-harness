@@ -1,14 +1,15 @@
 /**
  * @deepseek-ai/dsh-host-electron-ipc — the desktop carrier for the browser
  * surface: it provides {@link DesktopGateway}, the in-process fetch target the
- * desktop app wires to Electron's privileged-scheme bridge (the IPC route the
- * webserver documentation reserves for the desktop shape — this package never
- * binds a socket). Requests dispatch in three branches: `/api` rides the
- * Connection shared-channel chain (interceptor claims plus the API Proxy
- * fallback, without the HTTP trust fence — every request arrives from this
- * process's own renderer, never the network), `/plugins/<id>/client.js` serves
- * the client-module bundles, and every other path serves the built frontend
- * dist with the boot manifest injected into index.html.
+ * desktop app wires to Electron's privileged-scheme bridge (this package never
+ * binds a socket). Requests dispatch in four branches: `/api` rides the
+ * Connection shared-channel chain (the Typert gateway's interceptor claims,
+ * without the HTTP trust fence — every request arrives from this process's own
+ * renderer, never the network), `/dsh-stream/<endpoint>` carries one Gateway
+ * Remote stream as newline-delimited JSON over the same scheme fetch,
+ * `/plugins` serves the client-module combo bundles from the registry caches,
+ * and every other path serves the built frontend dist with the boot manifest
+ * and a transport bootstrap injected into index.html.
  * @module @deepseek-ai/dsh-host-electron-ipc
  */
 
@@ -16,8 +17,8 @@ import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { dirname, extname, join, normalize, resolve, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
-// Activates the apiProxy, clientModules, and connection Context merges.
-import { toFetchHandler } from '@deepseek-ai/dsh-host-apiproxy'
+// Activates the typertGateway, clientModules, and connection Context merges.
+import type {} from '@deepseek-ai/dsh-api-gateway'
 import { bootInjections } from '@deepseek-ai/dsh-client-modules'
 import { renderIndexInjections } from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@deepseek-ai/dsh-client-connection'
@@ -26,7 +27,7 @@ import type {} from '@deepseek-ai/dsh-client-connection'
 export const name = 'electron-ipc'
 
 /** Services required before the gateway can dispatch. */
-export const inject = ['clientModules', 'connection', 'apiProxy']
+export const inject = ['clientModules', 'connection', 'typertGateway']
 
 /**
  * The desktop request target: the app shell hands every renderer fetch of its
@@ -67,9 +68,62 @@ const MIME: Record<string, string> = {
 const HTML_MIME = 'text/html; charset=utf-8'
 
 const API_PATH = '/api'
+const STREAM_PREFIX = '/dsh-stream/'
 const PLUGINS_PREFIX = '/plugins/'
-const BUNDLE_SUFFIX = '/client.js'
-const SOURCE_MAP_SUFFIX = '/client.js.map'
+
+/**
+ * The transport bootstrap installed ahead of every boot-manifest row: it owns
+ * the page-global carrier hooks (the same seam a worker shell installs), so
+ * the browser half reaches Gateway streams over the scheme bridge's streaming
+ * fetch and reports the privileged surface reachable. Self-contained plain
+ * script on purpose — the carrier class problem is why the host, not a
+ * client bundle, owns this global on the desktop surface.
+ */
+const TRANSPORT_BOOTSTRAP = `(function () {
+  'use strict'
+  window.__DSH_TRANSPORT__ = {
+    ownsHost: true,
+    openStream: function (endpoint, payload, signal) {
+      return (async function* () {
+        var response = await fetch('/dsh-stream/' + encodeURIComponent(endpoint), {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: signal
+        })
+        if (!response.ok || response.body === null) {
+          throw new Error('desktop stream transport failed: HTTP ' + String(response.status))
+        }
+        var reader = response.body.getReader()
+        var decoder = new TextDecoder()
+        var buffer = ''
+        for (;;) {
+          var chunk = await reader.read()
+          if (chunk.done) return
+          buffer += decoder.decode(chunk.value, { stream: true })
+          var newline = buffer.indexOf('\\n')
+          while (newline >= 0) {
+            var line = buffer.slice(0, newline)
+            buffer = buffer.slice(newline + 1)
+            newline = buffer.indexOf('\\n')
+            if (line === '') continue
+            var frame = JSON.parse(line)
+            if (frame.k === 'v') {
+              yield frame.v
+            } else if (frame.k === 'e') {
+              var failure = new Error(frame.m)
+              failure.dshRemoteStreamFailure = frame.c === undefined
+                ? { kind: 'carrier' }
+                : { kind: 'remote', code: frame.c, details: frame.d }
+              throw failure
+            }
+          }
+        }
+      })()
+    }
+  }
+})()
+`
 
 /** Dist location is assembly knowledge of the desktop composition: resolved through the frontend package exports, never configured. */
 function resolveDistIndex(): string {
@@ -91,39 +145,66 @@ function methodNotAllowed(): Response {
 }
 
 /**
- * Serve one client-plugin bundle or its source map from the module registry.
- * @param pathname - decoded request pathname under `/plugins/`.
- * @param modules - the client-module registry resolving entry ids to bundle paths.
- * @returns the bundle response, or the matching 404/405.
+ * Carry one Gateway Remote stream as newline-delimited JSON frames: a
+ * `{"k":"v","v":…}` frame per stream item, a terminal `{"k":"e",…}` frame
+ * carrying the gateway's own failure projection. The renderer's abort drops
+ * the fetch, whose cancellation aborts the logical stream at the gateway.
+ * @param request - the renderer's POST whose path names the stream endpoint.
+ * @param gateway - the Typert gateway owning the wire stream adapter.
+ * @returns the streaming NDJSON response.
  */
-async function serveBundle(pathname: string, method: string, modules: Context['clientModules']): Promise<Response> {
-  if (method !== 'GET' && method !== 'HEAD') return methodNotAllowed()
-  const isSourceMap = pathname.endsWith(SOURCE_MAP_SUFFIX)
-  const suffix = isSourceMap ? SOURCE_MAP_SUFFIX : BUNDLE_SUFFIX
-  if (!pathname.endsWith(suffix)) return new Response('not found', { status: 404 })
-  // The id may contain a scope slash; anything else under /plugins is unknown.
-  const clientPath = modules.clientPath(pathname.slice(PLUGINS_PREFIX.length, -suffix.length))
-  const path = clientPath === undefined ? undefined : `${clientPath}${isSourceMap ? '.map' : ''}`
-  if (path === undefined) return new Response('not found', { status: 404 })
-  try {
-    const body = await readFile(path)
-    return new Response(body, {
-      headers: {
-        'content-type': isSourceMap ? 'application/json; charset=utf-8' : 'text/javascript; charset=utf-8',
-        'cache-control': 'no-cache',
-      },
-    })
-  } catch {
-    // Registered but unreadable (bundle not built yet): a loud 404 beats a
-    // silent SPA-fallback HTML page.
-    return new Response('not found', { status: 404 })
-  }
+async function serveStream(request: Request, gateway: Context['typertGateway']): Promise<Response> {
+  if (request.method !== 'POST') return methodNotAllowed()
+  // The endpoint is a Gateway Remote stream name (`$events`) or a
+  // `namespace/method` endpoint; slashes are ordinary endpoint bytes, so only
+  // the empty path is unknown.
+  const endpoint = decodeURIComponent(new URL(request.url).pathname.slice(STREAM_PREFIX.length))
+  if (endpoint === '') return new Response('not found', { status: 404 })
+  // Wire boundary: the renderer posts its decoded stream payload as one JSON
+  // body; anything the JSON grammar rejects is the caller's malformed frame.
+  const payload: unknown = JSON.parse(await request.text())
+  const lifetime = new AbortController()
+  request.signal.addEventListener('abort', () => { lifetime.abort() })
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const encoder = new TextEncoder()
+      const send = (frame: unknown): void => {
+        controller.enqueue(encoder.encode(`${JSON.stringify(frame)}\n`))
+      }
+      try {
+        const source = await gateway.wireStream.open(endpoint, payload, lifetime.signal)
+        for await (const item of source) {
+          send({ k: 'v', v: item })
+          if (lifetime.signal.aborted) return
+        }
+      } catch (error) {
+        // The renderer dropped the fetch: its abort already cancelled the
+        // logical stream, so this is the gateway's own cancellation race,
+        // not a failure to report.
+        if (!lifetime.signal.aborted) {
+          const failure = gateway.wireStream.failure(error)
+          send({ k: 'e', c: failure.code, m: failure.message, d: failure.details })
+        }
+      } finally {
+        controller.close()
+      }
+    },
+    cancel() {
+      lifetime.abort()
+    },
+  })
+  return new Response(stream, {
+    headers: {
+      'content-type': 'application/x-ndjson; charset=utf-8',
+      'cache-control': 'no-store',
+    },
+  })
 }
 
 /**
  * Serve the built frontend: traversal outside the dist root is 403, any miss
  * falls back to index.html with 200 (SPA routing), and every index response
- * carries the freshly injected boot manifest.
+ * carries the transport bootstrap plus the freshly injected boot manifest.
  * @param pathname - decoded request pathname.
  * @param method - request method; only reads are served.
  * @param distRoot - absolute dist root directory.
@@ -154,23 +235,28 @@ async function serveStatic(
 }
 
 /**
- * Provide the desktop gateway: the shared `/api` chain over the API Proxy,
- * the client-plugin bundle route, and the boot-manifest-injected dist.
- * @param ctx - plugin context carrying clientModules, connection, and apiProxy.
+ * Provide the desktop gateway: the shared `/api` chain, the `/dsh-stream`
+ * Remote-stream carrier, the client-plugin combo bundles, and the
+ * boot-manifest-injected dist.
+ * @param ctx - plugin context carrying clientModules, connection, and typertGateway.
  */
 export function apply(ctx: Context): void {
   const distIndex = internals.resolveDistIndex()
   const distRoot = dirname(distIndex)
   const renderIndex = async (): Promise<string> =>
-    renderIndexInjections(await readFile(distIndex, 'utf8'), bootInjections(ctx.clientModules.graph()))
-  // Interceptor claims (the Typert gateway) must apply on the desktop exactly
-  // as on the web HTTP route; the fallback is the bare gateway. The HTTP trust
-  // fence does not apply: every request arrives from this process's own
-  // renderer through the app's privileged scheme, never from the network, so
-  // the loopback-pinned privileged methods stay reachable for the GUI.
-  const apiFetch = ctx.connection.createSharedFetchHandler(API_PATH, {
-    fetch: request => toFetchHandler(ctx.apiProxy).fetch(request),
-  })
+    renderIndexInjections(
+      await readFile(distIndex, 'utf8'),
+      [
+        { kind: 'script', placement: 'head', text: TRANSPORT_BOOTSTRAP },
+        ...bootInjections(ctx.clientModules.graph()),
+      ],
+    )
+  // The Typert gateway registers its interceptor claims on the connection
+  // service itself, so the shared handler dispatches them exactly as the web
+  // HTTP route does. The HTTP trust fence does not apply: every request
+  // arrives from this process's own renderer through the app's privileged
+  // scheme, never from the network.
+  const apiFetch = ctx.connection.createSharedFetchHandler(API_PATH)
   const gateway: DesktopGateway = {
     async handle(request) {
       const url = new URL(request.url)
@@ -178,8 +264,11 @@ export function apply(ctx: Context): void {
       if (pathname === API_PATH || pathname.startsWith(`${API_PATH}/`)) {
         return apiFetch.fetch(request)
       }
+      if (pathname.startsWith(STREAM_PREFIX)) {
+        return await serveStream(request, ctx.typertGateway)
+      }
       if (pathname.startsWith(PLUGINS_PREFIX)) {
-        return serveBundle(pathname, request.method, ctx.clientModules)
+        return ctx.clientModules.bundleFetch(request)
       }
       return serveStatic(pathname, request.method, distRoot, distIndex, renderIndex)
     },
