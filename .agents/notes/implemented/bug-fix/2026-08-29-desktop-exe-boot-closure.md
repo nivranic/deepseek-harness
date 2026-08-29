@@ -1,0 +1,25 @@
+# Agent Note: Desktop exe boot closure over the dsh-base layer
+
+Status: implemented
+
+English | [中文](2026-08-29-desktop-exe-boot-closure.zh.md)
+
+## Problem
+
+The packaged desktop exe failed its smoke boot after merging master 0.1.2-alpha.1 into dev, through two independent gaps that only a packaged boot exposes. First, the merge moved the durable storage stack (`storage`, `storage-json`, `storage-domain`) and `session-projection-cache` into the `dsh-base` layer while the desktop overlay still inserted rows with the same ids; the Loader rejects a duplicate insert id at boot, so the app died before a window appeared. Second, `@deepseek-ai/dsh-settings` and `@deepseek-ai/dsh-session-query` are Service Definition packages that every consumer references only as a peerDependency; the prod-pruned deploy carries them into the stage store, but no package's production dependency graph reaches them, and electron-builder packs exactly that graph — so the packaged app imported modules that did not exist and three loader entries (`ui-desktop`, `ui-conversation`, `agent-presets`) failed. Neither gap had a keyless witness: each bundle's tests parse their own patch in isolation, the web surface's e2e boots from the workspace rather than a deployed closure, and no test composed `dsh-base` plus the desktop overlay before the packaged smoke.
+
+## Decision
+
+The desktop overlay restates base rows by id (the top-level `- id:` patch form) and never inserts an id the base layer already inserts; `verify-cordis-config` enforces this for every bundle depending on `dsh-base` through `validateOverlayInsertDisjointness`, with a spec proving the duplicate case is rejected and the restate-by-id form accepted. The exe packaging script's supplement step now computes the set the stage manifest's dependency graph reaches over the flat top level — the set electron-builder collects — and for every staged-manifest requirement outside that set either copies the workspace package in (as before) or, when the deploy store already hoisted the package to the stage top level through peer edges only, declares it in the stage manifest's dependencies so the packer carries it. Declarations are limited to workspace packages: registry packages riding the same peer edges (react, typescript, …) stay undeclared, because the app bundles what it runs and never ships a toolchain.
+
+## Alternatives considered
+
+**Compose every profile template through the real Loader in a keyless test instead of a static id check.** Not taken: the insert-id rule is mechanically exact for the duplicate-insert class and runs inside the existing top-level gate, while a full Loader composition needs the packaged plugin graph and would duplicate the smoke's job at unit-test speed.
+
+**Declare every peer-referenced requirement in the stage manifest, registry packages included.** Not taken: the first attempt at the fix did this and would have packed react, react-dom, scheduler, loose-envify, and typescript into the exe — megabytes the app never executes, since the frontend dist bundles its own react and nothing runs tsc.
+
+**Give `apps/desktop` or the desktop bundle a production dependency on the Service Definition packages.** Not taken: the peer-plus-dev split is the repo-wide convention for harness packages, and one consumer promoting its own manifest would leave the next peer-only package to fail the same way; what a loader entry imports at runtime is a packaging-graph fact, not a per-consumer choice.
+
+## Consequences
+
+The exe boots through the packaged smoke again, with the storage stack, projection cache, and both Service Definition packages present exactly once. Any future base/overlay row overlap becomes a keyless `verify-cordis-config` failure instead of a packaged-boot failure, and a newly dropped peer-only workspace package shows up as a count change in the supplement's log line (`declared N peer-only package(s)`). The cost: the packaging script owns a small dependency-graph walker mirroring electron-builder's collection semantics; if the packer ever starts collecting peer edges, the declarations become redundant but harmless.

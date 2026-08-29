@@ -9,7 +9,7 @@ kind: "package-bundle"
 
 ## 概述
 
-桌面表面 bundle：dsh 的 Electron 应用窗口，支持与代理交互对话、模型与设置管理以及会话历史，背后是与其他表面相同的模型访问、工具与安全默认值。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-base`](../base/README.zh.md) 之上：设置编码 persona，插入桌面宿主行（workspace、投影缓存、storage、[`electron-ipc`](../../host/electron-ipc/README.zh.md) 载体）以及 Web 表面的浏览器插件花名册外加一行桌面专属行（[ui-desktop](../../client/ui-desktop/README.zh.md)，关闭按钮偏好），并挂载本包的 `desktop-runtime` 粘合插件（配置 `{surfaceContext}`）。该表面与 [`dsh-web-app`](../web-app/README.zh.md) 的差异恰恰在载体：不绑定 webserver 行、不解析 `webStartup` 旗标，Connection 行以空信任清单保持挂载，提供其注册表服务与浏览器半。electron-ipc 行提供 `desktopGateway`，由 Electron 应用壳（`apps/desktop`）挂到其特权协议上；自适应目录选择器通过 `bindHost` 声明其回环绑定事实，因为没有可读的服务器绑定。本表面没有 URL 行、shell 变量或 HTTP 席位。
+桌面表面 bundle：dsh 的 Electron 应用窗口，支持与代理交互对话、模型与设置管理以及会话历史，背后是与其他表面相同的模型访问、工具与安全默认值。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-base`](../base/README.zh.md) 之上：设置编码 persona，插入桌面宿主行（workspace、[`electron-ipc`](../../host/electron-ipc/README.zh.md) 载体）以及 Web 表面的浏览器插件花名册外加一行桌面专属行（[ui-desktop](../../client/ui-desktop/README.zh.md)，关闭按钮偏好），并挂载本包的 `desktop-runtime` 粘合插件（配置 `{surfaceContext}`）。该表面与 [`dsh-web-app`](../web-app/README.zh.md) 的差异恰恰在载体：不绑定 webserver 行、不解析 `webStartup` 旗标，Connection 行以空信任清单保持挂载，提供其注册表服务与浏览器半。electron-ipc 行提供 `desktopGateway`，由 Electron 应用壳（`apps/desktop`）挂到其特权协议上；自适应目录选择器通过 `bindHost` 声明其回环绑定事实，因为没有可读的服务器绑定。本表面没有 URL 行、shell 变量或 HTTP 席位。
 
 ## 目录
 
@@ -28,7 +28,7 @@ kind: "package-bundle"
 
 ### 设计概念
 
-该 bundle 是一层补丁而非代码：它插入的每一行都是既有包的组合，本包唯一的代码是 `desktop-runtime` 粘合插件。桌面载体以共享 `/api` 链、`/dsh-stream` 上的 Gateway Remote 流、客户端插件组合 bundle，以及传输引导加启动清单注入的 dist 应答渲染端的特权协议 fetch；Typert 网关行来自 base 层，经 connection 服务的共享 fetch 处理器分发。
+该 bundle 是一层补丁而非代码：它插入的每一行都是既有包的组合，本包唯一的代码是 `desktop-runtime` 粘合插件。storage 栈与投影缓存来自 `dsh-base`；桌面叠层的 workspace 与 message-feedback 行消费这一共享 `storageDomain` 服务。桌面载体以共享 `/api` 链、`/dsh-stream` 上的 Gateway Remote 流、客户端插件组合 bundle，以及传输引导加启动清单注入的 dist 应答渲染端的特权协议 fetch；Typert 网关行来自 base 层，经 connection 服务的共享 fetch 处理器分发。
 
 ### 组合映射
 

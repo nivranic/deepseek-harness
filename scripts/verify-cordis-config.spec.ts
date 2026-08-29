@@ -14,6 +14,7 @@ import {
   metadataExpressionErrors,
   packageTestFixtureDependencyErrors,
   packageTestPluginDependencyErrors,
+  validateOverlayInsertDisjointness,
 } from './verify-cordis-config.ts'
 
 describe('verify-cordis-config metadata expressions', () => {
@@ -147,6 +148,63 @@ describe('package-owned Loader test dependency closures', () => {
     try {
       expect(packageTestFixtureDependencyErrors(fixture)).toEqual([
         'package test fixture dependency scan found no package-owned Loader configs',
+      ])
+    } finally {
+      rmSync(fixture, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('bundle overlay insert disjointness', () => {
+  function writeBundle(root: string, name: string, patch: string, dependsOnBase: boolean): void {
+    const dir = join(root, 'packages/bundle', name)
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({
+      name,
+      ...(dependsOnBase ? { dependencies: { '@deepseek-ai/dsh-base': 'workspace:^' } } : {}),
+      dsh: { bundle: { patch: './cordis.patch.yml' } },
+    }))
+    writeFileSync(join(dir, 'cordis.patch.yml'), patch)
+  }
+
+  it('rejects a base-dependent overlay inserting an id the base layer already inserts', () => {
+    const fixture = mkdtempSync(join(tmpdir(), 'dsh-overlay-insert-disjointness-'))
+    try {
+      writeBundle(fixture, 'base', [
+        '- insert:',
+        '    - id: storage',
+        "      name: '@deepseek-ai/dsh-storage'",
+        '    - id: timer',
+        "      name: '@deepseek-ai/cordis-plugin-timer'",
+      ].join('\n') + '\n', false)
+      // The top-level `- id: storage` restatement is the legitimate overlay
+      // form; only the insert member duplicates the base layer.
+      writeBundle(fixture, 'desktop-app', [
+        '- id: storage',
+        '  config:',
+        '    backend: json',
+        '- insert:',
+        '    - id: storage',
+        "      name: '@deepseek-ai/dsh-storage'",
+        '    - id: desktop-runtime',
+        "      name: '@deepseek-ai/dsh-desktop-app'",
+      ].join('\n') + '\n', true)
+      writeBundle(fixture, 'headless', [
+        '- insert:',
+        '    - id: headless-only',
+        "      name: '@deepseek-ai/dsh-example'",
+      ].join('\n') + '\n', true)
+      // A bundle that does not ride dsh-base may insert any id it owns.
+      writeBundle(fixture, 'sdk-minimal', [
+        '- insert:',
+        '    - id: storage',
+        "      name: '@deepseek-ai/dsh-storage'",
+      ].join('\n') + '\n', false)
+
+      expect(validateOverlayInsertDisjointness(fixture)).toEqual([
+        'packages/bundle/desktop-app/cordis.patch.yml: insert id "storage" '
+        + 'is already inserted by packages/bundle/base/cordis.patch.yml; '
+        + 'target the row by id instead of inserting it again',
       ])
     } finally {
       rmSync(fixture, { recursive: true, force: true })

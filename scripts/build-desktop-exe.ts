@@ -8,7 +8,7 @@
  */
 
 import { spawn } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, realpathSync, rmSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs'
 import { mkdir, readdir, readFile, rm, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve, sep } from 'node:path'
@@ -322,8 +322,12 @@ function copyWorkspacePackage(sourceDir: string, destDir: string): void {
 /**
  * Supplement workspace packages the prod-pruned closure lacks. Every staged
  * manifest's dependencies and peerDependencies name the runtime requirement
- * set; a name absent from the stage top level but present in the repository
- * (packages, vendor, apps) lands at the top level as a built copy.
+ * set; a name the packer's graph cannot reach lands at the top level and in
+ * the stage manifest's dependencies. electron-builder collects the packaged
+ * node_modules from that dependency graph, and peer edges are not collected,
+ * so a package present on disk (hoisted from the deploy store) but referenced
+ * only as a peer is dropped from the packaged app unless the stage manifest
+ * itself declares it.
  * @param stageRoot - the stage root containing node_modules.
  * @param repoRoot - the repository root supplying missing workspace packages.
  */
@@ -359,7 +363,8 @@ async function supplementMissingWorkspacePackages(stageRoot: string, repoRoot: s
     for (const name of Object.keys(manifest.dependencies ?? {})) required.add(name)
     for (const name of Object.keys(manifest.peerDependencies ?? {})) required.add(name)
   }
-  await scanManifest(join(stageRoot, 'package.json'))
+  const stageManifestPath = join(stageRoot, 'package.json')
+  await scanManifest(stageManifestPath)
   for (const entry of await readdir(top, { withFileTypes: true })) {
     if (entry.name.startsWith('.')) continue
     if (entry.name.startsWith('@')) {
@@ -372,29 +377,54 @@ async function supplementMissingWorkspacePackages(stageRoot: string, repoRoot: s
       await scanManifest(join(top, entry.name, 'package.json'))
     }
   }
-  let supplemented = 0
+  // Packed set: the transitive dependencies the stage manifest reaches over
+  // the flat top level — the graph electron-builder collects. Peer edges are
+  // deliberately not traversed; that is exactly the gap being supplemented.
+  const dependenciesOf = (manifestPath: string): string[] => {
+    if (!existsSync(manifestPath)) return []
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { dependencies?: Record<string, string> }
+    return Object.keys(manifest.dependencies ?? {})
+  }
+  const packed = new Set<string>()
+  const queue = dependenciesOf(stageManifestPath)
+  while (queue.length > 0) {
+    const name = queue.pop() as string
+    if (packed.has(name)) continue
+    packed.add(name)
+    queue.push(...dependenciesOf(join(top, ...name.split('/'), 'package.json')))
+  }
   const supplementedNames: string[] = []
+  const declaredNames: string[] = []
   for (const name of required) {
+    if (packed.has(name)) continue
     const dest = join(top, ...name.split('/'))
-    if (existsSync(dest)) continue
+    if (existsSync(dest)) {
+      // Hoisted from the deploy store, reachable only through peer edges.
+      // Registry packages (react, typescript, …) stay undeclared on purpose:
+      // the app bundles what it needs and never ships a toolchain. Only a
+      // workspace package is loader-entry territory the runtime imports.
+      if (repoIndex.has(name)) declaredNames.push(name)
+      continue
+    }
     const source = repoIndex.get(name)
     if (source === undefined) continue // registry package genuinely absent: an optional edge
     copyWorkspacePackage(source, dest)
     supplementedNames.push(name)
-    supplemented++
   }
   // electron-builder collects the packaged node_modules from the manifest
   // dependency graph: a package only referenced through peer edges is never
-  // packed. Declare every supplemented package as a stage dependency so the
-  // packaged app physically contains it.
-  if (supplementedNames.length > 0) {
-    const manifestPath = join(stageRoot, 'package.json')
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as { dependencies?: Record<string, string> }
+  // packed. Declare every supplemented or peer-only package as a stage
+  // dependency so the packaged app physically contains it.
+  if (supplementedNames.length > 0 || declaredNames.length > 0) {
+    const manifest = JSON.parse(await readFile(stageManifestPath, 'utf8')) as { dependencies?: Record<string, string> }
     manifest.dependencies = { ...(manifest.dependencies ?? {}) }
-    for (const name of supplementedNames) manifest.dependencies[name] ??= '*'
-    await writeFile(manifestPath, `${JSON.stringify(manifest, undefined, 2)}\n`)
+    for (const name of [...supplementedNames, ...declaredNames]) manifest.dependencies[name] ??= '*'
+    await writeFile(stageManifestPath, `${JSON.stringify(manifest, undefined, 2)}\n`)
   }
-  console.log(`build-desktop-exe: supplemented ${String(supplemented)} workspace package(s) missing from the closure`)
+  console.log(
+    `build-desktop-exe: supplemented ${String(supplementedNames.length)} workspace package(s) `
+    + `and declared ${String(declaredNames.length)} peer-only package(s) for the packer graph`,
+  )
 }
 
 void main().catch((error: unknown) => {

@@ -76,6 +76,7 @@ if (import.meta.main) {
   errors.push(...packageTestFixtureDependencyErrors())
   errors.push(...validateSourcePlaneResolution())
   errors.push(...validatePresetPlaneSeparation())
+  errors.push(...validateOverlayInsertDisjointness())
   errors.push(...validateClientHalvesDeclared())
 
   if (errors.length > 0) {
@@ -159,10 +160,67 @@ function validatePresetPlaneSeparation(): string[] {
   return problems
 }
 
+/**
+ * A Bundle overlay riding dsh-base may not INSERT a row id the base layer
+ * already inserted.
+ *
+ * Every base-backed profile template composes exactly dsh-base plus one mode
+ * bundle into one entry group, and the Loader rejects a duplicate insert id
+ * only at boot — after packaging. Each bundle's tests parse its own patch in
+ * isolation, and the web surface additionally boots in keyless e2e, so a
+ * surface with no keyless boot (the packaged desktop exe) hid a restated
+ * storage stack until the packaged smoke failed. The composition fact is
+ * statically checkable: the insert ids of every bundle depending on
+ * dsh-base must be disjoint from the base layer's. Restating a base row is
+ * the top-level `- id:` patch form, which stays legitimate.
+ * @param repoRoot Repository root holding the bundle packages.
+ * @returns one violation per overlay insert id the base layer already inserts.
+ */
+export function validateOverlayInsertDisjointness(repoRoot: string = root): string[] {
+  const problems: string[] = []
+  const baseFile = 'packages/bundle/base/cordis.patch.yml'
+  const baseIds = insertIds(baseFile, repoRoot)
+  for (const manifestPath of bundleManifestPaths(repoRoot)) {
+    const manifest = readManifest(manifestPath, repoRoot)
+    if (manifest.dependencies?.['@deepseek-ai/dsh-base'] === undefined) continue
+    const patch = manifest.dsh?.bundle?.patch
+    if (typeof patch !== 'string') continue
+    const overlayFile = `${dirname(manifestPath)}/${patch.replace(/^\.\//, '')}`.replaceAll('\\', '/')
+    for (const id of insertIds(overlayFile, repoRoot)) {
+      if (!baseIds.has(id)) continue
+      problems.push(
+        `${overlayFile}: insert id "${id}" is already inserted by ${baseFile}; `
+        + 'target the row by id instead of inserting it again',
+      )
+    }
+  }
+  return problems
+}
+
 /** Every entry of one config file, or an empty list when it is not an entry array. */
 function loadEntries(file: string): unknown[] {
   const document = loadCordisYaml(readFileSync(resolve(root, file), 'utf8'))
   return isUnknownArray(document) ? document : []
+}
+
+/**
+ * Row ids one config file INSERTS (members of insert lists). A file's
+ * top-level `- id:` rows restate already-inserted rows — the legitimate
+ * overlay form — so only insert members count.
+ * @param file Repository-relative config path.
+ * @param repoRoot Repository root the path resolves against.
+ * @returns the inserted ids.
+ */
+function insertIds(file: string, repoRoot: string = root): Set<string> {
+  const document = loadCordisYaml(readFileSync(resolve(repoRoot, file), 'utf8'))
+  const ids = new Set<string>()
+  for (const entry of isUnknownArray(document) ? document : []) {
+    if (!isRecord(entry) || !isUnknownArray(entry.insert)) continue
+    for (const member of entry.insert) {
+      if (isRecord(member) && typeof member.id === 'string') ids.add(member.id)
+    }
+  }
+  return ids
 }
 
 /**
