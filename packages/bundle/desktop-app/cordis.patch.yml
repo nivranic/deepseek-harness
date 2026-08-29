@@ -46,6 +46,11 @@
 # `dsh.client` rows are the browser roster the modules node half scans into
 # window.__DSH_BOOT__; the modules row is simultaneously a host row.
 - insert:
+    # Host-owned opt-in sampled when a new session receives its preset
+    # delegation tools. The Plugins page edits this settings namespace.
+    - id: subagent-model-selection-settings
+      name: '@deepseek-ai/dsh-tool-subagent/model-selection-settings'
+
     - id: code-runtime
       name: '@deepseek-ai/dsh-code-runtime-worker-thread'
 
@@ -60,6 +65,12 @@
 
     - id: workspace
       name: '@deepseek-ai/dsh-workspace'
+
+    - id: session-reference
+      name: '@deepseek-ai/dsh-session-reference'
+
+    - id: file-reference-local
+      name: '@deepseek-ai/dsh-file-reference-local'
 
     # Whole-log turn/step counts for the chat stats strip (the sessionStats
     # projection key); the projection registry itself is a base-layer row.
@@ -78,6 +89,22 @@
     # Read-only projection of current Loader entries for trusted client RPCs.
     - id: plugin-inventory
       name: '@deepseek-ai/dsh-host-plugin-inventory'
+
+    # Session commands, cold reads, and live control over Typert Remote. The
+    # browser half of this dual-face row provides the `sessions` service the
+    # chat roster waits on.
+    - id: session-controller
+      name: '@deepseek-ai/dsh-api-session-controller'
+
+    # Configuration-surface reads and writes over Typert Remote. Each method
+    # reports an actionable error when its settings-domain provider is absent.
+    - id: settings-controller
+      name: '@deepseek-ai/dsh-api-settings-controller'
+
+    # Workspace commands and reconnect-safe projection over Typert Remote.
+    # The browser half provides the `workspaces` service.
+    - id: workspace-controller
+      name: '@deepseek-ai/dsh-api-workspace-controller'
 
     # The Typert gateway row (`typert-gateway`, @deepseek-ai/dsh-api-gateway)
     # comes from the base layer; the desktop carrier dispatches into it through
@@ -141,6 +168,9 @@
     - id: ui-renderer
       name: '@deepseek-ai/dsh-client-ui-renderer'
 
+    - id: ui-session
+      name: '@deepseek-ai/dsh-client-ui-session'
+
     - id: ui-sidebar
       name: '@deepseek-ai/dsh-client-ui-sidebar'
 
@@ -167,9 +197,18 @@
     - id: ui-conversation
       name: '@deepseek-ai/dsh-client-ui-conversation'
 
+    - id: ui-approval
+      name: '@deepseek-ai/dsh-client-ui-approval'
+
+    - id: ui-chat
+      name: '@deepseek-ai/dsh-client-ui-chat'
+
     # Official occupants for the generic sidebar and conversation brand slots.
     - id: ui-brand-official
       name: '@deepseek-ai/dsh-client-ui-brand-official'
+
+    - id: ui-attachment
+      name: '@deepseek-ai/dsh-client-ui-attachment'
 
     # Tool call tree, generic fallback, and keyed business Tool views.
     - id: ui-tool
@@ -193,7 +232,7 @@
       name: '@deepseek-ai/dsh-client-ui-workspace'
 
     # Input triggers: the '/' | '@' pipeline (ui-input-trigger), the command surface over
-    # it (ui-commands), and the two reference sources (ui-skill / ui-subagent).
+    # it (ui-commands), and the two reference sources (ui-skill / ui-reference).
     - id: ui-input-trigger
       name: '@deepseek-ai/dsh-client-ui-input-trigger'
 
@@ -205,6 +244,9 @@
 
     - id: ui-subagent
       name: '@deepseek-ai/dsh-client-ui-subagent'
+
+    - id: ui-reference
+      name: '@deepseek-ai/dsh-client-ui-reference'
 
     # Background jobs: the session-header list over the jobsBySession mirror.
     - id: ui-jobs

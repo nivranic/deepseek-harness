@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-29-desktop-exe-boot-closure.md
-2026-08-29-desktop-exe-boot-closure.md: ecca49d7f4b8b42871965eea6d4f71c5bc6cbfb5
-2026-08-29-desktop-exe-boot-closure.zh.md: 31919311ee72e5bfa59168ce46e910356cef362a
+2026-08-29-desktop-exe-boot-closure.md: 10bcfbacf5faebea972691b4652486d52ae6ffc0
+2026-08-29-desktop-exe-boot-closure.zh.md: 71024928b57c8e0db63adb139e89e35d898ad746

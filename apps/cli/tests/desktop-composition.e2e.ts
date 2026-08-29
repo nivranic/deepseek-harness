@@ -104,12 +104,25 @@ describe('the shipped desktop composition', () => {
     const index = await gateway!.handle(new Request('dsh://desktop/'))
     expect(index.status).toBe(200)
     const html = await index.text()
-    expect(html).toContain('window.__DSH_BOOT__')
+    expect(html).toContain('globalThis["__DSH_BOOT__"]')
     // The boot graph carries the browser roster the modules half composed.
     expect(html).toContain('@deepseek-ai/dsh-client-connection')
     // The renderer row is the mount contract: without it no plugin provides
     // uiRenderer and the browser shell waits on "Loading plugins…" forever.
     expect(html).toContain('@deepseek-ai/dsh-client-ui-renderer')
+    // The controller rows are the browser tree's service roots: their client
+    // halves provide `sessions` and `workspaces`, and every chat-roster row
+    // waits on those two (directly or transitively) — without the rows the
+    // loader is satisfied yet 17 entries stay pending forever. The settings
+    // controller is host-plane only (no client half), so it stays out of the
+    // graph while remaining a composed row.
+    expect(html).toContain('@deepseek-ai/dsh-api-session-controller')
+    expect(html).toContain('@deepseek-ai/dsh-api-workspace-controller')
+    // ui-session provides `uiSession`, the session-scoped source registry the
+    // conversation and trajectory rows wait on.
+    expect(html).toContain('@deepseek-ai/dsh-client-ui-session')
+    // ui-chat is the chat view contract the composer and message rows fill.
+    expect(html).toContain('@deepseek-ai/dsh-client-ui-chat')
     // The official brand row fills the sidebar and conversation hero slots;
     // without it the shell falls back to the "DSH Local Build" wordmark.
     expect(html).toContain('@deepseek-ai/dsh-client-ui-brand-official')
@@ -153,17 +166,20 @@ describe('the shipped desktop composition', () => {
 
   it('dispatches /api through the gateway interceptor plane over the bridge', async () => {
     const gateway = ctx.get('desktopGateway') as DesktopGateway
-    const post = (endpoint: string, method: string, payload: unknown, rpcId: string): Promise<Response> =>
+    const post = (endpoint: string, method: string, args: Record<string, unknown>, rpcId: string): Promise<Response> =>
       gateway.handle(new Request(`dsh://desktop/api/${endpoint}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ type: 'client-request', rpcId: RpcId(rpcId), method, payload }),
+        // The gateway Remote wire form: exactly one plain-object `args` field.
+        body: JSON.stringify({ type: 'client-request', rpcId: RpcId(rpcId), method, payload: { args } }),
       }))
 
     // The Typert gateway claims its Remote endpoints on the connection
     // service; the desktop bridge dispatches into the same shared chain the
-    // web HTTP route uses.
-    const sessions = await post('session/list', 'session/list', {}, 'desktop-sessions')
+    // web HTTP route uses. `session/list` takes one all-optional request
+    // object, so the wire args carry `_request: {}` to mark the parameter
+    // present (JSON has no undefined; the descriptor rejects the absent key).
+    const sessions = await post('session/list', 'session/list', { _request: {} }, 'desktop-sessions')
     expect(sessions.status).toBe(200)
     const sessionList = await sessions.json() as { result: { ok: boolean } }
     expect(sessionList.result.ok).toBe(true)
