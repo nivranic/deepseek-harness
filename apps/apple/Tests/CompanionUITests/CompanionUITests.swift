@@ -545,7 +545,7 @@ final class FilesViewModelTests: XCTestCase {
             .success(listValue("", [entry("src", "directory")])),
             .success(listValue("src", [entry("main.ts", "file", 24)])),
             .success(listValue("", [entry("src", "directory")])),
-        ]))
+        ])
         let model = FilesViewModel(wire: wire)
         await model.start()
         await model.select(workspaceId: "w1")
@@ -607,7 +607,7 @@ final class FilesViewModelTests: XCTestCase {
                 "size": .number(Double(pageSize * 3)),
                 "mediaType": .string("text/plain"),
             ])),
-        ]))
+        ])
         let model = FilesViewModel(wire: wire)
         await model.start()
         await model.select(workspaceId: "w1")
@@ -664,7 +664,7 @@ final class CompanionFoldConformanceTests: XCTestCase {
     }
 
     func testImageBlocksRenderInlineSummaries() {
-        let fold = CompanionSessionFold()
+        var fold = CompanionSessionFold()
         fold.ingest(eventEntry(1, "user/message", [
             "id": .string("m1"),
             "role": .string("user"),
