@@ -1,10 +1,11 @@
 package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.WireValue
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -62,7 +63,7 @@ class CompanionModelTest {
     @Test
     fun openFoldsSnapshotAndEventsIntoTheDomainState() = runTest {
         val wire = FakeWire()
-        val model = SessionModel(wire, backgroundScope)
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s1")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
         wire.emit(event(1, "user/message", """{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}"""))
@@ -78,7 +79,7 @@ class CompanionModelTest {
     @Test
     fun sendCarriesTheRequestEnvelopeAndImages() = runTest {
         val wire = FakeWire()
-        val model = SessionModel(wire, backgroundScope)
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s9")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
         model.send(text = "看这张截图", images = listOf("iVBORw0KGgo=" to "image/png"))
@@ -117,7 +118,7 @@ class CompanionModelTest {
         wire.stub("workspaceFiles/list") {
             wire("""{"path":"src","entries":[{"name":"app.ts","type":"file","size":24},{"name":"lib","type":"directory"}]}""")
         }
-        val model = FilesModel(wire, backgroundScope)
+        val model = FilesModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.start()
         wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
         advanceUntilIdle()
@@ -140,7 +141,7 @@ class CompanionModelTest {
         wire.stub("subagents/list") {
             wire("""{"entries":[{"kind":"child","id":"sa-1","activity":"running","hasChildren":false,"mode":"continuable","label":"检索"},{"kind":"diagnostic","id":"sa-2","reason":"corrupt"}],"parentAvailable":true}""")
         }
-        val model = SubagentsModel(wire, backgroundScope)
+        val model = SubagentsModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.load("p1")
         assertEquals("ready", model.listState)
         assertEquals(2, model.rows.size)
