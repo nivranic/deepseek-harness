@@ -62,6 +62,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Tests/SharedAppleRemoteCoreTests/` | fixture 回放与签名词汇测试 |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板、工具轨迹、文件浏览、子代理 |
 | `Sources/CompanionUI/SessionFold.swift` | 纯领域状态折叠——一致性场景的 Swift 一半 |
+| `Sources/LiteRuntime/` | Native Harness Lite 骨架：行为规范折叠 + 静态工具注册表 |
+| `Tests/LiteRuntimeTests/` | Lite 行为规范一致性回放与注册表测试 |
 | `Tests/CompanionUITests/` | 基于假线缆的 view model、主题降级与领域状态一致性测试 |
 
 </details>

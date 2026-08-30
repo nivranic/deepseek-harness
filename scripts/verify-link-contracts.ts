@@ -21,7 +21,7 @@ const generatedDir = resolve(root, 'packages/remote/link-contracts/generated')
 const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
-const appleLite = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/lite-conformance')
+const appleLite = resolve(root, 'apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance')
 
 const artifacts = generateLinkContracts()
 const conformance = generateConformanceArtifacts()

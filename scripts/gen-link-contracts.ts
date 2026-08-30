@@ -22,7 +22,7 @@ const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
 const appleConformance = resolve(appleFixtures, 'conformance')
 const generatedLiteDir = resolve(generatedDir, 'lite-conformance')
-const appleLite = resolve(appleFixtures, 'lite-conformance')
+const appleLite = resolve(root, 'apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
 
 const artifacts = generateLinkContracts()

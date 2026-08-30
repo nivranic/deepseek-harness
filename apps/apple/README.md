@@ -62,6 +62,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Tests/SharedAppleRemoteCoreTests/` | Fixture replay and signing vocabulary tests |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI app layer: theming, session UI, interaction inbox, plan/todo/goal pane, tool trajectory, files browser, subagent children |
 | `Sources/CompanionUI/SessionFold.swift` | The pure domain-state fold — the Swift half of the conformance scenarios |
+| `Sources/LiteRuntime/` | Native Harness Lite skeleton: Behavior-Spec fold + static tool registry |
+| `Tests/LiteRuntimeTests/` | Lite Behavior-Spec conformance replay and registry tests |
 | `Tests/CompanionUITests/` | View-model, theme-degrade, and domain-state conformance tests over a fake wire |
 
 </details>

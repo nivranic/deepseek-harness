@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-swift-lite-skeleton.md
+2026-08-30-swift-lite-skeleton.md: 5700a5f3759141fecd3d4fbf49f7a61ac2af4120
+2026-08-30-swift-lite-skeleton.zh.md: 0923cfc10eb66798d74f422e6fc09ff22f432c23

@@ -35,6 +35,18 @@ let package = Package(
             dependencies: ["SharedAppleRemoteCore"],
             path: "Sources/CompanionUI"
         ),
+        .target(
+            name: "LiteRuntime",
+            path: "Sources/LiteRuntime"
+        ),
+        .testTarget(
+            name: "LiteRuntimeTests",
+            dependencies: ["LiteRuntime"],
+            path: "Tests/LiteRuntimeTests",
+            resources: [
+                .copy("Fixtures"),
+            ]
+        ),
         .testTarget(
             name: "CompanionUITests",
             dependencies: ["CompanionUI", "SharedAppleRemoteCore"],
