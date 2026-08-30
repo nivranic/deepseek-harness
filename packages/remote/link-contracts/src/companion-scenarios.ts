@@ -7,6 +7,7 @@
  * @module @deepseek-ai/dsh-link-contracts
  */
 
+import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
 import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
@@ -54,6 +55,45 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
       }),
       event(6, 'step/end', { turn: 1, step: 1 }),
       event(7, 'turn/end', { turn: 1, reason: { kind: 'completed' } }),
+    ],
+  },
+  {
+    id: 'image-attachment',
+    records: [
+      event(1, 'turn/start', { turn: 1 }),
+      event(2, 'user/message', {
+        id: MessageId('m-user-img-1'),
+        role: 'user',
+        content: [
+          { type: 'text', text: '这张截图里的按钮间距有问题' },
+          {
+            type: 'image',
+            attachment: {
+              attachmentId: AttachmentId('att-8f14e45fceea167a5a36dedd4bea2543'),
+              mediaType: 'image/png',
+              bytes: 52_444,
+              width: 800,
+              height: 600,
+              name: 'screenshot.png',
+              originalDimensions: { width: 1600, height: 1200 },
+            },
+          },
+          { type: 'text', text: '请对照修复。' },
+        ],
+        source: { kind: 'user' },
+      }),
+      event(3, 'assistant/message', {
+        turn: 1,
+        step: 1,
+        message: {
+          id: MessageId('m-assist-img-1'),
+          role: 'assistant',
+          content: [{ type: 'text', text: '收到截图，已定位到间距样式。' }],
+          source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
+        },
+        usage: { inputTokens: 340, outputTokens: 28, totalTokens: 368 },
+      }),
+      event(4, 'turn/end', { turn: 1, reason: { kind: 'completed' } }),
     ],
   },
   {

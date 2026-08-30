@@ -12,6 +12,9 @@
 import type { LinkCarrierStatus, LinkHostDescription, LinkPairValue, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { LinkDeviceValue, LinkStatusValue } from '@deepseek-ai/dsh-api-link-controller/types'
 import type { WorkspaceFilesListValue, WorkspaceFilesReadValue } from '@deepseek-ai/dsh-api-workspace-controller'
+import type { SessionAttachmentValue, SessionPromptRequest } from '@deepseek-ai/dsh-api-session-controller/types'
+import { AttachmentId } from '@deepseek-ai/dsh-attachment'
+import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { SubagentCatalog, SubagentListEntry } from '@deepseek-ai/dsh-subagent'
 import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
@@ -349,6 +352,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'text', kind: 'string', optional: true },
       { name: 'toolCallId', kind: 'string', optional: true },
       { name: 'isError', kind: 'boolean', optional: true },
+      { name: 'attachment', kind: 'object', ref: 'LinkImageAttachmentRef', optional: true },
       { name: 'content', kind: 'object-array', ref: 'LinkContentBlock', optional: true },
     ],
   },
@@ -559,6 +563,53 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'mediaType', kind: 'string' },
     ],
   },
+  {
+    name: 'LinkImageMediaType',
+    shape: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
+    fields: [],
+  },
+  {
+    name: 'LinkImageDimensions',
+    shape: 'object',
+    fields: [
+      { name: 'width', kind: 'number' },
+      { name: 'height', kind: 'number' },
+    ],
+  },
+  {
+    name: 'LinkImageAttachmentRef',
+    shape: 'object',
+    fixture: 'image-attachment-ref',
+    fields: [
+      { name: 'attachmentId', kind: 'string' },
+      { name: 'mediaType', kind: 'enum', ref: 'LinkImageMediaType' },
+      { name: 'bytes', kind: 'number' },
+      { name: 'width', kind: 'number' },
+      { name: 'height', kind: 'number' },
+      { name: 'name', kind: 'string', optional: true },
+      { name: 'originalDimensions', kind: 'object', ref: 'LinkImageDimensions', optional: true },
+    ],
+  },
+  {
+    name: 'LinkAttachmentReadValue',
+    shape: 'object',
+    fixture: 'attachment-read',
+    fields: [
+      { name: 'attachment', kind: 'object', ref: 'LinkImageAttachmentRef' },
+      { name: 'data', kind: 'string' },
+    ],
+  },
+  {
+    name: 'LinkPromptImagePart',
+    shape: 'object',
+    fixture: 'prompt-image-part',
+    fields: [
+      { name: 'type', kind: 'const', value: 'image' },
+      { name: 'mediaType', kind: 'enum', ref: 'LinkImageMediaType' },
+      { name: 'data', kind: 'string' },
+      { name: 'name', kind: 'string', optional: true },
+    ],
+  },
 ]
 
 /** Wire schema for a pairing QR payload; the fixture round-trips through it. */
@@ -633,6 +684,7 @@ export interface ContractFixture {
   readonly value: LinkPairingPayload | LinkPairValue | LinkHostDescription | LinkCarrierStatus | LinkDeviceValue | LinkStatusValue
   | LinkSessionEventPayload | LinkChunkRowPayload | WorkspaceFilesListValue | WorkspaceFilesReadValue
   | SubagentListEntry | SubagentCatalog
+  | ImageAttachmentRef | SessionAttachmentValue | Extract<SessionPromptRequest['content'][number], { type: 'image' }>
 }
 
 /** The golden fixtures; ids match the table's `fixture` rows. */
@@ -892,5 +944,44 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       size: 20,
       mediaType: 'text/typescript',
     } satisfies WorkspaceFilesReadValue,
+  },
+  {
+    type: 'LinkImageAttachmentRef',
+    id: 'image-attachment-ref',
+    value: {
+      attachmentId: AttachmentId('att-8f14e45fceea167a5a36dedd4bea2543'),
+      mediaType: 'image/png',
+      bytes: 52_444,
+      width: 800,
+      height: 600,
+      name: 'screenshot.png',
+      originalDimensions: { width: 1600, height: 1200 },
+    } satisfies ImageAttachmentRef,
+  },
+  {
+    type: 'LinkAttachmentReadValue',
+    id: 'attachment-read',
+    value: {
+      attachment: {
+        attachmentId: AttachmentId('att-8f14e45fceea167a5a36dedd4bea2543'),
+        mediaType: 'image/png',
+        bytes: 52_444,
+        width: 800,
+        height: 600,
+        name: 'screenshot.png',
+        originalDimensions: { width: 1600, height: 1200 },
+      },
+      data: 'iVBORw0KGgo=',
+    } satisfies SessionAttachmentValue,
+  },
+  {
+    type: 'LinkPromptImagePart',
+    id: 'prompt-image-part',
+    value: {
+      type: 'image',
+      mediaType: 'image/png',
+      data: 'iVBORw0KGgo=',
+      name: 'screenshot.png',
+    } satisfies Extract<SessionPromptRequest['content'][number], { type: 'image' }>,
   },
 ]

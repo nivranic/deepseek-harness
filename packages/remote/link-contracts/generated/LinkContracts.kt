@@ -187,6 +187,7 @@ data class LinkContentBlock(
     val text: String? = null,
     val toolCallId: String? = null,
     val isError: Boolean? = null,
+    val attachment: LinkImageAttachmentRef? = null,
     val content: List<LinkContentBlock>? = null,
 )
 data class LinkUserMessageData(
@@ -307,4 +308,33 @@ data class LinkFileReadValue(
     val truncated: Boolean,
     val size: Double,
     val mediaType: String,
+)
+enum class LinkImageMediaType(val wire: String) {
+    IMAGE_PNG("image/png")
+    IMAGE_JPEG("image/jpeg")
+    IMAGE_WEBP("image/webp")
+    IMAGE_GIF("image/gif"),
+}
+data class LinkImageDimensions(
+    val width: Double,
+    val height: Double,
+)
+data class LinkImageAttachmentRef(
+    val attachmentId: String,
+    val mediaType: LinkImageMediaType,
+    val bytes: Double,
+    val width: Double,
+    val height: Double,
+    val name: String? = null,
+    val originalDimensions: LinkImageDimensions? = null,
+)
+data class LinkAttachmentReadValue(
+    val attachment: LinkImageAttachmentRef,
+    val data: String,
+)
+data class LinkPromptImagePart(
+    val type: String // constant "image",
+    val mediaType: LinkImageMediaType,
+    val data: String,
+    val name: String? = null,
 )

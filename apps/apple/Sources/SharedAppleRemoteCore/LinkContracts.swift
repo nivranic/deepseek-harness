@@ -185,6 +185,7 @@ public struct LinkContentBlock: Codable {
     public let text: String?
     public let toolCallId: String?
     public let isError: Bool?
+    public let attachment: LinkImageAttachmentRef?
     public let content: [LinkContentBlock]?
 }
 public struct LinkUserMessageData: Codable {
@@ -305,4 +306,33 @@ public struct LinkFileReadValue: Codable {
     public let truncated: Bool
     public let size: Double
     public let mediaType: String
+}
+public enum LinkImageMediaType: String, Codable {
+    case imagePng = "image/png"
+    case imageJpeg = "image/jpeg"
+    case imageWebp = "image/webp"
+    case imageGif = "image/gif"
+}
+public struct LinkImageDimensions: Codable {
+    public let width: Double
+    public let height: Double
+}
+public struct LinkImageAttachmentRef: Codable {
+    public let attachmentId: String
+    public let mediaType: LinkImageMediaType
+    public let bytes: Double
+    public let width: Double
+    public let height: Double
+    public let name: String?
+    public let originalDimensions: LinkImageDimensions?
+}
+public struct LinkAttachmentReadValue: Codable {
+    public let attachment: LinkImageAttachmentRef
+    public let data: String
+}
+public struct LinkPromptImagePart: Codable {
+    public let type: String // constant "image"
+    public let mediaType: LinkImageMediaType
+    public let data: String
+    public let name: String?
 }

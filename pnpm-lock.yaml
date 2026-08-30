@@ -7211,9 +7211,15 @@ importers:
       '@deepseek-ai/dsh-api-link-controller':
         specifier: workspace:^
         version: link:../../api/link-controller
+      '@deepseek-ai/dsh-api-session-controller':
+        specifier: workspace:^
+        version: link:../../api/session-controller
       '@deepseek-ai/dsh-api-workspace-controller':
         specifier: workspace:^
         version: link:../../api/workspace-controller
+      '@deepseek-ai/dsh-attachment':
+        specifier: workspace:^
+        version: link:../../attachment/attachment
       '@deepseek-ai/dsh-goal':
         specifier: workspace:^
         version: link:../../goal/goal

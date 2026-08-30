@@ -118,6 +118,31 @@ final class FixtureDecodingTests: XCTestCase {
         XCTAssertEqual(payload.todos.map(\.status), [.inProgress, .pending])
     }
 
+    func testAttachmentVocabularyDecodesAndRoundTrips() throws {
+        let ref = try JSONDecoder().decode(LinkImageAttachmentRef.self, from: fixture("image-attachment-ref"))
+        XCTAssertEqual(ref.attachmentId, "att-8f14e45fceea167a5a36dedd4bea2543")
+        XCTAssertEqual(ref.mediaType, .imagePng)
+        XCTAssertEqual(ref.bytes, 52_444)
+        XCTAssertEqual(ref.originalDimensions?.width, 1600)
+
+        let read = try JSONDecoder().decode(LinkAttachmentReadValue.self, from: fixture("attachment-read"))
+        XCTAssertEqual(read.attachment.attachmentId, ref.attachmentId)
+        XCTAssertEqual(read.data, "iVBORw0KGgo=")
+
+        let part = try JSONDecoder().decode(LinkPromptImagePart.self, from: fixture("prompt-image-part"))
+        XCTAssertEqual(part.type, "image")
+        XCTAssertEqual(part.mediaType, .imagePng)
+        XCTAssertEqual(part.name, "screenshot.png")
+
+        for (id, value) in [("image-attachment-ref", ref), ("attachment-read", read), ("prompt-image-part", part)] {
+            let reencoded = try JSONEncoder().encode(value)
+            XCTAssertEqual(
+                try JSONSerialization.jsonObject(with: reencoded) as? [String: Any],
+                try JSONSerialization.jsonObject(with: fixture(id)) as? [String: Any]
+            )
+        }
+    }
+
     func testToolResultDecodesNestedContent() throws {
         let payload = try JSONDecoder().decode(LinkToolResultData.self, from: fixture("event-tool-result"))
         let block = try XCTUnwrap(payload.message.content.first)

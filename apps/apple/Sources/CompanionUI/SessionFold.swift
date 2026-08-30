@@ -248,14 +248,31 @@ public struct CompanionSessionFold {
     }
 
     /// Visible text of a content-block list: text and reasoning blocks carry
-    /// it; tool-result blocks carry it one level deeper.
+    /// it; image blocks render their reference metadata; tool-result blocks
+    /// carry it one level deeper.
     static func blockText(_ blocks: [LinkContentBlock]) -> String {
         blocks.map { block -> String in
             if let text = block.text { return text }
+            if let attachment = block.attachment { return Self.imageSummary(attachment) }
             if let nested = block.content { return blockText(nested) }
             return ""
         }
         .filter { !$0.isEmpty }
         .joined(separator: "\n")
+    }
+
+    /// One image reference rendered as the summary line both languages share;
+    /// mirrors the TypeScript fold's `imageSummary` byte for byte.
+    static func imageSummary(_ ref: LinkImageAttachmentRef) -> String {
+        let name: String
+        if let raw = ref.name, !raw.isEmpty { name = " \(raw)" } else { name = "" }
+        return "图片\(name)（\(ref.mediaType.rawValue)，\(numberText(ref.width))×\(numberText(ref.height))）"
+    }
+
+    /// JavaScript number-to-string semantics for the summary line: integral
+    /// values drop the `.0`, others keep their decimal form.
+    static func numberText(_ value: Double) -> String {
+        if value == value.rounded(), !value.isInfinite { return String(Int(value)) }
+        return value.description
     }
 }

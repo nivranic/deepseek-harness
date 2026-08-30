@@ -313,6 +313,52 @@ final class RemoteSessionViewModelTests: XCTestCase {
         XCTAssertEqual(WireShape.string(request ?? .null, field: "sessionId"), "s9")
         XCTAssertEqual(WireShape.string(request ?? .null, field: "mode"), "queue")
     }
+
+    func testSendCarriesInlineImageUploads() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s9")
+        await model.send(text: "看这张截图", images: [
+            CompanionImageUpload(mediaType: "image/png", base64: "iVBORw0KGgo=", name: "shot.png"),
+        ])
+        let prompt = await wire.calls.first { $0.method == "session/prompt" }
+        let request = prompt?.args["request"] ?? .null
+        let content = WireShape.array(request, field: "content")
+        XCTAssertEqual(content?.count, 2)
+        let image = content?[1] ?? .null
+        XCTAssertEqual(WireShape.string(image, field: "type"), "image")
+        XCTAssertEqual(WireShape.string(image, field: "mediaType"), "image/png")
+        XCTAssertEqual(WireShape.string(image, field: "data"), "iVBORw0KGgo=")
+        XCTAssertEqual(WireShape.string(image, field: "name"), "shot.png")
+    }
+
+    func testReadsAttachmentsOverTheWireAndCachesBytes() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([]))
+        await wire.stub("session/attachment", answer: .success(jsonObject([
+            "attachment": jsonObject([
+                "attachmentId": .string("att-1"),
+                "mediaType": .string("image/png"),
+                "bytes": .number(12),
+                "width": .number(800),
+                "height": .number(600),
+                "name": .string("shot.png"),
+                "originalDimensions": jsonObject(["width": .number(1600), "height": .number(1200)]),
+            ]),
+            "data": .string("iVBORw0KGgo="),
+        ])))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s9")
+        let read = await model.readAttachment("att-1")
+        XCTAssertEqual(read?.attachment.attachmentId, "att-1")
+        XCTAssertEqual(read?.attachment.mediaType, .imagePng)
+        XCTAssertEqual(model.attachments["att-1"], Data(base64Encoded: "iVBORw0KGgo="))
+        let call = await wire.calls.first { $0.method == "session/attachment" }
+        let request = call?.args["request"] ?? .null
+        XCTAssertEqual(WireShape.string(request, field: "sessionId"), "s9")
+        XCTAssertEqual(WireShape.string(request, field: "attachmentId"), "att-1")
+    }
 }
 
 @MainActor
@@ -615,6 +661,34 @@ final class CompanionFoldConformanceTests: XCTestCase {
     private struct Scenario: Decodable {
         let records: [WireValue]
         let expected: CompanionDomainState
+    }
+
+    func testImageBlocksRenderInlineSummaries() {
+        let fold = CompanionSessionFold()
+        fold.ingest(eventEntry(1, "user/message", [
+            "id": .string("m1"),
+            "role": .string("user"),
+            "content": .array([
+                jsonObject(["type": .string("text"), "text": .string("这张截图有问题")]),
+                jsonObject([
+                    "type": .string("image"),
+                    "attachment": jsonObject([
+                        "attachmentId": .string("att-1"),
+                        "mediaType": .string("image/png"),
+                        "bytes": .number(52_444),
+                        "width": .number(800),
+                        "height": .number(600),
+                        "name": .string("screenshot.png"),
+                        "originalDimensions": jsonObject(["width": .number(1600), "height": .number(1200)]),
+                    ]),
+                ]),
+            ]),
+            "source": jsonObject(["kind": .string("user")]),
+        ]))
+        XCTAssertEqual(
+            fold.state.items.last?.text,
+            "这张截图有问题" + "\n" + "图片 screenshot.png（image/png，800×600）"
+        )
     }
 
     func testEveryScenarioFoldsToTheReferenceState() throws {

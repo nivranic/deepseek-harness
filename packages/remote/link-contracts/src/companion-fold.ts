@@ -85,14 +85,36 @@ export interface CompanionRecord {
   }
 }
 
-/** The content-block fields the fold reads: text directly, tool results one level deeper. */
-type TextualBlock = { readonly type?: string; text?: string; content?: unknown }
+/** The content-block fields the fold reads: text directly, images by their
+ * durable reference metadata, tool results one level deeper. */
+interface TextualBlock {
+  readonly type?: string
+  text?: string
+  content?: unknown
+  attachment?: {
+    mediaType?: unknown
+    width?: unknown
+    height?: unknown
+    name?: unknown
+  }
+}
 
-/** Visible text of a content-block list: text blocks carry it directly, tool-result blocks nest it. */
+/** One image reference rendered as the summary line both languages share. */
+function imageSummary(ref: NonNullable<TextualBlock['attachment']>): string {
+  const mediaType = typeof ref.mediaType === 'string' ? ref.mediaType : ''
+  const width = typeof ref.width === 'number' ? ref.width : 0
+  const height = typeof ref.height === 'number' ? ref.height : 0
+  const name = typeof ref.name === 'string' && ref.name !== '' ? ` ${ref.name}` : ''
+  return `图片${name}（${mediaType}，${width}×${height}）`
+}
+
+/** Visible text of a content-block list: text blocks carry it directly, image
+ * blocks render their reference metadata, tool-result blocks nest it. */
 function blockText(blocks: ReadonlyArray<TextualBlock>): string {
   const parts: string[] = []
   for (const block of blocks) {
     if (typeof block.text === 'string' && block.text !== '') parts.push(block.text)
+    else if (block.type === 'image' && block.attachment !== undefined) parts.push(imageSummary(block.attachment))
     else if (Array.isArray(block.content)) parts.push(blockText(block.content as ReadonlyArray<TextualBlock>))
   }
   return parts.join('\n')

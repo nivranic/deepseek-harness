@@ -42,6 +42,20 @@ public struct ActiveSession: Equatable {
     public var streaming: Bool
 }
 
+/// One image the composer attaches to a prompt: the upload half of the
+/// attachment surface, carried inline on `session/prompt` as base64.
+public struct CompanionImageUpload: Sendable {
+    public let mediaType: String
+    public let base64: String
+    public let name: String?
+
+    public init(mediaType: String, base64: String, name: String? = nil) {
+        self.mediaType = mediaType
+        self.base64 = base64
+        self.name = name
+    }
+}
+
 /// Session-slice state machine over the wire: list sessions, open one, fold
 /// the follow stream's snapshot and live events through the pure
 /// domain-state fold (the conformance-tested companion projection), send
@@ -81,6 +95,10 @@ public final class RemoteSessionViewModel {
 
     /// The prompt submission state for the composer.
     public private(set) var sending = false
+
+    /// Image bytes fetched by attachment id, the download half of the
+    /// attachment surface; the fold's inline summary names the reference.
+    public private(set) var attachments: [String: Data] = [:]
 
     /// Reconnect bookkeeping for the open follow stream.
     public private(set) var reconnecting = false
@@ -156,10 +174,27 @@ public final class RemoteSessionViewModel {
 
     /// Submit one user prompt in queue mode.
     public func send(text: String) async {
-        guard let active, !text.isEmpty else { return }
+        await send(text: text, images: [])
+    }
+
+    /// Submit one user prompt in queue mode with optional inline image
+    /// uploads; the host promotes the base64 bytes to durable references
+    /// during prompt admission.
+    public func send(text: String, images: [CompanionImageUpload]) async {
+        guard let active, !text.isEmpty || !images.isEmpty else { return }
         sending = true
         defer { sending = false }
-        let requestId = "companion-\(UUID().uuidString)"
+        let requestId = "companion-" + UUID().uuidString
+        var content: [WireValue] = [.object(["type": .string("text"), "text": .string(text)])]
+        for image in images {
+            var part: [String: WireValue] = [
+                "type": .string("image"),
+                "mediaType": .string(image.mediaType),
+                "data": .string(image.base64),
+            ]
+            if let name = image.name { part["name"] = .string(name) }
+            content.append(.object(part))
+        }
         // The session verbs take one `request` object parameter; the wire
         // carries its fields under that name, not flat.
         _ = try? await wire.call("session/prompt", args: [
@@ -167,9 +202,25 @@ public final class RemoteSessionViewModel {
                 "requestId": .string(requestId),
                 "sessionId": .string(active.sessionId),
                 "mode": .string("queue"),
-                "content": .array([.object(["type": .string("text"), "text": .string(text)])]),
+                "content": .array(content),
             ]),
         ])
+    }
+
+    /// Fetch one durable image by attachment id over `session/attachment`
+    /// and cache its decoded bytes; returns the reference on success.
+    @discardableResult
+    public func readAttachment(_ attachmentId: String) async -> LinkAttachmentReadValue? {
+        guard let active else { return nil }
+        guard let value = try? await wire.call("session/attachment", args: [
+            "request": .object([
+                "sessionId": .string(active.sessionId),
+                "attachmentId": .string(attachmentId),
+            ]),
+        ]) else { return nil }
+        guard let read = ContractCodec.decode(LinkAttachmentReadValue.self, from: value) else { return nil }
+        attachments[attachmentId] = Data(base64Encoded: read.data)
+        return read
     }
 
     /// Cancel the open session's in-flight work.

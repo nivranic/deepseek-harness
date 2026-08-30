@@ -621,6 +621,12 @@
           "optional": true
         },
         {
+          "name": "attachment",
+          "kind": "object",
+          "ref": "LinkImageAttachmentRef",
+          "optional": true
+        },
+        {
           "name": "content",
           "kind": "object-array",
           "ref": "LinkContentBlock",
@@ -1091,6 +1097,110 @@
         }
       ],
       "fixture": "file-read"
+    },
+    {
+      "name": "LinkImageMediaType",
+      "shape": [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif"
+      ]
+    },
+    {
+      "name": "LinkImageDimensions",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "width",
+          "kind": "number"
+        },
+        {
+          "name": "height",
+          "kind": "number"
+        }
+      ]
+    },
+    {
+      "name": "LinkImageAttachmentRef",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "attachmentId",
+          "kind": "string"
+        },
+        {
+          "name": "mediaType",
+          "kind": "enum",
+          "ref": "LinkImageMediaType"
+        },
+        {
+          "name": "bytes",
+          "kind": "number"
+        },
+        {
+          "name": "width",
+          "kind": "number"
+        },
+        {
+          "name": "height",
+          "kind": "number"
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "originalDimensions",
+          "kind": "object",
+          "ref": "LinkImageDimensions",
+          "optional": true
+        }
+      ],
+      "fixture": "image-attachment-ref"
+    },
+    {
+      "name": "LinkAttachmentReadValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "attachment",
+          "kind": "object",
+          "ref": "LinkImageAttachmentRef"
+        },
+        {
+          "name": "data",
+          "kind": "string"
+        }
+      ],
+      "fixture": "attachment-read"
+    },
+    {
+      "name": "LinkPromptImagePart",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "image"
+        },
+        {
+          "name": "mediaType",
+          "kind": "enum",
+          "ref": "LinkImageMediaType"
+        },
+        {
+          "name": "data",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        }
+      ],
+      "fixture": "prompt-image-part"
     }
   ],
   "fixtures": [
@@ -1208,6 +1318,21 @@
       "id": "file-read",
       "type": "LinkFileReadValue",
       "sha256": "42dba5a26e35a1963aed7eaf756a754f1aeb9d3102736df3b1221752ac6ae7f7"
+    },
+    {
+      "id": "image-attachment-ref",
+      "type": "LinkImageAttachmentRef",
+      "sha256": "7736b2261ef480c3e61be8083eecd018fff82b68336c450d47668c450bd1a4f6"
+    },
+    {
+      "id": "attachment-read",
+      "type": "LinkAttachmentReadValue",
+      "sha256": "75cf06d363c8b8e89ca11b766bdacf58570354e5113e49284f907a9dd01355c7"
+    },
+    {
+      "id": "prompt-image-part",
+      "type": "LinkPromptImagePart",
+      "sha256": "10d67eb5c89db4c55192b4ebefbdebef36d7b828dd04d7b86c1af08905714176"
     }
   ]
 }
