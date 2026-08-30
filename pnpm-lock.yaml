@@ -697,6 +697,10 @@ importers:
         version: 4.4.3
 
   packages/api/link-controller:
+    dependencies:
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: workspace:^
@@ -1348,6 +1352,9 @@ importers:
       '@deepseek-ai/dsh-agent-presets':
         specifier: workspace:^
         version: link:../../preset/agent-presets
+      '@deepseek-ai/dsh-api-link-controller':
+        specifier: workspace:^
+        version: link:../../api/link-controller
       '@deepseek-ai/dsh-api-remotes':
         specifier: workspace:^
         version: link:../../api/remotes
@@ -1489,6 +1496,9 @@ importers:
       '@deepseek-ai/dsh-cordis-host-runner':
         specifier: workspace:^
         version: link:../../extensions/cordis-host-runner
+      '@deepseek-ai/dsh-device-trust':
+        specifier: workspace:^
+        version: link:../../remote/device-trust
       '@deepseek-ai/dsh-file-reference-local':
         specifier: workspace:^
         version: link:../../context/file-reference-local
@@ -1507,6 +1517,12 @@ importers:
       '@deepseek-ai/dsh-host-plugin-inventory':
         specifier: workspace:^
         version: link:../../host/plugin-inventory
+      '@deepseek-ai/dsh-link-access':
+        specifier: workspace:^
+        version: link:../../remote/link-access
+      '@deepseek-ai/dsh-link-settings':
+        specifier: workspace:^
+        version: link:../../remote/link-settings
       '@deepseek-ai/dsh-message-feedback':
         specifier: workspace:^
         version: link:../../feedback/message-feedback

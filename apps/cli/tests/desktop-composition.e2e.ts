@@ -153,6 +153,49 @@ describe('the shipped desktop composition', () => {
     expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: false })
   })
 
+  it('ships cross-device access off by default and answers the local link surface', async () => {
+    // The `remote` namespace the link-settings bridge owns resolves with all
+    // three defaults off, and the carrier stays unbound — remote access never
+    // opens by default. The link Remote namespace answers locally through the
+    // same /api chain, pairs nothing while the carrier is off, and lists no
+    // devices; a paired device could not reach these endpoints at all, because
+    // the remote allowlist carries none of them.
+    const settings = ctx.get('settings')!
+    const remote = settingsNamespace('remote')
+    const section = settings.get(remote) as { enabled: boolean; allowRemoteApproval: boolean; deviceName: string }
+    expect(section.enabled).toBe(false)
+    expect(section.allowRemoteApproval).toBe(false)
+    expect(typeof section.deviceName).toBe('string')
+    expect(section.deviceName.length).toBeGreaterThan(0)
+    await expect(ctx.get('linkAccess')!.endpoint()).resolves.toBeUndefined()
+
+    const gateway = ctx.get('desktopGateway') as DesktopGateway
+    const post = (endpoint: string, rpcId: string): Promise<Response> =>
+      gateway.handle(new Request(`dsh://desktop/api/${endpoint}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'client-request', rpcId: RpcId(rpcId), method: endpoint, payload: { args: {} } }),
+      }))
+
+    const status = await post('link/status', 'link-status')
+    expect(status.status).toBe(200)
+    const statusBody = await status.json() as { result: { ok: boolean; value?: { listening?: boolean } } }
+    expect(statusBody.result.ok).toBe(true)
+    expect(statusBody.result.value?.listening).toBe(false)
+
+    const devices = await post('link/devices', 'link-devices')
+    expect(devices.status).toBe(200)
+    const deviceBody = await devices.json() as { result: { ok: boolean; value?: unknown[] } }
+    expect(deviceBody.result.ok).toBe(true)
+    expect(deviceBody.result.value).toEqual([])
+
+    const pairing = await post('link/createPairing', 'link-pairing')
+    expect(pairing.status).toBe(200)
+    const pairingBody = await pairing.json() as { result: { ok: boolean; error?: { code?: string } } }
+    expect(pairingBody.result.ok).toBe(false)
+    expect(pairingBody.result.error?.code).toBe('link-disabled')
+  })
+
   it('serves the initial combo bundles the boot manifest advertises', async () => {
     const gateway = ctx.get('desktopGateway') as DesktopGateway
     const modules = ctx.get('clientModules')!

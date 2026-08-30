@@ -13,9 +13,13 @@ import { Context } from '@deepseek-ai/cordis'
 import type { DeviceId, PairedDevice } from '@deepseek-ai/dsh-device-trust'
 import type { LinkAccessService } from '@deepseek-ai/dsh-link-access'
 import { Remote, TypertRemoteFailure, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import { z } from 'zod'
 import type { LinkDeviceValue, LinkPairingValue, LinkStatusValue } from './types.ts'
 
 export type { LinkDeviceValue, LinkError, LinkPairingValue, LinkStatusValue } from './types.ts'
+
+/** Wire-boundary shape of one revoke request; an empty id never reaches the store. */
+const linkRevokeRequestSchema = z.object({ deviceId: z.string().min(1) })
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -111,14 +115,15 @@ export class LinkController extends TypertRemoteService {
    */
   @Remote
   async revokeDevice(deviceId: string): Promise<LinkDeviceValue | undefined> {
-    if (deviceId.length === 0) {
+    const parsed = linkRevokeRequestSchema.safeParse({ deviceId })
+    if (!parsed.success) {
       throw new TypertRemoteFailure({
         code: 'bad-request',
         message: 'device id must not be empty',
         details: {},
       })
     }
-    const revoked = await this.link().revokeDevice(deviceId as DeviceId)
+    const revoked = await this.link().revokeDevice(parsed.data.deviceId as DeviceId)
     return revoked === undefined ? undefined : deviceView(revoked)
   }
 }

@@ -101,6 +101,21 @@
     - id: settings-controller
       name: '@deepseek-ai/dsh-api-settings-controller'
 
+    # Cross-device remote access, all off by default: the paired-device trust
+    # store (lazy SQLite), the TLS link carrier (binds nothing until the
+    # cross-device switch commits), the settings bridge owning the `remote`
+    # namespace that switch lives in, and the local-only link-administration
+    # Remote namespace (status, pairing QR, device revocation). The remote
+    # allowlist carries no link endpoints, so paired devices never reach these.
+    - id: device-trust
+      name: '@deepseek-ai/dsh-device-trust'
+    - id: link-access
+      name: '@deepseek-ai/dsh-link-access'
+    - id: link-settings
+      name: '@deepseek-ai/dsh-link-settings'
+    - id: link-controller
+      name: '@deepseek-ai/dsh-api-link-controller'
+
     # Workspace commands and reconnect-safe projection over Typert Remote.
     # The browser half provides the `workspaces` service.
     - id: workspace-controller
