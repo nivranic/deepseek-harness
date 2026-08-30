@@ -1,0 +1,85 @@
+{
+  "covers": [
+    "Plan",
+    "Todo",
+    "Artifact"
+  ],
+  "events": [
+    {
+      "type": "plan/changed",
+      "active": true
+    },
+    {
+      "type": "todo/changed",
+      "todos": [
+        {
+          "content": "写 Lite 行为规范",
+          "status": "in_progress"
+        },
+        {
+          "content": "生成 golden fixtures",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "type": "artifact/created",
+      "id": "a1",
+      "kind": "markdown",
+      "title": "lite-behavior-spec.md"
+    },
+    {
+      "type": "artifact/status",
+      "id": "a1",
+      "status": "ready"
+    },
+    {
+      "type": "todo/changed",
+      "todos": [
+        {
+          "content": "写 Lite 行为规范",
+          "status": "completed"
+        },
+        {
+          "content": "生成 golden fixtures",
+          "status": "in_progress"
+        }
+      ]
+    },
+    {
+      "type": "turn/completed"
+    }
+  ],
+  "expected": {
+    "conversation": [],
+    "streaming": {
+      "active": false,
+      "partialText": "",
+      "partialReasoning": ""
+    },
+    "interrupted": false,
+    "toolCalls": [],
+    "planActive": true,
+    "todos": [
+      {
+        "content": "写 Lite 行为规范",
+        "status": "completed"
+      },
+      {
+        "content": "生成 golden fixtures",
+        "status": "in_progress"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "a1",
+        "kind": "markdown",
+        "title": "lite-behavior-spec.md",
+        "status": "ready"
+      }
+    ],
+    "lastTurnEnd": "completed",
+    "errors": [],
+    "pendingHandoff": null
+  }
+}

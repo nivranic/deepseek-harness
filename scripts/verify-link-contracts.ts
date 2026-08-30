@@ -22,6 +22,7 @@ const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
 const appleLite = resolve(root, 'apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance')
+const androidLite = resolve(root, 'apps/android/core/src/test/resources/lite-conformance')
 const androidKotlin = resolve(root, 'apps/android/core/src/main/kotlin/ai/deepseek/dsh/link')
 const androidFixtures = resolve(root, 'apps/android/core/src/test/resources/fixtures')
 const androidConformance = resolve(root, 'apps/android/core/src/test/resources/conformance')
@@ -65,6 +66,7 @@ for (const scenario of conformance) {
 }
 for (const scenario of lite) {
   expectFresh(resolve(generatedDir, 'lite-conformance', `${scenario.id}.json`), scenario.json)
+  expectFresh(resolve(androidLite, `${scenario.id}.json`), scenario.json)
   expectFresh(resolve(appleLite, `${scenario.id}.json`), scenario.json)
 }
 if (failures > 0) process.exit(1)

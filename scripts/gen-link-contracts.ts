@@ -23,6 +23,7 @@ const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests
 const appleConformance = resolve(appleFixtures, 'conformance')
 const generatedLiteDir = resolve(generatedDir, 'lite-conformance')
 const appleLite = resolve(root, 'apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance')
+const androidLite = resolve(root, 'apps/android/core/src/test/resources/lite-conformance')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
 const androidKotlin = resolve(root, 'apps/android/core/src/main/kotlin/ai/deepseek/dsh/link')
 const androidFixtures = resolve(root, 'apps/android/core/src/test/resources/fixtures')
@@ -59,8 +60,10 @@ for (const scenario of generateConformanceArtifacts()) {
 
 mkdirSync(generatedLiteDir, { recursive: true })
 mkdirSync(appleLite, { recursive: true })
+mkdirSync(androidLite, { recursive: true })
 for (const scenario of generateLiteConformance()) {
   writeFileSync(resolve(generatedLiteDir, `${scenario.id}.json`), scenario.json)
   writeFileSync(resolve(appleLite, `${scenario.id}.json`), scenario.json)
+  writeFileSync(resolve(androidLite, `${scenario.id}.json`), scenario.json)
 }
 console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts (apps/apple and apps/android synced).')
