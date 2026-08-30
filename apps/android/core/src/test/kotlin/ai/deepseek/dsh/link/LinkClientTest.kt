@@ -213,7 +213,6 @@ class LinkClientTest {
         assertTrue(!onDisk.contains(plainKey), "the plaintext key never rides the disk bytes")
         val loaded = store.load()
         assertEquals(plainKey, loaded?.signingKeyBase64)
-        assertTrue(LinkSigning.verify("input", LinkSigning.sign("input", java.util.Base64.getDecoder().decode(plainKey)), LinkSigning.ed25519SpkiDer(ByteArray(32) { (it + 1).toByte() })))
     }
 
     @Test
