@@ -987,3 +987,25 @@ final class PushViewModelTests: XCTestCase {
         XCTAssertNil(pushFromTurnEnd(other, openSessionId: "s1"))
     }
 }
+
+@MainActor
+final class RelayBridgeTests: XCTestCase {
+    func testForwardedEnvelopesBridgeOntoThePushVocabulary() {
+        let relay = RelayRendezvous()
+        let token = relay.register(RelayDevice(accountId: "acct", deviceId: "phone", platform: "ios"))
+        relay.publish(accountId: "acct", envelope: RelayEnvelope(kind: "approval-waiting", sessionId: "s1", eventId: "e1"))
+        relay.publish(accountId: "acct", envelope: RelayEnvelope(kind: "question-waiting", sessionId: "s1", eventId: "e2"))
+        relay.publish(accountId: "acct", envelope: RelayEnvelope(kind: "task-completed", sessionId: "s1", turn: 3))
+        relay.publish(accountId: "acct", envelope: RelayEnvelope(kind: "unknown", sessionId: "s1"))
+
+        XCTAssertEqual(
+            relay.poll(token: token).map(pushFromRelayEnvelope),
+            [
+                .approvalWaiting(sessionId: "s1", eventId: "e1"),
+                .questionWaiting(sessionId: "s1", eventId: "e2"),
+                .taskCompleted(sessionId: "s1", turn: 3),
+                nil,
+            ]
+        )
+    }
+}

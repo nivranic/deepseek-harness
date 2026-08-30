@@ -150,3 +150,20 @@ public final class PushViewModel {
         }
     }
 }
+
+/// Bridge a forwarded relay envelope onto the chapter-70 push vocabulary —
+/// the dependency link APNs/FCM delivery will ride (references only).
+/// - Parameter envelope: the relay-forwarded reference payload.
+/// - Returns: the minimized push, or nil for a non-push kind.
+public func pushFromRelayEnvelope(_ envelope: RelayEnvelope) -> CompanionPush? {
+    switch envelope.kind {
+    case "approval-waiting":
+        return envelope.eventId.map { CompanionPush.approvalWaiting(sessionId: envelope.sessionId, eventId: $0) }
+    case "question-waiting":
+        return envelope.eventId.map { CompanionPush.questionWaiting(sessionId: envelope.sessionId, eventId: $0) }
+    case "task-completed":
+        return envelope.turn.map { CompanionPush.taskCompleted(sessionId: envelope.sessionId, turn: $0) }
+    default:
+        return nil
+    }
+}

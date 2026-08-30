@@ -53,6 +53,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 |---|---|
 | `Package.swift` | SwiftPM 清单；共享核心与 fixture 测试 |
 | [`Sources/SharedAppleRemoteCore/LinkClient.swift`](Sources/SharedAppleRemoteCore/LinkClient.swift) | 配对 / 描述 / 调用 / 流状态机 |
+| `Sources/SharedAppleRemoteCore/RelayRendezvous.swift` | 中继会合地基（第 68/69 章）——设备注册、仅引用信封扇出、按 poll 排空的内存态单账号转发；信封桥接见 CompanionUI 的 pushFromRelayEnvelope；自托管壳见 `apps/relay` |
 | [`Sources/SharedAppleRemoteCore/LinkSigning.swift`](Sources/SharedAppleRemoteCore/LinkSigning.swift) | 规范签名输入、SPKI 组帧、十六进制摘要 |
 | [`Sources/SharedAppleRemoteCore/LinkPinning.swift`](Sources/SharedAppleRemoteCore/LinkPinning.swift) | 对配对指纹的 TLS 挑战钉扎 |
 | [`Sources/SharedAppleRemoteCore/LinkWire.swift`](Sources/SharedAppleRemoteCore/LinkWire.swift) | 网关请求/响应信封与流帧 |

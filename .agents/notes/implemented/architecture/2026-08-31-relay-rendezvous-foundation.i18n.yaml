@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-relay-rendezvous-foundation.md
+2026-08-31-relay-rendezvous-foundation.md: 1593e1d6d0e7973993741ba1936277a70bfed92f
+2026-08-31-relay-rendezvous-foundation.zh.md: 9d55c12ecad117f43dfd71731fca2f5ecc230e29

@@ -53,6 +53,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 |---|---|
 | `Package.swift` | SwiftPM manifest; the shared core plus its fixture tests |
 | [`Sources/SharedAppleRemoteCore/LinkClient.swift`](Sources/SharedAppleRemoteCore/LinkClient.swift) | Pair / describe / call / stream state machine |
+| `Sources/SharedAppleRemoteCore/RelayRendezvous.swift` | The relay rendezvous foundation (chapters 68/69) — in-memory single-account forwarding: device registration, reference-only envelope fan-out, drain-by-poll; the envelope bridge is CompanionUI's pushFromRelayEnvelope; the self-hostable shell is `apps/relay` |
 | [`Sources/SharedAppleRemoteCore/LinkSigning.swift`](Sources/SharedAppleRemoteCore/LinkSigning.swift) | Canonical signing input, SPKI framing, hex digests |
 | [`Sources/SharedAppleRemoteCore/LinkPinning.swift`](Sources/SharedAppleRemoteCore/LinkPinning.swift) | TLS challenge pinning against the pairing fingerprint |
 | [`Sources/SharedAppleRemoteCore/LinkWire.swift`](Sources/SharedAppleRemoteCore/LinkWire.swift) | Gateway request/response envelopes and stream frames |
