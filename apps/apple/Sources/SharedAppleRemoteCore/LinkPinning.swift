@@ -47,13 +47,9 @@ public final class LinkPinningDelegate: NSObject, URLSessionDelegate {
         guard let certificate = (SecTrustCopyCertificateChain(trust) as? [SecCertificate])?.first else {
             return nil
         }
-        // The modern call returns a bare SecKey on macOS and an optional on
-        // iOS; a macOS failure still surfaces at the representation copy below.
-        #if os(macOS)
+        // Both current SDKs hand back a bare SecKey; a failure without a
+        // thrown error still surfaces at the representation copy below.
         let key = SecCertificateCopyKey(certificate)
-        #else
-        guard let key = SecCertificateCopyKey(certificate) else { return nil }
-        #endif
         guard let key else { return nil }
         var error: Unmanaged<CFError>?
         guard let keyData = SecKeyCopyExternalRepresentation(key, &error) as Data? else { return nil }
