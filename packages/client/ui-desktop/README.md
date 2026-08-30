@@ -1,5 +1,5 @@
 ---
-description: "Desktop-surface preferences: General-settings rows for the window close action (tray or quit) and login autostart, bound to the desktop-only settings namespace."
+description: "Desktop-surface preferences: General-settings rows for the window close action, login autostart, and cross-device access (toggles, device name, pairing QR, trusted devices)."
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The desktop-surface preferences: General-settings rows choosing what the window's close button does — hide to the system tray (the default) or quit the application — and whether the app auto-starts at OS login, hidden in the tray (off by default). The package is dual-face: the host half registers the `desktop` settings namespace, and the browser half renders the rows bound to that namespace through the shared settings scope.
+The desktop-surface preferences: General-settings rows choosing what the window's close button does — hide to the system tray (the default) or quit the application — and whether the app auto-starts at OS login, hidden in the tray (off by default). The cross-device rows drive remote access: enable cross-device access, allow remote approval, and the device-facing name bind the `remote` settings namespace the `dsh-link-settings` bridge owns, while the trusted-devices block calls the `link` Remote namespace — live LAN status with bind diagnostics, the one-time pairing QR, and per-device revocation. The package is dual-face: the host half registers the `desktop` settings namespace, and the browser half renders the rows bound to that namespace through the shared settings scope.
 
 ## Table of Contents
 

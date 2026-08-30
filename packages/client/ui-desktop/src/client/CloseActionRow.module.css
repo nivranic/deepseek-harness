@@ -64,3 +64,25 @@
   background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
 }
+
+.field {
+  flex: none;
+  width: 180px;
+  height: 30px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--dsw-alias-fill-tsp-secondary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-primary);
+}
+
+.field::placeholder {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.field:disabled {
+  opacity: 0.5;
+}
