@@ -164,7 +164,7 @@ final class LiteProviderTests: XCTestCase {
             XCTFail("text delta did not parse")
         }
         let entries: [[String: Any]] = [["id": "c1", "index": 0, "function": ["name": "web_search", "arguments": "{}"]]]
-        if case .toolCallEntries(let parsed)? = LiteStreamLineParser.parsePiece(line: "data: " + (try wireLine(["tool_calls": entries])) {)
+        if case .toolCallEntries(let parsed)? = LiteStreamLineParser.parsePiece(line: "data: " + (try wireLine(["tool_calls": entries]))) {
             XCTAssertEqual(parsed[0]["id"] as? String, "c1")
             XCTAssertEqual((parsed[0]["function"] as? [String: Any])?["name"] as? String, "web_search")
         } else {
