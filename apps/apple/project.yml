@@ -1,0 +1,54 @@
+# The thin Xcode shells over CompanionUI (nativization plan chapter 49): one
+# iOS host for iPhone and iPad, one macOS companion host. XcodeGen generates
+# Companion.xcodeproj from this manifest on the CI lane (never committed);
+# both shells embed CompanionRootView, which owns pairing when no identity
+# exists and the six-tab surface after it.
+name: Companion
+options:
+  bundleIdPrefix: com.deepseek-harness
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+packages:
+  DshApple:
+    path: .
+targets:
+  CompanioniOS:
+    type: application
+    platform: iOS
+    sources:
+      - Shells/iOSApp.swift
+    dependencies:
+      - package: DshApple
+        product: CompanionUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.ios
+        PRODUCT_NAME: DSH Companion
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
+        TARGETED_DEVICE_FAMILY: "1,2"
+  CompanionMac:
+    type: application
+    platform: macOS
+    sources:
+      - Shells/macOSApp.swift
+    dependencies:
+      - package: DshApple
+        product: CompanionUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.mac
+        PRODUCT_NAME: DSH Companion
+        GENERATE_INFOPLIST_FILE: true
+schemes:
+  CompanioniOS:
+    build:
+      targets:
+        CompanioniOS: all
+  CompanionMac:
+    build:
+      targets:
+        CompanionMac: all

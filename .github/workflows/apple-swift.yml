@@ -47,3 +47,20 @@ jobs:
       - name: swift test
         working-directory: apps/apple
         run: swift test
+
+      # The thin Xcode shells (chapter 49): XcodeGen turns project.yml into
+      # Companion.xcodeproj (generated, never committed), and both hosts must
+      # build against the local package the tests just exercised.
+      - name: Generate the Xcode project
+        working-directory: apps/apple
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          xcodegen generate
+
+      - name: Build the iOS shell
+        working-directory: apps/apple
+        run: xcodebuild -project Companion.xcodeproj -scheme CompanioniOS -destination 'generic/platform=iOS Simulator' build
+
+      - name: Build the macOS shell
+        working-directory: apps/apple
+        run: xcodebuild -project Companion.xcodeproj -scheme CompanionMac -destination 'platform=macOS' build
