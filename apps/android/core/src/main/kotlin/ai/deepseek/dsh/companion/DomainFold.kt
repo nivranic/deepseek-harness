@@ -336,5 +336,7 @@ private fun numberElement(value: Double): JsonElement =
 /** Parse one conformance scenario document. */
 fun parseScenario(text: String): Pair<JsonArray, JsonObject> {
     val document = Json.parseToJsonElement(text).jsonObject
-    return document["records"]?.jsonArray ?: JsonArray(emptyList()) to document["expected"]?.jsonObject ?: JsonObject(emptyMap())
+    val records = document["records"]?.jsonArray ?: JsonArray(emptyList())
+    val expected = document["expected"]?.jsonObject ?: JsonObject(emptyMap())
+    return Pair(records, expected)
 }

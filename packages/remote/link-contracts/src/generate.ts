@@ -96,10 +96,12 @@ function kotlinModel(type: ContractType): string {
   const lines = type.fields.map((fieldRow) => {
     const scalar = kotlinScalar(fieldRow)
     const wrapped = fieldRow.optional === true ? `${scalar}? = null` : scalar
-    const suffix = fieldRow.kind === 'const' ? ` // constant ${JSON.stringify(fieldRow.value)}` : ''
-    return `    val ${fieldRow.name}: ${wrapped}${suffix}`
+    // The separator rides before any trailing comment, or the comment
+    // swallows it and the next line parses as a syntax error.
+    const comment = fieldRow.kind === 'const' ? ` // constant ${JSON.stringify(fieldRow.value)}` : ''
+    return `    val ${fieldRow.name}: ${wrapped},${comment}`
   })
-  return `data class ${type.name}(\n${lines.join(',\n')},\n)`
+  return `data class ${type.name}(\n${lines.join('\n')}\n)`
 }
 
 /**

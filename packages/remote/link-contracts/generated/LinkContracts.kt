@@ -13,8 +13,8 @@ enum class LinkError(val wire: String) {
     BAD_REQUEST("bad-request"),
 }
 data class LinkPairingPayload(
-    val v: Double // constant 1,
-    val kind: String // constant "dsh-link-pairing",
+    val v: Double, // constant 1
+    val kind: String, // constant "dsh-link-pairing"
     val hostId: String,
     val hostName: String,
     val endpoint: String,
@@ -152,8 +152,8 @@ data class LinkGoalSnapshot(
     val maxGoalRounds: Double,
 )
 data class LinkGoalChangeData(
-    val kind: String // constant "goal/change",
-    val version: Double // constant 1,
+    val kind: String, // constant "goal/change"
+    val version: Double, // constant 1
     val operation: LinkGoalOperation,
     val goal: LinkGoalSnapshot? = null,
     val roundsStarted: Double? = null,
@@ -192,7 +192,7 @@ data class LinkContentBlock(
 )
 data class LinkUserMessageData(
     val id: String,
-    val role: String // constant "user",
+    val role: String, // constant "user"
     val content: List<LinkContentBlock>,
     val source: LinkMessageSource,
 )
@@ -213,7 +213,7 @@ data class LinkTokenUsage(
 )
 data class LinkAssistantMessage(
     val id: String,
-    val role: String // constant "assistant",
+    val role: String, // constant "assistant"
     val content: List<LinkContentBlock>,
     val source: LinkMessageSource,
 )
@@ -237,7 +237,7 @@ data class LinkToolError(
 )
 data class LinkToolResultMessage(
     val id: String,
-    val role: String // constant "user",
+    val role: String, // constant "user"
     val content: List<LinkContentBlock>,
     val source: LinkMessageSource,
 )
@@ -291,7 +291,7 @@ enum class LinkSubagentDiagnosticReason(val wire: String) {
     UNAVAILABLE("unavailable"),
 }
 data class LinkSubagentEntry(
-    val kind: String // constant "child",
+    val kind: String, // constant "child"
     val id: String,
     val activity: LinkSubagentActivity? = null,
     val hasChildren: Boolean? = null,
@@ -333,7 +333,7 @@ data class LinkAttachmentReadValue(
     val data: String,
 )
 data class LinkPromptImagePart(
-    val type: String // constant "image",
+    val type: String, // constant "image"
     val mediaType: LinkImageMediaType,
     val data: String,
     val name: String? = null,
