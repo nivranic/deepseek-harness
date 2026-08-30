@@ -30,7 +30,9 @@ sealed interface LiteStreamChunk {
 sealed class LiteTransportError : RuntimeException("lite transport failure") {
     data class Network(val kind: String) : LiteTransportError()
 
-    data class Provider(val code: String, val message: String) : LiteTransportError()
+    // Overrides Throwable's open `message` so the spec vocabulary keeps its
+    // name; a non-null String is a valid covariant narrowing.
+    data class Provider(val code: String, override val message: String) : LiteTransportError()
 }
 
 /** The model seam a Lite loop drives: one streamed response per prompt. */
