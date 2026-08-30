@@ -66,6 +66,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Sources/CompanionUI/ArtifactsView.swift` | 只读工件面板——工件引用与状态的列表呈现（第 56 章） |
 | `Sources/CompanionUI/CompanionPush.swift` | 第 70 章最小推送链路——`$events` 转发折为仅引用数据的推送、本地通知内容与呈现缝，中继（APNs/FCM）延后 |
 | `Sources/LiteRuntime/` | Native Harness Lite 骨架：行为规范折叠 + 静态工具注册表 |
+| `Sources/LiteRuntime/LiteArtifactReading.swift` | 第 56 章资源通道消费面——工件字节按 id 读取，文本类直呈、其余类型与大小、缺失空态 |
 | `Tests/LiteRuntimeTests/` | Lite 行为规范一致性回放与注册表测试 |
 | `Tests/CompanionUITests/` | 基于假线缆的 view model、主题降级与领域状态一致性测试 |
 

@@ -12,6 +12,7 @@ public final class LiteChatViewModel {
     public private(set) var driver: LiteLoopDriver
     public private(set) var lastHandoff: String?
     private let store: (any LiteSessionStoring)?
+    private let artifacts: (any LiteArtifactStoring)?
 
     /// - Parameters:
     ///   - sessionId: the durable journal identity.
@@ -22,11 +23,13 @@ public final class LiteChatViewModel {
         sessionId: String,
         provider: any LiteProviding,
         execute: @escaping LiteToolExecuting,
-        store: (any LiteSessionStoring)? = nil
+        store: (any LiteSessionStoring)? = nil,
+        artifacts: (any LiteArtifactStoring)? = nil
     ) {
         self.session = LiteSession(id: sessionId)
         self.driver = LiteLoopDriver(provider: provider, execute: execute)
         self.store = store
+        self.artifacts = artifacts
     }
 
     /// The folded domain state of the journal plus the live turn.
@@ -49,6 +52,16 @@ public final class LiteChatViewModel {
             session.record(.turnCompleted)
         }
         if let store { try? await store.save(session) }
+    }
+
+    /// Read one referenced artifact's content through the resource channel —
+    /// textual kinds render directly, others show type and size, and a
+    /// missing id (or no channel) reads as the pane's empty state.
+    /// - Parameter artifact: the folded reference whose bytes are read.
+    /// - Returns: the content, or nil when nothing lives under the id.
+    public func readArtifact(_ artifact: LiteArtifactRecord) async -> LiteArtifactContent? {
+        guard let artifacts else { return nil }
+        return await readLiteArtifact(artifacts, artifact)
     }
 }
 
@@ -96,8 +109,7 @@ public struct LiteChatView: View {
                     }
                 }
                 ForEach(state.artifacts, id: \.id) { artifact in
-                    Label(artifact.title, systemImage: "doc")
-                        .font(.callout)
+                    LiteArtifactRow(model: model, artifact: artifact)
                 }
             }
             HStack {
@@ -116,5 +128,41 @@ public struct LiteChatView: View {
         guard !text.isEmpty else { return }
         draft = ""
         await model.send(prompt: text)
+    }
+}
+
+/// One artifact reference with its resource-channel content: textual kinds
+/// open to their bytes, other kinds show type and size, a missing id shows
+/// the empty state.
+struct LiteArtifactRow: View {
+    let model: LiteChatViewModel
+    let artifact: LiteArtifactRecord
+    @State private var content: LiteArtifactContent?
+
+    var body: some View {
+        DisclosureGroup {
+            if let content {
+                switch content.presentation {
+                case .text(let text):
+                    Text(text)
+                        .font(.system(.caption, design: .monospaced))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                case .binary(let kind, let sizeBytes):
+                    Text("\(kind) 类型 · \(sizeBytes) 字节")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("内容缺失")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } label: {
+            Label(artifact.title, systemImage: "doc")
+                .font(.callout)
+        }
+        .task(id: artifact.id) {
+            if content == nil { content = await model.readArtifact(artifact) }
+        }
     }
 }

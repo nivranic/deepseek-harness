@@ -29,6 +29,7 @@ class LiteChatViewModel(
     provider: LiteProviding,
     execute: LiteToolExecuting,
     private val store: LiteSessionStoring? = null,
+    private val artifacts: LiteArtifactStoring? = null,
 ) {
     /** The durable journal the turn outcomes land in. */
     val session: LiteSession = LiteSession(sessionId)
@@ -76,4 +77,14 @@ class LiteChatViewModel(
         store?.save(session)
         _liveState.tryEmit(session.state)
     }
+
+    /**
+     * Read one referenced artifact's content through the resource channel —
+     * textual kinds render directly, others show type and size, and a
+     * missing id (or no channel) reads as the pane's empty state.
+     * @param artifact the folded reference whose bytes are read.
+     * @return the content, or null when nothing lives under the id.
+     */
+    fun readArtifact(artifact: LiteArtifact): LiteArtifactContent? =
+        artifacts?.let { channel -> readLiteArtifact(channel, artifact) }
 }

@@ -82,7 +82,7 @@ fun LiteChatScreen(model: LiteChatViewModel) {
                 }
             }
             items(state.artifacts) { artifact ->
-                Text("📄 ${artifact.title}", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodyMedium)
+                LiteArtifactRow(model, artifact)
             }
         }
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -101,6 +101,42 @@ fun LiteChatScreen(model: LiteChatViewModel) {
                 },
                 enabled = draft.isNotBlank() && !model.driver.running,
             ) { Text("发送") }
+        }
+    }
+}
+
+/** One artifact reference with its resource-channel content: textual kinds
+ * open to their bytes, other kinds show type and size, a missing id shows
+ * the empty state. */
+@Composable
+private fun LiteArtifactRow(model: LiteChatViewModel, artifact: LiteArtifact) {
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var open by androidx.compose.runtime.remember(artifact.id) { androidx.compose.runtime.mutableStateOf(false) }
+    var content by androidx.compose.runtime.remember(artifact.id) {
+        androidx.compose.runtime.mutableStateOf<LiteArtifactContent?>(null)
+    }
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("📄 ${artifact.title}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            Button(onClick = {
+                open = !open
+                if (open && content == null) {
+                    scope.launch { content = model.readArtifact(artifact) }
+                }
+            }) { Text(if (open) "收起" else "内容") }
+        }
+        if (open) {
+            when (val present = content) {
+                null -> Text("内容缺失", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                is LiteArtifactContent.Presentation.Text ->
+                    Text(present.text, style = MaterialTheme.typography.bodySmall)
+                is LiteArtifactContent.Presentation.Binary ->
+                    Text(
+                        "${present.kind} 类型 · ${present.sizeBytes} 字节",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+            }
         }
     }
 }

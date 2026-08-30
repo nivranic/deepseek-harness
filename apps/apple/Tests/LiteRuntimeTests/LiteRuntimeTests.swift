@@ -250,3 +250,67 @@ final class LiteChatViewModelTests: XCTestCase {
         XCTAssertEqual(handoffModel.lastHandoff, LITE_REQUIRES_FULL_RUNTIME)
     }
 }
+
+/// The resource-channel consumption face of chapter 56.
+final class LiteArtifactReadingTests: XCTestCase {
+    private func temporaryDirectory(_ name: String) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("lite-artifacts-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent(name, isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    func testTextualKindsRenderTheirBytesDirectly() async throws {
+        let store = try LiteFileArtifactStore(directory: temporaryDirectory("artifacts"))
+        try await store.put(id: "a1", data: Data("报告要点共三项。".utf8))
+        let content = await readLiteArtifact(store, LiteArtifactRecord(id: "a1", kind: "markdown", title: "报告.md", status: .ready))
+        XCTAssertEqual(content?.presentation, .text("报告要点共三项。"))
+        XCTAssertEqual(content?.title, "报告.md")
+
+        try await store.put(id: "a2", data: Data("diff --git a/x b/x".utf8))
+        let patch = await readLiteArtifact(store, LiteArtifactRecord(id: "a2", kind: "patch", title: "修复.patch", status: .ready))
+        XCTAssertEqual(patch?.presentation, .text("diff --git a/x b/x"))
+    }
+
+    func testOtherKindsRenderTypeAndSizeOnly() async throws {
+        let store = try LiteFileArtifactStore(directory: temporaryDirectory("artifacts"))
+        let bytes = Data((0..<1234).map { UInt8(truncatingIfNeeded: $0) })
+        try await store.put(id: "img", data: bytes)
+        let image = await readLiteArtifact(store, LiteArtifactRecord(id: "img", kind: "image", title: "截图.png", status: .ready))
+        XCTAssertEqual(image?.presentation, .binary(kind: "image", sizeBytes: 1234))
+
+        try await store.put(id: "f", data: Data("任意字节".utf8))
+        let file = await readLiteArtifact(store, LiteArtifactRecord(id: "f", kind: "file", title: "数据.bin", status: .pending))
+        XCTAssertEqual(file?.presentation, .binary(kind: "file", sizeBytes: Data("任意字节".utf8).count))
+    }
+
+    func testAMissingIdReadsAsTheEmptyState() async throws {
+        let store = try LiteFileArtifactStore(directory: temporaryDirectory("artifacts"))
+        let content = await readLiteArtifact(store, LiteArtifactRecord(id: "ghost", kind: "markdown", title: "不存在.md", status: .ready))
+        XCTAssertNil(content)
+    }
+
+    func testTheChatSurfaceReadsThroughItsInjectedChannel() async {
+        let artifacts = try! LiteFileArtifactStore(directory: FileManager.default.temporaryDirectory
+            .appendingPathComponent("lite-artifacts-\(UUID().uuidString)", isDirectory: true))
+        try! await artifacts.put(id: "a1", data: Data("内容".utf8))
+        let provider = ScriptedLiteProvider(scripts: [:])
+        let model = LiteChatViewModel(
+            sessionId: "ui9",
+            provider: provider,
+            execute: { _, _, _ in (ok: false, text: "") },
+            artifacts: artifacts
+        )
+        let content = await model.readArtifact(LiteArtifactRecord(id: "a1", kind: "text", title: "笔记.txt", status: .ready))
+        XCTAssertEqual(content, LiteArtifactContent(id: "a1", kind: "text", title: "笔记.txt", presentation: .text("内容")))
+
+        let bare = LiteChatViewModel(
+            sessionId: "ui10",
+            provider: provider,
+            execute: { _, _, _ in (ok: false, text: "") }
+        )
+        let missing = await bare.readArtifact(LiteArtifactRecord(id: "a1", kind: "text", title: "笔记.txt", status: .ready))
+        XCTAssertNil(missing, "no channel is the empty state")
+    }
+}

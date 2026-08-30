@@ -66,6 +66,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Sources/CompanionUI/ArtifactsView.swift` | The read-only artifacts pane — artifact references and status as a list (chapter 56) |
 | `Sources/CompanionUI/CompanionPush.swift` | The chapter-70 minimal push chain — `$events` forwards folded into reference-data-only pushes, local-notification content, and the presentation seam; relay (APNs/FCM) deferred |
 | `Sources/LiteRuntime/` | Native Harness Lite skeleton: Behavior-Spec fold + static tool registry |
+| `Sources/LiteRuntime/LiteArtifactReading.swift` | The chapter-56 resource-channel consumption face — artifact bytes read by id, textual kinds rendered directly, others as type and size, missing ids as the empty state |
 | `Tests/LiteRuntimeTests/` | Lite Behavior-Spec conformance replay and registry tests |
 | `Tests/CompanionUITests/` | View-model, theme-degrade, and domain-state conformance tests over a fake wire |
 
