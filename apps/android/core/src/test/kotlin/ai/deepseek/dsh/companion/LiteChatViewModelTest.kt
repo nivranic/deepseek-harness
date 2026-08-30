@@ -1,7 +1,8 @@
 package ai.deepseek.dsh.companion
 
-import app.cash.turbine.test
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -102,27 +103,38 @@ class LiteChatViewModelTest {
             provider = provider,
             execute = { _, _, _ -> LiteToolOutcome(ok = true, text = "2") },
         )
-        model.liveState.test {
-            // The initial cut is the empty journal.
-            assertEquals(cut(awaitItem()), listOf(false, "", emptyList<String>(), 0, null))
-            model.send("算一下")
-            // prompt/accepted — the user row lands, the stream not yet live.
-            assertEquals(cut(awaitItem()), listOf(false, "", emptyList<String>(), 1, null))
-            // stream/delta 你, then 好 — the partial grows.
-            assertEquals(cut(awaitItem()), listOf(true, "你", emptyList<String>(), 1, null))
-            assertEquals(cut(awaitItem()), listOf(true, "你好", emptyList<String>(), 1, null))
-            // tool/call folds running; tool/result completes the row.
-            assertEquals(cut(awaitItem()), listOf(true, "你好", listOf("running"), 1, null))
-            assertEquals(cut(awaitItem()), listOf(true, "你好", listOf("completed"), 1, null))
-            // message/completed — the assistant row lands, the stream resets.
-            assertEquals(cut(awaitItem()), listOf(false, "", listOf("completed"), 2, null))
-            // turn/completed — only the turn end moves.
-            assertEquals(cut(awaitItem()), listOf(false, "", listOf("completed"), 2, "completed"))
-            // The persisted journal replay — the turn-outcome events carry
-            // no tool rows, by the chapter-64 fidelity rule.
-            assertEquals(cut(awaitItem()), listOf(false, "", emptyList<String>(), 2, "completed"))
-            cancelAndIgnoreRemainingEvents()
+        // An unconfined collector receives each set synchronously, so every
+        // intermediate cut lands before the next overwrites it.
+        val emissions = mutableListOf<LiteDomainState>()
+        val collector = launch(UnconfinedTestDispatcher(testScheduler)) {
+            model.liveState.toList(emissions)
         }
+        model.send("算一下")
+        advanceUntilIdle()
+        collector.cancel()
+
+        assertEquals(
+            listOf(
+                // The initial cut is the empty journal.
+                listOf(false, "", emptyList<String>(), 0, null),
+                // prompt/accepted — the user row lands, the stream not yet live.
+                listOf(false, "", emptyList<String>(), 1, null),
+                // stream/delta 你, then 好 — the partial grows.
+                listOf(true, "你", emptyList<String>(), 1, null),
+                listOf(true, "你好", emptyList<String>(), 1, null),
+                // tool/call folds running; tool/result completes the row.
+                listOf(true, "你好", listOf("running"), 1, null),
+                listOf(true, "你好", listOf("completed"), 1, null),
+                // message/completed — the assistant row lands, the stream resets.
+                listOf(false, "", listOf("completed"), 2, null),
+                // turn/completed — only the turn end moves.
+                listOf(false, "", listOf("completed"), 2, "completed"),
+                // The persisted journal replay — the turn-outcome events carry
+                // no tool rows, by the chapter-64 fidelity rule.
+                listOf(false, "", emptyList<String>(), 2, "completed"),
+            ),
+            emissions.map { cut(it) },
+        )
     }
 
     /** One emission compressed to what the sequence pins. */
