@@ -17,6 +17,7 @@ import {
   carrierRequest,
   issueSigned,
   mountCarrier,
+  mountComposition,
   pairDevice,
   provideCredentials,
   signedRpc,
@@ -187,6 +188,56 @@ describe('link-access carrier', () => {
       body: '{"args":{}}',
     })).status).toBe(401)
     expect((await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'POST', 'y'.repeat(70 * 1024))).status).toBe(413)
+  })
+
+  it('serves a typed failure frame when the stream source throws', async () => {
+    const frames = await streamUntil(
+      harness, device, 'probe/boom', { args: {} },
+      lines => lines.some(line => line.includes('"k":"e"')),
+    )
+    const failure = frames.find(line => line.includes('"k":"e"'))
+    expect(failure).toContain('probe stream failure')
+  })
+
+  it('skips the failure frame when the stream client vanishes first', async () => {
+    const url = new URL(harness.endpoint)
+    const target = '/link/stream/probe/linger'
+    const body = JSON.stringify({ args: {} })
+    const timestamp = String(Date.now())
+    const digest = createHash('sha256').update(body).digest('hex')
+    const signature = edSign(null, Buffer.from(linkSigningInput(timestamp, 'POST', target, digest)), device.privateKey).toString('base64')
+    const lines: string[] = []
+    await new Promise<void>((resolve) => {
+      const request = httpsRequest({
+        host: url.hostname,
+        port: url.port,
+        path: target,
+        method: 'POST',
+        rejectUnauthorized: false,
+        headers: {
+          'x-dsh-device-id': device.deviceId,
+          'x-dsh-timestamp': timestamp,
+          'x-dsh-signature': signature,
+          'content-type': 'application/json',
+        },
+      }, (response) => {
+        response.setEncoding('utf8')
+        response.on('data', (chunk: string) => {
+          for (const line of chunk.split('\n')) {
+            if (line !== '') lines.push(line)
+          }
+          if (lines.length >= 1) {
+            request.destroy()
+            resolve()
+          }
+        })
+      })
+      request.on('error', () => {})
+      request.write(body)
+      request.end()
+    })
+    await new Promise(resolve => setTimeout(resolve, 200))
+    expect(lines).toEqual(['{"k":"v","v":"open"}'])
   })
 
   it('stops a stream promptly when its client vanishes mid-flight', async () => {
@@ -376,6 +427,102 @@ describe('link-access carrier lifecycle', () => {
     } finally {
       await first.close()
       await second.close()
+    }
+  }, 60_000)
+
+  it('restarts on demand and rebinds a fresh endpoint', async () => {
+    const harness = await mountComposition({ enabled: false })
+    try {
+      await expect(harness.service.endpoint()).resolves.toBeUndefined()
+      await harness.service.setCarrierEnabled(true)
+      const first = await harness.service.carrierStatus()
+      expect(first.listening).toBe(true)
+      expect(first.endpoint).toMatch(/^https:\/\//u)
+      expect(first.spkiFingerprint).toMatch(/^[0-9a-f]{64}$/u)
+      expect(first.bindError).toBeUndefined()
+      const firstEndpoint = first.endpoint
+
+      await harness.service.setCarrierEnabled(false)
+      await expect(harness.service.carrierStatus()).resolves.toEqual({ listening: false })
+      await expect(harness.service.endpoint()).resolves.toBeUndefined()
+      await harness.service.setCarrierEnabled(true)
+      const second = await harness.service.carrierStatus()
+      expect(second.listening).toBe(true)
+      expect(second.endpoint).not.toBe(firstEndpoint)
+    } finally {
+      await harness.close()
+    }
+  }, 60_000)
+
+  it('serializes rapid toggles without double-binding', async () => {
+    const harness = await mountComposition({ enabled: false })
+    try {
+      const off = harness.service.setCarrierEnabled(false)
+      const on = harness.service.setCarrierEnabled(true)
+      await Promise.all([off, on])
+      const status = await harness.service.carrierStatus()
+      expect(status.listening).toBe(true)
+    } finally {
+      await harness.close()
+    }
+  }, 60_000)
+
+  it('stops a constructor-started bind while it is still pending', async () => {
+    const blocker = await mountCarrier()
+    const port = Number(new URL(blocker.endpoint).port)
+    const harness = await mountComposition({ enabled: true, port })
+    try {
+      await harness.service.setCarrierEnabled(false)
+      const status = await harness.service.carrierStatus()
+      expect(status.listening).toBe(false)
+      expect(status.bindError).toMatch(/EADDRINUSE|listen/u)
+    } finally {
+      await harness.close()
+      await blocker.close()
+    }
+  }, 60_000)
+
+  it('reports a failed bind in status and recovers once the port frees', async () => {
+    const blocker = await mountCarrier()
+    const port = Number(new URL(blocker.endpoint).port)
+    const harness = await mountComposition({ enabled: false, port })
+    try {
+      const enabling = harness.service.setCarrierEnabled(true).catch(() => undefined)
+      const concurrent = harness.service.carrierStatus()
+      await enabling
+      await expect(concurrent).resolves.toMatchObject({ listening: false })
+      const failed = await harness.service.carrierStatus()
+      expect(failed.listening).toBe(false)
+      expect(failed.bindError).toMatch(/EADDRINUSE|listen/u)
+      await expect(harness.service.createPairing()).rejects.toThrow(/failed to bind/u)
+
+      await blocker.close()
+      await harness.service.setCarrierEnabled(true)
+      const recovered = await harness.service.carrierStatus()
+      expect(recovered.listening).toBe(true)
+      expect(recovered.bindError).toBeUndefined()
+    } finally {
+      await harness.close()
+    }
+  }, 60_000)
+
+  it('applies the live name and approval switches to the wire', async () => {
+    const harness = await mountCarrier()
+    try {
+      const device = await pairDevice(harness, 'switch-probe')
+      harness.service.setDeviceName('Studio Desk')
+      harness.service.setAllowRemoteApproval(true)
+      expect(harness.service.deviceName()).toBe('Studio Desk')
+      expect(harness.service.isRemoteApprovalAllowed()).toBe(true)
+
+      const pairing = await harness.service.createPairing()
+      expect(pairing.hostName).toBe('Studio Desk')
+
+      const described = await issueSigned(harness.endpoint, device, '/link/describe', 'POST', '')
+      expect(described.status).toBe(200)
+      expect(described.json).toMatchObject({ hostName: 'Studio Desk', allowRemoteApproval: true })
+    } finally {
+      await harness.close()
     }
   }, 60_000)
 })

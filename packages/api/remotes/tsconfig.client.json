@@ -67,6 +67,9 @@
       "path": "../session-controller/tsconfig.client.json"
     },
     {
+      "path": "../link-controller"
+    },
+    {
       "path": "../settings-controller"
     },
     {

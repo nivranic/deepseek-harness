@@ -194,6 +194,18 @@ export interface LinkPairingPayload {
   readonly expiresAt: number
 }
 
+/** Live carrier facts for a local administration surface. */
+export interface LinkCarrierStatus {
+  /** Whether the TLS listener is currently bound. */
+  readonly listening: boolean
+  /** The bound `https://` endpoint, present while listening. */
+  readonly endpoint?: string
+  /** Certificate fingerprint devices pin, present while listening. */
+  readonly spkiFingerprint?: string
+  /** Why the last bind attempt failed, present after a failed attempt. */
+  readonly bindError?: string
+}
+
 /**
  * Derive the authority the pairing endpoint advertises: the bind host when
  * specific, or the first non-internal IPv4 address for an all-interface bind.

@@ -49,6 +49,7 @@ import {
   linkSigningInput,
   pairingEndpoint,
   parseLinkPairRequest,
+  type LinkCarrierStatus,
   type LinkEndpointAccess,
   type LinkEndpointInput,
   type LinkHostDescription,
@@ -74,7 +75,7 @@ interface CarrierState {
 
 /** Plugin configuration. */
 export interface LinkAccessConfig {
-  /** Bind the TLS carrier. Remote access stays disabled until this is explicitly enabled. */
+  /** Bind the TLS carrier at load. Remote access stays off until this or the runtime switch enables it. */
   enabled?: boolean
   /**
    * Bind address; `0.0.0.0` selects every interface and derives the pairing
@@ -157,14 +158,21 @@ export class LinkAccessService extends Service {
   static Config: z<LinkAccessConfig> = Config
 
   private readonly table: ReadonlyMap<string, LinkEndpointAccess>
-  private readonly allowRemoteApproval: boolean
+  private allowRemoteApproval: boolean
+  private hostName: string
   private readonly pairingRole: 'observer' | 'controller'
   private readonly pairingTtlSeconds: number
   private readonly clockSkewMs: number
   private readonly maxRequestBodyBytes: number
+  private readonly bindHost: string
+  private readonly bindPort: number
+  private readonly bindHome: string | undefined
   private readonly sharedFetch: ConnectionFetchHandler
   private readonly lastTouch = new Map<DeviceId, number>()
-  private readonly carrier: Promise<CarrierState | undefined>
+  private carrierPromise: Promise<CarrierState> | undefined
+  private carrierObserved: Promise<CarrierState | undefined> = Promise.resolve(undefined)
+  private carrierQueue: Promise<void> = Promise.resolve()
+  private bindFailure: string | undefined
 
   /**
    * Resolve configuration, provide the host service face, and bind the TLS
@@ -177,50 +185,107 @@ export class LinkAccessService extends Service {
     const resolved = config as ResolvedLinkAccessConfig
     this.table = endpointTable(resolved.endpoints)
     this.allowRemoteApproval = resolved.allowRemoteApproval
+    this.hostName = hostname()
     this.pairingRole = resolved.pairingRole
     this.pairingTtlSeconds = resolved.pairingTtlSeconds
     this.clockSkewMs = resolved.clockSkewSeconds * 1000
     this.maxRequestBodyBytes = resolved.maxRequestBodyBytes
+    this.bindHost = resolved.host
+    this.bindPort = resolved.port
+    this.bindHome = resolved.dshHome
     this.sharedFetch = ctx.connection.createSharedFetchHandler('/api')
-    this.carrier = resolved.enabled
-      ? this.startCarrier(resolved.host, resolved.port, resolved.dshHome)
-      : Promise.resolve(undefined)
-    // Mark the rejection handled: every consumer re-awaits `carrier`, so a
-    // bind failure still surfaces to each caller; this guard only prevents an
-    // unhandled-rejection crash when the failure precedes the first use.
-    this.carrier.catch(() => {})
+    if (resolved.enabled) void this.beginCarrier()
     ctx.effect(() => async () => {
-      await this.stopCarrier()
+      await this.setCarrierEnabled(false)
     }, 'link-access.carrier')
   }
 
   /**
    * The carrier endpoint the pairing QR carries.
-   * @returns the bound `https://` endpoint, or `undefined` while disabled.
-   * @throws when the carrier failed to bind.
+   * @returns the bound `https://` endpoint, or `undefined` while stopped.
+   * @throws when a bind attempt failed and the carrier was not restarted.
    */
   async endpoint(): Promise<string | undefined> {
-    return (await this.carrier)?.endpoint
+    return (await this.carrierPromise)?.endpoint
   }
 
   /**
    * The fingerprint devices pin when pairing with this host.
-   * @returns lowercase hex SHA-256 of the host certificate's SPKI, or `undefined` while disabled.
-   * @throws when the carrier failed to bind.
+   * @returns lowercase hex SHA-256 of the host certificate's SPKI, or `undefined` while stopped.
+   * @throws when a bind attempt failed and the carrier was not restarted.
    */
   async spkiFingerprint(): Promise<string | undefined> {
-    return (await this.carrier)?.spkiFingerprint
+    return (await this.carrierPromise)?.spkiFingerprint
+  }
+
+  /**
+   * Live carrier facts for a local administration surface: whether the TLS
+   * listener is bound, the endpoint and fingerprint while it is, and why the
+   * last bind attempt failed when one did.
+   * @returns the current carrier status.
+   */
+  async carrierStatus(): Promise<LinkCarrierStatus> {
+    // Observes the latest bind: a failure reports as stopped, with `bindFailure` carrying why.
+    const state = await this.carrierObserved
+    return {
+      listening: state !== undefined,
+      ...state === undefined ? {} : { endpoint: state.endpoint, spkiFingerprint: state.spkiFingerprint },
+      ...this.bindFailure === undefined ? {} : { bindError: this.bindFailure },
+    }
+  }
+
+  /** The device-facing host name; the OS hostname until {@link LinkAccessService.setDeviceName} overrides it.
+   * @returns the host name carried in pairing payloads and descriptions.
+   */
+  deviceName(): string {
+    return this.hostName
+  }
+
+  /**
+   * Override the device-facing host name shown to paired devices.
+   * @param name - non-empty replacement name.
+   */
+  setDeviceName(name: string): void {
+    this.hostName = name
+  }
+
+  /**
+   * Whether answering remote approvals and questions is currently allowed.
+   * @returns the live approval switch.
+   */
+  isRemoteApprovalAllowed(): boolean {
+    return this.allowRemoteApproval
+  }
+
+  /**
+   * Flip the independent remote-approval switch without touching the carrier.
+   * @param value - whether paired controllers may answer interactions.
+   */
+  setAllowRemoteApproval(value: boolean): void {
+    this.allowRemoteApproval = value
+  }
+
+  /**
+   * Bind or unbind the TLS carrier at runtime. Operations serialize, so a
+   * rapid off/on sequence never double-binds; enabling an already-bound
+   * carrier and disabling a stopped one are both no-ops.
+   * @param enabled - whether the carrier should be listening.
+   * @throws when a bind attempt fails; a later call may retry it.
+   */
+  async setCarrierEnabled(enabled: boolean): Promise<void> {
+    const operation = this.carrierQueue.then(() => this.applyCarrierEnabled(enabled))
+    this.carrierQueue = operation.catch(() => {})
+    await operation
   }
 
   /**
    * Issue one pairing payload for the QR display: host identity, endpoint,
    * certificate fingerprint, and a one-time short-lived code.
    * @returns the payload rendered into the pairing QR code.
-   * @throws when the carrier is disabled or failed to bind.
+   * @throws when the carrier is stopped or its last bind attempt failed.
    */
   async createPairing(): Promise<LinkPairingPayload> {
-    const state = await this.carrier
-    if (state === undefined) throw new Error('link access: carrier is disabled; enable it before pairing')
+    const state = await this.requireCarrier()
     const [identity, pairing] = await Promise.all([
       this.ctx.deviceTrust.hostIdentity(),
       this.ctx.deviceTrust.createPairing(this.pairingTtlSeconds),
@@ -229,7 +294,7 @@ export class LinkAccessService extends Service {
       v: LINK_PROTOCOL_VERSION,
       kind: 'dsh-link-pairing',
       hostId: identity.hostId,
-      hostName: hostname(),
+      hostName: this.hostName,
       endpoint: state.endpoint,
       spkiFingerprint: state.spkiFingerprint,
       code: pairing.code,
@@ -254,6 +319,45 @@ export class LinkAccessService extends Service {
     return this.ctx.deviceTrust.revoke(deviceId)
   }
 
+  private beginCarrier(): Promise<CarrierState> {
+    const started = this.startCarrier(this.bindHost, this.bindPort, this.bindHome)
+    this.carrierPromise = started
+    this.carrierObserved = started.then(value => value, () => undefined)
+    started.then(() => {
+      this.bindFailure = undefined
+    }, (error: unknown) => {
+      this.bindFailure = messageOf(error)
+      if (this.carrierPromise === started) this.carrierPromise = undefined
+    })
+    return started
+  }
+
+  /** Bind the carrier unless it already listens; a rejection propagates to the caller. */
+  private async applyCarrierEnabled(enabled: boolean): Promise<void> {
+    if (enabled) {
+      await (this.carrierPromise ?? this.beginCarrier())
+      return
+    }
+    const current = this.carrierPromise
+    this.carrierPromise = undefined
+    if (current === undefined) return
+    const state = await current.catch(() => undefined)
+    if (state === undefined) return
+    state.server.closeAllConnections()
+    await closeServer(state.server)
+    this.carrierObserved = Promise.resolve(undefined)
+  }
+
+  /** The live carrier state for pairing, distinguishing stopped from failed-to-bind. */
+  private async requireCarrier(): Promise<CarrierState> {
+    if (this.carrierPromise === undefined && this.bindFailure !== undefined) {
+      throw new Error(`link access: carrier failed to bind: ${this.bindFailure}`)
+    }
+    const state = await this.carrierPromise
+    if (state === undefined) throw new Error('link access: carrier is disabled; enable it before pairing')
+    return state
+  }
+
   private async startCarrier(host: string, port: number, dshHome: string | undefined): Promise<CarrierState> {
     const stateDir = join(resolveDshHome(dshHome), 'link-access')
     const tls = await ensureHostTlsMaterial(stateDir)
@@ -269,17 +373,11 @@ export class LinkAccessService extends Service {
       endpoint: pairingEndpoint(
         host,
         (server.address() as AddressInfo).port,
+        /* v8 ignore next -- Node's Dict typing permits undefined entries; os.networkInterfaces() never emits them. */
         Object.values(networkInterfaces()).flatMap(links => links ?? []),
       ),
       spkiFingerprint: tls.spkiFingerprint,
     }
-  }
-
-  private async stopCarrier(): Promise<void> {
-    const state = await this.carrier.catch(() => undefined)
-    if (state === undefined) return
-    state.server.closeAllConnections()
-    await closeServer(state.server)
   }
 
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -360,7 +458,7 @@ export class LinkAccessService extends Service {
       return
     }
     const identity = await this.ctx.deviceTrust.hostIdentity()
-    respond(res, 200, describeHost(identity.hostId, hostname(), this.allowRemoteApproval))
+    respond(res, 200, describeHost(identity.hostId, this.hostName, this.allowRemoteApproval))
   }
 
   private async handleUnary(req: IncomingMessage, res: ServerResponse, pathname: string): Promise<void> {
@@ -555,7 +653,7 @@ function listen(server: Server, host: string, port: number): Promise<void> {
 function closeServer(server: Server): Promise<void> {
   return new Promise((resolve, reject) => {
     server.close((error) => {
-      /* v8 ignore next 3 -- stopCarrier closes each listening server exactly once; this guard contains a double teardown. */
+      /* v8 ignore next 3 -- applyCarrierEnabled closes each listening server exactly once; this guard contains a double teardown. */
       if (error === undefined) resolve()
       else reject(error)
     })

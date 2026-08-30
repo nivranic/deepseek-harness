@@ -13,6 +13,10 @@ flowchart LR
   svc_deviceTrust["ctx.deviceTrust<br/>Paired-device trust store"]
   pkg_link_access["link-access"]
   svc_linkAccess["ctx.linkAccess<br/>Native remote access carrier"]
+  pkg_link_settings["link-settings"]
+  svc_linkSettings["ctx.linkSettings<br/>Remote settings bridge"]
+  pkg_api_link_controller["api/link-controller"]
+  svc_linkController["ctx.linkController<br/>Link administration Remote owner"]
   pkg_attachment["attachment"]
   svc_attachments["ctx.attachments<br/>Durable binary attachment storage"]
   pkg_attachment_local["attachment-local"]
@@ -230,6 +234,7 @@ flowchart LR
   pkg_agent_loop --> svc_agentLoop
   pkg_agent_presets --> svc_agentPresets
   pkg_api_gateway --> svc_typertGateway
+  pkg_api_link_controller --> svc_linkController
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
   pkg_api_session_controller --> svc_sessionSkillCatalog
@@ -274,6 +279,7 @@ flowchart LR
   pkg_jobs --> svc_jobs
   pkg_jobs_local --> svc_jobs
   pkg_link_access --> svc_linkAccess
+  pkg_link_settings --> svc_linkSettings
   pkg_llm --> svc_llm
   pkg_llm_deepseek --> svc_llm
   pkg_llm_pi_ai --> svc_llm
@@ -383,6 +389,7 @@ flowchart LR
   svc_jobs --> pkg_tool_jobs
   svc_jobs --> pkg_tool_subagent
   svc_jobs --> pkg_tool_terminal
+  svc_linkAccess --> pkg_link_settings
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
@@ -476,7 +483,9 @@ flowchart LR
 | ctx 键 | 角色 | 所属包 | 实现 | 直接消费方 | 配套插件 | 说明 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `ctx.deviceTrust` | `core` | [`device-trust`](../packages/remote/device-trust) | - | [`link-access`](../packages/remote/link-access) | - | 基于 SQLite 的宿主身份、一次性配对码与设备记录，link 载体据此授权。 |
-| `ctx.linkAccess` | `core` | [`link-access`](../packages/remote/link-access) | - | - | - | 带 Ed25519 设备认证与角色门控 Allowlist 的 TLS 监听器，分发到现有 Typert 网关面。 |
+| `ctx.linkAccess` | `core` | [`link-access`](../packages/remote/link-access) | - | [`link-settings`](../packages/remote/link-settings) | - | 带 Ed25519 设备认证与角色门控 Allowlist 的 TLS 监听器，分发到现有 Typert 网关面。 |
+| `ctx.linkSettings` | `core` | [`link-settings`](../packages/remote/link-settings) | - | - | - | 拥有 `remote` 设置命名空间，并把其启用/审批/名称提交实时应用到 link 载体。 |
+| `ctx.linkController` | `core` | `api/link-controller` | - | - | - | 把载体状态、配对签发与受信设备管理投影到面向本地 UI 的 `link` Remote 命名空间。 |
 | `ctx.attachments` | `seam` | [`attachment`](../packages/attachment/attachment) | [`attachment-local`](../packages/attachment/attachment-local) | [`api-session-controller`](../packages/api/session-controller), [`tool-fs`](../packages/fs/tool-fs), [`llm-pi-ai`](../packages/llm/llm-pi-ai), [`llm-deepseek`](../packages/llm/llm-deepseek) | - | 宿主会在会话事件之前提交已接受的图片；提供方适配器将已授权的持久引用解析为提供方原生内容。 |
 | `ctx.llm` | `seam` | [`llm`](../packages/llm/llm) | [`llm-deepseek`](../packages/llm/llm-deepseek), [`llm-pi-ai`](../packages/llm/llm-pi-ai), [`llm-replay`](../packages/test-support/llm-replay) | [`agent-loop`](../packages/core/agent-loop), [`compaction-basic`](../packages/compaction/compaction-basic) | - | 适配器注册提供方实现；agent loop（智能体循环）与压缩功能调用提供方无关的流服务。 |
 | `ctx.deepseekLlmApiExtensions` | `seam` | [`deepseek-llm-api-extensions`](../packages/llm/deepseek-llm-api-extensions) | [`session-log-deepseek`](../packages/session/session-log-deepseek), [`plugin-package-inventory-deepseek`](../packages/llm/plugin-package-inventory-deepseek) | [`llm-deepseek`](../packages/llm/llm-deepseek) | - | 插件准备彼此独立的顶层字段；官方适配器会合并这些字段，并在 HTTP 接受后提交其交付状态。 |

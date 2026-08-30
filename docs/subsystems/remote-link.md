@@ -4,7 +4,7 @@ English | [中文](remote-link.zh.md)
 
 The remote link subsystem lets paired native companion clients reach one Harness host over the network. `ctx.deviceTrust` owns the durable trust material: a stable host identity, one-time pairing codes stored only as SHA-256 digests, and device records carrying an Ed25519 public key, a role (`observer`, `controller`, reserved `administrator`), timestamps, and revocation. `ctx.linkAccess` owns the carrier: a TLS listener whose certificate is identified to devices by the SHA-256 fingerprint of its SubjectPublicKeyInfo, device request authentication (timestamp-windowed Ed25519 signatures over method, path, and body digest), a role-gated remote endpoint allowlist with an independent remote-approval switch, and the pairing ingress. Unary RPC dispatches through the Connection shared `/api` handler and Remote streams through `typertGateway.wireStream` — the same adapter pair the desktop carrier uses — so the subsystem adds an access layer, never a second business gateway.
 
-Pairing is initiated on the host (`ctx.linkAccess.createPairing()` renders a QR payload: host id and name, endpoint, certificate fingerprint, one-time code, expiry). The device verifies the fingerprint during the TLS handshake before any request byte is written, exchanges the code for a device identity, and keeps its signing key in platform secure storage. Revoking a device cuts its authorization on its next request; answering remote interactions additionally requires the `allowRemoteApproval` switch, so the ability to prompt never implies the ability to approve. The executable reference client is [`dsh-link-client`](../../packages/remote/link-client/README.md); native companions reimplement its state machine against the same wire vocabulary.
+Pairing is initiated on the host (`ctx.linkAccess.createPairing()` renders a QR payload: host id and name, endpoint, certificate fingerprint, one-time code, expiry). The device verifies the fingerprint during the TLS handshake before any request byte is written, exchanges the code for a device identity, and keeps its signing key in platform secure storage. Revoking a device cuts its authorization on its next request; answering remote interactions additionally requires the `allowRemoteApproval` switch, so the ability to prompt never implies the ability to approve. Two host-side pieces complete the Phase 1 administration surface. `ctx.linkSettings` registers the `remote` user-settings namespace — enable cross-device access, allow remote approval, device name — and applies every commit live to the carrier, so the settings document owns those fields once the bridge is mounted. `ctx.linkController` backs the generated `ctx.remote.link` namespace for local UIs: carrier status with the LAN endpoint and bind diagnostics, one-time pairing issuance for the QR display, and trusted-device listing and revocation; the remote allowlist carries none of those endpoints, so a paired device can never administer the host. The executable reference client is [`dsh-link-client`](../../packages/remote/link-client/README.md); native companions reimplement its state machine against the same wire vocabulary.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -92,23 +92,63 @@ The native remote access carrier service: TLS listener, device authentication, r
 ```ts cordis-catalog
 /**
  * The carrier endpoint the pairing QR carries.
- * @returns the bound `https://` endpoint, or `undefined` while disabled.
- * @throws when the carrier failed to bind.
+ * @returns the bound `https://` endpoint, or `undefined` while stopped.
+ * @throws when a bind attempt failed and the carrier was not restarted.
  */
 async endpoint(): Promise<string | undefined>
 
 /**
  * The fingerprint devices pin when pairing with this host.
- * @returns lowercase hex SHA-256 of the host certificate's SPKI, or `undefined` while disabled.
- * @throws when the carrier failed to bind.
+ * @returns lowercase hex SHA-256 of the host certificate's SPKI, or `undefined` while stopped.
+ * @throws when a bind attempt failed and the carrier was not restarted.
  */
 async spkiFingerprint(): Promise<string | undefined>
+
+/**
+ * Live carrier facts for a local administration surface: whether the TLS
+ * listener is bound, the endpoint and fingerprint while it is, and why the
+ * last bind attempt failed when one did.
+ * @returns the current carrier status.
+ */
+async carrierStatus(): Promise<LinkCarrierStatus>
+
+/** The device-facing host name; the OS hostname until {@link LinkAccessService.setDeviceName} overrides it.
+ * @returns the host name carried in pairing payloads and descriptions.
+ */
+deviceName(): string
+
+/**
+ * Override the device-facing host name shown to paired devices.
+ * @param name - non-empty replacement name.
+ */
+setDeviceName(name: string): void
+
+/**
+ * Whether answering remote approvals and questions is currently allowed.
+ * @returns the live approval switch.
+ */
+isRemoteApprovalAllowed(): boolean
+
+/**
+ * Flip the independent remote-approval switch without touching the carrier.
+ * @param value - whether paired controllers may answer interactions.
+ */
+setAllowRemoteApproval(value: boolean): void
+
+/**
+ * Bind or unbind the TLS carrier at runtime. Operations serialize, so a
+ * rapid off/on sequence never double-binds; enabling an already-bound
+ * carrier and disabling a stopped one are both no-ops.
+ * @param enabled - whether the carrier should be listening.
+ * @throws when a bind attempt fails; a later call may retry it.
+ */
+async setCarrierEnabled(enabled: boolean): Promise<void>
 
 /**
  * Issue one pairing payload for the QR display: host identity, endpoint,
  * certificate fingerprint, and a one-time short-lived code.
  * @returns the payload rendered into the pairing QR code.
- * @throws when the carrier is disabled or failed to bind.
+ * @throws when the carrier is stopped or its last bind attempt failed.
  */
 async createPairing(): Promise<LinkPairingPayload>
 
@@ -127,4 +167,54 @@ async revokeDevice(deviceId: DeviceId): Promise<PairedDevice | undefined>
 ```
 
 Source: [`packages/remote/link-access/src/index.ts`](../../packages/remote/link-access/src/index.ts)
+
+<a id="ctxlinkcontroller--linkcontroller"></a>
+
+### `ctx.linkController` — `LinkController`
+
+Host service backing the generated `ctx.remote.link` namespace. Every method reads the link-access carrier; a composition without the carrier fails each call with `link-unavailable` instead of failing at load.
+
+```ts cordis-catalog
+/**
+ * Report the live carrier and identity facts the settings page renders:
+ * listening state, LAN endpoint, certificate fingerprint, bind diagnostics,
+ * device-facing name, the approval switch, and the trusted-device count.
+ * @returns the cross-device status row.
+ * @throws TypertRemoteFailure when no link carrier is mounted.
+ */
+@Remote async status(): Promise<LinkStatusValue>
+
+/**
+ * Issue one pairing payload for the QR display: host identity, endpoint,
+ * certificate fingerprint, and a one-time short-lived code.
+ * @returns the payload rendered into the pairing QR code.
+ * @throws TypertRemoteFailure when no carrier is mounted or its carrier is stopped or failed to bind.
+ */
+@Remote async createPairing(): Promise<LinkPairingValue>
+
+/**
+ * List every trusted device, revoked ones included, for the device manager.
+ * @returns one row per device record; the device public key never rides the wire.
+ * @throws TypertRemoteFailure when no link carrier is mounted.
+ */
+@Remote async devices(): Promise<LinkDeviceValue[]>
+
+/**
+ * Revoke one paired device; its next request is refused.
+ * @param deviceId - identity of the device to revoke.
+ * @returns the device row after revocation, or `undefined` when unknown.
+ * @throws TypertRemoteFailure when the id is empty or no link carrier is mounted.
+ */
+@Remote async revokeDevice(deviceId: string): Promise<LinkDeviceValue | undefined>
+```
+
+Source: [`packages/api/link-controller/src/index.ts`](../../packages/api/link-controller/src/index.ts)
+
+<a id="ctxlinksettings--linksettingsservice"></a>
+
+### `ctx.linkSettings` — `LinkSettingsService`
+
+The remote settings bridge: registers the `remote` namespace on mount and pushes every resolved value into the link-access carrier.
+
+Source: [`packages/remote/link-settings/src/index.ts`](../../packages/remote/link-settings/src/index.ts)
 <!-- END GENERATED cordis-surface -->

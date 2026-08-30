@@ -67,6 +67,23 @@ class ProbeService extends Service {
       }
     })()
   }
+
+  @Remote({ mode: 'stream' })
+  boom(): AsyncIterable<string> {
+    return (async function* () {
+      throw new Error('probe stream failure')
+    })()
+  }
+
+  @Remote({ mode: 'stream' })
+  linger(signal: AbortSignal): AsyncIterable<string> {
+    return (async function* () {
+      yield 'open'
+      await new Promise<never>((_resolve, reject) => {
+        signal.addEventListener('abort', () => { reject(new Error('linger aborted')) }, { once: true })
+      })
+    })()
+  }
 }
 
 /** Allowlist rows covering allowlist, role, kind, and approval gates in tests. */
@@ -75,6 +92,8 @@ export const PROBE_ENDPOINTS: LinkEndpointInput[] = [
   { endpoint: 'probe/admin', kind: 'unary', minRole: 'controller' },
   { endpoint: 'probe/slow', kind: 'unary', minRole: 'observer' },
   { endpoint: 'probe/ticks', kind: 'stream', minRole: 'observer' },
+  { endpoint: 'probe/boom', kind: 'stream', minRole: 'observer' },
+  { endpoint: 'probe/linger', kind: 'stream', minRole: 'observer' },
   { endpoint: '$events', kind: 'stream', minRole: 'observer' },
   { endpoint: '$events/result', kind: 'unary', minRole: 'controller' },
 ]
@@ -121,6 +140,24 @@ export function provideCredentials(ctx: Context): void {
 export async function mountCarrier(
   overrides: Partial<ConstructorParameters<typeof LinkAccessService>[1]> = {},
 ): Promise<CarrierHarness> {
+  const harness = await mountComposition(overrides)
+  const endpoint = await harness.service.endpoint()
+  if (endpoint === undefined) {
+    await harness.close()
+    throw new Error('carrier test harness did not bind an endpoint')
+  }
+  return { ...harness, endpoint }
+}
+
+/**
+ * Mount the carrier composition without asserting that it listens, for
+ * lifecycle tests that enable the carrier themselves.
+ * @param overrides - carrier config overrides applied over the test defaults.
+ * @returns the mounted harness and its carrier service.
+ */
+export async function mountComposition(
+  overrides: Partial<ConstructorParameters<typeof LinkAccessService>[1]> = {},
+): Promise<Omit<CarrierHarness, 'endpoint'>> {
   const dshHome = await mkdtemp(join(tmpdir(), 'dsh-link-access-'))
   const ctx = new RootContext()
   try {
@@ -140,12 +177,9 @@ export async function mountCarrier(
       ...overrides,
     })
     const service = ctx.get('linkAccess') as LinkAccessService
-    const endpoint = await service.endpoint()
-    if (endpoint === undefined) throw new Error('carrier test harness did not bind an endpoint')
     return {
       ctx,
       service,
-      endpoint,
       close: async () => {
         await ctx.fiber.dispose()
       },

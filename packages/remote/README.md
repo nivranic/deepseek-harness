@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The `remote/` group owns the secure access layer that lets native companion clients reach one Harness host over the network without creating a second business gateway. `device-trust` persists the host identity, one-time pairing codes, and device records (public key, role, revocation). `link-access` binds a TLS listener that authenticates devices by Ed25519 request signatures, enforces a role-gated endpoint allowlist with an independent remote-approval switch, and dispatches onto the existing Typert gateway surface — unary RPC through the Connection shared `/api` handler and Remote streams through `typertGateway.wireStream`, the same adapter pair the desktop carrier uses. `link-client` is the executable reference contract: pairing, SPKI pinning, signed RPC, and NDJSON streams that native companions (Swift, Kotlin) reimplement.
+The `remote/` group owns the secure access layer that lets native companion clients reach one Harness host over the network without creating a second business gateway. `device-trust` persists the host identity, one-time pairing codes, and device records (public key, role, revocation). `link-access` binds a TLS listener that authenticates devices by Ed25519 request signatures, enforces a role-gated endpoint allowlist with an independent remote-approval switch, and dispatches onto the existing Typert gateway surface — unary RPC through the Connection shared `/api` handler and Remote streams through `typertGateway.wireStream`, the same adapter pair the desktop carrier uses. `link-client` is the executable reference contract: pairing, SPKI pinning, signed RPC, and NDJSON streams that native companions (Swift, Kotlin) reimplement. `link-settings` owns the product-facing `remote` settings namespace — enable cross-device access, allow remote approval, device name — and applies every commit live to the carrier.
 
 ## Packages
 
@@ -18,6 +18,7 @@ The `remote/` group owns the secure access layer that lets native companion clie
 | [`device-trust/`](device-trust/README.md) | Paired-device trust store: host identity, one-time pairing codes, device records with role and revocation | `ctx.deviceTrust` |
 | [`link-access/`](link-access/README.md) | TLS carrier: device authentication, remote endpoint allowlist, pairing ingress over the existing gateway | `ctx.linkAccess` |
 | [`link-client/`](link-client/README.md) | Reference client for the carrier: SPKI pinning, pairing, signed RPC, NDJSON streams | plain library |
+| [`link-settings/`](link-settings/README.md) | Settings bridge: owns the `remote` namespace and applies enable/approval/name commits live to the carrier | `ctx.linkSettings` |
 
 ## Position
 

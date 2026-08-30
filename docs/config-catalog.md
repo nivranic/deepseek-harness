@@ -1025,7 +1025,7 @@ Requires: `connection` · `typertGateway` · `deviceTrust`
 ```ts config-catalog
 /** Plugin configuration. */
 export interface LinkAccessConfig {
-  /** Bind the TLS carrier. Remote access stays disabled until this is explicitly enabled. */
+  /** Bind the TLS carrier at load. Remote access stays off until this or the runtime switch enables it. */
   enabled?: boolean
   /**
    * Bind address; `0.0.0.0` selects every interface and derives the pairing
@@ -1070,7 +1070,7 @@ export type LinkEndpointKind = 'unary' | 'stream'
 export type LinkMinimumRole = 'observer' | 'controller'
 ```
 
-Source: [`packages/remote/link-access/src/index.ts:76`](../packages/remote/link-access/src/index.ts)
+Source: [`packages/remote/link-access/src/index.ts:77`](../packages/remote/link-access/src/index.ts)
 
 <a id="deepseek-aidsh-llm-deepseek"></a>
 
@@ -3520,6 +3520,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 
 - `@deepseek-ai/dsh-acp-app` — requires `cmdlineArgs` ([`packages/bundle/acp-app/src/index.ts`](../packages/bundle/acp-app/src/index.ts))
 - `@deepseek-ai/dsh-agent` ([`packages/core/agent/src/index.ts`](../packages/core/agent/src/index.ts))
+- `@deepseek-ai/dsh-api-link-controller` ([`packages/api/link-controller/src/index.ts`](../packages/api/link-controller/src/index.ts))
 - `@deepseek-ai/dsh-api-remotes` — requires `typertGateway` ([`packages/api/remotes/src/index.ts`](../packages/api/remotes/src/index.ts))
 - `@deepseek-ai/dsh-api-workspace-controller` — requires `typert` · `workspaceRegistry` ([`packages/api/workspace-controller/src/index.ts`](../packages/api/workspace-controller/src/index.ts))
 - `@deepseek-ai/dsh-authorization` — requires `credentials` ([`packages/credentials/authorization/src/index.ts`](../packages/credentials/authorization/src/index.ts))
@@ -3575,6 +3576,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-host-directory-picker-native` ([`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts))
 - `@deepseek-ai/dsh-host-electron-ipc` — requires `clientModules` · `connection` · `typertGateway` ([`packages/host/electron-ipc/src/index.ts`](../packages/host/electron-ipc/src/index.ts))
 - `@deepseek-ai/dsh-host-plugin-inventory` — requires `loader` ([`packages/host/plugin-inventory/src/index.ts`](../packages/host/plugin-inventory/src/index.ts))
+- `@deepseek-ai/dsh-link-settings` — requires `settings` · `linkAccess` ([`packages/remote/link-settings/src/index.ts`](../packages/remote/link-settings/src/index.ts))
 - `@deepseek-ai/dsh-llm` ([`packages/llm/llm/src/index.ts`](../packages/llm/llm/src/index.ts))
 - `@deepseek-ai/dsh-lsp` ([`packages/lsp/lsp/src/index.ts`](../packages/lsp/lsp/src/index.ts))
 - `@deepseek-ai/dsh-schedule` — requires `agents` · `sessions` · `tools` · `sessionPersistence` ([`packages/schedule/schedule/src/index.ts`](../packages/schedule/schedule/src/index.ts))
