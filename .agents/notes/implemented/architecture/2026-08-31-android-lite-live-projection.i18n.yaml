@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-live-projection.md
-2026-08-31-android-lite-live-projection.md: fad8ee7ce916b4250ee6432775f58f3eaf5ae79a
-2026-08-31-android-lite-live-projection.zh.md: 1e61de2025399e95ca129eb54af4f3776adbedc7
+2026-08-31-android-lite-live-projection.md: e66d45e8e45cd9d54ca583a6c303e1c743f9e2a6
+2026-08-31-android-lite-live-projection.zh.md: 439cd5924905c9f1ce72dfb4b879090b9b4abad3
