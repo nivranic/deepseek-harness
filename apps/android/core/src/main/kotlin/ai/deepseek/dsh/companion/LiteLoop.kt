@@ -93,10 +93,14 @@ class LiteLoopDriver(
     /**
      * Submit one prompt and drive its response to the terminal event; a new
      * submission replaces any in-flight turn.
+     * @param prompt the accepted user prompt text.
+     * @return the turn's Job — joining it waits for the terminal event.
      */
-    fun submit(prompt: String) {
+    fun submit(prompt: String): Job {
         job?.cancel()
-        job = scope.launch { drive(prompt) }
+        val turn = scope.launch { drive(prompt) }
+        job = turn
+        return turn
     }
 
     /** Cancel the in-flight turn; the fold finalizes the delivered prefix. */
