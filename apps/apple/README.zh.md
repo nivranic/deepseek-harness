@@ -1,5 +1,5 @@
 ---
-description: "Apple 远程伴侣应用及其共享核心：link 客户端状态机（配对、SPKI 钉扎、签名 RPC、NDJSON 流）构建于 dsh-link-contracts 生成的 wire 模型之上，由黄金 fixtures 回放验证。"
+description: "Apple 远程伴侣端：共享 link 客户端核心（配对、SPKI 钉扎、签名 RPC、NDJSON 流）与 CompanionUI SwiftUI 层（会话 UI、审批、Plan/Todo/Goal、双主题），构建于 dsh-link-contracts 生成的 wire 模型之上。"
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`apps/apple` 承载跨端方案的 Apple 半边：一个 Swift 包 `SharedAppleRemoteCore` 拥有 link 客户端状态机——以 Ed25519 对二维码载荷完成配对、TLS 握手中的 SPKI 指纹钉扎、经共享 `/api` 链的签名单次 RPC、NDJSON Remote 流——而生成的 `LinkContracts.swift` 模型与黄金 fixture JSON 由 `pnpm run gen-link-contracts` 同步到此处，并被 `verify-link-contracts` 漂移门禁看护。iOS/iPadOS/macOS 伴侣应用构建于该核心之上；它们尚未存在，而核心刻意不引入任何 UI 框架。
+`apps/apple` 承载跨端方案的 Apple 半边：一个 Swift 包 `SharedAppleRemoteCore` 拥有 link 客户端状态机——以 Ed25519 对二维码载荷完成配对、TLS 握手中的 SPKI 指纹钉扎、经共享 `/api` 链的签名单次 RPC、NDJSON Remote 流——而生成的 `LinkContracts.swift` 模型与黄金 fixture JSON 由 `pnpm run gen-link-contracts` 同步到此处，并被 `verify-link-contracts` 漂移门禁看护。第二个 target `CompanionUI` 承载 SwiftUI 应用层：基于 follow 流的会话列表与时间线、使用宿主结果词汇的审批/提问收件箱、Plan/Todo/Goal 面板，以及以单一语义令牌集呈现的双视觉风格（简约拟态与液态玻璃，含无障碍感知的降级规则）。其 view model 只依赖一个线缆驱动协议，整层可脱离宿主测试。iOS/iPadOS/macOS 应用壳构建于这两个库之上；它们尚未存在，而核心仍不引入任何 UI 框架。
 
 ## 目录
 
@@ -60,6 +60,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | [`Sources/SharedAppleRemoteCore/LinkKeychain.swift`](Sources/SharedAppleRemoteCore/LinkKeychain.swift) | Keychain 身份存储 |
 | `Sources/SharedAppleRemoteCore/LinkContracts.swift` | 生成的 wire 模型——永不手改 |
 | `Tests/SharedAppleRemoteCoreTests/` | fixture 回放与签名词汇测试 |
+| [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板 |
+| `Tests/CompanionUITests/` | 基于假线缆的 view model 与主题降级测试 |
 
 </details>
 
@@ -78,7 +80,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 ## 已知限制与延后工作
 
 - **尚未纳入本仓库 CI 编译**——Swift 源码与测试已编写并有 fixture 漂移门禁，但编译并运行 `swift test` 需要 macOS runner；在那之前 fixture 回放在漂移门禁的 TypeScript 侧运行。
-- **尚无应用 target**——iOS/iPadOS/macOS 伴侣端及其会话 UI、审批、Plan/Todo/Goal 界面、文件/Diff/工件查看器与双视觉主题随 Phase 2 应用增量到来。
+- **尚无应用 target**——两个库之上的薄 Xcode 壳随 macOS 编译车道到来；文件/Diff/工件查看器与子代理导航跟随会话事件契约模型。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 
 <a id="dev-note"></a>

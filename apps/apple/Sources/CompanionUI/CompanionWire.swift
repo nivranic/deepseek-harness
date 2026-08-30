@@ -1,0 +1,86 @@
+import Foundation
+import SharedAppleRemoteCore
+
+/// The wire surface the view models depend on: one unary call and one
+/// stream, both shaped exactly like the carrier's. Tests drive fakes; the
+/// real adapter wraps `LinkClient`.
+public protocol CompanionWireDriving: Actor {
+    /// One signed unary RPC through the shared `/api` chain.
+    /// - Parameters:
+    ///   - method: canonical endpoint, for example `session/list`.
+    ///   - args: named wire arguments as pass-through JSON.
+    /// - Returns: the business value.
+    func call(_ method: String, args: [String: WireValue]) async throws -> WireValue
+
+    /// One NDJSON Remote stream.
+    /// - Parameters:
+    ///   - endpoint: canonical stream endpoint, for example `session/follow`.
+    ///   - payload: the stream's opening payload arguments.
+    /// - Returns: frame values in arrival order.
+    func stream(_ endpoint: String, payload: [String: WireValue]) async throws -> AsyncThrowingStream<WireValue, Error>
+}
+
+/// The pass-through JSON value the view models exchange with the wire.
+public typealias WireValue = LinkWire.ResponseEnvelope.Result.Value
+
+/// Wire-shaped helpers shared by the view models: field access on
+/// pass-through JSON without inventing a parallel type system.
+public enum WireShape {
+    /// The string under one object field, or nil.
+    public static func string(_ value: WireValue, field: String) -> String? {
+        if case .object(let entries) = value { return entries[field].flatMap(stringOf) }
+        return nil
+    }
+
+    /// The double under one object field, or nil.
+    public static func number(_ value: WireValue, field: String) -> Double? {
+        if case .object(let entries) = value { return entries[field].flatMap(numberOf) }
+        return nil
+    }
+
+    /// The array under one object field, or nil.
+    public static func array(_ value: WireValue, field: String) -> [WireValue]? {
+        if case .object(let entries) = value { return entries[field].flatMap(arrayOf) }
+        return nil
+    }
+
+    /// The nested object under one object field, or nil.
+    public static func object(_ value: WireValue, field: String) -> WireValue? {
+        if case .object(let entries) = value { return entries[field] }
+        return nil
+    }
+
+    private static func stringOf(_ value: WireValue) -> String? {
+        if case .string(let text) = value { return text }
+        return nil
+    }
+
+    private static func numberOf(_ value: WireValue) -> Double? {
+        if case .number(let number) = value { return number }
+        return nil
+    }
+
+    private static func arrayOf(_ value: WireValue) -> [WireValue]? {
+        if case .array(let items) = value { return items }
+        return nil
+    }
+}
+
+/// The real wire over one paired `LinkClient`.
+public actor LinkClientWireDriver: CompanionWireDriving {
+    private let client: LinkClient
+
+    /// - Parameter client: a paired client; calls throw `unpaired` before
+    ///   the first successful pairing.
+    public init(client: LinkClient) {
+        self.client = client
+    }
+
+    public func call(_ method: String, args: [String: WireValue]) async throws -> WireValue {
+        try await client.call(method, args: args)
+    }
+
+    public func stream(_ endpoint: String, payload: [String: WireValue]) async throws -> AsyncThrowingStream<WireValue, Error> {
+        try await client.stream(endpoint, payload: payload)
+    }
+}
