@@ -329,6 +329,7 @@
     { "path": "./packages/remote/link-access" },
     { "path": "./packages/remote/link-settings" },
     { "path": "./packages/remote/link-client" },
+    { "path": "./packages/remote/link-contracts" },
     { "path": "./packages/sdk/client" },
     { "path": "./packages/sdk/protocol" },
     { "path": "./packages/lsp/lsp" },

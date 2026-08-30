@@ -1,25 +1,23 @@
 /**
- * Package-owned invariant companion for `@deepseek-ai/dsh-device-trust`.
- * @module @deepseek-ai/dsh-device-trust/invariant
+ * Package-owned invariant companion for `@deepseek-ai/dsh-link-contracts`.
+ * @module @deepseek-ai/dsh-link-contracts/invariant
  */
 
 /* jscpd:ignore-start */
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
-const PACKAGE_NAME = '@deepseek-ai/dsh-link-settings'
+const PACKAGE_NAME = '@deepseek-ai/dsh-link-contracts'
 
 /** Cordis companion plugin name. */
-export const name = 'device-trust-invariant'
+export const name = 'link-contracts-invariant'
 /** Service required before the companion can reserve package ownership. */
 export const inject = ['invariants']
 
 /**
- * No runtime invariant: the bridge is a pure observer — schema validation
- * rejects bad sections at commit time, and the carrier-settings relationship
- * is last-writer-wins by design, so no continuously observable in-process
- * relation exists that a companion could assert without writing settings as
- * a side effect.
+ * No runtime invariant: the package is a pure contract library — schemas,
+ * fixtures, and a generator with no Cordis registrations, so no runtime
+ * relation exists for a companion to assert.
  */
 const install: InvariantInstaller = () => {}
 

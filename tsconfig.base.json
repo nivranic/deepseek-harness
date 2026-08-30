@@ -350,6 +350,8 @@
       "@deepseek-ai/dsh-link-access/invariant": ["./packages/remote/link-access/src/invariant.ts"],
       "@deepseek-ai/dsh-link-client": ["./packages/remote/link-client/src"],
       "@deepseek-ai/dsh-link-client/invariant": ["./packages/remote/link-client/src/invariant.ts"],
+      "@deepseek-ai/dsh-link-contracts": ["./packages/remote/link-contracts/src"],
+      "@deepseek-ai/dsh-link-contracts/invariant": ["./packages/remote/link-contracts/src/invariant.ts"],
       "@deepseek-ai/dsh-link-settings": ["./packages/remote/link-settings/src"],
       "@deepseek-ai/dsh-link-settings/invariant": ["./packages/remote/link-settings/src/invariant.ts"],
       "@deepseek-ai/dsh-llm": ["./packages/llm/llm/src"],

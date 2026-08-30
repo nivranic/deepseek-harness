@@ -1,0 +1,330 @@
+{
+  "contract": "dsh-link",
+  "version": 1,
+  "types": [
+    {
+      "name": "LinkDeviceRole",
+      "shape": [
+        "observer",
+        "controller",
+        "administrator"
+      ]
+    },
+    {
+      "name": "LinkError",
+      "shape": [
+        "link-unavailable",
+        "link-disabled",
+        "bad-request"
+      ]
+    },
+    {
+      "name": "LinkPairingPayload",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "v",
+          "kind": "const",
+          "value": 1
+        },
+        {
+          "name": "kind",
+          "kind": "const",
+          "value": "dsh-link-pairing"
+        },
+        {
+          "name": "hostId",
+          "kind": "string"
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "endpoint",
+          "kind": "string"
+        },
+        {
+          "name": "spkiFingerprint",
+          "kind": "string"
+        },
+        {
+          "name": "code",
+          "kind": "string"
+        },
+        {
+          "name": "expiresAt",
+          "kind": "number"
+        }
+      ],
+      "fixture": "pairing-payload"
+    },
+    {
+      "name": "LinkPairResponse",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "deviceId",
+          "kind": "string"
+        },
+        {
+          "name": "hostId",
+          "kind": "string"
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "role"
+        },
+        {
+          "name": "linkProtocolVersion",
+          "kind": "number"
+        }
+      ],
+      "fixture": "pair-response"
+    },
+    {
+      "name": "LinkSessionCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "list",
+          "kind": "boolean"
+        },
+        {
+          "name": "history",
+          "kind": "boolean"
+        },
+        {
+          "name": "follow",
+          "kind": "boolean"
+        },
+        {
+          "name": "prompt",
+          "kind": "boolean"
+        },
+        {
+          "name": "cancel",
+          "kind": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "LinkWorkspaceCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "follow",
+          "kind": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "LinkInteractionCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "approval",
+          "kind": "boolean"
+        },
+        {
+          "name": "question",
+          "kind": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "LinkCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "session",
+          "kind": "object",
+          "ref": "LinkSessionCapabilities"
+        },
+        {
+          "name": "workspace",
+          "kind": "object",
+          "ref": "LinkWorkspaceCapabilities"
+        },
+        {
+          "name": "interaction",
+          "kind": "object",
+          "ref": "LinkInteractionCapabilities"
+        }
+      ]
+    },
+    {
+      "name": "LinkHostDescription",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "linkProtocolVersion",
+          "kind": "number"
+        },
+        {
+          "name": "hostVersion",
+          "kind": "string"
+        },
+        {
+          "name": "hostId",
+          "kind": "string"
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "runtimeClass",
+          "kind": "string"
+        },
+        {
+          "name": "sessionFormatVersion",
+          "kind": "number"
+        },
+        {
+          "name": "allowRemoteApproval",
+          "kind": "boolean"
+        },
+        {
+          "name": "capabilities",
+          "kind": "object",
+          "ref": "LinkCapabilities"
+        }
+      ],
+      "fixture": "host-description"
+    },
+    {
+      "name": "LinkCarrierStatus",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "listening",
+          "kind": "boolean"
+        },
+        {
+          "name": "endpoint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "spkiFingerprint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "bindError",
+          "kind": "string",
+          "optional": true
+        }
+      ],
+      "fixture": "carrier-status"
+    },
+    {
+      "name": "LinkDeviceRecord",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "deviceId",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "role"
+        },
+        {
+          "name": "createdAt",
+          "kind": "number"
+        },
+        {
+          "name": "lastSeenAt",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "revokedAt",
+          "kind": "number",
+          "optional": true
+        }
+      ],
+      "fixture": "device-record"
+    },
+    {
+      "name": "LinkAdminStatus",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "listening",
+          "kind": "boolean"
+        },
+        {
+          "name": "endpoint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "spkiFingerprint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "bindError",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "allowRemoteApproval",
+          "kind": "boolean"
+        },
+        {
+          "name": "deviceCount",
+          "kind": "number"
+        }
+      ],
+      "fixture": "admin-status"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "pairing-payload",
+      "type": "LinkPairingPayload",
+      "sha256": "b40c26bb35d93c11c8da12ccf5cf2cf84243d22ed3d48a6177709620ded1cc4a"
+    },
+    {
+      "id": "pair-response",
+      "type": "LinkPairResponse",
+      "sha256": "e6b7065c108e3a389713d9505e66b5587a6f60385523d79ca5772988f1565ad7"
+    },
+    {
+      "id": "host-description",
+      "type": "LinkHostDescription",
+      "sha256": "f9f2083c273c540e623bc542b5e0f5e77ae9c534d9806f1e3272208860416480"
+    },
+    {
+      "id": "carrier-status",
+      "type": "LinkCarrierStatus",
+      "sha256": "a124aaf769e32b5b0a96f5ee38da057c31dee6002eb4ccb23c8d93ae6b323f6d"
+    },
+    {
+      "id": "device-record",
+      "type": "LinkDeviceRecord",
+      "sha256": "17aaf9a859759e372dff39d78607933d85ef0f1cbc92e526555735fadf226004"
+    },
+    {
+      "id": "admin-status",
+      "type": "LinkAdminStatus",
+      "sha256": "06cb99a082e09161bdbd2fdcf50f8cc9483a768954e68391dadc09d8009ffb32"
+    }
+  ]
+}

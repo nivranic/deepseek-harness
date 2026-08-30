@@ -7197,6 +7197,25 @@ importers:
         specifier: workspace:^
         version: link:../../typert/registry
 
+  packages/remote/link-contracts:
+    dependencies:
+      '@deepseek-ai/dsh-api-link-controller':
+        specifier: workspace:^
+        version: link:../../api/link-controller
+      '@deepseek-ai/dsh-link-access':
+        specifier: workspace:^
+        version: link:../link-access
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+
   packages/remote/link-settings:
     dependencies:
       '@deepseek-ai/schemastery':

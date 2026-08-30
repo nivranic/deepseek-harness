@@ -40,6 +40,7 @@ const NO_MODEL_EXPERIENCE_SECTION: Readonly<Record<string, string>> = {
   'packages/remote/link-client': 'The package is a plain transport library with no Cordis registrations; it never constructs model input.',
   'packages/remote/link-settings': 'The package applies user settings to the link carrier; it registers no prompt, tool, or schema.',
   'packages/api/link-controller': 'The package projects link-administration methods onto the Remote wire; it registers no prompt, tool, or schema.',
+  'packages/remote/link-contracts': 'The package is a pure contract library with fixtures and a generator; it registers no prompt, tool, or schema.',
 }
 
 /**

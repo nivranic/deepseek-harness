@@ -668,6 +668,7 @@ function hygieneLeafGates(options: { artifactNeeds?: string[] } = {}): Gate[] {
   return [
     pnpmScript('rescope-vendor', 'rescope-vendor:check', { label: 'vendor rescope' }),
     pnpmScript('knip', 'knip'),
+    pnpmScript('link-contracts', 'verify-link-contracts', { label: 'link contracts' }),
     pnpmScript('publint', 'publint', artifactOptions),
     pnpmScript('constraints', 'constraints'),
     pnpmScript('application-entrypoints', 'verify-application-entrypoints', { label: 'application entrypoints' }),
