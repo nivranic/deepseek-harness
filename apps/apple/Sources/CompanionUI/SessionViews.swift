@@ -109,7 +109,9 @@ public struct SessionView: View {
             .padding()
         }
         .navigationTitle("会话")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
     private func submit() async {

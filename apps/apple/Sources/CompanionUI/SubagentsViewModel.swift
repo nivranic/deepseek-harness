@@ -97,7 +97,7 @@ public final class SubagentsViewModel {
     private static func row(of entry: LinkSubagentEntry) -> SubagentRow {
         SubagentRow(
             id: entry.id,
-            mode: entry.mode ?? .oneShot,
+            mode: entry.mode,
             label: entry.label,
             activity: entry.activity,
             reason: entry.reason

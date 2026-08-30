@@ -53,10 +53,10 @@ struct InteractionCard: View {
                 }
                 HStack(spacing: 12) {
                     if pending.kind == .approval {
-                        answerButton("允许一次", answer: .allowedOnce, role: .primary)
+                        answerButton("允许一次", answer: .allowedOnce, prominent: true)
                         answerButton("拒绝", answer: .rejected, role: .destructive)
                     } else {
-                        answerButton("忽略", answer: .cancelled, role: .secondary)
+                        answerButton("忽略", answer: .cancelled)
                     }
                     if model.answering { ProgressView() }
                 }
@@ -65,10 +65,18 @@ struct InteractionCard: View {
         .padding(.vertical, 4)
     }
 
-    private func answerButton(_ label: String, answer: InteractionAnswer, role: ButtonRole?) -> some View {
-        Button(label, role: role) {
-            Task { await model.answer(pending, with: answer) }
+    /// `ButtonRole` carries only destructive/cancel semantics; the allow
+    /// action's emphasis is prominence, which the style below carries.
+    private func answerButton(
+        _ label: String, answer: InteractionAnswer,
+        role: ButtonRole? = nil, prominent: Bool = false
+    ) -> some View {
+        if prominent {
+            Button(label) { Task { await model.answer(pending, with: answer) } }
+                .buttonStyle(.borderedProminent)
+        } else {
+            Button(label, role: role) { Task { await model.answer(pending, with: answer) } }
+                .buttonStyle(.companion)
         }
-        .buttonStyle(.companion)
     }
 }
