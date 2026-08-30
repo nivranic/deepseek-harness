@@ -12,6 +12,8 @@
 import type { LinkCarrierStatus, LinkHostDescription, LinkPairValue, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { LinkDeviceValue, LinkStatusValue } from '@deepseek-ai/dsh-api-link-controller/types'
 import type { WorkspaceFilesListValue, WorkspaceFilesReadValue } from '@deepseek-ai/dsh-api-workspace-controller'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { SubagentCatalog, SubagentListEntry } from '@deepseek-ai/dsh-subagent'
 import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
 import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
 import type { ChunkRow } from '@deepseek-ai/dsh-session/chunk-rows'
@@ -507,6 +509,44 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     ],
   },
   {
+    name: 'LinkSubagentActivity',
+    shape: ['running', 'inactive'],
+    fields: [],
+  },
+  {
+    name: 'LinkSubagentMode',
+    shape: ['one-shot', 'continuable'],
+    fields: [],
+  },
+  {
+    name: 'LinkSubagentDiagnosticReason',
+    shape: ['corrupt', 'unsupported', 'unavailable'],
+    fields: [],
+  },
+  {
+    name: 'LinkSubagentEntry',
+    shape: 'object',
+    fixture: 'subagent-entry',
+    fields: [
+      { name: 'kind', kind: 'const', value: 'child' },
+      { name: 'id', kind: 'string' },
+      { name: 'activity', kind: 'enum', ref: 'LinkSubagentActivity' },
+      { name: 'hasChildren', kind: 'boolean' },
+      { name: 'mode', kind: 'enum', ref: 'LinkSubagentMode' },
+      { name: 'label', kind: 'string', optional: true },
+      { name: 'reason', kind: 'enum', ref: 'LinkSubagentDiagnosticReason', optional: true },
+    ],
+  },
+  {
+    name: 'LinkSubagentCatalog',
+    shape: 'object',
+    fixture: 'subagent-catalog',
+    fields: [
+      { name: 'entries', kind: 'object-array', ref: 'LinkSubagentEntry' },
+      { name: 'parentAvailable', kind: 'boolean' },
+    ],
+  },
+  {
     name: 'LinkFileReadValue',
     shape: 'object',
     fixture: 'file-read',
@@ -590,6 +630,7 @@ export interface ContractFixture {
   /** The exact JSON the wire carries, pinned to the owning protocol type. */
   readonly value: LinkPairingPayload | LinkPairValue | LinkHostDescription | LinkCarrierStatus | LinkDeviceValue | LinkStatusValue
   | LinkSessionEventPayload | LinkChunkRowPayload | WorkspaceFilesListValue | WorkspaceFilesReadValue
+  | SubagentListEntry | SubagentCatalog
 }
 
 /** The golden fixtures; ids match the table's `fixture` rows. */
@@ -810,6 +851,35 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
         { name: 'lib', type: 'directory' },
       ],
     } satisfies WorkspaceFilesListValue,
+  },
+  {
+    type: 'LinkSubagentEntry',
+    id: 'subagent-entry',
+    value: {
+      kind: 'child',
+      id: 'sa-1' as SessionId,
+      activity: 'running',
+      hasChildren: false,
+      mode: 'continuable',
+      label: '检索合约文档',
+    } satisfies SubagentListEntry,
+  },
+  {
+    type: 'LinkSubagentCatalog',
+    id: 'subagent-catalog',
+    value: {
+      entries: [
+        {
+          kind: 'child',
+          id: 'sa-1' as SessionId,
+          activity: 'running',
+          hasChildren: false,
+          mode: 'continuable',
+          label: '检索合约文档',
+        },
+      ],
+      parentAvailable: true,
+    } satisfies SubagentCatalog,
   },
   {
     type: 'LinkFileReadValue',

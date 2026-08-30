@@ -55,7 +55,7 @@ Mount the carrier in a composition that already provides Connection, the Typert 
 
 ### Default remote surface
 
-Read-only session and workspace observation (`session/list|search|page|modelCatalog|attachment|follow|control`, `workspace/follow`, `workspaceFiles/list|read`, `fileReferences/list`, `$events`) for every device; session control (`prompt`, `cancel`, `updateQueue`, `rename`, `fork`, `selectModel`) for controllers; `$events/result` — answering pending approvals and questions — for controllers behind the approval switch. Everything else (settings mutation, credentials, plugin administration, session creation) is not remote until a deployment lists it.
+Read-only session and workspace observation (`session/list|search|page|modelCatalog|attachment|follow|control`, `workspace/follow`, `workspaceFiles/list|read`, `subagents/list`, `fileReferences/list`, `$events`) for every device; session control (`prompt`, `cancel`, `updateQueue`, `rename`, `fork`, `selectModel`) for controllers; `$events/result` — answering pending approvals and questions — for controllers behind the approval switch. Everything else (settings mutation, credentials, plugin administration, session creation) is not remote until a deployment lists it.
 
 -----
 

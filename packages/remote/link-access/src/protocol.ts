@@ -87,6 +87,7 @@ export const DEFAULT_LINK_ENDPOINTS: LinkEndpointInput[] = [
   { endpoint: 'workspace/follow', kind: 'stream', minRole: 'observer' },
   { endpoint: 'workspaceFiles/list', kind: 'unary', minRole: 'observer' },
   { endpoint: 'workspaceFiles/read', kind: 'unary', minRole: 'observer' },
+  { endpoint: 'subagents/list', kind: 'unary', minRole: 'observer' },
   { endpoint: '$events', kind: 'stream', minRole: 'observer' },
   { endpoint: 'session/prompt', kind: 'unary', minRole: 'controller' },
   { endpoint: 'session/cancel', kind: 'unary', minRole: 'controller' },

@@ -12,6 +12,7 @@ public struct CompanionRootView: View {
     @State private var sessionModel: RemoteSessionViewModel?
     @State private var interactionModel: InteractionViewModel?
     @State private var filesModel: FilesViewModel?
+    @State private var subagentsModel: SubagentsViewModel?
 
     private let client: LinkClient?
 
@@ -24,11 +25,12 @@ public struct CompanionRootView: View {
 
     public var body: some View {
         Group {
-            if paired, let sessionModel, let interactionModel, let filesModel {
+            if paired, let sessionModel, let interactionModel, let filesModel, let subagentsModel {
                 CompanionTabView(
                     sessionModel: sessionModel,
                     interactionModel: interactionModel,
                     filesModel: filesModel,
+                    subagentsModel: subagentsModel,
                     style: $style
                 )
             } else {
@@ -44,9 +46,11 @@ public struct CompanionRootView: View {
             let sessions = RemoteSessionViewModel(wire: wire)
             let interactions = InteractionViewModel(wire: wire)
             let files = FilesViewModel(wire: wire)
+            let subagents = SubagentsViewModel(wire: wire)
             sessionModel = sessions
             interactionModel = interactions
             filesModel = files
+            subagentsModel = subagents
             await sessions.loadSessions()
             await interactions.startWatching()
             await files.start()
@@ -64,11 +68,12 @@ public struct CompanionRootView: View {
     }
 }
 
-/// The five-tab surface once paired.
+/// The six-tab surface once paired.
 struct CompanionTabView: View {
     let sessionModel: RemoteSessionViewModel
     let interactionModel: InteractionViewModel
     let filesModel: FilesViewModel
+    let subagentsModel: SubagentsViewModel
     @Binding var style: CompanionStyle
 
     var body: some View {
@@ -83,6 +88,8 @@ struct CompanionTabView: View {
                 .tabItem { Label("工具", systemImage: "wrench.and.screwdriver") }
             FilesView(model: filesModel)
                 .tabItem { Label("文件", systemImage: "folder") }
+            SubagentsView(sessionModel: sessionModel, model: subagentsModel)
+                .tabItem { Label("子代理", systemImage: "person.2") }
         }
         .toolbar {
             ToolbarItem {

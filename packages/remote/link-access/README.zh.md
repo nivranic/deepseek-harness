@@ -55,7 +55,7 @@ kind: "package-reference"
 
 ### 默认远程面
 
-每个设备可只读观察 Session 与 Workspace（`session/list|search|page|modelCatalog|attachment|follow|control`、`workspace/follow`、`workspaceFiles/list|read`、`fileReferences/list`、`$events`）；controller 可控制 Session（`prompt`、`cancel`、`updateQueue`、`rename`、`fork`、`selectModel`）；`$events/result`——回答待定审批与提问——仅 controller 且需审批开关开启。其余一切（设置变更、凭据、插件管理、Session 创建）在部署列出之前均不远程暴露。
+每个设备可只读观察 Session 与 Workspace（`session/list|search|page|modelCatalog|attachment|follow|control`、`workspace/follow`、`workspaceFiles/list|read`、`subagents/list`、`fileReferences/list`、`$events`）；controller 可控制 Session（`prompt`、`cancel`、`updateQueue`、`rename`、`fork`、`selectModel`）；`$events/result`——回答待定审批与提问——仅 controller 且需审批开关开启。其余一切（设置变更、凭据、插件管理、Session 创建）在部署列出之前均不远程暴露。
 
 -----
 

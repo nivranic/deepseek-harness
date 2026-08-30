@@ -276,6 +276,32 @@ data class LinkFileListValue(
     val path: String,
     val entries: List<LinkFileEntry>,
 )
+enum class LinkSubagentActivity(val wire: String) {
+    RUNNING("running")
+    INACTIVE("inactive"),
+}
+enum class LinkSubagentMode(val wire: String) {
+    ONE_SHOT("one-shot")
+    CONTINUABLE("continuable"),
+}
+enum class LinkSubagentDiagnosticReason(val wire: String) {
+    CORRUPT("corrupt")
+    UNSUPPORTED("unsupported")
+    UNAVAILABLE("unavailable"),
+}
+data class LinkSubagentEntry(
+    val kind: String // constant "child",
+    val id: String,
+    val activity: LinkSubagentActivity,
+    val hasChildren: Boolean,
+    val mode: LinkSubagentMode,
+    val label: String? = null,
+    val reason: LinkSubagentDiagnosticReason? = null,
+)
+data class LinkSubagentCatalog(
+    val entries: List<LinkSubagentEntry>,
+    val parentAvailable: Boolean,
+)
 data class LinkFileReadValue(
     val content: String,
     val truncated: Boolean,

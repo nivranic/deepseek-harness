@@ -268,6 +268,14 @@ describe('the shipped desktop composition', () => {
     expect(readBody.result.ok).toBe(true)
     expect(readBody.result.value).toMatchObject({ content: 'export const x = 1\n', truncated: false, mediaType: 'text/typescript' })
 
+    // The subagent catalog endpoint answers through the same chain; an
+    // unknown parent simply has no children.
+    const subagents = await post('subagents/list', { parentSessionId: 'no-such-parent' }, 'subagents-list')
+    expect(subagents.status).toBe(200)
+    const subagentBody = await subagents.json() as { result: { ok: boolean; value?: { entries?: unknown[]; parentAvailable?: boolean } } }
+    expect(subagentBody.result.ok).toBe(true)
+    expect(subagentBody.result.value).toEqual({ entries: [], parentAvailable: false })
+
     const escaped = await post('workspaceFiles/list', { workspaceId, path: '../..' }, 'files-escape')
     expect(escaped.status).toBe(200)
     const escapeBody = await escaped.json() as { result: { ok: boolean; error?: { code?: string } } }

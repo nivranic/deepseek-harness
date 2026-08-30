@@ -60,7 +60,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | [`Sources/SharedAppleRemoteCore/LinkKeychain.swift`](Sources/SharedAppleRemoteCore/LinkKeychain.swift) | Keychain 身份存储 |
 | `Sources/SharedAppleRemoteCore/LinkContracts.swift` | 生成的 wire 模型——永不手改 |
 | `Tests/SharedAppleRemoteCoreTests/` | fixture 回放与签名词汇测试 |
-| [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板、工具轨迹、文件浏览 |
+| [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板、工具轨迹、文件浏览、子代理 |
 | `Sources/CompanionUI/SessionFold.swift` | 纯领域状态折叠——一致性场景的 Swift 一半 |
 | `Tests/CompanionUITests/` | 基于假线缆的 view model、主题降级与领域状态一致性测试 |
 

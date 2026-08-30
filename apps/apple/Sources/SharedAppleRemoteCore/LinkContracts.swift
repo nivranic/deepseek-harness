@@ -274,6 +274,32 @@ public struct LinkFileListValue: Codable {
     public let path: String
     public let entries: [LinkFileEntry]
 }
+public enum LinkSubagentActivity: String, Codable {
+    case running = "running"
+    case inactive = "inactive"
+}
+public enum LinkSubagentMode: String, Codable {
+    case oneShot = "one-shot"
+    case continuable = "continuable"
+}
+public enum LinkSubagentDiagnosticReason: String, Codable {
+    case corrupt = "corrupt"
+    case unsupported = "unsupported"
+    case unavailable = "unavailable"
+}
+public struct LinkSubagentEntry: Codable {
+    public let kind: String // constant "child"
+    public let id: String
+    public let activity: LinkSubagentActivity
+    public let hasChildren: Bool
+    public let mode: LinkSubagentMode
+    public let label: String?
+    public let reason: LinkSubagentDiagnosticReason?
+}
+public struct LinkSubagentCatalog: Codable {
+    public let entries: [LinkSubagentEntry]
+    public let parentAvailable: Bool
+}
 public struct LinkFileReadValue: Codable {
     public let content: String
     public let truncated: Bool

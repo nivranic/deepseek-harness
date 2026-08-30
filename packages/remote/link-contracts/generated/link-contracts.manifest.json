@@ -991,6 +991,85 @@
       "fixture": "file-list"
     },
     {
+      "name": "LinkSubagentActivity",
+      "shape": [
+        "running",
+        "inactive"
+      ]
+    },
+    {
+      "name": "LinkSubagentMode",
+      "shape": [
+        "one-shot",
+        "continuable"
+      ]
+    },
+    {
+      "name": "LinkSubagentDiagnosticReason",
+      "shape": [
+        "corrupt",
+        "unsupported",
+        "unavailable"
+      ]
+    },
+    {
+      "name": "LinkSubagentEntry",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "const",
+          "value": "child"
+        },
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "activity",
+          "kind": "enum",
+          "ref": "LinkSubagentActivity"
+        },
+        {
+          "name": "hasChildren",
+          "kind": "boolean"
+        },
+        {
+          "name": "mode",
+          "kind": "enum",
+          "ref": "LinkSubagentMode"
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "reason",
+          "kind": "enum",
+          "ref": "LinkSubagentDiagnosticReason",
+          "optional": true
+        }
+      ],
+      "fixture": "subagent-entry"
+    },
+    {
+      "name": "LinkSubagentCatalog",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "entries",
+          "kind": "object-array",
+          "ref": "LinkSubagentEntry"
+        },
+        {
+          "name": "parentAvailable",
+          "kind": "boolean"
+        }
+      ],
+      "fixture": "subagent-catalog"
+    },
+    {
       "name": "LinkFileReadValue",
       "shape": "object",
       "fields": [
@@ -1114,6 +1193,16 @@
       "id": "file-list",
       "type": "LinkFileListValue",
       "sha256": "d5711fa06413f44d4a91ee5f4af236a2cbfcbb3745516082b6ea750d256a53a6"
+    },
+    {
+      "id": "subagent-entry",
+      "type": "LinkSubagentEntry",
+      "sha256": "5638125aeec34496e736ce9effcae122f7d381bb0370a0064d25fa5447095cbe"
+    },
+    {
+      "id": "subagent-catalog",
+      "type": "LinkSubagentCatalog",
+      "sha256": "5fe08e099a72081a8da4baba80bfc5b471ad41c987809dec972e0ba81b8c4d0b"
     },
     {
       "id": "file-read",

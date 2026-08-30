@@ -9,6 +9,7 @@ actor FakeWire: CompanionWireDriving {
     private var answers: [String: Result<WireValue, Error>] = [:]
     private var answerQueues: [String: [Result<WireValue, Error>]] = [:]
     private var streams: [String: Result<[WireValue], Error>] = [:]
+    private(set) var streamCalls: [(endpoint: String, payload: [String: WireValue])] = []
 
     func stub(_ method: String, answer: Result<WireValue, Error>) {
         answers[method] = answer
@@ -40,6 +41,7 @@ actor FakeWire: CompanionWireDriving {
     }
 
     func stream(_ endpoint: String, payload: [String: WireValue]) async throws -> AsyncThrowingStream<WireValue, Error> {
+        streamCalls.append((endpoint, payload))
         switch streams[endpoint] ?? .success([]) {
         case .success(let frames):
             return AsyncThrowingStream { continuation in
@@ -307,14 +309,9 @@ final class RemoteSessionViewModelTests: XCTestCase {
         XCTAssertTrue(methods.contains("session/prompt"))
         XCTAssertTrue(methods.contains("session/cancel"))
         let prompt = await wire.calls.first { $0.method == "session/prompt" }
-        guard case .string(let sessionId)? = prompt?.args["sessionId"] else {
-            return XCTFail("prompt must carry the sessionId string")
-        }
-        XCTAssertEqual(sessionId, "s9")
-        guard case .string(let mode)? = prompt?.args["mode"] else {
-            return XCTFail("prompt must carry queue mode")
-        }
-        XCTAssertEqual(mode, "queue")
+        let request = prompt?.args["request"]
+        XCTAssertEqual(WireShape.string(request ?? .null, field: "sessionId"), "s9")
+        XCTAssertEqual(WireShape.string(request ?? .null, field: "mode"), "queue")
     }
 }
 
@@ -368,6 +365,78 @@ final class InteractionViewModelTests: XCTestCase {
 /// Domain-state conformance (plan chapter 62): the generated golden
 /// scenarios — records plus the TypeScript reference fold's expected state —
 /// must fold to exactly that state here too.
+
+@MainActor
+final class SubagentsViewModelTests: XCTestCase {
+    func testListsChildrenAndOpensTheChildTimeline() async {
+        let wire = FakeWire()
+        await wire.stub("subagents/list", answer: .success(jsonObject([
+            "entries": .array([
+                jsonObject([
+                    "kind": .string("child"),
+                    "id": .string("sa-1"),
+                    "activity": .string("running"),
+                    "hasChildren": .bool(false),
+                    "mode": .string("continuable"),
+                    "label": .string("检索合约文档"),
+                ]),
+                jsonObject([
+                    "kind": .string("diagnostic"),
+                    "id": .string("sa-2"),
+                    "reason": .string("corrupt"),
+                ]),
+            ]),
+            "parentAvailable": .bool(true),
+        ])))
+        await wire.stubStream("session/follow", frames: .success([
+            jsonObject([
+                "type": .string("snapshot"),
+                "cursor": .number(1),
+                "records": .array([
+                    eventEntry(1, "turn/start", ["turn": .number(1)]),
+                ]),
+            ]),
+        ]))
+        let model = SubagentsViewModel(wire: wire)
+        await model.load(parentSessionId: "p1")
+        XCTAssertEqual(model.listState, .ready)
+        XCTAssertEqual(model.rows.count, 2)
+        XCTAssertEqual(model.rows[0].label, "检索合约文档")
+        XCTAssertEqual(model.rows[0].mode, .continuable)
+        XCTAssertEqual(model.rows[0].activity, .running)
+        XCTAssertEqual(model.rows[1].reason, .corrupt)
+        let listCall = await wire.calls.first { $0.method == "subagents/list" }
+        guard case .string(let parent)? = listCall?.args["parentSessionId"] else {
+            return XCTFail("subagents/list must carry parentSessionId flat")
+        }
+        XCTAssertEqual(parent, "p1")
+
+        await model.openChild(model.rows[0])
+        let follow = await wire.streamCalls.first { $0.endpoint == "session/follow" }
+        let request = follow?.payload["request"]
+        let address = WireShape.object(request ?? .null, field: "address") ?? .null
+        XCTAssertEqual(WireShape.string(address, field: "kind"), "subagent")
+        XCTAssertEqual(WireShape.string(address, field: "parentSessionId"), "p1")
+        XCTAssertEqual(WireShape.string(address, field: "childSessionId"), "sa-1")
+        XCTAssertEqual(WireShape.string(address, field: "mode"), "continuable")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.childTimeline?.active?.items.map(\.kind), ["turn/start"])
+    }
+
+    func testSessionFollowSendsTheRequestEnvelope() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        let follow = await wire.streamCalls.first { $0.endpoint == "session/follow" }
+        let request = follow?.payload["request"]
+        let address = WireShape.object(request ?? .null, field: "address") ?? .null
+        XCTAssertEqual(WireShape.string(address, field: "kind"), "session")
+        XCTAssertEqual(WireShape.string(address, field: "sessionId"), "s1")
+    }
+}
+
 @MainActor
 final class FilesViewModelTests: XCTestCase {
     private func listValue(_ path: String, _ entries: [WireValue]) -> WireValue {
