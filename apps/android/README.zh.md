@@ -13,6 +13,7 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 | [`core/…/companion/NeumorphicTokens.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NeumorphicTokens.kt) | 仅简约拟态的视觉基线（第 60 章）：单一风格、双色调浮起表面 |
 | [`core/…/link/LinkWire.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt) 及同族 | 线缆客户端半边：直通 JSON 值与信封、JDK 提供方的 Ed25519 签名、叶子证书的 SPKI 钉扎、`LinkClient` 的 pair/describe/call/stream——对着真实本地 HTTP 服务器测试 |
 | [`core/…/companion/CompanionModels.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt) | 视图模型——会话折叠/发送/取消、交互收件箱、带 UTF-16 分页读取的文件浏览、子代理列表——各自驱动 FakeWire 可测的 `WireDriving` 缝 |
+| [`core/…/companion/FileChanges.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/FileChanges.kt) | 工具轨迹到只读文件变更的投影（第 55 章首版）：write/edit/str_replace_editor 的已完成调用各成一 hunk，+N/−M 行数与增删行在工具标签折叠展开 |
 | [`app/`](app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt) | Compose 壳：配对屏、六标签脚手架、来自 core tokens 的简约拟态主题 |
 | [`core/src/test/resources/`](core/src/test/resources/) | 测试回放的同步黄金 fixtures、一致性场景与钉扎证书 |
 

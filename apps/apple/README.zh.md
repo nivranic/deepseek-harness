@@ -62,6 +62,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Tests/SharedAppleRemoteCoreTests/` | fixture 回放与签名词汇测试 |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板、工具轨迹、文件浏览、子代理 |
 | `Sources/CompanionUI/SessionFold.swift` | 纯领域状态折叠——一致性场景的 Swift 一半 |
+| `Sources/CompanionUI/FileChange.swift` | 工具轨迹到只读文件变更的投影——第 55 章首版 Diff 呈现 |
 | `Sources/LiteRuntime/` | Native Harness Lite 骨架：行为规范折叠 + 静态工具注册表 |
 | `Tests/LiteRuntimeTests/` | Lite 行为规范一致性回放与注册表测试 |
 | `Tests/CompanionUITests/` | 基于假线缆的 view model、主题降级与领域状态一致性测试 |
@@ -83,7 +84,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 ## 已知限制与延后工作
 
 - **已纳入 CI 编译与测试**——[Apple Swift](../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
-- **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；更丰富的文件/Diff/工件查看器随后到来。
+- **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；文件查看与首版只读 Diff 呈现已随工具轨迹交付，工件查看器随后到来。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 
 <a id="dev-note"></a>

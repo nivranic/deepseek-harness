@@ -56,6 +56,9 @@ struct ToolCallRow: View {
                     .font(.callout)
                     .lineLimit(6)
             }
+            if let change = FileChange.project([call]).first {
+                DiffReview(change: change)
+            }
         }
         .padding(.vertical, 2)
     }
@@ -73,6 +76,37 @@ struct ToolCallRow: View {
         case .running: return "clock"
         case .completed: return "checkmark.circle.fill"
         case .failed: return "xmark.octagon.fill"
+        }
+    }
+}
+
+/// The chapter-55 collapsed diff review: path and +/− counts always
+/// visible, hunk lines behind the disclosure toggle.
+struct DiffReview: View {
+    let change: FileChange
+    @State private var expanded = false
+
+    var body: some View {
+        DisclosureGroup(isExpanded: $expanded) {
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(Array(change.lines.enumerated()), id: \.offset) { _, line in
+                    Text((line.added ? "+ " : "− ") + line.text)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(line.added ? Color.green : Color.red)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Text(change.path)
+                    .font(.caption.weight(.medium))
+                    .lineLimit(1)
+                Spacer()
+                Text("+\(change.added)")
+                    .foregroundStyle(.green)
+                Text("−\(change.removed)")
+                    .foregroundStyle(.red)
+            }
         }
     }
 }

@@ -62,6 +62,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Tests/SharedAppleRemoteCoreTests/` | Fixture replay and signing vocabulary tests |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI app layer: theming, session UI, interaction inbox, plan/todo/goal pane, tool trajectory, files browser, subagent children |
 | `Sources/CompanionUI/SessionFold.swift` | The pure domain-state fold — the Swift half of the conformance scenarios |
+| `Sources/CompanionUI/FileChange.swift` | The projection from the tool trajectory to read-only file changes — the chapter-55 first-version diff review |
 | `Sources/LiteRuntime/` | Native Harness Lite skeleton: Behavior-Spec fold + static tool registry |
 | `Tests/LiteRuntimeTests/` | Lite Behavior-Spec conformance replay and registry tests |
 | `Tests/CompanionUITests/` | View-model, theme-degrade, and domain-state conformance tests over a fake wire |
@@ -83,7 +84,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 ## Known Limitations and Deferred Work
 
 - **Compiled and tested in CI** — the [Apple Swift](../.github/workflows/apple-swift.yml) lane compiles the package and runs all tests on `macos-latest` for every `apps/apple` change (pull request, dev, and master); the fixture replay runs on both sides of the drift gate.
-- **App shells build in CI** — `project.yml` (XcodeGen) defines the chapter-49 targets: DSH Companion for iPhone/iPad and the Mac companion, each a `@main` SwiftUI host embedding `CompanionRootView`; the lane generates `Companion.xcodeproj` (never committed) and builds both schemes. The macOS Direct Host target ships as the host-side skeleton (`Hosts/`, built on the lane); the richer files/diff/artifact viewers follow.
+- **App shells build in CI** — `project.yml` (XcodeGen) defines the chapter-49 targets: DSH Companion for iPhone/iPad and the Mac companion, each a `@main` SwiftUI host embedding `CompanionRootView`; the lane generates `Companion.xcodeproj` (never committed) and builds both schemes. The macOS Direct Host target ships as the host-side skeleton (`Hosts/`, built on the lane); the files browser and the first-version read-only diff review ship with the tool trajectory, and the artifact viewer follows.
 - **Single host identity** — the credentials store holds one pairing; multi-host switching arrives with the companion's host list.
 
 <a id="dev-note"></a>

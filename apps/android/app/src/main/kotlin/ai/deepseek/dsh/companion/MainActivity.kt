@@ -318,7 +318,34 @@ fun ToolsTab(model: CompanionViewModel) {
                 Text("${call.name} — ${call.phase}", style = MaterialTheme.typography.titleSmall)
                 Text(call.arguments, style = MaterialTheme.typography.bodySmall, maxLines = 2)
                 if (call.resultText.isNotEmpty()) Text(call.resultText, style = MaterialTheme.typography.bodySmall)
+                fileChanges(listOf(call)).firstOrNull()?.let { change -> DiffReview(change) }
             }
+        }
+    }
+}
+
+/** The added-line tone of the diff presentation; the baseline palette
+ * carries no semantic colors, so the review surface owns this one. */
+private val DiffAddedColor = Color(0xFF2E7D32)
+
+/** The chapter-55 collapsed diff card: path and +/− counts always visible,
+ * hunk lines behind the expand toggle. */
+@Composable
+fun DiffReview(change: FileChange) {
+    var expanded by remember(change.path) { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(change.path, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+        Text("+${change.added}", style = MaterialTheme.typography.labelLarge, color = DiffAddedColor)
+        Text("−${change.removed}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error)
+        Button(onClick = { expanded = !expanded }) { Text(if (expanded) "收起" else "展开") }
+    }
+    if (expanded) {
+        change.lines.forEach { line ->
+            Text(
+                (if (line.added) "+ " else "− ") + line.text,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (line.added) DiffAddedColor else MaterialTheme.colorScheme.error,
+            )
         }
     }
 }

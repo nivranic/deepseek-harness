@@ -757,3 +757,98 @@ final class CompanionThemeTests: XCTestCase {
         XCTAssertFalse(theme.translucent)
     }
 }
+
+/// One trajectory tool/call record with string `arguments`.
+func toolCallEntry(_ seq: Double, _ callId: String, _ name: String, _ arguments: String) -> WireValue {
+    eventEntry(seq, "tool/call", [
+        "turn": .number(1), "step": .number(1),
+        "callId": .string(callId), "name": .string(name),
+        "arguments": .string(arguments),
+    ])
+}
+
+/// One trajectory tool/result record closing `callId`, optionally failed.
+func toolResultEntry(_ seq: Double, _ callId: String, failed: Bool = false) -> WireValue {
+    var data: [String: WireValue] = [
+        "turn": .number(1), "step": .number(1),
+        "message": jsonObject([
+            "id": .string("m-\(callId)"),
+            "role": .string("user"),
+            "content": .array([jsonObject([
+                "type": .string("tool-result"),
+                "toolCallId": .string(callId),
+                "content": .array([jsonObject(["type": .string("text"), "text": .string("完成")])]),
+            ])]),
+            "source": jsonObject(["kind": .string("tool"), "callId": .string(callId)]),
+        ]),
+    ]
+    if failed {
+        data["error"] = jsonObject(["name": .string("ToolError")])
+    }
+    return eventEntry(seq, "tool/result", data)
+}
+
+@MainActor
+final class FileChangeTests: XCTestCase {
+    func testProjectsCompletedFileWritesAndSkipsEverythingElse() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([
+            toolCallEntry(1, "c1", "write", #"{"file_path":"notes.md","content":"第一行\n第二行\n"}"#),
+            toolResultEntry(2, "c1"),
+            toolCallEntry(3, "c2", "edit", #"{"file_path":"notes.md","old_string":"第二行","new_string":"第二行（改）"}"#),
+            toolResultEntry(4, "c2"),
+            toolCallEntry(5, "c3", "str_replace_editor", #"{"path":"Config.swift","command":"insert","insert_line":4,"new_str":"插入"}"#),
+            toolResultEntry(6, "c3"),
+            toolCallEntry(7, "c4", "str_replace_editor", #"{"path":"notes.md","command":"view","view_range":[1,20]}"#),
+            toolResultEntry(8, "c4"),
+            toolCallEntry(9, "c5", "write", #"{"file_path":"app.log","content":"日志"}"#),
+            toolResultEntry(10, "c5", failed: true),
+            toolCallEntry(11, "c6", "bash", #"{"command":"ls"}"#),
+            toolResultEntry(12, "c6"),
+            toolCallEntry(13, "c7", "write", "不是 JSON"),
+            toolResultEntry(14, "c7"),
+            toolCallEntry(15, "c8", "edit", #"{"file_path":"notes.md","old_string":"第二行","new_string":"路上"}"#),
+        ]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(FileChange.project(model.toolCalls), [
+            FileChange(
+                path: "notes.md", added: 2, removed: 0,
+                lines: [DiffLine(added: true, text: "第一行"), DiffLine(added: true, text: "第二行")]
+            ),
+            FileChange(
+                path: "notes.md", added: 1, removed: 1,
+                lines: [DiffLine(added: false, text: "第二行"), DiffLine(added: true, text: "第二行（改）")]
+            ),
+            FileChange(
+                path: "Config.swift", added: 1, removed: 0,
+                lines: [DiffLine(added: true, text: "插入")]
+            ),
+        ])
+    }
+
+    func testAnEmptyWriteProjectsAZeroLineChangeAndAStrReplacePairsOldWithNew() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([
+            toolCallEntry(1, "c1", "write", #"{"file_path":"empty.txt","content":""}"#),
+            toolResultEntry(2, "c1"),
+            toolCallEntry(3, "c2", "str_replace_editor", #"{"path":"Main.kt","command":"str_replace","old_str":"旧一行\n旧二行","new_str":"新一行"}"#),
+            toolResultEntry(4, "c2"),
+        ]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(FileChange.project(model.toolCalls), [
+            FileChange(path: "empty.txt", added: 0, removed: 0, lines: []),
+            FileChange(
+                path: "Main.kt", added: 1, removed: 2,
+                lines: [
+                    DiffLine(added: false, text: "旧一行"),
+                    DiffLine(added: false, text: "旧二行"),
+                    DiffLine(added: true, text: "新一行"),
+                ]
+            ),
+        ])
+    }
+}
