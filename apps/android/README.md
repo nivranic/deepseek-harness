@@ -23,7 +23,7 @@ The [Android Kotlin](../.github/workflows/android-kotlin.yml) lane runs `gradle 
 ## Known Limitations and Deferred Work
 
 - **State-holding without a lifecycle bridge** — the models expose StateFlows the tabs collect with `collectAsState`; wiring `collectAsStateWithLifecycle` for background-aware collection arrives with the app polish.
-- **Handshake pinning deferred** — `LinkPinning` verifies a leaf certificate's SPKI fingerprint, but wiring it into the TLS handshake rides the app module's OkHttp stack; the JDK `HttpClient` here does not pin.
+- **Handshake pinning deferred** — `LinkPinning` verifies a leaf certificate's SPKI fingerprint, but wiring it into the TLS handshake rides the app module's OkHttp stack; the JDK `HttpClient` here does not pin. The signing key itself persists only under AndroidKeyStore AES/GCM seal through the `CredentialsCipher` seam.
 
 <a id="dev-note"></a>
 ### Dev Note

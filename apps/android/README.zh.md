@@ -23,7 +23,7 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 ## 已知限制与延后工作
 
 - **无生命周期桥的状态持有**——模型暴露 StateFlow，各标签以 `collectAsState` 收集；随打磨轮接入后台感知的 `collectAsStateWithLifecycle`。
-- **握手级钉扎延后**——`LinkPinning` 校验叶子证书的 SPKI 指纹，但接入 TLS 握手要随应用模块的 OkHttp 栈到来；此处的 JDK `HttpClient` 不做钉扎。
+- **握手级钉扎延后**——`LinkPinning` 校验叶子证书的 SPKI 指纹，但接入 TLS 握手要随应用模块的 OkHttp 栈到来；此处的 JDK `HttpClient` 不做钉扎。签名私钥本身经 `CredentialsCipher` 缝只在 AndroidKeyStore AES/GCM 封存下落盘。
 
 <a id="dev-note"></a>
 ### 开发备注
