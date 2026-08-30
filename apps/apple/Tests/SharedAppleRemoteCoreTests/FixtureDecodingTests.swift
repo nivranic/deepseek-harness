@@ -24,8 +24,7 @@ final class FixtureDecodingTests: XCTestCase {
         XCTAssertEqual(payload.endpoint, "https://192.168.1.4:4931")
         XCTAssertEqual(payload.spkiFingerprint.count, 64)
         let reencoded = try JSONEncoder().encode(payload)
-        XCTAssertEqual(try JSONSerialization.jsonObject(with: reencoded) as? [String: Any],
-                       try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertEqual(try canonicalJson(reencoded), try canonicalJson(data))
     }
 
     func testPairResponseDecodes() throws {
@@ -89,18 +88,25 @@ final class FixtureDecodingTests: XCTestCase {
         let value = try JSONDecoder().decode(T.self, from: data)
         let reencoded = try JSONEncoder().encode(value)
         XCTAssertEqual(
-            try JSONSerialization.jsonObject(with: reencoded) as? [String: Any],
-            try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            try canonicalJson(reencoded),
+            try canonicalJson(data),
             "fixture \(id) must round-trip losslessly"
         )
+    }
+
+    /// Dictionaries of `Any` are not Equatable; sorting keys into stable
+    /// bytes compares the same JSON without the cast.
+    private func canonicalJson(_ data: Data) throws -> Data {
+        let object = try JSONSerialization.jsonObject(with: data)
+        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
     }
 
     func testEventVocabularyEnumsCarryTheWireTags() {
         XCTAssertEqual(LinkSessionEventKind.turnStart.rawValue, "turn/start")
         XCTAssertEqual(LinkSessionEventKind.sessionEndSeed.rawValue, "session/end-seed")
-        XCTAssertEqual(LinkChunkRowKind.textChunks.rawValue, "chunkrow/text-chunks")
+        XCTAssertEqual(LinkChunkRowKind.chunkrowTextChunks.rawValue, "chunkrow/text-chunks")
         XCTAssertEqual(LinkTurnEndReasonKind.maxTokens.rawValue, "max-tokens")
-        XCTAssertEqual(LinkTodoStatus.inProgress.rawValue, "in_progress")
+        XCTAssertEqual(LinkTodoStatus.in_progress.rawValue, "in_progress")
     }
 
     func testGoalChangeDecodesSnapshotFields() throws {
@@ -115,7 +121,7 @@ final class FixtureDecodingTests: XCTestCase {
     func testTodoWriteDecodesStatuses() throws {
         let payload = try JSONDecoder().decode(LinkTodoWriteData.self, from: fixture("event-todo-write"))
         XCTAssertEqual(payload.todos.map(\.content), ["编译伴侣应用", "跑契约回放测试"])
-        XCTAssertEqual(payload.todos.map(\.status), [.inProgress, .pending])
+        XCTAssertEqual(payload.todos.map(\.status), [.in_progress, .pending])
     }
 
     func testAttachmentVocabularyDecodesAndRoundTrips() throws {
@@ -134,13 +140,9 @@ final class FixtureDecodingTests: XCTestCase {
         XCTAssertEqual(part.mediaType, .imagePng)
         XCTAssertEqual(part.name, "screenshot.png")
 
-        for (id, value) in [("image-attachment-ref", ref), ("attachment-read", read), ("prompt-image-part", part)] {
-            let reencoded = try JSONEncoder().encode(value)
-            XCTAssertEqual(
-                try JSONSerialization.jsonObject(with: reencoded) as? [String: Any],
-                try JSONSerialization.jsonObject(with: fixture(id)) as? [String: Any]
-            )
-        }
+        try roundTrip("image-attachment-ref", as: LinkImageAttachmentRef.self)
+        try roundTrip("attachment-read", as: LinkAttachmentReadValue.self)
+        try roundTrip("prompt-image-part", as: LinkPromptImagePart.self)
     }
 
     func testToolResultDecodesNestedContent() throws {
