@@ -60,7 +60,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | [`Sources/SharedAppleRemoteCore/LinkKeychain.swift`](Sources/SharedAppleRemoteCore/LinkKeychain.swift) | Keychain-backed identity storage |
 | `Sources/SharedAppleRemoteCore/LinkContracts.swift` | Generated wire models — never hand-edited |
 | `Tests/SharedAppleRemoteCoreTests/` | Fixture replay and signing vocabulary tests |
-| [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI app layer: theming, session UI, interaction inbox, plan/todo/goal pane |
+| [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI app layer: theming, session UI, interaction inbox, plan/todo/goal pane, tool trajectory |
 | `Tests/CompanionUITests/` | View-model and theme-degrade tests over a fake wire |
 
 </details>

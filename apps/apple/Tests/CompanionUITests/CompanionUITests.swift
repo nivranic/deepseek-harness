@@ -207,6 +207,78 @@ final class RemoteSessionViewModelTests: XCTestCase {
         XCTAssertEqual(model.planTodoGoal.todos.map(\.text), ["旧任务"])
     }
 
+    func testToolTrajectoryPairsCallsWithResultsByCallId() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([
+            eventEntry(1, "tool/call", [
+                "turn": .number(1), "step": .number(1),
+                "callId": .string("call-1"), "name": .string("write_file"),
+                "arguments": .string("{\"path\":\"Login.swift\"}"),
+            ]),
+            eventEntry(2, "tool/call", [
+                "turn": .number(1), "step": .number(1),
+                "callId": .string("call-2"), "name": .string("run_tests"),
+                "arguments": .string("{}"),
+            ]),
+            eventEntry(3, "tool/result", [
+                "turn": .number(1), "step": .number(1),
+                "message": jsonObject([
+                    "id": .string("m-1"),
+                    "role": .string("user"),
+                    "content": .array([jsonObject([
+                        "type": .string("tool-result"),
+                        "toolCallId": .string("call-1"),
+                        "content": .array([jsonObject(["type": .string("text"), "text": .string("已写入 42 行。")])]),
+                    ])]),
+                    "source": jsonObject(["kind": .string("tool"), "callId": .string("call-1")]),
+                ]),
+            ]),
+            eventEntry(4, "tool/result", [
+                "turn": .number(1), "step": .number(1),
+                "message": jsonObject([
+                    "id": .string("m-2"),
+                    "role": .string("user"),
+                    "content": .array([jsonObject([
+                        "type": .string("tool-result"),
+                        "toolCallId": .string("call-2"),
+                        "content": .array([jsonObject(["type": .string("text"), "text": .string("2 个断言失败")])]),
+                    ])]),
+                    "source": jsonObject(["kind": .string("tool"), "callId": .string("call-2")]),
+                ]),
+                "error": jsonObject(["name": .string("AssertionError"), "code": .string("EXIT_1")]),
+            ]),
+            // A result whose call never arrived is tolerated as a no-op.
+            eventEntry(5, "tool/result", [
+                "turn": .number(1), "step": .number(1),
+                "message": jsonObject([
+                    "id": .string("m-3"),
+                    "role": .string("user"),
+                    "content": .array([jsonObject([
+                        "type": .string("tool-result"),
+                        "toolCallId": .string("call-x"),
+                        "content": .array([jsonObject(["type": .string("text"), "text": .string("孤儿结果")])]),
+                    ])]),
+                    "source": jsonObject(["kind": .string("tool"), "callId": .string("call-x")]),
+                ]),
+            ]),
+        ]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.toolCalls.map(\.name), ["write_file", "run_tests"])
+        XCTAssertEqual(model.toolCalls.map(\.phase), [.completed, .failed])
+        XCTAssertEqual(model.toolCalls[0].resultText, "已写入 42 行。")
+        XCTAssertEqual(model.toolCalls[1].resultText, "2 个断言失败")
+        XCTAssertEqual(model.toolCalls[0].arguments, "{\"path\":\"Login.swift\"}")
+
+        // Reopening a session resets the trajectory alongside the pane state
+        // (the quiet stream replays nothing).
+        await wire.stubStream("session/follow", frames: .success([]))
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertTrue(model.toolCalls.isEmpty)
+    }
+
     func testSendSubmitsQueuedPromptAndCancelTargetsActiveSession() async {
         let wire = FakeWire()
         let model = RemoteSessionViewModel(wire: wire)

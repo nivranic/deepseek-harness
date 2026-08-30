@@ -37,9 +37,9 @@ public struct ActiveSession: Equatable {
 /// Session-slice state machine over the wire: list sessions, open one, fold
 /// the follow stream's snapshot and live events into a timeline rendered
 /// through the session-event contract models, track the plan/todo/goal pane
-/// state from the same records, send prompts, cancel, and resubscribe after
-/// a carrier loss with the last cursor — the reconnect the reference client
-/// prescribes.
+/// state and the tool trajectory from the same records, send prompts,
+/// cancel, and resubscribe after a carrier loss with the last cursor — the
+/// reconnect the reference client prescribes.
 @MainActor
 @Observable
 public final class RemoteSessionViewModel {
@@ -53,6 +53,10 @@ public final class RemoteSessionViewModel {
     /// Plan / Todo / Goal pane state folded from the same records as the
     /// timeline; whole-value states, so the fold is last-write-wins.
     public private(set) var planTodoGoal = PlanTodoGoalSnapshot.empty
+
+    /// Tool trajectory of the open session: `tool/call` events open records,
+    /// `tool/result` events close them, paired across the wire by `callId`.
+    public private(set) var toolCalls: [ToolCallRecord] = []
 
     /// The prompt submission state for the composer.
     public private(set) var sending = false
@@ -98,6 +102,7 @@ public final class RemoteSessionViewModel {
         followTask?.cancel()
         active = ActiveSession(sessionId: sessionId, items: [], cursor: 0, streaming: true)
         planTodoGoal = .empty
+        toolCalls = []
         await follow(sessionId: sessionId, cursor: 0)
     }
 
@@ -215,19 +220,45 @@ public final class RemoteSessionViewModel {
 
     /// Decode one history record or live event entry (`{type: "event"|"chunks",
     /// event: {…}}`) into a timeline item, folding the plan/todo/goal pane
-    /// state from the same payload. Unknown tags render as marker rows.
+    /// state and the tool trajectory from the same payload. Unknown tags
+    /// render as marker rows.
     private func ingest(_ record: WireValue) -> SessionItem? {
         guard let event = WireShape.object(record, field: "event") else { return nil }
         let tag = WireShape.string(event, field: "type") ?? "event"
         let seq = WireShape.number(event, field: "seq") ?? 0
         let data = WireShape.object(event, field: "data") ?? .null
         foldPaneState(tag: tag, data: data)
+        foldToolState(tag: tag, data: data, seq: seq)
         return SessionItem(
             id: "\(Int(seq))-\(tag)",
             seq: seq,
             kind: tag,
             text: Self.renderEvent(tag: tag, data: data)
         )
+    }
+
+    /// Pair tool calls with their results: `tool/call` appends a running
+    /// record, `tool/result` closes the record matched by the result block's
+    /// `toolCallId`. An unmatched result is tolerated as a no-op.
+    private func foldToolState(tag: String, data: WireValue, seq: Double) {
+        switch tag {
+        case "tool/call":
+            guard let payload = ContractCodec.decode(LinkToolCallData.self, from: data) else { return }
+            toolCalls.append(ToolCallRecord(
+                id: payload.callId,
+                seq: seq,
+                name: payload.name,
+                arguments: payload.arguments
+            ))
+        case "tool/result":
+            guard let payload = ContractCodec.decode(LinkToolResultData.self, from: data),
+                  let callId = payload.message.content.first?.toolCallId,
+                  let index = toolCalls.firstIndex(where: { $0.id == callId }) else { return }
+            toolCalls[index].phase = payload.error == nil ? .completed : .failed
+            toolCalls[index].resultText = Self.blockText(payload.message.content)
+        default:
+            break
+        }
     }
 
     /// Last-write-wins fold of the pane's whole-value states.

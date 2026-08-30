@@ -2,8 +2,8 @@ import SharedAppleRemoteCore
 import SwiftUI
 
 /// The companion root: pairing when no identity exists, then the tabbed
-/// surface — sessions, the interaction inbox, and the plan/todo/goal pane —
-/// under the selected visual style.
+/// surface — sessions, the interaction inbox, the plan/todo/goal pane, and
+/// the tool trajectory — under the selected visual style.
 public struct CompanionRootView: View {
     @State private var style: CompanionStyle = .neumorphic
     @State private var paired: Bool
@@ -72,6 +72,8 @@ struct CompanionTabView: View {
                 .tabItem { Label("审批", systemImage: "checkmark.shield") }
             PlanTodoGoalView(sessionModel: sessionModel)
                 .tabItem { Label("计划", systemImage: "list.clipboard") }
+            ToolsView(sessionModel: sessionModel)
+                .tabItem { Label("工具", systemImage: "wrench.and.screwdriver") }
         }
         .toolbar {
             ToolbarItem {
