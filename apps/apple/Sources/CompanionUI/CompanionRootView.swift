@@ -68,7 +68,7 @@ public struct CompanionRootView: View {
     }
 }
 
-/// The six-tab surface once paired.
+/// The seven-tab surface once paired.
 struct CompanionTabView: View {
     let sessionModel: RemoteSessionViewModel
     let interactionModel: InteractionViewModel
@@ -88,6 +88,8 @@ struct CompanionTabView: View {
                 .tabItem { Label("工具", systemImage: "wrench.and.screwdriver") }
             FilesView(model: filesModel)
                 .tabItem { Label("文件", systemImage: "folder") }
+            ArtifactsView(sessionModel: sessionModel)
+                .tabItem { Label("工件", systemImage: "shippingbox") }
             SubagentsView(sessionModel: sessionModel, model: subagentsModel)
                 .tabItem { Label("子代理", systemImage: "person.2") }
         }

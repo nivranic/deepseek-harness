@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import {
   LINK_CONTRACT_FIXTURES, LINK_CONTRACT_TYPES, LINK_DOMAIN_SCENARIOS,
   LinkAdminStatusSchema, LinkDeviceRecordSchema, LinkPairingPayloadSchema,
-  LITE_SCENARIOS, foldCompanionDomain, foldLiteDomain,
+  LITE_SCENARIOS, emptyCompanionDomain, foldCompanionDomain, foldLiteDomain,
 } from '../src/index.ts'
 import { generateLinkContracts } from '../src/generate.ts'
 import { generateConformanceArtifacts } from '../src/companion-scenarios.ts'
@@ -202,6 +202,43 @@ describe('companion domain-state fold', () => {
     ])
     expect(state.items).toEqual([{ seq: 9, kind: 'future/event', text: '' }])
     expect(state.cursor).toBe(9)
+  })
+
+  it('folds artifact references and status updates by the Lite vocabulary', () => {
+    const state = foldCompanionDomain([
+      { type: 'event', event: { type: 'artifact/created', seq: 1, data: { id: 'a1', kind: 'markdown', title: '报告.md' } } },
+      { type: 'event', event: { type: 'artifact/created', seq: 2, data: { id: 'a2', kind: 'image', title: '截图.png' } } },
+      { type: 'event', event: { type: 'artifact/status', seq: 3, data: { id: 'a1', status: 'ready' } } },
+      // A status for a reference that never arrived is a no-op.
+      { type: 'event', event: { type: 'artifact/status', seq: 4, data: { id: 'ghost', status: 'failed' } } },
+      { type: 'event', event: { type: 'artifact/status', seq: 5, data: { id: 'a2', status: 'failed' } } },
+      // Malformed payloads are absent referents: no row, no pane change.
+      { type: 'event', event: { type: 'artifact/created', seq: 6, data: { id: 3, kind: 'markdown', title: '数值 id' } } },
+      { type: 'event', event: { type: 'artifact/created', seq: 7, data: 'not an object' } },
+      { type: 'event', event: { type: 'artifact/status', seq: 8, data: { id: 'a1', status: 'weird' } } },
+      // A repeated created pushes again, mirroring the Lite fold.
+      { type: 'event', event: { type: 'artifact/created', seq: 9, data: { id: 'a1', kind: 'markdown', title: '报告.md' } } },
+    ])
+    expect(state.artifacts).toEqual([
+      { id: 'a1', kind: 'markdown', title: '报告.md', status: 'ready' },
+      { id: 'a2', kind: 'image', title: '截图.png', status: 'failed' },
+      { id: 'a1', kind: 'markdown', title: '报告.md', status: 'pending' },
+    ])
+    expect(state.items.map(item => item.text)).toEqual([
+      '新建工件 报告.md（markdown）',
+      '新建工件 截图.png（image）',
+      '工件 a1：就绪',
+      '工件 ghost：失败',
+      '工件 a2：失败',
+      '',
+      '',
+      '',
+      '新建工件 报告.md（markdown）',
+    ])
+  })
+
+  it('starts every fold with an empty artifacts pane', () => {
+    expect(emptyCompanionDomain().artifacts).toEqual([])
   })
 })
 

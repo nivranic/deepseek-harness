@@ -167,6 +167,7 @@
     "todos": [],
     "goals": [],
     "toolCalls": [],
-    "images": []
+    "images": [],
+    "artifacts": []
   }
 }

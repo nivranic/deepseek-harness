@@ -99,6 +99,12 @@ public final class RemoteSessionViewModel {
         sessionFold.state.images
     }
 
+    /// Artifact references the folded log carries (chapter 56): metadata
+    /// and status only; content never rides this pane.
+    public var artifacts: [CompanionDomainState.Artifact] {
+        sessionFold.state.artifacts
+    }
+
     /// The prompt submission state for the composer.
     public private(set) var sending = false
 

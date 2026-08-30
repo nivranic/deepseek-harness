@@ -852,3 +852,62 @@ final class FileChangeTests: XCTestCase {
         ])
     }
 }
+
+/// One trajectory artifact/created record.
+func artifactCreatedEntry(_ seq: Double, _ id: String, _ kind: String, _ title: String) -> WireValue {
+    eventEntry(seq, "artifact/created", [
+        "id": .string(id), "kind": .string(kind), "title": .string(title),
+    ])
+}
+
+/// One trajectory artifact/status record.
+func artifactStatusEntry(_ seq: Double, _ id: String, _ status: String) -> WireValue {
+    eventEntry(seq, "artifact/status", [
+        "id": .string(id), "status": .string(status),
+    ])
+}
+
+@MainActor
+final class ArtifactFoldTests: XCTestCase {
+    func testFoldsArtifactReferencesAndStatusByTheLiteVocabulary() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([
+            artifactCreatedEntry(1, "a1", "markdown", "报告.md"),
+            artifactCreatedEntry(2, "a2", "image", "截图.png"),
+            artifactStatusEntry(3, "a1", "ready"),
+            // A status whose reference never arrived is a no-op.
+            artifactStatusEntry(4, "ghost", "failed"),
+            artifactStatusEntry(5, "a2", "failed"),
+            // Malformed payloads are absent referents: skipped, no crash.
+            eventEntry(6, "artifact/created", ["id": .number(3), "kind": .string("markdown"), "title": .string("数值 id")]),
+            artifactStatusEntry(7, "a1", "weird"),
+            // A repeated created pushes again, mirroring the Lite fold.
+            artifactCreatedEntry(8, "a1", "markdown", "报告.md"),
+        ]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.artifacts, [
+            CompanionDomainState.Artifact(id: "a1", kind: "markdown", title: "报告.md", status: .ready),
+            CompanionDomainState.Artifact(id: "a2", kind: "image", title: "截图.png", status: .failed),
+            CompanionDomainState.Artifact(id: "a1", kind: "markdown", title: "报告.md", status: .pending),
+        ])
+    }
+
+    func testResetsTheArtifactsPaneWithTheFoldOnReopen() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([
+            artifactCreatedEntry(1, "a1", "markdown", "报告.md"),
+            artifactStatusEntry(2, "a1", "ready"),
+        ]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.artifacts.map(\.status), [.ready])
+
+        await wire.stubStream("session/follow", frames: .success([]))
+        await model.open(sessionId: "s2")
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertTrue(model.artifacts.isEmpty)
+    }
+}

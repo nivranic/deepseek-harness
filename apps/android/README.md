@@ -2,14 +2,14 @@
 
 English | [中文](README.zh.md)
 
-The Android companion (nativization plan chapters 52 and 60): `core` is the pure-JVM domain and wire module, and `app` is the Compose six-tab surface over it — pairing first, then 会话/审批/计划/工具/文件/子代理 under the Minimal Neumorphic baseline.
+The Android companion (nativization plan chapters 52 and 60): `core` is the pure-JVM domain and wire module, and `app` is the Compose seven-tab surface over it — pairing first, then 会话/审批/计划/工具/文件/工件/子代理 under the Minimal Neumorphic baseline.
 
 ## Layout
 
 | Path | What it is |
 | --- | --- |
 | [`core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt) | The generated contract models, synced by `pnpm run gen-link-contracts` and byte-gated by `verify-link-contracts` |
-| [`core/…/companion/DomainFold.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/DomainFold.kt) | The Kotlin half of the chapter-62 domain-state fold: the same conformance fixtures TypeScript and Swift replay, folded identically |
+| [`core/…/companion/DomainFold.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/DomainFold.kt) | The Kotlin half of the chapter-62 domain-state fold: the same conformance fixtures TypeScript and Swift replay, folded identically; the artifacts pane consumes the Lite artifact/created and artifact/status vocabulary (chapter 56) |
 | [`core/…/companion/NeumorphicTokens.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NeumorphicTokens.kt) | The Minimal Neumorphic-only visual baseline (chapter 60): one style, dual-tone raised surfaces |
 | [`core/…/link/LinkWire.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt) and its siblings | The wire client half: pass-through JSON values and envelopes, Ed25519 signing through the JDK provider, SPKI pinning over a leaf certificate, and `LinkClient` pair/describe/call/stream — tested against a real local HTTP server |
 | [`core/…/companion/CompanionModels.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt) | The view models — session fold/prompt/cancel, interaction inbox, files browsing with UTF-16 paged reads, subagent listing — each driving the `WireDriving` seam a FakeWire tests |

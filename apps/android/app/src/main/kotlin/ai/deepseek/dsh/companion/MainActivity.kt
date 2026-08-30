@@ -38,7 +38,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
-/** The single-activity companion shell: pairing first, then the six-tab
+/** The single-activity companion shell: pairing first, then the seven-tab
  * surface (nativization plan chapters 52 and 60 — Minimal Neumorphic only). */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -190,13 +190,14 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 2 -> PlanTab(model)
                 3 -> ToolsTab(model)
                 4 -> FilesTab(model)
+                5 -> ArtifactsTab(model)
                 else -> SubagentsTab(model)
             }
         }
     }
 }
 
-private val tabs = listOf("会话", "审批", "计划", "工具", "文件", "子代理")
+private val tabs = listOf("会话", "审批", "计划", "工具", "文件", "工件", "子代理")
 
 @Composable
 fun PairingScreen(model: CompanionViewModel) {
@@ -397,6 +398,30 @@ fun FilesTab(model: CompanionViewModel) {
                         Button(onClick = { scope.launch { model.files.readFile(entry.name) } }) { Text("查看") }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ArtifactsTab(model: CompanionViewModel) {
+    val open by model.session.open.collectAsStateWithLifecycle()
+    LazyColumn(Modifier.fillMaxSize()) {
+        items(open?.state?.artifacts ?: emptyList()) { artifact ->
+            RaisedCard {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(artifact.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Text(
+                        artifactStatusLabel(artifact.status),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = when (artifact.status) {
+                            "ready" -> DiffAddedColor
+                            "failed" -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.secondary
+                        },
+                    )
+                }
+                Text(artifact.kind, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
             }
         }
     }

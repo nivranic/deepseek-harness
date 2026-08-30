@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`apps/apple` 承载跨端方案的 Apple 半边：一个 Swift 包 `SharedAppleRemoteCore` 拥有 link 客户端状态机——以 Ed25519 对二维码载荷完成配对、TLS 握手中的 SPKI 指纹钉扎、经共享 `/api` 链的签名单次 RPC、NDJSON Remote 流——而生成的 `LinkContracts.swift` 模型与黄金 fixture JSON 由 `pnpm run gen-link-contracts` 同步到此处，并被 `verify-link-contracts` 漂移门禁看护。第二个 target `CompanionUI` 承载 SwiftUI 应用层：基于 follow 流的会话列表与时间线、使用宿主结果词汇的审批/提问收件箱、Plan/Todo/Goal 面板，以及以单一语义令牌集呈现的双视觉风格（简约拟态与液态玻璃，含无障碍感知的降级规则）。其 view model 只依赖一个线缆驱动协议，整层可脱离宿主测试。iOS/iPadOS/macOS 应用壳构建于这两个库之上；它们尚未存在，而核心仍不引入任何 UI 框架。
+`apps/apple` 承载跨端方案的 Apple 半边：一个 Swift 包 `SharedAppleRemoteCore` 拥有 link 客户端状态机——以 Ed25519 对二维码载荷完成配对、TLS 握手中的 SPKI 指纹钉扎、经共享 `/api` 链的签名单次 RPC、NDJSON Remote 流——而生成的 `LinkContracts.swift` 模型与黄金 fixture JSON 由 `pnpm run gen-link-contracts` 同步到此处，并被 `verify-link-contracts` 漂移门禁看护。第二个 target `CompanionUI` 承载 SwiftUI 应用层：基于 follow 流的会话列表与时间线、使用宿主结果词汇的审批/提问收件箱、Plan/Todo/Goal 面板、只读工件面板（第 56 章），以及以单一语义令牌集呈现的双视觉风格（简约拟态与液态玻璃，含无障碍感知的降级规则）。其 view model 只依赖一个线缆驱动协议，整层可脱离宿主测试。iOS/iPadOS/macOS 应用壳构建于这两个库之上；它们尚未存在，而核心仍不引入任何 UI 框架。
 
 ## 目录
 
@@ -63,6 +63,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板、工具轨迹、文件浏览、子代理 |
 | `Sources/CompanionUI/SessionFold.swift` | 纯领域状态折叠——一致性场景的 Swift 一半 |
 | `Sources/CompanionUI/FileChange.swift` | 工具轨迹到只读文件变更的投影——第 55 章首版 Diff 呈现 |
+| `Sources/CompanionUI/ArtifactsView.swift` | 只读工件面板——工件引用与状态的列表呈现（第 56 章） |
 | `Sources/LiteRuntime/` | Native Harness Lite 骨架：行为规范折叠 + 静态工具注册表 |
 | `Tests/LiteRuntimeTests/` | Lite 行为规范一致性回放与注册表测试 |
 | `Tests/CompanionUITests/` | 基于假线缆的 view model、主题降级与领域状态一致性测试 |
@@ -84,7 +85,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 ## 已知限制与延后工作
 
 - **已纳入 CI 编译与测试**——[Apple Swift](../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
-- **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；文件查看与首版只读 Diff 呈现已随工具轨迹交付，工件查看器随后到来。
+- **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；文件查看、首版只读 Diff 与只读工件面板均已交付，工件内容读取随资源通道到来。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 
 <a id="dev-note"></a>

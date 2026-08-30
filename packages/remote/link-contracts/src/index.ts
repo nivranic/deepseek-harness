@@ -28,7 +28,7 @@ import type {} from '@deepseek-ai/dsh-plan-mode'
 import type {} from '@deepseek-ai/dsh-tool-todo/types'
 import { z } from 'zod'
 
-export type { CompanionDomainState, CompanionGoal, CompanionImageRef, CompanionItem, CompanionRecord, CompanionTodo, CompanionToolCall, CompanionToolPhase } from './companion-fold.ts'
+export type { CompanionArtifact, CompanionArtifactStatus, CompanionDomainState, CompanionGoal, CompanionImageRef, CompanionItem, CompanionRecord, CompanionTodo, CompanionToolCall, CompanionToolPhase } from './companion-fold.ts'
 export { emptyCompanionDomain, foldCompanionDomain, foldCompanionRecord } from './companion-fold.ts'
 export type { CompanionScenario, ConformanceArtifact } from './companion-scenarios.ts'
 export type { LiteArtifact, LiteConformanceArtifact, LiteDomainState, LiteEvent, LiteFailure, LiteMessage, LiteScenario, LiteToolCall, LiteTurnEnd } from './lite-spec.ts'

@@ -22,6 +22,15 @@ data class FoldTodo(val text: String, val status: String)
 /** One folded goal row; the wire phase rides verbatim. */
 data class FoldGoal(val id: String, val title: String, val state: String)
 
+/** One artifact reference the fold collected — metadata and status only;
+ * content rides the resource channel, never the journal (chapter 56). */
+data class FoldArtifact(
+    val id: String,
+    val kind: String,
+    val title: String,
+    val status: String,
+)
+
 /** One folded tool invocation, paired across the wire by `callId`. */
 data class FoldToolCall(
     val id: String,
@@ -55,6 +64,7 @@ data class DomainState(
     val goals: List<FoldGoal> = emptyList(),
     val toolCalls: List<FoldToolCall> = emptyList(),
     val images: List<FoldImageRef> = emptyList(),
+    val artifacts: List<FoldArtifact> = emptyList(),
 )
 
 /** JavaScript number-to-string semantics: integral values drop the `.0`. */
@@ -126,6 +136,37 @@ internal fun turnEndSummary(turn: Double, reasonKind: String): String = when (re
     else -> ""
 }
 
+/** Narrow one created payload; a missing or non-string id/kind/title
+ * makes the reference an absent referent. */
+internal fun artifactCreated(data: JsonObject?): Triple<String, String, String>? {
+    if (data == null) return null
+    val id = data.stringField("id") ?: return null
+    val kind = data.stringField("kind") ?: return null
+    val title = data.stringField("title") ?: return null
+    return Triple(id, kind, title)
+}
+
+/** Narrow one status payload; an unknown status value makes the update an
+ * absent referent. */
+internal fun artifactStatus(data: JsonObject?): Pair<String, String>? {
+    if (data == null) return null
+    val id = data.stringField("id") ?: return null
+    val status = data.stringField("status") ?: return null
+    if (status !in setOf("pending", "ready", "failed")) return null
+    return Pair(id, status)
+}
+
+/** The artifact-status summary word every language renders identically. */
+fun artifactStatusLabel(status: String): String = when (status) {
+    "pending" -> "待定"
+    "ready" -> "就绪"
+    "failed" -> "失败"
+    else -> ""
+}
+
+private fun JsonObject.stringField(name: String): String? =
+    (this[name] as? JsonPrimitive)?.takeIf { it.isString }?.content
+
 /** Non-string primitives read as absent; JSON null reads as absent here. */
 private val JsonPrimitive?.contentOrNullSafe: String?
     get() = if (this != null && isString) content else null
@@ -176,6 +217,14 @@ internal fun renderEvent(tag: String, data: JsonObject?): String {
             texts.joinToString("") { (it as? JsonPrimitive)?.contentOrNullSafe ?: "" }
         }
         "chunkrow/tool-call-chunks" -> ""
+        "artifact/created" -> {
+            val created = artifactCreated(data)
+            if (created != null) "新建工件 ${created.third}（${created.second}）" else ""
+        }
+        "artifact/status" -> {
+            val status = artifactStatus(data)
+            if (status != null) "工件 ${status.first}：${artifactStatusLabel(status.second)}" else ""
+        }
         else -> ""
     }
 }
@@ -197,6 +246,7 @@ private class FoldAccumulator {
     var goals: List<FoldGoal> = emptyList()
     val toolCalls = mutableListOf<FoldToolCall>()
     val images = mutableListOf<FoldImageRef>()
+    val artifacts = mutableListOf<FoldArtifact>()
 }
 
 /**
@@ -213,6 +263,7 @@ fun foldInto(previous: DomainState, records: JsonArray): DomainState {
     state.goals = previous.goals
     state.toolCalls.addAll(previous.toolCalls)
     state.images.addAll(previous.images)
+    state.artifacts.addAll(previous.artifacts)
     foldRecords(state, records)
     return state.toDomainState()
 }
@@ -238,6 +289,7 @@ private fun FoldAccumulator.toDomainState() = DomainState(
     goals = goals,
     toolCalls = toolCalls.toList(),
     images = images.toList(),
+    artifacts = artifacts.toList(),
 )
 
 private fun foldRecords(state: FoldAccumulator, records: JsonArray) {
@@ -295,6 +347,21 @@ private fun foldRecords(state: FoldAccumulator, records: JsonArray) {
                     resultText = blockText(message["content"]?.jsonArray ?: JsonArray(emptyList())),
                 )
             }
+            "artifact/created" -> {
+                val created = artifactCreated(data)
+                if (created != null) {
+                    state.artifacts.add(FoldArtifact(id = created.first, kind = created.second, title = created.third, status = "pending"))
+                }
+            }
+            "artifact/status" -> {
+                val status = artifactStatus(data)
+                if (status != null) {
+                    val index = state.artifacts.indexOfFirst { it.id == status.first }
+                    if (index != -1) {
+                        state.artifacts[index] = state.artifacts[index].copy(status = status.second)
+                    }
+                }
+            }
             "user/message" -> collectImages(
                 (data?.get("content") as? JsonArray) ?: JsonArray(emptyList()),
                 state.images,
@@ -350,6 +417,14 @@ fun DomainState.toJson(): JsonElement = buildJsonObject {
             put("width", numberElement(ref.width))
             put("height", numberElement(ref.height))
             if (ref.name != null) put("name", ref.name)
+        }
+    }))
+    put("artifacts", JsonArray(artifacts.map { artifact ->
+        buildJsonObject {
+            put("id", artifact.id)
+            put("kind", artifact.kind)
+            put("title", artifact.title)
+            put("status", artifact.status)
         }
     }))
 }

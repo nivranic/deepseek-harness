@@ -75,6 +75,30 @@ public struct CompanionDomainState: Codable, Equatable {
         }
     }
 
+    /// One artifact reference the fold collected — metadata and status
+    /// only; content rides the resource channel, never the journal
+    /// (chapter 56).
+    public struct Artifact: Codable, Equatable, Identifiable {
+        /// Lifecycle of one artifact reference on the wire.
+        public enum Status: String, Codable {
+            case pending
+            case ready
+            case failed
+        }
+
+        public let id: String
+        public let kind: String
+        public let title: String
+        public let status: Status
+
+        public init(id: String, kind: String, title: String, status: Status) {
+            self.id = id
+            self.kind = kind
+            self.title = title
+            self.status = status
+        }
+    }
+
     /// One durable image reference collected from message content, ordered
     /// by first appearance and deduplicated by attachment id.
     public struct ImageRef: Codable, Equatable, Identifiable {
@@ -105,6 +129,7 @@ public struct CompanionDomainState: Codable, Equatable {
     public var goals: [Goal]
     public var toolCalls: [ToolCall]
     public var images: [ImageRef]
+    public var artifacts: [Artifact]
 
     public init(
         cursor: Double = 0,
@@ -113,7 +138,8 @@ public struct CompanionDomainState: Codable, Equatable {
         todos: [Todo] = [],
         goals: [Goal] = [],
         toolCalls: [ToolCall] = [],
-        images: [ImageRef] = []
+        images: [ImageRef] = [],
+        artifacts: [Artifact] = []
     ) {
         self.cursor = cursor
         self.items = items
@@ -122,6 +148,7 @@ public struct CompanionDomainState: Codable, Equatable {
         self.goals = goals
         self.toolCalls = toolCalls
         self.images = images
+        self.artifacts = artifacts
     }
 
     /// The state before any record arrives.
@@ -218,6 +245,26 @@ public struct CompanionSessionFold {
                     resultText: Self.blockText(payload.message.content)
                 )
             }
+        case "artifact/created":
+            if let payload = Self.artifactCreated(data) {
+                state.artifacts.append(Artifact(
+                    id: payload.id,
+                    kind: payload.kind,
+                    title: payload.title,
+                    status: .pending
+                ))
+            }
+        case "artifact/status":
+            if let payload = Self.artifactStatus(data),
+               let index = state.artifacts.firstIndex(where: { $0.id == payload.id }) {
+                let target = state.artifacts[index]
+                state.artifacts[index] = Artifact(
+                    id: target.id,
+                    kind: target.kind,
+                    title: target.title,
+                    status: payload.status
+                )
+            }
         default:
             break
         }
@@ -267,8 +314,45 @@ public struct CompanionSessionFold {
             return payload.texts.joined()
         case "chunkrow/tool-call-chunks":
             return ""
+        case "artifact/created":
+            if let payload = artifactCreated(data) {
+                return "新建工件 \(payload.title)（\(payload.kind)）"
+            }
+            return ""
+        case "artifact/status":
+            if let payload = artifactStatus(data) {
+                return "工件 \(payload.id)：\(artifactStatusLabel(payload.status))"
+            }
+            return ""
         default:
             return ""
+        }
+    }
+
+    /// Narrow one created payload; a missing or non-string id/kind/title
+    /// makes the reference an absent referent.
+    static func artifactCreated(_ data: WireValue) -> (id: String, kind: String, title: String)? {
+        guard let id = WireShape.string(data, field: "id"),
+              let kind = WireShape.string(data, field: "kind"),
+              let title = WireShape.string(data, field: "title") else { return nil }
+        return (id, kind, title)
+    }
+
+    /// Narrow one status payload; an unknown status value makes the update
+    /// an absent referent.
+    static func artifactStatus(_ data: WireValue) -> (id: String, status: CompanionDomainState.Artifact.Status)? {
+        guard let id = WireShape.string(data, field: "id"),
+              let raw = WireShape.string(data, field: "status"),
+              let status = CompanionDomainState.Artifact.Status(rawValue: raw) else { return nil }
+        return (id, status)
+    }
+
+    /// The artifact-status summary word every language renders identically.
+    static func artifactStatusLabel(_ status: CompanionDomainState.Artifact.Status) -> String {
+        switch status {
+        case .pending: return "待定"
+        case .ready: return "就绪"
+        case .failed: return "失败"
         }
     }
 
