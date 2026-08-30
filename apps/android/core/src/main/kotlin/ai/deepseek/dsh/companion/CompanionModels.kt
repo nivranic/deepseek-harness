@@ -33,6 +33,17 @@ data class WorkspaceRow(val id: String, val title: String)
 /** One workspace directory entry. */
 data class FileEntry(val name: String, val isDirectory: Boolean, val size: Double?)
 
+/** One text file open in the viewer: the decoded range so far, in UTF-16
+ * units — the unit every read range speaks. */
+data class OpenTextFile(
+    val path: String,
+    val mediaType: String,
+    val text: String,
+    val loadedUnits: Int,
+    val totalUnits: Int,
+    val hasMore: Boolean,
+)
+
 /** One subagent child row. */
 data class SubagentRow(
     val id: String,
@@ -291,6 +302,12 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
     private val _listState = MutableStateFlow("idle")
     val listState: StateFlow<String> = _listState
 
+    private val _openFile = MutableStateFlow<OpenTextFile?>(null)
+    val openFile: StateFlow<OpenTextFile?> = _openFile
+
+    private val _openFileError = MutableStateFlow<String?>(null)
+    val openFileError: StateFlow<String?> = _openFileError
+
     private var followJob: Job? = null
 
     fun start() {
@@ -349,6 +366,95 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
     fun openEntry(name: String) {
         _entries.value.firstOrNull { it.name == name }?.takeIf { it.isDirectory } ?: return
         _directory.update { it + name }
+    }
+
+    /** Read one file as text, paging in UTF-16 units. A `file-too-large`
+     * refusal means the host wants a bounded page: retry from the start
+     * with one full page. */
+    suspend fun readFile(name: String) {
+        val workspaceId = _selectedWorkspace.value ?: return
+        val path = (_directory.value + name).joinToString("/")
+        _openFileError.value = null
+        try {
+            val first = readPage(workspaceId, path, offset = null, limit = null)
+            applyReadValue(first, path)
+        } catch (failure: ai.deepseek.dsh.link.LinkClientException.Refused) {
+            if (failure.code != "file-too-large") {
+                _openFileError.value = readFailureText(failure)
+                return
+            }
+            try {
+                val page = readPage(workspaceId, path, offset = 0, limit = PAGE_UNITS)
+                applyReadValue(page, path)
+            } catch (inner: ai.deepseek.dsh.link.LinkClientException.Refused) {
+                _openFileError.value = readFailureText(inner)
+            }
+        }
+    }
+
+    /** Fetch the next page after the loaded prefix. */
+    suspend fun loadMore() {
+        val file = _openFile.value ?: return
+        if (!file.hasMore) return
+        val workspaceId = _selectedWorkspace.value ?: return
+        try {
+            val page = readPage(workspaceId, file.path, offset = file.loadedUnits, limit = PAGE_UNITS)
+            _openFile.value = file.copy(
+                text = file.text + page.content,
+                loadedUnits = file.loadedUnits + page.content.length,
+                hasMore = page.truncated,
+            )
+        } catch (failure: ai.deepseek.dsh.link.LinkClientException.Refused) {
+            _openFileError.value = readFailureText(failure)
+        }
+    }
+
+    fun closeFile() {
+        _openFile.value = null
+        _openFileError.value = null
+    }
+
+    private suspend fun readPage(workspaceId: String, path: String, offset: Int?, limit: Int?): ReadPage {
+        val args = buildMap {
+            put("workspaceId", WireValue.StringValue(workspaceId))
+            put("path", WireValue.StringValue(path))
+            if (offset != null) put("offset", WireValue.NumberValue(offset.toDouble()))
+            if (limit != null) put("limit", WireValue.NumberValue(limit.toDouble()))
+        }
+        val value = wire.call("workspaceFiles/read", args)
+        val entries = (value as? WireValue.ObjectValue)?.entries ?: emptyMap()
+        return ReadPage(
+            content = (entries["content"] as? WireValue.StringValue)?.value ?: "",
+            truncated = (entries["truncated"] as? WireValue.BoolValue)?.value ?: false,
+            size = (entries["size"] as? WireValue.NumberValue)?.value?.toInt() ?: 0,
+            mediaType = (entries["mediaType"] as? WireValue.StringValue)?.value ?: "text/plain",
+        )
+    }
+
+    private fun applyReadValue(page: ReadPage, path: String) {
+        _openFile.value = OpenTextFile(
+            path = path,
+            mediaType = page.mediaType,
+            text = page.content,
+            loadedUnits = page.content.length,
+            totalUnits = page.size,
+            hasMore = page.truncated,
+        )
+    }
+
+    private fun readFailureText(failure: ai.deepseek.dsh.link.LinkClientException.Refused): String = when (failure.code) {
+        "file-binary" -> "二进制文件，无法文本预览"
+        "file-not-found" -> "未找到该文件"
+        "path-outside-root" -> "路径越出工作区根"
+        "not-a-regular-file" -> "不是常规文件"
+        else -> "读取失败：${failure.code}"
+    }
+
+    private data class ReadPage(val content: String, val truncated: Boolean, val size: Int, val mediaType: String)
+
+    private companion object {
+        /** One page: 65536 UTF-16 units, the Swift viewer's page size. */
+        const val PAGE_UNITS = 65536
     }
 
     fun goUp() {

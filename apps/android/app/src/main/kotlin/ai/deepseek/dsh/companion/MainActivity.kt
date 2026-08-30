@@ -329,19 +329,46 @@ fun FilesTab(model: CompanionViewModel) {
     val directory by model.files.directory.collectAsStateWithLifecycle()
     val entries by model.files.entries.collectAsStateWithLifecycle()
     val selected by model.files.selectedWorkspace.collectAsStateWithLifecycle()
+    val openFile by model.files.openFile.collectAsStateWithLifecycle()
+    val openFileError by model.files.openFileError.collectAsStateWithLifecycle()
     LaunchedEffect(model.paired, selected) { model.files.list() }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 model.files.goUp()
+                model.files.closeFile()
                 scope.launch { model.files.list() }
             }, enabled = directory.isNotEmpty()) { Text("上一级") }
             Text(directory.joinToString("/") .ifEmpty { "（根目录）" }, style = MaterialTheme.typography.titleSmall)
+        }
+        openFileError?.let { error ->
+            Text(error, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
+        }
+        openFile?.let { file ->
+            RaisedCard {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(file.path, style = MaterialTheme.typography.titleSmall)
+                    Text(file.mediaType, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                    Button(onClick = { model.files.closeFile() }) { Text("关闭") }
+                }
+                Text(
+                    "${file.loadedUnits}/${file.totalUnits} 单位",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+                Text(file.text, style = MaterialTheme.typography.bodySmall)
+                if (file.hasMore) {
+                    Button(onClick = { scope.launch { model.files.loadMore() } }) { Text("加载更多") }
+                }
+            }
         }
         LazyColumn(Modifier.weight(1f)) {
             items(entries) { entry ->
                 RaisedCard {
                     Text(if (entry.isDirectory) "📁 ${entry.name}" else "📄 ${entry.name}")
+                    if (!entry.isDirectory) {
+                        Button(onClick = { scope.launch { model.files.readFile(entry.name) } }) { Text("查看") }
+                    }
                 }
             }
         }

@@ -21,6 +21,15 @@ import kotlin.test.assertTrue
 class FakeWire : WireDriving {
     val calls = mutableListOf<Pair<String, Map<String, WireValue>>>()
     val answers = mutableMapOf<String, suspend () -> WireValue>()
+
+    /** Sequential answers per method: each call pops the next; the queue
+     * retires when drained. */
+    private val queues = mutableMapOf<String, MutableList<suspend () -> WireValue>>()
+
+    fun stubSequence(method: String, sequential: List<suspend () -> WireValue>) {
+        queues[method] = sequential.toMutableList()
+    }
+
     // Unlimited replay: a late collector still sees every frame the test
     // emitted before the follow job subscribed.
     private val frames = MutableSharedFlow<WireValue>(replay = Int.MAX_VALUE)
@@ -35,6 +44,11 @@ class FakeWire : WireDriving {
 
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
         calls.add(method to args)
+        queues[method]?.let { queue ->
+            val next = queue.removeAt(0)
+            if (queue.isEmpty()) queues.remove(method)
+            return next()
+        }
         return answers[method]?.invoke() ?: WireValue.NullValue
     }
 
@@ -210,6 +224,59 @@ class StateFlowProjectionTest {
             awaitItem().also { assertEquals(0, it.size) }
             cancelAndIgnoreRemainingEvents()
         }
+    }
+}
+
+class PagedReadTest {
+    @Test
+    fun readsPagesWhenTheHostReportsTooLarge() = runTest {
+        val wire = FakeWire()
+        val page = "x".repeat(65536)
+        wire.stubSequence(
+            "workspaceFiles/read",
+            listOf(
+                { throw ai.deepseek.dsh.link.LinkClientException.Refused("file-too-large", "256 KiB cap") },
+                { wire("""{"content":"$page","truncated":true,"size":65537,"mediaType":"text/plain"}""") },
+                { wire("""{"content":"尾","truncated":false,"size":65537,"mediaType":"text/plain"}""") },
+            ),
+        )
+        val model = FilesModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.start()
+        wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
+        model.readFile("big.log")
+
+        val first = model.openFile.value!!
+        assertEquals(65536, first.loadedUnits)
+        assertEquals(65537, first.totalUnits)
+        assertTrue(first.hasMore)
+
+        model.loadMore()
+        val second = model.openFile.value!!
+        assertEquals(65537, second.loadedUnits)
+        assertEquals("尾", second.text.takeLast(1))
+        assertEquals(false, second.hasMore)
+
+        val reads = wire.calls.filter { it.first == "workspaceFiles/read" }
+        assertEquals(3, reads.size)
+        assertEquals(null, reads[0].second["offset"])
+        assertEquals(0.0, (reads[1].second["offset"] as WireValue.NumberValue).value)
+        assertEquals(65536.0, (reads[1].second["limit"] as WireValue.NumberValue).value)
+        assertEquals(65536.0, (reads[2].second["offset"] as WireValue.NumberValue).value)
+        assertEquals("big.log", (reads[0].second["path"] as WireValue.StringValue).value)
+    }
+
+    @Test
+    fun binaryRefusalSurfacesTheChineseMessage() = runTest {
+        val wire = FakeWire()
+        wire.stub("workspaceFiles/read") {
+            throw ai.deepseek.dsh.link.LinkClientException.Refused("file-binary", "not text")
+        }
+        val model = FilesModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.start()
+        wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
+        model.readFile("logo.png")
+        assertEquals("二进制文件，无法文本预览", model.openFileError.value)
+        assertEquals(null, model.openFile.value)
     }
 }
 
