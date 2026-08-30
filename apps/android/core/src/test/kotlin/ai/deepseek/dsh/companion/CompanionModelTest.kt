@@ -67,6 +67,7 @@ class CompanionModelTest {
         wire.emit(event(1, "user/message", """{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}"""))
         wire.emit(event(2, "assistant/message", """{"turn":1,"step":1,"message":{"id":"m2","role":"assistant","content":[{"type":"text","text":"已处理。"}],"source":{"kind":"model","provider":"deepseek","model":"deepseek-chat"}},"usage":{"inputTokens":10,"outputTokens":5,"totalTokens":15}}"""))
         wire.emit(event(3, "turn/end", """{"turn":1,"reason":{"kind":"completed"}}"""))
+        advanceUntilIdle()
         val state = model.state
         assertEquals(3, state.items.size)
         assertEquals("第 1 轮完成", state.items.last().text)
@@ -118,6 +119,7 @@ class CompanionModelTest {
         val model = FilesModel(wire, backgroundScope)
         model.start()
         wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
+        advanceUntilIdle()
         assertEquals(listOf(WorkspaceRow("w1", "Harness")), model.workspaces)
         assertEquals("w1", model.selectedWorkspace)
 
