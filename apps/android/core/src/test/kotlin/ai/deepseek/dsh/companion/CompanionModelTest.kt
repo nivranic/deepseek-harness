@@ -150,13 +150,13 @@ class CompanionModelTest {
         assertEquals("corrupt", model.rows.value[1].reason)
 
         model.openChild("p1", model.rows.value[1])
-        assertNull(model.childTimeline, "a diagnostic row opens nothing")
+        assertNull(model.childTimeline.value, "a diagnostic row opens nothing")
         model.openChild("p1", model.rows.value[0])
         val child = model.childTimeline.value
         assertNotNull(child)
         child!!.close()
         model.closeChild()
-        assertNull(model.childTimeline)
+        assertNull(model.childTimeline.value)
     }
 }
 
