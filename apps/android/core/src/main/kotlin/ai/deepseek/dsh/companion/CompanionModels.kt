@@ -3,8 +3,10 @@ package ai.deepseek.dsh.companion
 import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 
@@ -45,33 +47,33 @@ data class SubagentRow(
  * `RemoteSessionViewModel`: list sessions, open one, fold the follow
  * stream's snapshot and live events through the conformance-tested fold,
  * send prompts, cancel, and expose the plan/todo/goal and tool projections.
+ * Every field the UI renders is a [StateFlow], so Compose recomposes on
+ * each emission rather than re-reading on navigation.
  */
 class SessionModel(private val wire: WireDriving, private val scope: CoroutineScope) {
-    var sessions: List<SessionRow> = emptyList()
-        private set
+    private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
+    val sessions: StateFlow<List<SessionRow>> = _sessions
 
-    var listState: String = "idle"
-        private set
+    private val _listState = MutableStateFlow("idle")
+    val listState: StateFlow<String> = _listState
 
-    var open: OpenSession? = null
-        private set
+    private val _open = MutableStateFlow<OpenSession?>(null)
+    val open: StateFlow<OpenSession?> = _open
 
-    var sending = false
-        private set
+    private val _sending = MutableStateFlow(false)
+    val sending: StateFlow<Boolean> = _sending
 
     private var followJob: Job? = null
 
     /** The fold state of the open session, when one is. */
-    val state: DomainState get() = open?.state ?: DomainState()
-
-    fun planTodoGoal(): DomainState = state
+    val state: DomainState get() = _open.value?.state ?: DomainState()
 
     /** Load the session list through `session/list`. */
     suspend fun loadSessions() {
-        listState = "loading"
+        _listState.value = "loading"
         try {
             val value = wire.call("session/list", mapOf("_request" to WireValue.ObjectValue(emptyMap())))
-            sessions = (WireShape.array(value, "items") ?: emptyList()).mapNotNull { row ->
+            _sessions.value = (WireShape.array(value, "items") ?: emptyList()).mapNotNull { row ->
                 val id = WireShape.string(row, "sessionId") ?: return@mapNotNull null
                 SessionRow(
                     id = id,
@@ -79,16 +81,16 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
                     updatedAt = WireShape.number(row, "updatedAt"),
                 )
             }
-            listState = "ready"
+            _listState.value = "ready"
         } catch (failure: Exception) {
-            listState = "failed:${failure.message}"
+            _listState.value = "failed:${failure.message}"
         }
     }
 
     /** Open one session: fold its follow stream from a fresh snapshot. */
     suspend fun openSession(sessionId: String) {
         followJob?.cancel()
-        open = OpenSession(sessionId, DomainState())
+        _open.value = OpenSession(sessionId, DomainState())
         followJob = follow(
             mapOf(
                 "request" to WireValue.ObjectValue(
@@ -105,7 +107,7 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
     /** Open one subagent child's timeline read-only by durable address. */
     suspend fun openChild(parentSessionId: String, childSessionId: String, mode: String) {
         followJob?.cancel()
-        open = OpenSession(childSessionId, DomainState())
+        _open.value = OpenSession(childSessionId, DomainState())
         followJob = follow(
             mapOf(
                 "request" to WireValue.ObjectValue(
@@ -127,15 +129,15 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
     fun close() {
         followJob?.cancel()
         followJob = null
-        open = null
+        _open.value = null
     }
 
     /** Submit one user prompt in queue mode; the host promotes any inline
      * image bytes to durable references during admission. */
     suspend fun send(text: String, images: List<Pair<String, String>> = emptyList()) {
-        val session = open ?: return
+        val session = _open.value ?: return
         if (text.isEmpty() && images.isEmpty()) return
-        sending = true
+        _sending.value = true
         try {
             val content = buildList {
                 add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("text"), "text" to WireValue.StringValue(text))))
@@ -165,13 +167,13 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
                 ),
             )
         } finally {
-            sending = false
+            _sending.value = false
         }
     }
 
     /** Cancel the open session's in-flight work. */
     suspend fun cancelActive() {
-        val session = open ?: return
+        val session = _open.value ?: return
         wire.call(
             "session/cancel",
             mapOf("request" to WireValue.ObjectValue(mapOf("sessionId" to WireValue.StringValue(session.sessionId)))),
@@ -185,9 +187,9 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
     }
 
     /** A snapshot generation resets and replays its records; any other
-     * frame is one live event entry. */
+     * frame is one live event entry folded onto the current state. */
     private fun foldFrame(frame: WireValue) {
-        val current = open ?: return
+        val current = _open.value ?: return
         val kind = WireShape.string(frame, "type") ?: ""
         val newState = if (kind == "snapshot") {
             val records = WireShape.array(frame, "records") ?: emptyList()
@@ -195,7 +197,7 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
         } else {
             foldInto(current.state, JsonArray(listOf(frame.toJsonElement())))
         }
-        open = current.copy(state = newState)
+        _open.value = current.copy(state = newState)
     }
 }
 
@@ -205,10 +207,11 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
  * forwards, deduplicate by event id, answer through `$events/result`.
  */
 class InteractionModel(private val wire: WireDriving, private val scope: CoroutineScope) {
-    val inbox = mutableListOf<PendingInteraction>()
+    private val _inbox = MutableStateFlow<List<PendingInteraction>>(emptyList())
+    val inbox: StateFlow<List<PendingInteraction>> = _inbox
 
-    var answering = false
-        private set
+    private val _answering = MutableStateFlow(false)
+    val answering: StateFlow<Boolean> = _answering
 
     private var watchJob: Job? = null
 
@@ -232,21 +235,21 @@ class InteractionModel(private val wire: WireDriving, private val scope: Corouti
         val isQuestion = eventName.contains("question")
         if (!isApproval && !isQuestion) return
         val id = WireShape.string(frame, "eventId") ?: return
-        if (inbox.any { it.id == id }) return
-        inbox.add(
-            PendingInteraction(
+        if (_inbox.value.any { it.id == id }) return
+        _inbox.update { current ->
+            current + PendingInteraction(
                 id = id,
                 kind = if (isApproval) PendingInteraction.Kind.APPROVAL else PendingInteraction.Kind.QUESTION,
                 sessionId = WireShape.string(frame, "sessionId") ?: "",
                 title = WireShape.string(frame, "title") ?: if (isApproval) "Approval requested" else "Question asked",
                 detail = WireShape.string(frame, "text") ?: "",
-            ),
-        )
+            )
+        }
     }
 
     /** Answer one pending interaction; success retires the card. */
     suspend fun answer(pending: PendingInteraction, allowedOnce: Boolean) {
-        answering = true
+        _answering.value = true
         try {
             wire.call(
                 "\$events/result",
@@ -260,9 +263,9 @@ class InteractionModel(private val wire: WireDriving, private val scope: Corouti
                     ),
                 ),
             )
-            inbox.removeAll { it.id == pending.id }
+            _inbox.update { current -> current.filterNot { it.id == pending.id } }
         } finally {
-            answering = false
+            _answering.value = false
         }
     }
 }
@@ -273,20 +276,20 @@ class InteractionModel(private val wire: WireDriving, private val scope: Corouti
  * tree through `workspaceFiles/list`.
  */
 class FilesModel(private val wire: WireDriving, private val scope: CoroutineScope) {
-    var workspaces: List<WorkspaceRow> = emptyList()
-        private set
+    private val _workspaces = MutableStateFlow<List<WorkspaceRow>>(emptyList())
+    val workspaces: StateFlow<List<WorkspaceRow>> = _workspaces
 
-    var selectedWorkspace: String? = null
-        private set
+    private val _selectedWorkspace = MutableStateFlow<String?>(null)
+    val selectedWorkspace: StateFlow<String?> = _selectedWorkspace
 
-    var directory: List<String> = emptyList()
-        private set
+    private val _directory = MutableStateFlow<List<String>>(emptyList())
+    val directory: StateFlow<List<String>> = _directory
 
-    var entries: List<FileEntry> = emptyList()
-        private set
+    private val _entries = MutableStateFlow<List<FileEntry>>(emptyList())
+    val entries: StateFlow<List<FileEntry>> = _entries
 
-    var listState: String = "idle"
-        private set
+    private val _listState = MutableStateFlow("idle")
+    val listState: StateFlow<String> = _listState
 
     private var followJob: Job? = null
 
@@ -301,8 +304,8 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
                         val id = WireShape.string(record, "id") ?: return@mapNotNull null
                         WorkspaceRow(id = id, title = WireShape.string(record, "title") ?: id)
                     }
-                    workspaces = rows
-                    if (selectedWorkspace == null && rows.isNotEmpty()) selectedWorkspace = rows[0].id
+                    _workspaces.value = rows
+                    if (_selectedWorkspace.value == null && rows.isNotEmpty()) _selectedWorkspace.value = rows[0].id
                 }
         }
     }
@@ -313,23 +316,23 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
     }
 
     fun select(workspaceId: String) {
-        selectedWorkspace = workspaceId
-        directory = emptyList()
+        _selectedWorkspace.value = workspaceId
+        _directory.value = emptyList()
     }
 
     /** List one directory level of the selected workspace. */
     suspend fun list() {
-        val workspaceId = selectedWorkspace ?: return
-        listState = "loading"
+        val workspaceId = _selectedWorkspace.value ?: return
+        _listState.value = "loading"
         try {
             val args = buildMap {
                 put("workspaceId", WireValue.StringValue(workspaceId))
-                if (directory.isNotEmpty()) {
-                    put("path", WireValue.StringValue(directory.joinToString("/")))
+                if (_directory.value.isNotEmpty()) {
+                    put("path", WireValue.StringValue(_directory.value.joinToString("/")))
                 }
             }
             val value = wire.call("workspaceFiles/list", args)
-            entries = (WireShape.array(value, "entries") ?: emptyList()).mapNotNull { entry ->
+            _entries.value = (WireShape.array(value, "entries") ?: emptyList()).mapNotNull { entry ->
                 val name = WireShape.string(entry, "name") ?: return@mapNotNull null
                 FileEntry(
                     name = name,
@@ -337,19 +340,19 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
                     size = WireShape.number(entry, "size"),
                 )
             }
-            listState = "ready"
+            _listState.value = "ready"
         } catch (failure: Exception) {
-            listState = "failed:${failure.message}"
+            _listState.value = "failed:${failure.message}"
         }
     }
 
     fun openEntry(name: String) {
-        entries.firstOrNull { it.name == name }?.takeIf { it.isDirectory } ?: return
-        directory = directory + name
+        _entries.value.firstOrNull { it.name == name }?.takeIf { it.isDirectory } ?: return
+        _directory.update { it + name }
     }
 
     fun goUp() {
-        if (directory.isNotEmpty()) directory = directory.dropLast(1)
+        _directory.update { if (it.isNotEmpty()) it.dropLast(1) else it }
     }
 }
 
@@ -359,21 +362,21 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
  * timeline read-only.
  */
 class SubagentsModel(private val wire: WireDriving, private val scope: CoroutineScope) {
-    var rows: List<SubagentRow> = emptyList()
-        private set
+    private val _rows = MutableStateFlow<List<SubagentRow>>(emptyList())
+    val rows: StateFlow<List<SubagentRow>> = _rows
 
-    var listState: String = "idle"
-        private set
+    private val _listState = MutableStateFlow("idle")
+    val listState: StateFlow<String> = _listState
 
     /** The open child timeline, when one is. */
-    var childTimeline: SessionModel? = null
-        private set
+    private val _childTimeline = MutableStateFlow<SessionModel?>(null)
+    val childTimeline: StateFlow<SessionModel?> = _childTimeline
 
     suspend fun load(parentSessionId: String) {
-        listState = "loading"
+        _listState.value = "loading"
         try {
             val value = wire.call("subagents/list", mapOf("parentSessionId" to WireValue.StringValue(parentSessionId)))
-            rows = (WireShape.array(value, "entries") ?: emptyList()).mapNotNull { entry ->
+            _rows.value = (WireShape.array(value, "entries") ?: emptyList()).mapNotNull { entry ->
                 val id = WireShape.string(entry, "id") ?: return@mapNotNull null
                 SubagentRow(
                     id = id,
@@ -383,9 +386,9 @@ class SubagentsModel(private val wire: WireDriving, private val scope: Coroutine
                     reason = WireShape.string(entry, "reason"),
                 )
             }
-            listState = "ready"
+            _listState.value = "ready"
         } catch (failure: Exception) {
-            listState = "failed:${failure.message}"
+            _listState.value = "failed:${failure.message}"
         }
     }
 
@@ -394,12 +397,12 @@ class SubagentsModel(private val wire: WireDriving, private val scope: Coroutine
     suspend fun openChild(parentSessionId: String, row: SubagentRow) {
         val mode = row.mode ?: return
         val child = SessionModel(wire, scope)
-        childTimeline = child
+        _childTimeline.value = child
         child.openChild(parentSessionId = parentSessionId, childSessionId = row.id, mode = mode)
     }
 
     fun closeChild() {
-        childTimeline?.close()
-        childTimeline = null
+        _childTimeline.value?.close()
+        _childTimeline.value = null
     }
 }

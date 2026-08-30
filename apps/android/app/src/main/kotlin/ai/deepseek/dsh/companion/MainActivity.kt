@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -220,23 +221,26 @@ fun PairingScreen(model: CompanionViewModel) {
 fun SessionsTab(model: CompanionViewModel) {
     val scope = rememberCoroutineScope()
     var draft by remember { mutableStateOf("") }
+    val sessions by model.session.sessions.collectAsState()
+    val open by model.session.open.collectAsState()
+    val sending by model.session.sending.collectAsState()
     LaunchedEffect(model.paired) { model.session.loadSessions() }
     Column(Modifier.fillMaxSize()) {
         Text(
-            model.session.open?.let { "已打开会话 ${it.sessionId}" } ?: "会话",
+            open?.let { "已打开会话 ${it.sessionId}" } ?: "会话",
             Modifier.padding(16.dp),
             style = MaterialTheme.typography.titleMedium,
         )
         LazyColumn(Modifier.weight(1f)) {
-            if (model.session.open == null) {
-                items(model.session.sessions) { row ->
+            if (open == null) {
+                items(sessions) { row ->
                     RaisedCard {
                         Text(row.title, style = MaterialTheme.typography.bodyLarge)
                         Button(onClick = { scope.launch { model.session.openSession(row.id) } }) { Text("打开") }
                     }
                 }
             } else {
-                items(model.session.state.items) { item ->
+                items(open!!.state.items) { item ->
                     RaisedCard {
                         Text(item.kind, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                         if (item.text.isNotEmpty()) Text(item.text)
@@ -250,7 +254,7 @@ fun SessionsTab(model: CompanionViewModel) {
                 val text = draft
                 draft = ""
                 scope.launch { model.session.send(text) }
-            }, enabled = draft.isNotEmpty() && !model.session.sending) { Text("发送") }
+            }, enabled = draft.isNotEmpty() && !sending) { Text("发送") }
             Button(onClick = { scope.launch { model.session.cancelActive() } }) { Text("停止") }
         }
     }
@@ -260,8 +264,9 @@ fun SessionsTab(model: CompanionViewModel) {
 fun ApprovalsTab(model: CompanionViewModel) {
     LaunchedEffect(model.paired) { model.interactions.startWatching() }
     val scope = rememberCoroutineScope()
+    val inbox by model.interactions.inbox.collectAsState()
     LazyColumn(Modifier.fillMaxSize()) {
-        items(model.interactions.inbox) { pending ->
+        items(inbox) { pending ->
             RaisedCard {
                 Text(pending.title, style = MaterialTheme.typography.bodyLarge)
                 if (pending.detail.isNotEmpty()) Text(pending.detail, style = MaterialTheme.typography.bodySmall)
@@ -276,19 +281,20 @@ fun ApprovalsTab(model: CompanionViewModel) {
 
 @Composable
 fun PlanTab(model: CompanionViewModel) {
-    val state = model.session.state
+    val open by model.session.open.collectAsState()
+    val folded = open?.state ?: DomainState()
     LazyColumn(Modifier.fillMaxSize()) {
         item {
             RaisedCard {
-                Text(if (state.planActive) "计划模式：开启" else "计划模式：关闭", style = MaterialTheme.typography.titleSmall)
+                Text(if (folded.planActive) "计划模式：开启" else "计划模式：关闭", style = MaterialTheme.typography.titleSmall)
             }
         }
-        items(state.todos) { todo ->
+        items(folded.todos) { todo ->
             RaisedCard {
                 Text("[${todo.status}] ${todo.text}")
             }
         }
-        items(state.goals) { goal ->
+        items(folded.goals) { goal ->
             RaisedCard {
                 Text("目标：${goal.title}（${goal.state}）", style = MaterialTheme.typography.titleSmall)
             }
@@ -298,8 +304,9 @@ fun PlanTab(model: CompanionViewModel) {
 
 @Composable
 fun ToolsTab(model: CompanionViewModel) {
+    val open by model.session.open.collectAsState()
     LazyColumn(Modifier.fillMaxSize()) {
-        items(model.session.state.toolCalls) { call ->
+        items(open?.state?.toolCalls ?: emptyList()) { call ->
             RaisedCard {
                 Text("${call.name} — ${call.phase}", style = MaterialTheme.typography.titleSmall)
                 Text(call.arguments, style = MaterialTheme.typography.bodySmall, maxLines = 2)
@@ -311,18 +318,21 @@ fun ToolsTab(model: CompanionViewModel) {
 
 @Composable
 fun FilesTab(model: CompanionViewModel) {
-    LaunchedEffect(model.paired, model.files.selectedWorkspace) { model.files.list() }
     val scope = rememberCoroutineScope()
+    val directory by model.files.directory.collectAsState()
+    val entries by model.files.entries.collectAsState()
+    val selected by model.files.selectedWorkspace.collectAsState()
+    LaunchedEffect(model.paired, selected) { model.files.list() }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 model.files.goUp()
                 scope.launch { model.files.list() }
-            }, enabled = model.files.directory.isNotEmpty()) { Text("上一级") }
-            Text(model.files.directory.joinToString("/") .ifEmpty { "（根目录）" }, style = MaterialTheme.typography.titleSmall)
+            }, enabled = directory.isNotEmpty()) { Text("上一级") }
+            Text(directory.joinToString("/") .ifEmpty { "（根目录）" }, style = MaterialTheme.typography.titleSmall)
         }
         LazyColumn(Modifier.weight(1f)) {
-            items(model.files.entries) { entry ->
+            items(entries) { entry ->
                 RaisedCard {
                     Text(if (entry.isDirectory) "📁 ${entry.name}" else "📄 ${entry.name}")
                 }
@@ -333,18 +343,20 @@ fun FilesTab(model: CompanionViewModel) {
 
 @Composable
 fun SubagentsTab(model: CompanionViewModel) {
-    LaunchedEffect(model.paired) {
-        model.session.sessions.firstOrNull()?.let { model.subagents.load(it.id) }
-    }
     val scope = rememberCoroutineScope()
+    val sessions by model.session.sessions.collectAsState()
+    val rows by model.subagents.rows.collectAsState()
+    LaunchedEffect(model.paired, sessions) {
+        sessions.firstOrNull()?.let { model.subagents.load(it.id) }
+    }
     LazyColumn(Modifier.fillMaxSize()) {
-        items(model.subagents.rows) { row ->
+        items(rows) { row ->
             RaisedCard {
                 Text(row.label ?: row.id, style = MaterialTheme.typography.bodyLarge)
                 Text(row.reason ?: row.mode ?: "", style = MaterialTheme.typography.bodySmall)
                 if (row.mode != null) {
                     Button(onClick = {
-                        val parent = model.session.sessions.firstOrNull()?.id ?: return@Button
+                        val parent = sessions.firstOrNull()?.id ?: return@Button
                         scope.launch { model.subagents.openChild(parent, row) }
                     }) { Text("打开时间线") }
                 }

@@ -14,6 +14,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import app.cash.turbine.test
 import kotlin.test.assertTrue
 
 /** A scriptable wire double: recorded calls, preset stream frames. */
@@ -56,8 +57,8 @@ class CompanionModelTest {
         }
         val model = SessionModel(wire, TestScope())
         model.loadSessions()
-        assertEquals("ready", model.listState)
-        assertEquals(listOf(SessionRow("s1", "Refactor", 100.0), SessionRow("s2", "Notes", null)), model.sessions)
+        assertEquals("ready", model.listState.value)
+        assertEquals(listOf(SessionRow("s1", "Refactor", 100.0), SessionRow("s2", "Notes", null)), model.sessions.value)
     }
 
     @Test
@@ -100,16 +101,16 @@ class CompanionModelTest {
         model.collect(wire("""{"event":"approval/requested","eventId":"e1","sessionId":"s1","title":"Run command"}"""))
         model.collect(wire("""{"event":"question/requested","eventId":"e2","sessionId":"s1","text":"Pick one"}"""))
         model.collect(wire("""{"event":"approval/requested","eventId":"e1"}"""))
-        assertEquals(2, model.inbox.size)
-        assertEquals("Run command", model.inbox[0].title)
-        assertEquals("Pick one", model.inbox[1].detail)
+        assertEquals(2, model.inbox.value.size)
+        assertEquals("Run command", model.inbox.value[0].title)
+        assertEquals("Pick one", model.inbox.value[1].detail)
 
-        val pending = model.inbox[0]
+        val pending = model.inbox.value[0]
         model.answer(pending, allowedOnce = true)
         val call = wire.calls.first { it.first == "\$events/result" }
         val result = (call.second["result"] as WireValue.ObjectValue).entries
         assertEquals("allowed-once", (result["value"] as WireValue.StringValue).value)
-        assertEquals(1, model.inbox.size)
+        assertEquals(1, model.inbox.value.size)
     }
 
     @Test
@@ -122,8 +123,8 @@ class CompanionModelTest {
         model.start()
         wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
         advanceUntilIdle()
-        assertEquals(listOf(WorkspaceRow("w1", "Harness")), model.workspaces)
-        assertEquals("w1", model.selectedWorkspace)
+        assertEquals(listOf(WorkspaceRow("w1", "Harness")), model.workspaces.value)
+        assertEquals("w1", model.selectedWorkspace.value)
 
         model.list()
         model.openEntry("lib")
@@ -131,8 +132,8 @@ class CompanionModelTest {
         val call = wire.calls.last { it.first == "workspaceFiles/list" }
         assertEquals("w1", (call.second["workspaceId"] as WireValue.StringValue).value)
         assertEquals("lib", (call.second["path"] as WireValue.StringValue).value)
-        assertEquals(2, model.entries.size)
-        assertTrue(model.entries[1].isDirectory)
+        assertEquals(2, model.entries.value.size)
+        assertTrue(model.entries.value[1].isDirectory)
     }
 
     @Test
@@ -143,19 +144,72 @@ class CompanionModelTest {
         }
         val model = SubagentsModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.load("p1")
-        assertEquals("ready", model.listState)
-        assertEquals(2, model.rows.size)
-        assertEquals("continuable", model.rows[0].mode)
-        assertEquals("corrupt", model.rows[1].reason)
+        assertEquals("ready", model.listState.value)
+        assertEquals(2, model.rows.value.size)
+        assertEquals("continuable", model.rows.value[0].mode)
+        assertEquals("corrupt", model.rows.value[1].reason)
 
-        model.openChild("p1", model.rows[1])
+        model.openChild("p1", model.rows.value[1])
         assertNull(model.childTimeline, "a diagnostic row opens nothing")
-        model.openChild("p1", model.rows[0])
-        val child = model.childTimeline
+        model.openChild("p1", model.rows.value[0])
+        val child = model.childTimeline.value
         assertNotNull(child)
         child!!.close()
         model.closeChild()
         assertNull(model.childTimeline)
+    }
+}
+
+class StateFlowProjectionTest {
+    @Test
+    fun listStateEmitsItsSequence() = runTest {
+        val wire = FakeWire()
+        wire.stub("session/list") {
+            wire("""{"items":[{"sessionId":"s1","title":"Refactor"}]}""")
+        }
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.listState.test {
+            assertEquals("idle", awaitItem())
+            model.loadSessions()
+            assertEquals("loading", awaitItem())
+            assertEquals("ready", awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertEquals(1, model.sessions.value.size)
+    }
+
+    @Test
+    fun openEmitsEachFoldedCut() = runTest {
+        val wire = FakeWire()
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.open.test {
+            assertEquals(null, awaitItem())
+            model.openSession("s1")
+            awaitItem().also { assertEquals(0, it?.state?.items?.size) }
+            wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+            wire.emit(event(1, "user/message", """{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}"""))
+            awaitItem().also { assertEquals(1, it?.state?.items?.size) }
+            wire.emit(event(2, "turn/end", """{"turn":1,"reason":{"kind":"completed"}}"""))
+            awaitItem().also { assertEquals(2, it?.state?.items?.size) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun inboxEmitsAppendsAndRetirements() = runTest {
+        val wire = FakeWire()
+        val model = InteractionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.inbox.test {
+            assertEquals(0, awaitItem().size)
+            model.collect(wire("""{"event":"approval/requested","eventId":"e1","sessionId":"s1","title":"Run command"}"""))
+            awaitItem().also { assertEquals(1, it.size) }
+            model.collect(wire("""{"event":"approval/requested","eventId":"e1"}"""))
+            expectNoEvents()
+            val pending = model.inbox.value[0]
+            model.answer(pending, allowedOnce = true)
+            awaitItem().also { assertEquals(0, it.size) }
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }
 
