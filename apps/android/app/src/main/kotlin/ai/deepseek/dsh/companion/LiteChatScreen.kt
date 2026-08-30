@@ -32,7 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 fun LiteChatScreen(model: LiteChatViewModel) {
     var draft by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    val state by model.liveState.collectAsStateWithLifecycle()
+    val state by model.liveState.collectAsStateWithLifecycle(initialValue = model.state)
 
     Column(Modifier.fillMaxSize()) {
         model.lastHandoff?.let { handoff ->
