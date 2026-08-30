@@ -23,19 +23,19 @@ public enum LiteEvent: Equatable {
 }
 
 /// Token accounting a completed message may carry.
-public struct LiteUsage: Equatable, Decodable {
+public struct LiteUsage: Equatable, Codable {
     public let inputTokens: Double
     public let outputTokens: Double
 }
 
 /// One whole-list todo entry.
-public struct LiteTodo: Equatable, Decodable {
+public struct LiteTodo: Equatable, Codable {
     public let content: String
     public let status: String
 }
 
 /// Artifact lifecycle; content never rides the spec.
-public enum LiteArtifactStatus: String, Equatable, Decodable {
+public enum LiteArtifactStatus: String, Equatable, Codable {
     case pending
     case ready
     case failed
@@ -79,3 +79,51 @@ extension LiteEvent: Decodable {
         }
     }
 }
+
+extension LiteEvent: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        func put(_ key: CodingKeys, _ value: String) throws { try container.encode(value, forKey: key) }
+        switch self {
+        case .promptAccepted(let requestId, let content):
+            try put(.type, "prompt/accepted"); try put(.requestId, requestId); try put(.content, content)
+        case .promptRejected(let requestId, let reason):
+            try put(.type, "prompt/rejected"); try put(.requestId, requestId); try put(.reason, reason)
+        case .streamDelta(let text):
+            try put(.type, "stream/delta"); try put(.text, text)
+        case .streamReasoning(let text):
+            try put(.type, "stream/reasoning"); try put(.text, text)
+        case .messageCompleted(let text, let usage):
+            try put(.type, "message/completed"); try put(.text, text)
+            try container.encodeIfPresent(usage, forKey: .usage)
+        case .turnCompleted:
+            try put(.type, "turn/completed")
+        case .turnCancelled(let reason):
+            try put(.type, "turn/cancelled"); try put(.reason, reason)
+        case .toolCall(let id, let name, let arguments):
+            try put(.type, "tool/call"); try put(.id, id); try put(.name, name); try put(.arguments, arguments)
+        case .toolResult(let id, let ok, let text):
+            try put(.type, "tool/result"); try put(.id, id)
+            try container.encode(ok, forKey: .ok); try put(.text, text)
+        case .planChanged(let active):
+            try put(.type, "plan/changed"); try container.encode(active, forKey: .active)
+        case .todoChanged(let todos):
+            try put(.type, "todo/changed"); try container.encode(todos, forKey: .todos)
+        case .artifactCreated(let id, let kind, let title):
+            try put(.type, "artifact/created"); try put(.id, id); try put(.kind, kind); try put(.title, title)
+        case .artifactStatus(let id, let status):
+            try put(.type, "artifact/status"); try put(.id, id)
+            try container.encode(status, forKey: .status)
+        case .providerError(let code, let message):
+            try put(.type, "provider/error"); try put(.code, code); try put(.message, message)
+        case .networkError(let kind):
+            try put(.type, "network/error"); try put(.kind, kind)
+        case .handoffRequested(let capability):
+            try put(.type, "handoff/requested"); try put(.capability, capability)
+        }
+    }
+}
+
+extension LiteUsage: Encodable {}
+extension LiteTodo: Encodable {}
+extension LiteArtifactStatus: Encodable {}

@@ -106,3 +106,43 @@ final class LiteLoopDriverTests: XCTestCase {
         XCTAssertEqual(driver.fold.state.lastTurnEnd, .completed)
     }
 }
+
+final class LiteStoreTests: XCTestCase {
+    private func temporaryDirectory(_ name: String) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("lite-stores-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent(name, isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    func testSessionJournalRoundTripsAndReplays() async throws {
+        let store = try LiteFileSessionStore(directory: temporaryDirectory("sessions"))
+        var session = LiteSession(id: "s1")
+        session.record(.promptAccepted(requestId: "r1", content: "搜索契约文档"))
+        session.record(.toolCall(id: "c1", name: "web_search", arguments: "{}"))
+        session.record(.toolResult(id: "c1", ok: true, text: "找到 2 篇。"))
+        session.record(.messageCompleted(text: "完成。", usage: LiteUsage(inputTokens: 10, outputTokens: 5)))
+        session.record(.turnCompleted)
+        try await store.save(session)
+
+        let restored = try await store.load(id: "s1")
+        XCTAssertEqual(restored, session)
+        XCTAssertEqual(restored?.state.toolCalls.first?.phase, .completed)
+        XCTAssertEqual(restored?.state.lastTurnEnd, .completed)
+
+        try await store.delete(id: "s1")
+        let gone = try await store.load(id: "s1")
+        XCTAssertNil(gone)
+    }
+
+    func testArtifactContentRoundTrips() async throws {
+        let store = try LiteFileArtifactStore(directory: temporaryDirectory("artifacts"))
+        try await store.put(id: "a1", data: Data("# 报告\n".utf8))
+        let loaded = try await store.get(id: "a1")
+        XCTAssertEqual(String(data: loaded ?? Data(), encoding: .utf8), "# 报告\n")
+        try await store.remove(id: "a1")
+        let removed = try await store.get(id: "a1")
+        XCTAssertNil(removed)
+    }
+}
