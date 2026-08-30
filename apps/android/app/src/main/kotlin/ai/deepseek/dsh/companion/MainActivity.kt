@@ -125,22 +125,29 @@ object CompanionRuntime {
     @Volatile var restoreDirectory: java.io.File? = null
 
     /** Rebuild the client from persisted credentials so relaunch skips
-     * pairing; returns true when a usable identity existed. */
+     * pairing; returns true when a usable identity existed. The signing key
+     * opens through the keystore-held AES key. */
     fun restore(directory: java.io.File): Boolean {
         restoreDirectory = directory
-        val store = ai.deepseek.dsh.link.FileLinkCredentialsStore(java.io.File(directory, "link-credentials.json"))
+        val store = credentialsStore(directory)
         val client = ai.deepseek.dsh.link.LinkClient.restore(store) ?: return false
         current = LinkWireDriving(client)
         restored = true
         return true
     }
 
+    private fun credentialsStore(directory: java.io.File): ai.deepseek.dsh.link.FileLinkCredentialsStore =
+        ai.deepseek.dsh.link.FileLinkCredentialsStore(
+            java.io.File(directory, "link-credentials.json"),
+            AndroidKeystoreCipher(),
+        )
+
     /** Pair with a scanned payload; returns the failure message, or null. */
     suspend fun pair(payloadText: String, deviceName: String): String? = try {
         val payload = ai.deepseek.dsh.link.LinkPayloadParsing.pairingPayload(payloadText)
             ?: error("配对载荷无法识别")
         val directory = restoreDirectory ?: error("no restore directory configured")
-        val store = ai.deepseek.dsh.link.FileLinkCredentialsStore(directory)
+        val store = credentialsStore(directory)
         val client = ai.deepseek.dsh.link.LinkClient(
             baseUrl = payload.endpoint,
             pinnedFingerprint = payload.spkiFingerprint,

@@ -188,6 +188,35 @@ class LinkClientTest {
     }
 
     @Test
+    fun fileStoreNeverPersistsTheSigningKeyAsStored() {
+        // The boundary test: a cipher the test can see through proves the
+        // on-disk bytes carry ciphertext where the key was, and that loading
+        // opens it back to the working identity.
+        class XorCipher : CredentialsCipher {
+            override fun seal(plain: ByteArray): ByteArray = plain.map { (it.toInt() xor 0x5A).toByte() }.toByteArray()
+
+            override fun open(sealed: ByteArray): ByteArray = seal(sealed)
+        }
+
+        val directory = kotlin.io.path.createTempDirectory("link-sealed")
+        val file = directory.resolve("credentials.json").toFile()
+        val plainKey = java.util.Base64.getEncoder().encodeToString(ByteArray(32) { (it + 1).toByte() })
+        val store = FileLinkCredentialsStore(file, XorCipher())
+        store.save(
+            LinkCredentials(
+                deviceId = "d-1", hostId = "h-1", hostName = "Studio Desk", role = "controller",
+                endpoint = "https://192.168.1.4:4931", pinnedFingerprint = "ab".repeat(32),
+                signingKeyBase64 = plainKey,
+            ),
+        )
+        val onDisk = file.readText(Charsets.UTF_8)
+        assertTrue(!onDisk.contains(plainKey), "the plaintext key never rides the disk bytes")
+        val loaded = store.load()
+        assertEquals(plainKey, loaded?.signingKeyBase64)
+        assertTrue(LinkSigning.verify("input", LinkSigning.sign("input", java.util.Base64.getDecoder().decode(plainKey)), LinkSigning.ed25519SpkiDer(ByteArray(32) { (it + 1).toByte() })))
+    }
+
+    @Test
     fun streamsFlowValuesUntilTheFailureFrame() = runTest {
         val client = client(MemoryLinkCredentialsStore())
         client.pair(pairingPayload(), deviceName = "Pixel 9")

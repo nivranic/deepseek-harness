@@ -38,18 +38,46 @@ interface LinkCredentialsStoring {
 
 /** One JSON file in a caller-owned directory; the app passes its files
  * directory. Writes replace atomically enough for a single identity. */
-class FileLinkCredentialsStore(private val file: java.io.File) : LinkCredentialsStoring {
+/** The at-rest boundary for the signing key: seal it before it hits disk
+ * and open it on the way back. The app injects the AndroidKeyStore-backed
+ * implementation; tests inject fakes; the plain one is the no-op. */
+interface CredentialsCipher {
+    fun seal(plain: ByteArray): ByteArray
+
+    fun open(sealed: ByteArray): ByteArray
+}
+
+/** Identity cipher — in-memory previews and shape-only tests. */
+object PlainCredentialsCipher : CredentialsCipher {
+    override fun seal(plain: ByteArray): ByteArray = plain
+
+    override fun open(sealed: ByteArray): ByteArray = sealed
+}
+
+/** One JSON file in a caller-owned directory; the app passes its files
+ * directory. The signing key never lands on disk as stored — the cipher's
+ * sealed form rides in its place. Writes replace atomically enough for a
+ * single identity. */
+class FileLinkCredentialsStore(
+    private val file: java.io.File,
+    private val cipher: CredentialsCipher = PlainCredentialsCipher,
+) : LinkCredentialsStoring {
     override fun load(): LinkCredentials? = runCatching {
         if (!file.isFile) return null
-        LinkPayloadParsing.credentials(file.readText())
+        val atRest = LinkPayloadParsing.credentials(file.readText()) ?: return null
+        val sealedKey = java.util.Base64.getDecoder().decode(atRest.signingKeyBase64)
+        atRest.copy(signingKeyBase64 = java.util.Base64.getEncoder().encodeToString(cipher.open(sealedKey)))
     }.getOrNull()
 
     override fun save(credentials: LinkCredentials) {
         file.parentFile?.mkdirs()
+        val sealed = java.util.Base64.getEncoder()
+            .encodeToString(cipher.seal(java.util.Base64.getDecoder().decode(credentials.signingKeyBase64)))
+        val text = credentials.copy(signingKeyBase64 = sealed).toJson()
         val temporary = java.io.File(file.parentFile, file.name + ".tmp")
-        temporary.writeText(credentials.toJson(), Charsets.UTF_8)
+        temporary.writeText(text, Charsets.UTF_8)
         if (!temporary.renameTo(file)) {
-            file.writeText(credentials.toJson(), Charsets.UTF_8)
+            file.writeText(text, Charsets.UTF_8)
             temporary.delete()
         }
     }
