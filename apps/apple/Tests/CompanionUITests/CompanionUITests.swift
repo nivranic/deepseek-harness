@@ -461,7 +461,13 @@ final class SubagentsViewModelTests: XCTestCase {
         XCTAssertEqual(parent, "p1")
 
         await model.openChild(model.rows[0])
-        let follow = await wire.streamCalls.first { $0.endpoint == "session/follow" }
+        // openChild returns once the follow task is scheduled, not once its
+        // stream request lands; yield until the fake records it.
+        var follow: (endpoint: String, payload: [String: WireValue])?
+        for _ in 0..<100 where follow == nil {
+            await Task.yield()
+            follow = await wire.streamCalls.first { $0.endpoint == "session/follow" }
+        }
         let request = follow?.payload["request"]
         let address = WireShape.object(request ?? .null, field: "address") ?? .null
         XCTAssertEqual(WireShape.string(address, field: "kind"), "subagent")
