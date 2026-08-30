@@ -80,6 +80,7 @@ class LiteLoopDriver(
     private val scope: CoroutineScope,
     private val provider: LiteProviding,
     private val execute: LiteToolExecuting,
+    private val onEventApplied: ((LiteDomainState) -> Unit)? = null,
 ) {
     /** The live fold the driver applies each lifecycle event to. */
     val fold = LiteFold()
@@ -108,10 +109,16 @@ class LiteLoopDriver(
         job?.cancel()
     }
 
+    /** Apply one event and surface the cut state to the projection. */
+    private fun apply(event: JsonObject) {
+        fold.apply(event)
+        onEventApplied?.invoke(fold.state)
+    }
+
     private suspend fun drive(prompt: String) {
         running = true
         try {
-            fold.apply(event("prompt/accepted", "requestId" to text("lite-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
+            apply(event("prompt/accepted", "requestId" to text("lite-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
             try {
                 var assembled = ""
                 var handedOff: String? = null
@@ -120,13 +127,13 @@ class LiteLoopDriver(
                     // later chunks fold nothing.
                     if (handedOff != null) return@collect
                     when (chunk) {
-                        is LiteStreamChunk.Reasoning -> fold.apply(event("stream/reasoning", "text" to text(chunk.text)))
+                        is LiteStreamChunk.Reasoning -> apply(event("stream/reasoning", "text" to text(chunk.text)))
                         is LiteStreamChunk.Text -> {
-                            fold.apply(event("stream/delta", "text" to text(chunk.text)))
+                            apply(event("stream/delta", "text" to text(chunk.text)))
                             assembled += chunk.text
                         }
                         is LiteStreamChunk.ToolCall -> {
-                            fold.apply(
+                            apply(
                                 event(
                                     "tool/call",
                                     "id" to text(chunk.id),
@@ -139,13 +146,13 @@ class LiteLoopDriver(
                             // marker.
                             val capability = LiteToolRegistry.handoffCapability(chunk.name)
                             if (capability != null) {
-                                fold.apply(event("handoff/requested", "capability" to text(capability)))
+                                apply(event("handoff/requested", "capability" to text(capability)))
                                 handedOff = capability
                                 return@collect
                             }
                             if (LiteToolRegistry.tool(chunk.name) == null) return@collect
                             val outcome = execute(chunk.id, chunk.name, chunk.arguments)
-                            fold.apply(
+                            apply(
                                 event(
                                     "tool/result",
                                     "id" to text(chunk.id),
@@ -157,21 +164,21 @@ class LiteLoopDriver(
                     }
                 }
                 if (handedOff != null) return
-                fold.apply(event("message/completed", "text" to text(assembled)))
-                fold.apply(event("turn/completed"))
+                apply(event("message/completed", "text" to text(assembled)))
+                apply(event("turn/completed"))
             } catch (cancelled: CancellationException) {
                 // The driver owns this Job; its own cancellation is the
                 // terminal event, and nothing else can reach this catch.
-                fold.apply(event("turn/cancelled", "reason" to text("user")))
+                apply(event("turn/cancelled", "reason" to text("user")))
             } catch (transport: LiteTransportError) {
                 when (transport) {
-                    is LiteTransportError.Network -> fold.apply(event("network/error", "kind" to text(transport.kind)))
-                    is LiteTransportError.Provider -> fold.apply(
+                    is LiteTransportError.Network -> apply(event("network/error", "kind" to text(transport.kind)))
+                    is LiteTransportError.Provider -> apply(
                         event("provider/error", "code" to text(transport.code), "message" to text(transport.message)),
                     )
                 }
             } catch (failure: Exception) {
-                fold.apply(event("provider/error", "code" to text("PROVIDER_FAILED"), "message" to text(failure.toString())))
+                apply(event("provider/error", "code" to text("PROVIDER_FAILED"), "message" to text(failure.toString())))
             }
         } finally {
             running = false

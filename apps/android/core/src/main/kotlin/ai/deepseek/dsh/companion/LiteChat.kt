@@ -1,6 +1,8 @@
 package ai.deepseek.dsh.companion
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -18,7 +20,8 @@ private fun text(value: String): JsonPrimitive = JsonPrimitive(value)
 /**
  * The Lite chat surface's state: one on-device session driven through the
  * loop, its journal persisted on every turn, and the folded domain state
- * exposed for rendering.
+ * exposed for rendering — live per event while a turn runs, replayed from
+ * the journal between turns.
  */
 class LiteChatViewModel(
     scope: CoroutineScope,
@@ -30,8 +33,14 @@ class LiteChatViewModel(
     /** The durable journal the turn outcomes land in. */
     val session: LiteSession = LiteSession(sessionId)
 
+    private val _liveState = MutableStateFlow(session.state)
+
+    /** The folded state the UI renders: each event's cut during a live
+     * turn, the journal replay after each persisted turn. */
+    val liveState: StateFlow<LiteDomainState> = _liveState
+
     /** The loop driver the surface submits prompts through. */
-    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider, execute)
+    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider, execute, onEventApplied = { cut -> _liveState.value = cut })
 
     /** The capability the last turn handed off on, when it did. */
     var lastHandoff: String? = null
@@ -39,7 +48,7 @@ class LiteChatViewModel(
 
     /** The folded domain state of the journal plus the live turn. */
     val state: LiteDomainState
-        get() = if (driver.running) driver.fold.state else session.state
+        get() = _liveState.value
 
     /**
      * Submit one prompt, await the turn's terminal event, then persist the
@@ -61,5 +70,6 @@ class LiteChatViewModel(
             session.record(event("turn/completed"))
         }
         store?.save(session)
+        _liveState.value = session.state
     }
 }

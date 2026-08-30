@@ -19,22 +19,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 
 /**
  * The Lite chat surface: the conversation, the live stream partial, tool
  * rows with phases, artifact references, and the handoff banner — all read
- * from the view model's folded Lite domain state.
+ * from the view model's live StateFlow projection of the folded state.
  */
 @Composable
 fun LiteChatScreen(model: LiteChatViewModel) {
     var draft by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    // The folded state re-reads whenever a persisted turn grows the
-    // journal, so the surface re-renders per turn.
-    var journalSize by remember { mutableStateOf(model.session.events.size) }
-    val state = model.state
+    val state by model.liveState.collectAsStateWithLifecycle()
 
     Column(Modifier.fillMaxSize()) {
         model.lastHandoff?.let { handoff ->
@@ -99,10 +97,7 @@ fun LiteChatScreen(model: LiteChatViewModel) {
                     val prompt = draft.trim()
                     if (prompt.isEmpty()) return@Button
                     draft = ""
-                    scope.launch {
-                        model.send(prompt)
-                        journalSize = model.session.events.size
-                    }
+                    scope.launch { model.send(prompt) }
                 },
                 enabled = draft.isNotBlank() && !model.driver.running,
             ) { Text("发送") }
