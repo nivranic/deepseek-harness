@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-android-kotlin-skeleton.md
+2026-08-30-android-kotlin-skeleton.md: c7bae0cf7a2d1b37d2271c6ddf18de5382cdc00e
+2026-08-30-android-kotlin-skeleton.zh.md: b998a097d2e67c828a2804ffd30e002def316b73
