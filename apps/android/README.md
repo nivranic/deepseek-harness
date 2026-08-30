@@ -12,7 +12,7 @@ The Android companion (nativization plan chapters 52 and 60): `core` is the pure
 | [`core/…/companion/DomainFold.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/DomainFold.kt) | The Kotlin half of the chapter-62 domain-state fold: the same conformance fixtures TypeScript and Swift replay, folded identically |
 | [`core/…/companion/NeumorphicTokens.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NeumorphicTokens.kt) | The Minimal Neumorphic-only visual baseline (chapter 60): one style, dual-tone raised surfaces |
 | [`core/…/link/LinkWire.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt) and its siblings | The wire client half: pass-through JSON values and envelopes, Ed25519 signing through the JDK provider, SPKI pinning over a leaf certificate, and `LinkClient` pair/describe/call/stream — tested against a real local HTTP server |
-| [`core/…/companion/CompanionModels.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt) | The view models — session fold/prompt/cancel, interaction inbox, files browsing, subagent listing — each driving the `WireDriving` seam a FakeWire tests |
+| [`core/…/companion/CompanionModels.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt) | The view models — session fold/prompt/cancel, interaction inbox, files browsing with UTF-16 paged reads, subagent listing — each driving the `WireDriving` seam a FakeWire tests |
 | [`app/`](app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt) | The Compose shell: pairing screen, the six-tab scaffold, and the Minimal Neumorphic theme from the core tokens |
 | [`core/src/test/resources/`](core/src/test/resources/) | The synced golden fixtures, conformance scenarios, and pinning certificate the tests replay |
 

@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-file-viewer.md
+2026-08-31-android-file-viewer.md: 07a1dd513f3bc27dbfef382687fc49f5bd45c94f
+2026-08-31-android-file-viewer.zh.md: 7351b8521322ae9c6c82364de13c12e1f809805d
