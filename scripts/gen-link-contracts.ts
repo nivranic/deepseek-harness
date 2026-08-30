@@ -12,6 +12,7 @@ import { resolve } from 'node:path'
 import { LINK_CONTRACT_FIXTURES } from '../packages/remote/link-contracts/src/index.ts'
 import { generateLinkContracts } from '../packages/remote/link-contracts/src/generate.ts'
 import { generateConformanceArtifacts } from '../packages/remote/link-contracts/src/companion-scenarios.ts'
+import { generateLiteConformance } from '../packages/remote/link-contracts/src/lite-spec.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const generatedDir = resolve(root, 'packages/remote/link-contracts/generated')
@@ -20,6 +21,8 @@ const conformanceDir = resolve(generatedDir, 'conformance')
 const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
 const appleConformance = resolve(appleFixtures, 'conformance')
+const generatedLiteDir = resolve(generatedDir, 'lite-conformance')
+const appleLite = resolve(appleFixtures, 'lite-conformance')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
 
 const artifacts = generateLinkContracts()
@@ -44,4 +47,11 @@ for (const scenario of generateConformanceArtifacts()) {
   writeFileSync(resolve(appleConformance, `${scenario.id}.json`), scenario.json)
   writeFileSync(resolve(appleUiConformance, `${scenario.id}.json`), scenario.json)
 }
-console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, fixture, and conformance artifacts (apps/apple synced).')
+
+mkdirSync(generatedLiteDir, { recursive: true })
+mkdirSync(appleLite, { recursive: true })
+for (const scenario of generateLiteConformance()) {
+  writeFileSync(resolve(generatedLiteDir, `${scenario.id}.json`), scenario.json)
+  writeFileSync(resolve(appleLite, `${scenario.id}.json`), scenario.json)
+}
+console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts (apps/apple synced).')

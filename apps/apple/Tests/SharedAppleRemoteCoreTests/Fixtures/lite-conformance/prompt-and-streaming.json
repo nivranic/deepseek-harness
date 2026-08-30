@@ -1,0 +1,61 @@
+{
+  "covers": [
+    "Prompt",
+    "Streaming"
+  ],
+  "events": [
+    {
+      "type": "prompt/accepted",
+      "requestId": "r1",
+      "content": "总结这份报告"
+    },
+    {
+      "type": "stream/reasoning",
+      "text": "先找要点…"
+    },
+    {
+      "type": "stream/delta",
+      "text": "报告要点"
+    },
+    {
+      "type": "stream/delta",
+      "text": "共三项。"
+    },
+    {
+      "type": "message/completed",
+      "text": "报告要点共三项。",
+      "usage": {
+        "inputTokens": 512,
+        "outputTokens": 48
+      }
+    },
+    {
+      "type": "turn/completed"
+    }
+  ],
+  "expected": {
+    "conversation": [
+      {
+        "role": "user",
+        "text": "总结这份报告"
+      },
+      {
+        "role": "assistant",
+        "text": "报告要点共三项。"
+      }
+    ],
+    "streaming": {
+      "active": false,
+      "partialText": "",
+      "partialReasoning": ""
+    },
+    "interrupted": false,
+    "toolCalls": [],
+    "planActive": false,
+    "todos": [],
+    "artifacts": [],
+    "lastTurnEnd": "completed",
+    "errors": [],
+    "pendingHandoff": null
+  }
+}

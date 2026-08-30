@@ -28,6 +28,8 @@ import { z } from 'zod'
 export type { CompanionDomainState, CompanionGoal, CompanionItem, CompanionRecord, CompanionTodo, CompanionToolCall, CompanionToolPhase } from './companion-fold.ts'
 export { emptyCompanionDomain, foldCompanionDomain, foldCompanionRecord } from './companion-fold.ts'
 export type { CompanionScenario, ConformanceArtifact } from './companion-scenarios.ts'
+export type { LiteArtifact, LiteConformanceArtifact, LiteDomainState, LiteEvent, LiteFailure, LiteMessage, LiteScenario, LiteToolCall, LiteTurnEnd } from './lite-spec.ts'
+export { foldLiteDomain, foldLiteEvent, generateLiteConformance, LITE_SCENARIOS } from './lite-spec.ts'
 export { generateConformanceArtifacts, LINK_DOMAIN_SCENARIOS } from './companion-scenarios.ts'
 
 /**

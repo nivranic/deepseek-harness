@@ -47,6 +47,7 @@ wire 类型变更会暴露两次：zod schema 不再满足协议类型（typeche
 - **每类型三重钉住。** 协议接口（真实契约）、zod schema（`satisfies z.ZodType<…>`）、fixture（`satisfies` 接口）——三者任何漂移先成为编译错误，再成为门禁失败。
 - **常量字段保持为字段。** 版本与 kind 常量以带注释的标量字段发射，而非硬编码解码分支，协议升级在 manifest diff 里一目了然。
 - **会话事件钉住宿主词汇表。** 每个事件载荷 fixture 都满足真实的 `SessionEventMap` 成员（含 `plan/mode`、`todo/write`、`goal/change` 的插件合并），宿主侧载荷变更会先在这里被 typecheck 拦下；行上的 `sessionEvents`/`chunkRows` 标签必须是 `LinkSessionEventKind`/`LinkChunkRowKind` 枚举的取值，发射器拒绝任何其他标签。
+- **Lite 行为规范。** `foldLiteDomain` 是把端上 Native Harness Lite 运行时的生命周期事件（prompt、流式、取消、工具调用/结果、plan、todo、artifact、提供方与网络错误、移交——方案第 33/34/63 章）折入其领域状态的参考折叠；`generated/lite-conformance/<id>.json` 把每条黄金无钥事件序列与推导出的期望状态配对，走同一漂移门禁，等待 Swift 与 Kotlin 的 Lite 运行时回放。行为兼容，不要求实现一致。
 - **领域状态一致性场景。** `foldCompanionDomain` 是把 follow 记录折入伴侣领域状态（时间线摘要、plan/todo/goal、工具轨迹）的参考折叠；`generated/conformance/<id>.json` 把每条黄金记录序列与其推导出的状态配对，原生折叠回放同一字节必须得到与 TypeScript 完全一致的结果——方案第 62 章"同一 fixture、同一领域状态"的保证，走同一漂移门禁。
 
 ### 源码地图
@@ -56,6 +57,7 @@ wire 类型变更会暴露两次：zod schema 不再满足协议类型（typeche
 | [`src/index.ts`](src/index.ts) | 类型表、fixtures、钉住协议类型的 zod schema |
 | [`src/generate.ts`](src/generate.ts) | manifest、Swift、Kotlin 产物的纯发射器 |
 | [`src/companion-fold.ts`](src/companion-fold.ts) | follow 记录上的参考领域状态折叠 |
+| [`src/lite-spec.ts`](src/lite-spec.ts) | Lite 行为规范：事件词汇、参考折叠、黄金场景 |
 | [`src/companion-scenarios.ts`](src/companion-scenarios.ts) | 黄金一致性场景及其发射器 |
 | [`src/invariant.ts`](src/invariant.ts) | 不变式伴随插件（无运行时不变量：纯契约库） |
 | [`generated/`](generated/) | 发射的 manifest、Swift、Kotlin、fixtures 与一致性场景——永不手改 |

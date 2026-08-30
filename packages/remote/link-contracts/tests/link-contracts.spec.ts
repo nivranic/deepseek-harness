@@ -5,10 +5,11 @@ import { describe, expect, it } from 'vitest'
 import {
   LINK_CONTRACT_FIXTURES, LINK_CONTRACT_TYPES, LINK_DOMAIN_SCENARIOS,
   LinkAdminStatusSchema, LinkDeviceRecordSchema, LinkPairingPayloadSchema,
-  foldCompanionDomain,
+  LITE_SCENARIOS, foldCompanionDomain, foldLiteDomain,
 } from '../src/index.ts'
 import { generateLinkContracts } from '../src/generate.ts'
 import { generateConformanceArtifacts } from '../src/companion-scenarios.ts'
+import { generateLiteConformance } from '../src/lite-spec.ts'
 
 describe('link contract fixtures', () => {
   it('round-trips the typed fixtures through the wire schemas', () => {
@@ -201,5 +202,67 @@ describe('companion domain-state fold', () => {
     ])
     expect(state.items).toEqual([{ seq: 9, kind: 'future/event', text: '' }])
     expect(state.cursor).toBe(9)
+  })
+})
+
+describe('lite behavior spec', () => {
+  it('covers every chapter-63 verification point', () => {
+    const covered = new Set(LITE_SCENARIOS.flatMap(scenario => scenario.covers))
+    expect([...covered].sort()).toEqual([
+      'Artifact', 'Cancel', 'Handoff Request', 'Network Error', 'Plan', 'Prompt',
+      'Provider Error', 'Streaming', 'Todo', 'Tool Call', 'Tool Result',
+    ])
+  })
+
+  it('derives the expected state from every golden scenario', () => {
+    const byId = new Map(LITE_SCENARIOS.map(scenario => [scenario.id, foldLiteDomain(scenario.events)]))
+
+    const streamed = byId.get('prompt-and-streaming')!
+    expect(streamed.conversation).toEqual([
+      { role: 'user', text: '总结这份报告' },
+      { role: 'assistant', text: '报告要点共三项。' },
+    ])
+    expect(streamed.streaming.active).toBe(false)
+    expect(streamed.lastTurnEnd).toBe('completed')
+    expect(streamed.errors).toEqual([])
+
+    const cancelled = byId.get('cancel-preserves-prefix')!
+    expect(cancelled.conversation[1]).toEqual({ role: 'assistant', text: '第一步：拆分视图。', interrupted: true })
+    expect(cancelled.interrupted).toBe(true)
+    expect(cancelled.lastTurnEnd).toBe('cancelled')
+
+    const tools = byId.get('tool-call-and-result')!
+    expect(tools.toolCalls.map(call => [call.id, call.phase])).toEqual([
+      ['c1', 'completed'],
+      ['c2', 'failed'],
+    ])
+
+    const tracked = byId.get('plan-todo-artifact')!
+    expect(tracked.planActive).toBe(true)
+    expect(tracked.todos.map(todo => todo.status)).toEqual(['completed', 'in_progress'])
+    expect(tracked.artifacts).toEqual([
+      { id: 'a1', kind: 'markdown', title: 'lite-behavior-spec.md', status: 'ready' },
+    ])
+
+    const failures = byId.get('provider-and-network-errors')!
+    expect(failures.errors.map(error => [error.kind, error.code])).toEqual([
+      ['network', 'dropped'],
+      ['provider', 'RATE_LIMITED'],
+      ['provider', 'PROMPT_REJECTED'],
+    ])
+    expect(failures.lastTurnEnd).toBe('provider-error')
+
+    const handoff = byId.get('handoff-request')!
+    expect(handoff.pendingHandoff).toBe('requiresFullRuntime')
+    expect(handoff.toolCalls[0]!.phase).toBe('running')
+  })
+
+  it('emits one artifact per scenario whose expected value matches the fold', () => {
+    for (const artifact of generateLiteConformance()) {
+      const parsed = JSON.parse(artifact.json) as { events: unknown[]; expected: unknown }
+      const scenario = LITE_SCENARIOS.find(candidate => candidate.id === artifact.id)!
+      expect(parsed.events).toEqual(scenario.events)
+      expect(parsed.expected).toEqual(foldLiteDomain(scenario.events))
+    }
   })
 })

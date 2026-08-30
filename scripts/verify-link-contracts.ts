@@ -14,15 +14,18 @@ import { relative, resolve } from 'node:path'
 import { LINK_CONTRACT_FIXTURES } from '../packages/remote/link-contracts/src/index.ts'
 import { generateLinkContracts } from '../packages/remote/link-contracts/src/generate.ts'
 import { generateConformanceArtifacts } from '../packages/remote/link-contracts/src/companion-scenarios.ts'
+import { generateLiteConformance } from '../packages/remote/link-contracts/src/lite-spec.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const generatedDir = resolve(root, 'packages/remote/link-contracts/generated')
 const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
+const appleLite = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/lite-conformance')
 
 const artifacts = generateLinkContracts()
 const conformance = generateConformanceArtifacts()
+const lite = generateLiteConformance()
 let failures = 0
 const expectFresh = (path: string, wanted: string): void => {
   let actual: string | undefined
@@ -54,5 +57,9 @@ for (const scenario of conformance) {
   expectFresh(resolve(appleFixtures, 'conformance', `${scenario.id}.json`), scenario.json)
   expectFresh(resolve(appleUiConformance, `${scenario.id}.json`), scenario.json)
 }
+for (const scenario of lite) {
+  expectFresh(resolve(generatedDir, 'lite-conformance', `${scenario.id}.json`), scenario.json)
+  expectFresh(resolve(appleLite, `${scenario.id}.json`), scenario.json)
+}
 if (failures > 0) process.exit(1)
-console.log('verify-link-contracts: manifest, Swift, Kotlin, fixture, and conformance artifacts are fresh (apps/apple synced).')
+console.log('verify-link-contracts: manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts are fresh (apps/apple synced).')

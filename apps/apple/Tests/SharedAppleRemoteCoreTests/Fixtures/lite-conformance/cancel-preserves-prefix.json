@@ -1,0 +1,50 @@
+{
+  "covers": [
+    "Cancel"
+  ],
+  "events": [
+    {
+      "type": "prompt/accepted",
+      "requestId": "r2",
+      "content": "重构成 SwiftUI"
+    },
+    {
+      "type": "stream/delta",
+      "text": "第一步"
+    },
+    {
+      "type": "stream/delta",
+      "text": "：拆分视图。"
+    },
+    {
+      "type": "turn/cancelled",
+      "reason": "user"
+    }
+  ],
+  "expected": {
+    "conversation": [
+      {
+        "role": "user",
+        "text": "重构成 SwiftUI"
+      },
+      {
+        "role": "assistant",
+        "text": "第一步：拆分视图。",
+        "interrupted": true
+      }
+    ],
+    "streaming": {
+      "active": false,
+      "partialText": "",
+      "partialReasoning": ""
+    },
+    "interrupted": true,
+    "toolCalls": [],
+    "planActive": false,
+    "todos": [],
+    "artifacts": [],
+    "lastTurnEnd": "cancelled",
+    "errors": [],
+    "pendingHandoff": null
+  }
+}
