@@ -221,7 +221,7 @@ public final class FilesViewModel {
             openFileError = "读取结果无法解码。"
             return
         }
-        let end = offset + read.content.count
+        let end = offset + read.content.utf16.count
         if let file = openFile, file.path == path {
             openFile = OpenTextFile(
                 path: path,

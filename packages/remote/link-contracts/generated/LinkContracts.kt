@@ -293,9 +293,9 @@ enum class LinkSubagentDiagnosticReason(val wire: String) {
 data class LinkSubagentEntry(
     val kind: String // constant "child",
     val id: String,
-    val activity: LinkSubagentActivity,
-    val hasChildren: Boolean,
-    val mode: LinkSubagentMode,
+    val activity: LinkSubagentActivity? = null,
+    val hasChildren: Boolean? = null,
+    val mode: LinkSubagentMode? = null,
     val label: String? = null,
     val reason: LinkSubagentDiagnosticReason? = null,
 )

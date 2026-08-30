@@ -46,7 +46,9 @@ actor FakeWire: CompanionWireDriving {
         case .success(let frames):
             return AsyncThrowingStream { continuation in
                 for frame in frames { continuation.yield(frame) }
-                continuation.finish()
+                // A live follow stream stays open; the fake's frames have all
+                // arrived and cancellation is the only end, so view models
+                // under test never resubscribe mid-assertion.
             }
         case .failure(let error):
             return AsyncThrowingStream { continuation in
@@ -447,9 +449,10 @@ final class SubagentsViewModelTests: XCTestCase {
         await model.load(parentSessionId: "p1")
         XCTAssertEqual(model.listState, .ready)
         XCTAssertEqual(model.rows.count, 2)
-        XCTAssertEqual(model.rows[0].label, "检索合约文档")
-        XCTAssertEqual(model.rows[0].mode, .continuable)
-        XCTAssertEqual(model.rows[0].activity, .running)
+        guard let firstRow = model.rows.first else { return XCTFail("child row missing") }
+        XCTAssertEqual(firstRow.label, "检索合约文档")
+        XCTAssertEqual(firstRow.mode, .continuable)
+        XCTAssertEqual(firstRow.activity, .running)
         XCTAssertEqual(model.rows[1].reason, .corrupt)
         let listCall = await wire.calls.first { $0.method == "subagents/list" }
         guard case .string(let parent)? = listCall?.args["parentSessionId"] else {
@@ -571,7 +574,7 @@ final class FilesViewModelTests: XCTestCase {
         await wire.stub("workspaceFiles/read", answer: .success(jsonObject([
             "content": .string("# 伴侣\n"),
             "truncated": .bool(false),
-            "size": .number(6),
+            "size": .number(5),
             "mediaType": .string("text/markdown"),
         ])))
         let model = FilesViewModel(wire: wire)
@@ -581,7 +584,7 @@ final class FilesViewModelTests: XCTestCase {
         XCTAssertEqual(model.openFile?.text, "# 伴侣\n")
         XCTAssertEqual(model.openFile?.mediaType, "text/markdown")
         XCTAssertEqual(model.openFile?.hasMore, false)
-        XCTAssertEqual(model.openFile?.loadedUnits, 6)
+        XCTAssertEqual(model.openFile?.loadedUnits, 5)
         XCTAssertNil(model.openFileError)
     }
 

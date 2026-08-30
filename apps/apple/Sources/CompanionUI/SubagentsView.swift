@@ -54,7 +54,7 @@ public struct SubagentsView: View {
                                             .foregroundStyle(.secondary)
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(row.label ?? row.id)
-                                            Text(row.reason == nil ? row.mode.rawValue : (row.reason?.rawValue ?? ""))
+                                            Text(row.reason == nil ? (row.mode?.rawValue ?? "") : (row.reason?.rawValue ?? ""))
                                                 .font(.caption)
                                                 .foregroundStyle(.secondary)
                                         }

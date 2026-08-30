@@ -1034,16 +1034,19 @@
         {
           "name": "activity",
           "kind": "enum",
-          "ref": "LinkSubagentActivity"
+          "ref": "LinkSubagentActivity",
+          "optional": true
         },
         {
           "name": "hasChildren",
-          "kind": "boolean"
+          "kind": "boolean",
+          "optional": true
         },
         {
           "name": "mode",
           "kind": "enum",
-          "ref": "LinkSubagentMode"
+          "ref": "LinkSubagentMode",
+          "optional": true
         },
         {
           "name": "label",

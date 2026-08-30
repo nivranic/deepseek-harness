@@ -536,9 +536,9 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     fields: [
       { name: 'kind', kind: 'const', value: 'child' },
       { name: 'id', kind: 'string' },
-      { name: 'activity', kind: 'enum', ref: 'LinkSubagentActivity' },
-      { name: 'hasChildren', kind: 'boolean' },
-      { name: 'mode', kind: 'enum', ref: 'LinkSubagentMode' },
+      { name: 'activity', kind: 'enum', ref: 'LinkSubagentActivity', optional: true },
+      { name: 'hasChildren', kind: 'boolean', optional: true },
+      { name: 'mode', kind: 'enum', ref: 'LinkSubagentMode', optional: true },
       { name: 'label', kind: 'string', optional: true },
       { name: 'reason', kind: 'enum', ref: 'LinkSubagentDiagnosticReason', optional: true },
     ],

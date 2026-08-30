@@ -44,9 +44,13 @@ public enum WireShape {
         return nil
     }
 
-    /// The nested object under one object field, or nil.
+    /// The nested object under one object field, or nil when the field is
+    /// absent or carries a non-object value (an event-name string is not a
+    /// payload object).
     public static func object(_ value: WireValue, field: String) -> WireValue? {
-        if case .object(let entries) = value { return entries[field] }
+        if case .object(let entries) = value, case .object(let nested)? = entries[field] {
+            return .object(nested)
+        }
         return nil
     }
 

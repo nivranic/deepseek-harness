@@ -291,9 +291,9 @@ public enum LinkSubagentDiagnosticReason: String, Codable {
 public struct LinkSubagentEntry: Codable {
     public let kind: String // constant "child"
     public let id: String
-    public let activity: LinkSubagentActivity
-    public let hasChildren: Bool
-    public let mode: LinkSubagentMode
+    public let activity: LinkSubagentActivity?
+    public let hasChildren: Bool?
+    public let mode: LinkSubagentMode?
     public let label: String?
     public let reason: LinkSubagentDiagnosticReason?
 }

@@ -146,7 +146,9 @@ public final class InteractionViewModel {
             title: title,
             detail: detail
         )
-        guard !inbox.contains(pending) else { return }
+        // The host re-forwards the same interaction after a reconnect; the
+        // event id, not the whole card, is the identity.
+        guard !inbox.contains(where: { $0.id == id }) else { return }
         inbox.append(pending)
     }
 

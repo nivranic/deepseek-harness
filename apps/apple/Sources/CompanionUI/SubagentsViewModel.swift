@@ -7,8 +7,8 @@ import SharedAppleRemoteCore
 /// diagnostic rows).
 public struct SubagentRow: Identifiable, Equatable {
     public let id: String
-    /// Wire mode: `one-shot` or `continuable`.
-    public let mode: LinkSubagentMode
+    /// Wire mode for child rows; a diagnostic row carries none.
+    public let mode: LinkSubagentMode?
     /// Durable creation label, when the descriptor carried one.
     public let label: String?
     /// `running` or `inactive` at the listing's sample.
@@ -17,7 +17,7 @@ public struct SubagentRow: Identifiable, Equatable {
     public let reason: LinkSubagentDiagnosticReason?
 
     public init(
-        id: String, mode: LinkSubagentMode, label: String?,
+        id: String, mode: LinkSubagentMode?, label: String?,
         activity: LinkSubagentActivity?, reason: LinkSubagentDiagnosticReason?
     ) {
         self.id = id
