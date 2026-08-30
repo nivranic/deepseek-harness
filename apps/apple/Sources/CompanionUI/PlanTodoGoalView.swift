@@ -1,43 +1,34 @@
 import SwiftUI
 
-/// The Plan / Todo / Goal pane for the open session: three sections fed by
-/// a snapshot source. Until the session-event contract models land, the
-/// production source derives rows from projections; previews and tests use
-/// the static source.
+/// The Plan / Todo / Goal pane for the open session: three sections read
+/// live from the session view model's folded pane state, which updates with
+/// every follow record.
 public struct PlanTodoGoalView: View {
-    @State private var snapshot = PlanTodoGoalSnapshot.empty
-    private let source: PlanTodoGoalSourcing
     private let sessionModel: RemoteSessionViewModel
 
-    /// - Parameters:
-    ///   - sessionModel: the session view model naming the open session.
-    ///   - source: where the pane's snapshot loads from.
-    public init(
-        sessionModel: RemoteSessionViewModel,
-        source: PlanTodoGoalSourcing = ProjectionPlanTodoGoalSource()
-    ) {
+    /// - Parameter sessionModel: the session view model owning the pane state.
+    public init(sessionModel: RemoteSessionViewModel) {
         self.sessionModel = sessionModel
-        self.source = source
     }
 
     public var body: some View {
+        let pane = sessionModel.planTodoGoal
         NavigationStack {
             List {
-                if snapshot.planSteps.isEmpty && snapshot.todos.isEmpty && snapshot.goals.isEmpty {
+                if !pane.planActive && pane.todos.isEmpty && pane.goals.isEmpty {
                     Text("当前会话暂无计划、待办或目标。")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
-                if !snapshot.planSteps.isEmpty {
-                    Section("计划") {
-                        ForEach(snapshot.planSteps) { step in
-                            Label(step.text, systemImage: step.done ? "checkmark.circle.fill" : "circle")
-                        }
-                    }
+                Section("计划") {
+                    Label(
+                        pane.planActive ? "计划模式进行中" : "计划模式未开启",
+                        systemImage: pane.planActive ? "square.and.pencil.circle.fill" : "circle.slash"
+                    )
                 }
-                if !snapshot.todos.isEmpty {
+                if !pane.todos.isEmpty {
                     Section("待办") {
-                        ForEach(snapshot.todos) { todo in
+                        ForEach(pane.todos) { todo in
                             HStack {
                                 Text(todo.text)
                                 Spacer()
@@ -46,13 +37,13 @@ public struct PlanTodoGoalView: View {
                         }
                     }
                 }
-                if !snapshot.goals.isEmpty {
+                if !pane.goals.isEmpty {
                     Section("目标") {
-                        ForEach(snapshot.goals) { goal in
+                        ForEach(pane.goals) { goal in
                             HStack {
                                 Text(goal.title)
                                 Spacer()
-                                Text(goal.state).font(.caption).foregroundStyle(.secondary)
+                                Text(Self.phaseLabel(goal.state)).font(.caption).foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -60,24 +51,15 @@ public struct PlanTodoGoalView: View {
             }
             .navigationTitle("计划")
         }
-        .task(id: sessionModel.active?.sessionId) {
-            guard let sessionId = sessionModel.active?.sessionId else {
-                snapshot = .empty
-                return
-            }
-            snapshot = await source.snapshot(sessionId: sessionId)
-        }
     }
-}
 
-/// The production source: derives rows from the open session's projected
-/// items. The full projection vocabulary rides the session-event contract
-/// models; until they land this source keeps the pane empty rather than
-/// guessing wire shapes.
-public struct ProjectionPlanTodoGoalSource: PlanTodoGoalSourcing {
-    public init() {}
-
-    public func snapshot(sessionId: String) async -> PlanTodoGoalSnapshot {
-        .empty
+    private static func phaseLabel(_ phase: String) -> String {
+        switch phase {
+        case "active": return "进行中"
+        case "paused": return "已暂停"
+        case "blocked": return "受阻"
+        case "complete": return "已完成"
+        default: return phase
+        }
     }
 }

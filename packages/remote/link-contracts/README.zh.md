@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`dsh-link-contracts` 是原生伴侣端编译所依据的唯一事实来源：一张声明式表命名 link 词汇表的全部 wire 类型——配对载荷、配对响应、带能力对象的宿主描述、载体状态、设备记录与管理状态行——每类一个黄金 fixture 固定确切线缆字节。zod schema 在编译期钉住 TypeScript 协议类型，wire 类型变更会先在这里被 typecheck 拦下；生成器随后产出带 fixture 校验和的语言中立 manifest 以及 Swift `Codable` 与 Kotlin 数据模型，漂移门禁在重新生成的产物提交前使 CI 失败。
+`dsh-link-contracts` 是原生伴侣端编译所依据的唯一事实来源：一张声明式表命名 link 词汇表的全部 wire 类型——配对载荷、配对响应、带能力对象的宿主描述、载体状态、设备记录、管理状态行，以及伴侣端逐事件渲染的会话事件载荷（轮次与步区间、用户与助手消息、工具调用与结果、打包 chunk 行、plan/todo/goal 状态）——每类一个黄金 fixture 固定确切线缆字节。zod schema 在编译期钉住 TypeScript 协议类型，wire 类型变更会先在这里被 typecheck 拦下；生成器随后产出带 fixture 校验和的语言中立 manifest 以及 Swift `Codable` 与 Kotlin 数据模型，漂移门禁在重新生成的产物提交前使 CI 失败。
 
 ## 目录
 
@@ -46,6 +46,7 @@ wire 类型变更会暴露两次：zod schema 不再满足协议类型（typeche
 - **用表而非反射。** `src/index.ts` 的声明式表显式命名每个类型、字段、种类、常量与可选性；发射器是纯字符串工作、不碰文件系统，漂移门禁得以逐字节比较。
 - **每类型三重钉住。** 协议接口（真实契约）、zod schema（`satisfies z.ZodType<…>`）、fixture（`satisfies` 接口）——三者任何漂移先成为编译错误，再成为门禁失败。
 - **常量字段保持为字段。** 版本与 kind 常量以带注释的标量字段发射，而非硬编码解码分支，协议升级在 manifest diff 里一目了然。
+- **会话事件钉住宿主词汇表。** 每个事件载荷 fixture 都满足真实的 `SessionEventMap` 成员（含 `plan/mode`、`todo/write`、`goal/change` 的插件合并），宿主侧载荷变更会先在这里被 typecheck 拦下；行上的 `sessionEvents`/`chunkRows` 标签必须是 `LinkSessionEventKind`/`LinkChunkRowKind` 枚举的取值，发射器拒绝任何其他标签。
 
 ### 源码地图
 
@@ -73,6 +74,7 @@ wire 类型变更会暴露两次：zod schema 不再满足协议类型（typeche
 ## 已知限制与延后工作
 
 - **只发射模型，不含传输**——产物是编解码器；网络、存储与 UI 随 Phase 2 伴侣应用一起到来。
+- **封闭事件子集**——本表建模的是伴侣端渲染的会话事件，而非整体可合并扩展的 `SessionEventMap`；未知事件标签保持线缆合法并按通用方式渲染，超出建模范围的变体字段（例如 turn-end 的错误链）会被生成的解码器忽略。
 - **数字按 double 发射**——时间戳与版本在两种语言里都发射为浮点标量；若出现超出 double 精度的 wire 值再引入精确整数处理。
 
 <a id="dev-note"></a>

@@ -11,18 +11,30 @@
 
 import type { LinkCarrierStatus, LinkHostDescription, LinkPairValue, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { LinkDeviceValue, LinkStatusValue } from '@deepseek-ai/dsh-api-link-controller/types'
+import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
+import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
+import type { ChunkRow } from '@deepseek-ai/dsh-session/chunk-rows'
+import type { GoalId } from '@deepseek-ai/dsh-goal/types'
+// Type-only edges that pull each plugin's `SessionEventMap` merge into this
+// program, so the session-event fixtures below can pin the merged payloads.
+import type { GoalSnapshotChangeMeta } from '@deepseek-ai/dsh-goal'
+import type {} from '@deepseek-ai/dsh-plan-mode'
+import type {} from '@deepseek-ai/dsh-tool-todo/types'
 import { z } from 'zod'
 
 /**
- * One field row in the declarative type table: a scalar, a device-role enum
- * reference, a literal constant, or a reference to another table type. The
- * discriminated union keeps constants and references non-optional where they
- * belong, so the emitter switches without fallbacks.
+ * One field row in the declarative type table: a scalar, a reference to an
+ * enum or object table row (single or array), a literal constant, or a
+ * primitive array. The discriminated union keeps constants and references
+ * non-optional where they belong, so the emitter switches without fallbacks.
  */
 export type ContractField =
-  | { readonly name: string; readonly kind: 'string' | 'number' | 'boolean' | 'role'; readonly optional?: boolean }
+  | { readonly name: string; readonly kind: 'string' | 'number' | 'boolean'; readonly optional?: boolean }
   | { readonly name: string; readonly kind: 'const'; readonly value: string | number; readonly optional?: boolean }
   | { readonly name: string; readonly kind: 'object'; readonly ref: string; readonly optional?: boolean }
+  | { readonly name: string; readonly kind: 'object-array'; readonly ref: string; readonly optional?: boolean }
+  | { readonly name: string; readonly kind: 'string-array' | 'number-array'; readonly optional?: boolean }
+  | { readonly name: string; readonly kind: 'enum'; readonly ref: string; readonly optional?: boolean }
 
 /** One wire type in the declarative table. */
 export interface ContractType {
@@ -33,6 +45,17 @@ export interface ContractType {
   readonly fields: readonly ContractField[]
   /** Which fixture exercises this type, when one exists. */
   readonly fixture?: string
+  /**
+   * Session event type tags whose `data` payload this object models. The
+   * companion-rendered subset of the merge-extensible `SessionEventMap`; tags
+   * must be values of the `LinkSessionEventKind` row.
+   */
+  readonly sessionEvents?: readonly string[]
+  /**
+   * Packed chunk-row tags whose `data` payload this object models; tags must
+   * be values of the `LinkChunkRowKind` row.
+   */
+  readonly chunkRows?: readonly string[]
 }
 
 /**
@@ -74,7 +97,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'deviceId', kind: 'string' },
       { name: 'hostId', kind: 'string' },
       { name: 'hostName', kind: 'string' },
-      { name: 'role', kind: 'role' },
+      { name: 'role', kind: 'enum', ref: 'LinkDeviceRole' },
       { name: 'linkProtocolVersion', kind: 'number' },
     ],
   },
@@ -144,7 +167,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     fields: [
       { name: 'deviceId', kind: 'string' },
       { name: 'name', kind: 'string' },
-      { name: 'role', kind: 'role' },
+      { name: 'role', kind: 'enum', ref: 'LinkDeviceRole' },
       { name: 'createdAt', kind: 'number' },
       { name: 'lastSeenAt', kind: 'number', optional: true },
       { name: 'revokedAt', kind: 'number', optional: true },
@@ -162,6 +185,296 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'hostName', kind: 'string' },
       { name: 'allowRemoteApproval', kind: 'boolean' },
       { name: 'deviceCount', kind: 'number' },
+    ],
+  },
+  {
+    name: 'LinkSessionEventKind',
+    shape: [
+      'turn/start', 'turn/end', 'step/start', 'step/end',
+      'user/message', 'assistant/chunk', 'assistant/message',
+      'tool/call', 'tool/result',
+      'plan/mode', 'todo/write', 'goal/change', 'session/end-seed',
+    ],
+    fields: [],
+  },
+  {
+    name: 'LinkChunkRowKind',
+    shape: ['chunkrow/text-chunks', 'chunkrow/reasoning-chunks', 'chunkrow/tool-call-chunks'],
+    fields: [],
+  },
+  {
+    name: 'LinkTodoStatus',
+    shape: ['pending', 'in_progress', 'completed'],
+    fields: [],
+  },
+  {
+    name: 'LinkTurnEndReasonKind',
+    shape: ['completed', 'aborted', 'blocked', 'error', 'max-tokens', 'interrupted'],
+    fields: [],
+  },
+  {
+    name: 'LinkGoalOperation',
+    shape: ['create', 'edit', 'pause', 'resume', 'complete', 'block', 'clear'],
+    fields: [],
+  },
+  {
+    name: 'LinkGoalPhase',
+    shape: ['active', 'paused', 'blocked', 'complete'],
+    fields: [],
+  },
+  {
+    name: 'LinkTodoItem',
+    shape: 'object',
+    fields: [
+      { name: 'content', kind: 'string' },
+      { name: 'status', kind: 'enum', ref: 'LinkTodoStatus' },
+    ],
+  },
+  {
+    name: 'LinkTodoWriteData',
+    shape: 'object',
+    sessionEvents: ['todo/write'],
+    fixture: 'event-todo-write',
+    fields: [
+      { name: 'todos', kind: 'object-array', ref: 'LinkTodoItem' },
+    ],
+  },
+  {
+    name: 'LinkPlanModeData',
+    shape: 'object',
+    sessionEvents: ['plan/mode'],
+    fixture: 'event-plan-mode',
+    fields: [
+      { name: 'active', kind: 'boolean' },
+    ],
+  },
+  {
+    name: 'LinkGoalBlockReason',
+    shape: 'object',
+    fields: [
+      { name: 'code', kind: 'string' },
+      { name: 'message', kind: 'string' },
+    ],
+  },
+  {
+    name: 'LinkGoalSnapshot',
+    shape: 'object',
+    fields: [
+      { name: 'id', kind: 'string' },
+      { name: 'revision', kind: 'number' },
+      { name: 'objective', kind: 'string' },
+      { name: 'phase', kind: 'enum', ref: 'LinkGoalPhase' },
+      { name: 'blockedReason', kind: 'object', ref: 'LinkGoalBlockReason', optional: true },
+      { name: 'maxGoalRounds', kind: 'number' },
+    ],
+  },
+  {
+    name: 'LinkGoalChangeData',
+    shape: 'object',
+    sessionEvents: ['goal/change'],
+    fixture: 'event-goal-change',
+    fields: [
+      { name: 'kind', kind: 'const', value: 'goal/change' },
+      { name: 'version', kind: 'const', value: 1 },
+      { name: 'operation', kind: 'enum', ref: 'LinkGoalOperation' },
+      { name: 'goal', kind: 'object', ref: 'LinkGoalSnapshot', optional: true },
+      { name: 'roundsStarted', kind: 'number', optional: true },
+      { name: 'createdAt', kind: 'number', optional: true },
+      { name: 'updatedAt', kind: 'number', optional: true },
+      { name: 'clearedAt', kind: 'number', optional: true },
+    ],
+  },
+  {
+    name: 'LinkTurnStartData',
+    shape: 'object',
+    sessionEvents: ['turn/start'],
+    fixture: 'event-turn-start',
+    fields: [
+      { name: 'turn', kind: 'number' },
+    ],
+  },
+  {
+    name: 'LinkTurnEndReason',
+    shape: 'object',
+    fields: [
+      { name: 'kind', kind: 'enum', ref: 'LinkTurnEndReasonKind' },
+    ],
+  },
+  {
+    name: 'LinkTurnEndData',
+    shape: 'object',
+    sessionEvents: ['turn/end'],
+    fixture: 'event-turn-end',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'reason', kind: 'object', ref: 'LinkTurnEndReason' },
+    ],
+  },
+  {
+    name: 'LinkStepSpanData',
+    shape: 'object',
+    sessionEvents: ['step/start', 'step/end'],
+    fixture: 'event-step-start',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'step', kind: 'number' },
+    ],
+  },
+  {
+    name: 'LinkMessageSource',
+    shape: 'object',
+    fields: [
+      { name: 'kind', kind: 'string' },
+      { name: 'plugin', kind: 'string', optional: true },
+      { name: 'provider', kind: 'string', optional: true },
+      { name: 'model', kind: 'string', optional: true },
+      { name: 'callId', kind: 'string', optional: true },
+    ],
+  },
+  {
+    name: 'LinkContentBlock',
+    shape: 'object',
+    fields: [
+      { name: 'type', kind: 'string' },
+      { name: 'text', kind: 'string', optional: true },
+      { name: 'toolCallId', kind: 'string', optional: true },
+      { name: 'isError', kind: 'boolean', optional: true },
+      { name: 'content', kind: 'object-array', ref: 'LinkContentBlock', optional: true },
+    ],
+  },
+  {
+    name: 'LinkUserMessageData',
+    shape: 'object',
+    sessionEvents: ['user/message'],
+    fixture: 'event-user-message',
+    fields: [
+      { name: 'id', kind: 'string' },
+      { name: 'role', kind: 'const', value: 'user' },
+      { name: 'content', kind: 'object-array', ref: 'LinkContentBlock' },
+      { name: 'source', kind: 'object', ref: 'LinkMessageSource' },
+    ],
+  },
+  {
+    name: 'LinkStreamChunk',
+    shape: 'object',
+    fields: [
+      { name: 'type', kind: 'string' },
+      { name: 'index', kind: 'number', optional: true },
+      { name: 'text', kind: 'string', optional: true },
+    ],
+  },
+  {
+    name: 'LinkAssistantChunkData',
+    shape: 'object',
+    sessionEvents: ['assistant/chunk'],
+    fixture: 'event-assistant-chunk',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'step', kind: 'number' },
+      { name: 'chunk', kind: 'object', ref: 'LinkStreamChunk' },
+    ],
+  },
+  {
+    name: 'LinkTokenUsage',
+    shape: 'object',
+    fields: [
+      { name: 'inputTokens', kind: 'number' },
+      { name: 'outputTokens', kind: 'number' },
+      { name: 'totalTokens', kind: 'number', optional: true },
+    ],
+  },
+  {
+    name: 'LinkAssistantMessage',
+    shape: 'object',
+    fields: [
+      { name: 'id', kind: 'string' },
+      { name: 'role', kind: 'const', value: 'assistant' },
+      { name: 'content', kind: 'object-array', ref: 'LinkContentBlock' },
+      { name: 'source', kind: 'object', ref: 'LinkMessageSource' },
+    ],
+  },
+  {
+    name: 'LinkAssistantMessageData',
+    shape: 'object',
+    sessionEvents: ['assistant/message'],
+    fixture: 'event-assistant-message',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'step', kind: 'number' },
+      { name: 'message', kind: 'object', ref: 'LinkAssistantMessage' },
+      { name: 'usage', kind: 'object', ref: 'LinkTokenUsage', optional: true },
+      { name: 'interrupted', kind: 'boolean', optional: true },
+    ],
+  },
+  {
+    name: 'LinkToolCallData',
+    shape: 'object',
+    sessionEvents: ['tool/call'],
+    fixture: 'event-tool-call',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'step', kind: 'number' },
+      { name: 'callId', kind: 'string' },
+      { name: 'name', kind: 'string' },
+      { name: 'arguments', kind: 'string' },
+    ],
+  },
+  {
+    name: 'LinkToolError',
+    shape: 'object',
+    fields: [
+      { name: 'name', kind: 'string' },
+      { name: 'code', kind: 'string' },
+    ],
+  },
+  {
+    name: 'LinkToolResultMessage',
+    shape: 'object',
+    fields: [
+      { name: 'id', kind: 'string' },
+      { name: 'role', kind: 'const', value: 'user' },
+      { name: 'content', kind: 'object-array', ref: 'LinkContentBlock' },
+      { name: 'source', kind: 'object', ref: 'LinkMessageSource' },
+    ],
+  },
+  {
+    name: 'LinkToolResultData',
+    shape: 'object',
+    sessionEvents: ['tool/result'],
+    fixture: 'event-tool-result',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'step', kind: 'number' },
+      { name: 'message', kind: 'object', ref: 'LinkToolResultMessage' },
+      { name: 'error', kind: 'object', ref: 'LinkToolError', optional: true },
+    ],
+  },
+  {
+    name: 'LinkTextChunksData',
+    shape: 'object',
+    chunkRows: ['chunkrow/text-chunks', 'chunkrow/reasoning-chunks'],
+    fixture: 'chunkrow-text-chunks',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'step', kind: 'number' },
+      { name: 'index', kind: 'number' },
+      { name: 'dt', kind: 'number-array' },
+      { name: 'texts', kind: 'string-array' },
+    ],
+  },
+  {
+    name: 'LinkToolCallChunksData',
+    shape: 'object',
+    chunkRows: ['chunkrow/tool-call-chunks'],
+    fixture: 'chunkrow-tool-call-chunks',
+    fields: [
+      { name: 'turn', kind: 'number' },
+      { name: 'step', kind: 'number' },
+      { name: 'index', kind: 'number' },
+      { name: 'dt', kind: 'number-array' },
+      { name: 'id', kind: 'string' },
+      { name: 'name', kind: 'string', optional: true },
+      { name: 'args', kind: 'string-array' },
     ],
   },
 ]
@@ -202,6 +515,32 @@ export const LinkAdminStatusSchema = z.object({
 /** Stable failure codes the `link` namespace and the carrier share. */
 export const LINK_FAILURE_CODES = ['link-unavailable', 'link-disabled', 'bad-request'] as const
 
+/**
+ * Payloads of the companion-rendered session events the table models. The
+ * `SessionEventMap` is merge-extensible on the host; this union is the closed
+ * subset a companion renders, so unknown event tags stay wire-valid and render
+ * generically. Each member is pinned to the real payload type, so a host-side
+ * change to any modeled payload fails typecheck here first.
+ */
+export type LinkSessionEventPayload =
+  | SessionEventMap['turn/start']
+  | SessionEventMap['turn/end']
+  | SessionEventMap['step/start']
+  | SessionEventMap['step/end']
+  | SessionEventMap['user/message']
+  | SessionEventMap['assistant/chunk']
+  | SessionEventMap['assistant/message']
+  | SessionEventMap['tool/call']
+  | SessionEventMap['tool/result']
+  | SessionEventMap['plan/mode']
+  | SessionEventMap['todo/write']
+  | SessionEventMap['goal/change']
+
+/** `data` payloads of the packed chunk-row records the table models. */
+export type LinkChunkRowPayload =
+  | Extract<ChunkRow, { type: 'text-chunks' }>['data']
+  | Extract<ChunkRow, { type: 'tool-call-chunks' }>['data']
+
 /** One golden fixture: the wire bytes every language decodes identically. */
 export interface ContractFixture {
   /** Table name this fixture exercises. */
@@ -210,6 +549,7 @@ export interface ContractFixture {
   readonly id: string
   /** The exact JSON the wire carries, pinned to the owning protocol type. */
   readonly value: LinkPairingPayload | LinkPairValue | LinkHostDescription | LinkCarrierStatus | LinkDeviceValue | LinkStatusValue
+  | LinkSessionEventPayload | LinkChunkRowPayload
 }
 
 /** The golden fixtures; ids match the table's `fixture` rows. */
@@ -287,5 +627,137 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       allowRemoteApproval: false,
       deviceCount: 2,
     } satisfies LinkStatusValue,
+  },
+  {
+    type: 'LinkTurnStartData',
+    id: 'event-turn-start',
+    value: { turn: 1 } satisfies SessionEventMap['turn/start'],
+  },
+  {
+    type: 'LinkTurnEndData',
+    id: 'event-turn-end',
+    value: { turn: 1, reason: { kind: 'completed' } } satisfies SessionEventMap['turn/end'],
+  },
+  {
+    type: 'LinkStepSpanData',
+    id: 'event-step-start',
+    value: { turn: 1, step: 1 } satisfies SessionEventMap['step/start'],
+  },
+  {
+    type: 'LinkUserMessageData',
+    id: 'event-user-message',
+    value: {
+      id: MessageId('m-user-1'),
+      role: 'user',
+      content: [{ type: 'text', text: '帮我把登录页改成液态玻璃风格' }],
+      source: { kind: 'user' },
+    } satisfies SessionEventMap['user/message'],
+  },
+  {
+    type: 'LinkAssistantChunkData',
+    id: 'event-assistant-chunk',
+    value: {
+      turn: 1,
+      step: 1,
+      chunk: { type: 'text-delta', index: 0, text: '你好' },
+    } satisfies SessionEventMap['assistant/chunk'],
+  },
+  {
+    type: 'LinkAssistantMessageData',
+    id: 'event-assistant-message',
+    value: {
+      turn: 1,
+      step: 1,
+      message: {
+        id: MessageId('m-assist-1'),
+        role: 'assistant',
+        content: [{ type: 'text', text: '已完成：登录页液态玻璃样式落地。' }],
+        source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
+      },
+      usage: { inputTokens: 120, outputTokens: 36, totalTokens: 156 },
+    } satisfies SessionEventMap['assistant/message'],
+  },
+  {
+    type: 'LinkToolCallData',
+    id: 'event-tool-call',
+    value: {
+      turn: 1,
+      step: 1,
+      callId: ToolCallId('call-1'),
+      name: 'write_file',
+      arguments: '{"path":"Login.swift"}',
+    } satisfies SessionEventMap['tool/call'],
+  },
+  {
+    type: 'LinkToolResultData',
+    id: 'event-tool-result',
+    value: {
+      turn: 1,
+      step: 1,
+      message: {
+        id: MessageId('m-tool-1'),
+        role: 'user',
+        content: [{
+          type: 'tool-result',
+          toolCallId: ToolCallId('call-1'),
+          content: [{ type: 'text', text: '已写入 42 行。' }],
+        }],
+        source: { kind: 'tool', callId: ToolCallId('call-1') },
+      },
+    } satisfies SessionEventMap['tool/result'],
+  },
+  {
+    type: 'LinkPlanModeData',
+    id: 'event-plan-mode',
+    value: { active: true } satisfies SessionEventMap['plan/mode'],
+  },
+  {
+    type: 'LinkTodoWriteData',
+    id: 'event-todo-write',
+    value: {
+      todos: [
+        { content: '编译伴侣应用', status: 'in_progress' },
+        { content: '跑契约回放测试', status: 'pending' },
+      ],
+    } satisfies SessionEventMap['todo/write'],
+  },
+  {
+    type: 'LinkGoalChangeData',
+    id: 'event-goal-change',
+    value: {
+      kind: 'goal/change',
+      version: 1,
+      operation: 'create',
+      // The brand constructor sits behind the heavy package root; a local
+      // literal keeps this fixture free of that runtime edge.
+      goal: { id: 'goal-1' as GoalId, revision: 1, objective: '发布 0.2 伴侣版', phase: 'active', maxGoalRounds: 12 },
+      roundsStarted: 0,
+      createdAt: 1_759_017_600_000,
+      updatedAt: 1_759_017_600_000,
+    } satisfies GoalSnapshotChangeMeta,
+  },
+  {
+    type: 'LinkTextChunksData',
+    id: 'chunkrow-text-chunks',
+    value: {
+      turn: 1,
+      step: 1,
+      index: 0,
+      dt: [4, 6],
+      texts: ['你好', '，构建'],
+    } satisfies Extract<ChunkRow, { type: 'text-chunks' }>['data'],
+  },
+  {
+    type: 'LinkToolCallChunksData',
+    id: 'chunkrow-tool-call-chunks',
+    value: {
+      turn: 1,
+      step: 1,
+      index: 0,
+      dt: [5],
+      id: ToolCallId('call-1'),
+      name: 'write_file',
+      args: ['{"path"', ':["Log'],
+    } satisfies Extract<ChunkRow, { type: 'tool-call-chunks' }>['data'],
   },
 ]

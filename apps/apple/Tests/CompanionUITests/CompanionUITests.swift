@@ -44,6 +44,32 @@ func jsonObject(_ entries: [String: WireValue]) -> WireValue {
     .object(entries)
 }
 
+/// One follow-frame record: `{type: "event", event: {type, seq, time, data}}`.
+func eventEntry(_ seq: Double, _ type: String, _ data: [String: WireValue]) -> WireValue {
+    jsonObject([
+        "type": .string("event"),
+        "event": jsonObject([
+            "type": .string(type),
+            "seq": .number(seq),
+            "time": .number(1_759_017_600_000 + seq),
+            "data": jsonObject(data),
+        ]),
+    ])
+}
+
+/// One packed-history record: `{type: "chunks", event: {…}}`.
+func chunkEntry(_ seq: Double, _ type: String, _ data: [String: WireValue]) -> WireValue {
+    jsonObject([
+        "type": .string("chunks"),
+        "event": jsonObject([
+            "type": .string(type),
+            "seq": .number(seq),
+            "time": .number(1_759_017_600_000 + seq),
+            "data": jsonObject(data),
+        ]),
+    ])
+}
+
 @MainActor
 final class RemoteSessionViewModelTests: XCTestCase {
     func testLoadsAndProjectsSessionRows() async {
@@ -71,18 +97,62 @@ final class RemoteSessionViewModelTests: XCTestCase {
         XCTAssertEqual(model.listState, .failed("carrier 401: unknown device"))
     }
 
-    func testOpenFoldsSnapshotThenLiveEventsAndTracksCursor() async {
+    func testOpenFoldsRealRecordsIntoTimelineAndPaneState() async {
         let wire = FakeWire()
         await wire.stubStream("session/follow", frames: .success([
             jsonObject([
                 "type": .string("snapshot"),
                 "cursor": .number(4),
                 "records": .array([
-                    jsonObject(["seq": .number(1), "type": .string("record"), "text": .string("hello")]),
-                    jsonObject(["seq": .number(2), "type": .string("record"), "payload": jsonObject(["text": .string("nested")])]),
+                    eventEntry(1, "turn/start", ["turn": .number(1)]),
+                    chunkEntry(2, "chunkrow/text-chunks", [
+                        "turn": .number(1), "step": .number(1), "index": .number(0),
+                        "dt": .array([.number(2)]),
+                        "texts": .array([.string("你"), .string("好")]),
+                    ]),
+                    eventEntry(3, "plan/mode", ["active": .bool(true)]),
+                    eventEntry(4, "assistant/message", [
+                        "turn": .number(1), "step": .number(1),
+                        "message": jsonObject([
+                            "id": .string("m-1"),
+                            "role": .string("assistant"),
+                            "content": .array([jsonObject([
+                                "type": .string("text"),
+                                "text": .string("已完成：登录页液态玻璃样式落地。"),
+                            ])]),
+                            "source": jsonObject([
+                                "kind": .string("model"),
+                                "provider": .string("deepseek"),
+                                "model": .string("deepseek-chat"),
+                            ]),
+                        ]),
+                        "usage": jsonObject([
+                            "inputTokens": .number(120),
+                            "outputTokens": .number(36),
+                            "totalTokens": .number(156),
+                        ]),
+                    ]),
                 ]),
             ]),
-            jsonObject(["seq": .number(5), "type": .string("event"), "event": .string("message/assistant"), "text": .string("live")]),
+            eventEntry(5, "todo/write", [
+                "todos": .array([
+                    jsonObject(["content": .string("编译伴侣应用"), "status": .string("in_progress")]),
+                    jsonObject(["content": .string("跑契约回放测试"), "status": .string("pending")]),
+                ]),
+            ]),
+            eventEntry(6, "goal/change", [
+                "kind": .string("goal/change"),
+                "version": .number(1),
+                "operation": .string("create"),
+                "goal": jsonObject([
+                    "id": .string("goal-1"), "revision": .number(1),
+                    "objective": .string("发布 0.2 伴侣版"),
+                    "phase": .string("active"), "maxGoalRounds": .number(12),
+                ]),
+                "roundsStarted": .number(0),
+                "createdAt": .number(1_759_017_600_000),
+                "updatedAt": .number(1_759_017_600_000),
+            ]),
         ]))
         let model = RemoteSessionViewModel(wire: wire)
         await model.open(sessionId: "s1")
@@ -92,10 +162,49 @@ final class RemoteSessionViewModelTests: XCTestCase {
         try? await Task.sleep(for: .milliseconds(50))
         let active = model.active
         XCTAssertNotNil(active)
-        XCTAssertEqual(active?.sessionId, "s1")
-        XCTAssertEqual(active?.cursor, 5)
-        XCTAssertEqual(active?.items.map(\.text), ["hello", "nested", "live"])
-        XCTAssertEqual(active?.items.map(\.kind), ["record", "record", "event/message/assistant"])
+        XCTAssertEqual(active?.cursor, 6)
+        XCTAssertEqual(active?.items.map(\.kind), [
+            "turn/start", "chunkrow/text-chunks", "plan/mode", "assistant/message", "todo/write", "goal/change",
+        ])
+        XCTAssertEqual(active?.items.map(\.text), [
+            "第 1 轮开始", "你好", "进入计划模式", "已完成：登录页液态玻璃样式落地。", "更新待办（2 项）", "目标：发布 0.2 伴侣版",
+        ])
+        XCTAssertEqual(model.planTodoGoal.planActive, true)
+        XCTAssertEqual(model.planTodoGoal.todos.map(\.text), ["编译伴侣应用", "跑契约回放测试"])
+        XCTAssertEqual(model.planTodoGoal.todos.map(\.status), ["in_progress", "pending"])
+        XCTAssertEqual(model.planTodoGoal.goals.map(\.title), ["发布 0.2 伴侣版"])
+        XCTAssertEqual(model.planTodoGoal.goals.map(\.state), ["active"])
+    }
+
+    func testPaneStateFoldsLastWritePerKind() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([
+            eventEntry(1, "todo/write", [
+                "todos": .array([jsonObject(["content": .string("旧任务"), "status": .string("pending")])]),
+            ]),
+            eventEntry(2, "goal/change", [
+                "kind": .string("goal/change"), "version": .number(1), "operation": .string("create"),
+                "goal": jsonObject([
+                    "id": .string("goal-1"), "revision": .number(1),
+                    "objective": .string("发布 0.2 伴侣版"),
+                    "phase": .string("active"), "maxGoalRounds": .number(12),
+                ]),
+                "roundsStarted": .number(0),
+                "createdAt": .number(1_759_017_600_000),
+                "updatedAt": .number(1_759_017_600_000),
+            ]),
+            eventEntry(3, "goal/change", [
+                "kind": .string("goal/change"), "version": .number(1), "operation": .string("clear"),
+                "clearedAt": .number(1_759_017_700_000),
+            ]),
+        ]))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s1")
+        try? await Task.sleep(for: .milliseconds(50))
+        // The clear tombstone drops the goal; the seeded todo stays until the
+        // next whole-list write replaces it.
+        XCTAssertEqual(model.planTodoGoal.goals, [])
+        XCTAssertEqual(model.planTodoGoal.todos.map(\.text), ["旧任务"])
     }
 
     func testSendSubmitsQueuedPromptAndCancelTargetsActiveSession() async {

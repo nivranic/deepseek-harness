@@ -7202,9 +7202,24 @@ importers:
       '@deepseek-ai/dsh-api-link-controller':
         specifier: workspace:^
         version: link:../../api/link-controller
+      '@deepseek-ai/dsh-goal':
+        specifier: workspace:^
+        version: link:../../goal/goal
       '@deepseek-ai/dsh-link-access':
         specifier: workspace:^
         version: link:../link-access
+      '@deepseek-ai/dsh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@deepseek-ai/dsh-plan-mode':
+        specifier: workspace:^
+        version: link:../../plan/plan-mode
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@deepseek-ai/dsh-tool-todo':
+        specifier: workspace:^
+        version: link:../../todo/tool-todo
       zod:
         specifier: ^4.4.3
         version: 4.4.3

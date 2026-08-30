@@ -64,6 +64,68 @@ final class FixtureDecodingTests: XCTestCase {
         XCTAssertEqual(status.bindError, "EADDRINUSE listen")
         XCTAssertEqual(status.deviceCount, 2)
     }
+
+    /// Every session-event and chunk-row fixture decodes into its contract
+    /// model and re-encodes to the same JSON — the cross-language drift
+    /// guarantee for the event vocabulary.
+    func testSessionEventPayloadsDecodeAndRoundTrip() throws {
+        try roundTrip("event-turn-start", as: LinkTurnStartData.self)
+        try roundTrip("event-turn-end", as: LinkTurnEndData.self)
+        try roundTrip("event-step-start", as: LinkStepSpanData.self)
+        try roundTrip("event-user-message", as: LinkUserMessageData.self)
+        try roundTrip("event-assistant-chunk", as: LinkAssistantChunkData.self)
+        try roundTrip("event-assistant-message", as: LinkAssistantMessageData.self)
+        try roundTrip("event-tool-call", as: LinkToolCallData.self)
+        try roundTrip("event-tool-result", as: LinkToolResultData.self)
+        try roundTrip("event-plan-mode", as: LinkPlanModeData.self)
+        try roundTrip("event-todo-write", as: LinkTodoWriteData.self)
+        try roundTrip("event-goal-change", as: LinkGoalChangeData.self)
+        try roundTrip("chunkrow-text-chunks", as: LinkTextChunksData.self)
+        try roundTrip("chunkrow-tool-call-chunks", as: LinkToolCallChunksData.self)
+    }
+
+    private func roundTrip<T: Codable>(_ id: String, as type: T.Type) throws {
+        let data = try fixture(id)
+        let value = try JSONDecoder().decode(T.self, from: data)
+        let reencoded = try JSONEncoder().encode(value)
+        XCTAssertEqual(
+            try JSONSerialization.jsonObject(with: reencoded) as? [String: Any],
+            try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            "fixture \(id) must round-trip losslessly"
+        )
+    }
+
+    func testEventVocabularyEnumsCarryTheWireTags() {
+        XCTAssertEqual(LinkSessionEventKind.turnStart.rawValue, "turn/start")
+        XCTAssertEqual(LinkSessionEventKind.sessionEndSeed.rawValue, "session/end-seed")
+        XCTAssertEqual(LinkChunkRowKind.textChunks.rawValue, "chunkrow/text-chunks")
+        XCTAssertEqual(LinkTurnEndReasonKind.maxTokens.rawValue, "max-tokens")
+        XCTAssertEqual(LinkTodoStatus.inProgress.rawValue, "in_progress")
+    }
+
+    func testGoalChangeDecodesSnapshotFields() throws {
+        let payload = try JSONDecoder().decode(LinkGoalChangeData.self, from: fixture("event-goal-change"))
+        XCTAssertEqual(payload.operation, .create)
+        XCTAssertEqual(payload.goal?.phase, .active)
+        XCTAssertEqual(payload.goal?.objective, "发布 0.2 伴侣版")
+        XCTAssertEqual(payload.goal?.revision, 1)
+        XCTAssertNil(payload.clearedAt)
+    }
+
+    func testTodoWriteDecodesStatuses() throws {
+        let payload = try JSONDecoder().decode(LinkTodoWriteData.self, from: fixture("event-todo-write"))
+        XCTAssertEqual(payload.todos.map(\.content), ["编译伴侣应用", "跑契约回放测试"])
+        XCTAssertEqual(payload.todos.map(\.status), [.inProgress, .pending])
+    }
+
+    func testToolResultDecodesNestedContent() throws {
+        let payload = try JSONDecoder().decode(LinkToolResultData.self, from: fixture("event-tool-result"))
+        let block = try XCTUnwrap(payload.message.content.first)
+        XCTAssertEqual(block.type, "tool-result")
+        XCTAssertEqual(block.toolCallId, "call-1")
+        XCTAssertEqual(block.content?.first?.text, "已写入 42 行。")
+        XCTAssertNil(payload.error)
+    }
 }
 
 /// Signing and framing vocabulary checks that need no network.

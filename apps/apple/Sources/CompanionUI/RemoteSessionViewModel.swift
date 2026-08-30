@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SharedAppleRemoteCore
 
 /// One session row as the companion lists it.
 public struct SessionRow: Identifiable, Equatable {
@@ -16,8 +17,8 @@ public struct SessionRow: Identifiable, Equatable {
 
 /// One timeline item in the open session: a history record from the follow
 /// snapshot or a live event appended after it. `kind` carries the wire's
-/// record/event type verbatim; `text` carries the summary the generic
-/// projection could extract.
+/// record tag verbatim (`user/message`, `chunkrow/text-chunks`, …); `text`
+/// carries the per-event summary the contract models decoded.
 public struct SessionItem: Identifiable, Equatable {
     public let id: String
     public let seq: Double
@@ -34,9 +35,11 @@ public struct ActiveSession: Equatable {
 }
 
 /// Session-slice state machine over the wire: list sessions, open one, fold
-/// the follow stream's snapshot and live events into a timeline, send
-/// prompts, cancel, and resubscribe after a carrier loss with the last
-/// cursor — the reconnect the reference client prescribes.
+/// the follow stream's snapshot and live events into a timeline rendered
+/// through the session-event contract models, track the plan/todo/goal pane
+/// state from the same records, send prompts, cancel, and resubscribe after
+/// a carrier loss with the last cursor — the reconnect the reference client
+/// prescribes.
 @MainActor
 @Observable
 public final class RemoteSessionViewModel {
@@ -46,6 +49,10 @@ public final class RemoteSessionViewModel {
 
     /// The currently open session, when one is.
     public private(set) var active: ActiveSession?
+
+    /// Plan / Todo / Goal pane state folded from the same records as the
+    /// timeline; whole-value states, so the fold is last-write-wins.
+    public private(set) var planTodoGoal = PlanTodoGoalSnapshot.empty
 
     /// The prompt submission state for the composer.
     public private(set) var sending = false
@@ -90,6 +97,7 @@ public final class RemoteSessionViewModel {
     public func open(sessionId: String) async {
         followTask?.cancel()
         active = ActiveSession(sessionId: sessionId, items: [], cursor: 0, streaming: true)
+        planTodoGoal = .empty
         await follow(sessionId: sessionId, cursor: 0)
     }
 
@@ -166,12 +174,12 @@ public final class RemoteSessionViewModel {
     /// Fold one follow frame into the open session's timeline.
     private func fold(_ frame: WireValue) async {
         guard active != nil else { return }
-        let kind = WireShape.string(frame, field: "type") ?? "record"
+        let kind = WireShape.string(frame, field: "type") ?? ""
         if kind == "snapshot" {
             let records = WireShape.array(frame, field: "records") ?? []
             var items: [SessionItem] = []
             for record in records {
-                if let item = Self.projectItem(record) { items.append(item) }
+                if let item = ingest(record) { items.append(item) }
             }
             let cursor = WireShape.number(frame, field: "cursor") ?? active?.cursor ?? 0
             apply { current in
@@ -181,7 +189,7 @@ public final class RemoteSessionViewModel {
             }
             return
         }
-        if let item = Self.projectItem(frame) {
+        if let item = ingest(frame) {
             apply { current in
                 current.items.append(item)
                 current.cursor = max(current.cursor, item.seq)
@@ -205,39 +213,130 @@ public final class RemoteSessionViewModel {
         }
     }
 
-    /// Project one timeline item from a history record or event entry.
-    static func projectItem(_ value: WireValue) -> SessionItem? {
-        guard let seq = WireShape.number(value, field: "seq") else { return nil }
-        let kind = WireShape.string(value, field: "type") ?? "entry"
-        let event = WireShape.string(value, field: "event") ?? ""
-        let summary = Self.summary(of: value)
+    /// Decode one history record or live event entry (`{type: "event"|"chunks",
+    /// event: {…}}`) into a timeline item, folding the plan/todo/goal pane
+    /// state from the same payload. Unknown tags render as marker rows.
+    private func ingest(_ record: WireValue) -> SessionItem? {
+        guard let event = WireShape.object(record, field: "event") else { return nil }
+        let tag = WireShape.string(event, field: "type") ?? "event"
+        let seq = WireShape.number(event, field: "seq") ?? 0
+        let data = WireShape.object(event, field: "data") ?? .null
+        foldPaneState(tag: tag, data: data)
         return SessionItem(
-            id: "\(Int(seq))-\(kind)-\(event)",
+            id: "\(Int(seq))-\(tag)",
             seq: seq,
-            kind: event.isEmpty ? kind : "\(kind)/\(event)",
-            text: summary
+            kind: tag,
+            text: Self.renderEvent(tag: tag, data: data)
         )
     }
 
-    /// Best-effort text extraction from a record or event payload: the
-    /// first textual content the generic projection can find. Refined
-    /// per-event rendering lands with the session-event contract models.
-    static func summary(of value: WireValue) -> String {
-        if let text = WireShape.string(value, field: "text") { return text }
-        for field in ["content", "message", "payload", "value"] {
-            if let nested = WireShape.object(value, field: field) {
-                let inner = summary(of: nested)
-                if !inner.isEmpty { return inner }
-                if case .array(let items) = (WireShape.object(value, field: field) ?? .null) {
-                    for item in items {
-                        let text = summary(of: item)
-                        if !text.isEmpty { return text }
-                    }
+    /// Last-write-wins fold of the pane's whole-value states.
+    private func foldPaneState(tag: String, data: WireValue) {
+        switch tag {
+        case "plan/mode":
+            if let payload = ContractCodec.decode(LinkPlanModeData.self, from: data) {
+                planTodoGoal.planActive = payload.active
+            }
+        case "todo/write":
+            if let payload = ContractCodec.decode(LinkTodoWriteData.self, from: data) {
+                planTodoGoal.todos = payload.todos.enumerated().map { index, todo in
+                    PlanTodoGoalSnapshot.TodoItem(
+                        id: "\(index)",
+                        text: todo.content,
+                        status: todo.status.rawValue
+                    )
                 }
             }
+        case "goal/change":
+            if let payload = ContractCodec.decode(LinkGoalChangeData.self, from: data) {
+                if let goal = payload.goal {
+                    planTodoGoal.goals = [
+                        PlanTodoGoalSnapshot.GoalRecord(
+                            id: goal.id,
+                            title: goal.objective,
+                            state: goal.phase.rawValue
+                        ),
+                    ]
+                } else {
+                    planTodoGoal.goals = []
+                }
+            }
+        default:
+            break
         }
-        if case .string(let text) = value { return text }
-        return ""
+    }
+
+    /// Per-event summary through the contract models: the fine-grained
+    /// rendering the timeline shows under each record's tag.
+    static func renderEvent(tag: String, data: WireValue) -> String {
+        switch tag {
+        case "turn/start":
+            guard let payload = ContractCodec.decode(LinkTurnStartData.self, from: data) else { return "" }
+            return "第 \(Int(payload.turn)) 轮开始"
+        case "turn/end":
+            guard let payload = ContractCodec.decode(LinkTurnEndData.self, from: data) else { return "" }
+            return turnEndSummary(payload)
+        case "step/start", "step/end":
+            return ""
+        case "user/message":
+            guard let payload = ContractCodec.decode(LinkUserMessageData.self, from: data) else { return "" }
+            return Self.blockText(payload.content)
+        case "assistant/chunk":
+            guard let payload = ContractCodec.decode(LinkAssistantChunkData.self, from: data) else { return "" }
+            return payload.chunk.text ?? ""
+        case "assistant/message":
+            guard let payload = ContractCodec.decode(LinkAssistantMessageData.self, from: data) else { return "" }
+            let base = Self.blockText(payload.message.content)
+            return payload.interrupted == true && !base.isEmpty ? "\(base)（已中断）" : base
+        case "tool/call":
+            guard let payload = ContractCodec.decode(LinkToolCallData.self, from: data) else { return "" }
+            return "调用工具 \(payload.name)"
+        case "tool/result":
+            guard let payload = ContractCodec.decode(LinkToolResultData.self, from: data) else { return "" }
+            if let error = payload.error { return "工具失败：\(error.name)" }
+            return Self.blockText(payload.message.content)
+        case "plan/mode":
+            guard let payload = ContractCodec.decode(LinkPlanModeData.self, from: data) else { return "" }
+            return payload.active ? "进入计划模式" : "退出计划模式"
+        case "todo/write":
+            guard let payload = ContractCodec.decode(LinkTodoWriteData.self, from: data) else { return "" }
+            return "更新待办（\(payload.todos.count) 项）"
+        case "goal/change":
+            guard let payload = ContractCodec.decode(LinkGoalChangeData.self, from: data) else { return "" }
+            if let goal = payload.goal { return "目标：\(goal.objective)" }
+            return "目标已清除"
+        case "chunkrow/text-chunks", "chunkrow/reasoning-chunks":
+            guard let payload = ContractCodec.decode(LinkTextChunksData.self, from: data) else { return "" }
+            return payload.texts.joined()
+        case "chunkrow/tool-call-chunks":
+            return ""
+        default:
+            return ""
+        }
+    }
+
+    private static func turnEndSummary(_ payload: LinkTurnEndData) -> String {
+        let turn = Int(payload.turn)
+        switch payload.reason.kind {
+        case .completed: return "第 \(turn) 轮完成"
+        case .aborted: return "第 \(turn) 轮已中止"
+        case .blocked: return "第 \(turn) 轮被阻断"
+        case .error: return "第 \(turn) 轮出错"
+        case .maxTokens: return "第 \(turn) 轮达到输出上限"
+        case .interrupted: return "第 \(turn) 轮因中断收尾"
+        }
+    }
+
+    /// Visible text of a content-block list: text and reasoning blocks carry
+    /// it; tool-result blocks carry it one level deeper.
+    static func blockText(_ blocks: [LinkContentBlock]) -> String {
+        blocks.map { block -> String in
+            if let text = block.text { return text }
+            if let nested = block.content { return blockText(nested) }
+            return ""
+        }
+        .filter { !$0.isEmpty }
+        .joined(separator: "\n")
     }
 
     static func message(of error: Error) -> String {

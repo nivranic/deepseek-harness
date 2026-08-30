@@ -4,11 +4,36 @@
     "rootDir": "src",
     "outDir": "lib/types"
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "references": [
-    { "path": "../../../vendor/cordis" },
-    { "path": "../../api/link-controller" },
-    { "path": "../../remote/link-access" },
-    { "path": "../../runtime-diagnostics/invariants" }
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../../api/link-controller"
+    },
+    {
+      "path": "../../core/session"
+    },
+    {
+      "path": "../../goal/goal"
+    },
+    {
+      "path": "../../llm/llm"
+    },
+    {
+      "path": "../../plan/plan-mode"
+    },
+    {
+      "path": "../../remote/link-access"
+    },
+    {
+      "path": "../../runtime-diagnostics/invariants"
+    },
+    {
+      "path": "../../todo/tool-todo"
+    }
   ]
 }

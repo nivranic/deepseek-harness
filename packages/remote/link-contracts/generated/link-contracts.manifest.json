@@ -77,7 +77,8 @@
         },
         {
           "name": "role",
-          "kind": "role"
+          "kind": "enum",
+          "ref": "LinkDeviceRole"
         },
         {
           "name": "linkProtocolVersion",
@@ -237,7 +238,8 @@
         },
         {
           "name": "role",
-          "kind": "role"
+          "kind": "enum",
+          "ref": "LinkDeviceRole"
         },
         {
           "name": "createdAt",
@@ -293,6 +295,656 @@
         }
       ],
       "fixture": "admin-status"
+    },
+    {
+      "name": "LinkSessionEventKind",
+      "shape": [
+        "turn/start",
+        "turn/end",
+        "step/start",
+        "step/end",
+        "user/message",
+        "assistant/chunk",
+        "assistant/message",
+        "tool/call",
+        "tool/result",
+        "plan/mode",
+        "todo/write",
+        "goal/change",
+        "session/end-seed"
+      ]
+    },
+    {
+      "name": "LinkChunkRowKind",
+      "shape": [
+        "chunkrow/text-chunks",
+        "chunkrow/reasoning-chunks",
+        "chunkrow/tool-call-chunks"
+      ]
+    },
+    {
+      "name": "LinkTodoStatus",
+      "shape": [
+        "pending",
+        "in_progress",
+        "completed"
+      ]
+    },
+    {
+      "name": "LinkTurnEndReasonKind",
+      "shape": [
+        "completed",
+        "aborted",
+        "blocked",
+        "error",
+        "max-tokens",
+        "interrupted"
+      ]
+    },
+    {
+      "name": "LinkGoalOperation",
+      "shape": [
+        "create",
+        "edit",
+        "pause",
+        "resume",
+        "complete",
+        "block",
+        "clear"
+      ]
+    },
+    {
+      "name": "LinkGoalPhase",
+      "shape": [
+        "active",
+        "paused",
+        "blocked",
+        "complete"
+      ]
+    },
+    {
+      "name": "LinkTodoItem",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "content",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "enum",
+          "ref": "LinkTodoStatus"
+        }
+      ]
+    },
+    {
+      "name": "LinkTodoWriteData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "todos",
+          "kind": "object-array",
+          "ref": "LinkTodoItem"
+        }
+      ],
+      "fixture": "event-todo-write",
+      "sessionEvents": [
+        "todo/write"
+      ]
+    },
+    {
+      "name": "LinkPlanModeData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "active",
+          "kind": "boolean"
+        }
+      ],
+      "fixture": "event-plan-mode",
+      "sessionEvents": [
+        "plan/mode"
+      ]
+    },
+    {
+      "name": "LinkGoalBlockReason",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "code",
+          "kind": "string"
+        },
+        {
+          "name": "message",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "name": "LinkGoalSnapshot",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "revision",
+          "kind": "number"
+        },
+        {
+          "name": "objective",
+          "kind": "string"
+        },
+        {
+          "name": "phase",
+          "kind": "enum",
+          "ref": "LinkGoalPhase"
+        },
+        {
+          "name": "blockedReason",
+          "kind": "object",
+          "ref": "LinkGoalBlockReason",
+          "optional": true
+        },
+        {
+          "name": "maxGoalRounds",
+          "kind": "number"
+        }
+      ]
+    },
+    {
+      "name": "LinkGoalChangeData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "const",
+          "value": "goal/change"
+        },
+        {
+          "name": "version",
+          "kind": "const",
+          "value": 1
+        },
+        {
+          "name": "operation",
+          "kind": "enum",
+          "ref": "LinkGoalOperation"
+        },
+        {
+          "name": "goal",
+          "kind": "object",
+          "ref": "LinkGoalSnapshot",
+          "optional": true
+        },
+        {
+          "name": "roundsStarted",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "createdAt",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "updatedAt",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "clearedAt",
+          "kind": "number",
+          "optional": true
+        }
+      ],
+      "fixture": "event-goal-change",
+      "sessionEvents": [
+        "goal/change"
+      ]
+    },
+    {
+      "name": "LinkTurnStartData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        }
+      ],
+      "fixture": "event-turn-start",
+      "sessionEvents": [
+        "turn/start"
+      ]
+    },
+    {
+      "name": "LinkTurnEndReason",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "enum",
+          "ref": "LinkTurnEndReasonKind"
+        }
+      ]
+    },
+    {
+      "name": "LinkTurnEndData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "reason",
+          "kind": "object",
+          "ref": "LinkTurnEndReason"
+        }
+      ],
+      "fixture": "event-turn-end",
+      "sessionEvents": [
+        "turn/end"
+      ]
+    },
+    {
+      "name": "LinkStepSpanData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        }
+      ],
+      "fixture": "event-step-start",
+      "sessionEvents": [
+        "step/start",
+        "step/end"
+      ]
+    },
+    {
+      "name": "LinkMessageSource",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "plugin",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "provider",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "model",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "callId",
+          "kind": "string",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkContentBlock",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "string"
+        },
+        {
+          "name": "text",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "toolCallId",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "isError",
+          "kind": "boolean",
+          "optional": true
+        },
+        {
+          "name": "content",
+          "kind": "object-array",
+          "ref": "LinkContentBlock",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkUserMessageData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "const",
+          "value": "user"
+        },
+        {
+          "name": "content",
+          "kind": "object-array",
+          "ref": "LinkContentBlock"
+        },
+        {
+          "name": "source",
+          "kind": "object",
+          "ref": "LinkMessageSource"
+        }
+      ],
+      "fixture": "event-user-message",
+      "sessionEvents": [
+        "user/message"
+      ]
+    },
+    {
+      "name": "LinkStreamChunk",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "string"
+        },
+        {
+          "name": "index",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "text",
+          "kind": "string",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkAssistantChunkData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "chunk",
+          "kind": "object",
+          "ref": "LinkStreamChunk"
+        }
+      ],
+      "fixture": "event-assistant-chunk",
+      "sessionEvents": [
+        "assistant/chunk"
+      ]
+    },
+    {
+      "name": "LinkTokenUsage",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "inputTokens",
+          "kind": "number"
+        },
+        {
+          "name": "outputTokens",
+          "kind": "number"
+        },
+        {
+          "name": "totalTokens",
+          "kind": "number",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkAssistantMessage",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "const",
+          "value": "assistant"
+        },
+        {
+          "name": "content",
+          "kind": "object-array",
+          "ref": "LinkContentBlock"
+        },
+        {
+          "name": "source",
+          "kind": "object",
+          "ref": "LinkMessageSource"
+        }
+      ]
+    },
+    {
+      "name": "LinkAssistantMessageData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "message",
+          "kind": "object",
+          "ref": "LinkAssistantMessage"
+        },
+        {
+          "name": "usage",
+          "kind": "object",
+          "ref": "LinkTokenUsage",
+          "optional": true
+        },
+        {
+          "name": "interrupted",
+          "kind": "boolean",
+          "optional": true
+        }
+      ],
+      "fixture": "event-assistant-message",
+      "sessionEvents": [
+        "assistant/message"
+      ]
+    },
+    {
+      "name": "LinkToolCallData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "callId",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "arguments",
+          "kind": "string"
+        }
+      ],
+      "fixture": "event-tool-call",
+      "sessionEvents": [
+        "tool/call"
+      ]
+    },
+    {
+      "name": "LinkToolError",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "code",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "name": "LinkToolResultMessage",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "const",
+          "value": "user"
+        },
+        {
+          "name": "content",
+          "kind": "object-array",
+          "ref": "LinkContentBlock"
+        },
+        {
+          "name": "source",
+          "kind": "object",
+          "ref": "LinkMessageSource"
+        }
+      ]
+    },
+    {
+      "name": "LinkToolResultData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "message",
+          "kind": "object",
+          "ref": "LinkToolResultMessage"
+        },
+        {
+          "name": "error",
+          "kind": "object",
+          "ref": "LinkToolError",
+          "optional": true
+        }
+      ],
+      "fixture": "event-tool-result",
+      "sessionEvents": [
+        "tool/result"
+      ]
+    },
+    {
+      "name": "LinkTextChunksData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "index",
+          "kind": "number"
+        },
+        {
+          "name": "dt",
+          "kind": "number-array"
+        },
+        {
+          "name": "texts",
+          "kind": "string-array"
+        }
+      ],
+      "fixture": "chunkrow-text-chunks",
+      "chunkRows": [
+        "chunkrow/text-chunks",
+        "chunkrow/reasoning-chunks"
+      ]
+    },
+    {
+      "name": "LinkToolCallChunksData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "index",
+          "kind": "number"
+        },
+        {
+          "name": "dt",
+          "kind": "number-array"
+        },
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "args",
+          "kind": "string-array"
+        }
+      ],
+      "fixture": "chunkrow-tool-call-chunks",
+      "chunkRows": [
+        "chunkrow/tool-call-chunks"
+      ]
     }
   ],
   "fixtures": [
@@ -325,6 +977,71 @@
       "id": "admin-status",
       "type": "LinkAdminStatus",
       "sha256": "06cb99a082e09161bdbd2fdcf50f8cc9483a768954e68391dadc09d8009ffb32"
+    },
+    {
+      "id": "event-turn-start",
+      "type": "LinkTurnStartData",
+      "sha256": "158b175fbfdd184299daf609fb8d45efe75489226b61736a41b3cb181f6fe5e3"
+    },
+    {
+      "id": "event-turn-end",
+      "type": "LinkTurnEndData",
+      "sha256": "057ffcb2a82d96257ef2d9e21ca5e360cfbe43720d888d9fc4816d0754282a31"
+    },
+    {
+      "id": "event-step-start",
+      "type": "LinkStepSpanData",
+      "sha256": "96c1b014cc069a511b3bffeda7daa3c8d84c88a5878d98bccf8daed4229d0828"
+    },
+    {
+      "id": "event-user-message",
+      "type": "LinkUserMessageData",
+      "sha256": "da710de34c2eebae2953d9a0fc1b1bc60c96941b91659de8829d564fa90c7df6"
+    },
+    {
+      "id": "event-assistant-chunk",
+      "type": "LinkAssistantChunkData",
+      "sha256": "43ba46f21b45368728f43b95db430af7b64a484644c42a8ba2513038871fcecd"
+    },
+    {
+      "id": "event-assistant-message",
+      "type": "LinkAssistantMessageData",
+      "sha256": "e38264708490dd23aa7acefa8367904fb6dd56a9d0d061f0b72cb4275262cc79"
+    },
+    {
+      "id": "event-tool-call",
+      "type": "LinkToolCallData",
+      "sha256": "d4d20b326f64c547ab77c9149d54ed600512e32dcdc2b357c485f239f0eace8e"
+    },
+    {
+      "id": "event-tool-result",
+      "type": "LinkToolResultData",
+      "sha256": "0d09dc25cab669e475bce4445c427d15ebacb13f02e8ecd17cefcbacc93a4697"
+    },
+    {
+      "id": "event-plan-mode",
+      "type": "LinkPlanModeData",
+      "sha256": "fa5c6480f5fe8b937833535f92d3cea0214cef456265448064b02836abfaebb1"
+    },
+    {
+      "id": "event-todo-write",
+      "type": "LinkTodoWriteData",
+      "sha256": "c349eb1fc2e33f77ce08ff4429fcfd1d053a06bb382bcec647818dfffe12982d"
+    },
+    {
+      "id": "event-goal-change",
+      "type": "LinkGoalChangeData",
+      "sha256": "b56af30ef2941f20605a010c8a0a9a9eff0e17644a5b940f5a06ea8f6dd22383"
+    },
+    {
+      "id": "chunkrow-text-chunks",
+      "type": "LinkTextChunksData",
+      "sha256": "0f13e3f001227b07efaa8a626d1d211a4b716eadae02bcf6f21d484c2c2618f1"
+    },
+    {
+      "id": "chunkrow-tool-call-chunks",
+      "type": "LinkToolCallChunksData",
+      "sha256": "c6d10161bef837e69d0250992765437fd6b6bd4ba3e358c677f54390a9c518a6"
     }
   ]
 }

@@ -30,11 +30,50 @@ describe('link contract fixtures', () => {
     for (const type of LINK_CONTRACT_TYPES) {
       if (type.shape === 'object') expect(type.fields.length).toBeGreaterThan(0)
       for (const fieldRow of type.fields) {
-        if (fieldRow.kind === 'object') expect(names.has(fieldRow.ref ?? '')).toBe(true)
+        if (fieldRow.kind === 'object' || fieldRow.kind === 'object-array' || fieldRow.kind === 'enum') {
+          expect(names.has(fieldRow.ref)).toBe(true)
+        }
       }
     }
     const fixtureRows = LINK_CONTRACT_TYPES.filter(type => type.fixture !== undefined)
     expect(fixtureRows.length).toBe(LINK_CONTRACT_FIXTURES.length)
+  })
+
+  it('claims session events and chunk rows only from the vocabulary enums', () => {
+    const row = (name: string) => {
+      const found = LINK_CONTRACT_TYPES.find(type => type.name === name)
+      expect(found).toBeDefined()
+      return found!.shape as readonly string[]
+    }
+    const eventKinds = row('LinkSessionEventKind')
+    const chunkRowKinds = row('LinkChunkRowKind')
+    const modeledEvents = new Set<string>()
+    for (const type of LINK_CONTRACT_TYPES) {
+      for (const tag of type.sessionEvents ?? []) {
+        expect(eventKinds).toContain(tag)
+        expect(modeledEvents.has(tag)).toBe(false)
+        modeledEvents.add(tag)
+      }
+      for (const tag of type.chunkRows ?? []) expect(chunkRowKinds).toContain(tag)
+    }
+    // Every vocabulary tag except the payload-less seed marker has a payload row.
+    expect([...eventKinds.filter(tag => tag !== 'session/end-seed')].sort())
+      .toEqual([...modeledEvents].sort())
+  })
+
+  it('pins the session event payloads to the real host vocabulary', () => {
+    const byId = new Map(LINK_CONTRACT_FIXTURES.map(fixture => [fixture.id, fixture.value]))
+    expect(byId.get('event-plan-mode')).toEqual({ active: true })
+    expect(byId.get('event-todo-write')).toEqual({
+      todos: [
+        { content: '编译伴侣应用', status: 'in_progress' },
+        { content: '跑契约回放测试', status: 'pending' },
+      ],
+    })
+    expect(byId.get('event-goal-change')).toMatchObject({ operation: 'create', goal: { phase: 'active', revision: 1 } })
+    expect(byId.get('event-tool-result')).toMatchObject({
+      message: { content: [{ type: 'tool-result', toolCallId: 'call-1' }] },
+    })
   })
 })
 
@@ -69,7 +108,39 @@ describe('link contract generator', () => {
     expect(artifacts.swift).toContain('public let v: Double // constant 1')
     expect(artifacts.kotlin).toContain('enum class LinkDeviceRole(val wire: String)')
     expect(artifacts.kotlin).toContain('OBSERVER("observer")')
+    // Slash-bearing wire tags become valid identifiers in both languages.
+    expect(artifacts.swift).toContain('case turnStart = "turn/start"')
+    expect(artifacts.swift).toContain('case chunkrowTextChunks = "chunkrow/text-chunks"')
+    expect(artifacts.kotlin).toContain('TURN_START("turn/start")')
+    expect(artifacts.kotlin).toContain('CHUNKROW_TEXT_CHUNKS("chunkrow/text-chunks")')
+    // Arrays and enum references carry their element types.
+    expect(artifacts.swift).toContain('public let todos: [LinkTodoItem]')
+    expect(artifacts.swift).toContain('public let status: LinkTodoStatus')
+    expect(artifacts.kotlin).toContain('val dt: List<Double>')
+    expect(artifacts.kotlin).toContain('val texts: List<String>')
     expect(artifacts.swift).not.toContain('undefined')
     expect(artifacts.kotlin).not.toContain('undefined')
+  })
+
+  it('rejects broken references and unlisted vocabulary tags', () => {
+    const vocabulary = LINK_CONTRACT_TYPES.filter(type => type.name === 'LinkSessionEventKind' || type.name === 'LinkChunkRowKind')
+    const todoItem = LINK_CONTRACT_TYPES.find(type => type.name === 'LinkTodoItem')!
+    const brokenRef = [...vocabulary, { ...todoItem, fields: [
+      { name: 'status', kind: 'enum' as const, ref: 'LinkNoSuchEnum' },
+    ] }]
+    expect(() => generateLinkContracts(brokenRef)).toThrow(/references unknown type/u)
+    const shapeConfused = [
+      ...vocabulary,
+      LINK_CONTRACT_TYPES.find(type => type.name === 'LinkGoalBlockReason')!,
+      { ...todoItem, fields: [{ name: 'status', kind: 'enum' as const, ref: 'LinkGoalBlockReason' }] },
+    ]
+    expect(() => generateLinkContracts(shapeConfused)).toThrow(/as an enum/u)
+    const alienEvent = [
+      ...LINK_CONTRACT_TYPES.filter(type => type.name !== 'LinkPlanModeData'),
+      { ...LINK_CONTRACT_TYPES.find(type => type.name === 'LinkPlanModeData')!, sessionEvents: ['plan/exited'] },
+    ]
+    expect(() => generateLinkContracts(alienEvent)).toThrow(/unknown session event/u)
+    expect(() => generateLinkContracts(LINK_CONTRACT_TYPES.filter(type => type.name !== 'LinkSessionEventKind')))
+      .toThrow(/LinkSessionEventKind and LinkChunkRowKind/u)
   })
 })

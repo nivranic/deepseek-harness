@@ -8,9 +8,9 @@ enum class LinkDeviceRole(val wire: String) {
     ADMINISTRATOR("administrator"),
 }
 enum class LinkError(val wire: String) {
-    LINKUNAVAILABLE("link-unavailable")
-    LINKDISABLED("link-disabled")
-    BADREQUEST("bad-request"),
+    LINK_UNAVAILABLE("link-unavailable")
+    LINK_DISABLED("link-disabled")
+    BAD_REQUEST("bad-request"),
 }
 data class LinkPairingPayload(
     val v: Double // constant 1,
@@ -80,4 +80,185 @@ data class LinkAdminStatus(
     val hostName: String,
     val allowRemoteApproval: Boolean,
     val deviceCount: Double,
+)
+enum class LinkSessionEventKind(val wire: String) {
+    TURN_START("turn/start")
+    TURN_END("turn/end")
+    STEP_START("step/start")
+    STEP_END("step/end")
+    USER_MESSAGE("user/message")
+    ASSISTANT_CHUNK("assistant/chunk")
+    ASSISTANT_MESSAGE("assistant/message")
+    TOOL_CALL("tool/call")
+    TOOL_RESULT("tool/result")
+    PLAN_MODE("plan/mode")
+    TODO_WRITE("todo/write")
+    GOAL_CHANGE("goal/change")
+    SESSION_END_SEED("session/end-seed"),
+}
+enum class LinkChunkRowKind(val wire: String) {
+    CHUNKROW_TEXT_CHUNKS("chunkrow/text-chunks")
+    CHUNKROW_REASONING_CHUNKS("chunkrow/reasoning-chunks")
+    CHUNKROW_TOOL_CALL_CHUNKS("chunkrow/tool-call-chunks"),
+}
+enum class LinkTodoStatus(val wire: String) {
+    PENDING("pending")
+    IN_PROGRESS("in_progress")
+    COMPLETED("completed"),
+}
+enum class LinkTurnEndReasonKind(val wire: String) {
+    COMPLETED("completed")
+    ABORTED("aborted")
+    BLOCKED("blocked")
+    ERROR("error")
+    MAX_TOKENS("max-tokens")
+    INTERRUPTED("interrupted"),
+}
+enum class LinkGoalOperation(val wire: String) {
+    CREATE("create")
+    EDIT("edit")
+    PAUSE("pause")
+    RESUME("resume")
+    COMPLETE("complete")
+    BLOCK("block")
+    CLEAR("clear"),
+}
+enum class LinkGoalPhase(val wire: String) {
+    ACTIVE("active")
+    PAUSED("paused")
+    BLOCKED("blocked")
+    COMPLETE("complete"),
+}
+data class LinkTodoItem(
+    val content: String,
+    val status: LinkTodoStatus,
+)
+data class LinkTodoWriteData(
+    val todos: List<LinkTodoItem>,
+)
+data class LinkPlanModeData(
+    val active: Boolean,
+)
+data class LinkGoalBlockReason(
+    val code: String,
+    val message: String,
+)
+data class LinkGoalSnapshot(
+    val id: String,
+    val revision: Double,
+    val objective: String,
+    val phase: LinkGoalPhase,
+    val blockedReason: LinkGoalBlockReason? = null,
+    val maxGoalRounds: Double,
+)
+data class LinkGoalChangeData(
+    val kind: String // constant "goal/change",
+    val version: Double // constant 1,
+    val operation: LinkGoalOperation,
+    val goal: LinkGoalSnapshot? = null,
+    val roundsStarted: Double? = null,
+    val createdAt: Double? = null,
+    val updatedAt: Double? = null,
+    val clearedAt: Double? = null,
+)
+data class LinkTurnStartData(
+    val turn: Double,
+)
+data class LinkTurnEndReason(
+    val kind: LinkTurnEndReasonKind,
+)
+data class LinkTurnEndData(
+    val turn: Double,
+    val reason: LinkTurnEndReason,
+)
+data class LinkStepSpanData(
+    val turn: Double,
+    val step: Double,
+)
+data class LinkMessageSource(
+    val kind: String,
+    val plugin: String? = null,
+    val provider: String? = null,
+    val model: String? = null,
+    val callId: String? = null,
+)
+data class LinkContentBlock(
+    val type: String,
+    val text: String? = null,
+    val toolCallId: String? = null,
+    val isError: Boolean? = null,
+    val content: List<LinkContentBlock>? = null,
+)
+data class LinkUserMessageData(
+    val id: String,
+    val role: String // constant "user",
+    val content: List<LinkContentBlock>,
+    val source: LinkMessageSource,
+)
+data class LinkStreamChunk(
+    val type: String,
+    val index: Double? = null,
+    val text: String? = null,
+)
+data class LinkAssistantChunkData(
+    val turn: Double,
+    val step: Double,
+    val chunk: LinkStreamChunk,
+)
+data class LinkTokenUsage(
+    val inputTokens: Double,
+    val outputTokens: Double,
+    val totalTokens: Double? = null,
+)
+data class LinkAssistantMessage(
+    val id: String,
+    val role: String // constant "assistant",
+    val content: List<LinkContentBlock>,
+    val source: LinkMessageSource,
+)
+data class LinkAssistantMessageData(
+    val turn: Double,
+    val step: Double,
+    val message: LinkAssistantMessage,
+    val usage: LinkTokenUsage? = null,
+    val interrupted: Boolean? = null,
+)
+data class LinkToolCallData(
+    val turn: Double,
+    val step: Double,
+    val callId: String,
+    val name: String,
+    val arguments: String,
+)
+data class LinkToolError(
+    val name: String,
+    val code: String,
+)
+data class LinkToolResultMessage(
+    val id: String,
+    val role: String // constant "user",
+    val content: List<LinkContentBlock>,
+    val source: LinkMessageSource,
+)
+data class LinkToolResultData(
+    val turn: Double,
+    val step: Double,
+    val message: LinkToolResultMessage,
+    val error: LinkToolError? = null,
+)
+data class LinkTextChunksData(
+    val turn: Double,
+    val step: Double,
+    val index: Double,
+    val dt: List<Double>,
+    val texts: List<String>,
+)
+data class LinkToolCallChunksData(
+    val turn: Double,
+    val step: Double,
+    val index: Double,
+    val dt: List<Double>,
+    val id: String,
+    val name: String? = null,
+    val args: List<String>,
 )

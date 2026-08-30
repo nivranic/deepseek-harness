@@ -79,3 +79,184 @@ public struct LinkAdminStatus: Codable {
     public let allowRemoteApproval: Bool
     public let deviceCount: Double
 }
+public enum LinkSessionEventKind: String, Codable {
+    case turnStart = "turn/start"
+    case turnEnd = "turn/end"
+    case stepStart = "step/start"
+    case stepEnd = "step/end"
+    case userMessage = "user/message"
+    case assistantChunk = "assistant/chunk"
+    case assistantMessage = "assistant/message"
+    case toolCall = "tool/call"
+    case toolResult = "tool/result"
+    case planMode = "plan/mode"
+    case todoWrite = "todo/write"
+    case goalChange = "goal/change"
+    case sessionEndSeed = "session/end-seed"
+}
+public enum LinkChunkRowKind: String, Codable {
+    case chunkrowTextChunks = "chunkrow/text-chunks"
+    case chunkrowReasoningChunks = "chunkrow/reasoning-chunks"
+    case chunkrowToolCallChunks = "chunkrow/tool-call-chunks"
+}
+public enum LinkTodoStatus: String, Codable {
+    case pending = "pending"
+    case in_progress = "in_progress"
+    case completed = "completed"
+}
+public enum LinkTurnEndReasonKind: String, Codable {
+    case completed = "completed"
+    case aborted = "aborted"
+    case blocked = "blocked"
+    case error = "error"
+    case maxTokens = "max-tokens"
+    case interrupted = "interrupted"
+}
+public enum LinkGoalOperation: String, Codable {
+    case create = "create"
+    case edit = "edit"
+    case pause = "pause"
+    case resume = "resume"
+    case complete = "complete"
+    case block = "block"
+    case clear = "clear"
+}
+public enum LinkGoalPhase: String, Codable {
+    case active = "active"
+    case paused = "paused"
+    case blocked = "blocked"
+    case complete = "complete"
+}
+public struct LinkTodoItem: Codable {
+    public let content: String
+    public let status: LinkTodoStatus
+}
+public struct LinkTodoWriteData: Codable {
+    public let todos: [LinkTodoItem]
+}
+public struct LinkPlanModeData: Codable {
+    public let active: Bool
+}
+public struct LinkGoalBlockReason: Codable {
+    public let code: String
+    public let message: String
+}
+public struct LinkGoalSnapshot: Codable {
+    public let id: String
+    public let revision: Double
+    public let objective: String
+    public let phase: LinkGoalPhase
+    public let blockedReason: LinkGoalBlockReason?
+    public let maxGoalRounds: Double
+}
+public struct LinkGoalChangeData: Codable {
+    public let kind: String // constant "goal/change"
+    public let version: Double // constant 1
+    public let operation: LinkGoalOperation
+    public let goal: LinkGoalSnapshot?
+    public let roundsStarted: Double?
+    public let createdAt: Double?
+    public let updatedAt: Double?
+    public let clearedAt: Double?
+}
+public struct LinkTurnStartData: Codable {
+    public let turn: Double
+}
+public struct LinkTurnEndReason: Codable {
+    public let kind: LinkTurnEndReasonKind
+}
+public struct LinkTurnEndData: Codable {
+    public let turn: Double
+    public let reason: LinkTurnEndReason
+}
+public struct LinkStepSpanData: Codable {
+    public let turn: Double
+    public let step: Double
+}
+public struct LinkMessageSource: Codable {
+    public let kind: String
+    public let plugin: String?
+    public let provider: String?
+    public let model: String?
+    public let callId: String?
+}
+public struct LinkContentBlock: Codable {
+    public let type: String
+    public let text: String?
+    public let toolCallId: String?
+    public let isError: Bool?
+    public let content: [LinkContentBlock]?
+}
+public struct LinkUserMessageData: Codable {
+    public let id: String
+    public let role: String // constant "user"
+    public let content: [LinkContentBlock]
+    public let source: LinkMessageSource
+}
+public struct LinkStreamChunk: Codable {
+    public let type: String
+    public let index: Double?
+    public let text: String?
+}
+public struct LinkAssistantChunkData: Codable {
+    public let turn: Double
+    public let step: Double
+    public let chunk: LinkStreamChunk
+}
+public struct LinkTokenUsage: Codable {
+    public let inputTokens: Double
+    public let outputTokens: Double
+    public let totalTokens: Double?
+}
+public struct LinkAssistantMessage: Codable {
+    public let id: String
+    public let role: String // constant "assistant"
+    public let content: [LinkContentBlock]
+    public let source: LinkMessageSource
+}
+public struct LinkAssistantMessageData: Codable {
+    public let turn: Double
+    public let step: Double
+    public let message: LinkAssistantMessage
+    public let usage: LinkTokenUsage?
+    public let interrupted: Bool?
+}
+public struct LinkToolCallData: Codable {
+    public let turn: Double
+    public let step: Double
+    public let callId: String
+    public let name: String
+    public let arguments: String
+}
+public struct LinkToolError: Codable {
+    public let name: String
+    public let code: String
+}
+public struct LinkToolResultMessage: Codable {
+    public let id: String
+    public let role: String // constant "user"
+    public let content: [LinkContentBlock]
+    public let source: LinkMessageSource
+}
+public struct LinkToolResultData: Codable {
+    public let turn: Double
+    public let step: Double
+    public let message: LinkToolResultMessage
+    public let error: LinkToolError?
+}
+public struct LinkTextChunksData: Codable {
+    public let turn: Double
+    public let step: Double
+    public let index: Double
+    public let dt: [Double]
+    public let texts: [String]
+}
+public struct LinkToolCallChunksData: Codable {
+    public let turn: Double
+    public let step: Double
+    public let index: Double
+    public let dt: [Double]
+    public let id: String
+    public let name: String?
+    public let args: [String]
+}

@@ -66,6 +66,37 @@ public enum WireShape {
     }
 }
 
+extension LinkWire.ResponseEnvelope.Result.Value {
+    /// JSON bytes of the pass-through value, for decoding the generated
+    /// contract models straight off the wire. Nil when the value is not a
+    /// JSON object root a contract payload could live in.
+    public var jsonData: Data? {
+        guard JSONSerialization.isValidJSONObject(jsonObject) else { return nil }
+        return try? JSONSerialization.data(withJSONObject: jsonObject)
+    }
+
+    private var jsonObject: Any {
+        switch self {
+        case .string(let text): return text
+        case .number(let number): return number
+        case .bool(let flag): return flag
+        case .null: return NSNull()
+        case .array(let items): return items.map(\.jsonObject)
+        case .object(let entries): return entries.mapValues(\.jsonObject)
+        }
+    }
+}
+
+/// Decode one generated contract model from a pass-through wire value.
+/// Decoding failures return nil: an unknown-tag or future payload shape
+/// renders through the generic projection instead of failing the timeline.
+enum ContractCodec {
+    static func decode<T: Decodable>(_ type: T.Type, from value: WireValue) -> T? {
+        guard let data = value.jsonData else { return nil }
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
+}
+
 /// The real wire over one paired `LinkClient`.
 public actor LinkClientWireDriver: CompanionWireDriving {
     private let client: LinkClient

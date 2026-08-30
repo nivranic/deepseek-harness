@@ -1,25 +1,15 @@
 import Foundation
 
-/// Read-only snapshots for the Plan / Todo / Goal pane. The pane renders
-/// whatever the host projects; the wire endpoints that fill these rows ride
-/// the session-event contract models and arrive with them — the store
-/// protocol keeps the surface honest about that boundary today.
+/// Read-only snapshot for the Plan / Todo / Goal pane, folded by the session
+/// view model from the session-event contract models (`plan/mode`,
+/// `todo/write`, `goal/change`). All three are whole-value states on the
+/// wire, so the fold is last-write-wins and this value is the complete
+/// current pane state.
 public struct PlanTodoGoalSnapshot: Equatable {
-    public struct PlanStep: Identifiable, Equatable {
-        public let id: String
-        public let text: String
-        public let done: Bool
-
-        public init(id: String, text: String, done: Bool) {
-            self.id = id
-            self.text = text
-            self.done = done
-        }
-    }
-
     public struct TodoItem: Identifiable, Equatable {
         public let id: String
         public let text: String
+        /// Wire status verbatim: `pending`, `in_progress`, or `completed`.
         public let status: String
 
         public init(id: String, text: String, status: String) {
@@ -32,6 +22,7 @@ public struct PlanTodoGoalSnapshot: Equatable {
     public struct GoalRecord: Identifiable, Equatable {
         public let id: String
         public let title: String
+        /// Wire phase verbatim: `active`, `paused`, `blocked`, or `complete`.
         public let state: String
 
         public init(id: String, title: String, state: String) {
@@ -41,39 +32,17 @@ public struct PlanTodoGoalSnapshot: Equatable {
         }
     }
 
-    public var planSteps: [PlanStep]
+    /// Whether plan mode is in force; false before the first `plan/mode`.
+    public var planActive: Bool
     public var todos: [TodoItem]
     public var goals: [GoalRecord]
 
-    public init(planSteps: [PlanStep] = [], todos: [TodoItem] = [], goals: [GoalRecord] = []) {
-        self.planSteps = planSteps
+    public init(planActive: Bool = false, todos: [TodoItem] = [], goals: [GoalRecord] = []) {
+        self.planActive = planActive
         self.todos = todos
         self.goals = goals
     }
 
-    /// The empty snapshot shown before the host projects anything.
+    /// The empty snapshot shown before any pane event arrives.
     public static let empty = PlanTodoGoalSnapshot()
-}
-
-/// Where the pane's snapshots come from. The production source derives rows
-/// from the session's projections; previews and tests inject snapshots.
-public protocol PlanTodoGoalSourcing {
-    /// Load the snapshot for one session.
-    /// - Parameter sessionId: the open session.
-    /// - Returns: the projected rows.
-    func snapshot(sessionId: String) async -> PlanTodoGoalSnapshot
-}
-
-/// A fixed source, for previews and tests.
-public struct StaticPlanTodoGoalSource: PlanTodoGoalSourcing {
-    private let snapshot: PlanTodoGoalSnapshot
-
-    /// - Parameter snapshot: the rows every load returns.
-    public init(snapshot: PlanTodoGoalSnapshot) {
-        self.snapshot = snapshot
-    }
-
-    public func snapshot(sessionId: String) async -> PlanTodoGoalSnapshot {
-        snapshot
-    }
 }
