@@ -11,19 +11,19 @@ import kotlinx.serialization.json.jsonPrimitive
 object LinkPayloadParsing {
     /** Parse one pairing QR payload; null when the text is not the payload
      * JSON or a field carries the wrong type. */
-    fun pairingPayload(text: String): LinkPairingPayload? = runCatching {
-        val obj = Json.parseToJsonElement(text).jsonObject
-        fun string(field: String) = obj[field]?.jsonPrimitive?.takeIf { it.isString }?.content ?: return null
-        fun number(field: String) = obj[field]?.jsonPrimitive?.doubleOrNull ?: return null
-        LinkPairingPayload(
-            v = number("v"),
-            kind = string("kind"),
-            hostId = string("hostId"),
-            hostName = string("hostName"),
-            endpoint = string("endpoint"),
-            spkiFingerprint = string("spkiFingerprint"),
-            code = string("code"),
-            expiresAt = number("expiresAt"),
+    fun pairingPayload(text: String): LinkPairingPayload? {
+        val obj = runCatching { Json.parseToJsonElement(text).jsonObject }.getOrNull() ?: return null
+        fun string(field: String): String? = obj[field]?.jsonPrimitive?.takeIf { it.isString }?.content
+        fun number(field: String): Double? = obj[field]?.jsonPrimitive?.doubleOrNull
+        return LinkPairingPayload(
+            v = number("v") ?: return null,
+            kind = string("kind") ?: return null,
+            hostId = string("hostId") ?: return null,
+            hostName = string("hostName") ?: return null,
+            endpoint = string("endpoint") ?: return null,
+            spkiFingerprint = string("spkiFingerprint") ?: return null,
+            code = string("code") ?: return null,
+            expiresAt = number("expiresAt") ?: return null,
         )
-    }.getOrNull()
+    }
 }
