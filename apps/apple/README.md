@@ -83,7 +83,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 ## Known Limitations and Deferred Work
 
 - **Compiled and tested in CI** — the [Apple Swift](../.github/workflows/apple-swift.yml) lane compiles the package and runs all tests on `macos-latest` for every `apps/apple` change (pull request, dev, and master); the fixture replay runs on both sides of the drift gate.
-- **No app targets yet** — the thin Xcode shells over the two libraries arrive with the macOS compile lane; files/diff/artifact viewers and subagent navigation follow the session-event contract models.
+- **App shells build in CI** — `project.yml` (XcodeGen) defines the chapter-49 targets: DSH Companion for iPhone/iPad and the Mac companion, each a `@main` SwiftUI host embedding `CompanionRootView`; the lane generates `Companion.xcodeproj` (never committed) and builds both schemes. The macOS direct-host target and the richer files/diff/artifact viewers follow.
 - **Single host identity** — the credentials store holds one pairing; multi-host switching arrives with the companion's host list.
 
 <a id="dev-note"></a>
