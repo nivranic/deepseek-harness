@@ -1,9 +1,9 @@
 package ai.deepseek.dsh.companion
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowCollector
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
