@@ -2,14 +2,16 @@ import SharedAppleRemoteCore
 import SwiftUI
 
 /// The companion root: pairing when no identity exists, then the tabbed
-/// surface — sessions, the interaction inbox, the plan/todo/goal pane, and
-/// the tool trajectory — under the selected visual style.
+/// surface — sessions, the interaction inbox, the plan/todo/goal pane, the
+/// tool trajectory, and the read-only files browser — under the selected
+/// visual style.
 public struct CompanionRootView: View {
     @State private var style: CompanionStyle = .neumorphic
     @State private var paired: Bool
 
     @State private var sessionModel: RemoteSessionViewModel?
     @State private var interactionModel: InteractionViewModel?
+    @State private var filesModel: FilesViewModel?
 
     private let client: LinkClient?
 
@@ -22,10 +24,11 @@ public struct CompanionRootView: View {
 
     public var body: some View {
         Group {
-            if paired, let sessionModel, let interactionModel {
+            if paired, let sessionModel, let interactionModel, let filesModel {
                 CompanionTabView(
                     sessionModel: sessionModel,
                     interactionModel: interactionModel,
+                    filesModel: filesModel,
                     style: $style
                 )
             } else {
@@ -40,10 +43,13 @@ public struct CompanionRootView: View {
             let wire = LinkClientWireDriver(client: client ?? unpairedClient())
             let sessions = RemoteSessionViewModel(wire: wire)
             let interactions = InteractionViewModel(wire: wire)
+            let files = FilesViewModel(wire: wire)
             sessionModel = sessions
             interactionModel = interactions
+            filesModel = files
             await sessions.loadSessions()
             await interactions.startWatching()
+            await files.start()
         }
     }
 
@@ -58,10 +64,11 @@ public struct CompanionRootView: View {
     }
 }
 
-/// The three-tab surface once paired.
+/// The five-tab surface once paired.
 struct CompanionTabView: View {
     let sessionModel: RemoteSessionViewModel
     let interactionModel: InteractionViewModel
+    let filesModel: FilesViewModel
     @Binding var style: CompanionStyle
 
     var body: some View {
@@ -74,6 +81,8 @@ struct CompanionTabView: View {
                 .tabItem { Label("计划", systemImage: "list.clipboard") }
             ToolsView(sessionModel: sessionModel)
                 .tabItem { Label("工具", systemImage: "wrench.and.screwdriver") }
+            FilesView(model: filesModel)
+                .tabItem { Label("文件", systemImage: "folder") }
         }
         .toolbar {
             ToolbarItem {

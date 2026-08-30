@@ -7,10 +7,16 @@ import SharedAppleRemoteCore
 actor FakeWire: CompanionWireDriving {
     private(set) var calls: [(method: String, args: [String: WireValue])] = []
     private var answers: [String: Result<WireValue, Error>] = [:]
+    private var answerQueues: [String: [Result<WireValue, Error>]] = [:]
     private var streams: [String: Result<[WireValue], Error>] = [:]
 
     func stub(_ method: String, answer: Result<WireValue, Error>) {
         answers[method] = answer
+    }
+
+    /// Queue sequential answers for one method; each call pops the next.
+    func stubSequence(_ method: String, answers: [Result<WireValue, Error>]) {
+        answerQueues[method] = answers
     }
 
     func stubStream(_ endpoint: String, frames: Result<[WireValue], Error>) {
@@ -19,6 +25,14 @@ actor FakeWire: CompanionWireDriving {
 
     func call(_ method: String, args: [String: WireValue]) async throws -> WireValue {
         calls.append((method, args))
+        if var queue = answerQueues[method], !queue.isEmpty {
+            let next = queue.removeFirst()
+            answerQueues[method] = queue
+            switch next {
+            case .success(let value): return value
+            case .failure(let error): throw error
+            }
+        }
         switch answers[method] ?? .success(.null) {
         case .success(let value): return value
         case .failure(let error): throw error
@@ -354,6 +368,173 @@ final class InteractionViewModelTests: XCTestCase {
 /// Domain-state conformance (plan chapter 62): the generated golden
 /// scenarios — records plus the TypeScript reference fold's expected state —
 /// must fold to exactly that state here too.
+@MainActor
+final class FilesViewModelTests: XCTestCase {
+    private func listValue(_ path: String, _ entries: [WireValue]) -> WireValue {
+        jsonObject(["path": .string(path), "entries": .array(entries)])
+    }
+
+    private func entry(_ name: String, _ type: String, _ size: Double? = nil) -> WireValue {
+        var fields: [String: WireValue] = ["name": .string(name), "type": .string(type)]
+        if let size { fields["size"] = .number(size) }
+        return jsonObject(fields)
+    }
+
+    func testFollowsWorkspacesAndListsTheRoot() async {
+        let wire = FakeWire()
+        await wire.stubStream("workspace/follow", frames: .success([
+            jsonObject([
+                "type": .string("baseline"),
+                "value": jsonObject([
+                    "items": .array([
+                        jsonObject([
+                            "workspaceId": .string("w1"),
+                            "title": .string("项目"),
+                            "path": .string("E:/work/project"),
+                            "sessionIds": .array([]),
+                            "createdAt": .string("2026-08-30T00:00:00Z"),
+                            "updatedAt": .string("2026-08-30T00:00:00Z"),
+                        ]),
+                    ]),
+                    "archivedSessionIds": .array([]),
+                ]),
+            ]),
+        ]))
+        await wire.stub("workspaceFiles/list", answer: .success(listValue("", [
+            entry("src", "directory"),
+            entry("readme.md", "file", 12),
+        ])))
+        let model = FilesViewModel(wire: wire)
+        await model.start()
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.workspaces.map(\.title), ["项目"])
+
+        await model.select(workspaceId: "w1")
+        XCTAssertEqual(model.listState, .ready)
+        XCTAssertEqual(model.directory, "")
+        XCTAssertEqual(model.entries.map(\.name), ["src", "readme.md"])
+        XCTAssertEqual(model.entries.map(\.type), [.directory, .file])
+        XCTAssertEqual(model.entries[1].size, 12)
+        let listCall = await wire.calls.first { $0.method == "workspaceFiles/list" }
+        guard case .string(let sentWorkspace)? = listCall?.args["workspaceId"] else {
+            return XCTFail("list must carry the workspaceId")
+        }
+        XCTAssertEqual(sentWorkspace, "w1")
+        XCTAssertNil(listCall?.args["path"])
+    }
+
+    func testNavigatesIntoDirectoriesAndBackUp() async {
+        let wire = FakeWire()
+        await wire.stubStream("workspace/follow", frames: .success([]))
+        await wire.stubSequence("workspaceFiles/list", answers: [
+            .success(listValue("", [entry("src", "directory")])),
+            .success(listValue("src", [entry("main.ts", "file", 24)])),
+            .success(listValue("", [entry("src", "directory")])),
+        ]))
+        let model = FilesViewModel(wire: wire)
+        await model.start()
+        await model.select(workspaceId: "w1")
+        await model.open(model.entries[0])
+        XCTAssertEqual(model.directory, "src")
+        XCTAssertEqual(model.entries.map(\.name), ["main.ts"])
+        guard case .string(let sentPath)? = await wire.calls.last?.args["path"] else {
+            return XCTFail("nested list must carry the path")
+        }
+        XCTAssertEqual(sentPath, "src")
+        await model.goUp()
+        XCTAssertEqual(model.directory, "")
+        XCTAssertEqual(model.entries.map(\.name), ["src"])
+        await model.goUp()
+        // The root stays put.
+        XCTAssertEqual(model.directory, "")
+    }
+
+    func testReadsWholeFiles() async {
+        let wire = FakeWire()
+        await wire.stubStream("workspace/follow", frames: .success([]))
+        await wire.stub("workspaceFiles/list", answer: .success(listValue("", [entry("readme.md", "file", 12)])))
+        await wire.stub("workspaceFiles/read", answer: .success(jsonObject([
+            "content": .string("# 伴侣\n"),
+            "truncated": .bool(false),
+            "size": .number(6),
+            "mediaType": .string("text/markdown"),
+        ])))
+        let model = FilesViewModel(wire: wire)
+        await model.start()
+        await model.select(workspaceId: "w1")
+        await model.open(model.entries[0])
+        XCTAssertEqual(model.openFile?.text, "# 伴侣\n")
+        XCTAssertEqual(model.openFile?.mediaType, "text/markdown")
+        XCTAssertEqual(model.openFile?.hasMore, false)
+        XCTAssertEqual(model.openFile?.loadedUnits, 6)
+        XCTAssertNil(model.openFileError)
+    }
+
+    func testPagesFilesTheHostReportsTooLarge() async {
+        let wire = FakeWire()
+        await wire.stubStream("workspace/follow", frames: .success([]))
+        await wire.stub("workspaceFiles/list", answer: .success(listValue("", [entry("big.log", "file", 200_000)])))
+        let pageSize = FilesViewModel.pageSize
+        await wire.stubSequence("workspaceFiles/read", answers: [
+            // The unbounded read the host caps.
+            .failure(LinkClientError.refused(code: "file-too-large", message: "read it in ranges")),
+            // The automatic first page.
+            .success(jsonObject([
+                "content": .string(String(repeating: "x", count: pageSize)),
+                "truncated": .bool(true),
+                "size": .number(Double(pageSize * 3)),
+                "mediaType": .string("text/plain"),
+            ])),
+            // loadMore's page.
+            .success(jsonObject([
+                "content": .string("尾"),
+                "truncated": .bool(false),
+                "size": .number(Double(pageSize * 3)),
+                "mediaType": .string("text/plain"),
+            ])),
+        ]))
+        let model = FilesViewModel(wire: wire)
+        await model.start()
+        await model.select(workspaceId: "w1")
+        await model.open(model.entries[0])
+        XCTAssertEqual(model.openFile?.text.count, pageSize)
+        XCTAssertEqual(model.openFile?.hasMore, true)
+        XCTAssertEqual(model.openFile?.loadedUnits, pageSize)
+        XCTAssertEqual(model.openFile?.totalUnits, pageSize * 3)
+        // The retry carried the explicit page range.
+        let reads = await wire.calls.filter { $0.method == "workspaceFiles/read" }.map(\.args)
+        XCTAssertEqual(reads.count, 2)
+        XCTAssertEqual(reads[1]["offset"], .number(0))
+        XCTAssertEqual(reads[1]["limit"], .number(Double(pageSize)))
+
+        await model.loadMore()
+        XCTAssertEqual(model.openFile?.text.count, pageSize + 1)
+        XCTAssertEqual(model.openFile?.hasMore, false)
+        XCTAssertEqual(model.openFile?.loadedUnits, pageSize + 1)
+    }
+
+    func testSurfacesBinaryAndBoundaryFailures() async {
+        let wire = FakeWire()
+        await wire.stubStream("workspace/follow", frames: .success([]))
+        await wire.stubSequence("workspaceFiles/list", answers: [
+            .success(listValue("", [entry("logo.bin", "file", 9), entry("src", "directory")])),
+            .failure(LinkClientError.refused(code: "path-outside-workspace", message: "escapes")),
+        ])
+        await wire.stub("workspaceFiles/read", answer: .failure(LinkClientError.refused(code: "file-binary", message: "not text")))
+        let model = FilesViewModel(wire: wire)
+        await model.start()
+        await model.select(workspaceId: "w1")
+        await model.open(model.entries[0])
+        XCTAssertEqual(model.openFileError, "二进制文件，无法预览。")
+        XCTAssertNil(model.openFile)
+
+        // Navigating into a directory the host rejects (a link escaping the
+        // root) surfaces the containment failure as list state.
+        await model.open(model.entries[1])
+        XCTAssertEqual(model.listState, .failed("路径越出工作区根。"))
+    }
+}
+
 final class CompanionFoldConformanceTests: XCTestCase {
     private var conformanceDirectory: URL {
         URL(fileURLWithPath: #filePath, isDirectory: false)

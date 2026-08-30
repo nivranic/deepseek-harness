@@ -136,7 +136,7 @@ public final class InteractionViewModel {
         let sessionId = WireShape.string(frame, field: "sessionId") ?? ""
         let payload = WireShape.object(frame, field: "event") ?? frame
         let title = WireShape.string(payload, field: "title") ?? (isApproval ? "Approval requested" : "Question asked")
-        let detail = RemoteSessionViewModel.summary(of: payload)
+        let detail = Self.detailText(of: payload)
         let pending = PendingInteraction(
             id: id,
             kind: isApproval ? .approval : .question,
@@ -146,5 +146,15 @@ public final class InteractionViewModel {
         )
         guard !inbox.contains(pending) else { return }
         inbox.append(pending)
+    }
+
+    /// Best-effort visible text of a forwarded interaction payload.
+    private static func detailText(of value: WireValue) -> String {
+        if let text = WireShape.string(value, field: "text") { return text }
+        for field in ["content", "message"] {
+            if let nested = WireShape.object(value, field: field),
+               let text = WireShape.string(nested, field: "text") { return text }
+        }
+        return ""
     }
 }
