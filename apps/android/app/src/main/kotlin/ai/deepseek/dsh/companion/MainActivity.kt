@@ -167,6 +167,19 @@ object CompanionRuntime {
 fun CompanionApp(model: CompanionViewModel = viewModel()) {
     var tab by remember { mutableStateOf(0) }
     val context = androidx.compose.ui.platform.LocalContext.current
+    // The chapter-70 runtime grant: Android 13+ asks for POST_NOTIFICATIONS
+    // at runtime — once per process while the grant is missing — and the
+    // answer lands in the projection the push chain reads.
+    val grant = remember { NotificationGrantController(context) }
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+    ) { answered -> grant.onUserAnswer(answered) }
+    LaunchedEffect(model.paired) {
+        grant.refresh()
+        if (grant.state.value.shouldRequest) {
+            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     // The chapter-70 push chain: each forward the live stream delivers
     // becomes one minimized local notification; details stay behind the
     // secure link the app opens into.

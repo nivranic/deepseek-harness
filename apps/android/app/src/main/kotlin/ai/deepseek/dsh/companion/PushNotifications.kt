@@ -17,6 +17,13 @@ object PushNotifications {
     private const val CHANNEL_ID = "dsh-link-push"
     private const val NOTIFICATION_ID = 70
 
+    /** The system's enablement read the grant projection and the presenter
+     * share. */
+    fun notificationsEnabled(context: Context): Boolean {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        return manager.areNotificationsEnabled()
+    }
+
     fun present(context: Context, push: CompanionPush) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
