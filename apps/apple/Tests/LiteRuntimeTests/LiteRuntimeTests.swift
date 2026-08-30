@@ -148,26 +148,56 @@ final class LiteStoreTests: XCTestCase {
 }
 
 final class LiteProviderTests: XCTestCase {
-    private func chunk(_ json: String) throws -> Data {
-        try JSONSerialization.data(withJSONObject: ["choices": [["delta": try JSONSerialization.jsonObject(with: Data(json.utf8))]]])
+    /// One NDJSON wire line carrying a single delta, exactly as the provider
+    /// receives it.
+    private func wireLine(_ delta: [String: Any]) throws -> String {
+        let data = try JSONSerialization.data(withJSONObject: ["choices": [["delta": delta]]])
+        return String(data: data, encoding: .utf8)!
     }
 
     func testParsesSSEAndNDJSDLines() throws {
-        XCTAssertEqual(
-            LiteStreamLineParser.parse(line: "data: \(String(data: try chunk("{\"reasoning_content\":\"先想\"}"), encoding: .utf8)!)"),
-            .reasoning("先想")
-        )
-        XCTAssertEqual(
-            LiteStreamLineParser.parse(line: String(data: try chunk("{\"content\":\"你好\"}"), encoding: .utf8)!),
-            .text("你好")
-        )
-        let call = String(data: try chunk(
-            "{\"tool_calls\":[{\"id\":\"c1\",\"index\":0,\"function\":{\"name\":\"web_search\",\"arguments\":\"{}\"}}]}"
-        ), encoding: .utf8)!
-        XCTAssertEqual(LiteStreamLineParser.parse(line: "data: \(call)"), .toolCall(id: "c1", name: "web_search", arguments: "{}"))
-        XCTAssertNil(LiteStreamLineParser.parse(line: "data: [DONE]"))
-        XCTAssertNil(LiteStreamLineParser.parse(line: ""))
-        XCTAssertNil(LiteStreamLineParser.parse(line: ": keep-alive"))
+        if case .reasoning("先想")? = LiteStreamLineParser.parsePiece(line: "data: " + try wireLine(["reasoning_content": "先想"])) {} else {
+            XCTFail("reasoning delta did not parse")
+        }
+        if case .text("你好")? = LiteStreamLineParser.parsePiece(line: try wireLine(["content": "你好"])) {} else {
+            XCTFail("text delta did not parse")
+        }
+        let entries: [[String: Any]] = [["id": "c1", "index": 0, "function": ["name": "web_search", "arguments": "{}"]]]
+        if case .toolCallEntries(let parsed)? = LiteStreamLineParser.parsePiece(line: "data: " + try wireLine(["tool_calls": entries])) {
+            XCTAssertEqual(parsed[0]["id"] as? String, "c1")
+            XCTAssertEqual((parsed[0]["function"] as? [String: Any])?["name"] as? String, "web_search")
+        } else {
+            XCTFail("tool-call delta did not parse")
+        }
+        XCTAssertNil(LiteStreamLineParser.parsePiece(line: "data: [DONE]"))
+        XCTAssertNil(LiteStreamLineParser.parsePiece(line: ""))
+        XCTAssertNil(LiteStreamLineParser.parsePiece(line: ": keep-alive"))
+    }
+
+    func testAssemblesFragmentedToolCallDeltasIntoWholeCalls() {
+        let quote = String(UnicodeScalar(34))
+        let assembled = "{" + quote + "path" + quote + ":" + quote + "Log" + quote + "}"
+        var assembler = LiteToolCallAssembler()
+        assembler.ingest(["id": "call-1", "index": 0, "function": ["name": "write_file", "arguments": "{"]])
+        assembler.ingest(["index": 0, "function": ["arguments": quote + "path" + quote + ":" + quote + "Log" + quote]])
+        assembler.ingest(["index": 0, "function": ["arguments": "}"]])
+        XCTAssertEqual(assembler.finish(), [
+            .toolCall(id: "call-1", name: "write_file", arguments: assembled),
+        ])
+        XCTAssertEqual(assembler.finish(), [], "flush drains the slots")
+    }
+
+    func testAssemblesParallelCallsInIndexOrderWithDefaults() {
+        var assembler = LiteToolCallAssembler()
+        assembler.ingest(["index": 1, "function": ["name": "url_fetch", "arguments": "{1:"]])
+        assembler.ingest(["index": 0, "function": ["name": "web_search"]])
+        assembler.ingest(["index": 1, "function": ["arguments": "2}"]])
+        assembler.ingest(["index": 0, "function": ["arguments": "{}"]])
+        assembler.ingest(["index": 2, "function": ["arguments": "no name ever arrives"]])
+        XCTAssertEqual(assembler.finish(), [
+            .toolCall(id: "tool-0", name: "web_search", arguments: "{}"),
+            .toolCall(id: "tool-1", name: "url_fetch", arguments: "{1:2}"),
+        ])
     }
 
     func testDriverFoldsTransportFailuresIntoTheSpecVocabulary() async {

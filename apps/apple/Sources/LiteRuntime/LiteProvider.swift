@@ -24,13 +24,21 @@ public enum LiteTransportError: Error, Equatable {
 
 /// One parsed streaming line: either server-sent events (`data: {…}` lines
 /// with a `[DONE]` terminator) or bare NDJSON, in the OpenAI-compatible
-/// chat-completions delta shape DeepSeek serves.
+/// chat-completions delta shape DeepSeek serves. Tool-call deltas stay raw
+/// entries — argument fragments need cross-line assembly first.
+public enum LiteStreamPiece {
+    case text(String)
+    case reasoning(String)
+    case toolCallEntries([[String: Any]])
+}
+
+/// One parsed streaming line into its piece kinds.
 public enum LiteStreamLineParser {
-    /// Decode one raw line into a chunk, if it carries one.
+    /// Decode one raw line into a piece, if it carries one.
     /// - Parameter line: one trimmed stream line.
-    /// - Returns: the chunk, or nil for blanks, `data: [DONE]`, and
+    /// - Returns: the piece, or nil for blanks, `data: [DONE]`, and
     ///   non-payload lines (comments, event names).
-    public static func parse(line: String) -> LiteStreamChunk? {
+    public static func parsePiece(line: String) -> LiteStreamPiece? {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty || trimmed.hasPrefix(":") { return nil }
         let payload = trimmed.hasPrefix("data:")
@@ -47,23 +55,60 @@ public enum LiteStreamLineParser {
         if let text = delta["content"] as? String, !text.isEmpty {
             return .text(text)
         }
-        if let calls = delta["tool_calls"] as? [[String: Any]],
-           let call = calls.first,
-           let function = call["function"] as? [String: Any],
-           let name = function["name"] as? String,
-           let arguments = function["arguments"] as? String {
-            let id = call["id"] as? String ?? "tool-\(call["index"] ?? 0)"
-            return .toolCall(id: id, name: name, arguments: arguments)
+        if let calls = delta["tool_calls"] as? [[String: Any]], !calls.isEmpty {
+            return .toolCallEntries(calls)
         }
         return nil
     }
 }
 
+/// Assembles fragmented tool-call deltas into whole calls the loop can
+/// dispatch: the wire identifies each call slot by `index`, the first delta
+/// of a slot carries `id` and the function `name`, later deltas append
+/// argument fragments, and the completed calls flush in index order once the
+/// stream ends — the moment an OpenAI-compatible stream is complete.
+public struct LiteToolCallAssembler {
+    private struct Slot {
+        var id: String
+        var name: String
+        var arguments: String
+    }
+
+    private var slots: [Int: Slot] = [:]
+
+    public init() {}
+
+    /// Fold one raw `tool_calls` entry into its slot.
+    /// - Parameter entry: one decoded delta entry.
+    public mutating func ingest(_ entry: [String: Any]) {
+        let index = entry["index"] as? Int ?? 0
+        let function = entry["function"] as? [String: Any] ?? [:]
+        var slot = slots[index] ?? Slot(
+            id: entry["id"] as? String ?? "tool-" + String(index),
+            name: function["name"] as? String ?? "",
+            arguments: ""
+        )
+        if let name = function["name"] as? String, !name.isEmpty, slot.name.isEmpty { slot.name = name }
+        if let arguments = function["arguments"] as? String { slot.arguments += arguments }
+        slots[index] = slot
+    }
+
+    /// Flush every assembled call in index order; a slot that never received
+    /// a name is dropped, not dispatched half-formed.
+    /// - Returns: whole-call chunks for the loop.
+    public mutating func finish() -> [LiteStreamChunk] {
+        let chunks = slots.keys.sorted().compactMap { index -> LiteStreamChunk? in
+            guard let slot = slots[index], !slot.name.isEmpty else { return nil }
+            return .toolCall(id: slot.id, name: slot.name, arguments: slot.arguments)
+        }
+        slots = [:]
+        return chunks
+    }
+}
+
 /// The real-provider seam: an OpenAI-compatible streaming chat completion
-/// per prompt, decoded line by line into Lite chunks. Fragmented tool-call
-/// argument deltas are deferred — providers that split a call across lines
-/// arrive with the real product surface; this skeleton serves whole-call
-/// deltas.
+/// per prompt, decoded line by line into Lite chunks; fragmented tool-call
+/// deltas are assembled before the loop sees them.
 public actor LiteHTTPProvider: LiteProviding {
     private let endpoint: URL
     private let apiKey: String
@@ -101,11 +146,18 @@ public actor LiteHTTPProvider: LiteProviding {
             return AsyncThrowingStream { continuation in
                 let task = Task {
                     do {
+                        var assembler = LiteToolCallAssembler()
                         for try await line in bytes.lines {
-                            if let chunk = LiteStreamLineParser.parse(line: String(line)) {
-                                continuation.yield(chunk)
+                            if let piece = LiteStreamLineParser.parsePiece(line: String(line)) {
+                                switch piece {
+                                case .text(let text): continuation.yield(.text(text))
+                                case .reasoning(let reasoning): continuation.yield(.reasoning(reasoning))
+                                case .toolCallEntries(let entries):
+                                    for entry in entries { assembler.ingest(entry) }
+                                }
                             }
                         }
+                        for chunk in assembler.finish() { continuation.yield(chunk) }
                         continuation.finish()
                     } catch let error as URLError {
                         continuation.finish(throwing: LiteTransportError.classify(error))
