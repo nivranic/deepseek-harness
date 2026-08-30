@@ -140,6 +140,10 @@ class LiteHTTPProvider(
         }.toString()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(endpoint))
+            // The JDK client has no default timeout; a bounded request
+            // mirrors URLSession's default and keeps a dead endpoint from
+            // blocking the loop forever.
+            .timeout(java.time.Duration.ofSeconds(60))
             .header("content-type", "application/json")
             .header("authorization", "Bearer $apiKey")
             .POST(HttpRequest.BodyPublishers.ofString(body))
