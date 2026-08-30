@@ -1,8 +1,8 @@
 package ai.deepseek.dsh.companion
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -33,14 +33,18 @@ class LiteChatViewModel(
     /** The durable journal the turn outcomes land in. */
     val session: LiteSession = LiteSession(sessionId)
 
-    private val _liveState = MutableStateFlow(session.state)
+    // Replay one cut for late collectors; buffer every intermediate cut so
+    // per-event streaming reaches the UI without StateFlow-style conflation.
+    private val _liveState = MutableSharedFlow<LiteDomainState>(replay = 1, extraBufferCapacity = 64).also { flow ->
+        flow.tryEmit(session.state)
+    }
 
     /** The folded state the UI renders: each event's cut during a live
      * turn, the journal replay after each persisted turn. */
-    val liveState: StateFlow<LiteDomainState> = _liveState
+    val liveState: SharedFlow<LiteDomainState> = _liveState
 
     /** The loop driver the surface submits prompts through. */
-    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider, onEventApplied = { cut -> _liveState.value = cut }, execute = execute)
+    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider, onEventApplied = { cut -> _liveState.tryEmit(cut) }, execute = execute)
 
     /** The capability the last turn handed off on, when it did. */
     var lastHandoff: String? = null
@@ -48,7 +52,7 @@ class LiteChatViewModel(
 
     /** The folded domain state of the journal plus the live turn. */
     val state: LiteDomainState
-        get() = _liveState.value
+        get() = _liveState.replayCache.firstOrNull() ?: session.state
 
     /**
      * Submit one prompt, await the turn's terminal event, then persist the
@@ -70,6 +74,6 @@ class LiteChatViewModel(
             session.record(event("turn/completed"))
         }
         store?.save(session)
-        _liveState.value = session.state
+        _liveState.tryEmit(session.state)
     }
 }
