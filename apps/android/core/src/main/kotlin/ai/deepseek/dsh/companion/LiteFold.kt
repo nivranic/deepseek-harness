@@ -70,12 +70,28 @@ fun emptyLiteDomain(): LiteDomainState = LiteDomainState()
  * @returns the derived domain state.
  */
 fun foldLiteDomain(events: JsonArray): LiteDomainState {
-    val state = LiteFoldAccumulator()
+    val fold = LiteFold()
     for (element in events) {
         val event = element as? JsonObject ?: continue
-        foldLiteEventInto(state, event)
+        fold.apply(event)
     }
-    return state.toLiteDomainState()
+    return fold.state
+}
+
+/**
+ * Incremental Lite fold: apply events one at a time and read the state
+ * live — the surface a Lite loop driver drives while a turn runs.
+ */
+class LiteFold {
+    private val accumulator = LiteFoldAccumulator()
+
+    /** The folded state at the current event cut. */
+    val state: LiteDomainState get() = accumulator.toLiteDomainState()
+
+    /** Fold one lifecycle event, as raw JSON, into the state. */
+    fun apply(event: JsonObject) {
+        foldLiteEventInto(accumulator, event)
+    }
 }
 
 /** Mutable accumulator the fold loop mutates in place. */
