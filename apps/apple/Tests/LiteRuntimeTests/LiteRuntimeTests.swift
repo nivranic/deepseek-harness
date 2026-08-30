@@ -73,7 +73,8 @@ final class LiteLoopDriverTests: XCTestCase {
         ])
         XCTAssertEqual(state.lastTurnEnd, .completed)
         XCTAssertNil(state.pendingHandoff)
-        XCTAssertEqual(await provider.submitted, ["搜索契约文档"])
+        let submitted = await provider.submitted
+        XCTAssertEqual(submitted, ["搜索契约文档"])
     }
 
     func testHandsOffInsteadOfExecutingFullRuntimeTools() async {
@@ -156,7 +157,7 @@ final class LiteProviderTests: XCTestCase {
     }
 
     func testParsesSSEAndNDJSDLines() throws {
-        if case .reasoning("先想")? = LiteStreamLineParser.parsePiece(line: "data: " + try wireLine(["reasoning_content": "先想"])) {} else {
+        if case .reasoning("先想")? = LiteStreamLineParser.parsePiece(line: "data: " + (try wireLine(["reasoning_content": "先想"]))) {} else {
             XCTFail("reasoning delta did not parse")
         }
         if case .text("你好")? = LiteStreamLineParser.parsePiece(line: try wireLine(["content": "你好"])) {} else {
@@ -200,13 +201,14 @@ final class LiteProviderTests: XCTestCase {
         ])
     }
 
+    @MainActor
     func testDriverFoldsTransportFailuresIntoTheSpecVocabulary() async {
-        struct NetworkDrop: LiteProviding {
+        actor NetworkDrop: LiteProviding {
             func stream(prompt: String) async throws -> AsyncThrowingStream<LiteStreamChunk, Error> {
                 AsyncThrowingStream { $0.finish(throwing: LiteTransportError.network(kind: "dropped")) }
             }
         }
-        struct RateLimited: LiteProviding {
+        actor RateLimited: LiteProviding {
             func stream(prompt: String) async throws -> AsyncThrowingStream<LiteStreamChunk, Error> {
                 AsyncThrowingStream { $0.finish(throwing: LiteTransportError.provider(code: "RATE_LIMITED", message: "并发超限")) }
             }
