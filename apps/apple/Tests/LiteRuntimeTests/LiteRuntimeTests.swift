@@ -146,3 +146,49 @@ final class LiteStoreTests: XCTestCase {
         XCTAssertNil(removed)
     }
 }
+
+final class LiteProviderTests: XCTestCase {
+    private func chunk(_ json: String) throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["choices": [["delta": try JSONSerialization.jsonObject(with: Data(json.utf8))]]])
+    }
+
+    func testParsesSSEAndNDJSDLines() throws {
+        XCTAssertEqual(
+            LiteStreamLineParser.parse(line: "data: \(String(data: try chunk("{\"reasoning_content\":\"先想\"}"), encoding: .utf8)!)"),
+            .reasoning("先想")
+        )
+        XCTAssertEqual(
+            LiteStreamLineParser.parse(line: String(data: try chunk("{\"content\":\"你好\"}"), encoding: .utf8)!),
+            .text("你好")
+        )
+        let call = String(data: try chunk(
+            "{\"tool_calls\":[{\"id\":\"c1\",\"index\":0,\"function\":{\"name\":\"web_search\",\"arguments\":\"{}\"}}]}"
+        ), encoding: .utf8)!
+        XCTAssertEqual(LiteStreamLineParser.parse(line: "data: \(call)"), .toolCall(id: "c1", name: "web_search", arguments: "{}"))
+        XCTAssertNil(LiteStreamLineParser.parse(line: "data: [DONE]"))
+        XCTAssertNil(LiteStreamLineParser.parse(line: ""))
+        XCTAssertNil(LiteStreamLineParser.parse(line: ": keep-alive"))
+    }
+
+    func testDriverFoldsTransportFailuresIntoTheSpecVocabulary() async {
+        struct NetworkDrop: LiteProviding {
+            func stream(prompt: String) async throws -> AsyncThrowingStream<LiteStreamChunk, Error> {
+                AsyncThrowingStream { $0.finish(throwing: LiteTransportError.network(kind: "dropped")) }
+            }
+        }
+        struct RateLimited: LiteProviding {
+            func stream(prompt: String) async throws -> AsyncThrowingStream<LiteStreamChunk, Error> {
+                AsyncThrowingStream { $0.finish(throwing: LiteTransportError.provider(code: "RATE_LIMITED", message: "并发超限")) }
+            }
+        }
+        let dropped = LiteLoopDriver(provider: NetworkDrop()) { _, _, _ in (ok: false, text: "") }
+        await dropped.submit(prompt: "继续")
+        XCTAssertEqual(dropped.fold.state.lastTurnEnd, .networkError)
+        XCTAssertEqual(dropped.fold.state.errors.last?.kind, "network")
+
+        let limited = LiteLoopDriver(provider: RateLimited()) { _, _, _ in (ok: false, text: "") }
+        await limited.submit(prompt: "继续")
+        XCTAssertEqual(limited.fold.state.lastTurnEnd, .providerError)
+        XCTAssertEqual(limited.fold.state.errors.last?.code, "RATE_LIMITED")
+    }
+}

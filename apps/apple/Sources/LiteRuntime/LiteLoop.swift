@@ -95,6 +95,13 @@ public final class LiteLoopDriver {
             fold.apply(.turnCompleted)
         } catch is CancellationError {
             fold.apply(.turnCancelled(reason: "user"))
+        } catch let error as LiteTransportError {
+            // The transport seam classifies its failures into the spec's
+            // vocabulary; the fold records exactly that.
+            switch error {
+            case .network(let kind): fold.apply(.networkError(kind: kind))
+            case .provider(let code, let message): fold.apply(.providerError(code: code, message: message))
+            }
         } catch {
             fold.apply(.providerError(code: "PROVIDER_FAILED", message: String(describing: error)))
         }
