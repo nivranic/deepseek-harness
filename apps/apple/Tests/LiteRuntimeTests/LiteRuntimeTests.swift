@@ -252,6 +252,7 @@ final class LiteChatViewModelTests: XCTestCase {
 }
 
 /// The resource-channel consumption face of chapter 56.
+@MainActor
 final class LiteArtifactReadingTests: XCTestCase {
     private func temporaryDirectory(_ name: String) throws -> URL {
         let url = FileManager.default.temporaryDirectory
