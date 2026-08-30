@@ -49,10 +49,10 @@ public final class LinkPinningDelegate: NSObject, URLSessionDelegate {
         }
         var key: SecKey?
         #if os(macOS)
-        var result: CFTypeRef?
-        let status = SecCertificateCopyPublicKey(certificate, &result)
+        // The macOS face takes the key out-parameter directly; the iOS face
+        // returns it. Both yield the same SecKey for the copy below.
+        let status = SecCertificateCopyPublicKey(certificate, &key)
         guard status == errSecSuccess else { return nil }
-        key = result as? SecKey
         #else
         key = SecCertificateCopyKey(certificate)
         #endif

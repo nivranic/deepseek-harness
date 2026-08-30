@@ -26,12 +26,12 @@ public enum LinkWire {
                 public func encode(to encoder: Encoder) throws {
                     var container = encoder.singleValueContainer()
                     switch self {
-                    case .string(let value): container.encode(value)
-                    case .number(let value): container.encode(value)
-                    case .bool(let value): container.encode(value)
-                    case .null: container.encodeNil()
-                    case .array(let values): container.encode(values)
-                    case .object(let entries): container.encode(entries)
+                    case .string(let value): try container.encode(value)
+                    case .number(let value): try container.encode(value)
+                    case .bool(let value): try container.encode(value)
+                    case .null: try container.encodeNil()
+                    case .array(let values): try container.encode(values)
+                    case .object(let entries): try container.encode(entries)
                     }
                 }
             }

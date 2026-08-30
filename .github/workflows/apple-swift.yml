@@ -1,0 +1,49 @@
+name: Apple Swift
+
+# The macOS compile lane (nativization plan chapter 62): Swift sources and
+# tests under apps/apple are authored and fixture-drift-gated on every
+# change, but only this lane actually compiles and runs them. Zero external
+# dependencies, so the job is a checkout plus `swift test`.
+on:
+  pull_request:
+    paths:
+      - 'apps/apple/**'
+      - '.github/workflows/apple-swift.yml'
+  push:
+    branches: [dev, master]
+    paths:
+      - 'apps/apple/**'
+      - '.github/workflows/apple-swift.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A superseded pull-request run cancels; a push run is the branch's latest
+# word and stays exempt from cancellation (same policy as ci-master).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  swift-test:
+    runs-on: macos-latest
+    name: swift test (macOS)
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Report toolchain
+        run: swift --version
+
+      - uses: actions/cache@v4
+        with:
+          path: apps/apple/.build
+          key: apple-swift-${{ runner.os }}-${{ hashFiles('apps/apple/Package.swift') }}
+          restore-keys: |
+            apple-swift-${{ runner.os }}-
+
+      - name: swift test
+        working-directory: apps/apple
+        run: swift test
