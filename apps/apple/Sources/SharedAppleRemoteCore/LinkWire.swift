@@ -4,6 +4,41 @@ import Foundation
 /// expects, decoded from the TypeScript reference client byte-for-byte.
 public enum LinkWire {
 
+    /// A JSON value carried straight through either envelope direction:
+    /// encoded into request payloads, decoded out of response results and
+    /// stream frames. One enum, because the wire has one JSON.
+    public enum WireValue: Codable, Equatable {
+        case string(String)
+        case number(Double)
+        case bool(Bool)
+        case null
+        case array([WireValue])
+        case object([String: WireValue])
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if container.decodeNil() { self = .null; return }
+            if let value = try? container.decode(Bool.self) { self = .bool(value); return }
+            if let value = try? container.decode(Double.self) { self = .number(value); return }
+            if let value = try? container.decode(String.self) { self = .string(value); return }
+            if let value = try? container.decode([WireValue].self) { self = .array(value); return }
+            if let value = try? container.decode([String: WireValue].self) { self = .object(value); return }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "unsupported JSON value")
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .string(let value): try container.encode(value)
+            case .number(let value): try container.encode(value)
+            case .bool(let value): try container.encode(value)
+            case .null: try container.encodeNil()
+            case .array(let values): try container.encode(values)
+            case .object(let entries): try container.encode(entries)
+            }
+        }
+    }
+
     /// One unary request body: `{ type, rpcId, method, payload: { args } }`.
     public struct RequestEnvelope: Encodable {
         public let type = "client-request"
@@ -15,26 +50,7 @@ public enum LinkWire {
             public let args: [String: Value]
 
             /// A JSON value encoded straight through.
-            public enum Value: Encodable {
-                case string(String)
-                case number(Double)
-                case bool(Bool)
-                case null
-                case array([Value])
-                case object([String: Value])
-
-                public func encode(to encoder: Encoder) throws {
-                    var container = encoder.singleValueContainer()
-                    switch self {
-                    case .string(let value): try container.encode(value)
-                    case .number(let value): try container.encode(value)
-                    case .bool(let value): try container.encode(value)
-                    case .null: try container.encodeNil()
-                    case .array(let values): try container.encode(values)
-                    case .object(let entries): try container.encode(entries)
-                    }
-                }
-            }
+            public typealias Value = WireValue
 
             public init(args: [String: Value]) {
                 self.args = args
@@ -61,25 +77,7 @@ public enum LinkWire {
             public let error: Failure?
 
             /// A JSON value decoded straight through.
-            public enum Value: Decodable, Equatable {
-                case string(String)
-                case number(Double)
-                case bool(Bool)
-                case null
-                case array([Value])
-                case object([String: Value])
-
-                public init(from decoder: Decoder) throws {
-                    let container = try decoder.singleValueContainer()
-                    if container.decodeNil() { self = .null; return }
-                    if let value = try? container.decode(Bool.self) { self = .bool(value); return }
-                    if let value = try? container.decode(Double.self) { self = .number(value); return }
-                    if let value = try? container.decode(String.self) { self = .string(value); return }
-                    if let value = try? container.decode([Value].self) { self = .array(value); return }
-                    if let value = try? container.decode([String: Value].self) { self = .object(value); return }
-                    throw DecodingError.dataCorruptedError(in: container, debugDescription: "unsupported JSON value")
-                }
-            }
+            public typealias Value = WireValue
 
             /// `{ code, message, details }` on a refused call.
             public struct Failure: Decodable, Equatable {

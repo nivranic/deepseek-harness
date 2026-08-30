@@ -129,7 +129,9 @@ public final class RemoteSessionViewModel {
     }
 
     deinit {
-        followTask?.cancel()
+        // The view model is main-actor-bound by construction; its deinit
+        // runs nonisolated, so the cancel borrows the isolation it knows holds.
+        MainActor.assumeIsolated { followTask?.cancel() }
     }
 
     /// Load the session list.

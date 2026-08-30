@@ -60,7 +60,9 @@ public final class InteractionViewModel {
     }
 
     deinit {
-        watchTask?.cancel()
+        // The view model is main-actor-bound by construction; its deinit
+        // runs nonisolated, so the cancel borrows the isolation it knows holds.
+        MainActor.assumeIsolated { watchTask?.cancel() }
     }
 
     /// Open the `$events` stream and collect forwarded interactions. The

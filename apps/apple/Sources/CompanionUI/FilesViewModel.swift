@@ -77,7 +77,9 @@ public final class FilesViewModel {
     }
 
     deinit {
-        followTask?.cancel()
+        // The view model is main-actor-bound by construction; its deinit
+        // runs nonisolated, so the cancel borrows the isolation it knows holds.
+        MainActor.assumeIsolated { followTask?.cancel() }
     }
 
     /// Follow the Workspace registry: the baseline seeds the picker, upserts

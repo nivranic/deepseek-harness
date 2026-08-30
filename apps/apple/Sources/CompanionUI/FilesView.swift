@@ -3,6 +3,26 @@ import SwiftUI
 /// The Files surface: the registered Workspace picker, one Workspace's
 /// directory tree, and the paged text reader — all read-only host endpoints.
 public struct FilesView: View {
+    /// `.topBarLeading` exists only on iOS; macOS navigation bars place the
+    /// same item with the automatic leading slot.
+    private static var leadingToolbarPlacement: ToolbarItemPlacement {
+        #if os(iOS)
+        .topBarLeading
+        #else
+        .automatic
+        #endif
+    }
+
+    /// The workspace menu rides the trailing end of the same bar; macOS has
+    /// no top-bar trailing slot, so the primary-action corner carries it.
+    private static var trailingToolbarPlacement: ToolbarItemPlacement {
+        #if os(iOS)
+        .topBarTrailing
+        #else
+        .primaryAction
+        #endif
+    }
+
     private let model: FilesViewModel
 
     /// - Parameter model: the files view model.
@@ -42,7 +62,7 @@ public struct FilesView: View {
                             .foregroundStyle(.orange)
                     }
                 }
-                if let selected = model.selectedWorkspace {
+                if model.selectedWorkspace != nil {
                     Section(directoryLabel) {
                         switch model.listState {
                         case .idle, .loading:
@@ -75,7 +95,7 @@ public struct FilesView: View {
             }
             .navigationTitle("文件")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: Self.leadingToolbarPlacement) {
                     Button {
                         Task { await model.goUp() }
                     } label: {
@@ -83,7 +103,7 @@ public struct FilesView: View {
                     }
                     .disabled(model.directory.isEmpty)
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: Self.trailingToolbarPlacement) {
                     Menu {
                         ForEach(model.workspaces) { workspace in
                             Button(workspace.title) {
