@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-lite-loop-driver.md
+2026-08-30-lite-loop-driver.md: b2a357c9931353ab8380873c14ae4d6e0c8fc09b
+2026-08-30-lite-loop-driver.zh.md: b3aa27e41a072cedcebb6236d53c25848ee1d318

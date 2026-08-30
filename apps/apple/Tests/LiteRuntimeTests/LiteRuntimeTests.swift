@@ -49,3 +49,60 @@ final class LiteToolRegistryTests: XCTestCase {
         XCTAssertEqual(LiteToolRegistry.handoffCapability(for: "run_tests"), LITE_REQUIRES_FULL_RUNTIME)
     }
 }
+
+@MainActor
+final class LiteLoopDriverTests: XCTestCase {
+    func testDrivesPromptStreamToolsToCompletion() async {
+        let provider = ScriptedLiteProvider(scripts: [
+            "搜索契约文档": [
+                .reasoning("先查规范"),
+                .text("找到要点："),
+                .toolCall(id: "c1", name: "web_search", arguments: "{\"query\":\"lite\"}"),
+                .text("共两条。"),
+            ],
+        ])
+        let driver = LiteLoopDriver(provider: provider) { _, name, _ in
+            (ok: true, text: name == "web_search" ? "找到 2 篇。" : "")
+        }
+        await driver.submit(prompt: "搜索契约文档")
+        let state = driver.fold.state
+        XCTAssertEqual(state.conversation.map(\.role), ["user", "assistant"])
+        XCTAssertEqual(state.conversation[1].text, "找到要点：共两条。")
+        XCTAssertEqual(state.toolCalls, [
+            LiteToolRecord(id: "c1", name: "web_search", arguments: "{\"query\":\"lite\"}", phase: .completed, resultText: "找到 2 篇。"),
+        ])
+        XCTAssertEqual(state.lastTurnEnd, .completed)
+        XCTAssertNil(state.pendingHandoff)
+        XCTAssertEqual(await provider.submitted, ["搜索契约文档"])
+    }
+
+    func testHandsOffInsteadOfExecutingFullRuntimeTools() async {
+        let provider = ScriptedLiteProvider(scripts: [
+            "跑测试": [.toolCall(id: "c2", name: "run_tests", arguments: "{}")],
+        ])
+        var executed = 0
+        let driver = LiteLoopDriver(provider: provider) { _, _, _ in
+            executed += 1
+            return (ok: false, text: "")
+        }
+        await driver.submit(prompt: "跑测试")
+        XCTAssertEqual(driver.fold.state.pendingHandoff, LITE_REQUIRES_FULL_RUNTIME)
+        XCTAssertEqual(executed, 0)
+        XCTAssertNil(driver.fold.state.lastTurnEnd)
+    }
+
+    func testUnknownToolNamesNeverDispatch() async {
+        let provider = ScriptedLiteProvider(scripts: [
+            "下载并运行": [.text("试试。"), .toolCall(id: "c3", name: "download_and_run", arguments: "{}")],
+        ])
+        var executed = 0
+        let driver = LiteLoopDriver(provider: provider) { _, _, _ in
+            executed += 1
+            return (ok: false, text: "")
+        }
+        await driver.submit(prompt: "下载并运行")
+        XCTAssertEqual(executed, 0)
+        XCTAssertEqual(driver.fold.state.toolCalls.map(\.phase), [.running])
+        XCTAssertEqual(driver.fold.state.lastTurnEnd, .completed)
+    }
+}
