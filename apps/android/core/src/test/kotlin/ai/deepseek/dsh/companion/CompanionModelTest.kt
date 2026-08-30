@@ -61,7 +61,7 @@ class CompanionModelTest {
     @Test
     fun openFoldsSnapshotAndEventsIntoTheDomainState() = runTest {
         val wire = FakeWire()
-        val model = SessionModel(wire, TestScope(backgroundScope))
+        val model = SessionModel(wire, backgroundScope)
         model.openSession("s1")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
         wire.emit(event(1, "user/message", """{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}"""))
@@ -76,7 +76,7 @@ class CompanionModelTest {
     @Test
     fun sendCarriesTheRequestEnvelopeAndImages() = runTest {
         val wire = FakeWire()
-        val model = SessionModel(wire, TestScope(backgroundScope))
+        val model = SessionModel(wire, backgroundScope)
         model.openSession("s9")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
         model.send(text = "看这张截图", images = listOf("iVBORw0KGgo=" to "image/png"))
@@ -115,7 +115,7 @@ class CompanionModelTest {
         wire.stub("workspaceFiles/list") {
             wire("""{"path":"src","entries":[{"name":"app.ts","type":"file","size":24},{"name":"lib","type":"directory"}]}""")
         }
-        val model = FilesModel(wire, TestScope(backgroundScope))
+        val model = FilesModel(wire, backgroundScope)
         model.start()
         wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
         assertEquals(listOf(WorkspaceRow("w1", "Harness")), model.workspaces)
@@ -136,7 +136,7 @@ class CompanionModelTest {
         wire.stub("subagents/list") {
             wire("""{"entries":[{"kind":"child","id":"sa-1","activity":"running","hasChildren":false,"mode":"continuable","label":"检索"},{"kind":"diagnostic","id":"sa-2","reason":"corrupt"}],"parentAvailable":true}""")
         }
-        val model = SubagentsModel(wire, TestScope(backgroundScope))
+        val model = SubagentsModel(wire, backgroundScope)
         model.load("p1")
         assertEquals("ready", model.listState)
         assertEquals(2, model.rows.size)

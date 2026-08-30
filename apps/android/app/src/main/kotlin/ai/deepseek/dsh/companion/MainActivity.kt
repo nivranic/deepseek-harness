@@ -1,5 +1,7 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.link.WireValue
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -144,6 +146,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                     NavigationBarItem(
                         selected = tab == index,
                         onClick = { tab = index },
+                        icon = { Text(label.first().toString()) },
                         label = { Text(label) },
                     )
                 }
