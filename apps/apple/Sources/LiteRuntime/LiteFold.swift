@@ -68,9 +68,15 @@ public enum LiteTurnEnd: String, Equatable, Decodable {
 /// the TypeScript reference fold's emission.
 public struct LiteDomainState: Equatable, Decodable {
     public struct Streaming: Equatable, Decodable {
-        public let active: Bool
-        public let partialText: String
-        public let partialReasoning: String
+        public var active: Bool
+        public var partialText: String
+        public var partialReasoning: String
+
+        public init(active: Bool = false, partialText: String = "", partialReasoning: String = "") {
+            self.active = active
+            self.partialText = partialText
+            self.partialReasoning = partialReasoning
+        }
     }
 
     public var conversation: [LiteMessage]

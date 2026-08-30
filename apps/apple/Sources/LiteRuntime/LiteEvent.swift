@@ -123,7 +123,3 @@ extension LiteEvent: Encodable {
         }
     }
 }
-
-extension LiteUsage: Encodable {}
-extension LiteTodo: Encodable {}
-extension LiteArtifactStatus: Encodable {}
