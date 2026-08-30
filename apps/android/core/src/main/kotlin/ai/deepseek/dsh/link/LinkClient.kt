@@ -2,6 +2,7 @@ package ai.deepseek.dsh.link
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -9,7 +10,6 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import kotlinx.serialization.json.serializer
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -93,7 +93,7 @@ class LinkClient(
      */
     fun call(method: String, args: Map<String, WireValue> = emptyMap()): WireValue {
         val envelope = LinkRequestEnvelope(rpcId = "rpc-$method", method = method, args = args)
-        val body = Json.encodeToString(JsonElement.serializer(), envelope.toJsonElement())
+        val body = Json.encodeToString(envelope.toJsonElement())
             .toByteArray(Charsets.UTF_8)
         val data = post("/api/$method", body, signed = true)
         val response = LinkResponseEnvelope.fromJsonElement(Json.parseToJsonElement(data.decodeToString()))

@@ -1,8 +1,8 @@
 package ai.deepseek.dsh.link
 
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -18,7 +18,7 @@ class LinkWireTest {
             method = "session/list",
             args = mapOf("_request" to WireValue.ObjectValue(emptyMap())),
         ).toJsonElement()
-        val obj = Json.parseToJsonElement(Json.encodeToString(JsonElement.serializer(), element)).let { it as kotlinx.serialization.json.JsonObject }
+        val obj = Json.parseToJsonElement(Json.encodeToString(element)).let { it as kotlinx.serialization.json.JsonObject }
         assertEquals("client-request", obj["type"]!!.jsonPrimitiveText())
         assertEquals("rpc-session/list", obj["rpcId"]!!.jsonPrimitiveText())
         assertEquals("session/list", obj["method"]!!.jsonPrimitiveText())
@@ -37,7 +37,7 @@ class LinkWireTest {
                 "list" to WireValue.ArrayValue(listOf(WireValue.StringValue("a"), WireValue.NumberValue(1.5))),
             ),
         )
-        val encoded = Json.encodeToString(JsonElement.serializer(), original.toJsonElement())
+        val encoded = Json.encodeToString(original.toJsonElement())
         assertEquals(original, WireValue.fromJsonElement(Json.parseToJsonElement(encoded)))
     }
 
