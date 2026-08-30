@@ -124,9 +124,10 @@ class CompanionModelTest {
         assertEquals(listOf(WorkspaceRow("w1", "Harness")), model.workspaces)
         assertEquals("w1", model.selectedWorkspace)
 
+        model.list()
         model.openEntry("src")
         model.list()
-        val call = wire.calls.first { it.first == "workspaceFiles/list" }
+        val call = wire.calls.last { it.first == "workspaceFiles/list" }
         assertEquals("w1", (call.second["workspaceId"] as WireValue.StringValue).value)
         assertEquals("src", (call.second["path"] as WireValue.StringValue).value)
         assertEquals(2, model.entries.size)

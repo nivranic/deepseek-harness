@@ -193,7 +193,7 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
             val records = WireShape.array(frame, "records") ?: emptyList()
             foldDomain(JsonArray(records.map { it.toJsonElement() }))
         } else {
-            foldDomain(JsonArray(listOf(frame.toJsonElement())))
+            foldInto(current.state, JsonArray(listOf(frame.toJsonElement())))
         }
         open = current.copy(state = newState)
     }

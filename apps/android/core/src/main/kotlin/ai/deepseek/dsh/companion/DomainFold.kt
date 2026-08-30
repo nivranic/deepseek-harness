@@ -200,6 +200,24 @@ private class FoldAccumulator {
 }
 
 /**
+ * Fold more records into an existing state — the incremental form live
+ * follow consumption needs: each arriving event folds onto what the
+ * snapshot already produced.
+ */
+fun foldInto(previous: DomainState, records: JsonArray): DomainState {
+    val state = FoldAccumulator()
+    state.cursor = previous.cursor
+    state.items.addAll(previous.items)
+    state.planActive = previous.planActive
+    state.todos = previous.todos
+    state.goals = previous.goals
+    state.toolCalls.addAll(previous.toolCalls)
+    state.images.addAll(previous.images)
+    foldRecords(state, records)
+    return state.toDomainState()
+}
+
+/**
  * Fold the conformance record sequence into the domain state — the exact
  * mirror of the TypeScript reference fold and the Swift fold: whole-value
  * pane states are last-write-wins, the trajectory pairs calls with results
@@ -208,6 +226,21 @@ private class FoldAccumulator {
  */
 fun foldDomain(records: JsonArray): DomainState {
     val state = FoldAccumulator()
+    foldRecords(state, records)
+    return state.toDomainState()
+}
+
+private fun FoldAccumulator.toDomainState() = DomainState(
+    cursor = cursor,
+    items = items.toList(),
+    planActive = planActive,
+    todos = todos,
+    goals = goals,
+    toolCalls = toolCalls.toList(),
+    images = images.toList(),
+)
+
+private fun foldRecords(state: FoldAccumulator, records: JsonArray) {
     for (element in records) {
         val record = element as? JsonObject ?: continue
         val event = record["event"] as? JsonObject ?: continue
@@ -272,15 +305,6 @@ fun foldDomain(records: JsonArray): DomainState {
             )
         }
     }
-    return DomainState(
-        cursor = state.cursor,
-        items = state.items.toList(),
-        planActive = state.planActive,
-        todos = state.todos,
-        goals = state.goals,
-        toolCalls = state.toolCalls.toList(),
-        images = state.images.toList(),
-    )
 }
 
 /** Canonical JSON form of the state — integral numbers as bare integers, an
