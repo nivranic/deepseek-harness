@@ -1,0 +1,139 @@
+{
+  "records": [
+    {
+      "type": "event",
+      "event": {
+        "type": "turn/start",
+        "seq": 1,
+        "time": 1759017600001,
+        "data": {
+          "turn": 1
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "user/message",
+        "seq": 2,
+        "time": 1759017600002,
+        "data": {
+          "id": "m-user-img-1",
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "这张截图里的按钮间距有问题"
+            },
+            {
+              "type": "image",
+              "attachment": {
+                "attachmentId": "att-8f14e45fceea167a5a36dedd4bea2543",
+                "mediaType": "image/png",
+                "bytes": 52444,
+                "width": 800,
+                "height": 600,
+                "name": "screenshot.png",
+                "originalDimensions": {
+                  "width": 1600,
+                  "height": 1200
+                }
+              }
+            },
+            {
+              "type": "text",
+              "text": "请对照修复。"
+            }
+          ],
+          "source": {
+            "kind": "user"
+          }
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "assistant/message",
+        "seq": 3,
+        "time": 1759017600003,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "message": {
+            "id": "m-assist-img-1",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "收到截图，已定位到间距样式。"
+              }
+            ],
+            "source": {
+              "kind": "model",
+              "provider": "deepseek",
+              "model": "deepseek-chat"
+            }
+          },
+          "usage": {
+            "inputTokens": 340,
+            "outputTokens": 28,
+            "totalTokens": 368
+          }
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "turn/end",
+        "seq": 4,
+        "time": 1759017600004,
+        "data": {
+          "turn": 1,
+          "reason": {
+            "kind": "completed"
+          }
+        }
+      }
+    }
+  ],
+  "expected": {
+    "cursor": 4,
+    "items": [
+      {
+        "seq": 1,
+        "kind": "turn/start",
+        "text": "第 1 轮开始"
+      },
+      {
+        "seq": 2,
+        "kind": "user/message",
+        "text": "这张截图里的按钮间距有问题\n图片 screenshot.png（image/png，800×600）\n请对照修复。"
+      },
+      {
+        "seq": 3,
+        "kind": "assistant/message",
+        "text": "收到截图，已定位到间距样式。"
+      },
+      {
+        "seq": 4,
+        "kind": "turn/end",
+        "text": "第 1 轮完成"
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "goals": [],
+    "toolCalls": [],
+    "images": [
+      {
+        "attachmentId": "att-8f14e45fceea167a5a36dedd4bea2543",
+        "mediaType": "image/png",
+        "width": 800,
+        "height": 600,
+        "name": "screenshot.png"
+      }
+    ]
+  }
+}

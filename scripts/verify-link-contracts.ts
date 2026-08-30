@@ -22,6 +22,9 @@ const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
 const appleLite = resolve(root, 'apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance')
+const androidKotlin = resolve(root, 'apps/android/core/src/main/kotlin/ai/deepseek/dsh/link')
+const androidFixtures = resolve(root, 'apps/android/core/src/test/resources/fixtures')
+const androidConformance = resolve(root, 'apps/android/core/src/test/resources/conformance')
 
 const artifacts = generateLinkContracts()
 const conformance = generateConformanceArtifacts()
@@ -46,20 +49,23 @@ expectFresh(resolve(generatedDir, 'link-contracts.manifest.json'), artifacts.man
 expectFresh(resolve(generatedDir, 'LinkContracts.swift'), artifacts.swift)
 expectFresh(resolve(generatedDir, 'LinkContracts.kt'), artifacts.kotlin)
 expectFresh(resolve(appleSources, 'LinkContracts.swift'), artifacts.swift)
+expectFresh(resolve(androidKotlin, 'LinkContracts.kt'), artifacts.kotlin)
 for (const fixture of LINK_CONTRACT_FIXTURES) {
   const json = `${JSON.stringify(fixture.value, undefined, 2)}
 `
   expectFresh(resolve(generatedDir, 'fixtures', `${fixture.id}.json`), json)
   expectFresh(resolve(appleFixtures, `${fixture.id}.json`), json)
+  expectFresh(resolve(androidFixtures, `${fixture.id}.json`), json)
 }
 for (const scenario of conformance) {
   expectFresh(resolve(generatedDir, 'conformance', `${scenario.id}.json`), scenario.json)
   expectFresh(resolve(appleFixtures, 'conformance', `${scenario.id}.json`), scenario.json)
   expectFresh(resolve(appleUiConformance, `${scenario.id}.json`), scenario.json)
+  expectFresh(resolve(androidConformance, `${scenario.id}.json`), scenario.json)
 }
 for (const scenario of lite) {
   expectFresh(resolve(generatedDir, 'lite-conformance', `${scenario.id}.json`), scenario.json)
   expectFresh(resolve(appleLite, `${scenario.id}.json`), scenario.json)
 }
 if (failures > 0) process.exit(1)
-console.log('verify-link-contracts: manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts are fresh (apps/apple synced).')
+console.log('verify-link-contracts: manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts are fresh (apps/apple and apps/android synced).')

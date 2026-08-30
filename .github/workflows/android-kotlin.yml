@@ -1,0 +1,50 @@
+name: Android Kotlin
+
+# The Linux compile lane for the Android companion (nativization plan
+# chapters 52 and 60): the `core` module is pure JVM Kotlin, so the lane is
+# a JDK plus Gradle running its tests — including the Kotlin half of the
+# chapter-62 trilingual domain-state conformance.
+on:
+  pull_request:
+    paths:
+      - 'apps/android/**'
+      - '.github/workflows/android-kotlin.yml'
+  push:
+    branches: [dev, master]
+    paths:
+      - 'apps/android/**'
+      - '.github/workflows/android-kotlin.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A superseded pull-request run cancels; a push run is the branch's latest
+# word and stays exempt from cancellation (same policy as ci-master).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gradle-test:
+    runs-on: ubuntu-latest
+    name: gradle test (core)
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # No committed wrapper: the action provisions the pinned Gradle and
+      # caches its dependencies per project.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14'
+
+      - name: gradle test
+        working-directory: apps/android
+        run: gradle --no-daemon test

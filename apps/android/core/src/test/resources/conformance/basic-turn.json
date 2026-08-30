@@ -1,0 +1,172 @@
+{
+  "records": [
+    {
+      "type": "event",
+      "event": {
+        "type": "turn/start",
+        "seq": 1,
+        "time": 1759017600001,
+        "data": {
+          "turn": 1
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "user/message",
+        "seq": 2,
+        "time": 1759017600002,
+        "data": {
+          "id": "m-user-1",
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "帮我把登录页改成液态玻璃风格"
+            }
+          ],
+          "source": {
+            "kind": "user"
+          }
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "step/start",
+        "seq": 3,
+        "time": 1759017600003,
+        "data": {
+          "turn": 1,
+          "step": 1
+        }
+      }
+    },
+    {
+      "type": "chunks",
+      "event": {
+        "type": "chunkrow/text-chunks",
+        "seq": 4,
+        "time": 1759017600004,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "index": 0,
+          "dt": [
+            4,
+            6
+          ],
+          "texts": [
+            "你好",
+            "，构建"
+          ]
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "assistant/message",
+        "seq": 5,
+        "time": 1759017600005,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "message": {
+            "id": "m-assist-1",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "已完成：登录页液态玻璃样式落地。"
+              }
+            ],
+            "source": {
+              "kind": "model",
+              "provider": "deepseek",
+              "model": "deepseek-chat"
+            }
+          },
+          "usage": {
+            "inputTokens": 120,
+            "outputTokens": 36,
+            "totalTokens": 156
+          }
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "step/end",
+        "seq": 6,
+        "time": 1759017600006,
+        "data": {
+          "turn": 1,
+          "step": 1
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "turn/end",
+        "seq": 7,
+        "time": 1759017600007,
+        "data": {
+          "turn": 1,
+          "reason": {
+            "kind": "completed"
+          }
+        }
+      }
+    }
+  ],
+  "expected": {
+    "cursor": 7,
+    "items": [
+      {
+        "seq": 1,
+        "kind": "turn/start",
+        "text": "第 1 轮开始"
+      },
+      {
+        "seq": 2,
+        "kind": "user/message",
+        "text": "帮我把登录页改成液态玻璃风格"
+      },
+      {
+        "seq": 3,
+        "kind": "step/start",
+        "text": ""
+      },
+      {
+        "seq": 4,
+        "kind": "chunkrow/text-chunks",
+        "text": "你好，构建"
+      },
+      {
+        "seq": 5,
+        "kind": "assistant/message",
+        "text": "已完成：登录页液态玻璃样式落地。"
+      },
+      {
+        "seq": 6,
+        "kind": "step/end",
+        "text": ""
+      },
+      {
+        "seq": 7,
+        "kind": "turn/end",
+        "text": "第 1 轮完成"
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "goals": [],
+    "toolCalls": [],
+    "images": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "turn": 1,
+  "step": 1,
+  "message": {
+    "id": "m-tool-1",
+    "role": "user",
+    "content": [
+      {
+        "type": "tool-result",
+        "toolCallId": "call-1",
+        "content": [
+          {
+            "type": "text",
+            "text": "已写入 42 行。"
+          }
+        ]
+      }
+    ],
+    "source": {
+      "kind": "tool",
+      "callId": "call-1"
+    }
+  }
+}

@@ -90,7 +90,7 @@ function swiftModel(type: ContractType): string {
 
 function kotlinModel(type: ContractType): string {
   if (type.shape !== 'object') {
-    const entries = type.shape.map(value => `    ${kotlinCase(value)}(${JSON.stringify(value)})`).join('\n')
+    const entries = type.shape.map(value => `    ${kotlinCase(value)}(${JSON.stringify(value)})`).join(',\n')
     return `enum class ${type.name}(val wire: String) {\n${entries},\n}`
   }
   const lines = type.fields.map((fieldRow) => {

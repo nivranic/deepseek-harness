@@ -24,28 +24,37 @@ const appleConformance = resolve(appleFixtures, 'conformance')
 const generatedLiteDir = resolve(generatedDir, 'lite-conformance')
 const appleLite = resolve(root, 'apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance')
 const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
+const androidKotlin = resolve(root, 'apps/android/core/src/main/kotlin/ai/deepseek/dsh/link')
+const androidFixtures = resolve(root, 'apps/android/core/src/test/resources/fixtures')
+const androidConformance = resolve(root, 'apps/android/core/src/test/resources/conformance')
 
 const artifacts = generateLinkContracts()
 writeFileSync(resolve(generatedDir, 'link-contracts.manifest.json'), artifacts.manifest)
 writeFileSync(resolve(generatedDir, 'LinkContracts.swift'), artifacts.swift)
 writeFileSync(resolve(generatedDir, 'LinkContracts.kt'), artifacts.kotlin)
 writeFileSync(resolve(appleSources, 'LinkContracts.swift'), artifacts.swift)
+mkdirSync(androidKotlin, { recursive: true })
+writeFileSync(resolve(androidKotlin, 'LinkContracts.kt'), artifacts.kotlin)
 
 mkdirSync(fixturesDir, { recursive: true })
 mkdirSync(appleFixtures, { recursive: true })
+mkdirSync(androidFixtures, { recursive: true })
 for (const fixture of LINK_CONTRACT_FIXTURES) {
   const json = `${JSON.stringify(fixture.value, undefined, 2)}\n`
   writeFileSync(resolve(fixturesDir, `${fixture.id}.json`), json)
   writeFileSync(resolve(appleFixtures, `${fixture.id}.json`), json)
+  writeFileSync(resolve(androidFixtures, `${fixture.id}.json`), json)
 }
 
 mkdirSync(conformanceDir, { recursive: true })
 mkdirSync(appleConformance, { recursive: true })
 mkdirSync(appleUiConformance, { recursive: true })
+mkdirSync(androidConformance, { recursive: true })
 for (const scenario of generateConformanceArtifacts()) {
   writeFileSync(resolve(conformanceDir, `${scenario.id}.json`), scenario.json)
   writeFileSync(resolve(appleConformance, `${scenario.id}.json`), scenario.json)
   writeFileSync(resolve(appleUiConformance, `${scenario.id}.json`), scenario.json)
+  writeFileSync(resolve(androidConformance, `${scenario.id}.json`), scenario.json)
 }
 
 mkdirSync(generatedLiteDir, { recursive: true })
@@ -54,4 +63,4 @@ for (const scenario of generateLiteConformance()) {
   writeFileSync(resolve(generatedLiteDir, `${scenario.id}.json`), scenario.json)
   writeFileSync(resolve(appleLite, `${scenario.id}.json`), scenario.json)
 }
-console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts (apps/apple synced).')
+console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts (apps/apple and apps/android synced).')
