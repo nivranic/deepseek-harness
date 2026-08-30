@@ -93,6 +93,12 @@ public final class RemoteSessionViewModel {
         sessionFold.state.toolCalls
     }
 
+    /// Image references the folded log mentions, in first-appearance order;
+    /// `readAttachment(_:)` fills the byte cache these rows render from.
+    public var images: [CompanionDomainState.ImageRef] {
+        sessionFold.state.images
+    }
+
     /// The prompt submission state for the composer.
     public private(set) var sending = false
 

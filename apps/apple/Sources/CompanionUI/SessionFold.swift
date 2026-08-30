@@ -75,12 +75,36 @@ public struct CompanionDomainState: Codable, Equatable {
         }
     }
 
+    /// One durable image reference collected from message content, ordered
+    /// by first appearance and deduplicated by attachment id.
+    public struct ImageRef: Codable, Equatable, Identifiable {
+        public let attachmentId: String
+        public let mediaType: String
+        public let width: Double
+        public let height: Double
+        public let name: String?
+
+        public init(
+            attachmentId: String, mediaType: String,
+            width: Double, height: Double, name: String? = nil
+        ) {
+            self.attachmentId = attachmentId
+            self.mediaType = mediaType
+            self.width = width
+            self.height = height
+            self.name = name
+        }
+
+        public var id: String { attachmentId }
+    }
+
     public var cursor: Double
     public var items: [Item]
     public var planActive: Bool
     public var todos: [Todo]
     public var goals: [Goal]
     public var toolCalls: [ToolCall]
+    public var images: [ImageRef]
 
     public init(
         cursor: Double = 0,
@@ -88,7 +112,8 @@ public struct CompanionDomainState: Codable, Equatable {
         planActive: Bool = false,
         todos: [Todo] = [],
         goals: [Goal] = [],
-        toolCalls: [ToolCall] = []
+        toolCalls: [ToolCall] = [],
+        images: [ImageRef] = []
     ) {
         self.cursor = cursor
         self.items = items
@@ -96,6 +121,7 @@ public struct CompanionDomainState: Codable, Equatable {
         self.todos = todos
         self.goals = goals
         self.toolCalls = toolCalls
+        self.images = images
     }
 
     /// The state before any record arrives.
@@ -159,6 +185,14 @@ public struct CompanionSessionFold {
                     state.goals = []
                 }
             }
+        case "user/message":
+            if let payload = ContractCodec.decode(LinkUserMessageData.self, from: data) {
+                Self.collectImages(payload.content, into: &state.images)
+            }
+        case "assistant/message":
+            if let payload = ContractCodec.decode(LinkAssistantMessageData.self, from: data) {
+                Self.collectImages(payload.message.content, into: &state.images)
+            }
         case "tool/call":
             if let payload = ContractCodec.decode(LinkToolCallData.self, from: data) {
                 state.toolCalls.append(CompanionDomainState.ToolCall(
@@ -169,6 +203,9 @@ public struct CompanionSessionFold {
                 ))
             }
         case "tool/result":
+            if let payload = ContractCodec.decode(LinkToolResultData.self, from: data) {
+                Self.collectImages(payload.message.content, into: &state.images)
+            }
             if let payload = ContractCodec.decode(LinkToolResultData.self, from: data),
                let callId = payload.message.content.first?.toolCallId,
                let index = state.toolCalls.firstIndex(where: { $0.id == callId }) {
@@ -244,6 +281,26 @@ public struct CompanionSessionFold {
         case .error: return "第 \(turn) 轮出错"
         case .maxTokens: return "第 \(turn) 轮达到输出上限"
         case .interrupted: return "第 \(turn) 轮因中断收尾"
+        }
+    }
+
+    /// Collect image references from a content-block list, nesting like
+    /// `blockText` and skipping ids already collected.
+    static func collectImages(_ blocks: [LinkContentBlock], into images: inout [CompanionDomainState.ImageRef]) {
+        for block in blocks {
+            if let ref = block.attachment {
+                if !images.contains(where: { $0.attachmentId == ref.attachmentId }) {
+                    images.append(CompanionDomainState.ImageRef(
+                        attachmentId: ref.attachmentId,
+                        mediaType: ref.mediaType.rawValue,
+                        width: ref.width,
+                        height: ref.height,
+                        name: (ref.name?.isEmpty == false) ? ref.name : nil
+                    ))
+                }
+            } else if let nested = block.content {
+                collectImages(nested, into: &images)
+            }
         }
     }
 

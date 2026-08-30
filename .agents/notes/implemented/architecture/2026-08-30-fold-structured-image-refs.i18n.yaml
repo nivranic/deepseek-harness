@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-fold-structured-image-refs.md
+2026-08-30-fold-structured-image-refs.md: 4a7c1bff4773f69e88b1411b53072547273c1c47
+2026-08-30-fold-structured-image-refs.zh.md: 029ec5b8004fe2355e28d8b48fb719736830e00b

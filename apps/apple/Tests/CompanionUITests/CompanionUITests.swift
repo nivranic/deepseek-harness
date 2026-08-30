@@ -685,6 +685,15 @@ final class CompanionFoldConformanceTests: XCTestCase {
             ]),
             "source": jsonObject(["kind": .string("user")]),
         ]))
+        XCTAssertEqual(fold.state.images, [
+            CompanionDomainState.ImageRef(
+                attachmentId: "att-1",
+                mediaType: "image/png",
+                width: 800,
+                height: 600,
+                name: "screenshot.png"
+            ),
+        ])
         XCTAssertEqual(
             fold.state.items.last?.text,
             "这张截图有问题" + "\n" + "图片 screenshot.png（image/png，800×600）"

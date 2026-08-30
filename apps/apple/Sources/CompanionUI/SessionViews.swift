@@ -77,6 +77,17 @@ public struct SessionView: View {
                     }
                 }
             }
+            if !model.images.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(model.images) { ref in
+                            AttachmentCard(ref: ref, model: model)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.vertical, 6)
+            }
             HStack(spacing: 12) {
                 TextField("发消息给宿主…", text: $draft)
                     .textFieldStyle(.roundedBorder)
@@ -106,5 +117,54 @@ public struct SessionView: View {
         guard !text.isEmpty else { return }
         draft = ""
         await model.send(text: text)
+    }
+}
+
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
+/// One folded image reference: renders fetched bytes when the cache holds
+/// them, a fetch affordance otherwise.
+struct AttachmentCard: View {
+    let ref: CompanionDomainState.ImageRef
+    let model: RemoteSessionViewModel
+
+    var body: some View {
+        if let image = loadedImage {
+            image
+                .resizable()
+                .scaledToFill()
+                .frame(width: 96, height: 96)
+                .clipShape(.rect(cornerRadius: 10))
+        } else {
+            Button {
+                Task { await model.readAttachment(ref.attachmentId) }
+            } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: "photo")
+                    Text(ref.name ?? ref.mediaType).font(.caption2).lineLimit(1)
+                    Text("载入").font(.caption2).foregroundStyle(.tertiary)
+                }
+                .frame(width: 96, height: 96)
+                .background(.quaternary, in: .rect(cornerRadius: 10))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    /// Decode the cached bytes on whichever platform image type this build
+    /// carries; nil when uncached or undecodable.
+    private var loadedImage: Image? {
+        guard let data = model.attachments[ref.attachmentId] else { return nil }
+        #if canImport(UIKit)
+        return UIImage(data: data).map { Image(uiImage: $0) }
+        #elseif canImport(AppKit)
+        return NSImage(data: data).map { Image(nsImage: $0) }
+        #else
+        return nil
+        #endif
     }
 }

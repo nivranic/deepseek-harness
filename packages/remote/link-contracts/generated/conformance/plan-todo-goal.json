@@ -150,6 +150,7 @@
       }
     ],
     "goals": [],
-    "toolCalls": []
+    "toolCalls": [],
+    "images": []
   }
 }

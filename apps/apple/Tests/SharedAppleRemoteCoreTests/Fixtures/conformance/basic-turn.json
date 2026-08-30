@@ -166,6 +166,7 @@
     "planActive": false,
     "todos": [],
     "goals": [],
-    "toolCalls": []
+    "toolCalls": [],
+    "images": []
   }
 }

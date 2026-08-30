@@ -125,6 +125,15 @@
     "planActive": false,
     "todos": [],
     "goals": [],
-    "toolCalls": []
+    "toolCalls": [],
+    "images": [
+      {
+        "attachmentId": "att-8f14e45fceea167a5a36dedd4bea2543",
+        "mediaType": "image/png",
+        "width": 800,
+        "height": 600,
+        "name": "screenshot.png"
+      }
+    ]
   }
 }

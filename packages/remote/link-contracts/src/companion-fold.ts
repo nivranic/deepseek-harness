@@ -30,6 +30,18 @@ export interface CompanionToolCall {
   readonly resultText: string
 }
 
+/**
+ * One durable image reference collected from message content, ordered by
+ * first appearance and deduplicated by attachment id.
+ */
+export interface CompanionImageRef {
+  readonly attachmentId: string
+  readonly mediaType: string
+  readonly width: number
+  readonly height: number
+  readonly name?: string
+}
+
 /** One folded timeline row: the record tag plus its rendered summary. */
 export interface CompanionItem {
   readonly seq: number
@@ -62,11 +74,12 @@ export interface CompanionDomainState {
   readonly todos: readonly CompanionTodo[]
   readonly goals: readonly CompanionGoal[]
   readonly toolCalls: readonly CompanionToolCall[]
+  readonly images: readonly CompanionImageRef[]
 }
 
 /** The empty state before any record arrives. */
 export function emptyCompanionDomain(): CompanionDomainState {
-  return { cursor: 0, items: [], planActive: false, todos: [], goals: [], toolCalls: [] }
+  return { cursor: 0, items: [], planActive: false, todos: [], goals: [], toolCalls: [], images: [] }
 }
 
 /**
@@ -92,6 +105,7 @@ interface TextualBlock {
   text?: string
   content?: unknown
   attachment?: {
+    attachmentId?: unknown
     mediaType?: unknown
     width?: unknown
     height?: unknown
@@ -106,6 +120,26 @@ function imageSummary(ref: NonNullable<TextualBlock['attachment']>): string {
   const height = typeof ref.height === 'number' ? ref.height : 0
   const name = typeof ref.name === 'string' && ref.name !== '' ? ` ${ref.name}` : ''
   return `图片${name}（${mediaType}，${width}×${height}）`
+}
+
+/** Collect image references from a content-block list, nesting like
+ * `blockText` and skipping ids already collected. */
+function collectImages(blocks: ReadonlyArray<TextualBlock>, into: CompanionImageRef[]): void {
+  for (const block of blocks) {
+    const ref = block.type === 'image' ? block.attachment : undefined
+    if (ref !== undefined && typeof ref.attachmentId === 'string'
+      && !into.some(existing => existing.attachmentId === ref.attachmentId)) {
+      into.push({
+        attachmentId: ref.attachmentId,
+        mediaType: typeof ref.mediaType === 'string' ? ref.mediaType : '',
+        width: typeof ref.width === 'number' ? ref.width : 0,
+        height: typeof ref.height === 'number' ? ref.height : 0,
+        ...(typeof ref.name === 'string' && ref.name !== '' ? { name: ref.name } : {}),
+      })
+    } else if (Array.isArray(block.content)) {
+      collectImages(block.content as ReadonlyArray<TextualBlock>, into)
+    }
+  }
 }
 
 /** Visible text of a content-block list: text blocks carry it directly, image
@@ -196,6 +230,7 @@ interface CompanionFoldState {
   todos: CompanionTodo[]
   goals: CompanionGoal[]
   toolCalls: CompanionToolCall[]
+  images: CompanionImageRef[]
 }
 
 /**
@@ -226,6 +261,12 @@ export function foldCompanionRecord(state: CompanionFoldState, record: Companion
         : []
       break
     }
+    case 'user/message':
+      collectImages((data as SessionEventMap['user/message']).content, state.images)
+      break
+    case 'assistant/message':
+      collectImages((data as SessionEventMap['assistant/message']).message.content, state.images)
+      break
     case 'tool/call': {
       const payload = data as SessionEventMap['tool/call']
       state.toolCalls.push({
@@ -240,6 +281,7 @@ export function foldCompanionRecord(state: CompanionFoldState, record: Companion
     }
     case 'tool/result': {
       const payload = data as SessionEventMap['tool/result']
+      collectImages(payload.message.content, state.images)
       const callId = (payload.message.content as ReadonlyArray<{ toolCallId?: string }>)[0]?.toolCallId
       const index = callId === undefined ? -1 : state.toolCalls.findIndex(call => call.id === callId)
       const target = index === -1 ? undefined : state.toolCalls[index]
@@ -270,6 +312,7 @@ export function foldCompanionDomain(records: readonly CompanionRecord[]): Compan
     todos: [],
     goals: [],
     toolCalls: [],
+    images: [],
   }
   for (const record of records) foldCompanionRecord(state, record)
   return state
