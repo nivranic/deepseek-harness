@@ -1,0 +1,155 @@
+{
+  "records": [
+    {
+      "type": "event",
+      "event": {
+        "type": "plan/mode",
+        "seq": 1,
+        "time": 1759017600001,
+        "data": {
+          "active": true
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "todo/write",
+        "seq": 2,
+        "time": 1759017600002,
+        "data": {
+          "todos": [
+            {
+              "content": "编译伴侣应用",
+              "status": "in_progress"
+            },
+            {
+              "content": "跑契约回放测试",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "goal/change",
+        "seq": 3,
+        "time": 1759017600003,
+        "data": {
+          "kind": "goal/change",
+          "version": 1,
+          "operation": "create",
+          "goal": {
+            "id": "goal-1",
+            "revision": 1,
+            "objective": "发布 0.2 伴侣版",
+            "phase": "active",
+            "maxGoalRounds": 12
+          },
+          "roundsStarted": 0,
+          "createdAt": 1759017600000,
+          "updatedAt": 1759017600000
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "todo/write",
+        "seq": 4,
+        "time": 1759017600004,
+        "data": {
+          "todos": [
+            {
+              "content": "编译伴侣应用",
+              "status": "completed"
+            },
+            {
+              "content": "跑契约回放测试",
+              "status": "in_progress"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "plan/mode",
+        "seq": 5,
+        "time": 1759017600005,
+        "data": {
+          "active": false
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "goal/change",
+        "seq": 6,
+        "time": 1759017600006,
+        "data": {
+          "kind": "goal/change",
+          "version": 1,
+          "operation": "clear",
+          "cleared": {
+            "id": "goal-1",
+            "revision": 2
+          },
+          "clearedAt": 1759017700000
+        }
+      }
+    }
+  ],
+  "expected": {
+    "cursor": 6,
+    "items": [
+      {
+        "seq": 1,
+        "kind": "plan/mode",
+        "text": "进入计划模式"
+      },
+      {
+        "seq": 2,
+        "kind": "todo/write",
+        "text": "更新待办（2 项）"
+      },
+      {
+        "seq": 3,
+        "kind": "goal/change",
+        "text": "目标：发布 0.2 伴侣版"
+      },
+      {
+        "seq": 4,
+        "kind": "todo/write",
+        "text": "更新待办（2 项）"
+      },
+      {
+        "seq": 5,
+        "kind": "plan/mode",
+        "text": "退出计划模式"
+      },
+      {
+        "seq": 6,
+        "kind": "goal/change",
+        "text": "目标已清除"
+      }
+    ],
+    "planActive": false,
+    "todos": [
+      {
+        "text": "编译伴侣应用",
+        "status": "completed"
+      },
+      {
+        "text": "跑契约回放测试",
+        "status": "in_progress"
+      }
+    ],
+    "goals": [],
+    "toolCalls": []
+  }
+}

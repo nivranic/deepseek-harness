@@ -11,12 +11,16 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { LINK_CONTRACT_FIXTURES } from '../packages/remote/link-contracts/src/index.ts'
 import { generateLinkContracts } from '../packages/remote/link-contracts/src/generate.ts'
+import { generateConformanceArtifacts } from '../packages/remote/link-contracts/src/companion-scenarios.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const generatedDir = resolve(root, 'packages/remote/link-contracts/generated')
 const fixturesDir = resolve(generatedDir, 'fixtures')
+const conformanceDir = resolve(generatedDir, 'conformance')
 const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
+const appleConformance = resolve(appleFixtures, 'conformance')
+const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
 
 const artifacts = generateLinkContracts()
 writeFileSync(resolve(generatedDir, 'link-contracts.manifest.json'), artifacts.manifest)
@@ -31,4 +35,13 @@ for (const fixture of LINK_CONTRACT_FIXTURES) {
   writeFileSync(resolve(fixturesDir, `${fixture.id}.json`), json)
   writeFileSync(resolve(appleFixtures, `${fixture.id}.json`), json)
 }
-console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, and fixture artifacts (apps/apple synced).')
+
+mkdirSync(conformanceDir, { recursive: true })
+mkdirSync(appleConformance, { recursive: true })
+mkdirSync(appleUiConformance, { recursive: true })
+for (const scenario of generateConformanceArtifacts()) {
+  writeFileSync(resolve(conformanceDir, `${scenario.id}.json`), scenario.json)
+  writeFileSync(resolve(appleConformance, `${scenario.id}.json`), scenario.json)
+  writeFileSync(resolve(appleUiConformance, `${scenario.id}.json`), scenario.json)
+}
+console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, fixture, and conformance artifacts (apps/apple synced).')

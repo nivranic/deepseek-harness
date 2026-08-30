@@ -1,12 +1,14 @@
-/** Contract behavior: fixture round-trips, table coverage, emitted artifacts. */
+/** Contract behavior: fixture round-trips, table coverage, emitted artifacts, domain-state fold. */
 
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import {
-  LINK_CONTRACT_FIXTURES, LINK_CONTRACT_TYPES,
+  LINK_CONTRACT_FIXTURES, LINK_CONTRACT_TYPES, LINK_DOMAIN_SCENARIOS,
   LinkAdminStatusSchema, LinkDeviceRecordSchema, LinkPairingPayloadSchema,
+  foldCompanionDomain,
 } from '../src/index.ts'
 import { generateLinkContracts } from '../src/generate.ts'
+import { generateConformanceArtifacts } from '../src/companion-scenarios.ts'
 
 describe('link contract fixtures', () => {
   it('round-trips the typed fixtures through the wire schemas', () => {
@@ -142,5 +144,62 @@ describe('link contract generator', () => {
     expect(() => generateLinkContracts(alienEvent)).toThrow(/unknown session event/u)
     expect(() => generateLinkContracts(LINK_CONTRACT_TYPES.filter(type => type.name !== 'LinkSessionEventKind')))
       .toThrow(/LinkSessionEventKind and LinkChunkRowKind/u)
+  })
+})
+
+describe('companion domain-state fold', () => {
+  it('derives the expected state from every golden scenario', () => {
+    const byId = new Map(LINK_DOMAIN_SCENARIOS.map(scenario => [scenario.id, foldCompanionDomain(scenario.records)]))
+
+    const basic = byId.get('basic-turn')!
+    expect(basic.cursor).toBe(7)
+    expect(basic.items.map(item => item.text)).toEqual([
+      '第 1 轮开始',
+      '帮我把登录页改成液态玻璃风格',
+      '',
+      '你好，构建',
+      '已完成：登录页液态玻璃样式落地。',
+      '',
+      '第 1 轮完成',
+    ])
+    expect(basic.planActive).toBe(false)
+    expect(basic.toolCalls).toEqual([])
+
+    const pane = byId.get('plan-todo-goal')!
+    expect(pane.planActive).toBe(false)
+    expect(pane.todos).toEqual([
+      { text: '编译伴侣应用', status: 'completed' },
+      { text: '跑契约回放测试', status: 'in_progress' },
+    ])
+    expect(pane.goals).toEqual([])
+
+    const tools = byId.get('tool-trajectory')!
+    expect(tools.toolCalls.map(call => [call.id, call.phase])).toEqual([
+      ['call-1', 'completed'],
+      ['call-2', 'failed'],
+      ['call-3', 'running'],
+    ])
+    expect(tools.toolCalls[0]!.resultText).toBe('已写入 42 行。')
+    expect(tools.toolCalls[1]!.resultText).toBe('2 个断言失败')
+  })
+
+  it('emits one artifact per scenario whose expected value matches the fold', () => {
+    const artifacts = generateConformanceArtifacts()
+    expect(artifacts.map(artifact => artifact.id)).toEqual(LINK_DOMAIN_SCENARIOS.map(scenario => scenario.id))
+    for (const artifact of artifacts) {
+      expect(artifact.json.endsWith('\n')).toBe(true)
+      const parsed = JSON.parse(artifact.json) as { records: unknown[]; expected: unknown }
+      const scenario = LINK_DOMAIN_SCENARIOS.find(candidate => candidate.id === artifact.id)!
+      expect(parsed.records).toEqual(scenario.records)
+      expect(parsed.expected).toEqual(foldCompanionDomain(scenario.records))
+    }
+  })
+
+  it('tolerates an unknown event tag as a marker row', () => {
+    const state = foldCompanionDomain([
+      { type: 'event', event: { type: 'future/event', seq: 9, data: { any: 'thing' } } },
+    ])
+    expect(state.items).toEqual([{ seq: 9, kind: 'future/event', text: '' }])
+    expect(state.cursor).toBe(9)
   })
 })

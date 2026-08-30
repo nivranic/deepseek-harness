@@ -22,6 +22,11 @@ import type {} from '@deepseek-ai/dsh-plan-mode'
 import type {} from '@deepseek-ai/dsh-tool-todo/types'
 import { z } from 'zod'
 
+export type { CompanionDomainState, CompanionGoal, CompanionItem, CompanionRecord, CompanionTodo, CompanionToolCall, CompanionToolPhase } from './companion-fold.ts'
+export { emptyCompanionDomain, foldCompanionDomain, foldCompanionRecord } from './companion-fold.ts'
+export type { CompanionScenario, ConformanceArtifact } from './companion-scenarios.ts'
+export { generateConformanceArtifacts, LINK_DOMAIN_SCENARIOS } from './companion-scenarios.ts'
+
 /**
  * One field row in the declarative type table: a scalar, a reference to an
  * enum or object table row (single or array), a literal constant, or a

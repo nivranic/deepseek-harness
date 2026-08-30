@@ -32,7 +32,7 @@ public struct ToolsView: View {
 /// One trajectory row: name and phase headline, the raw arguments, and the
 /// result text once the invocation closed.
 struct ToolCallRow: View {
-    let call: ToolCallRecord
+    let call: CompanionDomainState.ToolCall
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -60,7 +60,7 @@ struct ToolCallRow: View {
         .padding(.vertical, 2)
     }
 
-    private static func phaseLabel(_ phase: ToolCallRecord.Phase) -> String {
+    private static func phaseLabel(_ phase: CompanionDomainState.ToolCall.Phase) -> String {
         switch phase {
         case .running: return "执行中"
         case .completed: return "已完成"
@@ -68,7 +68,7 @@ struct ToolCallRow: View {
         }
     }
 
-    private static func phaseIcon(_ phase: ToolCallRecord.Phase) -> String {
+    private static func phaseIcon(_ phase: CompanionDomainState.ToolCall.Phase) -> String {
         switch phase {
         case .running: return "clock"
         case .completed: return "checkmark.circle.fill"

@@ -61,7 +61,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Sources/SharedAppleRemoteCore/LinkContracts.swift` | Generated wire models — never hand-edited |
 | `Tests/SharedAppleRemoteCoreTests/` | Fixture replay and signing vocabulary tests |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI app layer: theming, session UI, interaction inbox, plan/todo/goal pane, tool trajectory |
-| `Tests/CompanionUITests/` | View-model and theme-degrade tests over a fake wire |
+| `Sources/CompanionUI/SessionFold.swift` | The pure domain-state fold — the Swift half of the conformance scenarios |
+| `Tests/CompanionUITests/` | View-model, theme-degrade, and domain-state conformance tests over a fake wire |
 
 </details>
 

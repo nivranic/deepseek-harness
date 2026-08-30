@@ -1,23 +1,28 @@
 /**
  * Link-contract drift gate: regenerate every artifact in memory — the
- * manifest, Swift, and Kotlin texts, and one JSON body per golden fixture —
- * and require the committed files, including the synced `apps/apple` copies,
- * to match byte-for-byte. A wire-type change that regenerates differently
- * fails here until the artifacts are regenerated and reviewed, the contract
- * drift CI the nativization plan (chapter 19) mandates.
+ * manifest, Swift, and Kotlin texts, one JSON body per golden fixture, and
+ * the domain-state conformance scenarios (records plus the reference fold's
+ * expected state) — and require the committed files, including the synced
+ * `apps/apple` copies, to match byte-for-byte. A wire-type or fold change
+ * that regenerates differently fails here until the artifacts are
+ * regenerated and reviewed, the contract drift CI the nativization plan
+ * (chapters 19 and 62) mandates.
  */
 
 import { readFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { LINK_CONTRACT_FIXTURES } from '../packages/remote/link-contracts/src/index.ts'
 import { generateLinkContracts } from '../packages/remote/link-contracts/src/generate.ts'
+import { generateConformanceArtifacts } from '../packages/remote/link-contracts/src/companion-scenarios.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const generatedDir = resolve(root, 'packages/remote/link-contracts/generated')
 const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
 const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
+const appleUiConformance = resolve(root, 'apps/apple/Tests/CompanionUITests/Fixtures/conformance')
 
 const artifacts = generateLinkContracts()
+const conformance = generateConformanceArtifacts()
 let failures = 0
 const expectFresh = (path: string, wanted: string): void => {
   let actual: string | undefined
@@ -44,5 +49,10 @@ for (const fixture of LINK_CONTRACT_FIXTURES) {
   expectFresh(resolve(generatedDir, 'fixtures', `${fixture.id}.json`), json)
   expectFresh(resolve(appleFixtures, `${fixture.id}.json`), json)
 }
+for (const scenario of conformance) {
+  expectFresh(resolve(generatedDir, 'conformance', `${scenario.id}.json`), scenario.json)
+  expectFresh(resolve(appleFixtures, 'conformance', `${scenario.id}.json`), scenario.json)
+  expectFresh(resolve(appleUiConformance, `${scenario.id}.json`), scenario.json)
+}
 if (failures > 0) process.exit(1)
-console.log('verify-link-contracts: manifest, Swift, Kotlin, and fixture artifacts are fresh (apps/apple synced).')
+console.log('verify-link-contracts: manifest, Swift, Kotlin, fixture, and conformance artifacts are fresh (apps/apple synced).')

@@ -1,0 +1,213 @@
+{
+  "records": [
+    {
+      "type": "event",
+      "event": {
+        "type": "tool/call",
+        "seq": 1,
+        "time": 1759017600001,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "callId": "call-1",
+          "name": "write_file",
+          "arguments": "{\"path\":\"Login.swift\"}"
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "tool/call",
+        "seq": 2,
+        "time": 1759017600002,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "callId": "call-2",
+          "name": "run_tests",
+          "arguments": "{}"
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "tool/result",
+        "seq": 3,
+        "time": 1759017600003,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "message": {
+            "id": "m-tool-1",
+            "role": "user",
+            "content": [
+              {
+                "type": "tool-result",
+                "toolCallId": "call-1",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "已写入 42 行。"
+                  }
+                ]
+              }
+            ],
+            "source": {
+              "kind": "tool",
+              "callId": "call-1"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "tool/result",
+        "seq": 4,
+        "time": 1759017600004,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "message": {
+            "id": "m-tool-x",
+            "role": "user",
+            "content": [
+              {
+                "type": "tool-result",
+                "toolCallId": "call-x",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "孤儿结果"
+                  }
+                ]
+              }
+            ],
+            "source": {
+              "kind": "tool",
+              "callId": "call-x"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "tool/result",
+        "seq": 5,
+        "time": 1759017600005,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "message": {
+            "id": "m-tool-2",
+            "role": "user",
+            "content": [
+              {
+                "type": "tool-result",
+                "toolCallId": "call-2",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "2 个断言失败"
+                  }
+                ]
+              }
+            ],
+            "source": {
+              "kind": "tool",
+              "callId": "call-2"
+            }
+          },
+          "error": {
+            "name": "AssertionError",
+            "code": "EXIT_1"
+          }
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "tool/call",
+        "seq": 6,
+        "time": 1759017600006,
+        "data": {
+          "turn": 2,
+          "step": 1,
+          "callId": "call-3",
+          "name": "web_search",
+          "arguments": "{\"query\":\"swift observation\"}"
+        }
+      }
+    }
+  ],
+  "expected": {
+    "cursor": 6,
+    "items": [
+      {
+        "seq": 1,
+        "kind": "tool/call",
+        "text": "调用工具 write_file"
+      },
+      {
+        "seq": 2,
+        "kind": "tool/call",
+        "text": "调用工具 run_tests"
+      },
+      {
+        "seq": 3,
+        "kind": "tool/result",
+        "text": "已写入 42 行。"
+      },
+      {
+        "seq": 4,
+        "kind": "tool/result",
+        "text": "孤儿结果"
+      },
+      {
+        "seq": 5,
+        "kind": "tool/result",
+        "text": "工具失败：AssertionError"
+      },
+      {
+        "seq": 6,
+        "kind": "tool/call",
+        "text": "调用工具 web_search"
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "goals": [],
+    "toolCalls": [
+      {
+        "id": "call-1",
+        "seq": 1,
+        "name": "write_file",
+        "arguments": "{\"path\":\"Login.swift\"}",
+        "phase": "completed",
+        "resultText": "已写入 42 行。"
+      },
+      {
+        "id": "call-2",
+        "seq": 2,
+        "name": "run_tests",
+        "arguments": "{}",
+        "phase": "failed",
+        "resultText": "2 个断言失败"
+      },
+      {
+        "id": "call-3",
+        "seq": 6,
+        "name": "web_search",
+        "arguments": "{\"query\":\"swift observation\"}",
+        "phase": "running",
+        "resultText": ""
+      }
+    ]
+  }
+}

@@ -351,6 +351,42 @@ final class InteractionViewModelTests: XCTestCase {
     }
 }
 
+/// Domain-state conformance (plan chapter 62): the generated golden
+/// scenarios — records plus the TypeScript reference fold's expected state —
+/// must fold to exactly that state here too.
+final class CompanionFoldConformanceTests: XCTestCase {
+    private var conformanceDirectory: URL {
+        URL(fileURLWithPath: #filePath, isDirectory: false)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures", isDirectory: true)
+            .appendingPathComponent("conformance", isDirectory: true)
+    }
+
+    private struct Scenario: Decodable {
+        let records: [WireValue]
+        let expected: CompanionDomainState
+    }
+
+    func testEveryScenarioFoldsToTheReferenceState() throws {
+        let ids = ["basic-turn", "plan-todo-goal", "tool-trajectory"]
+        for id in ids {
+            let data = try Data(contentsOf: conformanceDirectory.appendingPathComponent("\(id).json"))
+            let scenario = try JSONDecoder().decode(Scenario.self, from: data)
+            var fold = CompanionSessionFold()
+            for record in scenario.records { fold.ingest(record) }
+            XCTAssertEqual(fold.state, scenario.expected, "scenario \(id) must fold to the TypeScript reference state")
+        }
+    }
+
+    func testResetReturnsTheFoldToEmpty() {
+        var fold = CompanionSessionFold()
+        fold.ingest(eventEntry(1, "turn/start", ["turn": .number(1)]))
+        XCTAssertFalse(fold.state.items.isEmpty)
+        fold.reset()
+        XCTAssertEqual(fold.state, .empty)
+    }
+}
+
 final class CompanionThemeTests: XCTestCase {
     func testLiquidGlassDegradesWithoutGlassCapableOS() {
         let theme = CompanionTheme.resolve(requested: .liquidGlass, glassCapableOS: false, reduceTransparency: false, increaseContrast: false)

@@ -27,7 +27,7 @@ English | [中文](README.zh.md)
 The generator runs from the repository root (it also syncs the `apps/apple` copies); the drift gate rides the `hygiene` aggregate.
 
 ```sh
-pnpm run gen-link-contracts      # regenerate manifest + Swift + Kotlin
+pnpm run gen-link-contracts      # regenerate manifest + Swift + Kotlin + conformance scenarios
 pnpm run verify-link-contracts   # fail when committed artifacts are stale
 ```
 
@@ -47,6 +47,7 @@ A wire-type change surfaces twice: the zod schemas stop satisfying the protocol 
 - **Three pins per type.** Protocol interface (the real contract), zod schema (`satisfies z.ZodType<…>`), and fixture (`satisfies` the interface) — any drift between them is a compile error before it is a gate failure.
 - **Const fields stay fields.** Version and kind constants emit as documented scalar fields, not hardcoded decoder branches, so a protocol bump changes the manifest diff visibly.
 - **Session events pin the host vocabulary.** Each event-payload fixture satisfies the real `SessionEventMap` member (the plugin merges for `plan/mode`, `todo/write`, and `goal/change` included), so a host-side payload change fails typecheck here first; `sessionEvents`/`chunkRows` tags on a row must be values of the `LinkSessionEventKind`/`LinkChunkRowKind` enums, and the emitter rejects any other tag.
+- **Domain-state conformance scenarios.** `foldCompanionDomain` is the reference fold of follow records into the companion domain state (timeline summaries, plan/todo/goal, tool trajectory); `generated/conformance/<id>.json` pairs each golden record sequence with the state it derives, so a native fold replaying the same bytes must reach exactly the TypeScript result — plan chapter 62's "same fixture, same domain state" guarantee, under the same drift gate.
 
 ### Source map
 
@@ -54,8 +55,10 @@ A wire-type change surfaces twice: the zod schemas stop satisfying the protocol 
 |---|---|
 | [`src/index.ts`](src/index.ts) | Type table, fixtures, zod schemas pinned to the protocol types |
 | [`src/generate.ts`](src/generate.ts) | Pure emitter for the manifest, Swift, and Kotlin artifacts |
+| [`src/companion-fold.ts`](src/companion-fold.ts) | Reference domain-state fold over follow records |
+| [`src/companion-scenarios.ts`](src/companion-scenarios.ts) | Golden conformance scenarios and their emitter |
 | [`src/invariant.ts`](src/invariant.ts) | Invariant companion (no runtime invariant: pure contract library) |
-| [`generated/`](generated/) | Emitted manifest, Swift, and Kotlin — never hand-edited |
+| [`generated/`](generated/) | Emitted manifest, Swift, Kotlin, fixtures, and conformance scenarios — never hand-edited |
 
 </details>
 
