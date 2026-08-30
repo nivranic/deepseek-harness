@@ -174,10 +174,12 @@ class LiteHTTPProviderTest {
 
     @Test
     fun aRefusedConnectionIsANetworkError() = runTest {
-        // Bind then stop a server to find a port nothing listens on.
-        val probe = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
-        val port = probe.address.port
-        probe.stop(0)
+        // Bind a raw socket and close it: unlike an unstarted HttpServer's
+        // stop, ServerSocket.close() deterministically closes the listener,
+        // so the connect below meets a refused port.
+        val probe = java.net.ServerSocket(0)
+        val port = probe.localPort
+        probe.close()
 
         val provider = LiteHTTPProvider(
             endpoint = "http://127.0.0.1:$port/v1/chat/completions",
