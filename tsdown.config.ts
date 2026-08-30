@@ -17,7 +17,9 @@ export default defineConfig(({ env }) => {
   const client = isBuildFaceClient(env?.DSH_BUILD_FACE)
   return {
     workspace: ['vendor/*', 'packages/*/*', 'apps/cli', 'apps/desktop'],
-    entry: client ? '' : ['lib/types/{index,invariant,startup}.js'],
+    // `protocol` is the link wire vocabulary shipped beside the carrier entry
+    // (packages without one simply have no match in the glob).
+    entry: client ? '' : ['lib/types/{index,invariant,startup,protocol}.js'],
     outDir: 'lib',
     format: ['esm'],
     platform: 'node',

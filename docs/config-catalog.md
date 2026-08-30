@@ -604,6 +604,26 @@ export interface Config {
 
 Source: [`packages/bundle/desktop-app/src/index.ts:24`](../packages/bundle/desktop-app/src/index.ts)
 
+<a id="deepseek-aidsh-device-trust"></a>
+
+## `@deepseek-ai/dsh-device-trust`
+
+```ts config-catalog
+/** Plugin configuration. */
+export interface DeviceTrustConfig {
+  /**
+   * Filesystem path to the SQLite database file. The special value `:memory:`
+   * opens an in-process database (tests). Defaults to
+   * `<dshHome>/device-trust.sqlite`.
+   */
+  path?: string
+  /** Harness home used when `path` is omitted; defaults to `$DSH_HOME` or `~/.dsh`. */
+  dshHome?: string
+}
+```
+
+Source: [`packages/remote/device-trust/src/index.ts:75`](../packages/remote/device-trust/src/index.ts)
+
 <a id="deepseek-aidsh-e2b"></a>
 
 ## `@deepseek-ai/dsh-e2b`
@@ -995,6 +1015,62 @@ export interface Config {
 ```
 
 Source: [`packages/jobs/jobs-local/src/index.ts:31`](../packages/jobs/jobs-local/src/index.ts)
+
+<a id="deepseek-aidsh-link-access"></a>
+
+## `@deepseek-ai/dsh-link-access`
+
+Requires: `connection` · `typertGateway` · `deviceTrust`
+
+```ts config-catalog
+/** Plugin configuration. */
+export interface LinkAccessConfig {
+  /** Bind the TLS carrier. Remote access stays disabled until this is explicitly enabled. */
+  enabled?: boolean
+  /**
+   * Bind address; `0.0.0.0` selects every interface and derives the pairing
+   * endpoint from the first non-internal IPv4 address.
+   */
+  host?: string
+  /** Bind port; `0` takes an OS-assigned port (tests). */
+  port?: number
+  /** Harness home owning the TLS material directory; defaults to `$DSH_HOME` or `~/.dsh`. */
+  dshHome?: string
+  /**
+   * The complete remote endpoint allowlist, replacing the default surface.
+   * Every row states its invocation kind and minimum device role.
+   */
+  endpoints?: LinkEndpointInput[]
+  /** Independent switch for answering remote approvals and questions; `Can prompt` never implies this. */
+  allowRemoteApproval?: boolean
+  /** Role granted to devices at pairing. Default `controller` (an ordinary phone). */
+  pairingRole?: 'observer' | 'controller'
+  /** Pairing code lifetime in seconds. */
+  pairingTtlSeconds?: number
+  /** Accepted request-timestamp skew in seconds. */
+  clockSkewSeconds?: number
+  /** Carrier cap for unary RPC bodies. */
+  maxRequestBodyBytes?: number
+}
+
+/** Configuration-facing allowlist row before resolution to {@link LinkEndpointAccess}. */
+export interface LinkEndpointInput {
+  /** Canonical `<namespace>/<method>` endpoint, or `$events` / `$events/result`. */
+  readonly endpoint: string
+  /** How the endpoint is invoked through the carrier. */
+  readonly kind: LinkEndpointKind
+  /** Minimum device role allowed to invoke the endpoint. */
+  readonly minRole: LinkMinimumRole
+}
+
+/** How a remote endpoint is invoked through the carrier. */
+export type LinkEndpointKind = 'unary' | 'stream'
+
+/** Roles a deployment may pin as an endpoint's minimum. */
+export type LinkMinimumRole = 'observer' | 'controller'
+```
+
+Source: [`packages/remote/link-access/src/index.ts:76`](../packages/remote/link-access/src/index.ts)
 
 <a id="deepseek-aidsh-llm-deepseek"></a>
 
@@ -3564,6 +3640,7 @@ Imported as libraries by other packages; a `cordis.yml` cannot load them.
 - `@deepseek-ai/dsh-home-paths` ([`packages/util/home-paths/src/index.ts`](../packages/util/home-paths/src/index.ts))
 - `@deepseek-ai/dsh-hook-protocol` ([`packages/hooks/hook-protocol/src/index.ts`](../packages/hooks/hook-protocol/src/index.ts))
 - `@deepseek-ai/dsh-launch-environment` ([`packages/util/launch-environment/src/index.ts`](../packages/util/launch-environment/src/index.ts))
+- `@deepseek-ai/dsh-link-client` ([`packages/remote/link-client/src/index.ts`](../packages/remote/link-client/src/index.ts))
 - `@deepseek-ai/dsh-llm-mock-server` ([`packages/test-support/llm-mock-server/src/index.ts`](../packages/test-support/llm-mock-server/src/index.ts))
 - `@deepseek-ai/dsh-loader-smoke` ([`packages/test-support/loader-smoke/src/index.ts`](../packages/test-support/loader-smoke/src/index.ts))
 - `@deepseek-ai/dsh-native-command` ([`packages/util/native-command/src/index.ts`](../packages/util/native-command/src/index.ts))

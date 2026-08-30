@@ -208,6 +208,9 @@ export function expectedDshPackageFiles(manifest: PackageManifest): readonly str
     ...exportDefault(manifest, './loader') === './lib/loader.js' ? ['lib/loader.js'] : [],
     // A store subpath ships its own bundle (single-entry builds; no shared chunk).
     ...exportDefault(manifest, './store') === './lib/store/index.js' ? ['lib/store/index.js'] : [],
+    // The link wire vocabulary ships as its own bundle beside the carrier entry
+    // (the reference client and native companions consume it without the server).
+    ...exportDefault(manifest, './protocol') === './lib/protocol.js' ? ['lib/protocol.js'] : [],
     // A surface bundle's startup row is its own bundle: the Loader imports it
     // as a row module, so it cannot ride inside the package entry.
     ...exportDefault(manifest, './startup') === './lib/startup.js' ? ['lib/startup.js'] : [],

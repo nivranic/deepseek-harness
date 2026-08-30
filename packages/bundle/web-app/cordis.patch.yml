@@ -166,6 +166,18 @@
     - id: api-remotes
       name: '@deepseek-ai/dsh-api-remotes'
 
+    # Native remote access foundation (link carrier PoC). The trust store is
+    # mounted inert; the carrier row below ships disabled — a deployment
+    # enables it by patching the row (`disabled: false`) and setting its
+    # bind host/port. Pairing, device roles, and the remote allowlist live
+    # in these two plugins; remote access never opens by default.
+    - id: device-trust
+      name: '@deepseek-ai/dsh-device-trust'
+
+    - id: link-access
+      name: '@deepseek-ai/dsh-link-access'
+      disabled: true
+
     - id: cordis-client-runner
       name: '@deepseek-ai/dsh-cordis-client-runner'
 

@@ -35,6 +35,9 @@ const NO_MODEL_EXPERIENCE_SECTION: Readonly<Record<string, string>> = {
   'packages/util/home-paths': 'The package only resolves harness-owned host paths; model-facing consumers own any rendered use.',
   'packages/util/launch-environment': 'The package only resolves host environment values; model-facing consumers own any rendered use.',
   'packages/util/workspace-path': 'The package only formats Workspace paths for browser UI; it never constructs model input.',
+  'packages/remote/device-trust': 'The package persists device trust material for the remote link carrier; it registers no prompt, tool, or schema.',
+  'packages/remote/link-access': 'The package is the remote link transport and authorization carrier; it registers no prompt, tool, or schema.',
+  'packages/remote/link-client': 'The package is a plain transport library with no Cordis registrations; it never constructs model input.',
 }
 
 /**

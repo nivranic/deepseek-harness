@@ -789,6 +789,62 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'deviceTrust',
+    summary: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.',
+    description: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.',
+    methods: [
+      {
+        signature: 'async hostIdentity(): Promise<HostIdentity>',
+        description: 'Resolve this store\'s stable Host identity, creating it on first use.',
+        parameters: [],
+        returns: 'the Host identity record.',
+      },
+      {
+        signature: 'async createPairing(ttlSeconds: number): Promise<PendingPairing>',
+        description: 'Issue one pairing code. The code is 256 random bits shown once (QR) and stored only as its SHA-256 digest, so a database read cannot mint credentials.',
+        parameters: [{ name: 'ttlSeconds', description: 'lifetime of the code, from issue to expiry.' }],
+        returns: 'the pending pairing to display to the device being paired.',
+      },
+      {
+        signature: 'async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, ): Promise<PairedDevice>',
+        description: 'Consume one pairing code and register the device. Consumption is atomic: the code row is deleted first and a second consumer of the same code fails, whether the two calls race or follow one another.',
+        parameters: [{ name: 'code', description: 'pairing code from {@link DeviceTrustStore.createPairing}.' }, { name: 'device', description: 'user-chosen name and verified public key of the pairing device.' }, { name: 'role', description: 'authorization role granted to the device.' }],
+        returns: 'the durable device record just created.',
+        throws: ['{@link DeviceTrustError} when the code is unknown or expired.'],
+      },
+      {
+        signature: 'async device(deviceId: DeviceId): Promise<PairedDevice | undefined>',
+        description: 'Read one device record, including revoked ones.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device to read.' }],
+        returns: 'the record, or `undefined` when no such device exists.',
+      },
+      {
+        signature: 'async devices(): Promise<readonly PairedDevice[]>',
+        description: 'List every device record, revoked ones included, oldest first.',
+        parameters: [],
+        returns: 'every device record in the store.',
+      },
+      {
+        signature: 'async revoke(deviceId: DeviceId): Promise<PairedDevice | undefined>',
+        description: 'Revoke one device. A revoked device keeps its record (audit) and loses authorization immediately; revoking twice is a no-op.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
+        returns: 'the device record after revocation, or `undefined` when unknown.',
+      },
+      {
+        signature: 'async touch(deviceId: DeviceId): Promise<void>',
+        description: 'Record that a trusted device just made an authorized request. Revoked devices are never touched, so re-pairing cannot resurrect `lastSeenAt`.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device that was just authorized.' }],
+        returns: 'resolution after the write settles.',
+      },
+      {
+        signature: 'async close(): Promise<void>',
+        description: 'Close the database; every later primitive rejects. Idempotent.',
+        parameters: [],
+        returns: 'resolution after the medium is released.',
+      },
+    ],
+  },
+  {
     key: 'directoryPicker',
     summary: 'Abstract directory-picking service.',
     description: 'Abstract directory-picking service. Subclass, implement `capability()`, and load the subclass as a plugin — it registers as `ctx.directoryPicker` (one implementation per context; loading a second throws, cordis\' standard duplicate-service behavior). The capability object must be stable for the service lifetime: consumers may capture it across calls.',
@@ -1104,6 +1160,46 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Attach an effect-scoped controller that can read and stop jobs. It serves the owners its registering context\'s scope covers, and start refuses an owner no attached controller serves.',
         parameters: [{ name: 'name', description: 'diagnostic label; duplicate names remain independent.' }],
         returns: 'disposer that detaches this controller.',
+      },
+    ],
+  },
+  {
+    key: 'linkAccess',
+    summary: 'The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.',
+    description: 'The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.',
+    methods: [
+      {
+        signature: 'async endpoint(): Promise<string | undefined>',
+        description: 'The carrier endpoint the pairing QR carries.',
+        parameters: [],
+        returns: 'the bound `https://` endpoint, or `undefined` while disabled.',
+        throws: ['when the carrier failed to bind.'],
+      },
+      {
+        signature: 'async spkiFingerprint(): Promise<string | undefined>',
+        description: 'The fingerprint devices pin when pairing with this host.',
+        parameters: [],
+        returns: 'lowercase hex SHA-256 of the host certificate\'s SPKI, or `undefined` while disabled.',
+        throws: ['when the carrier failed to bind.'],
+      },
+      {
+        signature: 'async createPairing(): Promise<LinkPairingPayload>',
+        description: 'Issue one pairing payload for the QR display: host identity, endpoint, certificate fingerprint, and a one-time short-lived code.',
+        parameters: [],
+        returns: 'the payload rendered into the pairing QR code.',
+        throws: ['when the carrier is disabled or failed to bind.'],
+      },
+      {
+        signature: 'async trustedDevices(): Promise<readonly PairedDevice[]>',
+        description: 'List every device record, revoked ones included.',
+        parameters: [],
+        returns: 'the trust store\'s device records.',
+      },
+      {
+        signature: 'async revokeDevice(deviceId: DeviceId): Promise<PairedDevice | undefined>',
+        description: 'Revoke one paired device; its next request is refused.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
+        returns: 'the device record after revocation, or `undefined` when unknown.',
       },
     ],
   },
@@ -3870,6 +3966,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type DeepSeekLlmApiJson = null | boolean | number | string | DeepSeekLlmApiJson[] | {\n    [key: string]: DeepSeekLlmApiJson;\n};',
   },
   {
+    name: 'DeviceId',
+    declaration: 'export type DeviceId = Branded<\'DeviceId\'>;',
+  },
+  {
+    name: 'DeviceRole',
+    declaration: 'export type DeviceRole = \'observer\' | \'controller\' | \'administrator\';',
+  },
+  {
     name: 'DiffCallView',
     declaration: 'export interface DiffCallView {\n    card: \'diff\';\n    title: string;\n    diffs: FileDiff[];\n    locations?: FileLocation[];\n}',
   },
@@ -4102,6 +4206,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface GrantRecord {\n    readonly kind: \'grant\';\n    readonly payload: unknown;\n}',
   },
   {
+    name: 'HostIdentity',
+    declaration: 'export interface HostIdentity {\n    readonly hostId: string;\n}',
+  },
+  {
     name: 'HostRuntimeInfo',
     declaration: 'export interface HostRuntimeInfo {\n    node: string;\n    chrome: string | undefined;\n    electron: string | undefined;\n    os: string;\n}',
   },
@@ -4256,6 +4364,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'KvUnitDescriptor',
     declaration: 'export interface KvUnitDescriptor {\n    readonly name: string;\n    readonly version: number;\n    readonly tables: readonly string[];\n    readonly hasGlobal: boolean;\n    readonly layout?: \'single\' | \'per-record\';\n}',
+  },
+  {
+    name: 'LinkPairingPayload',
+    declaration: 'export interface LinkPairingPayload {\n    readonly v: 1;\n    readonly kind: \'dsh-link-pairing\';\n    readonly hostId: string;\n    readonly hostName: string;\n    readonly endpoint: string;\n    readonly spkiFingerprint: string;\n    readonly code: string;\n    readonly expiresAt: number;\n}',
   },
   {
     name: 'LlmAdapter',
@@ -4500,6 +4612,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'OneShotSubagentDescriptorData',
     declaration: 'export interface OneShotSubagentDescriptorData extends SubagentDescriptorBase {\n    readonly mode: \'one-shot\';\n    readonly label?: string;\n}',
+  },
+  {
+    name: 'PairedDevice',
+    declaration: 'export interface PairedDevice {\n    readonly deviceId: DeviceId;\n    readonly name: string;\n    readonly publicKeySpki: string;\n    readonly role: DeviceRole;\n    readonly createdAt: number;\n    readonly lastSeenAt: number | undefined;\n    readonly revokedAt: number | undefined;\n}',
+  },
+  {
+    name: 'PendingPairing',
+    declaration: 'export interface PendingPairing {\n    readonly code: string;\n    readonly expiresAt: number;\n}',
   },
   {
     name: 'PermissionSelect',

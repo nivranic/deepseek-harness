@@ -99,6 +99,22 @@ const GROUP_ORDER = [
 
 const SERVICE_ROLES: ServiceRole[] = [
   {
+    key: 'deviceTrust',
+    pkg: 'device-trust',
+    title: 'Paired-device trust store',
+    mode: 'core',
+    consumers: ['link-access'],
+    note: 'SQLite-backed host identity, one-time pairing codes, and device records the link carrier authorizes against.',
+  },
+  {
+    key: 'linkAccess',
+    pkg: 'link-access',
+    title: 'Native remote access carrier',
+    mode: 'core',
+    consumers: [],
+    note: 'TLS listener with Ed25519 device authentication and a role-gated allowlist dispatching onto the existing Typert gateway surface.',
+  },
+  {
     key: 'attachments',
     pkg: 'attachment',
     title: 'Durable binary attachment storage',

@@ -1,0 +1,19 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../../../vendor/cordis" },
+    { "path": "../../../vendor/schemastery" },
+    { "path": "../../api/gateway/tsconfig.host.json" },
+    { "path": "../../client/connection/tsconfig.host.json" },
+    { "path": "../../core/session" },
+    { "path": "../../runtime-diagnostics/invariants" },
+    { "path": "../../util/brand" },
+    { "path": "../../util/home-paths" },
+    { "path": "../device-trust" }
+  ]
+}
