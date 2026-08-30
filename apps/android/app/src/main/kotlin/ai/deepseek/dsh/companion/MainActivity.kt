@@ -27,7 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -228,9 +228,9 @@ fun PairingScreen(model: CompanionViewModel) {
 fun SessionsTab(model: CompanionViewModel) {
     val scope = rememberCoroutineScope()
     var draft by remember { mutableStateOf("") }
-    val sessions by model.session.sessions.collectAsState()
-    val open by model.session.open.collectAsState()
-    val sending by model.session.sending.collectAsState()
+    val sessions by model.session.sessions.collectAsStateWithLifecycle()
+    val open by model.session.open.collectAsStateWithLifecycle()
+    val sending by model.session.sending.collectAsStateWithLifecycle()
     LaunchedEffect(model.paired) { model.session.loadSessions() }
     Column(Modifier.fillMaxSize()) {
         Text(
@@ -271,7 +271,7 @@ fun SessionsTab(model: CompanionViewModel) {
 fun ApprovalsTab(model: CompanionViewModel) {
     LaunchedEffect(model.paired) { model.interactions.startWatching() }
     val scope = rememberCoroutineScope()
-    val inbox by model.interactions.inbox.collectAsState()
+    val inbox by model.interactions.inbox.collectAsStateWithLifecycle()
     LazyColumn(Modifier.fillMaxSize()) {
         items(inbox) { pending ->
             RaisedCard {
@@ -288,7 +288,7 @@ fun ApprovalsTab(model: CompanionViewModel) {
 
 @Composable
 fun PlanTab(model: CompanionViewModel) {
-    val open by model.session.open.collectAsState()
+    val open by model.session.open.collectAsStateWithLifecycle()
     val folded = open?.state ?: DomainState()
     LazyColumn(Modifier.fillMaxSize()) {
         item {
@@ -311,7 +311,7 @@ fun PlanTab(model: CompanionViewModel) {
 
 @Composable
 fun ToolsTab(model: CompanionViewModel) {
-    val open by model.session.open.collectAsState()
+    val open by model.session.open.collectAsStateWithLifecycle()
     LazyColumn(Modifier.fillMaxSize()) {
         items(open?.state?.toolCalls ?: emptyList()) { call ->
             RaisedCard {
@@ -326,9 +326,9 @@ fun ToolsTab(model: CompanionViewModel) {
 @Composable
 fun FilesTab(model: CompanionViewModel) {
     val scope = rememberCoroutineScope()
-    val directory by model.files.directory.collectAsState()
-    val entries by model.files.entries.collectAsState()
-    val selected by model.files.selectedWorkspace.collectAsState()
+    val directory by model.files.directory.collectAsStateWithLifecycle()
+    val entries by model.files.entries.collectAsStateWithLifecycle()
+    val selected by model.files.selectedWorkspace.collectAsStateWithLifecycle()
     LaunchedEffect(model.paired, selected) { model.files.list() }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -351,8 +351,8 @@ fun FilesTab(model: CompanionViewModel) {
 @Composable
 fun SubagentsTab(model: CompanionViewModel) {
     val scope = rememberCoroutineScope()
-    val sessions by model.session.sessions.collectAsState()
-    val rows by model.subagents.rows.collectAsState()
+    val sessions by model.session.sessions.collectAsStateWithLifecycle()
+    val rows by model.subagents.rows.collectAsStateWithLifecycle()
     LaunchedEffect(model.paired, sessions) {
         sessions.firstOrNull()?.let { model.subagents.load(it.id) }
     }
