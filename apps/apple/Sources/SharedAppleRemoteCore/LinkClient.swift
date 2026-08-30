@@ -23,14 +23,19 @@ public final class LinkClient {
     private let baseURL: URL
     private let session: URLSession
     private let store: LinkCredentialsStoring
+    private let pinned: String
 
     /// - Parameters:
     ///   - baseURL: the carrier endpoint from the pairing payload.
     ///   - pinnedFingerprint: SPKI fingerprint the TLS handshake pins.
     ///   - store: where the paired identity persists.
+    /// The SPKI fingerprint this client pins; tests and restore read it.
+    public var pinnedFingerprint: String { pinned }
+
     public init(baseURL: URL, pinnedFingerprint: String, store: LinkCredentialsStoring) {
         self.baseURL = baseURL
         self.store = store
+        self.pinned = pinnedFingerprint
         self.session = URLSession(
             configuration: .ephemeral,
             delegate: LinkPinningDelegate(pinnedFingerprint: pinnedFingerprint),
@@ -63,6 +68,8 @@ public final class LinkClient {
             hostId: value.hostId,
             hostName: value.hostName,
             role: value.role,
+            endpoint: payload.endpoint,
+            pinnedFingerprint: payload.spkiFingerprint,
             signingKeyBase64: key.rawRepresentation.base64EncodedString()
         )
         store.save(credentials)
@@ -157,6 +164,21 @@ public final class LinkClient {
     /// Forget the paired identity; the host refuses the next request.
     public func unpair() {
         store.clear()
+    }
+
+    /// Rebuild the paired client from persisted credentials — the relaunch
+    /// path that skips pairing and pins the stored fingerprint again.
+    /// - Parameter store: where the identity persists.
+    /// - Returns: the client, or nil before the first successful pairing or
+    ///   when the stored endpoint no longer parses.
+    public static func restore(store: LinkCredentialsStoring) -> LinkClient? {
+        guard let credentials = store.load() else { return nil }
+        guard let endpoint = URL(string: credentials.endpoint) else { return nil }
+        return LinkClient(
+            baseURL: endpoint,
+            pinnedFingerprint: credentials.pinnedFingerprint,
+            store: store
+        )
     }
 
     // MARK: - Internals

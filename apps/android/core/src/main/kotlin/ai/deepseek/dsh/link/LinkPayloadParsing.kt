@@ -26,4 +26,19 @@ object LinkPayloadParsing {
             expiresAt = number("expiresAt") ?: return null,
         )
     }
+
+    /** Parse one persisted credentials document; null on a wrong shape. */
+    fun credentials(text: String): LinkCredentials? {
+        val obj = runCatching { Json.parseToJsonElement(text).jsonObject }.getOrNull() ?: return null
+        fun string(field: String): String? = obj[field]?.jsonPrimitive?.takeIf { it.isString }?.content
+        return LinkCredentials(
+            deviceId = string("deviceId") ?: return null,
+            hostId = string("hostId") ?: return null,
+            hostName = string("hostName") ?: return null,
+            role = string("role") ?: return null,
+            endpoint = string("endpoint") ?: return null,
+            pinnedFingerprint = string("pinnedFingerprint") ?: return null,
+            signingKeyBase64 = string("signingKeyBase64") ?: return null,
+        )
+    }
 }

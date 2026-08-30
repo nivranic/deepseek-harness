@@ -183,11 +183,25 @@ final class LinkSigningTests: XCTestCase {
         XCTAssertNil(store.load())
         let credentials = LinkCredentials(
             deviceId: "device", hostId: "host", hostName: "Studio Desk", role: "controller",
+            endpoint: "https://192.168.1.4:4931", pinnedFingerprint: String(repeating: "ab", count: 32),
             signingKeyBase64: Data(repeating: 1, count: 32).base64EncodedString()
         )
         store.save(credentials)
         XCTAssertEqual(store.load(), credentials)
         store.clear()
         XCTAssertNil(store.load())
+    }
+
+    func testRestoreRebuildsTheClientFromPersistedCredentials() {
+        let store = MemoryLinkCredentialsStore()
+        XCTAssertNil(LinkClient.restore(store: store))
+        store.save(LinkCredentials(
+            deviceId: "device", hostId: "host", hostName: "Studio Desk", role: "controller",
+            endpoint: "https://192.168.1.4:4931", pinnedFingerprint: String(repeating: "ab", count: 32),
+            signingKeyBase64: Data(repeating: 1, count: 32).base64EncodedString()
+        ))
+        let client = LinkClient.restore(store: store)
+        XCTAssertEqual(client?.credentials?.deviceId, "device")
+        XCTAssertEqual(client?.pinnedFingerprint, String(repeating: "ab", count: 32))
     }
 }

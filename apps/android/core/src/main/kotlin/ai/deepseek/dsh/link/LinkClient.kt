@@ -73,6 +73,8 @@ class LinkClient(
             hostId = value.string("hostId"),
             hostName = value.string("hostName"),
             role = value.string("role"),
+            endpoint = payload.endpoint,
+            pinnedFingerprint = payload.spkiFingerprint,
             signingKeyBase64 = Base64.getEncoder().encodeToString(
                 key.private.encoded.copyOfRange(key.private.encoded.size - 32, key.private.encoded.size),
             ),
@@ -135,6 +137,20 @@ class LinkClient(
 
     /** Forget the paired identity; the host refuses the next request. */
     fun unpair() = store.clear()
+
+    companion object {
+        /** Rebuild the paired client from persisted credentials — the
+         * relaunch path that skips pairing and pins the stored fingerprint
+         * again. Null before the first successful pairing. */
+        fun restore(store: LinkCredentialsStoring): LinkClient? {
+            val credentials = store.load() ?: return null
+            return LinkClient(
+                baseUrl = credentials.endpoint,
+                pinnedFingerprint = credentials.pinnedFingerprint,
+                store = store,
+            )
+        }
+    }
 
     private fun post(path: String, body: ByteArray, signed: Boolean): ByteArray {
         val response = http.send(buildRequest(path, body, signed), HttpResponse.BodyHandlers.ofByteArray())

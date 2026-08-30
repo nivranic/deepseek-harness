@@ -1,4 +1,5 @@
 import CompanionUI
+import SharedAppleRemoteCore
 import SwiftUI
 
 /// The iPhone/iPad shell (plan chapters 49–51): the whole product surface is
@@ -7,7 +8,7 @@ import SwiftUI
 struct CompanioniOSApp: App {
     var body: some Scene {
         WindowGroup {
-            CompanionRootView(client: nil)
+            CompanionRootView(client: LinkClient.restore(store: KeychainLinkCredentialsStore()))
         }
     }
 }

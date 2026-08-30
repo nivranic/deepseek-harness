@@ -1,4 +1,5 @@
 import CompanionUI
+import SharedAppleRemoteCore
 import SwiftUI
 
 /// The macOS companion shell (plan chapter 49): hosts the same
@@ -7,7 +8,7 @@ import SwiftUI
 struct CompanionMacApp: App {
     var body: some Scene {
         WindowGroup {
-            CompanionRootView(client: nil)
+            CompanionRootView(client: LinkClient.restore(store: KeychainLinkCredentialsStore()))
         }
     }
 }

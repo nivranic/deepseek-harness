@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CompanionRuntime.restore(filesDir)
         setContent {
             CompanionTheme {
                 CompanionApp()
@@ -83,7 +84,7 @@ fun RaisedCard(content: @Composable () -> Unit) {
 
 /** The view-model holder pairing once and hosting the six models. */
 class CompanionViewModel : ViewModel() {
-    var paired = false
+    var paired = CompanionRuntime.restored
         private set
 
     val session = SessionModel(CompanionRuntime.wire, viewModelScope)
@@ -112,13 +113,33 @@ object CompanionRuntime {
 
     @Volatile private var current: WireDriving = UnpairedWire()
 
+    /** True once a stored identity rebuilt the client at launch or a
+     * pairing succeeded in this process. */
+    @Volatile var restored: Boolean = false
+        private set
+
     val wire: WireDriving get() = current
+
+    /** Where the credentials file lives; MainActivity sets it at launch. */
+    @Volatile var restoreDirectory: java.io.File? = null
+
+    /** Rebuild the client from persisted credentials so relaunch skips
+     * pairing; returns true when a usable identity existed. */
+    fun restore(directory: java.io.File): Boolean {
+        restoreDirectory = directory
+        val store = ai.deepseek.dsh.link.FileLinkCredentialsStore(java.io.File(directory, "link-credentials.json"))
+        val client = ai.deepseek.dsh.link.LinkClient.restore(store) ?: return false
+        current = LinkWireDriving(client)
+        restored = true
+        return true
+    }
 
     /** Pair with a scanned payload; returns the failure message, or null. */
     suspend fun pair(payloadText: String, deviceName: String): String? = try {
         val payload = ai.deepseek.dsh.link.LinkPayloadParsing.pairingPayload(payloadText)
             ?: error("配对载荷无法识别")
-        val store = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
+        val directory = restoreDirectory ?: error("no restore directory configured")
+        val store = ai.deepseek.dsh.link.FileLinkCredentialsStore(directory)
         val client = ai.deepseek.dsh.link.LinkClient(
             baseUrl = payload.endpoint,
             pinnedFingerprint = payload.spkiFingerprint,
@@ -126,6 +147,7 @@ object CompanionRuntime {
         )
         client.pair(payload, deviceName)
         current = LinkWireDriving(client)
+        restored = true
         null
     } catch (failure: Exception) {
         failure.message

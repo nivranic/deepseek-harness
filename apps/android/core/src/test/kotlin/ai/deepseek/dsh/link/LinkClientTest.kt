@@ -116,6 +116,8 @@ class LinkClientTest {
 
         assertEquals("d-1", credentials.deviceId)
         assertEquals("controller", credentials.role)
+        assertEquals("http://127.0.0.1:" + server.address.port, credentials.endpoint)
+        assertEquals("ab".repeat(32), credentials.pinnedFingerprint)
         assertEquals(credentials.deviceId, store.load()?.deviceId)
         val pairBody = capturedBodies.poll()
         assertTrue(pairBody.contains("\"code\":\"7Kd9m2Xq4Lp8Rt3Vw6Yy1Zc5Bn8Qf2Hj\""), pairBody)
@@ -148,6 +150,41 @@ class LinkClientTest {
         val failure = assertFailsWith<LinkClientException.Refused> { client.call("session/prompt") }
         assertEquals("session-gone", failure.code)
         assertTrue(failure.message!!.contains("no such session"))
+    }
+
+    @Test
+    fun restoreRebuildsTheClientFromPersistedCredentials() {
+        val store = MemoryLinkCredentialsStore()
+        assertEquals(null, LinkClient.restore(store))
+        val client = client(store)
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+        val restored = LinkClient.restore(store)!!
+        assertEquals("d-1", restored.credentials?.deviceId)
+        assertEquals("ab".repeat(32), restored.pinnedFingerprint)
+        // The restored client signs a working describe against the same server.
+        val description = restored.describe()
+        assertEquals("Studio Desk", description.hostName)
+    }
+
+    @Test
+    fun fileStoreRoundTripsTheIdentity() {
+        val directory = kotlin.io.path.createTempDirectory("link-credentials")
+        val file = directory.resolve("credentials.json").toFile()
+        val store = FileLinkCredentialsStore(file)
+        assertEquals(null, store.load())
+        store.save(
+            LinkCredentials(
+                deviceId = "d-1", hostId = "h-1", hostName = "Studio Desk", role = "controller",
+                endpoint = "https://192.168.1.4:4931", pinnedFingerprint = "ab".repeat(32),
+                signingKeyBase64 = "AAAA",
+            ),
+        )
+        val loaded = store.load()
+        assertEquals("d-1", loaded?.deviceId)
+        assertEquals("https://192.168.1.4:4931", loaded?.endpoint)
+        assertEquals("ab".repeat(32), loaded?.pinnedFingerprint)
+        store.clear()
+        assertEquals(null, store.load())
     }
 
     @Test

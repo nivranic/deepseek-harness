@@ -8,14 +8,24 @@ public struct LinkCredentials: Codable, Equatable {
     public let hostId: String
     public let hostName: String
     public let role: String
+    /// The carrier endpoint the pairing payload carried; rebuilding the
+    /// client after relaunch needs it alongside the identity.
+    public let endpoint: String
+    /// The SPKI fingerprint TLS pins for this host.
+    public let pinnedFingerprint: String
     /// Base64 of the Ed25519 private key's 32 raw bytes.
     public let signingKeyBase64: String
 
-    public init(deviceId: String, hostId: String, hostName: String, role: String, signingKeyBase64: String) {
+    public init(
+        deviceId: String, hostId: String, hostName: String, role: String,
+        endpoint: String, pinnedFingerprint: String, signingKeyBase64: String
+    ) {
         self.deviceId = deviceId
         self.hostId = hostId
         self.hostName = hostName
         self.role = role
+        self.endpoint = endpoint
+        self.pinnedFingerprint = pinnedFingerprint
         self.signingKeyBase64 = signingKeyBase64
     }
 }
