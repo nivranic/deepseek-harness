@@ -12,7 +12,7 @@ final class FixtureDecodingTests: XCTestCase {
             .appendingPathComponent("Fixtures", isDirectory: true)
     }
 
-    private func fixture(_ id: String) throws Data {
+    private func fixture(_ id: String) throws -> Data {
         try Data(contentsOf: fixturesDirectory.appendingPathComponent("\(id).json"))
     }
 

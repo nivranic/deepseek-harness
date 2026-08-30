@@ -67,6 +67,7 @@ struct InteractionCard: View {
 
     /// `ButtonRole` carries only destructive/cancel semantics; the allow
     /// action's emphasis is prominence, which the style below carries.
+    @ViewBuilder
     private func answerButton(
         _ label: String, answer: InteractionAnswer,
         role: ButtonRole? = nil, prominent: Bool = false
