@@ -1,9 +1,10 @@
 name: Android Kotlin
 
 # The Linux compile lane for the Android companion (nativization plan
-# chapters 52 and 60): the `core` module is pure JVM Kotlin, so the lane is
-# a JDK plus Gradle running its tests — including the Kotlin half of the
-# chapter-62 trilingual domain-state conformance.
+# chapters 52 and 60): the `core` module is pure JVM Kotlin tested with
+# the Kotlin half of the chapter-62 trilingual domain-state conformance,
+# and the `app` module assembles the Compose six-tab surface as a debug
+# APK.
 on:
   pull_request:
     paths:
@@ -48,3 +49,10 @@ jobs:
       - name: gradle test
         working-directory: apps/android
         run: gradle --no-daemon test
+
+      # The Compose app module (chapter 52's six-tab surface): assemble the
+      # debug APK over the same local modules the tests exercised. The
+      # runner image ships the Android SDK with accepted licenses.
+      - name: assemble the debug APK
+        working-directory: apps/android
+        run: gradle --no-daemon :app:assembleDebug
