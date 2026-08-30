@@ -38,7 +38,9 @@ public struct LiteArtifactContent: Equatable, Sendable {
 ///   - artifact: the reference whose content is read.
 /// - Returns: the content, or nil when no bytes live under the id.
 public func readLiteArtifact(_ store: any LiteArtifactStoring, _ artifact: LiteArtifactRecord) async -> LiteArtifactContent? {
-    guard let data = await store.get(id: artifact.id) else { return nil }
+    // A storage failure reads as absent: the presentation face owns no
+    // recovery path, and the empty state is its honest answer.
+    guard let data = try? await store.get(id: artifact.id) else { return nil }
     let presentation: LiteArtifactContent.Presentation = liteArtifactTextKinds.contains(artifact.kind)
         ? .text(String(decoding: data, as: UTF8.self))
         : .binary(kind: artifact.kind, sizeBytes: data.count)
