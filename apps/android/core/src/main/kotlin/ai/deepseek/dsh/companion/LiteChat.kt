@@ -40,7 +40,7 @@ class LiteChatViewModel(
     val liveState: StateFlow<LiteDomainState> = _liveState
 
     /** The loop driver the surface submits prompts through. */
-    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider, execute, onEventApplied = { cut -> _liveState.value = cut })
+    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider, onEventApplied = { cut -> _liveState.value = cut }, execute = execute)
 
     /** The capability the last turn handed off on, when it did. */
     var lastHandoff: String? = null

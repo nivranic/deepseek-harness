@@ -79,8 +79,8 @@ private fun text(value: String): JsonPrimitive = JsonPrimitive(value)
 class LiteLoopDriver(
     private val scope: CoroutineScope,
     private val provider: LiteProviding,
-    private val execute: LiteToolExecuting,
     private val onEventApplied: ((LiteDomainState) -> Unit)? = null,
+    private val execute: LiteToolExecuting,
 ) {
     /** The live fold the driver applies each lifecycle event to. */
     val fold = LiteFold()
