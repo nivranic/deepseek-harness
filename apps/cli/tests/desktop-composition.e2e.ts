@@ -232,6 +232,52 @@ describe('the shipped desktop composition', () => {
     expect(missed.status).toBe(404)
   })
 
+  it('serves the read-only workspaceFiles verbs over the bridge', async () => {
+    // The files child rides the composed fs backend (fs-sandbox registers
+    // ctx.fs in this composition), so the verbs answer through the same
+    // shared /api chain a paired device would use, and the containment
+    // policy holds on the shipped assembly.
+    const home = await mkdtemp(join(tmpdir(), 'dsh-desktop-files-'))
+    await writeFile(join(home, 'notes.md'), '# 桌面\n', 'utf8')
+    await mkdir(join(home, 'src'), { recursive: true })
+    await writeFile(join(home, 'src', 'app.ts'), 'export const x = 1\n', 'utf8')
+    const created = await ctx.workspaceController.create({ path: home })
+    expect(created.created).toBe(true)
+    const workspaceId = created.workspace.workspaceId
+
+    const gateway = ctx.get('desktopGateway') as DesktopGateway
+    const post = (endpoint: string, args: Record<string, unknown>, rpcId: string): Promise<Response> =>
+      gateway.handle(new Request(`dsh://desktop/api/${endpoint}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'client-request', rpcId: RpcId(rpcId), method: endpoint, payload: { args } }),
+      }))
+
+    const listed = await post('workspaceFiles/list', { workspaceId }, 'files-list')
+    expect(listed.status).toBe(200)
+    const listBody = await listed.json() as { result: { ok: boolean; value?: { entries: Array<{ name: string; type: string }> } } }
+    expect(listBody.result.ok).toBe(true)
+    expect(listBody.result.value?.entries.map(entry => [entry.name, entry.type])).toEqual([
+      ['notes.md', 'file'],
+      ['src', 'directory'],
+    ])
+
+    const read = await post('workspaceFiles/read', { workspaceId, path: 'src/app.ts' }, 'files-read')
+    expect(read.status).toBe(200)
+    const readBody = await read.json() as { result: { ok: boolean; value?: { content: string; truncated: boolean; mediaType: string } } }
+    expect(readBody.result.ok).toBe(true)
+    expect(readBody.result.value).toMatchObject({ content: 'export const x = 1\n', truncated: false, mediaType: 'text/typescript' })
+
+    const escaped = await post('workspaceFiles/list', { workspaceId, path: '../..' }, 'files-escape')
+    expect(escaped.status).toBe(200)
+    const escapeBody = await escaped.json() as { result: { ok: boolean; error?: { code?: string } } }
+    expect(escapeBody.result.ok).toBe(false)
+    expect(escapeBody.result.error?.code).toBe('path-outside-workspace')
+
+    // The registration is test residue; drop it so later runs stay clean.
+    await ctx.workspaceController.delete({ workspaceId })
+  })
+
   it('carries Gateway Remote streams over the bridge as NDJSON', async () => {
     const gateway = ctx.get('desktopGateway') as DesktopGateway
     const stream = await gateway.handle(new Request('dsh://desktop/dsh-stream/$events', {

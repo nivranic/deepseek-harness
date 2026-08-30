@@ -1,0 +1,6 @@
+{
+  "content": "export const x = 1\n",
+  "truncated": false,
+  "size": 20,
+  "mediaType": "text/typescript"
+}

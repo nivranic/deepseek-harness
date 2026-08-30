@@ -15,6 +15,9 @@
       "path": "../../api/link-controller"
     },
     {
+      "path": "../../api/workspace-controller/tsconfig.host.json"
+    },
+    {
       "path": "../../core/session"
     },
     {

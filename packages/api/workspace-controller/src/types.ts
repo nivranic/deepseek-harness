@@ -147,3 +147,64 @@ export type WorkspaceFollowIncrement =
 export type WorkspaceFollowFrame =
   | { readonly type: 'baseline'; readonly value: WorkspaceBaseline }
   | WorkspaceFollowIncrement
+
+/** One child row of a workspace directory listing. */
+export interface WorkspaceFileEntry {
+  /** Basename of the child inside the listed directory. */
+  readonly name: string
+  /** Whether the child is a regular file, a directory, or something else. */
+  readonly type: 'file' | 'directory' | 'other'
+  /** Byte size of a regular file, when the backend reports it. */
+  readonly size?: number
+}
+
+/** Read-only browse of one registered Workspace's directory tree. */
+export interface WorkspaceFilesListRequest {
+  readonly workspaceId: WorkspaceId
+  /** Directory path relative to the Workspace root; empty or absent lists the root. */
+  readonly path?: string
+}
+
+/** One listed directory level. */
+export interface WorkspaceFilesListValue {
+  /** The normalized relative path that was listed; '' names the root. */
+  readonly path: string
+  /** Direct children in stable name order, never their contents. */
+  readonly entries: readonly WorkspaceFileEntry[]
+}
+
+/** Read one text file inside a registered Workspace with a UTF-16 range. */
+export interface WorkspaceFilesReadRequest {
+  readonly workspaceId: WorkspaceId
+  /** File path relative to the Workspace root. */
+  readonly path: string
+  /** Start of the returned range in UTF-16 code units; defaults to 0. */
+  readonly offset?: number
+  /** Maximum returned code units; omitted reads through the end. */
+  readonly limit?: number
+}
+
+/** One decoded text range. */
+export interface WorkspaceFilesReadValue {
+  /** The requested UTF-16 code-unit range of the decoded text. */
+  readonly content: string
+  /** Whether `limit` cut the range before the file's end. */
+  readonly truncated: boolean
+  /** Total content length in UTF-16 code units. */
+  readonly size: number
+  /** Best-effort media type by file extension; `text/plain` when unknown. */
+  readonly mediaType: string
+}
+
+/** Stable read-only file-browse failure details returned by the `workspaceFiles` verbs. */
+export interface WorkspaceFilesErrorDetailsMap {
+  'bad-request': { readonly issues: ReadonlyArray<{ readonly message: string }> }
+  'workspace-not-found': { readonly workspaceId: WorkspaceId }
+  'path-outside-workspace': { readonly workspaceId: WorkspaceId; readonly path: string }
+  'file-not-found': { readonly path: string }
+  'not-a-directory': { readonly path: string }
+  'not-a-regular-file': { readonly path: string }
+  'file-too-large': { readonly path: string; readonly size?: number; readonly maxBytes: number }
+  'file-binary': { readonly path: string }
+  internal: Record<never, never>
+}

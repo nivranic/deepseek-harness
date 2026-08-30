@@ -11,6 +11,7 @@
 
 import type { LinkCarrierStatus, LinkHostDescription, LinkPairValue, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { LinkDeviceValue, LinkStatusValue } from '@deepseek-ai/dsh-api-link-controller/types'
+import type { WorkspaceFilesListValue, WorkspaceFilesReadValue } from '@deepseek-ai/dsh-api-workspace-controller'
 import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
 import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
 import type { ChunkRow } from '@deepseek-ai/dsh-session/chunk-rows'
@@ -482,6 +483,40 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'args', kind: 'string-array' },
     ],
   },
+  {
+    name: 'LinkFileEntryType',
+    shape: ['file', 'directory', 'other'],
+    fields: [],
+  },
+  {
+    name: 'LinkFileEntry',
+    shape: 'object',
+    fields: [
+      { name: 'name', kind: 'string' },
+      { name: 'type', kind: 'enum', ref: 'LinkFileEntryType' },
+      { name: 'size', kind: 'number', optional: true },
+    ],
+  },
+  {
+    name: 'LinkFileListValue',
+    shape: 'object',
+    fixture: 'file-list',
+    fields: [
+      { name: 'path', kind: 'string' },
+      { name: 'entries', kind: 'object-array', ref: 'LinkFileEntry' },
+    ],
+  },
+  {
+    name: 'LinkFileReadValue',
+    shape: 'object',
+    fixture: 'file-read',
+    fields: [
+      { name: 'content', kind: 'string' },
+      { name: 'truncated', kind: 'boolean' },
+      { name: 'size', kind: 'number' },
+      { name: 'mediaType', kind: 'string' },
+    ],
+  },
 ]
 
 /** Wire schema for a pairing QR payload; the fixture round-trips through it. */
@@ -554,7 +589,7 @@ export interface ContractFixture {
   readonly id: string
   /** The exact JSON the wire carries, pinned to the owning protocol type. */
   readonly value: LinkPairingPayload | LinkPairValue | LinkHostDescription | LinkCarrierStatus | LinkDeviceValue | LinkStatusValue
-  | LinkSessionEventPayload | LinkChunkRowPayload
+  | LinkSessionEventPayload | LinkChunkRowPayload | WorkspaceFilesListValue | WorkspaceFilesReadValue
 }
 
 /** The golden fixtures; ids match the table's `fixture` rows. */
@@ -764,5 +799,26 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       name: 'write_file',
       args: ['{"path"', ':["Log'],
     } satisfies Extract<ChunkRow, { type: 'tool-call-chunks' }>['data'],
+  },
+  {
+    type: 'LinkFileListValue',
+    id: 'file-list',
+    value: {
+      path: 'src',
+      entries: [
+        { name: 'app.ts', type: 'file', size: 24 },
+        { name: 'lib', type: 'directory' },
+      ],
+    } satisfies WorkspaceFilesListValue,
+  },
+  {
+    type: 'LinkFileReadValue',
+    id: 'file-read',
+    value: {
+      content: 'export const x = 1\n',
+      truncated: false,
+      size: 20,
+      mediaType: 'text/typescript',
+    } satisfies WorkspaceFilesReadValue,
   },
 ]

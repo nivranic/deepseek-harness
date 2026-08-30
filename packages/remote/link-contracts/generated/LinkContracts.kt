@@ -262,3 +262,23 @@ data class LinkToolCallChunksData(
     val name: String? = null,
     val args: List<String>,
 )
+enum class LinkFileEntryType(val wire: String) {
+    FILE("file")
+    DIRECTORY("directory")
+    OTHER("other"),
+}
+data class LinkFileEntry(
+    val name: String,
+    val type: LinkFileEntryType,
+    val size: Double? = null,
+)
+data class LinkFileListValue(
+    val path: String,
+    val entries: List<LinkFileEntry>,
+)
+data class LinkFileReadValue(
+    val content: String,
+    val truncated: Boolean,
+    val size: Double,
+    val mediaType: String,
+)

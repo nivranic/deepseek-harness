@@ -260,3 +260,23 @@ public struct LinkToolCallChunksData: Codable {
     public let name: String?
     public let args: [String]
 }
+public enum LinkFileEntryType: String, Codable {
+    case file = "file"
+    case directory = "directory"
+    case other = "other"
+}
+public struct LinkFileEntry: Codable {
+    public let name: String
+    public let type: LinkFileEntryType
+    public let size: Double?
+}
+public struct LinkFileListValue: Codable {
+    public let path: String
+    public let entries: [LinkFileEntry]
+}
+public struct LinkFileReadValue: Codable {
+    public let content: String
+    public let truncated: Bool
+    public let size: Double
+    public let mediaType: String
+}

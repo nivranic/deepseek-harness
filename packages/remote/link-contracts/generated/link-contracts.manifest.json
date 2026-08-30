@@ -945,6 +945,73 @@
       "chunkRows": [
         "chunkrow/tool-call-chunks"
       ]
+    },
+    {
+      "name": "LinkFileEntryType",
+      "shape": [
+        "file",
+        "directory",
+        "other"
+      ]
+    },
+    {
+      "name": "LinkFileEntry",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "type",
+          "kind": "enum",
+          "ref": "LinkFileEntryType"
+        },
+        {
+          "name": "size",
+          "kind": "number",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkFileListValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "path",
+          "kind": "string"
+        },
+        {
+          "name": "entries",
+          "kind": "object-array",
+          "ref": "LinkFileEntry"
+        }
+      ],
+      "fixture": "file-list"
+    },
+    {
+      "name": "LinkFileReadValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "content",
+          "kind": "string"
+        },
+        {
+          "name": "truncated",
+          "kind": "boolean"
+        },
+        {
+          "name": "size",
+          "kind": "number"
+        },
+        {
+          "name": "mediaType",
+          "kind": "string"
+        }
+      ],
+      "fixture": "file-read"
     }
   ],
   "fixtures": [
@@ -1042,6 +1109,16 @@
       "id": "chunkrow-tool-call-chunks",
       "type": "LinkToolCallChunksData",
       "sha256": "c6d10161bef837e69d0250992765437fd6b6bd4ba3e358c677f54390a9c518a6"
+    },
+    {
+      "id": "file-list",
+      "type": "LinkFileListValue",
+      "sha256": "d5711fa06413f44d4a91ee5f4af236a2cbfcbb3745516082b6ea750d256a53a6"
+    },
+    {
+      "id": "file-read",
+      "type": "LinkFileReadValue",
+      "sha256": "42dba5a26e35a1963aed7eaf756a754f1aeb9d3102736df3b1221752ac6ae7f7"
     }
   ]
 }
