@@ -192,3 +192,29 @@ final class LiteProviderTests: XCTestCase {
         XCTAssertEqual(limited.fold.state.errors.last?.code, "RATE_LIMITED")
     }
 }
+
+@MainActor
+final class LiteChatViewModelTests: XCTestCase {
+    func testSubmitsPersistsAndExposesTheFoldedState() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("lite-ui-\(UUID().uuidString)", isDirectory: true)
+        let store = try LiteFileSessionStore(directory: directory)
+        let provider = ScriptedLiteProvider(scripts: [
+            "你好": [.text("你好，这里是 Lite。")],
+        ])
+        let model = LiteChatViewModel(sessionId: "ui1", provider: provider, execute: { _, _, _ in (ok: false, text: "") }, store: store)
+        await model.send(prompt: "你好")
+        XCTAssertEqual(model.state.conversation.map(\.text), ["你好", "你好，这里是 Lite。"])
+        XCTAssertEqual(model.state.lastTurnEnd, .completed)
+
+        let restored = try await store.load(id: "ui1")
+        XCTAssertEqual(restored?.state.conversation.count, 2)
+
+        let handoffProvider = ScriptedLiteProvider(scripts: [
+            "跑测试": [.toolCall(id: "c", name: "run_tests", arguments: "{}")],
+        ])
+        let handoffModel = LiteChatViewModel(sessionId: "ui2", provider: handoffProvider, execute: { _, _, _ in (ok: false, text: "") })
+        await handoffModel.send(prompt: "跑测试")
+        XCTAssertEqual(handoffModel.lastHandoff, LITE_REQUIRES_FULL_RUNTIME)
+    }
+}
