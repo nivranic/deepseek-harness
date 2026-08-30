@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md
+2026-08-30-shared-apple-remote-core.md: bf65df42c7c33d55567ab76be057dde3c68b7818
+2026-08-30-shared-apple-remote-core.zh.md: 90250f96dce8a5493bb87dfb55e0e01d030ae041

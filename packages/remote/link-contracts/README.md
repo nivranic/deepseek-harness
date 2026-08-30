@@ -24,7 +24,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-The generator runs from the repository root; the drift gate rides the `hygiene` aggregate.
+The generator runs from the repository root (it also syncs the `apps/apple` copies); the drift gate rides the `hygiene` aggregate.
 
 ```sh
 pnpm run gen-link-contracts      # regenerate manifest + Swift + Kotlin
@@ -33,7 +33,7 @@ pnpm run verify-link-contracts   # fail when committed artifacts are stale
 
 ### Observable behavior
 
-A wire-type change surfaces twice: the zod schemas stop satisfying the protocol types (typecheck), and the regenerated manifest, Swift, or Kotlin text stops matching the committed files (the drift gate). Fixtures round-trip through the schemas in the unit suite, and every emitted checksum names the fixture it pins, so a companion's decoder test can rely on the same bytes.
+A wire-type change surfaces twice: the zod schemas stop satisfying the protocol types (typecheck), and the regenerated manifest, Swift, or Kotlin text stops matching the committed files (the drift gate). The generator also syncs the Swift models and the fixture JSONs into `apps/apple`, where the Shared Apple Remote Core and its fixture-replay tests consume them under the same gate. Fixtures round-trip through the schemas in the unit suite, and every emitted checksum names the fixture it pins, so a companion's decoder test can rely on the same bytes.
 
 -----
 

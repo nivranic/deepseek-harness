@@ -24,7 +24,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-生成器从仓库根运行；漂移门禁挂在 `hygiene` 聚合里。
+生成器从仓库根运行（同时同步 `apps/apple` 拷贝）；漂移门禁挂在 `hygiene` 聚合里。
 
 ```sh
 pnpm run gen-link-contracts      # regenerate manifest + Swift + Kotlin
@@ -33,7 +33,7 @@ pnpm run verify-link-contracts   # fail when committed artifacts are stale
 
 ### 可观察行为
 
-wire 类型变更会暴露两次：zod schema 不再满足协议类型（typecheck），重新生成的 manifest、Swift 或 Kotlin 文本不再匹配已提交文件（漂移门禁）。fixtures 在单元套件里经 schema 往返，每条校验和都点名它钉住的 fixture，伴侣端的解码测试因此可以依赖同一份字节。
+wire 类型变更会暴露两次：zod schema 不再满足协议类型（typecheck），重新生成的 manifest、Swift 或 Kotlin 文本不再匹配已提交文件（漂移门禁）。生成器还会把 Swift 模型与 fixture JSON 同步到 `apps/apple`，供 Shared Apple Remote Core 及其 fixture 回放测试在同一门禁下消费。fixtures 在单元套件里经 schema 往返，每条校验和都点名它钉住的 fixture，伴侣端的解码测试因此可以依赖同一份字节。
 
 -----
 

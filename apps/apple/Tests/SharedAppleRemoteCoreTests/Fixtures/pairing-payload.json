@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "kind": "dsh-link-pairing",
+  "hostId": "9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30",
+  "hostName": "Studio Desk",
+  "endpoint": "https://192.168.1.4:4931",
+  "spkiFingerprint": "abababababababababababababababababababababababababababababababab",
+  "code": "7Kd9m2Xq4Lp8Rt3Vw6Yy1Zc5Bn8Qf2Hj",
+  "expiresAt": 1807315200000
+}

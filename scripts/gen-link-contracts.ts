@@ -1,18 +1,34 @@
 /**
- * Regenerate the link-contract artifacts under
- * `packages/remote/link-contracts/generated/` from the declarative table and
- * golden fixtures. Pure CLI for `pnpm run gen-link-contracts`; the drift gate
- * is `verify-link-contracts`.
+ * Regenerate the link-contract artifacts: the in-package manifest, Swift,
+ * and Kotlin texts under `packages/remote/link-contracts/generated/`, one
+ * JSON file per golden fixture beside them, and the synced Swift-model and
+ * fixture copies under `apps/apple/` that the Shared Apple Remote Core and
+ * its fixture-replay tests consume. Pure CLI for
+ * `pnpm run gen-link-contracts`; the drift gate is `verify-link-contracts`.
  */
 
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { LINK_CONTRACT_FIXTURES } from '../packages/remote/link-contracts/src/index.ts'
 import { generateLinkContracts } from '../packages/remote/link-contracts/src/generate.ts'
 
 const root = resolve(import.meta.dirname, '..')
-const dir = resolve(root, 'packages/remote/link-contracts/generated')
+const generatedDir = resolve(root, 'packages/remote/link-contracts/generated')
+const fixturesDir = resolve(generatedDir, 'fixtures')
+const appleSources = resolve(root, 'apps/apple/Sources/SharedAppleRemoteCore')
+const appleFixtures = resolve(root, 'apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures')
+
 const artifacts = generateLinkContracts()
-writeFileSync(resolve(dir, 'link-contracts.manifest.json'), artifacts.manifest)
-writeFileSync(resolve(dir, 'LinkContracts.swift'), artifacts.swift)
-writeFileSync(resolve(dir, 'LinkContracts.kt'), artifacts.kotlin)
-console.log('gen-link-contracts: wrote manifest, Swift, and Kotlin artifacts.')
+writeFileSync(resolve(generatedDir, 'link-contracts.manifest.json'), artifacts.manifest)
+writeFileSync(resolve(generatedDir, 'LinkContracts.swift'), artifacts.swift)
+writeFileSync(resolve(generatedDir, 'LinkContracts.kt'), artifacts.kotlin)
+writeFileSync(resolve(appleSources, 'LinkContracts.swift'), artifacts.swift)
+
+mkdirSync(fixturesDir, { recursive: true })
+mkdirSync(appleFixtures, { recursive: true })
+for (const fixture of LINK_CONTRACT_FIXTURES) {
+  const json = `${JSON.stringify(fixture.value, undefined, 2)}\n`
+  writeFileSync(resolve(fixturesDir, `${fixture.id}.json`), json)
+  writeFileSync(resolve(appleFixtures, `${fixture.id}.json`), json)
+}
+console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, and fixture artifacts (apps/apple synced).')
