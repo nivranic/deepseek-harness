@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-macos-swift-lane.md
+2026-08-30-macos-swift-lane.md: e18393100295a56d6a4e8c8aa1b2f8214a4a530a
+2026-08-30-macos-swift-lane.zh.md: cba3963a72b9c2c114a436e0d517d6be9dd98725

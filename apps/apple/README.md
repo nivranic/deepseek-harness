@@ -82,7 +82,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
 
-- **Not compiled in this repository's CI yet** — the Swift sources and tests are authored and fixture-drift-gated, but compiling and running `swift test` needs a macOS runner; until then the fixture replay runs on the TypeScript side of the drift gate.
+- **Compiled and tested in CI** — the [Apple Swift](../.github/workflows/apple-swift.yml) lane compiles the package and runs all tests on `macos-latest` for every `apps/apple` change (pull request, dev, and master); the fixture replay runs on both sides of the drift gate.
 - **No app targets yet** — the thin Xcode shells over the two libraries arrive with the macOS compile lane; files/diff/artifact viewers and subagent navigation follow the session-event contract models.
 - **Single host identity** — the credentials store holds one pairing; multi-host switching arrives with the companion's host list.
 

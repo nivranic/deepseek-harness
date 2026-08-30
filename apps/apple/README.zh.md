@@ -82,7 +82,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <a id="known-limitations-and-deferred-work"></a>
 ## 已知限制与延后工作
 
-- **尚未纳入本仓库 CI 编译**——Swift 源码与测试已编写并有 fixture 漂移门禁，但编译并运行 `swift test` 需要 macOS runner；在那之前 fixture 回放在漂移门禁的 TypeScript 侧运行。
+- **已纳入 CI 编译与测试**——[Apple Swift](../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
 - **尚无应用 target**——两个库之上的薄 Xcode 壳随 macOS 编译车道到来；文件/Diff/工件查看器与子代理导航跟随会话事件契约模型。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 
