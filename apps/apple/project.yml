@@ -43,7 +43,22 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.mac
         PRODUCT_NAME: DSH Companion
         GENERATE_INFOPLIST_FILE: true
+  DirectHostMac:
+    type: application
+    platform: macOS
+    sources:
+      - Hosts/macOSHostApp.swift
+      - Hosts/HostSurface.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.mac
+        PRODUCT_NAME: DSH Host
+        GENERATE_INFOPLIST_FILE: true
 schemes:
+  DirectHostMac:
+    build:
+      targets:
+        DirectHostMac: all
   CompanioniOS:
     build:
       targets:

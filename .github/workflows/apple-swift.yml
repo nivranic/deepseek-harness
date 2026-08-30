@@ -64,3 +64,9 @@ jobs:
       - name: Build the macOS shell
         working-directory: apps/apple
         run: xcodebuild -project Companion.xcodeproj -scheme CompanionMac -destination 'platform=macOS' build
+
+      # Chapter 49's fourth target: the host-side surface, isolated from the
+      # companion targets so host-only code never pollutes them.
+      - name: Build the macOS Direct Host
+        working-directory: apps/apple
+        run: xcodebuild -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' build
