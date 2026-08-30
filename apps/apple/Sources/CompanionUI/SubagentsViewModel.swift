@@ -76,15 +76,16 @@ public final class SubagentsViewModel {
         }
     }
 
-    /// Open one child's read-only timeline on the follow stream.
+    /// Open one child's read-only timeline on the follow stream. A
+    /// diagnostic row has no mode and no timeline to open.
     public func openChild(_ row: SubagentRow) async {
-        guard let parentSessionId else { return }
+        guard let parentSessionId, let mode = row.mode else { return }
         let child = RemoteSessionViewModel(wire: wire)
         childTimeline = child
         await child.openSubagent(
             parentSessionId: parentSessionId,
             childSessionId: row.id,
-            mode: row.mode.rawValue
+            mode: mode.rawValue
         )
     }
 
