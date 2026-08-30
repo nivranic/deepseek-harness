@@ -31,7 +31,7 @@ class LinkPinningTest {
 
         val other = "ab".repeat(32)
         val failure = assertFailsWith<LinkPinning.PinFailure.FingerprintMismatch> { LinkPinning.check(certificate, other) }
-        assertEquals(pinned, failure.pinned)
-        assertEquals(other, failure.presented)
+        assertEquals(other, failure.pinned)
+        assertEquals(pinned, failure.presented)
     }
 }
