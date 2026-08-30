@@ -22,7 +22,7 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 ## 已知限制与延后工作
 
-- **普通字段模型**——视图模型暴露普通字段，Compose 在重组触发点（切标签、重回页面）重读而非观察活状态；StateFlow 投影随打磨轮到来。
+- **无生命周期桥的状态持有**——模型暴露 StateFlow，各标签以 `collectAsState` 收集；随打磨轮接入后台感知的 `collectAsStateWithLifecycle`。
 - **握手级钉扎延后**——`LinkPinning` 校验叶子证书的 SPKI 指纹，但接入 TLS 握手要随应用模块的 OkHttp 栈到来；此处的 JDK `HttpClient` 不做钉扎。
 
 <a id="dev-note"></a>

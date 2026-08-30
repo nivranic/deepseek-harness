@@ -22,7 +22,7 @@ The [Android Kotlin](../.github/workflows/android-kotlin.yml) lane runs `gradle 
 
 ## Known Limitations and Deferred Work
 
-- **Plain-field models** — the view models expose plain fields, so Compose re-reads them on recomposition triggers (tab switches, screen re-entry) rather than observing live state; StateFlow projections arrive with the polish pass.
+- **State-holding without a lifecycle bridge** — the models expose StateFlows the tabs collect with `collectAsState`; wiring `collectAsStateWithLifecycle` for background-aware collection arrives with the app polish.
 - **Handshake pinning deferred** — `LinkPinning` verifies a leaf certificate's SPKI fingerprint, but wiring it into the TLS handshake rides the app module's OkHttp stack; the JDK `HttpClient` here does not pin.
 
 <a id="dev-note"></a>
