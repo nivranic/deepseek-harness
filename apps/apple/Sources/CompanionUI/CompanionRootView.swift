@@ -13,6 +13,7 @@ public struct CompanionRootView: View {
     @State private var interactionModel: InteractionViewModel?
     @State private var filesModel: FilesViewModel?
     @State private var subagentsModel: SubagentsViewModel?
+    @State private var pushModel: PushViewModel?
 
     private let client: LinkClient?
 
@@ -51,8 +52,11 @@ public struct CompanionRootView: View {
             interactionModel = interactions
             filesModel = files
             subagentsModel = subagents
+            let pushes = PushViewModel(wire: wire, presenter: SystemPushPresenter())
+            pushModel = pushes
             await sessions.loadSessions()
             await interactions.startWatching()
+            await pushes.startWatching()
             await files.start()
         }
     }

@@ -92,6 +92,7 @@ class CompanionViewModel : ViewModel() {
     val interactions = InteractionModel(CompanionRuntime.wire, viewModelScope)
     val files = FilesModel(CompanionRuntime.wire, viewModelScope)
     val subagents = SubagentsModel(CompanionRuntime.wire, viewModelScope)
+    val pushes = PushModel(CompanionRuntime.wire, viewModelScope)
 
     /** Pair with a scanned payload; returns the failure message, or null. */
     suspend fun pair(payloadText: String, deviceName: String): String? =
@@ -165,6 +166,16 @@ object CompanionRuntime {
 @Composable
 fun CompanionApp(model: CompanionViewModel = viewModel()) {
     var tab by remember { mutableStateOf(0) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    // The chapter-70 push chain: each forward the live stream delivers
+    // becomes one minimized local notification; details stay behind the
+    // secure link the app opens into.
+    LaunchedEffect(model.paired) {
+        model.pushes.startWatching()
+        model.pushes.pushes.collect { latest ->
+            latest.lastOrNull()?.let { PushNotifications.present(context, it) }
+        }
+    }
     if (!model.paired) {
         PairingScreen(model)
         return

@@ -64,6 +64,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Sources/CompanionUI/SessionFold.swift` | The pure domain-state fold — the Swift half of the conformance scenarios |
 | `Sources/CompanionUI/FileChange.swift` | The projection from the tool trajectory to read-only file changes — the chapter-55 first-version diff review |
 | `Sources/CompanionUI/ArtifactsView.swift` | The read-only artifacts pane — artifact references and status as a list (chapter 56) |
+| `Sources/CompanionUI/CompanionPush.swift` | The chapter-70 minimal push chain — `$events` forwards folded into reference-data-only pushes, local-notification content, and the presentation seam; relay (APNs/FCM) deferred |
 | `Sources/LiteRuntime/` | Native Harness Lite skeleton: Behavior-Spec fold + static tool registry |
 | `Tests/LiteRuntimeTests/` | Lite Behavior-Spec conformance replay and registry tests |
 | `Tests/CompanionUITests/` | View-model, theme-degrade, and domain-state conformance tests over a fake wire |

@@ -911,3 +911,79 @@ final class ArtifactFoldTests: XCTestCase {
         XCTAssertTrue(model.artifacts.isEmpty)
     }
 }
+
+/// A presenter recording what reached the platform seam.
+actor RecordingPushPresenter: CompanionPushPresenting {
+    private(set) var presented: [CompanionPush] = []
+
+    func present(_ push: CompanionPush) async {
+        presented.append(push)
+    }
+}
+
+@MainActor
+final class PushViewModelTests: XCTestCase {
+    func testWatchesForwardsIntoMinimizedPushesAndPresents() async {
+        let presenter = RecordingPushPresenter()
+        let wire = FakeWire()
+        await wire.stubStream("$events", frames: .success([
+            // The frame carries title and text; the push must not carry them.
+            jsonObject([
+                "event": .string("approval/requested"), "eventId": .string("e1"),
+                "sessionId": .string("s1"), "title": .string("Run rm -rf"), "text": .string("prompt text"),
+            ]),
+            jsonObject([
+                "event": .string("question/requested"), "eventId": .string("e2"),
+                "sessionId": .string("s1"), "text": .string("Which file?"),
+            ]),
+            // A re-forward of the same event deduplicates by equality.
+            jsonObject([
+                "event": .string("approval/requested"), "eventId": .string("e1"), "sessionId": .string("s1"),
+            ]),
+            // Frames without push-worthy events project nothing.
+            jsonObject(["event": .string("session/updated"), "sessionId": .string("s1")]),
+            jsonObject(["event": .string("approval/requested"), "eventId": .string("e3")]),
+        ]))
+        let model = PushViewModel(wire: wire, presenter: presenter)
+        await model.startWatching()
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.pushes, [
+            .approvalWaiting(sessionId: "s1", eventId: "e1"),
+            .questionWaiting(sessionId: "s1", eventId: "e2"),
+        ])
+        let presented = await presenter.presented
+        XCTAssertEqual(presented.map(\.title), ["宿主等待审批", "宿主等待答复"])
+
+        let content = model.pushes[0].localContent
+        XCTAssertEqual(content.title, "宿主等待审批")
+        XCTAssertEqual(content.body, "打开应用，经安全连接查看详情。")
+        XCTAssertEqual(model.pushes[1].title, "宿主等待答复")
+    }
+
+    func testParsesCompletedTurnEndsOnly() {
+        let completed = jsonObject([
+            "type": .string("event"),
+            "event": jsonObject([
+                "type": .string("turn/end"), "seq": .number(7),
+                "data": jsonObject(["turn": .number(2), "reason": jsonObject(["kind": .string("completed")])]),
+            ]),
+        ])
+        XCTAssertEqual(pushFromTurnEnd(completed, openSessionId: "s1"), .taskCompleted(sessionId: "s1", turn: 2))
+        XCTAssertEqual(CompanionPush.taskCompleted(sessionId: "s1", turn: 2).title, "任务完成")
+
+        let aborted = jsonObject([
+            "type": .string("event"),
+            "event": jsonObject([
+                "type": .string("turn/end"), "seq": .number(8),
+                "data": jsonObject(["turn": .number(3), "reason": jsonObject(["kind": .string("aborted")])]),
+            ]),
+        ])
+        XCTAssertNil(pushFromTurnEnd(aborted, openSessionId: "s1"))
+
+        let other = jsonObject([
+            "type": .string("event"),
+            "event": jsonObject(["type": .string("turn/start"), "seq": .number(9), "data": jsonObject(["turn": .number(4)])]),
+        ])
+        XCTAssertNil(pushFromTurnEnd(other, openSessionId: "s1"))
+    }
+}
