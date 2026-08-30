@@ -247,7 +247,7 @@ public struct CompanionSessionFold {
             }
         case "artifact/created":
             if let payload = Self.artifactCreated(data) {
-                state.artifacts.append(Artifact(
+                state.artifacts.append(CompanionDomainState.Artifact(
                     id: payload.id,
                     kind: payload.kind,
                     title: payload.title,
@@ -258,7 +258,7 @@ public struct CompanionSessionFold {
             if let payload = Self.artifactStatus(data),
                let index = state.artifacts.firstIndex(where: { $0.id == payload.id }) {
                 let target = state.artifacts[index]
-                state.artifacts[index] = Artifact(
+                state.artifacts[index] = CompanionDomainState.Artifact(
                     id: target.id,
                     kind: target.kind,
                     title: target.title,
