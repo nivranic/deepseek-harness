@@ -116,7 +116,7 @@ private fun JsonObject.booleanField(name: String): Boolean? =
  * no-ops; the events arrive from the pinned Lite fixtures and journals, so
  * the vocabulary is closed.
  */
-internal fun foldLiteEventInto(state: LiteFoldAccumulator, event: JsonObject) {
+private fun foldLiteEventInto(state: LiteFoldAccumulator, event: JsonObject) {
     when (event.stringField("type")) {
         "prompt/accepted" -> state.conversation.add(LiteMessage(role = "user", text = event.stringField("content") ?: ""))
         "prompt/rejected" -> state.errors.add(
@@ -246,7 +246,7 @@ fun LiteDomainState.toJson(): JsonElement = buildJsonObject {
             put("status", artifact.status)
         }
     }))
-    put("lastTurnEnd", lastTurnEnd ?: kotlinx.serialization.json.JsonNull)
+    put("lastTurnEnd", JsonPrimitive(lastTurnEnd))
     put("errors", JsonArray(errors.map { failure ->
         buildJsonObject {
             put("kind", failure.kind)
@@ -254,7 +254,7 @@ fun LiteDomainState.toJson(): JsonElement = buildJsonObject {
             put("message", failure.message)
         }
     }))
-    put("pendingHandoff", pendingHandoff ?: kotlinx.serialization.json.JsonNull)
+    put("pendingHandoff", JsonPrimitive(pendingHandoff))
 }
 
 /** Parse one lite-conformance scenario document. */
