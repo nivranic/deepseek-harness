@@ -155,8 +155,11 @@ class RelayStreamTest {
         server.start()
         try {
             val client = RelayClient("http://127.0.0.1:${server.address.port}")
-            val collected = mutableListOf<RelayEnvelope>()
-            val job = launch { client.stream("rt-acct-phone").toList(collected) }
+            // The collector blocks in a socket read between the scripted
+            // lines, so it must not own runBlocking's single thread: the
+            // latch release that frees the read can only fire from here.
+            val collected = java.util.concurrent.CopyOnWriteArrayList<RelayEnvelope>()
+            val job = launch(kotlinx.coroutines.Dispatchers.IO) { client.stream("rt-acct-phone").toList(collected) }
             withTimeout(5_000) { while (collected.isEmpty()) delay(20) }
             assertEquals(RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1"), collected.single())
             releaseSecondLine.countDown()
