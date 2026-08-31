@@ -972,6 +972,10 @@ importers:
         version: link:../../workspace/workspace
 
   packages/artifact/artifact:
+    dependencies:
+      '@deepseek-ai/dsh-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: workspace:^
@@ -985,6 +989,25 @@ importers:
       '@deepseek-ai/dsh-session':
         specifier: workspace:^
         version: link:../../core/session
+
+  packages/artifact/artifact-local:
+    dependencies:
+      '@deepseek-ai/dsh-artifact':
+        specifier: workspace:^
+        version: link:../artifact
+      '@deepseek-ai/dsh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
+      '@deepseek-ai/dsh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
 
   packages/attachment/attachment:
     devDependencies:
@@ -1129,6 +1152,12 @@ importers:
       '@deepseek-ai/dsh-api-gateway':
         specifier: workspace:^
         version: link:../../api/gateway
+      '@deepseek-ai/dsh-artifact':
+        specifier: workspace:^
+        version: link:../../artifact/artifact
+      '@deepseek-ai/dsh-artifact-local':
+        specifier: workspace:^
+        version: link:../../artifact/artifact-local
       '@deepseek-ai/dsh-attachment-local':
         specifier: workspace:^
         version: link:../../attachment/attachment-local

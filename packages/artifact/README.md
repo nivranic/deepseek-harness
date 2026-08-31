@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The `artifact/` group owns the artifact vocabulary of the session journal: a branded reference identity plus the `artifact/created` and `artifact/status` events that record an artifact's metadata and lifecycle on the host's durable log. Events carry references only — content bytes live in the resource channel a consumer resolves the reference against, never on the journal (chapter 56 of the cross-device plan).
+The `artifact/` group is chapter 56's host face: the `artifact_create` tool authors one complete artifact, the journal records its reference, metadata, and lifecycle (`artifact/created`, `artifact/status`), and the resource channel keeps the content bytes. Events carry references only — content bytes live in the resource channel a consumer resolves the reference against, never on the journal (chapter 56 of the cross-device plan).
 
 ## Table of Contents
 
@@ -22,9 +22,10 @@ The `artifact/` group owns the artifact vocabulary of the session journal: a bra
 <a id="packages"></a>
 ## Packages
 
-| Package | Role |
-|---|---|
-| [`artifact/`](artifact/README.md) | The branded `ArtifactId` and the artifact `SessionEventMap` members |
+| Package | Role | ctx key |
+|---|---|---|
+| [`artifact/`](artifact/README.md) | The `artifact_create` tool, the `ctx.artifacts` storage seam, and the artifact `SessionEventMap` members | `ctx.artifacts` (service) |
+| [`artifact-local/`](artifact-local/README.md) | Stores your artifacts' content bytes on this machine below `DSH_HOME` | registers on `ctx.artifacts` |
 
 -----
 

@@ -118,6 +118,11 @@
     - id: attachment-local
       name: '@deepseek-ai/dsh-attachment-local'
 
+    # Artifact content bytes live in the same resource-channel style: the
+    journal keeps references and status only, this backend stores the bytes.
+    - id: artifact-local
+      name: '@deepseek-ai/dsh-artifact-local'
+
     # Full-text session search is opt-in. `openAt: never` keeps
     # ctx.sessionQuery mounted — exact reads, titles, and lineage traces
     # (session export, subagent-fork Workspace inheritance) stay available —
@@ -412,6 +417,9 @@
       name: '@deepseek-ai/dsh-tool-todo'
       config:
         allowParallelInProgress: true
+
+    - id: artifact
+      name: '@deepseek-ai/dsh-artifact'
 
     # Persisted same-session goals reach the model and the slash menu here; the
     # domain, driver, and `/goal` command are above.

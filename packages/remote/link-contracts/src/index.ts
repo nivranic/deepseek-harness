@@ -13,6 +13,7 @@ import type { LinkCarrierStatus, LinkHostDescription, LinkPairValue, LinkPairing
 import type { LinkDeviceValue, LinkStatusValue } from '@deepseek-ai/dsh-api-link-controller/types'
 import type { WorkspaceFilesListValue, WorkspaceFilesReadValue } from '@deepseek-ai/dsh-api-workspace-controller'
 import type { SessionAttachmentValue, SessionPromptRequest } from '@deepseek-ai/dsh-api-session-controller/types'
+import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -206,6 +207,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       'turn/start', 'turn/end', 'step/start', 'step/end',
       'user/message', 'assistant/chunk', 'assistant/message',
       'tool/call', 'tool/result',
+      'artifact/created', 'artifact/status',
       'plan/mode', 'todo/write', 'goal/change', 'session/end-seed',
     ],
     fields: [],
@@ -213,6 +215,11 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
   {
     name: 'LinkChunkRowKind',
     shape: ['chunkrow/text-chunks', 'chunkrow/reasoning-chunks', 'chunkrow/tool-call-chunks'],
+    fields: [],
+  },
+  {
+    name: 'LinkArtifactStatus',
+    shape: ['pending', 'ready', 'failed'],
     fields: [],
   },
   {
@@ -250,6 +257,27 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     fixture: 'event-todo-write',
     fields: [
       { name: 'todos', kind: 'object-array', ref: 'LinkTodoItem' },
+    ],
+  },
+  {
+    name: 'LinkArtifactCreatedData',
+    shape: 'object',
+    sessionEvents: ['artifact/created'],
+    fixture: 'event-artifact-created',
+    fields: [
+      { name: 'id', kind: 'string' },
+      { name: 'kind', kind: 'string' },
+      { name: 'title', kind: 'string' },
+    ],
+  },
+  {
+    name: 'LinkArtifactStatusData',
+    shape: 'object',
+    sessionEvents: ['artifact/status'],
+    fixture: 'event-artifact-status',
+    fields: [
+      { name: 'id', kind: 'string' },
+      { name: 'status', kind: 'enum', ref: 'LinkArtifactStatus' },
     ],
   },
   {
@@ -665,6 +693,8 @@ export type LinkSessionEventPayload =
   | SessionEventMap['assistant/message']
   | SessionEventMap['tool/call']
   | SessionEventMap['tool/result']
+  | SessionEventMap['artifact/created']
+  | SessionEventMap['artifact/status']
   | SessionEventMap['plan/mode']
   | SessionEventMap['todo/write']
   | SessionEventMap['goal/change']
@@ -840,6 +870,16 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
         source: { kind: 'tool', callId: ToolCallId('call-1') },
       },
     } satisfies SessionEventMap['tool/result'],
+  },
+  {
+    type: 'LinkArtifactCreatedData',
+    id: 'event-artifact-created',
+    value: { id: ArtifactId('art-0f4c'), kind: 'report', title: '迁移报告' } satisfies SessionEventMap['artifact/created'],
+  },
+  {
+    type: 'LinkArtifactStatusData',
+    id: 'event-artifact-status',
+    value: { id: ArtifactId('art-0f4c'), status: 'ready' } satisfies SessionEventMap['artifact/status'],
   },
   {
     type: 'LinkPlanModeData',

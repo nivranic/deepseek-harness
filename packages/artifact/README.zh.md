@@ -9,7 +9,7 @@ kind: "package-group"
 
 ## 概述
 
-`artifact/` 族持有会话日志的工件词汇：品牌化引用身份加上 `artifact/created` 与 `artifact/status` 两个事件，把工件的元数据与生命周期记录到宿主持久日志上。事件只携带引用——内容字节活在消费者解析引用所指向的资源通道里，永不随日志走（跨端方案第 56 章）。
+`artifact/` 族是第 56 章的宿主面：`artifact_create` 工具创作完整工件，日志记录其引用、元数据与生命周期（`artifact/created`、`artifact/status`），资源通道保留内容字节。事件只携带引用——内容字节活在消费者解析引用所指向的资源通道里，永不随日志走（跨端方案第 56 章）。
 
 ## 目录
 
@@ -22,9 +22,10 @@ kind: "package-group"
 <a id="packages"></a>
 ## 包
 
-| Package | Role |
-|---|---|
-| [`artifact/`](artifact/README.zh.md) | 品牌 `ArtifactId` 与工件的 `SessionEventMap` 成员 |
+| 包 | Role | ctx key |
+|---|---|---|
+| [`artifact/`](artifact/README.zh.md) | `artifact_create` 工具、`ctx.artifacts` 存储缝与工件的 `SessionEventMap` 成员 | `ctx.artifacts`（服务） |
+| [`artifact-local/`](artifact-local/README.zh.md) | 把工件内容字节存储在本机 `DSH_HOME` 之下 | 注册于 `ctx.artifacts` |
 
 -----
 

@@ -308,6 +308,8 @@
         "assistant/message",
         "tool/call",
         "tool/result",
+        "artifact/created",
+        "artifact/status",
         "plan/mode",
         "todo/write",
         "goal/change",
@@ -320,6 +322,14 @@
         "chunkrow/text-chunks",
         "chunkrow/reasoning-chunks",
         "chunkrow/tool-call-chunks"
+      ]
+    },
+    {
+      "name": "LinkArtifactStatus",
+      "shape": [
+        "pending",
+        "ready",
+        "failed"
       ]
     },
     {
@@ -390,6 +400,47 @@
       "fixture": "event-todo-write",
       "sessionEvents": [
         "todo/write"
+      ]
+    },
+    {
+      "name": "LinkArtifactCreatedData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "title",
+          "kind": "string"
+        }
+      ],
+      "fixture": "event-artifact-created",
+      "sessionEvents": [
+        "artifact/created"
+      ]
+    },
+    {
+      "name": "LinkArtifactStatusData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "enum",
+          "ref": "LinkArtifactStatus"
+        }
+      ],
+      "fixture": "event-artifact-status",
+      "sessionEvents": [
+        "artifact/status"
       ]
     },
     {
@@ -1276,6 +1327,16 @@
       "id": "event-tool-result",
       "type": "LinkToolResultData",
       "sha256": "0d09dc25cab669e475bce4445c427d15ebacb13f02e8ecd17cefcbacc93a4697"
+    },
+    {
+      "id": "event-artifact-created",
+      "type": "LinkArtifactCreatedData",
+      "sha256": "cd3c1bd7e198bea223b8c7119189b7570267f98498f6d776dd6a8006d8081aa4"
+    },
+    {
+      "id": "event-artifact-status",
+      "type": "LinkArtifactStatusData",
+      "sha256": "681b277e915ccd40c26ffd3b20f5159e3f6345c9a10ebf4803f69a1948189788"
     },
     {
       "id": "event-plan-mode",

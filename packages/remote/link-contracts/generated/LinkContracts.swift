@@ -89,6 +89,8 @@ public enum LinkSessionEventKind: String, Codable {
     case assistantMessage = "assistant/message"
     case toolCall = "tool/call"
     case toolResult = "tool/result"
+    case artifactCreated = "artifact/created"
+    case artifactStatus = "artifact/status"
     case planMode = "plan/mode"
     case todoWrite = "todo/write"
     case goalChange = "goal/change"
@@ -98,6 +100,11 @@ public enum LinkChunkRowKind: String, Codable {
     case chunkrowTextChunks = "chunkrow/text-chunks"
     case chunkrowReasoningChunks = "chunkrow/reasoning-chunks"
     case chunkrowToolCallChunks = "chunkrow/tool-call-chunks"
+}
+public enum LinkArtifactStatus: String, Codable {
+    case pending = "pending"
+    case ready = "ready"
+    case failed = "failed"
 }
 public enum LinkTodoStatus: String, Codable {
     case pending = "pending"
@@ -133,6 +140,15 @@ public struct LinkTodoItem: Codable {
 }
 public struct LinkTodoWriteData: Codable {
     public let todos: [LinkTodoItem]
+}
+public struct LinkArtifactCreatedData: Codable {
+    public let id: String
+    public let kind: String
+    public let title: String
+}
+public struct LinkArtifactStatusData: Codable {
+    public let id: String
+    public let status: LinkArtifactStatus
 }
 public struct LinkPlanModeData: Codable {
     public let active: Bool

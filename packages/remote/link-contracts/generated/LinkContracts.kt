@@ -91,6 +91,8 @@ enum class LinkSessionEventKind(val wire: String) {
     ASSISTANT_MESSAGE("assistant/message"),
     TOOL_CALL("tool/call"),
     TOOL_RESULT("tool/result"),
+    ARTIFACT_CREATED("artifact/created"),
+    ARTIFACT_STATUS("artifact/status"),
     PLAN_MODE("plan/mode"),
     TODO_WRITE("todo/write"),
     GOAL_CHANGE("goal/change"),
@@ -100,6 +102,11 @@ enum class LinkChunkRowKind(val wire: String) {
     CHUNKROW_TEXT_CHUNKS("chunkrow/text-chunks"),
     CHUNKROW_REASONING_CHUNKS("chunkrow/reasoning-chunks"),
     CHUNKROW_TOOL_CALL_CHUNKS("chunkrow/tool-call-chunks"),
+}
+enum class LinkArtifactStatus(val wire: String) {
+    PENDING("pending"),
+    READY("ready"),
+    FAILED("failed"),
 }
 enum class LinkTodoStatus(val wire: String) {
     PENDING("pending"),
@@ -135,6 +142,15 @@ data class LinkTodoItem(
 )
 data class LinkTodoWriteData(
     val todos: List<LinkTodoItem>,
+)
+data class LinkArtifactCreatedData(
+    val id: String,
+    val kind: String,
+    val title: String,
+)
+data class LinkArtifactStatusData(
+    val id: String,
+    val status: LinkArtifactStatus,
 )
 data class LinkPlanModeData(
     val active: Boolean,

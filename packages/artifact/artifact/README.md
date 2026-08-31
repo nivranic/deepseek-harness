@@ -1,5 +1,5 @@
 ---
-description: "Artifact reference vocabulary for maintainers wiring artifact events onto the session journal or consuming them from a companion fold."
+description: "Artifact storage seam and the model-facing artifact_create tool for maintainers wiring first-class artifacts onto the journal."
 kind: "package-reference"
 ---
 
@@ -9,13 +9,14 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package owns the artifact vocabulary of the session journal: the branded `ArtifactId` reference identity and the two `SessionEventMap` members — `artifact/created` and `artifact/status` — that put artifacts on the host's durable event log. Journal events carry the reference, its coarse kind, its human-facing title, and its lifecycle status only; content bytes never ride an event and live in the resource channel the consumer resolves the reference against. Companion surfaces (the cross-platform fold and the native companion apps) consume this vocabulary to render the artifact pane, and contract fixtures replay it as golden scenarios.
+This package is the artifact host face: the `ctx.artifacts` resource channel plus the model-facing `artifact_create` tool. One call authors one complete artifact — the journal records the reference, its kind and title, and its lifecycle status (`artifact/created`, `artifact/status`), while the complete content bytes go to the resource channel and never ride an event (chapter 56). The shipped `dsh` composition enables this with no setup; artifacts survive restarts and companion surfaces render the pane from the journaled references. The branded `ArtifactId` and the two `SessionEventMap` members live here too, so contract fixtures and native folds pin the wire shapes.
 
 ## Table of Contents
 
 - [Use this package](#use-this-package)
 - [Understand the implementation](#understand-the-implementation)
 - [Further Exploration](#further-exploration)
+- [Model Experience](#model-experience)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
@@ -24,33 +25,68 @@ This package owns the artifact vocabulary of the session journal: the branded `A
 <a id="use-this-package"></a>
 ## Use this package
 
-Take a type-only edge on `@deepseek-ai/dsh-artifact/types` where a program needs the `SessionEventMap` merge in scope, and import the `ArtifactId` constructor where a fixture or a producer mints a reference:
+Artifacts work end to end in the default composition: the model calls `artifact_create` with a kind, a title, and the complete content, and the artifact is stored and journaled without further action. When you compose your own setup, mount the tool package with a resource-channel backend:
 
-```ts
-import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
+```yaml
+- name: '@deepseek-ai/dsh-artifact'
+- name: '@deepseek-ai/dsh-artifact-local'
 ```
 
-A host producer journals an artifact by appending the two events through the session the same way every plugin domain does; nothing here registers a plugin, tool, or schema.
+Take a type-only edge on `@deepseek-ai/dsh-artifact/types` where a program needs the `SessionEventMap` merge in scope, and the `ArtifactId` constructor where a fixture mints a reference.
 
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 
-`types.ts` declares the branded identity, the three-state `ArtifactStatus`, and the declaration merge onto `@deepseek-ai/dsh-session/types`. The merge is picked up by the generated known-event guard (`dsh-session/known-event-types`), which makes persistence refuse logs carrying artifact events from builds that do not understand them, and by the generated persistence catalog, which documents both members. Adding the members is vocabulary only: `SESSION_FORMAT_VERSION` does not move, because an older runtime rejects the new types instead of misreading them.
+`src/index.ts` declares the `ArtifactStore` service (`put`/`get`/`remove` by reference id — chapter 56's resource channel) and registers the tool: it requires an owning agent session, trims and validates kind and title, mints the reference, journals `artifact/created`, writes the bytes through the channel, and journals `artifact/status` — `ready` on success, `failed` with the storage failure surfaced when the channel refuses. `src/types.ts` holds the branded identity, the three-state `ArtifactStatus`, and the declaration merge onto `@deepseek-ai/dsh-session/types`; `src/invariant.ts` enforces the durable shape (non-empty trimmed kind and title, the closed status set) and the open-turn relationship, staying silent on orphan statuses — a legal no-op in every fold.
 
 <a id="further-exploration"></a>
 ## Further Exploration
 
+- [Tool schema catalog](../../../docs/tool-catalog.md#deepseek-aidsh-artifact) — the generated `artifact_create` schema the model receives.
+- [Local artifact backend](../artifact-local/README.md) — the shipped resource channel below `DSH_HOME`.
 - [Session event vocabulary](../../core/session/README.md) — the merge-extensible `SessionEventMap` this package extends.
-- [Persistence catalog](../../../docs/persistence-catalog.md) — the generated documentation of every journal event, artifacts included.
 - [Companion fold](../../remote/link-contracts/README.md) — the reference fold that consumes these events into the artifact pane.
 
-<a id="known-limitations-and-deferred-work"></a>
+<a id="model-experience"></a>
+## Model Experience
+
+### Tool schema
+
+#### What the model sees
+
+The model sees the generated [`artifact_create` schema](../../../docs/tool-catalog.md#deepseek-aidsh-artifact): an object with required `kind`, `title`, and `content` strings. The description instructs one complete artifact per call and forbids scratch text or splitting across calls.
+
+#### Token effect
+
+Fixed schema cost on every request where the tool is visible; the description and schema are static.
+
+#### KV Cache effect
+
+Prefix-stable while the definition and visibility are unchanged. Plugin lifecycle or scoped restrictions may invalidate reuse from this schema.
+
+### Tool-call history and result
+
+#### What the model sees
+
+Each assistant tool call retains the full artifact content in its arguments. Success returns exactly `Artifact ready: <title> (<kind>) — <id>`. Stable failures are `Error: artifact_create requires a non-empty kind and title` and `Error: artifact_create requires an owning agent session`; a storage failure surfaces the channel's error text. The `artifact/created` and `artifact/status` session events are UI and replay state, not a second model message.
+
+#### Token effect
+
+Token growth scales with the artifact content the model submits, and those call arguments remain until compaction. The result itself is small and fixed-shape.
+
+#### KV Cache effect
+
+Append-only; newly visible content follows the reusable request prefix and does not invalidate existing KV-cache entries.
+
 ## Known Limitations and Deferred Work
 
-- The vocabulary ships without a host-side producer: no tool or capability emits `artifact/created` yet, so recorded sessions stay free of artifact events until that increment lands.
-- The host-side resource channel (resolving an `ArtifactId` to content bytes on the host) is deferred with that producer; companion Lite runtimes keep their own store today.
+<a id="known-limitations-and-deferred-work"></a>
+
+- The producer is create-only: there is no `artifact_read` tool yet, so the model cannot read an artifact back in a later session; companion apps read through their own channels.
+- Artifacts are textual in this first version: `content` is a string and the channel stores its UTF-8 bytes; binary artifacts need a future binary input surface.
+
+### Dev Note
 
 <a id="dev-note"></a>
-## Dev Note
 
 The event shapes deliberately match the Lite artifact vocabulary already pinned by the cross-language conformance fixtures, so the three companion folds consume host events and Lite events through one set of branches.

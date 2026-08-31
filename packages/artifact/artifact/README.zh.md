@@ -1,5 +1,5 @@
 ---
-description: "面向把工件事件接入会话日志或从伴侣折叠消费它们的维护者的工件引用词汇包。"
+description: "面向把一等工件接入日志的维护者的工件存储缝与模型可见 artifact_create 工具。"
 kind: "package-reference"
 ---
 
@@ -9,13 +9,14 @@ kind: "package-reference"
 
 ## 概述
 
-本包持有会话日志的工件词汇：品牌化的 `ArtifactId` 引用身份与两个 `SessionEventMap` 成员——`artifact/created` 与 `artifact/status`——把工件放上宿主的持久事件日志。日志事件只携带引用、粗粒度类别、人类可读标题与生命周期状态；内容字节永不随事件走，活在消费者解析引用所指向的资源通道里。伴侣面（跨端折叠与原生伴侣应用）消费这套词汇渲染工件面板，契约 fixture 以黄金场景回放它。
+本包是工件的宿主面：`ctx.artifacts` 资源通道加模型可见的 `artifact_create` 工具。一次调用创作一件完整工件——日志记录引用、类别、标题与生命周期状态（`artifact/created`、`artifact/status`），完整内容字节进入资源通道、永不随事件走（第 56 章）。出厂 `dsh` 组合零配置启用；工件跨重启留存，伴侣面从日志引用渲染工件面板。品牌 `ArtifactId` 与两个 `SessionEventMap` 成员也住在这里，契约 fixture 与原生折叠因此钉住线形状。
 
 ## 目录
 
 - [使用本包](#use-this-package)
 - [理解实现](#understand-the-implementation)
 - [进一步探索](#further-exploration)
+- [模型体验](#model-experience)
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
 
@@ -24,33 +25,68 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-程序需要 `SessionEventMap` 合并在作用域内时，在 `@deepseek-ai/dsh-artifact/types` 上接一条 type-only 边；fixture 或生产方铸造引用时导入 `ArtifactId` 构造器：
+默认组合下工件端到端可用：模型以类别、标题与完整内容调用 `artifact_create`，工件即被存储并记入日志，无需进一步操作。自建组合时，挂载工具包与一个资源通道后端：
 
-```ts
-import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
+```yaml
+- name: '@deepseek-ai/dsh-artifact'
+- name: '@deepseek-ai/dsh-artifact-local'
 ```
 
-宿主生产方像每个插件域一样，经由会话追加这两个事件来记录工件；本包不注册插件、工具或 schema。
+程序需要 `SessionEventMap` 合并在作用域内时，在 `@deepseek-ai/dsh-artifact/types` 上接一条 type-only 边；fixture 铸造引用时导入 `ArtifactId` 构造器。
 
 <a id="understand-the-implementation"></a>
 ## 理解实现
 
-`types.ts` 声明品牌化身份、三态 `ArtifactStatus`，以及对 `@deepseek-ai/dsh-session/types` 的声明合并。合并被生成的已知事件守卫（`dsh-session/known-event-types`）拾取——持久层因此拒绝携带工件事件但不被当前构建理解的日志——也被生成的持久化目录文档化。新增成员只是词汇：`SESSION_FORMAT_VERSION` 不动，因为旧运行时拒绝新类型而不是误读它们。
+`src/index.ts` 声明 `ArtifactStore` 服务（按引用 id 的 `put`/`get`/`remove`——第 56 章的资源通道）并注册工具：要求有归属的 agent 会话，修剪并校验类别与标题，铸造引用，记录 `artifact/created`，经通道写入字节，再记录 `artifact/status`——成功 `ready`，通道拒绝时记录 `failed` 并透出存储失败。`src/types.ts` 持有品牌身份、三态 `ArtifactStatus` 与对 `@deepseek-ai/dsh-session/types` 的声明合并；`src/invariant.ts` 强制持久形状（非空且已修剪的类别与标题、封闭的状态集）与开回合关系，对孤儿状态保持沉默——每个折叠里的合法 no-op。
 
 <a id="further-exploration"></a>
 ## 进一步探索
 
+- [工具 schema 目录](../../../docs/tool-catalog.zh.md#deepseek-aidsh-artifact)——模型收到的生成 `artifact_create` schema。
+- [本地工件后端](../artifact-local/README.zh.md)——`DSH_HOME` 下的出厂资源通道。
 - [会话事件词汇](../../core/session/README.zh.md)——本包扩展的 merge-extensible `SessionEventMap`。
-- [持久化目录](../../../docs/persistence-catalog.zh.md)——每个日志事件的生成文档，含工件。
 - [伴侣折叠](../../remote/link-contracts/README.zh.md)——把这些事件消费进工件面板的参考折叠。
 
-<a id="known-limitations-and-deferred-work"></a>
+<a id="model-experience"></a>
+## 模型体验
+
+### 工具 schema
+
+#### 模型看到什么
+
+模型会看到生成的 [`artifact_create` schema](../../../docs/tool-catalog.zh.md#deepseek-aidsh-artifact)：一个对象，含必填的 `kind`、`title`、`content` 三个字符串。描述要求每次调用一件完整工件，禁止存放草稿文本或跨调用拆分。
+
+#### Token 影响
+
+工具可见的每个请求都有固定 schema 开销；描述与 schema 静态不变。
+
+#### KV Cache 影响
+
+定义与可见性不变时前缀保持稳定。插件生命周期或作用域限制可能使从此 schema 起的复用失效。
+
+### 工具调用历史与结果
+
+#### 模型看到什么
+
+每次 assistant 工具调用都会在参数中保留完整工件内容。成功时原样返回 `Artifact ready: <title> (<kind>) — <id>`。稳定失败文本为 `Error: artifact_create requires a non-empty kind and title` 与 `Error: artifact_create requires an owning agent session`；存储失败透出通道的错误文本。`artifact/created` 与 `artifact/status` 会话事件是 UI 与回放状态，不是第二条模型消息。
+
+#### Token 影响
+
+Token 增长随模型提交的工件内容伸缩，这些调用参数会保留到压缩。结果本身小而定形。
+
+#### KV Cache 影响
+
+只追加；新可见内容跟在可复用请求前缀之后，不会使既有 KV 缓存条目失效。
+
 ## 已知限制与延期工作
 
-- 词汇先行于宿主生产方：尚无工具或能力发出 `artifact/created`，在该增量落地前录制会话不含工件事件。
-- 宿主侧资源通道（在宿主上把 `ArtifactId` 解析为内容字节）随该生产方一并延后；伴侣 Lite 运行时今天持有自己的存储。
+<a id="known-limitations-and-deferred-work"></a>
+
+- 生产方只创建：尚无 `artifact_read` 工具，模型不能在后续会话读回工件；伴侣应用经各自通道读取。
+- 首版工件是文本的：`content` 是字符串，通道存其 UTF-8 字节；二进制工件需要未来的二进制输入面。
+
+### 开发备注
 
 <a id="dev-note"></a>
-## 开发备注
 
 事件形状有意匹配跨语言 conformance fixture 已钉住的 Lite 工件词汇，三个伴侣折叠因此经同一组分支同时消费宿主事件与 Lite 事件。

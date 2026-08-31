@@ -41,7 +41,7 @@ const NO_MODEL_EXPERIENCE_SECTION: Readonly<Record<string, string>> = {
   'packages/remote/link-settings': 'The package applies user settings to the link carrier; it registers no prompt, tool, or schema.',
   'packages/api/link-controller': 'The package projects link-administration methods onto the Remote wire; it registers no prompt, tool, or schema.',
   'packages/remote/link-contracts': 'The package is a pure contract library with fixtures and a generator; it registers no prompt, tool, or schema.',
-  'packages/artifact/artifact': 'The package is the artifact vocabulary — a branded id and two SessionEventMap members; it registers no prompt, tool, or schema.',
+  'packages/artifact/artifact-local': 'The package is the local resource channel behind ctx.artifacts; it registers no prompt, tool, or schema.',
 }
 
 /**
