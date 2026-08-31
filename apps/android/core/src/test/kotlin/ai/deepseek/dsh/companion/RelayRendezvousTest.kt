@@ -151,6 +151,9 @@ class RelayStreamTest {
             releaseSecondLine.await(5, TimeUnit.SECONDS)
             out.write("  {\"kind\":\"task-completed\",\"sessionId\":\"s1\",\"turn\":3}\n".toByteArray())
             out.flush()
+            // The terminating chunk rides close(); returning without it
+            // leaves the client at EOF mid-chunk-header.
+            exchange.close()
         }
         server.start()
         try {
