@@ -1,9 +1,19 @@
 package ai.deepseek.dsh.companion
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.put
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /** The rendezvous skeleton's forwarding semantics (chapters 68/69). */
@@ -123,4 +133,77 @@ class RelayClientTest {
     }
 
     private fun String.jsonObjectSafe() = Json.parseToJsonElement(this) as kotlinx.serialization.json.JsonObject
+}
+
+/** The push-stream consumer against a real local server: connect flushes,
+ * then live lines arrive; a clean close completes the flow. */
+class RelayStreamTest {
+    @Test
+    fun streamFlushesThenPushesLiveLinesUntilTheClose() = runBlocking {
+        val releaseSecondLine = CountDownLatch(1)
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/relay/stream") { exchange ->
+            // Response length 0 = chunked; lines flush as written.
+            exchange.sendResponseHeaders(200, 0)
+            val out = exchange.responseBody
+            out.write("{\"kind\":\"approval-waiting\",\"sessionId\":\"s1\",\"eventId\":\"e1\"}\n\n".toByteArray())
+            out.flush()
+            releaseSecondLine.await(5, TimeUnit.SECONDS)
+            out.write("  {\"kind\":\"task-completed\",\"sessionId\":\"s1\",\"turn\":3}\n".toByteArray())
+            out.flush()
+        }
+        server.start()
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            val collected = mutableListOf<RelayEnvelope>()
+            val job = launch { client.stream("rt-acct-phone").toList(collected) }
+            withTimeout(5_000) { while (collected.isEmpty()) delay(20) }
+            assertEquals(RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1"), collected.single())
+            releaseSecondLine.countDown()
+            withTimeout(5_000) { job.join() }
+            assertEquals(
+                listOf(
+                    RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1"),
+                    RelayEnvelope(kind = "task-completed", sessionId = "s1", turn = 3),
+                ),
+                collected,
+            )
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun unknownTokenStreamsACleanEmptyClose() = runBlocking {
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/relay/stream") { exchange ->
+            exchange.sendResponseHeaders(200, 0)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            val collected = withTimeoutOrNull(5_000) { client.stream("rt-none").toList() }
+            assertEquals(emptyList(), collected)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun refusedStreamsFailLoud() = runBlocking {
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/relay/stream") { exchange ->
+            exchange.sendResponseHeaders(500, -1)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            val failure = assertFailsWith<IllegalStateException> { client.stream("rt-acct-phone").first() }
+            assertEquals("relay stream failed: HTTP 500", failure.message)
+        } finally {
+            server.stop(0)
+        }
+    }
 }

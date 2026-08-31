@@ -2,7 +2,7 @@ import Foundation
 
 /// One device registered at the relay (chapter 69's rendezvous): identity
 /// plus the push-token slot APNs/FCM delivery will fill — references only.
-public struct RelayDevice: Equatable, Sendable {
+public struct RelayDevice: Equatable, Sendable, Codable {
     public let accountId: String
     public let deviceId: String
     public let platform: String
@@ -18,7 +18,7 @@ public struct RelayDevice: Equatable, Sendable {
 
 /// One forwarded envelope — the chapter-70 minimized push vocabulary:
 /// references only, never source code, prompt, credential, or diff content.
-public struct RelayEnvelope: Equatable, Sendable {
+public struct RelayEnvelope: Equatable, Sendable, Codable {
     public let kind: String
     public let sessionId: String
     public let eventId: String?
