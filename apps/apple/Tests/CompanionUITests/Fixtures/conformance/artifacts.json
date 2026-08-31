@@ -1,0 +1,139 @@
+{
+  "records": [
+    {
+      "type": "event",
+      "event": {
+        "type": "artifact/created",
+        "seq": 1,
+        "time": 1759017600001,
+        "data": {
+          "id": "art-report-1",
+          "kind": "report",
+          "title": "迁移报告"
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "artifact/status",
+        "seq": 2,
+        "time": 1759017600002,
+        "data": {
+          "id": "art-report-1",
+          "status": "ready"
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "artifact/created",
+        "seq": 3,
+        "time": 1759017600003,
+        "data": {
+          "id": "art-draft-2",
+          "kind": "markdown",
+          "title": "发布说明草稿"
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "artifact/created",
+        "seq": 4,
+        "time": 1759017600004,
+        "data": {
+          "id": "art-report-1",
+          "kind": "report",
+          "title": "迁移报告"
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "artifact/status",
+        "seq": 5,
+        "time": 1759017600005,
+        "data": {
+          "id": "art-report-1",
+          "status": "failed"
+        }
+      }
+    },
+    {
+      "type": "event",
+      "event": {
+        "type": "artifact/status",
+        "seq": 6,
+        "time": 1759017600006,
+        "data": {
+          "id": "art-ghost",
+          "status": "ready"
+        }
+      }
+    }
+  ],
+  "expected": {
+    "cursor": 6,
+    "items": [
+      {
+        "seq": 1,
+        "kind": "artifact/created",
+        "text": "新建工件 迁移报告（report）"
+      },
+      {
+        "seq": 2,
+        "kind": "artifact/status",
+        "text": "工件 art-report-1：就绪"
+      },
+      {
+        "seq": 3,
+        "kind": "artifact/created",
+        "text": "新建工件 发布说明草稿（markdown）"
+      },
+      {
+        "seq": 4,
+        "kind": "artifact/created",
+        "text": "新建工件 迁移报告（report）"
+      },
+      {
+        "seq": 5,
+        "kind": "artifact/status",
+        "text": "工件 art-report-1：失败"
+      },
+      {
+        "seq": 6,
+        "kind": "artifact/status",
+        "text": "工件 art-ghost：就绪"
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "goals": [],
+    "toolCalls": [],
+    "images": [],
+    "artifacts": [
+      {
+        "id": "art-report-1",
+        "kind": "report",
+        "title": "迁移报告",
+        "status": "failed"
+      },
+      {
+        "id": "art-draft-2",
+        "kind": "markdown",
+        "title": "发布说明草稿",
+        "status": "pending"
+      },
+      {
+        "id": "art-report-1",
+        "kind": "report",
+        "title": "迁移报告",
+        "status": "pending"
+      }
+    ]
+  }
+}

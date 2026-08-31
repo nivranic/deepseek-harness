@@ -182,6 +182,13 @@ describe('companion domain-state fold', () => {
     ])
     expect(tools.toolCalls[0]!.resultText).toBe('已写入 42 行。')
     expect(tools.toolCalls[1]!.resultText).toBe('2 个断言失败')
+
+    const artifacts = byId.get('artifacts')!
+    expect(artifacts.artifacts).toEqual([
+      { id: 'art-report-1', kind: 'report', title: '迁移报告', status: 'failed' },
+      { id: 'art-draft-2', kind: 'markdown', title: '发布说明草稿', status: 'pending' },
+      { id: 'art-report-1', kind: 'report', title: '迁移报告', status: 'pending' },
+    ])
   })
 
   it('emits one artifact per scenario whose expected value matches the fold', () => {

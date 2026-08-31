@@ -191,6 +191,41 @@ Source: [`packages/interaction/user-approval/src/types.ts:55`](../packages/inter
 
 Source: [`packages/interaction/user-approval/src/index.ts:32`](../packages/interaction/user-approval/src/index.ts)
 
+### `artifact/*`
+
+<a id="artifactcreated--log-only"></a>
+
+#### `artifact/created` — log-only
+
+```ts persistence-catalog
+/**
+ * One artifact first appears on the journal: its reference identity,
+ * coarse `kind`, and human-facing `title` — references and metadata
+ * only, content bytes never ride the event (chapter 56). Log-only UI
+ * state; never derived history. A repeat creation for an id already on
+ * the log pushes a fresh pending reference, mirroring the Lite fold's
+ * arrival semantics.
+ */
+'artifact/created': { id: ArtifactId; kind: string; title: string }
+```
+
+Source: [`packages/artifact/artifact/src/types.ts:50`](../packages/artifact/artifact/src/types.ts)
+
+<a id="artifactstatus--log-only"></a>
+
+#### `artifact/status` — log-only
+
+```ts persistence-catalog
+/**
+ * The lifecycle status of one artifact reference moved; consumers apply
+ * last-write-wins by id, and a status for a reference that never
+ * arrived is an absent referent (no-op). Log-only UI state.
+ */
+'artifact/status': { id: ArtifactId; status: ArtifactStatus }
+```
+
+Source: [`packages/artifact/artifact/src/types.ts:56`](../packages/artifact/artifact/src/types.ts)
+
 ### `assistant/*`
 
 <a id="assistantchunk--log-only"></a>

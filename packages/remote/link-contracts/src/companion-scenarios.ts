@@ -7,6 +7,7 @@
  * @module @deepseek-ai/dsh-link-contracts
  */
 
+import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
@@ -131,6 +132,21 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
         cleared: { id: 'goal-1' as GoalId, revision: 2 },
         clearedAt: 1_759_017_700_000,
       }),
+    ],
+  },
+  {
+    id: 'artifacts',
+    records: [
+      event(1, 'artifact/created', { id: ArtifactId('art-report-1'), kind: 'report', title: '迁移报告' }),
+      event(2, 'artifact/status', { id: ArtifactId('art-report-1'), status: 'ready' }),
+      event(3, 'artifact/created', { id: ArtifactId('art-draft-2'), kind: 'markdown', title: '发布说明草稿' }),
+      // A repeat creation pushes a fresh pending reference, mirroring the
+      // Lite fold's arrival semantics.
+      event(4, 'artifact/created', { id: ArtifactId('art-report-1'), kind: 'report', title: '迁移报告' }),
+      // Last-write-wins lands on the first reference carrying the id; a
+      // status for a reference that never arrived is a no-op.
+      event(5, 'artifact/status', { id: ArtifactId('art-report-1'), status: 'failed' }),
+      event(6, 'artifact/status', { id: ArtifactId('art-ghost'), status: 'ready' }),
     ],
   },
   {
