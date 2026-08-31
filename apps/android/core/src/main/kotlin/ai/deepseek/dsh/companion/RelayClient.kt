@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
@@ -15,11 +16,22 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
+/** One device's roster entry with its stream-derived online state. */
+data class RelayPresence(val deviceId: String, val platform: String, val online: Boolean)
+
+/** One push-stream line: a reference envelope, or a same-account device's
+ * presence change. */
+sealed class RelayStreamEvent {
+    data class Envelope(val envelope: RelayEnvelope) : RelayStreamEvent()
+    data class Presence(val deviceId: String, val online: Boolean) : RelayStreamEvent()
+}
+
 /**
  * The relay's HTTP consumer (chapters 68/69): registers a device, publishes
- * reference envelopes, drains pending ones by poll, and holds the push
- * stream open — connect flushes the pending queue, then live envelopes
- * arrive as NDJSON lines, replacing poll for a connected device. The
+ * reference envelopes, drains pending ones by poll, holds the push stream
+ * open (connect flushes the pending queue, then reference envelopes and
+ * same-account presence changes arrive as NDJSON lines, replacing poll for
+ * a connected device), and answers the account roster's online state. The
  * LAN-direct link stays the primary transport; the relay is the rendezvous
  * path, and APNs/FCM delivery will extend it with a push-token step.
  */
@@ -76,12 +88,13 @@ class RelayClient(private val baseUrl: String) {
 
     /**
      * Hold the push stream open: connect flushes the pending queue as its
-     * first lines, then every live publish to this device arrives as one
-     * NDJSON line; the flow completes when the service closes the stream.
+     * first lines, then every live publish to this device and every
+     * same-account device's presence change arrives as one NDJSON line;
+     * the flow completes when the service closes the stream.
      * @param token the rendezvous token from registration.
-     * @return the forwarded envelopes, oldest first, unbounded in time.
+     * @return the stream events, oldest first, unbounded in time.
      */
-    fun stream(token: String): Flow<RelayEnvelope> = flow {
+    fun stream(token: String): Flow<RelayStreamEvent> = flow {
         val request = HttpRequest.newBuilder()
             .uri(URI.create("$baseUrl/relay/stream?token=$token"))
             // The timeout bounds waiting for the response head only; the
@@ -94,9 +107,43 @@ class RelayClient(private val baseUrl: String) {
         response.body().bufferedReader(Charsets.UTF_8).useLines { lines ->
             for (line in lines) {
                 if (line.isBlank()) continue
-                emit(parseEnvelope(Json.parseToJsonElement(line)))
+                emit(parseStreamEvent(Json.parseToJsonElement(line)))
             }
         }
+    }
+
+    /**
+     * The account roster with each device's stream-derived online state.
+     * @param accountId the account whose devices are listed.
+     * @return the registered devices, in registration order; an unknown
+     * account lists nothing.
+     */
+    fun presence(accountId: String): List<RelayPresence> {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("$baseUrl/relay/presence?accountId=$accountId"))
+            .GET()
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        if (response.statusCode() !in 200..299) error("relay presence failed: HTTP ${response.statusCode()}")
+        return Json.parseToJsonElement(response.body()).jsonArray.map { element ->
+            val obj = element.jsonObject
+            RelayPresence(
+                deviceId = obj.string("deviceId") ?: error("presence entry missing deviceId"),
+                platform = obj.string("platform") ?: "",
+                online = (obj["online"] as? JsonPrimitive)?.booleanOrNull ?: false,
+            )
+        }
+    }
+
+    private fun parseStreamEvent(element: kotlinx.serialization.json.JsonElement): RelayStreamEvent {
+        val obj = element.jsonObject
+        if (obj.string("type") == "presence") {
+            return RelayStreamEvent.Presence(
+                deviceId = obj.string("deviceId") ?: error("presence event missing deviceId"),
+                online = (obj["online"] as? JsonPrimitive)?.booleanOrNull ?: false,
+            )
+        }
+        return RelayStreamEvent.Envelope(parseEnvelope(obj))
     }
 
     private fun parseEnvelope(element: kotlinx.serialization.json.JsonElement): RelayEnvelope {

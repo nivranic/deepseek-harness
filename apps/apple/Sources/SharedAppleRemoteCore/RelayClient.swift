@@ -6,13 +6,38 @@ public enum RelayClientError: Error, Equatable {
     case http(Int)
 }
 
+/// One device's roster entry with its stream-derived online state.
+public struct RelayPresence: Equatable, Sendable, Codable {
+    public let deviceId: String
+    public let platform: String
+    public let online: Bool
+
+    /// - Parameters:
+    ///   - deviceId: the registered device's identity.
+    ///   - platform: the registered device's platform tag.
+    ///   - online: whether the device holds an open stream.
+    public init(deviceId: String, platform: String, online: Bool) {
+        self.deviceId = deviceId
+        self.platform = platform
+        self.online = online
+    }
+}
+
+/// One push-stream line: a reference envelope, or a same-account device's
+/// presence change.
+public enum RelayStreamEvent: Equatable, Sendable {
+    case envelope(RelayEnvelope)
+    case presence(deviceId: String, online: Bool)
+}
+
 /// The relay's HTTP consumer (chapters 68/69): registers a device,
-/// publishes reference envelopes, drains pending ones by poll, and holds
-/// the push stream open — connect flushes the pending queue, then live
-/// envelopes arrive as NDJSON lines, replacing poll for a connected
-/// device. The LAN-direct link stays the primary transport; the relay is
-/// the rendezvous path, and APNs/FCM delivery will extend it with a
-/// push-token step.
+/// publishes reference envelopes, drains pending ones by poll, holds the
+/// push stream open (connect flushes the pending queue, then reference
+/// envelopes and same-account presence changes arrive as NDJSON lines,
+/// replacing poll for a connected device), and answers the account
+/// roster's online state. The LAN-direct link stays the primary transport;
+/// the relay is the rendezvous path, and APNs/FCM delivery will extend it
+/// with a push-token step.
 public final class RelayClient: @unchecked Sendable {
     private let endpoint: URL
     private let session: URLSession
@@ -69,20 +94,22 @@ public final class RelayClient: @unchecked Sendable {
     }
 
     /// Hold the push stream open: connect flushes the pending queue as its
-    /// first lines, then every live publish to this device arrives as one
-    /// NDJSON line; the stream finishes when the service closes it.
+    /// first lines, then every live publish to this device and every
+    /// same-account device's presence change arrives as one NDJSON line;
+    /// the stream finishes when the service closes it.
     /// - Parameter token: the rendezvous token from registration.
-    /// - Returns: the forwarded envelopes, oldest first, unbounded in time.
-    public func stream(token: String) -> AsyncThrowingStream<RelayEnvelope, Error> {
+    /// - Returns: the stream events, oldest first, unbounded in time.
+    public func stream(token: String) -> AsyncThrowingStream<RelayStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     let (bytes, response) = try await session.bytes(for: URLRequest(url: route("/relay/stream", query: ["token": token])))
                     try check(response)
+                    let decoder = JSONDecoder()
                     for try await line in bytes.lines {
                         guard !line.trimmingCharacters(in: .whitespaces).isEmpty,
                               let data = line.data(using: .utf8) else { continue }
-                        continuation.yield(try JSONDecoder().decode(RelayEnvelope.self, from: data))
+                        continuation.yield(try Self.parseStreamEvent(from: data, decoder: decoder))
                     }
                     continuation.finish()
                 } catch {
@@ -91,6 +118,37 @@ public final class RelayClient: @unchecked Sendable {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    /// The account roster with each device's stream-derived online state.
+    /// - Parameter accountId: the account whose devices are listed.
+    /// - Returns: the registered devices, in registration order; an
+    ///   unknown account lists nothing.
+    /// - Throws on transport failure or a non-2xx answer.
+    public func presence(accountId: String) async throws -> [RelayPresence] {
+        try await decode([RelayPresence].self, request: URLRequest(url: route("/relay/presence", query: ["accountId": accountId])))
+    }
+
+    /// One decoded stream line: a `type: presence` object is a presence
+    /// change, any other object is a reference envelope.
+    private static func parseStreamEvent(from data: Data, decoder: JSONDecoder) throws -> RelayStreamEvent {
+        struct Line: Decodable {
+            let type: String?
+            let deviceId: String?
+            let online: Bool?
+            let kind: String?
+            let sessionId: String?
+            let eventId: String?
+            let turn: Int?
+        }
+        let line = try decoder.decode(Line.self, from: data)
+        if line.type == "presence" {
+            guard let deviceId = line.deviceId else {
+                throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "presence event missing deviceId"))
+            }
+            return .presence(deviceId: deviceId, online: line.online ?? false)
+        }
+        return .envelope(RelayEnvelope(kind: line.kind ?? "", sessionId: line.sessionId ?? "", eventId: line.eventId, turn: line.turn))
     }
 
     private func route(_ path: String, query: [String: String] = [:]) -> URL {

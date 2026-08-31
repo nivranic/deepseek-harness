@@ -161,18 +161,89 @@ class RelayStreamTest {
             // The collector blocks in a socket read between the scripted
             // lines, so it must not own runBlocking's single thread: the
             // latch release that frees the read can only fire from here.
-            val collected = java.util.concurrent.CopyOnWriteArrayList<RelayEnvelope>()
+            val collected = java.util.concurrent.CopyOnWriteArrayList<RelayStreamEvent>()
             val job = launch(kotlinx.coroutines.Dispatchers.IO) { client.stream("rt-acct-phone").toList(collected) }
             withTimeout(5_000) { while (collected.isEmpty()) delay(20) }
-            assertEquals(RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1"), collected.single())
+            assertEquals(RelayStreamEvent.Envelope(RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1")), collected.single())
             releaseSecondLine.countDown()
             withTimeout(5_000) { job.join() }
             assertEquals(
                 listOf(
-                    RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1"),
-                    RelayEnvelope(kind = "task-completed", sessionId = "s1", turn = 3),
+                    RelayStreamEvent.Envelope(RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1")),
+                    RelayStreamEvent.Envelope(RelayEnvelope(kind = "task-completed", sessionId = "s1", turn = 3)),
                 ),
                 collected,
+            )
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun presenceLinesDecodeAsSameAccountPresenceEvents() = runBlocking {
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/relay/stream") { exchange ->
+            exchange.sendResponseHeaders(200, 0)
+            val out = exchange.responseBody
+            out.write("{\"kind\":\"approval-waiting\",\"sessionId\":\"s1\",\"eventId\":\"e1\"}\n".toByteArray())
+            out.write("{\"type\":\"presence\",\"deviceId\":\"pad\",\"online\":true}\n".toByteArray())
+            out.write("{\"type\":\"presence\",\"deviceId\":\"pad\",\"online\":false}\n".toByteArray())
+            out.flush()
+            exchange.close()
+        }
+        server.start()
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            val collected = withTimeoutOrNull(5_000) { client.stream("rt-acct-phone").toList() }
+            assertEquals(
+                listOf(
+                    RelayStreamEvent.Envelope(RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1")),
+                    RelayStreamEvent.Presence(deviceId = "pad", online = true),
+                    RelayStreamEvent.Presence(deviceId = "pad", online = false),
+                ),
+                collected,
+            )
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun malformedPresenceLinesFailLoud() = runBlocking {
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/relay/stream") { exchange ->
+            exchange.sendResponseHeaders(200, 0)
+            val out = exchange.responseBody
+            out.write("{\"type\":\"presence\",\"online\":true}\n".toByteArray())
+            out.flush()
+            exchange.close()
+        }
+        server.start()
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            val failure = assertFailsWith<IllegalStateException> { client.stream("rt-acct-phone").first() }
+            assertEquals("presence event missing deviceId", failure.message)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun presenceAnswersTheAccountRosterWithOnlineState() {
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/relay/presence") { exchange ->
+            val body = "[{\"deviceId\":\"phone\",\"platform\":\"android\",\"online\":true},{\"deviceId\":\"pad\",\"platform\":\"ios\",\"online\":false}]"
+            val bytes = body.toByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.write(bytes)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            assertEquals(
+                listOf(RelayPresence(deviceId = "phone", platform = "android", online = true), RelayPresence(deviceId = "pad", platform = "ios", online = false)),
+                client.presence("acct"),
             )
         } finally {
             server.stop(0)
