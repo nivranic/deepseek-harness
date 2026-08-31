@@ -172,7 +172,7 @@ class RelayStreamTest {
                     RelayStreamEvent.Envelope(RelayEnvelope(kind = "approval-waiting", sessionId = "s1", eventId = "e1")),
                     RelayStreamEvent.Envelope(RelayEnvelope(kind = "task-completed", sessionId = "s1", turn = 3)),
                 ),
-                collected,
+                collected.toList(),
             )
         } finally {
             server.stop(0)
