@@ -42,6 +42,8 @@ public final class RelayRendezvous: @unchecked Sendable {
     private var devices: [String: RelayDevice] = [:]
     private var pending: [String: [RelayEnvelope]] = [:]
 
+    public init() {}
+
     /// Register one device; re-registration under the same token refreshes
     /// its record.
     /// - Parameter device: the device identity and its push-token slot.

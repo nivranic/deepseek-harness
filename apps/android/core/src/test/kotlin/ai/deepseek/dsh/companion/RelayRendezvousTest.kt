@@ -66,7 +66,7 @@ class RelayClientTest {
         val relay = RelayRendezvous()
         val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/relay/register") { exchange ->
-            val request = Json.parseToJsonElement(exchange.requestBody.readBytes().decodeToString()).jsonObjectSafe()
+            val request = exchange.requestBody.readBytes().decodeToString().jsonObjectSafe()
             val token = relay.register(
                 RelayDevice(
                     accountId = (request["accountId"] as kotlinx.serialization.json.JsonPrimitive).content,
@@ -77,7 +77,7 @@ class RelayClientTest {
             respond(exchange, """{"token":"$token"}""")
         }
         server.createContext("/relay/publish") { exchange ->
-            val request = Json.parseToJsonElement(exchange.requestBody.readBytes().decodeToString()).jsonObjectSafe()
+            val request = exchange.requestBody.readBytes().decodeToString().jsonObjectSafe()
             val accountId = (request["accountId"] as kotlinx.serialization.json.JsonPrimitive).content
             val kind = (request["kind"] as kotlinx.serialization.json.JsonPrimitive).content
             val sessionId = (request["sessionId"] as kotlinx.serialization.json.JsonPrimitive).content
