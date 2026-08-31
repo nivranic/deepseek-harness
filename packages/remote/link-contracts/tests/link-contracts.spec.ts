@@ -67,7 +67,7 @@ describe('link contract fixtures', () => {
   it('pins the session event payloads to the real host vocabulary', () => {
     const byId = new Map(LINK_CONTRACT_FIXTURES.map(fixture => [fixture.id, fixture.value]))
     expect(byId.get('event-plan-mode')).toEqual({ active: true })
-    expect(byId.get('event-artifact-created')).toEqual({ id: 'art-0f4c', kind: 'report', title: '迁移报告' })
+    expect(byId.get('event-artifact-created')).toEqual({ id: 'art-0f4c', kind: 'report', title: '迁移报告', format: 'text' })
     expect(byId.get('event-artifact-status')).toEqual({ id: 'art-0f4c', status: 'ready' })
     expect(byId.get('event-todo-write')).toEqual({
       todos: [

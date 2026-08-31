@@ -27,8 +27,8 @@ async function persistedController(
   return { ctx, controller: new SessionCommandController(ctx, agents, '/workspace'), sessionId }
 }
 
-function createdEvent(seq: number, id: string, kind: string, title: string): SessionEvent {
-  return { type: 'artifact/created', seq, time: 1_759_017_600_000 + seq, data: { id, kind, title } } as never
+function createdEvent(seq: number, id: string, kind: string, title: string, format: 'text' | 'bytes' = 'text'): SessionEvent {
+  return { type: 'artifact/created', seq, time: 1_759_017_600_000 + seq, data: { id, kind, title, format } } as never
 }
 
 async function expectFailure(operation: Promise<unknown>, code: string): Promise<void> {
@@ -42,7 +42,7 @@ describe('Session artifact authorization', () => {
       { get: () => Promise.resolve(new TextEncoder().encode('# 报告')) },
     )
     await expect(controller.artifact({ sessionId, artifactId: 'art-1' }))
-      .resolves.toEqual({ id: 'art-1', kind: 'report', title: '迁移报告', data: Buffer.from('# 报告').toString('base64'), truncated: false, size: 4 })
+      .resolves.toEqual({ id: 'art-1', kind: 'report', title: '迁移报告', format: 'text', data: Buffer.from('# 报告').toString('base64'), truncated: false, size: 4 })
     await ctx.fiber.dispose()
   })
 
@@ -53,7 +53,7 @@ describe('Session artifact authorization', () => {
       { get: () => Promise.resolve(new TextEncoder().encode(content)) },
     )
     await expect(controller.artifact({ sessionId, artifactId: 'art-1', offset: 2, limit: 4 }))
-      .resolves.toEqual({ id: 'art-1', kind: 'report', title: 'R', data: Buffer.from('2345').toString('base64'), truncated: true, size: 10 })
+      .resolves.toEqual({ id: 'art-1', kind: 'report', title: 'R', format: 'text', data: Buffer.from('2345').toString('base64'), truncated: true, size: 10 })
     await expectFailure(controller.artifact({ sessionId, artifactId: 'art-1', offset: -1 }), 'artifact-error')
     await ctx.fiber.dispose()
   })
@@ -94,5 +94,24 @@ describe('Session artifact authorization', () => {
     await expectFailure(failingController.artifact({ sessionId, artifactId: 'art-1' }), 'internal')
     await ctx.fiber.dispose()
     await failing.fiber.dispose()
+  })
+
+  it('pages a bytes artifact by raw byte and reports its byte size', async () => {
+    const raw = new Uint8Array([0, 1, 2, 250, 251, 255])
+    const { ctx, controller, sessionId } = await persistedController(
+      [createdEvent(0, 'art-bin', 'png', '图标', 'bytes')],
+      { get: () => Promise.resolve(raw) },
+    )
+    await expect(controller.artifact({ sessionId, artifactId: 'art-bin', offset: 2, limit: 3 }))
+      .resolves.toEqual({
+        id: 'art-bin',
+        kind: 'png',
+        title: '图标',
+        format: 'bytes',
+        data: Buffer.from(raw.subarray(2, 5)).toString('base64'),
+        truncated: true,
+        size: 6,
+      })
+    await ctx.fiber.dispose()
   })
 })

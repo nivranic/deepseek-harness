@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-artifact-binary-input.md
+2026-08-31-artifact-binary-input.md: a1b4f10df70f57a5e0b3432144bc2dc81f13be48
+2026-08-31-artifact-binary-input.zh.md: b8f2ba32171a15259e45cf19e16e57c4bacb52be

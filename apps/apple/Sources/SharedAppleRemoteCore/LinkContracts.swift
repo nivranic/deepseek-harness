@@ -106,6 +106,10 @@ public enum LinkArtifactStatus: String, Codable {
     case ready = "ready"
     case failed = "failed"
 }
+public enum LinkArtifactFormat: String, Codable {
+    case text = "text"
+    case bytes = "bytes"
+}
 public enum LinkTodoStatus: String, Codable {
     case pending = "pending"
     case in_progress = "in_progress"
@@ -145,6 +149,7 @@ public struct LinkArtifactCreatedData: Codable {
     public let id: String
     public let kind: String
     public let title: String
+    public let format: LinkArtifactFormat
 }
 public struct LinkArtifactStatusData: Codable {
     public let id: String
@@ -346,6 +351,7 @@ public struct LinkArtifactReadValue: Codable {
     public let id: String
     public let kind: String
     public let title: String
+    public let format: LinkArtifactFormat
     public let data: String
     public let truncated: Bool
     public let size: Double

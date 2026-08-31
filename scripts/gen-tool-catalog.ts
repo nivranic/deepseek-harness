@@ -584,7 +584,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(ToolArtifact)
     },
     note:
-      'artifact_create is the chapter-56 producer: the model authors one complete artifact per call; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel.',
+      'artifact_create is the chapter-56 producer: the model authors one complete artifact per call — `content` text or base64 `data` bytes, journaled as the artifact format; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel, paging text by UTF-16 code unit and bytes by byte.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-todo',

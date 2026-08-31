@@ -38,7 +38,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-tool-subagent-report` | `report` | `ctx.subagents`, `ctx.systemPrompt`, `a live continuable in-process child Agent` | `tool/call`, `tool/result`, `a user-role message in the direct parent session` | - | Registered per continuable in-process child rather than globally, so this schema is visible only inside such a child and survives its global `toolFilter`. The same contribution installs the child-scoped `tool:report` prompt section, which this catalog does not render. The parent-facing `send_message` tool is installed independently. |
 | `@deepseek-ai/dsh-tool-jobs` | `job_kill`, `job_list`, `job_output` | `ctx.tools`, `ctx.jobs`, `ctx.systemPrompt` | `tool/call`, `tool/result`, `user/message via agent.inject() for background completion notices` | - | The kind-agnostic background-job controller: background bash commands, PTY sends, and subagents are read, listed, and killed through the same three tools. Loading the plugin attaches the controller that arms producers' `ctx.jobs.start()`. |
 | `@deepseek-ai/dsh-experimental-tool-agent-team` | `followup_task`, `interrupt_agent`, `list_agents`, `send_message`, `spawn_teammate`, `team_task_create`, `team_task_get`, `team_task_list`, `team_task_update`, `wait_agent` | `ctx.tools`, `ctx.systemPrompt`, `ctx.agentTeams`, `an exact live Team member Agent` | `tool/call`, `team/member`, `team/message/queued`, `team/message/delivered`, `team/task`, `tool/result` | - | All ten tools are scoped to implicit Team Leads and durable teammates. The shipped dsh-base bundle keeps the package disabled; the documented Agent Teams profile patch enables it while disabling the legacy continuable-child control names. |
-| `@deepseek-ai/dsh-artifact` | `artifact_create`, `artifact_read` | `ctx.tools`, `ctx.artifacts`, `owning Agent session (create)` | `tool/call`, `artifact/created`, `artifact/status`, `tool/result` | - | artifact_create is the chapter-56 producer: the model authors one complete artifact per call; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel. |
+| `@deepseek-ai/dsh-artifact` | `artifact_create`, `artifact_read` | `ctx.tools`, `ctx.artifacts`, `owning Agent session (create)` | `tool/call`, `artifact/created`, `artifact/status`, `tool/result` | - | artifact_create is the chapter-56 producer: the model authors one complete artifact per call — `content` text or base64 `data` bytes, journaled as the artifact format; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel, paging text by UTF-16 code unit and bytes by byte. |
 | `@deepseek-ai/dsh-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@deepseek-ai/dsh-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@deepseek-ai/dsh-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
@@ -2089,7 +2089,7 @@ All ten tools are scoped to implicit Team Leads and durable teammates. The shipp
 
 ### `artifact_create`
 
-Create one durable artifact — a first-class output file the user keeps (a report, a design document, a patch, a generated dataset). Give it a short `kind` tag (e.g. markdown, report, patch, json), a human-facing `title`, and the COMPLETE content in this call. The artifact is stored durably and journaled as a reference you can cite by id; do not use it for scratch text that belongs in your reply, and do not split one artifact across calls.
+Create one durable artifact — a first-class output file the user keeps (a report, a design document, a patch, a generated dataset, a binary file such as an image). Give it a short `kind` tag (e.g. markdown, report, patch, json, png), a human-facing `title`, and the COMPLETE content in this call — as `content` text, or as raw bytes base64-encoded in `data`; exactly one of the two. The artifact is stored durably and journaled as a reference you can cite by id; do not use it for scratch text that belongs in your reply, and do not split one artifact across calls.
 
 ```json
 {
@@ -2097,7 +2097,7 @@ Create one durable artifact — a first-class output file the user keeps (a repo
   "properties": {
     "kind": {
       "type": "string",
-      "description": "Short kind tag, e.g. markdown, report, patch, json."
+      "description": "Short kind tag, e.g. markdown, report, patch, json, png."
     },
     "title": {
       "type": "string",
@@ -2105,13 +2105,16 @@ Create one durable artifact — a first-class output file the user keeps (a repo
     },
     "content": {
       "type": "string",
-      "description": "The COMPLETE artifact content."
+      "description": "The COMPLETE artifact content as text. Exactly one of content or data."
+    },
+    "data": {
+      "type": "string",
+      "description": "The COMPLETE artifact bytes, base64-encoded. Exactly one of content or data."
     }
   },
   "required": [
     "kind",
-    "title",
-    "content"
+    "title"
   ]
 }
 ```
@@ -2120,7 +2123,7 @@ Source: [`packages/artifact/artifact/src/index.ts`](../packages/artifact/artifac
 
 ### `artifact_read`
 
-Read one artifact back by its reference id. Returns the content exactly as created (the whole artifact by default, or one UTF-16 range with offset and limit), plus the kind and title when the calling session journaled the artifact. Reading does not modify the artifact.
+Read one artifact back by its reference id. Returns the content exactly as created, plus the kind and title when the calling session journaled the artifact. A text artifact returns its `content` (whole by default, or one UTF-16 range with offset and limit); a bytes artifact returns base64 `data` (whole by default, or one byte range). Reading does not modify the artifact.
 
 ```json
 {
@@ -2132,11 +2135,11 @@ Read one artifact back by its reference id. Returns the content exactly as creat
     },
     "offset": {
       "type": "integer",
-      "description": "Range start in UTF-16 code units; defaults to 0."
+      "description": "Range start — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0."
     },
     "limit": {
       "type": "integer",
-      "description": "Maximum returned code units; omitted reads through the end."
+      "description": "Maximum returned units of the artifact format; omitted reads through the end."
     }
   },
   "required": [
@@ -2147,7 +2150,7 @@ Read one artifact back by its reference id. Returns the content exactly as creat
 
 Source: [`packages/artifact/artifact/src/index.ts`](../packages/artifact/artifact/src/index.ts)
 
-artifact_create is the chapter-56 producer: the model authors one complete artifact per call; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel.
+artifact_create is the chapter-56 producer: the model authors one complete artifact per call — `content` text or base64 `data` bytes, journaled as the artifact format; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel, paging text by UTF-16 code unit and bytes by byte.
 
 <a id="deepseek-aidsh-tool-todo"></a>
 

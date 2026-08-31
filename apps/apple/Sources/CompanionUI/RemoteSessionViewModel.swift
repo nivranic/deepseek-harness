@@ -244,8 +244,10 @@ public final class RemoteSessionViewModel {
     /// returns its range without caching); returns the read on success.
     /// - Parameters:
     ///   - artifactId: the reference identity from an artifact/created row.
-    ///   - offset: range start in UTF-16 code units; nil starts at zero.
-    ///   - limit: maximum returned code units; nil reads through the end.
+    ///   - offset: range start — UTF-16 code units for text artifacts, bytes
+    ///     for bytes artifacts; nil starts at zero.
+    ///   - limit: maximum returned units of the artifact format; nil reads
+    ///     through the end.
     @discardableResult
     public func readArtifact(_ artifactId: String, offset: Int? = nil, limit: Int? = nil) async -> LinkArtifactReadValue? {
         guard let active else { return nil }

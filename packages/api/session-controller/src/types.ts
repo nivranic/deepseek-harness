@@ -344,9 +344,9 @@ export interface SessionAttachmentValue {
 export interface SessionArtifactRequest {
   readonly sessionId: SessionId
   readonly artifactId: string
-  /** Start of the returned range in UTF-16 code units; defaults to 0. */
+  /** Start of the returned range — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0. */
   readonly offset?: number
-  /** Maximum returned code units; omitted reads through the end. */
+  /** Maximum returned units of the artifact's journaled format; omitted reads through the end. */
   readonly limit?: number
 }
 
@@ -355,11 +355,13 @@ export interface SessionArtifactValue {
   readonly id: string
   readonly kind: string
   readonly title: string
-  /** Base64 of the returned range's UTF-8 bytes. */
+  /** Which arm the artifact was authored in; `data` and `size` units follow it. */
+  readonly format: 'text' | 'bytes'
+  /** Base64 of the returned range — its UTF-8 bytes for text artifacts, its raw bytes for bytes artifacts. */
   readonly data: string
   /** Whether `limit` cut the range before the artifact's end. */
   readonly truncated: boolean
-  /** Total content length in UTF-16 code units. */
+  /** Total content length — UTF-16 code units for text artifacts, bytes for bytes artifacts. */
   readonly size: number
 }
 

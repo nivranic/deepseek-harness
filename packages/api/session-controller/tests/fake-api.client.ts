@@ -155,7 +155,7 @@ export class FakeApiClient {
     () => Promise.resolve(ok({ attachment: { attachmentId: 'a' as never, mediaType: 'image/png', bytes: 1, width: 1, height: 1 }, data: 'AA==' }))
 
   onArtifact: (payload: unknown) => Promise<RpcResponse<SessionArtifactValue>> =
-    () => Promise.resolve(ok({ id: 'art-fake', kind: 'report', title: 'Fake report', data: 'AA==', truncated: false, size: 1 }))
+    () => Promise.resolve(ok({ id: 'art-fake', kind: 'report', title: 'Fake report', format: 'text', data: 'AA==', truncated: false, size: 1 }))
   onUpdateQueue: (payload: unknown) => Promise<RpcResponse<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onCancel: (payload: unknown) => Promise<RpcResponse<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onOpenWorkspacePath: (payload: unknown) => Promise<RemoteResult<{ opened: true }>> =

@@ -137,12 +137,12 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
   {
     id: 'artifacts',
     records: [
-      event(1, 'artifact/created', { id: ArtifactId('art-report-1'), kind: 'report', title: '迁移报告' }),
+      event(1, 'artifact/created', { id: ArtifactId('art-report-1'), kind: 'report', title: '迁移报告', format: 'text' }),
       event(2, 'artifact/status', { id: ArtifactId('art-report-1'), status: 'ready' }),
-      event(3, 'artifact/created', { id: ArtifactId('art-draft-2'), kind: 'markdown', title: '发布说明草稿' }),
+      event(3, 'artifact/created', { id: ArtifactId('art-draft-2'), kind: 'markdown', title: '发布说明草稿', format: 'bytes' }),
       // A repeat creation pushes a fresh pending reference, mirroring the
       // Lite fold's arrival semantics.
-      event(4, 'artifact/created', { id: ArtifactId('art-report-1'), kind: 'report', title: '迁移报告' }),
+      event(4, 'artifact/created', { id: ArtifactId('art-report-1'), kind: 'report', title: '迁移报告', format: 'text' }),
       // Last-write-wins lands on the first reference carrying the id; a
       // status for a reference that never arrived is a no-op.
       event(5, 'artifact/status', { id: ArtifactId('art-report-1'), status: 'failed' }),

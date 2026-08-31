@@ -369,6 +369,7 @@ final class RemoteSessionViewModelTests: XCTestCase {
             "id": .string("art-1"),
             "kind": .string("report"),
             "title": .string("R"),
+            "format": .string("bytes"),
             "data": .string("MjM0NQ=="),
             "truncated": .bool(true),
             "size": .number(10),
@@ -376,6 +377,7 @@ final class RemoteSessionViewModelTests: XCTestCase {
         let model = RemoteSessionViewModel(wire: wire)
         await model.open(sessionId: "s9")
         let read = await model.readArtifact("art-1", offset: 2, limit: 4)
+        XCTAssertEqual(read?.format, .bytes)
         XCTAssertEqual(read?.truncated, true)
         XCTAssertEqual(read?.size, 10)
         XCTAssertEqual(model.artifactBytes["art-1"], nil)
@@ -393,6 +395,7 @@ final class RemoteSessionViewModelTests: XCTestCase {
             "id": .string("art-1"),
             "kind": .string("report"),
             "title": .string("迁移报告"),
+            "format": .string("text"),
             "data": .string(encoded),
             "truncated": .bool(false),
             "size": .number(4),

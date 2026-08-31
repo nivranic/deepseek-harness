@@ -333,6 +333,13 @@
       ]
     },
     {
+      "name": "LinkArtifactFormat",
+      "shape": [
+        "text",
+        "bytes"
+      ]
+    },
+    {
       "name": "LinkTodoStatus",
       "shape": [
         "pending",
@@ -417,6 +424,11 @@
         {
           "name": "title",
           "kind": "string"
+        },
+        {
+          "name": "format",
+          "kind": "enum",
+          "ref": "LinkArtifactFormat"
         }
       ],
       "fixture": "event-artifact-created",
@@ -1231,6 +1243,11 @@
           "kind": "string"
         },
         {
+          "name": "format",
+          "kind": "enum",
+          "ref": "LinkArtifactFormat"
+        },
+        {
           "name": "data",
           "kind": "string"
         },
@@ -1362,7 +1379,7 @@
     {
       "id": "event-artifact-created",
       "type": "LinkArtifactCreatedData",
-      "sha256": "cd3c1bd7e198bea223b8c7119189b7570267f98498f6d776dd6a8006d8081aa4"
+      "sha256": "b8914f71f850ea33af99f7b37b981cd045e760a55600b7151efceb4419fa9149"
     },
     {
       "id": "event-artifact-status",
@@ -1422,7 +1439,7 @@
     {
       "id": "artifact-read",
       "type": "LinkArtifactReadValue",
-      "sha256": "dc45d7d44715c107f66be004614204fc825a6ff9e4cc178d8320cdbea3671937"
+      "sha256": "5ee8b0817d06faad70b43d6f77e991c28bfbbabd00c4995fff3174b729df5504"
     },
     {
       "id": "attachment-read",

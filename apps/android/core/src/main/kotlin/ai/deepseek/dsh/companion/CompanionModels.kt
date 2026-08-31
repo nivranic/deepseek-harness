@@ -1,5 +1,6 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.link.LinkArtifactFormat
 import ai.deepseek.dsh.link.LinkArtifactReadValue
 
 import ai.deepseek.dsh.link.WireValue
@@ -93,9 +94,11 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
      * returns its range without caching); null when no session is open, the
      * call fails, or the payload cannot be read.
      * @param artifactId the reference identity from an artifact/created row.
-     * @param offset range start in UTF-16 code units; null starts at zero.
-     * @param limit maximum returned code units; null reads through the end.
-     * @return the read value (id, kind, title, base64 data, truncated, size).
+     * @param offset range start — UTF-16 code units for text artifacts, bytes
+     *   for bytes artifacts; null starts at zero.
+     * @param limit maximum returned units of the artifact format; null reads
+     *   through the end.
+     * @return the read value (id, kind, title, format, base64 data, truncated, size).
      */
     suspend fun readArtifact(artifactId: String, offset: Int? = null, limit: Int? = null): LinkArtifactReadValue? {
         val sessionId = _open.value?.sessionId ?: return null
@@ -113,6 +116,8 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
         val id = WireShape.string(value, "id") ?: return null
         val kind = WireShape.string(value, "kind") ?: return null
         val title = WireShape.string(value, "title") ?: return null
+        val format = WireShape.string(value, "format")
+            ?.let { raw -> LinkArtifactFormat.values().firstOrNull { it.wire == raw } } ?: return null
         val data = WireShape.string(value, "data") ?: return null
         val truncated = WireShape.boolean(value, "truncated") ?: return null
         val size = WireShape.number(value, "size") ?: return null
@@ -121,6 +126,7 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
             id = id,
             kind = kind,
             title = title,
+            format = format,
             data = data,
             truncated = truncated,
             size = size,

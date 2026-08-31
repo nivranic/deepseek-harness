@@ -96,11 +96,11 @@ export interface ISession {
   /**
    * Resolve one artifact referenced by this session into its journaled metadata and bytes.
    * @param artifactId - reference id found in an artifact/created row of the folded log.
-   * @returns the metadata and decoded bytes.
+   * @returns the metadata (including the journaled `format`) and decoded bytes.
    */
   readArtifact(
     artifactId: string,
-  ): Promise<ClientResult<{ id: string; kind: string; title: string; data: Uint8Array }>>
+  ): Promise<ClientResult<{ id: string; kind: string; title: string; format: 'text' | 'bytes'; data: Uint8Array }>>
   /**
    * Apply one edit, remove, or strict steer action to a still-pending queue occurrence.
    * @param itemId - agent-owned inbox occurrence identity.

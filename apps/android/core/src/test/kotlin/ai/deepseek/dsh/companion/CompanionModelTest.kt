@@ -236,7 +236,7 @@ class ArtifactReadTest {
         model.openSession("s9")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
         val bytes = java.util.Base64.getEncoder().encodeToString("# 报告".toByteArray())
-        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"迁移报告","data":"$bytes","truncated":false,"size":7}""") }
+        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"迁移报告","format":"text","data":"$bytes","truncated":false,"size":7}""") }
         val read = model.readArtifact("art-1")
         assertEquals("art-1", read?.id)
         assertEquals("report", read?.kind)
@@ -254,8 +254,9 @@ class ArtifactReadTest {
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s9")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
-        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"R","data":"MjM0NQ==","truncated":true,"size":10}""") }
+        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"R","format":"bytes","data":"MjM0NQ==","truncated":true,"size":10}""") }
         val read = model.readArtifact("art-1", offset = 2, limit = 4)
+        assertEquals(ai.deepseek.dsh.link.LinkArtifactFormat.BYTES, read?.format)
         assertEquals(true, read?.truncated)
         assertEquals(10.0, read?.size)
         assertEquals(null, model.artifactBytes["art-1"])

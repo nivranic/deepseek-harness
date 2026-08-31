@@ -321,7 +321,7 @@ export class Session implements SessionFace {
    */
   async readArtifact(
     artifactId: string,
-  ): Promise<ClientResult<{ id: string; kind: string; title: string; data: Uint8Array }>> {
+  ): Promise<ClientResult<{ id: string; kind: string; title: string; format: 'text' | 'bytes'; data: Uint8Array }>> {
     try {
       const result = await this.remote.session.artifact({
         sessionId: this.sessionId,
@@ -330,7 +330,10 @@ export class Session implements SessionFace {
       if (!result.ok) return toSessionResult(result)
       const binary = atob(result.value.data)
       const data = Uint8Array.from(binary, char => char.charCodeAt(0))
-      return { ok: true, value: { id: result.value.id, kind: result.value.kind, title: result.value.title, data } }
+      return {
+        ok: true,
+        value: { id: result.value.id, kind: result.value.kind, title: result.value.title, format: result.value.format, data },
+      }
     } catch (error) {
       return transportResult(error)
     }

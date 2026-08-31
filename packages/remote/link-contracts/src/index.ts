@@ -223,6 +223,11 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     fields: [],
   },
   {
+    name: 'LinkArtifactFormat',
+    shape: ['text', 'bytes'],
+    fields: [],
+  },
+  {
     name: 'LinkTodoStatus',
     shape: ['pending', 'in_progress', 'completed'],
     fields: [],
@@ -268,6 +273,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'id', kind: 'string' },
       { name: 'kind', kind: 'string' },
       { name: 'title', kind: 'string' },
+      { name: 'format', kind: 'enum', ref: 'LinkArtifactFormat' },
     ],
   },
   {
@@ -626,6 +632,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'id', kind: 'string' },
       { name: 'kind', kind: 'string' },
       { name: 'title', kind: 'string' },
+      { name: 'format', kind: 'enum', ref: 'LinkArtifactFormat' },
       { name: 'data', kind: 'string' },
       { name: 'truncated', kind: 'boolean' },
       { name: 'size', kind: 'number' },
@@ -887,7 +894,7 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
   {
     type: 'LinkArtifactCreatedData',
     id: 'event-artifact-created',
-    value: { id: ArtifactId('art-0f4c'), kind: 'report', title: '迁移报告' } satisfies SessionEventMap['artifact/created'],
+    value: { id: ArtifactId('art-0f4c'), kind: 'report', title: '迁移报告', format: 'text' } satisfies SessionEventMap['artifact/created'],
   },
   {
     type: 'LinkArtifactStatusData',
@@ -1018,9 +1025,10 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       id: 'art-0f4c',
       kind: 'report',
       title: '迁移报告',
+      format: 'text',
       data: Buffer.from('# 迁移报告').toString('base64'),
       truncated: false,
-      size: 5,
+      size: 6,
     } satisfies SessionArtifactValue,
   },
   {

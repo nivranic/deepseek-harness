@@ -6,6 +6,7 @@ import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-inva
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-artifact'
 const STATUSES = new Set(['pending', 'ready', 'failed'])
+const FORMATS = new Set(['text', 'bytes'])
 
 /** Cordis companion plugin name. */
 export const name = 'artifact-invariant'
@@ -22,13 +23,16 @@ export const inject = ['invariants']
  */
 function validateEvent(event: SessionEvent, trace: { open: boolean }, fail: InvariantFailure): void {
   if (event.type === 'artifact/created') {
-    const { id, kind, title } = event.data
+    const { id, kind, title, format } = event.data
     if (typeof id !== 'string' || id.length === 0) fail('artifact/created id must be a non-empty string')
     if (typeof kind !== 'string' || kind.length === 0 || kind.trim() !== kind) {
       fail('artifact/created kind must be non-empty and already trimmed')
     }
     if (typeof title !== 'string' || title.length === 0 || title.trim() !== title) {
       fail('artifact/created title must be non-empty and already trimmed')
+    }
+    if (typeof format !== 'string' || !FORMATS.has(format)) {
+      fail(`artifact/created carries unknown format ${JSON.stringify(format)}`)
     }
     if (!trace.open) fail('artifact/created appended outside any open turn')
   }

@@ -380,10 +380,12 @@ export class SessionCommandController {
 
   /**
    * Read one artifact the addressed Session's log references: the journal
-   * proves the reference (kind and title come from its artifact/created
-   * event), the resource channel serves the bytes.
+   * proves the reference (kind, title, and format come from its
+   * artifact/created event), the resource channel serves the bytes. The
+   * journaled format picks the paging unit — UTF-16 code units for text,
+   * bytes for raw — and `data` is base64 of that range either way.
    * @param request - Session and artifact identities used for authorization.
-   * @returns the reference metadata and base64-encoded content bytes.
+   * @returns the reference metadata and base64-encoded content range.
    */
   async artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue> {
     let source: SessionReadState
@@ -432,17 +434,29 @@ export class SessionCommandController {
         { reason: 'ARTIFACT_BAD_RANGE' },
       )
     }
-    const full = new TextDecoder().decode(stored as Uint8Array)
     const start = request.offset ?? 0
-    const page = request.limit === undefined ? full.slice(start) : full.slice(start, start + request.limit)
-    const truncated = request.limit !== undefined && start + request.limit < full.length
+    if (created.data.format === 'text') {
+      const full = new TextDecoder().decode(stored)
+      const page = request.limit === undefined ? full.slice(start) : full.slice(start, start + request.limit)
+      return {
+        id: request.artifactId,
+        kind: created.data.kind,
+        title: created.data.title,
+        format: created.data.format,
+        data: Buffer.from(page, 'utf8').toString('base64'),
+        truncated: request.limit !== undefined && start + request.limit < full.length,
+        size: full.length,
+      }
+    }
+    const end = request.limit === undefined ? stored.length : Math.min(start + request.limit, stored.length)
     return {
       id: request.artifactId,
       kind: created.data.kind,
       title: created.data.title,
-      data: Buffer.from(page, 'utf8').toString('base64'),
-      truncated,
-      size: full.length,
+      format: created.data.format,
+      data: Buffer.from(stored.subarray(start, end)).toString('base64'),
+      truncated: end < stored.length,
+      size: stored.length,
     }
   }
 

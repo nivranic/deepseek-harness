@@ -9,7 +9,8 @@
         "data": {
           "id": "art-report-1",
           "kind": "report",
-          "title": "迁移报告"
+          "title": "迁移报告",
+          "format": "text"
         }
       }
     },
@@ -34,7 +35,8 @@
         "data": {
           "id": "art-draft-2",
           "kind": "markdown",
-          "title": "发布说明草稿"
+          "title": "发布说明草稿",
+          "format": "bytes"
         }
       }
     },
@@ -47,7 +49,8 @@
         "data": {
           "id": "art-report-1",
           "kind": "report",
-          "title": "迁移报告"
+          "title": "迁移报告",
+          "format": "text"
         }
       }
     },

@@ -108,6 +108,10 @@ enum class LinkArtifactStatus(val wire: String) {
     READY("ready"),
     FAILED("failed"),
 }
+enum class LinkArtifactFormat(val wire: String) {
+    TEXT("text"),
+    BYTES("bytes"),
+}
 enum class LinkTodoStatus(val wire: String) {
     PENDING("pending"),
     IN_PROGRESS("in_progress"),
@@ -147,6 +151,7 @@ data class LinkArtifactCreatedData(
     val id: String,
     val kind: String,
     val title: String,
+    val format: LinkArtifactFormat,
 )
 data class LinkArtifactStatusData(
     val id: String,
@@ -348,6 +353,7 @@ data class LinkArtifactReadValue(
     val id: String,
     val kind: String,
     val title: String,
+    val format: LinkArtifactFormat,
     val data: String,
     val truncated: Boolean,
     val size: Double,

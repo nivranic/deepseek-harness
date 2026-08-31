@@ -31,6 +31,11 @@ export function ArtifactId(id: string): ArtifactId {
 /** Lifecycle of one artifact reference, in the portable three-state vocabulary. */
 export type ArtifactStatus = 'pending' | 'ready' | 'failed'
 
+/** How the artifact's content bytes were authored: model text, or raw bytes
+ * (base64 on every text-hostile face); paging units follow it — UTF-16 code
+ * units for text, bytes for raw. */
+export type ArtifactFormat = 'text' | 'bytes'
+
 /**
  * The artifact members this package merges onto the session map — the
  * typed self-description of the merge below.
@@ -47,7 +52,7 @@ declare module '@deepseek-ai/dsh-session/types' {
      * the log pushes a fresh pending reference, mirroring the Lite fold's
      * arrival semantics.
      */
-    'artifact/created': { id: ArtifactId; kind: string; title: string }
+    'artifact/created': { id: ArtifactId; kind: string; title: string; format: ArtifactFormat }
     /**
      * The lifecycle status of one artifact reference moved; consumers apply
      * last-write-wins by id, and a status for a reference that never
