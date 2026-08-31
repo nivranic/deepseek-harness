@@ -71,9 +71,9 @@ final class RelayHTTPServer {
         switch script {
         case let .flushThenLive(first, second, release):
             send(connection, chunkedHead()) {
-                self.send(connection, chunk(first)) {
+                self.send(connection, self.chunk(first)) {
                     release.wait()
-                    self.send(connection, chunk(second)) {
+                    self.send(connection, self.chunk(second)) {
                         self.send(connection, Data("0\r\n\r\n".utf8)) { connection.cancel() }
                     }
                 }
@@ -89,10 +89,8 @@ final class RelayHTTPServer {
     }
 
     private func chunkedHead() -> Data {
-        Data(
-            "HTTP/1.1 200 OK\r\ncontent-type: application/x-ndjson\r\n"
-                + "transfer-encoding: chunked\r\nconnection: close\r\n\r\n".utf8
-        )
+        let head = "HTTP/1.1 200 OK\r\ncontent-type: application/x-ndjson\r\ntransfer-encoding: chunked\r\nconnection: close\r\n\r\n"
+        return Data(head.utf8)
     }
 
     private func chunk(_ envelope: RelayEnvelope) -> Data {
@@ -133,7 +131,7 @@ final class RelayClientStreamTests: XCTestCase {
             RelayEnvelope(kind: "task-completed", sessionId: "s1", turn: 3),
             release: release
         ))
-        server.start()
+        try server.start()
         defer { server.stop() }
         let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
 
@@ -147,7 +145,7 @@ final class RelayClientStreamTests: XCTestCase {
 
     func testUnknownTokenStreamsACleanEmptyClose() async throws {
         let server = try RelayHTTPServer(script: .emptyClose)
-        server.start()
+        try server.start()
         defer { server.stop() }
         let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
 
@@ -158,7 +156,7 @@ final class RelayClientStreamTests: XCTestCase {
 
     func testRefusedStreamsFailLoud() async throws {
         let server = try RelayHTTPServer(script: .status(500))
-        server.start()
+        try server.start()
         defer { server.stop() }
         let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
 
