@@ -111,7 +111,7 @@ final class RelayClientStreamTests: XCTestCase {
 
     /// Bounds one async pull so a stuck server fails the test instead of
     /// hanging the lane.
-    private func withTestTimeout<T>(_ pull: () async throws -> T) async throws -> T {
+    private func withTestTimeout<T>(_ pull: @escaping () async throws -> T) async throws -> T {
         try await withThrowingTaskGroup(of: T.self) { group in
             group.addTask { try await pull() }
             group.addTask {
