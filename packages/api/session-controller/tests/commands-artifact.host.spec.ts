@@ -42,7 +42,19 @@ describe('Session artifact authorization', () => {
       { get: () => Promise.resolve(new TextEncoder().encode('# 报告')) },
     )
     await expect(controller.artifact({ sessionId, artifactId: 'art-1' }))
-      .resolves.toEqual({ id: 'art-1', kind: 'report', title: '迁移报告', data: Buffer.from('# 报告').toString('base64') })
+      .resolves.toEqual({ id: 'art-1', kind: 'report', title: '迁移报告', data: Buffer.from('# 报告').toString('base64'), truncated: false, size: 4 })
+    await ctx.fiber.dispose()
+  })
+
+  it('serves one UTF-16 range when offset and limit are present', async () => {
+    const content = '0123456789'
+    const { ctx, controller, sessionId } = await persistedController(
+      [createdEvent(0, 'art-1', 'report', 'R')],
+      { get: () => Promise.resolve(new TextEncoder().encode(content)) },
+    )
+    await expect(controller.artifact({ sessionId, artifactId: 'art-1', offset: 2, limit: 4 }))
+      .resolves.toEqual({ id: 'art-1', kind: 'report', title: 'R', data: Buffer.from('2345').toString('base64'), truncated: true, size: 10 })
+    await expectFailure(controller.artifact({ sessionId, artifactId: 'art-1', offset: -1 }), 'artifact-error')
     await ctx.fiber.dispose()
   })
 

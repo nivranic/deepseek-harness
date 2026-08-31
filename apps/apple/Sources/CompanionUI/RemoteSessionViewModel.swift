@@ -240,18 +240,25 @@ public final class RemoteSessionViewModel {
     }
 
     /// Fetch one artifact the open session references over `session/artifact`
-    /// and cache its decoded bytes; returns the read on success.
+    /// and cache its decoded bytes (unbounded reads only — a paged read
+    /// returns its range without caching); returns the read on success.
+    /// - Parameters:
+    ///   - artifactId: the reference identity from an artifact/created row.
+    ///   - offset: range start in UTF-16 code units; nil starts at zero.
+    ///   - limit: maximum returned code units; nil reads through the end.
     @discardableResult
-    public func readArtifact(_ artifactId: String) async -> LinkArtifactReadValue? {
+    public func readArtifact(_ artifactId: String, offset: Int? = nil, limit: Int? = nil) async -> LinkArtifactReadValue? {
         guard let active else { return nil }
         guard let value = try? await wire.call("session/artifact", args: [
             "request": .object([
                 "sessionId": .string(active.sessionId),
                 "artifactId": .string(artifactId),
+                ...(offset.map { ["offset": .number(Double($0))] } ?? [:]),
+                ...(limit.map { ["limit": .number(Double($0))] } ?? [:]),
             ]),
         ]) else { return nil }
         guard let read = ContractCodec.decode(LinkArtifactReadValue.self, from: value) else { return nil }
-        artifactBytes[artifactId] = Data(base64Encoded: read.data)
+        if limit == nil { artifactBytes[artifactId] = Data(base64Encoded: read.data) }
         return read
     }
 

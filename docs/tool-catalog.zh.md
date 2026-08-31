@@ -2129,7 +2129,7 @@ artifact_create 是第 56 章的生产方：模型每次调用创作一件完整
 
 ### `artifact_read`
 
-按引用 id 读回一件工件。返回与创建时完全一致的**完整**内容，若调用会话记录过该工件则附上类别与标题。读取不修改工件。
+按引用 id 读回一件工件。返回与创建时一致的内容（默认整件，或以 offset 与 limit 读一个 UTF-16 区间），若调用会话记录过该工件则附上类别与标题。读取不修改工件。
 
 ```json
 {
@@ -2138,6 +2138,14 @@ artifact_create 是第 56 章的生产方：模型每次调用创作一件完整
     "id": {
       "type": "string",
       "description": "The artifact reference id an artifact_create result reported."
+    },
+    "offset": {
+      "type": "integer",
+      "description": "Range start in UTF-16 code units; defaults to 0."
+    },
+    "limit": {
+      "type": "integer",
+      "description": "Maximum returned code units; omitted reads through the end."
     }
   },
   "required": [

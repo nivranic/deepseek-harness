@@ -68,7 +68,7 @@ kind: "package-reference"
 
 #### 模型看到什么
 
-模型还会看到生成的 [`artifact_read` schema](../../../docs/tool-catalog.zh.md#deepseek-aidsh-artifact)：一个对象，含一个必填的 `id` 字符串。描述承诺返回与创建时完全一致的完整内容，并说明读取不修改工件。
+模型还会看到生成的 [`artifact_read` schema](../../../docs/tool-catalog.zh.md#deepseek-aidsh-artifact)：一个对象，含必填的 `id` 字符串与可选的 `offset`/`limit` 整数。描述给出每次调用一个 UTF-16 区间，并说明读取不修改工件。
 
 #### Token 影响
 
@@ -96,11 +96,11 @@ Token 增长随模型提交的工件内容伸缩，这些调用参数会保留�
 
 #### 模型看到什么
 
-读取返回工件的标题行加完整内容；调用会话记录过该工件时附上 `kind` 与 `title`。稳定失败文本为 `Error: artifact_read requires a non-empty id`；通道从未存储的 id 以 `Error: artifact_read found no content stored under id "<id>"` 失败。
+读取返回工件的标题行加内容——默认整件，或以 `offset` 与 `limit` 读一个 UTF-16 区间（`truncated` 与 `size` 报告截断）；调用会话记录过该工件时附上 `kind` 与 `title`。稳定失败文本为 `Error: artifact_read requires a non-empty id`、`Error: artifact_read offset and limit must be non-negative` 与 `Error: artifact_read found no content stored under id "<id>"`。
 
 #### Token 影响
 
-每次读取都把工件完整内容重新放入对话；在分页读取面出现前，重复读取大工件每次都付出其体积。
+默认读取把工件完整内容放入对话；分页读取只付出其区间。重复默认读取大工件每次都付出其体积，直到压缩。
 
 #### KV Cache 影响
 
@@ -110,7 +110,6 @@ Token 增长随模型提交的工件内容伸缩，这些调用参数会保留�
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- 读取返回完整内容、无分页；在分页读取面出现前，超大工件每次读取都付出其全部体积。
 - 首版工件是文本的：`content` 是字符串，通道存其 UTF-8 字节；二进制工件需要未来的二进制输入面。
 
 ### 开发备注

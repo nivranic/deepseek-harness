@@ -29,6 +29,9 @@ object WireShape {
     fun number(value: WireValue, field: String): Double? =
         ((value as? WireValue.ObjectValue)?.entries?.get(field) as? WireValue.NumberValue)?.value
 
+    fun boolean(value: WireValue, field: String): Boolean? =
+        ((value as? WireValue.ObjectValue)?.entries?.get(field) as? WireValue.BoolValue)?.value
+
     fun array(value: WireValue, field: String): List<WireValue>? =
         ((value as? WireValue.ObjectValue)?.entries?.get(field) as? WireValue.ArrayValue)?.items
 

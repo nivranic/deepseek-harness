@@ -249,6 +249,23 @@ class ArtifactReadTest {
     }
 
     @Test
+    fun pagedReadsCarryOffsetAndLimitAndSkipTheCache() = runTest {
+        val wire = FakeWire()
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.openSession("s9")
+        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"R","data":"MjM0NQ==","truncated":true,"size":10}""") }
+        val read = model.readArtifact("art-1", offset = 2, limit = 4)
+        assertEquals(true, read?.truncated)
+        assertEquals(10.0, read?.size)
+        assertEquals(null, model.artifactBytes["art-1"])
+        val call = wire.calls.first { it.first == "session/artifact" }
+        val request = call.second["request"] as WireValue.ObjectValue
+        assertEquals(2.0, (request.entries["offset"] as WireValue.NumberValue).value)
+        assertEquals(4.0, (request.entries["limit"] as WireValue.NumberValue).value)
+    }
+
+    @Test
     fun nullsWhenTheRefusalOrAMissingSessionLeavesNothingToRead() = runTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))

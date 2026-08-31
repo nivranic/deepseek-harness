@@ -89,25 +89,24 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
 
     /**
      * Read one artifact the open session references over `session/artifact`
-     * and cache its decoded bytes; null when no session is open, the call
-     * fails, or the payload cannot be read.
+     * and cache its decoded bytes (unbounded reads only — a paged read
+     * returns its range without caching); null when no session is open, the
+     * call fails, or the payload cannot be read.
      * @param artifactId the reference identity from an artifact/created row.
-     * @return the read value (id, kind, title, base64 data) on success.
+     * @param offset range start in UTF-16 code units; null starts at zero.
+     * @param limit maximum returned code units; null reads through the end.
+     * @return the read value (id, kind, title, base64 data, truncated, size).
      */
-    suspend fun readArtifact(artifactId: String): LinkArtifactReadValue? {
+    suspend fun readArtifact(artifactId: String, offset: Int? = null, limit: Int? = null): LinkArtifactReadValue? {
         val sessionId = _open.value?.sessionId ?: return null
+        val fields = buildMap {
+            put("sessionId", WireValue.StringValue(sessionId))
+            put("artifactId", WireValue.StringValue(artifactId))
+            offset?.let { put("offset", WireValue.NumberValue(it.toDouble())) }
+            limit?.let { put("limit", WireValue.NumberValue(it.toDouble())) }
+        }
         val value = try {
-            wire.call(
-                "session/artifact",
-                mapOf(
-                    "request" to WireValue.ObjectValue(
-                        mapOf(
-                            "sessionId" to WireValue.StringValue(sessionId),
-                            "artifactId" to WireValue.StringValue(artifactId),
-                        ),
-                    ),
-                ),
-            )
+            wire.call("session/artifact", mapOf("request" to WireValue.ObjectValue(fields)))
         } catch (_: Exception) {
             return null
         }
@@ -115,8 +114,17 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
         val kind = WireShape.string(value, "kind") ?: return null
         val title = WireShape.string(value, "title") ?: return null
         val data = WireShape.string(value, "data") ?: return null
-        _artifactBytes[id] = java.util.Base64.getDecoder().decode(data)
-        return LinkArtifactReadValue(id = id, kind = kind, title = title, data = data)
+        val truncated = WireShape.boolean(value, "truncated") ?: return null
+        val size = WireShape.number(value, "size") ?: return null
+        if (limit == null) _artifactBytes[id] = java.util.Base64.getDecoder().decode(data)
+        return LinkArtifactReadValue(
+            id = id,
+            kind = kind,
+            title = title,
+            data = data,
+            truncated = truncated,
+            size = size,
+        )
     }
 
     /** Load the session list through `session/list`. */

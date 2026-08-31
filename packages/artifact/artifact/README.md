@@ -68,7 +68,7 @@ Prefix-stable while the definition and visibility are unchanged. Plugin lifecycl
 
 #### What the model sees
 
-The model also sees the generated [`artifact_read` schema](../../../docs/tool-catalog.md#deepseek-aidsh-artifact): an object with one required `id` string. The description promises the complete content exactly as created and states that reading does not modify the artifact.
+The model also sees the generated [`artifact_read` schema](../../../docs/tool-catalog.md#deepseek-aidsh-artifact): an object with a required `id` string and optional `offset`/`limit` integers. The description offers one UTF-16 range per call and states that reading does not modify the artifact.
 
 #### Token effect
 
@@ -96,11 +96,11 @@ Append-only; newly visible content follows the reusable request prefix and does 
 
 #### What the model sees
 
-A read returns the artifact's header line plus its complete content, with `kind` and `title` when the calling session journaled the artifact. The stable failure is `Error: artifact_read requires a non-empty id`; an id the channel never stored fails with `Error: artifact_read found no content stored under id "<id>"`.
+A read returns the artifact's header line plus its content — the whole artifact by default, or one UTF-16 range with `offset` and `limit` (`truncated` and `size` report the cut) — with `kind` and `title` when the calling session journaled the artifact. The stable failures are `Error: artifact_read requires a non-empty id`, `Error: artifact_read offset and limit must be non-negative`, and `Error: artifact_read found no content stored under id "<id>"`.
 
 #### Token effect
 
-Each read places the artifact's full content into the conversation again; repeated reads of large artifacts cost their size every time until compaction.
+A default read places the artifact's full content into the conversation; a paged read costs only its range. Repeated default reads of large artifacts cost their size every time until compaction.
 
 #### KV Cache effect
 
@@ -110,7 +110,6 @@ Append-only; the read result follows the reusable request prefix and does not in
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Reads return the complete content with no paging; a very large artifact costs its full size on every read until a paged read surface exists.
 - Artifacts are textual in this first version: `content` is a string and the channel stores its UTF-8 bytes; binary artifacts need a future binary input surface.
 
 ### Dev Note

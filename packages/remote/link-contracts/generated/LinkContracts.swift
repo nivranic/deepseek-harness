@@ -347,6 +347,8 @@ public struct LinkArtifactReadValue: Codable {
     public let kind: String
     public let title: String
     public let data: String
+    public let truncated: Bool
+    public let size: Double
 }
 public struct LinkAttachmentReadValue: Codable {
     public let attachment: LinkImageAttachmentRef

@@ -128,7 +128,28 @@ describe('dsh-artifact tool', () => {
     })
     expect(read.isError).toBe(false)
     if (read.isError) throw new Error('expected artifact_read success')
-    expect(read.value).toEqual({ id: (created.value as { id: string }).id, kind: 'report', title: '迁移报告', content: '# 报告\n正文' })
+    expect(read.value).toEqual({ id: (created.value as { id: string }).id, kind: 'report', title: '迁移报告', content: '# 报告\n正文', truncated: false, size: 7 })
+  })
+
+  it('reads one UTF-16 range with offset and limit', async () => {
+    const { ctx } = await setup()
+    const agent = agentWithSession('pager')
+    const created = await callArtifact(ctx, { kind: 'report', title: 'R', content: '0123456789' }, { agent })
+    if (created.isError) throw new Error('expected artifact_create success')
+    const read = async (over: { offset?: number; limit?: number }) => await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: ToolCallId('call-page'),
+      name: 'artifact_read',
+      arguments: { id: (created.value as { id: string }).id, ...over },
+      agent,
+    })
+    const first = await read({ offset: 0, limit: 4 })
+    expect(first.isError).toBe(false)
+    expect(first.value).toMatchObject({ content: '0123', truncated: true, size: 10 })
+    const tail = await read({ offset: 8 })
+    expect(tail.value).toMatchObject({ content: '89', truncated: false, size: 10 })
+    const negative = await read({ offset: -1 })
+    expect(negative.isError).toBe(true)
   })
 
   it('fails loud on an id the channel never stored', async () => {

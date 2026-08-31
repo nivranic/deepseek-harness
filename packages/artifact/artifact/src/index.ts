@@ -119,9 +119,11 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'artifact_read',
-    description: 'Read one artifact back by its reference id. Returns the COMPLETE content exactly as created, plus the kind and title when the calling session journaled the artifact. Reading does not modify the artifact.',
+    description: 'Read one artifact back by its reference id. Returns the content exactly as created (the whole artifact by default, or one UTF-16 range with offset and limit), plus the kind and title when the calling session journaled the artifact. Reading does not modify the artifact.',
     parameters: {
       id: { type: 'string', required: true, description: 'The artifact reference id an artifact_create result reported.' },
+      offset: { type: 'integer', description: 'Range start in UTF-16 code units; defaults to 0.' },
+      limit: { type: 'integer', description: 'Maximum returned code units; omitted reads through the end.' },
     },
     output: {
       schema: {
@@ -132,13 +134,16 @@ export function apply(ctx: Context): void {
           kind: { type: 'string' },
           title: { type: 'string' },
           content: { type: 'string', required: true },
+          truncated: { type: 'boolean', required: true },
+          size: { type: 'integer', required: true },
         },
       },
       render: (_args, value) => [{
         type: 'text',
-        text: value.title === undefined
-          ? `Artifact ${value.id}:`
-          : `Artifact ${value.title} (${value.kind}) — ${value.id}:`,
+        text: (value.title === undefined
+          ? `Artifact ${value.id}`
+          : `Artifact ${value.title} (${value.kind}) — ${value.id}`)
+          + (value.truncated ? ` [truncated: ${value.content.length} of ${value.size} code units]` : ':'),
       }, {
         type: 'text',
         text: value.content,
@@ -149,12 +154,19 @@ export function apply(ctx: Context): void {
       if (id.length === 0) {
         throw new Error('artifact_read requires a non-empty id')
       }
+      if ((args.offset ?? 0) < 0 || (args.limit !== undefined && args.limit < 0)) {
+        throw new Error('artifact_read offset and limit must be non-negative')
+      }
       const stored = await ctx.artifacts.get(id)
       if (stored === null) {
         // An id the channel never stored (or whose bytes were removed) has
         // nothing to read; say so instead of returning an empty content.
         throw new Error(`artifact_read found no content stored under id "${id}"`)
       }
+      const full = new TextDecoder().decode(stored)
+      const start = args.offset ?? 0
+      const content = args.limit === undefined ? full.slice(start) : full.slice(start, start + args.limit)
+      const truncated = args.limit !== undefined && start + args.limit < full.length
       const agent = exec.agent
       const created = agent === undefined
         ? undefined
@@ -162,7 +174,9 @@ export function apply(ctx: Context): void {
           event.type === 'artifact/created' && event.data.id === id)
       return {
         id,
-        content: new TextDecoder().decode(stored),
+        content,
+        truncated,
+        size: full.length,
         ...(created === undefined ? {} : { kind: created.data.kind, title: created.data.title }),
       }
     },

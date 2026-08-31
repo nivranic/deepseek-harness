@@ -627,6 +627,8 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'kind', kind: 'string' },
       { name: 'title', kind: 'string' },
       { name: 'data', kind: 'string' },
+      { name: 'truncated', kind: 'boolean' },
+      { name: 'size', kind: 'number' },
     ],
   },
   {
@@ -1017,6 +1019,8 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       kind: 'report',
       title: '迁移报告',
       data: Buffer.from('# 迁移报告').toString('base64'),
+      truncated: false,
+      size: 5,
     } satisfies SessionArtifactValue,
   },
   {

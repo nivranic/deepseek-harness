@@ -425,11 +425,24 @@ export class SessionCommandController {
         { reason: 'ARTIFACT_CONTENT_MISSING' },
       )
     }
+    if ((request.offset ?? 0) < 0 || (request.limit !== undefined && request.limit < 0)) {
+      reject(
+        'artifact-error',
+        'Artifact read offset and limit must be non-negative.',
+        { reason: 'ARTIFACT_BAD_RANGE' },
+      )
+    }
+    const full = new TextDecoder().decode(stored as Uint8Array)
+    const start = request.offset ?? 0
+    const page = request.limit === undefined ? full.slice(start) : full.slice(start, start + request.limit)
+    const truncated = request.limit !== undefined && start + request.limit < full.length
     return {
       id: request.artifactId,
       kind: created.data.kind,
       title: created.data.title,
-      data: Buffer.from(stored as Uint8Array).toString('base64'),
+      data: Buffer.from(page, 'utf8').toString('base64'),
+      truncated,
+      size: full.length,
     }
   }
 

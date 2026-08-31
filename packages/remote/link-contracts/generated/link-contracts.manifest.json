@@ -1233,6 +1233,14 @@
         {
           "name": "data",
           "kind": "string"
+        },
+        {
+          "name": "truncated",
+          "kind": "boolean"
+        },
+        {
+          "name": "size",
+          "kind": "number"
         }
       ],
       "fixture": "artifact-read"
@@ -1414,7 +1422,7 @@
     {
       "id": "artifact-read",
       "type": "LinkArtifactReadValue",
-      "sha256": "22513cc04d76992e5b22c2b0940c17f07938a6b66f4d966a7097d06708e62b21"
+      "sha256": "dc45d7d44715c107f66be004614204fc825a6ff9e4cc178d8320cdbea3671937"
     },
     {
       "id": "attachment-read",

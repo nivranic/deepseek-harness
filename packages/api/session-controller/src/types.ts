@@ -344,6 +344,10 @@ export interface SessionAttachmentValue {
 export interface SessionArtifactRequest {
   readonly sessionId: SessionId
   readonly artifactId: string
+  /** Start of the returned range in UTF-16 code units; defaults to 0. */
+  readonly offset?: number
+  /** Maximum returned code units; omitted reads through the end. */
+  readonly limit?: number
 }
 
 /** Durable artifact read response value. */
@@ -351,7 +355,12 @@ export interface SessionArtifactValue {
   readonly id: string
   readonly kind: string
   readonly title: string
+  /** Base64 of the returned range's UTF-8 bytes. */
   readonly data: string
+  /** Whether `limit` cut the range before the artifact's end. */
+  readonly truncated: boolean
+  /** Total content length in UTF-16 code units. */
+  readonly size: number
 }
 
 /** Pending queue mutation request. */

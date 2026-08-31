@@ -349,6 +349,8 @@ data class LinkArtifactReadValue(
     val kind: String,
     val title: String,
     val data: String,
+    val truncated: Boolean,
+    val size: Double,
 )
 data class LinkAttachmentReadValue(
     val attachment: LinkImageAttachmentRef,

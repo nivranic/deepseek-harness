@@ -2120,7 +2120,7 @@ Source: [`packages/artifact/artifact/src/index.ts`](../packages/artifact/artifac
 
 ### `artifact_read`
 
-Read one artifact back by its reference id. Returns the COMPLETE content exactly as created, plus the kind and title when the calling session journaled the artifact. Reading does not modify the artifact.
+Read one artifact back by its reference id. Returns the content exactly as created (the whole artifact by default, or one UTF-16 range with offset and limit), plus the kind and title when the calling session journaled the artifact. Reading does not modify the artifact.
 
 ```json
 {
@@ -2129,6 +2129,14 @@ Read one artifact back by its reference id. Returns the COMPLETE content exactly
     "id": {
       "type": "string",
       "description": "The artifact reference id an artifact_create result reported."
+    },
+    "offset": {
+      "type": "integer",
+      "description": "Range start in UTF-16 code units; defaults to 0."
+    },
+    "limit": {
+      "type": "integer",
+      "description": "Maximum returned code units; omitted reads through the end."
     }
   },
   "required": [

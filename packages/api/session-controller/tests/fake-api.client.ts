@@ -29,6 +29,7 @@ import {
 } from '@deepseek-ai/dsh-api-gateway/client'
 import { RpcId } from '@deepseek-ai/dsh-client-connection/client'
 import type { SessionRemotes } from '../src/client/sessions/remotes.ts'
+import type { SessionArtifactValue } from '../src/types.ts'
 import { historyRecordLastSeq } from '../src/client/sessions/history-records.ts'
 
 const AVAILABLE_STREAM_CONNECTION = {
@@ -153,8 +154,8 @@ export class FakeApiClient {
   onAttachment: (payload: unknown) => Promise<RpcResponse<{ attachment: { attachmentId: never; mediaType: 'image/png'; bytes: number; width: number; height: number }; data: string }>> =
     () => Promise.resolve(ok({ attachment: { attachmentId: 'a' as never, mediaType: 'image/png', bytes: 1, width: 1, height: 1 }, data: 'AA==' }))
 
-  onArtifact: (payload: unknown) => Promise<RpcResponse<{ id: string; kind: string; title: string; data: string }>> =
-    () => Promise.resolve(ok({ id: 'art-fake', kind: 'report', title: 'Fake report', data: 'AA==' }))
+  onArtifact: (payload: unknown) => Promise<RpcResponse<SessionArtifactValue>> =
+    () => Promise.resolve(ok({ id: 'art-fake', kind: 'report', title: 'Fake report', data: 'AA==', truncated: false, size: 1 }))
   onUpdateQueue: (payload: unknown) => Promise<RpcResponse<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onCancel: (payload: unknown) => Promise<RpcResponse<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onOpenWorkspacePath: (payload: unknown) => Promise<RemoteResult<{ opened: true }>> =

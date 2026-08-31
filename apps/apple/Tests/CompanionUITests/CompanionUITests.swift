@@ -362,6 +362,29 @@ final class RemoteSessionViewModelTests: XCTestCase {
         XCTAssertEqual(WireShape.string(request, field: "attachmentId"), "att-1")
     }
 
+    func testPagedArtifactReadsCarryOffsetAndLimitAndSkipTheCache() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([]))
+        await wire.stub("session/artifact", answer: .success(jsonObject([
+            "id": .string("art-1"),
+            "kind": .string("report"),
+            "title": .string("R"),
+            "data": .string("MjM0NQ=="),
+            "truncated": .bool(true),
+            "size": .number(10),
+        ])))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s9")
+        let read = await model.readArtifact("art-1", offset: 2, limit: 4)
+        XCTAssertEqual(read?.truncated, true)
+        XCTAssertEqual(read?.size, 10)
+        XCTAssertEqual(model.artifactBytes["art-1"], nil)
+        let call = await wire.calls.first { $0.method == "session/artifact" }
+        let request = call?.args["request"] ?? .null
+        XCTAssertEqual(WireShape.number(request, field: "offset"), 2)
+        XCTAssertEqual(WireShape.number(request, field: "limit"), 4)
+    }
+
     func testReadsArtifactsOverTheWireAndCachesBytes() async {
         let wire = FakeWire()
         await wire.stubStream("session/follow", frames: .success([]))
