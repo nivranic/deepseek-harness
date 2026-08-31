@@ -236,7 +236,7 @@ class ArtifactReadTest {
         model.openSession("s9")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
         val bytes = java.util.Base64.getEncoder().encodeToString("# 报告".toByteArray())
-        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"迁移报告","data":"$bytes"}""") }
+        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"迁移报告","data":"$bytes","truncated":false,"size":7}""") }
         val read = model.readArtifact("art-1")
         assertEquals("art-1", read?.id)
         assertEquals("report", read?.kind)

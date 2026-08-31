@@ -249,13 +249,14 @@ public final class RemoteSessionViewModel {
     @discardableResult
     public func readArtifact(_ artifactId: String, offset: Int? = nil, limit: Int? = nil) async -> LinkArtifactReadValue? {
         guard let active else { return nil }
+        var fields: [String: WireValue] = [
+            "sessionId": .string(active.sessionId),
+            "artifactId": .string(artifactId),
+        ]
+        if let offset { fields["offset"] = .number(Double(offset)) }
+        if let limit { fields["limit"] = .number(Double(limit)) }
         guard let value = try? await wire.call("session/artifact", args: [
-            "request": .object([
-                "sessionId": .string(active.sessionId),
-                "artifactId": .string(artifactId),
-                ...(offset.map { ["offset": .number(Double($0))] } ?? [:]),
-                ...(limit.map { ["limit": .number(Double($0))] } ?? [:]),
-            ]),
+            "request": .object(fields),
         ]) else { return nil }
         guard let read = ContractCodec.decode(LinkArtifactReadValue.self, from: value) else { return nil }
         if limit == nil { artifactBytes[artifactId] = Data(base64Encoded: read.data) }
