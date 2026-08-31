@@ -1,5 +1,7 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.link.LinkArtifactReadValue
+
 import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -78,6 +80,44 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
 
     /** The fold state of the open session, when one is. */
     val state: DomainState get() = _open.value?.state ?: DomainState()
+
+    /** Decoded artifact content by reference id (filled by readArtifact). */
+    private val _artifactBytes = mutableMapOf<String, ByteArray>()
+
+    /** The decoded artifact content cache; companion panes render from it. */
+    val artifactBytes: Map<String, ByteArray> get() = _artifactBytes
+
+    /**
+     * Read one artifact the open session references over `session/artifact`
+     * and cache its decoded bytes; null when no session is open, the call
+     * fails, or the payload cannot be read.
+     * @param artifactId the reference identity from an artifact/created row.
+     * @return the read value (id, kind, title, base64 data) on success.
+     */
+    suspend fun readArtifact(artifactId: String): LinkArtifactReadValue? {
+        val sessionId = _open.value?.sessionId ?: return null
+        val value = try {
+            wire.call(
+                "session/artifact",
+                mapOf(
+                    "request" to WireValue.ObjectValue(
+                        mapOf(
+                            "sessionId" to WireValue.StringValue(sessionId),
+                            "artifactId" to WireValue.StringValue(artifactId),
+                        ),
+                    ),
+                ),
+            )
+        } catch (_: Exception) {
+            return null
+        }
+        val id = WireShape.string(value, "id") ?: return null
+        val kind = WireShape.string(value, "kind") ?: return null
+        val title = WireShape.string(value, "title") ?: return null
+        val data = WireShape.string(value, "data") ?: return null
+        _artifactBytes[id] = java.util.Base64.getDecoder().decode(data)
+        return LinkArtifactReadValue(id = id, kind = kind, title = title, data = data)
+    }
 
     /** Load the session list through `session/list`. */
     suspend fun loadSessions() {

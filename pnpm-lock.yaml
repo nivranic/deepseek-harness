@@ -796,6 +796,9 @@ importers:
 
   packages/api/session-controller:
     dependencies:
+      '@deepseek-ai/dsh-artifact':
+        specifier: workspace:^
+        version: link:../../artifact/artifact
       '@deepseek-ai/schemastery':
         specifier: link:../../../vendor/schemastery
         version: link:../../../vendor/schemastery

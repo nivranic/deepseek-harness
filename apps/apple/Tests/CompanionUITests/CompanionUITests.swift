@@ -361,6 +361,28 @@ final class RemoteSessionViewModelTests: XCTestCase {
         XCTAssertEqual(WireShape.string(request, field: "sessionId"), "s9")
         XCTAssertEqual(WireShape.string(request, field: "attachmentId"), "att-1")
     }
+
+    func testReadsArtifactsOverTheWireAndCachesBytes() async {
+        let wire = FakeWire()
+        await wire.stubStream("session/follow", frames: .success([]))
+        let encoded = "# 报告".data(using: .utf8)!.base64EncodedString()
+        await wire.stub("session/artifact", answer: .success(jsonObject([
+            "id": .string("art-1"),
+            "kind": .string("report"),
+            "title": .string("迁移报告"),
+            "data": .string(encoded),
+        ])))
+        let model = RemoteSessionViewModel(wire: wire)
+        await model.open(sessionId: "s9")
+        let read = await model.readArtifact("art-1")
+        XCTAssertEqual(read?.id, "art-1")
+        XCTAssertEqual(read?.title, "迁移报告")
+        XCTAssertEqual(model.artifactBytes["art-1"], "# 报告".data(using: .utf8))
+        let call = await wire.calls.first { $0.method == "session/artifact" }
+        let request = call?.args["request"] ?? .null
+        XCTAssertEqual(WireShape.string(request, field: "sessionId"), "s9")
+        XCTAssertEqual(WireShape.string(request, field: "artifactId"), "art-1")
+    }
 }
 
 @MainActor

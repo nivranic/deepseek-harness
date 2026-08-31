@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-本包是工件的宿主面：`ctx.artifacts` 资源通道加模型可见的 `artifact_create` 工具。一次调用创作一件完整工件——日志记录引用、类别、标题与生命周期状态（`artifact/created`、`artifact/status`），完整内容字节进入资源通道、永不随事件走（第 56 章）。出厂 `dsh` 组合零配置启用；工件跨重启留存，伴侣面从日志引用渲染工件面板。品牌 `ArtifactId` 与两个 `SessionEventMap` 成员也住在这里，契约 fixture 与原生折叠因此钉住线形状。
+本包是工件的宿主面：`ctx.artifacts` 资源通道加模型可见的 `artifact_create` 与 `artifact_read` 工具。一次调用创作一件完整工件——日志记录引用、类别、标题与生命周期状态（`artifact/created`、`artifact/status`），完整内容字节进入资源通道、永不随事件走（第 56 章）。出厂 `dsh` 组合零配置启用；工件跨重启留存，伴侣面从日志引用渲染工件面板。品牌 `ArtifactId` 与两个 `SessionEventMap` 成员也住在这里，契约 fixture 与原生折叠因此钉住线形状。
 
 ## 目录
 
@@ -64,6 +64,20 @@ kind: "package-reference"
 
 定义与可见性不变时前缀保持稳定。插件生命周期或作用域限制可能使从此 schema 起的复用失效。
 
+### 工具 schema——artifact_read
+
+#### 模型看到什么
+
+模型还会看到生成的 [`artifact_read` schema](../../../docs/tool-catalog.zh.md#deepseek-aidsh-artifact)：一个对象，含一个必填的 `id` 字符串。描述承诺返回与创建时完全一致的完整内容，并说明读取不修改工件。
+
+#### Token 影响
+
+工具可见的每个请求都有固定 schema 开销；描述与 schema 静态不变。
+
+#### KV Cache 影响
+
+定义与可见性不变时前缀保持稳定。
+
 ### 工具调用历史与结果
 
 #### 模型看到什么
@@ -78,11 +92,25 @@ Token 增长随模型提交的工件内容伸缩，这些调用参数会保留�
 
 只追加；新可见内容跟在可复用请求前缀之后，不会使既有 KV 缓存条目失效。
 
+### 工具调用历史与结果——artifact_read
+
+#### 模型看到什么
+
+读取返回工件的标题行加完整内容；调用会话记录过该工件时附上 `kind` 与 `title`。稳定失败文本为 `Error: artifact_read requires a non-empty id`；通道从未存储的 id 以 `Error: artifact_read found no content stored under id "<id>"` 失败。
+
+#### Token 影响
+
+每次读取都把工件完整内容重新放入对话；在分页读取面出现前，重复读取大工件每次都付出其体积。
+
+#### KV Cache 影响
+
+只追加；读取结果跟在可复用请求前缀之后，不会使既有 KV 缓存条目失效。
+
 ## 已知限制与延期工作
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- 生产方只创建：尚无 `artifact_read` 工具，模型不能在后续会话读回工件；伴侣应用经各自通道读取。
+- 读取返回完整内容、无分页；在分页读取面出现前，超大工件每次读取都付出其全部体积。
 - 首版工件是文本的：`content` 是字符串，通道存其 UTF-8 字节；二进制工件需要未来的二进制输入面。
 
 ### 开发备注

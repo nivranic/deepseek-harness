@@ -227,6 +227,40 @@ class StateFlowProjectionTest {
     }
 }
 
+/** The artifact read consumer: wire shape, byte cache, loud-failure null. */
+class ArtifactReadTest {
+    @Test
+    fun readsArtifactsOverTheWireAndCachesBytes() = runTest {
+        val wire = FakeWire()
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.openSession("s9")
+        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        val bytes = java.util.Base64.getEncoder().encodeToString("# 报告".toByteArray())
+        wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"迁移报告","data":"$bytes"}""") }
+        val read = model.readArtifact("art-1")
+        assertEquals("art-1", read?.id)
+        assertEquals("report", read?.kind)
+        assertEquals("迁移报告", read?.title)
+        assertEquals("# 报告", model.artifactBytes["art-1"]?.decodeToString())
+        val call = wire.calls.first { it.first == "session/artifact" }
+        val request = call.second["request"] as WireValue.ObjectValue
+        assertEquals("s9", (request.entries["sessionId"] as WireValue.StringValue).value)
+        assertEquals("art-1", (request.entries["artifactId"] as WireValue.StringValue).value)
+    }
+
+    @Test
+    fun nullsWhenTheRefusalOrAMissingSessionLeavesNothingToRead() = runTest {
+        val wire = FakeWire()
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        assertEquals(null, model.readArtifact("art-1"))
+        model.openSession("s9")
+        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.stub("session/artifact") { throw ai.deepseek.dsh.link.LinkClientException.Refused("artifact-error", "Artifact is not referenced by this session.") }
+        assertEquals(null, model.readArtifact("art-2"))
+        assertEquals(true, model.artifactBytes.isEmpty())
+    }
+}
+
 class PagedReadTest {
     @Test
     fun readsPagesWhenTheHostReportsTooLarge() = runTest {

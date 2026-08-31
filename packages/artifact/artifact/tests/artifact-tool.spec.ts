@@ -74,6 +74,8 @@ describe('dsh-artifact tool', () => {
     expect(schema).toBeDefined()
     const props = (schema!.parameters as { properties?: Record<string, unknown> }).properties ?? {}
     expect(Object.keys(props)).toEqual(['kind', 'title', 'content'])
+    const readSchema = ctx.tools.schemas().find(s => s.name === 'artifact_read')
+    expect(readSchema).toBeDefined()
   })
 
   it('journals the reference and stores the bytes, ending ready', async () => {
@@ -110,6 +112,36 @@ describe('dsh-artifact tool', () => {
     const result = await callArtifact(ctx, { kind: 'report', title: 'R', content: 'x' }, { agent: undefined })
     expect(result.isError).toBe(true)
     expect(text(result)).toContain('owning agent session')
+  })
+
+  it('reads a stored artifact back with kind and title from the journal', async () => {
+    const { ctx } = await setup()
+    const agent = agentWithSession('reader')
+    const created = await callArtifact(ctx, { kind: 'report', title: '迁移报告', content: '# 报告\n正文' }, { agent })
+    if (created.isError) throw new Error('expected artifact_create success')
+    const read = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: ToolCallId('call-read-1'),
+      name: 'artifact_read',
+      arguments: { id: (created.value as { id: string }).id },
+      agent,
+    })
+    expect(read.isError).toBe(false)
+    if (read.isError) throw new Error('expected artifact_read success')
+    expect(read.value).toEqual({ id: (created.value as { id: string }).id, kind: 'report', title: '迁移报告', content: '# 报告\n正文' })
+  })
+
+  it('fails loud on an id the channel never stored', async () => {
+    const { ctx } = await setup()
+    const result = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: ToolCallId('call-read-2'),
+      name: 'artifact_read',
+      arguments: { id: 'art-never-stored' },
+      agent: agentWithSession('reader-2'),
+    })
+    expect(result.isError).toBe(true)
+    expect(text(result)).toContain('no content stored under id "art-never-stored"')
   })
 
   it('rejects an empty kind or title', async () => {

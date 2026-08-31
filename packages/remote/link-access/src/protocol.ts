@@ -81,6 +81,7 @@ export const DEFAULT_LINK_ENDPOINTS: LinkEndpointInput[] = [
   { endpoint: 'session/page', kind: 'unary', minRole: 'observer' },
   { endpoint: 'session/modelCatalog', kind: 'unary', minRole: 'observer' },
   { endpoint: 'session/attachment', kind: 'unary', minRole: 'observer' },
+  { endpoint: 'session/artifact', kind: 'unary', minRole: 'observer' },
   { endpoint: 'fileReferences/list', kind: 'unary', minRole: 'observer' },
   { endpoint: 'session/follow', kind: 'stream', minRole: 'observer' },
   { endpoint: 'session/control', kind: 'stream', minRole: 'observer' },

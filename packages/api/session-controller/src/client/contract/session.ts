@@ -94,6 +94,14 @@ export interface ISession {
     attachmentId: AttachmentIdType,
   ): Promise<ClientResult<{ attachment: ImageAttachmentRef; data: Uint8Array }>>
   /**
+   * Resolve one artifact referenced by this session into its journaled metadata and bytes.
+   * @param artifactId - reference id found in an artifact/created row of the folded log.
+   * @returns the metadata and decoded bytes.
+   */
+  readArtifact(
+    artifactId: string,
+  ): Promise<ClientResult<{ id: string; kind: string; title: string; data: Uint8Array }>>
+  /**
    * Apply one edit, remove, or strict steer action to a still-pending queue occurrence.
    * @param itemId - agent-owned inbox occurrence identity.
    * @param action - requested queue operation.

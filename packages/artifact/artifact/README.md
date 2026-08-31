@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package is the artifact host face: the `ctx.artifacts` resource channel plus the model-facing `artifact_create` tool. One call authors one complete artifact — the journal records the reference, its kind and title, and its lifecycle status (`artifact/created`, `artifact/status`), while the complete content bytes go to the resource channel and never ride an event (chapter 56). The shipped `dsh` composition enables this with no setup; artifacts survive restarts and companion surfaces render the pane from the journaled references. The branded `ArtifactId` and the two `SessionEventMap` members live here too, so contract fixtures and native folds pin the wire shapes.
+This package is the artifact host face: the `ctx.artifacts` resource channel plus the model-facing `artifact_create` and `artifact_read` tools. One call authors one complete artifact — the journal records the reference, its kind and title, and its lifecycle status (`artifact/created`, `artifact/status`), while the complete content bytes go to the resource channel and never ride an event (chapter 56). The shipped `dsh` composition enables this with no setup; artifacts survive restarts and companion surfaces render the pane from the journaled references. The branded `ArtifactId` and the two `SessionEventMap` members live here too, so contract fixtures and native folds pin the wire shapes.
 
 ## Table of Contents
 
@@ -64,6 +64,20 @@ Fixed schema cost on every request where the tool is visible; the description an
 
 Prefix-stable while the definition and visibility are unchanged. Plugin lifecycle or scoped restrictions may invalidate reuse from this schema.
 
+### Tool schema — artifact_read
+
+#### What the model sees
+
+The model also sees the generated [`artifact_read` schema](../../../docs/tool-catalog.md#deepseek-aidsh-artifact): an object with one required `id` string. The description promises the complete content exactly as created and states that reading does not modify the artifact.
+
+#### Token effect
+
+Fixed schema cost on every request where the tool is visible; the description and schema are static.
+
+#### KV Cache effect
+
+Prefix-stable while the definition and visibility are unchanged.
+
 ### Tool-call history and result
 
 #### What the model sees
@@ -78,11 +92,25 @@ Token growth scales with the artifact content the model submits, and those call 
 
 Append-only; newly visible content follows the reusable request prefix and does not invalidate existing KV-cache entries.
 
+### Tool-call history and result — artifact_read
+
+#### What the model sees
+
+A read returns the artifact's header line plus its complete content, with `kind` and `title` when the calling session journaled the artifact. The stable failure is `Error: artifact_read requires a non-empty id`; an id the channel never stored fails with `Error: artifact_read found no content stored under id "<id>"`.
+
+#### Token effect
+
+Each read places the artifact's full content into the conversation again; repeated reads of large artifacts cost their size every time until compaction.
+
+#### KV Cache effect
+
+Append-only; the read result follows the reusable request prefix and does not invalidate existing KV-cache entries.
+
 ## Known Limitations and Deferred Work
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- The producer is create-only: there is no `artifact_read` tool yet, so the model cannot read an artifact back in a later session; companion apps read through their own channels.
+- Reads return the complete content with no paging; a very large artifact costs its full size on every read until a paged read surface exists.
 - Artifacts are textual in this first version: `content` is a string and the channel stores its UTF-8 bytes; binary artifacts need a future binary input surface.
 
 ### Dev Note

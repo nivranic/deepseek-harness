@@ -5,6 +5,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { Agent, ModelSelection as AgentModelSelection } from '@deepseek-ai/dsh-agent'
 import { PresetMountError, UnknownPresetError } from '@deepseek-ai/dsh-agent-presets'
 import { AttachmentError, admitEncodedImages } from '@deepseek-ai/dsh-attachment'
+import { ArtifactId } from '@deepseek-ai/dsh-artifact'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import {
   ReasoningEffortId, createUserMessage, freezeMessage,
@@ -27,6 +28,7 @@ import {
   inspectApiSession,
 } from './agent.ts'
 import type {
+  SessionArtifactRequest, SessionArtifactValue,
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
@@ -373,6 +375,61 @@ export class SessionCommandController {
         reject('attachment-error', error.message, { reason: error.code })
       }
       reject('internal', 'Unable to read image attachment.', {})
+    }
+  }
+
+  /**
+   * Read one artifact the addressed Session's log references: the journal
+   * proves the reference (kind and title come from its artifact/created
+   * event), the resource channel serves the bytes.
+   * @param request - Session and artifact identities used for authorization.
+   * @returns the reference metadata and base64-encoded content bytes.
+   */
+  async artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue> {
+    let source: SessionReadState
+    try {
+      source = await this.readSessionState(request.sessionId)
+    } catch (error) {
+      if (error instanceof ApiSessionNotFound) {
+        reject('session-not-found', error.message, { sessionId: request.sessionId })
+      }
+      reject(
+        'internal',
+        `artifact authorization unavailable for session "${request.sessionId}": ${String(error)}`,
+        {},
+      )
+    }
+    const created = source.events.findLast((event): event is SessionEvent<'artifact/created'> =>
+      event.type === 'artifact/created' && event.data.id === request.artifactId)
+    if (created === undefined) {
+      reject(
+        'artifact-error',
+        'Artifact is not referenced by this session.',
+        { reason: 'ARTIFACT_NOT_REFERENCED' },
+      )
+    }
+    let stored: Uint8Array | null
+    try {
+      stored = await this.ctx.artifacts.get(ArtifactId(request.artifactId))
+    } catch (error) {
+      reject(
+        'internal',
+        `artifact storage unavailable for session "${request.sessionId}": ${String(error)}`,
+        {},
+      )
+    }
+    if (stored === null) {
+      reject(
+        'artifact-error',
+        'No artifact content stored under the referenced id.',
+        { reason: 'ARTIFACT_CONTENT_MISSING' },
+      )
+    }
+    return {
+      id: request.artifactId,
+      kind: created.data.kind,
+      title: created.data.title,
+      data: Buffer.from(stored as Uint8Array).toString('base64'),
     }
   }
 

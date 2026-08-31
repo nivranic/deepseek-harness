@@ -344,6 +344,12 @@ data class LinkImageAttachmentRef(
     val name: String? = null,
     val originalDimensions: LinkImageDimensions? = null,
 )
+data class LinkArtifactReadValue(
+    val id: String,
+    val kind: String,
+    val title: String,
+    val data: String,
+)
 data class LinkAttachmentReadValue(
     val attachment: LinkImageAttachmentRef,
     val data: String,

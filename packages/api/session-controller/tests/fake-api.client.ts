@@ -152,6 +152,9 @@ export class FakeApiClient {
   onPrompt: (payload: unknown) => Promise<RpcResponse<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onAttachment: (payload: unknown) => Promise<RpcResponse<{ attachment: { attachmentId: never; mediaType: 'image/png'; bytes: number; width: number; height: number }; data: string }>> =
     () => Promise.resolve(ok({ attachment: { attachmentId: 'a' as never, mediaType: 'image/png', bytes: 1, width: 1, height: 1 }, data: 'AA==' }))
+
+  onArtifact: (payload: unknown) => Promise<RpcResponse<{ id: string; kind: string; title: string; data: string }>> =
+    () => Promise.resolve(ok({ id: 'art-fake', kind: 'report', title: 'Fake report', data: 'AA==' }))
   onUpdateQueue: (payload: unknown) => Promise<RpcResponse<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onCancel: (payload: unknown) => Promise<RpcResponse<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onOpenWorkspacePath: (payload: unknown) => Promise<RemoteResult<{ opened: true }>> =
@@ -234,6 +237,7 @@ export class FakeApiClient {
         fork: payload => this.remoteResult('session.fork', payload, this.onFork(payload)),
         prompt: payload => this.remoteResult('session.prompt', payload, this.onPrompt(payload)),
         attachment: payload => this.remoteResult('session.attachment', payload, this.onAttachment(payload)),
+        artifact: payload => this.remoteResult('session.artifact', payload, this.onArtifact(payload)),
         updateQueue: payload => this.remoteResult('session.updateQueue', payload, this.onUpdateQueue(payload)),
         cancel: payload => this.remoteResult('session.cancel', payload, this.onCancel(payload)),
         openWorkspacePath: payload => this.record(

@@ -22,8 +22,8 @@ import { installModelSelectionProjection } from './model-selection-projection.ts
 import { SessionSkillCatalog } from './skill-catalog.ts'
 import type {
   ModelCatalog,
-  SessionAttachmentRequest,
-  SessionAttachmentValue,
+  SessionArtifactRequest, SessionAttachmentRequest,
+  SessionArtifactValue, SessionAttachmentValue,
   SessionCancelRequest,
   SessionCancelValue,
   SessionControlFrame,
@@ -84,6 +84,7 @@ export class SessionController extends TypertRemoteService {
   static inject = [
     'agentDefaultModel',
     'agents',
+    'artifacts',
     'attachments',
     'llm',
     'sessions',
@@ -336,6 +337,16 @@ export class SessionController extends TypertRemoteService {
   @Remote('attachment')
   attachment(request: SessionAttachmentRequest): Promise<SessionAttachmentValue> {
     return this.commands.attachment(request)
+  }
+
+  /**
+   * Read one artifact proven referenced by the addressed Session log.
+   * @param request - Session and artifact identities used for authorization.
+   * @returns the journaled reference metadata and base64-encoded bytes.
+   */
+  @Remote('artifact')
+  artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue> {
+    return this.commands.artifact(request)
   }
 
   /**

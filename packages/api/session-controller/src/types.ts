@@ -340,6 +340,20 @@ export interface SessionAttachmentValue {
   readonly data: string
 }
 
+/** Durable artifact read request. */
+export interface SessionArtifactRequest {
+  readonly sessionId: SessionId
+  readonly artifactId: string
+}
+
+/** Durable artifact read response value. */
+export interface SessionArtifactValue {
+  readonly id: string
+  readonly kind: string
+  readonly title: string
+  readonly data: string
+}
+
 /** Pending queue mutation request. */
 export interface SessionUpdateQueueRequest {
   readonly sessionId: SessionId

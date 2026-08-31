@@ -575,7 +575,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
     pkg: '@deepseek-ai/dsh-artifact',
     dir: 'artifact',
     source: 'packages/artifact/artifact/src/index.ts',
-    requires: ['ctx.tools', 'ctx.artifacts', 'owning Agent session'],
+    requires: ['ctx.tools', 'ctx.artifacts', 'owning Agent session (create)'],
     writes: ['tool/call', 'artifact/created', 'artifact/status', 'tool/result'],
     async mount(ctx) {
       // The tool injects the resource channel; boot the local backend over a
@@ -584,7 +584,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(ToolArtifact)
     },
     note:
-      'artifact_create is the chapter-56 producer: the model authors one complete artifact per call; the journal keeps the reference and its status, the resource channel keeps the bytes.',
+      'artifact_create is the chapter-56 producer: the model authors one complete artifact per call; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-todo',

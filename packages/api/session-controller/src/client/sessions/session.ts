@@ -314,6 +314,28 @@ export class Session implements SessionFace {
     }
   }
 
+  /**
+   * Resolve one artifact referenced by this session into metadata and bytes.
+   * @param artifactId - reference id from an artifact/created row of the log.
+   * @returns the journaled metadata and decoded bytes.
+   */
+  async readArtifact(
+    artifactId: string,
+  ): Promise<ClientResult<{ id: string; kind: string; title: string; data: Uint8Array }>> {
+    try {
+      const result = await this.remote.session.artifact({
+        sessionId: this.sessionId,
+        artifactId,
+      })
+      if (!result.ok) return toSessionResult(result)
+      const binary = atob(result.value.data)
+      const data = Uint8Array.from(binary, char => char.charCodeAt(0))
+      return { ok: true, value: { id: result.value.id, kind: result.value.kind, title: result.value.title, data } }
+    } catch (error) {
+      return transportResult(error)
+    }
+  }
+
   /** Apply one operation to a still-pending queue occurrence. */
   async updateQueue(itemId: MessageId, action: QueueAction): Promise<ClientResult<{ accepted: true }>> {
     try {

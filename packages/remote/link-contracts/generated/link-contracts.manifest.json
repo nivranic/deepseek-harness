@@ -1215,6 +1215,29 @@
       "fixture": "image-attachment-ref"
     },
     {
+      "name": "LinkArtifactReadValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "title",
+          "kind": "string"
+        },
+        {
+          "name": "data",
+          "kind": "string"
+        }
+      ],
+      "fixture": "artifact-read"
+    },
+    {
       "name": "LinkAttachmentReadValue",
       "shape": "object",
       "fields": [
@@ -1387,6 +1410,11 @@
       "id": "image-attachment-ref",
       "type": "LinkImageAttachmentRef",
       "sha256": "7736b2261ef480c3e61be8083eecd018fff82b68336c450d47668c450bd1a4f6"
+    },
+    {
+      "id": "artifact-read",
+      "type": "LinkArtifactReadValue",
+      "sha256": "22513cc04d76992e5b22c2b0940c17f07938a6b66f4d966a7097d06708e62b21"
     },
     {
       "id": "attachment-read",

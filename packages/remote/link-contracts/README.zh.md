@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`dsh-link-contracts` 是原生伴侣端编译所依据的唯一事实来源：一张声明式表命名 link 词汇表的全部 wire 类型——配对载荷、配对响应、带能力对象的宿主描述、载体状态、设备记录、管理状态行，以及伴侣端逐事件渲染的会话事件载荷（轮次与步区间、用户与助手消息、工具调用与结果、打包 chunk 行、plan/todo/goal 状态）、工作区文件浏览值、子代理目录与附件面（持久图片引用、`session/attachment` 读取值、prompt 内联图片上传）——每类一个黄金 fixture 固定确切线缆字节。zod schema 在编译期钉住 TypeScript 协议类型，wire 类型变更会先在这里被 typecheck 拦下；生成器随后产出带 fixture 校验和的语言中立 manifest 以及 Swift `Codable` 与 Kotlin 数据模型，漂移门禁在重新生成的产物提交前使 CI 失败。
+`dsh-link-contracts` 是原生伴侣端编译所依据的唯一事实来源：一张声明式表命名 link 词汇表的全部 wire 类型——配对载荷、配对响应、带能力对象的宿主描述、载体状态、设备记录、管理状态行，以及伴侣端逐事件渲染的会话事件载荷（轮次与步区间、用户与助手消息、工具调用与结果、打包 chunk 行、plan/todo/goal 状态）、工作区文件浏览值、子代理目录与附件面（持久图片引用、`session/attachment` 读取值、prompt 内联图片上传），以及工件读取值（`session/artifact`）——每类一个黄金 fixture 固定确切线缆字节。zod schema 在编译期钉住 TypeScript 协议类型，wire 类型变更会先在这里被 typecheck 拦下；生成器随后产出带 fixture 校验和的语言中立 manifest 以及 Swift `Codable` 与 Kotlin 数据模型，漂移门禁在重新生成的产物提交前使 CI 失败。
 
 ## 目录
 

@@ -342,6 +342,12 @@ public struct LinkImageAttachmentRef: Codable {
     public let name: String?
     public let originalDimensions: LinkImageDimensions?
 }
+public struct LinkArtifactReadValue: Codable {
+    public let id: String
+    public let kind: String
+    public let title: String
+    public let data: String
+}
 public struct LinkAttachmentReadValue: Codable {
     public let attachment: LinkImageAttachmentRef
     public let data: String

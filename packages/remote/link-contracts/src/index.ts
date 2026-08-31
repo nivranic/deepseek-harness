@@ -12,7 +12,7 @@
 import type { LinkCarrierStatus, LinkHostDescription, LinkPairValue, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { LinkDeviceValue, LinkStatusValue } from '@deepseek-ai/dsh-api-link-controller/types'
 import type { WorkspaceFilesListValue, WorkspaceFilesReadValue } from '@deepseek-ai/dsh-api-workspace-controller'
-import type { SessionAttachmentValue, SessionPromptRequest } from '@deepseek-ai/dsh-api-session-controller/types'
+import type { SessionArtifactValue, SessionAttachmentValue, SessionPromptRequest } from '@deepseek-ai/dsh-api-session-controller/types'
 import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
@@ -619,6 +619,17 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     ],
   },
   {
+    name: 'LinkArtifactReadValue',
+    shape: 'object',
+    fixture: 'artifact-read',
+    fields: [
+      { name: 'id', kind: 'string' },
+      { name: 'kind', kind: 'string' },
+      { name: 'title', kind: 'string' },
+      { name: 'data', kind: 'string' },
+    ],
+  },
+  {
     name: 'LinkAttachmentReadValue',
     shape: 'object',
     fixture: 'attachment-read',
@@ -714,7 +725,7 @@ export interface ContractFixture {
   readonly value: LinkPairingPayload | LinkPairValue | LinkHostDescription | LinkCarrierStatus | LinkDeviceValue | LinkStatusValue
   | LinkSessionEventPayload | LinkChunkRowPayload | WorkspaceFilesListValue | WorkspaceFilesReadValue
   | SubagentListEntry | SubagentCatalog
-  | ImageAttachmentRef | SessionAttachmentValue | Extract<SessionPromptRequest['content'][number], { type: 'image' }>
+  | ImageAttachmentRef | SessionAttachmentValue | SessionArtifactValue | Extract<SessionPromptRequest['content'][number], { type: 'image' }>
 }
 
 /** The golden fixtures; ids match the table's `fixture` rows. */
@@ -997,6 +1008,16 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       name: 'screenshot.png',
       originalDimensions: { width: 1600, height: 1200 },
     } satisfies ImageAttachmentRef,
+  },
+  {
+    type: 'LinkArtifactReadValue',
+    id: 'artifact-read',
+    value: {
+      id: 'art-0f4c',
+      kind: 'report',
+      title: '迁移报告',
+      data: Buffer.from('# 迁移报告').toString('base64'),
+    } satisfies SessionArtifactValue,
   },
   {
     type: 'LinkAttachmentReadValue',

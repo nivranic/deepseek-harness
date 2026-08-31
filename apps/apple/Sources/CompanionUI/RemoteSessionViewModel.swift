@@ -111,6 +111,8 @@ public final class RemoteSessionViewModel {
     /// Image bytes fetched by attachment id, the download half of the
     /// attachment surface; the fold's inline summary names the reference.
     public private(set) var attachments: [String: Data] = [:]
+    /** Decoded artifact content by reference id; the pane renders from it. */
+    public private(set) var artifactBytes: [String: Data] = [:]
 
     /// Reconnect bookkeeping for the open follow stream.
     public private(set) var reconnecting = false
@@ -234,6 +236,22 @@ public final class RemoteSessionViewModel {
         ]) else { return nil }
         guard let read = ContractCodec.decode(LinkAttachmentReadValue.self, from: value) else { return nil }
         attachments[attachmentId] = Data(base64Encoded: read.data)
+        return read
+    }
+
+    /// Fetch one artifact the open session references over `session/artifact`
+    /// and cache its decoded bytes; returns the read on success.
+    @discardableResult
+    public func readArtifact(_ artifactId: String) async -> LinkArtifactReadValue? {
+        guard let active else { return nil }
+        guard let value = try? await wire.call("session/artifact", args: [
+            "request": .object([
+                "sessionId": .string(active.sessionId),
+                "artifactId": .string(artifactId),
+            ]),
+        ]) else { return nil }
+        guard let read = ContractCodec.decode(LinkArtifactReadValue.self, from: value) else { return nil }
+        artifactBytes[artifactId] = Data(base64Encoded: read.data)
         return read
     }
 

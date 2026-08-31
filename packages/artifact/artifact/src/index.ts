@@ -9,6 +9,7 @@
 
 import { randomUUID } from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { Service } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { ArtifactId } from './types.ts'
@@ -114,5 +115,57 @@ export function apply(ctx: Context): void {
       )
     },
     presentCall: args => ({ card: 'generic', title: 'Create artifact', kind: 'other', rawInput: args }),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'artifact_read',
+    description: 'Read one artifact back by its reference id. Returns the COMPLETE content exactly as created, plus the kind and title when the calling session journaled the artifact. Reading does not modify the artifact.',
+    parameters: {
+      id: { type: 'string', required: true, description: 'The artifact reference id an artifact_create result reported.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          id: { type: 'string', required: true },
+          kind: { type: 'string' },
+          title: { type: 'string' },
+          content: { type: 'string', required: true },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.title === undefined
+          ? `Artifact ${value.id}:`
+          : `Artifact ${value.title} (${value.kind}) — ${value.id}:`,
+      }, {
+        type: 'text',
+        text: value.content,
+      }],
+    },
+    async execute(args, exec) {
+      const id = ArtifactId(args.id.trim())
+      if (id.length === 0) {
+        throw new Error('artifact_read requires a non-empty id')
+      }
+      const stored = await ctx.artifacts.get(id)
+      if (stored === null) {
+        // An id the channel never stored (or whose bytes were removed) has
+        // nothing to read; say so instead of returning an empty content.
+        throw new Error(`artifact_read found no content stored under id "${id}"`)
+      }
+      const agent = exec.agent
+      const created = agent === undefined
+        ? undefined
+        : agent.session.events.findLast((event): event is SessionEvent<'artifact/created'> =>
+          event.type === 'artifact/created' && event.data.id === id)
+      return {
+        id,
+        content: new TextDecoder().decode(stored),
+        ...(created === undefined ? {} : { kind: created.data.kind, title: created.data.title }),
+      }
+    },
+    presentCall: args => ({ card: 'generic', title: 'Read artifact', kind: 'other', rawInput: args }),
   }))
 }
