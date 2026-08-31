@@ -394,6 +394,8 @@ final class RemoteSessionViewModelTests: XCTestCase {
             "kind": .string("report"),
             "title": .string("迁移报告"),
             "data": .string(encoded),
+            "truncated": .bool(false),
+            "size": .number(4),
         ])))
         let model = RemoteSessionViewModel(wire: wire)
         await model.open(sessionId: "s9")
