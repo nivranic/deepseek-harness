@@ -1,40 +1,132 @@
+import Foundation
 import Network
 import XCTest
 @testable import SharedAppleRemoteCore
 
-/// A minimal real HTTP/1.1 server over a TCP listener, serving one
-/// scripted answer per test: the push-stream tests need a live socket
-/// whose body bytes arrive incrementally, which URLProtocol stubs cannot
-/// provide. Requests are not parsed beyond arrival; the script owns the
-/// answer.
-final class RelayHTTPServer {
-    enum Script {
-        /// Write one NDJSON line immediately, hold the stream open until
-        /// `release` fires, then write the second line and close cleanly.
-        case flushThenLive(String, String, release: DispatchSemaphore)
-        /// Write every NDJSON line immediately, then close cleanly.
-        case lines([String])
-        /// Answer 200 with one fixed-length JSON body.
-        case jsonBody(String)
-        /// Answer 200 with zero lines and a clean close.
-        case emptyClose
-        /// Answer one bare status with no body.
-        case status(Int)
+private func hex(_ bytes: [UInt8]) -> String {
+    bytes.map { String(format: "%02x", $0) }.joined()
+}
+
+private func unhex(_ value: String) -> [UInt8] {
+    var bytes: [UInt8] = []
+    var index = value.startIndex
+    while index < value.endIndex {
+        let next = value.index(after: index)
+        bytes.append(UInt8(value[index...next], radix: 16)!)
+        index = value.index(after: next)
+    }
+    return bytes
+}
+
+private func vectors() throws -> [String: Any] {
+    let url = URL(fileURLWithPath: #filePath, isDirectory: false)
+        .deletingLastPathComponent()
+        .appendingPathComponent("Fixtures/relay-noise-vectors.json", isDirectory: false)
+    return try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
+}
+
+private func pinnedHandshake(_ role: NoiseHandshake.Role) throws -> NoiseHandshake {
+    let keys = try vectors()["keys"] as! [String: String]
+    let prefix = role == .initiator ? "initiator" : "responder"
+    return NoiseHandshake(
+        role: role,
+        staticScalar: unhex(keys["\(prefix)Static"]!),
+        ephemeralScalar: unhex(keys["\(prefix)Ephemeral"]!)
+    )
+}
+
+/// The Noise_XX stack against the fixed-key vectors the node reference
+/// implementation (apps/relay/noise.mjs) generated: every port must
+/// reproduce the handshake bytes, session id, channel binding, split keys,
+/// and transport frames exactly — that byte-level agreement is the
+/// cross-implementation interop proof, since no CI lane runs the node
+/// service itself.
+final class NoiseVectorTests: XCTestCase {
+    func testReproducesTheHandshakeBytesSessionIdAndChannelBinding() throws {
+        let section = try vectors()["handshake"] as! [String: String]
+        let alice = try pinnedHandshake(.initiator)
+        let bob = try pinnedHandshake(.responder)
+        let msg1 = try alice.writeMessage1()
+        XCTAssertEqual(hex(msg1), section["msg1"], "msg1 bytes")
+        try bob.readMessage1(msg1)
+        let msg2 = try bob.writeMessage2()
+        XCTAssertEqual(hex(msg2), section["msg2"], "msg2 bytes")
+        try alice.readMessage2(msg2)
+        XCTAssertEqual(hex(alice.transcriptHash), section["sessionIdAfterMsg2"], "session id after msg2")
+        let msg3 = try alice.writeMessage3()
+        XCTAssertEqual(hex(msg3), section["msg3"], "msg3 bytes")
+        try bob.readMessage3(msg3)
+        XCTAssertEqual(hex(alice.transcriptHash), section["channelBindingAfterMsg3"], "channel binding")
+        XCTAssertEqual(hex(bob.transcriptHash), hex(alice.transcriptHash), "both roles agree")
     }
 
-    private let listener: NWListener
-    private let queue = DispatchQueue(label: "relay-http-test-server")
-    private var connection: NWConnection?
-    let script: Script
+    func testSplitsTheReferenceTrafficKeysAndRoundTripsEveryFrame() throws {
+        let section = try vectors()["transport"] as! [String: Any]
+        let alice = try pinnedHandshake(.initiator)
+        let bob = try pinnedHandshake(.responder)
+        try bob.readMessage1(try alice.writeMessage1())
+        try alice.readMessage2(try bob.writeMessage2())
+        try bob.readMessage3(try alice.writeMessage3())
+        let aliceSide = try alice.split()
+        let bobSide = try bob.split()
+        XCTAssertEqual(hex([UInt8](aliceSide.send.keyData)), section["c1Key"] as! String, "c1 key")
+        XCTAssertEqual(hex([UInt8](aliceSide.recv.keyData)), section["c2Key"] as! String, "c2 key")
+        for entry in section["c1Frames"] as! [[String: String]] {
+            let payload = unhex(entry["payload"]!)
+            let sealed = unhex(entry["frame"]!)
+            XCTAssertEqual(hex(try aliceSide.send.encryptWithAd([], payload)), entry["frame"], "c1 frame seals identically")
+            XCTAssertEqual(try bobSide.recv.decryptWithAd([], sealed), payload, "c1 frame opens")
+        }
+        for entry in section["c2Frames"] as! [[String: String]] {
+            let payload = unhex(entry["payload"]!)
+            let sealed = unhex(entry["frame"]!)
+            XCTAssertEqual(hex(try bobSide.send.encryptWithAd([], payload)), entry["frame"], "c2 frame seals identically")
+            XCTAssertEqual(try aliceSide.recv.decryptWithAd([], sealed), payload, "c2 frame opens")
+        }
+    }
 
-    /// - Parameter script: the answer this server serves.
-    init(script: Script) throws {
-        self.script = script
+    func testRejectsTamperedFramesAndTruncatedFraming() throws {
+        let section = try vectors()["transport"] as! [String: Any]
+        let alice = try pinnedHandshake(.initiator)
+        let bob = try pinnedHandshake(.responder)
+        try bob.readMessage1(try alice.writeMessage1())
+        try alice.readMessage2(try bob.writeMessage2())
+        try bob.readMessage3(try alice.writeMessage3())
+        var tampered = unhex((section["c1Frames"] as! [[String: String]])[0]["frame"]!)
+        tampered[0] ^= 1
+        XCTAssertThrowsError(try bob.split().recv.decryptWithAd([], tampered))
+        XCTAssertThrowsError(try decodeNoiseFrames([0, 4, 9]))
+        let framing = try vectors()["framing"] as! [String: String]
+        XCTAssertEqual(encodeNoiseFrame(Array(0..<16).map { UInt8($0) }), unhex(framing["single"]!))
+    }
+}
+
+/// A real local HTTP/1.1 server over a TCP listener running the Noise
+/// responder side of the relay protocol: it parses enough of each request
+/// to route by path and headers, completes the XX handshake, decrypts
+/// framed bodies, and answers framed AEAD responses; the push stream
+/// writes chunked frames and holds open until `releaseStream()`. Two
+/// corruption switches let the failure paths be pinned.
+final class NoiseRelayServer {
+    /// Answer hello with a session id unrelated to the transcript.
+    var corruptSessionHeader = false
+    /// Seal the complete ack under an unrelated handshake's keys.
+    var sealAckWithStrangerKeys = false
+
+    private let listener: NWListener
+    private let queue = DispatchQueue(label: "noise-relay-test-server")
+    private var pendingHandshakes: [String: NoiseHandshake] = [:]
+    private var sessions: [String: (send: NoiseCipherState, recv: NoiseCipherState)] = [:]
+    private var devices: [(token: String, accountId: String, deviceId: String, platform: String)] = []
+    private var queues: [String: [[UInt8]]] = [:]
+    private var stream: (write: ([UInt8]) -> Void, state: NoiseCipherState, hold: DispatchSemaphore)?
+
+    /// - Throws when the listener cannot be created.
+    init() throws {
         listener = try NWListener(using: .tcp, on: .any)
     }
 
     /// Start listening; returns once the assigned port is live.
-    /// - Throws when the listener never reaches the ready state.
     func start() throws {
         let ready = DispatchSemaphore(value: 0)
         listener.stateUpdateHandler = { state in
@@ -47,70 +139,203 @@ final class RelayHTTPServer {
         listener.start(queue: queue)
         guard ready.wait(timeout: .now() + 5) == .success, listener.port != nil else {
             throw NSError(
-                domain: "relay-http-test-server", code: 1,
+                domain: "noise-relay-test-server", code: 1,
                 userInfo: [NSLocalizedDescriptionKey: "listener never became ready"]
             )
         }
     }
 
     func stop() {
+        releaseStream()
         listener.cancel()
-        connection?.cancel()
     }
 
     var port: UInt16 { listener.port?.rawValue ?? 0 }
 
-    private func accept(_ connection: NWConnection) {
-        self.connection = connection
-        connection.start(queue: queue)
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] _, _, _, error in
-            // The request head has arrived in one local segment; the
-            // script answers now without parsing it.
-            guard error == nil else { return }
-            self?.answer(connection)
-        }
+    /// Let the held-open stream finish (its terminating chunk ends the flow).
+    func releaseStream() {
+        stream?.hold.signal()
     }
 
-    private func answer(_ connection: NWConnection) {
-        switch script {
-        case let .flushThenLive(first, second, release):
-            send(connection, chunkedHead()) {
-                self.send(connection, self.chunk(first)) {
-                    release.wait()
-                    self.send(connection, self.chunk(second)) {
-                        self.send(connection, Data("0\r\n\r\n".utf8)) { connection.cancel() }
-                    }
+    private func accept(_ connection: NWConnection) {
+        connection.start(queue: queue)
+        readRequest(connection, accumulated: Data())
+    }
+
+    /// Accumulate bytes until one full request (head + content-length body).
+    private func readRequest(_ connection: NWConnection, accumulated: Data) {
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, _, error in
+            guard let self, error == nil, let data else { return }
+            let buffer = accumulated + data
+            guard let headEnd = buffer.range(of: Data("\r\n\r\n".utf8)) else {
+                self.readRequest(connection, accumulated: buffer)
+                return
+            }
+            let head = String(decoding: buffer[buffer.startIndex..<headEnd.lowerBound], as: UTF8.self)
+            let lines = head.components(separatedBy: "\r\n")
+            var contentLength = 0
+            var headers: [String: String] = [:]
+            for line in lines.dropFirst() {
+                let parts = line.split(separator: ":", maxSplits: 1)
+                guard parts.count == 2 else { continue }
+                headers[parts[0].lowercased()] = parts[1].trimmingCharacters(in: .whitespaces)
+                if parts[0].lowercased() == "content-length" {
+                    contentLength = Int(parts[1].trimmingCharacters(in: .whitespaces)) ?? 0
                 }
             }
-        case let .lines(lines):
-            send(connection, chunkedHead()) {
-                for line in lines { self.send(connection, self.chunk(line)) {} }
-                self.send(connection, Data("0\r\n\r\n".utf8)) { connection.cancel() }
+            let bodyStart = headEnd.upperBound
+            guard buffer.distance(from: bodyStart, to: buffer.endIndex) >= contentLength else {
+                self.readRequest(connection, accumulated: buffer)
+                return
             }
-        case let .jsonBody(body):
-            let bytes = Data(body.utf8)
-            let head = "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: \(bytes.count)\r\nconnection: close\r\n\r\n"
-            send(connection, Data(head.utf8)) {
-                self.send(connection, bytes) { connection.cancel() }
-            }
-        case .emptyClose:
-            send(connection, chunkedHead()) {
-                self.send(connection, Data("0\r\n\r\n".utf8)) { connection.cancel() }
-            }
-        case let .status(code):
-            let head = "HTTP/1.1 \(code) Refused\r\ncontent-length: 0\r\nconnection: close\r\n\r\n"
-            send(connection, Data(head.utf8)) { connection.cancel() }
+            let body = [UInt8](buffer[bodyStart..<buffer.index(bodyStart, offsetBy: contentLength)])
+            let requestLine = lines.first ?? ""
+            let fields = requestLine.components(separatedBy: " ")
+            let path = fields.count >= 2 ? URLComponents(string: fields[1])?.path ?? "" : ""
+            self.route(path: path, headers: headers, body: body, connection: connection)
         }
     }
 
-    private func chunkedHead() -> Data {
-        let head = "HTTP/1.1 200 OK\r\ncontent-type: application/x-ndjson\r\ntransfer-encoding: chunked\r\nconnection: close\r\n\r\n"
-        return Data(head.utf8)
+    private func route(path: String, headers: [String: String], body: [UInt8], connection: NWConnection) {
+        do {
+            switch path {
+            case "/relay/noise/hello":
+                let handshake = NoiseHandshake(role: .responder)
+                try handshake.readMessage1(body)
+                let id = hex(handshake.transcriptHash)
+                pendingHandshakes[id] = handshake
+                let answered = corruptSessionHeader ? "deadbeef" : id
+                respond(connection, status: 200, body: Data(try handshake.writeMessage2()), headers: ["x-relay-session": answered])
+            case "/relay/noise/complete":
+                guard let id = headers["x-relay-session"], let handshake = pendingHandshakes.removeValue(forKey: id) else {
+                    respond(connection, status: 410, body: Data("{\"error\":\"unknown relay session\"}".utf8))
+                    return
+                }
+                if sealAckWithStrangerKeys {
+                    let stranger = NoiseHandshake(role: .responder)
+                    try stranger.readMessage1([UInt8](repeating: 0, count: 32))
+                    respond(connection, status: 200, body: Data(encodeNoiseFrame(try stranger.split().send.encryptWithAd([], Array("{\"ok\":true}".utf8)))))
+                    return
+                }
+                try handshake.readMessage3(body)
+                let split = try handshake.split()
+                sessions[id] = split
+                respond(connection, status: 200, body: Data(encodeNoiseFrame(try split.send.encryptWithAd([], Array("{\"ok\":true}".utf8)))))
+            case "/relay/register":
+                let opened = try openSession(headers: headers, body: body, connection: connection)
+                let request = opened.request
+                let token = "rt-\(request["accountId"] as! String)-\(request["deviceId"] as! String)"
+                devices.append((token, request["accountId"] as! String, request["deviceId"] as! String, request["platform"] as? String ?? ""))
+                queues[token] = []
+                respondEncrypted(connection, session: opened.session, value: "{\"token\":\"\(token)\"}")
+            case "/relay/publish":
+                let opened = try openSession(headers: headers, body: body, connection: connection)
+                let accountId = opened.request["accountId"] as! String
+                let envelope = opened.request.filter { $0.key != "accountId" }
+                let json = try! JSONSerialization.data(withJSONObject: envelope)
+                var delivered = 0
+                for device in devices where device.accountId == accountId {
+                    if let stream {
+                        stream.write(try stream.state.encryptWithAd([], [UInt8](json)))
+                    } else {
+                        queues[device.token]?.append([UInt8](json))
+                    }
+                    delivered += 1
+                }
+                respondEncrypted(connection, session: opened.session, value: "{\"delivered\":\(delivered)}")
+            case "/relay/poll":
+                let opened = try openSession(headers: headers, body: body, connection: connection)
+                let token = opened.request["token"] as! String
+                let queued = queues.removeValue(forKey: token) ?? []
+                let bodyOut = queued.map { encodeNoiseFrame(try opened.session.send.encryptWithAd([], $0)) }.reduce([], +)
+                respond(connection, status: 200, body: Data(bodyOut))
+            case "/relay/presence":
+                let opened = try openSession(headers: headers, body: body, connection: connection)
+                let accountId = opened.request["accountId"] as! String
+                let roster = devices
+                    .filter { $0.accountId == accountId }
+                    .map { "{\"deviceId\":\"\($0.deviceId)\",\"platform\":\"\($0.platform)\",\"online\":false}" }
+                    .joined(separator: ",")
+                respondEncrypted(connection, session: opened.session, value: "[\(roster)]")
+            case "/relay/stream":
+                try streamRoute(headers: headers, body: body, connection: connection)
+            default:
+                respond(connection, status: 404, body: Data())
+            }
+        } catch {
+            respond(connection, status: 400, body: Data())
+        }
     }
 
-    private func chunk(_ line: String) -> Data {
-        let payload = line + "\n"
-        return Data("\(String(payload.utf8.count, radix: 16))\r\n\(payload)\r\n".utf8)
+    private func streamRoute(headers: [String: String], body: [UInt8], connection: NWConnection) throws {
+        let opened = try openSession(headers: headers, body: body, connection: connection)
+        let token = opened.request["token"] as! String
+        let state = NoiseCipherState(key: unhex(opened.request["streamKey"] as! String))
+        let queued = queues.removeValue(forKey: token) ?? []
+        let head = "HTTP/1.1 200 OK\r\ncontent-type: application/octet-stream\r\ntransfer-encoding: chunked\r\nconnection: close\r\n\r\n"
+        send(connection, Data(head.utf8)) {
+            for envelope in queued {
+                self.writeChunk(connection, try! state.encryptWithAd([], envelope))
+            }
+            self.establishStream(connection: connection, state: state)
+        }
+    }
+
+    /// Store the live writer and hold the stream open until release.
+    private func establishStream(connection: NWConnection, state: NoiseCipherState) {
+        let hold = DispatchSemaphore(value: 0)
+        stream = (
+            write: { ciphertext in
+                self.writeChunk(connection, ciphertext)
+            },
+            state: state,
+            hold: hold
+        )
+        // Waiting must leave this serial queue free for live publishes; the
+        // terminating chunk rides the release.
+        DispatchQueue.global().async {
+            _ = hold.wait(timeout: .now() + 10)
+            self.queue.async {
+                self.send(connection, Data("0\r\n\r\n".utf8)) { connection.cancel() }
+            }
+        }
+    }
+
+    /// One chunked-transfer piece carrying one framed ciphertext.
+    private func writeChunk(_ connection: NWConnection, _ ciphertext: [UInt8]) {
+        let framed = encodeNoiseFrame(ciphertext)
+        let head = "\(String(framed.count, radix: 16))\r\n"
+        send(connection, Data(head.utf8)) {
+            self.send(connection, Data(framed)) {
+                self.send(connection, Data("\r\n".utf8)) {}
+            }
+        }
+    }
+
+    /// The session + decrypted request JSON, or a 410 reply and throw.
+    private func openSession(headers: [String: String], body: [UInt8], connection: NWConnection) throws -> (session: (send: NoiseCipherState, recv: NoiseCipherState), request: [String: Any]) {
+        guard let id = headers["x-relay-session"], let session = sessions[id] else {
+            respond(connection, status: 410, body: Data("{\"error\":\"unknown relay session\"}".utf8))
+            throw RelayClientError.http(410)
+        }
+        let frames = try decodeNoiseFrames(body)
+        let payload = try session.recv.decryptWithAd([], frames[0])
+        return (session, try JSONSerialization.jsonObject(with: Data(payload)) as! [String: Any])
+    }
+
+    private func respondEncrypted(_ connection: NWConnection, session: (send: NoiseCipherState, recv: NoiseCipherState), value: String) {
+        respond(connection, status: 200, body: Data(encodeNoiseFrame(try! session.send.encryptWithAd([], Array(value.utf8)))))
+    }
+
+    private func respond(_ connection: NWConnection, status: Int, body: Data, headers: [String: String] = [:]) {
+        var head = "HTTP/1.1 \(status) Answer\r\ncontent-type: application/octet-stream\r\ncontent-length: \(body.count)\r\nconnection: close\r\n"
+        for (name, value) in headers {
+            head += "\(name): \(value)\r\n"
+        }
+        head += "\r\n"
+        send(connection, Data(head.utf8)) {
+            self.send(connection, body) { connection.cancel() }
+        }
     }
 
     private func send(_ connection: NWConnection, _ data: Data, then: @escaping () -> Void) {
@@ -118,11 +343,12 @@ final class RelayHTTPServer {
     }
 }
 
-/// The HTTP consumer's push stream and presence against a real local
-/// server: connect flushes, then live lines arrive; a clean close finishes
-/// the stream.
-final class RelayClientStreamTests: XCTestCase {
-    private struct StreamTestTimeout: Error {}
+/// The Noise-encrypted relay consumer against the real local responder:
+/// handshake, register, publish, poll, presence, and the push stream ride
+/// framed AEAD bodies over real sockets; the two corruption switches pin
+/// the failure paths.
+final class RelayClientNoiseTests: XCTestCase {
+    private struct TestTimeout: Error {}
 
     /// Bounds one async pull so a stuck server fails the test instead of
     /// hanging the lane.
@@ -131,7 +357,7 @@ final class RelayClientStreamTests: XCTestCase {
             group.addTask { try await pull() }
             group.addTask {
                 try await Task.sleep(nanoseconds: 10_000_000_000)
-                throw StreamTestTimeout()
+                throw TestTimeout()
             }
             let value = try await group.next()!
             group.cancelAll()
@@ -139,109 +365,73 @@ final class RelayClientStreamTests: XCTestCase {
         }
     }
 
-    /// One bare envelope line exactly as the wire writes it (optional keys
-    /// omitted), for scripting stream bodies.
-    private func envelopeLine(_ envelope: RelayEnvelope) throws -> String {
-        try String(decoding: JSONEncoder().encode(envelope), as: UTF8.self)
-    }
-
-    func testStreamFlushesOnConnectThenPushesTheLiveLine() async throws {
-        let release = DispatchSemaphore(value: 0)
-        let firstEnvelope = RelayEnvelope(kind: "approval-waiting", sessionId: "s1", eventId: "e1")
-        let secondEnvelope = RelayEnvelope(kind: "task-completed", sessionId: "s1", turn: 3)
-        let server = try RelayHTTPServer(script: .flushThenLive(
-            envelopeLine(firstEnvelope),
-            envelopeLine(secondEnvelope),
-            release: release
-        ))
+    func testHandshakesRegistersPublishesPollsAndAnswersPresence() async throws {
+        let server = try NoiseRelayServer()
         try server.start()
         defer { server.stop() }
         let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
 
-        var events = client.stream(token: "rt-acct-phone").makeAsyncIterator()
+        let token = try await withTestTimeout { try await client.register(RelayDevice(accountId: "acct", deviceId: "phone", platform: "android")) }
+        XCTAssertEqual(token, "rt-acct-phone")
+        _ = try await withTestTimeout {
+            try await client.publish(accountId: "acct", envelope: RelayEnvelope(kind: "approval-waiting", sessionId: "s1", eventId: "e1"))
+        }
+        let polled = try await withTestTimeout { try await client.poll(token: token) }
+        XCTAssertEqual(polled, [RelayEnvelope(kind: "approval-waiting", sessionId: "s1", eventId: "e1")])
+        let roster = try await withTestTimeout { try await client.presence(accountId: "acct") }
+        XCTAssertEqual(roster, [RelayPresence(deviceId: "phone", platform: "android", online: false)])
+    }
+
+    func testStreamFlushesTheQueueThenDeliversLivePublishes() async throws {
+        let server = try NoiseRelayServer()
+        try server.start()
+        defer { server.stop() }
+        let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
+        let token = try await withTestTimeout { try await client.register(RelayDevice(accountId: "acct", deviceId: "phone", platform: "android")) }
+        _ = try await withTestTimeout {
+            try await client.publish(accountId: "acct", envelope: RelayEnvelope(kind: "task-completed", sessionId: "s1", turn: 3))
+        }
+
+        var events = client.stream(token: token).makeAsyncIterator()
         let first = try await withTestTimeout { try await events.next() }
-        XCTAssertEqual(first, .envelope(firstEnvelope))
-        release.signal()
+        XCTAssertEqual(first, .envelope(RelayEnvelope(kind: "task-completed", sessionId: "s1", turn: 3)))
+        _ = try await withTestTimeout {
+            try await client.publish(accountId: "acct", envelope: RelayEnvelope(kind: "question-waiting", sessionId: "s9", eventId: "e2"))
+        }
         let second = try await withTestTimeout { try await events.next() }
-        XCTAssertEqual(second, .envelope(secondEnvelope))
-    }
-
-    func testPresenceLinesDecodeAsSameAccountPresenceEvents() async throws {
-        let envelope = RelayEnvelope(kind: "approval-waiting", sessionId: "s1", eventId: "e1")
-        let server = try RelayHTTPServer(script: .lines([
-            envelopeLine(envelope),
-            "{\"type\":\"presence\",\"deviceId\":\"pad\",\"online\":true}",
-            "{\"type\":\"presence\",\"deviceId\":\"pad\",\"online\":false}",
-        ]))
-        try server.start()
-        defer { server.stop() }
-        let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
-
-        var events = client.stream(token: "rt-acct-phone").makeAsyncIterator()
-        let first = try await withTestTimeout { try await events.next() }
-        XCTAssertEqual(first, .envelope(envelope))
-        let online = try await withTestTimeout { try await events.next() }
-        XCTAssertEqual(online, .presence(deviceId: "pad", online: true))
-        let offline = try await withTestTimeout { try await events.next() }
-        XCTAssertEqual(offline, .presence(deviceId: "pad", online: false))
+        XCTAssertEqual(second, .envelope(RelayEnvelope(kind: "question-waiting", sessionId: "s9", eventId: "e2")))
+        server.releaseStream()
         let end = try await withTestTimeout { try await events.next() }
         XCTAssertNil(end)
     }
 
-    func testMalformedPresenceLinesFailLoud() async throws {
-        let server = try RelayHTTPServer(script: .lines([
-            "{\"type\":\"presence\",\"online\":true}",
-        ]))
+    func testASessionIdMismatchFailsLoud() async throws {
+        let server = try NoiseRelayServer()
+        server.corruptSessionHeader = true
         try server.start()
         defer { server.stop() }
         let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
 
-        var events = client.stream(token: "rt-acct-phone").makeAsyncIterator()
         do {
-            _ = try await withTestTimeout { try await events.next() }
-            XCTFail("expected the malformed presence line to surface")
-        } catch is DecodingError {
-            // The wire boundary refuses lines it cannot name.
+            _ = try await withTestTimeout { try await client.register(RelayDevice(accountId: "acct", deviceId: "phone", platform: "android")) }
+            XCTFail("expected the mismatched session id to surface")
+        } catch let error as DecodingError {
+            // The wire boundary refuses a session id it cannot bind.
         }
     }
 
-    func testPresenceAnswersTheAccountRosterWithOnlineState() async throws {
-        let body = "[{\"deviceId\":\"phone\",\"platform\":\"android\",\"online\":true},{\"deviceId\":\"pad\",\"platform\":\"ios\",\"online\":false}]"
-        let server = try RelayHTTPServer(script: .jsonBody(body))
+    func testABrokenAckFailsKeyConfirmation() async throws {
+        let server = try NoiseRelayServer()
+        server.sealAckWithStrangerKeys = true
         try server.start()
         defer { server.stop() }
         let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
 
-        let roster = try await withTestTimeout { try await client.presence(accountId: "acct") }
-        XCTAssertEqual(roster, [
-            RelayPresence(deviceId: "phone", platform: "android", online: true),
-            RelayPresence(deviceId: "pad", platform: "ios", online: false),
-        ])
-    }
-
-    func testUnknownTokenStreamsACleanEmptyClose() async throws {
-        let server = try RelayHTTPServer(script: .emptyClose)
-        try server.start()
-        defer { server.stop() }
-        let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
-
-        var events = client.stream(token: "rt-none").makeAsyncIterator()
-        let first = try await withTestTimeout { try await events.next() }
-        XCTAssertNil(first)
-    }
-
-    func testRefusedStreamsFailLoud() async throws {
-        let server = try RelayHTTPServer(script: .status(500))
-        try server.start()
-        defer { server.stop() }
-        let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
-
-        var events = client.stream(token: "rt-acct-phone").makeAsyncIterator()
         do {
-            _ = try await withTestTimeout { try await events.next() }
-            XCTFail("expected the refusal to surface")
-        } catch let error as RelayClientError {
-            XCTAssertEqual(error, .http(500))
+            _ = try await withTestTimeout { try await client.register(RelayDevice(accountId: "acct", deviceId: "phone", platform: "android")) }
+            XCTFail("expected the broken ack to surface")
+        } catch {
+            // Key confirmation refuses an ack sealed under stranger keys.
         }
     }
 }

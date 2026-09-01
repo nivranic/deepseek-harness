@@ -23,31 +23,32 @@ public struct RelayPresence: Equatable, Sendable, Codable {
     }
 }
 
-/// One push-stream line: a reference envelope, or a same-account device's
+/// One push-stream frame: a reference envelope, or a same-account device's
 /// presence change.
 public enum RelayStreamEvent: Equatable, Sendable {
     case envelope(RelayEnvelope)
     case presence(deviceId: String, online: Bool)
 }
 
-/// The relay's HTTP consumer (chapters 68/69): registers a device,
+/// The relay's Noise-encrypted HTTP consumer (chapters 68/69): the client
+/// completes one Noise_XX handshake lazily on the first call
+/// (hello → verify the server-assigned session id equals our own transcript
+/// hash → complete → consume the encrypted ack), then registers a device,
 /// publishes reference envelopes, drains pending ones by poll, holds the
-/// push stream open (connect flushes the pending queue, then reference
-/// envelopes and same-account presence changes arrive as NDJSON lines,
-/// replacing poll for a connected device), and answers the account
-/// roster's online state. The LAN-direct link stays the primary transport;
-/// the relay is the rendezvous path, and APNs/FCM delivery will extend it
-/// with a push-token step.
+/// push stream open, and answers the account roster's online state — every
+/// body a framed AEAD message under the split session keys. The stream
+/// rides a one-time key the encrypted request carries, so live pushes
+/// never share a counter with HTTP responses. The LAN-direct link stays
+/// the primary transport; the relay is the rendezvous path, and APNs/FCM
+/// delivery will extend it with a push-token step.
 public final class RelayClient: @unchecked Sendable {
-    private let endpoint: URL
-    private let session: URLSession
+    private let transport: RelayTransport
 
     /// - Parameters:
     ///   - endpoint: the relay service base URL.
     ///   - session: the URL session serving the calls.
     public init(endpoint: URL, session: URLSession = .shared) {
-        self.endpoint = endpoint
-        self.session = session
+        self.transport = RelayTransport(endpoint: endpoint, session: session)
     }
 
     /// Register one device at the rendezvous service.
@@ -57,7 +58,8 @@ public final class RelayClient: @unchecked Sendable {
     ///   a string token.
     public func register(_ device: RelayDevice) async throws -> String {
         struct Reply: Decodable { let token: String }
-        return try await decode(Reply.self, request: post("/relay/register", body: device)).token
+        let reply: Reply = try await transport.call("/relay/register", body: device)
+        return reply.token
     }
 
     /// Publish one reference envelope to an account's devices.
@@ -75,14 +77,17 @@ public final class RelayClient: @unchecked Sendable {
             let turn: Int?
         }
         struct Reply: Decodable { let delivered: Int }
-        let body = Body(
-            accountId: accountId,
-            kind: envelope.kind,
-            sessionId: envelope.sessionId,
-            eventId: envelope.eventId,
-            turn: envelope.turn
+        let reply: Reply = try await transport.call(
+            "/relay/publish",
+            body: Body(
+                accountId: accountId,
+                kind: envelope.kind,
+                sessionId: envelope.sessionId,
+                eventId: envelope.eventId,
+                turn: envelope.turn
+            ),
         )
-        return try await decode(Reply.self, request: post("/relay/publish", body: body)).delivered
+        return reply.delivered
     }
 
     /// Drain the device's pending envelopes in arrival order.
@@ -90,12 +95,14 @@ public final class RelayClient: @unchecked Sendable {
     /// - Returns: the forwarded envelopes, oldest first.
     /// - Throws on transport failure or a non-2xx answer.
     public func poll(token: String) async throws -> [RelayEnvelope] {
-        try await decode([RelayEnvelope].self, request: URLRequest(url: route("/relay/poll", query: ["token": token])))
+        struct Body: Encodable { let token: String }
+        let payloads = try await transport.callFrames("/relay/poll", body: Body(token: token))
+        return try payloads.map { try JSONDecoder().decode(RelayEnvelope.self, from: $0) }
     }
 
     /// Hold the push stream open: connect flushes the pending queue as its
-    /// first lines, then every live publish to this device and every
-    /// same-account device's presence change arrives as one NDJSON line;
+    /// first frames, then every live publish to this device and every
+    /// same-account device's presence change arrives as one encrypted frame;
     /// the stream finishes when the service closes it.
     /// - Parameter token: the rendezvous token from registration.
     /// - Returns: the stream events, oldest first, unbounded in time.
@@ -103,13 +110,30 @@ public final class RelayClient: @unchecked Sendable {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    let (bytes, response) = try await session.bytes(for: URLRequest(url: route("/relay/stream", query: ["token": token])))
-                    try check(response)
-                    let decoder = JSONDecoder()
-                    for try await line in bytes.lines {
-                        guard !line.trimmingCharacters(in: .whitespaces).isEmpty,
-                              let data = line.data(using: .utf8) else { continue }
-                        continuation.yield(try Self.parseStreamEvent(from: data, decoder: decoder))
+                    // The stream rides its own one-time key so live pushes
+                    // never share a counter with HTTP responses.
+                    var streamKey = [UInt8](repeating: 0, count: 32)
+                    let result = SecRandomCopyBytes(kSecRandomDefault, streamKey.count, &streamKey)
+                    guard result == errSecSuccess else {
+                        throw RelayClientError.http(-1)
+                    }
+                    struct Body: Encodable { let token: String; let streamKey: String }
+                    let body = Body(token: token, streamKey: Self.hex(streamKey))
+                    let decrypt = NoiseCipherState(key: streamKey)
+                    let (bytes, response) = try await self.transport.openStream("/relay/stream", body: body)
+                    try RelayTransport.check(response)
+                    var buffer: [UInt8] = []
+                    var decoder = JSONDecoder()
+                    for try await byte in bytes {
+                        buffer.append(byte)
+                        while let (frame, rest) = Self.takeFrame(buffer) {
+                            buffer = rest
+                            let event = try Self.parseStreamEvent(
+                                from: Data(try decrypt.decryptWithAd([], frame)),
+                                decoder: &decoder,
+                            )
+                            continuation.yield(event)
+                        }
                     }
                     continuation.finish()
                 } catch {
@@ -120,18 +144,20 @@ public final class RelayClient: @unchecked Sendable {
         }
     }
 
-    /// The account roster with each device's stream-derived online state.
+    /// The account roster with each stream-derived online state.
     /// - Parameter accountId: the account whose devices are listed.
     /// - Returns: the registered devices, in registration order; an
     ///   unknown account lists nothing.
     /// - Throws on transport failure or a non-2xx answer.
     public func presence(accountId: String) async throws -> [RelayPresence] {
-        try await decode([RelayPresence].self, request: URLRequest(url: route("/relay/presence", query: ["accountId": accountId])))
+        struct Body: Encodable { let accountId: String }
+        let payloads = try await transport.callFrames("/relay/presence", body: Body(accountId: accountId))
+        return try payloads.map { try JSONDecoder().decode(RelayPresence.self, from: $0) }
     }
 
-    /// One decoded stream line: a `type: presence` object is a presence
+    /// One decoded stream frame: a `type: presence` object is a presence
     /// change, any other object is a reference envelope.
-    private static func parseStreamEvent(from data: Data, decoder: JSONDecoder) throws -> RelayStreamEvent {
+    private static func parseStreamEvent(from data: Data, decoder: inout JSONDecoder) throws -> RelayStreamEvent {
         struct Line: Decodable {
             let type: String?
             let deviceId: String?
@@ -151,31 +177,113 @@ public final class RelayClient: @unchecked Sendable {
         return .envelope(RelayEnvelope(kind: line.kind ?? "", sessionId: line.sessionId ?? "", eventId: line.eventId, turn: line.turn))
     }
 
-    private func route(_ path: String, query: [String: String] = [:]) -> URL {
-        var components = URLComponents(url: endpoint.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
-        if !query.isEmpty {
-            components.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
+    /// Pull the first complete frame out of the buffer, or nil if none yet.
+    private static func takeFrame(_ buffer: [UInt8]) -> ([UInt8], [UInt8])? {
+        guard buffer.count >= 2 else { return nil }
+        let length = (Int(buffer[0]) << 8) | Int(buffer[1])
+        guard buffer.count >= 2 + length else { return nil }
+        return (Array(buffer[2..<(2 + length)]), Array(buffer[(2 + length)...]))
+    }
+
+    private static func hex(_ bytes: [UInt8]) -> String {
+        bytes.map { String(format: "%02x", $0) }.joined()
+    }
+}
+
+/// The serialized Noise session one RelayClient owns: an actor so the
+/// handshake and every counter advance happen without races.
+private actor RelayTransport {
+    private let endpoint: URL
+    private let session: URLSession
+    private var established: (id: String, send: NoiseCipherState, recv: NoiseCipherState)?
+
+    init(endpoint: URL, session: URLSession) {
+        self.endpoint = endpoint
+        self.session = session
+    }
+
+    /// Complete the XX handshake and consume the encrypted ack, once.
+    private func ensure() async throws -> (id: String, send: NoiseCipherState, recv: NoiseCipherState) {
+        if let established { return established }
+        let handshake = NoiseHandshake(role: .initiator)
+        let (helloBody, helloResponse) = try await post("/relay/noise/hello", sealed: try handshake.writeMessage1(), sessionHeader: nil)
+        try Self.check(helloResponse)
+        guard let id = (helloResponse as? HTTPURLResponse)?.value(forHTTPHeaderField: "x-relay-session") else {
+            throw RelayClientError.http(-1)
         }
-        return components.url!
+        try handshake.readMessage2([UInt8](helloBody))
+        guard Self.hex(handshake.transcriptHash) == id else {
+            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "relay session id does not match the handshake transcript"))
+        }
+        let (completeBody, completeResponse) = try await post("/relay/noise/complete", sealed: try handshake.writeMessage3(), sessionHeader: id)
+        try Self.check(completeResponse)
+        let split = try handshake.split()
+        let acks = try decodeNoiseFrames([UInt8](completeBody))
+        guard acks.count == 1 else { throw RelayClientError.http(-1) }
+        struct Ack: Decodable { let ok: Bool }
+        guard try JSONDecoder().decode(Ack.self, from: Data(try split.recv.decryptWithAd([], acks[0]))).ok else {
+            throw RelayClientError.http(-1)
+        }
+        let value = (id, split.send, split.recv)
+        established = value
+        return value
     }
 
-    private func post<B: Encodable>(_ path: String, body: B) throws -> URLRequest {
-        var request = URLRequest(url: route(path))
+    /// One framed encrypted request/response answered by one JSON value.
+    func call<Body: Encodable, Value: Decodable>(path: String, body: Body) async throws -> Value {
+        let payloads = try await callFrames(path, body: body)
+        guard payloads.count == 1 else { throw RelayClientError.http(-1) }
+        return try JSONDecoder().decode(Value.self, from: payloads[0])
+    }
+
+    /// One framed encrypted request answered by any number of frames.
+    func callFrames<Body: Encodable>(path: String, body: Body) async throws -> [Data] {
+        let sealed = try await seal(path: path, body: body)
+        let (data, response) = try await post(path, sealed: sealed.frame, sessionHeader: sealed.session.id)
+        try Self.check(response)
+        return try open(frames: decodeNoiseFrames([UInt8](data)), session: sealed.session)
+    }
+
+    /// Open the push stream: the sealed one-time-key request, then the raw
+    /// byte stream of frames.
+    func openStream<Body: Encodable>(path: String, body: Body) async throws -> (URLSession.AsyncBytes, URLResponse) {
+        let sealed = try await seal(path: path, body: body)
+        var request = URLRequest(url: endpoint.appendingPathComponent(path))
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.httpBody = try JSONEncoder().encode(body)
-        return request
+        request.setValue("application/octet-stream", forHTTPHeaderField: "content-type")
+        request.setValue(sealed.session.id, forHTTPHeaderField: "x-relay-session")
+        request.httpBody = Data(sealed.frame)
+        return try await session.bytes(for: request)
     }
 
-    private func decode<R: Decodable>(_ type: R.Type, request: URLRequest) async throws -> R {
-        let (data, response) = try await session.data(for: request)
-        try check(response)
-        return try JSONDecoder().decode(type, from: data)
+    private func seal<Body: Encodable>(path: String, body: Body) async throws -> (frame: [UInt8], session: (id: String, send: NoiseCipherState, recv: NoiseCipherState)) {
+        let established = try await ensure()
+        let json = try JSONEncoder().encode(body)
+        return (try encodeNoiseFrame(established.send.encryptWithAd([], [UInt8](json))), established)
     }
 
-    private func check(_ response: URLResponse) throws {
+    private func open(frames: [[UInt8]], session: (id: String, send: NoiseCipherState, recv: NoiseCipherState)) throws -> [Data] {
+        try frames.map { Data(try session.recv.decryptWithAd([], $0)) }
+    }
+
+    private func post(_ path: String, sealed: [UInt8], sessionHeader: String?) async throws -> (Data, URLResponse) {
+        var request = URLRequest(url: endpoint.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.setValue("application/octet-stream", forHTTPHeaderField: "content-type")
+        if let sessionHeader {
+            request.setValue(sessionHeader, forHTTPHeaderField: "x-relay-session")
+        }
+        request.httpBody = Data(sealed)
+        return try await session.data(for: request)
+    }
+
+    static func check(_ response: URLResponse) throws {
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
             throw RelayClientError.http(http.statusCode)
         }
+    }
+
+    private static func hex(_ bytes: [UInt8]) -> String {
+        bytes.map { String(format: "%02x", $0) }.joined()
     }
 }

@@ -54,6 +54,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Package.swift` | SwiftPM manifest; the shared core plus its fixture tests |
 | [`Sources/SharedAppleRemoteCore/LinkClient.swift`](Sources/SharedAppleRemoteCore/LinkClient.swift) | Pair / describe / call / stream state machine |
 | `Sources/SharedAppleRemoteCore/RelayRendezvous.swift` | The relay rendezvous foundation (chapters 68/69) — in-memory single-account forwarding: device registration, reference-only envelope fan-out, drain-by-poll; the envelope bridge is CompanionUI's pushFromRelayEnvelope; the self-hostable shell is `apps/relay` |
+| `Sources/SharedAppleRemoteCore/Noise.swift` | Noise_XX_25519_ChaChaPoly_SHA256 over CryptoKit — the relay's transport encryption stack (handshake state machine, split cipher states, u16 framing), pinned byte-for-byte against the node reference implementation's fixed-key vectors |
+| `Sources/SharedAppleRemoteCore/RelayClient.swift` | The relay's Noise-encrypted HTTP consumer: lazy XX handshake with transcript-bound session id and encrypted key confirmation, framed AEAD bodies for register/publish/poll/presence, and the push stream riding a one-time in-request key; tested against a real local Noise responder |
 | [`Sources/SharedAppleRemoteCore/LinkSigning.swift`](Sources/SharedAppleRemoteCore/LinkSigning.swift) | Canonical signing input, SPKI framing, hex digests |
 | [`Sources/SharedAppleRemoteCore/LinkPinning.swift`](Sources/SharedAppleRemoteCore/LinkPinning.swift) | TLS challenge pinning against the pairing fingerprint |
 | [`Sources/SharedAppleRemoteCore/LinkWire.swift`](Sources/SharedAppleRemoteCore/LinkWire.swift) | Gateway request/response envelopes and stream frames |

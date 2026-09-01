@@ -54,6 +54,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Package.swift` | SwiftPM 清单；共享核心与 fixture 测试 |
 | [`Sources/SharedAppleRemoteCore/LinkClient.swift`](Sources/SharedAppleRemoteCore/LinkClient.swift) | 配对 / 描述 / 调用 / 流状态机 |
 | `Sources/SharedAppleRemoteCore/RelayRendezvous.swift` | 中继会合地基（第 68/69 章）——设备注册、仅引用信封扇出、按 poll 排空的内存态单账号转发；信封桥接见 CompanionUI 的 pushFromRelayEnvelope；自托管壳见 `apps/relay` |
+| `Sources/SharedAppleRemoteCore/Noise.swift` | 基于 CryptoKit 的 Noise_XX_25519_ChaChaPoly_SHA256——中继的传输加密栈（握手状态机、拆分密码状态、u16 封帧），由 node 参考实现的固定密钥向量逐字节钉住 |
+| `Sources/SharedAppleRemoteCore/RelayClient.swift` | 中继的 Noise 加密 HTTP 消费者：惰性 XX 握手（转录绑定会话 id + 加密密钥确认）、register/publish/poll/presence 的帧式 AEAD 体，以及骑请求内一次性密钥的推送流；对照真实本地 Noise 应答方测试 |
 | [`Sources/SharedAppleRemoteCore/LinkSigning.swift`](Sources/SharedAppleRemoteCore/LinkSigning.swift) | 规范签名输入、SPKI 组帧、十六进制摘要 |
 | [`Sources/SharedAppleRemoteCore/LinkPinning.swift`](Sources/SharedAppleRemoteCore/LinkPinning.swift) | 对配对指纹的 TLS 挑战钉扎 |
 | [`Sources/SharedAppleRemoteCore/LinkWire.swift`](Sources/SharedAppleRemoteCore/LinkWire.swift) | 网关请求/响应信封与流帧 |

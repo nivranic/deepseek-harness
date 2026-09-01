@@ -1,0 +1,53 @@
+{
+  "protocolName": "Noise_XX_25519_ChaChaPoly_SHA256",
+  "note": "Fixed-key vectors from the node reference implementation (apps/relay/noise.mjs); every port reproduces these bytes exactly.",
+  "keys": {
+    "initiatorStatic": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "responderStatic": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "initiatorEphemeral": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "responderEphemeral": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+  },
+  "handshake": {
+    "msg1": "8f40c5adb68f25624ae5b214ea767a6ec94d829d3d7b5e1ad1ba6f3e2138285f",
+    "msg2": "8f40c5adb68f25624ae5b214ea767a6ec94d829d3d7b5e1ad1ba6f3e2138285fb867898f59f9f907247cadc5efcf2f2d76273727c3a1dea4472269c94adc8e3d3ced883ed823eb4c11549212e0e63112a7dc2bfecc382fb2edbe25986cc4c107",
+    "msg3": "75f6dc388c5a5e2c09bd454ed7a71de2df21d9e26369e3e0f244e7dd58a45b8674d5a0d5840312cc5330b3892c534dc9772df0f805024b6944f821bd9195bd98",
+    "sessionIdAfterMsg2": "41236382121b77d7f665c505f52ddcdd3038dfad026f844a109fa0abb792433b",
+    "channelBindingAfterMsg3": "26c0d94b43c9d0acb7285865c9f1534d04ce8bfff2c0553897e7588af534d2f6"
+  },
+  "transport": {
+    "c1Key": "75d59f69bb14ed33c275b7a8144cbfcc75a91ff9ef6b6ff569edb43269fd5ddb",
+    "c1Frames": [
+      {
+        "payload": "",
+        "frame": "01d12a0cfc80c05fabe293afdadfa3e3"
+      },
+      {
+        "payload": "7b22746f6b656e223a2272742d616363742d70686f6e65227d",
+        "frame": "47e628835f71d8f25514e4aa451f1ac6c36b00cf31d82d96631d6a6a7041d8c1b10154cc79bbf09847"
+      },
+      {
+        "payload": "7b226b696e64223a227461736b2d636f6d706c65746564222c2273657373696f6e4964223a22e4bc9ae8af9d2d31222c227475726e223a337d",
+        "frame": "c35436750ead39a8712f6a06473086d8eb5f44f806fbf35f0a9e7f08457603a4734a3d4425f0d3df45f45c972464a531f14372262cbdfcce83d41bd4aa594a18e94c96daa0a7bd21e1"
+      }
+    ],
+    "c2Key": "1213cdca9662c6b17eb25e25de885aeef689e15bc35af05f912fcefa66fc96c5",
+    "c2Frames": [
+      {
+        "payload": "7b226f6b223a747275657d",
+        "frame": "894977ca98a29e02a2515cbed6df870922f3d99e2ef1dbafdf6621"
+      },
+      {
+        "payload": "7b2264656c697665726564223a327d",
+        "frame": "2969b68571c6765864def3b91496f04aea6f4dfa5fc44f7fb9ec45cc215bf3"
+      },
+      {
+        "payload": "",
+        "frame": "48f0e1273157d97c9516a502cac9d4df"
+      }
+    ]
+  },
+  "framing": {
+    "single": "00108f40c5adb68f25624ae5b214ea767a6e",
+    "doubled": "00000003090807"
+  }
+}
