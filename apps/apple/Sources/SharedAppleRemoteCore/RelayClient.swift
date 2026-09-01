@@ -58,7 +58,7 @@ public final class RelayClient: @unchecked Sendable {
     ///   a string token.
     public func register(_ device: RelayDevice) async throws -> String {
         struct Reply: Decodable { let token: String }
-        let reply: Reply = try await transport.call("/relay/register", body: device)
+        let reply: Reply = try await transport.call(path: "/relay/register", body: device)
         return reply.token
     }
 
@@ -78,7 +78,7 @@ public final class RelayClient: @unchecked Sendable {
         }
         struct Reply: Decodable { let delivered: Int }
         let reply: Reply = try await transport.call(
-            "/relay/publish",
+            path: "/relay/publish",
             body: Body(
                 accountId: accountId,
                 kind: envelope.kind,
@@ -96,7 +96,7 @@ public final class RelayClient: @unchecked Sendable {
     /// - Throws on transport failure or a non-2xx answer.
     public func poll(token: String) async throws -> [RelayEnvelope] {
         struct Body: Encodable { let token: String }
-        let payloads = try await transport.callFrames("/relay/poll", body: Body(token: token))
+        let payloads = try await transport.callFrames(path: "/relay/poll", body: Body(token: token))
         return try payloads.map { try JSONDecoder().decode(RelayEnvelope.self, from: $0) }
     }
 
@@ -120,7 +120,7 @@ public final class RelayClient: @unchecked Sendable {
                     struct Body: Encodable { let token: String; let streamKey: String }
                     let body = Body(token: token, streamKey: Self.hex(streamKey))
                     let decrypt = NoiseCipherState(key: streamKey)
-                    let (bytes, response) = try await self.transport.openStream("/relay/stream", body: body)
+                    let (bytes, response) = try await self.transport.openStream(path: "/relay/stream", body: body)
                     try RelayTransport.check(response)
                     var buffer: [UInt8] = []
                     var decoder = JSONDecoder()
@@ -151,7 +151,7 @@ public final class RelayClient: @unchecked Sendable {
     /// - Throws on transport failure or a non-2xx answer.
     public func presence(accountId: String) async throws -> [RelayPresence] {
         struct Body: Encodable { let accountId: String }
-        let payloads = try await transport.callFrames("/relay/presence", body: Body(accountId: accountId))
+        let payloads = try await transport.callFrames(path: "/relay/presence", body: Body(accountId: accountId))
         return try payloads.map { try JSONDecoder().decode(RelayPresence.self, from: $0) }
     }
 

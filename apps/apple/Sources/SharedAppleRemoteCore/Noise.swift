@@ -105,7 +105,8 @@ public final class NoiseHandshake {
     public func writeMessage1() throws -> [UInt8] {
         let e = [UInt8](ephemeralKey.publicKey.rawRepresentation)
         mixHash(e)
-        return e + try encryptAndHash([])
+        let tail = try encryptAndHash([])
+        return e + tail
     }
 
     /// Ingest XX message 1 (responder side). */
@@ -124,7 +125,8 @@ public final class NoiseHandshake {
         mixKey(try x25519(ephemeralKey, remoteEphemeral!))
         let sealedStatic = try encryptAndHash([UInt8](staticKey.publicKey.rawRepresentation))
         mixKey(try x25519(staticKey, remoteEphemeral!))
-        return e + sealedStatic + try encryptAndHash([])
+        let tail = try encryptAndHash([])
+        return e + sealedStatic + tail
     }
 
     /// Ingest XX message 2 (initiator side).
@@ -148,7 +150,8 @@ public final class NoiseHandshake {
     public func writeMessage3() throws -> [UInt8] {
         let sealedStatic = try encryptAndHash([UInt8](staticKey.publicKey.rawRepresentation))
         mixKey(try x25519(ephemeralKey, remoteStatic!))
-        return sealedStatic + try encryptAndHash([])
+        let tail = try encryptAndHash([])
+        return sealedStatic + tail
     }
 
     /// Ingest XX message 3 (responder side).
@@ -208,7 +211,8 @@ public final class NoiseHandshake {
     /// The X25519 shared secret between one private key and one raw peer key.
     private func x25519(_ privateKey: Curve25519.KeyAgreement.PrivateKey, _ peerRaw: [UInt8]) throws -> [UInt8] {
         let peer = try Curve25519.KeyAgreement.PublicKey(rawRepresentation: Data(peerRaw))
-        return [UInt8](try privateKey.sharedSecretFromKeyAgreement(with: peer).sharedKey)
+        let secret = try privateKey.sharedSecretFromKeyAgreement(with: peer)
+        return [UInt8](secret.withUnsafeBytes { Data($0) })
     }
 }
 

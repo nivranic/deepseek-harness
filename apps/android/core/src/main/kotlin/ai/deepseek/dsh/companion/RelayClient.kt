@@ -92,7 +92,7 @@ class RelayClient(private val baseUrl: String) {
      */
     fun poll(token: String): List<RelayEnvelope> {
         val response = exchange("/relay/poll", buildJsonObject { put("token", token) })
-        return decodeNoiseFrames(response).map { parseEnvelope(Json.parseToJsonElement(String(current.recv.decryptWithAd(EMPTY, it))).jsonObject) }
+        return response.map { parseEnvelope(Json.parseToJsonElement(String(current.recv.decryptWithAd(EMPTY, it))).jsonObject) }
     }
 
     /**

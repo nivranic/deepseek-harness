@@ -196,7 +196,7 @@ private fun x25519Pair(rawScalar: ByteArray?): X25519Pair {
         }
     } else {
         factory.generatePrivate(
-            XECPrivateKeySpec(java.security.spec.NamedParameterSpec.X25519, BigInteger(1, rawScalar.reversedArray())),
+            XECPrivateKeySpec(java.security.spec.NamedParameterSpec.X25519, rawScalar),
         )
     }
     return X25519Pair(privateKey, publicFromScalar(factory, privateKey))
