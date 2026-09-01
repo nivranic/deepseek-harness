@@ -248,7 +248,10 @@ final class NoiseRelayServer {
                 let opened = try openSession(headers: headers, body: body, connection: connection)
                 let token = opened.request["token"] as! String
                 let queued = queues.removeValue(forKey: token) ?? []
-                let bodyOut = queued.map { encodeNoiseFrame(try opened.session.send.encryptWithAd([], $0)) }.reduce([], +)
+                var bodyOut: [UInt8] = []
+                for envelope in queued {
+                    bodyOut += encodeNoiseFrame(try opened.session.send.encryptWithAd([], envelope))
+                }
                 respond(connection, status: 200, body: Data(bodyOut))
             case "/relay/presence":
                 let opened = try openSession(headers: headers, body: body, connection: connection)

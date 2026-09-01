@@ -239,6 +239,10 @@ class RelayClientNoiseTest {
                 hold.await(10, TimeUnit.SECONDS)
                 exchange.close()
             }
+            // The stream handler parks its thread on the hold latch, so the
+            // server needs a pool — the default single dispatcher thread
+            // would starve the live publish arriving mid-stream.
+            server.executor = java.util.concurrent.Executors.newCachedThreadPool()
             server.start()
             return server
         }
