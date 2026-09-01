@@ -10,6 +10,147 @@ public enum LinkError: String, Codable {
     case linkDisabled = "link-disabled"
     case badRequest = "bad-request"
 }
+public enum LinkJsonValue: Codable {
+    case string(String)
+    case number(Double)
+    case bool(Bool)
+    case null
+    case array([LinkJsonValue])
+    case object([String: LinkJsonValue])
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() { self = .null; return }
+        if let value = try? container.decode(Bool.self) { self = .bool(value); return }
+        if let value = try? container.decode(Double.self) { self = .number(value); return }
+        if let value = try? container.decode(String.self) { self = .string(value); return }
+        if let value = try? container.decode([LinkJsonValue].self) { self = .array(value); return }
+        if let value = try? container.decode([String: LinkJsonValue].self) { self = .object(value); return }
+        throw DecodingError.dataCorruptedError(in: container, debugDescription: "unsupported JSON value")
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let value): try container.encode(value)
+        case .number(let value): try container.encode(value)
+        case .bool(let value): try container.encode(value)
+        case .null: try container.encodeNil()
+        case .array(let values): try container.encode(values)
+        case .object(let entries): try container.encode(entries)
+        }
+    }
+}
+public struct LinkPairRequest: Codable {
+    public let code: String
+    public let deviceName: String
+    public let devicePublicKey: String
+}
+public struct LinkRpcPayload: Codable {
+    public let args: [String: LinkJsonValue]
+}
+public struct LinkRpcRequestEnvelope: Codable {
+    public let type: String // constant "client-request"
+    public let rpcId: String
+    public let method: String
+    public let payload: LinkRpcPayload
+}
+public struct LinkRpcError: Codable {
+    public let code: String
+    public let message: String
+    public let details: [String: LinkJsonValue]
+}
+public struct LinkRpcResult: Codable {
+    public let ok: Bool
+    public let value: LinkJsonValue?
+    public let error: LinkRpcError?
+}
+public struct LinkRpcResponseEnvelope: Codable {
+    public let type: String // constant "server-response"
+    public let rpcId: String
+    public let result: LinkRpcResult
+}
+public struct LinkStreamRequest: Codable {
+    public let args: [String: LinkJsonValue]
+}
+public enum LinkStreamFrameKind: String, Codable {
+    case v = "v"
+    case e = "e"
+}
+public struct LinkStreamFrame: Codable {
+    public let k: LinkStreamFrameKind
+    public let v: LinkJsonValue?
+    public let c: String?
+    public let m: String?
+    public let d: [String: LinkJsonValue]?
+}
+public enum LinkRemoteEventFrameKind: String, Codable {
+    case ready = "ready"
+    case emit = "emit"
+    case waterfall = "waterfall"
+    case cancel = "cancel"
+}
+public enum LinkRemoteEventOutcomeKind: String, Codable {
+    case next = "next"
+    case result = "result"
+    case rejected = "rejected"
+}
+public struct LinkRemoteEventHostInfo: Codable {
+    public let home: String
+}
+public struct LinkRemoteEventReadyFrame: Codable {
+    public let type: String // constant "ready"
+    public let clientId: String
+    public let host: LinkRemoteEventHostInfo
+}
+public struct LinkRemoteEventEmitFrame: Codable {
+    public let type: String // constant "emit"
+    public let event: String
+    public let args: [LinkJsonValue]
+}
+public struct LinkRemoteEventWaterfallFrame: Codable {
+    public let type: String // constant "waterfall"
+    public let event: String
+    public let eventId: String
+    public let agentId: String
+    public let request: [String: LinkJsonValue]
+}
+public struct LinkRemoteEventCancelFrame: Codable {
+    public let type: String // constant "cancel"
+    public let eventId: String
+}
+public struct LinkRemoteEventRejection: Codable {
+    public let name: String
+    public let message: String
+    public let code: String?
+    public let details: LinkJsonValue?
+}
+public struct LinkRemoteEventOutcome: Codable {
+    public let kind: LinkRemoteEventOutcomeKind
+    public let value: LinkJsonValue?
+    public let error: LinkRemoteEventRejection?
+}
+public struct LinkRemoteEventResult: Codable {
+    public let clientId: String
+    public let eventId: String
+    public let outcome: LinkRemoteEventOutcome
+}
+public struct LinkSessionEventRecord: Codable {
+    public let type: String
+    public let seq: Double
+    public let time: Double
+    public let data: LinkJsonValue
+    public let sourceEventSeqs: [Double]?
+    public let surfaceOp: LinkJsonValue?
+}
+public struct LinkSessionSnapshotFrame: Codable {
+    public let type: String // constant "snapshot"
+    public let header: [String: LinkJsonValue]
+    public let cursor: Double
+    public let records: [LinkJsonValue]
+    public let hasMore: Bool
+    public let projections: [String: LinkJsonValue]
+}
 public struct LinkPairingPayload: Codable {
     public let v: Double // constant 1
     public let kind: String // constant "dsh-link-pairing"
@@ -48,6 +189,7 @@ public struct LinkCapabilities: Codable {
 }
 public struct LinkHostDescription: Codable {
     public let linkProtocolVersion: Double
+    public let contractVersion: Double
     public let hostVersion: String
     public let hostId: String
     public let hostName: String

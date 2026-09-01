@@ -36,11 +36,38 @@ final class FixtureDecodingTests: XCTestCase {
 
     func testHostDescriptionCarriesCapabilities() throws {
         let description = try JSONDecoder().decode(LinkHostDescription.self, from: fixture("host-description"))
+        XCTAssertEqual(description.contractVersion, 1)
         XCTAssertEqual(description.runtimeClass, "full")
         XCTAssertTrue(description.capabilities.session.prompt)
         XCTAssertTrue(description.capabilities.workspace.follow)
         XCTAssertFalse(description.capabilities.interaction.approval)
         XCTAssertFalse(description.allowRemoteApproval)
+    }
+
+    func testTransportAndRemoteEventFixturesDecodeAndRoundTrip() throws {
+        try roundTrip("pair-request", as: LinkPairRequest.self)
+        try roundTrip("rpc-request", as: LinkRpcRequestEnvelope.self)
+        for id in ["rpc-response-value", "rpc-response-void", "rpc-response-error"] {
+            try roundTrip(id, as: LinkRpcResponseEnvelope.self)
+        }
+        try roundTrip("stream-request", as: LinkStreamRequest.self)
+        for id in ["stream-value", "stream-error"] {
+            try roundTrip(id, as: LinkStreamFrame.self)
+        }
+        try roundTrip("remote-event-ready", as: LinkRemoteEventReadyFrame.self)
+        try roundTrip("remote-event-emit", as: LinkRemoteEventEmitFrame.self)
+        try roundTrip("remote-event-waterfall", as: LinkRemoteEventWaterfallFrame.self)
+        try roundTrip("remote-event-cancel", as: LinkRemoteEventCancelFrame.self)
+        for id in [
+            "remote-event-result-next",
+            "remote-event-result-value",
+            "remote-event-result-void",
+            "remote-event-result-rejected",
+        ] {
+            try roundTrip(id, as: LinkRemoteEventResult.self)
+        }
+        try roundTrip("session-event-record", as: LinkSessionEventRecord.self)
+        try roundTrip("session-snapshot-frame", as: LinkSessionSnapshotFrame.self)
     }
 
     func testCarrierStatusDecodes() throws {

@@ -5,6 +5,10 @@ import { describe, expect, it } from 'vitest'
 import {
   LINK_CONTRACT_FIXTURES, LINK_CONTRACT_TYPES, LINK_DOMAIN_SCENARIOS,
   LinkAdminStatusSchema, LinkDeviceRecordSchema, LinkPairingPayloadSchema,
+  LinkRemoteEventDownlinkSchema, LinkRemoteEventResultSchema,
+  LinkRpcRequestEnvelopeSchema, LinkRpcResponseEnvelopeSchema,
+  LinkSessionEventRecordSchema, LinkSessionSnapshotFrameSchema,
+  LinkStreamFrameSchema, LinkStreamRequestSchema,
   LITE_SCENARIOS, emptyCompanionDomain, foldCompanionDomain, foldLiteDomain,
 } from '../src/index.ts'
 import { generateLinkContracts } from '../src/generate.ts'
@@ -17,6 +21,49 @@ describe('link contract fixtures', () => {
     expect(LinkPairingPayloadSchema.parse(byId.get('pairing-payload'))).toEqual(byId.get('pairing-payload'))
     expect(LinkDeviceRecordSchema.parse(byId.get('device-record'))).toEqual(byId.get('device-record'))
     expect(LinkAdminStatusSchema.parse(byId.get('admin-status'))).toEqual(byId.get('admin-status'))
+    expect(LinkRpcRequestEnvelopeSchema.parse(byId.get('rpc-request'))).toEqual(byId.get('rpc-request'))
+    for (const id of ['rpc-response-void', 'rpc-response-value', 'rpc-response-error']) {
+      expect(LinkRpcResponseEnvelopeSchema.parse(byId.get(id))).toEqual(byId.get(id))
+    }
+    expect(LinkStreamRequestSchema.parse(byId.get('stream-request'))).toEqual(byId.get('stream-request'))
+    for (const id of ['stream-value', 'stream-error']) {
+      expect(LinkStreamFrameSchema.parse(byId.get(id))).toEqual(byId.get(id))
+    }
+    for (const id of ['remote-event-ready', 'remote-event-emit', 'remote-event-waterfall', 'remote-event-cancel']) {
+      expect(LinkRemoteEventDownlinkSchema.parse(byId.get(id))).toEqual(byId.get(id))
+    }
+    for (const id of [
+      'remote-event-result-next',
+      'remote-event-result-value',
+      'remote-event-result-void',
+      'remote-event-result-rejected',
+    ]) {
+      expect(LinkRemoteEventResultSchema.parse(byId.get(id))).toEqual(byId.get(id))
+    }
+    expect(LinkSessionEventRecordSchema.parse(byId.get('session-event-record'))).toEqual(byId.get('session-event-record'))
+    expect(LinkSessionSnapshotFrameSchema.parse(byId.get('session-snapshot-frame'))).toEqual(byId.get('session-snapshot-frame'))
+  })
+
+  it('ignores unknown optional fields, rejects missing required fields, and preserves unknown event types', () => {
+    expect(LinkRemoteEventDownlinkSchema.parse({
+      type: 'ready',
+      clientId: 'client-1',
+      host: { home: '/home/test', futureHostField: true },
+      futureFrameField: 'ignored',
+    })).toEqual({ type: 'ready', clientId: 'client-1', host: { home: '/home/test' } })
+    expect(LinkRemoteEventDownlinkSchema.safeParse({ type: 'ready', host: { home: '/home/test' } }).success)
+      .toBe(false)
+    expect(LinkSessionEventRecordSchema.parse({
+      type: 'future/event',
+      seq: 17,
+      time: 1_759_017_600_000,
+      data: { newPayload: true },
+    })).toEqual({
+      type: 'future/event',
+      seq: 17,
+      time: 1_759_017_600_000,
+      data: { newPayload: true },
+    })
   })
 
   it('rejects a drifted payload and a wrong-length fingerprint', () => {
@@ -39,7 +86,8 @@ describe('link contract fixtures', () => {
       }
     }
     const fixtureRows = LINK_CONTRACT_TYPES.filter(type => type.fixture !== undefined)
-    expect(fixtureRows.length).toBe(LINK_CONTRACT_FIXTURES.length)
+    expect(fixtureRows.reduce((count, type) => count + 1 + (type.additionalFixtures?.length ?? 0), 0))
+      .toBe(LINK_CONTRACT_FIXTURES.length)
   })
 
   it('claims session events and chunk rows only from the vocabulary enums', () => {
@@ -83,6 +131,83 @@ describe('link contract fixtures', () => {
 })
 
 describe('link contract generator', () => {
+  it('owns the RPC, NDJSON, Remote Event, cursor, and version protocol', () => {
+    const artifacts = generateLinkContracts() as ReturnType<typeof generateLinkContracts> & { readonly schema?: string }
+    const manifest = JSON.parse(artifacts.manifest) as {
+      contractVersion?: number
+      protocol?: unknown
+      types: Array<{ name: string }>
+    }
+    expect(manifest.contractVersion).toBe(1)
+    expect(manifest.protocol).toEqual({
+      linkProtocolVersion: 1,
+      sessionFormatVersion: 0,
+      rpc: {
+        requestArguments: 'payload.args',
+        voidSuccess: 'ok-with-omitted-value',
+        failure: 'structured-error',
+      },
+      stream: {
+        requestArguments: 'args',
+        frames: ['value', 'error'],
+        cancellation: 'transport-abort',
+      },
+      remoteEvents: {
+        downlink: ['ready', 'emit', 'waterfall', 'cancel'],
+        resultOutcomes: ['next', 'result', 'rejected'],
+        clientIdentity: 'ready.clientId',
+      },
+      sequence: {
+        event: 'monotonic-seq',
+        cursor: 'highest-included-seq',
+        replay: 'ignore-seq-at-or-below-cursor',
+      },
+      compatibility: {
+        unknownOptionalFields: 'ignore',
+        unknownEventTypes: 'preserve',
+        missingRequiredFields: 'reject',
+      },
+      routes: {
+        pair: '/link/pair',
+        describe: '/link/describe',
+        unaryPrefix: '/api/',
+        streamPrefix: '/link/stream/',
+        remoteEventStream: '$events',
+        remoteEventResult: '$events/result',
+      },
+      authenticationHeaders: {
+        deviceId: 'x-dsh-device-id',
+        timestamp: 'x-dsh-timestamp',
+        signature: 'x-dsh-signature',
+      },
+    })
+    expect(manifest.types.map(type => type.name)).toEqual(expect.arrayContaining([
+      'LinkJsonValue',
+      'LinkRpcPayload',
+      'LinkRpcRequestEnvelope',
+      'LinkRpcError',
+      'LinkRpcResult',
+      'LinkRpcResponseEnvelope',
+      'LinkStreamRequest',
+      'LinkStreamFrame',
+      'LinkRemoteEventHostInfo',
+      'LinkRemoteEventReadyFrame',
+      'LinkRemoteEventEmitFrame',
+      'LinkRemoteEventWaterfallFrame',
+      'LinkRemoteEventCancelFrame',
+      'LinkRemoteEventRejection',
+      'LinkRemoteEventOutcome',
+      'LinkRemoteEventResult',
+      'LinkSessionEventRecord',
+      'LinkSessionSnapshotFrame',
+    ]))
+    expect(artifacts.schema).toBeTypeOf('string')
+    expect(JSON.parse(artifacts.schema ?? '{}')).toMatchObject({
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      title: 'DeepSeek Harness Link Contract',
+    })
+  })
+
   it('emits the manifest, Swift, and Kotlin with matching checksums', () => {
     const artifacts = generateLinkContracts()
     const manifest = JSON.parse(artifacts.manifest) as {
@@ -105,8 +230,16 @@ describe('link contract generator', () => {
   it('names every type in both emitted languages with stable code shape', () => {
     const artifacts = generateLinkContracts()
     for (const type of LINK_CONTRACT_TYPES) {
-      const swiftDecl = type.shape === 'object' ? `public struct ${type.name}: Codable` : `public enum ${type.name}: String, Codable`
-      const kotlinDecl = type.shape === 'object' ? `data class ${type.name}(` : `enum class ${type.name}(val wire: String)`
+      const swiftDecl = type.shape === 'object'
+        ? `public struct ${type.name}: Codable`
+        : type.shape === 'json'
+          ? 'public enum LinkJsonValue: Codable'
+          : `public enum ${type.name}: String, Codable`
+      const kotlinDecl = type.shape === 'object'
+        ? `data class ${type.name}(`
+        : type.shape === 'json'
+          ? 'sealed class LinkJsonValue'
+          : `enum class ${type.name}(val wire: String)`
       expect(artifacts.swift).toContain(swiftDecl)
       expect(artifacts.kotlin).toContain(kotlinDecl)
     }
@@ -123,6 +256,8 @@ describe('link contract generator', () => {
     expect(artifacts.swift).toContain('public let status: LinkTodoStatus')
     expect(artifacts.kotlin).toContain('val dt: List<Double>')
     expect(artifacts.kotlin).toContain('val texts: List<String>')
+    expect(artifacts.swift).toContain('public let args: [String: LinkJsonValue]')
+    expect(artifacts.kotlin).toContain('val request: Map<String, LinkJsonValue>')
     expect(artifacts.swift).not.toContain('undefined')
     expect(artifacts.kotlin).not.toContain('undefined')
   })

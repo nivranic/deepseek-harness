@@ -1,0 +1,106 @@
+{
+  "taskId": "G1-GEN",
+  "status": "PASS",
+  "commit": "eaa9d6bad4f9929f252decd7a858f793f8568c26",
+  "startedFrom": "eaa9d6bad4f9929f252decd7a858f793f8568c26",
+  "commands": [
+    "node_modules/.bin/tsx.CMD scripts/gen-link-contracts.ts",
+    "node_modules/.bin/tsx.CMD scripts/verify-link-contracts.ts",
+    "node_modules/.bin/vitest.CMD run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/api/gateway/tests/stream-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts packages/remote/link-access/tests/protocol.spec.ts",
+    "swift test",
+    "gradle --no-daemon :core:test",
+    "node_modules/.bin/tsx.CMD scripts/verify-translation-pairing.ts packages/remote/link-contracts/README.md packages/remote/link-access/README.md .agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.md",
+    "git diff --check"
+  ],
+  "tests": [
+    {
+      "name": "Canonical generator",
+      "result": "PASS",
+      "outputs": [
+        "manifest",
+        "JSON Schema",
+        "Swift",
+        "Kotlin",
+        "fixtures",
+        "domain conformance",
+        "Lite conformance"
+      ]
+    },
+    {
+      "name": "Generated artifact freshness",
+      "result": "PASS",
+      "stale": 0
+    },
+    {
+      "name": "Generated schema and fixture semantics",
+      "result": "PASS",
+      "coveredBy": "packages/remote/link-contracts/tests/link-contracts.spec.ts"
+    },
+    {
+      "name": "Apple generated fixture replay",
+      "result": "NOT_EXECUTED",
+      "reason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+    },
+    {
+      "name": "Android generated fixture replay",
+      "result": "NOT_EXECUTED",
+      "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-GEN.json",
+    "packages/remote/link-contracts/generated/link-contracts.manifest.json",
+    "packages/remote/link-contracts/generated/link-contracts.schema.json",
+    "packages/remote/link-contracts/generated/LinkContracts.swift",
+    "packages/remote/link-contracts/generated/LinkContracts.kt",
+    "packages/remote/link-contracts/generated/fixtures/",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkContracts.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt",
+    "apps/android/core/src/test/resources/fixtures/"
+  ],
+  "changedFiles": [
+    "scripts/gen-link-contracts.ts",
+    "scripts/verify-link-contracts.ts",
+    "packages/remote/link-contracts/generated/",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkContracts.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkWireTest.kt",
+    "apps/android/core/src/test/resources/fixtures/"
+  ],
+  "acceptance": [
+    "JSON Schema is generated from the same source graph as the manifest and native models; no handwritten schema exists.",
+    "Every primary and additional fixture has one source-graph owner, checksum, generated JSON file, and synchronized Apple and Android copy.",
+    "Swift and Kotlin models include recursive JSON values, unary and stream envelopes, Remote Event variants, structured errors, Session sequence/snapshot values, and contractVersion.",
+    "Apple test source replays every new transport and Remote Event fixture through generated Codable models.",
+    "Kotlin test source replays the same fixture ids through the actual WireValue decoder and encoder.",
+    "The platform workflows retain SwiftPM and Gradle 8.14 execution for capable CI hosts."
+  ],
+  "knownLimitations": [
+    "The Windows execution host has JDK 17 but no Swift/Xcode, Gradle, or Android SDK. Two attempts to fetch the pinned temporary Gradle 8.14 distribution from official endpoints were reset by the host network after the redirect response.",
+    "Native test source is present and generated fixtures are byte-identical, but this host cannot claim Swift or Kotlin runtime PASS. G1-APPLE and G1-ANDROID remain open and require their platform workflows plus real Host acceptance."
+  ],
+  "notExecuted": [
+    {
+      "item": "swift test",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "Windows has no Swift toolchain or Xcode; the Apple workflow remains the executable owner."
+    },
+    {
+      "item": "gradle --no-daemon :core:test",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "Gradle and Android SDK are absent. JDK 17 is available, but official Gradle 8.14 downloads were reset by the host network; no wrapper was added."
+    }
+  ],
+  "nextDependencies": [
+    "G1-APPLE",
+    "G1-ANDROID",
+    "G1-E2E"
+  ]
+}

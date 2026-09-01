@@ -12,6 +12,9 @@ import type { DeviceRole } from '@deepseek-ai/dsh-device-trust'
 /** Version of the link pairing and authentication protocol this carrier speaks. */
 export const LINK_PROTOCOL_VERSION = 1
 
+/** Independent version of the generated Link RPC, stream, and Remote Event contract. */
+export const LINK_CONTRACT_VERSION = 1
+
 /** Carrier route accepting one pairing request (the only unauthenticated POST). */
 export const LINK_PAIR_PATH = '/link/pair'
 
@@ -172,6 +175,8 @@ export interface LinkPairValue {
 /** Authenticated host description served at {@link LINK_DESCRIBE_PATH}. */
 export interface LinkHostDescription {
   readonly linkProtocolVersion: number
+  /** Generated Link contract version independently negotiated from the carrier protocol. */
+  readonly contractVersion: number
   readonly hostVersion: string
   readonly hostId: string
   readonly hostName: string

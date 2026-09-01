@@ -210,6 +210,7 @@ internal fun mapHostDescription(obj: JsonObject): LinkHostDescription {
     val interaction = capabilities["interaction"]?.jsonObject ?: JsonObject(emptyMap())
     return LinkHostDescription(
         linkProtocolVersion = obj.number("linkProtocolVersion"),
+        contractVersion = obj.number("contractVersion"),
         hostVersion = obj.string("hostVersion"),
         hostId = obj.string("hostId"),
         hostName = obj.string("hostName"),

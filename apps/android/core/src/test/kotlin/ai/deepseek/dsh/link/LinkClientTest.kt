@@ -36,7 +36,7 @@ class LinkClientTest {
             respond(
                 exchange,
                 200,
-                """{"linkProtocolVersion":1,"hostVersion":"0.1.2","hostId":"h-1","hostName":"Studio Desk",""" +
+                """{"linkProtocolVersion":1,"contractVersion":1,"hostVersion":"0.1.2","hostId":"h-1","hostName":"Studio Desk",""" +
                     """"runtimeClass":"node","sessionFormatVersion":0,"allowRemoteApproval":false,""" +
                     """"capabilities":{"session":{"list":true,"history":true,"follow":true,"prompt":true,"cancel":true},""" +
                     """"workspace":{"follow":true},"interaction":{"approval":true,"question":true}}}""",
@@ -138,6 +138,7 @@ class LinkClientTest {
         client.pair(pairingPayload(), deviceName = "Pixel 9")
         val description = client.describe()
         assertEquals("Studio Desk", description.hostName)
+        assertEquals(1.0, description.contractVersion)
         assertEquals("node", description.runtimeClass)
         assertEquals(true, description.capabilities.session.follow)
         assertEquals(true, description.capabilities.interaction.approval)

@@ -42,6 +42,35 @@ class LinkWireTest {
     }
 
     @Test
+    fun generatedTransportAndRemoteEventFixturesRoundTripThroughTheWireDecoder() {
+        val ids = listOf(
+            "pair-request",
+            "rpc-request",
+            "rpc-response-value",
+            "rpc-response-void",
+            "rpc-response-error",
+            "stream-request",
+            "stream-value",
+            "stream-error",
+            "remote-event-ready",
+            "remote-event-emit",
+            "remote-event-waterfall",
+            "remote-event-cancel",
+            "remote-event-result-next",
+            "remote-event-result-value",
+            "remote-event-result-void",
+            "remote-event-result-rejected",
+            "session-event-record",
+            "session-snapshot-frame",
+        )
+        for (id in ids) {
+            val resource = checkNotNull(LinkWireTest::class.java.classLoader.getResource("fixtures/$id.json"))
+            val fixture = Json.parseToJsonElement(resource.readText(Charsets.UTF_8))
+            assertEquals(fixture, WireValue.fromJsonElement(fixture).toJsonElement(), "fixture $id")
+        }
+    }
+
+    @Test
     fun resultsDecodeOkAndRefused() {
         val ok = LinkResult.fromJsonElement(Json.parseToJsonElement("""{"ok":true,"value":{"items":[]}}"""))
         assertTrue(ok.ok)

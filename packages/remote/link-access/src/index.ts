@@ -35,6 +35,7 @@ import { ensureHostTlsMaterial } from './tls.ts'
 import {
   DEFAULT_LINK_ENDPOINTS,
   LINK_API_PREFIX,
+  LINK_CONTRACT_VERSION,
   LINK_DEFAULT_MAX_REQUEST_BODY_BYTES,
   LINK_DESCRIBE_PATH,
   LINK_DEVICE_ID_HEADER,
@@ -620,6 +621,7 @@ function endpointTable(inputs: readonly LinkEndpointInput[]): ReadonlyMap<string
 function describeHost(hostId: string, hostName: string, allowRemoteApproval: boolean): LinkHostDescription {
   return {
     linkProtocolVersion: LINK_PROTOCOL_VERSION,
+    contractVersion: LINK_CONTRACT_VERSION,
     hostVersion: HOST_VERSION,
     hostId,
     hostName,

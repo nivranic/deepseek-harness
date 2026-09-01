@@ -1,5 +1,6 @@
 import { connect as tcpConnect } from 'node:net'
 import { createHash, createPublicKey, generateKeyPairSync, sign as edSign } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -94,6 +95,7 @@ describe('link-access carrier', () => {
     expect(response.status).toBe(200)
     expect(response.json).toMatchObject({
       linkProtocolVersion: 1,
+      contractVersion: 1,
       runtimeClass: 'full',
       hostVersion: expect.any(String) as string,
       hostId: expect.any(String) as string,
@@ -107,6 +109,20 @@ describe('link-access carrier', () => {
 
   it('dispatches an allowlisted unary RPC through the existing gateway chain', async () => {
     const response = await signedRpc(harness.endpoint, device, 'probe/echo', { value: 'hi' })
+    expect(response.status).toBe(200)
+    expect(response.json).toEqual({
+      type: 'server-response',
+      rpcId: 'rpc-probe/echo',
+      result: { ok: true, value: 'echo:hi' },
+    })
+  })
+
+  it('dispatches the generated unary request fixture byte-for-byte', async () => {
+    const body = readFileSync(
+      new URL('../../link-contracts/generated/fixtures/rpc-request.json', import.meta.url),
+      'utf8',
+    )
+    const response = await issueSigned(harness.endpoint, device, '/api/probe/echo', 'POST', body)
     expect(response.status).toBe(200)
     expect(response.json).toEqual({
       type: 'server-response',
@@ -180,6 +196,12 @@ describe('link-access carrier', () => {
   it('carries one Remote stream as signed NDJSON frames', async () => {
     const frames = await streamUntil(harness, device, 'probe/ticks', { args: { count: 3 } }, lines => lines.length >= 3)
     expect(frames).toEqual(['{"k":"v","v":"0"}', '{"k":"v","v":"1"}', '{"k":"v","v":"2"}'])
+    const fixture = JSON.parse(readFileSync(
+      new URL('../../link-contracts/generated/fixtures/stream-request.json', import.meta.url),
+      'utf8',
+    )) as unknown
+    expect(await streamUntil(harness, device, 'probe/ticks', fixture, lines => lines.length >= 2))
+      .toEqual(['{"k":"v","v":"0"}', '{"k":"v","v":"1"}'])
     expect((await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'GET', '')).status).toBe(405)
     expect((await issueSigned(harness.endpoint, device, '/link/stream/probe/echo', 'POST', '{"args":{"value":"x"}}')).status).toBe(403)
     expect((await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'POST', 'not json')).status).toBe(400)

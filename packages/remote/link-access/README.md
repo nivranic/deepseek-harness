@@ -51,7 +51,7 @@ Mount the carrier in a composition that already provides Connection, the Typert 
 
 ### Observable behavior
 
-`ctx.linkAccess.createPairing()` returns the QR payload (host id and name, endpoint, certificate SPKI fingerprint, one-time code, expiry). Every device request carries an identity, a timestamp, and an Ed25519 signature over method, path, and body digest; requests fail 401 on unknown, revoked, stale, or mis-signed devices and 403 on endpoints outside the allowlist, below the device's role, or — for interaction answers — while the approval switch is off. The certificate is generated once (ECDSA P-256) and persisted under `<dshHome>/link-access/`, so paired devices keep working across restarts.
+`ctx.linkAccess.createPairing()` returns the QR payload (host id and name, endpoint, certificate SPKI fingerprint, one-time code, expiry). Every device request carries an identity, a timestamp, and an Ed25519 signature over method, path, and body digest; requests fail 401 on unknown, revoked, stale, or mis-signed devices and 403 on endpoints outside the allowlist, below the device's role, or — for interaction answers — while the approval switch is off. The certificate is generated once (ECDSA P-256) and persisted under `<dshHome>/link-access/`, so paired devices keep working across restarts. `link/describe` reports independent Link protocol, contract, and Session format versions so a client can diagnose each compatibility axis without treating application release versions as wire versions.
 
 ### Default remote surface
 
@@ -98,7 +98,7 @@ Read-only session and workspace observation (`session/list|search|page|modelCata
 - **No LAN discovery yet** — the pairing payload carries an explicit endpoint; mDNS advertisement (`_dsh-link._tcp`) is deferred with the Phase 1 host UI.
 - **No relay, no NAT traversal** — V1 reaches devices on the LAN or a user-managed private network; public-internet continuation is a separate future project.
 - **Timestamp window only** — replay protection is the clock-skew window; per-nonce tracking is deliberately absent until a benchmark proves it necessary.
-- **Host describe is minimal** — the description reports identity, versions, runtime class, and capability literals; richer capability negotiation arrives with the first native companion.
+- **Host describe is intentionally declarative** — the description reports identity, three independent wire/data version axes, runtime class, and capability literals; it does not negotiate application release channels or silently downgrade an unsupported contract.
 
 <a id="dev-note"></a>
 ### Dev Note
