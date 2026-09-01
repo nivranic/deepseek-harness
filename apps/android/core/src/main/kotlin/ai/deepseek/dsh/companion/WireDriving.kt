@@ -11,6 +11,25 @@ interface WireDriving {
     fun stream(endpoint: String, payload: Map<String, WireValue> = emptyMap()): Flow<WireValue>
 }
 
+/** Stable wire handle whose delegate changes after restore or fresh pairing.
+ * Models retain this handle, so replacing credentials cannot leave them bound
+ * to the pre-pairing transport. */
+class SwitchableWireDriving(initial: WireDriving) : WireDriving {
+    @Volatile
+    private var delegate: WireDriving = initial
+
+    /** Route subsequent calls and streams through [next]. */
+    fun replace(next: WireDriving) {
+        delegate = next
+    }
+
+    override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
+        delegate.call(method, args)
+
+    override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> =
+        delegate.stream(endpoint, payload)
+}
+
 /** The wire over one paired [ai.deepseek.dsh.link.LinkClient]. */
 class LinkWireDriving(private val client: ai.deepseek.dsh.link.LinkClient) : WireDriving {
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =

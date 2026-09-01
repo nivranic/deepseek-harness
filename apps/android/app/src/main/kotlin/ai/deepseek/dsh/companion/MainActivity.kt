@@ -83,9 +83,9 @@ fun RaisedCard(content: @Composable () -> Unit) {
     }
 }
 
-/** The view-model holder pairing once and hosting the six models. */
+/** The view-model holder pairing once and hosting the companion models. */
 class CompanionViewModel : ViewModel() {
-    var paired = CompanionRuntime.restored
+    var paired by mutableStateOf(CompanionRuntime.restored)
         private set
 
     val session = SessionModel(CompanionRuntime.wire, viewModelScope)
@@ -113,14 +113,14 @@ object CompanionRuntime {
             throw IllegalStateException("not paired")
     }
 
-    @Volatile private var current: WireDriving = UnpairedWire()
+    private val switchingWire = SwitchableWireDriving(UnpairedWire())
 
     /** True once a stored identity rebuilt the client at launch or a
      * pairing succeeded in this process. */
     @Volatile var restored: Boolean = false
         private set
 
-    val wire: WireDriving get() = current
+    val wire: WireDriving get() = switchingWire
 
     /** Where the credentials file lives; MainActivity sets it at launch. */
     @Volatile var restoreDirectory: java.io.File? = null
@@ -132,7 +132,7 @@ object CompanionRuntime {
         restoreDirectory = directory
         val store = credentialsStore(directory)
         val client = ai.deepseek.dsh.link.LinkClient.restore(store) ?: return false
-        current = LinkWireDriving(client)
+        switchingWire.replace(LinkWireDriving(client))
         restored = true
         return true
     }
@@ -155,7 +155,7 @@ object CompanionRuntime {
             store = store,
         )
         client.pair(payload, deviceName)
-        current = LinkWireDriving(client)
+        switchingWire.replace(LinkWireDriving(client))
         restored = true
         null
     } catch (failure: Exception) {

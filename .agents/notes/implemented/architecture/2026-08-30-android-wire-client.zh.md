@@ -10,12 +10,14 @@ Android core 能折叠 fixtures 但不会说 link 这门语言：没有信封、
 
 ## 决策
 
-`apps/android/core` 仅凭 JDK 栈获得这份镜像——零外部加密或 HTTP 依赖。`LinkWire` 携带直通 `WireValue`（经 JsonElement 树往返，整型数为裸整数）与三种信封形式：`client-request` 单数信封、`{ok, value|error}` 结果、NDJSON 流帧。`LinkSigning` 镜像规范的四行签名输入、小写 SHA-256 十六进制，以及 `java.security` 的 Ed25519——裸私钥包上 PKCS#8 前缀，SPKI 装帧与 JDK 自身的 `publicKey.encoded` 逐字节一致，并附测试用的 verify。`LinkPinning` 取叶子证书 SPKI DER 的指纹（JDK 直接给出 DER，无需按曲线装帧）；接入 TLS 握手随应用模块的 OkHttp 栈到来，本对象是两者共用的校验。`LinkClient` 配对（全新 JDK Ed25519 密钥对、SPKI 入体）、describe、以三条凭据头调用 `/api` 单数端点（每次新签 epoch 毫秒时间戳）、以及流式 NDJSON——失败帧以 `Refused` 收束。测试对着真实的本地 `com.sun.net.httpserver.HttpServer` 运行——配对持久化身份、签名调用携带可校验的头、业务拒绝带出错误码、流在失败帧前持续产出值——另以一份提交在库的 Ed25519 证书 fixture 校验钉扎指纹。
+`apps/android/core` 以 JDK crypto、URL connection 与 kotlinx JSON 实现这份镜像。`LinkWire` 携带直通 `WireValue`，以及 canonical unary `payload.args`、回显 rpcId/result 解析和 NDJSON stream frame；stream request 使用自身顶层 `args`。`LinkSigning` 镜像四行签名输入、小写 SHA-256 十六进制与 `java.security` 的 Ed25519。`LinkPinning` 取叶子 SPKI DER 的指纹，并提供安装到每个 HTTPS 连接、在 output stream 打开前生效的 trust manager 与 hostname verifier；私有 Host 由 QR 认证的 SPKI 标识，而非 public-CA DNS identity。`LinkClient` 只在 payload endpoint 与 pin 拥有该 client 时接受配对，把成功但省略 value 的结果映射为 void，并带出结构化失败。测试对着本地 HTTP 与动态生成的 HTTPS server 运行，包括 wrong-pin 情形下 handler 不得收到请求字节的断言。
+
+Compose runtime 向全部模型暴露一个稳定的 `SwitchableWireDriving` handle，并只在 restore 或 fresh pairing 后替换其 delegate。Session follow 在 carrier loss 后重试，并由下一份 authoritative snapshot 替换 fold。交互模型清除上一代 identity，等待 Host `ready.clientId`，从 `request` 读取 waterfall 字段，移除 cancel frame，发送 `outcome`，并以有界延迟重试 stream。
 
 ## 后果
 
-车道上全部 18 个 core 测试全绿，覆盖一致性折叠、词汇、tokens、线缆信封、签名向量、钉扎与完整的客户端往返。Compose 应用模块现在可以在能工作的客户端之上构建配对与六标签面。车道还抓到两个 Kotlin 事实：`kotlinx.serialization.json.serializer` 作为 import 不可解析（reified `encodeToString` 自会找到序列化器）；钉扎失配报告命名 `presented` 与 `pinned`——测试起初把两者断言反了。
+Android 车道在 JDK 17 与 Gradle 8.14 上拥有 Kotlin/JUnit 与 app assembly 证据。这台 Windows 宿主有 JDK 17，但没有 Gradle 或 Android SDK，官方 Gradle distribution 下载也被连接重置，本地运行因此保持 `NOT_EXECUTED/HOST_ENVIRONMENT`。生成式 fixtures、TypeScript 契约检查与源码审查不能替代该车道：right-pin、wrong-pin、稳定 fresh-pair replacement、canonical envelope、Remote Event 与 reconnect 测试全部实际执行后，G1-ANDROID 才能关闭。真实 Host-to-Kotlin acceptance 仍是独立的 Gate 1 blocker。
 
 ## 考虑过的替代方案
 
-BouncyCastle 被否决——JDK 提供方原生支持 Ed25519 签名与验签。现在就上 OkHttp 被否决——纯 JVM 模块保持无框架；应用模块拥有 TLS 栈，钉扎正该接在那里。
+BouncyCastle 被否决，因为 JDK provider 原生支持 Ed25519 签名与验签。本切片也不需要 OkHttp：`HttpsURLConnection` 暴露逐连接 socket factory 与 hostname verifier，纯 JVM 模块无需第二个 HTTP dependency 即可 enforcement 私有 Host pin。

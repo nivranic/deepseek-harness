@@ -10,12 +10,12 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import java.net.HttpURLConnection
+import java.net.URL
 import java.security.KeyPairGenerator
 import java.util.Base64
+import java.util.UUID
+import javax.net.ssl.HttpsURLConnection
 
 /** Every way a link call can fail, mirroring the Swift `LinkClientError`. */
 sealed class LinkClientException(message: String) : RuntimeException(message) {
@@ -29,11 +29,11 @@ sealed class LinkClientException(message: String) : RuntimeException(message) {
 }
 
 /**
- * The link-client state machine over the JDK's HttpClient — the Kotlin
+ * The link-client state machine over the JDK's URL connection — the Kotlin
  * mirror of the Swift `LinkClient`: pair once, then describe, call unary
  * endpoints through the shared `/api` chain, and open NDJSON Remote
- * streams. Handshake-level SPKI pinning rides the app module's TLS stack;
- * [LinkPinning] holds the verification it applies.
+ * streams. Every HTTPS connection installs [LinkPinning] before opening its
+ * request body.
  */
 class LinkClient(
     baseUrl: String,
@@ -42,7 +42,8 @@ class LinkClient(
 ) {
     private val base: String = baseUrl.trimEnd('/')
     private val pinned: String = pinnedFingerprint
-    private val http: HttpClient = HttpClient.newHttpClient()
+    private val sslContext = LinkPinning.sslContext(pinnedFingerprint)
+    private val hostnameVerifier = LinkPinning.hostnameVerifier(pinnedFingerprint)
 
     /** The persisted identity, or null before the first successful pairing. */
     val credentials: LinkCredentials? get() = store.load()
@@ -56,6 +57,9 @@ class LinkClient(
      * returned identity persisted through the store.
      */
     fun pair(payload: LinkPairingPayload, deviceName: String): LinkCredentials {
+        if (payload.endpoint.trimEnd('/') != base || payload.spkiFingerprint != pinned) {
+            throw LinkClientException.BadWire("pairing payload does not own this client transport")
+        }
         val key = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
         val publicRaw = key.public.encoded.copyOfRange(key.public.encoded.size - 32, key.public.encoded.size)
         val body = Json.encodeToString(
@@ -94,7 +98,8 @@ class LinkClient(
      * throws [LinkClientException.Refused] when the business call fails.
      */
     fun call(method: String, args: Map<String, WireValue> = emptyMap()): WireValue {
-        val envelope = LinkRequestEnvelope(rpcId = "rpc-$method", method = method, args = args)
+        val rpcId = "rpc-${UUID.randomUUID()}"
+        val envelope = LinkRequestEnvelope(rpcId = rpcId, method = method, args = args)
         val body = Json.encodeToString(envelope.toJsonElement())
             .toByteArray(Charsets.UTF_8)
         val data = post("/api/$method", body, signed = true)
@@ -102,11 +107,20 @@ class LinkClient(
         if (response.type != "server-response") {
             throw LinkClientException.BadWire("unexpected response type ${response.type}")
         }
-        if (response.result.ok && response.result.value != null) return response.result.value!!
+        if (response.rpcId != rpcId) throw LinkClientException.BadWire("rpcId mismatch")
+        if (response.result.ok) {
+            if (response.result.errorCode != null) {
+                throw LinkClientException.BadWire("successful result carried an error")
+            }
+            return response.result.value ?: WireValue.NullValue
+        }
+        if (response.result.value != null) {
+            throw LinkClientException.BadWire("failed result carried a value")
+        }
         if (response.result.errorCode != null) {
             throw LinkClientException.Refused(response.result.errorCode!!, response.result.errorMessage ?: "")
         }
-        throw LinkClientException.BadWire("ok result without a value")
+        throw LinkClientException.BadWire("failed result lacked a structured error")
     }
 
     /**
@@ -116,22 +130,36 @@ class LinkClient(
     fun stream(endpoint: String, payload: Map<String, WireValue> = emptyMap()): Flow<WireValue> = flow {
         val body = Json.encodeToString(
             JsonElement.serializer(),
-            kotlinx.serialization.json.buildJsonObject { payload.forEach { (key, value) -> put(key, value.toJsonElement()) } },
+            kotlinx.serialization.json.buildJsonObject {
+                put("args", kotlinx.serialization.json.buildJsonObject {
+                    payload.forEach { (key, value) -> put(key, value.toJsonElement()) }
+                })
+            },
         ).toByteArray(Charsets.UTF_8)
-        val request = buildRequest("/link/stream/$endpoint", body)
-        val response = http.send(request, HttpResponse.BodyHandlers.ofInputStream())
-        // The stream body stays unread: the frames flow below consume it,
-        // and an error status never carries a frame body worth decoding.
-        checkStatus(response.statusCode(), null)
-        response.body().bufferedReader(Charsets.UTF_8).useLines { lines ->
-            for (line in lines) {
-                if (line.isBlank()) continue
-                val frame = LinkStreamFrame.fromJsonElement(Json.parseToJsonElement(line))
-                if (frame.isFailure) {
-                    throw LinkClientException.Refused(frame.code ?: "internal", frame.message ?: "stream failed")
-                }
-                frame.value?.let { emit(it) }
+        val connection = openConnection("/link/stream/$endpoint", body, signed = true)
+        try {
+            writeBody(connection, body)
+            val status = connection.responseCode
+            if (status !in 200..299) {
+                val errorBody = connection.errorStream?.use { it.readBytes() }
+                checkStatus(status, errorBody)
             }
+            connection.inputStream.bufferedReader(Charsets.UTF_8).useLines { lines ->
+                for (line in lines) {
+                    if (line.isBlank()) continue
+                    val frame = DecodedLinkStreamFrame.fromJsonElement(Json.parseToJsonElement(line))
+                    if (frame.isFailure) {
+                        throw LinkClientException.Refused(frame.code ?: "internal", frame.message ?: "stream failed")
+                    }
+                    emit(frame.value ?: WireValue.NullValue)
+                }
+            }
+        } catch (failure: LinkClientException) {
+            throw failure
+        } catch (failure: Exception) {
+            throw LinkClientException.Carrier(0, failure.message ?: failure.javaClass.simpleName)
+        } finally {
+            connection.disconnect()
         }
     }
 
@@ -153,20 +181,43 @@ class LinkClient(
     }
 
     private fun post(path: String, body: ByteArray, signed: Boolean): ByteArray {
-        val response = http.send(buildRequest(path, body, signed), HttpResponse.BodyHandlers.ofByteArray())
-        checkStatus(response.statusCode(), response.body())
-        return response.body()
+        val connection = openConnection(path, body, signed)
+        try {
+            writeBody(connection, body)
+            val status = connection.responseCode
+            val responseBody = (if (status in 200..299) connection.inputStream else connection.errorStream)
+                ?.use { it.readBytes() }
+                ?: ByteArray(0)
+            checkStatus(status, responseBody)
+            return responseBody
+        } catch (failure: LinkClientException) {
+            throw failure
+        } catch (failure: Exception) {
+            throw LinkClientException.Carrier(0, failure.message ?: failure.javaClass.simpleName)
+        } finally {
+            connection.disconnect()
+        }
     }
 
-    private fun buildRequest(path: String, body: ByteArray, signed: Boolean = true): HttpRequest {
-        val builder = HttpRequest.newBuilder(URI(base + path))
-            .header("content-type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofByteArray(body))
-        if (signed) applyCredentials(builder, path, body)
-        return builder.build()
+    private fun openConnection(path: String, body: ByteArray, signed: Boolean): HttpURLConnection {
+        val connection = URL(base + path).openConnection() as HttpURLConnection
+        if (connection is HttpsURLConnection) {
+            connection.sslSocketFactory = sslContext.socketFactory
+            connection.hostnameVerifier = hostnameVerifier
+        }
+        connection.requestMethod = "POST"
+        connection.doOutput = true
+        connection.setRequestProperty("content-type", "application/json")
+        connection.setFixedLengthStreamingMode(body.size)
+        if (signed) applyCredentials(connection, path, body)
+        return connection
     }
 
-    private fun applyCredentials(builder: HttpRequest.Builder, path: String, body: ByteArray) {
+    private fun writeBody(connection: HttpURLConnection, body: ByteArray) {
+        connection.outputStream.use { it.write(body) }
+    }
+
+    private fun applyCredentials(connection: HttpURLConnection, path: String, body: ByteArray) {
         val credentials = store.load() ?: throw LinkClientException.Unpaired()
         val privateKeyRaw = credentials.signingKeyRaw
             ?: throw LinkClientException.BadWire("stored signing key is not base64")
@@ -177,9 +228,9 @@ class LinkClient(
             path = path,
             bodySha256Hex = LinkSigning.sha256Hex(body),
         )
-        builder.header(LinkSigning.deviceIdHeader, credentials.deviceId)
-        builder.header(LinkSigning.timestampHeader, timestamp)
-        builder.header(LinkSigning.signatureHeader, LinkSigning.sign(input, privateKeyRaw))
+        connection.setRequestProperty(LinkSigning.deviceIdHeader, credentials.deviceId)
+        connection.setRequestProperty(LinkSigning.timestampHeader, timestamp)
+        connection.setRequestProperty(LinkSigning.signatureHeader, LinkSigning.sign(input, privateKeyRaw))
     }
 
     private fun checkStatus(status: Int, body: ByteArray?) {

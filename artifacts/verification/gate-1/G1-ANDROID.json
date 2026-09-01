@@ -1,0 +1,107 @@
+{
+  "taskId": "G1-ANDROID",
+  "status": "PARTIAL",
+  "commit": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "commands": [
+    "node_modules/.bin/tsx.CMD scripts/verify-link-contracts.ts",
+    "keytool -genkeypair -alias link-test -keyalg EC -groupname secp256r1 -dname CN=localhost -ext SAN=dns:localhost,ip:127.0.0.1 -validity 1 -storetype PKCS12",
+    "gradle --no-daemon :core:test",
+    "gradle --no-daemon :app:assembleDebug",
+    "pnpm run test:docs",
+    "git diff --check"
+  ],
+  "tests": [
+    {
+      "name": "Generated artifact freshness",
+      "result": "PASS",
+      "stale": 0
+    },
+    {
+      "name": "JDK 17 EC/SAN/PKCS12 keytool probe",
+      "result": "PASS"
+    },
+    {
+      "name": "Documentation quick aggregate",
+      "result": "PASS",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "name": "Android core tests",
+      "result": "NOT_EXECUTED",
+      "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
+    },
+    {
+      "name": "Android app debug assembly",
+      "result": "NOT_EXECUTED",
+      "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
+    },
+    {
+      "name": "Real Host-to-Kotlin acceptance",
+      "result": "NOT_EXECUTED",
+      "reason": "ACCEPTANCE_HARNESS_PENDING"
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-ANDROID.json",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt",
+    "apps/android/core/src/test/resources/fixtures/"
+  ],
+  "changedFiles": [
+    "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/WireDriving.kt",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkPinning.kt",
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelTest.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkPinningTest.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkWireTest.kt",
+    "apps/android/README.md",
+    "apps/android/README.zh.md",
+    "apps/android/README.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.md",
+    ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.zh.md",
+    ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.i18n.yaml"
+  ],
+  "implemented": [
+    "One stable switchable wire handle keeps existing models attached to the freshly paired or restored client.",
+    "Unary requests now use payload.args, stream requests use top-level args, responses enforce echoed rpcId, and successful void returns map to NullValue.",
+    "Remote Event answers carry Host ready.clientId and outcome; waterfall fields come from request and cancel frames retire pending cards.",
+    "Session follow and Remote Event streams retry after carrier loss; the next authoritative snapshot or ready frame replaces the old generation state.",
+    "Every HTTPS URL connection installs a pin-only trust manager and a second SPKI-verifying hostname verifier before opening the request body.",
+    "Android test source covers stable fresh-pair replacement, canonical envelopes, void RPC, ready/outcome/cancel, interaction reconnect, follow recovery, right pin, wrong pin, and zero handler bytes on a rejected handshake."
+  ],
+  "knownLimitations": [
+    "The Windows host has JDK 17 but no Gradle or Android SDK. The keytool fixture command was executed, but Kotlin compilation, JUnit, and app assembly were not.",
+    "Official Gradle 8.14 distribution downloads were reset by the host network; no wrapper or lockfile workaround was added.",
+    "The real Host pair-to-reconnect corpus remains absent; G1-E2E must execute it before G1-ANDROID can become PASS."
+  ],
+  "notExecuted": [
+    {
+      "item": "gradle --no-daemon :core:test",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "Gradle and Android SDK are unavailable; official Gradle 8.14 downloads were reset."
+    },
+    {
+      "item": "gradle --no-daemon :app:assembleDebug",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "Gradle and Android SDK are unavailable."
+    },
+    {
+      "item": "Real Host-to-Kotlin acceptance",
+      "status": "NOT_EXECUTED",
+      "reason": "DEPENDENCY_PENDING",
+      "details": "G1-E2E must provide the shipped Host process and shared acceptance corpus."
+    }
+  ],
+  "nextDependencies": [
+    "G1-E2E",
+    "G1-REC",
+    "G1-CI"
+  ]
+}

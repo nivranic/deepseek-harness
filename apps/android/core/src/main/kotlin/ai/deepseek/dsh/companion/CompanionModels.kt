@@ -4,12 +4,15 @@ import ai.deepseek.dsh.link.LinkArtifactFormat
 import ai.deepseek.dsh.link.LinkArtifactReadValue
 
 import ai.deepseek.dsh.link.WireValue
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 
@@ -64,7 +67,11 @@ data class SubagentRow(
  * Every field the UI renders is a [StateFlow], so Compose recomposes on
  * each emission rather than re-reading on navigation.
  */
-class SessionModel(private val wire: WireDriving, private val scope: CoroutineScope) {
+class SessionModel(
+    private val wire: WireDriving,
+    private val scope: CoroutineScope,
+    private val reconnectDelayMillis: Long = 1_000,
+) {
     private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
     val sessions: StateFlow<List<SessionRow>> = _sessions
 
@@ -246,9 +253,16 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
     }
 
     private fun follow(payload: Map<String, WireValue>): Job = scope.launch {
-        wire.stream("session/follow", payload)
-            .catch { }
-            .collect { frame -> foldFrame(frame) }
+        while (isActive) {
+            try {
+                wire.stream("session/follow", payload).collect { frame -> foldFrame(frame) }
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (_: Exception) {
+                // The authoritative snapshot on the next subscription resets the fold.
+            }
+            if (isActive) delay(reconnectDelayMillis)
+        }
     }
 
     /** A snapshot generation resets and replays its records; any other
@@ -271,43 +285,78 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
  * `InteractionViewModel`: watch `$events` for approval and question
  * forwards, deduplicate by event id, answer through `$events/result`.
  */
-class InteractionModel(private val wire: WireDriving, private val scope: CoroutineScope) {
+class InteractionModel(
+    private val wire: WireDriving,
+    private val scope: CoroutineScope,
+    private val reconnectDelayMillis: Long = 1_000,
+) {
     private val _inbox = MutableStateFlow<List<PendingInteraction>>(emptyList())
     val inbox: StateFlow<List<PendingInteraction>> = _inbox
 
     private val _answering = MutableStateFlow(false)
     val answering: StateFlow<Boolean> = _answering
 
+    private val _clientId = MutableStateFlow("")
+    val clientId: StateFlow<String> = _clientId
+
+    private val _lastRefusal = MutableStateFlow<String?>(null)
+    val lastRefusal: StateFlow<String?> = _lastRefusal
+
     private var watchJob: Job? = null
 
     fun startWatching() {
         watchJob?.cancel()
         watchJob = scope.launch {
-            wire.stream("\$events")
-                .catch { }
-                .collect { frame -> collect(frame) }
+            while (isActive) {
+                _clientId.value = ""
+                try {
+                    wire.stream("\$events").collect { frame -> collect(frame) }
+                } catch (failure: CancellationException) {
+                    throw failure
+                } catch (_: Exception) {
+                    // A carrier loss is followed by the bounded retry below.
+                }
+                if (isActive) delay(reconnectDelayMillis)
+            }
         }
     }
 
     fun stopWatching() {
         watchJob?.cancel()
         watchJob = null
+        _clientId.value = ""
     }
 
     fun collect(frame: WireValue) {
+        when (WireShape.string(frame, "type")) {
+            "ready" -> {
+                _clientId.value = WireShape.string(frame, "clientId") ?: ""
+                return
+            }
+            "cancel" -> {
+                val eventId = WireShape.string(frame, "eventId") ?: return
+                _inbox.update { current -> current.filterNot { it.id == eventId } }
+                return
+            }
+            "waterfall" -> Unit
+            else -> return
+        }
         val eventName = WireShape.string(frame, "event") ?: ""
         val isApproval = eventName.contains("approval")
         val isQuestion = eventName.contains("question")
         if (!isApproval && !isQuestion) return
         val id = WireShape.string(frame, "eventId") ?: return
+        val request = WireShape.objectValue(frame, "request") ?: return
         if (_inbox.value.any { it.id == id }) return
         _inbox.update { current ->
             current + PendingInteraction(
                 id = id,
                 kind = if (isApproval) PendingInteraction.Kind.APPROVAL else PendingInteraction.Kind.QUESTION,
-                sessionId = WireShape.string(frame, "sessionId") ?: "",
-                title = WireShape.string(frame, "title") ?: if (isApproval) "Approval requested" else "Question asked",
-                detail = WireShape.string(frame, "text") ?: "",
+                sessionId = WireShape.string(request, "sessionId") ?: "",
+                title = WireShape.string(request, "title")
+                    ?: WireShape.string(request, "toolName")
+                    ?: if (isApproval) "Approval requested" else "Question asked",
+                detail = WireShape.string(request, "reason") ?: WireShape.string(request, "text") ?: "",
             )
         }
     }
@@ -315,12 +364,19 @@ class InteractionModel(private val wire: WireDriving, private val scope: Corouti
     /** Answer one pending interaction; success retires the card. */
     suspend fun answer(pending: PendingInteraction, allowedOnce: Boolean) {
         _answering.value = true
+        _lastRefusal.value = null
         try {
+            val readyClientId = _clientId.value
+            if (readyClientId.isEmpty()) {
+                _lastRefusal.value = "Remote Event stream is not ready."
+                return
+            }
             wire.call(
                 "\$events/result",
                 mapOf(
+                    "clientId" to WireValue.StringValue(readyClientId),
                     "eventId" to WireValue.StringValue(pending.id),
-                    "result" to WireValue.ObjectValue(
+                    "outcome" to WireValue.ObjectValue(
                         mapOf(
                             "kind" to WireValue.StringValue("result"),
                             "value" to WireValue.StringValue(if (allowedOnce) "allowed-once" else "rejected"),
@@ -329,6 +385,8 @@ class InteractionModel(private val wire: WireDriving, private val scope: Corouti
                 ),
             )
             _inbox.update { current -> current.filterNot { it.id == pending.id } }
+        } catch (failure: Exception) {
+            _lastRefusal.value = failure.message
         } finally {
             _answering.value = false
         }

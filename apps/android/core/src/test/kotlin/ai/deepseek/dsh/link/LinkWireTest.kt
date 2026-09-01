@@ -23,7 +23,8 @@ class LinkWireTest {
         assertEquals("rpc-session/list", obj["rpcId"]!!.jsonPrimitiveText())
         assertEquals("session/list", obj["method"]!!.jsonPrimitiveText())
         val payload = obj["payload"] as kotlinx.serialization.json.JsonObject
-        assertEquals("{}", payload["_request"].toString())
+        val args = payload["args"] as kotlinx.serialization.json.JsonObject
+        assertEquals("{}", args["_request"].toString())
     }
 
     @Test
@@ -77,20 +78,29 @@ class LinkWireTest {
         assertEquals(WireValue.ObjectValue(mapOf("items" to WireValue.ArrayValue(emptyList()))), ok.value)
 
         val refused = LinkResponseEnvelope.fromJsonElement(
-            Json.parseToJsonElement("""{"type":"server-response","result":{"ok":false,"error":{"code":"link-disabled","message":"off"}}}"""),
+            Json.parseToJsonElement(
+                """{"type":"server-response","rpcId":"rpc-1","result":{"ok":false,"error":{"code":"link-disabled","message":"off","details":{}}}}""",
+            ),
         )
         assertEquals("server-response", refused.type)
+        assertEquals("rpc-1", refused.rpcId)
         assertEquals("link-disabled", refused.result.errorCode)
         assertEquals("off", refused.result.errorMessage)
+
+        val void = LinkResponseEnvelope.fromJsonElement(
+            Json.parseToJsonElement("""{"type":"server-response","rpcId":"rpc-2","result":{"ok":true}}"""),
+        )
+        assertTrue(void.result.ok)
+        assertEquals(null, void.result.value)
     }
 
     @Test
     fun streamFramesDecodeValueAndFailure() {
-        val value = LinkStreamFrame.fromJsonElement(Json.parseToJsonElement("""{"k":"v","v":{"seq":1}}"""))
+        val value = DecodedLinkStreamFrame.fromJsonElement(Json.parseToJsonElement("""{"k":"v","v":{"seq":1}}"""))
         assertEquals(false, value.isFailure)
         assertEquals(WireValue.ObjectValue(mapOf("seq" to WireValue.NumberValue(1.0))), value.value)
 
-        val failure = LinkStreamFrame.fromJsonElement(Json.parseToJsonElement("""{"k":"e","c":"role","m":"denied"}"""))
+        val failure = DecodedLinkStreamFrame.fromJsonElement(Json.parseToJsonElement("""{"k":"e","c":"role","m":"denied"}"""))
         assertTrue(failure.isFailure)
         assertEquals("role", failure.code)
         assertEquals("denied", failure.message)

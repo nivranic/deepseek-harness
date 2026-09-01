@@ -1,12 +1,17 @@
 package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.WireValue
+import java.io.IOException
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -64,6 +69,22 @@ private fun event(seq: Int, type: String, data: String): WireValue = wire(
 
 class CompanionModelTest {
     @Test
+    fun stableWireHandleSwitchesExistingModelsAfterPairing() = runTest {
+        val beforePairing = FakeWire()
+        beforePairing.stub("session/list") { wire("""{"items":[{"sessionId":"old","title":"Old"}]}""") }
+        val afterPairing = FakeWire()
+        afterPairing.stub("session/list") { wire("""{"items":[{"sessionId":"new","title":"New"}]}""") }
+        val stable = SwitchableWireDriving(beforePairing)
+        val model = SessionModel(stable, this)
+
+        model.loadSessions()
+        assertEquals(listOf("old"), model.sessions.value.map { it.id })
+        stable.replace(afterPairing)
+        model.loadSessions()
+        assertEquals(listOf("new"), model.sessions.value.map { it.id })
+    }
+
+    @Test
     fun loadsAndProjectsSessionRows() = runTest {
         val wire = FakeWire()
         wire.stub("session/list") {
@@ -92,6 +113,33 @@ class CompanionModelTest {
     }
 
     @Test
+    fun droppedFollowReconnectsThroughAnAuthoritativeSnapshot() = runTest {
+        var attempts = 0
+        val reconnecting = object : WireDriving {
+            override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = WireValue.NullValue
+
+            override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
+                attempts += 1
+                if (attempts == 1) {
+                    emit(wire("""{"type":"snapshot","cursor":1,"records":[{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600001,"data":{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}}}]}"""))
+                    throw IOException("carrier lost")
+                }
+                emit(wire("""{"type":"snapshot","cursor":2,"records":[{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600001,"data":{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}}},{"type":"event","event":{"type":"assistant/message","seq":2,"time":1759017600002,"data":{"turn":1,"step":1,"message":{"id":"m2","role":"assistant","content":[{"type":"text","text":"已恢复"}],"source":{"kind":"model","provider":"deepseek","model":"deepseek-chat"}},"usage":{"inputTokens":1,"outputTokens":1,"totalTokens":2}}}}]}"""))
+                awaitCancellation()
+            }
+        }
+        val model = SessionModel(reconnecting, this, reconnectDelayMillis = 1)
+        model.openSession("s1")
+        runCurrent()
+        assertEquals(1, model.state.items.size)
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(2, attempts)
+        assertEquals(listOf("你好", "已恢复"), model.state.items.map { it.text })
+        model.close()
+    }
+
+    @Test
     fun sendCarriesTheRequestEnvelopeAndImages() = runTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
@@ -112,19 +160,63 @@ class CompanionModelTest {
     fun inboxCollectsDeduplicatesAndAnswers() = runTest {
         val wire = FakeWire()
         val model = InteractionModel(wire, TestScope())
-        model.collect(wire("""{"event":"approval/requested","eventId":"e1","sessionId":"s1","title":"Run command"}"""))
-        model.collect(wire("""{"event":"question/requested","eventId":"e2","sessionId":"s1","text":"Pick one"}"""))
-        model.collect(wire("""{"event":"approval/requested","eventId":"e1"}"""))
+        model.collect(wire("""{"type":"ready","clientId":"host-client-1","host":{"home":"/home/test"}}"""))
+        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"sessionId":"s1","title":"Run command","reason":"Needs shell"}}"""))
+        model.collect(wire("""{"type":"waterfall","event":"question/request","eventId":"e2","agentId":"a1","request":{"sessionId":"s1","text":"Pick one"}}"""))
+        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{}}"""))
+        assertEquals("host-client-1", model.clientId.value)
         assertEquals(2, model.inbox.value.size)
         assertEquals("Run command", model.inbox.value[0].title)
+        assertEquals("Needs shell", model.inbox.value[0].detail)
         assertEquals("Pick one", model.inbox.value[1].detail)
 
         val pending = model.inbox.value[0]
         model.answer(pending, allowedOnce = true)
         val call = wire.calls.first { it.first == "\$events/result" }
-        val result = (call.second["result"] as WireValue.ObjectValue).entries
-        assertEquals("allowed-once", (result["value"] as WireValue.StringValue).value)
+        assertEquals("host-client-1", (call.second["clientId"] as WireValue.StringValue).value)
+        val outcome = (call.second["outcome"] as WireValue.ObjectValue).entries
+        assertEquals("allowed-once", (outcome["value"] as WireValue.StringValue).value)
         assertEquals(1, model.inbox.value.size)
+
+        model.collect(wire("""{"type":"cancel","eventId":"e2"}"""))
+        assertEquals(0, model.inbox.value.size)
+        model.collect(wire("""{"type":"ready","clientId":"host-client-2","host":{"home":"/home/test"}}"""))
+        assertEquals("host-client-2", model.clientId.value)
+    }
+
+    @Test
+    fun interactionStreamReconnectsAndRefreshesTheAuthoritativeClientId() = runTest {
+        var attempts = 0
+        val reconnecting = object : WireDriving {
+            override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = WireValue.NullValue
+
+            override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
+                attempts += 1
+                emit(wire("""{"type":"ready","clientId":"host-client-$attempts","host":{"home":"/home/test"}}"""))
+                if (attempts == 1) throw IOException("carrier lost")
+                awaitCancellation()
+            }
+        }
+        val model = InteractionModel(reconnecting, this, reconnectDelayMillis = 1)
+        model.startWatching()
+        runCurrent()
+        assertEquals("host-client-1", model.clientId.value)
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(2, attempts)
+        assertEquals("host-client-2", model.clientId.value)
+        model.stopWatching()
+    }
+
+    @Test
+    fun interactionAnswerWaitsForTheHostReadyIdentity() = runTest {
+        val wire = FakeWire()
+        val model = InteractionModel(wire, this)
+        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"title":"Run"}}"""))
+        model.answer(model.inbox.value.single(), allowedOnce = true)
+        assertTrue(wire.calls.isEmpty())
+        assertEquals("Remote Event stream is not ready.", model.lastRefusal.value)
+        assertEquals(listOf("e1"), model.inbox.value.map { it.id })
     }
 
     @Test
@@ -215,10 +307,11 @@ class StateFlowProjectionTest {
         val model = InteractionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.inbox.test {
             assertEquals(0, awaitItem().size)
-            model.collect(wire("""{"event":"approval/requested","eventId":"e1","sessionId":"s1","title":"Run command"}"""))
+            model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"sessionId":"s1","title":"Run command"}}"""))
             awaitItem().also { assertEquals(1, it.size) }
-            model.collect(wire("""{"event":"approval/requested","eventId":"e1"}"""))
+            model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{}}"""))
             expectNoEvents()
+            model.collect(wire("""{"type":"ready","clientId":"host-client-1","host":{"home":"/home/test"}}"""))
             val pending = model.inbox.value[0]
             model.answer(pending, allowedOnce = true)
             awaitItem().also { assertEquals(0, it.size) }

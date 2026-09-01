@@ -4,6 +4,9 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.net.InetSocketAddress
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.AfterTest
@@ -29,7 +32,11 @@ class LinkClientTest {
         server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/link/pair") { exchange ->
             capturedBodies.add(exchange.requestBody.readBytes().decodeToString())
-            respond(exchange, 200, """{"deviceId":"d-1","hostId":"h-1","hostName":"Studio Desk","role":"controller"}""")
+            respond(
+                exchange,
+                200,
+                """{"deviceId":"d-1","hostId":"h-1","hostName":"Studio Desk","role":"controller","linkProtocolVersion":1}""",
+            )
         }
         server.createContext("/link/describe") { exchange ->
             capture(exchange)
@@ -43,12 +50,16 @@ class LinkClientTest {
             )
         }
         server.createContext("/api/session/list") { exchange ->
-            capture(exchange)
-            respond(exchange, 200, """{"type":"server-response","result":{"ok":true,"value":{"items":[]}}}""")
+            val body = capture(exchange)
+            respond(exchange, 200, """{"type":"server-response","rpcId":"${rpcId(body)}","result":{"ok":true,"value":{"items":[]}}}""")
         }
         server.createContext("/api/session/prompt") { exchange ->
-            capture(exchange)
-            respond(exchange, 200, """{"type":"server-response","result":{"ok":false,"error":{"code":"session-gone","message":"no such session"}}}""")
+            val body = capture(exchange)
+            respond(
+                exchange,
+                200,
+                """{"type":"server-response","rpcId":"${rpcId(body)}","result":{"ok":false,"error":{"code":"session-gone","message":"no such session","details":{}}}}""",
+            )
         }
         server.createContext("/link/stream/\$events") { exchange ->
             capture(exchange)
@@ -57,7 +68,7 @@ class LinkClientTest {
                 200,
                 """{"k":"v","v":{"event":"approval/requested","eventId":"e1"}}""" + "\n" +
                     """{"k":"v","v":{"event":"question/requested","eventId":"e2"}}""" + "\n" +
-                    """{"k":"e","c":"role","m":"observer may not answer"}""" + "\n",
+                    """{"k":"e","c":"role","m":"observer may not answer","d":{}}""" + "\n",
                 contentType = "application/x-ndjson",
             )
         }
@@ -69,12 +80,17 @@ class LinkClientTest {
         server.stop(0)
     }
 
-    private fun capture(exchange: HttpExchange) {
-        capturedBodies.add(exchange.requestBody.readBytes().decodeToString())
+    private fun capture(exchange: HttpExchange): String {
+        val body = exchange.requestBody.readBytes().decodeToString()
+        capturedBodies.add(body)
         for (name in listOf(LinkSigning.deviceIdHeader, LinkSigning.timestampHeader, LinkSigning.signatureHeader)) {
             capturedHeaders.add(name to (exchange.requestHeaders.getFirst(name) ?: ""))
         }
+        return body
     }
+
+    private fun rpcId(body: String): String =
+        Json.parseToJsonElement(body).jsonObject["rpcId"]!!.jsonPrimitive.content
 
     private fun respond(exchange: HttpExchange, status: Int, body: String, contentType: String = "application/json") {
         val bytes = body.toByteArray(Charsets.UTF_8)
@@ -126,10 +142,26 @@ class LinkClientTest {
 
         val value = client.call("session/list")
         assertEquals(WireValue.ObjectValue(mapOf("items" to WireValue.ArrayValue(emptyList()))), value)
+        val callBody = Json.parseToJsonElement(capturedBodies.poll()).jsonObject
+        val callPayload = callBody["payload"]!!.jsonObject
+        assertEquals(setOf("args"), callPayload.keys)
+        assertEquals("{}", callPayload["args"].toString())
         val headerMap = capturedHeaders.associate { it }
         assertEquals("d-1", headerMap[LinkSigning.deviceIdHeader])
         assertTrue(headerMap[LinkSigning.timestampHeader]!!.all { it.isDigit() }, "timestamp is epoch millis")
         assertTrue(headerMap[LinkSigning.signatureHeader]!!.isNotEmpty(), "signature header present")
+    }
+
+    @Test
+    fun pairRejectsAPayloadThatDoesNotOwnTheClientTransport() {
+        val store = MemoryLinkCredentialsStore()
+        val client = client(store)
+        val failure = assertFailsWith<LinkClientException.BadWire> {
+            client.pair(pairingPayload().copy(spkiFingerprint = "cd".repeat(32)), deviceName = "Pixel 9")
+        }
+        assertTrue(failure.message!!.contains("does not own this client transport"))
+        assertEquals(null, store.load())
+        assertTrue(capturedBodies.isEmpty())
     }
 
     @Test
@@ -151,6 +183,33 @@ class LinkClientTest {
         val failure = assertFailsWith<LinkClientException.Refused> { client.call("session/prompt") }
         assertEquals("session-gone", failure.code)
         assertTrue(failure.message!!.contains("no such session"))
+    }
+
+    @Test
+    fun successfulVoidCallReturnsNullValue() {
+        server.createContext("/api/session/cancel") { exchange ->
+            val body = capture(exchange)
+            respond(exchange, 200, """{"type":"server-response","rpcId":"${rpcId(body)}","result":{"ok":true}}""")
+        }
+        val client = client(MemoryLinkCredentialsStore())
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+        assertEquals(WireValue.NullValue, client.call("session/cancel"))
+    }
+
+    @Test
+    fun unaryCallRejectsCrossBranchResultFields() {
+        server.createContext("/api/session/invalid") { exchange ->
+            val body = capture(exchange)
+            respond(
+                exchange,
+                200,
+                """{"type":"server-response","rpcId":"${rpcId(body)}","result":{"ok":false,"value":null,"error":{"code":"invalid","message":"must not coexist","details":{}}}}""",
+            )
+        }
+        val client = client(MemoryLinkCredentialsStore())
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+        val failure = assertFailsWith<LinkClientException.BadWire> { client.call("session/invalid") }
+        assertTrue(failure.message!!.contains("failed result carried a value"))
     }
 
     @Test
@@ -220,6 +279,7 @@ class LinkClientTest {
     fun streamsFlowValuesUntilTheFailureFrame() = runTest {
         val client = client(MemoryLinkCredentialsStore())
         client.pair(pairingPayload(), deviceName = "Pixel 9")
+        capturedBodies.poll()
         val collected = mutableListOf<WireValue>()
         val failure = assertFailsWith<LinkClientException.Refused> {
             client.stream("\$events").collect { collected.add(it) }
@@ -227,5 +287,8 @@ class LinkClientTest {
         assertEquals(2, collected.size)
         assertEquals("approval/requested", (collected[0] as WireValue.ObjectValue).entries["event"]?.let { (it as WireValue.StringValue).value })
         assertEquals("observer may not answer", failure.message!!.substringAfter("role: "))
+        val streamBody = Json.parseToJsonElement(capturedBodies.poll()).jsonObject
+        assertEquals(setOf("args"), streamBody.keys)
+        assertEquals("{}", streamBody["args"].toString())
     }
 }
