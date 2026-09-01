@@ -152,7 +152,9 @@ public final class RelayClient: @unchecked Sendable {
     public func presence(accountId: String) async throws -> [RelayPresence] {
         struct Body: Encodable { let accountId: String }
         let payloads = try await transport.callFrames(path: "/relay/presence", body: Body(accountId: accountId))
-        return try payloads.map { try JSONDecoder().decode(RelayPresence.self, from: $0) }
+        // The roster answers as one frame carrying the whole array.
+        guard payloads.count == 1 else { throw RelayClientError.http(-1) }
+        return try JSONDecoder().decode([RelayPresence].self, from: payloads[0])
     }
 
     /// One decoded stream frame: a `type: presence` object is a presence
