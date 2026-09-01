@@ -1,5 +1,5 @@
 ---
-description: "Paired-device trust store for hosts and maintainers securing native remote access: host identity, one-time pairing codes, and device records with role and revocation."
+description: "Paired-device trust store for hosts and maintainers securing native remote access: host identity, one-time pairing codes, and device records with role, resource grants, and revocation."
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-device-trust` is the Host's durable trust store for native remote access: one SQLite database owns a stable host identity, one-time pairing codes (stored only as SHA-256 digests), and the device records the [link carrier](../link-access/README.md) authorizes requests against. Every record carries the device's Ed25519 public key — the Host never stores device secrets — plus its role, timestamps, and revocation state. Device credentials never enter LLM-provider credential storage.
+`dsh-device-trust` is the Host's durable trust store for native remote access: one SQLite database owns a stable host identity, one-time pairing codes (stored only as SHA-256 digests), and the device records the [link carrier](../link-access/README.md) authorizes requests against. Every record carries the device's Ed25519 public key — the Host never stores device secrets — plus its role, Session and Workspace grants, timestamps, and revocation state. Device credentials never enter LLM-provider credential storage.
 
 ## Table of Contents
 
@@ -41,7 +41,7 @@ Mount the store wherever the link carrier runs; it registers `ctx.deviceTrust` a
 
 ### Observable behavior
 
-`createPairing(ttlSeconds)` issues a 256-bit one-time code; `consumePairing` deletes the code row before registering the device, so a second consumer fails whether the calls race or follow one another, and an expired code burns on first use. `revoke` keeps the record for audit while `touch` records `lastSeenAt` only for trusted devices. A database stamped with another layout version rejects outright — no migration, pre-release stance.
+`createPairing(ttlSeconds)` issues a 256-bit one-time code. `consumePairing` uses one `BEGIN IMMEDIATE` transaction to burn that code and persist the device with either `all` or explicit Session and Workspace grant rows, so another consumer fails whether the calls race or follow one another and no device can exist without its intended grants. An expired code burns on first use. The first `revoke` keeps the record for audit and emits `device-trust/revoked` after commit so active carriers close the device regardless of which Host component initiated revocation; `touch` records `lastSeenAt` only for trusted devices. A database stamped with another layout version rejects outright — no migration, pre-release stance.
 
 -----
 
@@ -52,7 +52,7 @@ Mount the store wherever the link carrier runs; it registers `ctx.deviceTrust` a
 <summary>Implementation internals — click to expand</summary>
 
 - **Codes as digests.** The database stores `sha256(code)`; a database read cannot mint credentials, and code lookup on a 256-bit random value needs no timing-safe comparison.
-- **Synchronous atomic consume.** `node:sqlite` calls are synchronous on the Host's single connection, so the select-then-delete pairing consume cannot interleave inside one process.
+- **Transactional pairing consume.** `BEGIN IMMEDIATE` serializes consumers before reading the code; deleting the code, inserting the device, and inserting its grant rows commit together on the Host's single SQLite connection.
 - **Keys verified at the boundary.** Pairing rejects any public key that is not a parseable DER SubjectPublicKeyInfo, so every stored key is usable for request verification.
 - **Host identity is meta.** The stable `host_id` lives in the `meta` table and is created lazily on first read, surviving restarts and database remounts.
 

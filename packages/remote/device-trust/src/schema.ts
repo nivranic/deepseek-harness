@@ -14,7 +14,7 @@ import { dirname, resolve } from 'node:path'
  * a breaking change to the table layout; any other stamped version rejects —
  * this unreleased format has no migrations.
  */
-export const DEVICE_TRUST_SCHEMA_VERSION = 1
+export const DEVICE_TRUST_SCHEMA_VERSION = 2
 
 /* jscpd:ignore-start -- deliberately mirrors the storage-sqlite /
    session-persistence-sqlite open sequence; the shared medium helper is
@@ -86,7 +86,23 @@ function configureDatabase(db: DatabaseSync, path: string): void {
       role             TEXT NOT NULL,
       created_at       INTEGER NOT NULL,
       last_seen_at     INTEGER,
-      revoked_at       INTEGER
+      revoked_at       INTEGER,
+      all_sessions     INTEGER NOT NULL CHECK (all_sessions IN (0, 1)),
+      all_workspaces   INTEGER NOT NULL CHECK (all_workspaces IN (0, 1))
+    ) STRICT
+  `)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS device_session_grants (
+      device_id  TEXT NOT NULL REFERENCES devices(device_id) ON DELETE CASCADE,
+      session_id TEXT NOT NULL CHECK (length(session_id) > 0),
+      PRIMARY KEY (device_id, session_id)
+    ) STRICT
+  `)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS device_workspace_grants (
+      device_id    TEXT NOT NULL REFERENCES devices(device_id) ON DELETE CASCADE,
+      workspace_id TEXT NOT NULL CHECK (length(workspace_id) > 0),
+      PRIMARY KEY (device_id, workspace_id)
     ) STRICT
   `)
   db.exec(`

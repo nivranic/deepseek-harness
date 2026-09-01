@@ -2,9 +2,9 @@
 
 [English](remote-link.md) | 中文
 
-远程链接子系统让已配对的原生伴侣客户端经网络接入单个 Harness 宿主。`ctx.deviceTrust` 拥有持久信任材料：稳定的宿主身份、仅以 SHA-256 摘要存储的一次性配对码，以及携带 Ed25519 公钥、角色（`observer`、`controller`、预留的 `administrator`）、时间戳与吊销状态的设备记录。`ctx.linkAccess` 拥有载体：一个 TLS 监听器，其证书以 SubjectPublicKeyInfo 的 SHA-256 指纹向设备标识；设备请求认证（带时间窗的 Ed25519 签名，覆盖方法、路径与请求体摘要）；带角色门控与独立远程审批开关的远程端点 Allowlist；以及配对接入。单次 RPC 经 Connection 共享 `/api` 处理器分发，Remote 流经 `typertGateway.wireStream`——与桌面载体使用的同一对适配器——因此本子系统增加的是访问层，绝不是第二套业务网关。
+远程链接子系统让已配对的原生伴侣客户端经网络接入单个 Harness 宿主。`ctx.deviceTrust` 拥有持久信任材料：稳定的宿主身份、仅以 SHA-256 摘要存储的一次性配对码，以及携带 Ed25519 公钥、角色（`observer`、`controller`、预留的 `administrator`）、Session 与 Workspace 授权、时间戳和吊销状态的设备记录。`ctx.linkAccess` 拥有载体：一个 TLS 监听器，其证书以 SubjectPublicKeyInfo 的 SHA-256 指纹向设备标识；设备请求认证（带时间窗的 Ed25519 签名，覆盖方法、路径与请求体摘要）；以及带角色门控、固定资源作用域和独立远程审批开关的端点 Allowlist。单次 RPC 经 Connection 共享 `/api` 处理器分发，Remote 流经 `typertGateway.wireStream`——与桌面载体使用的同一对适配器——因此本子系统增加的是访问层，绝不是第二套业务网关。Session、Workspace、Artifact、Attachment 与 Gateway 服务继续拥有各自的业务关系和待定事件状态。
 
-配对由宿主发起（`ctx.linkAccess.createPairing()` 渲染 QR 载荷：宿主 id 与名称、端点、证书指纹、一次性配对码、过期时间）。设备在 TLS 握手期、写出任何请求字节之前校验指纹，用配对码换取设备身份，并把签名密钥保存在平台安全存储中。吊销设备会在其下一个请求生效；回答远程交互还额外要求 `allowRemoteApproval` 开关，因此"能发 Prompt"绝不意味着"能审批"。两个宿主侧组件补齐 Phase 1 管理面。`ctx.linkSettings` 注册 `remote` 用户设置命名空间——启用跨设备访问、允许远程审批、设备名——并把每次提交实时应用到载体，桥接挂载后这三项字段以设置文档为属主。`ctx.linkController` 支撑面向本地 UI 生成的 `ctx.remote.link` 命名空间：带 LAN 端点与绑定诊断的载体状态、供二维码展示的一次性配对签发、受信设备列表与吊销；远程 Allowlist 不收录这些端点，因此已配对设备永远无法管理宿主。可执行参考客户端是 [`dsh-link-client`](../../packages/remote/link-client/README.zh.md)；原生伴侣端按同一套线缆词汇复刻其状态机。Apple 伴侣端的 `SharedAppleRemoteCore` 在 Swift 里以生成的 [`dsh-link-contracts`](../../packages/remote/link-contracts/README.zh.md) 模型镜像其状态机，Kotlin 伴侣端遵循同一契约。
+配对由宿主发起（`ctx.linkAccess.createPairing()` 渲染 QR 载荷：宿主 id 与名称、端点、证书指纹、一次性配对码、过期时间）。设备在 TLS 握手期、写出任何请求字节之前校验指纹，用配对码换取设备身份，并把签名密钥保存在平台安全存储中。配对会持久化部署的 `pairingAccess` 授权；显式单用户配对流程默认允许访问全部 Session 与 Workspace。载体在调用资源 owner 前检查这些授权，并在写入设备套接字前投影宿主全局的 Session、Workspace 与事件 feed。远程交互回答还必须同时满足 controller 角色、独立的 `allowRemoteApproval` 开关、设备自己的宿主签发 Client 代次、Gateway 仍拥有的待定投递，以及交互所属 Session 的授权；被过滤、禁用、吊销或停止的代次会委托回现有宿主 waterfall，不会创建第二套审批注册表。`ctx.linkSettings` 注册 `remote` 用户设置命名空间——启用跨设备访问、允许远程审批、设备名——并把每次提交实时应用到载体。`ctx.linkController` 支撑面向本地 UI 生成的 `ctx.remote.link` 命名空间：带 LAN 端点与绑定诊断的载体状态、供二维码展示的一次性配对签发、受信设备列表与吊销；远程 Allowlist 不收录这些端点，因此已配对设备永远无法管理宿主。可执行参考客户端是 [`dsh-link-client`](../../packages/remote/link-client/README.zh.md)；Apple 伴侣端的 `SharedAppleRemoteCore` 在 Swift 中通过生成的 [`dsh-link-contracts`](../../packages/remote/link-contracts/README.zh.md) 模型复用同一状态机，Kotlin 伴侣端遵循同一契约。
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -18,7 +18,7 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 
 ### `ctx.deviceTrust` — `DeviceTrustStore`
 
-The Host's device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.
+The Host's device trust store: stable Host identity, one-time pairing codes consumed atomically, and device records with role, resource grants, timestamps, and revocation that the link carrier authorizes against.
 
 ```ts cordis-catalog
 /** Resolve this store's stable Host identity, creating it on first use.
@@ -41,10 +41,11 @@ async createPairing(ttlSeconds: number): Promise<PendingPairing>
  * @param code - pairing code from {@link DeviceTrustStore.createPairing}.
  * @param device - user-chosen name and verified public key of the pairing device.
  * @param role - authorization role granted to the device.
+ * @param access - Session and Workspace grants fixed by the Host at pairing.
  * @returns the durable device record just created.
  * @throws {@link DeviceTrustError} when the code is unknown or expired.
  */
-async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, ): Promise<PairedDevice>
+async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, access: DeviceAccess, ): Promise<PairedDevice>
 
 /**
  * Read one device record, including revoked ones.
@@ -87,7 +88,7 @@ Source: [`packages/remote/device-trust/src/index.ts`](../../packages/remote/devi
 
 ### `ctx.linkAccess` — `LinkAccessService`
 
-The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.
+The native remote access carrier service: TLS listener, device authentication, endpoint and resource-scope authorization, pre-socket projection, and pairing ingress over the existing gateway surface.
 
 ```ts cordis-catalog
 /**
@@ -131,6 +132,7 @@ isRemoteApprovalAllowed(): boolean
 
 /**
  * Flip the independent remote-approval switch without touching the carrier.
+ * Disabling delegates every delivered Link interaction back to the Host chain.
  * @param value - whether paired controllers may answer interactions.
  */
 setAllowRemoteApproval(value: boolean): void
@@ -159,7 +161,8 @@ async createPairing(): Promise<LinkPairingPayload>
 async trustedDevices(): Promise<readonly PairedDevice[]>
 
 /**
- * Revoke one paired device; its next request is refused.
+ * Revoke one paired device; its next request is refused and its active
+ * Remote Event generation is delegated and closed.
  * @param deviceId - identity of the device to revoke.
  * @returns the device record after revocation, or `undefined` when unknown.
  */
@@ -217,4 +220,26 @@ Source: [`packages/api/link-controller/src/index.ts`](../../packages/api/link-co
 The remote settings bridge: registers the `remote` namespace on mount and pushes every resolved value into the link-access carrier.
 
 Source: [`packages/remote/link-settings/src/index.ts`](../../packages/remote/link-settings/src/index.ts)
+
+<a id="device-trust-events"></a>
+
+### `device-trust/*` events
+
+<a id="device-trustrevoked--parallel"></a>
+
+#### `device-trust/revoked` — parallel
+
+A device's first revocation has committed. Every listener runs so active carriers can close that device even when another observer fails.
+
+```ts cordis-catalog
+/**
+ * A device's first revocation has committed. Every listener runs so active
+ * carriers can close that device even when another observer fails.
+ * @param deviceId - durable identity whose trust was just revoked.
+ * @mode parallel
+ */
+'device-trust/revoked'(deviceId: DeviceId): Promise<void> | void
+```
+
+Source: [`packages/remote/device-trust/src/index.ts`](../../packages/remote/device-trust/src/index.ts)
 <!-- END GENERATED cordis-surface -->

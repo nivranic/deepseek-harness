@@ -2,9 +2,9 @@
 
 English | [中文](remote-link.zh.md)
 
-The remote link subsystem lets paired native companion clients reach one Harness host over the network. `ctx.deviceTrust` owns the durable trust material: a stable host identity, one-time pairing codes stored only as SHA-256 digests, and device records carrying an Ed25519 public key, a role (`observer`, `controller`, reserved `administrator`), timestamps, and revocation. `ctx.linkAccess` owns the carrier: a TLS listener whose certificate is identified to devices by the SHA-256 fingerprint of its SubjectPublicKeyInfo, device request authentication (timestamp-windowed Ed25519 signatures over method, path, and body digest), a role-gated remote endpoint allowlist with an independent remote-approval switch, and the pairing ingress. Unary RPC dispatches through the Connection shared `/api` handler and Remote streams through `typertGateway.wireStream` — the same adapter pair the desktop carrier uses — so the subsystem adds an access layer, never a second business gateway.
+The remote link subsystem lets paired native companion clients reach one Harness host over the network. `ctx.deviceTrust` owns the durable trust material: a stable host identity, one-time pairing codes stored only as SHA-256 digests, and device records carrying an Ed25519 public key, a role (`observer`, `controller`, reserved `administrator`), Session and Workspace grants, timestamps, and revocation. `ctx.linkAccess` owns the carrier: a TLS listener whose certificate is identified to devices by the SHA-256 fingerprint of its SubjectPublicKeyInfo, device request authentication (timestamp-windowed Ed25519 signatures over method, path, and body digest), and a role-gated endpoint allowlist with fixed resource scopes and an independent remote-approval switch. Unary RPC dispatches through the Connection shared `/api` handler and Remote streams through `typertGateway.wireStream` — the same adapter pair the desktop carrier uses — so the subsystem adds an access layer, never a second business gateway. Session, Workspace, Artifact, Attachment, and Gateway services retain their business relationships and pending-event state.
 
-Pairing is initiated on the host (`ctx.linkAccess.createPairing()` renders a QR payload: host id and name, endpoint, certificate fingerprint, one-time code, expiry). The device verifies the fingerprint during the TLS handshake before any request byte is written, exchanges the code for a device identity, and keeps its signing key in platform secure storage. Revoking a device cuts its authorization on its next request; answering remote interactions additionally requires the `allowRemoteApproval` switch, so the ability to prompt never implies the ability to approve. Two host-side pieces complete the Phase 1 administration surface. `ctx.linkSettings` registers the `remote` user-settings namespace — enable cross-device access, allow remote approval, device name — and applies every commit live to the carrier, so the settings document owns those fields once the bridge is mounted. `ctx.linkController` backs the generated `ctx.remote.link` namespace for local UIs: carrier status with the LAN endpoint and bind diagnostics, one-time pairing issuance for the QR display, and trusted-device listing and revocation; the remote allowlist carries none of those endpoints, so a paired device can never administer the host. The executable reference client is [`dsh-link-client`](../../packages/remote/link-client/README.md); the Apple companion's `SharedAppleRemoteCore` mirrors its state machine in Swift over the generated [`dsh-link-contracts`](../../packages/remote/link-contracts/README.md) models, and Kotlin companions follow the same contract.
+Pairing is initiated on the host (`ctx.linkAccess.createPairing()` renders a QR payload: host id and name, endpoint, certificate fingerprint, one-time code, expiry). The device verifies the fingerprint during the TLS handshake before any request byte is written, exchanges the code for a device identity, and keeps its signing key in platform secure storage. Pairing persists the deployment's `pairingAccess` grants, defaulting to every Session and Workspace for the explicit single-user pairing flow. The carrier checks those grants before calling a resource owner and projects Host-wide Session, Workspace, and event feeds before writing to the device socket. A remote interaction answer additionally requires a controller role, the independent `allowRemoteApproval` switch, the device's Host-issued Client generation, a delivery the Gateway still owns as pending, and the interaction Session grant; filtered, disabled, revoked, and stopped generations delegate to the existing Host waterfall instead of creating another approval registry. `ctx.linkSettings` registers the `remote` user-settings namespace — enable cross-device access, allow remote approval, device name — and applies every commit live to the carrier. `ctx.linkController` backs the generated `ctx.remote.link` namespace for local UIs: carrier status with the LAN endpoint and bind diagnostics, one-time pairing issuance for the QR display, and trusted-device listing and revocation; the remote allowlist carries none of those endpoints, so a paired device can never administer the host. The executable reference client is [`dsh-link-client`](../../packages/remote/link-client/README.md); the Apple companion's `SharedAppleRemoteCore` mirrors its state machine in Swift over the generated [`dsh-link-contracts`](../../packages/remote/link-contracts/README.md) models, and Kotlin companions follow the same contract.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -18,7 +18,7 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 
 ### `ctx.deviceTrust` — `DeviceTrustStore`
 
-The Host's device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.
+The Host's device trust store: stable Host identity, one-time pairing codes consumed atomically, and device records with role, resource grants, timestamps, and revocation that the link carrier authorizes against.
 
 ```ts cordis-catalog
 /** Resolve this store's stable Host identity, creating it on first use.
@@ -41,10 +41,11 @@ async createPairing(ttlSeconds: number): Promise<PendingPairing>
  * @param code - pairing code from {@link DeviceTrustStore.createPairing}.
  * @param device - user-chosen name and verified public key of the pairing device.
  * @param role - authorization role granted to the device.
+ * @param access - Session and Workspace grants fixed by the Host at pairing.
  * @returns the durable device record just created.
  * @throws {@link DeviceTrustError} when the code is unknown or expired.
  */
-async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, ): Promise<PairedDevice>
+async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, access: DeviceAccess, ): Promise<PairedDevice>
 
 /**
  * Read one device record, including revoked ones.
@@ -87,7 +88,7 @@ Source: [`packages/remote/device-trust/src/index.ts`](../../packages/remote/devi
 
 ### `ctx.linkAccess` — `LinkAccessService`
 
-The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.
+The native remote access carrier service: TLS listener, device authentication, endpoint and resource-scope authorization, pre-socket projection, and pairing ingress over the existing gateway surface.
 
 ```ts cordis-catalog
 /**
@@ -131,6 +132,7 @@ isRemoteApprovalAllowed(): boolean
 
 /**
  * Flip the independent remote-approval switch without touching the carrier.
+ * Disabling delegates every delivered Link interaction back to the Host chain.
  * @param value - whether paired controllers may answer interactions.
  */
 setAllowRemoteApproval(value: boolean): void
@@ -159,7 +161,8 @@ async createPairing(): Promise<LinkPairingPayload>
 async trustedDevices(): Promise<readonly PairedDevice[]>
 
 /**
- * Revoke one paired device; its next request is refused.
+ * Revoke one paired device; its next request is refused and its active
+ * Remote Event generation is delegated and closed.
  * @param deviceId - identity of the device to revoke.
  * @returns the device record after revocation, or `undefined` when unknown.
  */
@@ -217,4 +220,26 @@ Source: [`packages/api/link-controller/src/index.ts`](../../packages/api/link-co
 The remote settings bridge: registers the `remote` namespace on mount and pushes every resolved value into the link-access carrier.
 
 Source: [`packages/remote/link-settings/src/index.ts`](../../packages/remote/link-settings/src/index.ts)
+
+<a id="device-trust-events"></a>
+
+### `device-trust/*` events
+
+<a id="device-trustrevoked--parallel"></a>
+
+#### `device-trust/revoked` — parallel
+
+A device's first revocation has committed. Every listener runs so active carriers can close that device even when another observer fails.
+
+```ts cordis-catalog
+/**
+ * A device's first revocation has committed. Every listener runs so active
+ * carriers can close that device even when another observer fails.
+ * @param deviceId - durable identity whose trust was just revoked.
+ * @mode parallel
+ */
+'device-trust/revoked'(deviceId: DeviceId): Promise<void> | void
+```
+
+Source: [`packages/remote/device-trust/src/index.ts`](../../packages/remote/device-trust/src/index.ts)
 <!-- END GENERATED cordis-surface -->

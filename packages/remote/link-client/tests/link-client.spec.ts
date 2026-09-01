@@ -85,12 +85,12 @@ async function mount(): Promise<ClientHarness> {
       port: 0,
       dshHome,
       endpoints: [
-        { endpoint: 'probe/echo', kind: 'unary', minRole: 'observer' },
-        { endpoint: 'probe/fail', kind: 'unary', minRole: 'observer' },
-        { endpoint: 'probe/ticks', kind: 'stream', minRole: 'observer' },
-        { endpoint: 'probe/replay', kind: 'stream', minRole: 'observer' },
-        { endpoint: '$events', kind: 'stream', minRole: 'observer' },
-        { endpoint: '$events/result', kind: 'unary', minRole: 'controller' },
+        { endpoint: 'probe/echo', kind: 'unary', minRole: 'observer', scope: 'unscoped' },
+        { endpoint: 'probe/fail', kind: 'unary', minRole: 'observer', scope: 'unscoped' },
+        { endpoint: 'probe/ticks', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
+        { endpoint: 'probe/replay', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
+        { endpoint: '$events', kind: 'stream', minRole: 'observer', scope: 'remote-events' },
+        { endpoint: '$events/result', kind: 'unary', minRole: 'controller', scope: 'interaction' },
       ],
     })
     const service = ctx.get('linkAccess') as LinkAccessService

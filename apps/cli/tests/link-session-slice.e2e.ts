@@ -19,6 +19,7 @@ import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-
 import { RpcId } from '@deepseek-ai/dsh-client-connection'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import { linkSigningInput } from '@deepseek-ai/dsh-link-access/protocol'
+import { SessionId } from '@deepseek-ai/dsh-session'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -58,7 +59,15 @@ async function bootComposition(home: string): Promise<Context> {
     // The link rows pin their durable state into this test's home, never the
     // developer's own $DSH_HOME.
     { id: 'device-trust', config: { path: join(home, 'device-trust.sqlite') } },
-    { id: 'link-access', config: { dshHome: home, host: '127.0.0.1', port: 0 } },
+    {
+      id: 'link-access',
+      config: {
+        dshHome: home,
+        host: '127.0.0.1',
+        port: 0,
+        pairingAccess: { sessions: ['session-visible'], workspaces: [] },
+      },
+    },
     {
       id: 'agent-presets',
       config: {
@@ -153,6 +162,8 @@ beforeAll(async () => {
   home = await mkdtemp(join(tmpdir(), 'dsh-link-slice-'))
   await writeFile(join(home, 'settings.yaml'), '{}\n')
   ctx = await bootComposition(home)
+  await ctx.sessionController.create({ sessionId: SessionId('session-visible'), cwd: home })
+  await ctx.sessionController.create({ sessionId: SessionId('session-hidden'), cwd: home })
 }, 120_000)
 
 afterAll(async () => {
@@ -190,6 +201,37 @@ describe('the carrier-level session slice', () => {
     const sessions = await carrierCall(endpoint, '/api/session/list', wireBody('session/list', { _request: {} }), device)
     expect(sessions.status).toBe(200)
     expect((sessions.json as { result: { ok: boolean } }).result.ok).toBe(true)
+    expect(JSON.stringify(sessions.json)).toContain('session-visible')
+    expect(JSON.stringify(sessions.json)).not.toContain('session-hidden')
+
+    const hiddenSession = await carrierCall(
+      endpoint,
+      '/api/session/prompt',
+      wireBody('session/prompt', { request: { sessionId: 'session-hidden' } }),
+      device,
+    )
+    expect(hiddenSession.status).toBe(403)
+    expect(hiddenSession.json).toMatchObject({ error: 'forbidden', reason: 'session-scope' })
+
+    const hiddenResource = await carrierCall(
+      endpoint,
+      '/api/session/attachment',
+      wireBody('session/attachment', {
+        request: { sessionId: 'session-hidden', attachmentId: 'attachment-secret' },
+      }),
+      device,
+    )
+    expect(hiddenResource.status).toBe(403)
+    expect(hiddenResource.json).toMatchObject({ error: 'forbidden', reason: 'resource-scope' })
+
+    const hiddenPath = await carrierCall(
+      endpoint,
+      '/api/workspaceFiles/read',
+      wireBody('workspaceFiles/read', { workspaceId: 'workspace-hidden', path: '../secret' }),
+      device,
+    )
+    expect(hiddenPath.status).toBe(403)
+    expect(hiddenPath.json).toMatchObject({ error: 'forbidden', reason: 'path-scope' })
 
     // The real Remote stream plane opens over NDJSON.
     const events = await carrierCall(endpoint, '/link/stream/$events', JSON.stringify({ args: {} }), device, { headersOnly: true })

@@ -6,10 +6,15 @@ import { createPublicKey, generateKeyPairSync } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import DeviceTrustStore, {
+  DeviceSessionGrantId,
   DeviceTrustError,
+  DeviceWorkspaceGrantId,
   internals,
+  type DeviceId,
 } from '../src/index.ts'
 import { DEVICE_TRUST_SCHEMA_VERSION, openDatabase } from '../src/schema.ts'
+
+const FULL_ACCESS = { sessions: 'all', workspaces: 'all' } as const
 
 function devicePublicKey(): string {
   const { publicKey } = generateKeyPairSync('ed25519')
@@ -52,6 +57,7 @@ describe('DeviceTrustStore', () => {
       pairing.code,
       { name: 'iPhone', publicKeySpki: devicePublicKey() },
       'controller',
+      FULL_ACCESS,
     )
     expect(device.role).toBe('controller')
     expect(device.revokedAt).toBeUndefined()
@@ -59,11 +65,13 @@ describe('DeviceTrustStore', () => {
       pairing.code,
       { name: 'Attacker', publicKeySpki: devicePublicKey() },
       'observer',
+      FULL_ACCESS,
     )).rejects.toBeInstanceOf(DeviceTrustError)
     await expect(store.consumePairing(
       pairing.code,
       { name: 'Attacker', publicKeySpki: devicePublicKey() },
       'observer',
+      FULL_ACCESS,
     )).rejects.toMatchObject({ code: 'pairing-unknown' })
     await ctx.fiber.dispose()
   })
@@ -77,12 +85,14 @@ describe('DeviceTrustStore', () => {
       pairing.code,
       { name: 'iPhone', publicKeySpki: devicePublicKey() },
       'controller',
+      FULL_ACCESS,
     )).rejects.toMatchObject({ code: 'pairing-expired' })
     vi.spyOn(internals, 'now').mockReturnValue(1_000)
     await expect(store.consumePairing(
       pairing.code,
       { name: 'iPhone', publicKeySpki: devicePublicKey() },
       'controller',
+      FULL_ACCESS,
     )).rejects.toMatchObject({ code: 'pairing-unknown' })
     await ctx.fiber.dispose()
   })
@@ -94,16 +104,19 @@ describe('DeviceTrustStore', () => {
       pairing.code,
       { name: 'iPhone', publicKeySpki: 'not-base64-der' },
       'controller',
+      FULL_ACCESS,
     )).rejects.toThrow(/SubjectPublicKeyInfo/u)
     await expect(store.consumePairing(
       pairing.code,
       { name: '', publicKeySpki: devicePublicKey() },
       'controller',
+      FULL_ACCESS,
     )).rejects.toThrow(/1 through 200 characters/u)
     await expect(store.consumePairing(
       pairing.code,
       { name: 'iPhone', publicKeySpki: devicePublicKey() },
       'administrator',
+      FULL_ACCESS,
     )).rejects.toThrow(/cannot be granted at pairing/u)
     await ctx.fiber.dispose()
   })
@@ -112,7 +125,7 @@ describe('DeviceTrustStore', () => {
     const { ctx, store } = await mount(':memory:')
     const publicKeySpki = devicePublicKey()
     const pairing = await store.createPairing(60)
-    await store.consumePairing(pairing.code, { name: 'iPad', publicKeySpki }, 'observer')
+    await store.consumePairing(pairing.code, { name: 'iPad', publicKeySpki }, 'observer', FULL_ACCESS)
     const devices = await store.devices()
     expect(devices).toHaveLength(1)
     const key = createPublicKey({
@@ -129,17 +142,27 @@ describe('DeviceTrustStore', () => {
   it('revokes a device exactly once and keeps the record for audit', async () => {
     vi.spyOn(internals, 'now').mockReturnValue(2_000)
     const { ctx, store } = await mount(':memory:')
+    const revokedEvent = vi.fn()
+    const warning = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
+    ctx.on('device-trust/revoked', revokedEvent)
+    ctx.on('device-trust/revoked', async () => { throw new Error('fixture observer failure') })
     const pairing = await store.createPairing(60)
     const device = await store.consumePairing(
       pairing.code,
       { name: 'Phone', publicKeySpki: devicePublicKey() },
       'controller',
+      FULL_ACCESS,
     )
     vi.spyOn(internals, 'now').mockReturnValue(3_000)
     const revoked = await store.revoke(device.deviceId)
     expect(revoked?.revokedAt).toBe(3_000)
+    expect(revokedEvent).toHaveBeenCalledOnce()
+    expect(revokedEvent).toHaveBeenCalledWith(device.deviceId)
+    expect(warning).toHaveBeenCalledOnce()
     vi.spyOn(internals, 'now').mockReturnValue(4_000)
     await expect(store.revoke(device.deviceId)).resolves.toMatchObject({ revokedAt: 3_000 })
+    await expect(store.revoke('missing-device' as DeviceId)).resolves.toBeUndefined()
+    expect(revokedEvent).toHaveBeenCalledOnce()
     await ctx.fiber.dispose()
   })
 
@@ -151,6 +174,7 @@ describe('DeviceTrustStore', () => {
       pairing.code,
       { name: 'Phone', publicKeySpki: devicePublicKey() },
       'controller',
+      FULL_ACCESS,
     )
     await store.touch(device.deviceId)
     expect((await store.device(device.deviceId))?.lastSeenAt).toBe(5_000)
@@ -159,6 +183,53 @@ describe('DeviceTrustStore', () => {
     await store.touch(device.deviceId)
     expect((await store.device(device.deviceId))?.lastSeenAt).toBe(5_000)
     await ctx.fiber.dispose()
+  })
+
+  it('persists full and selective resource grants with each paired device', async () => {
+    const path = join(home, 'access.sqlite')
+    const { ctx, store } = await mount(path)
+    const fullPairing = await store.createPairing(60)
+    const full = await store.consumePairing(
+      fullPairing.code,
+      { name: 'Full', publicKeySpki: devicePublicKey() },
+      'observer',
+      FULL_ACCESS,
+    )
+    expect(full.access).toEqual(FULL_ACCESS)
+    await expect(store.device('missing-device' as DeviceId)).resolves.toBeUndefined()
+
+    const scopedPairing = await store.createPairing(60)
+    const scoped = await store.consumePairing(
+      scopedPairing.code,
+      { name: 'Scoped', publicKeySpki: devicePublicKey() },
+      'controller',
+      {
+        sessions: [
+          DeviceSessionGrantId('session-b'),
+          DeviceSessionGrantId('session-a'),
+          DeviceSessionGrantId('session-a'),
+        ],
+        workspaces: [DeviceWorkspaceGrantId('workspace-a')],
+      },
+    )
+    expect(scoped.access).toEqual({
+      sessions: ['session-a', 'session-b'],
+      workspaces: ['workspace-a'],
+    })
+    await ctx.fiber.dispose()
+
+    const remounted = await mount(path)
+    await expect(remounted.store.device(scoped.deviceId)).resolves.toMatchObject({
+      access: { sessions: ['session-a', 'session-b'], workspaces: ['workspace-a'] },
+    })
+    await expect(remounted.store.devices()).resolves.toEqual([
+      expect.objectContaining({ deviceId: full.deviceId, access: FULL_ACCESS }),
+      expect.objectContaining({
+        deviceId: scoped.deviceId,
+        access: { sessions: ['session-a', 'session-b'], workspaces: ['workspace-a'] },
+      }),
+    ])
+    await remounted.ctx.fiber.dispose()
   })
 
   it('reuses one persisted database across mounts and rejects foreign versions', async () => {
@@ -182,6 +253,16 @@ describe('DeviceTrustStore', () => {
     const rejected = await mount(foreign)
     await expect(rejected.store.hostIdentity()).rejects.toThrow(/incompatible with this build/u)
     await rejected.ctx.fiber.dispose()
+
+    const old = join(home, 'old.sqlite')
+    const oldOpened = await mount(old)
+    await oldOpened.ctx.fiber.dispose()
+    const oldDb = new DatabaseSync(old)
+    oldDb.exec(`PRAGMA user_version = ${DEVICE_TRUST_SCHEMA_VERSION - 1}`)
+    oldDb.close()
+    const oldRejected = await mount(old)
+    await expect(oldRejected.store.hostIdentity()).rejects.toThrow(/incompatible with this build/u)
+    await oldRejected.ctx.fiber.dispose()
   })
 
   it('derives its default database path from the harness home', async () => {

@@ -51,12 +51,25 @@ export type LinkEndpointKind = 'unary' | 'stream'
 /** Roles a deployment may pin as an endpoint's minimum. */
 export type LinkMinimumRole = 'observer' | 'controller'
 
+/** Resource policy enforced in addition to endpoint membership and role. */
+export type LinkEndpointScope =
+  | 'unscoped'
+  | 'session-collection'
+  | 'session'
+  | 'session-address'
+  | 'session-resource'
+  | 'workspace-collection'
+  | 'workspace-path'
+  | 'remote-events'
+  | 'interaction'
+
 /** One row of the remote endpoint allowlist. */
 export interface LinkEndpointAccess {
   /** Canonical `<namespace>/<method>` endpoint, or `$events` / `$events/result`. */
   readonly endpoint: string
   readonly kind: LinkEndpointKind
   readonly minRole: DeviceRole
+  readonly scope: LinkEndpointScope
   /** The endpoint answers a pending remote interaction and needs the independent remote-approval switch. */
   readonly approval?: true
 }
@@ -69,6 +82,57 @@ export interface LinkEndpointInput {
   readonly kind: LinkEndpointKind
   /** Minimum device role allowed to invoke the endpoint. */
   readonly minRole: LinkMinimumRole
+  /** Resource policy; product endpoints must match their fixed policy. */
+  readonly scope: LinkEndpointScope
+}
+
+const PRODUCT_ENDPOINT_SCOPES: Readonly<Record<string, LinkEndpointScope>> = {
+  'session/list': 'session-collection',
+  'session/search': 'session-collection',
+  'session/page': 'session-address',
+  'session/modelCatalog': 'unscoped',
+  'session/attachment': 'session-resource',
+  'session/artifact': 'session-resource',
+  'fileReferences/list': 'session',
+  'session/follow': 'session-address',
+  'session/control': 'session-collection',
+  'workspace/follow': 'workspace-collection',
+  'workspaceFiles/list': 'workspace-path',
+  'workspaceFiles/read': 'workspace-path',
+  'subagents/list': 'session',
+  '$events': 'remote-events',
+  'session/prompt': 'session',
+  'session/cancel': 'session',
+  'session/updateQueue': 'session',
+  'session/rename': 'session',
+  'session/fork': 'session',
+  'session/handoff': 'unscoped',
+  'session/selectModel': 'session',
+  [REMOTE_INTERACTION_ANSWER_ENDPOINT]: 'interaction',
+}
+
+/**
+ * Resolve the non-overridable scope policy for a product endpoint. A custom
+ * deployment endpoint must declare `unscoped` explicitly, so expanding the
+ * transport allowlist never silently invents resource extraction semantics.
+ * @param endpoint - canonical endpoint being resolved at carrier load.
+ * @param declared - configured policy; fixed endpoints must carry their exact policy.
+ * @returns the fixed product policy or an explicitly unscoped custom policy.
+ * @throws when a product endpoint tries to override its policy or a custom endpoint omits one.
+ */
+export function resolveLinkEndpointScope(
+  endpoint: string,
+  declared?: LinkEndpointScope,
+): LinkEndpointScope {
+  const fixed = PRODUCT_ENDPOINT_SCOPES[endpoint]
+  if (fixed !== undefined) {
+    if (declared !== undefined && declared !== fixed) {
+      throw new Error(`link access: endpoint ${JSON.stringify(endpoint)} has a fixed scope policy`)
+    }
+    return fixed
+  }
+  if (declared === 'unscoped') return declared
+  throw new Error(`link access: custom endpoint ${JSON.stringify(endpoint)} must declare scope "unscoped"`)
 }
 
 /**
@@ -79,28 +143,33 @@ export interface LinkEndpointInput {
  * remote until a deployment lists them.
  */
 export const DEFAULT_LINK_ENDPOINTS: LinkEndpointInput[] = [
-  { endpoint: 'session/list', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'session/search', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'session/page', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'session/modelCatalog', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'session/attachment', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'session/artifact', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'fileReferences/list', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'session/follow', kind: 'stream', minRole: 'observer' },
-  { endpoint: 'session/control', kind: 'stream', minRole: 'observer' },
-  { endpoint: 'workspace/follow', kind: 'stream', minRole: 'observer' },
-  { endpoint: 'workspaceFiles/list', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'workspaceFiles/read', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'subagents/list', kind: 'unary', minRole: 'observer' },
-  { endpoint: '$events', kind: 'stream', minRole: 'observer' },
-  { endpoint: 'session/prompt', kind: 'unary', minRole: 'controller' },
-  { endpoint: 'session/cancel', kind: 'unary', minRole: 'controller' },
-  { endpoint: 'session/updateQueue', kind: 'unary', minRole: 'controller' },
-  { endpoint: 'session/rename', kind: 'unary', minRole: 'controller' },
-  { endpoint: 'session/fork', kind: 'unary', minRole: 'controller' },
-  { endpoint: 'session/handoff', kind: 'unary', minRole: 'controller' },
-  { endpoint: 'session/selectModel', kind: 'unary', minRole: 'controller' },
-  { endpoint: REMOTE_INTERACTION_ANSWER_ENDPOINT, kind: 'unary', minRole: 'controller' },
+  { endpoint: 'session/list', kind: 'unary', minRole: 'observer', scope: 'session-collection' },
+  { endpoint: 'session/search', kind: 'unary', minRole: 'observer', scope: 'session-collection' },
+  { endpoint: 'session/page', kind: 'unary', minRole: 'observer', scope: 'session-address' },
+  { endpoint: 'session/modelCatalog', kind: 'unary', minRole: 'observer', scope: 'unscoped' },
+  { endpoint: 'session/attachment', kind: 'unary', minRole: 'observer', scope: 'session-resource' },
+  { endpoint: 'session/artifact', kind: 'unary', minRole: 'observer', scope: 'session-resource' },
+  { endpoint: 'fileReferences/list', kind: 'unary', minRole: 'observer', scope: 'session' },
+  { endpoint: 'session/follow', kind: 'stream', minRole: 'observer', scope: 'session-address' },
+  { endpoint: 'session/control', kind: 'stream', minRole: 'observer', scope: 'session-collection' },
+  { endpoint: 'workspace/follow', kind: 'stream', minRole: 'observer', scope: 'workspace-collection' },
+  { endpoint: 'workspaceFiles/list', kind: 'unary', minRole: 'observer', scope: 'workspace-path' },
+  { endpoint: 'workspaceFiles/read', kind: 'unary', minRole: 'observer', scope: 'workspace-path' },
+  { endpoint: 'subagents/list', kind: 'unary', minRole: 'observer', scope: 'session' },
+  { endpoint: '$events', kind: 'stream', minRole: 'observer', scope: 'remote-events' },
+  { endpoint: 'session/prompt', kind: 'unary', minRole: 'controller', scope: 'session' },
+  { endpoint: 'session/cancel', kind: 'unary', minRole: 'controller', scope: 'session' },
+  { endpoint: 'session/updateQueue', kind: 'unary', minRole: 'controller', scope: 'session' },
+  { endpoint: 'session/rename', kind: 'unary', minRole: 'controller', scope: 'session' },
+  { endpoint: 'session/fork', kind: 'unary', minRole: 'controller', scope: 'session' },
+  { endpoint: 'session/handoff', kind: 'unary', minRole: 'controller', scope: 'unscoped' },
+  { endpoint: 'session/selectModel', kind: 'unary', minRole: 'controller', scope: 'session' },
+  {
+    endpoint: REMOTE_INTERACTION_ANSWER_ENDPOINT,
+    kind: 'unary',
+    minRole: 'controller',
+    scope: 'interaction',
+  },
 ]
 
 /** Authorization weight of each device role. */

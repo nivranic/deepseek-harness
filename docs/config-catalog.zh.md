@@ -640,7 +640,7 @@ export interface DeviceTrustConfig {
 }
 ```
 
-Source: [`packages/remote/device-trust/src/index.ts:75`](../packages/remote/device-trust/src/index.ts)
+Source: [`packages/remote/device-trust/src/index.ts:110`](../packages/remote/device-trust/src/index.ts)
 
 <a id="deepseek-aidsh-e2b"></a>
 
@@ -1056,13 +1056,15 @@ export interface LinkAccessConfig {
   dshHome?: string
   /**
    * The complete remote endpoint allowlist, replacing the default surface.
-   * Every row states its invocation kind and minimum device role.
+   * Every row states its invocation kind, minimum device role, and resource policy.
    */
   endpoints?: LinkEndpointInput[]
   /** Independent switch for answering remote approvals and questions; `Can prompt` never implies this. */
   allowRemoteApproval?: boolean
   /** Role granted to devices at pairing. Default `controller` (an ordinary phone). */
   pairingRole?: 'observer' | 'controller'
+  /** Session and Workspace grants persisted for each newly paired device; defaults to both `all`. */
+  pairingAccess?: LinkPairingAccessConfig
   /** Pairing code lifetime in seconds. */
   pairingTtlSeconds?: number
   /** Accepted request-timestamp skew in seconds. */
@@ -1079,6 +1081,16 @@ export interface LinkEndpointInput {
   readonly kind: LinkEndpointKind
   /** Minimum device role allowed to invoke the endpoint. */
   readonly minRole: LinkMinimumRole
+  /** Resource policy; product endpoints must match their fixed policy. */
+  readonly scope: LinkEndpointScope
+}
+
+/** Resource grants assigned to every device paired under one carrier configuration. */
+export interface LinkPairingAccessConfig {
+  /** Session identities paired devices may reach, or every Session. */
+  sessions: 'all' | string[]
+  /** Workspace identities paired devices may reach, or every Workspace. */
+  workspaces: 'all' | string[]
 }
 
 /** How a remote endpoint is invoked through the carrier. */
@@ -1086,9 +1098,21 @@ export type LinkEndpointKind = 'unary' | 'stream'
 
 /** Roles a deployment may pin as an endpoint's minimum. */
 export type LinkMinimumRole = 'observer' | 'controller'
+
+/** Resource policy enforced in addition to endpoint membership and role. */
+export type LinkEndpointScope =
+  | 'unscoped'
+  | 'session-collection'
+  | 'session'
+  | 'session-address'
+  | 'session-resource'
+  | 'workspace-collection'
+  | 'workspace-path'
+  | 'remote-events'
+  | 'interaction'
 ```
 
-Source: [`packages/remote/link-access/src/index.ts:77`](../packages/remote/link-access/src/index.ts)
+Source: [`packages/remote/link-access/src/index.ts:102`](../packages/remote/link-access/src/index.ts)
 
 <a id="deepseek-aidsh-llm-deepseek"></a>
 

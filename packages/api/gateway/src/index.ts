@@ -180,6 +180,20 @@ export class TypertGatewayService extends Service implements TypertGateway {
   /** Carrier adapter shared by the WebSocket mux and local Host transports. */
   readonly wireStream: TypertGatewayWireStream = {
     open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal),
+    delegateRemoteEventDelivery: (clientId, eventId) => {
+      const client = this.remoteEventClients.get(clientId as RemoteEventClientId)
+      if (client === undefined) return
+      this.receiveRemoteEventResult(client, {
+        clientId: client.id,
+        eventId: eventId as RemoteEventId,
+        outcome: { kind: 'next' },
+      })
+    },
+    isRemoteEventDeliveryPending: (clientId, eventId) => {
+      const client = this.remoteEventClients.get(clientId as RemoteEventClientId)
+      const pending = this.pendingRemoteEvents.get(eventId as RemoteEventId)
+      return client !== undefined && pending !== undefined && pending.deliveries.has(client)
+    },
     failure: error => rpcError(error),
   }
 
