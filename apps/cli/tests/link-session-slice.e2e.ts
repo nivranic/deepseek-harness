@@ -47,6 +47,7 @@ async function bootComposition(home: string): Promise<Context> {
     ...loadOverlayPatches('dsh-test', BASE_PATCH),
     ...loadOverlayPatches('dsh-test', DESKTOP_PATCH),
     { id: 'settings', config: { path: settingsFile, watch: false } },
+    { id: 'credentials', config: { path: join(home, '.credentials.yaml'), watch: false } },
     { id: 'storage-json', config: { root: join(home, 'storages') } },
     { id: 'session-telemetry-otel', disabled: true },
     { id: 'directory-picker', disabled: true },

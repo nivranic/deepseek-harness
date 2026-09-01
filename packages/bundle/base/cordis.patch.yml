@@ -119,7 +119,7 @@
       name: '@deepseek-ai/dsh-attachment-local'
 
     # Artifact content bytes live in the same resource-channel style: the
-    journal keeps references and status only, this backend stores the bytes.
+    # journal keeps references and status only, this backend stores the bytes.
     - id: artifact-local
       name: '@deepseek-ai/dsh-artifact-local'
 
