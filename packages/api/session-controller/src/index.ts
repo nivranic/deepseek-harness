@@ -49,6 +49,8 @@ import type {
   SessionSelectModelValue,
   SessionUpdateQueueRequest,
   SessionUpdateQueueValue,
+  SessionHandoffRequest,
+  SessionHandoffValue,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -327,6 +329,17 @@ export class SessionController extends TypertRemoteService {
   prompt(request: SessionPromptRequest, signal: AbortSignal): Promise<SessionPromptValue> {
     signal.throwIfAborted()
     return this.commands.prompt(request)
+  }
+
+  /**
+   * Accept one Lite handoff: create the new full Session and queue the
+   * rendered snapshot brief as its first user message.
+   * @param request - the snapshot the sending device packaged.
+   * @returns the new Session's identity.
+   */
+  @Remote('handoff')
+  handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue> {
+    return this.commands.handoff(request)
   }
 
   /**

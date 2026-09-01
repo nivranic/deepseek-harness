@@ -334,6 +334,69 @@ export interface SessionAttachmentRequest {
   readonly attachmentId: AttachmentIdType
 }
 
+/** One recent conversation row a handoff snapshot carries verbatim. */
+export interface SessionHandoffContextRow {
+  /** Authoring side of the row, as the source runtime recorded it. */
+  readonly role: 'user' | 'assistant'
+  /** Row text, already the runtime's final rendering. */
+  readonly text: string
+}
+
+/** One artifact reference a handoff snapshot names for the receiving host. */
+export interface SessionHandoffArtifactRef {
+  readonly id: string
+  readonly kind: string
+  readonly title: string
+  readonly status: 'pending' | 'ready' | 'failed'
+}
+
+/** One todo row a handoff snapshot carries with its verbatim status. */
+export interface SessionHandoffTodoRow {
+  readonly content: string
+  /** The source runtime's status word, verbatim. */
+  readonly status: string
+}
+
+/** Who and where the handoff came from — chapter 40's provenance record. */
+export interface SessionHandoffProvenance {
+  readonly deviceId: string
+  readonly platform: string
+  /** Unix epoch milliseconds at the sending device. */
+  readonly at: number
+}
+
+/**
+ * The chapter-40 Handoff L1 snapshot: what a Lite session packages when a
+ * capability requires the full runtime. Chapter 40's list is permissive —
+ * this carries exactly the parts the Lite vocabulary actually holds (plan
+ * is one active flag there; a conversation summary stays to the sender).
+ */
+export interface SessionHandoffSnapshot {
+  readonly sourceSessionId: string
+  readonly sourceRuntime: 'lite'
+  /** The capability name whose requirement raised the handoff. */
+  readonly requestedCapability: string
+  /** Last conversation rows, oldest first, verbatim. */
+  readonly recentContext: readonly SessionHandoffContextRow[]
+  /** Whether the source session had its plan mode active. */
+  readonly planActive: boolean
+  readonly todo: readonly SessionHandoffTodoRow[]
+  readonly artifactRefs: readonly SessionHandoffArtifactRef[]
+  /** Model the source runtime used, when it knows one. */
+  readonly modelPreference?: string
+  readonly provenance: SessionHandoffProvenance
+}
+
+/** Handoff request: the snapshot rides whole; the host owns rendering. */
+export interface SessionHandoffRequest {
+  readonly snapshot: SessionHandoffSnapshot
+}
+
+/** Handoff response: the newly created full Session's identity. */
+export interface SessionHandoffValue {
+  readonly sessionId: SessionId
+}
+
 /** Durable image read response value. */
 export interface SessionAttachmentValue {
   readonly attachment: ImageAttachmentRef

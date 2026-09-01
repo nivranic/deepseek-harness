@@ -24,6 +24,7 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 | [`core/…/companion/CompanionPush.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionPush.kt) | 第 70 章最小推送链路：`$events` 转发折为仅携带引用数据的推送（审批等待/提问等待/任务完成），设备端本地化标题，本地通知呈现，中继（APNs/FCM）延后 |
 | [`core/…/companion/NotificationGrant.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NotificationGrant.kt) | 第 70 章运行时授权投影（Android 13+ 动态请求 POST_NOTIFICATIONS）：系统启用读数 + 本进程是否已问 + 用户末次回答——呈现随系统启用走、缺授权时一进程一问；app 侧 `NotificationGrantController` 持 StateFlow 接系统对话框 |
 | [`core/…/companion/RelayRendezvous.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/RelayRendezvous.kt) 及 [`core/…/companion/RelayClient.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/RelayClient.kt) | 中继会合地基（第 68/69 章）：`RelayRendezvous` 内存态单账号转发——设备注册（含 pushToken 槽）、仅引用信封向账号设备扇出、按 poll 排空；`RelayClient` 是 Noise 加密的 HTTP 消费者（惰性 XX 握手、帧式 AEAD 体、一次性密钥推送流），对照真实本地 Noise 应答方回路测试，`link/Noise.kt` 携带由 node 参考实现固定密钥向量钉住的 Noise_XX_25519_ChaChaPoly_SHA256 栈；信封经 `asPush()` 桥接第 70 章推送词汇；自托管壳见 [`apps/relay`](../relay/README.zh.md) |
+| [`core/…/companion/Handoff.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/Handoff.kt) | 第 40 章 Handoff L1 的设备侧：`LiteHandoff` 从折叠 Lite 状态（对话尾部、计划标志、待办、工件引用、溯源）构建快照线值并经 `session/handoff` 发送；拒绝或无会话应答读为 null |
 | [`app/`](app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt) | Compose 壳：配对屏、六标签脚手架、来自 core tokens 的简约拟态主题 |
 | [`core/src/test/resources/`](core/src/test/resources/) | 测试回放的同步黄金 fixtures、一致性场景与钉扎证书 |
 

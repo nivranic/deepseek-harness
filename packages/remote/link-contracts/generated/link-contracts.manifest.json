@@ -1263,6 +1263,153 @@
       "fixture": "artifact-read"
     },
     {
+      "name": "LinkHandoffContextRole",
+      "shape": [
+        "user",
+        "assistant"
+      ]
+    },
+    {
+      "name": "LinkHandoffContextRow",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "role",
+          "kind": "enum",
+          "ref": "LinkHandoffContextRole"
+        },
+        {
+          "name": "text",
+          "kind": "string"
+        }
+      ],
+      "fixture": "handoff-context-row"
+    },
+    {
+      "name": "LinkHandoffTodo",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "content",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "string"
+        }
+      ],
+      "fixture": "handoff-todo"
+    },
+    {
+      "name": "LinkHandoffArtifactRef",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "title",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "enum",
+          "ref": "LinkArtifactStatus"
+        }
+      ],
+      "fixture": "handoff-artifact-ref"
+    },
+    {
+      "name": "LinkHandoffProvenance",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "deviceId",
+          "kind": "string"
+        },
+        {
+          "name": "platform",
+          "kind": "string"
+        },
+        {
+          "name": "at",
+          "kind": "number"
+        }
+      ],
+      "fixture": "handoff-provenance"
+    },
+    {
+      "name": "LinkHandoffRuntime",
+      "shape": [
+        "lite"
+      ]
+    },
+    {
+      "name": "LinkHandoffSnapshot",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "sourceSessionId",
+          "kind": "string"
+        },
+        {
+          "name": "sourceRuntime",
+          "kind": "enum",
+          "ref": "LinkHandoffRuntime"
+        },
+        {
+          "name": "requestedCapability",
+          "kind": "string"
+        },
+        {
+          "name": "recentContext",
+          "kind": "object-array",
+          "ref": "LinkHandoffContextRow"
+        },
+        {
+          "name": "planActive",
+          "kind": "boolean"
+        },
+        {
+          "name": "todo",
+          "kind": "object-array",
+          "ref": "LinkHandoffTodo"
+        },
+        {
+          "name": "artifactRefs",
+          "kind": "object-array",
+          "ref": "LinkHandoffArtifactRef"
+        },
+        {
+          "name": "modelPreference",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "provenance",
+          "kind": "object",
+          "ref": "LinkHandoffProvenance"
+        }
+      ],
+      "fixture": "handoff-snapshot"
+    },
+    {
+      "name": "LinkHandoffValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "sessionId",
+          "kind": "string"
+        }
+      ],
+      "fixture": "handoff-value"
+    },
+    {
       "name": "LinkAttachmentReadValue",
       "shape": "object",
       "fields": [
@@ -1435,6 +1582,36 @@
       "id": "image-attachment-ref",
       "type": "LinkImageAttachmentRef",
       "sha256": "7736b2261ef480c3e61be8083eecd018fff82b68336c450d47668c450bd1a4f6"
+    },
+    {
+      "id": "handoff-context-row",
+      "type": "LinkHandoffContextRow",
+      "sha256": "46ca92c2fa0cd9f5888e66de34b59eaf88bcc9cdd4526d62d33db1ab072808d0"
+    },
+    {
+      "id": "handoff-todo",
+      "type": "LinkHandoffTodo",
+      "sha256": "d719317a4e14e6fbc0472f99fd5203d4fcb6b613bb8262ec109ac912fb4aa7b5"
+    },
+    {
+      "id": "handoff-artifact-ref",
+      "type": "LinkHandoffArtifactRef",
+      "sha256": "ac22370aa02bcaa3d53f64fa186eb1adf5db8d61d3126bf1784058933c8f6236"
+    },
+    {
+      "id": "handoff-provenance",
+      "type": "LinkHandoffProvenance",
+      "sha256": "efc339c7c35cac33bdd7ad2b880885977b6a775064e0c187df6f4de8a59c52be"
+    },
+    {
+      "id": "handoff-snapshot",
+      "type": "LinkHandoffSnapshot",
+      "sha256": "4892ceae68a16e8bbf41d0c44846c23094e5e35787545d6fa4e23e0436eae183"
+    },
+    {
+      "id": "handoff-value",
+      "type": "LinkHandoffValue",
+      "sha256": "710fda5c2a6f78389c6433f394a3b63ec9b66e85e03b3573b72c92869337a566"
     },
     {
       "id": "artifact-read",

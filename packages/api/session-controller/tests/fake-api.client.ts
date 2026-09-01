@@ -29,7 +29,7 @@ import {
 } from '@deepseek-ai/dsh-api-gateway/client'
 import { RpcId } from '@deepseek-ai/dsh-client-connection/client'
 import type { SessionRemotes } from '../src/client/sessions/remotes.ts'
-import type { SessionArtifactValue } from '../src/types.ts'
+import type { SessionArtifactValue , SessionHandoffValue } from '../src/types.ts'
 import { historyRecordLastSeq } from '../src/client/sessions/history-records.ts'
 
 const AVAILABLE_STREAM_CONNECTION = {
@@ -203,6 +203,9 @@ export class FakeApiClient {
   onWorkspaceArchiveSession: (payload: unknown) => Promise<RemoteResult<{ archivedSessionIds: SessionId[] }>> =
     payload => Promise.resolve(remoteOk({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
 
+  onHandoff: (payload: unknown) => Promise<RpcResponse<SessionHandoffValue>> =
+    () => Promise.resolve(ok({ sessionId: 'fk-hnd' as SessionId }))
+
   /** Remote namespaces bound to this fake's programmable unary slots and stream pumps. */
   sessionRemotes(): RuntimeRemotes {
     return {
@@ -229,6 +232,7 @@ export class FakeApiClient {
           return this.remoteResult('session.search', payload, this.onSearch(payload))
         },
         create: payload => this.remoteResult('session.create', payload, this.onCreate(payload)),
+        handoff: payload => this.remoteResult('session.handoff', payload, this.onHandoff(payload)),
         selectModel: payload => this.remoteResult(
           'session.selectModel',
           payload,

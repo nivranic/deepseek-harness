@@ -37,8 +37,12 @@ import type {
   SessionCreateValue,
   SessionForkRequest,
   SessionForkValue,
+  SessionHandoffRequest,
+  SessionHandoffSnapshot,
+  SessionHandoffValue,
   SessionPromptRequest,
   SessionPromptValue,
+  SessionRequestId,
   SessionRenameRequest,
   SessionRenameValue,
   SessionSelectModelRequest,
@@ -179,6 +183,27 @@ export class SessionCommandController {
         {},
       )
     }
+  }
+
+  /**
+   * Accept one Lite handoff (chapter 40 L1): create the new full Session,
+   * pin its title, and queue the rendered handoff brief as the first user
+   * message — the durable record of origin and provenance, and the prompt
+   * the receiving Agent picks up. Composes create + rename + queue prompt;
+   * no new journal vocabulary.
+   * @param request - the snapshot the sending device packaged.
+   * @returns the new Session's identity.
+   */
+  async handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue> {
+    const created = await this.create({})
+    await this.rename({ sessionId: created.sessionId, title: handoffTitle(request.snapshot) })
+    await this.prompt({
+      requestId: randomUUID() as SessionRequestId,
+      sessionId: created.sessionId,
+      mode: 'queue',
+      content: [{ type: 'text', text: renderHandoffBrief(request.snapshot) }],
+    })
+    return { sessionId: created.sessionId }
   }
 
   /**
@@ -589,6 +614,43 @@ export class SessionCommandController {
 
 function rejectFailure(error: { readonly code: string; readonly message: string; readonly details: object }): never {
   throw new TypertRemoteFailure(error)
+}
+
+/** The pinned title a handed-off session opens with. */
+function handoffTitle(snapshot: SessionHandoffSnapshot): string {
+  return `设备接力：${snapshot.requestedCapability}`
+}
+
+/**
+ * Render the chapter-40 snapshot as the handoff brief — the first user
+ * message of the new Session, carrying origin and provenance durably.
+ * Deterministic: same snapshot, same brief, on every host.
+ */
+function renderHandoffBrief(snapshot: SessionHandoffSnapshot): string {
+  const lines: string[] = [
+    `【设备接力】${snapshot.provenance.platform} 设备「${snapshot.provenance.deviceId}」的 Lite 会话 ${snapshot.sourceSessionId} 请求在宿主继续执行能力「${snapshot.requestedCapability}」。`,
+    `- 计划模式：${snapshot.planActive ? '开' : '关'}`,
+  ]
+  if (snapshot.modelPreference !== undefined) {
+    lines.push(`- 模型偏好：${snapshot.modelPreference}`)
+  }
+  if (snapshot.todo.length > 0) {
+    lines.push(`- 待办：${snapshot.todo.map(todo => todo.content).join('；')}`)
+  } else {
+    lines.push('- 待办：无')
+  }
+  for (const ref of snapshot.artifactRefs) {
+    lines.push(`- 工件引用：${ref.title}（${ref.kind}，${ref.id}，${ref.status}）`)
+  }
+  lines.push(`- 溯源：${new Date(snapshot.provenance.at).toISOString()} · ${snapshot.provenance.deviceId} · ${snapshot.provenance.platform}`)
+  if (snapshot.recentContext.length > 0) {
+    lines.push('', '最近对话：')
+    for (const row of snapshot.recentContext) {
+      lines.push(`${row.role === 'user' ? '[用户]' : '[助手]'} ${row.text}`)
+    }
+  }
+  lines.push('', '请在本机继续完成上述能力所需的工作。')
+  return lines.join('\n')
 }
 
 function reject(code: string, message: string, details: object): never {

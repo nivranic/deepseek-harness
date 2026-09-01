@@ -358,6 +358,46 @@ data class LinkArtifactReadValue(
     val truncated: Boolean,
     val size: Double,
 )
+enum class LinkHandoffContextRole(val wire: String) {
+    USER("user"),
+    ASSISTANT("assistant"),
+}
+data class LinkHandoffContextRow(
+    val role: LinkHandoffContextRole,
+    val text: String,
+)
+data class LinkHandoffTodo(
+    val content: String,
+    val status: String,
+)
+data class LinkHandoffArtifactRef(
+    val id: String,
+    val kind: String,
+    val title: String,
+    val status: LinkArtifactStatus,
+)
+data class LinkHandoffProvenance(
+    val deviceId: String,
+    val platform: String,
+    val at: Double,
+)
+enum class LinkHandoffRuntime(val wire: String) {
+    LITE("lite"),
+}
+data class LinkHandoffSnapshot(
+    val sourceSessionId: String,
+    val sourceRuntime: LinkHandoffRuntime,
+    val requestedCapability: String,
+    val recentContext: List<LinkHandoffContextRow>,
+    val planActive: Boolean,
+    val todo: List<LinkHandoffTodo>,
+    val artifactRefs: List<LinkHandoffArtifactRef>,
+    val modelPreference: String? = null,
+    val provenance: LinkHandoffProvenance,
+)
+data class LinkHandoffValue(
+    val sessionId: String,
+)
 data class LinkAttachmentReadValue(
     val attachment: LinkImageAttachmentRef,
     val data: String,

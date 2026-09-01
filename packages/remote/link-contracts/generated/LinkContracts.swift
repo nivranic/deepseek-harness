@@ -356,6 +356,46 @@ public struct LinkArtifactReadValue: Codable {
     public let truncated: Bool
     public let size: Double
 }
+public enum LinkHandoffContextRole: String, Codable {
+    case user = "user"
+    case assistant = "assistant"
+}
+public struct LinkHandoffContextRow: Codable {
+    public let role: LinkHandoffContextRole
+    public let text: String
+}
+public struct LinkHandoffTodo: Codable {
+    public let content: String
+    public let status: String
+}
+public struct LinkHandoffArtifactRef: Codable {
+    public let id: String
+    public let kind: String
+    public let title: String
+    public let status: LinkArtifactStatus
+}
+public struct LinkHandoffProvenance: Codable {
+    public let deviceId: String
+    public let platform: String
+    public let at: Double
+}
+public enum LinkHandoffRuntime: String, Codable {
+    case lite = "lite"
+}
+public struct LinkHandoffSnapshot: Codable {
+    public let sourceSessionId: String
+    public let sourceRuntime: LinkHandoffRuntime
+    public let requestedCapability: String
+    public let recentContext: [LinkHandoffContextRow]
+    public let planActive: Bool
+    public let todo: [LinkHandoffTodo]
+    public let artifactRefs: [LinkHandoffArtifactRef]
+    public let modelPreference: String?
+    public let provenance: LinkHandoffProvenance
+}
+public struct LinkHandoffValue: Codable {
+    public let sessionId: String
+}
 public struct LinkAttachmentReadValue: Codable {
     public let attachment: LinkImageAttachmentRef
     public let data: String

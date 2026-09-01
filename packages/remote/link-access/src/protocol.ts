@@ -95,6 +95,7 @@ export const DEFAULT_LINK_ENDPOINTS: LinkEndpointInput[] = [
   { endpoint: 'session/updateQueue', kind: 'unary', minRole: 'controller' },
   { endpoint: 'session/rename', kind: 'unary', minRole: 'controller' },
   { endpoint: 'session/fork', kind: 'unary', minRole: 'controller' },
+  { endpoint: 'session/handoff', kind: 'unary', minRole: 'controller' },
   { endpoint: 'session/selectModel', kind: 'unary', minRole: 'controller' },
   { endpoint: REMOTE_INTERACTION_ANSWER_ENDPOINT, kind: 'unary', minRole: 'controller' },
 ]
