@@ -72,6 +72,6 @@ class LiteHandoff(private val wire: WireDriving) {
         } catch (_: Exception) {
             return null
         }
-        return ai.deepseek.dsh.link.WireShape.string(value, "sessionId")
+        return WireShape.string(value, "sessionId")
     }
 }
