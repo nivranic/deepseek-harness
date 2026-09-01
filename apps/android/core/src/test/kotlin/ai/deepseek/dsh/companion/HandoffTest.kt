@@ -11,12 +11,12 @@ import kotlin.test.assertTrue
 class HandoffTest {
     private fun foldedState(): LiteDomainState {
         val fold = LiteFold()
-        fold.apply('{"type":"user/message","text":"帮我跑一遍测试"}'.asLiteEvent())
+        fold.apply("""{"type":"user/message","text":"帮我跑一遍测试"}""".asLiteEvent())
         return fold.state
     }
 
     private fun String.asLiteEvent(): kotlinx.serialization.json.JsonObject =
-        kotlinx.serialization.json.Json.parseToJsonElement(this).let { it as kotlinx.serialization.json.JsonObject }
+        kotlinx.serialization.json.Json.parseToJsonElement(this) as kotlinx.serialization.json.JsonObject
 
     @Test
     fun buildsTheSnapshotFromTheFoldedState() = runTest {
