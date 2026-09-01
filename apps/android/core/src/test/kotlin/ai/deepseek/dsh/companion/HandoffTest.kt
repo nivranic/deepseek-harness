@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 class HandoffTest {
     private fun foldedState(): LiteDomainState {
         val fold = LiteFold()
-        fold.apply("""{"type":"user/message","text":"帮我跑一遍测试"}""".asLiteEvent())
+        fold.apply("""{"type":"prompt/accepted","content":"帮我跑一遍测试"}""".asLiteEvent())
         return fold.state
     }
 
@@ -22,8 +22,8 @@ class HandoffTest {
     fun buildsTheSnapshotFromTheFoldedState() = runTest {
         val fold = LiteFold()
         for (line in listOf(
-            """{"type":"user/message","text":"帮我跑一遍测试"}""",
-            """{"type":"assistant/message","text":"需要宿主。"}""",
+            """{"type":"prompt/accepted","content":"帮我跑一遍测试"}""",
+            """{"type":"message/completed","text":"需要宿主。"}""",
             """{"type":"plan/changed","active":true}""",
             """{"type":"todo/changed","todos":[{"content":"在宿主继续","status":"pending"}]}""",
             """{"type":"artifact/created","id":"art-1","kind":"report","title":"本机报告"}""",
