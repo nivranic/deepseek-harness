@@ -110,7 +110,7 @@ Append-only; the read result follows the reusable request prefix and does not in
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Stored bytes have no retention policy yet: nothing prunes or garbage-collects artifacts whose sessions end, so `DSH_HOME/artifacts` grows without bound.
+- The seam defines no retention: the shipped local backend adds an opt-in age-based sweep (`retentionDays`, off by default); without it, bytes live forever.
 - One call carries the complete artifact; there is no streaming or multipart authoring for artifacts larger than a single tool call.
 
 ### Dev Note
