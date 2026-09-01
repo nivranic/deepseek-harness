@@ -41,7 +41,7 @@ class HandoffTest {
             provenance = HandoffProvenance(deviceId = "dev-phone", platform = "android", at = 1_782_000_000_000),
             modelPreference = "deepseek-chat",
         )
-        val json = snapshot.toJson()
+        val json = snapshot.toJsonElement().toString()
         assertTrue(json.contains("\"sourceSessionId\":\"lite-7f3a\""))
         assertTrue(json.contains("\"sourceRuntime\":\"lite\""))
         assertTrue(json.contains("\"requestedCapability\":\"run_tests\""))
