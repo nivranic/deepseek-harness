@@ -66,24 +66,30 @@ public final class InteractionViewModel {
     }
 
     /// Open the `$events` stream and collect forwarded interactions. The
-    /// stream resubscribes on loss, minting a fresh clientId each time so
-    /// the host's correlation never crosses subscriptions.
+    /// stream resubscribes on loss and waits for each generation's Host-owned
+    /// ready frame before an answer can use its client identity.
     public func startWatching() async {
         watchTask?.cancel()
-        let freshId = "companion-\(UUID().uuidString)"
-        clientId = freshId
         watchTask = Task { [weak self] in
-            guard let self else { return }
-            do {
-                let frames = try await self.wire.stream("$events", payload: [:])
-                for try await frame in frames {
-                    self.collect(frame)
+            while !Task.isCancelled {
+                guard let self else { return }
+                self.clientId = ""
+                do {
+                    let frames = try await self.wire.stream("$events", payload: [:])
+                    for try await frame in frames {
+                        self.collect(frame)
+                    }
+                } catch is CancellationError {
+                    return
+                } catch {
+                    // Any stream failure invalidates this generation before the bounded retry.
+                    self.clientId = ""
                 }
-                await self.restart()
-            } catch is CancellationError {
-                // Deliberate stop.
-            } catch {
-                await self.restart()
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
             }
         }
     }
@@ -92,6 +98,7 @@ public final class InteractionViewModel {
     public func stopWatching() {
         watchTask?.cancel()
         watchTask = nil
+        clientId = ""
     }
 
     /// Answer one pending interaction.
@@ -99,6 +106,10 @@ public final class InteractionViewModel {
         answering = true
         lastRefusal = nil
         defer { answering = false }
+        guard !clientId.isEmpty else {
+            lastRefusal = "Remote Event stream is not ready."
+            return
+        }
         do {
             _ = try await wire.call("$events/result", args: [
                 "clientId": .string(clientId),
@@ -116,29 +127,31 @@ public final class InteractionViewModel {
 
     // MARK: - Internals
 
-    private func restart() async {
-        guard watchTask != nil else { return }
-        try? await Task.sleep(for: .seconds(1))
-        guard watchTask != nil else { return }
-        await startWatching()
-    }
-
     /// Collect one `$events` frame's interactions.
     func collect(_ frame: WireValue) {
-        // Delivered events carry the host's payload under `event`; the
-        // interaction kinds the companion answers arrive as approval or
-        // question forwards. Unknown frames leave the inbox untouched.
+        let frameType = WireShape.string(frame, field: "type") ?? ""
+        if frameType == "ready" {
+            clientId = WireShape.string(frame, field: "clientId") ?? ""
+            return
+        }
+        if frameType == "cancel" {
+            guard let eventId = WireShape.string(frame, field: "eventId") else { return }
+            inbox.removeAll { $0.id == eventId }
+            return
+        }
+        guard frameType == "waterfall",
+              let id = WireShape.string(frame, field: "eventId"),
+              let request = WireShape.object(frame, field: "request")
+        else { return }
         let eventName = WireShape.string(frame, field: "event") ?? ""
         let isApproval = eventName.contains("approval")
         let isQuestion = eventName.contains("question")
         guard isApproval || isQuestion else { return }
-        let id = WireShape.string(frame, field: "eventId")
-            ?? WireShape.string(frame, field: "id")
-            ?? "\(inbox.count)"
-        let sessionId = WireShape.string(frame, field: "sessionId") ?? ""
-        let payload = WireShape.object(frame, field: "event") ?? frame
-        let title = WireShape.string(payload, field: "title") ?? (isApproval ? "Approval requested" : "Question asked")
-        let detail = Self.detailText(of: payload)
+        let sessionId = WireShape.string(request, field: "sessionId") ?? ""
+        let title = WireShape.string(request, field: "title")
+            ?? WireShape.string(request, field: "toolName")
+            ?? (isApproval ? "Approval requested" : "Question asked")
+        let detail = Self.detailText(of: request)
         let pending = PendingInteraction(
             id: id,
             kind: isApproval ? .approval : .question,
@@ -154,6 +167,7 @@ public final class InteractionViewModel {
 
     /// Best-effort visible text of a forwarded interaction payload.
     private static func detailText(of value: WireValue) -> String {
+        if let reason = WireShape.string(value, field: "reason") { return reason }
         if let text = WireShape.string(value, field: "text") { return text }
         for field in ["content", "message"] {
             if let nested = WireShape.object(value, field: field),

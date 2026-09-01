@@ -418,32 +418,64 @@ final class InteractionViewModelTests: XCTestCase {
     func testCollectsApprovalAndQuestionForwardsAndDeduplicates() {
         let model = InteractionViewModel(wire: FakeWire())
         model.collect(jsonObject([
-            "event": .string("approval/requested"), "eventId": .string("e1"),
-            "sessionId": .string("s1"), "title": .string("Run command"),
+            "type": .string("ready"), "clientId": .string("host-client-1"),
+            "host": jsonObject(["home": .string("/home/test")]),
         ]))
         model.collect(jsonObject([
-            "event": .string("question/requested"), "eventId": .string("e2"),
-            "sessionId": .string("s1"), "text": .string("Pick one"),
+            "type": .string("waterfall"), "event": .string("approval/request"), "eventId": .string("e1"),
+            "agentId": .string("a1"),
+            "request": jsonObject([
+                "sessionId": .string("s1"), "title": .string("Run command"), "reason": .string("Needs shell"),
+            ]),
         ]))
-        model.collect(jsonObject(["event": .string("approval/requested"), "eventId": .string("e1")]))
+        model.collect(jsonObject([
+            "type": .string("waterfall"), "event": .string("question/request"), "eventId": .string("e2"),
+            "agentId": .string("a1"),
+            "request": jsonObject(["sessionId": .string("s1"), "text": .string("Pick one")]),
+        ]))
+        model.collect(jsonObject([
+            "type": .string("waterfall"), "event": .string("approval/request"), "eventId": .string("e1"),
+            "agentId": .string("a1"), "request": jsonObject([:]),
+        ]))
+        XCTAssertEqual(model.clientId, "host-client-1")
         XCTAssertEqual(model.inbox.count, 2)
         XCTAssertEqual(model.inbox[0].kind, .approval)
         XCTAssertEqual(model.inbox[0].title, "Run command")
+        XCTAssertEqual(model.inbox[0].detail, "Needs shell")
         XCTAssertEqual(model.inbox[1].kind, .question)
         XCTAssertEqual(model.inbox[1].detail, "Pick one")
+
+        model.collect(jsonObject(["type": .string("cancel"), "eventId": .string("e1")]))
+        XCTAssertEqual(model.inbox.map(\.id), ["e2"])
+        model.collect(jsonObject([
+            "type": .string("ready"), "clientId": .string("host-client-2"),
+            "host": jsonObject(["home": .string("/home/test")]),
+        ]))
+        XCTAssertEqual(model.clientId, "host-client-2")
     }
 
     func testAnswerSubmitsResultOutcomeAndClearsOnSuccess() async {
         let wire = FakeWire()
         await wire.stub("$events/result", answer: .success(.null))
         let model = InteractionViewModel(wire: wire)
-        await model.startWatching()
-        model.collect(jsonObject(["event": .string("approval/requested"), "eventId": .string("e1"), "title": .string("T")]))
+        model.collect(jsonObject([
+            "type": .string("ready"), "clientId": .string("host-client-1"),
+            "host": jsonObject(["home": .string("/home/test")]),
+        ]))
+        model.collect(jsonObject([
+            "type": .string("waterfall"), "event": .string("approval/request"), "eventId": .string("e1"),
+            "agentId": .string("a1"), "request": jsonObject(["title": .string("T")]),
+        ]))
         let pending = model.inbox[0]
         await model.answer(pending, with: .allowedOnce)
         XCTAssertTrue(model.inbox.isEmpty)
         let answer = await wire.calls.first { $0.method == "$events/result" }
         XCTAssertNotNil(answer)
+        if let clientIdValue = answer?.args["clientId"], case .string(let clientId) = clientIdValue {
+            XCTAssertEqual(clientId, "host-client-1")
+        } else {
+            XCTFail("answer must carry the ready clientId")
+        }
         let outcome = answer?.args["outcome"]
         XCTAssertEqual(WireShape.string(outcome ?? .null, field: "kind"), "result")
         XCTAssertEqual(WireShape.string(outcome ?? .null, field: "value"), "allowed-once")
@@ -453,10 +485,31 @@ final class InteractionViewModelTests: XCTestCase {
         let wire = FakeWire()
         await wire.stub("$events/result", answer: .failure(LinkClientError.refused(code: "forbidden", message: "approval disabled on host")))
         let model = InteractionViewModel(wire: wire)
-        model.collect(jsonObject(["event": .string("approval/requested"), "eventId": .string("e1"), "title": .string("T")]))
+        model.collect(jsonObject([
+            "type": .string("ready"), "clientId": .string("host-client-1"),
+            "host": jsonObject(["home": .string("/home/test")]),
+        ]))
+        model.collect(jsonObject([
+            "type": .string("waterfall"), "event": .string("approval/request"), "eventId": .string("e1"),
+            "agentId": .string("a1"), "request": jsonObject(["title": .string("T")]),
+        ]))
         await model.answer(model.inbox[0], with: .rejected)
         XCTAssertEqual(model.inbox.count, 1)
         XCTAssertEqual(model.lastRefusal, "forbidden: approval disabled on host")
+    }
+
+    func testAnswerWaitsForTheHostReadyIdentity() async {
+        let wire = FakeWire()
+        let model = InteractionViewModel(wire: wire)
+        model.collect(jsonObject([
+            "type": .string("waterfall"), "event": .string("approval/request"), "eventId": .string("e1"),
+            "agentId": .string("a1"), "request": jsonObject(["title": .string("T")]),
+        ]))
+        await model.answer(model.inbox[0], with: .allowedOnce)
+        let calls = await wire.calls
+        XCTAssertEqual(calls.count, 0)
+        XCTAssertEqual(model.lastRefusal, "Remote Event stream is not ready.")
+        XCTAssertEqual(model.inbox.map(\.id), ["e1"])
     }
 }
 

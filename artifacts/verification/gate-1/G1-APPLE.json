@@ -1,0 +1,99 @@
+{
+  "taskId": "G1-APPLE",
+  "status": "PARTIAL",
+  "commit": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "commands": [
+    "node_modules/.bin/tsx.CMD scripts/gen-link-contracts.ts",
+    "node_modules/.bin/tsx.CMD scripts/verify-link-contracts.ts",
+    "node_modules/.bin/vitest.CMD run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts",
+    "pnpm run test:docs",
+    "swift test",
+    "git diff --check"
+  ],
+  "tests": [
+    {
+      "name": "Contract, Host Remote Event, and TLS carrier suites",
+      "result": "PASS",
+      "testFiles": 3,
+      "passed": 80,
+      "failed": 0
+    },
+    {
+      "name": "Generated artifact freshness",
+      "result": "PASS",
+      "stale": 0
+    },
+    {
+      "name": "Documentation quick aggregate",
+      "result": "PASS",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "name": "Apple SwiftPM tests",
+      "result": "NOT_EXECUTED",
+      "reason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+    },
+    {
+      "name": "Real Host-to-Swift acceptance",
+      "result": "NOT_EXECUTED",
+      "reason": "ACCEPTANCE_HARNESS_PENDING"
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-APPLE.json",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkContracts.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/"
+  ],
+  "changedFiles": [
+    "packages/remote/link-contracts/src/generate.ts",
+    "packages/remote/link-contracts/tests/link-contracts.spec.ts",
+    "packages/remote/link-contracts/generated/LinkContracts.swift",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkContracts.swift",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkWire.swift",
+    "apps/apple/Sources/SharedAppleRemoteCore/SessionHandoff.swift",
+    "apps/apple/Sources/CompanionUI/CompanionRootView.swift",
+    "apps/apple/Sources/CompanionUI/CompanionWire.swift",
+    "apps/apple/Sources/CompanionUI/InteractionViewModel.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
+    "apps/apple/Tests/CompanionUITests/CompanionUITests.swift",
+    "apps/apple/README.md",
+    "apps/apple/README.zh.md",
+    "apps/apple/README.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md",
+    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.zh.md",
+    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.i18n.yaml"
+  ],
+  "implemented": [
+    "The pairing payload must own the client endpoint and pin, and CompanionRootView retains the newly paired LinkClient instead of rebuilding over a placeholder.",
+    "LinkClient consumes the generated recursive JSON, unary, and stream models; the parallel Swift envelope model was removed.",
+    "Unary responses enforce type and rpcId correlation, accept a successful omitted value as void, and reject invalid success/failure field combinations.",
+    "Remote Event processing takes clientId only from Host ready frames, reads waterfall fields from request, removes cancel frames, sends outcome, and clears the generation identity during reconnect.",
+    "Apple test source covers fresh transport ownership, generated fixture round trips, value/void/error responses, authoritative clientId refresh, nested requests, cancel, outcomes, and the no-ready refusal."
+  ],
+  "knownLimitations": [
+    "Windows cannot compile or run Swift/Xcode. Test source and generated fixture freshness are present, but no native PASS is claimed.",
+    "The real Host pair-to-reconnect corpus remains absent; G1-E2E must execute it on a macOS runner before G1-APPLE can become PASS."
+  ],
+  "notExecuted": [
+    {
+      "item": "swift test",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "No Swift toolchain or Xcode is installed on the Windows execution host."
+    },
+    {
+      "item": "Real Host-to-Swift acceptance",
+      "status": "NOT_EXECUTED",
+      "reason": "DEPENDENCY_PENDING",
+      "details": "G1-E2E must provide the shipped Host process and shared acceptance corpus."
+    }
+  ],
+  "nextDependencies": [
+    "G1-E2E",
+    "G1-REC",
+    "G1-CI"
+  ]
+}

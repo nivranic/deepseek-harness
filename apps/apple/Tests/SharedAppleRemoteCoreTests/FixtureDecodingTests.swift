@@ -27,6 +27,21 @@ final class FixtureDecodingTests: XCTestCase {
         XCTAssertEqual(try canonicalJson(reencoded), try canonicalJson(data))
     }
 
+    func testPairingPayloadOwnsTheFreshClientTransport() throws {
+        let payload = try JSONDecoder().decode(LinkPairingPayload.self, from: fixture("pairing-payload"))
+        let endpoint = try XCTUnwrap(URL(string: payload.endpoint + "/"))
+        XCTAssertTrue(LinkClient.pairingPayloadOwnsTransport(
+            payload,
+            baseURL: endpoint,
+            pinnedFingerprint: payload.spkiFingerprint
+        ))
+        XCTAssertFalse(LinkClient.pairingPayloadOwnsTransport(
+            payload,
+            baseURL: endpoint,
+            pinnedFingerprint: String(repeating: "cd", count: 32)
+        ))
+    }
+
     func testPairResponseDecodes() throws {
         let value = try JSONDecoder().decode(LinkPairResponse.self, from: fixture("pair-response"))
         XCTAssertEqual(value.role, .controller)
@@ -68,6 +83,37 @@ final class FixtureDecodingTests: XCTestCase {
         }
         try roundTrip("session-event-record", as: LinkSessionEventRecord.self)
         try roundTrip("session-snapshot-frame", as: LinkSessionSnapshotFrame.self)
+    }
+
+    func testUnaryResultsAcceptVoidAndEnforceCorrelation() throws {
+        let void = try JSONDecoder().decode(LinkRpcResponseEnvelope.self, from: fixture("rpc-response-void"))
+        XCTAssertEqual(try LinkClient.value(from: void, expectedRpcId: "rpc-session-cancel-1"), .null)
+
+        let valued = try JSONDecoder().decode(LinkRpcResponseEnvelope.self, from: fixture("rpc-response-value"))
+        XCTAssertEqual(
+            try LinkClient.value(from: valued, expectedRpcId: "rpc-session-list-1"),
+            .object(["sessions": .array([])])
+        )
+
+        let refused = try JSONDecoder().decode(LinkRpcResponseEnvelope.self, from: fixture("rpc-response-error"))
+        XCTAssertThrowsError(try LinkClient.value(from: refused, expectedRpcId: "rpc-session-open-1")) { error in
+            XCTAssertEqual(error as? LinkClientError, .refused(code: "session-not-found", message: "Session not found."))
+        }
+        XCTAssertThrowsError(try LinkClient.value(from: void, expectedRpcId: "another-rpc")) { error in
+            XCTAssertEqual(error as? LinkClientError, .badWire("rpcId mismatch"))
+        }
+        let crossBranch = LinkRpcResponseEnvelope(
+            type: "server-response",
+            rpcId: "rpc-cross-branch",
+            result: LinkRpcResult(
+                ok: true,
+                value: nil,
+                error: LinkRpcError(code: "invalid", message: "must not coexist", details: [:])
+            )
+        )
+        XCTAssertThrowsError(try LinkClient.value(from: crossBranch, expectedRpcId: "rpc-cross-branch")) { error in
+            XCTAssertEqual(error as? LinkClientError, .badWire("successful result carried an error"))
+        }
     }
 
     func testCarrierStatusDecodes() throws {

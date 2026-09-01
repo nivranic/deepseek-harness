@@ -233,7 +233,7 @@ describe('link contract generator', () => {
       const swiftDecl = type.shape === 'object'
         ? `public struct ${type.name}: Codable`
         : type.shape === 'json'
-          ? 'public enum LinkJsonValue: Codable'
+          ? 'public enum LinkJsonValue: Codable, Equatable'
           : `public enum ${type.name}: String, Codable`
       const kotlinDecl = type.shape === 'object'
         ? `data class ${type.name}(`

@@ -54,20 +54,23 @@ public final class LinkClient {
     ///   - deviceName: the user-chosen name shown in the host's device list.
     /// - Returns: the persisted credentials.
     public func pair(payload: LinkPairingPayload, deviceName: String) async throws -> LinkCredentials {
+        guard Self.pairingPayloadOwnsTransport(payload, baseURL: baseURL, pinnedFingerprint: pinned) else {
+            throw LinkClientError.badWire("pairing payload does not own this client transport")
+        }
         let key = Curve25519.Signing.PrivateKey()
-        let request = PairRequestBody(
+        let request = LinkPairRequest(
             code: payload.code,
             deviceName: deviceName,
             devicePublicKey: LinkSigning.ed25519SpkiDer(publicKeyRaw: key.publicKey.rawRepresentation).base64EncodedString()
         )
         let body = try JSONEncoder().encode(request)
         let data = try await post(path: "/link/pair", body: body, signed: false)
-        let value = try Self.decode(PairResponseBody.self, from: data)
+        let value = try Self.decode(LinkPairResponse.self, from: data)
         let credentials = LinkCredentials(
             deviceId: value.deviceId,
             hostId: value.hostId,
             hostName: value.hostName,
-            role: value.role,
+            role: value.role.rawValue,
             endpoint: payload.endpoint,
             pinnedFingerprint: payload.spkiFingerprint,
             signingKeyBase64: key.rawRepresentation.base64EncodedString()
@@ -90,22 +93,19 @@ public final class LinkClient {
     /// - Throws: `LinkClientError.refused` when the business call fails.
     public func call(
         _ method: String,
-        args: [String: LinkWire.RequestEnvelope.Payload.Value] = [:]
-    ) async throws -> LinkWire.ResponseEnvelope.Result.Value {
-        let envelope = LinkWire.RequestEnvelope(rpcId: "rpc-\(method)", method: method, args: args)
+        args: [String: LinkJsonValue] = [:]
+    ) async throws -> LinkJsonValue {
+        let rpcId = "rpc-\(UUID().uuidString)"
+        let envelope = LinkRpcRequestEnvelope(
+            type: "client-request",
+            rpcId: rpcId,
+            method: method,
+            payload: LinkRpcPayload(args: args)
+        )
         let body = try JSONEncoder().encode(envelope)
         let data = try await post(path: "/api/\(method)", body: body, signed: true)
-        let response = try Self.decode(LinkWire.ResponseEnvelope.self, from: data)
-        guard response.type == "server-response" else {
-            throw LinkClientError.badWire("unexpected response type \(response.type)")
-        }
-        if response.result.ok, let value = response.result.value {
-            return value
-        }
-        if let failure = response.result.error {
-            throw LinkClientError.refused(code: failure.code, message: failure.message)
-        }
-        throw LinkClientError.badWire("ok result without a value")
+        let response = try Self.decode(LinkRpcResponseEnvelope.self, from: data)
+        return try Self.value(from: response, expectedRpcId: rpcId)
     }
 
     /// Open one NDJSON Remote stream. Values yield as frames arrive; a
@@ -118,9 +118,9 @@ public final class LinkClient {
     /// - Returns: an async stream of decoded frame values.
     public func stream(
         _ endpoint: String,
-        payload: [String: LinkWire.RequestEnvelope.Payload.Value] = [:]
-    ) async throws -> AsyncThrowingStream<LinkWire.ResponseEnvelope.Result.Value, Error> {
-        let body = try JSONEncoder().encode(StreamBody(args: payload))
+        payload: [String: LinkJsonValue] = [:]
+    ) async throws -> AsyncThrowingStream<LinkJsonValue, Error> {
+        let body = try JSONEncoder().encode(LinkStreamRequest(args: payload))
         let data: (bytes: URLSession.AsyncBytes, response: URLResponse)
         do {
             var request = try URLRequest(url: Self.url(base: baseURL, path: "/link/stream/\(endpoint)"))
@@ -140,17 +140,15 @@ public final class LinkClient {
                 do {
                     for try await line in data.bytes.lines {
                         guard let frameData = line.data(using: .utf8), !frameData.isEmpty else { continue }
-                        let frame = try Self.decode(LinkWire.StreamFrame.self, from: frameData)
-                        if frame.isFailure {
+                        let frame = try Self.decode(LinkStreamFrame.self, from: frameData)
+                        if frame.k == .e {
                             continuation.finish(throwing: LinkClientError.refused(
                                 code: frame.c ?? "internal",
                                 message: frame.m ?? "stream failed"
                             ))
                             return
                         }
-                        if let value = frame.v {
-                            continuation.yield(value)
-                        }
+                        continuation.yield(frame.v ?? .null)
                     }
                     continuation.finish()
                 } catch {
@@ -183,29 +181,24 @@ public final class LinkClient {
 
     // MARK: - Internals
 
-    private struct PairRequestBody: Encodable {
-        let code: String
-        let deviceName: String
-        let devicePublicKey: String
-    }
-
-    private struct PairResponseBody: Decodable {
-        let deviceId: String
-        let hostId: String
-        let hostName: String
-        let role: String
-    }
-
-    private struct StreamBody: Encodable {
-        let args: [String: LinkWire.RequestEnvelope.Payload.Value]
-    }
-
     /// Join the carrier base URL with an absolute request path.
     static func url(base: URL, path: String) -> URL {
         let trimmed = base.absoluteString.hasSuffix("/")
             ? String(base.absoluteString.dropLast())
             : base.absoluteString
         return URL(string: trimmed + path)!
+    }
+
+    /// Whether one pairing payload names the endpoint and pin this client uses.
+    static func pairingPayloadOwnsTransport(
+        _ payload: LinkPairingPayload,
+        baseURL: URL,
+        pinnedFingerprint: String
+    ) -> Bool {
+        guard let payloadURL = URL(string: payload.endpoint) else { return false }
+        let normalizedPayload = payloadURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let normalizedBase = baseURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return normalizedPayload == normalizedBase && payload.spkiFingerprint == pinnedFingerprint
     }
 
     /// Send one unary request, optionally device-signed, checking the status.
@@ -265,5 +258,29 @@ public final class LinkClient {
         } catch {
             throw LinkClientError.badWire(String(describing: error))
         }
+    }
+
+    /// Validate one generated unary response and project its business value.
+    /// - Parameters:
+    ///   - response: decoded canonical response envelope.
+    ///   - expectedRpcId: request identity the Host must echo.
+    /// - Returns: the returned JSON value, or `.null` for a successful void RPC.
+    static func value(from response: LinkRpcResponseEnvelope, expectedRpcId: String) throws -> LinkJsonValue {
+        guard response.type == "server-response" else {
+            throw LinkClientError.badWire("unexpected response type \(response.type)")
+        }
+        guard response.rpcId == expectedRpcId else {
+            throw LinkClientError.badWire("rpcId mismatch")
+        }
+        if response.result.ok {
+            guard response.result.error == nil else {
+                throw LinkClientError.badWire("successful result carried an error")
+            }
+            return response.result.value ?? .null
+        }
+        guard response.result.value == nil, let failure = response.result.error else {
+            throw LinkClientError.badWire("failed result lacked a structured error")
+        }
+        throw LinkClientError.refused(code: failure.code, message: failure.message)
     }
 }

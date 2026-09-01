@@ -85,7 +85,7 @@ function kotlinScalar(fieldRow: ContractField): string {
 
 function swiftModel(type: ContractType): string {
   if (type.shape === 'json') {
-    return `public enum LinkJsonValue: Codable {
+    return `public enum LinkJsonValue: Codable, Equatable {
     case string(String)
     case number(Double)
     case bool(Bool)

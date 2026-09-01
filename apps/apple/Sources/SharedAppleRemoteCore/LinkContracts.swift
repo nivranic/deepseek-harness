@@ -10,7 +10,7 @@ public enum LinkError: String, Codable {
     case linkDisabled = "link-disabled"
     case badRequest = "bad-request"
 }
-public enum LinkJsonValue: Codable {
+public enum LinkJsonValue: Codable, Equatable {
     case string(String)
     case number(Double)
     case bool(Bool)
