@@ -152,10 +152,11 @@ class RelayClientNoiseTest {
             server.createContext("/relay/noise/hello") { exchange ->
                 val handshake = NoiseHandshake(NoiseHandshake.Role.RESPONDER)
                 handshake.readMessage1(exchange.requestBody.readBytes())
+                val message = handshake.writeMessage2()
                 val id = hex(handshake.transcriptHash)
                 pendingHandshakes[id] = handshake
                 exchange.responseHeaders.add("x-relay-session", id)
-                respond(exchange, handshake.writeMessage2())
+                respond(exchange, message)
             }
             server.createContext("/relay/noise/complete") { exchange ->
                 val id = exchange.requestHeaders.getFirst("x-relay-session") ?: ""

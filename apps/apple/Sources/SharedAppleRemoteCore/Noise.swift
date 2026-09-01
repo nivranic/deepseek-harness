@@ -88,11 +88,11 @@ public final class NoiseHandshake {
     ///   - role: the side this state plays.
     ///   - staticScalar: pinned raw scalar for the fixed-key vectors; nil generates fresh.
     ///   - ephemeralScalar: pinned raw scalar for the fixed-key vectors; nil generates fresh.
-    public init(role: Role, staticScalar: [UInt8]? = nil, ephemeralScalar: [UInt8]? = nil) {
+    public init(role: Role, staticScalar: [UInt8]? = nil, ephemeralScalar: [UInt8]? = nil) throws {
         self.role = role
-        self.staticKey = staticScalar.map { Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data($0)) }
+        self.staticKey = try staticScalar.map { try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data($0)) }
             ?? Curve25519.KeyAgreement.PrivateKey()
-        self.ephemeralKey = ephemeralScalar.map { Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data($0)) }
+        self.ephemeralKey = try ephemeralScalar.map { try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data($0)) }
             ?? Curve25519.KeyAgreement.PrivateKey()
         self.ck = protocolName
         self.h = protocolName

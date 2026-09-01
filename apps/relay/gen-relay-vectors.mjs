@@ -82,7 +82,7 @@ const vectors = {
     c2Frames: seal(responderSide.send, C2_PAYLOADS),
   },
   framing: {
-    single: hex(encodeFrame(Buffer.from(msg1).subarray(0, 16))),
+    single: hex(encodeFrame(Buffer.from(range(16)))),
     doubled: hex(Buffer.concat([encodeFrame(EMPTY), encodeFrame(Buffer.from([9, 8, 7]))])),
   },
 }

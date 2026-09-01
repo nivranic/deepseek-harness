@@ -205,7 +205,7 @@ private actor RelayTransport {
     /// Complete the XX handshake and consume the encrypted ack, once.
     private func ensure() async throws -> (id: String, send: NoiseCipherState, recv: NoiseCipherState) {
         if let established { return established }
-        let handshake = NoiseHandshake(role: .initiator)
+        let handshake = try NoiseHandshake(role: .initiator)
         let (helloBody, helloResponse) = try await post("/relay/noise/hello", sealed: try handshake.writeMessage1(), sessionHeader: nil)
         try Self.check(helloResponse)
         guard let id = (helloResponse as? HTTPURLResponse)?.value(forHTTPHeaderField: "x-relay-session") else {
@@ -231,7 +231,7 @@ private actor RelayTransport {
 
     /// One framed encrypted request/response answered by one JSON value.
     func call<Body: Encodable, Value: Decodable>(path: String, body: Body) async throws -> Value {
-        let payloads = try await callFrames(path, body: body)
+        let payloads = try await callFrames(path: path, body: body)
         guard payloads.count == 1 else { throw RelayClientError.http(-1) }
         return try JSONDecoder().decode(Value.self, from: payloads[0])
     }

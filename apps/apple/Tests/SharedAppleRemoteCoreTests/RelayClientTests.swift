@@ -28,7 +28,7 @@ private func vectors() throws -> [String: Any] {
 private func pinnedHandshake(_ role: NoiseHandshake.Role) throws -> NoiseHandshake {
     let keys = try vectors()["keys"] as! [String: String]
     let prefix = role == .initiator ? "initiator" : "responder"
-    return NoiseHandshake(
+    return try NoiseHandshake(
         role: role,
         staticScalar: unhex(keys["\(prefix)Static"]!),
         ephemeralScalar: unhex(keys["\(prefix)Ephemeral"]!)
@@ -200,19 +200,20 @@ final class NoiseRelayServer {
         do {
             switch path {
             case "/relay/noise/hello":
-                let handshake = NoiseHandshake(role: .responder)
+                let handshake = try NoiseHandshake(role: .responder)
                 try handshake.readMessage1(body)
+                let message = try handshake.writeMessage2()
                 let id = hex(handshake.transcriptHash)
                 pendingHandshakes[id] = handshake
                 let answered = corruptSessionHeader ? "deadbeef" : id
-                respond(connection, status: 200, body: Data(try handshake.writeMessage2()), headers: ["x-relay-session": answered])
+                respond(connection, status: 200, body: Data(message), headers: ["x-relay-session": answered])
             case "/relay/noise/complete":
                 guard let id = headers["x-relay-session"], let handshake = pendingHandshakes.removeValue(forKey: id) else {
                     respond(connection, status: 410, body: Data("{\"error\":\"unknown relay session\"}".utf8))
                     return
                 }
                 if sealAckWithStrangerKeys {
-                    let stranger = NoiseHandshake(role: .responder)
+                    let stranger = try NoiseHandshake(role: .responder)
                     try stranger.readMessage1([UInt8](repeating: 0, count: 32))
                     respond(connection, status: 200, body: Data(encodeNoiseFrame(try stranger.split().send.encryptWithAd([], Array("{\"ok\":true}".utf8)))))
                     return
