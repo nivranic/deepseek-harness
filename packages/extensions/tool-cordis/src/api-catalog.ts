@@ -455,6 +455,29 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'artifacts',
+    summary: 'Durable artifact content channel — chapter 56\'s resource channel.',
+    description: 'Durable artifact content channel — chapter 56\'s resource channel. Journal events carry references only; the complete bytes of one artifact live here, keyed by the reference identity `artifact/created` minted.',
+    methods: [
+      {
+        signature: 'abstract put(id: ArtifactId, data: Uint8Array): Promise<void>',
+        description: 'Durably write one artifact\'s complete content bytes under its id.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity from `artifact/created`.' }, { name: 'data', description: 'the complete content bytes.' }],
+      },
+      {
+        signature: 'abstract get(id: ArtifactId): Promise<Uint8Array | null>',
+        description: 'Read one artifact\'s content bytes back.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity.' }],
+        returns: 'the stored bytes, or null when nothing is stored under the id.',
+      },
+      {
+        signature: 'abstract remove(id: ArtifactId): Promise<void>',
+        description: 'Remove one artifact\'s content bytes.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity to delete.' }],
+      },
+    ],
+  },
+  {
     key: 'attachments',
     summary: 'Immutable binary attachment service.',
     description: 'Immutable binary attachment service. Implementations validate bytes before publishing a reference.',
@@ -1592,10 +1615,22 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'acknowledgement that the Agent accepted the prompt.',
       },
       {
+        signature: '@Remote(\'handoff\') handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue>',
+        description: 'Accept one Lite handoff: create the new full Session and queue the rendered snapshot brief as its first user message.',
+        parameters: [{ name: 'request', description: 'the snapshot the sending device packaged.' }],
+        returns: 'the new Session\'s identity.',
+      },
+      {
         signature: '@Remote(\'attachment\') attachment(request: SessionAttachmentRequest): Promise<SessionAttachmentValue>',
         description: 'Read one image proven reachable from the addressed Session log.',
         parameters: [{ name: 'request', description: 'Session and attachment identities used for authorization.' }],
         returns: 'the durable attachment reference and base64-encoded bytes.',
+      },
+      {
+        signature: '@Remote(\'artifact\') artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue>',
+        description: 'Read one artifact proven referenced by the addressed Session log.',
+        parameters: [{ name: 'request', description: 'Session and artifact identities used for authorization.' }],
+        returns: 'the journaled reference metadata and base64-encoded bytes.',
       },
       {
         signature: '@Remote(\'updateQueue\') updateQueue(request: SessionUpdateQueueRequest): SessionUpdateQueueValue',
@@ -2996,6 +3031,25 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'workspaceFiles',
+    summary: 'Host service backing the generated `ctx.remote.workspaceFiles` namespace.',
+    description: 'Host service backing the generated `ctx.remote.workspaceFiles` namespace. Every verb resolves the registered root canonically and confines the request under it before touching the backend; content reads are text-only with a byte cap and a UTF-16 range.',
+    methods: [
+      {
+        signature: '@Remote(\'list\') async list( workspaceId: string, path: string | undefined, signal?: AbortSignal, ): Promise<WorkspaceFilesListValue>',
+        description: 'List one directory level inside a registered Workspace.',
+        parameters: [{ name: 'workspaceId', description: 'registered Workspace identity.' }, { name: 'path', description: 'relative directory path; absent lists the root.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the level\'s normalized relative path and its children.',
+      },
+      {
+        signature: '@Remote(\'read\') async read( workspaceId: string, path: string, offset: number | undefined, limit: number | undefined, signal?: AbortSignal, ): Promise<WorkspaceFilesReadValue>',
+        description: 'Read one text file inside a registered Workspace as a UTF-16 range.',
+        parameters: [{ name: 'workspaceId', description: 'registered Workspace identity.' }, { name: 'path', description: 'relative file path.' }, { name: 'offset', description: 'range start in UTF-16 code units; absent starts at zero.' }, { name: 'limit', description: 'maximum returned code units; absent reads through the end.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the decoded range with its media type and total size.',
+      },
+    ],
+  },
+  {
     key: 'workspaceRegistry',
     summary: 'Durable workspace registry.',
     description: 'Durable workspace registry. Startup waits for `sessionPersistence`, builds one canonical-cwd header index, and completes the one-time history bootstrap before the service becomes active. The persistence dependency is mandatory so an unavailable peer can never be mistaken for an empty history and commit the initialized marker.',
@@ -3655,6 +3709,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ApprovalRequestEvent',
     declaration: 'export interface ApprovalRequestEvent {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: ToolCallId;\n    readonly reason?: string;\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'ArtifactId',
+    declaration: 'export type ArtifactId = Branded<\'ArtifactId\'>;',
   },
   {
     name: 'AskUserQuestionAnswer',
@@ -4981,6 +5039,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type SessionAddress = {\n    readonly kind: \'session\';\n    readonly sessionId: SessionId;\n} | {\n    readonly kind: \'subagent\';\n    readonly parentSessionId: SessionId;\n    readonly childSessionId: SessionId;\n    readonly mode: \'one-shot\' | \'continuable\';\n};',
   },
   {
+    name: 'SessionArtifactRequest',
+    declaration: 'export interface SessionArtifactRequest {\n    readonly sessionId: SessionId;\n    readonly artifactId: string;\n    readonly offset?: number;\n    readonly limit?: number;\n}',
+  },
+  {
+    name: 'SessionArtifactValue',
+    declaration: 'export interface SessionArtifactValue {\n    readonly id: string;\n    readonly kind: string;\n    readonly title: string;\n    readonly format: \'text\' | \'bytes\';\n    readonly data: string;\n    readonly truncated: boolean;\n    readonly size: number;\n}',
+  },
+  {
     name: 'SessionAttachmentRequest',
     declaration: 'export interface SessionAttachmentRequest {\n    readonly sessionId: SessionId;\n    readonly attachmentId: AttachmentIdType;\n}',
   },
@@ -5115,6 +5181,34 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionForkValue',
     declaration: 'export interface SessionForkValue {\n    readonly sessionId: SessionId;\n}',
+  },
+  {
+    name: 'SessionHandoffArtifactRef',
+    declaration: 'export interface SessionHandoffArtifactRef {\n    readonly id: string;\n    readonly kind: string;\n    readonly title: string;\n    readonly status: \'pending\' | \'ready\' | \'failed\';\n}',
+  },
+  {
+    name: 'SessionHandoffContextRow',
+    declaration: 'export interface SessionHandoffContextRow {\n    readonly role: \'user\' | \'assistant\';\n    readonly text: string;\n}',
+  },
+  {
+    name: 'SessionHandoffProvenance',
+    declaration: 'export interface SessionHandoffProvenance {\n    readonly deviceId: string;\n    readonly platform: string;\n    readonly at: number;\n}',
+  },
+  {
+    name: 'SessionHandoffRequest',
+    declaration: 'export interface SessionHandoffRequest {\n    readonly snapshot: SessionHandoffSnapshot;\n}',
+  },
+  {
+    name: 'SessionHandoffSnapshot',
+    declaration: 'export interface SessionHandoffSnapshot {\n    readonly sourceSessionId: string;\n    readonly sourceRuntime: \'lite\';\n    readonly requestedCapability: string;\n    readonly recentContext: readonly SessionHandoffContextRow[];\n    readonly planActive: boolean;\n    readonly todo: readonly SessionHandoffTodoRow[];\n    readonly artifactRefs: readonly SessionHandoffArtifactRef[];\n    readonly modelPreference?: string;\n    readonly provenance: SessionHandoffProvenance;\n}',
+  },
+  {
+    name: 'SessionHandoffTodoRow',
+    declaration: 'export interface SessionHandoffTodoRow {\n    readonly content: string;\n    readonly status: string;\n}',
+  },
+  {
+    name: 'SessionHandoffValue',
+    declaration: 'export interface SessionHandoffValue {\n    readonly sessionId: SessionId;\n}',
   },
   {
     name: 'SessionHeader',
@@ -6311,6 +6405,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'WorkspaceDeleteValue',
     declaration: 'export interface WorkspaceDeleteValue {\n    readonly deleted: true;\n}',
+  },
+  {
+    name: 'WorkspaceFileEntry',
+    declaration: 'export interface WorkspaceFileEntry {\n    readonly name: string;\n    readonly type: \'file\' | \'directory\' | \'other\';\n    readonly size?: number;\n}',
+  },
+  {
+    name: 'WorkspaceFilesListValue',
+    declaration: 'export interface WorkspaceFilesListValue {\n    readonly path: string;\n    readonly entries: readonly WorkspaceFileEntry[];\n}',
+  },
+  {
+    name: 'WorkspaceFilesReadValue',
+    declaration: 'export interface WorkspaceFilesReadValue {\n    readonly content: string;\n    readonly truncated: boolean;\n    readonly size: number;\n    readonly mediaType: string;\n}',
   },
   {
     name: 'WorkspaceFollowFrame',

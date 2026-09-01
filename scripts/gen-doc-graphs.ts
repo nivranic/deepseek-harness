@@ -140,6 +140,15 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The host commits accepted images before session events; provider adapters resolve authorized durable references into provider-native content.',
   },
   {
+    key: 'artifacts',
+    pkg: 'artifact',
+    title: 'Durable artifact content channel',
+    mode: 'seam',
+    implementations: ['artifact-local'],
+    consumers: ['artifact', 'api-session-controller'],
+    note: 'The tool journals an opaque reference before writing bytes; the Session Remote controller proves the reference belongs to the addressed Session before using the content channel.',
+  },
+  {
     key: 'llm',
     pkg: 'llm',
     title: 'LLM adapter registry',
@@ -222,6 +231,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Host Workspace Remote controller',
     mode: 'core',
     note: 'Owns Workspace commands and reconnect-safe Workspace state delivery through the generated Remote namespace.',
+  },
+  {
+    key: 'workspaceFiles',
+    pkg: 'api-workspace-controller',
+    title: 'Workspace file-read Remote controller',
+    mode: 'core',
+    note: 'Resolves an authorized Workspace root and exposes bounded list and text-read operations through the generated Remote namespace.',
   },
   {
     key: 'directoryPickerController',
