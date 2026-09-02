@@ -27,7 +27,8 @@ describe('artifact event invariants', () => {
   })
 
   it.each([
-    ['empty id', { id: '', kind: 'report', title: 'R', format: 'text' }, /non-empty string/],
+    ['empty id', { id: '', kind: 'report', title: 'R', format: 'text' }, /artifact-id grammar/],
+    ['non-portable id', { id: '../outside', kind: 'report', title: 'R', format: 'text' }, /artifact-id grammar/],
     ['padded kind', { id: ArtifactId('art-1'), kind: ' report', title: 'R', format: 'text' }, /already trimmed/],
     ['empty title', { id: ArtifactId('art-1'), kind: 'report', title: '', format: 'text' }, /non-empty and already trimmed/],
     ['numeric kind', { id: ArtifactId('art-1'), kind: 3, title: 'R', format: 'text' }, /already trimmed/],
@@ -43,7 +44,8 @@ describe('artifact event invariants', () => {
   it.each([
     ['unknown status', { id: ArtifactId('art-1'), status: 'weird' }, /unknown status/],
     ['numeric status', { id: ArtifactId('art-1'), status: 1 }, /unknown status/],
-    ['empty id', { id: '', status: 'ready' }, /non-empty string/],
+    ['empty id', { id: '', status: 'ready' }, /artifact-id grammar/],
+    ['non-portable id', { id: 'art-safe:stream', status: 'ready' }, /artifact-id grammar/],
   ])('rejects an incoherent status event (%s)', async (_label, data, message) => {
     const ctx = await setup()
     const session = ctx.sessions.create()

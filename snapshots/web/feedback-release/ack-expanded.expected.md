@@ -1,6 +1,6 @@
 - banner:
   - navigation "Session hierarchy":
-    - button "Reply with the single word" [disabled]
+    - button "Use the read tool twice" [disabled]
   - img
   - text: Standard mode
   - button "Session log":
@@ -13,21 +13,35 @@
   - img
   - img
   - text: System prompt
-- text: Reply with the single word LIGHTHOUSE and stop. {{clock}}
+- text: "Use the read tool twice in one assistant message: read a.txt and b.txt. Then reply with the single word DONE and stop. {{clock}}"
 - button "Copy":
   - img
-- button "Thought for a while" [expanded]:
-  - text: Thought for a while
+- button "2 tool calls" [expanded]:
+  - text: 2 tool calls
   - img
 - button "Context injection @deepseek-ai/dsh-system-prompt":
   - img
   - img
   - text: Context injection @deepseek-ai/dsh-system-prompt
-- button "Think The user wants me to reply with a single word. Let me comply.":
+- button "Think The user wants me to read a.txt and b.txt, then reply with \"DONE\". Let me do both reads in parallel.":
   - img
   - img
-  - text: Think The user wants me to reply with a single word. Let me comply.
-- paragraph: LIGHTHOUSE
+  - text: Think The user wants me to read a.txt and b.txt, then reply with "DONE". Let me do both reads in parallel.
+- button "Read a.txt":
+  - img
+  - img
+  - text: Read
+  - button "a.txt"
+- button "Read b.txt":
+  - img
+  - img
+  - text: Read
+  - button "b.txt"
+- button "Think Both files have been read. a.txt contains \"alpha\" and b.txt contains \"beta\". I'll now reply with DONE as instructed.":
+  - img
+  - img
+  - text: Think Both files have been read. a.txt contains "alpha" and b.txt contains "beta". I'll now reply with DONE as instructed.
+- paragraph: DONE
 - button "Copy":
   - img
 - button "Good response":
@@ -37,10 +51,10 @@
 - button "Branch into a new conversation":
   - img
 - text: {{clock}} Ran for {{duration}} TTFT {{duration}} {{throughput}} tok/s
-- 'button "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback uploads the session records not yet shared."':
+- 'button "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline."':
   - img
   - img
-  - text: "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback uploads the session records not yet shared."
+  - text: "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline."
 - textbox "Message or run a task... / commands, @ files or sessions"
 - button "Commands":
   - img
@@ -50,4 +64,4 @@
   - img
 - button "6% of context used"
 - button "Send message" [disabled]
-- text: 1 turns · 1 steps LLM {{duration}} TTFT avg {{duration}} · {{throughput}} tok/s Cache hit 99% Input 7.8K tok · Output 21 tok
+- text: 1 turns · 2 steps LLM {{duration}} · Tool call {{duration}} TTFT avg {{duration}} · {{throughput}} tok/s Cache hit 98% Input 15.8K tok · Output 135 tok

@@ -336,7 +336,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/artifact/artifact-local/src/index.ts:27`](../packages/artifact/artifact-local/src/index.ts)
+Source: [`packages/artifact/artifact-local/src/index.ts:28`](../packages/artifact/artifact-local/src/index.ts)
 
 <a id="deepseek-aidsh-attachment-local"></a>
 
@@ -2198,7 +2198,7 @@ export enum SessionTelemetryMode {
 
 Depends on: `BatchLogRecordProcessorOptions` (`@opentelemetry/sdk-logs`) · `OTLPExporterNodeConfigBase` (`@opentelemetry/otlp-exporter-base`)
 
-Source: [`packages/session/session-telemetry-otel/src/index.ts:91`](../packages/session/session-telemetry-otel/src/index.ts)
+Source: [`packages/session/session-telemetry-otel/src/index.ts:90`](../packages/session/session-telemetry-otel/src/index.ts)
 
 <a id="deepseek-aidsh-session-title"></a>
 

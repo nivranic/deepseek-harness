@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/artifact.md
-artifact.md: 3e75521d485d9e254267dd052b427c22d6be05c6
-artifact.zh.md: 002881a6d87655a70250a956d539692603b46331
+artifact.md: f9d342cc41a15e2396d8f4dd896846adaf265340
+artifact.zh.md: 45ff40092de68025bd8c08f1412b81230790f87b

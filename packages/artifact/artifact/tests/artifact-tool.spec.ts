@@ -17,6 +17,7 @@ const testToolSignal = new AbortController().signal
 class MemoryArtifactStore extends ArtifactStore {
   readonly stored = new Map<string, Uint8Array>()
   failNextPut = false
+  getCalls = 0
 
   async put(id: ArtifactId, data: Uint8Array): Promise<void> {
     if (this.failNextPut) throw new Error('disk full')
@@ -24,6 +25,7 @@ class MemoryArtifactStore extends ArtifactStore {
   }
 
   async get(id: ArtifactId): Promise<Uint8Array | null> {
+    this.getCalls += 1
     return this.stored.get(id) ?? null
   }
 
@@ -165,6 +167,28 @@ describe('dsh-artifact tool', () => {
     })
     expect(result.isError).toBe(true)
     expect(text(result)).toContain('no content stored under id "art-never-stored"')
+  })
+
+  it.each([
+    '../outside',
+    '..\\outside',
+    'art-../outside',
+    'art-..\\outside',
+    'art-safe:stream',
+    'art-safe\0tail',
+    'art-safe<copy>',
+  ])('rejects non-portable read id %j before calling the resource channel', async (id) => {
+    const { ctx, store } = await setup()
+    const result = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: ToolCallId(`call-read-invalid-${++callCounter}`),
+      name: 'artifact_read',
+      arguments: { id },
+      agent: agentWithSession('reader-invalid'),
+    })
+    expect(result.isError).toBe(true)
+    expect(text(result)).toContain('portable artifact id')
+    expect(store.getCalls).toBe(0)
   })
 
   it('rejects an empty kind or title', async () => {

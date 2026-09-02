@@ -69,7 +69,7 @@ The node half snapshots each client bundle and available source map before publi
 
 ### Boot manifest injection
 
-The host taps the index render and injects, into `<head>`: the `window.__ModuleLoader__` queue facade, advisory preloads for every application combo, the parser-blocking bootstrap combo scripts, then the boot graph before the shell reads it. The facade's `create()` materializes the modules bundle, delegates construction to its `createClientModuleSystem` export, and leaves the same facade in live-registration mode.
+The host taps the index render and injects, into `<head>`: the `window.__ModuleLoader__` queue facade, advisory preloads for every application combo, the parser-blocking bootstrap combo scripts, then the boot graph before the shell reads it. The `webServer` injection fiber owns the bundle route and index listener: it binds them when the provider arrives after module activation, removes them with that provider, and recreates them for a replacement. The facade's `create()` materializes the modules bundle, delegates construction to its `createClientModuleSystem` export, and leaves the same facade in live-registration mode.
 
 ### Source map
 

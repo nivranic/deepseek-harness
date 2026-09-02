@@ -11,7 +11,8 @@ import type { Dirent } from 'node:fs'
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { writeFileAtomic } from '@deepseek-ai/dsh-atomic-write'
-import { ArtifactId, ArtifactStore } from '@deepseek-ai/dsh-artifact'
+import { ArtifactStore, parseArtifactId } from '@deepseek-ai/dsh-artifact'
+import type { ArtifactId } from '@deepseek-ai/dsh-artifact'
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 
 /** File suffix every stored artifact carries below `artifacts/`. */
@@ -54,7 +55,8 @@ export class LocalArtifactStore extends ArtifactStore {
   }
 
   private file(id: ArtifactId): string {
-    return join(this.directory, `${id}${ARTIFACT_SUFFIX}`)
+    const portableId = parseArtifactId(id)
+    return join(this.directory, `${portableId}${ARTIFACT_SUFFIX}`)
   }
 
   async put(id: ArtifactId, data: Uint8Array): Promise<void> {
@@ -95,11 +97,18 @@ export class LocalArtifactStore extends ArtifactStore {
     const removed: string[] = []
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(ARTIFACT_SUFFIX)) continue
+      const rawId = entry.name.slice(0, -ARTIFACT_SUFFIX.length)
+      let id: ArtifactId
+      try {
+        id = parseArtifactId(rawId)
+      } catch {
+        continue
+      }
       const file = join(this.directory, entry.name)
       try {
         if ((await stat(file)).mtimeMs >= cutoff) continue
         await rm(file, { force: true })
-        removed.push(entry.name.slice(0, -ARTIFACT_SUFFIX.length))
+        removed.push(id)
       } catch (error) {
         this.ctx.logger.warn(`artifact-local sweep skipped ${entry.name}: ${String(error)}`)
       }

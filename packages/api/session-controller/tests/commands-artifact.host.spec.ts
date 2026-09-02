@@ -67,6 +67,19 @@ describe('Session artifact authorization', () => {
     await ctx.fiber.dispose()
   })
 
+  it('rejects a referenced non-portable id before calling the artifact channel', async () => {
+    const get = vi.fn(() => Promise.resolve(new Uint8Array()))
+    const { ctx, controller, sessionId } = await persistedController(
+      [createdEvent(0, '../outside', 'report', 'R')],
+      { get },
+    )
+    await expect(controller.artifact({ sessionId, artifactId: '../outside' })).rejects.toMatchObject({
+      failure: { code: 'artifact-error', details: { reason: 'ARTIFACT_ID_INVALID' } },
+    })
+    expect(get).not.toHaveBeenCalled()
+    await ctx.fiber.dispose()
+  })
+
   it('fails loud when the referenced content is missing from the channel', async () => {
     const { ctx, controller, sessionId } = await persistedController(
       [createdEvent(0, 'art-gone', 'report', 'R')],

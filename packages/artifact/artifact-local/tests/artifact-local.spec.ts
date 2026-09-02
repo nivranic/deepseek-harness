@@ -55,6 +55,25 @@ describe('dsh-artifact-local', () => {
     await store.put(id, new TextEncoder().encode('second'))
     expect(new TextDecoder().decode((await store.get(id))!)).toBe('second')
   })
+
+  it.each([
+    '../outside',
+    '..\\outside',
+    'art-../outside',
+    'art-..\\outside',
+    'art-safe:stream',
+    'art-safe\0tail',
+    'art-safe<copy>',
+  ])('rejects non-portable id %j before get, put, or remove reaches the filesystem', async (rawId) => {
+    const { store, home } = await storeInFreshHome()
+    const outside = join(home, 'outside.artifact')
+    await writeFile(outside, 'sentinel')
+    const id = ArtifactId(rawId)
+    await expect(store.get(id)).rejects.toThrow(/artifact id must be/)
+    await expect(store.put(id, new TextEncoder().encode('overwrite'))).rejects.toThrow(/artifact id must be/)
+    await expect(store.remove(id)).rejects.toThrow(/artifact id must be/)
+    expect(await readFile(outside, 'utf8')).toBe('sentinel')
+  })
 })
 
 describe('dsh-artifact-local retention', () => {
@@ -78,11 +97,14 @@ describe('dsh-artifact-local retention', () => {
     const artifacts = join(home, 'artifacts')
     await mkdir(artifacts, { recursive: true })
     await writeFile(join(artifacts, 'notes.txt'), 'not an artifact')
+    await writeFile(join(artifacts, 'notes.artifact'), 'foreign suffix match')
     await mkdir(join(artifacts, 'art-dir.artifact'))
     await store.put(ArtifactId('art-keep'), new TextEncoder().encode('x'))
+    await ageArtifact(home, 'notes', 40)
     await ageArtifact(home, 'art-keep', 40)
     expect(await store.sweep(30)).toEqual(['art-keep'])
     expect(await readFile(join(artifacts, 'notes.txt'), 'utf8')).toBe('not an artifact')
+    expect(await readFile(join(artifacts, 'notes.artifact'), 'utf8')).toBe('foreign suffix match')
   })
 
   it('sweeps once at boot when retentionDays is configured', async () => {

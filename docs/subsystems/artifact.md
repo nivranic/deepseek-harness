@@ -8,7 +8,7 @@ Source: [`packages/artifact/artifact/src/types.ts`](../../packages/artifact/arti
 
 ## Identity and lifecycle
 
-`ArtifactId` is an opaque branded string shared by the journal and the content channel. Consumers must not parse the id or derive a path from it. `text` artifacts page by UTF-16 code units when a Session-journaled reference proves the format; `bytes` artifacts page by byte and return base64. A missing content object fails instead of becoming empty content.
+`ArtifactId` is an opaque branded string shared by the journal and the content channel. Its portable representation is `art-` plus an ASCII letter/digit/hyphen body that starts and ends with a letter or digit, with a 128-character total limit. Model input, durable events, and filesystem providers validate that representation independently; consumers otherwise do not parse the id, and only a provider derives its fixed storage name. `text` artifacts page by UTF-16 code units when a Session-journaled reference proves the format; `bytes` artifacts page by byte and return base64. A missing content object fails instead of becoming empty content.
 
 `artifact/created` publishes the id, kind, title, and `text | bytes` format before the provider write begins. `artifact/status` records `ready` after the write succeeds or `failed` after it rejects. The Session Remote controller proves that the addressed Session journaled the reference before it fetches bytes. `ctx.artifacts` itself is reference-keyed and does not authorize callers.
 

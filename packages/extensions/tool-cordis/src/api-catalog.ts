@@ -2064,29 +2064,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'sessionTelemetry',
-    summary: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `telemetry` key throws on a duplicate, cordis\' standard behavior.',
-    description: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `telemetry` key throws on a duplicate, cordis\' standard behavior. A backend composes a SessionTelemetryCoordinator in its constructor to install the capture side.',
+    summary: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `sessionTelemetry` key throws on a duplicate, cordis\' standard behavior.',
+    description: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `sessionTelemetry` key throws on a duplicate, cordis\' standard behavior. A backend composes a SessionTelemetryCoordinator in its constructor to install the capture side.',
     methods: [
       {
         signature: 'abstract readonly sharing: SessionTelemetrySharingStatus',
-        description: 'Deployment-selected session-sharing policy, disclosed for acknowledgement surfaces that report whether recorded feedback leaves the process. Every backend must disclose its policy; a consumer renders "not configured" only when no telemetry service is mounted. The seam owns this vocabulary so the disclosure is backend-independent.',
+        description: 'Deployment-selected session-sharing policy, disclosed for acknowledgement surfaces that report whether privacy-safe Session diagnostics are eligible for external sharing when feedback is recorded. Every backend must disclose its policy; a consumer renders "not configured" only when no telemetry service is mounted. The seam owns this vocabulary so the disclosure is backend-independent.',
         parameters: [],
-      },
-      {
-        signature: 'abstract emit(record: SessionTelemetryRecord): void',
-        description: 'See SessionTelemetrySink.emit — that declaration is the contract\'s one home.',
-        parameters: [{ name: 'record', description: 'the logical record to report; owned by the backend after the call.' }],
-      },
-      {
-        signature: 'flush?(): void',
-        description: 'See SessionTelemetrySink.flush.',
-        parameters: [],
-      },
-      {
-        signature: 'abstract shutdown(): Promise<void>',
-        description: 'See SessionTelemetrySink.shutdown.',
-        parameters: [],
-        returns: 'resolves when the backend\'s pipeline has quiesced.',
       },
     ],
   },
@@ -3410,9 +3394,9 @@ export const EVENT_API: readonly EventApiEntry[] = [
     name: 'session-telemetry/record',
     mode: 'waterfall',
     signature: '\'session-telemetry/record\'(record: SessionTelemetryRecord, next: () => SessionTelemetryRecord): SessionTelemetryRecord',
-    summary: 'Transform one outbound record before it reaches the backend.',
-    description: 'Transform one outbound record before it reaches the backend. This waterfall is the Service Definition\'s redaction extension point. It ships NO rules of its own: the innermost `next()` passes the record through unchanged, and with no listener mounted records reach the backend as captured, so exported data is exactly as clean as the rules a deployment mounts. Listeners stack by transforming `next()`\'s return value; returning without `next()` replaces everything beneath. Dispatched synchronously on the capture hot path inside the coordinator\'s containment: a throwing listener withholds that one record (fail-closed) and never reaches the agent loop. Live capture dispatches at append time; on-demand capture dispatches while reading the canonical log. Redaction applies to the exported copy only; the canonical session log is never rewritten.',
-    parameters: [{ name: 'record', description: 'the candidate record, already the coordinator\'s own deep copy; listeners return a (possibly new) record and must not mutate it.' }],
+    summary: 'Further reduce one frozen privacy-safe record before it reaches the backend.',
+    description: 'Further reduce one frozen privacy-safe record before it reaches the backend. Session identities are already pseudonymous, and the coordinator has removed Session content, prompts, tool names, arguments and results, arbitrary error details, and workspace paths. Listeners stack by transforming `next()`\'s return value. After the waterfall, the coordinator keeps only original attributes whose keys and values remain unchanged; additions and rewrites are discarded, while a valid severity change survives. Returning without `next()` can therefore remove fields but cannot inject data or rewrite record identity. Dispatched synchronously on the capture hot path inside containment: a throwing listener withholds that one record and never reaches the agent loop. Live capture dispatches at append time; on-demand capture dispatches while reading the canonical log. The canonical Session log is never rewritten.',
+    parameters: [{ name: 'record', description: 'the frozen candidate record; listeners return a possibly stricter copy and must not mutate it.' }],
   },
   {
     name: 'session/created',
@@ -5456,7 +5440,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionTelemetryRecord',
-    declaration: 'export interface SessionTelemetryRecord {\n    channel: \'ledger\' | \'ops\';\n    time: number;\n    severity: SessionTelemetrySeverity;\n    attributes: Record<string, string | number>;\n    body: unknown;\n}',
+    declaration: 'export interface SessionTelemetryRecord {\n    readonly channel: \'ledger\' | \'ops\';\n    readonly time: number;\n    readonly severity: SessionTelemetrySeverity;\n    readonly attributes: Readonly<Record<string, string | number | boolean>>;\n}',
   },
   {
     name: 'SessionTelemetrySeverity',

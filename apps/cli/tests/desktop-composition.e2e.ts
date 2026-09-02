@@ -6,7 +6,7 @@
  * typert-gateway interceptor plane), and the client-plugin bundle route.
  */
 
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,9 +14,13 @@ import { Context } from '@deepseek-ai/cordis'
 import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
 import { RpcId } from '@deepseek-ai/dsh-client-connection'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
+import { SessionId } from '@deepseek-ai/dsh-session'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
+import type {} from '@deepseek-ai/dsh-agent'
+import type {} from '@deepseek-ai/dsh-agent-presets'
+import type {} from '@deepseek-ai/dsh-tools'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 const CONFIG_DIR = fileURLToPath(new URL('../config/', import.meta.url))
@@ -37,9 +41,10 @@ async function bootDesktop(settingsFile: string): Promise<Context> {
   const patches: PatchOptions[] = [
     ...loadOverlayPatches('dsh-test', BASE_PATCH),
     ...loadOverlayPatches('dsh-test', DESKTOP_PATCH),
-    // Pin the settings document and storage root away from the developer's
+    // Pin settings, credentials, and storage away from the developer's
     // own $DSH_HOME (same rationale as the Web composition e2e).
     { id: 'settings', config: { path: settingsFile, watch: false } },
+    { id: 'credentials', config: { dshHome: dirname(settingsFile) } },
     { id: 'storage-json', config: { root: storageRoot } },
     // The telemetry exporter reaches the network.
     { id: 'session-telemetry-otel', disabled: true },
@@ -75,15 +80,54 @@ async function bootDesktop(settingsFile: string): Promise<Context> {
   })
 }
 
+const originalDshHome = process.env.DSH_HOME
 let ctx: Context
+let suiteHome: string | undefined
+
+function restoreDshHome(): void {
+  if (originalDshHome === undefined) delete process.env.DSH_HOME
+  else process.env.DSH_HOME = originalDshHome
+}
+
 beforeAll(async () => {
-  const settingsFile = join(await mkdtemp(join(tmpdir(), 'dsh-desktop-composition-')), 'settings.yaml')
-  await writeFile(settingsFile, '{}\n')
-  ctx = await bootDesktop(settingsFile)
+  suiteHome = await mkdtemp(join(tmpdir(), 'dsh-desktop-composition-'))
+  process.env.DSH_HOME = suiteHome
+  try {
+    const settingsFile = join(suiteHome, 'settings.yaml')
+    await writeFile(settingsFile, '{}\n')
+    ctx = await bootDesktop(settingsFile)
+  } catch (error) {
+    const failures: unknown[] = [error]
+    try {
+      await rm(suiteHome, { recursive: true, force: true })
+      suiteHome = undefined
+    } catch (cleanupError) {
+      failures.push(cleanupError)
+    } finally {
+      restoreDshHome()
+    }
+    if (failures.length > 1) {
+      throw new AggregateError(failures, 'desktop composition setup failed and cleanup was incomplete')
+    }
+    throw error
+  }
 }, 120_000)
 
 afterAll(async () => {
-  if (ctx !== undefined) await ctx.fiber.dispose()
+  const failures: unknown[] = []
+  try {
+    if (ctx !== undefined) await ctx.fiber.dispose()
+  } catch (error) {
+    failures.push(error)
+  }
+  try {
+    if (suiteHome !== undefined) await rm(suiteHome, { recursive: true, force: true })
+  } catch (error) {
+    failures.push(error)
+  } finally {
+    restoreDshHome()
+  }
+  if (failures.length > 0) throw new AggregateError(failures, 'desktop composition teardown failed')
 })
 
 describe('the shipped desktop composition', () => {
@@ -96,6 +140,41 @@ describe('the shipped desktop composition', () => {
       .map(entry => entry.options.name)
     expect(unloaded).toEqual([])
     expect(ctx.get('webServer')).toBeUndefined()
+  })
+
+  it('keeps agent-owned artifact and goal surfaces on the selected preset', async () => {
+    const scopedTools = (schemas: readonly { name: string }[]): string[] =>
+      schemas.map(schema => schema.name)
+        .filter(name => name.startsWith('artifact_')
+          || ['create_goal', 'get_goal', 'update_goal'].includes(name))
+        .sort()
+    expect(scopedTools(ctx.tools.schemas())).toEqual([])
+
+    for (const preset of ['standard', 'ptc', 'cordis']) {
+      const handle = await ctx.agents.create({
+        sessionId: SessionId(`desktop-artifact-${preset}`),
+        setup: agentCtx => ctx.agentPresets.mount(agentCtx, preset).then(() => undefined),
+      })
+      try {
+        expect(scopedTools(ctx.tools.schemas(handle.agent)), preset).toEqual([
+          'artifact_create', 'artifact_read', 'create_goal', 'get_goal', 'update_goal',
+        ])
+        expect(ctx.commands.find(handle.agent, 'goal'), preset).toBeDefined()
+      } finally {
+        await handle.dispose()
+      }
+    }
+
+    const minimal = await ctx.agents.create({
+      sessionId: SessionId('desktop-artifact-minimal'),
+      setup: agentCtx => ctx.agentPresets.mount(agentCtx, 'minimal').then(() => undefined),
+    })
+    try {
+      expect(scopedTools(ctx.tools.schemas(minimal.agent))).toEqual([])
+      expect(ctx.commands.find(minimal.agent, 'goal')).toBeUndefined()
+    } finally {
+      await minimal.dispose()
+    }
   })
 
   it('provides the desktop gateway and serves the boot-manifest-injected index', async () => {
