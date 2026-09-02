@@ -2,13 +2,35 @@
   "taskId": "G1-ANDROID",
   "status": "PARTIAL",
   "evidenceLevel": "E2",
-  "commit": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
-  "sourceHead": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
+  "commit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+  "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
-  "workingTreeState": "DIRTY_IMPLEMENTATION_NOT_IN_COMMIT",
-  "recordedAt": "2026-09-03",
+  "workingTreeState": "RELEVANT_EXECUTION_INPUTS_CLEAN_AT_SOURCE_HEAD_WITH_EXCLUDED_G1_MULTI_CHANGES",
+  "recordedAt": "2026-09-03T04:00:44.9393696+08:00",
+  "toolchain": {
+    "java": "17.0.11",
+    "kotlinCompiler": {
+      "version": "2.1.20",
+      "archiveSha256": "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
+    },
+    "dependencies": [
+      "annotations:23.0.0@7b0f19724082cbfcbc66e5abea2b9bc92cf08a1ea11e191933ed43801eb3cd05",
+      "kotlin-stdlib:2.1.21@263bdc679e1f62012db7b091796279b6d71cf36f4797a98ff1ace05835f201c8",
+      "kotlin-test:2.1.20@0028b5c74191184519f60e727c5aa4e5d7e3ac04fc0bed559f49d37165dec961",
+      "kotlin-test-junit5:2.1.20@9da61772c8c2b52f022b9576a53a1b0f87aff1a6372039ce86c2e93b3eeb19cb",
+      "kotlinx-coroutines-core-jvm:1.10.2@5ca175b38df331fd64155b35cd8cae1251fa9ee369709b36d42e0a288ccce3fd",
+      "kotlinx-coroutines-test-jvm:1.10.2@590a549f8c1db590c9d98a8a20424a1f581a34162a369e6a6bd884ce7d36d3d7",
+      "kotlinx-serialization-core-jvm:1.8.0@d3c94e9d829bba6e0c4cd3ae478a40846dd49d5475d6707877be853976afe416",
+      "kotlinx-serialization-json-jvm:1.8.0@7b7c445880cef94dc464f4733da1b33b94bee78805041ea08ae06e8507e4620e",
+      "okhttp-jvm:5.5.0@234194a04aac54858df0a750d243af7b2e39df5e4eb86e9912043ad33a9f9a52",
+      "okio-jvm:3.18.1@b97b640557a650d15411f2be29aef558c4e422a83653cb18ba494311dbed18be",
+      "turbine-jvm:1.2.0@dcc2e85dbf7d4a0375eb9ff0d4587475e256914f7796aa6c006cc29b66b339da",
+      "junit-platform-console-standalone:1.11.4@b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc"
+    ]
+  },
   "commands": [
     "pnpm run verify-link-contracts",
+    "pwsh -NoProfile -File artifacts/verification/gate-1/scripts/g1-android-kotlin-support.ps1",
     "git diff --check"
   ],
   "tests": [
@@ -19,25 +41,37 @@
     },
     {
       "name": "Kotlin 2.1.20 direct main compilation",
-      "result": "NOT_EXECUTED",
-      "reason": "CLEAN_SOURCE_RERUN_PENDING",
-      "expectedSourceFiles": 25
+      "result": "PASS",
+      "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+      "sourceFiles": 25,
+      "classFiles": 288,
+      "jvmTarget": 17
     },
     {
       "name": "Kotlin 2.1.20 direct test compilation",
-      "result": "NOT_EXECUTED",
-      "reason": "CLEAN_SOURCE_RERUN_PENDING",
-      "expectedSourceFiles": 21
+      "result": "PASS",
+      "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+      "sourceFiles": 21,
+      "classFiles": 286,
+      "friendPath": "out-main-clean",
+      "jvmTarget": 17
     },
     {
       "name": "JUnit Console 1.11.4 Link package and CompanionModelTest",
-      "result": "NOT_EXECUTED",
-      "reason": "CLEAN_SOURCE_RERUN_PENDING"
+      "result": "PASS",
+      "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+      "passed": 47,
+      "failed": 0,
+      "skipped": 0,
+      "pinningCoverage": [
+        "right pin accepted",
+        "wrong pin rejected before application request bytes"
+      ]
     },
     {
       "name": "Android core Gradle tests",
       "result": "NOT_EXECUTED",
-      "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
+      "reason": "GRADLE_UNAVAILABLE"
     },
     {
       "name": "Android app debug assembly",
@@ -47,11 +81,12 @@
     {
       "name": "Real Host-to-Kotlin acceptance",
       "result": "NOT_EXECUTED",
-      "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
+      "reason": "GRADLE_UNAVAILABLE"
     }
   ],
   "artifacts": [
     "artifacts/verification/gate-1/G1-ANDROID.json",
+    "artifacts/verification/gate-1/scripts/g1-android-kotlin-support.ps1",
     "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
     "apps/android/core/src/test/resources/fixtures/",
     ".github/workflows/android-kotlin.yml",
@@ -60,6 +95,7 @@
   ],
   "logs": [],
   "changedFiles": [
+    "artifacts/verification/gate-1/scripts/g1-android-kotlin-support.ps1",
     ".github/workflows/android-kotlin.yml",
     "apps/android/README.md",
     "apps/android/README.zh.md",
@@ -88,19 +124,20 @@
     "The native acceptance driver uses the shared 13-step corpus, validates its isolated DSH_HOME evidence path without following link-shaped parents, and binds terminal events to the current turn and sequence."
   ],
   "acceptance": [
-    "The real Host acceptance harness, Kotlin driver, shared corpus, and Android workflow are present, but this host did not execute that native lane."
+    "The clean b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3 candidate compiles all 25 Kotlin main sources and all 21 test sources with Kotlin 2.1.20, JVM 17, and the main output as a friend path.",
+    "The selected Link package plus CompanionModelTest execute 47/47 through JUnit Console 1.11.4, including right-pin acceptance and wrong-pin rejection before application request bytes.",
+    "This is supporting E2 evidence only; the real Host acceptance harness, Kotlin driver, shared corpus, and Android workflow remain unexecuted on this host."
   ],
   "knownLimitations": [
-    "Earlier direct compiler and JUnit runs used an uncommitted implementation tree without retained reproducible command evidence, so this file does not count them. The exact commands will be recorded only after a clean-source rerun.",
-    "The Windows host has JDK 17 but no Gradle or Android SDK, so the official Gradle test lane, app assembly, and real Host-to-Kotlin lane were not executed.",
-    "Direct kotlinc and focused JUnit execution do not substitute for Gradle metadata resolution, Android app assembly, or the E4 native Host lane."
+    "Gradle is unavailable on the Windows host, which blocks the official core test and Host-to-Kotlin lanes; the Android SDK is also unavailable, which blocks app assembly.",
+    "Direct kotlinc and focused JUnit execution on the clean candidate do not substitute for Gradle metadata resolution, Android app assembly, or the E4 native Host lane."
   ],
   "notExecuted": [
     {
       "item": "gradle --no-daemon :core:test",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "Gradle and Android SDK are unavailable on the execution host."
+      "details": "Gradle is unavailable on the execution host; the pure-JVM core lane does not require the Android SDK."
     },
     {
       "item": "gradle --no-daemon :app:assembleDebug",
@@ -112,7 +149,7 @@
       "item": "Real Host-to-Kotlin acceptance",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "The harness and Kotlin driver exist, but this host cannot run the Gradle-owned native lane."
+      "details": "The harness and Kotlin driver exist, but Gradle is unavailable for the workflow-owned native lane on this host."
     }
   ],
   "nextDependencies": [

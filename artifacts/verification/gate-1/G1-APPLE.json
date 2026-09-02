@@ -2,11 +2,11 @@
   "taskId": "G1-APPLE",
   "status": "PARTIAL",
   "evidenceLevel": "E2",
-  "commit": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
-  "sourceHead": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
+  "commit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+  "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
-  "workingTreeState": "DIRTY_IMPLEMENTATION_NOT_IN_COMMIT",
-  "recordedAt": "2026-09-03",
+  "workingTreeState": "RELEVANT_EXECUTION_INPUTS_CLEAN_AT_SOURCE_HEAD_WITH_EXCLUDED_G1_MULTI_CHANGES",
+  "recordedAt": "2026-09-03T03:49:36.3656347+08:00",
   "commands": [
     "pnpm run verify-link-contracts",
     "pnpm exec vitest run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts",
@@ -71,20 +71,20 @@
   ],
   "knownLimitations": [
     "Windows has no Swift toolchain or Xcode. No Swift build, SwiftPM test, or real Host-to-Swift result is claimed.",
-    "The native implementation is still uncommitted; the workflow must run against one clean candidate SHA before this task can reach E4."
+    "The native implementation is committed at b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3, but a Swift-capable runner must execute SwiftPM and real Host-to-Swift acceptance against that candidate before this task can reach E4."
   ],
   "notExecuted": [
     {
       "item": "swift test",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "No Swift toolchain or Xcode is installed on the Windows execution host."
+      "details": "No Swift toolchain or Xcode is installed on the Windows execution host; run the workflow against b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3 on a Swift-capable runner."
     },
     {
       "item": "Real Host-to-Swift acceptance",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane."
+      "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane for b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3."
     }
   ],
   "nextDependencies": [

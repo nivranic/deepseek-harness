@@ -1,15 +1,16 @@
 {
   "taskId": "G1-E2E",
   "status": "PARTIAL",
-  "evidenceLevel": "E2",
-  "commit": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
-  "sourceHead": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
+  "evidenceLevel": "E3",
+  "commit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+  "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
   "startedFrom": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
-  "workingTreeState": "DIRTY_IMPLEMENTATION_NOT_IN_COMMIT",
-  "recordedAt": "2026-09-03",
+  "workingTreeState": "RELEVANT_EXECUTION_INPUTS_CLEAN_AT_SOURCE_HEAD_WITH_EXCLUDED_G1_MULTI_CHANGES",
+  "recordedAt": "2026-09-03T03:49:36.3656347+08:00",
   "commands": [
     "pnpm exec tsc -p apps/cli/tsconfig.json --noEmit",
     "pnpm exec oxlint apps/cli/tests/link-native-acceptance.e2e.ts scripts/ci-workflow.spec.ts",
+    "pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0",
     "pnpm exec vitest run scripts/ci-workflow.spec.ts --no-file-parallelism --retry=0",
     "pnpm run verify-link-contracts",
     "pnpm run verify-translation-pairing",
@@ -69,8 +70,31 @@
     {
       "name": "TypeScript real Host reference lane",
       "role": "reference",
-      "result": "NOT_EXECUTED",
-      "reason": "EXECUTION_INPUTS_UNCOMMITTED"
+      "result": "PASS",
+      "language": "typescript",
+      "passed": 13,
+      "failed": 0,
+      "hostCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+      "clientCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+      "corpusSha256": "07b53fa85f40f73ea4b89780bed6e6700685a64daeef1444879a2c1de4c106d1",
+      "linkProtocolVersion": 1,
+      "contractVersion": 1,
+      "sessionFormatVersion": 0,
+      "steps": [
+        "pair",
+        "connect",
+        "describe",
+        "list",
+        "open",
+        "history",
+        "follow",
+        "prompt",
+        "stream",
+        "approval",
+        "cancel",
+        "reconnect",
+        "revoke"
+      ]
     },
     {
       "name": "Swift real Host native lane",
@@ -82,12 +106,12 @@
       "name": "Kotlin real Host native lane",
       "role": "native",
       "result": "NOT_EXECUTED",
-      "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
+      "reason": "GRADLE_UNAVAILABLE"
     }
   ],
   "artifacts": [
     "artifacts/verification/gate-1/G1-E2E.json",
-    "packages/remote/link-contracts/acceptance/corpus.json",
+    "packages/remote/link-contracts/acceptance/corpus.v1.json",
     "apps/cli/tests/link-native-acceptance.e2e.ts",
     "apps/apple/Tests/LinkNativeAcceptance/",
     "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
@@ -111,6 +135,7 @@
   ],
   "acceptance": [
     "One generated 13-step corpus owns pair, connect, describe, list, open, history, follow, prompt, stream, approval, cancel, reconnect, and revoke for all three drivers.",
+    "The TypeScript reference driver completed all 13 steps against the real shipped Host composition on clean sourceHead b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3.",
     "The harness boots the shipped base plus desktop composition and uses real TLS, signed requests, target and decoy Sessions, Approval, reconnect, and revocation.",
     "Reconnect requires interrupt-active-streams, exactly one follow replacement, exactly one Remote Event replacement, an authoritative snapshot, and authoritative clientId refresh.",
     "Native drivers write only candidate evidence below an isolated DSH_HOME; the Host independently validates Approval, revocation, corpus identity, source identity, and clean stable input before atomic publication.",
@@ -118,19 +143,12 @@
     "Platform workflows upload lane-specific evidence and source metadata without treating source inspection as native runtime success."
   ],
   "knownLimitations": [
-    "The implementation inputs are uncommitted. The clean-input guard correctly prevents the TypeScript reference lane from attributing a result to the current HEAD.",
+    "The TypeScript reference lane is E3 evidence only; no Host-to-Swift or Host-to-Kotlin runtime PASS is claimed, so G1-E2E and Gate 1 remain open.",
     "Windows cannot execute the Swift native lane because Swift/Xcode is unavailable.",
-    "Windows cannot execute the Gradle-owned Kotlin native lane because Gradle and the Android SDK are unavailable.",
-    "The full documentation aggregate is 31/32 because Windows denies the symlink escape fixture with EPERM; no repository documentation drift was reported.",
-    "No Host-to-Swift or Host-to-Kotlin runtime PASS is claimed; G1-E2E and Gate 1 remain open."
+    "Windows cannot execute the Gradle-owned Kotlin native lane because Gradle is unavailable.",
+    "The full documentation aggregate is 31/32 because Windows denies the symlink escape fixture with EPERM; no repository documentation drift was reported."
   ],
   "notExecuted": [
-    {
-      "item": "TypeScript real Host reference lane",
-      "status": "NOT_EXECUTED",
-      "reason": "EXECUTION_INPUTS_UNCOMMITTED",
-      "details": "The acceptance harness intentionally rejects a dirty execution input. Run it after the first implementation commit while HEAD remains stable."
-    },
     {
       "item": "Swift real Host native lane",
       "status": "NOT_EXECUTED",
@@ -141,7 +159,7 @@
       "item": "Kotlin real Host native lane",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "Gradle and Android SDK are unavailable on the Windows execution host."
+      "details": "Gradle is unavailable on the Windows execution host; the native driver belongs to the pure-JVM core module."
     }
   ],
   "nextDependencies": [
