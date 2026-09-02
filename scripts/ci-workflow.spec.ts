@@ -796,6 +796,8 @@ describe('Native Link real-Host acceptance workflows', () => {
     expect(publication).toBeGreaterThan(nativeValidation)
 
     const control = sourceSection(hostAcceptance, 'async function startControl(', '/** Run every corpus action')
+    expect(control).toContain('const requests = mock.requests.slice(current.modelRequestBaseline)')
+    expect(control).toContain("stalled?.behavior !== 'stall' || stalled.outcome !== undefined")
     expect(control).toContain('current.approvalStarts += 1')
     expect(control).toContain("current.approval.outcome !== 'allowed-once'")
     expect(control).toContain("current.revocation.kind !== 'complete'")

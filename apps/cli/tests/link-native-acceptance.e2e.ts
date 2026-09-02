@@ -275,6 +275,7 @@ type RevocationState =
 /** Host observations for one prepared reference or native driver. */
 interface ControlObservation {
   readonly deviceName: string
+  readonly modelRequestBaseline: number
   approvalStarts: number
   approval: ApprovalState | undefined
   revocation: RevocationState
@@ -382,7 +383,7 @@ function registerAcceptanceSuite(): void {
           throw new Error('Link carrier is not ready for remote approval')
         }
       }, 'Link carrier bind')
-      control = await startControl(ctx, link, listStep.targetSessionId)
+      control = await startControl(ctx, link, mock, listStep.targetSessionId)
       suite = {
         home,
         corpus,
@@ -890,6 +891,7 @@ function pathIsInside(parent: string, candidate: string): boolean {
 async function startControl(
   ctx: Context,
   link: LinkAccessService,
+  mock: MockLlmServer,
   targetSessionId: string,
 ): Promise<AcceptanceControl> {
   const token = randomBytes(32).toString('hex')
@@ -918,6 +920,17 @@ async function startControl(
           writeJson(response, 409, { error: 'session-not-running' })
           return
         }
+        await waitFor(() => {
+          const requests = mock.requests.slice(current.modelRequestBaseline)
+          if (requests.length !== 2) {
+            throw new Error(`prepared driver issued ${String(requests.length)} model requests instead of two`)
+          }
+          const stalled = requests[1]
+          if (stalled?.behavior !== 'stall' || stalled.outcome !== undefined) {
+            throw new Error('prepared driver model request has not reached the configured stall')
+          }
+          return Promise.resolve()
+        }, 'prepared driver stalled model request')
         current.approvalStarts += 1
         current.approval = { kind: 'pending' }
         void ctx.approval.request({
@@ -1004,6 +1017,7 @@ async function startControl(
       }
       observation = {
         deviceName: nextDeviceName,
+        modelRequestBaseline: mock.requests.length,
         approvalStarts: 0,
         approval: undefined,
         revocation: { kind: 'not-started' },

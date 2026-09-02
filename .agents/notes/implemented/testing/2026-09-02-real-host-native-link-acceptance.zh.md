@@ -12,7 +12,7 @@ Status: implemented
 
 一份仓库所有的 corpus 以规范顺序列出从配对到撤销的 13 个必需步骤，并拥有每个步骤的可观测值。list 步骤点名 target 与 decoy 会话的精确 id，history 绑定 target opening 并禁止 decoy，prompt 绑定已接受请求与精确应答并禁止 decoy，reconnect 则点名 active stream 中断、follow 与 Remote Event 的精确 replacement 数量、权威快照要求与 Client 身份刷新。每个 driver 都在打开 carrier 前拒绝多余或缺失的键，也拒绝超出这些钉死预期的值。
 
-Vitest orchestrator 以隔离 Harness home 与确定性模型服务器启动 shipped base 加 desktop composition，在每台宿主上执行 TypeScript 参考客户端，并在所属平台车道执行独立编译的 Swift 或 Kotlin driver。两套原生 driver 读取同一个物理 corpus，并使用各自生产 Link client、签名、钉扎、unary、stream 与伴侣状态实现；任何复制进原生资源的文件都不能成为第二个场景 owner。reconnect 中断 active follow 与 `$events` generation，再要求生产 view model 各打开恰好一代 replacement，并发布新权威快照与 Host 签发的 `clientId`。
+Vitest orchestrator 以隔离 Harness home 与确定性模型服务器启动 shipped base 加 desktop composition，在每台宿主上执行 TypeScript 参考客户端，并在所属平台车道执行独立编译的 Swift 或 Kotlin driver。两套原生 driver 读取同一个物理 corpus，并使用各自生产 Link client、签名、钉扎、unary、stream 与伴侣状态实现；任何复制进原生资源的文件都不能成为第二个场景 owner。control listener 启动 Approval 前，会等待该 driver 的第二个模型请求进入保持打开的 stall response；随后取消必须关闭该 provider 连接，而模型服务器把这个事实记录为 `client_closed`。reconnect 中断 active follow 与 `$events` generation，再要求生产 view model 各打开恰好一代 replacement，并发布新权威快照与 Host 签发的 `clientId`。
 
 Host control listener 只绑定 loopback，并由随机 bearer token 保护。它可以触发真实 Approval 请求、报告结算结果并撤销已配对测试设备；它绝不替客户端执行业务操作或回答交互。原生客户端通过真实 TLS carrier 完成每个 Link 请求，且必须把每项 corpus 步骤报告为 `PASS`。orchestrator 会拒绝缺失、跳过、乱序或重复步骤，也会拒绝 corpus hash、源码 revision 或协议版本不一致。
 
