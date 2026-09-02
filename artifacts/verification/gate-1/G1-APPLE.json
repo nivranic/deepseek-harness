@@ -1,33 +1,28 @@
 {
   "taskId": "G1-APPLE",
   "status": "PARTIAL",
-  "commit": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "evidenceLevel": "E2",
+  "commit": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
+  "sourceHead": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "workingTreeState": "DIRTY_IMPLEMENTATION_NOT_IN_COMMIT",
+  "recordedAt": "2026-09-03",
   "commands": [
-    "node_modules/.bin/tsx.CMD scripts/gen-link-contracts.ts",
-    "node_modules/.bin/tsx.CMD scripts/verify-link-contracts.ts",
-    "node_modules/.bin/vitest.CMD run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts",
-    "pnpm run test:docs",
-    "swift test",
+    "pnpm run verify-link-contracts",
+    "pnpm exec vitest run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts",
     "git diff --check"
   ],
   "tests": [
     {
-      "name": "Contract, Host Remote Event, and TLS carrier suites",
-      "result": "PASS",
-      "testFiles": 3,
-      "passed": 80,
-      "failed": 0
-    },
-    {
-      "name": "Generated artifact freshness",
+      "name": "Generated Link contract freshness",
       "result": "PASS",
       "stale": 0
     },
     {
-      "name": "Documentation quick aggregate",
+      "name": "Contract, Host Remote Event, and TLS carrier suites",
       "result": "PASS",
-      "passed": 15,
+      "testFiles": 3,
+      "passed": 87,
       "failed": 0
     },
     {
@@ -38,44 +33,45 @@
     {
       "name": "Real Host-to-Swift acceptance",
       "result": "NOT_EXECUTED",
-      "reason": "ACCEPTANCE_HARNESS_PENDING"
+      "reason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
     }
   ],
   "artifacts": [
     "artifacts/verification/gate-1/G1-APPLE.json",
-    "apps/apple/Sources/SharedAppleRemoteCore/LinkContracts.swift",
-    "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/"
+    "apps/apple/Tests/LinkNativeAcceptance/",
+    "packages/remote/link-contracts/acceptance/",
+    ".github/workflows/apple-swift.yml",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md"
   ],
+  "logs": [],
   "changedFiles": [
-    "packages/remote/link-contracts/src/generate.ts",
-    "packages/remote/link-contracts/tests/link-contracts.spec.ts",
-    "packages/remote/link-contracts/generated/LinkContracts.swift",
-    "apps/apple/Sources/SharedAppleRemoteCore/LinkContracts.swift",
-    "apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift",
-    "apps/apple/Sources/SharedAppleRemoteCore/LinkWire.swift",
-    "apps/apple/Sources/SharedAppleRemoteCore/SessionHandoff.swift",
-    "apps/apple/Sources/CompanionUI/CompanionRootView.swift",
-    "apps/apple/Sources/CompanionUI/CompanionWire.swift",
-    "apps/apple/Sources/CompanionUI/InteractionViewModel.swift",
-    "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
-    "apps/apple/Tests/CompanionUITests/CompanionUITests.swift",
+    ".github/workflows/apple-swift.yml",
+    "apps/apple/Package.swift",
     "apps/apple/README.md",
     "apps/apple/README.zh.md",
     "apps/apple/README.i18n.yaml",
+    "apps/apple/Sources/CompanionUI/InteractionViewModel.swift",
+    "apps/apple/Sources/CompanionUI/RemoteSessionViewModel.swift",
+    "apps/apple/Tests/CompanionUITests/CompanionUITests.swift",
+    "apps/apple/Tests/LinkNativeAcceptance/",
     ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md",
-    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.zh.md",
-    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.i18n.yaml"
+    ".agents/notes/implemented/architecture/2026-08-30-companion-ui-layer.md",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md"
   ],
   "implemented": [
-    "The pairing payload must own the client endpoint and pin, and CompanionRootView retains the newly paired LinkClient instead of rebuilding over a placeholder.",
-    "LinkClient consumes the generated recursive JSON, unary, and stream models; the parallel Swift envelope model was removed.",
-    "Unary responses enforce type and rpcId correlation, accept a successful omitted value as void, and reject invalid success/failure field combinations.",
-    "Remote Event processing takes clientId only from Host ready frames, reads waterfall fields from request, removes cancel frames, sends outcome, and clears the generation identity during reconnect.",
-    "Apple test source covers fresh transport ownership, generated fixture round trips, value/void/error responses, authoritative clientId refresh, nested requests, cancel, outcomes, and the no-ready refusal."
+    "Fresh pairing transfers endpoint, pin, credential, clientId, and transport ownership to the replacement Link client before the UI uses it.",
+    "The client consumes the generated unary, stream, ready, request, outcome, cancel, result, and structured error models; void RPC success does not require a value field.",
+    "Reconnect clears stale generation identity and accepts only the next authoritative ready and snapshot state.",
+    "The Swift native driver consumes the same 13-step pair-through-revoke corpus as the TypeScript and Kotlin drivers.",
+    "The Apple workflow boots the shipped base plus desktop Host composition and publishes native evidence on a Swift-capable runner."
+  ],
+  "acceptance": [
+    "Generated Swift models, the shared corpus, the real Host harness, and the Swift driver are present.",
+    "Source and workflow inspection cannot substitute for a real SwiftPM or Host-to-Swift run."
   ],
   "knownLimitations": [
-    "Windows cannot compile or run Swift/Xcode. Test source and generated fixture freshness are present, but no native PASS is claimed.",
-    "The real Host pair-to-reconnect corpus remains absent; G1-E2E must execute it on a macOS runner before G1-APPLE can become PASS."
+    "Windows has no Swift toolchain or Xcode. No Swift build, SwiftPM test, or real Host-to-Swift result is claimed.",
+    "The native implementation is still uncommitted; the workflow must run against one clean candidate SHA before this task can reach E4."
   ],
   "notExecuted": [
     {
@@ -87,8 +83,8 @@
     {
       "item": "Real Host-to-Swift acceptance",
       "status": "NOT_EXECUTED",
-      "reason": "DEPENDENCY_PENDING",
-      "details": "G1-E2E must provide the shipped Host process and shared acceptance corpus."
+      "reason": "HOST_ENVIRONMENT",
+      "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane."
     }
   ],
   "nextDependencies": [

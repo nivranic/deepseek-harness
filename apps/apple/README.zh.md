@@ -64,6 +64,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | [`Sources/SharedAppleRemoteCore/LinkKeychain.swift`](Sources/SharedAppleRemoteCore/LinkKeychain.swift) | Keychain 身份存储 |
 | `Sources/SharedAppleRemoteCore/LinkContracts.swift` | 生成的 unary、stream、Remote Event、恢复与 JSON 模型——永不手改 |
 | `Tests/SharedAppleRemoteCoreTests/` | fixture 回放与签名词汇测试 |
+| `Tests/LinkNativeAcceptance/LinkNativeAcceptance.swift` | 执行共享真实 Host 垂直切片 corpus 的独立 Swift driver |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板、工具轨迹、文件浏览、子代理 |
 | `Sources/CompanionUI/SessionFold.swift` | 纯领域状态折叠——一致性场景的 Swift 一半 |
 | `Sources/CompanionUI/FileChange.swift` | 工具轨迹到只读文件变更的投影——第 55 章首版 Diff 呈现 |
@@ -90,7 +91,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <a id="known-limitations-and-deferred-work"></a>
 ## 已知限制与延后工作
 
-- **已纳入 CI 编译与测试**——[Apple Swift](../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
+- **已纳入 CI 编译与测试**——[Apple Swift](../../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
+- **真实 Host 验收**——同一车道让 `LinkNativeAcceptance` 对 shipped base 加 desktop Host composition 执行唯一的 13 步共享 corpus。结果分别记录 Host 与 Client commit 以及 protocol、contract、Session format 版本；缺少或跳过任一步都会让车道失败。
 - **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；文件查看、首版只读 Diff 与只读工件面板均已交付，工件内容读取随资源通道到来。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 

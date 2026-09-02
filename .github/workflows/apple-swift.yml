@@ -2,17 +2,49 @@ name: Apple Swift
 
 # The macOS compile lane (nativization plan chapter 62): Swift sources and
 # tests under apps/apple are authored and fixture-drift-gated on every
-# change, but only this lane actually compiles and runs them. Zero external
-# dependencies, so the job is a checkout plus `swift test`.
+# change, but only this lane actually compiles and runs them. The lane also
+# boots the shipped Host composition and runs the real Swift Link acceptance.
 on:
   pull_request:
     paths:
+      - '.gitignore'
       - 'apps/apple/**'
+      - 'apps/cli/config/**'
+      - 'apps/cli/package.json'
+      - 'apps/cli/tests/link-native-acceptance.e2e.ts'
+      - 'native/landlock-run/**'
+      - 'packages/**'
+      - 'patches/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/test-invariants.ts'
+      - 'tsconfig.base.json'
+      - 'tsconfig.json'
+      - 'vitest.e2e.config.ts'
+      - 'vitest.shared.ts'
       - '.github/workflows/apple-swift.yml'
   push:
     branches: [dev, master]
     paths:
+      - '.gitignore'
       - 'apps/apple/**'
+      - 'apps/cli/config/**'
+      - 'apps/cli/package.json'
+      - 'apps/cli/tests/link-native-acceptance.e2e.ts'
+      - 'native/landlock-run/**'
+      - 'packages/**'
+      - 'patches/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/test-invariants.ts'
+      - 'tsconfig.base.json'
+      - 'tsconfig.json'
+      - 'vitest.e2e.config.ts'
+      - 'vitest.shared.ts'
       - '.github/workflows/apple-swift.yml'
   workflow_dispatch:
 
@@ -34,6 +66,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: pnpm/action-setup@v4
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Report toolchain
         run: swift --version
 
@@ -47,6 +91,21 @@ jobs:
       - name: swift test
         working-directory: apps/apple
         run: swift test
+
+      - name: Real Host to Swift acceptance
+        env:
+          DSH_LINK_ACCEPTANCE_DRIVER_JSON: '["swift","run","--package-path","apps/apple","LinkNativeAcceptance"]'
+          DSH_LINK_ACCEPTANCE_LANGUAGE: swift
+          DSH_LINK_ACCEPTANCE_RESULT: ${{ runner.temp }}/g1-link-acceptance/swift/evidence.json
+        run: pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0
+
+      - name: Upload Swift real-Host acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: g1-link-acceptance-swift-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g1-link-acceptance/swift/evidence.json
+          if-no-files-found: error
 
       # The thin Xcode shells (chapter 49): XcodeGen turns project.yml into
       # Companion.xcodeproj (generated, never committed), and both hosts must

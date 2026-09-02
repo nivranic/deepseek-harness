@@ -3,17 +3,49 @@ name: Android Kotlin
 # The Linux compile lane for the Android companion (nativization plan
 # chapters 52 and 60): the `core` module is pure JVM Kotlin tested with
 # the Kotlin half of the chapter-62 trilingual domain-state conformance,
-# and the `app` module assembles the Compose six-tab surface as a debug
-# APK.
+# and the `app` module assembles the Compose seven-tab surface as a debug
+# APK. The lane also boots the shipped Host and runs real Kotlin Link acceptance.
 on:
   pull_request:
     paths:
+      - '.gitignore'
       - 'apps/android/**'
+      - 'apps/cli/config/**'
+      - 'apps/cli/package.json'
+      - 'apps/cli/tests/link-native-acceptance.e2e.ts'
+      - 'native/landlock-run/**'
+      - 'packages/**'
+      - 'patches/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/test-invariants.ts'
+      - 'tsconfig.base.json'
+      - 'tsconfig.json'
+      - 'vitest.e2e.config.ts'
+      - 'vitest.shared.ts'
       - '.github/workflows/android-kotlin.yml'
   push:
     branches: [dev, master]
     paths:
+      - '.gitignore'
       - 'apps/android/**'
+      - 'apps/cli/config/**'
+      - 'apps/cli/package.json'
+      - 'apps/cli/tests/link-native-acceptance.e2e.ts'
+      - 'native/landlock-run/**'
+      - 'packages/**'
+      - 'patches/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/test-invariants.ts'
+      - 'tsconfig.base.json'
+      - 'tsconfig.json'
+      - 'vitest.e2e.config.ts'
+      - 'vitest.shared.ts'
       - '.github/workflows/android-kotlin.yml'
   workflow_dispatch:
 
@@ -35,6 +67,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: pnpm/action-setup@v4
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -50,7 +94,22 @@ jobs:
         working-directory: apps/android
         run: gradle --no-daemon test
 
-      # The Compose app module (chapter 52's six-tab surface): assemble the
+      - name: Real Host to Kotlin acceptance
+        env:
+          DSH_LINK_ACCEPTANCE_DRIVER_JSON: '["gradle","--no-daemon","-p","apps/android",":core:nativeAcceptance"]'
+          DSH_LINK_ACCEPTANCE_LANGUAGE: kotlin
+          DSH_LINK_ACCEPTANCE_RESULT: ${{ runner.temp }}/g1-link-acceptance/kotlin/evidence.json
+        run: pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0
+
+      - name: Upload Kotlin real-Host acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: g1-link-acceptance-kotlin-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g1-link-acceptance/kotlin/evidence.json
+          if-no-files-found: error
+
+      # The Compose app module (chapter 52's seven-tab surface): assemble the
       # debug APK over the same local modules the tests exercised. The
       # runner image ships the Android SDK with accepted licenses.
       - name: assemble the debug APK

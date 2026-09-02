@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-android-wire-client.md
-2026-08-30-android-wire-client.md: d1edb2386dc57fcaeb33287ba8d65c0539fac95b
-2026-08-30-android-wire-client.zh.md: 6212bc06a5b99875da5c792a86c9dc97fd29b1c9
+2026-08-30-android-wire-client.md: 6341a750a876f650e7e3ae697054e4dde8975826
+2026-08-30-android-wire-client.zh.md: e6c3eeb08184e74ba7c97bf5ebe4105c985e17b5

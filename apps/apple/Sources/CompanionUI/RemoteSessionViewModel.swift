@@ -126,7 +126,8 @@ public final class RemoteSessionViewModel {
 
     private let wire: any CompanionWireDriving
     private var followTask: Task<Void, Never>?
-    private var reconnectAttempt = 0
+    private var followTaskId = 0
+    private var followTransition = 0
     /** Parent of an open subagent child, for resubscribing by address. */
     private var reconnectParent: String?
     private var reconnectMode: String = "continuable"
@@ -155,37 +156,47 @@ public final class RemoteSessionViewModel {
     }
 
     /// Open one session and follow it: the snapshot seeds the timeline, live
-    /// events append, and the cursor tracks the last seen seq.
+    /// events append, and the cursor tracks the last seen seq. A prior
+    /// generation reaches completion before this one is published.
     public func open(sessionId: String) async {
-        followTask?.cancel()
+        followTransition += 1
+        let transition = followTransition
+        await stopFollowing()
+        guard transition == followTransition else { return }
         sessionFold.reset()
         active = ActiveSession(sessionId: sessionId, items: [], cursor: 0, streaming: true)
         reconnectParent = nil
-        await followAddress(["kind": .string("session"), "sessionId": .string(sessionId)])
+        startFollowing(["kind": .string("session"), "sessionId": .string(sessionId)])
     }
 
     /// Open one subagent child's timeline read-only: the same follow stream
     /// addressed to the durable parent/child pair. The fold is unchanged —
     /// a child's records speak the same session-event vocabulary.
     public func openSubagent(parentSessionId: String, childSessionId: String, mode: String) async {
-        followTask?.cancel()
+        followTransition += 1
+        let transition = followTransition
+        await stopFollowing()
+        guard transition == followTransition else { return }
         sessionFold.reset()
         active = ActiveSession(sessionId: childSessionId, items: [], cursor: 0, streaming: true)
-        await followAddress([
+        reconnectParent = parentSessionId
+        reconnectMode = mode
+        startFollowing([
             "kind": .string("subagent"),
             "parentSessionId": .string(parentSessionId),
             "childSessionId": .string(childSessionId),
             "mode": .string(mode),
         ])
-        reconnectParent = parentSessionId
-        reconnectMode = mode
     }
 
-    /// Close the open session and stop following.
+    /// Close the open session and request follow cancellation. A later open
+    /// awaits the retained task before publishing another generation.
     public func close() {
-        followTask?.cancel()
-        followTask = nil
+        followTransition += 1
+        let task = followTask
         active = nil
+        reconnecting = false
+        task?.cancel()
     }
 
     /// Submit one user prompt in queue mode.
@@ -273,56 +284,80 @@ public final class RemoteSessionViewModel {
         ])
     }
 
-    /// Resubscribe the open session from its last cursor after a loss.
+    /// Force a resubscription of the open session. Carrier loss resubscribes
+    /// within the current task; this entry waits for that task before replacing it.
     public func reconnect() async {
-        guard let current = active else { return }
+        guard let address = reconnectAddress() else { return }
+        followTransition += 1
+        let transition = followTransition
+        await stopFollowing()
+        guard transition == followTransition, active != nil else { return }
         reconnecting = true
-        reconnectAttempt += 1
-        var address: [String: WireValue] = ["kind": .string("session"), "sessionId": .string(current.sessionId)]
+        startFollowing(address)
+    }
+
+    // MARK: - Internals
+
+    private func startFollowing(_ address: [String: WireValue]) {
+        let wire = self.wire
+        followTaskId += 1
+        followTask = Task { [weak self] in
+            var reconnectAttempt = 0
+            while !Task.isCancelled, self?.active != nil {
+                do {
+                    // Each generation reuses the durable address and replaces
+                    // the fold from its authoritative opening snapshot.
+                    let frames = try await wire.stream("session/follow", payload: [
+                        "request": .object(["address": .object(address)]),
+                    ])
+                    self?.reconnecting = false
+                    for try await frame in frames {
+                        try Task.checkCancellation()
+                        guard let self else { return }
+                        await self.fold(frame)
+                    }
+                } catch is CancellationError {
+                    return
+                } catch {
+                    // A carrier failure and a clean end both require a new generation.
+                }
+                guard !Task.isCancelled, self?.active != nil else { return }
+                self?.reconnecting = true
+                let delay = Double(min(reconnectAttempt, 5))
+                reconnectAttempt += 1
+                do {
+                    try await Task.sleep(for: .seconds(delay))
+                } catch is CancellationError {
+                    return
+                } catch {
+                    return
+                }
+            }
+        }
+    }
+
+    private func stopFollowing() async {
+        guard let task = followTask else { return }
+        let taskId = followTaskId
+        task.cancel()
+        await task.value
+        if taskId == followTaskId {
+            followTask = nil
+            reconnecting = false
+        }
+    }
+
+    private func reconnectAddress() -> [String: WireValue]? {
+        guard let current = active else { return nil }
         if current.sessionId != reconnectParent, let parent = reconnectParent {
-            address = [
+            return [
                 "kind": .string("subagent"),
                 "parentSessionId": .string(parent),
                 "childSessionId": .string(current.sessionId),
                 "mode": .string(reconnectMode),
             ]
         }
-        await followAddress(address)
-        reconnecting = false
-    }
-
-    // MARK: - Internals
-
-    private func followAddress(_ address: [String: WireValue]) async {
-        followTask?.cancel()
-        followTask = Task { [weak self] in
-            guard let self else { return }
-            do {
-                // The follow request carries the durable address; a
-                // resubscription replays a fresh snapshot, and the fold
-                // replaces its state from it.
-                let frames = try await self.wire.stream("session/follow", payload: [
-                    "request": .object(["address": .object(address)]),
-                ])
-                for try await frame in frames {
-                    await self.fold(frame)
-                }
-                // A clean end is still a loss for a follow: resubscribe.
-                await self.scheduleReconnect()
-            } catch is CancellationError {
-                // Deliberate close; nothing to do.
-            } catch {
-                await self.scheduleReconnect()
-            }
-        }
-    }
-
-    private func scheduleReconnect() async {
-        guard active != nil else { return }
-        reconnecting = true
-        let delay = Double(min(reconnectAttempt, 5))
-        try? await Task.sleep(for: .seconds(delay))
-        await reconnect()
+        return ["kind": .string("session"), "sessionId": .string(current.sessionId)]
     }
 
     /// Fold one follow frame: a snapshot generation resets and replays its

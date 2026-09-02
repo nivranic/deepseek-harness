@@ -16,7 +16,7 @@ fresh pairing 把新绑定的 `LinkClient` 返回给 `CompanionRootView`，全�
 
 ## Consequences
 
-wire 类型变更会依次被 TypeScript 契约检查、生成产物漂移门禁与 macOS Apple 车道的 SwiftPM fixture 回放拦下。同一组 fixtures 覆盖 value、void、error、Remote Event 与 Session recovery 变体；`LinkClient.value` 另行证明 rpcId correlation 与 void 行为。Windows 无法执行 Swift/Xcode，本地证据因此保持 `NOT_EXECUTED`，native compile 与 runtime 证据归 Apple 车道所有。真实 Host-to-Swift acceptance 仍是独立的 Gate 1 blocker；生成式字节和 fake-wire view-model 测试不能替代它。
+wire 类型变更会依次被 TypeScript 契约检查、生成产物漂移门禁与 macOS Apple 车道的 SwiftPM fixture 回放拦下。同一组 fixtures 覆盖 value、void、error、Remote Event 与 Session recovery 变体；`LinkClient.value` 另行证明 rpcId correlation 与 void 行为。Apple 车道还会让独立 Swift driver 对 shipped base 加 desktop Host composition 执行共享的配对至撤销 corpus，缺少任一步都会失败。Windows 无法执行 Swift/Xcode，本地证据因此保持 `NOT_EXECUTED`；只有上传的 macOS 结果能证明真实 Host-to-Swift 执行，生成式字节或 fake-wire view-model 测试不能替代它。
 
 ## Alternatives considered
 

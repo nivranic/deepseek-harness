@@ -1,7 +1,19 @@
 package ai.deepseek.dsh.link
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -10,12 +22,22 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import java.net.HttpURLConnection
-import java.net.URL
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.EventListener
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okio.BufferedSource
+import java.io.IOException
 import java.security.KeyPairGenerator
 import java.util.Base64
 import java.util.UUID
-import javax.net.ssl.HttpsURLConnection
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 /** Every way a link call can fail, mirroring the Swift `LinkClientError`. */
 sealed class LinkClientException(message: String) : RuntimeException(message) {
@@ -29,21 +51,128 @@ sealed class LinkClientException(message: String) : RuntimeException(message) {
 }
 
 /**
- * The link-client state machine over the JDK's URL connection — the Kotlin
- * mirror of the Swift `LinkClient`: pair once, then describe, call unary
- * endpoints through the shared `/api` chain, and open NDJSON Remote
- * streams. Every HTTPS connection installs [LinkPinning] before opening its
- * request body.
+ * Deployment-owned HTTP timeouts for the Link transport. Zero disables the
+ * corresponding OkHttp timeout, which is required for idle long-lived streams.
+ * @param connectTimeoutMillis TCP/TLS connection timeout.
+ * @param writeTimeoutMillis request-body write timeout.
+ * @param unaryReadTimeoutMillis response-read timeout for pair and unary calls.
+ * @param unaryCallTimeoutMillis whole-call timeout for pair and unary calls.
+ * @param streamReadTimeoutMillis idle response-read timeout for streams.
+ * @param streamCallTimeoutMillis whole-call timeout for streams.
  */
-class LinkClient(
+data class LinkTransportConfig(
+    val connectTimeoutMillis: Long,
+    val writeTimeoutMillis: Long,
+    val unaryReadTimeoutMillis: Long,
+    val unaryCallTimeoutMillis: Long,
+    val streamReadTimeoutMillis: Long,
+    val streamCallTimeoutMillis: Long,
+) {
+    init {
+        val values = listOf(
+            connectTimeoutMillis,
+            writeTimeoutMillis,
+            unaryReadTimeoutMillis,
+            unaryCallTimeoutMillis,
+            streamReadTimeoutMillis,
+            streamCallTimeoutMillis,
+        )
+        require(values.all { it >= 0 }) { "Link transport timeouts must be non-negative" }
+    }
+}
+
+/** Transport-phase observation used by owner-level cancellation checks. */
+internal interface LinkCallObserver {
+    fun callStart(path: String) = Unit
+
+    fun requestBodyStart(path: String)
+
+    fun requestBodyEnd(path: String, byteCount: Long)
+
+    fun callFailed(path: String, failure: IOException) = Unit
+}
+
+/**
+ * The link-client state machine over one owned OkHttp transport — the Kotlin
+ * mirror of the Swift `LinkClient`: pair once, then describe, call unary
+ * endpoints through the shared `/api` chain, and open NDJSON Remote streams.
+ * Every HTTPS call installs [LinkPinning] before sending its request body;
+ * [close] cancels all created calls and retires the transport resources.
+ */
+class LinkClient private constructor(
     baseUrl: String,
     pinnedFingerprint: String,
     private val store: LinkCredentialsStoring,
-) {
+    transportConfig: LinkTransportConfig,
+    callObserver: LinkCallObserver?,
+) : java.io.Closeable {
+    constructor(
+        baseUrl: String,
+        pinnedFingerprint: String,
+        store: LinkCredentialsStoring,
+        transportConfig: LinkTransportConfig,
+    ) : this(baseUrl, pinnedFingerprint, store, transportConfig, null)
+
     private val base: String = baseUrl.trimEnd('/')
     private val pinned: String = pinnedFingerprint
-    private val sslContext = LinkPinning.sslContext(pinnedFingerprint)
+    private val trustManager = LinkPinning.trustManager(pinnedFingerprint)
+    private val sslContext = LinkPinning.sslContext(trustManager)
     private val hostnameVerifier = LinkPinning.hostnameVerifier(pinnedFingerprint)
+    private val transportClient = OkHttpClient.Builder()
+        .sslSocketFactory(sslContext.socketFactory, trustManager)
+        .hostnameVerifier(hostnameVerifier)
+        .connectTimeout(transportConfig.connectTimeoutMillis, TimeUnit.MILLISECONDS)
+        .writeTimeout(transportConfig.writeTimeoutMillis, TimeUnit.MILLISECONDS)
+        .apply {
+            if (callObserver != null) {
+                eventListener(
+                    object : EventListener() {
+                        override fun callStart(call: Call) {
+                            callObserver.callStart(call.request().url.encodedPath)
+                        }
+
+                        override fun requestBodyStart(call: Call) {
+                            callObserver.requestBodyStart(call.request().url.encodedPath)
+                        }
+
+                        override fun requestBodyEnd(call: Call, byteCount: Long) {
+                            callObserver.requestBodyEnd(call.request().url.encodedPath, byteCount)
+                        }
+
+                        override fun callFailed(call: Call, ioe: IOException) {
+                            callObserver.callFailed(call.request().url.encodedPath, ioe)
+                        }
+                    },
+                )
+            }
+        }
+        .build()
+    private val unaryClient = transportClient.newBuilder()
+        .readTimeout(transportConfig.unaryReadTimeoutMillis, TimeUnit.MILLISECONDS)
+        .callTimeout(transportConfig.unaryCallTimeoutMillis, TimeUnit.MILLISECONDS)
+        .build()
+    private val streamClient = transportClient.newBuilder()
+        .readTimeout(transportConfig.streamReadTimeoutMillis, TimeUnit.MILLISECONDS)
+        .callTimeout(transportConfig.streamCallTimeoutMillis, TimeUnit.MILLISECONDS)
+        .build()
+    private val lifecycleLock = Any()
+    private val activeCalls = mutableSetOf<TrackedCall>()
+    private var closed = false
+    private val transportRetired = AtomicBoolean(false)
+
+    private class TrackedCall(
+        val call: Call,
+        private val retireCall: (Call) -> Unit,
+    ) {
+        val settled = CompletableDeferred<Unit>()
+        private val retiring = AtomicBoolean(false)
+
+        fun retire() {
+            if (retiring.compareAndSet(false, true)) retireCall(call)
+        }
+    }
+
+    private class LinkRetiredCancellation : CancellationException("Link client is closed")
 
     /** The persisted identity, or null before the first successful pairing. */
     val credentials: LinkCredentials? get() = store.load()
@@ -54,9 +183,10 @@ class LinkClient(
     /**
      * Pair with a host by exchanging the one-time QR code for a durable
      * identity: a fresh Ed25519 key whose SPKI DER the host stores, the
-     * returned identity persisted through the store.
+     * returned identity persisted through the store. Work runs off the
+     * caller's dispatcher, and cancellation cancels the owned OkHttp call.
      */
-    fun pair(payload: LinkPairingPayload, deviceName: String): LinkCredentials {
+    suspend fun pair(payload: LinkPairingPayload, deviceName: String): LinkCredentials = withContext(Dispatchers.IO) {
         if (payload.endpoint.trimEnd('/') != base || payload.spkiFingerprint != pinned) {
             throw LinkClientException.BadWire("pairing payload does not own this client transport")
         }
@@ -84,48 +214,53 @@ class LinkClient(
             ),
         )
         store.save(credentials)
-        return credentials
+        credentials
     }
 
-    /** Ask the authenticated host for its description and capabilities. */
-    fun describe(): LinkHostDescription {
+    /** Ask the authenticated host for its description without blocking the caller's dispatcher.
+     * Cancellation cancels the owned OkHttp call. */
+    suspend fun describe(): LinkHostDescription = withContext(Dispatchers.IO) {
         val data = post("/link/describe", ByteArray(0), signed = true)
-        return mapHostDescription(Json.parseToJsonElement(data.decodeToString()).jsonObject)
+        mapHostDescription(Json.parseToJsonElement(data.decodeToString()).jsonObject)
     }
 
     /**
      * Call one unary Remote endpoint through the shared `/api` chain;
      * throws [LinkClientException.Refused] when the business call fails.
+     * Coroutine cancellation cancels the owned OkHttp call.
      */
-    fun call(method: String, args: Map<String, WireValue> = emptyMap()): WireValue {
-        val rpcId = "rpc-${UUID.randomUUID()}"
-        val envelope = LinkRequestEnvelope(rpcId = rpcId, method = method, args = args)
-        val body = Json.encodeToString(envelope.toJsonElement())
-            .toByteArray(Charsets.UTF_8)
-        val data = post("/api/$method", body, signed = true)
-        val response = LinkResponseEnvelope.fromJsonElement(Json.parseToJsonElement(data.decodeToString()))
-        if (response.type != "server-response") {
-            throw LinkClientException.BadWire("unexpected response type ${response.type}")
-        }
-        if (response.rpcId != rpcId) throw LinkClientException.BadWire("rpcId mismatch")
-        if (response.result.ok) {
-            if (response.result.errorCode != null) {
-                throw LinkClientException.BadWire("successful result carried an error")
+    suspend fun call(method: String, args: Map<String, WireValue> = emptyMap()): WireValue =
+        withContext(Dispatchers.IO) {
+            val rpcId = "rpc-${UUID.randomUUID()}"
+            val envelope = LinkRequestEnvelope(rpcId = rpcId, method = method, args = args)
+            val body = Json.encodeToString(envelope.toJsonElement())
+                .toByteArray(Charsets.UTF_8)
+            val data = post("/api/$method", body, signed = true)
+            val response = LinkResponseEnvelope.fromJsonElement(Json.parseToJsonElement(data.decodeToString()))
+            if (response.type != "server-response") {
+                throw LinkClientException.BadWire("unexpected response type ${response.type}")
             }
-            return response.result.value ?: WireValue.NullValue
+            if (response.rpcId != rpcId) throw LinkClientException.BadWire("rpcId mismatch")
+            if (response.result.ok) {
+                if (response.result.errorCode != null) {
+                    throw LinkClientException.BadWire("successful result carried an error")
+                }
+                return@withContext response.result.value ?: WireValue.NullValue
+            }
+            if (response.result.value != null) {
+                throw LinkClientException.BadWire("failed result carried a value")
+            }
+            if (response.result.errorCode != null) {
+                throw LinkClientException.Refused(response.result.errorCode!!, response.result.errorMessage ?: "")
+            }
+            throw LinkClientException.BadWire("failed result lacked a structured error")
         }
-        if (response.result.value != null) {
-            throw LinkClientException.BadWire("failed result carried a value")
-        }
-        if (response.result.errorCode != null) {
-            throw LinkClientException.Refused(response.result.errorCode!!, response.result.errorMessage ?: "")
-        }
-        throw LinkClientException.BadWire("failed result lacked a structured error")
-    }
 
     /**
      * Open one NDJSON Remote stream: value frames flow as they arrive; a
      * failure frame completes the flow with [LinkClientException.Refused].
+     * Cancelling collection cancels the call, closes its response source, and
+     * waits for the blocking source task to stop before collection finishes.
      */
     fun stream(endpoint: String, payload: Map<String, WireValue> = emptyMap()): Flow<WireValue> = flow {
         val body = Json.encodeToString(
@@ -136,88 +271,263 @@ class LinkClient(
                 })
             },
         ).toByteArray(Charsets.UTF_8)
-        val connection = openConnection("/link/stream/$endpoint", body, signed = true)
-        try {
-            writeBody(connection, body)
-            val status = connection.responseCode
-            if (status !in 200..299) {
-                val errorBody = connection.errorStream?.use { it.readBytes() }
-                checkStatus(status, errorBody)
-            }
-            connection.inputStream.bufferedReader(Charsets.UTF_8).useLines { lines ->
-                for (line in lines) {
-                    if (line.isBlank()) continue
-                    val frame = DecodedLinkStreamFrame.fromJsonElement(Json.parseToJsonElement(line))
-                    if (frame.isFailure) {
-                        throw LinkClientException.Refused(frame.code ?: "internal", frame.message ?: "stream failed")
+        val path = "/link/stream/$endpoint"
+        val frames = Channel<WireValue>(Channel.RENDEZVOUS)
+        val retirement = LinkRetiredCancellation()
+        val tracked = trackedCall(streamClient, request(path, body, signed = true)) { call ->
+            frames.cancel(retirement)
+            call.cancel()
+        }
+        val call = tracked.call
+        val activeResponse = AtomicReference<Response?>()
+        val activeSource = AtomicReference<BufferedSource?>()
+        var blockingOwner: Job? = null
+
+        suspend fun settle(owner: Job?) {
+            withContext(NonCancellable + Dispatchers.IO) {
+                owner?.cancel()
+                call.cancel()
+                try {
+                    activeResponse.getAndSet(null)?.close()
+                } catch (_: java.io.IOException) {
+                    // Call cancellation already ended the exchange; response close can
+                    // report the same cancellation.
+                } finally {
+                    try {
+                        activeSource.getAndSet(null)?.close()
+                    } catch (_: java.io.IOException) {
+                        // Closing the response already ended the call; the source can
+                        // report the same cancellation.
+                    } finally {
+                        owner?.join()
                     }
-                    emit(frame.value ?: WireValue.NullValue)
                 }
             }
-        } catch (failure: LinkClientException) {
-            throw failure
-        } catch (failure: Exception) {
-            throw LinkClientException.Carrier(0, failure.message ?: failure.javaClass.simpleName)
+        }
+
+        try {
+            supervisorScope {
+                val owner = async(Dispatchers.IO) {
+                    try {
+                        call.execute().use { response ->
+                            activeResponse.set(response)
+                            try {
+                                if (!response.isSuccessful) {
+                                    checkStatus(response.code, response.body.bytes())
+                                }
+                                response.body.source().use { source ->
+                                    activeSource.set(source)
+                                    try {
+                                        while (true) {
+                                            val line = source.readUtf8Line() ?: break
+                                            if (line.isBlank()) continue
+                                            val frame = DecodedLinkStreamFrame.fromJsonElement(
+                                                Json.parseToJsonElement(line),
+                                            )
+                                            if (frame.isFailure) {
+                                                throw LinkClientException.Refused(
+                                                    frame.code ?: "internal",
+                                                    frame.message ?: "stream failed",
+                                                )
+                                            }
+                                            frames.send(frame.value ?: WireValue.NullValue)
+                                        }
+                                    } finally {
+                                        activeSource.compareAndSet(source, null)
+                                    }
+                                }
+                            } finally {
+                                activeResponse.compareAndSet(response, null)
+                            }
+                        }
+                    } catch (failure: CancellationException) {
+                        frames.cancel(failure)
+                        throw failure
+                    } catch (failure: LinkClientException) {
+                        frames.close(failure)
+                        throw failure
+                    } catch (failure: Exception) {
+                        currentCoroutineContext().ensureActive()
+                        val carrier = LinkClientException.Carrier(0, failure.message ?: failure.javaClass.simpleName)
+                        frames.close(carrier)
+                        throw carrier
+                    } finally {
+                        frames.close()
+                    }
+                }
+                blockingOwner = owner
+                try {
+                    try {
+                        for (frame in frames) emit(frame)
+                        owner.await()
+                    } catch (_: LinkRetiredCancellation) {
+                        throw LinkClientException.Carrier(0, "Link client is closed")
+                    }
+                } finally {
+                    settle(owner)
+                }
+            }
         } finally {
-            connection.disconnect()
+            try {
+                if (blockingOwner == null) settle(null)
+            } finally {
+                frames.cancel()
+                finishTrackedCall(tracked)
+            }
         }
     }
 
     /** Forget the paired identity; the host refuses the next request. */
     fun unpair() = store.clear()
 
+    /** Request cancellation of every owned call and retire this client's
+     * dispatcher and connections. Use [closeAndAwait] when subsequent work
+     * must observe completed callbacks and stream collectors. */
+    override fun close() {
+        requestClose()
+    }
+
+    /** Retire the transport and wait for callbacks, stream collectors, and
+     * the shared OkHttp dispatcher to reach quiescence. */
+    suspend fun closeAndAwait() {
+        val calls = requestClose()
+        withContext(NonCancellable) {
+            calls.forEach { tracked -> tracked.settled.await() }
+            withContext(Dispatchers.IO) {
+                transportClient.dispatcher.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
+            }
+        }
+    }
+
     companion object {
+        private val JSON_MEDIA_TYPE = "application/json".toMediaType()
+
+        internal fun observed(
+            baseUrl: String,
+            pinnedFingerprint: String,
+            store: LinkCredentialsStoring,
+            transportConfig: LinkTransportConfig,
+            callObserver: LinkCallObserver,
+        ): LinkClient = LinkClient(baseUrl, pinnedFingerprint, store, transportConfig, callObserver)
+
         /** Rebuild the paired client from persisted credentials — the
          * relaunch path that skips pairing and pins the stored fingerprint
-         * again. Null before the first successful pairing. */
-        fun restore(store: LinkCredentialsStoring): LinkClient? {
+         * again. Null before the first successful pairing.
+         * @param store persisted Link identity owner.
+         * @param transportConfig deployment-owned HTTP timeouts.
+         * @return the restored client, or null when no identity exists.
+         */
+        fun restore(store: LinkCredentialsStoring, transportConfig: LinkTransportConfig): LinkClient? {
             val credentials = store.load() ?: return null
             return LinkClient(
                 baseUrl = credentials.endpoint,
                 pinnedFingerprint = credentials.pinnedFingerprint,
                 store = store,
+                transportConfig = transportConfig,
             )
         }
     }
 
-    private fun post(path: String, body: ByteArray, signed: Boolean): ByteArray {
-        val connection = openConnection(path, body, signed)
+    private suspend fun post(path: String, body: ByteArray, signed: Boolean): ByteArray {
+        val tracked = trackedCall(unaryClient, request(path, body, signed))
         try {
-            writeBody(connection, body)
-            val status = connection.responseCode
-            val responseBody = (if (status in 200..299) connection.inputStream else connection.errorStream)
-                ?.use { it.readBytes() }
-                ?: ByteArray(0)
-            checkStatus(status, responseBody)
-            return responseBody
+            return awaitResponse(tracked)
+        } catch (failure: CancellationException) {
+            throw failure
         } catch (failure: LinkClientException) {
             throw failure
         } catch (failure: Exception) {
+            currentCoroutineContext().ensureActive()
             throw LinkClientException.Carrier(0, failure.message ?: failure.javaClass.simpleName)
-        } finally {
-            connection.disconnect()
         }
     }
 
-    private fun openConnection(path: String, body: ByteArray, signed: Boolean): HttpURLConnection {
-        val connection = URL(base + path).openConnection() as HttpURLConnection
-        if (connection is HttpsURLConnection) {
-            connection.sslSocketFactory = sslContext.socketFactory
-            connection.hostnameVerifier = hostnameVerifier
+    /** Enqueue a registered call; cancellation owns it before enqueue so a
+     * concurrent [close] settles through callback failure or enqueue rejection. */
+    private suspend fun awaitResponse(tracked: TrackedCall): ByteArray = suspendCancellableCoroutine { continuation ->
+        val call = tracked.call
+        val completed = AtomicBoolean(false)
+
+        fun complete(result: Result<ByteArray>) {
+            if (completed.compareAndSet(false, true) && continuation.isActive) continuation.resumeWith(result)
         }
-        connection.requestMethod = "POST"
-        connection.doOutput = true
-        connection.setRequestProperty("content-type", "application/json")
-        connection.setFixedLengthStreamingMode(body.size)
-        if (signed) applyCredentials(connection, path, body)
-        return connection
+
+        continuation.invokeOnCancellation { call.cancel() }
+        val callback = object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                try {
+                    complete(Result.failure(e))
+                } finally {
+                    finishTrackedCall(tracked)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    val responseBody = response.use { value ->
+                        val bytes = value.body.bytes()
+                        checkStatus(value.code, bytes)
+                        bytes
+                    }
+                    complete(Result.success(responseBody))
+                } catch (failure: Exception) {
+                    complete(Result.failure(failure))
+                } finally {
+                    finishTrackedCall(tracked)
+                }
+            }
+        }
+        try {
+            call.enqueue(callback)
+        } catch (failure: Exception) {
+            try {
+                complete(Result.failure(failure))
+            } finally {
+                finishTrackedCall(tracked)
+            }
+        }
     }
 
-    private fun writeBody(connection: HttpURLConnection, body: ByteArray) {
-        connection.outputStream.use { it.write(body) }
+    private fun request(path: String, body: ByteArray, signed: Boolean): Request {
+        val builder = Request.Builder()
+            .url(base + path)
+            .post(body.toRequestBody(JSON_MEDIA_TYPE))
+        if (signed) applyCredentials(builder, path, body)
+        return builder.build()
     }
 
-    private fun applyCredentials(connection: HttpURLConnection, path: String, body: ByteArray) {
+    private fun trackedCall(
+        client: OkHttpClient,
+        request: Request,
+        retireCall: (Call) -> Unit = { call -> call.cancel() },
+    ): TrackedCall = synchronized(lifecycleLock) {
+        if (closed) throw LinkClientException.Carrier(0, "Link client is closed")
+        TrackedCall(client.newCall(request), retireCall).also { tracked ->
+            activeCalls.add(tracked)
+        }
+    }
+
+    private fun finishTrackedCall(tracked: TrackedCall) {
+        synchronized(lifecycleLock) {
+            activeCalls.remove(tracked)
+            tracked.settled.complete(Unit)
+        }
+    }
+
+    private fun requestClose(): List<TrackedCall> {
+        val calls = synchronized(lifecycleLock) {
+            closed = true
+            activeCalls.toList()
+        }
+        calls.forEach { tracked -> tracked.retire() }
+        if (transportRetired.compareAndSet(false, true)) {
+            transportClient.connectionPool.evictAll()
+            transportClient.dispatcher.executorService.shutdown()
+        }
+        return calls
+    }
+
+    private fun applyCredentials(builder: Request.Builder, path: String, body: ByteArray) {
         val credentials = store.load() ?: throw LinkClientException.Unpaired()
         val privateKeyRaw = credentials.signingKeyRaw
             ?: throw LinkClientException.BadWire("stored signing key is not base64")
@@ -228,9 +538,9 @@ class LinkClient(
             path = path,
             bodySha256Hex = LinkSigning.sha256Hex(body),
         )
-        connection.setRequestProperty(LinkSigning.deviceIdHeader, credentials.deviceId)
-        connection.setRequestProperty(LinkSigning.timestampHeader, timestamp)
-        connection.setRequestProperty(LinkSigning.signatureHeader, LinkSigning.sign(input, privateKeyRaw))
+        builder.header(LinkSigning.deviceIdHeader, credentials.deviceId)
+        builder.header(LinkSigning.timestampHeader, timestamp)
+        builder.header(LinkSigning.signatureHeader, LinkSigning.sign(input, privateKeyRaw))
     }
 
     private fun checkStatus(status: Int, body: ByteArray?) {
@@ -242,6 +552,7 @@ class LinkClient(
         } ?: "HTTP $status"
         throw LinkClientException.Carrier(status, message)
     }
+
 }
 
 private fun JsonObject.string(field: String): String =

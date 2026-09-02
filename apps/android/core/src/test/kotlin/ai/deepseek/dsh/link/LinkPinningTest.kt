@@ -14,6 +14,7 @@ import java.util.Base64
 import java.util.concurrent.atomic.AtomicInteger
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -21,6 +22,15 @@ import kotlin.test.assertFailsWith
 /** SPKI pinning over a real certificate: the leaf fingerprint is SHA-256 of
  * the public key's SubjectPublicKeyInfo DER, exactly compared. */
 class LinkPinningTest {
+    private val transportConfig = LinkTransportConfig(
+        connectTimeoutMillis = 5_000,
+        writeTimeoutMillis = 5_000,
+        unaryReadTimeoutMillis = 5_000,
+        unaryCallTimeoutMillis = 10_000,
+        streamReadTimeoutMillis = 0,
+        streamCallTimeoutMillis = 0,
+    )
+
     private fun fixtureCertificate(): java.security.cert.X509Certificate {
         val der = javaClass.getResourceAsStream("/certificates/pin-fixture.der")!!.readBytes()
         return CertificateFactory.getInstance("X.509").generateCertificate(ByteArrayInputStream(der)) as java.security.cert.X509Certificate
@@ -48,7 +58,7 @@ class LinkPinningTest {
     }
 
     @Test
-    fun clientTransportAcceptsTheRightPinAndRejectsTheWrongPinBeforeRequestBytes() {
+    fun clientTransportAcceptsTheRightPinAndRejectsTheWrongPinBeforeRequestBytes() = runBlocking {
         val directory = Files.createTempDirectory("link-tls")
         val password = "changeit".toCharArray()
         val keyStorePath = directory.resolve("server.p12")
@@ -80,14 +90,16 @@ class LinkPinningTest {
         try {
             val endpoint = "https://127.0.0.1:${server.address.port}"
             val rightPin = LinkPinning.spkiFingerprint(certificate)
-            val right = LinkClient(endpoint, rightPin, credentialsStore(endpoint, rightPin))
-            assertEquals("TLS Host", right.describe().hostName)
-            assertEquals(1, requests.get())
+            LinkClient(endpoint, rightPin, credentialsStore(endpoint, rightPin), transportConfig).use { right ->
+                assertEquals("TLS Host", right.describe().hostName)
+                assertEquals(1, requests.get())
+            }
 
             val wrongPin = "ab".repeat(32).takeUnless { it == rightPin } ?: "cd".repeat(32)
-            val wrong = LinkClient(endpoint, wrongPin, credentialsStore(endpoint, wrongPin))
-            assertFailsWith<LinkClientException.Carrier> { wrong.describe() }
-            assertEquals(1, requests.get(), "a rejected TLS handshake must not reach the HTTP handler")
+            LinkClient(endpoint, wrongPin, credentialsStore(endpoint, wrongPin), transportConfig).use { wrong ->
+                assertFailsWith<LinkClientException.Carrier> { wrong.describe() }
+                assertEquals(1, requests.get(), "a rejected TLS handshake must not reach the HTTP handler")
+            }
         } finally {
             server.stop(0)
             directory.toFile().deleteRecursively()

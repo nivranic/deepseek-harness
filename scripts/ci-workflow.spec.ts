@@ -1,5 +1,7 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 import * as yaml from 'js-yaml'
 import { describe, expect, it } from 'vitest'
 
@@ -660,6 +662,248 @@ describe('Documentation site publication', () => {
   })
 })
 
+describe('Native Link real-Host acceptance workflows', () => {
+  const hostAcceptance = readFileSync(
+    resolve(root, 'apps/cli/tests/link-native-acceptance.e2e.ts'),
+    'utf8',
+  )
+  const cases = [
+    {
+      file: '.github/workflows/apple-swift.yml',
+      jobName: 'swift-test',
+      language: 'swift',
+      driver: 'LinkNativeAcceptance',
+      result: 'g1-link-acceptance/swift/evidence.json',
+      nativePath: 'apps/apple/**',
+    },
+    {
+      file: '.github/workflows/android-kotlin.yml',
+      jobName: 'gradle-test',
+      language: 'kotlin',
+      driver: ':core:nativeAcceptance',
+      result: 'g1-link-acceptance/kotlin/evidence.json',
+      nativePath: 'apps/android/**',
+    },
+  ] as const
+
+  for (const entry of cases) {
+    it(`runs and preserves the ${entry.language} result`, () => {
+      const workflow = loadWorkflow(entry.file)
+      const job = workflowJob(workflow, entry.jobName)
+      const pullRequest = workflowEvent(workflow, 'pull_request')
+      const push = workflowEvent(workflow, 'push')
+      if (!Array.isArray(job.steps) || !Array.isArray(pullRequest.paths) || !Array.isArray(push.paths)) {
+        throw new TypeError(`${entry.file} must define steps plus pull-request and push paths`)
+      }
+      const steps = job.steps.filter(isRecord)
+      const commands = steps
+        .filter((step): step is Record<string, unknown> & { run: string } => typeof step.run === 'string')
+        .map(step => step.run)
+      const setupNode = steps.find(step => step.uses === 'actions/setup-node@v6')
+      const install = steps.find(step => step.run === 'pnpm install --frozen-lockfile')
+      const acceptance = steps.find(step => (
+        typeof step.run === 'string' && step.run.includes('apps/cli/tests/link-native-acceptance.e2e.ts')
+      ))
+      const upload = steps.find(step => step.uses === 'actions/upload-artifact@v7')
+      if (!isRecord(acceptance) || !isRecord(acceptance.env)
+        || typeof acceptance.run !== 'string') {
+        throw new TypeError(`${entry.file} must define the native acceptance step and environment`)
+      }
+      if (!isRecord(upload) || !isRecord(upload.with)) {
+        throw new TypeError(`${entry.file} must define the native evidence upload`)
+      }
+
+      expect(job['continue-on-error']).not.toBe(true)
+      expect(setupNode).toMatchObject({ with: { 'node-version': '24', cache: 'pnpm' } })
+      expect(install).toBeDefined()
+      expect(acceptance.env.DSH_LINK_ACCEPTANCE_LANGUAGE).toBe(entry.language)
+      expect(acceptance.env.DSH_LINK_ACCEPTANCE_RESULT).toContain(entry.result)
+      expect(acceptance.env.DSH_LINK_ACCEPTANCE_DRIVER_JSON).toContain(entry.driver)
+      expect(acceptance.run).toContain('--no-file-parallelism')
+      expect(acceptance.run).toContain('--retry=0')
+      expect(acceptance['continue-on-error']).not.toBe(true)
+      expect(upload.if).toBe('always()')
+      expect(upload.with.path).toContain(entry.result)
+      expect(upload.with['if-no-files-found']).toBe('error')
+      const requiredPaths = [
+        '.gitignore',
+        entry.nativePath,
+        'apps/cli/config/**',
+        'apps/cli/package.json',
+        'apps/cli/tests/link-native-acceptance.e2e.ts',
+        'native/landlock-run/**',
+        // The composition resolves plugins across the package tree. A curated
+        // subset silently misses owners such as link-settings and credentials.
+        'packages/**',
+        'patches/**',
+        'vendor/**',
+        'package.json',
+        'pnpm-lock.yaml',
+        'pnpm-workspace.yaml',
+        'scripts/test-invariants.ts',
+        'tsconfig.base.json',
+        'tsconfig.json',
+        'vitest.e2e.config.ts',
+        'vitest.shared.ts',
+        entry.file,
+      ]
+      for (const event of [pullRequest, push]) {
+        expect(event.paths).toEqual(expect.arrayContaining(requiredPaths))
+      }
+      expect(push.branches).toEqual(['dev', 'master'])
+      expect(commands.some(command => command.includes('link-session-slice.e2e.ts'))).toBe(false)
+    })
+  }
+
+  it('initializes external failure evidence before setup validation', () => {
+    const setup = sourceSection(hostAcceptance, 'beforeAll(async () => {', 'afterAll(async () => {')
+    const parsed = setup.indexOf('const nativeDriver = parseNativeDriver(')
+    const claimed = setup.indexOf('nativeArtifact = await claimNativeArtifact(', parsed)
+    const failed = setup.indexOf('await writeSanitizedFailure(', claimed)
+    const validated = setup.indexOf('const commit = await assertExecutionInputsClean(', failed)
+    expect(parsed).toBeGreaterThanOrEqual(0)
+    expect(claimed).toBeGreaterThan(parsed)
+    expect(failed).toBeGreaterThan(claimed)
+    expect(validated).toBeGreaterThan(failed)
+
+    const claim = sourceSection(
+      hostAcceptance,
+      'async function claimNativeArtifact(',
+      'function pathIsInside(',
+    )
+    expect(claim).toContain('realpath(temporaryHome)')
+    expect(claim).toContain('realpath(resultParent)')
+    expect(claim).toContain('await lstat(driver.resultPath)')
+    expect(claim).toContain('must resolve outside the temporary Harness home')
+  })
+
+  it('requires Host-observed approval and revocation before native publication', () => {
+    const acceptance = sourceSection(
+      hostAcceptance,
+      "describe('the shared Link native acceptance corpus'",
+      '/** Boot the shipped base + desktop patches',
+    )
+    const nativeRun = acceptance.indexOf('const received = await runNativeDriver(')
+    const hostVerification = acceptance.indexOf(
+      'await current.control.verifyExpectedBehavior()',
+      nativeRun,
+    )
+    const nativeValidation = acceptance.indexOf('const native = validateResult(', nativeRun)
+    const publication = acceptance.indexOf('nativePublication = { artifact: nativeArtifact, result: native }')
+    expect(nativeRun).toBeGreaterThanOrEqual(0)
+    expect(hostVerification).toBeGreaterThan(nativeRun)
+    expect(nativeValidation).toBeGreaterThan(hostVerification)
+    expect(publication).toBeGreaterThan(nativeValidation)
+
+    const control = sourceSection(hostAcceptance, 'async function startControl(', '/** Run every corpus action')
+    expect(control).toContain('current.approvalStarts += 1')
+    expect(control).toContain("current.approval.outcome !== 'allowed-once'")
+    expect(control).toContain("current.revocation.kind !== 'complete'")
+    expect(control).toContain('revoked?.revokedAt === undefined')
+  })
+
+  it('keeps cleanup timeout and evidence publication inside the hook timeout', () => {
+    const teardown = sourceSection(
+      hostAcceptance,
+      'afterAll(async () => {',
+      "describe('the shared Link native acceptance corpus'",
+    )
+    const cleanup = teardown.indexOf('await settleCleanupBeforeDeadline(')
+    const publication = teardown.indexOf('await publishNativeEvidence(', cleanup)
+    expect(cleanup).toBeGreaterThanOrEqual(0)
+    expect(publication).toBeGreaterThan(cleanup)
+    expect(teardown.trimEnd().endsWith('}, AFTER_ALL_HOOK_TIMEOUT_MS)')).toBe(true)
+    expect(teardown).toContain(
+      'const evidenceRenameDeadline = teardownStartedAt + EVIDENCE_RENAME_DEADLINE_MS',
+    )
+
+    const deadline = numericConstant(hostAcceptance, 'TEARDOWN_DEADLINE_MS')
+    const renameDeadline = numericConstant(hostAcceptance, 'EVIDENCE_RENAME_DEADLINE_MS')
+    const hookTimeout = numericConstant(hostAcceptance, 'AFTER_ALL_HOOK_TIMEOUT_MS')
+    expect(renameDeadline).toBeGreaterThan(deadline)
+    expect(hookTimeout).toBeGreaterThan(renameDeadline)
+    const cleanupImplementation = sourceSection(
+      hostAcceptance,
+      'async function settleBeforeAbsoluteDeadline<T>(',
+      'async function stopActiveNativeProcess(',
+    )
+    expect(cleanupImplementation).toContain('Promise.race([')
+    expect(cleanupImplementation).not.toContain('writeEvidenceAtomically(')
+  })
+
+  it('atomically replaces evidence only after flushing and closing a sibling file', () => {
+    const failureWriter = sourceSection(
+      hostAcceptance,
+      'async function writeSanitizedFailure(',
+      '/** Replace evidence only after a sibling temporary file',
+    )
+    const writer = sourceSection(
+      hostAcceptance,
+      'async function writeEvidenceAtomically(',
+      '/** Reject malformed or credential-bearing driver output',
+    )
+    const opened = writer.indexOf("await open(temporaryPath, 'wx', 0o600)")
+    const written = writer.indexOf('await handle.writeFile(', opened)
+    const flushed = writer.indexOf('await handle.sync()', written)
+    const closed = writer.indexOf('await handle.close()', flushed)
+    const deadlineCheck = writer.indexOf('performance.now() >= renameDeadline', closed)
+    const replaced = writer.indexOf('await rename(temporaryPath, resultPath)', closed)
+    expect(opened).toBeGreaterThanOrEqual(0)
+    expect(written).toBeGreaterThan(opened)
+    expect(flushed).toBeGreaterThan(written)
+    expect(closed).toBeGreaterThan(flushed)
+    expect(deadlineCheck).toBeGreaterThan(closed)
+    expect(replaced).toBeGreaterThan(deadlineCheck)
+    expect(writer).toContain('const resultParent = dirname(resultPath)')
+    expect(failureWriter).toContain('await writeEvidenceAtomically(resultPath, {')
+    expect(writer).toContain('await unlink(temporaryPath)')
+    expect(writer).not.toContain('writeFile(resultPath')
+    expect(writer).not.toContain('unlink(resultPath)')
+  })
+
+  it('publishes FAIL when teardown blocks past its absolute deadline', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-deadline-regression-'))
+    const resultPath = join(directory, 'evidence.json')
+    try {
+      const regression = runHostAcceptanceRegression('event-loop-deadline', resultPath)
+      const output = `${regression.stdout}\n${regression.stderr}`
+      expect(regression.error).toBeUndefined()
+      expect(regression.status, output).toBe(1)
+      expect(output).toContain('teardown exceeded its absolute deadline')
+      const evidence: unknown = JSON.parse(readFileSync(resultPath, 'utf8'))
+      expect(evidence).toMatchObject({
+        schemaVersion: 1,
+        language: 'swift',
+        status: 'FAIL',
+        reason: 'host-validation-failed',
+      })
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }, 30_000)
+
+  it('keeps failure evidence when Vitest times out the acceptance test', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-timeout-regression-'))
+    const resultPath = join(directory, 'evidence.json')
+    try {
+      const regression = runHostAcceptanceRegression('test-timeout-publication', resultPath)
+      const output = `${regression.stdout}\n${regression.stderr}`
+      expect(regression.error).toBeUndefined()
+      expect(regression.status, output).toBe(1)
+      expect(output).toContain('Test timed out in 25ms')
+      const evidence: unknown = JSON.parse(readFileSync(resultPath, 'utf8'))
+      expect(evidence).toMatchObject({
+        schemaVersion: 1,
+        language: 'swift',
+        status: 'FAIL',
+        reason: 'host-validation-failed',
+      })
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }, 30_000)
+})
+
 describe('Git hooks', () => {
   it('leaves frozen Agent Note sidecars to the archive verifier', () => {
     const lefthook = loadWorkflow('lefthook.yml')
@@ -682,6 +926,49 @@ function loadWorkflow(path: string): Record<string, unknown> {
   const workflow: unknown = yaml.load(readFileSync(resolve(root, path), 'utf8'))
   if (!isRecord(workflow)) throw new TypeError(`${path} must define a workflow`)
   return workflow
+}
+
+function sourceSection(source: string, start: string, end: string): string {
+  const startIndex = source.indexOf(start)
+  const endIndex = source.indexOf(end, startIndex + start.length)
+  if (startIndex < 0 || endIndex < 0) throw new Error(`source section ${start} .. ${end} is missing`)
+  return source.slice(startIndex, endIndex)
+}
+
+function numericConstant(source: string, name: string): number {
+  const match = new RegExp(`const ${name} = ([\\d_]+)`, 'u').exec(source)
+  if (match?.[1] === undefined) throw new Error(`numeric constant ${name} is missing`)
+  return Number(match[1].replaceAll('_', ''))
+}
+
+/** Run timeout-sensitive regressions in a fresh Vitest worker and module instance. */
+function runHostAcceptanceRegression(scenario: string, resultPath?: string) {
+  const environment = { ...process.env }
+  delete environment.DSH_LINK_ACCEPTANCE_DRIVER_JSON
+  delete environment.DSH_LINK_ACCEPTANCE_LANGUAGE
+  delete environment.DSH_LINK_ACCEPTANCE_RESULT
+  delete environment.VITEST
+  delete environment.VITEST_POOL_ID
+  delete environment.VITEST_WORKER_ID
+  environment.DSH_LINK_ACCEPTANCE_INTERNAL_REGRESSION = scenario
+  if (resultPath !== undefined) environment.DSH_LINK_ACCEPTANCE_RESULT = resultPath
+  return spawnSync(process.execPath, [
+    resolve(root, 'node_modules/vitest/vitest.mjs'),
+    'run',
+    '--config',
+    'vitest.e2e.config.ts',
+    'apps/cli/tests/link-native-acceptance.e2e.ts',
+    '--no-file-parallelism',
+    '--reporter=verbose',
+    '--retry=0',
+  ], {
+    cwd: root,
+    encoding: 'utf8',
+    env: environment,
+    maxBuffer: 5 * 1024 * 1024,
+    timeout: 30_000,
+    windowsHide: true,
+  })
 }
 
 function workflowEvent(workflow: Record<string, unknown>, event: string): Record<string, unknown> {

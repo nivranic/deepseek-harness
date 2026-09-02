@@ -1,34 +1,41 @@
 {
   "taskId": "G1-ANDROID",
   "status": "PARTIAL",
-  "commit": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "evidenceLevel": "E2",
+  "commit": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
+  "sourceHead": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "workingTreeState": "DIRTY_IMPLEMENTATION_NOT_IN_COMMIT",
+  "recordedAt": "2026-09-03",
   "commands": [
-    "node_modules/.bin/tsx.CMD scripts/verify-link-contracts.ts",
-    "keytool -genkeypair -alias link-test -keyalg EC -groupname secp256r1 -dname CN=localhost -ext SAN=dns:localhost,ip:127.0.0.1 -validity 1 -storetype PKCS12",
-    "gradle --no-daemon :core:test",
-    "gradle --no-daemon :app:assembleDebug",
-    "pnpm run test:docs",
+    "pnpm run verify-link-contracts",
     "git diff --check"
   ],
   "tests": [
     {
-      "name": "Generated artifact freshness",
+      "name": "Generated Link contract freshness",
       "result": "PASS",
       "stale": 0
     },
     {
-      "name": "JDK 17 EC/SAN/PKCS12 keytool probe",
-      "result": "PASS"
+      "name": "Kotlin 2.1.20 direct main compilation",
+      "result": "NOT_EXECUTED",
+      "reason": "CLEAN_SOURCE_RERUN_PENDING",
+      "expectedSourceFiles": 25
     },
     {
-      "name": "Documentation quick aggregate",
-      "result": "PASS",
-      "passed": 15,
-      "failed": 0
+      "name": "Kotlin 2.1.20 direct test compilation",
+      "result": "NOT_EXECUTED",
+      "reason": "CLEAN_SOURCE_RERUN_PENDING",
+      "expectedSourceFiles": 21
     },
     {
-      "name": "Android core tests",
+      "name": "JUnit Console 1.11.4 Link package and CompanionModelTest",
+      "result": "NOT_EXECUTED",
+      "reason": "CLEAN_SOURCE_RERUN_PENDING"
+    },
+    {
+      "name": "Android core Gradle tests",
       "result": "NOT_EXECUTED",
       "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
     },
@@ -40,63 +47,72 @@
     {
       "name": "Real Host-to-Kotlin acceptance",
       "result": "NOT_EXECUTED",
-      "reason": "ACCEPTANCE_HARNESS_PENDING"
+      "reason": "GRADLE_AND_ANDROID_SDK_UNAVAILABLE"
     }
   ],
   "artifacts": [
     "artifacts/verification/gate-1/G1-ANDROID.json",
-    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt",
-    "apps/android/core/src/test/resources/fixtures/"
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
+    "apps/android/core/src/test/resources/fixtures/",
+    ".github/workflows/android-kotlin.yml",
+    ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md"
   ],
+  "logs": [],
   "changedFiles": [
+    ".github/workflows/android-kotlin.yml",
+    "apps/android/README.md",
+    "apps/android/README.zh.md",
+    "apps/android/README.i18n.yaml",
     "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
+    "apps/android/core/build.gradle.kts",
     "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
     "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/WireDriving.kt",
     "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
     "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkPinning.kt",
-    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt",
     "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelTest.kt",
     "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
     "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkPinningTest.kt",
-    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkWireTest.kt",
-    "apps/android/README.md",
-    "apps/android/README.zh.md",
-    "apps/android/README.i18n.yaml",
     ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.md",
-    ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.zh.md",
-    ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.i18n.yaml"
+    ".agents/notes/implemented/architecture/2026-08-31-android-lite-http-provider.md",
+    ".agents/notes/implemented/architecture/2026-08-31-endpoint-persistence.md",
+    ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md"
   ],
   "implemented": [
-    "One stable switchable wire handle keeps existing models attached to the freshly paired or restored client.",
-    "Unary requests now use payload.args, stream requests use top-level args, responses enforce echoed rpcId, and successful void returns map to NullValue.",
-    "Remote Event answers carry Host ready.clientId and outcome; waterfall fields come from request and cancel frames retire pending cards.",
-    "Session follow and Remote Event streams retry after carrier loss; the next authoritative snapshot or ready frame replaces the old generation state.",
-    "Every HTTPS URL connection installs a pin-only trust manager and a second SPKI-verifying hostname verifier before opening the request body.",
-    "Android test source covers stable fresh-pair replacement, canonical envelopes, void RPC, ready/outcome/cancel, interaction reconnect, follow recovery, right pin, wrong pin, and zero handler bytes on a rejected handshake."
+    "OkHttp 5.5 is the single Android Link transport owner; fresh pairing and restore replace the live wire only after the replacement client is ready.",
+    "Pair and unary calls register their OkHttp Call before blocking I/O, remain cancellable, and never execute blocking network work on the Main dispatcher.",
+    "Streaming uses rendezvous delivery, cancels the producer when the consumer closes, and awaits call, reader, collector, response, source, and dispatcher quiescence.",
+    "closeAndAwait and replaceAndAwait make model replacement and process teardown wait for the prior transport generation.",
+    "TLS accepts only the configured leaf SPKI pin; the wrong-pin path reaches no application handler bytes.",
+    "The native acceptance driver uses the shared 13-step corpus, validates its isolated DSH_HOME evidence path without following link-shaped parents, and binds terminal events to the current turn and sequence."
+  ],
+  "acceptance": [
+    "The real Host acceptance harness, Kotlin driver, shared corpus, and Android workflow are present, but this host did not execute that native lane."
   ],
   "knownLimitations": [
-    "The Windows host has JDK 17 but no Gradle or Android SDK. The keytool fixture command was executed, but Kotlin compilation, JUnit, and app assembly were not.",
-    "Official Gradle 8.14 distribution downloads were reset by the host network; no wrapper or lockfile workaround was added.",
-    "The real Host pair-to-reconnect corpus remains absent; G1-E2E must execute it before G1-ANDROID can become PASS."
+    "Earlier direct compiler and JUnit runs used an uncommitted implementation tree without retained reproducible command evidence, so this file does not count them. The exact commands will be recorded only after a clean-source rerun.",
+    "The Windows host has JDK 17 but no Gradle or Android SDK, so the official Gradle test lane, app assembly, and real Host-to-Kotlin lane were not executed.",
+    "Direct kotlinc and focused JUnit execution do not substitute for Gradle metadata resolution, Android app assembly, or the E4 native Host lane."
   ],
   "notExecuted": [
     {
       "item": "gradle --no-daemon :core:test",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "Gradle and Android SDK are unavailable; official Gradle 8.14 downloads were reset."
+      "details": "Gradle and Android SDK are unavailable on the execution host."
     },
     {
       "item": "gradle --no-daemon :app:assembleDebug",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "Gradle and Android SDK are unavailable."
+      "details": "Gradle and Android SDK are unavailable on the execution host."
     },
     {
       "item": "Real Host-to-Kotlin acceptance",
       "status": "NOT_EXECUTED",
-      "reason": "DEPENDENCY_PENDING",
-      "details": "G1-E2E must provide the shipped Host process and shared acceptance corpus."
+      "reason": "HOST_ENVIRONMENT",
+      "details": "The harness and Kotlin driver exist, but this host cannot run the Gradle-owned native lane."
     }
   ],
   "nextDependencies": [

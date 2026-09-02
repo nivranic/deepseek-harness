@@ -2,9 +2,14 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.WireValue
 import java.io.IOException
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
@@ -13,10 +18,12 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import app.cash.turbine.test
@@ -67,7 +74,107 @@ private fun event(seq: Int, type: String, data: String): WireValue = wire(
     """{"type":"event","event":{"type":"$type","seq":$seq,"time":1759017600000,"data":$data}}""",
 )
 
+private data class BarrierStream(
+    val endpoint: String,
+    val cleanupStarted: CompletableDeferred<Unit> = CompletableDeferred(),
+    val releaseCleanup: CompletableDeferred<Unit> = CompletableDeferred(),
+    val settled: CompletableDeferred<Unit> = CompletableDeferred(),
+)
+
+private class BarrierWire : WireDriving {
+    val streams = CopyOnWriteArrayList<BarrierStream>()
+    val active = AtomicInteger()
+    val maxActive = AtomicInteger()
+
+    override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = WireValue.NullValue
+
+    override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
+        val stream = BarrierStream(endpoint)
+        streams.add(stream)
+        val current = active.incrementAndGet()
+        maxActive.updateAndGet { previous -> maxOf(previous, current) }
+        try {
+            awaitCancellation()
+        } finally {
+            stream.cleanupStarted.complete(Unit)
+            withContext(NonCancellable) {
+                try {
+                    stream.releaseCleanup.await()
+                } finally {
+                    active.decrementAndGet()
+                    stream.settled.complete(Unit)
+                }
+            }
+        }
+    }
+}
+
 class CompanionModelTest {
+    @Test
+    fun switchableWireRetiresReplacedAndPostCloseTransports() {
+        class CloseTrackingWire : WireDriving {
+            val closes = AtomicInteger()
+
+            override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = WireValue.NullValue
+
+            override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow { }
+
+            override fun close() {
+                closes.incrementAndGet()
+            }
+        }
+
+        val first = CloseTrackingWire()
+        val second = CloseTrackingWire()
+        val afterClose = CloseTrackingWire()
+        val switching = SwitchableWireDriving(first)
+        switching.replace(second)
+        switching.close()
+        switching.replace(afterClose)
+        assertEquals(1, first.closes.get())
+        assertEquals(1, second.closes.get())
+        assertEquals(1, afterClose.closes.get())
+    }
+
+    @Test
+    fun modelTeardownLeavesTheProcessOwnedWireReplaceable() = runTest {
+        class RuntimeWire(private val sessionId: String) : WireDriving {
+            val closes = AtomicInteger()
+
+            override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
+                wire("""{"items":[{"sessionId":"$sessionId","title":"$sessionId"}]}""")
+
+            override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
+                awaitCancellation()
+            }
+
+            override fun close() {
+                closes.incrementAndGet()
+            }
+        }
+
+        val first = RuntimeWire("first")
+        val second = RuntimeWire("second")
+        val switching = SwitchableWireDriving(first)
+        val model = SessionModel(switching, this)
+        try {
+            model.openSession("open")
+            runCurrent()
+            model.closeAndAwait()
+            assertEquals(0, first.closes.get(), "model teardown retired the process-owned transport")
+
+            switching.replace(second)
+            model.loadSessions()
+            assertEquals(listOf("second"), model.sessions.value.map { it.id })
+            assertEquals(1, first.closes.get())
+            assertEquals(0, second.closes.get())
+        } finally {
+            model.closeAndAwait()
+            switching.close()
+        }
+        assertEquals(1, second.closes.get())
+    }
+
     @Test
     fun stableWireHandleSwitchesExistingModelsAfterPairing() = runTest {
         val beforePairing = FakeWire()
@@ -206,6 +313,127 @@ class CompanionModelTest {
         assertEquals(2, attempts)
         assertEquals("host-client-2", model.clientId.value)
         model.stopWatching()
+    }
+
+    @Test
+    fun awaitableModelTeardownWaitsForBothStreamOwnersToSettle() = runTest {
+        val endpoints = listOf("session/follow", "\$events")
+        val started = endpoints.associateWith { CompletableDeferred<Unit>() }
+        val release = endpoints.associateWith { CompletableDeferred<Unit>() }
+        val settled = endpoints.associateWith { CompletableDeferred<Unit>() }
+        val blocking = object : WireDriving {
+            override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = WireValue.NullValue
+
+            override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
+                started.getValue(endpoint).complete(Unit)
+                try {
+                    awaitCancellation()
+                } finally {
+                    withContext(NonCancellable) {
+                        release.getValue(endpoint).await()
+                        settled.getValue(endpoint).complete(Unit)
+                    }
+                }
+            }
+        }
+        val sessions = SessionModel(blocking, this)
+        val interactions = InteractionModel(blocking, this)
+        sessions.openSession("s1")
+        interactions.startWatching()
+        runCurrent()
+        assertTrue(started.values.all { it.isCompleted }, "both model streams started")
+
+        val closeSession = async { sessions.closeAndAwait() }
+        val closeInteractions = async { interactions.stopWatchingAndAwait() }
+        runCurrent()
+        assertFalse(closeSession.isCompleted, "SessionModel returned before follow cleanup")
+        assertFalse(closeInteractions.isCompleted, "InteractionModel returned before event cleanup")
+
+        release.values.forEach { it.complete(Unit) }
+        closeSession.await()
+        closeInteractions.await()
+        assertTrue(settled.values.all { it.isCompleted }, "both stream owners settled before teardown returned")
+    }
+
+    @Test
+    fun concurrentSessionOpensPublishOnlyTheLatestStream() = runTest {
+        val wire = BarrierWire()
+        val model = SessionModel(wire, this)
+        try {
+            model.openSession("initial")
+            runCurrent()
+            val initial = wire.streams.single()
+
+            val firstReplacement = async { model.openSession("first") }
+            runCurrent()
+            assertTrue(initial.cleanupStarted.isCompleted, "the first replacement did not retire the active stream")
+            val latestReplacement = async { model.openSession("latest") }
+            runCurrent()
+
+            initial.releaseCleanup.complete(Unit)
+            firstReplacement.await()
+            latestReplacement.await()
+            runCurrent()
+            assertEquals(listOf("session/follow", "session/follow"), wire.streams.map { it.endpoint })
+            assertEquals("latest", model.open.value?.sessionId)
+            assertEquals(1, wire.maxActive.get(), "concurrent opens overlapped follow streams")
+        } finally {
+            model.close()
+            wire.streams.forEach { it.releaseCleanup.complete(Unit) }
+            model.closeAndAwait()
+        }
+    }
+
+    @Test
+    fun synchronousSessionCloseInvalidatesAWaitingReplacement() = runTest {
+        val wire = BarrierWire()
+        val model = SessionModel(wire, this)
+        try {
+            model.openSession("initial")
+            runCurrent()
+            val initial = wire.streams.single()
+            val replacement = async { model.openSession("replacement") }
+            runCurrent()
+            assertTrue(initial.cleanupStarted.isCompleted, "replacement did not begin retiring the active stream")
+
+            model.close()
+            initial.releaseCleanup.complete(Unit)
+            replacement.await()
+            model.closeAndAwait()
+            assertEquals(1, wire.streams.size, "a close-invalidated replacement opened a stream")
+            assertNull(model.open.value)
+            assertEquals(0, wire.active.get())
+        } finally {
+            model.close()
+            wire.streams.forEach { it.releaseCleanup.complete(Unit) }
+            model.closeAndAwait()
+        }
+    }
+
+    @Test
+    fun interactionStopInvalidatesAWaitingRestart() = runTest {
+        val wire = BarrierWire()
+        val model = InteractionModel(wire, this)
+        try {
+            model.startWatching()
+            runCurrent()
+            val initial = wire.streams.single()
+            model.startWatching()
+            runCurrent()
+            assertTrue(initial.cleanupStarted.isCompleted, "restart did not begin retiring the active event stream")
+
+            model.stopWatching()
+            initial.releaseCleanup.complete(Unit)
+            model.stopWatchingAndAwait()
+            runCurrent()
+            assertEquals(1, wire.streams.size, "a stop-invalidated restart opened an event stream")
+            assertEquals(0, wire.active.get())
+            assertEquals(1, wire.maxActive.get(), "interaction restarts overlapped event streams")
+        } finally {
+            model.stopWatching()
+            wire.streams.forEach { it.releaseCleanup.complete(Unit) }
+            model.stopWatchingAndAwait()
+        }
     }
 
     @Test

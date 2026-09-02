@@ -18,24 +18,26 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 | [`core/…/companion/LiteChat.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt) 及 [`app/…/LiteChatScreen.kt`](app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt) | Lite 聊天面：`send()` 驱动一回合并把回合结果事件记入 journal 持久化、重启经 journal 重放恢复；Compose 面经 `liveState` StateFlow 实时渲染 LiteDomainState——回合中逐事件发布流式部分与工具相位、回合间 journal 重放（镜像 Apple LiteChatView） |
 | [`core/…/companion/LiteHTTPProvider.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteHTTPProvider.kt) | Lite 真实提供方：OpenAI 兼容流式 chat completion（JDK HttpClient）——SSE `data:`/`[DONE]`/裸 NDJSON 行解析、reasoning_content/content/工具调用增量、按 index 的碎片组装；传输失败映射 timeout/unreachable/dropped，非 2xx 为 Provider——对真实本地 HTTP 服务器回路测试 |
 | [`core/…/companion/NeumorphicTokens.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NeumorphicTokens.kt) | 仅简约拟态的视觉基线（第 60 章）：单一风格、双色调浮起表面 |
-| [`core/…/link/LinkWire.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt) 及同族 | 线缆客户端半边：canonical `payload.args` / stream `args`、回显 rpcId 与 void result、JDK 提供方的 Ed25519 签名、逐连接 TLS SPKI enforcement，以及 `LinkClient` 的 pair/describe/call/stream——对着本地 HTTP 与 HTTPS 服务器测试 |
-| [`core/…/companion/CompanionModels.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt) | 视图模型——会话折叠/发送/取消、交互收件箱、带 UTF-16 分页读取的文件浏览、子代理列表——各自驱动 FakeWire 可测的 `WireDriving` 缝 |
+| [`core/…/link/LinkWire.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt) 及同族 | 线缆客户端半边：canonical `payload.args` / stream `args`、回显 rpcId 与 void result、JDK 提供方的 Ed25519 签名、pin-only TLS SPKI enforcement，以及 `LinkClient` 的 pair/describe/call/stream；[传输 owner](../../.agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.zh.md)在 I/O 前登记每个 OkHttp `Call`、以不阻塞 Main dispatcher 的可取消 suspension 执行 pair/unary、join 被取消或反压的 stream reader，并在 replacement 中等待退役 client |
+| [`core/…/companion/CompanionModels.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt) | 视图模型——会话折叠/发送/取消、交互收件箱、带 UTF-16 分页读取的文件浏览、子代理列表——各自驱动 `WireDriving` interface，测试使用 FakeWire 替身；Session 与 Interaction replacement 串行化 active/pending stream generation，可等待 teardown 会 join 到静止 |
 | [`core/…/companion/FileChanges.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/FileChanges.kt) | 工具轨迹到只读文件变更的投影（第 55 章首版）：write/edit/str_replace_editor 的已完成调用各成一 hunk，+N/−M 行数与增删行在工具标签折叠展开 |
 | [`core/…/companion/CompanionPush.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionPush.kt) | 第 70 章最小推送链路：`$events` 转发折为仅携带引用数据的推送（审批等待/提问等待/任务完成），设备端本地化标题，本地通知呈现，中继（APNs/FCM）延后 |
 | [`core/…/companion/NotificationGrant.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NotificationGrant.kt) | 第 70 章运行时授权投影（Android 13+ 动态请求 POST_NOTIFICATIONS）：系统启用读数 + 本进程是否已问 + 用户末次回答——呈现随系统启用走、缺授权时一进程一问；app 侧 `NotificationGrantController` 持 StateFlow 接系统对话框 |
 | [`core/…/companion/RelayRendezvous.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/RelayRendezvous.kt) 及 [`core/…/companion/RelayClient.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/RelayClient.kt) | 中继会合地基（第 68/69 章）：`RelayRendezvous` 内存态单账号转发——设备注册（含 pushToken 槽）、仅引用信封向账号设备扇出、按 poll 排空；`RelayClient` 是 Noise 加密的 HTTP 消费者（惰性 XX 握手、帧式 AEAD 体、一次性密钥推送流），对照真实本地 Noise 应答方回路测试，`link/Noise.kt` 携带由 node 参考实现固定密钥向量钉住的 Noise_XX_25519_ChaChaPoly_SHA256 栈；信封经 `asPush()` 桥接第 70 章推送词汇；自托管壳见 [`apps/relay`](../relay/README.zh.md) |
 | [`core/…/companion/Handoff.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/Handoff.kt) | 第 40 章 Handoff L1 的设备侧：`LiteHandoff` 从折叠 Lite 状态（对话尾部、计划标志、待办、工件引用、溯源）构建快照线值并经 `session/handoff` 发送；拒绝或无会话应答读为 null |
-| [`app/`](app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt) | Compose 壳：配对屏、七标签脚手架、稳定可替换的 wire ownership、来自 core tokens 的简约拟态主题 |
+| [`app/`](app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt) | Compose 壳：coroutine 驱动的配对屏、七标签脚手架、进程所有的稳定可替换 wire、只停止模型的 view-model teardown，以及来自 core tokens 的简约拟态主题 |
+| `core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt` | 执行共享真实 Host 垂直切片 corpus 的独立 Kotlin driver |
 | [`core/src/test/resources/`](core/src/test/resources/) | 测试回放的同步黄金 fixtures、一致性场景与钉扎证书 |
 
 ## 构建与测试
 
-[Android Kotlin](../.github/workflows/android-kotlin.yml) 车道在 Ubuntu 上运行 `gradle test` 与 `:app:assembleDebug`（JDK 17、Gradle 8.14、不提交 wrapper、用 runner 的 Android SDK）；本地任何 Gradle 8.14+ 配 JDK 17 工具链加 Android SDK 即可。
+[Android Kotlin](../../.github/workflows/android-kotlin.yml) 车道在 Ubuntu 上运行 `gradle test`、对 shipped Host composition 执行独立 `:core:nativeAcceptance` driver，并运行 `:app:assembleDebug`（JDK 17、Gradle 8.14、不提交 wrapper、用 runner 的 Android SDK）；本地任何 Gradle 8.14+ 配 JDK 17 工具链加 Android SDK 即可。
 
 ## 已知限制与延后工作
 
 - **生命周期感知收集**——各标签以 `collectAsStateWithLifecycle` 收集模型的 StateFlow，停止态暂停收集，不在后台空烧。
-- **pin 认证的私有 Host TLS**——每个 HTTPS 连接在打开 request body 前安装 pin-only trust manager，并在 hostname verifier 再次检查叶子 SPKI。Host 证书刻意没有 public-CA DNS identity，由 QR 认证的 SPKI 标识它。wrong-pin HTTPS fixture 必须在 HTTP handler 收到字节前失败。签名私钥经 `CredentialsCipher` 缝只在 AndroidKeyStore AES/GCM 封存下落盘。
+- **pin 认证的私有 Host TLS**——共享 OkHttp transport 在创建任何 `Call` 前安装 pin-only trust manager，以及重复检查叶子 SPKI 的 hostname verifier。Host 证书刻意没有 public-CA DNS identity，由 QR 认证的 SPKI 标识它。wrong-pin HTTPS fixture 必须在 HTTP handler 收到字节前失败。签名私钥经 `CredentialsCipher` 缝只在 AndroidKeyStore AES/GCM 封存下落盘。
+- **真实 Host 验收**——Kotlin driver 与 Host orchestrator 消费从配对至撤销的唯一 13 步共享 corpus。结果分别记录 Host 与 Client commit，以及 protocol、contract、Session format 版本；缺少或跳过任一步都会让车道失败。
 
 <a id="dev-note"></a>
 ### 开发备注

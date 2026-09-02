@@ -5,16 +5,26 @@ import ai.deepseek.dsh.link.LinkArtifactReadValue
 
 import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 /** One session row in the list. */
 data class SessionRow(val id: String, val title: String, val updatedAt: Double?)
@@ -59,6 +69,96 @@ data class SubagentRow(
     val reason: String?,
 )
 
+/** Serializes stream replacement and keeps every active or pending job awaitable. */
+private class StreamTransitionOwner(private val scope: CoroutineScope) {
+    private val transition = Mutex()
+    private val generation = AtomicLong()
+    private val active = AtomicReference<Job?>()
+    private val pending = ConcurrentHashMap.newKeySet<Job>()
+
+    fun isCurrent(value: Long): Boolean = generation.get() == value
+
+    suspend fun replace(
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        val nextGeneration = generation.incrementAndGet()
+        withContext(NonCancellable) {
+            replaceGeneration(nextGeneration, create, publish, invalidate)
+        }
+    }
+
+    fun replaceAsync(
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        val nextGeneration = generation.incrementAndGet()
+        val pendingJob = scope.launch(start = CoroutineStart.LAZY) {
+            withContext(NonCancellable) {
+                replaceGeneration(nextGeneration, create, publish, invalidate)
+            }
+        }
+        pending.add(pendingJob)
+        pendingJob.invokeOnCompletion { pending.remove(pendingJob) }
+        pendingJob.start()
+    }
+
+    fun stop(invalidate: () -> Unit) {
+        generation.incrementAndGet()
+        active.get()?.cancel()
+        invalidate()
+    }
+
+    suspend fun stopAndAwait(invalidate: () -> Unit) {
+        withContext(NonCancellable) {
+            stop(invalidate)
+            while (true) {
+                pending.toList().joinAll()
+                transition.withLock {
+                    active.getAndSet(null)?.cancelAndJoin()
+                    invalidate()
+                }
+                if (pending.isEmpty()) return@withContext
+            }
+        }
+    }
+
+    private suspend fun replaceGeneration(
+        value: Long,
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        transition.withLock {
+            active.getAndSet(null)?.cancelAndJoin()
+            if (!isCurrent(value)) return@withLock
+            val next = create(value)
+            active.set(next)
+            if (!isCurrent(value)) {
+                retire(next, invalidate)
+                return@withLock
+            }
+            publish()
+            if (!isCurrent(value)) {
+                retire(next, invalidate)
+                return@withLock
+            }
+            if (!next.start()) {
+                active.compareAndSet(next, null)
+                invalidate()
+            }
+        }
+    }
+
+    private suspend fun retire(job: Job, invalidate: () -> Unit) {
+        active.compareAndSet(job, null)
+        invalidate()
+        job.cancelAndJoin()
+    }
+}
+
 /**
  * The session-slice state machine — the Kotlin mirror of the Swift
  * `RemoteSessionViewModel`: list sessions, open one, fold the follow
@@ -84,7 +184,7 @@ class SessionModel(
     private val _sending = MutableStateFlow(false)
     val sending: StateFlow<Boolean> = _sending
 
-    private var followJob: Job? = null
+    private val followOwner = StreamTransitionOwner(scope)
 
     /** The fold state of the open session, when one is. */
     val state: DomainState get() = _open.value?.state ?: DomainState()
@@ -161,9 +261,8 @@ class SessionModel(
 
     /** Open one session: fold its follow stream from a fresh snapshot. */
     suspend fun openSession(sessionId: String) {
-        followJob?.cancel()
-        _open.value = OpenSession(sessionId, DomainState())
-        followJob = follow(
+        replaceFollow(
+            sessionId,
             mapOf(
                 "request" to WireValue.ObjectValue(
                     mapOf(
@@ -178,9 +277,8 @@ class SessionModel(
 
     /** Open one subagent child's timeline read-only by durable address. */
     suspend fun openChild(parentSessionId: String, childSessionId: String, mode: String) {
-        followJob?.cancel()
-        _open.value = OpenSession(childSessionId, DomainState())
-        followJob = follow(
+        replaceFollow(
+            childSessionId,
             mapOf(
                 "request" to WireValue.ObjectValue(
                     mapOf(
@@ -198,10 +296,22 @@ class SessionModel(
         )
     }
 
+    /** Request follow shutdown without suspending synchronous UI disposal. */
     fun close() {
-        followJob?.cancel()
-        followJob = null
-        _open.value = null
+        followOwner.stop { _open.value = null }
+    }
+
+    /** Close the open session after its follow stream has fully stopped. */
+    suspend fun closeAndAwait() {
+        followOwner.stopAndAwait { _open.value = null }
+    }
+
+    private suspend fun replaceFollow(sessionId: String, payload: Map<String, WireValue>) {
+        followOwner.replace(
+            create = { generation -> follow(payload, generation) },
+            publish = { _open.value = OpenSession(sessionId, DomainState()) },
+            invalidate = { _open.value = null },
+        )
     }
 
     /** Submit one user prompt in queue mode; the host promotes any inline
@@ -252,22 +362,26 @@ class SessionModel(
         )
     }
 
-    private fun follow(payload: Map<String, WireValue>): Job = scope.launch {
-        while (isActive) {
-            try {
-                wire.stream("session/follow", payload).collect { frame -> foldFrame(frame) }
-            } catch (failure: CancellationException) {
-                throw failure
-            } catch (_: Exception) {
-                // The authoritative snapshot on the next subscription resets the fold.
+    private fun follow(payload: Map<String, WireValue>, generation: Long): Job =
+        scope.launch(start = CoroutineStart.LAZY) {
+            while (isActive && followOwner.isCurrent(generation)) {
+                try {
+                    wire.stream("session/follow", payload).collect { frame ->
+                        if (followOwner.isCurrent(generation)) foldFrame(frame, generation)
+                    }
+                } catch (failure: CancellationException) {
+                    throw failure
+                } catch (_: Exception) {
+                    // The authoritative snapshot on the next subscription resets the fold.
+                }
+                if (isActive && followOwner.isCurrent(generation)) delay(reconnectDelayMillis)
             }
-            if (isActive) delay(reconnectDelayMillis)
-        }
     }
 
     /** A snapshot generation resets and replays its records; any other
      * frame is one live event entry folded onto the current state. */
-    private fun foldFrame(frame: WireValue) {
+    private fun foldFrame(frame: WireValue, generation: Long) {
+        if (!followOwner.isCurrent(generation)) return
         val current = _open.value ?: return
         val kind = WireShape.string(frame, "type") ?: ""
         val newState = if (kind == "snapshot") {
@@ -277,6 +391,7 @@ class SessionModel(
             foldInto(current.state, JsonArray(listOf(frame.toJsonElement())))
         }
         _open.value = current.copy(state = newState)
+        if (!followOwner.isCurrent(generation)) _open.value = null
     }
 }
 
@@ -302,29 +417,43 @@ class InteractionModel(
     private val _lastRefusal = MutableStateFlow<String?>(null)
     val lastRefusal: StateFlow<String?> = _lastRefusal
 
-    private var watchJob: Job? = null
+    private val watchOwner = StreamTransitionOwner(scope)
 
     fun startWatching() {
-        watchJob?.cancel()
-        watchJob = scope.launch {
-            while (isActive) {
-                _clientId.value = ""
-                try {
-                    wire.stream("\$events").collect { frame -> collect(frame) }
-                } catch (failure: CancellationException) {
-                    throw failure
-                } catch (_: Exception) {
-                    // A carrier loss is followed by the bounded retry below.
-                }
-                if (isActive) delay(reconnectDelayMillis)
-            }
-        }
+        watchOwner.replaceAsync(
+            create = { generation -> watch(generation) },
+            publish = { _clientId.value = "" },
+            invalidate = { _clientId.value = "" },
+        )
     }
 
+    /** Request event-stream shutdown without suspending synchronous UI disposal. */
     fun stopWatching() {
-        watchJob?.cancel()
-        watchJob = null
-        _clientId.value = ""
+        watchOwner.stop { _clientId.value = "" }
+    }
+
+    /** Stop watching after the event stream has fully stopped. */
+    suspend fun stopWatchingAndAwait() {
+        watchOwner.stopAndAwait { _clientId.value = "" }
+    }
+
+    private fun watch(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
+        while (isActive && watchOwner.isCurrent(generation)) {
+            _clientId.value = ""
+            try {
+                wire.stream("\$events").collect { frame ->
+                    if (watchOwner.isCurrent(generation)) {
+                        collect(frame)
+                        if (!watchOwner.isCurrent(generation)) _clientId.value = ""
+                    }
+                }
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (_: Exception) {
+                // A carrier loss is followed by the bounded retry below.
+            }
+            if (isActive && watchOwner.isCurrent(generation)) delay(reconnectDelayMillis)
+        }
     }
 
     fun collect(frame: WireValue) {

@@ -35,18 +35,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** The single-activity companion shell: pairing first, then the seven-tab
  * surface (nativization plan chapters 52 and 60 — Minimal Neumorphic only). */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CompanionRuntime.restore(filesDir)
-        setContent {
-            CompanionTheme {
-                CompanionApp()
+        lifecycleScope.launch {
+            CompanionRuntime.restore(filesDir)
+            if (!isFinishing && !isDestroyed) {
+                setContent {
+                    CompanionTheme {
+                        CompanionApp()
+                    }
+                }
             }
         }
     }
@@ -99,11 +107,26 @@ class CompanionViewModel : ViewModel() {
         CompanionRuntime.pair(payloadText, deviceName).also {
             if (it == null) paired = true
         }
+
+    override fun onCleared() {
+        session.close()
+        interactions.stopWatching()
+    }
 }
 
-/** The app-level pairing runtime: holds the wire the models drive, swaps
- * it after a successful pairing. */
+/** The process-owned pairing runtime: holds the wire the models drive and
+ * swaps it after restore or successful pairing. View-model teardown stops
+ * model streams without closing this process-lifetime transport. */
 object CompanionRuntime {
+    private val linkTransportConfig = ai.deepseek.dsh.link.LinkTransportConfig(
+        connectTimeoutMillis = 10_000,
+        writeTimeoutMillis = 30_000,
+        unaryReadTimeoutMillis = 30_000,
+        unaryCallTimeoutMillis = 60_000,
+        streamReadTimeoutMillis = 0,
+        streamCallTimeoutMillis = 0,
+    )
+
     /** Fails any pre-pairing call loud. */
     private class UnpairedWire : WireDriving {
         override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
@@ -128,13 +151,22 @@ object CompanionRuntime {
     /** Rebuild the client from persisted credentials so relaunch skips
      * pairing; returns true when a usable identity existed. The signing key
      * opens through the keystore-held AES key. */
-    fun restore(directory: java.io.File): Boolean {
+    suspend fun restore(directory: java.io.File): Boolean {
         restoreDirectory = directory
         val store = credentialsStore(directory)
-        val client = ai.deepseek.dsh.link.LinkClient.restore(store) ?: return false
-        switchingWire.replace(LinkWireDriving(client))
-        restored = true
-        return true
+        var candidate: ai.deepseek.dsh.link.LinkClient? = null
+        return try {
+            withContext(Dispatchers.IO) {
+                candidate = ai.deepseek.dsh.link.LinkClient.restore(store, linkTransportConfig)
+            }
+            val client = candidate ?: return false
+            candidate = null
+            switchingWire.replaceAndAwait(LinkWireDriving(client))
+            restored = true
+            true
+        } finally {
+            candidate?.closeAndAwait()
+        }
     }
 
     private fun credentialsStore(directory: java.io.File): ai.deepseek.dsh.link.FileLinkCredentialsStore =
@@ -144,22 +176,32 @@ object CompanionRuntime {
         )
 
     /** Pair with a scanned payload; returns the failure message, or null. */
-    suspend fun pair(payloadText: String, deviceName: String): String? = try {
-        val payload = ai.deepseek.dsh.link.LinkPayloadParsing.pairingPayload(payloadText)
-            ?: error("配对载荷无法识别")
-        val directory = restoreDirectory ?: error("no restore directory configured")
-        val store = credentialsStore(directory)
-        val client = ai.deepseek.dsh.link.LinkClient(
-            baseUrl = payload.endpoint,
-            pinnedFingerprint = payload.spkiFingerprint,
-            store = store,
-        )
-        client.pair(payload, deviceName)
-        switchingWire.replace(LinkWireDriving(client))
-        restored = true
-        null
-    } catch (failure: Exception) {
-        failure.message
+    suspend fun pair(payloadText: String, deviceName: String): String? {
+        var candidate: ai.deepseek.dsh.link.LinkClient? = null
+        return try {
+            val payload = ai.deepseek.dsh.link.LinkPayloadParsing.pairingPayload(payloadText)
+                ?: error("配对载荷无法识别")
+            val directory = restoreDirectory ?: error("no restore directory configured")
+            val store = credentialsStore(directory)
+            val client = ai.deepseek.dsh.link.LinkClient(
+                baseUrl = payload.endpoint,
+                pinnedFingerprint = payload.spkiFingerprint,
+                store = store,
+                transportConfig = linkTransportConfig,
+            )
+            candidate = client
+            client.pair(payload, deviceName)
+            candidate = null
+            switchingWire.replaceAndAwait(LinkWireDriving(client))
+            restored = true
+            null
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            failure.message
+        } finally {
+            candidate?.closeAndAwait()
+        }
     }
 }
 

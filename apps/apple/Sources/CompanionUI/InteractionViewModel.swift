@@ -53,6 +53,7 @@ public final class InteractionViewModel {
 
     private let wire: any CompanionWireDriving
     private var watchTask: Task<Void, Never>?
+    private var watching = false
 
     /// - Parameter wire: the wire driver; tests pass a fake.
     public init(wire: any CompanionWireDriving) {
@@ -67,26 +68,39 @@ public final class InteractionViewModel {
 
     /// Open the `$events` stream and collect forwarded interactions. The
     /// stream resubscribes on loss and waits for each generation's Host-owned
-    /// ready frame before an answer can use its client identity.
+    /// ready frame before an answer can use its client identity. Repeated
+    /// starts are idempotent; a start after stop awaits the prior task.
     public func startWatching() async {
-        watchTask?.cancel()
+        guard !watching else { return }
+        watching = true
+        if let previous = watchTask {
+            previous.cancel()
+            await previous.value
+        }
+        guard watching else { return }
+        let wire = self.wire
         watchTask = Task { [weak self] in
             while !Task.isCancelled {
-                guard let self else { return }
-                self.clientId = ""
+                guard self != nil else { return }
+                self?.clientId = ""
                 do {
-                    let frames = try await self.wire.stream("$events", payload: [:])
+                    let frames = try await wire.stream("$events", payload: [:])
                     for try await frame in frames {
+                        try Task.checkCancellation()
+                        guard let self else { return }
                         self.collect(frame)
                     }
                 } catch is CancellationError {
                     return
                 } catch {
-                    // Any stream failure invalidates this generation before the bounded retry.
-                    self.clientId = ""
+                    // A carrier failure and a clean end both invalidate this generation.
                 }
+                guard !Task.isCancelled else { return }
+                self?.clientId = ""
                 do {
                     try await Task.sleep(for: .seconds(1))
+                } catch is CancellationError {
+                    return
                 } catch {
                     return
                 }
@@ -95,9 +109,10 @@ public final class InteractionViewModel {
     }
 
     /// Stop watching; the inbox stays for review but no new events arrive.
+    /// A later start waits for cancellation to complete before opening another generation.
     public func stopWatching() {
+        watching = false
         watchTask?.cancel()
-        watchTask = nil
         clientId = ""
     }
 
@@ -141,13 +156,14 @@ public final class InteractionViewModel {
         }
         guard frameType == "waterfall",
               let id = WireShape.string(frame, field: "eventId"),
+              let agentId = WireShape.string(frame, field: "agentId"),
+              !agentId.isEmpty,
               let request = WireShape.object(frame, field: "request")
         else { return }
         let eventName = WireShape.string(frame, field: "event") ?? ""
         let isApproval = eventName.contains("approval")
         let isQuestion = eventName.contains("question")
         guard isApproval || isQuestion else { return }
-        let sessionId = WireShape.string(request, field: "sessionId") ?? ""
         let title = WireShape.string(request, field: "title")
             ?? WireShape.string(request, field: "toolName")
             ?? (isApproval ? "Approval requested" : "Question asked")
@@ -155,7 +171,7 @@ public final class InteractionViewModel {
         let pending = PendingInteraction(
             id: id,
             kind: isApproval ? .approval : .question,
-            sessionId: sessionId,
+            sessionId: agentId,
             title: title,
             detail: detail
         )

@@ -17,9 +17,9 @@ import javax.net.ssl.X509ExtendedTrustManager
  * leaf's SubjectPublicKeyInfo DER, compared exactly against the fingerprint
  * the pairing payload carried. The JDK exposes every key's SPKI through
  * `publicKey.encoded` directly, so no per-curve framing lives here. The
- * client installs the trust manager and verifier below on every HTTPS
- * connection before it obtains an output stream, so a mismatch rejects the
- * handshake before request bytes leave the device.
+ * client installs the trust manager and verifier below on its owned OkHttp
+ * transport before creating calls, so a mismatch rejects the handshake
+ * before request bytes leave the device.
  */
 object LinkPinning {
     /** Lowercase hex SHA-256 of the leaf's SPKI DER. */
@@ -41,10 +41,14 @@ object LinkPinning {
         }
     }
 
-    /** TLS context whose only server-trust rule is the pairing SPKI pin. */
-    internal fun sslContext(pinnedFingerprint: String): SSLContext =
+    /** Trust manager whose only server-trust rule is the pairing SPKI pin. */
+    internal fun trustManager(pinnedFingerprint: String): X509ExtendedTrustManager =
+        PinnedTrustManager(pinnedFingerprint)
+
+    /** TLS context backed by the exact trust manager installed on the HTTP client. */
+    internal fun sslContext(trustManager: X509ExtendedTrustManager): SSLContext =
         SSLContext.getInstance("TLS").apply {
-            init(null, arrayOf<TrustManager>(PinnedTrustManager(pinnedFingerprint)), SecureRandom())
+            init(null, arrayOf<TrustManager>(trustManager), SecureRandom())
         }
 
     /** Hostname verifier that repeats the SPKI check. The generated Host

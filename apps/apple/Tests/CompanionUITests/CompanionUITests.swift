@@ -9,6 +9,7 @@ actor FakeWire: CompanionWireDriving {
     private var answers: [String: Result<WireValue, Error>] = [:]
     private var answerQueues: [String: [Result<WireValue, Error>]] = [:]
     private var streams: [String: Result<[WireValue], Error>] = [:]
+    private var finiteStreams: [String: [[WireValue]]] = [:]
     private(set) var streamCalls: [(endpoint: String, payload: [String: WireValue])] = []
 
     func stub(_ method: String, answer: Result<WireValue, Error>) {
@@ -22,6 +23,11 @@ actor FakeWire: CompanionWireDriving {
 
     func stubStream(_ endpoint: String, frames: Result<[WireValue], Error>) {
         streams[endpoint] = frames
+    }
+
+    /// Queue generations that finish after their scripted frames.
+    func stubFiniteStreams(_ endpoint: String, generations: [[WireValue]]) {
+        finiteStreams[endpoint] = generations
     }
 
     func call(_ method: String, args: [String: WireValue]) async throws -> WireValue {
@@ -42,6 +48,14 @@ actor FakeWire: CompanionWireDriving {
 
     func stream(_ endpoint: String, payload: [String: WireValue]) async throws -> AsyncThrowingStream<WireValue, Error> {
         streamCalls.append((endpoint, payload))
+        if var generations = finiteStreams[endpoint], !generations.isEmpty {
+            let frames = generations.removeFirst()
+            finiteStreams[endpoint] = generations
+            return AsyncThrowingStream { continuation in
+                for frame in frames { continuation.yield(frame) }
+                continuation.finish()
+            }
+        }
         switch streams[endpoint] ?? .success([]) {
         case .success(let frames):
             return AsyncThrowingStream { continuation in
@@ -89,6 +103,15 @@ func chunkEntry(_ seq: Double, _ type: String, _ data: [String: WireValue]) -> W
 }
 
 @MainActor
+func eventually(_ condition: () async -> Bool) async -> Bool {
+    for _ in 0..<200 {
+        if await condition() { return true }
+        try? await Task.sleep(for: .milliseconds(10))
+    }
+    return false
+}
+
+@MainActor
 final class RemoteSessionViewModelTests: XCTestCase {
     func testLoadsAndProjectsSessionRows() async {
         let wire = FakeWire()
@@ -113,6 +136,56 @@ final class RemoteSessionViewModelTests: XCTestCase {
         let model = RemoteSessionViewModel(wire: wire)
         await model.loadSessions()
         XCTAssertEqual(model.listState, .failed("carrier 401: unknown device"))
+    }
+
+    func testCleanLossCreatesOneReplacementAndCloseDoesNotReconnect() async {
+        let wire = FakeWire()
+        await wire.stubFiniteStreams("session/follow", generations: [[
+            jsonObject([
+                "type": .string("snapshot"),
+                "cursor": .number(1),
+                "records": .array([eventEntry(1, "turn/start", ["turn": .number(1)])]),
+            ]),
+        ]])
+        await wire.stubStream("session/follow", frames: .success([
+            jsonObject([
+                "type": .string("snapshot"),
+                "cursor": .number(2),
+                "records": .array([eventEntry(2, "turn/start", ["turn": .number(2)])]),
+            ]),
+        ]))
+        let model = RemoteSessionViewModel(wire: wire)
+
+        await model.open(sessionId: "s1")
+        let replaced = await eventually { await wire.streamCalls.count == 2 }
+        XCTAssertTrue(replaced)
+        let replacementFolded = await eventually { model.active?.cursor == 2 }
+        XCTAssertTrue(replacementFolded)
+        let reconnectedCount = await wire.streamCalls.count
+        XCTAssertEqual(reconnectedCount, 2)
+
+        model.close()
+        try? await Task.sleep(for: .milliseconds(50))
+        let closedCount = await wire.streamCalls.count
+        XCTAssertEqual(closedCount, 2)
+    }
+
+    func testCloseDuringReconnectBackoffDoesNotOpenAnotherGeneration() async {
+        let wire = FakeWire()
+        await wire.stubFiniteStreams("session/follow", generations: [[], []])
+        let model = RemoteSessionViewModel(wire: wire)
+
+        await model.open(sessionId: "s1")
+        let enteredBackoff = await eventually {
+            let count = await wire.streamCalls.count
+            return count == 2 && model.reconnecting
+        }
+        XCTAssertTrue(enteredBackoff)
+
+        model.close()
+        try? await Task.sleep(for: .milliseconds(1_100))
+        let closedCount = await wire.streamCalls.count
+        XCTAssertEqual(closedCount, 2)
     }
 
     func testOpenFoldsRealRecordsIntoTimelineAndPaneState() async {
@@ -174,9 +247,7 @@ final class RemoteSessionViewModelTests: XCTestCase {
         ]))
         let model = RemoteSessionViewModel(wire: wire)
         await model.open(sessionId: "s1")
-        // The stream finished cleanly, which is a loss for a follow: the view
-        // model schedules a resubscribe; the assertions below hold before and
-        // after because folding is idempotent per open.
+        // The fake keeps this generation live after delivering its frames.
         try? await Task.sleep(for: .milliseconds(50))
         let active = model.active
         XCTAssertNotNil(active)
@@ -415,6 +486,56 @@ final class RemoteSessionViewModelTests: XCTestCase {
 
 @MainActor
 final class InteractionViewModelTests: XCTestCase {
+    func testWatchingIsIdempotentWhileTheGenerationIsLive() async {
+        let wire = FakeWire()
+        await wire.stubStream("$events", frames: .success([
+            jsonObject([
+                "type": .string("ready"), "clientId": .string("host-client-1"),
+                "host": jsonObject(["home": .string("/home/test")]),
+            ]),
+        ]))
+        let model = InteractionViewModel(wire: wire)
+
+        await model.startWatching()
+        let started = await eventually { await wire.streamCalls.count == 1 }
+        XCTAssertTrue(started)
+        await model.startWatching()
+        try? await Task.sleep(for: .milliseconds(50))
+        let duplicateStartCount = await wire.streamCalls.count
+        XCTAssertEqual(duplicateStartCount, 1)
+        model.stopWatching()
+    }
+
+    func testCleanLossAutomaticallyReplacesTheEventsGeneration() async {
+        let wire = FakeWire()
+        await wire.stubFiniteStreams("$events", generations: [[
+            jsonObject([
+                "type": .string("ready"), "clientId": .string("host-client-1"),
+                "host": jsonObject(["home": .string("/home/test")]),
+            ]),
+        ]])
+        await wire.stubStream("$events", frames: .success([
+            jsonObject([
+                "type": .string("ready"), "clientId": .string("host-client-2"),
+                "host": jsonObject(["home": .string("/home/test")]),
+            ]),
+        ]))
+        let model = InteractionViewModel(wire: wire)
+
+        await model.startWatching()
+        let replaced = await eventually { await wire.streamCalls.count == 2 }
+        XCTAssertTrue(replaced)
+        let replacementReady = await eventually { model.clientId == "host-client-2" }
+        XCTAssertTrue(replacementReady)
+        let reconnectedCount = await wire.streamCalls.count
+        XCTAssertEqual(reconnectedCount, 2)
+
+        model.stopWatching()
+        try? await Task.sleep(for: .milliseconds(50))
+        let closedCount = await wire.streamCalls.count
+        XCTAssertEqual(closedCount, 2)
+    }
+
     func testCollectsApprovalAndQuestionForwardsAndDeduplicates() {
         let model = InteractionViewModel(wire: FakeWire())
         model.collect(jsonObject([
@@ -425,13 +546,13 @@ final class InteractionViewModelTests: XCTestCase {
             "type": .string("waterfall"), "event": .string("approval/request"), "eventId": .string("e1"),
             "agentId": .string("a1"),
             "request": jsonObject([
-                "sessionId": .string("s1"), "title": .string("Run command"), "reason": .string("Needs shell"),
+                "title": .string("Run command"), "reason": .string("Needs shell"),
             ]),
         ]))
         model.collect(jsonObject([
             "type": .string("waterfall"), "event": .string("question/request"), "eventId": .string("e2"),
             "agentId": .string("a1"),
-            "request": jsonObject(["sessionId": .string("s1"), "text": .string("Pick one")]),
+            "request": jsonObject(["text": .string("Pick one")]),
         ]))
         model.collect(jsonObject([
             "type": .string("waterfall"), "event": .string("approval/request"), "eventId": .string("e1"),
@@ -440,9 +561,11 @@ final class InteractionViewModelTests: XCTestCase {
         XCTAssertEqual(model.clientId, "host-client-1")
         XCTAssertEqual(model.inbox.count, 2)
         XCTAssertEqual(model.inbox[0].kind, .approval)
+        XCTAssertEqual(model.inbox[0].sessionId, "a1")
         XCTAssertEqual(model.inbox[0].title, "Run command")
         XCTAssertEqual(model.inbox[0].detail, "Needs shell")
         XCTAssertEqual(model.inbox[1].kind, .question)
+        XCTAssertEqual(model.inbox[1].sessionId, "a1")
         XCTAssertEqual(model.inbox[1].detail, "Pick one")
 
         model.collect(jsonObject(["type": .string("cancel"), "eventId": .string("e1")]))

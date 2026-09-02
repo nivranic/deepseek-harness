@@ -64,6 +64,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | [`Sources/SharedAppleRemoteCore/LinkKeychain.swift`](Sources/SharedAppleRemoteCore/LinkKeychain.swift) | Keychain-backed identity storage |
 | `Sources/SharedAppleRemoteCore/LinkContracts.swift` | Generated unary, stream, Remote Event, recovery, and JSON models — never hand-edited |
 | `Tests/SharedAppleRemoteCoreTests/` | Fixture replay and signing vocabulary tests |
+| `Tests/LinkNativeAcceptance/LinkNativeAcceptance.swift` | The standalone Swift driver for the shared real-Host vertical-slice corpus |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI app layer: theming, session UI, interaction inbox, plan/todo/goal pane, tool trajectory, files browser, subagent children |
 | `Sources/CompanionUI/SessionFold.swift` | The pure domain-state fold — the Swift half of the conformance scenarios |
 | `Sources/CompanionUI/FileChange.swift` | The projection from the tool trajectory to read-only file changes — the chapter-55 first-version diff review |
@@ -90,7 +91,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
 
-- **Compiled and tested in CI** — the [Apple Swift](../.github/workflows/apple-swift.yml) lane compiles the package and runs all tests on `macos-latest` for every `apps/apple` change (pull request, dev, and master); the fixture replay runs on both sides of the drift gate.
+- **Compiled and tested in CI** — the [Apple Swift](../../.github/workflows/apple-swift.yml) lane compiles the package and runs all tests on `macos-latest` for every `apps/apple` change (pull request, dev, and master); the fixture replay runs on both sides of the drift gate.
+- **Real Host acceptance** — the same lane runs `LinkNativeAcceptance` against the shipped base plus desktop Host composition and the single shared 13-step corpus. The result records separate Host and Client commits plus protocol, contract, and Session format versions; a missing or skipped step fails the lane.
 - **App shells build in CI** — `project.yml` (XcodeGen) defines the chapter-49 targets: DSH Companion for iPhone/iPad and the Mac companion, each a `@main` SwiftUI host embedding `CompanionRootView`; the lane generates `Companion.xcodeproj` (never committed) and builds both schemes. The macOS Direct Host target ships as the host-side skeleton (`Hosts/`, built on the lane); the files browser, the first-version read-only diff review, and the read-only artifacts pane have all shipped, and artifact content reads arrive with the resource channel.
 - **Single host identity** — the credentials store holds one pairing; multi-host switching arrives with the companion's host list.
 
