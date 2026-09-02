@@ -146,6 +146,12 @@ struct ObservedStreamGeneration: Sendable {
 /// models own every call and stream; this decorator records the same values
 /// before forwarding them without opening a second connection.
 actor ObservedCompanionWire: CompanionWireDriving {
+    private struct StreamGate {
+        let endpoints: Set<String>
+        var blocked: Set<String> = []
+        var waiters: [String: CheckedContinuation<Void, Error>] = [:]
+    }
+
     private let base: any CompanionWireDriving
     private var nextCallId = 0
     private var nextStreamId = 0
@@ -153,6 +159,7 @@ actor ObservedCompanionWire: CompanionWireDriving {
     private var observedStreams: [ObservedStreamGeneration] = []
     private var closedStreams = Set<Int>()
     private var streamTasks: [Int: Task<Void, Never>] = [:]
+    private var streamGate: StreamGate?
 
     init(base: any CompanionWireDriving) {
         self.base = base
@@ -203,6 +210,7 @@ actor ObservedCompanionWire: CompanionWireDriving {
 
         let source: AsyncThrowingStream<WireValue, Error>
         do {
+            try await waitAtStreamGateIfArmed(endpoint)
             source = try await base.stream(endpoint, payload: payload)
         } catch {
             await Self.fail(generation, error: error)
@@ -249,17 +257,73 @@ actor ObservedCompanionWire: CompanionWireDriving {
         observedStreams.filter { $0.endpoint == endpoint }
     }
 
+    /// Hold the next generation of every named endpoint immediately before
+    /// it calls the production wire. The active generation remains untouched.
+    func armNextStreams(_ endpoints: Set<String>) throws {
+        guard !endpoints.isEmpty, streamGate == nil else {
+            throw AcceptanceFailure("acceptance stream gate is already armed or empty")
+        }
+        streamGate = StreamGate(endpoints: endpoints)
+    }
+
+    /// Endpoints whose replacement tasks reached the armed pre-wire gate.
+    func blockedStreamGateEndpoints() -> Set<String>? {
+        streamGate?.blocked
+    }
+
+    /// Release one fully-arrived gate and clear it before production stream
+    /// creation resumes. A later same-cut reconnect must arm a new gate.
+    func releaseStreamGate() throws {
+        guard let gate = streamGate,
+              gate.blocked == gate.endpoints,
+              Set(gate.waiters.keys) == gate.endpoints else {
+            throw AcceptanceFailure("acceptance stream gate was released before every endpoint arrived")
+        }
+        streamGate = nil
+        for continuation in gate.waiters.values {
+            continuation.resume()
+        }
+    }
+
+    /// Clear an armed gate during failure cleanup and unblock every waiter.
+    /// Clearing first lets any later retry bypass the failed acceptance window.
+    func cancelStreamGate() {
+        guard let gate = streamGate else { return }
+        streamGate = nil
+        for continuation in gate.waiters.values {
+            continuation.resume()
+        }
+    }
+
     /// End the current generation for one endpoint and await its observation pump.
     func interruptCurrent(streamId: Int, endpoint: String) async throws {
-        guard observedStreams.last(where: { $0.endpoint == endpoint })?.id == streamId,
-              !closedStreams.contains(streamId),
-              let task = streamTasks[streamId] else {
-            throw AcceptanceFailure("production stream is not the current observer for loss injection")
+        guard let generation = observedStreams.first(where: { $0.id == streamId && $0.endpoint == endpoint }) else {
+            throw AcceptanceFailure("production stream is not observed for loss injection")
         }
-        task.cancel()
-        await task.value
-        guard closedStreams.contains(streamId) else {
-            throw AcceptanceFailure("production stream loss did not close its observation pump")
+        try await interruptAndAwaitCurrent([generation])
+    }
+
+    /// Cancel every current observer task before awaiting any one of them.
+    /// Each task owns the production stream iterator, so completion proves
+    /// both the iterator and its forwarding task left the lost generation.
+    func interruptAndAwaitCurrent(_ generations: [ObservedStreamGeneration]) async throws {
+        guard !generations.isEmpty,
+              Set(generations.map(\.endpoint)).count == generations.count else {
+            throw AcceptanceFailure("loss injection requires distinct observed endpoints")
+        }
+        var tasks: [Task<Void, Never>] = []
+        for generation in generations {
+            guard observedStreams.last(where: { $0.endpoint == generation.endpoint })?.id == generation.id,
+                  !closedStreams.contains(generation.id),
+                  let task = streamTasks[generation.id] else {
+                throw AcceptanceFailure("production stream is not the current observer for loss injection")
+            }
+            tasks.append(task)
+        }
+        for task in tasks { task.cancel() }
+        for task in tasks { await task.value }
+        guard generations.allSatisfy({ closedStreams.contains($0.id) }) else {
+            throw AcceptanceFailure("production stream loss did not close every observation pump")
         }
     }
 
@@ -273,6 +337,26 @@ actor ObservedCompanionWire: CompanionWireDriving {
 
     private func close(_ id: Int) {
         closedStreams.insert(id)
+    }
+
+    private func waitAtStreamGateIfArmed(_ endpoint: String) async throws {
+        guard let gate = streamGate, gate.endpoints.contains(endpoint) else { return }
+        guard !gate.blocked.contains(endpoint) else {
+            throw AcceptanceFailure("more than one replacement reached the same armed stream gate")
+        }
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            guard var current = streamGate,
+                  current.endpoints.contains(endpoint),
+                  !current.blocked.contains(endpoint) else {
+                continuation.resume(throwing: AcceptanceFailure(
+                    "replacement stream reached a stale or duplicate stream gate"
+                ))
+                return
+            }
+            current.blocked.insert(endpoint)
+            current.waiters[endpoint] = continuation
+            streamGate = current
+        }
     }
 
     private static func observe(

@@ -1,3 +1,4 @@
+import CompanionUI
 import Foundation
 import SharedAppleRemoteCore
 
@@ -17,6 +18,18 @@ struct AcceptanceConfig: Decodable {
 }
 
 struct AcceptanceCorpus: Decodable {
+    struct Recovery: Decodable {
+        let prompt: String
+        let faultAfter: String
+        let expectedTerminalKind: String
+        let minimumOfflineSeqAdvance: Int
+        let expectedFollowReplacementCount: Int
+        let expectedEventReplacementCount: Int
+        let expectedSameCutReconnectCount: Int
+        let expectedSnapshotHasMore: Bool
+        let expectedFinalProjectionRelation: String
+    }
+
     struct Step: Decodable {
         let id: String
         let targetSessionId: String?
@@ -34,6 +47,7 @@ struct AcceptanceCorpus: Decodable {
         let expectedEventReplacementCount: Int?
         let expectedAuthoritativeSnapshot: Bool?
         let expectedClientIdRefresh: Bool?
+        let recovery: Recovery?
     }
 
     let schemaVersion: Int
@@ -47,6 +61,18 @@ struct AcceptanceResult: Encodable {
         let status: String
     }
 
+    struct Recovery: Encodable {
+        let preFaultSeq: Int
+        let recoverySnapshotCursor: Int
+        let repeatedSnapshotCursor: Int
+        let offlineSeqCount: Int
+        let recoverySnapshotHasMore: Bool
+        let followReplacementCount: Int
+        let eventReplacementCount: Int
+        let beforeRepeatedReconnectProjection: CompanionDomainState
+        let afterRepeatedReconnectProjection: CompanionDomainState
+    }
+
     let schemaVersion: Int
     let language: String
     let corpusSha256: String
@@ -56,6 +82,7 @@ struct AcceptanceResult: Encodable {
     let contractVersion: Int
     let sessionFormatVersion: Int
     let steps: [Step]
+    let recovery: Recovery
 }
 
 struct AcceptanceFailure: Error, CustomStringConvertible {

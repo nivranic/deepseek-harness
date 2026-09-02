@@ -1,5 +1,10 @@
 import Foundation
 
+struct AcceptanceRecoveryStatus {
+    let hostFinalCursor: Int
+    let offlineSeqCount: Int
+}
+
 struct AcceptanceControlClient {
     private let baseURL: URL
     private let token: String
@@ -64,6 +69,45 @@ struct AcceptanceControlClient {
         }
     }
 
+    func waitForRecoveryStatus(
+        preFaultSeq: Int,
+        timeout: TimeInterval
+    ) async throws -> AcceptanceRecoveryStatus {
+        guard preFaultSeq >= 0 else {
+            throw AcceptanceFailure("recovery pre-fault sequence is invalid")
+        }
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            let (status, data) = try await request(
+                path: "recovery/status?preFaultSeq=\(preFaultSeq)",
+                method: "GET"
+            )
+            if status == 200 {
+                guard Self.hasExactObjectKeys(data, keys: ["hostFinalCursor", "offlineSeqCount"]),
+                      let response = try? JSONDecoder().decode(RecoveryStatusResponse.self, from: data),
+                      response.hostFinalCursor >= preFaultSeq,
+                      response.offlineSeqCount >= 0 else {
+                    throw AcceptanceFailure("recovery control returned an invalid completion response")
+                }
+                return AcceptanceRecoveryStatus(
+                    hostFinalCursor: response.hostFinalCursor,
+                    offlineSeqCount: response.offlineSeqCount
+                )
+            }
+            if status == 202 {
+                guard Self.hasExactObjectKeys(data, keys: ["pending"]),
+                      let response = try? JSONDecoder().decode(PendingResponse.self, from: data),
+                      response.pending else {
+                    throw AcceptanceFailure("recovery control returned an invalid pending response")
+                }
+                try await Task.sleep(nanoseconds: 50_000_000)
+                continue
+            }
+            throw AcceptanceFailure("recovery control returned unexpected status \(status)")
+        }
+        throw AcceptanceFailure("recovery status timed out")
+    }
+
     private func request(path: String, method: String) async throws -> (Int, Data) {
         let trimmed = baseURL.absoluteString.hasSuffix("/")
             ? String(baseURL.absoluteString.dropLast())
@@ -87,8 +131,20 @@ struct AcceptanceControlClient {
         return (http.statusCode, data)
     }
 
+    private static func hasExactObjectKeys(_ data: Data, keys: Set<String>) -> Bool {
+        guard let value = try? JSONSerialization.jsonObject(with: data),
+              let object = value as? [String: Any] else {
+            return false
+        }
+        return Set(object.keys) == keys
+    }
+
     private struct StartedResponse: Decodable { let started: Bool }
     private struct PendingResponse: Decodable { let pending: Bool }
     private struct OutcomeResponse: Decodable { let outcome: String }
     private struct RevokedResponse: Decodable { let revoked: Bool }
+    private struct RecoveryStatusResponse: Decodable {
+        let hostFinalCursor: Int
+        let offlineSeqCount: Int
+    }
 }

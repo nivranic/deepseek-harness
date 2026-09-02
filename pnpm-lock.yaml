@@ -391,6 +391,9 @@ importers:
       '@deepseek-ai/dsh-link-client':
         specifier: workspace:^
         version: link:../../packages/remote/link-client
+      '@deepseek-ai/dsh-link-contracts':
+        specifier: workspace:^
+        version: link:../../packages/remote/link-contracts
       '@deepseek-ai/dsh-llm':
         specifier: workspace:^
         version: link:../../packages/llm/llm

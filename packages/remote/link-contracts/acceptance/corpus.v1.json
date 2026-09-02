@@ -42,7 +42,18 @@
       "expectedFollowReplacementCount": 1,
       "expectedEventReplacementCount": 1,
       "expectedAuthoritativeSnapshot": true,
-      "expectedClientIdRefresh": true
+      "expectedClientIdRefresh": true,
+      "recovery": {
+        "prompt": "Complete the Link acceptance turn while both client streams are offline.",
+        "faultAfter": "first-assistant-chunk",
+        "expectedTerminalKind": "completed",
+        "minimumOfflineSeqAdvance": 1,
+        "expectedFollowReplacementCount": 2,
+        "expectedEventReplacementCount": 2,
+        "expectedSameCutReconnectCount": 1,
+        "expectedSnapshotHasMore": false,
+        "expectedFinalProjectionRelation": "authoritative-snapshot-fold"
+      }
     },
     { "id": "revoke" }
   ]

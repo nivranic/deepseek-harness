@@ -30,4 +30,4 @@ Apple 与 Android workflow 安装仓库 JavaScript 依赖，经 orchestrator 执
 
 ## 后果
 
-原生变更现在承担更重的平台检查：Apple 与 Android 车道除编译自身源码外，还必须安装 Host 依赖并保留机器可读 artifact。该测试保持无密钥且确定性，loopback control listener 在临时运行之外不可用，且 dirty source input 不能产生 `PASS`。[carrier 多设备 slice](2026-08-30-carrier-session-slice-e2e.zh.md) 仍是双 controller settlement 的互补证据；本 corpus 每次证明一个真实原生客户端，不能替代专门的恢复故障注入任务。
+原生变更现在承担更重的平台检查：Apple 与 Android 车道除编译自身源码外，还必须安装 Host 依赖并保留机器可读 artifact。该测试保持无密钥且确定性，loopback control listener 在临时运行之外不可用，且 dirty source input 不能产生 `PASS`。[carrier 多设备 slice](2026-08-30-carrier-session-slice-e2e.zh.md)仍是双 controller settlement 的互补证据，而[离线恢复验收](2026-09-03-native-link-offline-recovery-acceptance.zh.md)则以 streaming loss 与权威 projection 检查扩展同一 corpus；每次 native execution 仍只证明一个客户端。

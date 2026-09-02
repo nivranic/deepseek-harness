@@ -1,7 +1,20 @@
 import CompanionUI
 import CryptoKit
 import Foundation
+import Observation
 import SharedAppleRemoteCore
+
+private actor ActiveMutationCapture {
+    private var changed = false
+
+    func markChanged() {
+        changed = true
+    }
+
+    func hasChanged() -> Bool {
+        changed
+    }
+}
 
 struct AcceptanceRunner {
     private static let operationTimeout: TimeInterval = 30
@@ -44,6 +57,7 @@ struct AcceptanceRunner {
         let promptStep = decodedCorpus.steps.first { $0.id == "prompt" }
         let approvalStep = decodedCorpus.steps.first { $0.id == "approval" }
         let reconnectStep = decodedCorpus.steps.first { $0.id == "reconnect" }
+        let recovery = reconnectStep?.recovery
         let decoySessionId = listStep?.decoySessionId
         guard decodedCorpus.schemaVersion == 1,
               decodedCorpus.contractVersion == 1,
@@ -70,7 +84,16 @@ struct AcceptanceRunner {
               reconnectStep?.expectedFollowReplacementCount == 1,
               reconnectStep?.expectedEventReplacementCount == 1,
               reconnectStep?.expectedAuthoritativeSnapshot == true,
-              reconnectStep?.expectedClientIdRefresh == true else {
+              reconnectStep?.expectedClientIdRefresh == true,
+              recovery?.prompt.isEmpty == false,
+              recovery?.faultAfter == "first-assistant-chunk",
+              recovery?.expectedTerminalKind == "completed",
+              recovery?.minimumOfflineSeqAdvance == 1,
+              recovery?.expectedFollowReplacementCount == 2,
+              recovery?.expectedEventReplacementCount == 2,
+              recovery?.expectedSameCutReconnectCount == 1,
+              recovery?.expectedSnapshotHasMore == false,
+              recovery?.expectedFinalProjectionRelation == "authoritative-snapshot-fold" else {
             throw AcceptanceFailure("acceptance corpus does not contain the exact ordered 13-step semantics")
         }
 
@@ -452,12 +475,204 @@ struct AcceptanceRunner {
               eventReplacementCount == expectedEventReplacementCount else {
             throw AcceptanceFailure("production reconnect did not open the expected replacement generations")
         }
+
+        let recovery = try corpusRecovery()
+        let recoveryFollowStartCount = followGenerationCount
+        let recoveryEventStartCount = eventGenerationCount
+        let gatedEndpoints: Set<String> = ["session/follow", "$events"]
+        try await wire.armNextStreams(gatedEndpoints)
+        let firstRecoveryChunk: ObservedSessionEvent
+        let preFaultSeq: Int
+        let recoveryStatus: AcceptanceRecoveryStatus
+        let recoveryActiveMutation: ActiveMutationCapture
+        do {
+            let recoveryPromptIndex = await wire.calls(method: "session/prompt").count
+            await sessions.send(text: recovery.prompt)
+            let recoveryPrompt = try await Self.waitForCall(
+                wire,
+                method: "session/prompt",
+                index: recoveryPromptIndex
+            )
+            try Self.validatePromptCall(recoveryPrompt, sessionId: sessionId, text: recovery.prompt)
+            firstRecoveryChunk = try await Self.waitForFirstAssistantChunk(
+                secondFollowCapture,
+                after: reopenedSnapshot.cursor
+            )
+            guard recovery.faultAfter == "first-assistant-chunk" else {
+                throw AcceptanceFailure("recovery fault is not anchored to the first assistant chunk")
+            }
+            preFaultSeq = firstRecoveryChunk.seq
+            try await Self.wait("production recovery first-chunk consumption") {
+                guard let active = sessions.active,
+                      active.sessionId == sessionId,
+                      active.cursor >= Double(firstRecoveryChunk.seq) else {
+                    return nil
+                }
+                return true
+            }
+            try await wire.interruptAndAwaitCurrent([secondFollow, secondEvents])
+            let interruptedRecoveryFollow = await secondFollowCapture.state()
+            let interruptedRecoveryEvents = await secondEventsCapture.state()
+            guard interruptedRecoveryFollow.ended,
+                  interruptedRecoveryFollow.failure == nil,
+                  interruptedRecoveryEvents.ended,
+                  interruptedRecoveryEvents.failure == nil else {
+                throw AcceptanceFailure("recovery did not cancel both production stream iterators cleanly")
+            }
+            try await Self.waitForStreamGate(wire, endpoints: gatedEndpoints)
+            recoveryStatus = try await control.waitForRecoveryStatus(
+                preFaultSeq: preFaultSeq,
+                timeout: Self.operationTimeout
+            )
+            guard recoveryStatus.hostFinalCursor > preFaultSeq,
+                  recoveryStatus.offlineSeqCount >= recovery.minimumOfflineSeqAdvance else {
+                throw AcceptanceFailure("Host recovery did not advance enough while both streams were offline")
+            }
+
+            recoveryActiveMutation = Self.observeNextActiveMutation(sessions)
+            try await wire.releaseStreamGate()
+        } catch {
+            await wire.cancelStreamGate()
+            throw error
+        }
+        let recoveryFollow = try await Self.waitForStream(
+            wire,
+            endpoint: "session/follow",
+            index: recoveryFollowStartCount
+        )
+        try Self.validateFollowPayload(recoveryFollow, sessionId: sessionId)
+        guard let recoveryFollowCapture = recoveryFollow.follow else {
+            throw AcceptanceFailure("recovery follow replacement omitted its capture")
+        }
+        let recoverySnapshot = try await Self.waitForSnapshot(recoveryFollowCapture)
+        try Self.validate(snapshot: recoverySnapshot, sessionId: sessionId)
+        try Self.validateRecoverySnapshot(
+            recoverySnapshot,
+            firstChunk: firstRecoveryChunk,
+            hostFinalCursor: recoveryStatus.hostFinalCursor,
+            expectedTerminalKind: recovery.expectedTerminalKind,
+            expectedHasMore: recovery.expectedSnapshotHasMore
+        )
+
+        let recoveryEvents = try await Self.waitForStream(
+            wire,
+            endpoint: "$events",
+            index: recoveryEventStartCount
+        )
+        let recoveryEventsPayload = try recoveryEvents.decodedPayload()
+        guard recoveryEventsPayload.isEmpty,
+              let recoveryEventsCapture = recoveryEvents.forwardedEvents else {
+            throw AcceptanceFailure("recovery $events replacement opened the wrong payload")
+        }
+        let recoveryClientId = try await Self.waitForReady(recoveryEventsCapture)
+        try await Self.wait("production interaction recovery identity") {
+            interactions.clientId == recoveryClientId ? true : nil
+        }
+        guard recoveryClientId != secondClientId else {
+            throw AcceptanceFailure("recovery $events replacement reused its lost clientId")
+        }
+        try await Self.waitForActiveMutation(
+            recoveryActiveMutation,
+            context: "production recovery snapshot consumption"
+        )
+        let beforeRepeatedReconnectProjection = try Self.productProjection(
+            sessions,
+            sessionId: sessionId,
+            cursor: recoverySnapshot.cursor
+        )
+
+        try await wire.armNextStreams(gatedEndpoints)
+        let repeatedActiveMutation: ActiveMutationCapture
+        do {
+            try await wire.interruptAndAwaitCurrent([recoveryFollow, recoveryEvents])
+            let interruptedRepeatedFollow = await recoveryFollowCapture.state()
+            let interruptedRepeatedEvents = await recoveryEventsCapture.state()
+            guard interruptedRepeatedFollow.ended,
+                  interruptedRepeatedFollow.failure == nil,
+                  interruptedRepeatedEvents.ended,
+                  interruptedRepeatedEvents.failure == nil else {
+                throw AcceptanceFailure("same-cut reconnect did not cancel both production stream iterators cleanly")
+            }
+            try await Self.waitForStreamGate(wire, endpoints: gatedEndpoints)
+            repeatedActiveMutation = Self.observeNextActiveMutation(sessions)
+            try await wire.releaseStreamGate()
+        } catch {
+            await wire.cancelStreamGate()
+            throw error
+        }
+
+        let repeatedFollow = try await Self.waitForStream(
+            wire,
+            endpoint: "session/follow",
+            index: recoveryFollowStartCount + recovery.expectedSameCutReconnectCount
+        )
+        try Self.validateFollowPayload(repeatedFollow, sessionId: sessionId)
+        guard let repeatedFollowCapture = repeatedFollow.follow else {
+            throw AcceptanceFailure("same-cut follow replacement omitted its capture")
+        }
+        let repeatedSnapshot = try await Self.waitForSnapshot(repeatedFollowCapture)
+        try Self.validate(snapshot: repeatedSnapshot, sessionId: sessionId)
+        guard repeatedSnapshot.cursor == recoverySnapshot.cursor,
+              repeatedSnapshot.hasMore == recovery.expectedSnapshotHasMore else {
+            throw AcceptanceFailure("same-cut reconnect changed the authoritative Host cut")
+        }
+
+        let repeatedEvents = try await Self.waitForStream(
+            wire,
+            endpoint: "$events",
+            index: recoveryEventStartCount + recovery.expectedSameCutReconnectCount
+        )
+        let repeatedEventsPayload = try repeatedEvents.decodedPayload()
+        guard repeatedEventsPayload.isEmpty,
+              let repeatedEventsCapture = repeatedEvents.forwardedEvents else {
+            throw AcceptanceFailure("same-cut $events replacement opened the wrong payload")
+        }
+        let repeatedClientId = try await Self.waitForReady(repeatedEventsCapture)
+        try await Self.wait("production interaction same-cut identity") {
+            interactions.clientId == repeatedClientId ? true : nil
+        }
+        guard repeatedClientId != recoveryClientId else {
+            throw AcceptanceFailure("same-cut $events replacement reused its lost clientId")
+        }
+        try await Self.waitForActiveMutation(
+            repeatedActiveMutation,
+            context: "production same-cut snapshot consumption"
+        )
+        let afterRepeatedReconnectProjection = try Self.productProjection(
+            sessions,
+            sessionId: sessionId,
+            cursor: repeatedSnapshot.cursor
+        )
+        guard recovery.expectedFinalProjectionRelation == "authoritative-snapshot-fold",
+              afterRepeatedReconnectProjection == beforeRepeatedReconnectProjection else {
+            throw AcceptanceFailure("same-cut reconnect did not reproduce the complete product projection")
+        }
+
+        let recoveryFollowReplacementCount = await wire.streams(endpoint: "session/follow").count
+            - recoveryFollowStartCount
+        let recoveryEventReplacementCount = await wire.streams(endpoint: "$events").count
+            - recoveryEventStartCount
+        guard recoveryFollowReplacementCount == recovery.expectedFollowReplacementCount,
+              recoveryEventReplacementCount == recovery.expectedEventReplacementCount else {
+            throw AcceptanceFailure("streaming recovery opened the wrong number of replacement generations")
+        }
+        let recoveryResult = AcceptanceResult.Recovery(
+            preFaultSeq: preFaultSeq,
+            recoverySnapshotCursor: recoverySnapshot.cursor,
+            repeatedSnapshotCursor: repeatedSnapshot.cursor,
+            offlineSeqCount: recoveryStatus.offlineSeqCount,
+            recoverySnapshotHasMore: recoverySnapshot.hasMore,
+            followReplacementCount: recoveryFollowReplacementCount,
+            eventReplacementCount: recoveryEventReplacementCount,
+            beforeRepeatedReconnectProjection: beforeRepeatedReconnectProjection,
+            afterRepeatedReconnectProjection: afterRepeatedReconnectProjection
+        )
         try pass("reconnect")
 
         sessions.close()
         interactions.stopWatching()
-        try await wire.awaitClosed(streamId: secondFollow.id)
-        try await wire.awaitClosed(streamId: secondEvents.id)
+        try await wire.awaitClosed(streamId: repeatedFollow.id)
+        try await wire.awaitClosed(streamId: repeatedEvents.id)
 
         try await control.revoke()
         do {
@@ -469,7 +684,7 @@ struct AcceptanceRunner {
             }
         }
         try pass("revoke")
-        try writeResult(description: description)
+        try writeResult(description: description, recovery: recoveryResult)
     }
 
     private mutating func pass(_ id: String) throws {
@@ -480,7 +695,10 @@ struct AcceptanceRunner {
         passed.append(id)
     }
 
-    private func writeResult(description: LinkHostDescription) throws {
+    private func writeResult(
+        description: LinkHostDescription,
+        recovery: AcceptanceResult.Recovery
+    ) throws {
         guard passed == requiredStepIDs,
               let linkProtocolVersion = Int(exactly: description.linkProtocolVersion),
               let contractVersion = Int(exactly: description.contractVersion),
@@ -496,7 +714,8 @@ struct AcceptanceRunner {
             linkProtocolVersion: linkProtocolVersion,
             contractVersion: contractVersion,
             sessionFormatVersion: sessionFormatVersion,
-            steps: corpus.steps.map { .init(id: $0.id, status: "PASS") }
+            steps: corpus.steps.map { .init(id: $0.id, status: "PASS") },
+            recovery: recovery
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
@@ -615,6 +834,81 @@ struct AcceptanceRunner {
                       && $0.terminalCause == "user"
               }) else {
             throw AcceptanceFailure("reopened follow omitted the current completed or cancelled turn")
+        }
+    }
+
+    private static func validateRecoverySnapshot(
+        _ snapshot: FollowSnapshot,
+        firstChunk: ObservedSessionEvent,
+        hostFinalCursor: Int,
+        expectedTerminalKind: String,
+        expectedHasMore: Bool
+    ) throws {
+        guard firstChunk.type == "assistant/chunk",
+              let recoveryTurn = firstChunk.turn,
+              expectedTerminalKind == "completed",
+              snapshot.cursor == hostFinalCursor,
+              snapshot.hasMore == expectedHasMore,
+              snapshot.records.contains(where: {
+                  $0.seq > firstChunk.seq
+                      && $0.turn == recoveryTurn
+                      && $0.type == "turn/end"
+                      && $0.terminalKind == expectedTerminalKind
+              }) else {
+            throw AcceptanceFailure("recovery snapshot omitted the offline completed turn or Host cut")
+        }
+    }
+
+    @MainActor
+    private static func productProjection(
+        _ sessions: RemoteSessionViewModel,
+        sessionId: String,
+        cursor: Int
+    ) throws -> CompanionDomainState {
+        guard let active = sessions.active,
+              active.sessionId == sessionId,
+              active.cursor == Double(cursor) else {
+            throw AcceptanceFailure("production session model did not publish the authoritative recovery cut")
+        }
+        let pane = sessions.planTodoGoal
+        return CompanionDomainState(
+            cursor: active.cursor,
+            items: active.items.map {
+                CompanionDomainState.Item(seq: $0.seq, kind: $0.kind, text: $0.text)
+            },
+            planActive: pane.planActive,
+            todos: pane.todos.map {
+                CompanionDomainState.Todo(text: $0.text, status: $0.status)
+            },
+            goals: pane.goals.map {
+                CompanionDomainState.Goal(id: $0.id, title: $0.title, state: $0.state)
+            },
+            toolCalls: sessions.toolCalls,
+            images: sessions.images,
+            artifacts: sessions.artifacts
+        )
+    }
+
+    @MainActor
+    private static func observeNextActiveMutation(
+        _ sessions: RemoteSessionViewModel
+    ) -> ActiveMutationCapture {
+        let capture = ActiveMutationCapture()
+        withObservationTracking {
+            _ = sessions.active
+        } onChange: {
+            Task { await capture.markChanged() }
+        }
+        return capture
+    }
+
+    @MainActor
+    private static func waitForActiveMutation(
+        _ capture: ActiveMutationCapture,
+        context: String
+    ) async throws {
+        _ = try await wait(context) {
+            await capture.hasChanged() ? true : nil
         }
     }
 
@@ -781,8 +1075,17 @@ struct AcceptanceRunner {
                 expectedKeys = Set([
                     "id", "fault", "expectedFollowReplacementCount",
                     "expectedEventReplacementCount", "expectedAuthoritativeSnapshot",
-                    "expectedClientIdRefresh",
+                    "expectedClientIdRefresh", "recovery",
                 ])
+                guard let recovery = step["recovery"] as? [String: Any],
+                      Set(recovery.keys) == Set([
+                          "prompt", "faultAfter", "expectedTerminalKind",
+                          "minimumOfflineSeqAdvance", "expectedFollowReplacementCount",
+                          "expectedEventReplacementCount", "expectedSameCutReconnectCount",
+                          "expectedSnapshotHasMore", "expectedFinalProjectionRelation",
+                      ]) else {
+                    throw AcceptanceFailure("acceptance reconnect recovery does not match its locked schema")
+                }
             default:
                 expectedKeys = Set(["id"])
             }
@@ -859,6 +1162,13 @@ struct AcceptanceRunner {
         return value
     }
 
+    private func corpusRecovery() throws -> AcceptanceCorpus.Recovery {
+        guard let recovery = corpus.steps.first(where: { $0.id == "reconnect" })?.recovery else {
+            throw AcceptanceFailure("acceptance corpus omitted reconnect recovery semantics")
+        }
+        return recovery
+    }
+
     @MainActor
     private static func expectRefused(
         code: String,
@@ -910,6 +1220,41 @@ struct AcceptanceRunner {
             if let snapshot = state.snapshots.first { return snapshot }
             if state.ended { throw AcceptanceFailure("follow stream ended before its snapshot") }
             return nil
+        }
+    }
+
+    @MainActor
+    private static func waitForFirstAssistantChunk(
+        _ capture: FollowCapture,
+        after seq: Int
+    ) async throws -> ObservedSessionEvent {
+        let deadline = Date().addingTimeInterval(operationTimeout)
+        while Date() < deadline {
+            let state = await capture.state()
+            if let failure = state.failure { throw AcceptanceFailure("follow stream failed: \(failure)") }
+            if let chunk = state.events.first(where: {
+                $0.seq > seq && $0.type == "assistant/chunk"
+            }) {
+                return chunk
+            }
+            if state.events.contains(where: {
+                $0.seq > seq && $0.type == "turn/end" && $0.terminalKind != nil
+            }) {
+                throw AcceptanceFailure("recovery turn ended before its first assistant chunk was faulted")
+            }
+            if state.ended { throw AcceptanceFailure("follow stream ended before the first recovery chunk") }
+            try await Task.sleep(nanoseconds: 5_000_000)
+        }
+        throw AcceptanceFailure("timed out waiting for first recovery assistant chunk")
+    }
+
+    @MainActor
+    private static func waitForStreamGate(
+        _ wire: ObservedCompanionWire,
+        endpoints: Set<String>
+    ) async throws {
+        _ = try await wait("both replacement streams at the pre-wire gate") {
+            await wire.blockedStreamGateEndpoints() == endpoints ? true : nil
         }
     }
 

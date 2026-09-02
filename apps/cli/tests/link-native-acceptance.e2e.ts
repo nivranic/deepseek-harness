@@ -34,6 +34,11 @@ import {
   type LinkPairingPayload,
 } from '@deepseek-ai/dsh-link-access/protocol'
 import { LinkClient, LinkError } from '@deepseek-ai/dsh-link-client'
+import {
+  foldCompanionDomain,
+  type CompanionDomainState,
+  type CompanionRecord,
+} from '@deepseek-ai/dsh-link-contracts'
 import { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
 import {
   startMockLlmServer,
@@ -57,6 +62,7 @@ const HOST_DEVICE_NAME = 'Link Acceptance Host'
 const TEARDOWN_DEADLINE_MS = 60_000
 const EVIDENCE_RENAME_DEADLINE_MS = 75_000
 const AFTER_ALL_HOOK_TIMEOUT_MS = 120_000
+const CONTROL_REQUEST_TIMEOUT_MS = 30_000
 const STEP_IDS = [
   'pair',
   'connect',
@@ -184,6 +190,19 @@ interface ApprovalAcceptanceStep {
   readonly outcome: 'allowed-once'
 }
 
+/** Streaming-loss recovery expectations shared by every acceptance driver. */
+interface RecoveryAcceptanceSemantics {
+  readonly prompt: string
+  readonly faultAfter: 'first-assistant-chunk'
+  readonly expectedTerminalKind: 'completed'
+  readonly minimumOfflineSeqAdvance: 1
+  readonly expectedFollowReplacementCount: 2
+  readonly expectedEventReplacementCount: 2
+  readonly expectedSameCutReconnectCount: 1
+  readonly expectedSnapshotHasMore: false
+  readonly expectedFinalProjectionRelation: 'authoritative-snapshot-fold'
+}
+
 /** One interruption followed by exactly one authoritative replacement per active stream. */
 interface ReconnectAcceptanceStep {
   readonly id: 'reconnect'
@@ -192,6 +211,7 @@ interface ReconnectAcceptanceStep {
   readonly expectedEventReplacementCount: 1
   readonly expectedAuthoritativeSnapshot: true
   readonly expectedClientIdRefresh: true
+  readonly recovery: RecoveryAcceptanceSemantics
 }
 
 type AcceptanceStep =
@@ -237,6 +257,29 @@ interface AcceptanceResult {
   readonly contractVersion: number
   readonly sessionFormatVersion: number
   readonly steps: readonly { readonly id: StepId; readonly status: 'PASS' }[]
+  readonly recovery: RecoveryAcceptanceResult
+}
+
+/** Recovery observations emitted by a driver and independently checked by the Host. */
+interface RecoveryAcceptanceResult {
+  readonly preFaultSeq: number
+  readonly recoverySnapshotCursor: number
+  readonly repeatedSnapshotCursor: number
+  readonly offlineSeqCount: number
+  readonly recoverySnapshotHasMore: false
+  readonly followReplacementCount: number
+  readonly eventReplacementCount: number
+  readonly beforeRepeatedReconnectProjection: CompanionDomainState
+  readonly afterRepeatedReconnectProjection: CompanionDomainState
+}
+
+/** Authoritative Session cut computed inside the Host control process. */
+interface HostRecoveryEvidence {
+  readonly preFaultSeq: number
+  readonly hostFinalCursor: number
+  readonly offlineSeqCount: number
+  readonly snapshotHasMore: false
+  readonly canonicalProjection: CompanionDomainState
 }
 
 /** Optional external driver decoded from the process environment. */
@@ -278,16 +321,18 @@ interface ControlObservation {
   readonly modelRequestBaseline: number
   approvalStarts: number
   approval: ApprovalState | undefined
+  recoveryOfflineSeq: number | undefined
+  recovery: HostRecoveryEvidence | undefined
   revocation: RevocationState
   verified: boolean
 }
 
-/** Loopback-only coordinator that verifies approval and revocation effects. */
+/** Loopback-only coordinator that verifies Host recovery, approval, and revocation effects. */
 interface AcceptanceControl {
   readonly endpoint: string
   readonly token: string
   prepare(deviceName: string): void
-  verifyExpectedBehavior(): Promise<void>
+  verifyExpectedBehavior(): Promise<HostRecoveryEvidence>
   close(): Promise<void>
 }
 
@@ -345,15 +390,17 @@ function registerAcceptanceSuite(): void {
       const corpus = await readCorpus()
       const listStep = corpusStep(corpus, 'list')
       const promptStep = corpusStep(corpus, 'prompt')
+      const reconnectStep = corpusStep(corpus, 'reconnect')
       mock = await startMockLlmServer({
         host: '127.0.0.1',
         port: 0,
         apiKey: MOCK_CREDENTIAL,
         sequence: nativeDriver === undefined
-          ? ['success', 'stall']
-          : ['success', 'stall', 'success', 'stall'],
+          ? ['success', 'stall', 'slow_success']
+          : ['success', 'stall', 'slow_success', 'success', 'stall', 'slow_success'],
         successText: promptStep.expectedResponseText,
         chunkSize: 5,
+        chunkDelayMs: 500,
         randomSeed: 1,
       })
       await writeFile(join(home, 'settings.yaml'), '{}\n')
@@ -383,7 +430,7 @@ function registerAcceptanceSuite(): void {
           throw new Error('Link carrier is not ready for remote approval')
         }
       }, 'Link carrier bind')
-      control = await startControl(ctx, link, mock, listStep.targetSessionId)
+      control = await startControl(ctx, link, mock, listStep.targetSessionId, reconnectStep.recovery)
       suite = {
         home,
         corpus,
@@ -447,8 +494,13 @@ function registerAcceptanceSuite(): void {
         const referenceConfig = await driverConfig(current, 'typescript', 'Link Acceptance TypeScript')
         current.control.prepare(referenceConfig.deviceName)
         const reference = await runTypeScriptReference(referenceConfig, current.corpus)
-        await current.control.verifyExpectedBehavior()
-        const validatedReference = validateResult(reference, referenceConfig, current.corpus)
+        const referenceHostRecovery = await current.control.verifyExpectedBehavior()
+        const validatedReference = validateResult(
+          reference,
+          referenceConfig,
+          current.corpus,
+          referenceHostRecovery,
+        )
 
         if (current.nativeDriver !== undefined) {
           const nativeConfig = await driverConfig(
@@ -462,8 +514,8 @@ function registerAcceptanceSuite(): void {
           }
           current.control.prepare(nativeConfig.deviceName)
           const received = await runNativeDriver(current, current.nativeDriver, nativeConfig)
-          await current.control.verifyExpectedBehavior()
-          const native = validateResult(received, nativeConfig, current.corpus)
+          const nativeHostRecovery = await current.control.verifyExpectedBehavior()
+          const native = validateResult(received, nativeConfig, current.corpus, nativeHostRecovery)
           expect(native).toMatchObject({
             corpusSha256: validatedReference.corpusSha256,
             hostCommit: validatedReference.hostCommit,
@@ -477,8 +529,8 @@ function registerAcceptanceSuite(): void {
         }
 
         const expectedBehaviors = current.nativeDriver === undefined
-          ? ['success', 'stall']
-          : ['success', 'stall', 'success', 'stall']
+          ? ['success', 'stall', 'slow_success']
+          : ['success', 'stall', 'slow_success', 'success', 'stall', 'slow_success']
         await waitFor(() => {
           if (current.mock.requests.length !== expectedBehaviors.length
           || current.mock.requests.some(request => request.outcome === undefined)) {
@@ -488,7 +540,7 @@ function registerAcceptanceSuite(): void {
         }, 'mock LLM terminal outcomes')
         expect(current.mock.requests.map(request => request.behavior)).toEqual(expectedBehaviors)
         expect(current.mock.requests.map(request => request.outcome)).toEqual(
-          expectedBehaviors.map(behavior => behavior === 'success' ? 'completed' : 'client_closed'),
+          expectedBehaviors.map(behavior => behavior === 'stall' ? 'client_closed' : 'completed'),
         )
         await assertExecutionInputsClean(current.nativeDriver?.language, current.commit)
 
@@ -666,6 +718,7 @@ async function readCorpus(): Promise<AcceptanceCorpus> {
         'expectedFollowReplacementCount',
         'fault',
         'id',
+        'recovery',
       ])
         || step.fault !== 'interrupt-active-streams'
         || step.expectedFollowReplacementCount !== 1
@@ -674,6 +727,28 @@ async function readCorpus(): Promise<AcceptanceCorpus> {
         || step.expectedClientIdRefresh !== true) {
         throw new Error('Link acceptance reconnect step has invalid fields')
       }
+      const recovery = requireRecord(step.recovery, 'reconnect recovery')
+      if (!hasExactKeys(recovery, [
+        'expectedEventReplacementCount',
+        'expectedFinalProjectionRelation',
+        'expectedFollowReplacementCount',
+        'expectedSameCutReconnectCount',
+        'expectedSnapshotHasMore',
+        'expectedTerminalKind',
+        'faultAfter',
+        'minimumOfflineSeqAdvance',
+        'prompt',
+      ])
+        || recovery.faultAfter !== 'first-assistant-chunk'
+        || recovery.expectedTerminalKind !== 'completed'
+        || recovery.minimumOfflineSeqAdvance !== 1
+        || recovery.expectedFollowReplacementCount !== 2
+        || recovery.expectedEventReplacementCount !== 2
+        || recovery.expectedSameCutReconnectCount !== 1
+        || recovery.expectedSnapshotHasMore !== false
+        || recovery.expectedFinalProjectionRelation !== 'authoritative-snapshot-fold') {
+        throw new Error('Link acceptance reconnect recovery has invalid fields')
+      }
       return {
         id: expected,
         fault: step.fault,
@@ -681,6 +756,17 @@ async function readCorpus(): Promise<AcceptanceCorpus> {
         expectedEventReplacementCount: 1,
         expectedAuthoritativeSnapshot: true,
         expectedClientIdRefresh: true,
+        recovery: {
+          prompt: requireString(recovery.prompt, 'reconnect recovery prompt'),
+          faultAfter: 'first-assistant-chunk',
+          expectedTerminalKind: 'completed',
+          minimumOfflineSeqAdvance: 1,
+          expectedFollowReplacementCount: 2,
+          expectedEventReplacementCount: 2,
+          expectedSameCutReconnectCount: 1,
+          expectedSnapshotHasMore: false,
+          expectedFinalProjectionRelation: 'authoritative-snapshot-fold',
+        },
       }
     }
     if (!hasExactKeys(step, ['id'])) {
@@ -893,6 +979,7 @@ async function startControl(
   link: LinkAccessService,
   mock: MockLlmServer,
   targetSessionId: string,
+  recoverySemantics: RecoveryAcceptanceSemantics,
 ): Promise<AcceptanceControl> {
   const token = randomBytes(32).toString('hex')
   let observation: ControlObservation | undefined
@@ -903,7 +990,8 @@ async function startControl(
         writeJson(response, 401, { error: 'unauthorized' })
         return
       }
-      const path = new URL(request.url ?? '/', 'http://control.invalid').pathname
+      const url = new URL(request.url ?? '/', 'http://control.invalid')
+      const path = url.pathname
       if (request.method === 'POST' && path === '/approval/start') {
         request.resume()
         const current = observation
@@ -963,6 +1051,73 @@ async function startControl(
         writeJson(response, 200, { outcome: approval.outcome })
         return
       }
+      if (request.method === 'GET' && path === '/recovery/status') {
+        request.resume()
+        const current = observation
+        if (current === undefined) {
+          writeJson(response, 409, { error: 'driver-not-prepared' })
+          return
+        }
+        const rawPreFaultSeq = url.searchParams.get('preFaultSeq')
+        const preFaultSeq = rawPreFaultSeq === null ? Number.NaN : Number(rawPreFaultSeq)
+        if (url.searchParams.size !== 1 || !Number.isSafeInteger(preFaultSeq) || preFaultSeq < 0) {
+          writeJson(response, 400, { error: 'invalid-pre-fault-seq' })
+          return
+        }
+        if (current.recovery !== undefined) {
+          if (current.recovery.preFaultSeq !== preFaultSeq) {
+            writeJson(response, 409, { error: 'recovery-seq-changed' })
+            return
+          }
+          writeJson(response, 200, {
+            hostFinalCursor: current.recovery.hostFinalCursor,
+            offlineSeqCount: current.recovery.offlineSeqCount,
+          })
+          return
+        }
+        const requests = mock.requests.slice(current.modelRequestBaseline)
+        if (requests.length > 3) {
+          throw new Error(`prepared driver issued ${String(requests.length)} model requests before recovery`)
+        }
+        const recoveryRequest = requests[2]
+        if (requests.length < 3) {
+          writeJson(response, 202, { pending: true })
+          return
+        }
+        if (recoveryRequest?.behavior !== 'slow_success') {
+          throw new Error('prepared driver third model request is not slow_success')
+        }
+        if (recoveryRequest.outcome === undefined) {
+          if (current.recoveryOfflineSeq !== undefined && current.recoveryOfflineSeq !== preFaultSeq) {
+            throw new Error('prepared driver changed its recovery seq while the provider was active')
+          }
+          current.recoveryOfflineSeq = preFaultSeq
+          writeJson(response, 202, { pending: true })
+          return
+        }
+        if (current.recoveryOfflineSeq !== preFaultSeq) {
+          throw new Error('prepared driver did not observe the provider active after both streams closed')
+        }
+        if (recoveryRequest.outcome !== 'completed') {
+          throw new Error('prepared driver recovery request did not complete slow_success')
+        }
+        const recovered = await captureHostRecovery(
+          ctx,
+          targetSessionId,
+          preFaultSeq,
+          recoverySemantics,
+        )
+        if (recovered === undefined) {
+          writeJson(response, 202, { pending: true })
+          return
+        }
+        current.recovery = recovered
+        writeJson(response, 200, {
+          hostFinalCursor: recovered.hostFinalCursor,
+          offlineSeqCount: recovered.offlineSeqCount,
+        })
+        return
+      }
       if (request.method === 'POST' && path === '/revoke') {
         request.resume()
         const current = observation
@@ -1020,6 +1175,8 @@ async function startControl(
         modelRequestBaseline: mock.requests.length,
         approvalStarts: 0,
         approval: undefined,
+        recoveryOfflineSeq: undefined,
+        recovery: undefined,
         revocation: { kind: 'not-started' },
         verified: false,
       }
@@ -1033,6 +1190,19 @@ async function startControl(
         || current.approval.outcome !== 'allowed-once') {
         throw new Error('acceptance driver did not complete exactly one allowed-once approval')
       }
+      if (current.recovery === undefined) {
+        throw new Error('acceptance driver did not complete Host-observed recovery')
+      }
+      const finalRecovery = await captureHostRecovery(
+        ctx,
+        targetSessionId,
+        current.recovery.preFaultSeq,
+        recoverySemantics,
+      )
+      if (finalRecovery === undefined) {
+        throw new Error('acceptance driver recovery terminal disappeared before verification')
+      }
+      expect(finalRecovery).toEqual(current.recovery)
       if (current.revocation.kind !== 'complete') {
         throw new Error('acceptance driver did not execute one device revocation')
       }
@@ -1044,11 +1214,89 @@ async function startControl(
         throw new Error('acceptance driver revocation did not reach the Link trust store')
       }
       current.verified = true
+      return current.recovery
     },
     close: () => (closing ??= new Promise((resolve) => {
       server.close(() => { resolve() })
       server.closeAllConnections()
     })),
+  }
+}
+
+/** Read one stable Host cut after the recovery turn has completed. */
+async function captureHostRecovery(
+  ctx: Context,
+  targetSessionId: string,
+  preFaultSeq: number,
+  semantics: RecoveryAcceptanceSemantics,
+): Promise<HostRecoveryEvidence | undefined> {
+  const session = ctx.sessions.get(SessionId(targetSessionId))
+  if (session === undefined) throw new Error('recovery Session is not attached')
+  const events = session.events
+  for (const [index, event] of events.entries()) {
+    if (event.seq !== index) throw new Error(`recovery Session raw journal skipped or duplicated seq ${String(index)}`)
+  }
+  const preFault = events[preFaultSeq]
+  if (preFault?.type !== 'assistant/chunk') {
+    throw new Error('recovery pre-fault seq is not an assistant/chunk event')
+  }
+  const preFaultTurn = preFault.data.turn
+  const completed = events.some((event) => {
+    if (event.seq <= preFaultSeq || event.type !== 'turn/end') return false
+    const reason = event.data.reason
+    return event.data.turn === preFaultTurn && reason.kind === semantics.expectedTerminalKind
+  })
+  if (!completed) return undefined
+  const finalCursor = events.at(-1)?.seq ?? -1
+  const offlineSeqCount = events.filter(event => event.seq > preFaultSeq).length
+  if (offlineSeqCount !== finalCursor - preFaultSeq
+    || offlineSeqCount < semantics.minimumOfflineSeqAdvance) {
+    throw new Error('recovery Session offline interval is not a non-empty contiguous suffix')
+  }
+
+  const abort = new AbortController()
+  const signal = AbortSignal.any([
+    abort.signal,
+    AbortSignal.timeout(CONTROL_REQUEST_TIMEOUT_MS),
+  ])
+  const iterator = ctx.sessionController.follow({
+    address: { kind: 'session', sessionId: SessionId(targetSessionId) },
+    maxMessages: 50,
+  }, signal)[Symbol.asyncIterator]()
+  let opening: Awaited<ReturnType<typeof iterator.next>>
+  try {
+    opening = await iterator.next()
+  } finally {
+    abort.abort(new Error('recovery Host observation captured its opening cut'))
+    await iterator.return?.()
+  }
+  if (opening.done || opening.value.type !== 'snapshot') {
+    throw new Error('recovery Host follow did not open with a snapshot')
+  }
+  const snapshot = opening.value
+  if (snapshot.cursor !== finalCursor
+    || snapshot.hasMore !== semantics.expectedSnapshotHasMore
+    || snapshot.projections.asOfSeq !== finalCursor) {
+    throw new Error('recovery Host snapshot does not describe the final complete cut')
+  }
+  const page = await ctx.sessionController.page({
+    address: { kind: 'session', sessionId: SessionId(targetSessionId) },
+    throughSeq: snapshot.cursor,
+    maxMessages: 50,
+  }, AbortSignal.timeout(30_000))
+  expect(page.records).toEqual(snapshot.records)
+  expect(page.hasMore).toBe(snapshot.hasMore)
+  const canonicalProjection = foldCompanionDomain(snapshot.records)
+  const itemSeqs = canonicalProjection.items.map(item => item.seq)
+  if (canonicalProjection.cursor !== finalCursor || new Set(itemSeqs).size !== itemSeqs.length) {
+    throw new Error('recovery Host canonical projection has a cursor mismatch or duplicate item seq')
+  }
+  return {
+    preFaultSeq,
+    hostFinalCursor: finalCursor,
+    offlineSeqCount,
+    snapshotHasMore: false,
+    canonicalProjection,
   }
 }
 
@@ -1069,6 +1317,7 @@ async function runTypeScriptReference(
   let events: AsyncGenerator | undefined
   let eventsAbort: AbortController | undefined
   let eventsClientId: string | undefined
+  let recoveryResult: RecoveryAcceptanceResult | undefined
   let followGenerationCount = 0
   let eventGenerationCount = 0
   let primaryFailure: unknown
@@ -1254,6 +1503,104 @@ async function runTypeScriptReference(
       expect(followGenerationCount - previousFollowCount).toBe(step.expectedFollowReplacementCount)
       expect(eventGenerationCount - previousEventCount).toBe(step.expectedEventReplacementCount)
       if (step.expectedClientIdRefresh) expect(eventsClientId).not.toBe(previousClientId)
+
+      const recovery = step.recovery
+      const recoveryFollowBaseline = followGenerationCount
+      const recoveryEventBaseline = eventGenerationCount
+      const accepted = await promptSession(requireClient(client), config.sessionId, recovery.prompt)
+      expect(accepted).toEqual({ accepted: true })
+      const preFaultSeq = await readFirstAssistantChunkAfter(
+        requireStream(follow, 'session/follow'),
+        requireNumber(cancelledSeq, 'cancelled event seq'),
+      )
+      const recoveryFollow = requireStream(follow, 'session/follow')
+      const recoveryEvents = requireStream(events, '$events')
+      followAbort?.abort(new Error('acceptance interrupted follow during recovery streaming'))
+      eventsAbort?.abort(new Error('acceptance interrupted events during recovery streaming'))
+      await closeInterruptedStreams(recoveryFollow, recoveryEvents)
+      const hostRecovery = await waitForRecoveryStatus(config, preFaultSeq)
+      expect(hostRecovery.offlineSeqCount).toBeGreaterThanOrEqual(recovery.minimumOfflineSeqAdvance)
+
+      followAbort = new AbortController()
+      follow = requireClient(client).openStream('session/follow', {
+        request: sessionFollowRequest(config.sessionId),
+      }, followAbort.signal)
+      followGenerationCount += 1
+      const recoveredSnapshot = requireSnapshot(
+        requireRecord(await nextValue(follow, 'recovery session/follow'), 'recovery snapshot'),
+        config.sessionId,
+      )
+      expect(recoveredSnapshot.cursor).toBe(hostRecovery.hostFinalCursor)
+      expect(recoveredSnapshot.hasMore).toBe(recovery.expectedSnapshotHasMore)
+      const beforeRepeatedReconnectProjection = foldCompanionDomain(
+        requireCompanionRecords(recoveredSnapshot.records),
+      )
+
+      const recoveredEventsClientId = requireString(eventsClientId, 'pre-recovery $events client id')
+      eventsAbort = new AbortController()
+      events = requireClient(client).openStream('$events', {}, eventsAbort.signal)
+      eventGenerationCount += 1
+      const recoveryReady = requireRecord(
+        await nextValue(events, 'recovery $events ready'),
+        'recovery $events ready',
+      )
+      if (recoveryReady.type !== 'ready' || typeof recoveryReady.clientId !== 'string') {
+        throw new Error('recovery $events did not begin with a ready client id')
+      }
+      eventsClientId = recoveryReady.clientId
+      expect(eventsClientId).not.toBe(recoveredEventsClientId)
+
+      if (recovery.expectedSameCutReconnectCount !== 1) {
+        throw new Error('reference supports exactly one repeated same-cut reconnect')
+      }
+      const stableFollow = requireStream(follow, 'session/follow')
+      const stableEvents = requireStream(events, '$events')
+      followAbort.abort(new Error('acceptance repeated follow reconnect at a stable Host cut'))
+      eventsAbort.abort(new Error('acceptance repeated events reconnect at a stable Host cut'))
+      await closeInterruptedStreams(stableFollow, stableEvents)
+
+      followAbort = new AbortController()
+      follow = requireClient(client).openStream('session/follow', {
+        request: sessionFollowRequest(config.sessionId),
+      }, followAbort.signal)
+      followGenerationCount += 1
+      const repeatedSnapshot = requireSnapshot(
+        requireRecord(await nextValue(follow, 'repeated session/follow'), 'repeated snapshot'),
+        config.sessionId,
+      )
+      expect(repeatedSnapshot.cursor).toBe(hostRecovery.hostFinalCursor)
+      expect(repeatedSnapshot.hasMore).toBe(recovery.expectedSnapshotHasMore)
+      const afterRepeatedReconnectProjection = foldCompanionDomain(
+        requireCompanionRecords(repeatedSnapshot.records),
+      )
+      expect(afterRepeatedReconnectProjection).toEqual(beforeRepeatedReconnectProjection)
+
+      eventsAbort = new AbortController()
+      events = requireClient(client).openStream('$events', {}, eventsAbort.signal)
+      eventGenerationCount += 1
+      const repeatedReady = requireRecord(
+        await nextValue(events, 'repeated $events ready'),
+        'repeated $events ready',
+      )
+      if (repeatedReady.type !== 'ready' || typeof repeatedReady.clientId !== 'string') {
+        throw new Error('repeated $events did not begin with a ready client id')
+      }
+      eventsClientId = repeatedReady.clientId
+      expect(followGenerationCount - recoveryFollowBaseline)
+        .toBe(recovery.expectedFollowReplacementCount)
+      expect(eventGenerationCount - recoveryEventBaseline)
+        .toBe(recovery.expectedEventReplacementCount)
+      recoveryResult = {
+        preFaultSeq,
+        recoverySnapshotCursor: recoveredSnapshot.cursor,
+        repeatedSnapshotCursor: repeatedSnapshot.cursor,
+        offlineSeqCount: hostRecovery.offlineSeqCount,
+        recoverySnapshotHasMore: false,
+        followReplacementCount: followGenerationCount - recoveryFollowBaseline,
+        eventReplacementCount: eventGenerationCount - recoveryEventBaseline,
+        beforeRepeatedReconnectProjection,
+        afterRepeatedReconnectProjection,
+      }
     })
     await pass('revoke', async () => {
       const revoked = await controlRequest(config, '/revoke', 'POST')
@@ -1270,6 +1617,7 @@ async function runTypeScriptReference(
       contractVersion: corpus.contractVersion,
       sessionFormatVersion: SESSION_FORMAT_VERSION,
       steps: passed,
+      recovery: requireRecoveryResult(recoveryResult),
     }
   } catch (error) {
     hasPrimaryFailure = true
@@ -1490,6 +1838,7 @@ function validateResult(
   value: unknown,
   config: AcceptanceConfig,
   corpus: AcceptanceCorpus,
+  hostRecovery: HostRecoveryEvidence,
 ): AcceptanceResult {
   let serialized: string | undefined
   try {
@@ -1507,6 +1856,7 @@ function validateResult(
     'hostCommit',
     'language',
     'linkProtocolVersion',
+    'recovery',
     'schemaVersion',
     'sessionFormatVersion',
     'steps',
@@ -1529,6 +1879,31 @@ function validateResult(
       throw new Error(`${config.language} acceptance result is invalid`)
     }
   }
+  const recovery = isRecord(value.recovery) ? value.recovery : undefined
+  const semantics = corpusStep(corpus, 'reconnect').recovery
+  if (recovery === undefined || !hasExactKeys(recovery, [
+    'afterRepeatedReconnectProjection',
+    'beforeRepeatedReconnectProjection',
+    'eventReplacementCount',
+    'followReplacementCount',
+    'offlineSeqCount',
+    'preFaultSeq',
+    'recoverySnapshotCursor',
+    'recoverySnapshotHasMore',
+    'repeatedSnapshotCursor',
+  ])
+    || recovery.preFaultSeq !== hostRecovery.preFaultSeq
+    || recovery.recoverySnapshotCursor !== hostRecovery.hostFinalCursor
+    || recovery.repeatedSnapshotCursor !== hostRecovery.hostFinalCursor
+    || recovery.offlineSeqCount !== hostRecovery.offlineSeqCount
+    || recovery.offlineSeqCount < semantics.minimumOfflineSeqAdvance
+    || recovery.recoverySnapshotHasMore !== hostRecovery.snapshotHasMore
+    || recovery.followReplacementCount !== semantics.expectedFollowReplacementCount
+    || recovery.eventReplacementCount !== semantics.expectedEventReplacementCount) {
+    throw new Error(`${config.language} acceptance recovery result is invalid`)
+  }
+  expect(recovery.beforeRepeatedReconnectProjection).toEqual(hostRecovery.canonicalProjection)
+  expect(recovery.afterRepeatedReconnectProjection).toEqual(hostRecovery.canonicalProjection)
   return {
     schemaVersion: 1,
     language: config.language,
@@ -1539,6 +1914,17 @@ function validateResult(
     contractVersion: corpus.contractVersion,
     sessionFormatVersion: SESSION_FORMAT_VERSION,
     steps: STEP_IDS.map(id => ({ id, status: 'PASS' })),
+    recovery: {
+      preFaultSeq: hostRecovery.preFaultSeq,
+      recoverySnapshotCursor: hostRecovery.hostFinalCursor,
+      repeatedSnapshotCursor: hostRecovery.hostFinalCursor,
+      offlineSeqCount: hostRecovery.offlineSeqCount,
+      recoverySnapshotHasMore: false,
+      followReplacementCount: semantics.expectedFollowReplacementCount,
+      eventReplacementCount: semantics.expectedEventReplacementCount,
+      beforeRepeatedReconnectProjection: hostRecovery.canonicalProjection,
+      afterRepeatedReconnectProjection: hostRecovery.canonicalProjection,
+    },
   }
 }
 
@@ -1658,6 +2044,33 @@ async function waitForApprovalResult(config: AcceptanceConfig): Promise<Record<s
   throw new Error('approval result remained pending')
 }
 
+/** Poll until the Host has committed and independently inspected the offline suffix. */
+async function waitForRecoveryStatus(
+  config: AcceptanceConfig,
+  preFaultSeq: number,
+): Promise<{ readonly hostFinalCursor: number; readonly offlineSeqCount: number }> {
+  const path = `/recovery/status?preFaultSeq=${String(preFaultSeq)}`
+  for (let attempt = 0; attempt < 200; attempt += 1) {
+    const response = await controlRequest(config, path, 'GET')
+    if (response.status === 202) {
+      if (!hasExactKeys(response.body, ['pending']) || response.body.pending !== true) {
+        throw new Error('recovery status returned an invalid pending response')
+      }
+      await new Promise(resolve => setTimeout(resolve, 25))
+      continue
+    }
+    if (response.status !== 200
+      || !hasExactKeys(response.body, ['hostFinalCursor', 'offlineSeqCount'])) {
+      throw new Error(`recovery status returned HTTP ${String(response.status)}`)
+    }
+    return {
+      hostFinalCursor: requireNumber(response.body.hostFinalCursor, 'recovery host final cursor'),
+      offlineSeqCount: requireNumber(response.body.offlineSeqCount, 'recovery offline seq count'),
+    }
+  }
+  throw new Error('recovery status remained pending')
+}
+
 async function controlRequest(
   config: AcceptanceConfig,
   path: string,
@@ -1666,6 +2079,7 @@ async function controlRequest(
   const response = await fetch(`${config.controlEndpoint}${path}`, {
     method,
     headers: { authorization: `Bearer ${config.controlToken}` },
+    signal: AbortSignal.timeout(CONTROL_REQUEST_TIMEOUT_MS),
   })
   return {
     status: response.status,
@@ -1681,6 +2095,14 @@ async function closeInterruptedStreams(...streams: AsyncGenerator[]): Promise<vo
   }
   if (failures.length === 1) throw failures[0]
   if (failures.length > 1) throw new AggregateError(failures, 'interrupted Link streams did not both close')
+}
+
+/** Read the first recovery chunk that proves the Host model stream is active. */
+async function readFirstAssistantChunkAfter(stream: AsyncGenerator, afterSeq: number): Promise<number> {
+  while (true) {
+    const frame = sessionEvent(await nextValue(stream, 'recovery assistant chunk'))?.event
+    if (frame?.type === 'assistant/chunk' && frame.seq > afterSeq) return frame.seq
+  }
 }
 
 function assertAuthoritativeSnapshot(
@@ -1716,7 +2138,7 @@ function assertAuthoritativeSnapshot(
 function requireSnapshot(
   value: Record<string, unknown> | undefined,
   sessionId: string,
-): { readonly cursor: number; readonly records: readonly unknown[] } {
+): { readonly cursor: number; readonly records: readonly unknown[]; readonly hasMore: boolean } {
   const snapshot = requireRecord(value, 'session/follow snapshot')
   const header = requireRecord(snapshot.header, 'session/follow header')
   if (snapshot.type !== 'snapshot' || header.id !== sessionId
@@ -1724,7 +2146,23 @@ function requireSnapshot(
     || typeof snapshot.hasMore !== 'boolean' || !isRecord(snapshot.projections)) {
     throw new Error('session/follow opening frame is not a complete snapshot')
   }
-  return { cursor: snapshot.cursor, records: snapshot.records }
+  return { cursor: snapshot.cursor, records: snapshot.records, hasMore: snapshot.hasMore }
+}
+
+/** Validate follow-history records before the reference fold consumes wire JSON. */
+function requireCompanionRecords(records: readonly unknown[]): readonly CompanionRecord[] {
+  return records.map((value, index) => {
+    const record = requireRecord(value, `recovery record ${String(index)}`)
+    const event = requireRecord(record.event, `recovery record ${String(index)} event`)
+    if (typeof record.type !== 'string'
+      || typeof event.type !== 'string'
+      || typeof event.seq !== 'number'
+      || !Number.isSafeInteger(event.seq)
+      || (event.time !== undefined && typeof event.time !== 'number')) {
+      throw new Error(`recovery record ${String(index)} is not a companion fold record`)
+    }
+    return record as unknown as CompanionRecord
+  })
 }
 
 function sessionEvent(value: unknown): {
@@ -1788,6 +2226,11 @@ function requireString(value: unknown, name: string): string {
 
 function requireNumber(value: unknown, name: string): number {
   if (typeof value !== 'number' || !Number.isSafeInteger(value)) throw new Error(`${name} must be an integer`)
+  return value
+}
+
+function requireRecoveryResult(value: RecoveryAcceptanceResult | undefined): RecoveryAcceptanceResult {
+  if (value === undefined) throw new Error('acceptance reconnect omitted recovery evidence')
   return value
 }
 
@@ -2078,6 +2521,17 @@ async function preparePublicationRegression(): Promise<PublicationRegressionFixt
         contractVersion: LINK_CONTRACT_VERSION,
         sessionFormatVersion: SESSION_FORMAT_VERSION,
         steps: STEP_IDS.map(id => ({ id, status: 'PASS' })),
+        recovery: {
+          preFaultSeq: 0,
+          recoverySnapshotCursor: 1,
+          repeatedSnapshotCursor: 1,
+          offlineSeqCount: 1,
+          recoverySnapshotHasMore: false,
+          followReplacementCount: 2,
+          eventReplacementCount: 2,
+          beforeRepeatedReconnectProjection: foldCompanionDomain([]),
+          afterRepeatedReconnectProjection: foldCompanionDomain([]),
+        },
       },
     },
   }

@@ -8,7 +8,9 @@ import ai.deepseek.dsh.companion.SessionModel
 import ai.deepseek.dsh.companion.SwitchableWireDriving
 import ai.deepseek.dsh.companion.WireDriving
 import ai.deepseek.dsh.companion.WireShape
+import ai.deepseek.dsh.companion.toJson
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -36,6 +39,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import java.net.URI
 import java.net.http.HttpClient
@@ -130,7 +134,7 @@ private class AcceptanceRun(
             val completedTurn = stream(opening, promptMark)
             val approval = approval(opening, completedTurn)
             val cancelledTurn = cancel(opening, approval.turn)
-            reconnect(opening, completedTurn, approval, cancelledTurn)
+            val recovery = reconnect(opening, completedTurn, approval, cancelledTurn)
             revoke()
 
             steps.requireComplete()
@@ -142,6 +146,7 @@ private class AcceptanceRun(
                 contractVersion = description.contractVersion.toInt(),
                 sessionFormatVersion = description.sessionFormatVersion.toInt(),
                 steps = steps.result(),
+                recovery = recovery,
             )
         } catch (failure: Throwable) {
             primary = failure
@@ -446,7 +451,7 @@ private class AcceptanceRun(
         completed: CompletedTurn,
         approval: ApprovalState,
         cancelled: CancelledTurn,
-    ) {
+    ): RecoveryAcceptanceResult {
         val semantics = corpus.reconnect
         accept(semantics.fault == "interrupt-active-streams", "corpus reconnect fault is unsupported")
         val firstClientId = interactionModel.clientId.value
@@ -498,7 +503,212 @@ private class AcceptanceRun(
             wire.streamCount("\$events") - previousEventCount == semantics.expectedEventReplacementCount,
             "production reconnect opened the wrong number of event replacements",
         )
+        val recovery = recover(nextFollow, nextEvents, snapshot.cursor)
         steps.pass("reconnect")
+        return recovery
+    }
+
+    private suspend fun recover(
+        activeFollow: StreamOpenedObservation,
+        activeEvents: StreamOpenedObservation,
+        openingCursor: Long,
+    ): RecoveryAcceptanceResult {
+        val semantics = corpus.reconnect.recovery
+        accept(semantics.faultAfter == "first-assistant-chunk", "corpus recovery fault point is unsupported")
+        val previousFollowCount = wire.streamCount("session/follow")
+        val previousEventCount = wire.streamCount("\$events")
+        val preRecoveryClientId = interactionModel.clientId.value
+        accept(preRecoveryClientId.isNotEmpty(), "pre-recovery event stream has no clientId")
+        wire.armNextStreamAttempts(setOf("session/follow", "\$events"))
+        try {
+            val promptMark = wire.mark()
+            sessionModel.send(semantics.prompt)
+            validatePromptCall(
+                wire.awaitCall(promptMark, "session/prompt"),
+                targetSessionId = corpus.prompt.targetSessionId,
+                text = semantics.prompt,
+                expectedAccepted = true,
+            )
+            val firstChunk = wire.awaitFrame(promptMark, "session/follow", activeFollow.generation) { value ->
+                eventOf(value)?.let { event -> WireShape.string(event, "type") == "assistant/chunk" } == true
+            }
+            wire.awaitFrameConsumed(firstChunk)
+            val firstChunkEvent = eventOf(firstChunk.value)
+                ?: throw AcceptanceFailure("recovery assistant/chunk omitted event")
+            val recoveryTurn = eventTurn(firstChunkEvent)
+                ?: throw AcceptanceFailure("recovery assistant/chunk omitted turn")
+            val preFaultSeq = eventSeq(firstChunkEvent)
+                ?: throw AcceptanceFailure("recovery assistant/chunk omitted seq")
+            accept(preFaultSeq > openingCursor, "recovery fault did not advance beyond its opening snapshot")
+
+            val recoveryMark = wire.mark()
+            wire.interruptAndAwait(
+                "session/follow" to activeFollow.generation,
+                "\$events" to activeEvents.generation,
+            )
+            wire.awaitStreamClose(recoveryMark, "session/follow", activeFollow.generation)
+            wire.awaitStreamClose(recoveryMark, "\$events", activeEvents.generation)
+            val recoveryFollow = wire.awaitStreamOpen(
+                recoveryMark,
+                "session/follow",
+                excluding = activeFollow.generation,
+            )
+            val recoveryEvents = wire.awaitStreamOpen(
+                recoveryMark,
+                "\$events",
+                excluding = activeEvents.generation,
+            )
+            wire.awaitStreamAttemptBlocked(recoveryFollow.sequence, "session/follow", recoveryFollow.generation)
+            wire.awaitStreamAttemptBlocked(recoveryEvents.sequence, "\$events", recoveryEvents.generation)
+
+            val hostRecovery = control.awaitRecovery(preFaultSeq)
+            accept(
+                hostRecovery.offlineSeqCount >= semantics.minimumOfflineSeqAdvance,
+                "Host did not advance the Session while client streams were offline",
+            )
+            accept(hostRecovery.hostFinalCursor > preFaultSeq, "Host recovery cursor did not advance beyond the fault")
+            wire.releaseStreamAttempts()
+
+            val recoverySnapshot = awaitOpeningSnapshot(recoveryFollow)
+            accept(
+                recoverySnapshot.cursor == hostRecovery.hostFinalCursor,
+                "recovery snapshot cursor did not match the Host final cursor",
+            )
+            accept(
+                recoverySnapshot.hasMore == semantics.expectedSnapshotHasMore,
+                "recovery snapshot hasMore did not match the corpus",
+            )
+            validateRecoveryTerminal(recoverySnapshot, recoveryTurn, preFaultSeq, semantics.expectedTerminalKind)
+            val recoveryClientId = awaitEventReady(recoveryEvents)
+            accept(recoveryClientId != preRecoveryClientId, "recovery \$events replacement reused its lost clientId")
+            val beforeRepeatedReconnect = awaitSessionState("SessionModel recovery snapshot") { state ->
+                state.cursor == recoverySnapshot.cursor
+                    && state.items.any { item -> item.seq > preFaultSeq && item.kind == "turn/end" }
+            }.toJson().jsonObject
+
+            wire.armNextStreamAttempts(setOf("session/follow", "\$events"))
+            val repeatedMark = wire.mark()
+            wire.interruptAndAwait(
+                "session/follow" to recoveryFollow.generation,
+                "\$events" to recoveryEvents.generation,
+            )
+            wire.awaitStreamClose(repeatedMark, "session/follow", recoveryFollow.generation)
+            wire.awaitStreamClose(repeatedMark, "\$events", recoveryEvents.generation)
+            val repeatedFollow = wire.awaitStreamOpen(
+                repeatedMark,
+                "session/follow",
+                excluding = recoveryFollow.generation,
+            )
+            val repeatedEvents = wire.awaitStreamOpen(
+                repeatedMark,
+                "\$events",
+                excluding = recoveryEvents.generation,
+            )
+            wire.awaitStreamAttemptBlocked(repeatedFollow.sequence, "session/follow", repeatedFollow.generation)
+            wire.awaitStreamAttemptBlocked(repeatedEvents.sequence, "\$events", repeatedEvents.generation)
+            wire.releaseStreamAttempts()
+
+            val repeatedSnapshot = awaitOpeningSnapshot(repeatedFollow)
+            accept(
+                repeatedSnapshot.cursor == recoverySnapshot.cursor,
+                "same-cut reconnect returned a different snapshot cursor",
+            )
+            accept(
+                repeatedSnapshot.hasMore == semantics.expectedSnapshotHasMore,
+                "same-cut reconnect snapshot hasMore did not match the corpus",
+            )
+            accept(
+                repeatedSnapshot.records == recoverySnapshot.records,
+                "same-cut reconnect returned different authoritative records",
+            )
+            validateRecoveryTerminal(repeatedSnapshot, recoveryTurn, preFaultSeq, semantics.expectedTerminalKind)
+            val repeatedClientId = awaitEventReady(repeatedEvents)
+            accept(repeatedClientId != recoveryClientId, "same-cut \$events replacement reused its lost clientId")
+            val afterRepeatedReconnect = awaitSessionState("SessionModel repeated recovery snapshot") { state ->
+                state.cursor == repeatedSnapshot.cursor
+            }.toJson().jsonObject
+            accept(
+                afterRepeatedReconnect == beforeRepeatedReconnect,
+                "same-cut reconnect changed the companion DomainState projection",
+            )
+
+            val followReplacementCount = wire.streamCount("session/follow") - previousFollowCount
+            val eventReplacementCount = wire.streamCount("\$events") - previousEventCount
+            accept(
+                followReplacementCount == semantics.expectedFollowReplacementCount,
+                "recovery opened the wrong number of follow replacements",
+            )
+            accept(
+                eventReplacementCount == semantics.expectedEventReplacementCount,
+                "recovery opened the wrong number of event replacements",
+            )
+            accept(
+                followReplacementCount - 1 == semantics.expectedSameCutReconnectCount
+                    && eventReplacementCount - 1 == semantics.expectedSameCutReconnectCount,
+                "recovery executed the wrong number of same-cut reconnects",
+            )
+            accept(
+                semantics.expectedFinalProjectionRelation == "authoritative-snapshot-fold",
+                "recovery final projection relation is unsupported",
+            )
+            return RecoveryAcceptanceResult(
+                preFaultSeq = preFaultSeq,
+                recoverySnapshotCursor = recoverySnapshot.cursor,
+                repeatedSnapshotCursor = repeatedSnapshot.cursor,
+                offlineSeqCount = hostRecovery.offlineSeqCount,
+                recoverySnapshotHasMore = recoverySnapshot.hasMore,
+                followReplacementCount = followReplacementCount,
+                eventReplacementCount = eventReplacementCount,
+                beforeRepeatedReconnectProjection = beforeRepeatedReconnect,
+                afterRepeatedReconnectProjection = afterRepeatedReconnect,
+            )
+        } finally {
+            wire.releaseStreamAttempts(requireAllBlocked = false)
+        }
+    }
+
+    private suspend fun awaitOpeningSnapshot(stream: StreamOpenedObservation): OpeningSnapshot {
+        val frame = wire.awaitFrame(stream.sequence, "session/follow", stream.generation) { value ->
+            WireShape.string(value, "type") == "snapshot"
+        }
+        wire.awaitFrameConsumed(frame)
+        return OpeningSnapshot.parse(frame.value, config.sessionId, stream.generation)
+    }
+
+    private suspend fun awaitEventReady(stream: StreamOpenedObservation): String {
+        accept(stream.payload.isEmpty(), "recovery \$events replacement opened with a payload")
+        val ready = wire.awaitFrame(stream.sequence, "\$events", stream.generation) { value ->
+            WireShape.string(value, "type") == "ready"
+        }
+        val clientId = WireShape.string(ready.value, "clientId")
+            ?.takeIf { it.isNotEmpty() }
+            ?: throw AcceptanceFailure("recovery \$events ready omitted clientId")
+        awaitClientId(clientId)
+        return clientId
+    }
+
+    private fun validateRecoveryTerminal(
+        snapshot: OpeningSnapshot,
+        turn: Long,
+        preFaultSeq: Long,
+        expectedKind: String,
+    ) {
+        validateSnapshot(snapshot)
+        val projectionSeq = WireShape.number(snapshot.projections, "asOfSeq")
+            ?: throw AcceptanceFailure("recovery snapshot projections omitted asOfSeq")
+        accept(
+            projectionSeq == snapshot.cursor.toDouble(),
+            "recovery snapshot projections did not describe its complete cut",
+        )
+        accept(
+            snapshot.records.any { record ->
+                val event = eventOf(record) ?: return@any false
+                eventSeq(event)?.let { it > preFaultSeq } == true
+                    && eventTurn(event) == turn
+                    && turnEndKind(event) == expectedKind
+            },
+            "recovery snapshot omitted the completed terminal event",
+        )
     }
 
     private suspend fun revoke() {
@@ -692,7 +902,7 @@ private class AcceptanceRun(
     }
 }
 
-/** Test-only observation around one production wire; every value is forwarded unchanged. */
+/** Test-only observation and retry gating around one production wire; values are forwarded unchanged. */
 private class ObservingWireDriving(private val delegate: WireDriving) : WireDriving {
     private val lock = Any()
     private val observations = mutableListOf<WireObservation>()
@@ -700,6 +910,7 @@ private class ObservingWireDriving(private val delegate: WireDriving) : WireDriv
     private val revision = MutableStateFlow(0L)
     private var sequence = 0L
     private var generation = 0L
+    private var streamAttemptGate: StreamAttemptGate? = null
 
     fun mark(): Long = synchronized(lock) { sequence }
 
@@ -709,42 +920,67 @@ private class ObservingWireDriving(private val delegate: WireDriving) : WireDriv
         }
     }
 
+    fun armNextStreamAttempts(endpoints: Set<String>) = synchronized(lock) {
+        accept(endpoints.isNotEmpty(), "stream-attempt gate requires at least one endpoint")
+        accept(streamAttemptGate == null, "a stream-attempt gate is already armed")
+        streamAttemptGate = StreamAttemptGate(endpoints, CompletableDeferred())
+    }
+
+    fun releaseStreamAttempts(requireAllBlocked: Boolean = true) {
+        val gate = synchronized(lock) {
+            val current = streamAttemptGate
+            if (requireAllBlocked && current != null) {
+                accept(current.blocked == current.endpoints, "stream-attempt gate released before every endpoint arrived")
+            }
+            streamAttemptGate = null
+            current
+        }
+        gate?.release?.complete(Unit)
+    }
+
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
         val result = delegate.call(method, args)
         record { next -> CallObservation(next, method, args, result) }
         return result
     }
 
-    override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = channelFlow {
-        val streamGeneration = synchronized(lock) {
-            generation += 1
-            generation
-        }
-        val pump = launch(start = CoroutineStart.LAZY) {
-            try {
-                delegate.stream(endpoint, payload).collect { value ->
-                    record { next -> StreamFrameObservation(next, endpoint, streamGeneration, value) }
-                    send(value)
+    override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> {
+        val observed = channelFlow<ForwardedStreamFrame> {
+            val streamGeneration = synchronized(lock) {
+                generation += 1
+                generation
+            }
+            val pump = launch(start = CoroutineStart.LAZY) {
+                try {
+                    awaitStreamAttempt(endpoint, streamGeneration)
+                    delegate.stream(endpoint, payload).collect { value ->
+                        record { next -> StreamFrameObservation(next, endpoint, streamGeneration, value) }
+                        send(ForwardedStreamFrame(streamGeneration, value))
+                    }
+                } catch (failure: CancellationException) {
+                    throw failure
+                } catch (failure: Exception) {
+                    this@channelFlow.close(failure)
+                } finally {
+                    record { next -> StreamClosedObservation(next, endpoint, streamGeneration) }
                 }
-            } catch (failure: CancellationException) {
-                throw failure
-            } catch (failure: Exception) {
-                this@channelFlow.close(failure)
-            } finally {
-                record { next -> StreamClosedObservation(next, endpoint, streamGeneration) }
             }
-        }
-        synchronized(lock) {
-            activeStreams[streamGeneration] = ActiveObservedStream(endpoint, pump)
-        }
-        pump.invokeOnCompletion {
             synchronized(lock) {
-                if (activeStreams[streamGeneration]?.job === pump) activeStreams.remove(streamGeneration)
+                activeStreams[streamGeneration] = ActiveObservedStream(endpoint, pump)
             }
+            pump.invokeOnCompletion {
+                synchronized(lock) {
+                    if (activeStreams[streamGeneration]?.job === pump) activeStreams.remove(streamGeneration)
+                }
+            }
+            record { next -> StreamOpenedObservation(next, endpoint, payload, streamGeneration) }
+            pump.start()
+            pump.join()
         }
-        record { next -> StreamOpenedObservation(next, endpoint, payload, streamGeneration) }
-        pump.start()
-        pump.join()
+        return observed.transform { frame ->
+            emit(frame.value)
+            record { next -> StreamFrameConsumedObservation(next, endpoint, frame.generation, frame.value) }
+        }
     }
 
     /** End one base-stream pump without cancelling its model collector; the
@@ -755,6 +991,22 @@ private class ObservingWireDriving(private val delegate: WireDriving) : WireDriv
         accept(stream.endpoint == endpoint, "stream interrupt targeted the wrong endpoint")
         accept(stream.job.isActive, "stream interrupt targeted a completed generation")
         stream.job.cancelAndJoin()
+    }
+
+    suspend fun interruptAndAwait(vararg targets: Pair<String, Long>) {
+        accept(targets.isNotEmpty(), "stream interruption requires at least one target")
+        accept(targets.map { it.first }.toSet().size == targets.size, "stream interruption endpoints must be distinct")
+        val streams = synchronized(lock) {
+            targets.map { (endpoint, generation) ->
+                val stream = activeStreams[generation]
+                    ?: throw AcceptanceFailure("$endpoint generation $generation is not active")
+                accept(stream.endpoint == endpoint, "stream interrupt targeted the wrong endpoint")
+                accept(stream.job.isActive, "stream interrupt targeted a completed generation")
+                stream
+            }
+        }
+        streams.forEach { it.job.cancel() }
+        streams.forEach { it.job.join() }
     }
 
     suspend fun awaitCall(after: Long, method: String): CallObservation =
@@ -781,6 +1033,15 @@ private class ObservingWireDriving(private val delegate: WireDriving) : WireDriv
             ?.takeIf { it.endpoint == endpoint && it.generation == generation }
     }
 
+    suspend fun awaitStreamAttemptBlocked(
+        after: Long,
+        endpoint: String,
+        generation: Long,
+    ): StreamAttemptBlockedObservation = await(after, "$endpoint blocked stream attempt") { observation ->
+        (observation as? StreamAttemptBlockedObservation)
+            ?.takeIf { it.endpoint == endpoint && it.generation == generation }
+    }
+
     suspend fun awaitFrame(
         after: Long,
         endpoint: String,
@@ -791,12 +1052,29 @@ private class ObservingWireDriving(private val delegate: WireDriving) : WireDriv
             ?.takeIf { it.endpoint == endpoint && it.generation == generation && predicate(it.value) }
     }
 
+    suspend fun awaitFrameConsumed(frame: StreamFrameObservation): StreamFrameConsumedObservation =
+        await(frame.sequence, "${frame.endpoint} consumed frame") { observation ->
+            (observation as? StreamFrameConsumedObservation)?.takeIf {
+                it.endpoint == frame.endpoint && it.generation == frame.generation && it.value == frame.value
+            }
+        }
+
     private fun <T : WireObservation> record(create: (Long) -> T): T = synchronized(lock) {
         sequence += 1
         val observation = create(sequence)
         observations += observation
         revision.value = sequence
         observation
+    }
+
+    private suspend fun awaitStreamAttempt(endpoint: String, generation: Long) {
+        val gate = synchronized(lock) {
+            streamAttemptGate?.takeIf { endpoint in it.endpoints }?.also {
+                accept(it.blocked.add(endpoint), "more than one replacement reached the same stream-attempt gate")
+            }
+        } ?: return
+        record { next -> StreamAttemptBlockedObservation(next, endpoint, generation) }
+        gate.release.await()
     }
 
     private suspend fun <T : WireObservation> await(
@@ -833,7 +1111,15 @@ private class ObservingWireDriving(private val delegate: WireDriving) : WireDriv
     }
 }
 
+private data class StreamAttemptGate(
+    val endpoints: Set<String>,
+    val release: CompletableDeferred<Unit>,
+    val blocked: MutableSet<String> = mutableSetOf(),
+)
+
 private data class ActiveObservedStream(val endpoint: String, val job: Job)
+
+private data class ForwardedStreamFrame(val generation: Long, val value: WireValue)
 
 private sealed interface WireObservation {
     val sequence: Long
@@ -860,7 +1146,20 @@ private data class StreamFrameObservation(
     val value: WireValue,
 ) : WireObservation
 
+private data class StreamFrameConsumedObservation(
+    override val sequence: Long,
+    val endpoint: String,
+    val generation: Long,
+    val value: WireValue,
+) : WireObservation
+
 private data class StreamClosedObservation(
+    override val sequence: Long,
+    val endpoint: String,
+    val generation: Long,
+) : WireObservation
+
+private data class StreamAttemptBlockedObservation(
     override val sequence: Long,
     val endpoint: String,
     val generation: Long,
@@ -1017,6 +1316,19 @@ private data class ReconnectAcceptanceSemantics(
     val expectedEventReplacementCount: Int,
     val expectedAuthoritativeSnapshot: Boolean,
     val expectedClientIdRefresh: Boolean,
+    val recovery: RecoveryAcceptanceSemantics,
+)
+
+private data class RecoveryAcceptanceSemantics(
+    val prompt: String,
+    val faultAfter: String,
+    val expectedTerminalKind: String,
+    val minimumOfflineSeqAdvance: Int,
+    val expectedFollowReplacementCount: Int,
+    val expectedEventReplacementCount: Int,
+    val expectedSameCutReconnectCount: Int,
+    val expectedSnapshotHasMore: Boolean,
+    val expectedFinalProjectionRelation: String,
 )
 
 private data class AcceptanceCorpus(
@@ -1095,6 +1407,7 @@ private data class AcceptanceCorpus(
                         "expectedEventReplacementCount",
                         "expectedAuthoritativeSnapshot",
                         "expectedClientIdRefresh",
+                        "recovery",
                     )
                     else -> setOf("id")
                 }
@@ -1142,6 +1455,48 @@ private data class AcceptanceCorpus(
             )
             val approval = stepObjects.single { it.requiredString("id") == "approval" }
             val reconnectStep = stepObjects.single { it.requiredString("id") == "reconnect" }
+            val recoveryObject = reconnectStep["recovery"] as? JsonObject
+                ?: throw AcceptanceFailure("reconnect recovery must be an object")
+            recoveryObject.requireExactKeys(
+                setOf(
+                    "prompt",
+                    "faultAfter",
+                    "expectedTerminalKind",
+                    "minimumOfflineSeqAdvance",
+                    "expectedFollowReplacementCount",
+                    "expectedEventReplacementCount",
+                    "expectedSameCutReconnectCount",
+                    "expectedSnapshotHasMore",
+                    "expectedFinalProjectionRelation",
+                ),
+                "corpus reconnect recovery",
+            )
+            val recovery = RecoveryAcceptanceSemantics(
+                prompt = recoveryObject.requiredString("prompt"),
+                faultAfter = recoveryObject.requiredString("faultAfter"),
+                expectedTerminalKind = recoveryObject.requiredString("expectedTerminalKind"),
+                minimumOfflineSeqAdvance = recoveryObject.requiredInt("minimumOfflineSeqAdvance"),
+                expectedFollowReplacementCount = recoveryObject.requiredInt("expectedFollowReplacementCount"),
+                expectedEventReplacementCount = recoveryObject.requiredInt("expectedEventReplacementCount"),
+                expectedSameCutReconnectCount = recoveryObject.requiredInt("expectedSameCutReconnectCount"),
+                expectedSnapshotHasMore = recoveryObject.boolean("expectedSnapshotHasMore")
+                    ?: throw AcceptanceFailure("recovery expectedSnapshotHasMore must be Boolean"),
+                expectedFinalProjectionRelation = recoveryObject.requiredString("expectedFinalProjectionRelation"),
+            )
+            accept(
+                recovery == RecoveryAcceptanceSemantics(
+                    prompt = "Complete the Link acceptance turn while both client streams are offline.",
+                    faultAfter = "first-assistant-chunk",
+                    expectedTerminalKind = "completed",
+                    minimumOfflineSeqAdvance = 1,
+                    expectedFollowReplacementCount = 2,
+                    expectedEventReplacementCount = 2,
+                    expectedSameCutReconnectCount = 1,
+                    expectedSnapshotHasMore = false,
+                    expectedFinalProjectionRelation = "authoritative-snapshot-fold",
+                ),
+                "corpus recovery semantics are unsupported",
+            )
             val reconnect = ReconnectAcceptanceSemantics(
                 fault = reconnectStep.requiredString("fault"),
                 expectedFollowReplacementCount = reconnectStep.requiredInt("expectedFollowReplacementCount"),
@@ -1150,6 +1505,7 @@ private data class AcceptanceCorpus(
                     ?: throw AcceptanceFailure("reconnect expectedAuthoritativeSnapshot must be Boolean"),
                 expectedClientIdRefresh = reconnectStep.boolean("expectedClientIdRefresh")
                     ?: throw AcceptanceFailure("reconnect expectedClientIdRefresh must be Boolean"),
+                recovery = recovery,
             )
             accept(
                 reconnect == ReconnectAcceptanceSemantics(
@@ -1158,6 +1514,7 @@ private data class AcceptanceCorpus(
                     expectedEventReplacementCount = 1,
                     expectedAuthoritativeSnapshot = true,
                     expectedClientIdRefresh = true,
+                    recovery = recovery,
                 ),
                 "corpus reconnect semantics are unsupported",
             )
@@ -1184,6 +1541,7 @@ private data class AcceptanceResult(
     val contractVersion: Int,
     val sessionFormatVersion: Int,
     val steps: List<StepResult>,
+    val recovery: RecoveryAcceptanceResult,
 ) {
     fun toJson(): JsonObject = buildJsonObject {
         put("schemaVersion", 1)
@@ -1205,6 +1563,31 @@ private data class AcceptanceResult(
                 },
             ),
         )
+        put("recovery", recovery.toJson())
+    }
+}
+
+private data class RecoveryAcceptanceResult(
+    val preFaultSeq: Long,
+    val recoverySnapshotCursor: Long,
+    val repeatedSnapshotCursor: Long,
+    val offlineSeqCount: Long,
+    val recoverySnapshotHasMore: Boolean,
+    val followReplacementCount: Int,
+    val eventReplacementCount: Int,
+    val beforeRepeatedReconnectProjection: JsonObject,
+    val afterRepeatedReconnectProjection: JsonObject,
+) {
+    fun toJson(): JsonObject = buildJsonObject {
+        put("preFaultSeq", preFaultSeq)
+        put("recoverySnapshotCursor", recoverySnapshotCursor)
+        put("repeatedSnapshotCursor", repeatedSnapshotCursor)
+        put("offlineSeqCount", offlineSeqCount)
+        put("recoverySnapshotHasMore", recoverySnapshotHasMore)
+        put("followReplacementCount", followReplacementCount)
+        put("eventReplacementCount", eventReplacementCount)
+        put("beforeRepeatedReconnectProjection", beforeRepeatedReconnectProjection)
+        put("afterRepeatedReconnectProjection", afterRepeatedReconnectProjection)
     }
 }
 
@@ -1263,6 +1646,36 @@ private class AcceptanceControl(endpoint: URI, private val token: String) {
         }
     }
 
+    suspend fun awaitRecovery(preFaultSeq: Long): HostRecoveryStatus {
+        accept(preFaultSeq in 0..MAX_SAFE_INTEGER, "recovery preFaultSeq is not a safe integer")
+        return withTimeout(CONTROL_TIMEOUT_MILLIS) {
+            while (true) {
+                val response = request("GET", "/recovery/status?preFaultSeq=$preFaultSeq")
+                val body = response.json()
+                when (response.statusCode()) {
+                    202 -> {
+                        accept(body.keys == setOf("pending"), "recovery/status pending returned unexpected fields")
+                        accept(body.boolean("pending") == true, "recovery/status 202 was not pending")
+                    }
+                    200 -> {
+                        accept(
+                            body.keys == setOf("hostFinalCursor", "offlineSeqCount"),
+                            "recovery/status returned unexpected fields",
+                        )
+                        return@withTimeout HostRecoveryStatus(
+                            hostFinalCursor = body.requiredLong("hostFinalCursor"),
+                            offlineSeqCount = body.requiredLong("offlineSeqCount"),
+                        )
+                    }
+                    else -> throw AcceptanceFailure("recovery/status returned HTTP ${response.statusCode()}")
+                }
+                delay(100)
+            }
+            @Suppress("UNREACHABLE_CODE")
+            throw AcceptanceFailure("recovery/status polling ended unexpectedly")
+        }
+    }
+
     fun revoke() {
         val response = request("POST", "/revoke")
         accept(response.statusCode() == 200, "revoke did not return HTTP 200")
@@ -1290,8 +1703,11 @@ private class AcceptanceControl(endpoint: URI, private val token: String) {
 
     private companion object {
         const val CONTROL_TIMEOUT_MILLIS = 30_000L
+        const val MAX_SAFE_INTEGER = 9_007_199_254_740_991L
     }
 }
+
+private data class HostRecoveryStatus(val hostFinalCursor: Long, val offlineSeqCount: Long)
 
 private class AcceptanceFailure(message: String) : RuntimeException(message)
 
@@ -1358,6 +1774,12 @@ private fun JsonObject.requiredInt(field: String): Int =
     (this[field] as? JsonPrimitive)
         ?.takeUnless { it.isString }
         ?.intOrNull
+        ?: throw AcceptanceFailure("$field must be an integer")
+
+private fun JsonObject.requiredLong(field: String): Long =
+    (this[field] as? JsonPrimitive)
+        ?.takeUnless { it.isString }
+        ?.longOrNull
         ?: throw AcceptanceFailure("$field must be an integer")
 
 private fun JsonObject.requiredStringArray(field: String): List<String> =
