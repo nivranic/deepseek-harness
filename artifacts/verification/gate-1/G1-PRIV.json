@@ -2,11 +2,21 @@
   "taskId": "G1-PRIV",
   "status": "PASS",
   "evidenceLevel": "E4",
-  "commit": "b846614bebfd1deaad9fe4a66d8fa5eaf921d8e6",
+  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
   "startedFrom": "b846614bebfd1deaad9fe4a66d8fa5eaf921d8e6",
-  "sourceHead": "b846614bebfd1deaad9fe4a66d8fa5eaf921d8e6",
-  "workingTreeState": "The privacy, identity, Artifact isolation, documentation, snapshots, and evidence changes are uncommitted over sourceHead and exclude the separately owned G1-MULTI changes.",
-  "recordedAt": "2026-09-02T17:47:19.3493490+08:00",
+  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "workingTreeState": "All product, test, workflow, and documentation inputs were committed at sourceHead; only Gate evidence JSON was modified or untracked during the current reruns.",
+  "recordedAt": "2026-09-03T15:11:17.4929275+08:00",
+  "evidenceSources": [
+    {
+      "commit": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
+      "scope": "Original telemetry, identity, Artifact isolation, documentation, snapshot, and browser acceptance implementation"
+    },
+    {
+      "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "scope": "Current privacy regressions, native evidence publication, and Host-to-Kotlin E4"
+    }
+  ],
   "commands": [
     "pnpm exec vitest run --coverage --coverage.include='packages/identity/anonymous-user-id/src/**' packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts packages/identity/anonymous-user-id/tests/invariant.spec.ts",
     "pnpm exec vitest run --coverage packages/session/session-telemetry/tests/redact.spec.ts packages/session/session-telemetry/tests/telemetry.spec.ts",
@@ -40,9 +50,59 @@
     "pnpm run doc-sync",
     "pnpm run build",
     "node node_modules/oxlint/bin/oxlint apps/web/tests/feedback-command.e2e.ts apps/web/tests/feedback-release.e2e.ts",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run packages/session/session-telemetry/tests/redact.spec.ts packages/session/session-telemetry/tests/telemetry.spec.ts packages/session/session-telemetry-otel/tests/otel.spec.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs E:/Mix/project/deepseek-harness/node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts packages/session/session-telemetry-otel/tests/loader-composition.e2e.ts",
+    "DSH_PLAYWRIGHT_EXECUTABLE_PATH=<installed Chrome> TZ=Asia/Shanghai node <canonical Vitest> run --config vitest.web.config.ts apps/web/tests/feedback-release.e2e.ts apps/web/tests/shipped-composition.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run scripts/ci-workflow.spec.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "Host-to-Kotlin native acceptance with Gradle 8.14 and DSH_LINK_ACCEPTANCE_RESULT=.artifacts/g1-rec-kotlin-e4-dd319c3883-r1.json",
     "git diff --check"
   ],
   "tests": [
+    {
+      "name": "Current candidate telemetry and OpenTelemetry privacy regressions",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "testFiles": 3,
+      "passed": 66,
+      "failed": 0
+    },
+    {
+      "name": "Current candidate telemetry Loader composition",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "name": "Current candidate Web privacy replay and shipped composition",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "testFiles": 2,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "name": "Native acceptance evidence privacy and workflow regressions",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "passed": 32,
+      "failed": 0,
+      "observed": [
+        "PASS publication exposes an exact allowlist and omits complete projection values.",
+        "Sensitive projection mismatches emit fixed diagnostics without formatting either value.",
+        "Native candidate files are unlinked under an independent deadline on success, failure, cancellation, and timeout paths."
+      ]
+    },
+    {
+      "name": "Privacy-safe Host-to-Kotlin acceptance artifact",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "passed": 13,
+      "failed": 0,
+      "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480",
+      "bytes": 2062,
+      "sensitivePatternMatches": 0
+    },
     {
       "name": "Anonymous identity coverage",
       "result": "PASS",
@@ -206,7 +266,11 @@
     "packages/identity/anonymous-user-id/src/index.ts",
     "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
     "packages/identity/anonymous-user-id/tests/fixtures/rotation-race-worker.ts",
-    "packages/artifact/artifact/src/types.ts"
+    "packages/artifact/artifact/src/types.ts",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
+    "apps/cli/tests/link-native-acceptance.e2e.ts",
+    "scripts/ci-workflow.spec.ts",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md"
   ],
   "changedFiles": [
     ".agents/notes/implemented/architecture/2026-08-07-shared-feedback-telemetry-user-id.i18n.yaml",
@@ -345,7 +409,13 @@
     "snapshots/web/feedback-release/ack-expanded.expected.md",
     "snapshots/web/feedback-release/ack.expected.md",
     "snapshots/web/feedback-release/snapshot.yml",
-    "snapshots/web/fresh-round-trip/tool-schemas.expected.json"
+    "snapshots/web/fresh-round-trip/tool-schemas.expected.json",
+    "apps/cli/tests/link-native-acceptance.e2e.ts",
+    "scripts/ci-workflow.spec.ts",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.zh.md",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.i18n.yaml",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json"
   ],
   "acceptance": [
     "Session telemetry is disabled unless FULL or FEEDBACK_ONLY is explicitly configured; disabled mode creates no OpenTelemetry transport.",
@@ -359,7 +429,8 @@
     "ArtifactId has one portable parser enforced at model input, wire controller, durable invariant, and filesystem provider entry points.",
     "Path separators, dot segments, NUL, Windows ADS syntax, reserved characters, and device names cannot reach Artifact get, put, remove, or artifact_read operations.",
     "Web and Desktop omit root-scope Artifact registration; standard, ptc, and cordis mount it only inside the agent scope, while minimal omits it.",
-    "Desktop acceptance isolates DSH_HOME for the full lifecycle and restores the original process environment on every setup and teardown path."
+    "Desktop acceptance isolates DSH_HOME for the full lifecycle and restores the original process environment on every setup and teardown path.",
+    "Native acceptance validates complete projections only inside the isolated run, removes the candidate file before publication, and retains only allowlisted counts, equality, and SHA-256 digests."
   ],
   "knownLimitations": [
     "The Windows host cannot create the documentation test symlink without Developer Mode or elevated symlink privilege. No product code, YAML, or documentation was changed to mask that host limitation.",
@@ -367,7 +438,8 @@
     "Playwright revision 1228 downloads failed with ECONNRESET or EAI_AGAIN. Browser acceptance used the installed Google Chrome executable and Asia/Shanghai timezone.",
     "The Oxlint TypeScript wrapper encountered uv_os_get_passwd ENOMEM before lint startup; the repository-pinned Oxlint binary then completed the same two-file check successfully.",
     "The complete shipped-composition run initially hit windows-acl-run CreateRestrictedToken Win32 87 inside the nested sandbox; the unchanged command passed all four tests under the repository-authorized host escalation.",
-    "Node has no cross-platform device-and-inode compare-and-replace operation. A process that can write the harness home can replace an identity directory entry between the final check and rename; rename does not follow a symlink or write its referent. Custom DSH_HOME directories must exclude untrusted writers."
+    "Node has no cross-platform device-and-inode compare-and-replace operation. A process that can write the harness home can replace an identity directory entry between the final check and rename; rename does not follow a symlink or write its referent. Custom DSH_HOME directories must exclude untrusted writers.",
+    "The temporary worktree Vitest junction resolves a different peer graph than the repository root. The Loader E2E fails before product execution through that temporary graph but passes 3/3 through the canonical pnpm-resolved root graph without installing dependencies."
   ],
   "recoveryActions": [
     {
@@ -391,13 +463,7 @@
       "details": "The download failed with ECONNRESET or EAI_AGAIN; the browser suites passed with the already installed Chrome executable."
     }
   ],
-  "excludedConcurrentChanges": [
-    "apps/cli/tests/link-session-slice.e2e.ts",
-    ".agents/notes/implemented/architecture/2026-08-30-carrier-session-slice-e2e.md",
-    ".agents/notes/implemented/architecture/2026-08-30-carrier-session-slice-e2e.zh.md",
-    ".agents/notes/implemented/architecture/2026-08-30-carrier-session-slice-e2e.i18n.yaml",
-    "artifacts/verification/gate-1/G1-MULTI.json"
-  ],
+  "excludedConcurrentChanges": [],
   "nextDependencies": [
     "G1-E2E",
     "G1-MULTI",

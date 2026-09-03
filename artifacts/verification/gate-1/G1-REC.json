@@ -2,11 +2,11 @@
   "taskId": "G1-REC",
   "status": "PARTIAL",
   "evidenceLevel": "E4",
-  "commit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
-  "sourceHead": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
   "startedFrom": "7f59dcb873323a40eed3883bc4561d93f5def22f",
-  "workingTreeState": "The Kotlin recovery run started from committed clean inputs at sourceHead; privacy-safe evidence summaries were added afterward, while the raw result remains ignored local evidence.",
-  "recordedAt": "2026-09-03T13:30:46.8526476+08:00",
+  "workingTreeState": "The Kotlin recovery run started from committed clean inputs at sourceHead; the Host published the privacy-safe result before these evidence records were updated.",
+  "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
   "commands": [
     "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
     "Get-FileHash -Algorithm SHA256 packages/remote/link-contracts/acceptance/corpus.v1.json",
@@ -31,10 +31,10 @@
     {
       "name": "Kotlin clean source and corpus identity",
       "result": "PASS",
-      "hostCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
-      "clientCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+      "hostCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "clientCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
       "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
-      "rawResultSha256": "3e90cd013bb83615f0ca9224b006d9bb583f685cb9a1cec5793d03deda563c05"
+      "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480"
     },
     {
       "name": "Swift disconnect and authoritative recovery",
@@ -44,7 +44,7 @@
   ],
   "artifacts": [
     "artifacts/verification/gate-1/G1-REC.json",
-    "artifacts/verification/gate-1/acceptance/kotlin-e3bf0842eb68d739bb8fc0c345203b0d38dd0165.json",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
     "packages/remote/link-contracts/acceptance/corpus.v1.json",
     "apps/cli/tests/link-native-acceptance.e2e.ts",
     "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
@@ -52,7 +52,7 @@
   ],
   "logs": [],
   "changedFiles": [
-    "artifacts/verification/gate-1/acceptance/kotlin-e3bf0842eb68d739bb8fc0c345203b0d38dd0165.json",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
     "artifacts/verification/gate-1/G1-REC.json"
   ],
   "acceptance": [
@@ -64,7 +64,7 @@
   ],
   "knownLimitations": [
     "Swift recovery is not executed because Swift/Xcode is unavailable on this Windows host. G1-REC remains PARTIAL until the Apple lane proves the same corpus at E4.",
-    "The raw result contains the complete projected Session value and remains only in the ignored local evidence directory. The tracked summary retains counts and SHA-256 digests without copying the Session payload."
+    "The Host-published result is an allowlisted summary. The complete candidate projection is unlinked before publication, and the tracked artifact contains only counts, equality, and SHA-256 digests."
   ],
   "notExecuted": [
     {

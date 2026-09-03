@@ -2,14 +2,14 @@
   "taskId": "G1-E2E",
   "status": "PARTIAL",
   "evidenceLevel": "E4",
-  "commit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
-  "sourceHead": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
   "startedFrom": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
-  "workingTreeState": "The TypeScript reference and Kotlin native lane started from committed clean inputs at sourceHead; privacy-safe evidence summaries were added after execution, while the raw result remains ignored local evidence.",
-  "recordedAt": "2026-09-03T13:30:46.8526476+08:00",
+  "workingTreeState": "The TypeScript reference and Kotlin native lane started from committed clean inputs at sourceHead; the Host published the privacy-safe result before these evidence records were updated.",
+  "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
   "commands": [
     "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
-    "gradle --no-daemon -p apps/android :core:test",
+    "gradle --no-daemon -p apps/android :core:test --rerun-tasks",
     "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-link-contracts.ts",
     "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-translation-pairing.ts",
     "git diff --check"
@@ -21,8 +21,8 @@
       "result": "PASS",
       "passed": 13,
       "failed": 0,
-      "hostCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
-      "clientCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+      "hostCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "clientCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
       "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
       "linkProtocolVersion": 1,
       "contractVersion": 1,
@@ -34,10 +34,10 @@
       "result": "PASS",
       "passed": 13,
       "failed": 0,
-      "hostCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
-      "clientCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+      "hostCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "clientCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
       "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
-      "rawResultSha256": "3e90cd013bb83615f0ca9224b006d9bb583f685cb9a1cec5793d03deda563c05",
+      "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480",
       "steps": [
         "pair",
         "connect",
@@ -68,13 +68,14 @@
     {
       "name": "Android pure-JVM core Gradle tests",
       "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
       "passed": 125,
       "failed": 0
     }
   ],
   "artifacts": [
     "artifacts/verification/gate-1/G1-E2E.json",
-    "artifacts/verification/gate-1/acceptance/kotlin-e3bf0842eb68d739bb8fc0c345203b0d38dd0165.json",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
     "packages/remote/link-contracts/acceptance/corpus.v1.json",
     "apps/cli/tests/link-native-acceptance.e2e.ts",
     "apps/apple/Tests/LinkNativeAcceptance/",
@@ -89,14 +90,14 @@
     "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
     "apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift",
     "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
-    "artifacts/verification/gate-1/acceptance/kotlin-e3bf0842eb68d739bb8fc0c345203b0d38dd0165.json",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
     "artifacts/verification/gate-1/G1-E2E.json"
   ],
   "acceptance": [
     "One canonical 13-step corpus drives the TypeScript reference, Swift, and Kotlin implementations.",
     "The TypeScript reference and Kotlin native client both completed every step against the shipped base plus desktop Host composition at the same source SHA.",
     "The Kotlin lane exercised real TLS, signed carrier requests, scoped target and decoy Sessions, streaming, Approval, cancellation, reconnect, recovery, and revocation.",
-    "The Host validated the native candidate schema, corpus identity, source identity, versions, recovery observations, cleanup, and clean stable input before atomically publishing the 77974-byte PASS result to ignored local evidence.",
+    "The Host validated the native candidate schema, corpus identity, source identity, versions, recovery observations, cleanup, and clean stable input before atomically publishing the 2062-byte privacy-safe PASS result.",
     "No matching Gradle, Kotlin, or Host process remained after execution."
   ],
   "knownLimitations": [

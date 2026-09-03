@@ -2,11 +2,11 @@
   "taskId": "G1-APPLE",
   "status": "PARTIAL",
   "evidenceLevel": "E2",
-  "commit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
-  "sourceHead": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
-  "workingTreeState": "Apple product, test, workflow, and documentation inputs are committed and clean at sourceHead. Other Gate 1 evidence files were already modified or untracked; this audit changes only G1-APPLE.json.",
-  "recordedAt": "2026-09-03T13:40:11.2545671+08:00",
+  "workingTreeState": "Apple product, test, workflow, and documentation inputs were committed and clean at sourceHead before these evidence records were updated.",
+  "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
   "evidenceBoundary": "E2 source inspection only. This record does not claim Swift compilation, XCTest execution, real Host execution, or E4.",
   "toolchain": {
     "swiftToolsVersionDeclared": "5.9",
@@ -101,8 +101,8 @@
     "artifacts/verification/gate-1/G1-APPLE.json"
   ],
   "implemented": [
-    "At e3bf0842, the Swift source preserves the canonical carrier authorization refusal code for unary and stream requests while retaining carrier classification for every response without the exact discriminator.",
-    "At e3bf0842, non-2xx stream classification can inspect the error body without consuming any successful NDJSON response byte.",
+    "In candidate dd319c3883934efc224d4caf7bf09b8fea725897, the Swift source preserves the canonical carrier authorization refusal code for unary and stream requests while retaining carrier classification for every response without the exact discriminator.",
+    "In candidate dd319c3883934efc224d4caf7bf09b8fea725897, non-2xx stream classification can inspect the error body without consuming any successful NDJSON response byte.",
     "Fresh pairing transfers endpoint, pin, credential, clientId, and transport ownership to the replacement Link client before the UI uses it.",
     "The client consumes the generated unary, stream, ready, request, outcome, cancel, result, and structured error models; void RPC success does not require a value field.",
     "Reconnect clears stale generation identity and accepts only the next authoritative ready and snapshot state.",
@@ -110,26 +110,26 @@
     "The Apple workflow boots the shipped base plus desktop Host composition and publishes native evidence on a Swift-capable runner."
   ],
   "acceptance": [
-    "Source inspection at e3bf0842 confirms the corrected unary and stream refusal classification and the matching XCTest definitions.",
+    "Source inspection of candidate dd319c3883934efc224d4caf7bf09b8fea725897 confirms the corrected unary and stream refusal classification and the matching XCTest definitions.",
     "Generated Swift models, the shared corpus, the real Host harness, and the Swift driver are present.",
     "Source, test-definition, and workflow inspection cannot substitute for Swift compilation, SwiftPM execution, or a real Host-to-Swift run."
   ],
   "knownLimitations": [
     "Windows has no Swift toolchain or Xcode. No Swift build, SwiftPM test, or real Host-to-Swift result is claimed.",
-    "The corrected native source is committed at e3bf0842eb68d739bb8fc0c345203b0d38dd0165, but a Swift-capable runner must compile it, execute SwiftPM tests, and complete real Host-to-Swift acceptance before the Apple lane can exceed E2."
+    "The corrected native source is present in candidate dd319c3883934efc224d4caf7bf09b8fea725897, but a Swift-capable runner must compile it, execute SwiftPM tests, and complete real Host-to-Swift acceptance before the Apple lane can exceed E2."
   ],
   "notExecuted": [
     {
       "item": "swift test",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "Get-Command swift and Get-Command xcodebuild found no executable on the Windows host; the committed XCTest definitions at e3bf0842 were not compiled or executed."
+      "details": "Get-Command swift and Get-Command xcodebuild found no executable on the Windows host; the committed XCTest definitions in candidate dd319c3883934efc224d4caf7bf09b8fea725897 were not compiled or executed."
     },
     {
       "item": "Real Host-to-Swift acceptance",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane for e3bf0842eb68d739bb8fc0c345203b0d38dd0165."
+      "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane for dd319c3883934efc224d4caf7bf09b8fea725897."
     }
   ],
   "nextDependencies": [
