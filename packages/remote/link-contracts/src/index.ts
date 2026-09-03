@@ -27,6 +27,7 @@ import type { GoalSnapshotChangeMeta } from '@deepseek-ai/dsh-goal'
 import type {} from '@deepseek-ai/dsh-plan-mode'
 import type {} from '@deepseek-ai/dsh-tool-todo/types'
 import { z } from 'zod'
+import { LINK_DOMAIN_ASSISTANT_MESSAGE_DATA, LINK_DOMAIN_TOOL_RESULT_DATA } from './companion-scenarios.ts'
 
 export type { CompanionArtifact, CompanionArtifactStatus, CompanionDomainState, CompanionGoal, CompanionImageRef, CompanionItem, CompanionRecord, CompanionTodo, CompanionToolCall, CompanionToolPhase } from './companion-fold.ts'
 export { emptyCompanionDomain, foldCompanionDomain, foldCompanionRecord } from './companion-fold.ts'
@@ -244,6 +245,14 @@ export interface ContractType {
    */
   readonly chunkRows?: readonly string[]
 }
+
+/** Message fields shared by user-authored and tool-result user messages. */
+const LINK_USER_MESSAGE_FIELDS = [
+  { name: 'id', kind: 'string' },
+  { name: 'role', kind: 'const', value: 'user' },
+  { name: 'content', kind: 'object-array', ref: 'LinkContentBlock' },
+  { name: 'source', kind: 'object', ref: 'LinkMessageSource' },
+] as const satisfies readonly ContractField[]
 
 /**
  * The link wire vocabulary as one table: enum rows first, then objects in
@@ -769,12 +778,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     shape: 'object',
     sessionEvents: ['user/message'],
     fixture: 'event-user-message',
-    fields: [
-      { name: 'id', kind: 'string' },
-      { name: 'role', kind: 'const', value: 'user' },
-      { name: 'content', kind: 'object-array', ref: 'LinkContentBlock' },
-      { name: 'source', kind: 'object', ref: 'LinkMessageSource' },
-    ],
+    fields: LINK_USER_MESSAGE_FIELDS,
   },
   {
     name: 'LinkStreamChunk',
@@ -852,12 +856,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
   {
     name: 'LinkToolResultMessage',
     shape: 'object',
-    fields: [
-      { name: 'id', kind: 'string' },
-      { name: 'role', kind: 'const', value: 'user' },
-      { name: 'content', kind: 'object-array', ref: 'LinkContentBlock' },
-      { name: 'source', kind: 'object', ref: 'LinkMessageSource' },
-    ],
+    fields: LINK_USER_MESSAGE_FIELDS,
   },
   {
     name: 'LinkToolResultData',
@@ -1624,17 +1623,7 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
   {
     type: 'LinkAssistantMessageData',
     id: 'event-assistant-message',
-    value: {
-      turn: 1,
-      step: 1,
-      message: {
-        id: MessageId('m-assist-1'),
-        role: 'assistant',
-        content: [{ type: 'text', text: '已完成：登录页液态玻璃样式落地。' }],
-        source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
-      },
-      usage: { inputTokens: 120, outputTokens: 36, totalTokens: 156 },
-    } satisfies SessionEventMap['assistant/message'],
+    value: LINK_DOMAIN_ASSISTANT_MESSAGE_DATA,
   },
   {
     type: 'LinkToolCallData',
@@ -1650,20 +1639,7 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
   {
     type: 'LinkToolResultData',
     id: 'event-tool-result',
-    value: {
-      turn: 1,
-      step: 1,
-      message: {
-        id: MessageId('m-tool-1'),
-        role: 'user',
-        content: [{
-          type: 'tool-result',
-          toolCallId: ToolCallId('call-1'),
-          content: [{ type: 'text', text: '已写入 42 行。' }],
-        }],
-        source: { kind: 'tool', callId: ToolCallId('call-1') },
-      },
-    } satisfies SessionEventMap['tool/result'],
+    value: LINK_DOMAIN_TOOL_RESULT_DATA,
   },
   {
     type: 'LinkArtifactCreatedData',

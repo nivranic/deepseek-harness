@@ -219,6 +219,36 @@ async function materializeEscapingLinks(dir: string, stageRoot: string): Promise
   }
 }
 
+interface VirtualStorePackageSource {
+  readonly name: string
+  readonly dir: string
+}
+
+/**
+ * List packages nested in a pnpm virtual store in directory iteration order.
+ * @param pnpmDir - `.pnpm` directory whose package entries are scanned.
+ * @returns package names and their physical source directories.
+ */
+async function listVirtualStorePackageSources(pnpmDir: string): Promise<VirtualStorePackageSource[]> {
+  const sources: VirtualStorePackageSource[] = []
+  for (const entry of await readdir(pnpmDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const nm = join(pnpmDir, entry.name, 'node_modules')
+    if (!existsSync(nm)) continue
+    for (const inner of await readdir(nm, { withFileTypes: true })) {
+      if (inner.name.startsWith('.')) continue
+      if (inner.name.startsWith('@')) {
+        for (const scoped of await readdir(join(nm, inner.name), { withFileTypes: true })) {
+          if (scoped.isDirectory()) sources.push({ name: `${inner.name}/${scoped.name}`, dir: join(nm, inner.name, scoped.name) })
+        }
+      } else if (inner.isDirectory()) {
+        sources.push({ name: inner.name, dir: join(nm, inner.name) })
+      }
+    }
+  }
+  return sources
+}
+
 /**
  * Backfill peerDependencies that the pruned deploy left unlinked. Each
  * virtual-store package whose manifest names a peer missing from its sibling
@@ -229,20 +259,8 @@ async function materializeEscapingLinks(dir: string, stageRoot: string): Promise
 async function completeMissingPeers(stageRoot: string): Promise<void> {
   const pnpmDir = join(stageRoot, 'node_modules', '.pnpm')
   const providers = new Map<string, string>()
-  for (const entry of await readdir(pnpmDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue
-    const nm = join(pnpmDir, entry.name, 'node_modules')
-    if (!existsSync(nm)) continue
-    for (const inner of await readdir(nm, { withFileTypes: true })) {
-      if (inner.name.startsWith('.')) continue
-      if (inner.name.startsWith('@')) {
-        for (const scoped of await readdir(join(nm, inner.name), { withFileTypes: true })) {
-          if (scoped.isDirectory()) providers.set(`${inner.name}/${scoped.name}`, join(nm, inner.name, scoped.name))
-        }
-      } else if (inner.isDirectory()) {
-        providers.set(inner.name, join(nm, inner.name))
-      }
-    }
+  for (const source of await listVirtualStorePackageSources(pnpmDir)) {
+    providers.set(source.name, source.dir)
   }
   let backfilled = 0
   for (const dir of providers.values()) {
@@ -278,28 +296,12 @@ async function hoistClosureToTopLevel(stageRoot: string): Promise<void> {
   const top = join(stageRoot, 'node_modules')
   const pnpmDir = join(top, '.pnpm')
   let hoisted = 0
-  for (const entry of await readdir(pnpmDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue
-    const nm = join(pnpmDir, entry.name, 'node_modules')
-    if (!existsSync(nm)) continue
-    for (const inner of await readdir(nm, { withFileTypes: true })) {
-      if (inner.name.startsWith('.')) continue
-      const sources: Array<{ name: string; dir: string }> = []
-      if (inner.name.startsWith('@')) {
-        for (const scoped of await readdir(join(nm, inner.name), { withFileTypes: true })) {
-          if (scoped.isDirectory()) sources.push({ name: `${inner.name}/${scoped.name}`, dir: join(nm, inner.name, scoped.name) })
-        }
-      } else if (inner.isDirectory()) {
-        sources.push({ name: inner.name, dir: join(nm, inner.name) })
-      }
-      for (const source of sources) {
-        const dest = join(top, ...source.name.split('/'))
-        if (existsSync(dest)) continue
-        mkdirSync(dirname(dest), { recursive: true })
-        cpSync(source.dir, dest, { recursive: true, force: true })
-        hoisted++
-      }
-    }
+  for (const source of await listVirtualStorePackageSources(pnpmDir)) {
+    const dest = join(top, ...source.name.split('/'))
+    if (existsSync(dest)) continue
+    mkdirSync(dirname(dest), { recursive: true })
+    cpSync(source.dir, dest, { recursive: true, force: true })
+    hoisted++
   }
   console.log(`build-desktop-exe: hoisted ${String(hoisted)} package(s) to the top-level node_modules`)
 }
