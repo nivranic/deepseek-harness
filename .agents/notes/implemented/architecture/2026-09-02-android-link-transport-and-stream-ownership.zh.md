@@ -10,7 +10,7 @@ Android [Kotlin wire 客户端](2026-08-30-android-wire-client.zh.md)使用 `Htt
 
 ## 决策
 
-`LinkClient` 按[优先采用维护依赖的策略](../process/2026-07-26-dependencies-over-hand-rolling.zh.md)拥有一组 OkHttp 5.5 client。pair、describe 与 unary 操作在 enqueue 前创建并登记各自的 `Call`，再通过可取消 suspension 等待 callback；coroutine 取消会调用 `Call.cancel()`，callback 结算时移除该 call。Stream collection 在单一 IO owner 中运行已登记 call，并通过 rendezvous channel 传递 frame；取消会关闭该 channel、cancel call、关闭任何已发布 response 与 reader，并在 collection 返回前 join owner。UI coroutine 不会执行阻塞 unary `Call.execute()`。`LinkClient.close()` 请求退役、拒绝后续 call、取消全部已登记 call、逐出连接池并关闭自身 dispatcher；`closeAndAwait()` 还会等待每个已跟踪 call、stream collector 与 dispatcher task 结算。`SwitchableWireDriving.replaceAndAwait()` 发布下一个 delegate 并等待已退役 delegate，因此 restore 与 fresh pairing 只会在先前 transport 完全停稳后返回。
+`LinkClient` 按[优先采用维护依赖的策略](../process/2026-07-26-dependencies-over-hand-rolling.zh.md)拥有一组 OkHttp 5.5 client。pair、describe 与 unary 操作在 enqueue 前创建并登记各自的 `Call`，再通过可取消 suspension 等待 callback；coroutine 取消会调用 `Call.cancel()`，callback 结算时移除该 call。Stream collection 在单一 IO owner 中运行已登记 call，并通过 rendezvous channel 传递 frame。结算会先取消 `Call`，再取消并 join 该 owner；只有 owner 会关闭自身 `Response` 与 source，因此钉扎 TLS 取消不会让第二个 worker 排空同一个尚未结束的 chunked body。UI coroutine 不会执行阻塞 unary `Call.execute()`。`LinkClient.close()` 请求退役、拒绝后续 call、取消全部已登记 call、逐出连接池并关闭自身 dispatcher；`closeAndAwait()` 还会等待每个已跟踪 call、stream collector 与 dispatcher task 结算。`SwitchableWireDriving.replaceAndAwait()` 发布下一个 delegate 并等待已退役 delegate，因此 restore 与 fresh pairing 只会在先前 transport 完全停稳后返回。
 
 `LinkTransportConfig` 显式给出 connect、write、unary read/call 与 stream read/call timeout。stream read 或 call timeout 为零时，刻意允许长期 stream 空闲；取消仍是终止机制。共享 client 在创建任何 call 前安装同一个 pin-only trust manager 与 hostname verifier。这保留 [Remote Link 访问](2026-08-30-remote-link-access-vertical-slice.zh.md)规则：由 QR 认证的叶子 SPKI 标识私有 Host，public-CA DNS identity 不会取而代之。
 
@@ -18,13 +18,15 @@ Android [Kotlin wire 客户端](2026-08-30-android-wire-client.zh.md)使用 `Htt
 
 ## 验证
 
-聚焦 Kotlin 测试证明从类 Main 单线程 dispatcher 发出的 unary call 不会阻塞该 dispatcher，取消会到达 active OkHttp call，close 与 enqueue 竞争仍会结算。其他确定性 barrier 覆盖 TLS connect、request-body write、response-header wait、response-body read，以及被 collector backpressure 阻塞的 stream reader。Replacement 必须等待被阻塞 collector，并防止其排队的旧 frame 到达模型。这些测试还交错模型 replacement 与 stop，要求可等待 teardown 等待每一代，并要求模型 teardown 保持进程所有 wire 可替换。[真实 Host 原生 Link 验收](../testing/2026-09-02-real-host-native-link-acceptance.zh.md)仍是共享 pair 至 revoke corpus 的执行 owner；源码检查与生成 fixture 不能替代 Kotlin 车道结果。
+聚焦 Kotlin 测试证明从类 Main 单线程 dispatcher 发出的 unary call 不会阻塞该 dispatcher，取消会到达 active OkHttp call，close 与 enqueue 竞争仍会结算。其他确定性 barrier 覆盖 TLS connect、request-body write、response-header wait、response-body read，以及被 collector backpressure 阻塞的 stream reader。钉扎 TLS fixture 会保持两条 chunked NDJSON response 打开、并发取消两名 collector，并要求两名 collector 与 client 退役全部结算。Replacement 必须等待被阻塞 collector，并防止其排队的旧 frame 到达模型。这些测试还交错模型 replacement 与 stop，要求可等待 teardown 等待每一代，并要求模型 teardown 保持进程所有 wire 可替换。[真实 Host 原生 Link 验收](../testing/2026-09-02-real-host-native-link-acceptance.zh.md)仍是共享 pair 至 revoke corpus 的执行 owner；源码检查与生成 fixture 不能替代 Kotlin 车道结果。
 
 ## 考虑过的替代方案
 
 **保留 `HttpURLConnection`。** `disconnect()` 与 reader closure 无法提供在 DNS、connect、write 或 response header 开始前即可取消的 call handle，因此不能证明 teardown 达到静止。
 
 **只给 `join()` 包一层 timeout。** 有界等待会让 teardown 在 socket 或 IO job 仍存活时返回；它限制等待时间，却没有退役资源。
+
+**由取消方 coroutine 关闭 response。** OkHttp 在 `Response.close()` 期间可能排空尚未结束的 HTTP/1 chunked body。第二个 worker 因而可能与钉扎 TLS reader 争用同一个 input lock，而 IO owner 已会在 `Call.cancel()` 停止读取后通过 `use` 关闭两项资源。
 
 **取消并覆盖每个模型 job。** 并发 replacement 可能在 stop 后发布，也可能覆盖另一条 live job 的引用。必须通过串行化与 generation invalidation 保留每条 transition 的 owner。
 

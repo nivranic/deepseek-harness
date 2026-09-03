@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.channels.Channel
@@ -30,14 +31,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import okio.BufferedSource
 import java.io.IOException
 import java.security.KeyPairGenerator
 import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 
 /** Every way a link call can fail, mirroring the Swift `LinkClientError`. */
 sealed class LinkClientException(message: String) : RuntimeException(message) {
@@ -259,8 +258,8 @@ class LinkClient private constructor(
     /**
      * Open one NDJSON Remote stream: value frames flow as they arrive; a
      * failure frame completes the flow with [LinkClientException.Refused].
-     * Cancelling collection cancels the call, closes its response source, and
-     * waits for the blocking source task to stop before collection finishes.
+     * Cancelling collection cancels the call and waits for the blocking owner
+     * to close its response source before collection finishes.
      */
     fun stream(endpoint: String, payload: Map<String, WireValue> = emptyMap()): Flow<WireValue> = flow {
         val body = Json.encodeToString(
@@ -279,29 +278,12 @@ class LinkClient private constructor(
             call.cancel()
         }
         val call = tracked.call
-        val activeResponse = AtomicReference<Response?>()
-        val activeSource = AtomicReference<BufferedSource?>()
         var blockingOwner: Job? = null
 
         suspend fun settle(owner: Job?) {
-            withContext(NonCancellable + Dispatchers.IO) {
-                owner?.cancel()
-                call.cancel()
-                try {
-                    activeResponse.getAndSet(null)?.close()
-                } catch (_: java.io.IOException) {
-                    // Call cancellation already ended the exchange; response close can
-                    // report the same cancellation.
-                } finally {
-                    try {
-                        activeSource.getAndSet(null)?.close()
-                    } catch (_: java.io.IOException) {
-                        // Closing the response already ended the call; the source can
-                        // report the same cancellation.
-                    } finally {
-                        owner?.join()
-                    }
-                }
+            call.cancel()
+            withContext(NonCancellable) {
+                owner?.cancelAndJoin()
             }
         }
 
@@ -310,34 +292,24 @@ class LinkClient private constructor(
                 val owner = async(Dispatchers.IO) {
                     try {
                         call.execute().use { response ->
-                            activeResponse.set(response)
-                            try {
-                                if (!response.isSuccessful) {
-                                    checkStatus(response.code, response.body.bytes())
-                                }
-                                response.body.source().use { source ->
-                                    activeSource.set(source)
-                                    try {
-                                        while (true) {
-                                            val line = source.readUtf8Line() ?: break
-                                            if (line.isBlank()) continue
-                                            val frame = DecodedLinkStreamFrame.fromJsonElement(
-                                                Json.parseToJsonElement(line),
-                                            )
-                                            if (frame.isFailure) {
-                                                throw LinkClientException.Refused(
-                                                    frame.code ?: "internal",
-                                                    frame.message ?: "stream failed",
-                                                )
-                                            }
-                                            frames.send(frame.value ?: WireValue.NullValue)
-                                        }
-                                    } finally {
-                                        activeSource.compareAndSet(source, null)
+                            if (!response.isSuccessful) {
+                                checkStatus(response.code, response.body.bytes())
+                            }
+                            response.body.source().use { source ->
+                                while (true) {
+                                    val line = source.readUtf8Line() ?: break
+                                    if (line.isBlank()) continue
+                                    val frame = DecodedLinkStreamFrame.fromJsonElement(
+                                        Json.parseToJsonElement(line),
+                                    )
+                                    if (frame.isFailure) {
+                                        throw LinkClientException.Refused(
+                                            frame.code ?: "internal",
+                                            frame.message ?: "stream failed",
+                                        )
                                     }
+                                    frames.send(frame.value ?: WireValue.NullValue)
                                 }
-                            } finally {
-                                activeResponse.compareAndSet(response, null)
                             }
                         }
                     } catch (failure: CancellationException) {

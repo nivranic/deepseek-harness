@@ -23,7 +23,7 @@ import { tmpdir } from 'node:os'
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
-import type { Context } from '@deepseek-ai/cordis'
+import { Context } from '@deepseek-ai/cordis'
 import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import type LinkAccessService from '@deepseek-ai/dsh-link-access'
@@ -45,6 +45,11 @@ import {
   type MockLlmServer,
 } from '@deepseek-ai/dsh-llm-mock-server'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
+import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
+import {
+  createProcessInspector,
+  type ProcessIdentity,
+} from '@deepseek-ai/dsh-subprocess-local/src/process-inspector.ts'
 import type { ApprovalOutcome } from '@deepseek-ai/dsh-user-approval'
 import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import { execa } from 'execa'
@@ -63,6 +68,14 @@ const TEARDOWN_DEADLINE_MS = 60_000
 const EVIDENCE_RENAME_DEADLINE_MS = 75_000
 const AFTER_ALL_HOOK_TIMEOUT_MS = 120_000
 const CONTROL_REQUEST_TIMEOUT_MS = 30_000
+const NATIVE_DRIVER_TIMEOUT_MS = 480_000
+const NATIVE_PROCESS_GRACE_MS = 2_000
+const NATIVE_PROCESS_OUTPUT_MAX_BYTES = 5 * 1024 * 1024
+const PROCESS_TREE_REGRESSION_TIMEOUT_MS = 10_000
+const PROCESS_TREE_RESULT_NAME = 'process-tree.json'
+const PROCESS_TREE_REGRESSION_CONTROL_TOKEN = 'timeout-regression-control-token'
+const PROCESS_TREE_RETAINED_SECRET_SUFFIX_BYTES = 8
+const PROCESS_INSPECTOR = createProcessInspector()
 const STEP_IDS = [
   'pair',
   'connect',
@@ -303,6 +316,24 @@ interface NativePublication {
   readonly result: AcceptanceResult
 }
 
+/** Process identities and pre-cleanup settlement recorded by the runner regressions. */
+interface ProcessTreeRegressionObservation {
+  readonly childSentinelPresent: boolean
+  readonly childPid: number
+  readonly childStarted: string
+  readonly grandchildSentinelPresent: boolean
+  readonly grandchildPid: number
+  readonly grandchildStarted: string
+  readonly ready: true
+  readonly terminatedBeforeCleanup?: boolean
+}
+
+/** Pre-identity process observation written by the native-driver fixture. */
+type ProcessTreeRegressionSeed = Omit<
+  ProcessTreeRegressionObservation,
+  'childStarted' | 'grandchildStarted' | 'terminatedBeforeCleanup'
+>
+
 /** State retained while one external approval is pending or settled. */
 type ApprovalState =
   | { readonly kind: 'pending' }
@@ -485,7 +516,7 @@ function registerAcceptanceSuite(): void {
   }, AFTER_ALL_HOOK_TIMEOUT_MS)
 
   describe('the shared Link native acceptance corpus', () => {
-    it('passes the TypeScript reference and an optional external native driver', async () => {
+    it('passes the TypeScript reference and an optional external native driver', async ({ signal }) => {
       onTestFailed(markSuiteFailed)
       const current = requireSuite()
       let nativePublication: NativePublication | undefined
@@ -513,7 +544,12 @@ function registerAcceptanceSuite(): void {
             throw new Error('native acceptance failure sentinel was not initialized')
           }
           current.control.prepare(nativeConfig.deviceName)
-          const received = await runNativeDriver(current, current.nativeDriver, nativeConfig)
+          const received = await runNativeDriver(
+            current,
+            current.nativeDriver,
+            nativeConfig,
+            signal,
+          )
           const nativeHostRecovery = await current.control.verifyExpectedBehavior()
           const native = validateResult(received, nativeConfig, current.corpus, nativeHostRecovery)
           expect(native).toMatchObject({
@@ -1675,9 +1711,10 @@ async function driverConfig(
 
 /** Spawn one native driver with only a temporary config path added to a scrubbed environment. */
 async function runNativeDriver(
-  current: AcceptanceSuite,
+  current: Pick<AcceptanceSuite, 'ctx' | 'home'>,
   driver: NativeDriver,
   config: AcceptanceConfig,
+  cancelSignal: AbortSignal,
 ): Promise<unknown> {
   const configPath = join(current.home, `link-acceptance-${driver.language}-config.json`)
   if (!pathIsInside(resolve(current.home), resolve(config.candidateResultPath))) {
@@ -1687,25 +1724,36 @@ async function runNativeDriver(
     throw new Error('native acceptance candidate result path must not exist before launch')
   }
   await writeFile(configPath, `${JSON.stringify(config, undefined, 2)}\n`, { mode: 0o600 })
-  const [command, ...args] = driver.argv
+  const [command, ...args] = nativeDriverProcessArgv(driver)
   if (command === undefined) throw new Error('native driver command is missing')
-  const environment = scrubEnvironment()
-  environment.DSH_LINK_ACCEPTANCE_CONFIG = configPath
-  const child = spawnNativeProcess(command, args, environment)
+  const deadlineSignal = AbortSignal.timeout(NATIVE_DRIVER_TIMEOUT_MS)
+  const child = spawnNativeProcess(
+    current.ctx,
+    command,
+    args,
+    configPath,
+    AbortSignal.any([cancelSignal, deadlineSignal]),
+  )
   activeNativeProcess = child
-  let result: Awaited<typeof child>
+  let result: Awaited<NativeProcess['done']>
   try {
-    result = await child
+    result = await settleNativeProcess(child)
   } finally {
     if (activeNativeProcess === child) activeNativeProcess = undefined
   }
-  if (result.exitCode !== 0) {
-    const output = redactDriverOutput(
-      `${result.stdout}\n${result.stderr}`.trim(),
-      [config.controlToken, config.pairing.code],
-    )
+  const interruptions = [
+    ...(deadlineSignal.aborted ? [`timed out after ${NATIVE_DRIVER_TIMEOUT_MS}ms`] : []),
+    ...(cancelSignal.aborted ? ['was cancelled'] : []),
+  ]
+  if (interruptions.length > 0 || result.exitCode !== 0 || result.signal !== null) {
+    const facts = [
+      ...interruptions,
+      `exit code ${String(result.exitCode)}`,
+      `signal ${String(result.signal)}`,
+    ]
+    const output = readNativeProcessOutput(child, config)
     throw new Error(
-      `native ${driver.language} acceptance exited ${String(result.exitCode)}`
+      `native ${driver.language} acceptance ${facts.join('; ')}`
       + (output === '' ? '' : `:\n${output}`),
     )
   }
@@ -1718,15 +1766,75 @@ async function runNativeDriver(
   }
 }
 
-function spawnNativeProcess(command: string, args: readonly string[], environment: NodeJS.ProcessEnv) {
-  return execa(command, args, {
+/** Select an OS-spawnable argv after external drivers pass the canonical-token check. */
+function nativeDriverProcessArgv(driver: NativeDriver): readonly string[] {
+  // Node cannot spawn the Gradle .bat shim directly. The canonical argv has no
+  // caller-controlled token when cmd.exe interprets it.
+  return process.platform === 'win32' && driver.language === 'kotlin'
+    ? ['cmd.exe', '/d', '/s', '/c', ...driver.argv]
+    : driver.argv
+}
+
+function spawnNativeProcess(
+  ctx: Pick<Context, 'subprocess'>,
+  command: string,
+  args: readonly string[],
+  configPath: string,
+  signal: AbortSignal,
+) {
+  return ctx.subprocess.spawn({
+    argv: [command, ...args],
     cwd: REPO_ROOT,
-    env: environment,
-    reject: false,
-    timeout: 480_000,
-    cleanup: true,
-    forceKillAfterDelay: 2_000,
+    env: { DSH_LINK_ACCEPTANCE_CONFIG: configPath },
+    stdio: {
+      stdin: 'ignore',
+      stdout: { maxBytes: NATIVE_PROCESS_OUTPUT_MAX_BYTES },
+      stderr: { maxBytes: NATIVE_PROCESS_OUTPUT_MAX_BYTES },
+    },
+    graceMs: NATIVE_PROCESS_GRACE_MS,
+    signal,
   })
+}
+
+async function settleNativeProcess(child: NativeProcess): Promise<Awaited<NativeProcess['done']>> {
+  let result: Awaited<NativeProcess['done']> | undefined
+  const failures: unknown[] = []
+  try {
+    result = await child.done
+  } catch (error) {
+    failures.push(error)
+  }
+  try {
+    child.terminate()
+  } catch (error) {
+    failures.push(error)
+  }
+  try {
+    if (!await child.waitForExit()) failures.push(new Error('native acceptance process tree remained live'))
+  } catch (error) {
+    failures.push(error)
+  }
+  if (failures.length === 1) throw failures[0]
+  if (failures.length > 1) throw new AggregateError(failures, 'native acceptance process settlement failed')
+  if (result === undefined) throw new Error('native acceptance process omitted its exit outcome')
+  return result
+}
+
+function readNativeProcessOutput(child: NativeProcess, config: AcceptanceConfig): string {
+  const stdout = readCompleteNativeProcessOutput(child.collected.stdout)
+  const stderr = readCompleteNativeProcessOutput(child.collected.stderr)
+  return redactDriverOutput(
+    `${stdout}\n${stderr}`.trim(),
+    [config.controlToken, config.pairing.code],
+  )
+}
+
+function readCompleteNativeProcessOutput(
+  reader: NativeProcess['collected']['stdout'],
+): string {
+  const output = reader?.readFrom(0)
+  if (output === undefined || output.lossy) return ''
+  return output.text
 }
 
 async function pathExists(path: string): Promise<boolean> {
@@ -2257,15 +2365,6 @@ function requireSuite(): AcceptanceSuite {
   return suite
 }
 
-function scrubEnvironment(): NodeJS.ProcessEnv {
-  return Object.fromEntries(Object.entries(process.env).filter(([name, value]) =>
-    value !== undefined
-    && name !== 'DSH_LINK_ACCEPTANCE_DRIVER_JSON'
-    && name !== 'DSH_LINK_ACCEPTANCE_LANGUAGE'
-    && name !== 'DSH_LINK_ACCEPTANCE_RESULT'
-    && !/(?:KEY|SECRET|TOKEN|PASSWORD)/iu.test(name)))
-}
-
 function redactDriverOutput(output: string, secrets: readonly string[]): string {
   return secrets.reduce(
     (redacted, secret) => secret === '' ? redacted : redacted.replaceAll(secret, '[REDACTED]'),
@@ -2388,11 +2487,12 @@ async function stopActiveNativeProcess(failures: unknown[]): Promise<void> {
   activeNativeProcess = undefined
   if (child === undefined) return
   try {
-    child.kill('SIGTERM')
-    await child
+    child.terminate()
   } catch (error) {
     failures.push(error)
   }
+  await containCleanup(child.done, failures)
+  await containCleanup(child.waitForExit(), failures)
 }
 
 function restoreDshHome(): void {
@@ -2418,7 +2518,10 @@ function registerRequestedSuite(): void {
       registerEventLoopDeadlineRegression()
       return
     case 'test-timeout-publication':
-      registerTestTimeoutPublicationRegression()
+      registerProcessTreePublicationRegression('test-timeout')
+      return
+    case 'native-driver-cancellation':
+      registerProcessTreePublicationRegression('driver-cancellation')
       return
     default:
       throw new Error(`unsupported Link acceptance internal regression ${regression}`)
@@ -2458,14 +2561,54 @@ function registerEventLoopDeadlineRegression(): void {
   })
 }
 
-function registerTestTimeoutPublicationRegression(): void {
+function registerProcessTreePublicationRegression(
+  mode: 'driver-cancellation' | 'test-timeout',
+): void {
   let fixture: PublicationRegressionFixture | undefined
+  let processContext: Context | undefined
   beforeAll(async () => {
-    fixture = await preparePublicationRegression()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(LocalSubprocessRuntime)
+      fixture = await preparePublicationRegression()
+      processContext = ctx
+    } catch (error) {
+      await ctx.fiber.dispose()
+      throw error
+    }
   })
   afterAll(async () => {
     const current = requirePublicationRegression(fixture)
     const failures: unknown[] = []
+    const observationPath = processTreeRegressionPath(current.artifact.resultPath)
+    let observation: ProcessTreeRegressionObservation | undefined
+    try {
+      observation = await readProcessTreeRegressionObservation(observationPath)
+      let terminatedBeforeCleanup = false
+      try {
+        await waitForProcessTreeRegressionExit(observation)
+        terminatedBeforeCleanup = true
+      } catch (error) {
+        failures.push(error)
+      }
+      await containCleanup(
+        writeEvidenceAtomically(
+          observationPath,
+          { ...observation, terminatedBeforeCleanup },
+        ),
+        failures,
+      )
+    } catch (error) {
+      failures.push(error)
+    }
+    await stopActiveNativeProcess(failures)
+    if (processContext !== undefined) {
+      await containCleanup(processContext.fiber.dispose(), failures)
+      processContext = undefined
+    }
+    if (observation !== undefined) {
+      await terminateProcessTreeRegressionProcesses(observation, failures)
+    }
     await publishNativeEvidence(
       current.artifact,
       current.publication,
@@ -2475,15 +2618,320 @@ function registerTestTimeoutPublicationRegression(): void {
     )
     if (failures.length === 1) throw failures[0]
     if (failures.length > 1) {
-      throw new AggregateError(failures, 'timeout publication regression cleanup failed')
+      throw new AggregateError(failures, 'process-tree publication regression cleanup failed')
     }
-  }, 10_000)
-  describe('Link acceptance test-timeout regression', () => {
-    it('keeps FAIL evidence after the test times out', async () => {
+  }, 20_000)
+  if (mode === 'test-timeout') {
+    describe('Link acceptance test-timeout regression', () => {
+      it('terminates the native process tree and keeps FAIL evidence after timing out', async ({ signal }) => {
+        onTestFailed(markSuiteFailed)
+        const { driverRun, observationPath } = startProcessTreeRegressionDriver(
+          requirePublicationRegression(fixture),
+          requireProcessTreeRegressionContext(processContext),
+          signal,
+        )
+        await Promise.race([
+          driverRun.then((): never => {
+            throw new Error('process-tree regression driver exited before the timeout')
+          }),
+          waitForProcessTreeRegressionReady(observationPath),
+        ])
+        await driverRun
+      }, PROCESS_TREE_REGRESSION_TIMEOUT_MS)
+    })
+    return
+  }
+  describe('Link acceptance native-driver cancellation regression', () => {
+    it('rejects cancellation even when the direct child exits successfully', async () => {
       onTestFailed(markSuiteFailed)
-      await new Promise(resolveDelay => setTimeout(resolveDelay, 150))
-    }, 25)
+      const controller = new AbortController()
+      const { driverRun, observationPath } = startProcessTreeRegressionDriver(
+        requirePublicationRegression(fixture),
+        requireProcessTreeRegressionContext(processContext),
+        controller.signal,
+        true,
+      )
+      await Promise.race([
+        driverRun.then((): never => {
+          throw new Error('process-tree regression driver exited before cancellation')
+        }),
+        waitForProcessTreeRegressionReady(observationPath),
+      ])
+      markSuiteFailed()
+      controller.abort('native-driver cancellation regression')
+      const error = await driverRun.then(
+        (): never => { throw new Error('cancelled native driver returned a candidate result') },
+        (reason: unknown) => reason,
+      )
+      expect(error).toBeInstanceOf(Error)
+      const message = (error as Error).message
+      expect(message).toContain('was cancelled')
+      expect(message).toContain('exit code ')
+      expect(message).toContain('signal ')
+      expect(message.includes(PROCESS_TREE_REGRESSION_CONTROL_TOKEN.slice(
+        -PROCESS_TREE_RETAINED_SECRET_SUFFIX_BYTES,
+      ))).toBe(false)
+      if (process.platform !== 'win32') expect(message).toContain('exit code 0')
+    }, 15_000)
   })
+}
+
+function startProcessTreeRegressionDriver(
+  current: PublicationRegressionFixture,
+  ctx: Context,
+  signal: AbortSignal,
+  emitLossyOutput = false,
+): { readonly driverRun: Promise<unknown>; readonly observationPath: string } {
+  const observationPath = processTreeRegressionPath(current.artifact.resultPath)
+  const config = processTreeRegressionConfig(observationPath)
+  const driver: NativeDriver = {
+    language: 'swift',
+    argv: [
+      process.execPath,
+      '--input-type=module',
+      '--eval',
+      PROCESS_TREE_REGRESSION_DRIVER_SOURCE,
+      ...(emitLossyOutput ? ['lossy-output'] : []),
+    ],
+    resultPath: current.artifact.resultPath,
+  }
+  return {
+    driverRun: runNativeDriver(
+      { ctx, home: dirname(current.artifact.resultPath) },
+      driver,
+      config,
+      signal,
+    ),
+    observationPath,
+  }
+}
+
+function requireProcessTreeRegressionContext(ctx: Context | undefined): Context {
+  if (ctx === undefined) throw new Error('process-tree regression subprocess context is unavailable')
+  return ctx
+}
+
+const PROCESS_TREE_REGRESSION_DRIVER_SOURCE = `
+import { spawn } from 'node:child_process'
+import { readFileSync, renameSync, writeFileSync } from 'node:fs'
+
+const configPath = process.env.DSH_LINK_ACCEPTANCE_CONFIG
+if (configPath === undefined) throw new Error('process-tree regression config is missing')
+const config = JSON.parse(readFileSync(configPath, 'utf8'))
+const childSentinelPresent = Object.hasOwn(process.env, 'DSH_LINK_ACCEPTANCE_REGRESSION_TOKEN')
+process.on('SIGTERM', () => { process.exit(0) })
+setTimeout(() => process.exit(124), 40_000)
+const grandchild = spawn(process.execPath, [
+  '--input-type=module',
+  '--eval',
+  "process.on('SIGTERM', () => {}); setTimeout(() => process.exit(124), 40_000); process.send?.({ ready: true, sentinelPresent: Object.hasOwn(process.env, 'DSH_LINK_ACCEPTANCE_REGRESSION_TOKEN') })",
+], {
+  stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+  windowsHide: true,
+})
+if (grandchild.pid === undefined) throw new Error('process-tree regression grandchild did not start')
+let grandchildSentinelPresent
+await new Promise((resolveReady, rejectReady) => {
+  grandchild.once('error', rejectReady)
+  grandchild.once('exit', (code, signal) => {
+    rejectReady(new Error('process-tree regression grandchild exited before readiness: ' + code + '/' + signal))
+  })
+  grandchild.once('message', message => {
+    if (typeof message === 'object' && message !== null && message.ready === true
+      && typeof message.sentinelPresent === 'boolean') {
+      grandchildSentinelPresent = message.sentinelPresent
+      resolveReady()
+    } else {
+      rejectReady(new Error('process-tree regression grandchild sent malformed readiness'))
+    }
+  })
+})
+if (grandchildSentinelPresent === undefined) {
+  throw new Error('process-tree regression grandchild omitted its environment observation')
+}
+if (process.argv[1] === 'lossy-output') {
+  const retainedPaddingBytes = ${NATIVE_PROCESS_OUTPUT_MAX_BYTES}
+    - ${PROCESS_TREE_RETAINED_SECRET_SUFFIX_BYTES}
+  await new Promise(resolveOutput => {
+    process.stdout.write(config.controlToken + 'x'.repeat(retainedPaddingBytes), resolveOutput)
+  })
+}
+const temporaryPath = config.candidateResultPath + '.' + process.pid + '.tmp'
+writeFileSync(
+  temporaryPath,
+  JSON.stringify({
+    childPid: process.pid,
+    childSentinelPresent,
+    grandchildPid: grandchild.pid,
+    grandchildSentinelPresent,
+    ready: true,
+  }) + '\\n',
+  { mode: 0o600 },
+)
+renameSync(temporaryPath, config.candidateResultPath)
+`
+
+function processTreeRegressionPath(resultPath: string): string {
+  return join(dirname(resultPath), PROCESS_TREE_RESULT_NAME)
+}
+
+function processTreeRegressionConfig(candidateResultPath: string): AcceptanceConfig {
+  return {
+    schemaVersion: 1,
+    language: 'swift',
+    corpusPath: CORPUS_PATH,
+    candidateResultPath,
+    pairing: {
+      v: 1,
+      kind: 'dsh-link-pairing',
+      hostId: 'timeout-regression-host',
+      hostName: 'Timeout Regression Host',
+      endpoint: 'https://127.0.0.1',
+      spkiFingerprint: '0'.repeat(64),
+      code: 'timeout-regression-code',
+      expiresAt: Number.MAX_SAFE_INTEGER,
+    },
+    sessionId: 'timeout-regression-session',
+    controlEndpoint: 'http://127.0.0.1',
+    controlToken: PROCESS_TREE_REGRESSION_CONTROL_TOKEN,
+    hostCommit: '0'.repeat(40),
+    clientCommit: '0'.repeat(40),
+    expectedResponseText: 'unused',
+    deviceName: 'Timeout Regression Driver',
+  }
+}
+
+async function waitForProcessTreeRegressionReady(
+  path: string,
+): Promise<ProcessTreeRegressionObservation> {
+  let observation: ProcessTreeRegressionObservation | undefined
+  await waitFor(async () => {
+    const seed = await readProcessTreeRegressionSeed(path)
+    const snapshot = PROCESS_INSPECTOR.snapshot()
+    const tree = snapshot.tree(seed.childPid)
+    const child = tree.find(identity => identity.pid === seed.childPid)
+    const grandchild = tree.find(identity => identity.pid === seed.grandchildPid)
+    if (child === undefined || grandchild === undefined
+      || !snapshot.alive(child) || !snapshot.alive(grandchild)) {
+      throw new Error('process-tree regression did not observe both live processes')
+    }
+    const candidate = {
+      ...seed,
+      childStarted: child.started,
+      grandchildStarted: grandchild.started,
+    }
+    await writeEvidenceAtomically(path, candidate)
+    observation = candidate
+  }, 'process-tree regression readiness')
+  if (observation === undefined) throw new Error('process-tree regression readiness was not recorded')
+  return observation
+}
+
+async function waitForProcessTreeRegressionExit(
+  observation: ProcessTreeRegressionObservation,
+): Promise<void> {
+  await waitFor(() => {
+    const snapshot = PROCESS_INSPECTOR.snapshot()
+    const running = processTreeRegressionIdentities(observation)
+      .filter(identity => snapshot.alive(identity))
+    if (running.length > 0) {
+      throw new Error(`process-tree regression left running pids: ${running.map(({ pid }) => pid).join(', ')}`)
+    }
+    return Promise.resolve()
+  }, 'process-tree regression cancellation')
+}
+
+async function readProcessTreeRegressionObservation(
+  path: string,
+): Promise<ProcessTreeRegressionObservation> {
+  const value: unknown = JSON.parse(await readFile(path, 'utf8'))
+  const seed = parseProcessTreeRegressionSeed(value)
+  if (!isRecord(value)) throw new Error('process-tree regression observation is malformed')
+  const childStarted = requireProcessTreeRegressionStarted(value.childStarted, 'child')
+  const grandchildStarted = requireProcessTreeRegressionStarted(value.grandchildStarted, 'grandchild')
+  if (value.terminatedBeforeCleanup !== undefined
+    && typeof value.terminatedBeforeCleanup !== 'boolean') {
+    throw new Error('process-tree regression settlement is malformed')
+  }
+  return {
+    ...seed,
+    childStarted,
+    grandchildStarted,
+    ...(value.terminatedBeforeCleanup === undefined
+      ? {}
+      : { terminatedBeforeCleanup: value.terminatedBeforeCleanup }),
+  }
+}
+
+async function readProcessTreeRegressionSeed(path: string): Promise<ProcessTreeRegressionSeed> {
+  const value: unknown = JSON.parse(await readFile(path, 'utf8'))
+  return parseProcessTreeRegressionSeed(value)
+}
+
+function parseProcessTreeRegressionSeed(value: unknown): ProcessTreeRegressionSeed {
+  if (!isRecord(value) || value.ready !== true
+    || typeof value.childSentinelPresent !== 'boolean'
+    || typeof value.grandchildSentinelPresent !== 'boolean') {
+    throw new Error('process-tree regression observation is malformed')
+  }
+  const childPid = requireProcessTreeRegressionPid(value.childPid, 'child')
+  const grandchildPid = requireProcessTreeRegressionPid(value.grandchildPid, 'grandchild')
+  if (childPid === grandchildPid) {
+    throw new Error('process-tree regression child and grandchild pids must differ')
+  }
+  return {
+    childSentinelPresent: value.childSentinelPresent,
+    childPid,
+    grandchildSentinelPresent: value.grandchildSentinelPresent,
+    grandchildPid,
+    ready: true,
+  }
+}
+
+function requireProcessTreeRegressionPid(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0
+    || value === process.pid) {
+    throw new Error(`process-tree regression ${label} pid is invalid`)
+  }
+  return value
+}
+
+function requireProcessTreeRegressionStarted(value: unknown, label: string): string {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`process-tree regression ${label} start identity is invalid`)
+  }
+  return value
+}
+
+function processTreeRegressionIdentities(
+  observation: ProcessTreeRegressionObservation,
+): readonly ProcessIdentity[] {
+  return [
+    { pid: observation.grandchildPid, started: observation.grandchildStarted },
+    { pid: observation.childPid, started: observation.childStarted },
+  ]
+}
+
+async function terminateProcessTreeRegressionProcesses(
+  observation: ProcessTreeRegressionObservation,
+  failures: unknown[],
+): Promise<void> {
+  const identities = processTreeRegressionIdentities(observation)
+  for (const identity of identities) {
+    try {
+      PROCESS_INSPECTOR.signalProcess(identity, 'SIGKILL')
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ESRCH') failures.push(error)
+    }
+  }
+  await containCleanup(waitFor(() => {
+    const snapshot = PROCESS_INSPECTOR.snapshot()
+    const running = identities.filter(identity => snapshot.alive(identity))
+    if (running.length > 0) {
+      throw new Error(`process-tree regression cleanup left pids: ${running.map(({ pid }) => pid).join(', ')}`)
+    }
+    return Promise.resolve()
+  }, 'process-tree regression fallback cleanup'), failures)
 }
 
 interface PublicationRegressionFixture {
