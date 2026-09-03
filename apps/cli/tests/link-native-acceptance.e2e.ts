@@ -23,6 +23,7 @@ import { tmpdir } from 'node:os'
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
+import { isDeepStrictEqual } from 'node:util'
 import { Context } from '@deepseek-ai/cordis'
 import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
@@ -71,10 +72,15 @@ const CONTROL_REQUEST_TIMEOUT_MS = 30_000
 const NATIVE_DRIVER_TIMEOUT_MS = 480_000
 const NATIVE_PROCESS_GRACE_MS = 2_000
 const NATIVE_PROCESS_OUTPUT_MAX_BYTES = 5 * 1024 * 1024
+const NATIVE_CANDIDATE_UNLINK_TIMEOUT_MS = 5_000
 const PROCESS_TREE_REGRESSION_TIMEOUT_MS = 10_000
 const PROCESS_TREE_RESULT_NAME = 'process-tree.json'
+const PROCESS_TREE_CANDIDATE_NAME = 'native-candidate.json'
 const PROCESS_TREE_REGRESSION_CONTROL_TOKEN = 'timeout-regression-control-token'
 const PROCESS_TREE_RETAINED_SECRET_SUFFIX_BYTES = 8
+const SENSITIVE_PROJECTION_SENTINEL = 'dsh-link-private-projection-7f3c9b1e'
+const PROJECTION_DIGEST_ENCODING =
+  'SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order' as const
 const PROCESS_INSPECTOR = createProcessInspector()
 const STEP_IDS = [
   'pair',
@@ -259,7 +265,7 @@ interface AcceptanceConfig {
   readonly deviceName: string
 }
 
-/** Credential-free result written by every reference or native driver. */
+/** Candidate result retained only inside the isolated acceptance home. */
 interface AcceptanceResult {
   readonly schemaVersion: 1
   readonly language: string
@@ -286,6 +292,44 @@ interface RecoveryAcceptanceResult {
   readonly afterRepeatedReconnectProjection: CompanionDomainState
 }
 
+/** Privacy-safe PASS evidence written to the caller-owned result path. */
+interface PublishedAcceptanceResult {
+  readonly schemaVersion: 1
+  readonly recordKind: 'privacy-safe-acceptance-summary'
+  readonly status: 'PASS'
+  readonly language: string
+  readonly corpusSha256: string
+  readonly hostCommit: string
+  readonly clientCommit: string
+  readonly linkProtocolVersion: number
+  readonly contractVersion: number
+  readonly sessionFormatVersion: number
+  readonly steps: readonly { readonly id: StepId; readonly status: 'PASS' }[]
+  readonly recovery: PublishedRecoveryAcceptanceResult
+}
+
+/** Aggregate recovery facts that cannot disclose Session projection payloads. */
+interface PublishedRecoveryAcceptanceResult {
+  readonly preFaultSeq: number
+  readonly recoverySnapshotCursor: number
+  readonly repeatedSnapshotCursor: number
+  readonly offlineSeqCount: number
+  readonly recoverySnapshotHasMore: false
+  readonly followReplacementCount: number
+  readonly eventReplacementCount: number
+  readonly projectionItemCount: number
+  readonly projectionPlanActive: boolean
+  readonly projectionTodoCount: number
+  readonly projectionGoalCount: number
+  readonly projectionToolCallCount: number
+  readonly projectionImageCount: number
+  readonly projectionArtifactCount: number
+  readonly projectionEqualAfterRepeatedReconnect: true
+  readonly beforeRepeatedReconnectProjectionSha256: string
+  readonly afterRepeatedReconnectProjectionSha256: string
+  readonly projectionDigestEncoding: typeof PROJECTION_DIGEST_ENCODING
+}
+
 /** Authoritative Session cut computed inside the Host control process. */
 interface HostRecoveryEvidence {
   readonly preFaultSeq: number
@@ -310,10 +354,10 @@ interface NativeArtifact {
   readonly resultPath: string
 }
 
-/** Validated native result retained until every suite resource closes cleanly. */
+/** Privacy-safe native PASS result retained until every suite resource closes cleanly. */
 interface NativePublication {
   readonly artifact: NativeArtifact
-  readonly result: AcceptanceResult
+  readonly result: PublishedAcceptanceResult
 }
 
 /** Process identities and pre-cleanup settlement recorded by the runner regressions. */
@@ -552,16 +596,19 @@ function registerAcceptanceSuite(): void {
           )
           const nativeHostRecovery = await current.control.verifyExpectedBehavior()
           const native = validateResult(received, nativeConfig, current.corpus, nativeHostRecovery)
-          expect(native).toMatchObject({
-            corpusSha256: validatedReference.corpusSha256,
-            hostCommit: validatedReference.hostCommit,
-            clientCommit: validatedReference.clientCommit,
-            linkProtocolVersion: validatedReference.linkProtocolVersion,
-            contractVersion: validatedReference.contractVersion,
-            sessionFormatVersion: validatedReference.sessionFormatVersion,
-            steps: validatedReference.steps,
-          })
-          nativePublication = { artifact: nativeArtifact, result: native }
+          if (native.corpusSha256 !== validatedReference.corpusSha256
+            || native.hostCommit !== validatedReference.hostCommit
+            || native.clientCommit !== validatedReference.clientCommit
+            || native.linkProtocolVersion !== validatedReference.linkProtocolVersion
+            || native.contractVersion !== validatedReference.contractVersion
+            || native.sessionFormatVersion !== validatedReference.sessionFormatVersion
+            || !isDeepStrictEqual(native.steps, validatedReference.steps)) {
+            throw new Error('native acceptance metadata does not match the TypeScript reference')
+          }
+          nativePublication = {
+            artifact: nativeArtifact,
+            result: toPublishedAcceptanceResult(native),
+          }
         }
 
         const expectedBehaviors = current.nativeDriver === undefined
@@ -1238,7 +1285,11 @@ async function startControl(
       if (finalRecovery === undefined) {
         throw new Error('acceptance driver recovery terminal disappeared before verification')
       }
-      expect(finalRecovery).toEqual(current.recovery)
+      assertDeepStrictEqualWithoutValues(
+        finalRecovery,
+        current.recovery,
+        'repeated Host recovery observation changed',
+      )
       if (current.revocation.kind !== 'complete') {
         throw new Error('acceptance driver did not execute one device revocation')
       }
@@ -1320,7 +1371,11 @@ async function captureHostRecovery(
     throughSeq: snapshot.cursor,
     maxMessages: 50,
   }, AbortSignal.timeout(30_000))
-  expect(page.records).toEqual(snapshot.records)
+  assertDeepStrictEqualWithoutValues(
+    page.records,
+    snapshot.records,
+    'recovery Host page does not match its opening snapshot',
+  )
   expect(page.hasMore).toBe(snapshot.hasMore)
   const canonicalProjection = foldCompanionDomain(snapshot.records)
   const itemSeqs = canonicalProjection.items.map(item => item.seq)
@@ -1419,7 +1474,11 @@ async function runTypeScriptReference(
       }
       if (step.expectedTargetRelation === 'matches-follow-opening') {
         const opening = requireRecord(openingSnapshot, 'session/follow opening snapshot')
-        expect(page.records).toEqual(opening.records)
+        assertDeepStrictEqualWithoutValues(
+          page.records,
+          opening.records,
+          'history page does not match its opening snapshot',
+        )
         expect(page.hasMore).toBe(opening.hasMore)
       }
       await expectLinkError(requireClient(client).call('session/page', { request: {
@@ -1609,7 +1668,11 @@ async function runTypeScriptReference(
       const afterRepeatedReconnectProjection = foldCompanionDomain(
         requireCompanionRecords(repeatedSnapshot.records),
       )
-      expect(afterRepeatedReconnectProjection).toEqual(beforeRepeatedReconnectProjection)
+      assertDeepStrictEqualWithoutValues(
+        afterRepeatedReconnectProjection,
+        beforeRepeatedReconnectProjection,
+        'repeated reconnect changed the companion projection',
+      )
 
       eventsAbort = new AbortController()
       events = requireClient(client).openStream('$events', {}, eventsAbort.signal)
@@ -1753,17 +1816,61 @@ async function runNativeDriver(
       `signal ${String(result.signal)}`,
     ]
     const output = readNativeProcessOutput(child, config)
-    throw new Error(
+    const outcomeError = new Error(
       `native ${driver.language} acceptance ${facts.join('; ')}`
       + (output === '' ? '' : `:\n${output}`),
     )
+    try {
+      await removeNativeCandidate(config.candidateResultPath)
+    } catch (removalError) {
+      throw new AggregateError(
+        [outcomeError, removalError],
+        'native acceptance failed and candidate removal failed',
+      )
+    }
+    throw outcomeError
   }
-  const output = await readFile(config.candidateResultPath, 'utf8')
+  return await readAndRemoveNativeCandidate(config)
+}
+
+/** Read a native candidate once, remove it under its own deadline, then decode it. */
+async function readAndRemoveNativeCandidate(config: AcceptanceConfig): Promise<unknown> {
+  let output: string | undefined
+  const failures: unknown[] = []
+  try {
+    output = await readFile(config.candidateResultPath, 'utf8')
+  } catch (error) {
+    failures.push(error)
+  }
+  try {
+    await removeNativeCandidate(config.candidateResultPath)
+  } catch (error) {
+    failures.push(error)
+  }
+  if (failures.length === 1) throw failures[0]
+  if (failures.length > 1) {
+    throw new AggregateError(failures, 'native acceptance candidate read and removal failed')
+  }
+  if (output === undefined) throw new Error('native acceptance candidate read returned no data')
   assertNoAcceptanceSecrets(output, config)
   try {
     return JSON.parse(output) as unknown
   } catch {
     throw new Error('native acceptance result is not valid JSON')
+  }
+}
+
+/** Remove a candidate under its own deadline; an absent file is already contained. */
+async function removeNativeCandidate(candidateResultPath: string): Promise<void> {
+  try {
+    const removal = await settleBeforeAbsoluteDeadline(
+      unlink(candidateResultPath),
+      performance.now() + NATIVE_CANDIDATE_UNLINK_TIMEOUT_MS,
+    )
+    if (removal.expired) throw new Error('native acceptance candidate removal timed out')
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return
+    throw error
   }
 }
 
@@ -2015,8 +2122,18 @@ function validateResult(
     || recovery.eventReplacementCount !== semantics.expectedEventReplacementCount) {
     throw new Error(`${config.language} acceptance recovery result is invalid`)
   }
-  expect(recovery.beforeRepeatedReconnectProjection).toEqual(hostRecovery.canonicalProjection)
-  expect(recovery.afterRepeatedReconnectProjection).toEqual(hostRecovery.canonicalProjection)
+  assertDeepStrictEqualWithoutValues(
+    recovery.beforeRepeatedReconnectProjection,
+    hostRecovery.canonicalProjection,
+    `${config.language} acceptance projection before repeated reconnect does not match the Host`,
+  )
+  assertDeepStrictEqualWithoutValues(
+    recovery.afterRepeatedReconnectProjection,
+    hostRecovery.canonicalProjection,
+    `${config.language} acceptance projection after repeated reconnect does not match the Host`,
+  )
+  const beforeRepeatedReconnectProjection = recovery.beforeRepeatedReconnectProjection as CompanionDomainState
+  const afterRepeatedReconnectProjection = recovery.afterRepeatedReconnectProjection as CompanionDomainState
   return {
     schemaVersion: 1,
     language: config.language,
@@ -2035,10 +2152,77 @@ function validateResult(
       recoverySnapshotHasMore: false,
       followReplacementCount: semantics.expectedFollowReplacementCount,
       eventReplacementCount: semantics.expectedEventReplacementCount,
-      beforeRepeatedReconnectProjection: hostRecovery.canonicalProjection,
-      afterRepeatedReconnectProjection: hostRecovery.canonicalProjection,
+      beforeRepeatedReconnectProjection,
+      afterRepeatedReconnectProjection,
     },
   }
+}
+
+/**
+ * Project a Host-validated candidate into the only PASS value allowed outside
+ * the isolated acceptance home.
+ * @param result validated candidate with both complete Session projections.
+ * @returns aggregate evidence and Host-computed projection digests.
+ */
+function toPublishedAcceptanceResult(result: AcceptanceResult): PublishedAcceptanceResult {
+  const before = result.recovery.beforeRepeatedReconnectProjection
+  const after = result.recovery.afterRepeatedReconnectProjection
+  assertDeepStrictEqualWithoutValues(
+    before,
+    after,
+    'acceptance projections differ across the repeated reconnect',
+  )
+  return {
+    schemaVersion: 1,
+    recordKind: 'privacy-safe-acceptance-summary',
+    status: 'PASS',
+    language: result.language,
+    corpusSha256: result.corpusSha256,
+    hostCommit: result.hostCommit,
+    clientCommit: result.clientCommit,
+    linkProtocolVersion: result.linkProtocolVersion,
+    contractVersion: result.contractVersion,
+    sessionFormatVersion: result.sessionFormatVersion,
+    steps: result.steps.map(({ id, status }) => ({ id, status })),
+    recovery: {
+      preFaultSeq: result.recovery.preFaultSeq,
+      recoverySnapshotCursor: result.recovery.recoverySnapshotCursor,
+      repeatedSnapshotCursor: result.recovery.repeatedSnapshotCursor,
+      offlineSeqCount: result.recovery.offlineSeqCount,
+      recoverySnapshotHasMore: result.recovery.recoverySnapshotHasMore,
+      followReplacementCount: result.recovery.followReplacementCount,
+      eventReplacementCount: result.recovery.eventReplacementCount,
+      projectionItemCount: before.items.length,
+      projectionPlanActive: before.planActive,
+      projectionTodoCount: before.todos.length,
+      projectionGoalCount: before.goals.length,
+      projectionToolCallCount: before.toolCalls.length,
+      projectionImageCount: before.images.length,
+      projectionArtifactCount: before.artifacts.length,
+      projectionEqualAfterRepeatedReconnect: true,
+      beforeRepeatedReconnectProjectionSha256: projectionSha256(before),
+      afterRepeatedReconnectProjectionSha256: projectionSha256(after),
+      projectionDigestEncoding: PROJECTION_DIGEST_ENCODING,
+    },
+  }
+}
+
+/**
+ * Hash the exact UTF-8 JSON serialization held by the Host.
+ * @param projection validated companion projection.
+ * @returns lowercase SHA-256 hex digest.
+ */
+function projectionSha256(projection: CompanionDomainState): string {
+  return createHash('sha256').update(JSON.stringify(projection), 'utf8').digest('hex')
+}
+
+/** Reject deep inequality without allowing an assertion formatter to inspect either value. */
+function assertDeepStrictEqualWithoutValues(
+  actual: unknown,
+  expected: unknown,
+  message: string,
+): void {
+  if (!isDeepStrictEqual(actual, expected)) throw new Error(message)
 }
 
 function sessionFollowRequest(sessionId: string): Record<string, unknown> {
@@ -2519,6 +2703,12 @@ function registerRequestedSuite(): void {
     case undefined:
       registerAcceptanceSuite()
       return
+    case 'pass-publication':
+      registerPassPublicationRegression()
+      return
+    case 'sensitive-mismatch':
+      registerSensitiveMismatchRegression()
+      return
     case 'event-loop-deadline':
       registerEventLoopDeadlineRegression()
       return
@@ -2531,6 +2721,125 @@ function registerRequestedSuite(): void {
     default:
       throw new Error(`unsupported Link acceptance internal regression ${regression}`)
   }
+}
+
+function registerPassPublicationRegression(): void {
+  let fixture: PublicationRegressionFixture | undefined
+  beforeAll(async () => {
+    fixture = await preparePublicationRegression()
+  })
+  afterAll(async () => {
+    const current = requirePublicationRegression(fixture)
+    const failures: unknown[] = []
+    await publishNativeEvidence(
+      current.artifact,
+      current.publication,
+      failures,
+      performance.now() + 5_000,
+      () => false,
+    )
+    if (failures.length === 1) throw failures[0]
+    if (failures.length > 1) {
+      throw new AggregateError(failures, 'PASS publication regression teardown failed')
+    }
+  }, 10_000)
+  describe('Link acceptance PASS publication regression', () => {
+    it('prepares privacy-safe evidence for atomic publication', () => {
+      const publication = requirePublicationRegression(fixture).publication.result
+      expect(publication.status).toBe('PASS')
+      expect(publication.steps).toHaveLength(STEP_IDS.length)
+    })
+  })
+}
+
+interface SensitiveMismatchRegressionFixture {
+  readonly artifact: NativeArtifact
+  readonly home: string
+  readonly corpus: AcceptanceCorpus
+  readonly config: AcceptanceConfig
+  readonly candidate: AcceptanceResult
+}
+
+function registerSensitiveMismatchRegression(): void {
+  let fixture: SensitiveMismatchRegressionFixture | undefined
+  beforeAll(async () => {
+    const publication = await preparePublicationRegression()
+    const home = join(dirname(publication.artifact.resultPath), 'candidate-home')
+    await mkdir(home)
+    const corpus = await readCorpus()
+    const config: AcceptanceConfig = {
+      ...processTreeRegressionConfig(join(home, 'candidate.json')),
+      corpusPath: CORPUS_PATH,
+    }
+    const before = publicationRegressionProjection()
+    const after = { ...before, planActive: false }
+    const candidate: AcceptanceResult = {
+      ...publicationRegressionCandidate(before, after),
+      corpusSha256: corpus.sha256,
+      contractVersion: corpus.contractVersion,
+    }
+    await writeEvidenceAtomically(config.candidateResultPath, candidate)
+    fixture = { artifact: publication.artifact, home, corpus, config, candidate }
+  })
+  afterAll(async () => {
+    const current = requireSensitiveMismatchRegression(fixture)
+    const failures: unknown[] = []
+    await containCleanup(rm(current.home, { recursive: true, force: true }), failures)
+    await publishNativeEvidence(
+      current.artifact,
+      undefined,
+      failures,
+      performance.now() + 5_000,
+      () => true,
+    )
+    if (failures.length === 1) throw failures[0]
+    if (failures.length > 1) {
+      throw new AggregateError(failures, 'sensitive mismatch regression teardown failed')
+    }
+  }, 10_000)
+  describe('Link acceptance sensitive mismatch regression', () => {
+    it('rejects private unequal projections without formatting their values', async () => {
+      const current = requireSensitiveMismatchRegression(fixture)
+      const received = await readAndRemoveNativeCandidate(current.config)
+      if (await pathExists(current.config.candidateResultPath)) {
+        throw new Error('sensitive mismatch candidate remained after its bounded read')
+      }
+      const hostRecovery: HostRecoveryEvidence = {
+        preFaultSeq: 6,
+        hostFinalCursor: 7,
+        offlineSeqCount: 1,
+        snapshotHasMore: false,
+        canonicalProjection: current.candidate.recovery.beforeRepeatedReconnectProjection,
+      }
+      let validationRejected = false
+      try {
+        validateResult(received, current.config, current.corpus, hostRecovery)
+      } catch (error) {
+        validationRejected = error instanceof Error
+          && error.message === 'swift acceptance projection after repeated reconnect does not match the Host'
+      }
+      if (!validationRejected) {
+        throw new Error('sensitive mismatch validation did not use its fixed rejection')
+      }
+      let conversionRejected = false
+      try {
+        toPublishedAcceptanceResult(current.candidate)
+      } catch (error) {
+        conversionRejected = error instanceof Error
+          && error.message === 'acceptance projections differ across the repeated reconnect'
+      }
+      if (!conversionRejected) {
+        throw new Error('sensitive mismatch conversion did not use its fixed rejection')
+      }
+    })
+  })
+}
+
+function requireSensitiveMismatchRegression(
+  fixture: SensitiveMismatchRegressionFixture | undefined,
+): SensitiveMismatchRegressionFixture {
+  if (fixture === undefined) throw new Error('sensitive mismatch regression fixture is unavailable')
+  return fixture
 }
 
 function registerEventLoopDeadlineRegression(): void {
@@ -2649,9 +2958,10 @@ function registerProcessTreePublicationRegression(
   describe('Link acceptance native-driver cancellation regression', () => {
     it('rejects cancellation even when the direct child exits successfully', async () => {
       onTestFailed(markSuiteFailed)
+      const current = requirePublicationRegression(fixture)
       const controller = new AbortController()
       const { driverRun, observationPath } = startProcessTreeRegressionDriver(
-        requirePublicationRegression(fixture),
+        current,
         requireProcessTreeRegressionContext(processContext),
         controller.signal,
         true,
@@ -2676,6 +2986,9 @@ function registerProcessTreePublicationRegression(
       expect(message.includes(PROCESS_TREE_REGRESSION_CONTROL_TOKEN.slice(
         -PROCESS_TREE_RETAINED_SECRET_SUFFIX_BYTES,
       ))).toBe(false)
+      if (await pathExists(processTreeRegressionCandidatePath(current.artifact.resultPath))) {
+        throw new Error('cancelled native driver retained its candidate result')
+      }
       if (process.platform !== 'win32') expect(message).toContain('exit code 0')
     }, 15_000)
   })
@@ -2688,7 +3001,9 @@ function startProcessTreeRegressionDriver(
   emitLossyOutput = false,
 ): { readonly driverRun: Promise<unknown>; readonly observationPath: string } {
   const observationPath = processTreeRegressionPath(current.artifact.resultPath)
-  const config = processTreeRegressionConfig(observationPath)
+  const config = processTreeRegressionConfig(
+    processTreeRegressionCandidatePath(current.artifact.resultPath),
+  )
   const driver: NativeDriver = {
     language: 'swift',
     argv: [
@@ -2766,7 +3081,9 @@ if (process.argv[1] === 'lossy-output') {
     process.stdout.write(config.controlToken + 'x'.repeat(retainedPaddingBytes), resolveOutput)
   })
 }
-const temporaryPath = config.candidateResultPath + '.' + process.pid + '.tmp'
+writeFileSync(config.candidateResultPath, JSON.stringify({ candidate: true }) + '\\n', { mode: 0o600 })
+const observationPath = resolve(dirname(config.candidateResultPath), '${PROCESS_TREE_RESULT_NAME}')
+const temporaryPath = observationPath + '.' + process.pid + '.tmp'
 writeFileSync(
   temporaryPath,
   JSON.stringify({
@@ -2778,11 +3095,15 @@ writeFileSync(
   }) + '\\n',
   { mode: 0o600 },
 )
-renameSync(temporaryPath, config.candidateResultPath)
+renameSync(temporaryPath, observationPath)
 `
 
 function processTreeRegressionPath(resultPath: string): string {
   return join(dirname(resultPath), PROCESS_TREE_RESULT_NAME)
+}
+
+function processTreeRegressionCandidatePath(resultPath: string): string {
+  return join(dirname(resultPath), PROCESS_TREE_CANDIDATE_NAME)
 }
 
 function processTreeRegressionConfig(candidateResultPath: string): AcceptanceConfig {
@@ -2949,6 +3270,67 @@ interface PublicationRegressionFixture {
   readonly publication: NativePublication
 }
 
+/** Non-empty private projection used to prove publication emits only aggregates. */
+function publicationRegressionProjection(): CompanionDomainState {
+  return {
+    cursor: 7,
+    items: [{ seq: 7, kind: 'assistant/message', text: SENSITIVE_PROJECTION_SENTINEL }],
+    planActive: true,
+    todos: [{ text: 'private todo', status: 'pending' }],
+    goals: [{ id: 'goal-1', title: 'private goal', state: 'active' }],
+    toolCalls: [{
+      id: 'call-1',
+      seq: 6,
+      name: 'private_tool',
+      arguments: '{}',
+      phase: 'completed',
+      resultText: 'private result',
+    }],
+    images: [{
+      attachmentId: 'attachment-1',
+      mediaType: 'image/png',
+      width: 1,
+      height: 1,
+      name: 'private.png',
+    }],
+    artifacts: [{
+      id: 'artifact-1',
+      kind: 'text',
+      title: 'private artifact',
+      status: 'ready',
+    }],
+  }
+}
+
+/** Candidate shared by positive and mismatch publication regressions. */
+function publicationRegressionCandidate(
+  before: CompanionDomainState,
+  after: CompanionDomainState = before,
+): AcceptanceResult {
+  return {
+    schemaVersion: 1,
+    language: 'swift',
+    corpusSha256: '0'.repeat(64),
+    hostCommit: '0'.repeat(40),
+    clientCommit: '0'.repeat(40),
+    linkProtocolVersion: LINK_PROTOCOL_VERSION,
+    contractVersion: LINK_CONTRACT_VERSION,
+    sessionFormatVersion: SESSION_FORMAT_VERSION,
+    steps: STEP_IDS.map(id => ({ id, status: 'PASS' })),
+    recovery: {
+      preFaultSeq: 6,
+      recoverySnapshotCursor: 7,
+      repeatedSnapshotCursor: 7,
+      offlineSeqCount: 1,
+      recoverySnapshotHasMore: false,
+      followReplacementCount: 2,
+      eventReplacementCount: 2,
+      beforeRepeatedReconnectProjection: before,
+      afterRepeatedReconnectProjection: after,
+    },
+  }
+}
+
 async function preparePublicationRegression(): Promise<PublicationRegressionFixture> {
   const resultValue = process.env.DSH_LINK_ACCEPTANCE_RESULT
   if (resultValue === undefined || !isAbsolute(resultValue)) {
@@ -2965,32 +3347,14 @@ async function preparePublicationRegression(): Promise<PublicationRegressionFixt
     status: 'FAIL',
     reason: 'regression-awaiting-after-all',
   })
+  const candidate = JSON.parse(JSON.stringify(
+    publicationRegressionCandidate(publicationRegressionProjection()),
+  )) as AcceptanceResult
   return {
     artifact,
     publication: {
       artifact,
-      result: {
-        schemaVersion: 1,
-        language: artifact.language,
-        corpusSha256: '0'.repeat(64),
-        hostCommit: '0'.repeat(40),
-        clientCommit: '0'.repeat(40),
-        linkProtocolVersion: LINK_PROTOCOL_VERSION,
-        contractVersion: LINK_CONTRACT_VERSION,
-        sessionFormatVersion: SESSION_FORMAT_VERSION,
-        steps: STEP_IDS.map(id => ({ id, status: 'PASS' })),
-        recovery: {
-          preFaultSeq: 0,
-          recoverySnapshotCursor: 1,
-          repeatedSnapshotCursor: 1,
-          offlineSeqCount: 1,
-          recoverySnapshotHasMore: false,
-          followReplacementCount: 2,
-          eventReplacementCount: 2,
-          beforeRepeatedReconnectProjection: foldCompanionDomain([]),
-          afterRepeatedReconnectProjection: foldCompanionDomain([]),
-        },
-      },
+      result: toPublishedAcceptanceResult(candidate),
     },
   }
 }

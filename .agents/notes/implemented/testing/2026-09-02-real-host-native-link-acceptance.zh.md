@@ -16,7 +16,7 @@ Vitest orchestrator 以隔离 Harness home 与确定性模型服务器启动 shi
 
 Host control listener 只绑定 loopback，并由随机 bearer token 保护。它可以触发真实 Approval 请求、报告结算结果并撤销已配对测试设备；它绝不替客户端执行业务操作或回答交互。原生客户端通过真实 TLS carrier 完成每个 Link 请求，且必须把每项 corpus 步骤报告为 `PASS`。orchestrator 会拒绝缺失、跳过、乱序或重复步骤，也会拒绝 corpus hash、源码 revision 或协议版本不一致。
 
-Apple 与 Android workflow 安装仓库 JavaScript 依赖，经 orchestrator 执行各自原生 driver，并上传由 Host 发布的结果 JSON。原生 driver 只能向隔离 Harness home 下的 candidate 写入。Host 会先发布不含 credential 的 `FAIL` 结果，只在校验 candidate schema、corpus hash、分离的 Host 与 Client revision、Link protocol、Link contract、Session format 版本、全部终态步骤、control listener 观测，并对启动前使用的同一源码 revision 完成第二次 clean-input 检查后，才把它替换为 `PASS`。clean-input 检查覆盖完整 native app tree，并拒绝被忽略的源码或配置文件。subprocess 服务会从移除 credential 形态变量和 ambient `DSH_*` 项的 parent base 派生子进程环境，并且只显式恢复隔离的 `DSH_HOME` 与私有配置路径。在 Windows 上，已校验的 canonical Gradle argv 会经 `cmd.exe` 运行，因为 Node 无法直接启动 batch shim；该解释器不会收到调用方自定义 token。Vitest 取消与独立的 480 秒 deadline 都会请求树级终止；runner 会分别报告取消、deadline、exit code 与 signal，且 candidate 校验只在进程结算和整树退出后开始。teardown 只会在其绝对 deadline 前等待整树退出；越过 deadline 时会发布不含 credential 的 `FAIL` 证据，而不会发布 `PASS`。进程隔离回归要求父进程退出后仍能终止抗拒的孙进程、保留预先发布的 `FAIL` 结果，并以进程启动身份约束兜底清理。仓库 task evidence 会把无法启动 Swift 或 Gradle 的宿主记录为 `NOT_EXECUTED`；已配置的原生启动失败会保留不含 credential 的 `FAIL` artifact。TypeScript 参考运行能证明 Host harness，却不能关闭任何原生结果。
+Apple 与 Android workflow 安装仓库 JavaScript 依赖，经 orchestrator 执行各自原生 driver，并上传由 Host 发布的结果 JSON。原生 driver 只能向隔离 Harness home 下的 candidate 写入。Host 会先发布不含 credential 的 `FAIL` 结果，只在校验 candidate schema、corpus hash、分离的 Host 与 Client revision、Link protocol、Link contract、Session format 版本、全部终态步骤、control listener 观测，并对启动前使用的同一源码 revision 完成第二次 clean-input 检查后，才把它替换为 `PASS`。projection 不一致时会抛出固定诊断，且不会格式化任一对比值。Host 将两份完整原生 projection 与自身权威 projection 对比后，会把 candidate 映射为 allowlist `PASS` 记录；该记录只保留源码与版本身份、步骤、恢复计数、projection 汇总计数、结构相等结论，以及对 `JSON.parse` 后按解析属性顺序执行 Node.js `JSON.stringify` 所得 UTF-8 字节计算的 Host SHA-256。candidate 文件只被 Host 读取一次，随后会在自身 deadline 内立即解除链接；原生进程失败时，Host 也会先尝试解除其链接再报告结果。Host 仅在 teardown 成功后发布 `PASS`；读取、解除链接或 teardown 失败都会保留不含 credential 的 `FAIL` 结果。clean-input 检查覆盖完整 native app tree，并拒绝被忽略的源码或配置文件。subprocess 服务会从移除 credential 形态变量和 ambient `DSH_*` 项的 parent base 派生子进程环境，并且只显式恢复隔离的 `DSH_HOME` 与私有配置路径。在 Windows 上，已校验的 canonical Gradle argv 会经 `cmd.exe` 运行，因为 Node 无法直接启动 batch shim；该解释器不会收到调用方自定义 token。Vitest 取消与独立的 480 秒 deadline 都会请求树级终止；runner 会分别报告取消、deadline、exit code 与 signal，且 candidate 校验只在进程结算和整树退出后开始。teardown 只会在其绝对 deadline 前等待整树退出；越过 deadline 时会发布不含 credential 的 `FAIL` 证据，而不会发布 `PASS`。进程隔离回归要求父进程退出后仍能终止抗拒的孙进程、保留预先发布的 `FAIL` 结果，并以进程启动身份约束兜底清理。仓库 task evidence 会把无法启动 Swift 或 Gradle 的宿主记录为 `NOT_EXECUTED`；已配置的原生启动失败会保留不含 credential 的 `FAIL` artifact。TypeScript 参考运行能证明 Host harness，却不能关闭任何原生结果。
 
 ## 考虑过的替代方案
 
@@ -27,6 +27,8 @@ Apple 与 Android workflow 安装仓库 JavaScript 依赖，经 orchestrator 执
 **启动带测试专用 control API 的独立 supported application。** 本门禁否决此方案，因为既有 real-composition test 已启动 shipped base 与 desktop Loader tree，而 application-level control API 会仅为协调增加非产品 surface。原生客户端仍是独立进程，全部产品请求仍穿过真实 carrier 与 Gateway。
 
 **把场景复制进每个原生测试 bundle。** 否决，因为字节新鲜度不能阻止三位 owner 分别修改语义。两套 driver 都在运行时解析仓库唯一 corpus，并把其 SHA-256 写入结果。
+
+**上传已校验的完整 projections。** 否决，因为只有隔离运行内部的校验需要完整值；发布它们会把 Session 消息、工作区路径、源码内容与本地 catalog 数据复制进长期保留的 CI artifact。
 
 **只终止原生 launcher。** 否决，因为 Gradle 会在该进程下启动 single-use daemon 与 JavaExec driver；direct child 退出仍可能遗留原生工作。测试取消与 teardown 会对附属后代请求树级终止，平台回归则验证普通 child-to-grandchild 情形。
 

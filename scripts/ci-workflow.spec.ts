@@ -13,6 +13,7 @@ const root = resolve(import.meta.dirname, '..')
 const runnerPrivatePnpmDestination = /^\$\{\{ runner\.temp \}\}\/setup-pnpm-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}$/
 const nativeWindowsPnpmDestination = '${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}'
 const processTreeResultName = 'process-tree.json'
+const sensitiveProjectionSentinel = 'dsh-link-private-projection-7f3c9b1e'
 const processInspector = createProcessInspector()
 
 describe('CI workflow', () => {
@@ -795,7 +796,7 @@ describe('Native Link real-Host acceptance workflows', () => {
       nativeRun,
     )
     const nativeValidation = acceptance.indexOf('const native = validateResult(', nativeRun)
-    const publication = acceptance.indexOf('nativePublication = { artifact: nativeArtifact, result: native }')
+    const publication = acceptance.indexOf('result: toPublishedAcceptanceResult(native),')
     expect(nativeRun).toBeGreaterThanOrEqual(0)
     expect(hostVerification).toBeGreaterThan(nativeRun)
     expect(nativeValidation).toBeGreaterThan(hostVerification)
@@ -809,6 +810,108 @@ describe('Native Link real-Host acceptance workflows', () => {
     expect(control).toContain("current.revocation.kind !== 'complete'")
     expect(control).toContain('revoked?.revokedAt === undefined')
   })
+
+  it('publishes a privacy-safe PASS summary without Session projection payloads', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-pass-publication-'))
+    const resultPath = join(directory, 'evidence.json')
+    try {
+      const regression = runHostAcceptanceRegression('pass-publication', resultPath)
+      const output = `${regression.stdout}\n${regression.stderr}`
+      expect(regression.error).toBeUndefined()
+      expect(regression.status, output).toBe(0)
+      const serialized = readFileSync(resultPath, 'utf8')
+      expect(output).not.toContain(sensitiveProjectionSentinel)
+      expect(serialized).not.toContain(sensitiveProjectionSentinel)
+      const evidence: unknown = JSON.parse(serialized)
+      if (!isRecord(evidence) || !isRecord(evidence.recovery)) {
+        throw new TypeError('PASS acceptance evidence must define a recovery summary')
+      }
+      expect(Object.keys(evidence).sort()).toEqual([
+        'clientCommit',
+        'contractVersion',
+        'corpusSha256',
+        'hostCommit',
+        'language',
+        'linkProtocolVersion',
+        'recordKind',
+        'recovery',
+        'schemaVersion',
+        'sessionFormatVersion',
+        'status',
+        'steps',
+      ])
+      expect(Object.keys(evidence.recovery).sort()).toEqual([
+        'afterRepeatedReconnectProjectionSha256',
+        'beforeRepeatedReconnectProjectionSha256',
+        'eventReplacementCount',
+        'followReplacementCount',
+        'offlineSeqCount',
+        'preFaultSeq',
+        'projectionArtifactCount',
+        'projectionDigestEncoding',
+        'projectionEqualAfterRepeatedReconnect',
+        'projectionGoalCount',
+        'projectionImageCount',
+        'projectionItemCount',
+        'projectionPlanActive',
+        'projectionTodoCount',
+        'projectionToolCallCount',
+        'recoverySnapshotCursor',
+        'recoverySnapshotHasMore',
+        'repeatedSnapshotCursor',
+      ])
+      expect(evidence).toMatchObject({
+        schemaVersion: 1,
+        recordKind: 'privacy-safe-acceptance-summary',
+        language: 'swift',
+        status: 'PASS',
+        corpusSha256: '0'.repeat(64),
+        hostCommit: '0'.repeat(40),
+        clientCommit: '0'.repeat(40),
+        recovery: {
+          preFaultSeq: 6,
+          recoverySnapshotCursor: 7,
+          repeatedSnapshotCursor: 7,
+          offlineSeqCount: 1,
+          recoverySnapshotHasMore: false,
+          followReplacementCount: 2,
+          eventReplacementCount: 2,
+          projectionItemCount: 1,
+          projectionPlanActive: true,
+          projectionTodoCount: 1,
+          projectionGoalCount: 1,
+          projectionToolCallCount: 1,
+          projectionImageCount: 1,
+          projectionArtifactCount: 1,
+          projectionEqualAfterRepeatedReconnect: true,
+          projectionDigestEncoding: 'SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order',
+        },
+      })
+      expect(evidence.steps).toEqual([
+        'pair',
+        'connect',
+        'describe',
+        'list',
+        'open',
+        'history',
+        'follow',
+        'prompt',
+        'stream',
+        'approval',
+        'cancel',
+        'reconnect',
+        'revoke',
+      ].map(id => ({ id, status: 'PASS' })))
+      expect(evidence.recovery.beforeRepeatedReconnectProjectionSha256)
+        .toBe('9c97abbb4cf7f805e0ba8fd14d5fcf8d343403d2ac6f8aecfbf1f392f1d32ecc')
+      expect(evidence.recovery.afterRepeatedReconnectProjectionSha256)
+        .toBe(evidence.recovery.beforeRepeatedReconnectProjectionSha256)
+      expect(evidence.recovery).not.toHaveProperty('beforeRepeatedReconnectProjection')
+      expect(evidence.recovery).not.toHaveProperty('afterRepeatedReconnectProjection')
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }, 30_000)
 
   it('keeps cleanup timeout and evidence publication inside the hook timeout', () => {
     const teardown = sourceSection(
@@ -873,6 +976,16 @@ describe('Native Link real-Host acceptance workflows', () => {
     expect(runner).toContain('deadlineSignal.aborted')
     expect(runner).toContain('cancelSignal.aborted')
     expect(runner).not.toContain('execa(')
+    const failedOutcome = sourceSection(
+      runner,
+      'if (interruptions.length > 0 || result.exitCode !== 0 || result.signal !== null) {',
+      'return await readAndRemoveNativeCandidate(config)',
+    )
+    expect(failedOutcome.indexOf('await removeNativeCandidate(config.candidateResultPath)'))
+      .toBeGreaterThanOrEqual(0)
+    expect(failedOutcome.lastIndexOf('throw outcomeError'))
+      .toBeGreaterThan(failedOutcome.indexOf('await removeNativeCandidate(config.candidateResultPath)'))
+    expect(runner).toContain("code === 'ENOENT'")
     const settlement = sourceSection(
       runner,
       'async function settleNativeProcess(',
@@ -1019,6 +1132,28 @@ describe('Native Link real-Host acceptance workflows', () => {
       rmSync(directory, { recursive: true, force: true })
     }
   })
+
+  it('rejects unequal private projections without leaking their candidate payload', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-sensitive-mismatch-'))
+    const resultPath = join(directory, 'evidence.json')
+    try {
+      const regression = runHostAcceptanceRegression('sensitive-mismatch', resultPath)
+      const output = `${regression.stdout}\n${regression.stderr}`
+      expect(regression.error).toBeUndefined()
+      expect(regression.status, output).toBe(0)
+      expect(output).not.toContain(sensitiveProjectionSentinel)
+      const serialized = readFileSync(resultPath, 'utf8')
+      expect(serialized).not.toContain(sensitiveProjectionSentinel)
+      expect(JSON.parse(serialized)).toEqual({
+        schemaVersion: 1,
+        language: 'swift',
+        status: 'FAIL',
+        reason: 'host-validation-failed',
+      })
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }, 30_000)
 })
 
 describe('Git hooks', () => {
