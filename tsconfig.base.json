@@ -264,6 +264,7 @@
       "@deepseek-ai/dsh-app-boot/invariant": ["./packages/boot/app-boot/src/invariant.ts"],
       "@deepseek-ai/dsh-artifact": ["./packages/artifact/artifact/src"],
       "@deepseek-ai/dsh-artifact/invariant": ["./packages/artifact/artifact/src/invariant.ts"],
+      "@deepseek-ai/dsh-artifact-local/invariant": ["./packages/artifact/artifact-local/src/invariant.ts"],
       "@deepseek-ai/dsh-atomic-write": ["./packages/util/atomic-write/src"],
       "@deepseek-ai/dsh-atomic-write/invariant": ["./packages/util/atomic-write/src/invariant.ts"],
       "@deepseek-ai/dsh-attachment": ["./packages/attachment/attachment/src"],
