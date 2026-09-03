@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md
-2026-09-02-real-host-native-link-acceptance.md: 0f9172c8f7efbd14c31cdb956937b3f29aae2859
-2026-09-02-real-host-native-link-acceptance.zh.md: 75b86fd958d03abe05104d04622fccf4a7a41c7f
+2026-09-02-real-host-native-link-acceptance.md: 3d98c2169a4866416e496b6b66eee498d522187d
+2026-09-02-real-host-native-link-acceptance.zh.md: 32cb7c19b47b0970c60a5ea17133da5d42dbb438

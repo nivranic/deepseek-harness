@@ -1731,6 +1731,7 @@ async function runNativeDriver(
     current.ctx,
     command,
     args,
+    current.home,
     configPath,
     AbortSignal.any([cancelSignal, deadlineSignal]),
   )
@@ -1779,13 +1780,17 @@ function spawnNativeProcess(
   ctx: Pick<Context, 'subprocess'>,
   command: string,
   args: readonly string[],
+  home: string,
   configPath: string,
   signal: AbortSignal,
 ) {
   return ctx.subprocess.spawn({
     argv: [command, ...args],
     cwd: REPO_ROOT,
-    env: { DSH_LINK_ACCEPTANCE_CONFIG: configPath },
+    env: {
+      DSH_HOME: home,
+      DSH_LINK_ACCEPTANCE_CONFIG: configPath,
+    },
     stdio: {
       stdin: 'ignore',
       stdout: { maxBytes: NATIVE_PROCESS_OUTPUT_MAX_BYTES },
@@ -2714,10 +2719,15 @@ function requireProcessTreeRegressionContext(ctx: Context | undefined): Context 
 const PROCESS_TREE_REGRESSION_DRIVER_SOURCE = `
 import { spawn } from 'node:child_process'
 import { readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 
 const configPath = process.env.DSH_LINK_ACCEPTANCE_CONFIG
 if (configPath === undefined) throw new Error('process-tree regression config is missing')
 const config = JSON.parse(readFileSync(configPath, 'utf8'))
+if (process.env.DSH_HOME === undefined
+  || resolve(process.env.DSH_HOME) !== resolve(dirname(config.candidateResultPath))) {
+  throw new Error('process-tree regression DSH_HOME does not own the candidate result')
+}
 const childSentinelPresent = Object.hasOwn(process.env, 'DSH_LINK_ACCEPTANCE_REGRESSION_TOKEN')
 process.on('SIGTERM', () => { process.exit(0) })
 setTimeout(() => process.exit(124), 40_000)
