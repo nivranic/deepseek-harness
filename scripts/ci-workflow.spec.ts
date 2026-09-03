@@ -64,6 +64,93 @@ describe('CI workflow', () => {
     }
   })
 
+  it('materializes the tracked ACP profile symlink in every Windows-capable job', () => {
+    const workflows = new Map([
+      ['.github/workflows/ci.yml', loadWorkflow('.github/workflows/ci.yml')],
+      ['.github/workflows/ci-master.yml', loadWorkflow('.github/workflows/ci-master.yml')],
+      [
+        '.github/workflows/build-exe-for-python-sdk.yml',
+        loadWorkflow('.github/workflows/build-exe-for-python-sdk.yml'),
+      ],
+    ])
+    const windowsJobs = [
+      { file: '.github/workflows/ci.yml', job: 'windows-build' },
+      { file: '.github/workflows/ci.yml', job: 'windows-coverage' },
+      { file: '.github/workflows/ci.yml', job: 'windows-native-tests' },
+      { file: '.github/workflows/ci.yml', job: 'windows-observational' },
+      { file: '.github/workflows/ci-master.yml', job: 'serial-windows' },
+      {
+        file: '.github/workflows/ci-master.yml',
+        job: 'larger-runner-benchmark',
+        condition: "matrix.platform == 'windows'",
+      },
+      {
+        file: '.github/workflows/ci-master.yml',
+        job: 'consolidated-runner-benchmark',
+        condition: "matrix.platform == 'windows'",
+      },
+      {
+        file: '.github/workflows/build-exe-for-python-sdk.yml',
+        job: 'build',
+        condition: "matrix.target == 'node24-win-x64'",
+      },
+    ] as const
+
+    expect(windowsJobs).toHaveLength(8)
+    for (const { file, job: jobName, condition } of windowsJobs) {
+      const workflow = workflows.get(file)
+      if (workflow === undefined) throw new TypeError(`${file} must be loaded`)
+      const job = workflowJob(workflow, jobName)
+      if (!Array.isArray(job.steps)) throw new TypeError(`${file} ${jobName} must define steps`)
+      const steps = job.steps.filter(isRecord)
+      const preparationIndex = steps.findIndex(
+        step => step.name === 'Prepare Windows tracked symlink checkout',
+      )
+      const checkoutIndex = steps.findIndex(step => step.uses === 'actions/checkout@v6')
+      const verificationIndex = steps.findIndex(
+        step => step.name === 'Verify Windows tracked symlink checkout',
+      )
+      expect(preparationIndex, `${file} ${jobName} must prepare immediately before checkout`)
+        .toBe(checkoutIndex - 1)
+      expect(verificationIndex, `${file} ${jobName} must verify immediately after checkout`)
+        .toBe(checkoutIndex + 1)
+
+      const preparation = steps[preparationIndex]
+      const verification = steps[verificationIndex]
+      if (!isRecord(preparation) || typeof preparation.run !== 'string'
+        || !isRecord(verification) || typeof verification.run !== 'string') {
+        throw new TypeError(`${file} ${jobName} must define symlink preparation and verification`)
+      }
+      expect(preparation.shell).toBe('pwsh')
+      expect(preparation.run).toContain(
+        'reg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock"',
+      )
+      expect(preparation.run).toContain('git config --global core.symlinks true')
+      expect(preparation.run.indexOf('reg add')).toBeLessThan(
+        preparation.run.indexOf('git config --global core.symlinks true'),
+      )
+      expect(preparation.run).toContain("'GIT_CONFIG_COUNT=1'")
+      expect(preparation.run).toContain("'GIT_CONFIG_KEY_0=core.symlinks'")
+      expect(preparation.run).toContain("'GIT_CONFIG_VALUE_0=true'")
+      expect(preparation.run).toContain('$env:GITHUB_ENV')
+      expect(verification.shell).toBe('pwsh')
+      expect(verification.run).toContain(
+        "$trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'",
+      )
+      expect(verification.run).toContain('git ls-files --stage -- $trackedSymlinkPath')
+      expect(verification.run).toContain("$indexEntry -notmatch '^120000\\s'")
+      expect(verification.run).toContain('[System.IO.FileAttributes]::ReparsePoint')
+
+      if (condition === undefined) {
+        expect(preparation).not.toHaveProperty('if')
+        expect(verification).not.toHaveProperty('if')
+      } else {
+        expect(preparation.if).toBe(condition)
+        expect(verification.if).toBe(condition)
+      }
+    }
+  })
+
   it('keeps required Wine and split native Windows jobs with failover, plus a master-only standby', () => {
     const workflow = loadWorkflow('.github/workflows/ci.yml')
     const masterWorkflow = loadWorkflow('.github/workflows/ci-master.yml')

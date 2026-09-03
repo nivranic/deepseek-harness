@@ -166,13 +166,36 @@ jobs:
     runs-on: [self-hosted, dsh-win-ci, windows]
     timeout-minutes: 120
     steps:
+      - name: Prepare Windows tracked symlink checkout
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Windows Developer Mode.'
+          }
+          git config --global core.symlinks true
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Git symlink checkout.'
+          }
+          @(
+            'GIT_CONFIG_COUNT=1'
+            'GIT_CONFIG_KEY_0=core.symlinks'
+            'GIT_CONFIG_VALUE_0=true'
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - uses: actions/checkout@v6
 
-      - name: Enable Developer Mode (symlink support)
+      - name: Verify Windows tracked symlink checkout
         shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+        run: |
+          $trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'
+          $indexEntry = git ls-files --stage -- $trackedSymlinkPath
+          if ($LASTEXITCODE -ne 0 -or $indexEntry -notmatch '^120000\s') {
+            throw "$trackedSymlinkPath must have Git mode 120000."
+          }
+          $trackedSymlinkItem = Get-Item -LiteralPath $trackedSymlinkPath -Force
+          if (($trackedSymlinkItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+            throw "$trackedSymlinkPath must be materialized as a Windows reparse point."
+          }
 
       - uses: pnpm/action-setup@v4
         with:
@@ -260,7 +283,38 @@ jobs:
             runner: dsh-windows-2025-96core
             workload: production-site
     steps:
+      - name: Prepare Windows tracked symlink checkout
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Windows Developer Mode.'
+          }
+          git config --global core.symlinks true
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Git symlink checkout.'
+          }
+          @(
+            'GIT_CONFIG_COUNT=1'
+            'GIT_CONFIG_KEY_0=core.symlinks'
+            'GIT_CONFIG_VALUE_0=true'
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - uses: actions/checkout@v6
+
+      - name: Verify Windows tracked symlink checkout
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'
+          $indexEntry = git ls-files --stage -- $trackedSymlinkPath
+          if ($LASTEXITCODE -ne 0 -or $indexEntry -notmatch '^120000\s') {
+            throw "$trackedSymlinkPath must have Git mode 120000."
+          }
+          $trackedSymlinkItem = Get-Item -LiteralPath $trackedSymlinkPath -Force
+          if (($trackedSymlinkItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+            throw "$trackedSymlinkPath must be materialized as a Windows reparse point."
+          }
 
       - uses: pnpm/action-setup@v4
         with:
@@ -351,7 +405,38 @@ jobs:
             runner: dsh-windows-2025-96core
             workers: '2'
     steps:
+      - name: Prepare Windows tracked symlink checkout
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Windows Developer Mode.'
+          }
+          git config --global core.symlinks true
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Git symlink checkout.'
+          }
+          @(
+            'GIT_CONFIG_COUNT=1'
+            'GIT_CONFIG_KEY_0=core.symlinks'
+            'GIT_CONFIG_VALUE_0=true'
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - uses: actions/checkout@v6
+
+      - name: Verify Windows tracked symlink checkout
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'
+          $indexEntry = git ls-files --stage -- $trackedSymlinkPath
+          if ($LASTEXITCODE -ne 0 -or $indexEntry -notmatch '^120000\s') {
+            throw "$trackedSymlinkPath must have Git mode 120000."
+          }
+          $trackedSymlinkItem = Get-Item -LiteralPath $trackedSymlinkPath -Force
+          if (($trackedSymlinkItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+            throw "$trackedSymlinkPath must be materialized as a Windows reparse point."
+          }
 
       - uses: pnpm/action-setup@v4
         with:
