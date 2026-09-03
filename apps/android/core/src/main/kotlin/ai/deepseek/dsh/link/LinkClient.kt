@@ -19,7 +19,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -181,9 +183,10 @@ class LinkClient private constructor(
 
     /**
      * Pair with a host by exchanging the one-time QR code for a durable
-     * identity: a fresh Ed25519 key whose SPKI DER the host stores, the
-     * returned identity persisted through the store. Work runs off the
-     * caller's dispatcher, and cancellation cancels the owned OkHttp call.
+     * identity. The client generates a fresh Ed25519 key whose SPKI DER the
+     * host stores, then validates required identity, role, and protocol fields
+     * before the store persists credentials. Work runs off the caller's
+     * dispatcher, and cancellation cancels the owned OkHttp call.
      */
     suspend fun pair(payload: LinkPairingPayload, deviceName: String): LinkCredentials = withContext(Dispatchers.IO) {
         if (payload.endpoint.trimEnd('/') != base || payload.spkiFingerprint != pinned) {
@@ -200,12 +203,14 @@ class LinkClient private constructor(
             },
         )
         val data = post("/link/pair", body.toByteArray(Charsets.UTF_8), signed = false)
-        val value = Json.parseToJsonElement(data.decodeToString()).jsonObject
+        val document = runCatching { Json.parseToJsonElement(data.decodeToString()).jsonObject }
+            .getOrElse { throw LinkClientException.BadWire("pair response is not a JSON object") }
+        val value = document.pairResponse(expectedProtocolVersion = payload.v)
         val credentials = LinkCredentials(
-            deviceId = value.string("deviceId"),
-            hostId = value.string("hostId"),
-            hostName = value.string("hostName"),
-            role = value.string("role"),
+            deviceId = value.deviceId,
+            hostId = value.hostId,
+            hostName = value.hostName,
+            role = value.role.wire,
             endpoint = payload.endpoint,
             pinnedFingerprint = payload.spkiFingerprint,
             signingKeyBase64 = Base64.getEncoder().encodeToString(
@@ -225,7 +230,8 @@ class LinkClient private constructor(
 
     /**
      * Call one unary Remote endpoint through the shared `/api` chain;
-     * throws [LinkClientException.Refused] when the business call fails.
+     * throws [LinkClientException.Refused] when carrier authorization or the
+     * business call refuses the operation.
      * Coroutine cancellation cancels the owned OkHttp call.
      */
     suspend fun call(method: String, args: Map<String, WireValue> = emptyMap()): WireValue =
@@ -256,8 +262,9 @@ class LinkClient private constructor(
         }
 
     /**
-     * Open one NDJSON Remote stream: value frames flow as they arrive; a
-     * failure frame completes the flow with [LinkClientException.Refused].
+     * Open one NDJSON Remote stream: value frames flow as they arrive; carrier
+     * authorization or a failure frame completes the flow with
+     * [LinkClientException.Refused].
      * Cancelling collection cancels the call and waits for the blocking owner
      * to close its response source before collection finishes.
      */
@@ -517,18 +524,48 @@ class LinkClient private constructor(
 
     private fun checkStatus(status: Int, body: ByteArray?) {
         if (status in 200..299) return
-        val message = body?.let { bytes ->
+        val document = body?.let { bytes ->
             runCatching {
-                (Json.parseToJsonElement(bytes.decodeToString()) as? JsonObject)?.get("message")?.jsonPrimitive?.content
+                Json.parseToJsonElement(bytes.decodeToString()) as? JsonObject
             }.getOrNull()
-        } ?: "HTTP $status"
+        }
+        val message = document?.optionalString("message")?.takeIf { it.isNotEmpty() }
+            ?: document?.optionalString("reason")?.takeIf { it.isNotEmpty() }
+            ?: "HTTP $status"
+        if (status == 403 && document?.optionalString("error") == "forbidden") {
+            throw LinkClientException.Refused("forbidden", message)
+        }
         throw LinkClientException.Carrier(status, message)
     }
 
 }
 
-private fun JsonObject.string(field: String): String =
-    this[field]?.jsonPrimitive?.takeIf { it.isString }?.content ?: ""
+private fun JsonObject.optionalString(field: String): String? =
+    (this[field] as? JsonPrimitive)?.takeIf { it.isString }?.content
+
+private fun JsonObject.requiredString(field: String): String =
+    optionalString(field)?.takeIf { it.isNotEmpty() }
+        ?: throw LinkClientException.BadWire("missing or invalid string field $field")
+
+private fun JsonObject.requiredNumber(field: String): Double =
+    (this[field] as? JsonPrimitive)?.takeUnless { it.isString }?.doubleOrNull
+        ?: throw LinkClientException.BadWire("missing or invalid number field $field")
+
+private fun JsonObject.pairResponse(expectedProtocolVersion: Double): LinkPairResponse {
+    val role = requiredString("role")
+    val protocolVersion = requiredNumber("linkProtocolVersion")
+    if (protocolVersion != expectedProtocolVersion) {
+        throw LinkClientException.BadWire("pair response protocol version mismatch")
+    }
+    return LinkPairResponse(
+        deviceId = requiredString("deviceId"),
+        hostId = requiredString("hostId"),
+        hostName = requiredString("hostName"),
+        role = LinkDeviceRole.entries.singleOrNull { it.wire == role }
+            ?: throw LinkClientException.BadWire("pair response carried an invalid role"),
+        linkProtocolVersion = protocolVersion,
+    )
+}
 
 private fun JsonObject.boolean(field: String): Boolean =
     this[field]?.jsonPrimitive?.booleanOrNull ?: false
@@ -545,10 +582,10 @@ internal fun mapHostDescription(obj: JsonObject): LinkHostDescription {
     return LinkHostDescription(
         linkProtocolVersion = obj.number("linkProtocolVersion"),
         contractVersion = obj.number("contractVersion"),
-        hostVersion = obj.string("hostVersion"),
-        hostId = obj.string("hostId"),
-        hostName = obj.string("hostName"),
-        runtimeClass = obj.string("runtimeClass"),
+        hostVersion = obj.requiredString("hostVersion"),
+        hostId = obj.requiredString("hostId"),
+        hostName = obj.requiredString("hostName"),
+        runtimeClass = obj.requiredString("runtimeClass"),
         sessionFormatVersion = obj.number("sessionFormatVersion"),
         allowRemoteApproval = obj.boolean("allowRemoteApproval"),
         capabilities = LinkCapabilities(

@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -47,6 +48,8 @@ class LinkClientTest {
     private val capturedHeaders = ConcurrentLinkedQueue<Pair<String, String>>()
     private val capturedBodies = ConcurrentLinkedQueue<String>()
     private val clients = ConcurrentLinkedQueue<LinkClient>()
+    private var pairResponse =
+        """{"deviceId":"d-1","hostId":"h-1","hostName":"Studio Desk","role":"controller","linkProtocolVersion":1}"""
     private val transportConfig = LinkTransportConfig(
         connectTimeoutMillis = 5_000,
         writeTimeoutMillis = 5_000,
@@ -61,11 +64,7 @@ class LinkClientTest {
         server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/link/pair") { exchange ->
             capturedBodies.add(exchange.requestBody.readBytes().decodeToString())
-            respond(
-                exchange,
-                200,
-                """{"deviceId":"d-1","hostId":"h-1","hostName":"Studio Desk","role":"controller","linkProtocolVersion":1}""",
-            )
+            respond(exchange, 200, pairResponse)
         }
         server.createContext("/link/describe") { exchange ->
             capture(exchange)
@@ -215,6 +214,29 @@ class LinkClientTest {
     }
 
     @Test
+    fun pairRejectsInvalidRequiredResponseFieldsWithoutPersistingCredentials() = runBlocking {
+        val invalidResponses = listOf(
+            "not-json",
+            "[]",
+            """{"hostId":"h-1","hostName":"Studio Desk","role":"controller","linkProtocolVersion":1}""",
+            """{"deviceId":"","hostId":"h-1","hostName":"Studio Desk","role":"controller","linkProtocolVersion":1}""",
+            """{"deviceId":[],"hostId":"h-1","hostName":"Studio Desk","role":"controller","linkProtocolVersion":1}""",
+            """{"deviceId":"d-1","hostId":"h-1","hostName":"Studio Desk","role":"owner","linkProtocolVersion":1}""",
+            """{"deviceId":"d-1","hostId":"h-1","hostName":"Studio Desk","role":"controller","linkProtocolVersion":2}""",
+        )
+
+        for (response in invalidResponses) {
+            pairResponse = response
+            val store = MemoryLinkCredentialsStore()
+            val client = client(store)
+            assertFailsWith<LinkClientException.BadWire> {
+                client.pair(pairingPayload(), deviceName = "Pixel 9")
+            }
+            assertEquals(null, store.load())
+        }
+    }
+
+    @Test
     fun describeDecodesTheHostCapabilities() = runBlocking {
         val client = client(MemoryLinkCredentialsStore())
         client.pair(pairingPayload(), deviceName = "Pixel 9")
@@ -234,6 +256,52 @@ class LinkClientTest {
         val failure = assertFailsWith<LinkClientException.Refused> { client.call("session/prompt") }
         assertEquals("session-gone", failure.code)
         assertTrue(failure.message!!.contains("no such session"))
+    }
+
+    @Test
+    fun carrierAuthorizationRefusalUsesTheStableErrorCode() = runBlocking {
+        server.createContext("/api/session/denied") { exchange ->
+            capture(exchange)
+            respond(exchange, 403, """{"error":"forbidden","reason":"session"}""")
+        }
+        val client = client(MemoryLinkCredentialsStore())
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+
+        val failure = assertFailsWith<LinkClientException.Refused> { client.call("session/denied") }
+        assertEquals("forbidden", failure.code)
+        assertTrue(failure.message!!.contains("session"))
+    }
+
+    @Test
+    fun streamCarrierAuthorizationRefusalUsesTheStableErrorCode() = runBlocking {
+        server.createContext("/link/stream/session/denied") { exchange ->
+            capture(exchange)
+            respond(exchange, 403, """{"error":"forbidden","reason":"session"}""")
+        }
+        val client = client(MemoryLinkCredentialsStore())
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+
+        val failure = assertFailsWith<LinkClientException.Refused> {
+            client.stream("session/denied").collect {}
+        }
+        assertEquals("forbidden", failure.code)
+        assertTrue(failure.message!!.contains("session"))
+    }
+
+    @Test
+    fun malformedCarrierRejectionKeepsTheCarrierClassification() = runBlocking {
+        server.createContext("/api/session/malformed-rejection") { exchange ->
+            capture(exchange)
+            respond(exchange, 403, """{"error":[],"message":{},"reason":[]}""")
+        }
+        val client = client(MemoryLinkCredentialsStore())
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+
+        val failure = assertFailsWith<LinkClientException.Carrier> {
+            client.call("session/malformed-rejection")
+        }
+        assertEquals(403, failure.status)
+        assertTrue(failure.message!!.contains("HTTP 403"))
     }
 
     @Test
@@ -364,15 +432,19 @@ class LinkClientTest {
         }
         val client = client(MemoryLinkCredentialsStore())
         client.pair(pairingPayload(), deviceName = "Pixel 9")
+        val mainThread = AtomicReference<Thread>()
         val main = Executors.newSingleThreadExecutor { runnable ->
-            Thread(runnable, "link-test-main").apply { isDaemon = true }
+            Thread(runnable, "link-test-main").apply {
+                isDaemon = true
+                mainThread.set(this)
+            }
         }.asCoroutineDispatcher()
 
         try {
             val request = async(main) { LinkWireDriving(client).call("session/main-dispatcher") }
             withTimeout(5_000) { requestStarted.await() }
-            val scheduled = async(main) { Thread.currentThread().name }
-            assertEquals("link-test-main", withTimeout(5_000) { scheduled.await() })
+            val scheduled = async(main) { Thread.currentThread() }
+            assertTrue(mainThread.get() === withTimeout(5_000) { scheduled.await() })
             releaseServer.countDown()
             assertEquals(WireValue.NullValue, withTimeout(5_000) { request.await() })
         } finally {

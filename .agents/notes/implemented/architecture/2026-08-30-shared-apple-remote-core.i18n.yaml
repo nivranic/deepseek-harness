@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md
-2026-08-30-shared-apple-remote-core.md: 78666b3e4d51369b68934db4bc40889441f88c5b
-2026-08-30-shared-apple-remote-core.zh.md: 6193f63c9c508df08ce86d21376082eb808e24b3
+2026-08-30-shared-apple-remote-core.md: e6bf4b75a53feecd28cc11c6959021a3fe6e5928
+2026-08-30-shared-apple-remote-core.zh.md: 1d649b0f8f9b383e83b55f558d06fc3e1e0d739c

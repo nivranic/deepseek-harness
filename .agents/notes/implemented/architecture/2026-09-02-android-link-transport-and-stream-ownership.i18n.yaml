@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md
-2026-09-02-android-link-transport-and-stream-ownership.md: a242c2ee82b1e315d8bfe564fdf0f9444c7b4a72
-2026-09-02-android-link-transport-and-stream-ownership.zh.md: 5433c5a17550885fd71ca8eb33384324e090e68c
+2026-09-02-android-link-transport-and-stream-ownership.md: 4d41395ec6a07a5715f628dbc8bd80206292d5a6
+2026-09-02-android-link-transport-and-stream-ownership.zh.md: ecc713979e03c0c712def8bfe38641c578809002

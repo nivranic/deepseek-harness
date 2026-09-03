@@ -10,9 +10,9 @@ Status: implemented
 
 ## Decision
 
-`apps/apple` 是一个 SwiftPM 包（iOS 16+、macOS 13+），`SharedAppleRemoteCore` target 不引入任何 UI 地镜像 `dsh-link-client` 的状态机：`LinkClient`（在生成式 request、response、stream 与递归 JSON 模型上完成配对 / 描述 / 调用 / 流）、`LinkSigning`（规范签名输入 `timestamp\nmethod\npath\nsha256hex(body)`、CryptoKit 的 Ed25519、Ed25519 与 P-256 密钥的固定 SPKI 头）、`LinkPinningDelegate`（在 TLS 挑战处理器里计算叶证书的 SPKI 指纹，任何不匹配都在写出请求字节之前取消握手），以及藏在 `LinkCredentialsStoring` 协议后的凭据（Keychain 与内存两种实现）。生成产物是同步而非分叉：`gen-link-contracts` 把 `LinkContracts.swift` 写进包源码、每个黄金 fixture 一份 JSON 写入 `generated/fixtures/`，并把 fixtures 拷贝进测试 bundle 资源；`verify-link-contracts` 逐字节比对每一份拷贝。XCTest fixtures 把每个 JSON 解码进生成模型；签名测试覆盖规范输入、SPKI 组帧与签名/验签往返。
+`apps/apple` 是一个 SwiftPM 包（iOS 17+、macOS 14+），`SharedAppleRemoteCore` target 不引入任何 UI 地镜像 `dsh-link-client` 的状态机：`LinkClient`（在生成式 request、response、stream 与递归 JSON 模型上完成配对 / 描述 / 调用 / 流）、`LinkSigning`（规范签名输入 `timestamp\nmethod\npath\nsha256hex(body)`、CryptoKit 的 Ed25519、Ed25519 与 P-256 密钥的固定 SPKI 头）、`LinkPinningDelegate`（在 TLS 挑战处理器里计算叶证书的 SPKI 指纹，任何不匹配都在写出请求字节之前取消握手），以及藏在 `LinkCredentialsStoring` 协议后的凭据（Keychain 与内存两种实现）。生成产物是同步而非分叉：`gen-link-contracts` 把 `LinkContracts.swift` 写进包源码、每个黄金 fixture 一份 JSON 写入 `generated/fixtures/`，并把 fixtures 拷贝进测试 bundle 资源；`verify-link-contracts` 逐字节比对每一份拷贝。XCTest fixtures 把每个 JSON 解码进生成模型；签名测试覆盖规范输入、SPKI 组帧与签名/验签往返。
 
-fresh pairing 把新绑定的 `LinkClient` 返回给 `CompanionRootView`，全部模型都以这一组 endpoint、pin 与 credential store 构建。unary 调用要求 Host 回显请求 `rpcId`，把成功但省略 value 的响应当作 void，并拒绝跨分支 result 字段。交互收件箱只接受 waterfall frame，从 `request` 读取用户可见字段，移除 cancel frame，并用当前 Host `ready.clientId` 发送 outcome；重连会清空旧一代身份，直到收到下一条 ready frame。
+fresh pairing 把新绑定的 `LinkClient` 返回给 `CompanionRootView`，全部模型都以这一组 endpoint、pin 与 credential store 构建。unary 调用要求 Host 回显请求 `rpcId`，把成功但省略 value 的响应当作 void，并拒绝跨分支 result 字段。unary 与 stream 的状态处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。stream 处理仅在响应非 2xx 时读取错误体，并让成功响应的 NDJSON 字节保持未消费。交互收件箱只接受 waterfall frame，从 `request` 读取用户可见字段，移除 cancel frame，并用当前 Host `ready.clientId` 发送 outcome；重连会清空旧一代身份，直到收到下一条 ready frame。
 
 ## Consequences
 

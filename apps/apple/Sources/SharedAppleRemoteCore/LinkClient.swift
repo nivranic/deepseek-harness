@@ -4,11 +4,12 @@ import Foundation
 /// Every way a link call can fail, mirroring the TypeScript reference
 /// client's `LinkError` vocabulary.
 public enum LinkClientError: Error, Equatable {
-    /// The carrier answered with a non-200 status and a message.
+    /// The carrier failed before an HTTP response or returned a non-2xx status
+    /// that is not an authorization refusal.
     case carrier(status: Int, message: String)
     /// A paired identity is required but none is persisted.
     case unpaired
-    /// A unary call reached the gateway but the business call refused.
+    /// Carrier authorization or a Remote operation refused the request.
     case refused(code: String, message: String)
     /// The envelope or frame bytes were not decodable.
     case badWire(String)
@@ -90,7 +91,9 @@ public final class LinkClient {
     ///   - method: canonical endpoint, for example `session/list`.
     ///   - args: named wire arguments.
     /// - Returns: the business value on success.
-    /// - Throws: `LinkClientError.refused` when the business call fails.
+    /// - Throws: `LinkClientError.unpaired` or `badWire` for unusable local
+    ///   credentials or response bytes, `carrier` for transport failures, and
+    ///   `refused` for carrier authorization or business-call refusal.
     public func call(
         _ method: String,
         args: [String: LinkJsonValue] = [:]
@@ -108,14 +111,18 @@ public final class LinkClient {
         return try Self.value(from: response, expectedRpcId: rpcId)
     }
 
-    /// Open one NDJSON Remote stream. Values yield as frames arrive; a
-    /// typed failure frame finishes with `refused`. A transport failure
-    /// mid-stream surfaces as the underlying `URLError` so callers
-    /// resubscribe rather than treat silence as completion.
+    /// Open one NDJSON Remote stream. A carrier authorization refusal throws
+    /// before the stream is returned; a typed failure frame finishes the
+    /// returned stream with `refused`. A transport failure mid-stream surfaces
+    /// as the underlying `URLError` so callers resubscribe rather than treat
+    /// silence as completion.
     /// - Parameters:
     ///   - endpoint: canonical stream endpoint, for example `$events`.
     ///   - payload: the stream's opening payload arguments.
     /// - Returns: an async stream of decoded frame values.
+    /// - Throws: `LinkClientError.unpaired` or `badWire` for unusable local
+    ///   credentials or response bytes, `carrier` for transport failures, and
+    ///   `refused` when carrier authorization rejects the stream request.
     public func stream(
         _ endpoint: String,
         payload: [String: LinkJsonValue] = [:]
@@ -134,7 +141,7 @@ public final class LinkClient {
         } catch {
             throw LinkClientError.carrier(status: 0, message: String(describing: error))
         }
-        try Self.check(response: data.response, data: nil)
+        try await Self.checkStreamResponse(response: data.response, bytes: data.bytes)
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -240,15 +247,48 @@ public final class LinkClient {
         request.setValue(try LinkSigning.sign(input: input, privateKeyRaw: privateKey), forHTTPHeaderField: LinkSigning.signatureHeader)
     }
 
-    /// Fail loud on a non-2xx carrier answer.
+    /// Classify a non-2xx carrier answer. Only an HTTP 403 with the JSON string
+    /// `error` equal to `forbidden` is an authorization refusal; all other
+    /// statuses remain carrier failures.
     static func check(response: URLResponse, data: Data?) throws {
         guard let http = response as? HTTPURLResponse else { return }
         guard (200..<300).contains(http.statusCode) else {
-            let message = data.flatMap { d in
-                (try? JSONDecoder().decode([String: String].self, from: d))?["message"]
-            } ?? HTTPURLResponse.localizedString(forStatusCode: http.statusCode)
+            let document: [String: Any]? = data.flatMap { body in
+                guard let value = try? JSONSerialization.jsonObject(with: body) else { return nil }
+                return value as? [String: Any]
+            }
+            let message = nonemptyString("message", in: document)
+                ?? nonemptyString("reason", in: document)
+                ?? "HTTP \(http.statusCode)"
+            if http.statusCode == 403, document?["error"] as? String == "forbidden" {
+                throw LinkClientError.refused(code: "forbidden", message: message)
+            }
             throw LinkClientError.carrier(status: http.statusCode, message: message)
         }
+    }
+
+    /// Read and classify an unsuccessful stream response without consuming a
+    /// successful stream's first byte.
+    static func checkStreamResponse<Bytes: AsyncSequence>(
+        response: URLResponse,
+        bytes: Bytes
+    ) async throws where Bytes.Element == UInt8 {
+        guard let http = response as? HTTPURLResponse,
+              !(200..<300).contains(http.statusCode) else { return }
+        var body = Data()
+        do {
+            for try await byte in bytes {
+                body.append(byte)
+            }
+        } catch {
+            throw LinkClientError.carrier(status: http.statusCode, message: "HTTP \(http.statusCode)")
+        }
+        try check(response: http, data: body)
+    }
+
+    private static func nonemptyString(_ field: String, in document: [String: Any]?) -> String? {
+        guard let value = document?[field] as? String, !value.isEmpty else { return nil }
+        return value
     }
 
     /// Decode or map to `badWire`.
