@@ -1,85 +1,43 @@
 {
   "taskId": "G1-E2E",
   "status": "PARTIAL",
-  "evidenceLevel": "E3",
-  "commit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
-  "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+  "evidenceLevel": "E4",
+  "commit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+  "sourceHead": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
   "startedFrom": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
-  "workingTreeState": "RELEVANT_EXECUTION_INPUTS_CLEAN_AT_SOURCE_HEAD_WITH_EXCLUDED_G1_MULTI_CHANGES",
-  "recordedAt": "2026-09-03T03:49:36.3656347+08:00",
+  "workingTreeState": "The TypeScript reference and Kotlin native lane started from committed clean inputs at sourceHead; privacy-safe evidence summaries were added after execution, while the raw result remains ignored local evidence.",
+  "recordedAt": "2026-09-03T13:30:46.8526476+08:00",
   "commands": [
-    "pnpm exec tsc -p apps/cli/tsconfig.json --noEmit",
-    "pnpm exec oxlint apps/cli/tests/link-native-acceptance.e2e.ts scripts/ci-workflow.spec.ts",
-    "pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0",
-    "pnpm exec vitest run scripts/ci-workflow.spec.ts --no-file-parallelism --retry=0",
-    "pnpm run verify-link-contracts",
-    "pnpm run verify-translation-pairing",
-    "pnpm run test:docs",
-    "pnpm run lint",
-    "pnpm run doc-sync",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "gradle --no-daemon -p apps/android :core:test",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-link-contracts.ts",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-translation-pairing.ts",
     "git diff --check"
   ],
   "tests": [
     {
-      "name": "CLI TypeScript typecheck",
-      "result": "PASS"
-    },
-    {
-      "name": "Host acceptance and workflow-spec Oxlint",
-      "result": "PASS"
-    },
-    {
-      "name": "Native workflow and evidence-publication specification",
-      "result": "PASS",
-      "passed": 27,
-      "failed": 0,
-      "regressions": [
-        "event-loop cleanup winner resumed after an absolute deadline publishes FAIL",
-        "real Vitest timeout invalidates PASS before afterAll evidence publication"
-      ]
-    },
-    {
-      "name": "Generated Link contract freshness",
-      "result": "PASS",
-      "stale": 0
-    },
-    {
-      "name": "Translation pairing",
-      "result": "PASS",
-      "pairs": 1157
-    },
-    {
-      "name": "Documentation quick aggregate",
-      "result": "PASS",
-      "passed": 15,
-      "failed": 0
-    },
-    {
-      "name": "Repository lint and Host build",
-      "result": "PASS"
-    },
-    {
-      "name": "Documentation full aggregate",
-      "result": "FAIL",
-      "failureClass": "HOST_ENVIRONMENT",
-      "passed": 31,
-      "failed": 1,
-      "repositoryDrift": 0,
-      "details": "Windows denied the project-doc-site symlink fixture with EPERM; every other documentation gate passed."
-    },
-    {
       "name": "TypeScript real Host reference lane",
       "role": "reference",
       "result": "PASS",
-      "language": "typescript",
       "passed": 13,
       "failed": 0,
-      "hostCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
-      "clientCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
-      "corpusSha256": "07b53fa85f40f73ea4b89780bed6e6700685a64daeef1444879a2c1de4c106d1",
+      "hostCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+      "clientCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+      "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
       "linkProtocolVersion": 1,
       "contractVersion": 1,
-      "sessionFormatVersion": 0,
+      "sessionFormatVersion": 0
+    },
+    {
+      "name": "Kotlin real Host native lane",
+      "role": "native",
+      "result": "PASS",
+      "passed": 13,
+      "failed": 0,
+      "hostCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+      "clientCommit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+      "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
+      "rawResultSha256": "3e90cd013bb83615f0ca9224b006d9bb583f685cb9a1cec5793d03deda563c05",
       "steps": [
         "pair",
         "connect",
@@ -103,14 +61,20 @@
       "reason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
     },
     {
-      "name": "Kotlin real Host native lane",
-      "role": "native",
-      "result": "NOT_EXECUTED",
-      "reason": "GRADLE_UNAVAILABLE"
+      "name": "Generated Link contract freshness",
+      "result": "PASS",
+      "stale": 0
+    },
+    {
+      "name": "Android pure-JVM core Gradle tests",
+      "result": "PASS",
+      "passed": 125,
+      "failed": 0
     }
   ],
   "artifacts": [
     "artifacts/verification/gate-1/G1-E2E.json",
+    "artifacts/verification/gate-1/acceptance/kotlin-e3bf0842eb68d739bb8fc0c345203b0d38dd0165.json",
     "packages/remote/link-contracts/acceptance/corpus.v1.json",
     "apps/cli/tests/link-native-acceptance.e2e.ts",
     "apps/apple/Tests/LinkNativeAcceptance/",
@@ -121,49 +85,34 @@
   ],
   "logs": [],
   "changedFiles": [
-    ".github/workflows/apple-swift.yml",
-    ".github/workflows/android-kotlin.yml",
-    "apps/cli/package.json",
-    "apps/cli/tests/link-native-acceptance.e2e.ts",
-    "apps/apple/Package.swift",
-    "apps/apple/Tests/LinkNativeAcceptance/",
-    "apps/android/core/build.gradle.kts",
-    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
-    "packages/remote/link-contracts/acceptance/",
-    "scripts/ci-workflow.spec.ts",
-    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md"
+    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
+    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
+    "artifacts/verification/gate-1/acceptance/kotlin-e3bf0842eb68d739bb8fc0c345203b0d38dd0165.json",
+    "artifacts/verification/gate-1/G1-E2E.json"
   ],
   "acceptance": [
-    "One generated 13-step corpus owns pair, connect, describe, list, open, history, follow, prompt, stream, approval, cancel, reconnect, and revoke for all three drivers.",
-    "The TypeScript reference driver completed all 13 steps against the real shipped Host composition on clean sourceHead b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3.",
-    "The harness boots the shipped base plus desktop composition and uses real TLS, signed requests, target and decoy Sessions, Approval, reconnect, and revocation.",
-    "Reconnect requires interrupt-active-streams, exactly one follow replacement, exactly one Remote Event replacement, an authoritative snapshot, and authoritative clientId refresh.",
-    "Native drivers write only candidate evidence below an isolated DSH_HOME; the Host independently validates Approval, revocation, corpus identity, source identity, and clean stable input before atomic publication.",
-    "Setup failure, cleanup deadline, event-loop blocking, and real Vitest timeout paths retain or replace evidence with sanitized FAIL and cannot publish PASS.",
-    "Platform workflows upload lane-specific evidence and source metadata without treating source inspection as native runtime success."
+    "One canonical 13-step corpus drives the TypeScript reference, Swift, and Kotlin implementations.",
+    "The TypeScript reference and Kotlin native client both completed every step against the shipped base plus desktop Host composition at the same source SHA.",
+    "The Kotlin lane exercised real TLS, signed carrier requests, scoped target and decoy Sessions, streaming, Approval, cancellation, reconnect, recovery, and revocation.",
+    "The Host validated the native candidate schema, corpus identity, source identity, versions, recovery observations, cleanup, and clean stable input before atomically publishing the 77974-byte PASS result to ignored local evidence.",
+    "No matching Gradle, Kotlin, or Host process remained after execution."
   ],
   "knownLimitations": [
-    "The TypeScript reference lane is E3 evidence only; no Host-to-Swift or Host-to-Kotlin runtime PASS is claimed, so G1-E2E and Gate 1 remain open.",
-    "Windows cannot execute the Swift native lane because Swift/Xcode is unavailable.",
-    "Windows cannot execute the Gradle-owned Kotlin native lane because Gradle is unavailable.",
-    "The full documentation aggregate is 31/32 because Windows denies the symlink escape fixture with EPERM; no repository documentation drift was reported."
+    "No Swift/Xcode toolchain is installed on the Windows host. Source and helper tests exist for the corrected Swift unary and stream refusal mapping, but only a macOS lane can establish Host-to-Swift E4.",
+    "G1-E2E remains PARTIAL until the Swift real Host native lane passes on the same release-candidate source."
   ],
   "notExecuted": [
     {
       "item": "Swift real Host native lane",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "No Swift toolchain or Xcode is installed on the Windows execution host."
-    },
-    {
-      "item": "Kotlin real Host native lane",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "details": "Gradle is unavailable on the Windows execution host; the native driver belongs to the pure-JVM core module."
+      "details": "Get-Command swift returned no toolchain; Xcode is unavailable on Windows."
     }
   ],
   "nextDependencies": [
-    "G1-MULTI",
+    "G1-APPLE",
     "G1-REC",
     "G1-CI"
   ]
