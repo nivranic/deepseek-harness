@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * The node reference consumer of the Noise-encrypted relay protocol — the
  * executable specification the Kotlin and Apple RelayClients mirror, and

@@ -10,6 +10,7 @@
 
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { NoiseHandshake, decodeFrames, encodeFrame } from './noise.mjs'
 
 const hex = (buf) => Buffer.from(buf).toString('hex')
@@ -55,7 +56,8 @@ const hex = (buf) => Buffer.from(buf).toString('hex')
 // --- full HTTP flow over a real local socket ---------------------------------
 
 const PORT = 18787 + Math.floor(Math.random() * 1000)
-const server = spawn(process.execPath, ['server.mjs'], { env: { ...process.env, PORT: String(PORT) }, stdio: 'ignore' })
+const serverEntry = fileURLToPath(new URL('./server.mjs', import.meta.url))
+const server = spawn(process.execPath, [serverEntry], { env: { ...process.env, PORT: String(PORT) }, stdio: 'ignore' })
 try {
   const base = `http://127.0.0.1:${PORT}`
   let ready = false
