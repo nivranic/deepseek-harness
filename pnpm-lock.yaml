@@ -981,10 +981,6 @@ importers:
         version: link:../../workspace/workspace
 
   packages/artifact/artifact:
-    dependencies:
-      '@deepseek-ai/dsh-tools':
-        specifier: workspace:^
-        version: link:../../core/tools
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: workspace:^
@@ -998,6 +994,9 @@ importers:
       '@deepseek-ai/dsh-session':
         specifier: workspace:^
         version: link:../../core/session
+      '@deepseek-ai/dsh-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
 
   packages/artifact/artifact-local:
     dependencies:
