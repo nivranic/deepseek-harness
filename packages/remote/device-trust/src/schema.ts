@@ -1,12 +1,13 @@
 /**
  * Schema and open sequence for the Device Trust SQLite store: the on-disk
  * layout version, the owner-only file creation, and the device, pairing, and
- * host-identity tables.
+ * host-identity tables. Importing this module does not activate `node:sqlite`;
+ * the database open path loads it when an operation first needs persisted state.
  * @module @deepseek-ai/dsh-device-trust/schema
  */
 
 import { mkdir, open } from 'node:fs/promises'
-import { DatabaseSync } from 'node:sqlite'
+import type { DatabaseSync } from 'node:sqlite'
 import { dirname, resolve } from 'node:path'
 
 /**
@@ -51,6 +52,7 @@ export async function openDatabase(path: string): Promise<DatabaseSync> {
     await mkdir(dirname(actual), { recursive: true, mode: 0o700 })
     await createDatabaseFile(actual)
   }
+  const { DatabaseSync } = await import('node:sqlite')
   const db = new DatabaseSync(actual)
   try {
     configureDatabase(db, actual)

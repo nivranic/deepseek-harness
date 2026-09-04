@@ -24,7 +24,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount the store wherever the link carrier runs; it registers `ctx.deviceTrust` and is inert until something pairs a device.
+Mount the store wherever the link carrier runs; it registers `ctx.deviceTrust` and stays inert until an operation needs persisted state. Importing, mounting, disposing without use, and configuration inspection do not load `node:sqlite`; the first database-backed operation opens the database and activates SQLite.
 
 ### Configuration
 

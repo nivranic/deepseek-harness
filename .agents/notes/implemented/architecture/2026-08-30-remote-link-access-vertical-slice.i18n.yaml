@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.md
-2026-08-30-remote-link-access-vertical-slice.md: e322ed66fde1fbe4b83ebf374057af3a23b09533
-2026-08-30-remote-link-access-vertical-slice.zh.md: 60f16cc10eebdc57fdc47f1ac109b4432d291454
+2026-08-30-remote-link-access-vertical-slice.md: f0bef590fb195037790a2f35bad676128bd6eff4
+2026-08-30-remote-link-access-vertical-slice.zh.md: e0e5c3cb379c534dfedf1ededafe68724e36009b

@@ -168,32 +168,37 @@ export class DeviceTrustStore extends Service {
   static inject = []
   static Config: z<DeviceTrustConfig> = Config
 
-  private readonly ready: Promise<DatabaseSync>
-  private closed = false
+  private readonly path: string
+  private ready: Promise<DatabaseSync> | undefined
+  private closing: Promise<void> | undefined
 
   /**
-   * Open the trust database.
+   * Register a trust database that opens when an operation first needs persisted state.
    * @param ctx - owning plugin context.
    * @param config - validated plugin configuration (schema defaults applied).
    */
   constructor(ctx: Context, config: DeviceTrustConfig) {
     super(ctx, 'deviceTrust')
-    const path = config.path ?? join(resolveDshHome(config.dshHome), 'device-trust.sqlite')
-    this.ready = openDatabase(path)
-    // Mark the rejection handled: every primitive re-awaits `ready`, so an
-    // open failure still surfaces to each caller; this guard only prevents an
-    // unhandled-rejection crash when the failure precedes the first use.
-    this.ready.catch(() => {})
+    this.path = config.path ?? join(resolveDshHome(config.dshHome), 'device-trust.sqlite')
     ctx.effect(() => async () => {
       await this.close()
     }, 'device-trust.close')
+  }
+
+  /** Open the configured database once and share its result across callers. */
+  private database(): Promise<DatabaseSync> {
+    if (this.closing !== undefined) return Promise.reject(new Error('device trust: store is closed'))
+    if (this.ready !== undefined) return this.ready
+    const ready = openDatabase(this.path)
+    this.ready = ready
+    return ready
   }
 
   /** Resolve this store's stable Host identity, creating it on first use.
    * @returns the Host identity record.
    */
   async hostIdentity(): Promise<HostIdentity> {
-    const db = await this.ready
+    const db = await this.database()
     const row = db.prepare('SELECT value FROM meta WHERE key = ?').get('host_id') as
       | { value: string }
       | undefined
@@ -211,7 +216,7 @@ export class DeviceTrustStore extends Service {
    * @returns the pending pairing to display to the device being paired.
    */
   async createPairing(ttlSeconds: number): Promise<PendingPairing> {
-    const db = await this.ready
+    const db = await this.database()
     const code = randomBytes(32).toString('base64url')
     const expiresAt = internals.now() + ttlSeconds * 1000
     db.prepare('INSERT INTO pending_pairings (code_hash, expires_at) VALUES (?, ?)')
@@ -243,7 +248,7 @@ export class DeviceTrustStore extends Service {
       throw new Error('device trust: device name must be 1 through 200 characters')
     }
     assertUsablePublicKey(device.publicKeySpki)
-    const db = await this.ready
+    const db = await this.database()
     const normalizedAccess = normalizeAccess(access)
     const record: PairedDevice = {
       deviceId: DeviceId(randomUUID()),
@@ -288,9 +293,8 @@ export class DeviceTrustStore extends Service {
    * @returns the record, or `undefined` when no such device exists.
    */
   async device(deviceId: DeviceId): Promise<PairedDevice | undefined> {
-    const db = await this.ready
-    const row = db.prepare('SELECT * FROM devices WHERE device_id = ?').get(deviceId) as DeviceRow | undefined
-    return row === undefined ? undefined : deviceOf(db, row)
+    const db = await this.database()
+    return readDevice(db, deviceId)
   }
 
   /**
@@ -298,7 +302,7 @@ export class DeviceTrustStore extends Service {
    * @returns every device record in the store.
    */
   async devices(): Promise<readonly PairedDevice[]> {
-    const db = await this.ready
+    const db = await this.database()
     const rows = db.prepare('SELECT * FROM devices ORDER BY created_at, device_id').all() as unknown as DeviceRow[]
     return rows.map(row => deviceOf(db, row))
   }
@@ -310,9 +314,18 @@ export class DeviceTrustStore extends Service {
    * @returns the device record after revocation, or `undefined` when unknown.
    */
   async revoke(deviceId: DeviceId): Promise<PairedDevice | undefined> {
-    const db = await this.ready
+    const db = await this.database()
     const changed = db.prepare('UPDATE devices SET revoked_at = ? WHERE device_id = ? AND revoked_at IS NULL')
       .run(internals.now(), deviceId)
+    // A committed first revocation must notify active carriers even when
+    // assembling the return record exposes later schema or I/O damage.
+    let result: PairedDevice | undefined
+    let readFailure: { readonly error: unknown } | undefined
+    try {
+      result = readDevice(db, deviceId)
+    } catch (error: unknown) {
+      readFailure = { error }
+    }
     if (changed.changes === 1) {
       try {
         await this.ctx.parallel('device-trust/revoked', deviceId)
@@ -320,7 +333,8 @@ export class DeviceTrustStore extends Service {
         this.ctx.logger.warn('device trust: a post-commit revocation listener failed: %o', error)
       }
     }
-    return this.device(deviceId)
+    if (readFailure !== undefined) throw readFailure.error
+    return result
   }
 
   /**
@@ -330,18 +344,22 @@ export class DeviceTrustStore extends Service {
    * @returns resolution after the write settles.
    */
   async touch(deviceId: DeviceId): Promise<void> {
-    const db = await this.ready
+    const db = await this.database()
     db.prepare('UPDATE devices SET last_seen_at = ? WHERE device_id = ? AND revoked_at IS NULL')
       .run(internals.now(), deviceId)
   }
 
-  /** Close the database; every later primitive rejects. Idempotent.
+  /** Close the database; every later primitive rejects. Concurrent and repeated
+   * calls share the same settlement.
    * @returns resolution after the medium is released.
    */
-  async close(): Promise<void> {
-    if (this.closed) return
-    this.closed = true
-    const db = await this.ready.catch(() => undefined)
+  close(): Promise<void> {
+    this.closing ??= this.releaseDatabase()
+    return this.closing
+  }
+
+  private async releaseDatabase(): Promise<void> {
+    const db = await this.ready?.catch(() => undefined)
     if (db !== undefined) db.close()
   }
 }
@@ -352,6 +370,11 @@ function DeviceId(value: string): DeviceId {
 
 function hashPairingCode(code: string): string {
   return createHash('sha256').update(code).digest('hex')
+}
+
+function readDevice(db: DatabaseSync, deviceId: DeviceId): PairedDevice | undefined {
+  const row = db.prepare('SELECT * FROM devices WHERE device_id = ?').get(deviceId) as DeviceRow | undefined
+  return row === undefined ? undefined : deviceOf(db, row)
 }
 
 function deviceOf(db: DatabaseSync, row: DeviceRow): PairedDevice {

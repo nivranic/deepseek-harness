@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
@@ -39,6 +39,27 @@ describe('DeviceTrustStore', () => {
   afterEach(async () => {
     vi.restoreAllMocks()
     await rm(home, { recursive: true, force: true })
+  })
+
+  it('does not open the database before an operation needs persisted state', async () => {
+    const path = join(home, 'lazy.sqlite')
+    const { ctx, store } = await mount(path)
+    await expect(stat(path)).rejects.toMatchObject({ code: 'ENOENT' })
+    await ctx.fiber.dispose()
+    await expect(stat(path)).rejects.toMatchObject({ code: 'ENOENT' })
+    await expect(store.devices()).rejects.toThrow('device trust: store is closed')
+  })
+
+  it('shares concurrent close settlement while an opening operation finishes', async () => {
+    const { ctx, store } = await mount(':memory:')
+    const opening = store.hostIdentity()
+    const first = store.close()
+    const second = store.close()
+    expect(second).toBe(first)
+    await expect(opening).resolves.toMatchObject({ hostId: expect.any(String) as string })
+    await expect(Promise.all([first, second])).resolves.toEqual([undefined, undefined])
+    await expect(store.devices()).rejects.toThrow('device trust: store is closed')
+    await ctx.fiber.dispose()
   })
 
   it('creates a stable host identity on first use', async () => {
@@ -163,6 +184,58 @@ describe('DeviceTrustStore', () => {
     await expect(store.revoke(device.deviceId)).resolves.toMatchObject({ revokedAt: 3_000 })
     await expect(store.revoke('missing-device' as DeviceId)).resolves.toBeUndefined()
     expect(revokedEvent).toHaveBeenCalledOnce()
+    await ctx.fiber.dispose()
+  })
+
+  it('returns a committed revocation when close overlaps an async listener', async () => {
+    const { ctx, store } = await mount(':memory:')
+    const pairing = await store.createPairing(60)
+    const device = await store.consumePairing(
+      pairing.code,
+      { name: 'Phone', publicKeySpki: devicePublicKey() },
+      'controller',
+      FULL_ACCESS,
+    )
+    const started = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    ctx.on('device-trust/revoked', async () => {
+      started.resolve(undefined)
+      await release.promise
+    })
+
+    const revoking = store.revoke(device.deviceId)
+    await started.promise
+    const closing = store.close()
+    release.resolve(undefined)
+    await expect(revoking).resolves.toMatchObject({ deviceId: device.deviceId, revokedAt: expect.any(Number) as number })
+    await expect(closing).resolves.toBeUndefined()
+    await ctx.fiber.dispose()
+  })
+
+  it('notifies a committed revocation before reporting result projection failure', async () => {
+    const path = join(home, 'projection-failure.sqlite')
+    const { ctx, store } = await mount(path)
+    const pairing = await store.createPairing(60)
+    const device = await store.consumePairing(
+      pairing.code,
+      { name: 'Scoped', publicKeySpki: devicePublicKey() },
+      'controller',
+      { sessions: [DeviceSessionGrantId('session-a')], workspaces: 'all' },
+    )
+    const revokedEvent = vi.fn()
+    ctx.on('device-trust/revoked', revokedEvent)
+    const breaker = new DatabaseSync(path)
+    breaker.exec('DROP TABLE device_session_grants')
+    breaker.close()
+
+    await expect(store.revoke(device.deviceId)).rejects.toThrow(/no such table/u)
+    expect(revokedEvent).toHaveBeenCalledOnce()
+    expect(revokedEvent).toHaveBeenCalledWith(device.deviceId)
+    const probe = new DatabaseSync(path, { readOnly: true })
+    const row = probe.prepare('SELECT revoked_at FROM devices WHERE device_id = ?')
+      .get(device.deviceId) as { revoked_at: number }
+    expect(row.revoked_at).toEqual(expect.any(Number))
+    probe.close()
     await ctx.fiber.dispose()
   })
 

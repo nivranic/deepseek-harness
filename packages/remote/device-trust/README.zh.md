@@ -24,7 +24,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-在 link 载体运行的组合中挂载本包；它注册 `ctx.deviceTrust`，在有人配对设备之前保持惰性。
+在 link 载体运行的组合中挂载本包；它注册 `ctx.deviceTrust`，在操作需要持久状态前保持惰性。导入、挂载、未使用即销毁以及配置检查都不会加载 `node:sqlite`；首次数据库操作才会打开数据库并激活 SQLite。
 
 ### 配置
 
