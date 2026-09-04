@@ -73,7 +73,11 @@ describe('CI workflow', () => {
         loadWorkflow('.github/workflows/build-exe-for-python-sdk.yml'),
       ],
     ])
-    const windowsJobs = [
+    const windowsJobs: readonly {
+      readonly file: string
+      readonly job: string
+      readonly condition?: string
+    }[] = [
       { file: '.github/workflows/ci.yml', job: 'windows-build' },
       { file: '.github/workflows/ci.yml', job: 'windows-coverage' },
       { file: '.github/workflows/ci.yml', job: 'windows-native-tests' },
@@ -94,7 +98,7 @@ describe('CI workflow', () => {
         job: 'build',
         condition: "matrix.target == 'node24-win-x64'",
       },
-    ] as const
+    ]
 
     expect(windowsJobs).toHaveLength(8)
     for (const { file, job: jobName, condition } of windowsJobs) {
