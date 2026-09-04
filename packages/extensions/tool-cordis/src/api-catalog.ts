@@ -860,8 +860,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'resolution after the write settles.',
       },
       {
-        signature: 'async close(): Promise<void>',
-        description: 'Close the database; every later primitive rejects. Idempotent.',
+        signature: 'close(): Promise<void>',
+        description: 'Close the database; every later primitive rejects. Concurrent and repeated calls share the same settlement.',
         parameters: [],
         returns: 'resolution after the medium is released.',
       },

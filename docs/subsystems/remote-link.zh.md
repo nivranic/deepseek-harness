@@ -76,10 +76,11 @@ async revoke(deviceId: DeviceId): Promise<PairedDevice | undefined>
  */
 async touch(deviceId: DeviceId): Promise<void>
 
-/** Close the database; every later primitive rejects. Idempotent.
+/** Close the database; every later primitive rejects. Concurrent and repeated
+ * calls share the same settlement.
  * @returns resolution after the medium is released.
  */
-async close(): Promise<void>
+close(): Promise<void>
 ```
 
 Source: [`packages/remote/device-trust/src/index.ts`](../../packages/remote/device-trust/src/index.ts)
