@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "gate-evidence-summary",
+  "gate": "Gate 1",
+  "title": "Contract-owned Correctness Repair",
+  "status": "PARTIAL",
+  "closure": "OPEN",
+  "canEnterGate2": false,
+  "candidate": {
+    "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+    "branch": "codex/goal-mode-full-implementation",
+    "published": false,
+    "remoteCandidateCi": "NOT_EXECUTED"
+  },
+  "recordedAt": "2026-09-04T22:32:14.7681681+08:00",
+  "taskEvidence": [
+    {
+      "taskId": "G1-RC",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/implementation-baseline.json"
+    },
+    {
+      "taskId": "G1-COMP",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-COMP.json"
+    },
+    {
+      "taskId": "G1-DOC",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-DOC.json",
+      "qualification": "All repository-content drift is zero; one Windows-only symlink fixture remains host-blocked."
+    },
+    {
+      "taskId": "G1-CONTRACT",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-CONTRACT.json"
+    },
+    {
+      "taskId": "G1-GEN",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-GEN.json"
+    },
+    {
+      "taskId": "G1-APPLE",
+      "status": "PARTIAL",
+      "evidence": "artifacts/verification/gate-1/G1-APPLE.json",
+      "blockingReason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+    },
+    {
+      "taskId": "G1-ANDROID",
+      "status": "PARTIAL",
+      "evidence": "artifacts/verification/gate-1/G1-ANDROID.json",
+      "qualification": "The pure-JVM Remote core and real Host-to-Kotlin path reached E4; Android app assembly was not executed because no Android SDK is installed."
+    },
+    {
+      "taskId": "G1-AUTH",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-AUTH.json"
+    },
+    {
+      "taskId": "G1-PRIV",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-PRIV.json"
+    },
+    {
+      "taskId": "G1-E2E",
+      "status": "PARTIAL",
+      "evidence": "artifacts/verification/gate-1/G1-E2E.json",
+      "blockingReason": "Real Host-to-Swift acceptance is not executed."
+    },
+    {
+      "taskId": "G1-MULTI",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-MULTI.json"
+    },
+    {
+      "taskId": "G1-REC",
+      "status": "PARTIAL",
+      "evidence": "artifacts/verification/gate-1/G1-REC.json",
+      "blockingReason": "Swift recovery is not executed."
+    },
+    {
+      "taskId": "G1-CI",
+      "status": "PARTIAL",
+      "evidence": "artifacts/verification/gate-1/G1-CI.json"
+    }
+  ],
+  "exitCriteria": [
+    {
+      "criterion": "PoC-2 = VERIFIED / E4",
+      "status": "PARTIAL",
+      "reason": "Kotlin passed E4, but the required Swift real-Host lane is not executed."
+    },
+    {
+      "criterion": "PoC-3 = VERIFIED / E4",
+      "status": "PASS",
+      "evidence": "Three deterministic multi-device iterations passed 9 of 9 tests."
+    },
+    {
+      "criterion": "PoC-4 = VERIFIED / E4",
+      "status": "PARTIAL",
+      "reason": "Kotlin recovery passed E4, but Swift recovery is not executed."
+    },
+    {
+      "criterion": "PoC-5 >= VERIFIED-on-simulator with real-device plan ready",
+      "status": "PARTIAL",
+      "reason": "Android pure-JVM client tests passed; Swift compilation and the platform simulator lane are unavailable on this host."
+    },
+    {
+      "criterion": "Base composition",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Gateway focused tests",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Contract generation",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Host-to-Swift",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+    },
+    {
+      "criterion": "Host-to-Kotlin",
+      "status": "PASS",
+      "evidence": "13 of 13 ordered steps passed at the candidate SHA."
+    },
+    {
+      "criterion": "Android wrong pin",
+      "status": "PASS",
+      "evidence": "The wrong pin was rejected before the HTTP handler observed another request."
+    },
+    {
+      "criterion": "Documentation real drift",
+      "status": "PASS",
+      "evidence": "All content, generated, pairing, catalog, and link checks passed; the sole full-doc failure was test-fixture symlink EPERM."
+    },
+    {
+      "criterion": "Telemetry sensitive payload leakage",
+      "status": "PASS",
+      "evidence": "99 focused tests and 3 Loader E2E tests passed."
+    },
+    {
+      "criterion": "Single release-candidate SHA mandatory evidence",
+      "status": "PARTIAL",
+      "reason": "All runnable candidate-specific focused evidence is bound to one SHA, but mandatory Swift evidence and remote candidate CI are not executed."
+    }
+  ],
+  "candidateEvidence": {
+    "kotlinAcceptance": "artifacts/verification/gate-1/acceptance/kotlin-abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4.json",
+    "kotlinAcceptanceSha256": "6177c7684f8dfcfdb9f870a83228717ada72eba9fd5862c5663948e4c68c5425",
+    "focusedLogDirectory": ".artifacts/g1-final-abe90fa1d652-20260904-203016/",
+    "aggregateLog": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
+    "aggregateLogSha256": "3ae86c10b6b7488a44771807147bde79837617139F223D938813A45E85E521DB"
+  },
+  "blockingItems": [
+    {
+      "item": "swift test",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+    },
+    {
+      "item": "Real Host-to-Swift acceptance",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+    },
+    {
+      "item": "Swift disconnect and authoritative recovery",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+    }
+  ],
+  "scope": {
+    "gate2Started": false,
+    "pushed": false,
+    "published": false,
+    "productionCredentialsReadOrUsed": false,
+    "productionExternalActionsExecuted": false
+  },
+  "decision": {
+    "status": "PARTIAL",
+    "closure": "OPEN",
+    "canEnterGate2": false
+  }
+}
