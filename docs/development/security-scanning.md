@@ -35,7 +35,7 @@ Dependency review compares the explicit base and candidate using GitHub's depend
 
 CodeQL runs `security-extended` queries for JavaScript/TypeScript, Python, Java/Kotlin, and Swift. Kotlin compilation includes the core and Android app. Swift compilation includes SwiftPM and all three Apple app schemes. These jobs do not establish native C/C++ or Rust analysis. Build or extraction failure blocks the language job.
 
-[security-evidence.py](../../scripts/security-evidence.py) requires a successful analyzer outcome and SARIF with tool identity, a non-empty rule set across the driver and extensions, successful invocations, and explicit results. Findings, including suppressed findings, fail; warning/error analysis notifications also fail. Source-bearing SARIF and CodeQL databases are not uploaded. Rejected rule metadata records only structural counts for diagnosis.
+[security-evidence.py](../../scripts/security-evidence.py) requires a successful analyzer outcome and SARIF with tool identity, a non-empty rule set across the driver and extensions, successful invocations, and explicit results. Findings, including suppressed findings, fail; warning/error analysis notifications also fail while preserving diagnostic IDs and findings together. Source-bearing SARIF and CodeQL databases are not uploaded. Rejected rule metadata records only structural counts for diagnosis.
 
 -----
 

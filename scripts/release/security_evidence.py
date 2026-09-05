@@ -29,7 +29,7 @@ def sast(directory: Path, language: str, root: Path) -> dict:
     files = sorted(directory.glob("*.sarif"))
     if not files:
         raise EvidenceError("CodeQL report is missing")
-    reports, projected = [], []
+    reports, projected, diagnostics = [], [], []
     for file in files:
         content = file.read_bytes()
         document = json.loads(content)
@@ -59,8 +59,12 @@ def sast(directory: Path, language: str, root: Path) -> dict:
                 raise EvidenceError("CodeQL execution was not successful")
             for invocation in invocations:
                 for key in ("toolExecutionNotifications", "toolConfigurationNotifications"):
-                    if any(note.get("level", "warning") in ("warning", "error") for note in invocation.get(key, [])):
-                        raise EvidenceError("CodeQL reported incomplete analysis")
+                    for note in invocation.get(key, []):
+                        level = note.get("level", "warning")
+                        if level in ("warning", "error"):
+                            descriptor = note.get("descriptor", {}).get("id")
+                            identifier = descriptor if isinstance(descriptor, str) and re.fullmatch(r"[a-zA-Z0-9/_.-]+", descriptor) else "unclassified"
+                            diagnostics.append({"rule": identifier, "level": level})
             for result in run["results"]:
                 if result["ruleId"] not in rule_ids:
                     raise EvidenceError("finding rule is not in the executed query set")
@@ -83,7 +87,8 @@ def sast(directory: Path, language: str, root: Path) -> dict:
                     locations.append({"path": path, "line": line})
                 projected.append({"rule": result["ruleId"], "locations": locations})
             reports.append({"sha256": hashlib.sha256(content).hexdigest(), "version": driver["semanticVersion"], "rules": len(rules), "structure": structure})
-    return {"scanner": "CodeQL", "language": language, "reports": reports, "findings": projected, "findingCount": len(projected)}
+    return {"scanner": "CodeQL", "language": language, "reports": reports, "findings": projected, "findingCount": len(projected),
+            "analysisComplete": len(diagnostics) == 0, "blockingDiagnostics": diagnostics}
 
 
 def dependencies(changes: str, vulnerabilities: str) -> dict:
@@ -91,7 +96,7 @@ def dependencies(changes: str, vulnerabilities: str) -> dict:
     changed, vulnerable = json.loads(changes), json.loads(vulnerabilities)
     if not isinstance(changed, list) or not isinstance(vulnerable, list):
         raise EvidenceError("dependency review outputs must be arrays")
-    return {"scanner": "actions/dependency-review-action", "changeCount": len(changed), "findingCount": len(vulnerable),
+    return {"scanner": "actions/dependency-review-action", "changeCount": len(changed), "findingCount": len(vulnerable), "analysisComplete": True,
             "changesSha256": hashlib.sha256(changes.encode()).hexdigest(), "vulnerabilitiesSha256": hashlib.sha256(vulnerabilities.encode()).hexdigest()}
 
 
@@ -130,7 +135,7 @@ def main() -> int:
                 raise EvidenceError("dependency review did not complete")
             evidence["baseSha"] = sha(os.environ["DSH_SECURITY_BASE"])
             evidence.update(dependencies(os.environ["DSH_DEPENDENCY_CHANGES"], os.environ["DSH_DEPENDENCY_VULNERABILITIES"]))
-        evidence["status"] = "PASS" if evidence["findingCount"] == 0 else "FAIL"
+        evidence["status"] = "PASS" if evidence["findingCount"] == 0 and evidence["analysisComplete"] else "FAIL"
     except EvidenceError as error:
         evidence["reason"] = str(error)
         if error.structure is not None:

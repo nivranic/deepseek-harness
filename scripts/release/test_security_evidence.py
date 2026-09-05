@@ -55,11 +55,25 @@ class SecurityEvidence(unittest.TestCase):
             sast(self.root, "python", self.root)
         self.assertEqual(caught.exception.structure, {"driverRuleCount": 0, "extensionRuleCounts": [], "resultsPresent": True, "resultCount": 0})
 
+    def test_analysis_warnings_block_acceptance_without_hiding_findings_or_copying_messages(self):
+        run = self.document["runs"][0]
+        run["invocations"][0]["toolExecutionNotifications"] = [
+            {"level": "warning", "descriptor": {"id": "py/extraction-warning"}, "message": {"text": "private source"}},
+            {"level": "error", "descriptor": {"id": "private source text"}},
+            {"level": "note", "message": {"text": "private note"}},
+        ]
+        run["results"] = [{"ruleId": "py/code-injection"}]
+        self.write(self.document)
+        result = sast(self.root, "python", self.root)
+        self.assertFalse(result["analysisComplete"])
+        self.assertEqual(result["findingCount"], 1)
+        self.assertEqual(result["blockingDiagnostics"], [{"rule": "py/extraction-warning", "level": "warning"}, {"rule": "unclassified", "level": "error"}])
+        self.assertNotIn("private", json.dumps(result))
+
     def test_rejects_absent_empty_or_failed_analysis(self):
         with self.assertRaises(ValueError):
             sast(self.root, "python", self.root)
         for changed in ({"invocations": []}, {"invocations": [{"executionSuccessful": False}]}, {"invocations": [{"toolExecutionSuccessful": True}]},
-                        {"invocations": [{"executionSuccessful": True, "toolExecutionNotifications": [{"level": "warning"}]}]},
                         {"results": None}, {"tool": {"driver": {"name": "CodeQL", "semanticVersion": "2.23.9", "rules": []}}}):
             document = copy.deepcopy(self.document)
             document["runs"][0].update(changed)
