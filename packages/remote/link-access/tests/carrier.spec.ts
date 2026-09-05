@@ -418,6 +418,7 @@ describe('link-access carrier', () => {
     const large = 'x'.repeat(8 * 1024 * 1024)
     const stopped = Promise.withResolvers<undefined>()
     let sourceSignal: AbortSignal | undefined
+    let advancedAfterCancellation = false
     const open = vi.spyOn(harness.ctx.typertGateway.wireStream, 'open').mockImplementation(async (_endpoint, _payload, signal) => {
       sourceSignal = signal
       return (async function* () {
@@ -430,6 +431,8 @@ describe('link-access carrier', () => {
               if (signal.aborted) resolve()
               else signal.addEventListener('abort', () => { resolve() }, { once: true })
             })
+            yield 'late-after-cancel'
+            advancedAfterCancellation = true
           }
         } finally {
           stopped.resolve(undefined)
@@ -441,6 +444,7 @@ describe('link-access carrier', () => {
         const frames = await streamUntil(harness, device, 'probe/ticks', { args: { count: 1 } }, () => true)
         await stopped.promise
         expect(sourceSignal!.aborted).toBe(true)
+        expect(advancedAfterCancellation).toBe(false)
         expect(frames.some(line => line.includes('"k":"e"'))).toBe(false)
       } else {
         const response = await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'POST', '{"args":{"count":1}}')
