@@ -31,10 +31,11 @@ afterEach(async () => {
   await Promise.all(cleanup.splice(0).map(dir => rm(dir, { recursive: true, force: true })))
 })
 
-async function storeInFreshHome(): Promise<{ store: LocalArtifactStore; home: string }> {
+async function storeInFreshHome(): Promise<{ store: LocalArtifactStore; home: string; ctx: Context }> {
   const home = await mkdtemp(join(tmpdir(), 'dsh-artifact-local-'))
   cleanup.push(home)
-  return { store: new LocalArtifactStore(new Context(), { dshHome: home }), home }
+  const ctx = new Context()
+  return { store: new LocalArtifactStore(ctx, { dshHome: home }), home, ctx }
 }
 
 describe('dsh-artifact-local', () => {
@@ -100,7 +101,7 @@ describe('dsh-artifact-local retention', () => {
   })
 
   it('propagates directory failures and skips a failed file without blocking the sweep', async () => {
-    const { store, home } = await storeInFreshHome()
+    const { store, home, ctx } = await storeInFreshHome()
     const denied = Object.assign(new Error('directory denied'), { code: 'EACCES' })
     vi.mocked(fs.readdir).mockRejectedValueOnce(denied)
     await expect(store.sweep(1)).rejects.toBe(denied)
@@ -108,7 +109,7 @@ describe('dsh-artifact-local retention', () => {
       await store.put(ArtifactId(id), new Uint8Array([1]))
       await ageArtifact(home, id, 3)
     }
-    const warning = vi.spyOn(store.ctx.logger, 'warn')
+    const warning = vi.spyOn(ctx.logger, 'warn')
     vi.mocked(fs.stat).mockRejectedValueOnce(new Error('file disappeared'))
     expect(await store.sweep(1)).toHaveLength(1)
     expect(warning).toHaveBeenCalledWith(expect.stringContaining('file disappeared'))
