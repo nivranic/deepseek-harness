@@ -16,6 +16,8 @@ Status: implemented
 
 [工具目录往返测试](../../../../packages/typert/generator/tests/tools-catalog.spec.ts) 采用与现有 Workspace analyzer 测试一致的六十秒预算。它仍分析完整 Host 程序，并通过 runtime registry 比较生成的服务、事件和类型记录。
 
+[LSP 取消测试](../../../../packages/lsp/lsp-stdio/tests/instance.spec.ts) 仅在真实服务器记录 definition 请求后取消。服务器只确认 request id 匹配的取消。即时和延迟初始化覆盖同一请求取消路径，使缓慢启动不会把该用例变成另有覆盖的初始化取消行为。产品取消宽限保持不变。
+
 ## Alternatives considered
 
 - 固定 sleep 既不能建立写入完成证据，也不能指出哪项异步操作失败。

@@ -16,6 +16,8 @@ The [Inspector deadline test](../../../../packages/experimental/inspector/tests/
 
 The [tools catalog round-trip test](../../../../packages/typert/generator/tests/tools-catalog.spec.ts) uses the same sixty-second budget as the existing Workspace analyzer tests. It still analyzes the complete Host program and compares the generated service, event, and type records through the runtime registry.
 
+The [LSP cancellation test](../../../../packages/lsp/lsp-stdio/tests/instance.spec.ts) aborts only after its real server records the definition request. The server acknowledges only a cancellation with that request id. Immediate and delayed initialization exercise the same request cancellation path, so slow startup cannot turn this case into the separately covered initialization-abort behavior. The product cancellation grace remains unchanged.
+
 ## Alternatives considered
 
 - Fixed sleeps neither establish write completion nor show which asynchronous operation failed.
