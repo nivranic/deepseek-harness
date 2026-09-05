@@ -423,7 +423,14 @@ describe('link-access carrier', () => {
       return (async function* () {
         try {
           yield large
-          if (cancelled) yield large
+          if (cancelled) {
+            yield large
+            // Buffered writes may finish before the client closes; keep the producer live until cancellation.
+            await new Promise<void>((resolve) => {
+              if (signal.aborted) resolve()
+              else signal.addEventListener('abort', () => { resolve() }, { once: true })
+            })
+          }
         } finally {
           stopped.resolve(undefined)
         }
@@ -961,6 +968,17 @@ describe('link-access carrier lifecycle', () => {
 
       const pairing = await harness.service.createPairing()
       expect(pairing.hostName).toBe('Studio Desk')
+      const { publicKey } = generateKeyPairSync('ed25519')
+      const paired = await carrierRequest(harness.endpoint, '/link/pair', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: pairing.code,
+          deviceName: 'renamed-host-probe',
+          devicePublicKey: publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
+        }),
+      })
+      expect(paired.status).toBe(200)
+      expect(paired.json).toMatchObject({ hostName: pairing.hostName })
 
       const described = await issueSigned(harness.endpoint, device, '/link/describe', 'POST', '')
       expect(described.status).toBe(200)

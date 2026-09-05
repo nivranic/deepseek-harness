@@ -493,7 +493,7 @@ export class LinkAccessService extends Service {
       respond(res, 200, {
         deviceId: device.deviceId,
         hostId: identity.hostId,
-        hostName: hostname(),
+        hostName: this.hostName,
         role: device.role,
         linkProtocolVersion: LINK_PROTOCOL_VERSION,
       })

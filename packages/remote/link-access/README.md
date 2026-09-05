@@ -52,6 +52,8 @@ Mount the carrier in a composition that already provides Connection, the Typert 
 
 ### Observable behavior
 
+Pairing payloads, pairing responses, and Host descriptions use the live name set by `ctx.linkAccess.setDeviceName()`; the OS hostname is only its initial value.
+
 `ctx.linkAccess.createPairing()` returns the QR payload (host id and name, endpoint, certificate SPKI fingerprint, one-time code, expiry). Every device request carries an identity, a timestamp, and an Ed25519 signature over method, path, and body digest; requests fail 401 on unknown, revoked, stale, or mis-signed devices and 403 on endpoints outside the allowlist, below the device's role, outside its persisted grants, or — for interaction answers — while the approval switch is off. Host-wide Session and Workspace collections are projected before socket output. An interaction answer additionally requires the device's Host-issued Client generation, a delivered pending event, and the event's Session grant; disabling approval, revoking the device, or stopping the carrier delegates delivered interactions back to the Host waterfall. The certificate is generated once (ECDSA P-256) and persisted under `<dshHome>/link-access/`, so paired devices keep working across restarts. `link/describe` reports independent Link protocol, contract, and Session format versions so a client can diagnose each compatibility axis without treating application release versions as wire versions.
 
 ### Default remote surface

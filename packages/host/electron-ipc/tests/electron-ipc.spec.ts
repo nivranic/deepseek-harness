@@ -227,6 +227,7 @@ describe('electron-ipc desktop gateway', () => {
   })
 
   it('serves plugin combo bundles through the registry cache and 404s every miss', async () => {
+    stageDist()
     const { gateway, dispose } = await mounted({
       bundles: {
         '/plugins/@scope/plugin/client.js': 'register()',
