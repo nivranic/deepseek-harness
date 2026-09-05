@@ -20,6 +20,8 @@ Status: implemented
 
 真实 TLS 载体与 built Host 组合覆盖选择性授权、在 owner 执行前拒绝 Session、Attachment 与 Workspace path、在写入套接字前投影 Session 与 Workspace、宿主签发交互关联、待定检查、observer 与审批开关拒绝、分发失败后的安全重试、吊销以及载体停止。直接授权测试拒绝畸形 envelope 与 frame，并覆盖每种 Session 地址、集合 baseline、增量 frame、Remote 通知、waterfall 与取消分支；`dsh-device-trust`、`dsh-link-access` 和 Gateway 保持逐文件 100% 覆盖。Client 代次断线时，待定交互留在 Gateway 中供重连重放；显式策略变更、吊销或载体停止则立即委托投递。授权管理 UI 与 mDNS 广播仍是延后的产品工作；资源授权表和 `pairingAccess` 配置已经提供安全行为，无需创建复杂 RBAC。
 
+载体取消回归会保持源 generator 等待下一条值，并观察其 AbortSignal 回调和 finally 关闭记录。客户端接收首条 frame 后断开，测试要求源被取消且关闭，并且不向已断开的客户端发送失败 frame。该断言不依赖 socket 缓冲大小或断开前已产生的 tick 数；吞吐量差异不能替代生命周期证据。
+
 ## Alternatives considered
 
 方案禁止第二套远程业务网关，因为它会复制控制器所有权。单独的审批注册表会与 Gateway 竞态，使首个有效回答语义无法证明，因此载体改用 Gateway 的待定查询与委托操作。证书生成上，`@peculiar/x509` 会把 tsyringe/`reflect-metadata` 全局 polyfill 拖进宿主进程，`selfsigned` 的纯 JS RSA 密钥生成以秒计；包内固定 X.509 模板加 node 生成的 P-256 密钥同时避开两者，并保持为协议常量。复用浏览器 cookie 栅栏会把回环信任模型复制到局域网流量上。WebSocket mux 未扩展出第二个监听：`wireStream` 上的 NDJSON 流已经构成桌面载体联合，远程载体复用该传输，只增加保持 Gateway 所有权所需的两个待定投递操作。

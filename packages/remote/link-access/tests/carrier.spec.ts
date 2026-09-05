@@ -414,7 +414,9 @@ describe('link-access carrier', () => {
     expect(failure).toContain('probe stream failure')
   })
 
-  it('skips the failure frame when the stream client vanishes first', async () => {
+  it('aborts and closes a vanished client stream without a failure frame', async () => {
+    const probe = harness.ctx.get('probe') as unknown as { calls: readonly string[] }
+    const priorCalls = probe.calls.length
     const url = new URL(harness.endpoint)
     const target = '/link/stream/probe/linger'
     const body = JSON.stringify({ args: {} })
@@ -451,25 +453,8 @@ describe('link-access carrier', () => {
       request.write(body)
       request.end()
     })
-    await new Promise(resolve => setTimeout(resolve, 200))
+    await expect.poll(() => probe.calls.slice(priorCalls)).toEqual(['linger:aborted', 'linger:closed'])
     expect(lines).toEqual(['{"k":"v","v":"open"}'])
-  })
-
-  it('stops a stream promptly when its client vanishes mid-flight', async () => {
-    const probe = harness.ctx.get('probe') as unknown as { calls: readonly string[] }
-    await streamUntil(harness, device, 'probe/ticks', { args: { count: 10_000 } }, lines => lines.length >= 2)
-    // The abort must freeze the server-side iteration well short of the full
-    // 10 000 items; poll until the count is stable instead of sleeping fixed
-    // windows, then require it to have stopped early.
-    let stable = -1
-    for (let attempt = 0; attempt < 100; attempt += 1) {
-      const current = probe.calls.length
-      if (current === stable) break
-      stable = current
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-    expect(stable).toBeGreaterThanOrEqual(2)
-    expect(stable).toBeLessThan(5_000)
   })
 
   it('aborts an in-flight unary RPC when its client vanishes', async () => {

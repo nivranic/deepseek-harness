@@ -77,11 +77,21 @@ class ProbeService extends Service {
 
   @Remote({ mode: 'stream' })
   linger(signal: AbortSignal): AsyncIterable<string> {
+    const calls = this.calls
     return (async function* () {
-      yield 'open'
-      await new Promise<never>((_resolve, reject) => {
-        signal.addEventListener('abort', () => { reject(new Error('linger aborted')) }, { once: true })
-      })
+      try {
+        yield 'open'
+        await new Promise<never>((_resolve, reject) => {
+          const abort = (): void => {
+            calls.push('linger:aborted')
+            reject(new Error('linger aborted'))
+          }
+          if (signal.aborted) abort()
+          else signal.addEventListener('abort', abort, { once: true })
+        })
+      } finally {
+        calls.push('linger:closed')
+      }
     })()
   }
 }
