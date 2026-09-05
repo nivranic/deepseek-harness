@@ -140,14 +140,25 @@ afterEach(async () => {
 
 describe('SessionProjectionCache write policy', () => {
   it('writes a durable checkpoint at turn/end (mandatory point)', async () => {
-    const { ctx, root } = await harness()
+    const { ctx, root, cache } = await harness()
+    const writes = vi.spyOn(cache, 'write')
+    const completedWrites = async (): Promise<void> => {
+      for (const result of writes.mock.results) {
+        if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
+        await result.value
+      }
+    }
     const session = ctx.sessions.create(SessionId('turn-end'))
     mark(session, ['a'])
     // Creation already wrote the init cut; the mark is throttled, so the
     // stored row is still the creation-time cut (no marks folded).
-    await expect.poll(async () => (await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
+    expect(writes).toHaveBeenCalledTimes(1)
+    await completedWrites()
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
     const end = endTurn(session)
-    await expect.poll(async () => (await storedRows(root, session.id))?.['cache-test/marks'])
+    expect(writes).toHaveBeenCalledTimes(2)
+    await completedWrites()
+    expect((await storedRows(root, session.id))?.['cache-test/marks'])
       .toEqual({ ver: 1, seq: end.seq, val: { marks: ['a'] } })
   })
 

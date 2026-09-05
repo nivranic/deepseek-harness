@@ -252,20 +252,21 @@ describe('experimental Inspector real Worker', () => {
   })
 
   it('cancels Client Runtime work when the Worker deadline expires', async () => {
-    inspector = await startInspector({ port: 0, captureFetch: false, clientRuntimeTimeoutMs: 20 })
+    const runtimeTimeoutMs = 1_000
+    inspector = await startInspector({ port: 0, captureFetch: false, clientRuntimeTimeoutMs: runtimeTimeoutMs })
     client = await InspectorClientFixture.start(inspector.endpoint.client, { label: 'Timeout Client' })
     cdp = await TestCdpClient.connect(inspector.endpoint.webSocketDebuggerUrl)
-    await cdp.call('Runtime.enable')
+    expect((await cdp.call('Runtime.enable')).error).toBeUndefined()
     const contextId = await clientContext(cdp)
 
     const timedOut = await cdp.call('Runtime.evaluate', {
-      expression: 'new Promise(() => {})',
+      expression: 'globalThis.inspectorDeadlineStarted = true; new Promise(() => {})',
       contextId,
       awaitPromise: true,
     })
-    expect(timedOut.error?.message).toContain('timed out after 20ms')
+    expect(timedOut.error?.message).toContain(`timed out after ${String(runtimeTimeoutMs)}ms`)
     expect((await cdp.call('Runtime.evaluate', {
-      expression: '42',
+      expression: 'globalThis.inspectorDeadlineStarted === true ? 42 : -1',
       contextId,
       returnByValue: true,
     })).result?.result).toMatchObject({ type: 'number', value: 42 })
