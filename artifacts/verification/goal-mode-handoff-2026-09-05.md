@@ -12,7 +12,7 @@
 
 Gate 1 仍为 `PARTIAL / OPEN / canEnterGate2=false`，13 项任务中 9 项为 `PASS`、4 项为 `PARTIAL`。Kotlin 真实 Host 13 步验收最近执行于 `9fcde39df0`，后续只修正了两处测试：错误包装断言和夹具对 protected Context 的访问；快照 113/113 执行于 `7752b634d1`，后续运行源码和 fixtures 未变。各项证据保留实际执行 SHA，不能合并宣称为同一次完整平台矩阵验收。
 
-剩余关闭条件是远端 mandatory CI、Swift 三项验证和 Apple simulator 证据。Swift 保持用户指定的 `NOT_EXECUTED / SKIPPED_BY_USER`；未 push、未创建 PR、未签生产包、未发布。`ci.yml` 只由 PR 触发，而该候选的 draft PR 会自动触发 Apple Swift workflow，因此下一步发布候选需同时获得重新打开 Swift 验证的明确授权。Gate 2–4 尚未进入。
+用户已明确授权推送候选、创建以 `dev` 为目标的 draft PR，并重新开启 Swift/Apple 验证。仅能在 macOS/Xcode 取得的证据允许临时延期并推进下一阶段；可用替代验证继续执行，未验证项不得标为 PASS。授权和范围记录在 [`G1-APPLE-DEFERRAL.json`](gate-1/G1-APPLE-DEFERRAL.json)。非 Apple mandatory CI 仍须核验；生产签名、合并和发布未获授权。
 
 ## Table of Contents
 
@@ -58,7 +58,7 @@ Gate 1 仍为 `PARTIAL / OPEN / canEnterGate2=false`，13 项任务中 9 项为 
 | 分支 | `codex/goal-mode-full-implementation` | 未 push，远端候选 CI 未执行 |
 | worktree | `E:\Mix\project\deepseek-harness\.worktrees\goal-mode-full-implementation` | 与用户 dev 隔离 |
 | Gate 1 | `PARTIAL / OPEN` | `canEnterGate2=false` |
-| Gate 2 / 3 / 4 | `NOT_STARTED` | 无正式 waiver |
+| Gate 2 / 3 / 4 | `NOT_STARTED` | Apple 环境依赖已获临时延期；允许推进可独立验证的下一阶段工作 |
 | 推送/发布 | `NOT_EXECUTED` | 未创建 PR/release，未上传商店 |
 | 生产凭证 | 未读取、未使用 | 只使用本地 debug 签名 |
 | 完整 coverage 候选规模 | 462 files, +34,183/-2,252 | 原 dev 至 4dded5，排除 vendor；不含本轮后续 evidence-only 更新 |
@@ -105,7 +105,7 @@ Gate 1 的 Remote correctness、recovery 和 multi-device approval 要求 E4。�
 
 | Gate | 状态 | 完成内容 | 主要剩余项 |
 |---|---|---|---|
-| Gate 1 — P0 correctness | `PARTIAL` | 9/13 任务 PASS；Android App 装配及首屏、完整 coverage、Kotlin E4 和便携 runner 证据齐备 | Swift 3 项已跳过；Apple simulator 未验证；远端 CI 未运行 |
+| Gate 1 — P0 correctness | `PARTIAL` | 9/13 任务 PASS；Android App 装配及首屏、完整 coverage、Kotlin E4 和便携 runner 证据齐备 | Swift 3 项已重新开启；Apple simulator 未验证；远端 CI 未运行 |
 | Gate 2 — P1 release foundation | `NOT_STARTED` | 现有官方构建、CI 和版本字段可作为输入 | 统一版本、channel、RC pipeline、供应链、四平台 release artifact、支持/迁移/回滚 |
 | Gate 3 — P2 Beta readiness | `NOT_STARTED` | 旧代码中已有部分 QR、Lite、Handoff、Windows/移动 UI 基线 | 必须重新按 Gate 3 验收，不得沿用旧报告的“完成”字样 |
 | Gate 4 — GA handoff | `NOT_STARTED` | 无 | GA dry-run、生产签名交接、商店包、rollout、incident、最终 handoff |
@@ -189,15 +189,15 @@ Host 在第一个 assistant chunk 后中断两条 active stream，Session 在客
 
 ## 5. 尚未完成与已跳过项目
 
-### 5.1 用户已要求跳过的 Swift 项
+### 5.1 Swift 验证的最新授权与临时延期
 
-以下 3 项在两份总证据中记录 `status=NOT_EXECUTED`、`userDisposition=SKIPPED_BY_USER`，处置时间为 `2026-09-05T02:10:56.6188413+08:00`：
+以下 3 项最初记录为 `NOT_EXECUTED / SKIPPED_BY_USER`。用户在本次接续中明确重新授权验证，并允许 macOS/Xcode 专属证据临时延期；历史处置保留，最新处置为 `REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL`：
 
 1. `swift test`。
 2. Real Host-to-Swift acceptance。
 3. Swift disconnect and authoritative recovery。
 
-这些项目不再由后续 Agent 自动重试。若用户希望严格关闭 Gate 1，必须在 Swift-capable macOS runner 上重新打开这些项目并取得 E3/E4；若用户希望永久豁免，必须单独授权修改 Gate 1 Exit Criteria，并保留 waiver 记录。无论哪条路径，都不得把跳过标为通过。
+优先使用现有远端 macOS runner 运行。SwiftUI、Apple Security、真实 Apple TLS 和 simulator 不能由 Windows/Linux 的 fixture 检查替代；这些环境依赖允许按用户授权延期并推进下一阶段。延期不是通过，也不覆盖非 Apple CI 错误或生产发布权限。
 
 ### 5.2 本轮已关闭项与剩余条件
 
@@ -208,8 +208,8 @@ Host 在第一个 assistant chunk 后中断两条 active stream，Session 在客
 | coverage-exempt-heavy | `PASS` | 独立 Linux checkout 1,157 通过、28 跳过 |
 | Recorded-session replay | `PASS` | 官方 keyless refresh 与 packed fixture canonicalization 后 113/113；没有调用真实模型 API |
 | 文档站点与 NodeNext | `PASS` | 完整 doc-sync 32/32，NodeNext 268 workspace APIs |
-| Remote candidate CI | `NOT_EXECUTED` | 需授权 push 和创建 base=dev 的 draft PR；仅 push 或 dispatch benchmark 不产生 mandatory verdict |
-| Swift / Apple simulator | `NOT_EXECUTED` | Swift 三项保持 `SKIPPED_BY_USER`；PR 会自动重新触发，需明确授权 |
+| Remote candidate CI | `NOT_EXECUTED` | 已授权 push 和创建 base=dev 的 draft PR；仅 push 或 dispatch benchmark 不产生 mandatory verdict |
+| Swift / Apple simulator | `NOT_EXECUTED` | 已授权 PR 自动触发；确需 Apple 环境的证据允许临时延期 |
 | 真机网络与设备行为 | 未验证 | Android emulator→Host pairing、Android crypto provider、Wi-Fi↔蜂窝等仍不由 JVM/首屏证据替代；真机计划在 G1-ANDROID-APP 中 |
 
 ### 5.3 当前 Gate 决策
@@ -220,9 +220,12 @@ Host 在第一个 assistant chunk 后中断两条 active stream，Session 在客
 {
   "status": "PARTIAL",
   "closure": "OPEN",
-  "canEnterGate2": false
+  "canEnterGate2": false,
+  "canPrepareGate2": true
 }
 ```
+
+`canEnterGate2=false` 保留完整 Gate 1 尚未验收的事实。用户授权的 Apple 环境临时延期允许下一阶段规划和可独立验证的工程工作继续；非 Apple CI 的失败仍需修复。
 
 -----
 
@@ -263,7 +266,7 @@ Host 在第一个 assistant chunk 后中断两条 active stream，Session 在客
 
 - 旧报告中的“Apple CI 构建绿”“Swift 八项全落”不是当前候选的 Swift runtime 证据。当前候选只能确认 Apple 源码和测试定义存在，证据等级为 E2。
 - 本轮已取得 Android debug APK 装配、签名检查、API 34 首屏 instrumentation 和对应 checksum。JVM Host↔Kotlin E4、模拟器首屏与真实设备网络验收仍分别记录，不相互替代。
-- 旧报告中的“PoC-2/PoC-4 完成”在当前更严格的双语言 Exit Criteria 下只能是 `PARTIAL`，因为 Swift E4 缺失并被用户跳过。
+- 旧报告中的“PoC-2/PoC-4 完成”在当前更严格的双语言 Exit Criteria 下只能是 `PARTIAL`，因为 Swift E4 仍缺失；当前已重新开启验证并允许 Apple 环境临时延期。
 - 旧报告中的“Contract capability 不完整”已有实质进展；当前 source graph 已包含版本和 capability 字段，但 Apple runtime 仍未验证。
 - 旧报告中的“所有 TS/Apple/Android 车道全绿”不得作为当前 RC SHA 的远端 CI 结论；当前分支未发布，Remote candidate CI 没有运行。
 
@@ -293,7 +296,7 @@ Windows/macOS Full Host、Apple/Android Remote Companion 与 Native Lite 的职�
 
 ### 7.6 收紧下一阶段入口
 
-Gate 1 未闭合时不开始 Gate 2 的产品实现。允许提前做的只有不改变产品的环境准备、runner 能力确认和 Gate waiver 决策材料。若用户选择豁免 Swift，证据必须记录被豁免的 Exit Criteria、原因、风险、批准者角色和日期；Gate 1 不能伪造为全平台 E4。
+用户已批准 Apple 环境依赖的临时延期；不再因缺少 macOS/Xcode 重复询问或停止下一阶段。下一阶段规划与可独立验证的工程工作继续推进，同时获取非 Apple mandatory CI 的实际结果并修复失败。Gate 1 的平台证据仍如实记录，不能伪造为全平台 E4。
 
 -----
 
@@ -303,12 +306,12 @@ Gate 1 未闭合时不开始 Gate 2 的产品实现。允许提前做的只有�
 
 | 任务 | 当前状态 | 下一动作 | 关闭证据 |
 |---|---|---|---|
-| G1-APPLE-RUN | `SKIPPED_BY_USER` | 默认不重试；严格关闭时在 macOS 重新打开 | `swift test` E3 + Host↔Swift 13/13 E4 |
-| G1-REC-SWIFT | `SKIPPED_BY_USER` | 默认不重试；严格关闭时与 Apple lane 同次执行 | 断流、离线推进、重连、重复重连投影相等 E4 |
+| G1-APPLE-RUN | `REOPENED` | 在远端 macOS 复验；环境依赖允许临时延期 | `swift test` E3 + Host↔Swift 13/13 E4 |
+| G1-REC-SWIFT | `REOPENED` | 与 Apple lane 同次执行；环境依赖允许临时延期 | 断流、离线推进、重连、重复重连投影相等 E4 |
 | G1-ANDROID-APP | `PASS` | 保留装配与首屏证据；真机执行按后续计划 | APK、checksum、manifest、instrumentation 1/1 |
 | G1-REMOTE-CI | `NOT_EXECUTED` | 用户授权 push、draft PR 及重新打开 Swift 后执行 | `all checks passed` 与 Android/Apple 平台 verdict |
 | G1-PORTABLE-RUNNERS | `PASS` | 保留当前本地证据；远端平台矩阵独立运行 | 五项原阻断与实际产品/测试缺口已在 Linux 关闭 |
-| G1-WAIVER | `NOT_AUTHORIZED` | 只有用户明确放宽 Gate 1 才创建 | machine-readable waiver；保留 Swift `NOT_EXECUTED`，不得标 PASS |
+| G1-WAIVER | `AUTHORIZED_TEMPORARY` | 仅暂缓 macOS/Xcode 专属证据；其余检查继续 | G1-APPLE-DEFERRAL.json；保留真实执行状态 |
 
 ### 8.2 Gate 2 — Release Engineering Foundation
 
@@ -380,7 +383,7 @@ Gate 1 未闭合时不开始 Gate 2 的产品实现。允许提前做的只有�
                     │     └── 经授权 push + draft PR，并重新打开 Swift / Remote CI
                     │
                     └── Gate waiver 路径
-                          └── 仅在用户明确批准后记录 waiver；不得标 Swift PASS
+                          └── 已获 Apple 环境临时延期；不得标 Swift PASS
                                       │
                                       ▼
                               Gate 1 closure decision
@@ -404,7 +407,7 @@ Gate 1 未闭合时不开始 Gate 2 的产品实现。允许提前做的只有�
                               Gate 4 GA handoff
 ```
 
-在当前授权下，后续 Agent 的第一项工作不是直接实施 Gate 2，而是读取最新 `gate1-evidence.json`，确认用户选择严格闭合还是正式 waiver。若没有新授权，保持 `canEnterGate2=false`。
+当前授权允许发布候选、获取 PR verdict，并按 Apple 环境临时延期继续下一阶段。执行顺序以最新 `gate1-evidence.json` 和 `G1-APPLE-DEFERRAL.json` 为准，不再重复请求相同授权。
 
 -----
 
@@ -461,7 +464,7 @@ Apple 的 SwiftPM 与 Host↔Swift 命令由 [`.github/workflows/apple-swift.yml
 | [`gate-1/G1-ANDROID.json`](gate-1/G1-ANDROID.json) | Android core、pinning、App 装配和首屏证据 |
 | [`gate-1/G1-ANDROID-APP.json`](gate-1/G1-ANDROID-APP.json) | SDK/依赖修复、启动崩溃、APK 与模拟器回归、真机计划 |
 | [`gate-1/G1-PORTABLE-RUNNERS.json`](gate-1/G1-PORTABLE-RUNNERS.json) | 各项 Linux 检查、实际 SHA、日志 checksum 与历史失败 |
-| [`gate-1/G1-CLOSURE-DECISION.json`](gate-1/G1-CLOSURE-DECISION.json) | 未豁免的 Gate 决策与下一步具体授权范围 |
+| [`gate-1/G1-CLOSURE-DECISION.json`](gate-1/G1-CLOSURE-DECISION.json) | Gate 决策、发布授权与 Apple 环境临时延期范围 |
 | [`gate-1/G1-AUTH.json`](gate-1/G1-AUTH.json) | 最小授权 scope |
 | [`gate-1/G1-PRIV.json`](gate-1/G1-PRIV.json) | telemetry、identity、Artifact 与 native evidence 隐私 |
 | [`gate-1/G1-E2E.json`](gate-1/G1-E2E.json) | TypeScript/Kotlin/Swift 跨语言矩阵 |
@@ -473,12 +476,12 @@ Apple 的 SwiftPM 与 Host↔Swift 命令由 [`.github/workflows/apple-swift.yml
 
 本轮 9 份 JSON、checksum 引用和 40 个相对文件链接均已核验，Gate 任务状态为 9 PASS / 4 PARTIAL，用户 dev 工作区未变。最新完整 `doc-sync` 在 Linux `c73daa2c69` 加本轮待提交交接输入后通过 32/32；`test:docs` 15/15 的实际执行 SHA 保留为 `4c2e8f4616`。后续 evidence-only 提交不宣称重新执行这些检查。
 
-本轮未 push、未创建 PR。最后两次只读远端刷新分别遇到连接重置和 GitHub 443 连接失败，旧的远端 SHA 只作为历史探测值保留；执行经授权的推送前仍须刷新远端状态。
+历史远端刷新曾遇到连接重置；本次已恢复连接，重新确认 `dev=90ef8b197fe2aa38cc40917cd157077a8d1dc6b9` 且候选分支尚未发布。用户授权后的推送和 PR 结果按实际执行继续更新。
 
 -----
 
 ## 12. 当前结论
 
-当前成果足以交给后续 Agent 继续，但不足以声明完整目标、Gate 1 或 Beta readiness 已完成。可确认的最高层结论是：Gate 1 的 Host/Contract/Android/authorization/privacy/multi-device 主体已经收敛，Kotlin Remote correctness 与 recovery 达到 E4；Swift 当前只有 E2 且已由用户标记跳过；Gate 2–4 尚未开始。
+当前成果足以交给后续 Agent 继续，但不足以声明完整目标、Gate 1 或 Beta readiness 已完成。可确认的最高层结论是：Gate 1 的 Host/Contract/Android/authorization/privacy/multi-device 主体已经收敛，Kotlin Remote correctness 与 recovery 达到 E4；Swift 当前运行证据未齐，已获重新验证与 Apple 环境临时延期授权；Gate 2 按最新授权继续推进。
 
 后续 Agent 必须从 Gate 1 closure decision 开始，不能把旧报告中的绿色里程碑、当前文件存在或用户跳过动作提升为未实际执行的平台证据。

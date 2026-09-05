@@ -12,8 +12,8 @@
     "published": false,
     "remoteCandidateCi": "NOT_EXECUTED"
   },
-  "recordedAt": "2026-09-05T02:28:09.490Z",
-  "userDispositionNote": "User-directed skipping records execution disposition only and does not establish E4 evidence or satisfy Gate 1 exit criteria.",
+  "recordedAt": "2026-09-05T03:19:44.330Z",
+  "userDispositionNote": "Swift/Apple 已获重新验证授权；Apple 专属环境依赖允许临时延期并推进下一阶段，执行状态仍如实保留。",
   "taskEvidence": [
     {
       "taskId": "G1-RC",
@@ -164,24 +164,30 @@
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
       "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "SKIPPED_BY_USER",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER",
+      "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
     },
     {
       "item": "Real Host-to-Swift acceptance",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
       "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "SKIPPED_BY_USER",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER",
+      "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
     },
     {
       "item": "Swift disconnect and authoritative recovery",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
       "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "SKIPPED_BY_USER",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER",
+      "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
     }
   ],
   "scope": {
@@ -194,7 +200,8 @@
   "decision": {
     "status": "PARTIAL",
     "closure": "OPEN",
-    "canEnterGate2": false
+    "canEnterGate2": false,
+    "canPrepareGate2": true
   },
   "previousCandidate": {
     "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
@@ -208,5 +215,6 @@
     "focusedLogDirectory": ".artifacts/g1-final-abe90fa1d652-20260904-203016/",
     "aggregateLog": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
     "aggregateLogSha256": "3ae86c10b6b7488a44771807147bde79837617139F223D938813A45E85E521DB"
-  }
+  },
+  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
 }

@@ -4,9 +4,9 @@
   "status": "PARTIAL",
   "decision": "OPEN",
   "canEnterGate2": false,
-  "isWaiver": false,
+  "isWaiver": true,
   "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
-  "recordedAt": "2026-09-05T02:28:09.490Z",
+  "recordedAt": "2026-09-05T03:19:44.330Z",
   "localWork": "COMPLETE",
   "completed": [
     "Android App 装配、启动修复及模拟器首屏回归",
@@ -16,14 +16,14 @@
   ],
   "remaining": [
     "远端候选 mandatory CI",
-    "Swift 三项 NOT_EXECUTED / SKIPPED_BY_USER",
+    "Swift 三项 NOT_EXECUTED / REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
     "Apple simulator 证据"
   ],
   "authorization": {
-    "push": "NOT_AUTHORIZED",
-    "createPullRequest": "NOT_AUTHORIZED",
-    "reopenSwiftValidation": "NOT_AUTHORIZED",
-    "formalGateWaiver": "NOT_AUTHORIZED"
+    "push": "AUTHORIZED",
+    "createPullRequest": "AUTHORIZED_DRAFT_BASE_DEV",
+    "reopenSwiftValidation": "AUTHORIZED",
+    "formalGateWaiver": "TEMPORARY_APPLE_ENVIRONMENT_DEFERRAL_AUTHORIZED"
   },
   "proposedAction": {
     "remote": "origin",
@@ -32,7 +32,7 @@
     "pullRequest": "draft",
     "merge": false,
     "release": false,
-    "qualification": "ci.yml 只响应 pull_request；该 PR 会自动触发 apple-swift.yml，因此需要明确允许重新打开 Swift 验证。"
+    "qualification": "推送、draft PR 与 Swift/Apple 复验均已明确授权；Apple 环境依赖按临时延期处理。"
   },
   "verification": {
     "jsonRecords": 9,
@@ -44,13 +44,13 @@
     },
     "mainWorkspaceUnchanged": true
   },
-  "remoteProbe": {
-    "status": "FAIL",
-    "attempts": 2,
-    "causes": [
-      "Recv failure: Connection was reset",
-      "Could not connect to github.com:443"
-    ],
-    "changesMade": false
-  }
+  "previousAuthorization": {
+    "push": "NOT_AUTHORIZED",
+    "createPullRequest": "NOT_AUTHORIZED",
+    "reopenSwiftValidation": "NOT_AUTHORIZED",
+    "formalGateWaiver": "NOT_AUTHORIZED"
+  },
+  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json",
+  "canPrepareGate2": true,
+  "entryPolicy": "Apple 环境依赖已经用户临时延期；下一阶段规划可继续。非 Apple mandatory CI 仍须取得并处理实际 verdict，不能被 Apple 延期覆盖。"
 }

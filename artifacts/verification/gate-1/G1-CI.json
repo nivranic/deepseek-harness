@@ -4,14 +4,14 @@
   "status": "PARTIAL",
   "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
   "branch": "codex/goal-mode-full-implementation",
-  "recordedAt": "2026-09-05T02:28:09.490Z",
+  "recordedAt": "2026-09-05T03:19:44.330Z",
   "candidatePublication": {
-    "status": "NOT_EXECUTED",
+    "status": "AUTHORIZED_PENDING_EXECUTION",
     "reason": "CANDIDATE_NOT_PUBLISHED",
-    "remoteBranchExists": null,
+    "remoteBranchExists": false,
     "remoteCandidateCi": "NOT_EXECUTED",
     "remoteBranchProbe": "git ls-remote --heads origin refs/heads/codex/goal-mode-full-implementation",
-    "details": "尚未 push 或创建 PR。本地检查结果不能冒充远端 CI。",
+    "details": "2026-09-05 用户授权推送和创建以 dev 为 base 的 draft PR；当前远端核验通过，正在执行发布。",
     "lastSuccessfulProbe": {
       "branchExisted": false,
       "dev": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
@@ -19,12 +19,9 @@
       "qualification": "本次接续早期的只读结果；最后两次刷新失败，不能当作实时远端状态。"
     },
     "latestReadOnlyProbe": {
-      "status": "FAIL",
-      "attempts": 2,
-      "causes": [
-        "Recv failure: Connection was reset",
-        "Could not connect to github.com:443"
-      ],
+      "status": "PASS",
+      "dev": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "candidateBranchExists": false,
       "changesMade": false
     }
   },
@@ -104,24 +101,27 @@
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
       "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "SKIPPED_BY_USER",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER"
     },
     {
       "item": "Real Host-to-Swift acceptance",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
       "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "SKIPPED_BY_USER",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER"
     },
     {
       "item": "Swift disconnect and authoritative recovery",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
       "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "SKIPPED_BY_USER",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER"
     },
     {
       "item": "Remote candidate CI",
@@ -661,5 +661,6 @@
       "canEnterGate2": false,
       "blockingReason": "Gate 1 requires SwiftPM tests, real Host-to-Swift acceptance, and Swift recovery at E4. This Windows host has no Swift or Xcode toolchain."
     }
-  }
+  },
+  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
 }
