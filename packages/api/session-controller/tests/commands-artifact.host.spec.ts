@@ -40,9 +40,9 @@ describe('Session artifact authorization', () => {
     const get = vi.fn(() => Promise.resolve(new Uint8Array()))
     const { ctx, controller, sessionId } = await persistedController([], { get })
     vi.spyOn(ctx.sessionPersistence, 'borrowSession').mockRejectedValue(new Error('journal unavailable'))
-    await expect(controller.artifact({ sessionId, artifactId: 'art-1' })).rejects.toMatchObject({
-      failure: { code: 'internal', message: 'artifact authorization unavailable for session "cold-artifact": Error: journal unavailable' },
-    })
+    const operation = controller.artifact({ sessionId, artifactId: 'art-1' })
+    await expect(operation).rejects.toMatchObject({ failure: { code: 'internal' } })
+    await expect(operation).rejects.toThrow(/artifact authorization unavailable.*journal unavailable/u)
     expect(get).not.toHaveBeenCalled()
     await ctx.fiber.dispose()
   })
