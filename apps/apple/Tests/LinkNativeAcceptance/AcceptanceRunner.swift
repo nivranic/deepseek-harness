@@ -195,7 +195,7 @@ struct AcceptanceRunner {
             throw AcceptanceFailure("observed production follow omitted its capture")
         }
         let opening = try await Self.waitForSnapshot(firstFollowCapture)
-        try await Self.wait("production session model opening snapshot") {
+        let _: Bool = try await Self.wait("production session model opening snapshot") {
             guard let active = sessions.active,
                   active.sessionId == sessionId,
                   active.cursor == Double(opening.cursor) else { return nil }
@@ -280,7 +280,7 @@ struct AcceptanceRunner {
             expected: expectedResponseText
         )
         let completed = completedResponse.terminal
-        try await Self.wait("production session model completed response") {
+        let _: Bool = try await Self.wait("production session model completed response") {
             guard let active = sessions.active,
                   active.cursor >= Double(completed.seq),
                   active.items.contains(where: {
@@ -375,7 +375,7 @@ struct AcceptanceRunner {
         }
         try WireObservation.accepted(try cancel.decodedResult(), context: "session/cancel response")
         let terminal = try await Self.waitForCancelledTerminal(firstFollowCapture, after: secondStep)
-        try await Self.wait("production session model cancelled terminal") {
+        let _: Bool = try await Self.wait("production session model cancelled terminal") {
             guard let active = sessions.active,
                   active.cursor >= Double(terminal.seq),
                   active.items.contains(where: {
@@ -427,7 +427,7 @@ struct AcceptanceRunner {
                 expectedResponseText: expectedResponseText
             )
         }
-        try await Self.wait("production session model reconnected snapshot") {
+        let _: Bool = try await Self.wait("production session model reconnected snapshot") {
             guard let active = sessions.active,
                   active.cursor == Double(reopenedSnapshot.cursor),
                   active.items.contains(where: {
@@ -502,7 +502,7 @@ struct AcceptanceRunner {
                 throw AcceptanceFailure("recovery fault is not anchored to the first assistant chunk")
             }
             preFaultSeq = firstRecoveryChunk.seq
-            try await Self.wait("production recovery first-chunk consumption") {
+            let _: Bool = try await Self.wait("production recovery first-chunk consumption") {
                 guard let active = sessions.active,
                       active.sessionId == sessionId,
                       active.cursor >= Double(firstRecoveryChunk.seq) else {

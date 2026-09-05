@@ -92,6 +92,9 @@ jobs:
         working-directory: apps/apple
         run: swift test
 
+      - name: Build Host plugins for native acceptance
+        run: pnpm run build:lib:host
+
       - name: Real Host to Swift acceptance
         env:
           DSH_LINK_ACCEPTANCE_DRIVER_JSON: '["swift","run","--package-path","apps/apple","LinkNativeAcceptance"]'

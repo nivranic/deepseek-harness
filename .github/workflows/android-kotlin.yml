@@ -94,6 +94,9 @@ jobs:
         working-directory: apps/android
         run: gradle --no-daemon test
 
+      - name: Build Host plugins for native acceptance
+        run: pnpm run build:lib:host
+
       - name: Real Host to Kotlin acceptance
         env:
           DSH_LINK_ACCEPTANCE_DRIVER_JSON: '["gradle","--no-daemon","-p","apps/android",":core:nativeAcceptance"]'
