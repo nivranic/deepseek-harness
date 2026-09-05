@@ -108,6 +108,16 @@ describe('candidate CI evidence', () => {
     required(runs[1]).source.runAttempt = 2
     expect(evaluateCandidateChecks(policy, sha, tree, runs).status).toBe('FAIL')
   })
+  it('requires a resolved original execution for a copied job with a new reported attempt', () => {
+    const runs = successful()
+    const producer = required(required(runs[1]).jobs[0])
+    producer.run_attempt = 2
+    expect(evaluateCandidateChecks(policy, sha, tree, runs).status).toBe('FAIL')
+    Object.assign(producer, { execution_attempt: 1 })
+    expect(evaluateCandidateChecks(policy, sha, tree, runs).status).toBe('PASS')
+    Object.assign(producer, { execution_attempt: 3 })
+    expect(() => evaluateCandidateChecks(policy, sha, tree, runs)).toThrow('execution attempt')
+  })
   it('rejects duplicate run attempts and jobs from a future attempt', () => {
     const runs = successful()
     expect(() => evaluateCandidateChecks(policy, sha, tree, [...runs, required(runs[0])])).toThrow('duplicate')

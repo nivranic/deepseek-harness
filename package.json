@@ -135,6 +135,7 @@
     "verify-product-identity": "tsx scripts/verify-product-identity.ts",
     "verify-workflow-security": "tsx scripts/verify-workflow-security.ts",
     "verify-required-checks": "tsx scripts/verify-required-checks.ts",
+    "collect-ci-evidence": "tsx scripts/collect-ci-evidence.ts",
     "verify-md-links": "tsx scripts/verify-md-links.ts",
     "verify-md-wrap": "tsx scripts/verify-md-wrap.ts",
     "verify-mermaid": "tsx scripts/verify-mermaid.ts",

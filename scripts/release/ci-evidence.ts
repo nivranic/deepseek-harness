@@ -33,15 +33,19 @@ export interface CiSourceReceipt {
   dirty: boolean
 }
 
-interface Job {
+/** Required job identity and verdict, with optional collector-verified execution identity. */
+export interface CiJob {
   id: number
   name: string
   run_attempt: number
+  /** Original execution attempt, independently resolved for a copied GitHub job. */
+  execution_attempt?: number
   status: string
   conclusion: string | null
 }
 
-interface Run {
+/** Workflow run identity and lifecycle as returned by GitHub. */
+export interface CiRun {
   id: number
   run_attempt: number
   head_sha: string
@@ -145,15 +149,29 @@ export function parseCiSourceReceipt(input: unknown): CiSourceReceipt {
     treeSha: sha(row.treeSha, 'tree SHA'), parents: row.parents.map((parent: unknown) => sha(parent, 'parent SHA')), dirty: row.dirty }
 }
 
-function parseRun(input: unknown): Run {
+/**
+ * Validate the run fields used for immutable-candidate selection.
+ * @param input - GitHub workflow run JSON.
+ * @returns The run identity and lifecycle fields.
+ */
+export function parseCiRun(input: unknown): CiRun {
   const row = object(input, 'workflow run')
   return { id: integer(row.id, 'run id'), run_attempt: integer(row.run_attempt, 'run attempt'), head_sha: sha(row.head_sha, 'run head'),
     path: text(row.path, 'workflow path'), event: text(row.event, 'event'), status: text(row.status, 'run status'), conclusion: conclusion(row.conclusion) }
 }
 
-function parseJob(input: unknown): Job {
+/**
+ * Validate job identity and the collector's optional resolved execution attempt.
+ * @param input - GitHub job JSON, optionally enriched after historical execution verification.
+ * @returns The job verdict and attempt identities.
+ */
+export function parseCiJob(input: unknown): CiJob {
   const row = object(input, 'workflow job')
-  return { id: integer(row.id, 'job id'), run_attempt: integer(row.run_attempt, 'job attempt'), name: text(row.name, 'job name'),
+  const runAttempt = integer(row.run_attempt, 'job attempt')
+  const executionAttempt = row.execution_attempt === undefined ? undefined : integer(row.execution_attempt, 'execution attempt')
+  if (executionAttempt !== undefined && executionAttempt > runAttempt) throw new Error('execution attempt exceeds job attempt')
+  return { id: integer(row.id, 'job id'), run_attempt: runAttempt, name: text(row.name, 'job name'),
+    ...(executionAttempt === undefined ? {} : { execution_attempt: executionAttempt }),
     status: text(row.status, 'job status'), conclusion: conclusion(row.conclusion) }
 }
 
@@ -173,7 +191,7 @@ export function evaluateCandidateChecks(
   const snapshots = input.map((value: unknown) => {
     const row = object(value, 'run snapshot')
     if (!Array.isArray(row.jobs)) throw new Error('run jobs must be an array')
-    return { run: parseRun(row.run), jobs: row.jobs.map((job: unknown) => parseJob(job)), source: row.source }
+    return { run: parseCiRun(row.run), jobs: row.jobs.map((job: unknown) => parseCiJob(job)), source: row.source }
   })
   const runKeys = snapshots.map(({ run }) => `${run.path}:${run.id}:${run.run_attempt}`)
   if (new Set(runKeys).size !== runKeys.length) throw new Error('duplicate workflow run attempt')
@@ -203,7 +221,7 @@ export function evaluateCandidateChecks(
       const source = parseCiSourceReceipt(selected.source)
       result.source = source
       if (source.workflow !== required.path || source.workflowSha256 !== required.workflowSha256
-        || source.runId !== run.id || source.runAttempt !== producer.run_attempt
+        || source.runId !== run.id || source.runAttempt !== (producer.execution_attempt ?? producer.run_attempt)
         || source.event !== run.event || source.candidateSha !== candidateSha) sourceReasons.push('source receipt does not match its producer')
       if (source.dirty || source.treeSha !== treeSha) sourceReasons.push('checkout is dirty or has another tree')
       if (source.checkoutSha !== candidateSha && (source.parents.length !== 2 || !source.parents.includes(candidateSha))) {

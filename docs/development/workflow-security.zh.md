@@ -41,7 +41,11 @@ Workflow 默认权限是只含 `read` 或 `none` 的显式映射。Job 未自行
 
 每个源码 producer job 在 immutable install 后、验证前运行 [write-ci-source.ts](../../scripts/write-ci-source.ts)，并把 `source.json` 保留为 `ci-source-<runId>-<attempt>`。回执包含 candidate、实际 checkout、Git tree 与 parents、workflow digest、run/attempt/event 和 dirty 标记。Checkout 输入变化使 job 失败。回执不含 author、workspace path、credential 或业务 payload。
 
-[求值器](../../scripts/release/ci-evidence.ts) 选择最新 run，要求必要 job 成功，并把源码 metadata 绑定到 producer job 的 attempt。它拒绝缺失或不匹配的证据、dirty 或不同 tree、无关 commit，以及 workflow 之间不一致的执行 SHA。待完成的必要 job 保持 pending。回执采集和离线求值不执行在线汇集、不独立核验上传的 Git metadata，也不配置 branch protection；候选准入仍需完成这些外部核验。
+[求值器](../../scripts/release/ci-evidence.ts) 选择最新 run，要求必要 job 成功，并把源码 metadata 绑定到 producer 的实际执行 attempt。它拒绝缺失或不匹配的证据、dirty 或不同 tree、无关 commit，以及 workflow 之间不一致的执行 SHA。待完成的必要 job 保持 pending。
+
+在 PATH 中提供已认证的 GitHub CLI，再运行 `pnpm run collect-ci-evidence --repo owner/repository --sha <full-sha> --output <evidence.json>`。[收集器](../../scripts/release/ci-collector.ts) 读取该不可变候选的 workflow 定义，分页读取 runs/jobs/artifacts，并通过 Git commit API 独立核验上传的 tree 与 parent 字段。局部重跑可能复制成功 job 并分配新的 ID 和 attempt：匹配 runner、执行时间和全部 step 结果，才能识别拥有源码 artifact 的原始执行。实际重新执行的 producer 不能复用旧回执。
+
+返回前，收集器再次检查最新 run、job verdict 和 artifact identity。发生变化则收集失败，必须重新调用。输出分别保留源码文件 SHA-256 和 GitHub 报告的压缩包 digest；CLI 不独立计算下载 ZIP 的摘要。收集失败会使原 PASS 文件失效，FAIL 或 PENDING 返回非零退出码。收集操作只读，不配置 branch protection，也不把未签名回执认证为 provenance。
 
 -----
 
