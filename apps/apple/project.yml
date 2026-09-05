@@ -4,6 +4,14 @@
 # both shells embed CompanionRootView, which owns pairing when no identity
 # exists and the six-tab surface after it.
 name: Companion
+configFiles:
+  Debug: Config/Product.xcconfig
+  Release: Config/Product.xcconfig
+settings:
+  base:
+    INFOPLIST_KEY_DSHProductVersion: $(DSH_PRODUCT_VERSION)
+    INFOPLIST_KEY_DSHDistributionChannel: $(DSH_PRODUCT_CHANNEL)
+    INFOPLIST_KEY_DSHBuildNumber: $(DSH_PRODUCT_BUILD_NUMBER)
 options:
   bundleIdPrefix: com.deepseek-harness
   createIntermediateGroups: true

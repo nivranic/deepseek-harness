@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { officialClientBuildEnvironment, readClientBuildRecord } from './client-build-environment.ts'
+import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // The stage lives OUTSIDE the repository tree: inside it, electron-builder's
@@ -60,6 +61,9 @@ async function readJson<T>(path: string, hint: string): Promise<T> {
 }
 
 async function main(): Promise<void> {
+  const identity = readProductIdentity(root)
+  const stale = staleProductIdentityFiles(root, identity)
+  if (stale.length !== 0) fail(`product version inputs are stale: ${stale.join(', ')}; run pnpm run gen-product-identity`)
   // Build artifacts the stage consumes; their absence means an unbuilt tree,
   // not a packaging condition.
   if (!existsSync(join(root, 'apps', 'desktop', 'lib', 'main.js'))) {
@@ -125,6 +129,8 @@ async function main(): Promise<void> {
   // devDependencies; the stage ships none, so record the resolved runtime.
   const stageManifestPath = join(STAGE_DIR, 'package.json')
   const stageManifest = await readJson<Record<string, unknown>>(stageManifestPath, 'the staged manifest')
+  if (stageManifest.version !== identity.version) fail('staged desktop version differs from package.json')
+  stageManifest.dshProduct = { buildNumber: identity.buildNumber, channel: identity.channel }
   stageManifest.devDependencies = { ...(stageManifest.devDependencies as Record<string, string> | undefined), electron: electronVersion }
   await writeFile(stageManifestPath, `${JSON.stringify(stageManifest, undefined, 2)}\n`)
 
@@ -147,6 +153,7 @@ async function main(): Promise<void> {
   const builderConfig = [
     'appId: com.deepseek.dsh',
     'productName: DeepSeek Harness',
+    `buildVersion: ${identity.windowsFileVersion}`,
     'publish: null',
     // node-pty ships N-API prebuilds that load under Electron unchanged; a
     // node-gyp rebuild would demand a native toolchain the packaging host

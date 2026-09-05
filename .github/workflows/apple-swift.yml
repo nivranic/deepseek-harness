@@ -20,6 +20,12 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'scripts/test-invariants.ts'
+      - 'scripts/release/**'
+      - 'scripts/verify-apple-product.ts'
+      - 'release/**'
+      - 'scripts/release/**'
+      - 'scripts/verify-apple-product.ts'
+      - 'release/**'
       - 'tsconfig.base.json'
       - 'tsconfig.json'
       - 'vitest.e2e.config.ts'
@@ -41,6 +47,12 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'scripts/test-invariants.ts'
+      - 'scripts/release/**'
+      - 'scripts/verify-apple-product.ts'
+      - 'release/**'
+      - 'scripts/release/**'
+      - 'scripts/verify-apple-product.ts'
+      - 'release/**'
       - 'tsconfig.base.json'
       - 'tsconfig.json'
       - 'vitest.e2e.config.ts'
@@ -132,6 +144,16 @@ jobs:
       - name: Build the macOS Direct Host
         working-directory: apps/apple
         run: xcodebuild -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' build
+
+      - name: Verify resolved and embedded Apple product versions
+        run: pnpm exec tsx scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json"
+
+      - name: Upload Apple product identity evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: g2-apple-product-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g2-apple-product/identity.json
+          if-no-files-found: error
 
       - name: Create a fresh iOS startup simulator
         run: |

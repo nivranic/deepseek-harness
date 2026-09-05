@@ -31,6 +31,8 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 ## 构建与测试
 
+应用版本和内嵌分发渠道来自[公共应用发布标识](../../docs/development/product-release-identity.zh.md)。Gradle 读取生成的 properties，不使用兜底版本。
+
 [Android Kotlin](../../.github/workflows/android-kotlin.yml) 车道在 Ubuntu 上运行 `gradle test`、对 shipped Host composition 执行独立 `:core:nativeAcceptance` driver，并运行 `:app:assembleDebug`（JDK 17、Gradle 8.14、不提交 wrapper、用 runner 的 Android SDK）；本地任何 Gradle 8.14+ 配 JDK 17 工具链加 Android SDK 即可。
 
 共享传输固定使用 OkHttp 5.3.2，以兼容 App 的 API 35 编译 SDK。依赖升级必须同时通过 App 的 `:app:checkDebugAarMetadata`、`:app:assembleDebug` 和 core 测试：Gradle 会选择不同的 OkHttp JVM 与 Android 产物，纯 JVM 测试通过不能证明 Android SDK 兼容性。

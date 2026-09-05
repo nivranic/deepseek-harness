@@ -120,6 +120,8 @@ Contributors can opt into the comprehensive local gate set with `pnpm run check:
 
 ### CI gates
 
+Native application packaging shares the [application release identity](development/product-release-identity.md); its generated inputs are checked alongside source hygiene.
+
 The keyless [CI workflow](../.github/workflows/ci.yml) groups independent gates into broad lanes and runs a smaller compatibility signal across supported Node versions. Artifact consumers wait for one build within their lane. The separate real-API workflow runs `pnpm run test:e2e` with its configured worker bound. See [scripts/run-gates.ts](../scripts/run-gates.ts) and the workflow files for the current gate and job inventory.
 
 ### Daily commands

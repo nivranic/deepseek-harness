@@ -31,6 +31,8 @@ The Android companion (nativization plan chapters 52 and 60): `core` is the pure
 
 ## Building and testing
 
+App versions and the embedded distribution channel come from [the shared application release identity](../../docs/development/product-release-identity.md). Gradle reads the generated properties without a fallback version.
+
 The [Android Kotlin](../../.github/workflows/android-kotlin.yml) lane runs `gradle test`, the standalone `:core:nativeAcceptance` driver against the shipped Host composition, and `:app:assembleDebug` on Ubuntu (JDK 17, Gradle 8.14, no committed wrapper, the runner's Android SDK); locally the same works with any Gradle 8.14+ on a JDK 17 toolchain plus an Android SDK.
 
 The shared transport pins OkHttp 5.3.2 for the app's API 35 compile SDK. Dependency updates must pass the app's `:app:checkDebugAarMetadata` and `:app:assembleDebug` tasks as well as the core tests: Gradle selects different OkHttp JVM and Android artifacts, and pure-JVM success does not establish Android SDK compatibility.
