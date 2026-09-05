@@ -205,7 +205,7 @@ describe('CI workflow', () => {
       expect(job['runs-on'], `${jobName} runs-on must not use the Linux failover switch`).not.toContain('DSH_CI_FAILOVER_LINUX')
       expect(job['runs-on']).toContain('self-hosted')
       expect(job['runs-on']).toContain('dsh-win-ci')
-      expect(job['runs-on']).toContain('dsh-windows-2025-16core')
+      expect(job['runs-on']).toContain("vars.DSH_CI_WINDOWS_RUNNER || 'windows-2025'")
       expect(job.if).toBe("github.event_name == 'pull_request'")
     }
 
@@ -268,6 +268,7 @@ describe('CI workflow', () => {
       expect(typeof job['runs-on']).toBe('string')
       expect(job['runs-on'], `${jobName} runs-on must use the Linux failover switch`).toContain('DSH_CI_FAILOVER_LINUX')
       expect(job['runs-on'], `${jobName} runs-on must not use the Windows failover switch`).not.toContain('DSH_CI_FAILOVER_WINDOWS')
+      expect(job['runs-on']).toContain("vars.DSH_CI_LINUX_RUNNER || 'ubuntu-24.04'")
       expect(job['runs-on']).toContain('vm-backup')
     }
     expect(aggregate['runs-on']).toContain('DSH_CI_FAILOVER_LINUX')
@@ -815,6 +816,8 @@ describe('Native Link real-Host acceptance workflows', () => {
       expect(setupNode).toMatchObject({ with: { 'node-version': '24', cache: 'pnpm' } })
       expect(install).toBeDefined()
       expect(acceptance.env.DSH_LINK_ACCEPTANCE_LANGUAGE).toBe(entry.language)
+      expect(commands).toContain('pnpm run build:official')
+      expect(commands.indexOf('pnpm run build:official')).toBeLessThan(commands.indexOf(acceptance.run))
       expect(acceptance.env.DSH_LINK_ACCEPTANCE_RESULT).toContain(entry.result)
       expect(acceptance.env.DSH_LINK_ACCEPTANCE_DRIVER_JSON).toContain(entry.driver)
       expect(acceptance.run).toContain('--no-file-parallelism')

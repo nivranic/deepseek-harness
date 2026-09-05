@@ -95,7 +95,7 @@ jobs:
         run: gradle --no-daemon test
 
       - name: Build Host plugins for native acceptance
-        run: pnpm run build:lib:host
+        run: pnpm run build:official
 
       - name: Real Host to Kotlin acceptance
         env:
