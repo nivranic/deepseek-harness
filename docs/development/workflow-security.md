@@ -1,15 +1,16 @@
-# Workflow dependency and token policy
+# Workflow dependency, token, and source policy
 
 English | [中文](workflow-security.zh.md)
 
 ## Summary
 
-GitHub Actions workflows use recorded upstream commit SHAs and explicit token permissions. The repository verifier checks every workflow, including local reusable callees, before static and hygiene checks accept the candidate. This reference covers Action references and `GITHUB_TOKEN`; scanners, artifact integrity, and production release approval have separate owners.
+GitHub Actions workflows use recorded upstream commit SHAs, explicit token permissions, and source receipts. Static and hygiene checks validate the workflow policy and generated required-check metadata. Scanners, artifact integrity, and production release approval have separate owners.
 
 ## Table of Contents
 
 - [Immutable Action references](#immutable-action-references)
 - [Token permissions](#token-permissions)
+- [Candidate source evidence](#candidate-source-evidence)
 - [Validation and limits](#validation-and-limits)
 - [Dev Note](#dev-note)
 
@@ -33,6 +34,17 @@ The existing preview job owns its PR-write permission. Existing protected public
 
 -----
 
+<a id="candidate-source-evidence"></a>
+## Candidate source evidence
+
+[required-checks.generated.json](../../release/required-checks.generated.json) derives the CI aggregate's dependencies and the Apple/Android required verdicts from their workflow owners. `pnpm run gen-required-checks` refreshes the projection; `pnpm run verify-required-checks` rejects drift in static and hygiene checks. The CI aggregate continues to own its dependency verdicts. Independent Windows coverage and observational results stay separately visible.
+
+Each source-producing job runs [write-ci-source.ts](../../scripts/write-ci-source.ts) after immutable installation and before validation, then preserves `source.json` as `ci-source-<runId>-<attempt>`. The receipt contains the candidate, actual checkout, Git tree and parents, workflow digest, run/attempt/event, and dirty flag. Changed checkout inputs fail the job. It contains no author, workspace path, credential, or business payload.
+
+The [evaluator](../../scripts/release/ci-evidence.ts) selects the newest run, requires successful mandatory jobs, and binds source metadata to the producer job's attempt. It rejects missing or mismatched evidence, dirty or different trees, unrelated commits, and inconsistent execution SHAs across workflows. Pending required jobs stay pending. Receipt capture and offline evaluation do not perform online collection, independently verify uploaded Git metadata, or configure branch protection; candidate acceptance still requires those external checks.
+
+-----
+
 <a id="validation-and-limits"></a>
 ## Validation and limits
 
@@ -50,5 +62,7 @@ A recorded SHA fixes the selected Action revision. It does not audit that Action
 
 <a id="dev-note"></a>
 ## Dev Note
+
+The [CI source-evidence decision](../../.agents/notes/implemented/process/2026-09-05-ci-source-evidence.md) records candidate and producer-attempt ownership.
 
 The [workflow-security decision](../../.agents/notes/implemented/process/2026-09-05-workflow-security.md) records the ownership and trade-offs. [GitHub's secure-use reference](https://docs.github.com/en/actions/reference/security/secure-use) explains immutable Action references and job-scoped permission increases.

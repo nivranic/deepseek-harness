@@ -1,15 +1,16 @@
-# Workflow 依赖与 token 策略
+# Workflow 依赖、token 与源码策略
 
 [English](workflow-security.md) | 中文
 
 ## Summary
 
-GitHub Actions workflow 使用已记录的上游 commit SHA 和显式 token 权限。仓库验证器检查每个 workflow，包括本地 reusable callee，然后 static 与 hygiene 检查才接受候选。本参考覆盖 Action 引用和 `GITHUB_TOKEN`；scanner、产物完整性与生产发布审批分别由其他所有者负责。
+GitHub Actions workflow 使用已记录的上游 commit SHA、显式 token 权限和源码回执。Static 与 hygiene 检查验证 workflow 策略及生成的 required-check metadata。Scanner、产物完整性与生产发布审批分别由其他所有者负责。
 
 ## Table of Contents
 
 - [不可变 Action 引用](#immutable-action-references)
 - [Token 权限](#token-permissions)
+- [候选源码证据](#candidate-source-evidence)
 - [验证与限制](#validation-and-limits)
 - [Dev Note](#dev-note)
 
@@ -33,6 +34,17 @@ Workflow 默认权限是只含 `read` 或 `none` 的显式映射。Job 未自行
 
 -----
 
+<a id="candidate-source-evidence"></a>
+## 候选源码证据
+
+[required-checks.generated.json](../../release/required-checks.generated.json) 从 workflow 所有者派生 CI aggregate 依赖和 Apple/Android 必要 verdict。`pnpm run gen-required-checks` 刷新生成物；`pnpm run verify-required-checks` 在 static 与 hygiene 检查中拒绝 drift。CI aggregate 继续拥有其依赖的 verdict，独立 Windows coverage 和 observational 结果分别保留。
+
+每个源码 producer job 在 immutable install 后、验证前运行 [write-ci-source.ts](../../scripts/write-ci-source.ts)，并把 `source.json` 保留为 `ci-source-<runId>-<attempt>`。回执包含 candidate、实际 checkout、Git tree 与 parents、workflow digest、run/attempt/event 和 dirty 标记。Checkout 输入变化使 job 失败。回执不含 author、workspace path、credential 或业务 payload。
+
+[求值器](../../scripts/release/ci-evidence.ts) 选择最新 run，要求必要 job 成功，并把源码 metadata 绑定到 producer job 的 attempt。它拒绝缺失或不匹配的证据、dirty 或不同 tree、无关 commit，以及 workflow 之间不一致的执行 SHA。待完成的必要 job 保持 pending。回执采集和离线求值不执行在线汇集、不独立核验上传的 Git metadata，也不配置 branch protection；候选准入仍需完成这些外部核验。
+
+-----
+
 <a id="validation-and-limits"></a>
 ## 验证与限制
 
@@ -50,5 +62,7 @@ pnpm run verify-workflow-security
 
 <a id="dev-note"></a>
 ## Dev Note
+
+[CI 源码证据决策](../../.agents/notes/implemented/process/2026-09-05-ci-source-evidence.zh.md) 记录 candidate 与 producer attempt 的所有权。
 
 [Workflow 安全决策](../../.agents/notes/implemented/process/2026-09-05-workflow-security.zh.md) 记录所有权和取舍。[GitHub 安全使用参考](https://docs.github.com/en/actions/reference/security/secure-use) 说明不可变 Action 引用及 job 级权限增加。

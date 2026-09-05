@@ -17,6 +17,33 @@ const sensitiveProjectionSentinel = 'dsh-link-private-projection-7f3c9b1e'
 const processInspector = createProcessInspector()
 
 describe('CI workflow', () => {
+  it.each([
+    ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
+  ])('preserves the actual checkout before validation in %s', (file, jobId) => {
+    const workflow = loadWorkflow(`.github/workflows/${file}`)
+    const job = workflowJob(workflow, jobId)
+    if (!Array.isArray(job.steps)) throw new Error('source producer steps are absent')
+    const steps = job.steps.filter(isRecord)
+    const install = steps.findIndex(step => step.run === 'pnpm install --frozen-lockfile')
+    const capture = steps.findIndex(step => step.id === 'ci-source')
+    expect(install).toBeGreaterThanOrEqual(0)
+    expect(capture).toBeGreaterThan(install)
+    expect(steps[capture]).toMatchObject({
+      env: { DSH_CI_CANDIDATE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}' },
+      run: `pnpm exec tsx scripts/write-ci-source.ts .github/workflows/${file} "$RUNNER_TEMP/dsh-ci-source/source.json"`,
+    })
+    expect(steps[capture + 1]).toMatchObject({
+      if: 'always()',
+      with: {
+        name: 'ci-source-${{ github.run_id }}-${{ github.run_attempt }}',
+        path: '${{ runner.temp }}/dsh-ci-source/source.json',
+        'if-no-files-found': 'error',
+      },
+    })
+    expect(steps[capture + 1]?.uses).toMatch(/^actions\/upload-artifact@/)
+    expect(steps[capture]?.['continue-on-error']).not.toBe(true)
+  })
+
   it('isolates every pnpm action setup destination per runner', () => {
     const files = ['.github/workflows/ci.yml', '.github/workflows/ci-master.yml']
     const setups: Array<{ jobName: string; step: unknown }> = []
@@ -821,7 +848,8 @@ describe('Native Link real-Host acceptance workflows', () => {
       const acceptance = steps.find(step => (
         typeof step.run === 'string' && step.run.includes('apps/cli/tests/link-native-acceptance.e2e.ts')
       ))
-      const upload = steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@'))
+      const upload = steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@')
+        && isRecord(step.with) && typeof step.with.path === 'string' && step.with.path.includes(entry.result))
       if (!isRecord(acceptance) || !isRecord(acceptance.env)
         || typeof acceptance.run !== 'string') {
         throw new TypeError(`${entry.file} must define the native acceptance step and environment`)
