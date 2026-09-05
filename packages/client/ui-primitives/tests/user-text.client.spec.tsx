@@ -81,4 +81,44 @@ describe('projectUserText', () => {
     expect(host.querySelectorAll('[data-ref-chip]').length).toBe(0)
     expect(host.textContent).toBe('纯文本，无引用')
   })
+
+  it.each([
+    ['@[@[nested](dsh-session:x)', ['@[nested']],
+    ['@[](dsh-session:x) @[valid](dsh-session:y)', ['valid']],
+    ['@[broken\n@[valid](dsh-session:x)', ['valid']],
+    ['@[broken](wrong:x) @[valid](dsh-session:y)', ['valid']],
+    ['@[empty](dsh-session:) @[valid](dsh-session:y)', ['valid']],
+    ['@[broken](dsh-session:x\u00a0) @[valid](dsh-session:y)', ['valid']],
+    ['@[outer](dsh-session:@[inner](dsh-session:x)', ['outer']],
+    ['@[broken](dsh-session:@[inner label](dsh-session:x)', []],
+    ['@[broken](dsh-session:x @[inner label](dsh-session:x)', ['inner label']],
+    ['@[a\r😀\\b](dsh-session:opaque)@[next](dsh-session:y)', ['a\r😀\\b', 'next']],
+    ['@[unfinished', []],
+    ['@[label](dsh-session:unfinished', []],
+  ])('preserves display grammar for %s', (text, labels) => {
+    const host = project(text)
+    expect([...host.querySelectorAll('[data-ref-chip="session"]')].map(chip => chip.textContent)).toEqual(labels)
+  })
+
+  it('retains internal punctuation, quoted endings, and punctuation outside chips', () => {
+    const host = project('@a...b.txt!?，。；：！？ @"a!" @。')
+    expect([...host.querySelectorAll('[data-ref-chip]')].map(chip => [chip.textContent, chip.getAttribute('title')]))
+      .toEqual([['a...b.txt', '@a...b.txt'], ['a!', '@"a!"']])
+    expect(host.textContent).toBe('a...b.txt!?，。；：！？ a! @。')
+  })
+
+  it('renders long unfinished mentions and internal punctuation without repeated suffix scans', () => {
+    const inputs = [
+      `${'@['.repeat(128_000)}unfinished`,
+      `${'@[x](dsh-session:'.repeat(16_000)}unfinished`,
+      `@${'.'.repeat(128_000)}file`,
+    ]
+    const started = performance.now()
+    for (const text of inputs) {
+      const host = project(text)
+      expect(host.querySelector('[data-ref-chip="session"]')).toBeNull()
+      expect(host.querySelector('[data-ref-chip="file"]')!.getAttribute('title')).toBe(text)
+    }
+    expect(performance.now() - started).toBeLessThan(5_000)
+  })
 })

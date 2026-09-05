@@ -14,6 +14,8 @@ Status: implemented
 
 [Workspace 路径辅助函数](../../../../packages/util/workspace-path/src/index.ts) 用一次反向遍历移除末尾分隔符。理解 Windows 路径的调用方识别两种分隔符；POSIX 主目录缩写只识别 `/`。长输入不会被截断，也不会新增调用方限制。
 
+[已发送用户文本投影](../../../../packages/client/ui-primitives/src/user-text.tsx) 同样在嵌套 wire 候选间复用标签与 URI 定界符，并反向移除 token 末尾标点。其展示语法仍独立于 prompt 准入：标签保持字面值，URI payload 不作解码，空标签或空 payload 不形成 session chip。普通 token 的重叠、引号路径、chip title 与 recall 标签优先级保留现有行为。Wire 发现与标点裁剪为线性操作；recall 标签查找与区间排序另有各自的成本。
+
 ## Alternatives considered
 
 - 限制 prompt 或路径长度会改变接纳的输入，且不能消除限制以内的重复工作。
@@ -25,3 +27,5 @@ Status: implemented
 Mention parser 使用显式定界符状态，同时保留优先级与线性发现。移除缓存前需要重新证明未完成的嵌套候选不会重复扫描同一后缀。路径辅助函数仍只处理字面值，不增加文件系统访问。
 
 回归用例保留空标签、嵌套标签、Unicode 和行终止符转义、格式错误的引用异常与裸 URI 回退。长未完成 prompt 和内部长分隔符序列具有宽松的执行预算。针对已提交 parser 的 25,000 组对照检查文本、引用和错误等价性；聚焦覆盖率包含两个改动源码文件的全部分支。模型记录文本格式和运行时 composition 不变。
+
+展示回归单独保留其字面标签语法与重叠优先级，对照原实现的渲染 markup，并覆盖长未完成 wire 格式与内部标点。现有 inline 样式与 glyph 测试仍拥有展示验收。
