@@ -3,16 +3,16 @@
   "recordKind": "gate-evidence-summary",
   "gate": "Gate 1",
   "title": "Contract-owned Correctness Repair",
-  "status": "PARTIAL",
-  "closure": "OPEN",
-  "canEnterGate2": false,
+  "status": "PASS",
+  "closure": "CLOSED",
+  "canEnterGate2": true,
   "candidate": {
-    "commit": "4c28043faf2c938a44f826b3a5f71f729cab6768",
+    "commit": "906d19359588584ffe154d9abe8aea752e7b743a",
     "branch": "codex/goal-mode-full-implementation",
     "published": true,
-    "remoteCandidateCi": "FAIL"
+    "remoteCandidateCi": "PASS"
   },
-  "recordedAt": "2026-09-05T12:19:13.100Z",
+  "recordedAt": "2026-09-05T14:25:50.994Z",
   "userDispositionNote": "Swift/Apple 已获重新验证授权；Apple 专属环境依赖允许临时延期并推进下一阶段，执行状态仍如实保留。",
   "taskEvidence": [
     {
@@ -79,7 +79,7 @@
     },
     {
       "taskId": "G1-CI",
-      "status": "PARTIAL",
+      "status": "PASS",
       "evidence": "artifacts/verification/gate-1/G1-CI.json"
     }
   ],
@@ -144,8 +144,9 @@
     },
     {
       "criterion": "Single release-candidate SHA mandatory evidence",
-      "status": "PARTIAL",
-      "reason": "Prior remote mandatory CI failed; the repair candidate is running. Historical local coverage retains its actual SHA."
+      "status": "PASS",
+      "reason": "All three required workflows passed with verified candidate, merge tree and producer receipts.",
+      "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json"
     }
   ],
   "candidateEvidence": {
@@ -156,15 +157,7 @@
     "closureDecision": "artifacts/verification/gate-1/G1-CLOSURE-DECISION.json",
     "appleStartup": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
   },
-  "blockingItems": [
-    {
-      "item": "Remote mandatory CI",
-      "status": "REMOTE_PENDING",
-      "reason": "LOCAL_REPAIRS_AWAIT_CANDIDATE_CI",
-      "cause": "Windows Python launch and Linux Inspector readiness fixed locally; latest completed remote candidate still fails.",
-      "evidence": "artifacts/verification/gate-1/G1-CI-REPAIRS.json"
-    }
-  ],
+  "blockingItems": [],
   "scope": {
     "gate2Started": true,
     "pushed": true,
@@ -176,10 +169,11 @@
     "gate2Qualification": "Independent version/channel preparation is implemented; Gate 1 closure still awaits mandatory CI."
   },
   "decision": {
-    "status": "PARTIAL",
-    "closure": "OPEN",
-    "canEnterGate2": false,
-    "canPrepareGate2": true
+    "status": "PASS",
+    "closure": "CLOSED",
+    "canEnterGate2": true,
+    "acceptedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "qualification": "Gate 1 accepts immutable candidate 906d193595 using the workflow-owned mandatory policy. Independent Windows coverage remains FAIL due to a documentation Git integration timeout; it is retained and repaired separately, not reported as PASS."
   },
   "previousCandidate": {
     "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
@@ -237,8 +231,37 @@
     }
   },
   "nextCandidate": {
-    "commit": "461ad62b29b9656667993216f50b755487b75708",
+    "commit": "7a786c8572cea834b560308b062dd6187404697a",
     "published": false,
     "verification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json"
-  }
+  },
+  "previousSuccessfulMandatoryCandidate": {
+    "candidate": "1be28a4d443a23f97b6214dddfb6c1597cb01c41",
+    "runId": 33966116877,
+    "attempt": 2,
+    "evidence": "artifacts/verification/gate-2/ci-evidence-1be28a4d44.json",
+    "qualification": "Mandatory aggregate passed after native-only retry; independent Windows coverage failed. Initial native worker exit remains historical, not a proven product repair."
+  },
+  "openIndependentObservations": [
+    {
+      "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+      "status": "FAIL",
+      "mandatory": false,
+      "job": 101316923755,
+      "failure": "translation-pairing-merge.spec.ts clean text fallback took 16153 ms; its suite forced 15000 ms despite the heavy lane specifying 90000 ms.",
+      "repairCommit": "7a786c8572cea834b560308b062dd6187404697a",
+      "localRepair": {
+        "status": "PASS",
+        "runner": "Windows Node 24.19.0",
+        "tests": 2,
+        "timingsMs": [
+          7274,
+          9574
+        ],
+        "log": ".artifacts/g1-resume-20260905/pairing-merge-budget.log"
+      },
+      "remoteRepair": "PENDING",
+      "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
+    }
+  ]
 }

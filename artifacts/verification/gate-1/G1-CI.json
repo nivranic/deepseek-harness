@@ -1,19 +1,18 @@
 {
   "schemaVersion": 1,
   "taskId": "G1-CI",
-  "status": "PARTIAL",
-  "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+  "status": "PASS",
+  "sourceHead": "906d19359588584ffe154d9abe8aea752e7b743a",
   "branch": "codex/goal-mode-full-implementation",
-  "recordedAt": "2026-09-05T12:19:13.100Z",
+  "recordedAt": "2026-09-05T14:25:50.994Z",
   "candidatePublication": {
     "status": "PASS",
-    "head": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "head": "906d19359588584ffe154d9abe8aea752e7b743a",
     "remoteBranchExists": true,
     "pullRequest": "https://github.com/nivranic/deepseek-harness/pull/1",
     "base": "dev",
     "isDraft": true,
-    "remoteCandidateCi": "FAIL",
-    "details": "Candidate pushed with normal hooks; draft PR created against dev. Publication success does not assert passing CI."
+    "remoteCandidateCi": "PASS"
   },
   "localPortableEvidence": "artifacts/verification/gate-1/G1-PORTABLE-RUNNERS.json",
   "nativeCheck": {
@@ -85,18 +84,14 @@
     ],
     "applePrTrigger": "packages/** 与 apps/apple/** 会触发 apple-swift.yml；创建 draft PR 也会重新执行已跳过的 Swift 检查。"
   },
-  "notExecuted": [
-    {
-      "item": "iOS installed App first screen",
-      "status": "NOT_EXECUTED",
-      "reason": "STARTUP_XCTEST_ADDED_PENDING_CI"
-    }
-  ],
+  "notExecuted": [],
   "gateDecision": {
-    "status": "PARTIAL",
-    "closure": "OPEN",
-    "canEnterGate2": false,
-    "blockingReason": "两个远端 mandatory CI 失败已完成本地复现和修复，等待新候选远端验收。Swift/Apple 已有真实通过证据。"
+    "status": "PASS",
+    "closure": "CLOSED",
+    "canEnterGate2": true,
+    "acceptedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json",
+    "qualification": "Gate 1 accepts immutable candidate 906d193595 using the workflow-owned mandatory policy. Independent Windows coverage remains FAIL due to a documentation Git integration timeout; it is retained and repaired separately, not reported as PASS."
   },
   "historicalWindowsRun": {
     "schemaVersion": 1,
@@ -662,9 +657,12 @@
     }
   ],
   "latestCompletedRemote": {
-    "candidateHead": "4c28043faf2c938a44f826b3a5f71f729cab6768",
-    "runId": 33957335048,
-    "status": "FAIL"
+    "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "runId": 33970084834,
+    "status": "PASS",
+    "workflowConclusion": "failure",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json",
+    "qualification": "Gate 1 accepts immutable candidate 906d193595 using the workflow-owned mandatory policy. Independent Windows coverage remains FAIL due to a documentation Git integration timeout; it is retained and repaired separately, not reported as PASS."
   },
   "latestSwiftAcceptance": {
     "path": "artifacts/verification/gate-1/acceptance/swift-ac42842c38142e13859da4981f9a820906f5ec6b.json",
@@ -700,9 +698,9 @@
     }
   },
   "latestCoverage": {
-    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
     "status": "PASS",
-    "job": 101278037021
+    "job": 101316923677
   },
   "previousCoverage": {
     "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
@@ -722,12 +720,31 @@
     "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
   },
   "latestWindowsCoverage": {
-    "area": "Independent Windows coverage",
-    "status": "REPAIRED_LOCALLY_REMOTE_PENDING",
-    "job": 101278037115,
-    "cause": "translation-pairing-merge mixed conflict test exceeded its explicit 15000 ms budget",
-    "repairCommit": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
-    "localResult": "Windows Node 24.19.0 focused case passed in 8.67 seconds with unchanged conflict-preservation assertions."
+    "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "status": "FAIL",
+    "mandatory": false,
+    "job": 101316923755,
+    "failure": "translation-pairing-merge.spec.ts clean text fallback took 16153 ms; its suite forced 15000 ms despite the heavy lane specifying 90000 ms.",
+    "repairCommit": "7a786c8572cea834b560308b062dd6187404697a",
+    "localRepair": {
+      "status": "PASS",
+      "runner": "Windows Node 24.19.0",
+      "tests": 2,
+      "timingsMs": [
+        7274,
+        9574
+      ],
+      "log": ".artifacts/g1-resume-20260905/pairing-merge-budget.log"
+    },
+    "remoteRepair": "PENDING",
+    "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
   },
-  "latestRepairVerification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json"
+  "latestRepairVerification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json",
+  "previousSuccessfulMandatoryCandidate": {
+    "candidate": "1be28a4d443a23f97b6214dddfb6c1597cb01c41",
+    "runId": 33966116877,
+    "attempt": 2,
+    "evidence": "artifacts/verification/gate-2/ci-evidence-1be28a4d44.json",
+    "qualification": "Mandatory aggregate passed after native-only retry; independent Windows coverage failed. Initial native worker exit remains historical, not a proven product repair."
+  }
 }

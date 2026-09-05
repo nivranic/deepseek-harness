@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "recordKind": "candidate-ci-repair-verification",
-  "recordedAt": "2026-09-05T12:19:13.100Z",
+  "recordedAt": "2026-09-05T14:25:50.994Z",
   "sourceHead": "461ad62b29b9656667993216f50b755487b75708",
-  "status": "LOCAL_PASS_REMOTE_PENDING",
+  "status": "MANDATORY_REPAIRS_REMOTE_PASS_OPTIONAL_FOLLOWUP_LOCAL_PASS",
   "commits": {
     "inspector": "28170c14ca70adfb65cd16ed4a29c2f1b9abf728",
     "python": "a370021a10aa4837402660e71647084838c13ee5",
@@ -79,7 +79,7 @@
     }
   },
   "ciSources": {
-    "status": "IMPLEMENTED_E3_REMOTE_PENDING",
+    "status": "IMPLEMENTED_AND_VERIFIED_ON_GITHUB",
     "requiredChecks": "release/required-checks.generated.json",
     "tests": "135 passed / 1 platform-condition skip across the five owning files",
     "validation": [
@@ -87,12 +87,18 @@
       "verify-workflow-security: 21 workflows PASS",
       "Knip PASS"
     ],
-    "remaining": [
-      "online collection",
-      "GitHub commit metadata verification",
-      "newest-run recheck",
-      "actual producer receipts from the published candidate"
-    ]
+    "remaining": [],
+    "onlineCollector": {
+      "commit": "4b7f72e770",
+      "focusedTests": 61,
+      "docQuick": "15/15 PASS",
+      "docSync": "32/32 PASS",
+      "lint": "PASS",
+      "knip": "PASS",
+      "acceptedEvidence": "artifacts/verification/gate-2/ci-evidence-1be28a4d44.json",
+      "rejectedEvidence": "artifacts/verification/gate-2/ci-evidence-a5afb18597.json",
+      "currentEvidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json"
+    }
   },
   "sharedValidation": {
     "testDocs": "15/15",
@@ -126,5 +132,62 @@
     "No merge, release, production signing, notarization submission, or store upload",
     "Gate 1 remains OPEN until mandatory current-candidate CI passes",
     "Gate 2-4 work remains active"
-  ]
+  ],
+  "originalRepairRemote": {
+    "candidate": "1be28a4d443a23f97b6214dddfb6c1597cb01c41",
+    "inspectorCoverageJob": 101306443858,
+    "windowsPythonJob": 101306496562,
+    "status": "PASS",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-1be28a4d44.json"
+  },
+  "followupTests": {
+    "credentials": {
+      "commit": "a5afb18597",
+      "cause": "An external in-place truncation satisfied absence before the completed replacement arrived.",
+      "controlledBefore": "Expected 5 updates, received 6",
+      "after": "54 passed / 1 platform skip; remote credentials regression PASS"
+    },
+    "codex": {
+      "commit": "906d19359588584ffe154d9abe8aea752e7b743a",
+      "after": "13/13 on real Windows Node 24 and fixed Codex product",
+      "log": ".artifacts/g1-resume-20260905/codex-command-completion-full.log",
+      "remote": {
+        "candidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+        "status": "PASS",
+        "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json"
+      }
+    },
+    "workflow": {
+      "commit": "906d19359588584ffe154d9abe8aea752e7b743a",
+      "after": "3/3 real Chromium / shipped Web replay, unchanged goldens",
+      "counterexample": "Removing the settlement hold detaches the live phase row before the click; controlled run failed.",
+      "log": "/var/tmp/dsh-g1-resume-20260905/logs/workflow-web-nohold.log",
+      "screenshot": ".artifacts/g1-resume-20260905/workflow-live-nohold.png",
+      "remote": {
+        "candidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+        "status": "PASS",
+        "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json"
+      }
+    },
+    "pairingBudget": {
+      "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+      "status": "FAIL",
+      "mandatory": false,
+      "job": 101316923755,
+      "failure": "translation-pairing-merge.spec.ts clean text fallback took 16153 ms; its suite forced 15000 ms despite the heavy lane specifying 90000 ms.",
+      "repairCommit": "7a786c8572cea834b560308b062dd6187404697a",
+      "localRepair": {
+        "status": "PASS",
+        "runner": "Windows Node 24.19.0",
+        "tests": 2,
+        "timingsMs": [
+          7274,
+          9574
+        ],
+        "log": ".artifacts/g1-resume-20260905/pairing-merge-budget.log"
+      },
+      "remoteRepair": "PENDING",
+      "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
+    }
+  }
 }

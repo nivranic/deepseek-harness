@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "taskId": "G2-CI",
   "status": "PARTIAL",
-  "sourceHead": "461ad62b29b9656667993216f50b755487b75708",
-  "recordedAt": "2026-09-05T12:19:13.100Z",
+  "sourceHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+  "recordedAt": "2026-09-05T14:25:50.994Z",
   "aggregate": {
     "workflow": ".github/workflows/ci.yml",
     "job": "all-checks-passed",
@@ -31,19 +31,31 @@
     "response": "Branch not protected",
     "readOnly": true
   },
-  "latestCompletedCandidate": "4c28043faf2c938a44f826b3a5f71f729cab6768",
+  "latestCompletedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a",
   "pending": [
-    "Online source receipt collection and independent GitHub commit verification",
-    "Newest-run recheck during collection",
     "Four-platform unsigned RC workflow and manifest",
-    "Required current-candidate verdicts"
+    "Independent Windows documentation Git integration budget repair verdict"
   ],
   "manualExternalActionsExecuted": false,
   "requiredCheckProjection": "release/required-checks.generated.json",
   "sourceReceipts": {
-    "status": "IMPLEMENTED_E3_REMOTE_PENDING",
-    "evidence": "artifacts/verification/gate-1/G1-CI-REPAIRS.json",
-    "producerArtifact": "ci-source-<runId>-<producer-attempt>",
-    "onlineCollector": "NOT_IMPLEMENTED"
+    "status": "IMPLEMENTED_AND_VERIFIED_ON_GITHUB",
+    "onlineCollector": "scripts/collect-ci-evidence.ts",
+    "producerArtifact": "ci-source-<runId>-<original-execution-attempt>",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json",
+    "rejectionEvidence": "artifacts/verification/gate-2/ci-evidence-a5afb18597.json",
+    "verification": {
+      "focusedTests": 61,
+      "knip": "PASS",
+      "docQuick": "15/15 PASS",
+      "docSync": "32/32 PASS",
+      "lint": "PASS"
+    },
+    "limits": [
+      "Unsigned source receipts are not authenticated provenance",
+      "ZIP digest is GitHub-reported; only source.json is independently hashed",
+      "Branch protection is not modified"
+    ],
+    "acceptedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a"
   }
 }

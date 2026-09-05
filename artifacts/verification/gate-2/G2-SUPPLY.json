@@ -3,7 +3,7 @@
   "taskId": "G2-SUPPLY",
   "status": "PARTIAL",
   "sourceHead": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
-  "recordedAt": "2026-09-05T09:08:16.297Z",
+  "recordedAt": "2026-09-05T14:25:50.994Z",
   "implemented": {
     "upstreamReferencesVerified": 21,
     "workflowCorpus": 21,
@@ -68,5 +68,22 @@
     "Remote verdict after workflow pinning"
   ],
   "workflowEnablementChanged": false,
-  "productionPublicationExecuted": false
+  "productionPublicationExecuted": false,
+  "initialSecretScan": {
+    "candidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "status": "PARTIAL",
+    "tool": "Gitleaks 8.30.1",
+    "archiveSha256": "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e",
+    "range": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9..906d19359588584ffe154d9abe8aea752e7b743a",
+    "exitCode": 1,
+    "findings": 4,
+    "reviewed": "All four matches are confirmed Git blob identities at the exact recorded pairing-file lines; no exception is enabled yet.",
+    "remaining": [
+      "Exact audited exception with invalid-secret rejection proof",
+      "Complete candidate tree scan",
+      "CI wiring"
+    ],
+    "log": ".artifacts/g1-resume-20260905/gitleaks-changes-906d.log",
+    "classification": ".artifacts/g1-resume-20260905/verified-gitleaks-blob-findings.json"
+  }
 }
