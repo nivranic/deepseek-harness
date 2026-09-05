@@ -4,7 +4,7 @@
   "status": "PARTIAL",
   "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
   "branch": "codex/goal-mode-full-implementation",
-  "recordedAt": "2026-09-05T06:16:57.694Z",
+  "recordedAt": "2026-09-05T08:05:29.431Z",
   "candidatePublication": {
     "status": "PASS",
     "head": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
@@ -662,21 +662,21 @@
     }
   ],
   "latestCompletedRemote": {
-    "head": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
     "status": "FAIL",
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
+    "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403519"
   },
   "latestSwiftAcceptance": {
-    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
-    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
-    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
-    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "path": "artifacts/verification/gate-1/acceptance/swift-22912379f538c604f2de9f2e19b2ad23f5bd59ec.json",
+    "sha256": "d815232287a5d31cd3fb80285d8cdf5a6cabe67ae3cd240091c9347f0bbfe83e",
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+    "tree": "1783d4cd28c57b3763da5b5f83b8a4f4b47b5cfe",
     "parents": [
       "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
-      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+      "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6"
     ],
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330",
     "steps": 13,
     "recovery": {
       "preFaultSeq": 81,
@@ -694,12 +694,38 @@
       "projectionImageCount": 0,
       "projectionArtifactCount": 0,
       "projectionEqualAfterRepeatedReconnect": true,
-      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
-      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "beforeRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
+      "afterRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
       "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
   },
   "latestCoverage": {
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "status": "FAIL",
+    "tests": {
+      "passed": 16438,
+      "failed": 1,
+      "skipped": 43
+    },
+    "failure": "SQLite busy journal-mode success test exhausted a real 100 ms deadline under coverage load",
+    "repairCommit": "6c56f2464d",
+    "localRepair": {
+      "platform": "Linux Node 22.22.1",
+      "passed": 86,
+      "source": "packages/session/session-persistence-sqlite/src/schema.ts",
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    },
+    "log": {
+      "path": ".artifacts/g1-resume-20260905/coverage-d729.log",
+      "sha256": "da6d428bb976b28996320be09ae5f7401c483f629ccc3c5b9d920fec6e328afd"
+    }
+  },
+  "previousCoverage": {
     "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
     "runner": "ubuntu-24.04 / Node 24",
     "instrumented": {
@@ -715,5 +741,31 @@
       "cause": "scripts/oxlint-contract.spec.ts final diagnostics test exceeded its default 5000ms budget"
     },
     "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
+  },
+  "latestWindowsCoverage": {
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "status": "FAIL",
+    "mandatory": false,
+    "tests": {
+      "passed": 15769,
+      "skipped": 25
+    },
+    "failure": "Link carrier cancellation return not covered: index.ts:687; statements 99.7%, branches 99.35%",
+    "repairCommit": "6c56f2464d",
+    "localRepair": {
+      "platform": "Windows Node 24.19.0",
+      "passed": 131,
+      "source": "packages/remote/link-access/src/index.ts",
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    },
+    "log": {
+      "path": ".artifacts/g1-resume-20260905/windows-coverage-d729.log",
+      "sha256": "08a1cae5aedfb6baac10a1de5fec9e3a588d5653eaccbe1daee3ef9860f4ebb0"
+    }
   }
 }

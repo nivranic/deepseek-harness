@@ -7,12 +7,12 @@
   "closure": "OPEN",
   "canEnterGate2": false,
   "candidate": {
-    "commit": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "commit": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
     "branch": "codex/goal-mode-full-implementation",
     "published": true,
     "remoteCandidateCi": "FAIL"
   },
-  "recordedAt": "2026-09-05T06:16:57.694Z",
+  "recordedAt": "2026-09-05T08:05:29.431Z",
   "userDispositionNote": "Swift/Apple 已获重新验证授权；Apple 专属环境依赖允许临时延期并推进下一阶段，执行状态仍如实保留。",
   "taskEvidence": [
     {
@@ -43,9 +43,8 @@
     },
     {
       "taskId": "G1-APPLE",
-      "status": "PARTIAL",
-      "evidence": "artifacts/verification/gate-1/G1-APPLE.json",
-      "blockingReason": "IOS_STARTUP_XCTEST_PENDING"
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-APPLE.json"
     },
     {
       "taskId": "G1-ANDROID",
@@ -102,8 +101,9 @@
     },
     {
       "criterion": "PoC-5 >= VERIFIED-on-simulator with real-device plan ready",
-      "status": "PARTIAL",
-      "reason": "Android debug APK 与 API 34 首屏 instrumentation 已通过；Apple simulator 与真实设备网络路径未验证。"
+      "status": "PASS",
+      "reason": "Android API 34 and iOS fresh-simulator first screens passed; real-device matrix remains required during Gate 3.",
+      "evidence": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
     },
     {
       "criterion": "Base composition",
@@ -153,30 +153,27 @@
     "kotlinAcceptanceSha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a",
     "portableRunners": "artifacts/verification/gate-1/G1-PORTABLE-RUNNERS.json",
     "androidApp": "artifacts/verification/gate-1/G1-ANDROID-APP.json",
-    "closureDecision": "artifacts/verification/gate-1/G1-CLOSURE-DECISION.json"
+    "closureDecision": "artifacts/verification/gate-1/G1-CLOSURE-DECISION.json",
+    "appleStartup": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
   },
   "blockingItems": [
     {
       "item": "Remote mandatory CI",
       "status": "FAIL",
-      "reason": "CURRENT_CANDIDATE_FAILED",
-      "cause": "Exempt lint timeout, Web goldens and preview runtime failure at 6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+      "reason": "REPAIR_VALIDATED_REMOTE_PENDING",
+      "cause": "SQLite busy journal-mode success test exhausted a real 100 ms deadline under coverage load",
       "evidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json"
-    },
-    {
-      "item": "iOS installed App first screen",
-      "status": "NOT_EXECUTED",
-      "reason": "STARTUP_XCTEST_ADDED_PENDING_CI"
     }
   ],
   "scope": {
-    "gate2Started": false,
+    "gate2Started": true,
     "pushed": true,
     "published": false,
     "productionCredentialsReadOrUsed": false,
     "productionExternalActionsExecuted": false,
     "branchPublished": true,
-    "pullRequestCreated": true
+    "pullRequestCreated": true,
+    "gate2Qualification": "Independent version/channel preparation is implemented; Gate 1 closure still awaits mandatory CI."
   },
   "decision": {
     "status": "PARTIAL",
@@ -207,16 +204,16 @@
     "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33946453731"
   },
   "latestSwiftAcceptance": {
-    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
-    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
-    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
-    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "path": "artifacts/verification/gate-1/acceptance/swift-22912379f538c604f2de9f2e19b2ad23f5bd59ec.json",
+    "sha256": "d815232287a5d31cd3fb80285d8cdf5a6cabe67ae3cd240091c9347f0bbfe83e",
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+    "tree": "1783d4cd28c57b3763da5b5f83b8a4f4b47b5cfe",
     "parents": [
       "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
-      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+      "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6"
     ],
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330",
     "steps": 13,
     "recovery": {
       "preFaultSeq": 81,
@@ -234,8 +231,8 @@
       "projectionImageCount": 0,
       "projectionArtifactCount": 0,
       "projectionEqualAfterRepeatedReconnect": true,
-      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
-      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "beforeRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
+      "afterRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
       "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
   }

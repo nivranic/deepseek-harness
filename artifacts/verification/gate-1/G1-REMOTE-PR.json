@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "recordKind": "remote-candidate-ci",
-  "recordedAt": "2026-09-05T06:30:22.129Z",
+  "recordedAt": "2026-09-05T08:05:29.431Z",
   "status": "PARTIAL",
   "pullRequest": {
     "baseRefName": "dev",
     "baseRefOid": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
     "headRefName": "codex/goal-mode-full-implementation",
-    "headRefOid": "4227f3a51375e648163171911bda59f52eac4503",
+    "headRefOid": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
     "isDraft": true,
     "mergeStateStatus": "UNSTABLE",
     "mergeable": "MERGEABLE",
@@ -272,11 +272,16 @@
     "Optional Issue policy/lifecycle and Cloudflare workflows still require fork portability or repository integration setup"
   ],
   "latestKotlinAcceptance": {
-    "path": "artifacts/verification/gate-1/acceptance/kotlin-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
-    "sha256": "b56ac5c48d6e14b88d10cfee44b584ef9de1f37ba2403dfb6b94ec01f9fada86",
-    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181010",
+    "path": "artifacts/verification/gate-1/acceptance/kotlin-22912379f538c604f2de9f2e19b2ad23f5bd59ec.json",
+    "sha256": "b66a696e48dc456716f722f99769ba1cd06c65be0feddbfbfb913056b906ec48",
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+    "tree": "1783d4cd28c57b3763da5b5f83b8a4f4b47b5cfe",
+    "parents": [
+      "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6"
+    ],
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403366",
     "steps": 13,
     "recovery": {
       "preFaultSeq": 81,
@@ -294,8 +299,8 @@
       "projectionImageCount": 0,
       "projectionArtifactCount": 0,
       "projectionEqualAfterRepeatedReconnect": true,
-      "beforeRepeatedReconnectProjectionSha256": "25816ffdb6f13e72ed8cedb3e10aec6454f06630d10d0b3a7ea2898b2535205b",
-      "afterRepeatedReconnectProjectionSha256": "25816ffdb6f13e72ed8cedb3e10aec6454f06630d10d0b3a7ea2898b2535205b",
+      "beforeRepeatedReconnectProjectionSha256": "c9baedc65dbf9f8cc378d4a163e73572dddbb2a72654d5ef4b4a4c1c761bd671",
+      "afterRepeatedReconnectProjectionSha256": "c9baedc65dbf9f8cc378d4a163e73572dddbb2a72654d5ef4b4a4c1c761bd671",
       "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
   },
@@ -394,16 +399,16 @@
     "snapshotReview": "Nine generated files reviewed: Python only adds artifact_create/artifact_read; Web schema adds those tools and refresh updates session creation time. No golden or normalizer hand edits."
   },
   "latestSwiftAcceptance": {
-    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
-    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
-    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
-    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "path": "artifacts/verification/gate-1/acceptance/swift-22912379f538c604f2de9f2e19b2ad23f5bd59ec.json",
+    "sha256": "d815232287a5d31cd3fb80285d8cdf5a6cabe67ae3cd240091c9347f0bbfe83e",
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+    "tree": "1783d4cd28c57b3763da5b5f83b8a4f4b47b5cfe",
     "parents": [
       "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
-      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+      "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6"
     ],
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330",
     "steps": 13,
     "recovery": {
       "preFaultSeq": 81,
@@ -421,149 +426,188 @@
       "projectionImageCount": 0,
       "projectionArtifactCount": 0,
       "projectionEqualAfterRepeatedReconnect": true,
-      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
-      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "beforeRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
+      "afterRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
       "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
   },
   "latestAppleWorkflow": {
     "status": "PASS",
-    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
-    "checks": [
-      "SwiftPM tests",
-      "Real Host-to-Swift 13/13 and recovery",
-      "Xcode iOS simulator build",
-      "Xcode macOS Companion build",
-      "Xcode DirectHostMac build"
-    ],
-    "limitation": "The completed workflow builds the iOS shell; it does not launch it in a simulator. The new XCTest startup check is awaiting execution."
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+    "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330",
+    "firstScreen": "PASS",
+    "evidence": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
   },
   "latestCi": {
-    "head": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "status": "completed",
     "conclusion": "failure",
-    "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166",
     "jobs": [
       {
-        "name": "node 24 / static",
         "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606542",
-        "failedSteps": []
-      },
-      {
-        "name": "windows node 24 / observational",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606550",
-        "failedSteps": []
-      },
-      {
-        "name": "python 3.10 / keyless SDK",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606603",
-        "failedSteps": []
-      },
-      {
-        "name": "python runtime / release-shaped matrix / plan targets",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606612",
-        "failedSteps": []
-      },
-      {
-        "name": "windows node 24 / coverage",
-        "conclusion": "failure",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606618",
-        "failedSteps": [
-          "Run Windows coverage"
-        ]
-      },
-      {
-        "name": "node 22.19",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606620",
-        "failedSteps": []
-      },
-      {
-        "name": "windows node 24 / wine blocking",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606626",
-        "failedSteps": []
-      },
-      {
-        "name": "windows node 24 / build",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606636",
-        "failedSteps": []
-      },
-      {
-        "name": "node 24 / snapshots and artifacts",
-        "conclusion": "failure",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606637",
-        "failedSteps": [
-          "Run compatibility, snapshot, and artifact gates"
-        ]
-      },
-      {
-        "name": "node 26",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606638",
-        "failedSteps": []
-      },
-      {
-        "name": "node 24 / coverage",
-        "conclusion": "failure",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606651",
-        "failedSteps": [
-          "Run exhaustive coverage"
-        ]
-      },
-      {
+        "databaseId": 101269523065,
         "name": "windows node 24 / native tests",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260606665",
-        "failedSteps": []
+        "status": "completed"
       },
       {
-        "name": "python runtime / release-shaped matrix / deepseek_harness_sdk-0.1.2a1-py3-none-any.whl",
         "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260621907",
-        "failedSteps": []
+        "databaseId": 101269523093,
+        "name": "node 26",
+        "status": "completed"
       },
       {
-        "name": "python runtime / release-shaped matrix / node24-win-x64",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260649684",
-        "failedSteps": []
-      },
-      {
-        "name": "python runtime / release-shaped matrix / node24-linux-x64",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260649694",
-        "failedSteps": []
-      },
-      {
-        "name": "python runtime / release-shaped matrix / node24-linux-arm64",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260649776",
-        "failedSteps": []
-      },
-      {
-        "name": "python runtime / release-shaped matrix / node24-macos-arm64",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101260649892",
-        "failedSteps": []
-      },
-      {
-        "name": "all checks passed",
         "conclusion": "failure",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166/job/101262352224",
-        "failedSteps": [
-          "Fail if any needed job did not succeed"
-        ]
+        "databaseId": 101269523124,
+        "name": "node 24 / coverage",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523129,
+        "name": "node 22.19",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523134,
+        "name": "node 24 / static",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523148,
+        "name": "windows node 24 / wine blocking",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523151,
+        "name": "python runtime / release-shaped matrix / plan targets",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523193,
+        "name": "windows node 24 / build",
+        "status": "completed"
+      },
+      {
+        "conclusion": "failure",
+        "databaseId": 101269523207,
+        "name": "windows node 24 / coverage",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523212,
+        "name": "node 24 / snapshots and artifacts",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523239,
+        "name": "python 3.10 / keyless SDK",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269523336,
+        "name": "windows node 24 / observational",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269542936,
+        "name": "python runtime / release-shaped matrix / deepseek_harness_sdk-0.1.2a1-py3-none-any.whl",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269573142,
+        "name": "python runtime / release-shaped matrix / node24-linux-arm64",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269573143,
+        "name": "python runtime / release-shaped matrix / node24-win-x64",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269573164,
+        "name": "python runtime / release-shaped matrix / node24-macos-arm64",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 101269573169,
+        "name": "python runtime / release-shaped matrix / node24-linux-x64",
+        "status": "completed"
+      },
+      {
+        "conclusion": "failure",
+        "databaseId": 101271139200,
+        "name": "all checks passed",
+        "status": "completed"
       }
-    ]
+    ],
+    "status": "completed",
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403519"
   },
   "latestCoverage": {
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "status": "FAIL",
+    "tests": {
+      "passed": 16438,
+      "failed": 1,
+      "skipped": 43
+    },
+    "failure": "SQLite busy journal-mode success test exhausted a real 100 ms deadline under coverage load",
+    "repairCommit": "6c56f2464d",
+    "localRepair": {
+      "platform": "Linux Node 22.22.1",
+      "passed": 86,
+      "source": "packages/session/session-persistence-sqlite/src/schema.ts",
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    },
+    "log": {
+      "path": ".artifacts/g1-resume-20260905/coverage-d729.log",
+      "sha256": "da6d428bb976b28996320be09ae5f7401c483f629ccc3c5b9d920fec6e328afd"
+    }
+  },
+  "remainingCiRepairs": [
+    {
+      "area": "Linux coverage",
+      "status": "REPAIRED_LOCALLY_REMOTE_PENDING",
+      "repairCommit": "6c56f2464d"
+    },
+    {
+      "area": "Windows independent coverage",
+      "status": "REPAIRED_LOCALLY_REMOTE_PENDING",
+      "repairCommit": "6c56f2464d"
+    }
+  ],
+  "nextRepairCandidate": {
+    "commit": "7a0500762bfe450fee7bf89b2664705a1fa7afe7",
+    "published": false,
+    "checks": {
+      "windows": "Projection cache and real SDK: 24/24; exact Node 24.19.0",
+      "linuxUnit": "53/53 for builtin refusals, module identity and projection cache; final logger-poll refinement passes owning cache file",
+      "lintSubprocess": "Original final-diagnostics case PASS",
+      "preview": "Built actual worker and VFS image; native HTTPS operation explicitly refuses",
+      "browser": "Seven owning scenarios refresh 49/49; eight replay scenarios including preview 50/50",
+      "docs": "doc-sync 32/32 and test:docs 15/15",
+      "lint": "0 warnings / 0 errors after replacing unsafe logger call-array return"
+    },
+    "iosStartup": "XCTest target and workflow added; native workflow guard 2/2; actual simulator execution pending"
+  },
+  "previousCoverage": {
     "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
     "runner": "ubuntu-24.04 / Node 24",
     "instrumented": {
@@ -580,50 +624,31 @@
     },
     "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
   },
-  "remainingCiRepairs": [
-    {
-      "area": "coverage-exempt-heavy",
-      "cause": "Real lint subprocess test used the short default timeout",
-      "localFix": "Use the same 90000ms budget as neighboring executable tests",
-      "status": "LOCAL_TEST_PASS"
+  "latestWindowsCoverage": {
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "status": "FAIL",
+    "mandatory": false,
+    "tests": {
+      "passed": 15769,
+      "skipped": 25
     },
-    {
-      "area": "Web settings",
-      "cause": "About section absent from existing ARIA goldens; early failure left settings dialog open for later cases",
-      "localFix": "Refresh through the real owning browser scenarios",
-      "status": "IN_PROGRESS"
+    "failure": "Link carrier cancellation return not covered: index.ts:687; statements 99.7%, branches 99.35%",
+    "repairCommit": "6c56f2464d",
+    "localRepair": {
+      "platform": "Windows Node 24.19.0",
+      "passed": 131,
+      "source": "packages/remote/link-access/src/index.ts",
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
     },
-    {
-      "area": "Web PTC",
-      "cause": "Actual Artifact tool APIs absent from the prompt pin",
-      "localFix": "Refresh and replay the owning PTC scenario",
-      "status": "IN_PROGRESS"
-    },
-    {
-      "area": "WebWorker preview",
-      "cause": "Disabled Link carrier imports node:https; the browser runtime lacked an explicit unsupported operation",
-      "localFix": "Register a TLS createServer refusal; no TLS server is simulated",
-      "status": "UNIT_PASS_BROWSER_PENDING"
-    },
-    {
-      "area": "Windows observational coverage",
-      "cause": "40ms polling substitutes and 10000ms cleanup hook expired before real FS/process work completed",
-      "localFix": "Poll durable rows/warnings and retain awaited teardown with 60000ms hook budget",
-      "status": "24_LOCAL_TESTS_PASS"
+    "log": {
+      "path": ".artifacts/g1-resume-20260905/windows-coverage-d729.log",
+      "sha256": "08a1cae5aedfb6baac10a1de5fec9e3a588d5653eaccbe1daee3ef9860f4ebb0"
     }
-  ],
-  "nextRepairCandidate": {
-    "commit": "7a0500762bfe450fee7bf89b2664705a1fa7afe7",
-    "published": false,
-    "checks": {
-      "windows": "Projection cache and real SDK: 24/24; exact Node 24.19.0",
-      "linuxUnit": "53/53 for builtin refusals, module identity and projection cache; final logger-poll refinement passes owning cache file",
-      "lintSubprocess": "Original final-diagnostics case PASS",
-      "preview": "Built actual worker and VFS image; native HTTPS operation explicitly refuses",
-      "browser": "Seven owning scenarios refresh 49/49; eight replay scenarios including preview 50/50",
-      "docs": "doc-sync 32/32 and test:docs 15/15",
-      "lint": "0 warnings / 0 errors after replacing unsafe logger call-array return"
-    },
-    "iosStartup": "XCTest target and workflow added; native workflow guard 2/2; actual simulator execution pending"
-  }
+  },
+  "nextImplementationHead": "1f67cd996b13a86b8a2a48039dd8d5e5ed44b209"
 }

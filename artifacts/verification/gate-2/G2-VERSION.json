@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G2-VERSION",
+  "status": "PARTIAL",
+  "sourceHead": "1f67cd996b13a86b8a2a48039dd8d5e5ed44b209",
+  "recordedAt": "2026-09-05T08:05:29.431Z",
+  "identity": {
+    "schemaVersion": 1,
+    "version": "0.1.2-alpha.1",
+    "marketingVersion": "0.1.2",
+    "buildNumber": 1,
+    "channel": "dev",
+    "windowsFileVersion": "0.1.2.1",
+    "appleBuildVersion": "1.0.1"
+  },
+  "inputMaterialization": "Checks ran on the worktree bytes before their normal commit; the Linux checkout retained its older Git HEAD and received the listed changed source files. These are not claimed as clean-HEAD reruns.",
+  "implemented": [
+    "single SemVer owner",
+    "explicit build and channel metadata",
+    "deterministic native projections",
+    "static/hygiene freshness rejection",
+    "release planner integration",
+    "Android packaged metadata"
+  ],
+  "tests": [
+    {
+      "command": "pnpm exec vitest run scripts/release/product-identity.spec.ts scripts/release/families.spec.ts scripts/run-gates.spec.ts",
+      "status": "PASS",
+      "passed": 130,
+      "skipped": 1
+    },
+    {
+      "command": "pnpm exec vitest run scripts/release/apple-product.spec.ts",
+      "status": "PASS",
+      "passed": 12
+    },
+    {
+      "command": "pnpm run gen-product-identity (twice), then pnpm run verify-product-identity",
+      "status": "PASS",
+      "secondGenerationDrift": false
+    },
+    {
+      "command": "pnpm run release:dsh 0.1.2-alpha.2 --dry-run",
+      "status": "PASS",
+      "worktreeStatusChanged": false,
+      "trackedDiffChanged": false,
+      "headChanged": false
+    },
+    {
+      "command": "gradle --offline --no-daemon -p apps/android :app:assembleDebug",
+      "status": "PASS",
+      "jdk": "17.0.11",
+      "gradle": "8.14"
+    },
+    {
+      "command": "aapt dump badging and dump xmltree AndroidManifest.xml",
+      "status": "PASS",
+      "versionName": "0.1.2-alpha.1",
+      "versionCode": 1,
+      "channel": "dev"
+    },
+    {
+      "command": "pnpm run test:docs",
+      "status": "PASS",
+      "passed": 15,
+      "runner": "isolated Linux source with explicit synchronized inputs"
+    },
+    {
+      "command": "pnpm run doc-sync",
+      "status": "PASS",
+      "passed": 32,
+      "runner": "isolated Linux source with explicit synchronized inputs"
+    },
+    {
+      "command": "pnpm run lint",
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0,
+      "runner": "isolated Linux source with explicit synchronized inputs"
+    }
+  ],
+  "apk": {
+    "path": "apps/android/app/build/outputs/apk/debug/app-debug.apk",
+    "sha256": "cb22371d4e2c956c1cea18918ec6bce90e42503a540c03d3cbbd55bd78bc3933"
+  },
+  "pending": [
+    {
+      "item": "Apple resolved and embedded identity",
+      "status": "REMOTE_PENDING",
+      "owner": ".github/workflows/apple-swift.yml"
+    },
+    {
+      "item": "Windows executable resource version",
+      "status": "NOT_EXECUTED",
+      "owner": "G2-WIN"
+    }
+  ],
+  "manualExternalActionsExecuted": false
+}

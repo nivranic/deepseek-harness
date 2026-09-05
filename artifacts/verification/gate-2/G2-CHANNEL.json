@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G2-CHANNEL",
+  "status": "PARTIAL",
+  "sourceHead": "1f67cd996b13a86b8a2a48039dd8d5e5ed44b209",
+  "recordedAt": "2026-09-05T08:05:29.431Z",
+  "identity": {
+    "schemaVersion": 1,
+    "version": "0.1.2-alpha.1",
+    "marketingVersion": "0.1.2",
+    "buildNumber": 1,
+    "channel": "dev",
+    "windowsFileVersion": "0.1.2.1",
+    "appleBuildVersion": "1.0.1"
+  },
+  "implemented": [
+    "dev/canary/beta/stable validation",
+    "channel/version rejection",
+    "embedded Android metadata",
+    "staged Windows metadata",
+    "Apple metadata and verification workflow"
+  ],
+  "pending": [
+    "Apple artifact receipt",
+    "Windows artifact metadata",
+    "RC comparison to prior distributed identity",
+    "protected upload and promotion policy"
+  ],
+  "runtimeCompositionChanged": false,
+  "protocolAdmissionChanged": false,
+  "manualExternalActionsExecuted": false
+}

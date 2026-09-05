@@ -1,13 +1,13 @@
 {
   "taskId": "G1-APPLE",
-  "status": "PARTIAL",
+  "status": "PASS",
   "evidenceLevel": "E4",
   "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-  "sourceHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+  "sourceHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
   "workingTreeState": "Apple product, test, workflow, and documentation inputs were committed and clean at sourceHead before these evidence records were updated.",
-  "recordedAt": "2026-09-05T06:16:57.694Z",
-  "evidenceBoundary": "Real Host-to-Swift 13/13 and recovery passed on macOS; all three Xcode shells build. App first-screen XCTest is pending.",
+  "recordedAt": "2026-09-05T08:05:29.431Z",
+  "evidenceBoundary": "SwiftPM, real Host 13/13 with recovery, three Xcode builds, and installed iOS simulator first screen passed on the same PR merge tree.",
   "toolchain": {
     "local": {
       "swiftToolsVersionDeclared": "5.9",
@@ -18,7 +18,7 @@
     "remote": {
       "runner": "macos-latest",
       "swiftPm": "AVAILABLE_AND_TESTED",
-      "xcode": "WORKFLOW_BUILD_PENDING"
+      "xcode": "AVAILABLE_AND_TESTED"
     }
   },
   "commands": [
@@ -94,6 +94,13 @@
       "result": "PASS",
       "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
       "evidence": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004"
+    },
+    {
+      "name": "SwiftPM, real Host recovery, three Xcode shells and installed first screen",
+      "result": "PASS",
+      "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+      "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+      "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330"
     }
   ],
   "artifacts": [
@@ -133,15 +140,9 @@
     "Source, test-definition, and workflow inspection cannot substitute for Swift compilation, SwiftPM execution, or a real Host-to-Swift run."
   ],
   "knownLimitations": [
-    "App first-screen runtime verification is pending. SwiftPM and real Host acceptance do not establish simulator App pairing or real-device network behavior."
+    "Simulator unpaired startup only; App-to-Host pairing, real-device networks, Release signing and installation remain separate acceptance."
   ],
-  "notExecuted": [
-    {
-      "item": "iOS installed App first screen",
-      "status": "NOT_EXECUTED",
-      "reason": "STARTUP_XCTEST_ADDED_PENDING_CI"
-    }
-  ],
+  "notExecuted": [],
   "nextDependencies": [
     "G1-E2E",
     "G1-REC",
@@ -206,16 +207,16 @@
     ]
   },
   "latestRemoteSwiftAcceptance": {
-    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
-    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
-    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
-    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "path": "artifacts/verification/gate-1/acceptance/swift-22912379f538c604f2de9f2e19b2ad23f5bd59ec.json",
+    "sha256": "d815232287a5d31cd3fb80285d8cdf5a6cabe67ae3cd240091c9347f0bbfe83e",
+    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+    "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+    "tree": "1783d4cd28c57b3763da5b5f83b8a4f4b47b5cfe",
     "parents": [
       "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
-      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+      "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6"
     ],
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330",
     "steps": 13,
     "recovery": {
       "preFaultSeq": 81,
@@ -233,9 +234,10 @@
       "projectionImageCount": 0,
       "projectionArtifactCount": 0,
       "projectionEqualAfterRepeatedReconnect": true,
-      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
-      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "beforeRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
+      "afterRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
       "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
-  }
+  },
+  "latestStartupEvidence": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
 }
