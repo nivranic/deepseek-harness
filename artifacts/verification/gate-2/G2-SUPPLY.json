@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "taskId": "G2-SUPPLY",
   "status": "PARTIAL",
-  "sourceHead": "ce98f3be4f4dd55499f43e97bc1504ffacb20db8",
-  "recordedAt": "2026-09-05T17:04:38.865Z",
+  "sourceHead": "76384701598397492c03135db998db5bef69eb4a",
+  "recordedAt": "2026-09-05T18:52:10.801Z",
   "implemented": {
     "upstreamReferencesVerified": 24,
     "workflowCorpus": 22,
@@ -88,12 +88,12 @@
   },
   "secretScanning": {
     "status": "PASS",
-    "candidateSha": "8e46c66400b5181c43a06e1f2ac3aa9b4b87f850",
-    "remoteRun": 33977259106,
-    "remoteJob": 101336106503,
-    "evidence": "artifacts/verification/gate-2/acceptance/secrets-8e46c66400b5181c43a06e1f2ac3aa9b4b87f850.json",
+    "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "remoteRun": 33980218202,
+    "remoteJob": 101344111125,
+    "evidence": "artifacts/verification/gate-2/acceptance/secrets-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
     "localWindowsEvidence": "artifacts/verification/gate-2/acceptance/secrets-windows-a49d64f20b.json",
-    "files": 9790,
+    "files": 9798,
     "scannerNegativeFixture": "PASS",
     "unreviewedFindings": 0,
     "findingClasses": [
@@ -143,9 +143,9 @@
   ],
   "dependencyReview": {
     "status": "FAIL",
-    "candidateSha": "8e46c66400b5181c43a06e1f2ac3aa9b4b87f850",
-    "runId": 33977259106,
-    "jobId": 101336106347,
+    "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "runId": 33980218202,
+    "jobId": 101344110978,
     "reason": "Dependency review is not supported on this repository; the action requires Dependency graph to be enabled.",
     "repository": {
       "visibility": "public",
@@ -155,11 +155,12 @@
     "apiStatus": 403,
     "settingsChanged": false,
     "browser": "Settings require a GitHub browser login; the available browser is signed out.",
-    "followup": "Enable Dependency graph through a supported authenticated settings entry, or implement an independently verified dependency scanner. This failure is not waived."
+    "followup": "Enable Dependency graph through a supported authenticated settings entry, or implement an independently verified dependency scanner. This failure is not waived.",
+    "evidence": "artifacts/verification/gate-2/acceptance/dependencies-d28a442df621173dfd9f559446f9e7a963e7dfff.json"
   },
   "sast": {
     "status": "FAIL",
-    "implementationHead": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+    "implementationHead": "76384701598397492c03135db998db5bef69eb4a",
     "languages": [
       "javascript-typescript",
       "python",
@@ -176,45 +177,104 @@
         "candidateSha": "8e46c66400b5181c43a06e1f2ac3aa9b4b87f850",
         "runId": 33977259106,
         "reason": "Completed Python, Java/Kotlin and JavaScript analyses were rejected for rule/result metadata; component-aware parsing and structural diagnostics await fresh execution."
+      },
+      {
+        "candidateSha": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+        "runId": 33978265065,
+        "reports": {
+          "python": {
+            "status": "PASS",
+            "path": "artifacts/verification/gate-2/acceptance/sast-python-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+            "findings": 0,
+            "reason": null
+          },
+          "javascript-typescript": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+            "findings": 91,
+            "reason": null
+          },
+          "java-kotlin": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+            "findings": null,
+            "reason": "CodeQL reported incomplete analysis"
+          }
+        },
+        "reason": "Prior language verdicts retained before the d28 scan."
       }
     ],
     "databaseUpload": false,
     "sarifUpload": false,
     "coverageLimit": "Native C/C++ and Rust are outside this four-language matrix.",
-    "actualCandidate": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
-    "runId": 33978265065,
+    "actualCandidate": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "runId": 33980218202,
     "reports": {
-      "python": {
-        "status": "PASS",
-        "path": "artifacts/verification/gate-2/acceptance/sast-python-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
-        "findings": 0,
-        "reason": null
-      },
       "javascript-typescript": {
         "status": "FAIL",
-        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
         "findings": 91,
-        "reason": null
+        "analysisComplete": true,
+        "rules": [
+          103
+        ],
+        "blockingDiagnostics": [],
+        "receiptSha256": "e79f594310d4f9bb87826cd6e87d7ead951261b71b41e08fcc1136e55a99ddae"
+      },
+      "python": {
+        "status": "PASS",
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+        "findings": 0,
+        "analysisComplete": true,
+        "rules": [
+          50
+        ],
+        "blockingDiagnostics": [],
+        "receiptSha256": "63ef5b1bf2efdf1d06a4f5533ffd9df8d5083de99180a4788394dd4b4edb4e21"
       },
       "java-kotlin": {
         "status": "FAIL",
-        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
-        "findings": null,
-        "reason": "CodeQL reported incomplete analysis"
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+        "findings": 7,
+        "analysisComplete": false,
+        "rules": [
+          120
+        ],
+        "blockingDiagnostics": [
+          {
+            "rule": "java/diagnostics/extraction-errors",
+            "level": "error"
+          }
+        ],
+        "receiptSha256": "f6942d5f53841006c29d5c4f132bd94da9f45113f9c80cf4a15ad7674802a54a"
+      },
+      "swift": {
+        "status": "FAIL",
+        "path": "artifacts/verification/gate-2/acceptance/sast-swift-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+        "findings": 1,
+        "analysisComplete": true,
+        "rules": [
+          28
+        ],
+        "blockingDiagnostics": [],
+        "receiptSha256": "56e774748fc5fdbd26987101c1fe985008633a5dd35c6b6fe8fe8fdc2a122f39"
       }
     },
     "triage": "artifacts/verification/gate-2/sast-triage-fe4bd57c4c.json",
     "swift": {
-      "status": "PENDING",
-      "lastObservedStep": "Compile Swift package and Apple apps"
+      "status": "FAIL",
+      "findings": 1,
+      "analysisComplete": true,
+      "reviewImplementation": "LOCAL_PASS_REMOTE_PENDING"
     },
     "next": [
-      "Review all 91 JavaScript findings against their actual callers and tests without directory-wide suppression.",
-      "Collect payload-free Kotlin diagnostic IDs; analysis warnings remain blocking.",
-      "Collect Swift execution and verdict.",
-      "No vendor source changes or archived-note edits."
+      "Fresh candidate CodeQL and Windows coverage",
+      "Kotlin extraction error file diagnosis and seven unreviewed findings",
+      "Remaining JavaScript findings require individual review or fixes",
+      "Dependency graph availability or independent dependency scanning"
     ],
-    "diagnosticImplementationHead": "ce98f3be4f4dd55499f43e97bc1504ffacb20db8",
+    "diagnosticImplementationHead": "76384701598397492c03135db998db5bef69eb4a",
     "diagnosticImplementationStatus": "LOCAL_VALIDATED_REMOTE_PENDING"
-  }
+  },
+  "followupEvidence": "artifacts/verification/gate-2/security-followup-d28a442df6.json"
 }

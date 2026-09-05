@@ -8,7 +8,7 @@
 
 ## Summary
 
-[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持 draft 且以 dev 为目标。候选 723335fefe 的 CI 全部通过，包括已修复的独立 Windows coverage；Apple 与 Android 同样通过。[正式收集证据](gate-2/ci-evidence-723335fefe.json) 核验实际执行 SHA 47e122670a、tree 和 producer 回执。Gate 1 原准入仍绑定不可变候选 906d193595；各次历史失败保留于 [G1-CI-REPAIRS.json](gate-1/G1-CI-REPAIRS.json)。扫描器验证基于已推送的 fe4bd57c4c；诊断代码检查点 ce98f3be4f 已通过本地验证，仍需新的候选 CI。不能借用 723335fefe 的结果声明后续候选通过。
+[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持 draft 且以 dev 为目标。候选 d28a442df6 的[正式收集证据](gate-2/ci-evidence-d28a442df6.json) 核验实际执行 SHA 8bd4bb4fbd、tree 和 producer 回执，必要 CI、Apple 与 Android 均通过。独立 Windows coverage 失败于 Agent Teams 恢复测试；该测试对即时回执的假设已用受控竞争顺序修正，Windows/Linux 均通过目标回归，新候选仍需远端复验。723335fefe 的完整 CI PASS 保留为历史证据。Gate 1 原准入仍绑定不可变候选 906d193595，不能借用旧结果声明后续候选通过。
 
 Windows Python 启动与 Inspector readiness 两项原失败已取得真实远端通过结果。候选 1be28a4d44 在 Windows native 单项重跑后取得 mandatory aggregate、Apple 和 Android PASS；其初次 native worker 退出仍保留历史，不能称为已定位的产品缺陷。独立 Windows coverage 的 credentials 失败来自测试把截断空文档误认为完整外部编辑；受控复现 6 对 5 后已修复，新候选该用例通过。
 
@@ -18,7 +18,9 @@ Gate 1 为 PASS / CLOSED，准入绑定 [906d193595 的正式证据](gate-2/ci-e
 
 Gate 2 的在线 CI 收集器保留真实 PASS/FAIL 与源码核验。候选安全 workflow 已接入 22 个 workflow 的固定 Action/只读权限策略。Windows 完整密钥扫描核验 9,790 个 Git 文件；8e46c66400 的远端 tree 与提交变化扫描也通过，未审查发现项为 0，真实合成密钥拒绝与脱敏自检通过。精确例外只覆盖已审查的完整行；46 个 tree 命中核验为 Git blob，11 个为精确非密钥行。见 [G2-SUPPLY.json](gate-2/G2-SUPPLY.json)。
 
-Dependency review 实际失败：公开 fork 未提供所需 Dependency graph 功能，API 返回 403，浏览器无登录态，未更改设置，也未豁免此项。fe4bd57c4c 的 CodeQL Python 已通过，执行 50 项规则、0 发现；JavaScript 执行 103 项规则、91 个发现项，均保留为[尚未审查](gate-2/sast-triage-fe4bd57c4c.json)，不能直接视为 91 个真实漏洞或批量放行。Kotlin 因分析诊断保持 FAIL；Swift 仍在编译。扫描器测试、test:docs 15/15、doc-sync 32/32 和 lint 已通过。[CI 与供应链计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md) 的剩余 scanner 验收、SBOM、provenance、RC 与 Gate 2-4 工作继续执行。生产签名、商店上传、merge 和 release 均未执行。
+Dependency review 实际失败：公开 fork 未提供所需 Dependency graph 功能，API 返回 403，浏览器无登录态，未更改设置，也未豁免此项。d28a442df6 的 CodeQL Python 通过；JavaScript 91 项、Kotlin 7 项、Swift 1 项均保留原始 FAIL，Kotlin 另有阻断提取诊断。Swift 实际编译和 analyzer 已完成，其唯一发现项经调用用途审查确认是请求体或 SPKI 的 SHA-256。新机制把该审查固定到精确位置、完整 Apple tree 与 workflow；上下文变化或分析不完整仍失败，原始发现项持续可见，尚待新候选复验。
+
+代码检查点 7638470159 包含两个线性扫描修复（对应 5 项 JavaScript 发现）、受控恢复回执测试、固定源码上下文的 SAST 审查与脱敏提取路径诊断。Windows 46/46 目标测试、两个产品文件四维 100%、25,000 组 parser 等价对照通过；Python 17/17 与恢复测试 12/12 均在 Windows/Linux 通过。test:docs 15/15、doc-sync 32/32、lint 0 warning/0 error；准确源码摘要和验证范围见[本轮证据](gate-2/security-followup-d28a442df6.json)。[CI 与供应链计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md) 的 scanner 验收、SBOM、provenance、RC 与 Gate 2-4 工作仍待继续。生产签名、商店上传、merge 和 release 均未执行。
 
 ## Table of Contents
 
@@ -61,7 +63,7 @@ Dependency review 实际失败：公开 fork 未提供所需 Dependency graph �
 | 完整 coverage 执行候选 | `4dded5f0e9cb4ea00bd092d92740aa718c678be1` | 到最新检查点只有同一 Context 的测试访问修正；产品源码未变 |
 | 最近 Swift/Kotlin E4 SHA | `ac42842c38142e13859da4981f9a820906f5ec6b` | PR 合并提交，tree 与 53cd3e79ad 相同；两种语言各 13/13，恢复见原始回执 |
 | Android App 输入检查点 | `1b181627e7c723dedb04d5ca429ee17b8701b0c3` | App tree 至最新候选完全相同；装配、签名检查、API 34 首屏通过 |
-| 分支 | `codex/goal-mode-full-implementation` | 代码检查点 ce98f3be4f；723335fefe 的 CI/Apple/Android 全通过，draft PR #1，base=dev |
+| 分支 | `codex/goal-mode-full-implementation` | 代码检查点 7638470159；d28a442df6 的必要 CI/Apple/Android 通过，独立 Windows coverage 与供应链 FAIL；draft PR #1，base=dev |
 | worktree | `E:\Mix\project\deepseek-harness\.worktrees\goal-mode-full-implementation` | 与用户 dev 隔离 |
 | Gate 1 | `PASS / CLOSED` | `canEnterGate2=true`；准入候选 906d193595 |
 | Gate 2 / 3 / 4 | `IN_PROGRESS / NOT_STARTED / NOT_STARTED` | 版本、渠道与在线 CI 证据已接线；继续供应链与平台发布工程 |
@@ -493,6 +495,6 @@ Apple 的 SwiftPM 与 Host↔Swift 命令由 [`.github/workflows/apple-swift.yml
 
 ## 12. 当前结论
 
-Gate 1 已按不可变候选 906d193595 的必要验收关闭；723335fefe 又取得包含独立 Windows coverage 的完整 CI、Apple 和 Android PASS。Gate 2 完整密钥扫描与真实拒绝自检已通过。fe4bd57c4c 的 Python CodeQL 通过；JavaScript 91 个发现项待逐项审查，Kotlin 分析诊断和 Dependency graph 配置限制保持 FAIL，Swift 仍待 verdict。下一步收敛这些 scanner 项，再继续产物/SBOM/provenance、四平台 RC 和第 8 节其余发布工程、Beta、GA，不能声明整个目标完成。
+Gate 1 已按不可变候选 906d193595 的必要验收关闭。d28a442df6 的必要 CI、Apple、Android、完整密钥扫描与 Python CodeQL 已通过；独立 Windows coverage、其余 SAST 语言和 Dependency review 保留实际 FAIL。7638470159 的本地修复与严格审查测试通过，仍需新候选远端验证。下一步确认 5 项 ReDoS 修复、Swift 精确审查与 Windows 恢复回执测试，再处理 Kotlin 提取失败、剩余发现项和依赖扫描，继续产物/SBOM/provenance、四平台 RC 和第 8 节其余发布工程、Beta、GA，不能声明整个目标完成。
 
 后续 Agent 必须从 Gate 1 closure decision 开始，不能把旧报告中的绿色里程碑、当前文件存在或用户跳过动作提升为未实际执行的平台证据。
