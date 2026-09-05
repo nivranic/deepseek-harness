@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G1-PORTABLE-RUNNERS",
+  "status": "PASS",
+  "evidenceLevel": "E3",
+  "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
+  "runner": {
+    "os": "Ubuntu 24.04 / WSL2",
+    "kernel": "5.15",
+    "node": "22.22.1",
+    "pnpm": "11.7.0",
+    "powershell": "7.5.4",
+    "bubblewrap": "0.9.0",
+    "browser": "Playwright Chromium",
+    "checkout": "/var/tmp/dsh-g1-resume-20260905/source"
+  },
+  "scope": "关闭原 Windows/嵌套 worktree 的五项检查阻断；这是本地便携 runner 证据，不能替代远端 mandatory CI 或 Apple 验收。",
+  "checks": [
+    {
+      "id": "full-coverage",
+      "status": "PASS",
+      "sourceHead": "4dded5f0e9cb4ea00bd092d92740aa718c678be1",
+      "command": "DSH_COVERAGE_EXEMPT_HEAVY=1 pnpm exec vitest run --coverage --maxWorkers=4 --testTimeout=90000 --expect.poll.timeout=90000",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-coverage-4dded5.log",
+        "sha256": "7fb0ac5d402ae2a4a04fbad81361fcd31de89296c74f1752e8ebf3ae739b21b9"
+      },
+      "testFilesPassed": 1022,
+      "testFilesSkipped": 5,
+      "testsPassed": 16441,
+      "testsSkipped": 39,
+      "testsFailed": 0,
+      "perFileThresholds": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      },
+      "carryForward": {
+        "candidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+        "changedFiles": [
+          "packages/artifact/artifact-local/tests/artifact-local.spec.ts"
+        ],
+        "followUp": "artifact-local-final",
+        "qualification": "最后一次提交只让夹具返回已持有的 Context 供日志断言使用；同一包已复验 17/17 与四维 100%，产品源码未变。"
+      }
+    },
+    {
+      "id": "coverage-exempt-heavy",
+      "status": "PASS",
+      "sourceHead": "383b1176b86f16a8ceb3b5f2a6000af3838c827a",
+      "command": "pnpm exec vitest run packages/typert/generator/tests/ packages/experimental/webworker-runtime/tests/ scripts/install-lefthook.spec.ts scripts/oxlint-contract.spec.ts scripts/change-scope.spec.ts scripts/translation-pairing-merge.spec.ts packages/experimental/webworker-packer/tests/image-loadable.spec.ts --maxWorkers=4 --testTimeout=90000 --expect.poll.timeout=90000",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-coverage-exempt-heavy.log",
+        "sha256": "78d630fe2df1c8da085206b70a8b6e2fdd13ce849126d0bae9ffe8e17c4a6da0"
+      },
+      "testsPassed": 1157,
+      "testsSkipped": 28
+    },
+    {
+      "id": "recorded-session",
+      "status": "PASS",
+      "sourceHead": "7752b634d1119f0e788952e3a8fdb7a214981cba",
+      "command": "DSH_EXAMPLE_MODE=lib DSH_SNAPSHOT_MAX_CONCURRENCY=3 pnpm run test:snapshot --maxWorkers=3",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-candidate-snapshot.log",
+        "sha256": "1f8fe3007b8df8e22822cd658ccd9f9cc332849c6a4f3bce4cd49ccfab6c303c"
+      },
+      "testsPassed": 113,
+      "testsFailed": 0,
+      "qualification": "后续仅新增单元测试及修正其断言，recorded fixtures 与运行源码未变。"
+    },
+    {
+      "id": "build",
+      "status": "PASS",
+      "sourceHead": "454d26a0b7346d8ec65313f2b4ab113308f5b48a",
+      "command": "pnpm run build",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-build.log",
+        "sha256": "042c4844d65e53147db33bc778601d76871f51096c86326f110dc379b8fed6a2"
+      },
+      "clientArtifacts": 220,
+      "sourceBinding": "Linux reflog 的首次快进发生于 08:08:12；build.log 于 08:05:26 完成，当时 checkout 仍为 clone 基线 454d26a0。"
+    },
+    {
+      "id": "node-next",
+      "status": "PASS",
+      "sourceHead": "383b1176b86f16a8ceb3b5f2a6000af3838c827a",
+      "command": "pnpm run verify-node-next-types",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-node-next.log",
+        "sha256": "0b54f3eaef4797c02417fc5e58d2111f18215798f82328af0b798be2f7146e66"
+      },
+      "workspaceDeclarationApis": 268
+    },
+    {
+      "id": "typert",
+      "status": "PASS",
+      "sourceHead": "383b1176b86f16a8ceb3b5f2a6000af3838c827a",
+      "command": "pnpm exec vitest run packages/typert/generator/tests/type-model.spec.ts --maxWorkers=2",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-typert.log",
+        "sha256": "4d0424e775229552cf7e38841ac18b173d75122edf1d2734277b9a159d23ef52"
+      }
+    },
+    {
+      "id": "doc-sync",
+      "status": "PASS",
+      "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+      "command": "pnpm run doc-sync",
+      "passedGates": 32,
+      "failedGates": 0,
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-evidence-doc-sync.log",
+        "sha256": "6ef87c9178dcca2731fc1a8ae0232056c89cc4f5a2be612c1ac61b181f1ca96d"
+      },
+      "qualification": "最新代码候选加本轮待提交的 evidence JSON 和交接 Markdown 输入。"
+    },
+    {
+      "id": "test-docs",
+      "status": "PASS",
+      "sourceHead": "4c2e8f4616df4c0154d3fe49a9a9611384cdafb5",
+      "command": "pnpm run test:docs",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-final-test-docs.log",
+        "sha256": "3d6b3702a991040703014b5a2479931f1e4a972d556491c855e43506941b8b1d"
+      },
+      "passedGates": 15,
+      "failedGates": 0
+    },
+    {
+      "id": "lint",
+      "status": "PASS",
+      "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
+      "command": "pnpm run lint:contracts-ready",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/coverage-tests-lint-final.log",
+        "sha256": "ba8c714ae73b9b05768c8a5187e1b01065253f3a1656d10de8e3744ec9ae5350"
+      },
+      "errors": 0,
+      "warnings": 0,
+      "qualification": "最终一条断言修正另经实际 pre-commit staged lint 通过。"
+    },
+    {
+      "id": "artifact-local-final",
+      "status": "PASS",
+      "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+      "command": "pnpm exec vitest run packages/artifact/artifact-local/tests/artifact-local.spec.ts --maxWorkers=4 --coverage --coverage.include=packages/artifact/artifact-local/src/index.ts --coverage.reportsDirectory=.artifacts/coverage-artifact-final",
+      "testsPassed": 17,
+      "perFileCoverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      },
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/artifact-local-final.log",
+        "sha256": "4f6b255957bfe15eab244510b07b910446e153035abf8f982283926c6e927096"
+      },
+      "qualification": "修正测试对 protected ctx 的访问后复验；完整 coverage 的实际执行 SHA 仍保留 4dded5，不重复未受影响的全仓用例。"
+    }
+  ],
+  "discoveredProductAndTestDefects": [
+    "OkHttp 5.5.0 Android AAR 要求 compileSdk 37，与项目 SDK 35 不兼容。",
+    "首次 Android Activity 启动的 ARGB 构造器误用及未配对就观察 PushModel。",
+    "取消测试错误依赖吞吐量阈值，改为真实断开后的 abort 与 close 终态。",
+    "plain Node runner env 断言、持久 pwsh 提示符异步时序断言与当前接口不符。",
+    "Artifact 工具 schema、PTC prompt、pwsh composition 与 SDK expectedTools 的 recorded fixture drift。",
+    "完整行为测试通过后暴露 17 个源码文件覆盖率缺口，已补真实边界、生命周期和投影测试。"
+  ],
+  "priorFailures": [
+    {
+      "path": ".artifacts/g1-resume-20260905/linux-candidate-coverage.log",
+      "sha256": "f5b5a7051e8a3b9088c650f8648ecad3f700d352a85a057a7bbbce1bccb523af"
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/linux-coverage-9fcde39.log",
+      "sha256": "e2fe561e2ab92d341ed3e8b36f6a731de7b8f2856c35cc276b70dfc64f4c925d"
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/linux-evidence-doc-sync-type-failure.log",
+      "sha256": "d75aef3729d18edb595d493cec3f29caa29f6f9940ad66f53fbdd5f55b7e32f2",
+      "classification": "TEST_TYPE_ERROR",
+      "resolution": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27"
+    }
+  ],
+  "limitations": [
+    "Swift 三项维持 NOT_EXECUTED / SKIPPED_BY_USER。",
+    "本地使用 Node 22，不代表 Node 24 远端 mandatory CI 已执行。",
+    "未降低任何 coverage 阈值或新增 coverage ignore。"
+  ]
+}

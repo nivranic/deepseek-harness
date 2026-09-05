@@ -1,59 +1,64 @@
 {
+  "schemaVersion": 1,
   "taskId": "G1-REC",
   "status": "PARTIAL",
   "evidenceLevel": "E4",
-  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
-  "startedFrom": "7f59dcb873323a40eed3883bc4561d93f5def22f",
-  "workingTreeState": "The Kotlin recovery run started from committed clean inputs at sourceHead; the Host published the privacy-safe result before these evidence records were updated.",
-  "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
-  "commands": [
-    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
-    "Get-FileHash -Algorithm SHA256 packages/remote/link-contracts/acceptance/corpus.v1.json",
-    "Get-CimInstance Win32_Process | filter acceptance-owned Java and Node processes"
-  ],
+  "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
+  "latestCandidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
   "tests": [
     {
-      "name": "Kotlin disconnect, offline progress, and authoritative recovery",
-      "result": "PASS",
-      "fault": "interrupt-active-streams after first assistant chunk",
-      "preFaultSeq": 82,
-      "recoverySnapshotCursor": 93,
-      "repeatedSnapshotCursor": 93,
-      "offlineSeqCount": 11,
-      "recoverySnapshotHasMore": false,
-      "followReplacementCount": 2,
-      "eventReplacementCount": 2,
-      "expectedTerminalKind": "completed",
-      "projectionEqualAfterRepeatedReconnect": true,
-      "orphanProcesses": 0
-    },
-    {
-      "name": "Kotlin clean source and corpus identity",
-      "result": "PASS",
-      "hostCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-      "clientCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-      "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
-      "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480"
-    },
-    {
-      "name": "Swift disconnect and authoritative recovery",
-      "result": "NOT_EXECUTED",
-      "reason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      "name": "真实 Host 与生产 Kotlin 客户端的共享验收",
+      "status": "PASS",
+      "evidenceLevel": "E4",
+      "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
+      "runner": "Windows 11 / JDK 17.0.11 / Gradle 8.14",
+      "passedSteps": 13,
+      "command": "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+      "driver": [
+        "gradle",
+        "--no-daemon",
+        "-p",
+        "apps/android",
+        ":core:nativeAcceptance"
+      ],
+      "artifact": {
+        "path": "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+        "sha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a"
+      },
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/host-kotlin-9fcde39.log",
+        "sha256": "0243c1db3b96dd3b0079296ee8e03d4278ed024197107362f15b5b1ef7b021b4"
+      },
+      "recovery": {
+        "preFaultSeq": 82,
+        "recoverySnapshotCursor": 93,
+        "repeatedSnapshotCursor": 93,
+        "offlineSeqCount": 11,
+        "recoverySnapshotHasMore": false,
+        "followReplacementCount": 2,
+        "eventReplacementCount": 2,
+        "projectionItemCount": 78,
+        "projectionPlanActive": false,
+        "projectionTodoCount": 0,
+        "projectionGoalCount": 0,
+        "projectionToolCallCount": 0,
+        "projectionImageCount": 0,
+        "projectionArtifactCount": 0,
+        "projectionEqualAfterRepeatedReconnect": true,
+        "beforeRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+        "afterRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+        "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+      },
+      "carryForward": {
+        "candidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+        "changedFiles": [
+          "packages/api/session-controller/tests/commands-artifact.host.spec.ts",
+          "packages/artifact/artifact-local/tests/artifact-local.spec.ts"
+        ],
+        "qualification": "后续只修正两处测试：错误包装断言及夹具对 protected Context 的访问；产品运行源码与 native app tree 未变，不冒称在新 SHA 上重跑 native acceptance。"
+      }
     }
-  ],
-  "artifacts": [
-    "artifacts/verification/gate-1/G1-REC.json",
-    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
-    "packages/remote/link-contracts/acceptance/corpus.v1.json",
-    "apps/cli/tests/link-native-acceptance.e2e.ts",
-    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
-    "apps/apple/Tests/LinkNativeAcceptance/"
-  ],
-  "logs": [],
-  "changedFiles": [
-    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
-    "artifacts/verification/gate-1/G1-REC.json"
   ],
   "acceptance": [
     "The Host interrupted both active Kotlin streams after the first recovery-turn assistant chunk and continued the Session while the client was offline.",
@@ -63,20 +68,105 @@
     "The Host independently compared the native observations with its own Session projection before publishing the result."
   ],
   "knownLimitations": [
-    "Swift recovery is not executed because Swift/Xcode is unavailable on this Windows host. G1-REC remains PARTIAL until the Apple lane proves the same corpus at E4.",
-    "The Host-published result is an allowlisted summary. The complete candidate projection is unlinked before publication, and the tracked artifact contains only counts, equality, and SHA-256 digests."
+    "Swift 对应验收仍为 NOT_EXECUTED / SKIPPED_BY_USER。Kotlin E4 不满足双语言退出条件。",
+    "Kotlin 验收运行于 JDK；模拟器只验证未配对首屏，未验证模拟器与 Host 配对或真机网络。"
   ],
   "notExecuted": [
     {
       "item": "Swift disconnect, offline progress, reconnect, and duplicate-safe recovery",
       "status": "NOT_EXECUTED",
       "reason": "HOST_ENVIRONMENT",
-      "details": "No Swift toolchain or Xcode is installed on the Windows execution host."
+      "details": "No Swift toolchain or Xcode is installed on the Windows execution host.",
+      "userDisposition": "SKIPPED_BY_USER"
     }
   ],
-  "nextDependencies": [
-    "G1-APPLE",
-    "G1-E2E",
-    "G1-CI"
-  ]
+  "artifacts": [
+    "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+    "artifacts/verification/gate-1/G1-ANDROID-APP.json"
+  ],
+  "historicalEvidence": {
+    "qualification": "原记录保留审计历史；其中未找到 Android SDK 的判断已由现有 SDK 实测纠正。",
+    "record": {
+      "taskId": "G1-REC",
+      "status": "PARTIAL",
+      "evidenceLevel": "E4",
+      "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "startedFrom": "7f59dcb873323a40eed3883bc4561d93f5def22f",
+      "workingTreeState": "The Kotlin recovery run started from committed clean inputs at sourceHead; the Host published the privacy-safe result before these evidence records were updated.",
+      "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
+      "commands": [
+        "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+        "Get-FileHash -Algorithm SHA256 packages/remote/link-contracts/acceptance/corpus.v1.json",
+        "Get-CimInstance Win32_Process | filter acceptance-owned Java and Node processes"
+      ],
+      "tests": [
+        {
+          "name": "Kotlin disconnect, offline progress, and authoritative recovery",
+          "result": "PASS",
+          "fault": "interrupt-active-streams after first assistant chunk",
+          "preFaultSeq": 82,
+          "recoverySnapshotCursor": 93,
+          "repeatedSnapshotCursor": 93,
+          "offlineSeqCount": 11,
+          "recoverySnapshotHasMore": false,
+          "followReplacementCount": 2,
+          "eventReplacementCount": 2,
+          "expectedTerminalKind": "completed",
+          "projectionEqualAfterRepeatedReconnect": true,
+          "orphanProcesses": 0
+        },
+        {
+          "name": "Kotlin clean source and corpus identity",
+          "result": "PASS",
+          "hostCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+          "clientCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+          "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
+          "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480"
+        },
+        {
+          "name": "Swift disconnect and authoritative recovery",
+          "result": "NOT_EXECUTED",
+          "reason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+        }
+      ],
+      "artifacts": [
+        "artifacts/verification/gate-1/G1-REC.json",
+        "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
+        "packages/remote/link-contracts/acceptance/corpus.v1.json",
+        "apps/cli/tests/link-native-acceptance.e2e.ts",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
+        "apps/apple/Tests/LinkNativeAcceptance/"
+      ],
+      "logs": [],
+      "changedFiles": [
+        "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
+        "artifacts/verification/gate-1/G1-REC.json"
+      ],
+      "acceptance": [
+        "The Host interrupted both active Kotlin streams after the first recovery-turn assistant chunk and continued the Session while the client was offline.",
+        "The recovered authoritative snapshot advanced by 11 sequence values, ended at cursor 93 with hasMore false, and contained the completed terminal projection.",
+        "The client replaced follow and Remote Event streams twice across fault recovery and repeated reconnect.",
+        "A second reconnect at the same authoritative cut returned cursor 93 and produced a structurally equal projected JSON value, proving duplicate-safe idempotence for the Kotlin lane.",
+        "The Host independently compared the native observations with its own Session projection before publishing the result."
+      ],
+      "knownLimitations": [
+        "Swift recovery is not executed because Swift/Xcode is unavailable on this Windows host. G1-REC remains PARTIAL until the Apple lane proves the same corpus at E4.",
+        "The Host-published result is an allowlisted summary. The complete candidate projection is unlinked before publication, and the tracked artifact contains only counts, equality, and SHA-256 digests."
+      ],
+      "notExecuted": [
+        {
+          "item": "Swift disconnect, offline progress, reconnect, and duplicate-safe recovery",
+          "status": "NOT_EXECUTED",
+          "reason": "HOST_ENVIRONMENT",
+          "details": "No Swift toolchain or Xcode is installed on the Windows execution host."
+        }
+      ],
+      "nextDependencies": [
+        "G1-APPLE",
+        "G1-E2E",
+        "G1-CI"
+      ]
+    }
+  }
 }

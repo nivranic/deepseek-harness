@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "gate": "Gate 1",
+  "status": "PARTIAL",
+  "decision": "OPEN",
+  "canEnterGate2": false,
+  "isWaiver": false,
+  "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
+  "localWork": "COMPLETE",
+  "completed": [
+    "Android App 装配、启动修复及模拟器首屏回归",
+    "原五项便携 runner 阻断",
+    "17 文件覆盖率缺口与完整 coverage 门禁",
+    "真实 Host 与 Kotlin 的 13 步验收"
+  ],
+  "remaining": [
+    "远端候选 mandatory CI",
+    "Swift 三项 NOT_EXECUTED / SKIPPED_BY_USER",
+    "Apple simulator 证据"
+  ],
+  "authorization": {
+    "push": "NOT_AUTHORIZED",
+    "createPullRequest": "NOT_AUTHORIZED",
+    "reopenSwiftValidation": "NOT_AUTHORIZED",
+    "formalGateWaiver": "NOT_AUTHORIZED"
+  },
+  "proposedAction": {
+    "remote": "origin",
+    "branch": "codex/goal-mode-full-implementation",
+    "base": "dev",
+    "pullRequest": "draft",
+    "merge": false,
+    "release": false,
+    "qualification": "ci.yml 只响应 pull_request；该 PR 会自动触发 apple-swift.yml，因此需要明确允许重新打开 Swift 验证。"
+  },
+  "verification": {
+    "jsonRecords": 9,
+    "checksumReferences": 41,
+    "markdownFileLinks": 40,
+    "taskCounts": {
+      "PASS": 9,
+      "PARTIAL": 4
+    },
+    "mainWorkspaceUnchanged": true
+  },
+  "remoteProbe": {
+    "status": "FAIL",
+    "attempts": 2,
+    "causes": [
+      "Recv failure: Connection was reset",
+      "Could not connect to github.com:443"
+    ],
+    "changesMade": false
+  }
+}

@@ -2,490 +2,102 @@
   "schemaVersion": 1,
   "taskId": "G1-CI",
   "status": "PARTIAL",
-  "evidenceLevel": "E4",
-  "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
-  "sourceHead": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+  "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
   "branch": "codex/goal-mode-full-implementation",
-  "recordedAt": "2026-09-04T22:32:14.7681681+08:00",
-  "workingTreeState": "Every candidate execution input was committed and clean before the final focused and aggregate runs. This record and the copied Kotlin result were added only after those runs completed.",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
   "candidatePublication": {
     "status": "NOT_EXECUTED",
     "reason": "CANDIDATE_NOT_PUBLISHED",
-    "remoteBranchExists": false,
+    "remoteBranchExists": null,
     "remoteCandidateCi": "NOT_EXECUTED",
     "remoteBranchProbe": "git ls-remote --heads origin refs/heads/codex/goal-mode-full-implementation",
-    "details": "The candidate branch did not exist on origin at the audit time, and this execution did not request remote candidate CI. Local evidence is not represented as remote CI; no claim is made about unrelated historical workflow_dispatch runs."
+    "details": "尚未 push 或创建 PR。本地检查结果不能冒充远端 CI。",
+    "lastSuccessfulProbe": {
+      "branchExisted": false,
+      "dev": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "master": "76fda729799fe9b3848dbe2c211d4b231032b81e",
+      "qualification": "本次接续早期的只读结果；最后两次刷新失败，不能当作实时远端状态。"
+    },
+    "latestReadOnlyProbe": {
+      "status": "FAIL",
+      "attempts": 2,
+      "causes": [
+        "Recv failure: Connection was reset",
+        "Could not connect to github.com:443"
+      ],
+      "changesMade": false
+    }
   },
-  "executionEnvironment": {
-    "pnpmConfigVerifyDepsBeforeRun": "false",
-    "npmConfigVerifyDepsBeforeRun": "false",
-    "nodeOptionsPreloads": [
-      ".artifacts/g1-rec-tsx-userinfo-preload.cjs",
-      "artifacts/verification/gate-1/scripts/windows-tsx-geteuid-preload.cjs"
+  "localPortableEvidence": "artifacts/verification/gate-1/G1-PORTABLE-RUNNERS.json",
+  "nativeCheck": {
+    "name": "真实 Host 与生产 Kotlin 客户端的共享验收",
+    "status": "PASS",
+    "evidenceLevel": "E4",
+    "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
+    "runner": "Windows 11 / JDK 17.0.11 / Gradle 8.14",
+    "passedSteps": 13,
+    "command": "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "driver": [
+      "gradle",
+      "--no-daemon",
+      "-p",
+      "apps/android",
+      ":core:nativeAcceptance"
     ],
-    "nodeOptionsPolicy": "NODE_OPTIONS used --require with the absolute path to the applicable preload.",
-    "preloadUsage": "Focused, native, and documentation runs used the ignored preload; publication-view verifiers used the checked-in equivalent.",
-    "commandRecording": "Each command field records the invoked program and argv. PowerShell output capture, LASTEXITCODE handling, and exit propagation are represented by the separate log fields rather than repeated in every command string.",
-    "telemetryDisabledForFocusedAndAggregateRuns": true,
-    "androidJavaHome": "D:\\JAVA_17",
-    "androidGradleUserHome": "E:\\DevCache\\gradle",
-    "androidGradleDistribution": "%LOCALAPPDATA%\\Temp\\dsh-gradle-8.14-root\\gradle-8.14"
-  },
-  "executionEvidence": [
-    {
-      "id": "link-generator-round-1",
-      "command": "pnpm --config.verify-deps-before-run=false run gen-link-contracts",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/gen-link-contracts-round-1.log"
+    "artifact": {
+      "path": "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+      "sha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a"
     },
-    {
-      "id": "link-generator-round-2",
-      "command": "pnpm --config.verify-deps-before-run=false run gen-link-contracts",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/gen-link-contracts-round-2.log"
+    "log": {
+      "path": ".artifacts/g1-resume-20260905/host-kotlin-9fcde39.log",
+      "sha256": "0243c1db3b96dd3b0079296ee8e03d4278ed024197107362f15b5b1ef7b021b4"
     },
-    {
-      "id": "link-contract-freshness",
-      "command": "pnpm --config.verify-deps-before-run=false run verify-link-contracts",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/verify-link-contracts.log"
+    "recovery": {
+      "preFaultSeq": 82,
+      "recoverySnapshotCursor": 93,
+      "repeatedSnapshotCursor": 93,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 78,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+      "afterRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     },
-    {
-      "id": "contract-conformance",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/api/gateway/tests/stream-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts packages/remote/link-access/tests/protocol.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/contract-conformance.log"
-    },
-    {
-      "id": "authorization-tls-remote",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/remote/device-trust/tests packages/remote/link-access/tests packages/api/gateway/tests/gateway-stream.host.spec.ts packages/api/link-controller/tests/link-controller.host.spec.ts packages/remote/link-client/tests/link-client.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/authorization-tls-remote.log"
-    },
-    {
-      "id": "telemetry-privacy",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/session/session-telemetry/tests/redact.spec.ts packages/session/session-telemetry/tests/telemetry.spec.ts packages/session/session-telemetry-otel/tests/otel.spec.ts scripts/ci-workflow.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/telemetry-privacy-loader.log"
-    },
-    {
-      "id": "telemetry-loader-e2e",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.e2e.config.ts packages/session/session-telemetry-otel/tests/loader-composition.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/telemetry-loader-e2e.log"
-    },
-    {
-      "id": "sdk-server",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/sdk/server/tests/server.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/sdk-server.log"
-    },
-    {
-      "id": "official-build",
-      "command": "pnpm --config.verify-deps-before-run=false run build:official",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/build-official.log"
-    },
-    {
-      "id": "built-web",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.web.config.ts apps/web/tests/shipped-composition.e2e.ts apps/web/tests/feedback-release.e2e.ts",
-      "environmentOverride": {
-        "DSH_PLAYWRIGHT_EXECUTABLE_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-      },
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/web-built.log"
-    },
-    {
-      "id": "built-cli-help",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.e2e.config.ts apps/cli/tests/built-bin.e2e.ts -t \"routes help and usage errors without activating startup-dependent rows\"",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/built-cli-help.log"
-    },
-    {
-      "id": "constraints",
-      "command": "pnpm --config.verify-deps-before-run=false run constraints",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/constraints.log"
-    },
-    {
-      "id": "publint",
-      "command": "pnpm --config.verify-deps-before-run=false run publint",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/publint.log"
-    },
-    {
-      "id": "built-package-invariants",
-      "command": "pnpm --config.verify-deps-before-run=false run verify-built-package-invariants",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/built-package-invariants.log"
-    },
-    {
-      "id": "android-core",
-      "command": "gradle --no-daemon -p apps/android :core:test --rerun-tasks",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/android-core-test.log"
-    },
-    {
-      "id": "host-kotlin-native-acceptance",
-      "command": "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
-      "nativeDriver": [
-        "gradle",
-        "--no-daemon",
-        "-p",
-        "apps/android",
-        ":core:nativeAcceptance"
+    "carryForward": {
+      "candidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+      "changedFiles": [
+        "packages/api/session-controller/tests/commands-artifact.host.spec.ts",
+        "packages/artifact/artifact-local/tests/artifact-local.spec.ts"
       ],
-      "environmentOverride": {
-        "DSH_LINK_ACCEPTANCE_LANGUAGE": "kotlin",
-        "DSH_LINK_ACCEPTANCE_RESULT": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\goal-mode-full-implementation\\.artifacts\\g1-rec-kotlin-e4-abe90fa1d652-r2.json"
-      },
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/host-kotlin-native-acceptance-attempt-2.log"
-    },
-    {
-      "id": "multi-device",
-      "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-session-slice.e2e.ts -t \"the carrier-level session slice\"",
-      "iterations": 3,
-      "logs": [
-        ".artifacts/g1-final-abe90fa1d652-20260904-203016/multi-device-iteration-1.log",
-        ".artifacts/g1-final-abe90fa1d652-20260904-203016/multi-device-iteration-2.log",
-        ".artifacts/g1-final-abe90fa1d652-20260904-203016/multi-device-iteration-3.log"
-      ]
-    },
-    {
-      "id": "documentation-quick",
-      "command": "pnpm --config.verify-deps-before-run=false run test:docs",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/test-docs.log"
-    },
-    {
-      "id": "documentation-full",
-      "command": "pnpm --config.verify-deps-before-run=false run doc-sync",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/doc-sync.log"
-    },
-    {
-      "id": "cordis-catalog",
-      "command": "pnpm --config.verify-deps-before-run=false exec tsx scripts/gen-cordis-catalog.ts --check",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/cordis-catalog.log"
-    },
-    {
-      "id": "aggregate",
-      "command": "& .\\.artifacts\\g1-check-ci-wrapper.ps1",
-      "log": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log"
-    }
-  ],
-  "nonCandidateAttempts": [
-    {
-      "name": "Host-to-Kotlin attempt 1",
-      "result": "FAIL",
-      "classification": "INVALIDATED_INPUT_GUARD",
-      "countsTowardCandidateDecision": false,
-      "reason": "A concurrent built-smoke operation transiently changed an acceptance execution input. The harness refused before invoking the native driver; the serialized attempt 2 passed.",
-      "resultBytes": 107,
-      "resultSha256": "cd86a577d2e7d7bae38415555359f520b88c819b1ec3865e16d1cd6a3284b1e9",
-      "resultArtifact": ".artifacts/g1-rec-kotlin-e4-abe90fa1d652-r1.json",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/host-kotlin-native-acceptance.log",
-      "logSha256": "7263d60da335944f35fc38e44a53eba4eeadddff3428b30363cb1be1287360a2"
-    },
-    {
-      "name": "Built Web with the wrong Vitest config",
-      "result": "FAIL",
-      "classification": "COMMAND_SPEC_ERROR",
-      "countsTowardCandidateDecision": false,
-      "reason": "vitest.e2e.config.ts excludes apps/web; the owner vitest.web.config.ts command passed 8 of 8.",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/web-built-wrong-config.log",
-      "logSha256": "6cdf5144dca6736f29fe1921eb5e2c54819ad25a95b5d8cf85fabbc34e3c37ec"
-    },
-    {
-      "name": "Built Web without an explicit browser path",
-      "result": "FAIL",
-      "classification": "HOST_ENVIRONMENT",
-      "countsTowardCandidateDecision": false,
-      "reason": "The bundled Playwright Chromium revision was absent. The unchanged tests passed 8 of 8 with the installed Chrome executable.",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/web-built-browser-env-failed.log",
-      "logSha256": "bdc573433c8f6bb183577ebdc46420005e36462a9abfc27499ad556671d95a6e"
-    },
-    {
-      "name": "Aggregate preflight attempt 1",
-      "result": "NOT_EXECUTED",
-      "classification": "PRECONDITION_REFUSAL",
-      "countsTowardCandidateDecision": false,
-      "reason": "The wrapper refused before check:ci because pnpm had recreated two worktree-local metadata files. Both files were hashed and moved intact to an ignored recovery directory; the shared Junction and store were unchanged, and the next aggregate attempt completed.",
-      "recoveryDirectory": ".artifacts/pre-aggregate-node-metadata-abe90fa1d652/",
-      "recoveredFilesSha256": {
-        ".modules.yaml": "37d7db1ee8a6341b91a87b732b6dc0ea47737860b629ee2d1f2c4927a963be19",
-        ".pnpm-workspace-state-v1.json": "f4fa013b83193096c4d047c33e252d1da24fda11292c74b47af85d6e11aa0c35"
-      },
-      "persistentLog": null
-    }
-  ],
-  "focusedEvidence": [
-    {
-      "name": "Link generator deterministic rounds",
-      "result": "PASS",
-      "rounds": 2,
-      "trackedDriftAfterEachRound": 0,
-      "logSha256": "be09571cdca3fda9b424fb6098e3bb726af7f13e1ae1c77b4390204708ce6449"
-    },
-    {
-      "name": "Generated Link contract freshness",
-      "result": "PASS",
-      "stale": 0,
-      "logSha256": "562b140375b683903fbf7c71dbb5f498601040a52debe37546d19e2db0144a38"
-    },
-    {
-      "name": "Contract and conformance",
-      "result": "PASS",
-      "testFiles": 5,
-      "passed": 113,
-      "failed": 0,
-      "logSha256": "93a7587fd7272c74554cc2cb6a9a697e4ee4f027fd16cf53f006168e145ae508"
-    },
-    {
-      "name": "Authorization, TLS, and Remote regression",
-      "result": "PASS",
-      "testFiles": 8,
-      "passed": 181,
-      "failed": 0,
-      "logSha256": "824e187f184a61f9dc47f3f2443b5ec73b47249567ebbae4ceeb0eee2bbfa818"
-    },
-    {
-      "name": "Telemetry privacy and CI workflow",
-      "result": "PASS",
-      "testFiles": 4,
-      "passed": 99,
-      "failed": 0,
-      "logSha256": "3d84bf464e2e66d5f9d98a0a4ff50d39fcfc47a6e1498a08e8a83e36ad3a67f4"
-    },
-    {
-      "name": "Telemetry Loader E2E",
-      "result": "PASS",
-      "testFiles": 1,
-      "passed": 3,
-      "failed": 0,
-      "logSha256": "f2d266acac4d033547b2ddbab6d40a17527493b1192c225d92b846efe8e664a1"
-    },
-    {
-      "name": "SDK server regression",
-      "result": "PASS",
-      "testFiles": 1,
-      "passed": 32,
-      "failed": 0,
-      "logSha256": "633e3e3f612e67a67ed16d58a5f4d22bc7b347e51706afb792180294aec5a606"
-    },
-    {
-      "name": "Official complete build",
-      "result": "PASS",
-      "clientArtifacts": 220,
-      "clientEnvironmentValues": 4,
-      "clientArtifactSha256": "599ab3fa6dcb2eeeb1c521ecb50c164f8066bb64d29c18a79ff8e5cd374c1509",
-      "clientArtifactRecord": ".artifacts/g1-final-abe90fa1d652-20260904-203016/client-build-environment-official.json",
-      "clientArtifactRecordSource": ".dsh-build/client-build-environment.json",
-      "clientArtifactRecordSha256": "ebd708a5eedef60c09234e1d55dd7d48796c9de9d78ee22ef775d8e139595bae",
-      "clientArtifactInputs": [
-        "apps/web/dist/**/*",
-        "packages/*/*/lib/client.js",
-        "packages/*/*/lib/client.js.map"
-      ],
-      "clientArtifactDigest": "SHA-256 over sorted slash-normalized paths and file bytes; each entry contributes UTF-8 byte-length(path), colon, path, content byte length, colon, then content bytes as implemented by scripts/client-build-environment.ts.",
-      "logSha256": "e72227865d35cdf11d75e6faad430b4b0378b71fb4065e3d017a69e0624cc439"
-    },
-    {
-      "name": "Built Web acceptance",
-      "result": "PASS",
-      "testFiles": 2,
-      "passed": 8,
-      "failed": 0,
-      "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      "logSha256": "00db04d8462e823f89279f99fc82bd04ab354f966ea47dc6f88ba4f916821d95"
-    },
-    {
-      "name": "Built CLI help",
-      "result": "PASS",
-      "passed": 1,
-      "skipped": 21,
-      "helpStderr": "EMPTY",
-      "logSha256": "5f1493cb6c88403bb5f0a29a40f9b6a68d9033c3c3df39e2e7bbd26ad58a7b4a"
-    },
-    {
-      "name": "Workspace constraints",
-      "result": "PASS",
-      "workspaceManifests": 276,
-      "logSha256": "7d97d217e6ad0bcbf11da91ee747e6c709d03c0dec4a840866b663f2c603fc62"
-    },
-    {
-      "name": "Publint publication view",
-      "result": "PASS",
-      "packages": 259,
-      "logSha256": "adea768d87dc1de612ca145df534bcc660f5e0f175e236f7fac659d85f61d28b"
-    },
-    {
-      "name": "Built package invariants",
-      "result": "PASS",
-      "compiledCompanions": 259,
-      "logSha256": "9f115cdc4c71b54a0188afed5cdad545fec0557d24786d3995c37f7d663a8649"
-    },
-    {
-      "name": "Android pure-JVM core",
-      "result": "PASS",
-      "gradle": "8.14",
-      "java": "17.0.11",
-      "suites": 28,
-      "passed": 125,
-      "failed": 0,
-      "errors": 0,
-      "skipped": 0,
-      "wrongPinRequestBytesSent": false,
-      "logSha256": "13ddcd4c707fcd30a1cd975706035c6eb644f96ea5576bd76dee635cce8f852e"
-    },
-    {
-      "name": "Real Host-to-Kotlin acceptance and recovery",
-      "result": "PASS",
-      "passed": 13,
-      "failed": 0,
-      "hostCommit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
-      "clientCommit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
-      "resultBytes": 2062,
-      "resultSha256": "6177c7684f8dfcfdb9f870a83228717ada72eba9fd5862c5663948e4c68c5425",
-      "logSha256": "c1e1d413028ba753d68c96076e361546c9ae01e94fc1a62f8ad7349ae49fa5a2",
-      "orphanProcesses": 0,
-      "orphanEvidence": {
-        "observedAt": "2026-09-04T22:16:28.4978728+08:00",
-        "relationshipToAcceptance": "Observed after serialized r2 and all later aggregate processes completed.",
-        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/acceptance-orphan-check-final.json",
-        "logSha256": "e7e23d71b856cd9c5fd10de6f92070ddb1dca7a516f0afc0f28a2e82bf4126d0"
-      }
-    },
-    {
-      "name": "Multi-device deterministic repeats",
-      "result": "PASS",
-      "iterations": 3,
-      "passed": 9,
-      "failed": 0,
-      "logSha256": [
-        "1fed278b40eaaa0298be3d7f475d493124b451d4c7452020568a8b6cc12ed41e",
-        "af4326ba758e73ae46a33e54b186111f6b1c5a2c96dcefd761f2c9e19a03e660",
-        "bade294215e1e88d039e9b64ff054ef2fd65d108cb4e9fe428ad1bcca3f8e461"
-      ]
-    },
-    {
-      "name": "Documentation quick aggregate",
-      "result": "PASS",
-      "passedGates": 15,
-      "failedGates": 0,
-      "logSha256": "2b3417fee3f5cb6b8c752497c1ba02a09dc928d61efde979128ba80f3660a8db"
-    },
-    {
-      "name": "Documentation full aggregate",
-      "result": "FAIL",
-      "classification": "HOST_ENVIRONMENT",
-      "passedGates": 31,
-      "failedGates": 1,
-      "failedTests": 1,
-      "passedTestsInFailedGate": 68,
-      "reason": "Windows returned EPERM while a test constructed a temporary symlink fixture; every repository-content freshness gate passed.",
-      "logSha256": "d5cfed31c84c1582e2abf32b2d4fc70534488e825deb16e6232677a85ad6826e"
-    },
-    {
-      "name": "Cordis catalog freshness",
-      "result": "PASS",
-      "generatedItems": 101,
-      "logSha256": "5ed529cee1224d5b3d7259b88b7bf5bdd4838eed52d461a5d744a5c6e7457b8e"
-    }
-  ],
-  "aggregate": {
-    "command": "& .\\.artifacts\\g1-check-ci-wrapper.ps1",
-    "rawResult": "FAIL",
-    "status": "PARTIAL",
-    "exitCode": 1,
-    "passedGates": 55,
-    "failedGates": 5,
-    "skippedGates": 0,
-    "elapsedSeconds": 3364.47,
-    "log": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
-    "logBytes": 769780,
-    "logSha256": "3ae86c10b6b7488a44771807147bde79837617139f223d938813a45e85e521db",
-    "failures": [
-      {
-        "gate": "test:coverage",
-        "result": "FAIL",
-        "classification": "HOST_ENVIRONMENT",
-        "testFilesPassed": 967,
-        "testFilesFailed": 18,
-        "testFilesSkipped": 3,
-        "testsPassed": 15686,
-        "testsFailed": 39,
-        "testsSkipped": 25,
-        "causes": {
-          "windowsSymlinkEperm": 37,
-          "codexTemporaryDirectoryRmdirEbusy": 2
-        },
-        "qualification": "The prior SDK optional-system-prompt timeout no longer failed; every remaining failure was an observed Windows symlink privilege or external Codex temp-directory lock."
-      },
-      {
-        "gate": "test:coverage-exempt-heavy",
-        "result": "FAIL",
-        "classification": "HOST_ENVIRONMENT",
-        "testFilesPassed": 40,
-        "testFilesFailed": 1,
-        "testFilesSkipped": 1,
-        "testsPassed": 751,
-        "testsFailed": 1,
-        "testsSkipped": 37,
-        "cause": "The Typert snapshot recorded a different count of parent segments from this nested worktree to the shared pnpm store; no generated contract or catalog drift remained."
-      },
-      {
-        "gate": "test:snapshot",
-        "result": "FAIL",
-        "classification": "HOST_ENVIRONMENT",
-        "testFilesPassed": 1,
-        "testFilesFailed": 5,
-        "testsPassed": 13,
-        "testsFailed": 91,
-        "testsSkipped": 9,
-        "cause": "The repository owns top-level fixture replay on macOS/Linux. The Windows run observed bash-to-pwsh and POSIX-to-Windows path changes, a missing bundled Playwright Chromium, and downstream SDK lifecycle refusals; this lane is not an admissible Windows fixture result."
-      },
-      {
-        "gate": "documentation site checks",
-        "result": "FAIL",
-        "classification": "HOST_ENVIRONMENT",
-        "testFilesPassed": 1,
-        "testFilesFailed": 1,
-        "testsPassed": 68,
-        "testsFailed": 1,
-        "cause": "Windows returned EPERM before the symlink-safety assertion could execute."
-      },
-      {
-        "gate": "node-next types",
-        "result": "FAIL",
-        "classification": "HOST_ENVIRONMENT",
-        "cause": "The consumer verifier creates directory symlinks for workspace packages. A minimal symlinkSync probe in the same worktree returned EPERM before TypeScript could run.",
-        "probeLogSha256": "f16ec264e28c49d4e085ff51e568a3575567ac5057c0f475670b844af2a724a3"
-      }
-    ]
-  },
-  "toolchains": {
-    "defaultPathProbe": {
-      "swift": "NOT_AVAILABLE",
-      "xcodebuild": "NOT_AVAILABLE",
-      "xcrun": "NOT_AVAILABLE",
-      "gradle": "NOT_AVAILABLE",
-      "java": "17.0.11",
-      "adb": "NOT_AVAILABLE",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/toolchain-probe.json",
-      "logSha256": "fda1340f992736fe2e56028258da11433032d76c872e97b664b61b729b04a480"
-    },
-    "configuredAndroidToolchain": {
-      "gradle": "8.14",
-      "java": "17.0.11",
-      "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/android-gradle-version.log",
-      "logSha256": "5f3ae55720cdc37fe463fd314367c5d65eeb51ac3f25c574ad08dd790f77a6a8"
+      "qualification": "后续只修正两处测试：错误包装断言及夹具对 protected Context 的访问；产品运行源码与 native app tree 未变，不冒称在新 SHA 上重跑 native acceptance。"
     }
   },
-  "restoration": {
-    "result": "PASS",
-    "acpPlaceholderBlobMatchesIndex": true,
-    "dependencyStateByteIdentical": true,
-    "dependencyStateSha256": "ac87effaf6ddb51384fc739900ecba020e83c06d4160530f36844ab33b441989",
-    "worktreePnpmLinkType": "Junction",
-    "worktreePnpmTarget": "E:\\Mix\\project\\deepseek-harness\\node_modules\\.pnpm",
-    "mainPnpmDirectoryCount": 1264,
-    "worktreeModulesMetadataExists": false,
-    "worktreeWorkspaceMetadataExists": false,
-    "trackedWorktreeCleanAfterAggregate": true
+  "requiredRemote": {
+    "trigger": "pull_request",
+    "base": "dev",
+    "verdict": "all checks passed",
+    "jobs": [
+      "node-24",
+      "node-24-coverage",
+      "node-24-consumers",
+      "node-compat",
+      "python-sdk",
+      "python-runtime",
+      "windows",
+      "windows-build",
+      "windows-native-tests"
+    ],
+    "applePrTrigger": "packages/** 与 apps/apple/** 会触发 apple-swift.yml；创建 draft PR 也会重新执行已跳过的 Swift 检查。"
   },
-  "artifacts": [
-    "artifacts/verification/gate-1/G1-CI.json",
-    "artifacts/verification/gate-1/gate1-evidence.json",
-    "artifacts/verification/gate-1/acceptance/kotlin-abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4.json",
-    ".artifacts/g1-final-abe90fa1d652-20260904-203016/",
-    ".artifacts/g1-final-abe90fa1d652-20260904-203016/acceptance-orphan-check-final.json",
-    ".artifacts/g1-final-abe90fa1d652-20260904-203016/client-build-environment-official.json",
-    ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/"
-  ],
   "notExecuted": [
     {
       "item": "swift test",
@@ -517,11 +129,537 @@
       "reason": "CANDIDATE_NOT_PUBLISHED"
     }
   ],
-  "userDispositionNote": "User-directed skipping records execution disposition only and does not establish E4 evidence or satisfy Gate 1 exit criteria.",
   "gateDecision": {
     "status": "PARTIAL",
     "closure": "OPEN",
     "canEnterGate2": false,
-    "blockingReason": "Gate 1 requires SwiftPM tests, real Host-to-Swift acceptance, and Swift recovery at E4. This Windows host has no Swift or Xcode toolchain."
+    "blockingReason": "远端 mandatory CI 与用户跳过的 Swift 验收尚未闭合。"
+  },
+  "historicalWindowsRun": {
+    "schemaVersion": 1,
+    "taskId": "G1-CI",
+    "status": "PARTIAL",
+    "evidenceLevel": "E4",
+    "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+    "sourceHead": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+    "branch": "codex/goal-mode-full-implementation",
+    "recordedAt": "2026-09-04T22:32:14.7681681+08:00",
+    "workingTreeState": "Every candidate execution input was committed and clean before the final focused and aggregate runs. This record and the copied Kotlin result were added only after those runs completed.",
+    "candidatePublication": {
+      "status": "NOT_EXECUTED",
+      "reason": "CANDIDATE_NOT_PUBLISHED",
+      "remoteBranchExists": false,
+      "remoteCandidateCi": "NOT_EXECUTED",
+      "remoteBranchProbe": "git ls-remote --heads origin refs/heads/codex/goal-mode-full-implementation",
+      "details": "The candidate branch did not exist on origin at the audit time, and this execution did not request remote candidate CI. Local evidence is not represented as remote CI; no claim is made about unrelated historical workflow_dispatch runs."
+    },
+    "executionEnvironment": {
+      "pnpmConfigVerifyDepsBeforeRun": "false",
+      "npmConfigVerifyDepsBeforeRun": "false",
+      "nodeOptionsPreloads": [
+        ".artifacts/g1-rec-tsx-userinfo-preload.cjs",
+        "artifacts/verification/gate-1/scripts/windows-tsx-geteuid-preload.cjs"
+      ],
+      "nodeOptionsPolicy": "NODE_OPTIONS used --require with the absolute path to the applicable preload.",
+      "preloadUsage": "Focused, native, and documentation runs used the ignored preload; publication-view verifiers used the checked-in equivalent.",
+      "commandRecording": "Each command field records the invoked program and argv. PowerShell output capture, LASTEXITCODE handling, and exit propagation are represented by the separate log fields rather than repeated in every command string.",
+      "telemetryDisabledForFocusedAndAggregateRuns": true,
+      "androidJavaHome": "D:\\JAVA_17",
+      "androidGradleUserHome": "E:\\DevCache\\gradle",
+      "androidGradleDistribution": "%LOCALAPPDATA%\\Temp\\dsh-gradle-8.14-root\\gradle-8.14"
+    },
+    "executionEvidence": [
+      {
+        "id": "link-generator-round-1",
+        "command": "pnpm --config.verify-deps-before-run=false run gen-link-contracts",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/gen-link-contracts-round-1.log"
+      },
+      {
+        "id": "link-generator-round-2",
+        "command": "pnpm --config.verify-deps-before-run=false run gen-link-contracts",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/gen-link-contracts-round-2.log"
+      },
+      {
+        "id": "link-contract-freshness",
+        "command": "pnpm --config.verify-deps-before-run=false run verify-link-contracts",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/verify-link-contracts.log"
+      },
+      {
+        "id": "contract-conformance",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/api/gateway/tests/stream-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts packages/remote/link-access/tests/protocol.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/contract-conformance.log"
+      },
+      {
+        "id": "authorization-tls-remote",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/remote/device-trust/tests packages/remote/link-access/tests packages/api/gateway/tests/gateway-stream.host.spec.ts packages/api/link-controller/tests/link-controller.host.spec.ts packages/remote/link-client/tests/link-client.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/authorization-tls-remote.log"
+      },
+      {
+        "id": "telemetry-privacy",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/session/session-telemetry/tests/redact.spec.ts packages/session/session-telemetry/tests/telemetry.spec.ts packages/session/session-telemetry-otel/tests/otel.spec.ts scripts/ci-workflow.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/telemetry-privacy-loader.log"
+      },
+      {
+        "id": "telemetry-loader-e2e",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.e2e.config.ts packages/session/session-telemetry-otel/tests/loader-composition.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/telemetry-loader-e2e.log"
+      },
+      {
+        "id": "sdk-server",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run packages/sdk/server/tests/server.spec.ts --maxWorkers=1 --testTimeout=90000 --expect.poll.timeout=90000",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/sdk-server.log"
+      },
+      {
+        "id": "official-build",
+        "command": "pnpm --config.verify-deps-before-run=false run build:official",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/build-official.log"
+      },
+      {
+        "id": "built-web",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.web.config.ts apps/web/tests/shipped-composition.e2e.ts apps/web/tests/feedback-release.e2e.ts",
+        "environmentOverride": {
+          "DSH_PLAYWRIGHT_EXECUTABLE_PATH": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        },
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/web-built.log"
+      },
+      {
+        "id": "built-cli-help",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.e2e.config.ts apps/cli/tests/built-bin.e2e.ts -t \"routes help and usage errors without activating startup-dependent rows\"",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/built-cli-help.log"
+      },
+      {
+        "id": "constraints",
+        "command": "pnpm --config.verify-deps-before-run=false run constraints",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/constraints.log"
+      },
+      {
+        "id": "publint",
+        "command": "pnpm --config.verify-deps-before-run=false run publint",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/publint.log"
+      },
+      {
+        "id": "built-package-invariants",
+        "command": "pnpm --config.verify-deps-before-run=false run verify-built-package-invariants",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/built-package-invariants.log"
+      },
+      {
+        "id": "android-core",
+        "command": "gradle --no-daemon -p apps/android :core:test --rerun-tasks",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/android-core-test.log"
+      },
+      {
+        "id": "host-kotlin-native-acceptance",
+        "command": "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+        "nativeDriver": [
+          "gradle",
+          "--no-daemon",
+          "-p",
+          "apps/android",
+          ":core:nativeAcceptance"
+        ],
+        "environmentOverride": {
+          "DSH_LINK_ACCEPTANCE_LANGUAGE": "kotlin",
+          "DSH_LINK_ACCEPTANCE_RESULT": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\goal-mode-full-implementation\\.artifacts\\g1-rec-kotlin-e4-abe90fa1d652-r2.json"
+        },
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/host-kotlin-native-acceptance-attempt-2.log"
+      },
+      {
+        "id": "multi-device",
+        "command": "pnpm --config.verify-deps-before-run=false exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-session-slice.e2e.ts -t \"the carrier-level session slice\"",
+        "iterations": 3,
+        "logs": [
+          ".artifacts/g1-final-abe90fa1d652-20260904-203016/multi-device-iteration-1.log",
+          ".artifacts/g1-final-abe90fa1d652-20260904-203016/multi-device-iteration-2.log",
+          ".artifacts/g1-final-abe90fa1d652-20260904-203016/multi-device-iteration-3.log"
+        ]
+      },
+      {
+        "id": "documentation-quick",
+        "command": "pnpm --config.verify-deps-before-run=false run test:docs",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/test-docs.log"
+      },
+      {
+        "id": "documentation-full",
+        "command": "pnpm --config.verify-deps-before-run=false run doc-sync",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/doc-sync.log"
+      },
+      {
+        "id": "cordis-catalog",
+        "command": "pnpm --config.verify-deps-before-run=false exec tsx scripts/gen-cordis-catalog.ts --check",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/cordis-catalog.log"
+      },
+      {
+        "id": "aggregate",
+        "command": "& .\\.artifacts\\g1-check-ci-wrapper.ps1",
+        "log": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log"
+      }
+    ],
+    "nonCandidateAttempts": [
+      {
+        "name": "Host-to-Kotlin attempt 1",
+        "result": "FAIL",
+        "classification": "INVALIDATED_INPUT_GUARD",
+        "countsTowardCandidateDecision": false,
+        "reason": "A concurrent built-smoke operation transiently changed an acceptance execution input. The harness refused before invoking the native driver; the serialized attempt 2 passed.",
+        "resultBytes": 107,
+        "resultSha256": "cd86a577d2e7d7bae38415555359f520b88c819b1ec3865e16d1cd6a3284b1e9",
+        "resultArtifact": ".artifacts/g1-rec-kotlin-e4-abe90fa1d652-r1.json",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/host-kotlin-native-acceptance.log",
+        "logSha256": "7263d60da335944f35fc38e44a53eba4eeadddff3428b30363cb1be1287360a2"
+      },
+      {
+        "name": "Built Web with the wrong Vitest config",
+        "result": "FAIL",
+        "classification": "COMMAND_SPEC_ERROR",
+        "countsTowardCandidateDecision": false,
+        "reason": "vitest.e2e.config.ts excludes apps/web; the owner vitest.web.config.ts command passed 8 of 8.",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/web-built-wrong-config.log",
+        "logSha256": "6cdf5144dca6736f29fe1921eb5e2c54819ad25a95b5d8cf85fabbc34e3c37ec"
+      },
+      {
+        "name": "Built Web without an explicit browser path",
+        "result": "FAIL",
+        "classification": "HOST_ENVIRONMENT",
+        "countsTowardCandidateDecision": false,
+        "reason": "The bundled Playwright Chromium revision was absent. The unchanged tests passed 8 of 8 with the installed Chrome executable.",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/web-built-browser-env-failed.log",
+        "logSha256": "bdc573433c8f6bb183577ebdc46420005e36462a9abfc27499ad556671d95a6e"
+      },
+      {
+        "name": "Aggregate preflight attempt 1",
+        "result": "NOT_EXECUTED",
+        "classification": "PRECONDITION_REFUSAL",
+        "countsTowardCandidateDecision": false,
+        "reason": "The wrapper refused before check:ci because pnpm had recreated two worktree-local metadata files. Both files were hashed and moved intact to an ignored recovery directory; the shared Junction and store were unchanged, and the next aggregate attempt completed.",
+        "recoveryDirectory": ".artifacts/pre-aggregate-node-metadata-abe90fa1d652/",
+        "recoveredFilesSha256": {
+          ".modules.yaml": "37d7db1ee8a6341b91a87b732b6dc0ea47737860b629ee2d1f2c4927a963be19",
+          ".pnpm-workspace-state-v1.json": "f4fa013b83193096c4d047c33e252d1da24fda11292c74b47af85d6e11aa0c35"
+        },
+        "persistentLog": null
+      }
+    ],
+    "focusedEvidence": [
+      {
+        "name": "Link generator deterministic rounds",
+        "result": "PASS",
+        "rounds": 2,
+        "trackedDriftAfterEachRound": 0,
+        "logSha256": "be09571cdca3fda9b424fb6098e3bb726af7f13e1ae1c77b4390204708ce6449"
+      },
+      {
+        "name": "Generated Link contract freshness",
+        "result": "PASS",
+        "stale": 0,
+        "logSha256": "562b140375b683903fbf7c71dbb5f498601040a52debe37546d19e2db0144a38"
+      },
+      {
+        "name": "Contract and conformance",
+        "result": "PASS",
+        "testFiles": 5,
+        "passed": 113,
+        "failed": 0,
+        "logSha256": "93a7587fd7272c74554cc2cb6a9a697e4ee4f027fd16cf53f006168e145ae508"
+      },
+      {
+        "name": "Authorization, TLS, and Remote regression",
+        "result": "PASS",
+        "testFiles": 8,
+        "passed": 181,
+        "failed": 0,
+        "logSha256": "824e187f184a61f9dc47f3f2443b5ec73b47249567ebbae4ceeb0eee2bbfa818"
+      },
+      {
+        "name": "Telemetry privacy and CI workflow",
+        "result": "PASS",
+        "testFiles": 4,
+        "passed": 99,
+        "failed": 0,
+        "logSha256": "3d84bf464e2e66d5f9d98a0a4ff50d39fcfc47a6e1498a08e8a83e36ad3a67f4"
+      },
+      {
+        "name": "Telemetry Loader E2E",
+        "result": "PASS",
+        "testFiles": 1,
+        "passed": 3,
+        "failed": 0,
+        "logSha256": "f2d266acac4d033547b2ddbab6d40a17527493b1192c225d92b846efe8e664a1"
+      },
+      {
+        "name": "SDK server regression",
+        "result": "PASS",
+        "testFiles": 1,
+        "passed": 32,
+        "failed": 0,
+        "logSha256": "633e3e3f612e67a67ed16d58a5f4d22bc7b347e51706afb792180294aec5a606"
+      },
+      {
+        "name": "Official complete build",
+        "result": "PASS",
+        "clientArtifacts": 220,
+        "clientEnvironmentValues": 4,
+        "clientArtifactSha256": "599ab3fa6dcb2eeeb1c521ecb50c164f8066bb64d29c18a79ff8e5cd374c1509",
+        "clientArtifactRecord": ".artifacts/g1-final-abe90fa1d652-20260904-203016/client-build-environment-official.json",
+        "clientArtifactRecordSource": ".dsh-build/client-build-environment.json",
+        "clientArtifactRecordSha256": "ebd708a5eedef60c09234e1d55dd7d48796c9de9d78ee22ef775d8e139595bae",
+        "clientArtifactInputs": [
+          "apps/web/dist/**/*",
+          "packages/*/*/lib/client.js",
+          "packages/*/*/lib/client.js.map"
+        ],
+        "clientArtifactDigest": "SHA-256 over sorted slash-normalized paths and file bytes; each entry contributes UTF-8 byte-length(path), colon, path, content byte length, colon, then content bytes as implemented by scripts/client-build-environment.ts.",
+        "logSha256": "e72227865d35cdf11d75e6faad430b4b0378b71fb4065e3d017a69e0624cc439"
+      },
+      {
+        "name": "Built Web acceptance",
+        "result": "PASS",
+        "testFiles": 2,
+        "passed": 8,
+        "failed": 0,
+        "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+        "logSha256": "00db04d8462e823f89279f99fc82bd04ab354f966ea47dc6f88ba4f916821d95"
+      },
+      {
+        "name": "Built CLI help",
+        "result": "PASS",
+        "passed": 1,
+        "skipped": 21,
+        "helpStderr": "EMPTY",
+        "logSha256": "5f1493cb6c88403bb5f0a29a40f9b6a68d9033c3c3df39e2e7bbd26ad58a7b4a"
+      },
+      {
+        "name": "Workspace constraints",
+        "result": "PASS",
+        "workspaceManifests": 276,
+        "logSha256": "7d97d217e6ad0bcbf11da91ee747e6c709d03c0dec4a840866b663f2c603fc62"
+      },
+      {
+        "name": "Publint publication view",
+        "result": "PASS",
+        "packages": 259,
+        "logSha256": "adea768d87dc1de612ca145df534bcc660f5e0f175e236f7fac659d85f61d28b"
+      },
+      {
+        "name": "Built package invariants",
+        "result": "PASS",
+        "compiledCompanions": 259,
+        "logSha256": "9f115cdc4c71b54a0188afed5cdad545fec0557d24786d3995c37f7d663a8649"
+      },
+      {
+        "name": "Android pure-JVM core",
+        "result": "PASS",
+        "gradle": "8.14",
+        "java": "17.0.11",
+        "suites": 28,
+        "passed": 125,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "wrongPinRequestBytesSent": false,
+        "logSha256": "13ddcd4c707fcd30a1cd975706035c6eb644f96ea5576bd76dee635cce8f852e"
+      },
+      {
+        "name": "Real Host-to-Kotlin acceptance and recovery",
+        "result": "PASS",
+        "passed": 13,
+        "failed": 0,
+        "hostCommit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+        "clientCommit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+        "resultBytes": 2062,
+        "resultSha256": "6177c7684f8dfcfdb9f870a83228717ada72eba9fd5862c5663948e4c68c5425",
+        "logSha256": "c1e1d413028ba753d68c96076e361546c9ae01e94fc1a62f8ad7349ae49fa5a2",
+        "orphanProcesses": 0,
+        "orphanEvidence": {
+          "observedAt": "2026-09-04T22:16:28.4978728+08:00",
+          "relationshipToAcceptance": "Observed after serialized r2 and all later aggregate processes completed.",
+          "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/acceptance-orphan-check-final.json",
+          "logSha256": "e7e23d71b856cd9c5fd10de6f92070ddb1dca7a516f0afc0f28a2e82bf4126d0"
+        }
+      },
+      {
+        "name": "Multi-device deterministic repeats",
+        "result": "PASS",
+        "iterations": 3,
+        "passed": 9,
+        "failed": 0,
+        "logSha256": [
+          "1fed278b40eaaa0298be3d7f475d493124b451d4c7452020568a8b6cc12ed41e",
+          "af4326ba758e73ae46a33e54b186111f6b1c5a2c96dcefd761f2c9e19a03e660",
+          "bade294215e1e88d039e9b64ff054ef2fd65d108cb4e9fe428ad1bcca3f8e461"
+        ]
+      },
+      {
+        "name": "Documentation quick aggregate",
+        "result": "PASS",
+        "passedGates": 15,
+        "failedGates": 0,
+        "logSha256": "2b3417fee3f5cb6b8c752497c1ba02a09dc928d61efde979128ba80f3660a8db"
+      },
+      {
+        "name": "Documentation full aggregate",
+        "result": "FAIL",
+        "classification": "HOST_ENVIRONMENT",
+        "passedGates": 31,
+        "failedGates": 1,
+        "failedTests": 1,
+        "passedTestsInFailedGate": 68,
+        "reason": "Windows returned EPERM while a test constructed a temporary symlink fixture; every repository-content freshness gate passed.",
+        "logSha256": "d5cfed31c84c1582e2abf32b2d4fc70534488e825deb16e6232677a85ad6826e"
+      },
+      {
+        "name": "Cordis catalog freshness",
+        "result": "PASS",
+        "generatedItems": 101,
+        "logSha256": "5ed529cee1224d5b3d7259b88b7bf5bdd4838eed52d461a5d744a5c6e7457b8e"
+      }
+    ],
+    "aggregate": {
+      "command": "& .\\.artifacts\\g1-check-ci-wrapper.ps1",
+      "rawResult": "FAIL",
+      "status": "PARTIAL",
+      "exitCode": 1,
+      "passedGates": 55,
+      "failedGates": 5,
+      "skippedGates": 0,
+      "elapsedSeconds": 3364.47,
+      "log": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
+      "logBytes": 769780,
+      "logSha256": "3ae86c10b6b7488a44771807147bde79837617139f223d938813a45e85e521db",
+      "failures": [
+        {
+          "gate": "test:coverage",
+          "result": "FAIL",
+          "classification": "HOST_ENVIRONMENT",
+          "testFilesPassed": 967,
+          "testFilesFailed": 18,
+          "testFilesSkipped": 3,
+          "testsPassed": 15686,
+          "testsFailed": 39,
+          "testsSkipped": 25,
+          "causes": {
+            "windowsSymlinkEperm": 37,
+            "codexTemporaryDirectoryRmdirEbusy": 2
+          },
+          "qualification": "The prior SDK optional-system-prompt timeout no longer failed; every remaining failure was an observed Windows symlink privilege or external Codex temp-directory lock."
+        },
+        {
+          "gate": "test:coverage-exempt-heavy",
+          "result": "FAIL",
+          "classification": "HOST_ENVIRONMENT",
+          "testFilesPassed": 40,
+          "testFilesFailed": 1,
+          "testFilesSkipped": 1,
+          "testsPassed": 751,
+          "testsFailed": 1,
+          "testsSkipped": 37,
+          "cause": "The Typert snapshot recorded a different count of parent segments from this nested worktree to the shared pnpm store; no generated contract or catalog drift remained."
+        },
+        {
+          "gate": "test:snapshot",
+          "result": "FAIL",
+          "classification": "HOST_ENVIRONMENT",
+          "testFilesPassed": 1,
+          "testFilesFailed": 5,
+          "testsPassed": 13,
+          "testsFailed": 91,
+          "testsSkipped": 9,
+          "cause": "The repository owns top-level fixture replay on macOS/Linux. The Windows run observed bash-to-pwsh and POSIX-to-Windows path changes, a missing bundled Playwright Chromium, and downstream SDK lifecycle refusals; this lane is not an admissible Windows fixture result."
+        },
+        {
+          "gate": "documentation site checks",
+          "result": "FAIL",
+          "classification": "HOST_ENVIRONMENT",
+          "testFilesPassed": 1,
+          "testFilesFailed": 1,
+          "testsPassed": 68,
+          "testsFailed": 1,
+          "cause": "Windows returned EPERM before the symlink-safety assertion could execute."
+        },
+        {
+          "gate": "node-next types",
+          "result": "FAIL",
+          "classification": "HOST_ENVIRONMENT",
+          "cause": "The consumer verifier creates directory symlinks for workspace packages. A minimal symlinkSync probe in the same worktree returned EPERM before TypeScript could run.",
+          "probeLogSha256": "f16ec264e28c49d4e085ff51e568a3575567ac5057c0f475670b844af2a724a3"
+        }
+      ]
+    },
+    "toolchains": {
+      "defaultPathProbe": {
+        "swift": "NOT_AVAILABLE",
+        "xcodebuild": "NOT_AVAILABLE",
+        "xcrun": "NOT_AVAILABLE",
+        "gradle": "NOT_AVAILABLE",
+        "java": "17.0.11",
+        "adb": "NOT_AVAILABLE",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/toolchain-probe.json",
+        "logSha256": "fda1340f992736fe2e56028258da11433032d76c872e97b664b61b729b04a480"
+      },
+      "configuredAndroidToolchain": {
+        "gradle": "8.14",
+        "java": "17.0.11",
+        "log": ".artifacts/g1-final-abe90fa1d652-20260904-203016/android-gradle-version.log",
+        "logSha256": "5f3ae55720cdc37fe463fd314367c5d65eeb51ac3f25c574ad08dd790f77a6a8"
+      }
+    },
+    "restoration": {
+      "result": "PASS",
+      "acpPlaceholderBlobMatchesIndex": true,
+      "dependencyStateByteIdentical": true,
+      "dependencyStateSha256": "ac87effaf6ddb51384fc739900ecba020e83c06d4160530f36844ab33b441989",
+      "worktreePnpmLinkType": "Junction",
+      "worktreePnpmTarget": "E:\\Mix\\project\\deepseek-harness\\node_modules\\.pnpm",
+      "mainPnpmDirectoryCount": 1264,
+      "worktreeModulesMetadataExists": false,
+      "worktreeWorkspaceMetadataExists": false,
+      "trackedWorktreeCleanAfterAggregate": true
+    },
+    "artifacts": [
+      "artifacts/verification/gate-1/G1-CI.json",
+      "artifacts/verification/gate-1/gate1-evidence.json",
+      "artifacts/verification/gate-1/acceptance/kotlin-abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4.json",
+      ".artifacts/g1-final-abe90fa1d652-20260904-203016/",
+      ".artifacts/g1-final-abe90fa1d652-20260904-203016/acceptance-orphan-check-final.json",
+      ".artifacts/g1-final-abe90fa1d652-20260904-203016/client-build-environment-official.json",
+      ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/"
+    ],
+    "notExecuted": [
+      {
+        "item": "swift test",
+        "status": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
+        "userDisposition": "SKIPPED_BY_USER",
+        "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      },
+      {
+        "item": "Real Host-to-Swift acceptance",
+        "status": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
+        "userDisposition": "SKIPPED_BY_USER",
+        "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      },
+      {
+        "item": "Swift disconnect and authoritative recovery",
+        "status": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
+        "userDisposition": "SKIPPED_BY_USER",
+        "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00"
+      },
+      {
+        "item": "Remote candidate CI",
+        "status": "NOT_EXECUTED",
+        "reason": "CANDIDATE_NOT_PUBLISHED"
+      }
+    ],
+    "userDispositionNote": "User-directed skipping records execution disposition only and does not establish E4 evidence or satisfy Gate 1 exit criteria.",
+    "gateDecision": {
+      "status": "PARTIAL",
+      "closure": "OPEN",
+      "canEnterGate2": false,
+      "blockingReason": "Gate 1 requires SwiftPM tests, real Host-to-Swift acceptance, and Swift recovery at E4. This Windows host has no Swift or Xcode toolchain."
+    }
   }
 }

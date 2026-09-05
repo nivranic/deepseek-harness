@@ -1,96 +1,69 @@
 {
+  "schemaVersion": 1,
   "taskId": "G1-ANDROID",
-  "status": "PARTIAL",
+  "status": "PASS",
   "evidenceLevel": "E4",
-  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
-  "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
-  "workingTreeState": "All product, test, contract, and documentation inputs were committed and clean when the real Host acceptance started; the Host published the privacy-safe result before these evidence records were updated.",
-  "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
-  "toolchain": {
-    "java": "17.0.11",
-    "gradle": "8.14",
-    "kotlin": "2.1.20",
-    "androidSdk": "NOT_AVAILABLE"
-  },
-  "commands": [
-    "gradle --no-daemon -p apps/android :core:test --tests ai.deepseek.dsh.link.LinkClientTest --tests ai.deepseek.dsh.link.LinkPinningTest",
-    "gradle --no-daemon -p apps/android :core:test --rerun-tasks",
-    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
-    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-link-contracts.ts",
-    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-translation-pairing.ts <four changed pairs>",
-    "git diff --check"
-  ],
+  "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
+  "latestCandidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
   "tests": [
     {
-      "name": "Generated Link contract freshness",
-      "result": "PASS",
-      "stale": 0
+      "name": "真实 Host 与生产 Kotlin 客户端的共享验收",
+      "status": "PASS",
+      "evidenceLevel": "E4",
+      "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
+      "runner": "Windows 11 / JDK 17.0.11 / Gradle 8.14",
+      "passedSteps": 13,
+      "command": "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+      "driver": [
+        "gradle",
+        "--no-daemon",
+        "-p",
+        "apps/android",
+        ":core:nativeAcceptance"
+      ],
+      "artifact": {
+        "path": "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+        "sha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a"
+      },
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/host-kotlin-9fcde39.log",
+        "sha256": "0243c1db3b96dd3b0079296ee8e03d4278ed024197107362f15b5b1ef7b021b4"
+      },
+      "recovery": {
+        "preFaultSeq": 82,
+        "recoverySnapshotCursor": 93,
+        "repeatedSnapshotCursor": 93,
+        "offlineSeqCount": 11,
+        "recoverySnapshotHasMore": false,
+        "followReplacementCount": 2,
+        "eventReplacementCount": 2,
+        "projectionItemCount": 78,
+        "projectionPlanActive": false,
+        "projectionTodoCount": 0,
+        "projectionGoalCount": 0,
+        "projectionToolCallCount": 0,
+        "projectionImageCount": 0,
+        "projectionArtifactCount": 0,
+        "projectionEqualAfterRepeatedReconnect": true,
+        "beforeRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+        "afterRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+        "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+      },
+      "carryForward": {
+        "candidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+        "changedFiles": [
+          "packages/api/session-controller/tests/commands-artifact.host.spec.ts",
+          "packages/artifact/artifact-local/tests/artifact-local.spec.ts"
+        ],
+        "qualification": "后续只修正两处测试：错误包装断言及夹具对 protected Context 的访问；产品运行源码与 native app tree 未变，不冒称在新 SHA 上重跑 native acceptance。"
+      }
     },
     {
-      "name": "Focused LinkClient and LinkPinning Gradle tests",
-      "result": "PASS",
-      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
-      "passed": 28,
-      "failed": 0,
-      "skipped": 0,
-      "coverage": [
-        "unary and stream 403 forbidden preserve the stable refusal code",
-        "malformed rejection JSON remains a carrier failure without decoder leakage",
-        "invalid pair response identity, role, and protocol fields fail before credential persistence",
-        "right-pin TLS succeeds",
-        "wrong-pin TLS is rejected before application request bytes",
-        "cancellation and transport retirement settle without orphan work"
-      ]
-    },
-    {
-      "name": "Complete Android pure-JVM core Gradle tests",
-      "result": "PASS",
-      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
-      "suites": 28,
-      "passed": 125,
-      "failed": 0,
-      "errors": 0,
-      "skipped": 0
-    },
-    {
-      "name": "Real Host-to-Kotlin acceptance",
-      "role": "native",
-      "result": "PASS",
-      "passed": 13,
-      "failed": 0,
-      "hostCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-      "clientCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-      "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
-      "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480",
-      "orphanProcesses": 0
-    },
-    {
-      "name": "Android app debug assembly",
-      "result": "NOT_EXECUTED",
-      "reason": "ANDROID_SDK_UNAVAILABLE"
+      "name": "Android 装配与未配对 Activity 启动",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-ANDROID-APP.json"
     }
-  ],
-  "artifacts": [
-    "artifacts/verification/gate-1/G1-ANDROID.json",
-    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
-    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
-    "packages/remote/link-contracts/acceptance/corpus.v1.json",
-    ".github/workflows/android-kotlin.yml",
-    ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md"
-  ],
-  "logs": [],
-  "changedFiles": [
-    "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
-    "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
-    "apps/android/README.md",
-    "apps/android/README.zh.md",
-    "apps/android/README.i18n.yaml",
-    ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md",
-    ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.zh.md",
-    ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.i18n.yaml",
-    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
-    "artifacts/verification/gate-1/G1-ANDROID.json"
   ],
   "acceptance": [
     "The committed Kotlin client and shipped Host completed the shared pair, connect, describe, list, open, history, follow, prompt, stream, approval, cancel, reconnect, and revoke corpus.",
@@ -100,21 +73,138 @@
     "No matching Gradle, Kotlin, or Host process remained after the lane completed."
   ],
   "knownLimitations": [
-    "The Windows host has no Android SDK, so the Compose app debug assembly was not executed. The task remains PARTIAL even though the pure-JVM Remote client criteria reached E4.",
-    "Swift/Xcode is unavailable on this host; that independent cross-language lane remains open in G1-E2E and G1-REC.",
-    "The fresh Gradle 8.14 rerun reports existing ExperimentalCoroutinesApi opt-in and Gradle 9 deprecation warnings; all 125 tests still pass."
+    "App assembly, APK signature and API 34 unpaired startup are verified. No emulator-to-Host pairing or physical-device network acceptance was executed.",
+    "The instrumented startup test pre-grants notification permission; permission refusal remains in the physical-device plan.",
+    "Kotlin real-Host acceptance runs the production core on JDK 17 and does not validate Android-specific crypto or TLS providers.",
+    "Swift user-skipped execution and remote candidate CI remain open.",
+    "Android CI now contains a pinned emulator action; that remote action was not executed in this continuation."
   ],
-  "notExecuted": [
-    {
-      "item": "gradle --no-daemon -p apps/android :app:assembleDebug",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "details": "No Android SDK or local.properties exists on the execution host."
+  "notExecuted": [],
+  "artifacts": [
+    "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+    "artifacts/verification/gate-1/G1-ANDROID-APP.json"
+  ],
+  "historicalEvidence": {
+    "qualification": "原记录保留审计历史；其中未找到 Android SDK 的判断已由现有 SDK 实测纠正。",
+    "record": {
+      "taskId": "G1-ANDROID",
+      "status": "PARTIAL",
+      "evidenceLevel": "E4",
+      "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+      "workingTreeState": "All product, test, contract, and documentation inputs were committed and clean when the real Host acceptance started; the Host published the privacy-safe result before these evidence records were updated.",
+      "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
+      "toolchain": {
+        "java": "17.0.11",
+        "gradle": "8.14",
+        "kotlin": "2.1.20",
+        "androidSdk": "NOT_AVAILABLE"
+      },
+      "commands": [
+        "gradle --no-daemon -p apps/android :core:test --tests ai.deepseek.dsh.link.LinkClientTest --tests ai.deepseek.dsh.link.LinkPinningTest",
+        "gradle --no-daemon -p apps/android :core:test --rerun-tasks",
+        "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+        "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-link-contracts.ts",
+        "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs --import tsx/esm scripts/verify-translation-pairing.ts <four changed pairs>",
+        "git diff --check"
+      ],
+      "tests": [
+        {
+          "name": "Generated Link contract freshness",
+          "result": "PASS",
+          "stale": 0
+        },
+        {
+          "name": "Focused LinkClient and LinkPinning Gradle tests",
+          "result": "PASS",
+          "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+          "passed": 28,
+          "failed": 0,
+          "skipped": 0,
+          "coverage": [
+            "unary and stream 403 forbidden preserve the stable refusal code",
+            "malformed rejection JSON remains a carrier failure without decoder leakage",
+            "invalid pair response identity, role, and protocol fields fail before credential persistence",
+            "right-pin TLS succeeds",
+            "wrong-pin TLS is rejected before application request bytes",
+            "cancellation and transport retirement settle without orphan work"
+          ]
+        },
+        {
+          "name": "Complete Android pure-JVM core Gradle tests",
+          "result": "PASS",
+          "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+          "suites": 28,
+          "passed": 125,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "Real Host-to-Kotlin acceptance",
+          "role": "native",
+          "result": "PASS",
+          "passed": 13,
+          "failed": 0,
+          "hostCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+          "clientCommit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+          "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
+          "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480",
+          "orphanProcesses": 0
+        },
+        {
+          "name": "Android app debug assembly",
+          "result": "NOT_EXECUTED",
+          "reason": "ANDROID_SDK_UNAVAILABLE"
+        }
+      ],
+      "artifacts": [
+        "artifacts/verification/gate-1/G1-ANDROID.json",
+        "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkNativeAcceptance.kt",
+        "packages/remote/link-contracts/acceptance/corpus.v1.json",
+        ".github/workflows/android-kotlin.yml",
+        ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md"
+      ],
+      "logs": [],
+      "changedFiles": [
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+        "apps/android/README.md",
+        "apps/android/README.zh.md",
+        "apps/android/README.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md",
+        ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.zh.md",
+        ".agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.i18n.yaml",
+        "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
+        "artifacts/verification/gate-1/G1-ANDROID.json"
+      ],
+      "acceptance": [
+        "The committed Kotlin client and shipped Host completed the shared pair, connect, describe, list, open, history, follow, prompt, stream, approval, cancel, reconnect, and revoke corpus.",
+        "The acceptance result binds Host and Client to the same clean source SHA and the current corpus hash.",
+        "The Host-published PASS result contains only allowlisted identity, step, recovery count, projection count, equality, and digest fields; the complete candidate projection was removed before publication.",
+        "Recovery advanced from sequence 82 to cursor 93 with 11 offline sequence values, two follow replacements, two Remote Event replacements, no remaining page, and equal projections before and after the repeated reconnect.",
+        "No matching Gradle, Kotlin, or Host process remained after the lane completed."
+      ],
+      "knownLimitations": [
+        "The Windows host has no Android SDK, so the Compose app debug assembly was not executed. The task remains PARTIAL even though the pure-JVM Remote client criteria reached E4.",
+        "Swift/Xcode is unavailable on this host; that independent cross-language lane remains open in G1-E2E and G1-REC.",
+        "The fresh Gradle 8.14 rerun reports existing ExperimentalCoroutinesApi opt-in and Gradle 9 deprecation warnings; all 125 tests still pass."
+      ],
+      "notExecuted": [
+        {
+          "item": "gradle --no-daemon -p apps/android :app:assembleDebug",
+          "status": "NOT_EXECUTED",
+          "reason": "HOST_ENVIRONMENT",
+          "details": "No Android SDK or local.properties exists on the execution host."
+        }
+      ],
+      "nextDependencies": [
+        "G1-E2E",
+        "G1-REC",
+        "G1-CI"
+      ]
     }
-  ],
-  "nextDependencies": [
-    "G1-E2E",
-    "G1-REC",
-    "G1-CI"
-  ]
+  }
 }

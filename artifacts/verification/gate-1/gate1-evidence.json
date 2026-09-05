@@ -7,12 +7,12 @@
   "closure": "OPEN",
   "canEnterGate2": false,
   "candidate": {
-    "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+    "commit": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
     "branch": "codex/goal-mode-full-implementation",
     "published": false,
     "remoteCandidateCi": "NOT_EXECUTED"
   },
-  "recordedAt": "2026-09-04T22:32:14.7681681+08:00",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
   "userDispositionNote": "User-directed skipping records execution disposition only and does not establish E4 evidence or satisfy Gate 1 exit criteria.",
   "taskEvidence": [
     {
@@ -29,7 +29,7 @@
       "taskId": "G1-DOC",
       "status": "PASS",
       "evidence": "artifacts/verification/gate-1/G1-DOC.json",
-      "qualification": "All repository-content drift is zero; one Windows-only symlink fixture remains host-blocked."
+      "qualification": "Linux test:docs 15/15 与 doc-sync 32/32；原 symlink fixture 阻断已取得便携 runner 证据。"
     },
     {
       "taskId": "G1-CONTRACT",
@@ -49,9 +49,9 @@
     },
     {
       "taskId": "G1-ANDROID",
-      "status": "PARTIAL",
+      "status": "PASS",
       "evidence": "artifacts/verification/gate-1/G1-ANDROID.json",
-      "qualification": "The pure-JVM Remote core and real Host-to-Kotlin path reached E4; Android app assembly was not executed because no Android SDK is installed."
+      "qualification": "JVM core 125/125、真实 Host 与 Kotlin 13/13、debug APK 装配及 API 34 未配对 Activity 启动通过；真机网络未验。"
     },
     {
       "taskId": "G1-AUTH",
@@ -105,7 +105,7 @@
     {
       "criterion": "PoC-5 >= VERIFIED-on-simulator with real-device plan ready",
       "status": "PARTIAL",
-      "reason": "Android pure-JVM client tests passed; Swift compilation and the platform simulator lane are unavailable on this host."
+      "reason": "Android debug APK 与 API 34 首屏 instrumentation 已通过；Apple simulator 与真实设备网络路径未验证。"
     },
     {
       "criterion": "Base composition",
@@ -128,7 +128,7 @@
     {
       "criterion": "Host-to-Kotlin",
       "status": "PASS",
-      "evidence": "13 of 13 ordered steps passed at the candidate SHA."
+      "evidence": "13/13 at 9fcde39df023c9dad790f41e6fc46c931e88898e；之后只有两处测试修正，保留实际验收 SHA。"
     },
     {
       "criterion": "Android wrong pin",
@@ -138,7 +138,7 @@
     {
       "criterion": "Documentation real drift",
       "status": "PASS",
-      "evidence": "All content, generated, pairing, catalog, and link checks passed; the sole full-doc failure was test-fixture symlink EPERM."
+      "evidence": "Linux doc-sync 32/32 与 test:docs 15/15 通过。"
     },
     {
       "criterion": "Telemetry sensitive payload leakage",
@@ -148,15 +148,15 @@
     {
       "criterion": "Single release-candidate SHA mandatory evidence",
       "status": "PARTIAL",
-      "reason": "All runnable candidate-specific focused evidence is bound to one SHA, but mandatory Swift evidence and remote candidate CI are not executed."
+      "reason": "本地 coverage 已关闭；Swift 和远端 mandatory CI 未执行。各证据保留实际执行 SHA，不伪造同一次完整矩阵运行。"
     }
   ],
   "candidateEvidence": {
-    "kotlinAcceptance": "artifacts/verification/gate-1/acceptance/kotlin-abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4.json",
-    "kotlinAcceptanceSha256": "6177c7684f8dfcfdb9f870a83228717ada72eba9fd5862c5663948e4c68c5425",
-    "focusedLogDirectory": ".artifacts/g1-final-abe90fa1d652-20260904-203016/",
-    "aggregateLog": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
-    "aggregateLogSha256": "3ae86c10b6b7488a44771807147bde79837617139F223D938813A45E85E521DB"
+    "kotlinAcceptance": "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+    "kotlinAcceptanceSha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a",
+    "portableRunners": "artifacts/verification/gate-1/G1-PORTABLE-RUNNERS.json",
+    "androidApp": "artifacts/verification/gate-1/G1-ANDROID-APP.json",
+    "closureDecision": "artifacts/verification/gate-1/G1-CLOSURE-DECISION.json"
   },
   "blockingItems": [
     {
@@ -195,5 +195,18 @@
     "status": "PARTIAL",
     "closure": "OPEN",
     "canEnterGate2": false
+  },
+  "previousCandidate": {
+    "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+    "branch": "codex/goal-mode-full-implementation",
+    "published": false,
+    "remoteCandidateCi": "NOT_EXECUTED"
+  },
+  "previousCandidateEvidence": {
+    "kotlinAcceptance": "artifacts/verification/gate-1/acceptance/kotlin-abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4.json",
+    "kotlinAcceptanceSha256": "6177c7684f8dfcfdb9f870a83228717ada72eba9fd5862c5663948e4c68c5425",
+    "focusedLogDirectory": ".artifacts/g1-final-abe90fa1d652-20260904-203016/",
+    "aggregateLog": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
+    "aggregateLogSha256": "3ae86c10b6b7488a44771807147bde79837617139F223D938813A45E85E521DB"
   }
 }

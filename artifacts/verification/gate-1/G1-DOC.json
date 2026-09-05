@@ -1,105 +1,144 @@
 {
+  "schemaVersion": 1,
   "taskId": "G1-DOC",
   "status": "PASS",
-  "commit": "09758cb5ad623a6f11cc2c7ba46ffc3dee0177b6",
-  "startedFrom": "09758cb5ad623a6f11cc2c7ba46ffc3dee0177b6",
-  "commands": [
-    "pnpm run gen-cordis-catalog",
-    "pnpm run gen-cordis-inspect-catalog",
-    "pnpm run gen-config-catalog",
-    "pnpm run gen-tsconfig-paths",
-    "pnpm run gen-doc-graphs",
-    "pnpm run verify-export-jsdoc",
-    "pnpm run verify-cordis-catalog",
-    "pnpm run verify-cordis-inspect-catalog",
-    "pnpm run verify-config-catalog",
-    "pnpm run verify-subsystem-pages",
-    "pnpm run verify-tsconfig-paths",
-    "pnpm run verify-doc-graphs",
-    "pnpm run verify-translation-pairing docs/capability-seams.md docs/config-catalog.md docs/event-producer-consumer.md docs/subsystems/README.md docs/subsystems/artifact.md docs/subsystems/session.md docs/subsystems/workspace.md packages/artifact/README.md",
-    "pnpm run test:docs",
-    "pnpm run doc-sync"
-  ],
+  "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
   "tests": [
     {
-      "name": "Focused documentation freshness gates",
-      "result": "PASS",
-      "passed": 8,
-      "failed": 0
+      "id": "doc-sync",
+      "status": "PASS",
+      "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+      "command": "pnpm run doc-sync",
+      "passedGates": 32,
+      "failedGates": 0,
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-evidence-doc-sync.log",
+        "sha256": "6ef87c9178dcca2731fc1a8ae0232056c89cc4f5a2be612c1ac61b181f1ca96d"
+      },
+      "qualification": "最新代码候选加本轮待提交的 evidence JSON 和交接 Markdown 输入。"
     },
     {
-      "name": "Documentation quick aggregate",
-      "result": "PASS",
-      "passed": 15,
-      "failed": 0
-    },
-    {
-      "name": "Documentation full aggregate",
-      "result": "PARTIAL",
-      "passed": 31,
-      "failed": 1,
-      "reason": "The only failure is the Windows host denying symlink creation in the documentation-site escape fixture with EPERM. All repository freshness, catalog, graph, type, link, pairing, and documentation build gates passed."
+      "id": "test-docs",
+      "status": "PASS",
+      "sourceHead": "4c2e8f4616df4c0154d3fe49a9a9611384cdafb5",
+      "command": "pnpm run test:docs",
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/linux-final-test-docs.log",
+        "sha256": "3d6b3702a991040703014b5a2479931f1e4a972d556491c855e43506941b8b1d"
+      },
+      "passedGates": 15,
+      "failedGates": 0
     }
   ],
-  "artifacts": [
-    "artifacts/verification/gate-1/G1-DOC.json"
-  ],
-  "logs": [],
-  "changedFiles": [
-    "apps/cli/composition.md",
-    "docs/capability-seams.md",
-    "docs/capability-seams.zh.md",
-    "docs/capability-seams.i18n.yaml",
-    "docs/config-catalog.md",
-    "docs/config-catalog.zh.md",
-    "docs/config-catalog.i18n.yaml",
-    "docs/event-producer-consumer.md",
-    "docs/event-producer-consumer.zh.md",
-    "docs/event-producer-consumer.i18n.yaml",
-    "docs/subsystems/README.md",
-    "docs/subsystems/README.zh.md",
-    "docs/subsystems/README.i18n.yaml",
-    "docs/subsystems/artifact.md",
-    "docs/subsystems/artifact.zh.md",
-    "docs/subsystems/artifact.i18n.yaml",
-    "docs/subsystems/session.md",
-    "docs/subsystems/session.zh.md",
-    "docs/subsystems/session.i18n.yaml",
-    "docs/subsystems/workspace.md",
-    "docs/subsystems/workspace.zh.md",
-    "docs/subsystems/workspace.i18n.yaml",
-    "packages/artifact/README.md",
-    "packages/artifact/README.zh.md",
-    "packages/artifact/README.i18n.yaml",
-    "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-    "packages/extensions/tool-cordis/src/api-catalog.ts",
-    "packages/remote/link-contracts/src/companion-fold.ts",
-    "packages/remote/link-contracts/src/lite-spec.ts",
-    "scripts/gen-cordis-catalog.ts",
-    "scripts/gen-doc-graphs.ts",
-    "tsconfig.base.json"
-  ],
+  "knownLimitations": [],
+  "notExecuted": [],
   "acceptance": [
-    "Every identified public signature type resolves to its owning subsystem page.",
-    "The Cordis runtime and inspect catalogs, configuration catalog, composition graph, event graph, and TypeScript path aliases match current source.",
-    "Every exported function in scope has the required return documentation.",
-    "The Artifact package group links to an owning subsystem reference, and that bilingual reference documents the journal lifecycle, content channel, and Session Remote authorization responsibility.",
-    "All changed bilingual documents are structurally consistent and recorded at their exact reviewed contents.",
-    "No repository-owned documentation drift remains."
+    "Linux 完整 doc-sync 32/32、test:docs 15/15 均通过，原 Windows symlink fixture 阻断已取得便携 runner 证据。"
   ],
-  "knownLimitations": [
-    "The current Windows host denies symlink creation for scripts/project-doc-site.spec.ts. The failure occurs while constructing the escape-test fixture before product code runs and is not repaired in repository code."
-  ],
-  "notExecuted": [
-    {
-      "item": "Documentation-site symlink escape fixture",
-      "status": "NOT_EXECUTED",
-      "reason": "ENVIRONMENT_BLOCKED",
-      "details": "Windows returned EPERM from symlinkSync for a temporary file link; 68 of 69 documentation-site tests passed."
-    }
-  ],
-  "nextDependencies": [
-    "G1-CONTRACT",
-    "G1-PRIV"
-  ]
+  "historicalEvidence": {
+    "taskId": "G1-DOC",
+    "status": "PASS",
+    "commit": "09758cb5ad623a6f11cc2c7ba46ffc3dee0177b6",
+    "startedFrom": "09758cb5ad623a6f11cc2c7ba46ffc3dee0177b6",
+    "commands": [
+      "pnpm run gen-cordis-catalog",
+      "pnpm run gen-cordis-inspect-catalog",
+      "pnpm run gen-config-catalog",
+      "pnpm run gen-tsconfig-paths",
+      "pnpm run gen-doc-graphs",
+      "pnpm run verify-export-jsdoc",
+      "pnpm run verify-cordis-catalog",
+      "pnpm run verify-cordis-inspect-catalog",
+      "pnpm run verify-config-catalog",
+      "pnpm run verify-subsystem-pages",
+      "pnpm run verify-tsconfig-paths",
+      "pnpm run verify-doc-graphs",
+      "pnpm run verify-translation-pairing docs/capability-seams.md docs/config-catalog.md docs/event-producer-consumer.md docs/subsystems/README.md docs/subsystems/artifact.md docs/subsystems/session.md docs/subsystems/workspace.md packages/artifact/README.md",
+      "pnpm run test:docs",
+      "pnpm run doc-sync"
+    ],
+    "tests": [
+      {
+        "name": "Focused documentation freshness gates",
+        "result": "PASS",
+        "passed": 8,
+        "failed": 0
+      },
+      {
+        "name": "Documentation quick aggregate",
+        "result": "PASS",
+        "passed": 15,
+        "failed": 0
+      },
+      {
+        "name": "Documentation full aggregate",
+        "result": "PARTIAL",
+        "passed": 31,
+        "failed": 1,
+        "reason": "The only failure is the Windows host denying symlink creation in the documentation-site escape fixture with EPERM. All repository freshness, catalog, graph, type, link, pairing, and documentation build gates passed."
+      }
+    ],
+    "artifacts": [
+      "artifacts/verification/gate-1/G1-DOC.json"
+    ],
+    "logs": [],
+    "changedFiles": [
+      "apps/cli/composition.md",
+      "docs/capability-seams.md",
+      "docs/capability-seams.zh.md",
+      "docs/capability-seams.i18n.yaml",
+      "docs/config-catalog.md",
+      "docs/config-catalog.zh.md",
+      "docs/config-catalog.i18n.yaml",
+      "docs/event-producer-consumer.md",
+      "docs/event-producer-consumer.zh.md",
+      "docs/event-producer-consumer.i18n.yaml",
+      "docs/subsystems/README.md",
+      "docs/subsystems/README.zh.md",
+      "docs/subsystems/README.i18n.yaml",
+      "docs/subsystems/artifact.md",
+      "docs/subsystems/artifact.zh.md",
+      "docs/subsystems/artifact.i18n.yaml",
+      "docs/subsystems/session.md",
+      "docs/subsystems/session.zh.md",
+      "docs/subsystems/session.i18n.yaml",
+      "docs/subsystems/workspace.md",
+      "docs/subsystems/workspace.zh.md",
+      "docs/subsystems/workspace.i18n.yaml",
+      "packages/artifact/README.md",
+      "packages/artifact/README.zh.md",
+      "packages/artifact/README.i18n.yaml",
+      "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
+      "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "packages/remote/link-contracts/src/companion-fold.ts",
+      "packages/remote/link-contracts/src/lite-spec.ts",
+      "scripts/gen-cordis-catalog.ts",
+      "scripts/gen-doc-graphs.ts",
+      "tsconfig.base.json"
+    ],
+    "acceptance": [
+      "Every identified public signature type resolves to its owning subsystem page.",
+      "The Cordis runtime and inspect catalogs, configuration catalog, composition graph, event graph, and TypeScript path aliases match current source.",
+      "Every exported function in scope has the required return documentation.",
+      "The Artifact package group links to an owning subsystem reference, and that bilingual reference documents the journal lifecycle, content channel, and Session Remote authorization responsibility.",
+      "All changed bilingual documents are structurally consistent and recorded at their exact reviewed contents.",
+      "No repository-owned documentation drift remains."
+    ],
+    "knownLimitations": [
+      "The current Windows host denies symlink creation for scripts/project-doc-site.spec.ts. The failure occurs while constructing the escape-test fixture before product code runs and is not repaired in repository code."
+    ],
+    "notExecuted": [
+      {
+        "item": "Documentation-site symlink escape fixture",
+        "status": "NOT_EXECUTED",
+        "reason": "ENVIRONMENT_BLOCKED",
+        "details": "Windows returned EPERM from symlinkSync for a temporary file link; 68 of 69 documentation-site tests passed."
+      }
+    ],
+    "nextDependencies": [
+      "G1-CONTRACT",
+      "G1-PRIV"
+    ]
+  }
 }
