@@ -87,6 +87,7 @@ describe('module identity through the loader', () => {
     expect(require('events')).toBe(require('node:events'))
     expect(require('fs')).toBe(require('node:fs'))
     expect(require('tty')).toBe(require('node:tty'))
+    expect(require('https')).toBe(require('node:https'))
   })
 
   it('reports that worker file descriptors are not terminals', () => {

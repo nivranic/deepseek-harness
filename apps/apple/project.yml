@@ -54,6 +54,17 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.mac
         PRODUCT_NAME: DSH Host
         GENERATE_INFOPLIST_FILE: true
+  CompanionStartupUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests/CompanionStartupTests.swift
+    dependencies:
+      - target: CompanioniOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.startup-tests
+        GENERATE_INFOPLIST_FILE: true
 schemes:
   DirectHostMac:
     build:
@@ -63,6 +74,9 @@ schemes:
     build:
       targets:
         CompanioniOS: all
+    test:
+      targets:
+        - CompanionStartupUITests
   CompanionMac:
     build:
       targets:

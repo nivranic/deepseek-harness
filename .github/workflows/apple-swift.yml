@@ -132,3 +132,45 @@ jobs:
       - name: Build the macOS Direct Host
         working-directory: apps/apple
         run: xcodebuild -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' build
+
+      - name: Create a fresh iOS startup simulator
+        run: |
+          runtime=$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; rows=[r for r in json.load(sys.stdin)["runtimes"] if r["isAvailable"] and ".iOS-" in r["identifier"]]; print(max(rows,key=lambda r:tuple(map(int,r["version"].split("."))))["identifier"])')
+          device_type=$(xcrun simctl list devicetypes --json | python3 -c 'import json,sys; print([d["identifier"] for d in json.load(sys.stdin)["devicetypes"] if d["name"].startswith("iPhone")][-1])')
+          device=$(xcrun simctl create "DSH Startup $GITHUB_RUN_ID" "$device_type" "$runtime")
+          echo "DSH_STARTUP_SIMULATOR=$device" >> "$GITHUB_ENV"
+          xcrun simctl boot "$device"
+          xcrun simctl bootstatus "$device" -b
+
+      - name: Verify the installed iOS first screen
+        working-directory: apps/apple
+        run: |
+          mkdir -p "$RUNNER_TEMP/g1-apple-startup"
+          xcodebuild -project Companion.xcodeproj -scheme CompanioniOS \
+            -destination "platform=iOS Simulator,id=$DSH_STARTUP_SIMULATOR" \
+            -derivedDataPath "$RUNNER_TEMP/g1-apple-derived" \
+            -resultBundlePath "$RUNNER_TEMP/g1-apple-startup/Startup.xcresult" \
+            -parallel-testing-enabled NO \
+            -only-testing:CompanionStartupUITests \
+            CODE_SIGNING_ALLOWED=NO test
+
+      - name: Export iOS startup screenshots
+        if: always() && env.DSH_STARTUP_SIMULATOR != ''
+        run: |
+          xcrun xcresulttool export attachments \
+            --path "$RUNNER_TEMP/g1-apple-startup/Startup.xcresult" \
+            --output-path "$RUNNER_TEMP/g1-apple-startup/screenshots"
+
+      - name: Upload iOS simulator startup evidence
+        if: always() && env.DSH_STARTUP_SIMULATOR != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: g1-apple-startup-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g1-apple-startup
+          if-no-files-found: error
+
+      - name: Delete the startup simulator
+        if: always() && env.DSH_STARTUP_SIMULATOR != ''
+        run: |
+          xcrun simctl shutdown "$DSH_STARTUP_SIMULATOR" || echo "Simulator was not running at cleanup."
+          xcrun simctl delete "$DSH_STARTUP_SIMULATOR"

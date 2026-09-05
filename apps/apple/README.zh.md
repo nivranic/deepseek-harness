@@ -93,6 +93,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 
 - **已纳入 CI 编译与测试**——[Apple Swift](../../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
 - **真实 Host 验收**——同一车道让 `LinkNativeAcceptance` 对 shipped base 加 desktop Host composition 执行唯一的 13 步共享 corpus。结果分别记录 Host 与 Client commit 以及 protocol、contract、Session format 版本；缺少或跳过任一步都会让车道失败。
+- **已安装 iOS 应用启动**——[CompanionStartupTests](UITests/CompanionStartupTests.swift) 在全新 iPhone 模拟器上启动生产应用壳，检查未配对表单和空输入下禁用的提交按钮，并向保留的 XCTest 结果附加截图。此检查不验证 App 与 Host 配对或真实设备网络。
 - **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；文件查看、首版只读 Diff 与只读工件面板均已交付，工件内容读取随资源通道到来。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 
