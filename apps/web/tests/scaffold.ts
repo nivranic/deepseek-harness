@@ -830,10 +830,59 @@ function normalizeWebSessionVolatiles(log: string): string {
   }).join('\n')
 }
 
+/** Include the model-visible escaped Windows cwd without broad path rewriting. */
+function webReplayNormalizeContext(sessionIds: readonly string[], cwd: string): NormalizeContext {
+  const jsonEscapedCwd = cwd.replaceAll('\\', '\\\\')
+  return {
+    sessionIds: [...sessionIds],
+    cwd,
+    ...(jsonEscapedCwd === cwd ? {} : { cwdAliases: [jsonEscapedCwd] }),
+  }
+}
+
+/**
+ * Normalize one Web replay log while recognizing the run cwd both as a
+ * native logical string and as the same Windows path with each backslash
+ * escaped once inside model-visible prose.
+ * @param log - raw session JSONL to normalize.
+ * @param sessionIds - volatile Session ids issued by this run.
+ * @param cwd - authoritative Session cwd.
+ * @returns normalized session JSONL for replay comparison.
+ */
+export function normalizeWebReplaySession(
+  log: string,
+  sessionIds: readonly string[],
+  cwd: string,
+): string {
+  return normalizeSessionSnapshots([
+    normalizeWebSessionVolatiles(log),
+  ], webReplayNormalizeContext(sessionIds, cwd))[0]!
+}
+
+/**
+ * Tokenize the serialized spellings of a Web replay cwd for refresh output.
+ * @param log - normalized but still run-local session JSONL.
+ * @param cwd - authoritative Session cwd.
+ * @returns JSONL with both native and JSON-escaped cwd strings tokenized.
+ */
+export function tokenizeWebReplaySessionCwd(log: string, cwd: string): string {
+  const logicalSpellings = [cwd, cwd.replaceAll('\\', '\\\\')]
+  const serializedSpellings = [...new Set(logicalSpellings.map(spelling =>
+    JSON.stringify(spelling).slice(1, -1)))]
+    .sort((left, right) => right.length - left.length)
+  let tokenized = log
+  for (const spelling of serializedSpellings) {
+    tokenized = tokenized.split(spelling).join('{{cwd}}')
+  }
+  return tokenized
+}
+
 function stableSessionFixture(session: Session, existing: string, workspaceCwd: string): string {
-  const fresh = scrubSessionSnapshot(normalizeWebSessionVolatiles(rawSessionLog(session)))
+  const fresh = tokenizeWebReplaySessionCwd(
+    scrubSessionSnapshot(normalizeWebSessionVolatiles(rawSessionLog(session))),
+    workspaceCwd,
+  )
     .split(session.id).join('{{sessionId}}')
-    .split(workspaceCwd).join('{{cwd}}')
   const stable = redactSessionSnapshotIds(stabilizeFixtureMessageIds([fresh], [existing]))[0]
   if (stable === undefined) throw new Error('session harvest produced no stabilized fixture')
   return stable
@@ -869,13 +918,13 @@ async function assertReplaySession(
     id?: unknown
     cwd?: unknown
   }
-  const actualContext: NormalizeContext = { sessionIds: [String(session.id)], cwd: sessionCwd }
-  const expectedContext: NormalizeContext = {
-    sessionIds: typeof expectedHeader.id === 'string' ? [expectedHeader.id] : [],
-    cwd: typeof expectedHeader.cwd === 'string' ? expectedHeader.cwd : '\0no-cwd\0',
-  }
-  expect(normalizeSessionSnapshots([normalizeWebSessionVolatiles(actual)], actualContext)[0], `${fixturePath}: persisted replay`)
-    .toBe(normalizeSessionSnapshots([normalizeWebSessionVolatiles(expected)], expectedContext)[0])
+  const actualContext = webReplayNormalizeContext([String(session.id)], sessionCwd)
+  expect(normalizeWebReplaySession(actual, [String(session.id)], sessionCwd), `${fixturePath}: persisted replay`)
+    .toBe(normalizeWebReplaySession(
+      expected,
+      typeof expectedHeader.id === 'string' ? [expectedHeader.id] : [],
+      typeof expectedHeader.cwd === 'string' ? expectedHeader.cwd : '\0no-cwd\0',
+    ))
 
   const fixtureDir = dirname(fixturePath)
   const manifestPath = join(fixtureDir, 'snapshot.yml')

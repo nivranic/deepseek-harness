@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   isRemoteJsonValue,
@@ -9,6 +10,21 @@ import {
 } from '../src/stream-protocol.ts'
 
 describe('Remote Event result protocol', () => {
+  it('parses the generated Native result corpus byte-for-byte', () => {
+    for (const id of [
+      'remote-event-result-next',
+      'remote-event-result-value',
+      'remote-event-result-void',
+      'remote-event-result-rejected',
+    ]) {
+      const value = JSON.parse(readFileSync(
+        new URL(`../../../remote/link-contracts/generated/fixtures/${id}.json`, import.meta.url),
+        'utf8',
+      )) as unknown
+      expect(parseRemoteEventResult(value)).toEqual(value)
+    }
+  })
+
   it('accepts delegation, values, and structured rejections', () => {
     expect(parseRemoteEventResult({
       clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'next' },
@@ -55,6 +71,20 @@ describe('Remote Event result protocol', () => {
         },
       },
     })
+    expect(parseRemoteEventResult({
+      clientId: 'client-1',
+      eventId: 'event-future',
+      futureFrameField: true,
+      outcome: {
+        kind: 'rejected',
+        futureOutcomeField: true,
+        error: { name: 'Error', message: 'offline', futureErrorField: true },
+      },
+    })).toEqual({
+      clientId: 'client-1',
+      eventId: 'event-future',
+      outcome: { kind: 'rejected', error: { name: 'Error', message: 'offline' } },
+    })
   })
 
   it.each([
@@ -64,9 +94,7 @@ describe('Remote Event result protocol', () => {
     { clientId: '', eventId: 'event-1', outcome: { kind: 'next' } },
     { clientId: 'client-1', eventId: '', outcome: { kind: 'next' } },
     { clientId: 'client-1', eventId: 'event-1', outcome: null },
-    { clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'next' }, extra: true },
     { clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'next', value: null } },
-    { clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'result', extra: true } },
     { clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'result', value: undefined } },
     { clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'unknown' } },
     { clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'rejected', error: null } },
@@ -82,20 +110,8 @@ describe('Remote Event result protocol', () => {
       eventId: 'event-1',
       outcome: { kind: 'rejected', error: { name: 'Error', message: 'bad', details: 1n } },
     },
-    {
-      clientId: 'client-1',
-      eventId: 'event-1',
-      outcome: { kind: 'rejected', error: { name: 'Error', message: 'bad', extra: true } },
-    },
   ])('rejects an invalid result frame: %#', (value) => {
     expect(() => parseRemoteEventResult(value)).toThrow('api gateway: invalid Remote event')
-  })
-
-  it('rejects symbol properties in rejection records', () => {
-    const error = { name: 'Error', message: 'bad', [Symbol('hidden')]: true }
-    expect(() => parseRemoteEventResult({
-      clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'rejected', error },
-    })).toThrow('api gateway: invalid Remote event rejection')
   })
 })
 

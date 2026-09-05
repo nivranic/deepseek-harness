@@ -455,6 +455,29 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'artifacts',
+    summary: 'Durable artifact content channel — chapter 56\'s resource channel.',
+    description: 'Durable artifact content channel — chapter 56\'s resource channel. Journal events carry references only; the complete bytes of one artifact live here, keyed by the reference identity `artifact/created` minted.',
+    methods: [
+      {
+        signature: 'abstract put(id: ArtifactId, data: Uint8Array): Promise<void>',
+        description: 'Durably write one artifact\'s complete content bytes under its id.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity from `artifact/created`.' }, { name: 'data', description: 'the complete content bytes.' }],
+      },
+      {
+        signature: 'abstract get(id: ArtifactId): Promise<Uint8Array | null>',
+        description: 'Read one artifact\'s content bytes back.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity.' }],
+        returns: 'the stored bytes, or null when nothing is stored under the id.',
+      },
+      {
+        signature: 'abstract remove(id: ArtifactId): Promise<void>',
+        description: 'Remove one artifact\'s content bytes.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity to delete.' }],
+      },
+    ],
+  },
+  {
     key: 'attachments',
     summary: 'Immutable binary attachment service.',
     description: 'Immutable binary attachment service. Implementations validate bytes before publishing a reference.',
@@ -790,8 +813,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'deviceTrust',
-    summary: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.',
-    description: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.',
+    summary: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and device records with role, resource grants, timestamps, and revocation that the link carrier authorizes against.',
+    description: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and device records with role, resource grants, timestamps, and revocation that the link carrier authorizes against.',
     methods: [
       {
         signature: 'async hostIdentity(): Promise<HostIdentity>',
@@ -806,9 +829,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the pending pairing to display to the device being paired.',
       },
       {
-        signature: 'async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, ): Promise<PairedDevice>',
+        signature: 'async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, access: DeviceAccess, ): Promise<PairedDevice>',
         description: 'Consume one pairing code and register the device. Consumption is atomic: the code row is deleted first and a second consumer of the same code fails, whether the two calls race or follow one another.',
-        parameters: [{ name: 'code', description: 'pairing code from {@link DeviceTrustStore.createPairing}.' }, { name: 'device', description: 'user-chosen name and verified public key of the pairing device.' }, { name: 'role', description: 'authorization role granted to the device.' }],
+        parameters: [{ name: 'code', description: 'pairing code from {@link DeviceTrustStore.createPairing}.' }, { name: 'device', description: 'user-chosen name and verified public key of the pairing device.' }, { name: 'role', description: 'authorization role granted to the device.' }, { name: 'access', description: 'Session and Workspace grants fixed by the Host at pairing.' }],
         returns: 'the durable device record just created.',
         throws: ['{@link DeviceTrustError} when the code is unknown or expired.'],
       },
@@ -837,8 +860,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'resolution after the write settles.',
       },
       {
-        signature: 'async close(): Promise<void>',
-        description: 'Close the database; every later primitive rejects. Idempotent.',
+        signature: 'close(): Promise<void>',
+        description: 'Close the database; every later primitive rejects. Concurrent and repeated calls share the same settlement.',
         parameters: [],
         returns: 'resolution after the medium is released.',
       },
@@ -1165,8 +1188,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'linkAccess',
-    summary: 'The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.',
-    description: 'The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.',
+    summary: 'The native remote access carrier service: TLS listener, device authentication, endpoint and resource-scope authorization, pre-socket projection, and pairing ingress over the existing gateway surface.',
+    description: 'The native remote access carrier service: TLS listener, device authentication, endpoint and resource-scope authorization, pre-socket projection, and pairing ingress over the existing gateway surface.',
     methods: [
       {
         signature: 'async endpoint(): Promise<string | undefined>',
@@ -1207,7 +1230,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'setAllowRemoteApproval(value: boolean): void',
-        description: 'Flip the independent remote-approval switch without touching the carrier.',
+        description: 'Flip the independent remote-approval switch without touching the carrier. Disabling delegates every delivered Link interaction back to the Host chain.',
         parameters: [{ name: 'value', description: 'whether paired controllers may answer interactions.' }],
       },
       {
@@ -1231,7 +1254,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async revokeDevice(deviceId: DeviceId): Promise<PairedDevice | undefined>',
-        description: 'Revoke one paired device; its next request is refused.',
+        description: 'Revoke one paired device; its next request is refused and its active Remote Event generation is delegated and closed.',
         parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
         returns: 'the device record after revocation, or `undefined` when unknown.',
       },
@@ -1592,10 +1615,22 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'acknowledgement that the Agent accepted the prompt.',
       },
       {
+        signature: '@Remote(\'handoff\') handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue>',
+        description: 'Accept one Lite handoff: create the new full Session and queue the rendered snapshot brief as its first user message.',
+        parameters: [{ name: 'request', description: 'the snapshot the sending device packaged.' }],
+        returns: 'the new Session\'s identity.',
+      },
+      {
         signature: '@Remote(\'attachment\') attachment(request: SessionAttachmentRequest): Promise<SessionAttachmentValue>',
         description: 'Read one image proven reachable from the addressed Session log.',
         parameters: [{ name: 'request', description: 'Session and attachment identities used for authorization.' }],
         returns: 'the durable attachment reference and base64-encoded bytes.',
+      },
+      {
+        signature: '@Remote(\'artifact\') artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue>',
+        description: 'Read one artifact proven referenced by the addressed Session log.',
+        parameters: [{ name: 'request', description: 'Session and artifact identities used for authorization.' }],
+        returns: 'the journaled reference metadata and base64-encoded bytes.',
       },
       {
         signature: '@Remote(\'updateQueue\') updateQueue(request: SessionUpdateQueueRequest): SessionUpdateQueueValue',
@@ -2029,29 +2064,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'sessionTelemetry',
-    summary: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `telemetry` key throws on a duplicate, cordis\' standard behavior.',
-    description: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `telemetry` key throws on a duplicate, cordis\' standard behavior. A backend composes a SessionTelemetryCoordinator in its constructor to install the capture side.',
+    summary: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `sessionTelemetry` key throws on a duplicate, cordis\' standard behavior.',
+    description: 'Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `sessionTelemetry` key throws on a duplicate, cordis\' standard behavior. A backend composes a SessionTelemetryCoordinator in its constructor to install the capture side.',
     methods: [
       {
         signature: 'abstract readonly sharing: SessionTelemetrySharingStatus',
-        description: 'Deployment-selected session-sharing policy, disclosed for acknowledgement surfaces that report whether recorded feedback leaves the process. Every backend must disclose its policy; a consumer renders "not configured" only when no telemetry service is mounted. The seam owns this vocabulary so the disclosure is backend-independent.',
+        description: 'Deployment-selected session-sharing policy, disclosed for acknowledgement surfaces that report whether privacy-safe Session diagnostics are eligible for external sharing when feedback is recorded. Every backend must disclose its policy; a consumer renders "not configured" only when no telemetry service is mounted. The seam owns this vocabulary so the disclosure is backend-independent.',
         parameters: [],
-      },
-      {
-        signature: 'abstract emit(record: SessionTelemetryRecord): void',
-        description: 'See SessionTelemetrySink.emit — that declaration is the contract\'s one home.',
-        parameters: [{ name: 'record', description: 'the logical record to report; owned by the backend after the call.' }],
-      },
-      {
-        signature: 'flush?(): void',
-        description: 'See SessionTelemetrySink.flush.',
-        parameters: [],
-      },
-      {
-        signature: 'abstract shutdown(): Promise<void>',
-        description: 'See SessionTelemetrySink.shutdown.',
-        parameters: [],
-        returns: 'resolves when the backend\'s pipeline has quiesced.',
       },
     ],
   },
@@ -2795,7 +2814,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     description: 'Resolve strict generated definitions or conservative SRC markers against current Cordis Services and Typert providers.',
     methods: [
       {
-        signature: 'readonly wireStream: TypertGatewayWireStream = { open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal), failure: error => rpcError(error), }',
+        signature: 'readonly wireStream: TypertGatewayWireStream = { open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal), delegateRemoteEventDelivery: (clientId, eventId) => { const client = this.remoteEventClients.get(clientId as RemoteEventClientId) if (client === undefined) return this.receiveRemoteEventResult(client, { clientId: client.id, eventId: eventId as RemoteEventId, outcome: { kind: \'next\' }, }) }, isRemoteEventDeliveryPending: (clientId, eventId) => { const client = this.remoteEventClients.get(clientId as RemoteEventClientId) const pending = this.pendingRemoteEvents.get(eventId as RemoteEventId) return client !== undefined && pending !== undefined && pending.deliveries.has(client) }, failure: error => rpcError(error), }',
         description: 'Carrier adapter shared by the WebSocket mux and local Host transports.',
         parameters: [],
       },
@@ -2992,6 +3011,25 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Stream a complete Workspace baseline followed by ordered increments.',
         parameters: [{ name: 'signal', description: 'generation cancellation.' }],
         returns: 'baseline followed by ordered Workspace increments.',
+      },
+    ],
+  },
+  {
+    key: 'workspaceFiles',
+    summary: 'Host service backing the generated `ctx.remote.workspaceFiles` namespace.',
+    description: 'Host service backing the generated `ctx.remote.workspaceFiles` namespace. Every verb resolves the registered root canonically and confines the request under it before touching the backend; content reads are text-only with a byte cap and a UTF-16 range.',
+    methods: [
+      {
+        signature: '@Remote(\'list\') async list( workspaceId: string, path: string | undefined, signal?: AbortSignal, ): Promise<WorkspaceFilesListValue>',
+        description: 'List one directory level inside a registered Workspace.',
+        parameters: [{ name: 'workspaceId', description: 'registered Workspace identity.' }, { name: 'path', description: 'relative directory path; absent lists the root.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the level\'s normalized relative path and its children.',
+      },
+      {
+        signature: '@Remote(\'read\') async read( workspaceId: string, path: string, offset: number | undefined, limit: number | undefined, signal?: AbortSignal, ): Promise<WorkspaceFilesReadValue>',
+        description: 'Read one text file inside a registered Workspace as a UTF-16 range.',
+        parameters: [{ name: 'workspaceId', description: 'registered Workspace identity.' }, { name: 'path', description: 'relative file path.' }, { name: 'offset', description: 'range start in UTF-16 code units; absent starts at zero.' }, { name: 'limit', description: 'maximum returned code units; absent reads through the end.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the decoded range with its media type and total size.',
       },
     ],
   },
@@ -3289,6 +3327,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'ref', description: 'the reference whose stored value changed.' }],
   },
   {
+    name: 'device-trust/revoked',
+    mode: 'parallel',
+    signature: '\'device-trust/revoked\'(deviceId: DeviceId): Promise<void> | void',
+    summary: 'A device\'s first revocation has committed.',
+    description: 'A device\'s first revocation has committed. Every listener runs so active carriers can close that device even when another observer fails.',
+    parameters: [{ name: 'deviceId', description: 'durable identity whose trust was just revoked.' }],
+  },
+  {
     name: 'domain/changed',
     mode: 'emit',
     signature: '\'domain/changed\'(change: DomainChanged): void',
@@ -3348,9 +3394,9 @@ export const EVENT_API: readonly EventApiEntry[] = [
     name: 'session-telemetry/record',
     mode: 'waterfall',
     signature: '\'session-telemetry/record\'(record: SessionTelemetryRecord, next: () => SessionTelemetryRecord): SessionTelemetryRecord',
-    summary: 'Transform one outbound record before it reaches the backend.',
-    description: 'Transform one outbound record before it reaches the backend. This waterfall is the Service Definition\'s redaction extension point. It ships NO rules of its own: the innermost `next()` passes the record through unchanged, and with no listener mounted records reach the backend as captured, so exported data is exactly as clean as the rules a deployment mounts. Listeners stack by transforming `next()`\'s return value; returning without `next()` replaces everything beneath. Dispatched synchronously on the capture hot path inside the coordinator\'s containment: a throwing listener withholds that one record (fail-closed) and never reaches the agent loop. Live capture dispatches at append time; on-demand capture dispatches while reading the canonical log. Redaction applies to the exported copy only; the canonical session log is never rewritten.',
-    parameters: [{ name: 'record', description: 'the candidate record, already the coordinator\'s own deep copy; listeners return a (possibly new) record and must not mutate it.' }],
+    summary: 'Further reduce one frozen privacy-safe record before it reaches the backend.',
+    description: 'Further reduce one frozen privacy-safe record before it reaches the backend. Session identities are already pseudonymous, and the coordinator has removed Session content, prompts, tool names, arguments and results, arbitrary error details, and workspace paths. Listeners stack by transforming `next()`\'s return value. After the waterfall, the coordinator keeps only original attributes whose keys and values remain unchanged; additions and rewrites are discarded, while a valid severity change survives. Returning without `next()` can therefore remove fields but cannot inject data or rewrite record identity. Dispatched synchronously on the capture hot path inside containment: a throwing listener withholds that one record and never reaches the agent loop. Live capture dispatches at append time; on-demand capture dispatches while reading the canonical log. The canonical Session log is never rewritten.',
+    parameters: [{ name: 'record', description: 'the frozen candidate record; listeners return a possibly stricter copy and must not mutate it.' }],
   },
   {
     name: 'session/created',
@@ -3655,6 +3701,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ApprovalRequestEvent',
     declaration: 'export interface ApprovalRequestEvent {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: ToolCallId;\n    readonly reason?: string;\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'ArtifactId',
+    declaration: 'export type ArtifactId = Branded<\'ArtifactId\'>;',
   },
   {
     name: 'AskUserQuestionAnswer',
@@ -4041,12 +4091,28 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type DeepSeekLlmApiJson = null | boolean | number | string | DeepSeekLlmApiJson[] | {\n    [key: string]: DeepSeekLlmApiJson;\n};',
   },
   {
+    name: 'DeviceAccess',
+    declaration: 'export interface DeviceAccess {\n    readonly sessions: DeviceResourceAccess<DeviceSessionGrantId>;\n    readonly workspaces: DeviceResourceAccess<DeviceWorkspaceGrantId>;\n}',
+  },
+  {
     name: 'DeviceId',
     declaration: 'export type DeviceId = Branded<\'DeviceId\'>;',
   },
   {
+    name: 'DeviceResourceAccess',
+    declaration: 'export type DeviceResourceAccess<ResourceId extends string> = \'all\' | readonly ResourceId[];',
+  },
+  {
     name: 'DeviceRole',
     declaration: 'export type DeviceRole = \'observer\' | \'controller\' | \'administrator\';',
+  },
+  {
+    name: 'DeviceSessionGrantId',
+    declaration: 'export type DeviceSessionGrantId = Branded<\'DeviceSessionGrantId\'>;',
+  },
+  {
+    name: 'DeviceWorkspaceGrantId',
+    declaration: 'export type DeviceWorkspaceGrantId = Branded<\'DeviceWorkspaceGrantId\'>;',
   },
   {
     name: 'DiffCallView',
@@ -4706,7 +4772,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'PairedDevice',
-    declaration: 'export interface PairedDevice {\n    readonly deviceId: DeviceId;\n    readonly name: string;\n    readonly publicKeySpki: string;\n    readonly role: DeviceRole;\n    readonly createdAt: number;\n    readonly lastSeenAt: number | undefined;\n    readonly revokedAt: number | undefined;\n}',
+    declaration: 'export interface PairedDevice {\n    readonly deviceId: DeviceId;\n    readonly name: string;\n    readonly publicKeySpki: string;\n    readonly role: DeviceRole;\n    readonly createdAt: number;\n    readonly lastSeenAt: number | undefined;\n    readonly revokedAt: number | undefined;\n    readonly access: DeviceAccess;\n}',
   },
   {
     name: 'PendingPairing',
@@ -4837,8 +4903,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RedactedSecret {\n    path: string[];\n    set: boolean;\n}',
   },
   {
+    name: 'RemoteEventClientId',
+    declaration: 'export type RemoteEventClientId = Branded<\'RemoteEventClientId\'>;',
+  },
+  {
     name: 'RemoteEventHostInfo',
     declaration: 'export interface RemoteEventHostInfo {\n    readonly home: string;\n}',
+  },
+  {
+    name: 'RemoteEventId',
+    declaration: 'export type RemoteEventId = Branded<\'RemoteEventId\'>;',
   },
   {
     name: 'ReplayEnvelope',
@@ -4981,6 +5055,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type SessionAddress = {\n    readonly kind: \'session\';\n    readonly sessionId: SessionId;\n} | {\n    readonly kind: \'subagent\';\n    readonly parentSessionId: SessionId;\n    readonly childSessionId: SessionId;\n    readonly mode: \'one-shot\' | \'continuable\';\n};',
   },
   {
+    name: 'SessionArtifactRequest',
+    declaration: 'export interface SessionArtifactRequest {\n    readonly sessionId: SessionId;\n    readonly artifactId: string;\n    readonly offset?: number;\n    readonly limit?: number;\n}',
+  },
+  {
+    name: 'SessionArtifactValue',
+    declaration: 'export interface SessionArtifactValue {\n    readonly id: string;\n    readonly kind: string;\n    readonly title: string;\n    readonly format: \'text\' | \'bytes\';\n    readonly data: string;\n    readonly truncated: boolean;\n    readonly size: number;\n}',
+  },
+  {
     name: 'SessionAttachmentRequest',
     declaration: 'export interface SessionAttachmentRequest {\n    readonly sessionId: SessionId;\n    readonly attachmentId: AttachmentIdType;\n}',
   },
@@ -5115,6 +5197,34 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionForkValue',
     declaration: 'export interface SessionForkValue {\n    readonly sessionId: SessionId;\n}',
+  },
+  {
+    name: 'SessionHandoffArtifactRef',
+    declaration: 'export interface SessionHandoffArtifactRef {\n    readonly id: string;\n    readonly kind: string;\n    readonly title: string;\n    readonly status: \'pending\' | \'ready\' | \'failed\';\n}',
+  },
+  {
+    name: 'SessionHandoffContextRow',
+    declaration: 'export interface SessionHandoffContextRow {\n    readonly role: \'user\' | \'assistant\';\n    readonly text: string;\n}',
+  },
+  {
+    name: 'SessionHandoffProvenance',
+    declaration: 'export interface SessionHandoffProvenance {\n    readonly deviceId: string;\n    readonly platform: string;\n    readonly at: number;\n}',
+  },
+  {
+    name: 'SessionHandoffRequest',
+    declaration: 'export interface SessionHandoffRequest {\n    readonly snapshot: SessionHandoffSnapshot;\n}',
+  },
+  {
+    name: 'SessionHandoffSnapshot',
+    declaration: 'export interface SessionHandoffSnapshot {\n    readonly sourceSessionId: string;\n    readonly sourceRuntime: \'lite\';\n    readonly requestedCapability: string;\n    readonly recentContext: readonly SessionHandoffContextRow[];\n    readonly planActive: boolean;\n    readonly todo: readonly SessionHandoffTodoRow[];\n    readonly artifactRefs: readonly SessionHandoffArtifactRef[];\n    readonly modelPreference?: string;\n    readonly provenance: SessionHandoffProvenance;\n}',
+  },
+  {
+    name: 'SessionHandoffTodoRow',
+    declaration: 'export interface SessionHandoffTodoRow {\n    readonly content: string;\n    readonly status: string;\n}',
+  },
+  {
+    name: 'SessionHandoffValue',
+    declaration: 'export interface SessionHandoffValue {\n    readonly sessionId: SessionId;\n}',
   },
   {
     name: 'SessionHeader',
@@ -5330,7 +5440,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionTelemetryRecord',
-    declaration: 'export interface SessionTelemetryRecord {\n    channel: \'ledger\' | \'ops\';\n    time: number;\n    severity: SessionTelemetrySeverity;\n    attributes: Record<string, string | number>;\n    body: unknown;\n}',
+    declaration: 'export interface SessionTelemetryRecord {\n    readonly channel: \'ledger\' | \'ops\';\n    readonly time: number;\n    readonly severity: SessionTelemetrySeverity;\n    readonly attributes: Readonly<Record<string, string | number | boolean>>;\n}',
   },
   {
     name: 'SessionTelemetrySeverity',
@@ -6046,7 +6156,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TypertGatewayWireStream',
-    declaration: 'export interface TypertGatewayWireStream {\n    readonly open: (endpoint: string, payload: unknown, signal: AbortSignal) => Promise<AsyncIterable<unknown>>;\n    readonly failure: (error: unknown) => {\n        readonly code: string;\n        readonly message: string;\n        readonly details: object;\n    };\n}',
+    declaration: 'export interface TypertGatewayWireStream {\n    readonly open: (endpoint: string, payload: unknown, signal: AbortSignal) => Promise<AsyncIterable<unknown>>;\n    readonly isRemoteEventDeliveryPending: (clientId: string, eventId: string) => boolean;\n    readonly delegateRemoteEventDelivery: (clientId: string, eventId: string) => void;\n    readonly failure: (error: unknown) => {\n        readonly code: string;\n        readonly message: string;\n        readonly details: object;\n    };\n}',
   },
   {
     name: 'TypertMemberModel',
@@ -6311,6 +6421,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'WorkspaceDeleteValue',
     declaration: 'export interface WorkspaceDeleteValue {\n    readonly deleted: true;\n}',
+  },
+  {
+    name: 'WorkspaceFileEntry',
+    declaration: 'export interface WorkspaceFileEntry {\n    readonly name: string;\n    readonly type: \'file\' | \'directory\' | \'other\';\n    readonly size?: number;\n}',
+  },
+  {
+    name: 'WorkspaceFilesListValue',
+    declaration: 'export interface WorkspaceFilesListValue {\n    readonly path: string;\n    readonly entries: readonly WorkspaceFileEntry[];\n}',
+  },
+  {
+    name: 'WorkspaceFilesReadValue',
+    declaration: 'export interface WorkspaceFilesReadValue {\n    readonly content: string;\n    readonly truncated: boolean;\n    readonly size: number;\n    readonly mediaType: string;\n}',
   },
   {
     name: 'WorkspaceFollowFrame',

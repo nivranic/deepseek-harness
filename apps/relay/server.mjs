@@ -10,7 +10,9 @@
  * offline frames, and the presence endpoint answers the account's roster
  * with derived online state. In-memory by design: the relay holds no
  * session data, no workspace state, and no authority; the host keeps full
- * session authority.
+ * session authority. This separately deployed infrastructure mounts no
+ * Cordis tree, owns no Session authority or business Gateway, and persists
+ * no Harness business state.
  *
  * Every rendezvous endpoint is Noise-encrypted (noise.mjs): a client
  * completes Noise_XX over /relay/noise/hello + /relay/noise/complete, then

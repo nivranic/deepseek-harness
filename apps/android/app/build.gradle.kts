@@ -1,8 +1,26 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     kotlin("android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val productVersion = Properties().apply {
+    rootProject.file("product-version.properties").inputStream().use { load(it) }
+}
+val productVersionName = requireNotNull(productVersion.getProperty("versionName")) {
+    "product-version.properties must declare versionName; run pnpm run gen-product-identity"
+}
+val productVersionCode = requireNotNull(productVersion.getProperty("versionCode")?.toIntOrNull()) {
+    "product-version.properties must declare an integer versionCode"
+}
+val productChannel = requireNotNull(productVersion.getProperty("channel")) {
+    "product-version.properties must declare channel"
+}
+require(productVersionName.isNotBlank()) { "versionName must not be blank" }
+require(productVersionCode in 1..65535) { "versionCode must be from 1 to 65535" }
+require(productChannel in setOf("dev", "canary", "beta", "stable")) { "unknown product channel" }
 
 android {
     namespace = "ai.deepseek.dsh.companion"
@@ -12,8 +30,10 @@ android {
         applicationId = "com.deepseek.harness.companion"
         minSdk = 33
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = productVersionCode
+        versionName = productVersionName
+        manifestPlaceholders["dshProductChannel"] = productChannel
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -49,4 +69,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    androidTestImplementation(composeBom)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
 }

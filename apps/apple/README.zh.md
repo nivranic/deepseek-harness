@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`apps/apple` 承载跨端方案的 Apple 半边：一个 Swift 包 `SharedAppleRemoteCore` 拥有 link 客户端状态机——以 Ed25519 对二维码载荷完成配对、TLS 握手中的 SPKI 指纹钉扎、经共享 `/api` 链的签名单次 RPC、NDJSON Remote 流——而生成的 `LinkContracts.swift` 模型与黄金 fixture JSON 由 `pnpm run gen-link-contracts` 同步到此处，并被 `verify-link-contracts` 漂移门禁看护。第二个 target `CompanionUI` 承载 SwiftUI 应用层：基于 follow 流的会话列表与时间线、使用宿主结果词汇的审批/提问收件箱、Plan/Todo/Goal 面板、只读工件面板（第 56 章），以及以单一语义令牌集呈现的双视觉风格（简约拟态与液态玻璃，含无障碍感知的降级规则）。其 view model 只依赖一个线缆驱动协议，整层可脱离宿主测试。iOS/iPadOS/macOS 应用壳构建于这两个库之上；它们尚未存在，而核心仍不引入任何 UI 框架。
+`apps/apple` 承载跨端方案的 Apple 半边：一个 Swift 包 `SharedAppleRemoteCore` 拥有 link 客户端状态机——以 Ed25519 对二维码载荷完成配对、TLS 握手中的 SPKI 指纹钉扎、经共享 `/api` 链的签名单次 RPC、NDJSON Remote 流——而生成的 `LinkContracts.swift` 模型与黄金 fixture JSON 由 `pnpm run gen-link-contracts` 同步到此处，并被 `verify-link-contracts` 漂移门禁看护。`LinkClient` 直接消费生成式 unary、stream 与递归 JSON 模型；不存在第二套 Swift envelope 词汇。第二个 target `CompanionUI` 承载 SwiftUI 应用层：基于 follow 流的会话列表与时间线、使用 Host Remote Event outcome 词汇的审批/提问收件箱、Plan/Todo/Goal 面板、只读工件面板（第 56 章），以及以单一语义令牌集呈现的双视觉风格（简约拟态与液态玻璃，含无障碍感知的降级规则）。其 view model 只依赖一个线缆驱动协议，整层可脱离宿主测试。iOS/iPadOS/macOS 应用壳是这两个库之上的轻薄宿主，并在 Apple 车道构建；核心仍不引入任何 UI 框架。
 
 ## 目录
 
@@ -24,7 +24,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-Swift 包用 Xcode 构建（SwiftPM；iOS 16+、macOS 13+）。生成文件永不手改：
+Swift 包用 Xcode 构建（SwiftPM；iOS 17+、macOS 14+）。生成文件永不手改：
 
 ```sh
 pnpm run gen-link-contracts     # regenerates Sources/SharedAppleRemoteCore/LinkContracts.swift and Tests/.../Fixtures/
@@ -33,7 +33,9 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 
 ### 可观察行为
 
-`LinkClient` 镜像 TypeScript 参考客户端：`pair(payload:deviceName:)` 用一次性配对码换取持久化的 `LinkCredentials`（真实部署存 Keychain，预览与测试用内存实现）；`describe()` 返回宿主描述；`call(_:args:)` 把网关信封解包为值或 `refused` 失败；`stream(_:payload:)` 逐帧产出 NDJSON 值，错误帧以类型化失败结束。每个请求以设备密钥对 `timestamp\nmethod\npath\nsha256hex(body)` 签名；每次 TLS 握手在写出任何请求字节之前钉扎证书指纹。
+所有应用 scheme 消费生成的产品 xcconfig，并展开显式 [AppInfo.plist](Config/AppInfo.plist) 模板，保留完整 SemVer、构建号和分发渠道。[应用发布标识](../../docs/development/product-release-identity.zh.md) 拥有公共输入与平台验证说明。
+
+`LinkClient` 镜像 TypeScript 参考客户端：`pair(payload:deviceName:)` 只接受 fresh client 自身拥有的 endpoint 与 pin，以一次性配对码换取持久化的 `LinkCredentials`（真实部署存 Keychain，预览与测试用内存实现）；`describe()` 返回 Host 描述；`call(_:args:)` 校验回显的 `rpcId`，把成功但省略 value 的响应映射为 `.null`，并带出结构化 refusal；`stream(_:payload:)` 逐帧产出 NDJSON 值，错误帧以类型化失败结束。unary 与 stream 的传输处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。失败的 stream 会读取该响应体以完成分类，成功的 stream 则在未预消费字节的前提下进入 NDJSON 解析。每个请求以设备密钥对 `timestamp\nmethod\npath\nsha256hex(body)` 签名；每次 TLS 握手在写出任何请求字节之前钉扎证书指纹。`InteractionViewModel` 只从每代 Host `ready.clientId` 更新回答身份，从 `waterfall.request` 读取交互字段，应用 cancel frame，并在重连后等待新的 ready frame。
 
 -----
 
@@ -44,7 +46,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <summary>实现内幕——点击展开</summary>
 
 - **在挑战处理器里钉扎。** `LinkPinningDelegate` 计算叶证书 SPKI DER 的哈希（P-256 固定头 + 65 字节点，或 Ed25519 头 + 32 字节原始密钥），不匹配即取消握手。
-- **信封保真。** `LinkWire` 精确编码网关共享 `/api` 链期望的 `client-request` 形状，并解码 `server-response` 结果，包括直通的 JSON 值。
+- **生成式信封保真。** `LinkContracts.swift` 提供 `LinkClient` 与 `CompanionUI` 使用的 request、response、stream、Remote Event 与递归 JSON 模型；fixture 测试往返 value、void、error、ready、waterfall、cancel、outcome 与 Session 恢复变体。
+- **fresh transport ownership。** 配对界面把新配对的 client 返回给 root，root 以这一组确切的 endpoint、pin 与 credential store 构建全部模型，不再使用配对前 placeholder。
 - **凭据藏在协议后。** `LinkCredentialsStoring` 把 Keychain 存储与内存实现分开，核心因此可脱离设备编译与测试。
 
 ### 源码地图
@@ -59,11 +62,11 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Sources/SharedAppleRemoteCore/RelayClient.swift` | 中继的 Noise 加密 HTTP 消费者：惰性 XX 握手（转录绑定会话 id + 加密密钥确认）、register/publish/poll/presence 的帧式 AEAD 体，以及骑请求内一次性密钥的推送流；对照真实本地 Noise 应答方测试 |
 | [`Sources/SharedAppleRemoteCore/LinkSigning.swift`](Sources/SharedAppleRemoteCore/LinkSigning.swift) | 规范签名输入、SPKI 组帧、十六进制摘要 |
 | [`Sources/SharedAppleRemoteCore/LinkPinning.swift`](Sources/SharedAppleRemoteCore/LinkPinning.swift) | 对配对指纹的 TLS 挑战钉扎 |
-| [`Sources/SharedAppleRemoteCore/LinkWire.swift`](Sources/SharedAppleRemoteCore/LinkWire.swift) | 网关请求/响应信封与流帧 |
 | [`Sources/SharedAppleRemoteCore/LinkCredentials.swift`](Sources/SharedAppleRemoteCore/LinkCredentials.swift) | 设备身份与存储协议 |
 | [`Sources/SharedAppleRemoteCore/LinkKeychain.swift`](Sources/SharedAppleRemoteCore/LinkKeychain.swift) | Keychain 身份存储 |
-| `Sources/SharedAppleRemoteCore/LinkContracts.swift` | 生成的 wire 模型——永不手改 |
+| `Sources/SharedAppleRemoteCore/LinkContracts.swift` | 生成的 unary、stream、Remote Event、恢复与 JSON 模型——永不手改 |
 | `Tests/SharedAppleRemoteCoreTests/` | fixture 回放与签名词汇测试 |
+| `Tests/LinkNativeAcceptance/LinkNativeAcceptance.swift` | 执行共享真实 Host 垂直切片 corpus 的独立 Swift driver |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI 应用层：主题、会话 UI、交互收件箱、Plan/Todo/Goal 面板、工具轨迹、文件浏览、子代理 |
 | `Sources/CompanionUI/SessionFold.swift` | 纯领域状态折叠——一致性场景的 Swift 一半 |
 | `Sources/CompanionUI/FileChange.swift` | 工具轨迹到只读文件变更的投影——第 55 章首版 Diff 呈现 |
@@ -90,7 +93,9 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <a id="known-limitations-and-deferred-work"></a>
 ## 已知限制与延后工作
 
-- **已纳入 CI 编译与测试**——[Apple Swift](../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
+- **已纳入 CI 编译与测试**——[Apple Swift](../../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
+- **真实 Host 验收**——同一车道让 `LinkNativeAcceptance` 对 shipped base 加 desktop Host composition 执行唯一的 13 步共享 corpus。结果分别记录 Host 与 Client commit 以及 protocol、contract、Session format 版本；缺少或跳过任一步都会让车道失败。
+- **已安装 iOS 应用启动**——[CompanionStartupTests](UITests/CompanionStartupTests.swift) 在全新 iPhone 模拟器上启动生产应用壳，检查未配对表单和空输入下禁用的提交按钮，并向保留的 XCTest 结果附加截图。此检查不验证 App 与 Host 配对或真实设备网络。
 - **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；文件查看、首版只读 Diff 与只读工件面板均已交付，工件内容读取随资源通道到来。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 

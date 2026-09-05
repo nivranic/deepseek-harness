@@ -68,6 +68,7 @@ export interface ClientRuntimeGlobalLexicalScopeNamesCommand {
 
 /** Closed command set implemented by the Client Runtime transport. */
 export type ClientRuntimeCommand =
+  | { readonly op: 'enable' }
   | ClientRuntimeEvaluateCommand
   | ClientRuntimeGetPropertiesCommand
   | ClientRuntimeCallFunctionCommand
@@ -81,6 +82,7 @@ export type ClientRuntimeCompletion = RuntimeCompletion<ClientRemoteObjectHandle
 
 /** Result discriminant mirrors the command and prevents cross-method settlement. */
 export type ClientRuntimeResult =
+  | { readonly op: 'enable' }
   | { readonly op: 'evaluate'; readonly completion: ClientRuntimeCompletion }
   | {
     readonly op: 'get-properties'

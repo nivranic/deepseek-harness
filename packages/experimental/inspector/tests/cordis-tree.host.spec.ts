@@ -705,9 +705,9 @@ describe('Cordis tree inspection', () => {
       const inserted = events.findIndex(event => event.method === 'DOM.childNodeInserted')
       expect(destroyed).toBeGreaterThanOrEqual(0)
       expect(created).toBeGreaterThan(destroyed)
-      expect(removed).toBeGreaterThan(created)
+      // Detached tree snapshots do not wait for the separate Runtime readiness round trip.
+      expect(removed).toBeGreaterThan(destroyed)
       expect(inserted).toBeGreaterThan(removed)
-      expect(events.slice(0, created).some(event => event.method?.startsWith('DOM.'))).toBe(false)
       expect(events.some(event => event.method === 'DOM.documentUpdated')).toBe(false)
     })
 

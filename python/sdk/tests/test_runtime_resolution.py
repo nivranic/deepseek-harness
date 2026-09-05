@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 import deepseek_harness_runtime as runtime
 import pytest
@@ -128,6 +129,7 @@ def test_python_dsh_command_executes_the_bundled_cli(
     monkeypatch: pytest.MonkeyPatch
 ) -> None:
     called: dict[str, object] = {}
+    monkeypatch.setattr(runtime.sys, "platform", "linux")
     monkeypatch.setenv("DSH_HOME", "/explicit/home")
     monkeypatch.setattr(runtime, "resolve_bundled_launch_args", lambda: ("/runtime",))
     monkeypatch.setattr(runtime.sys, "argv", ["dsh", "plugin", "--profile", "sdk", "list"])
@@ -144,3 +146,43 @@ def test_python_dsh_command_executes_the_bundled_cli(
         "args": ("/runtime", "plugin", "--profile", "sdk", "list"),
         "home": "/explicit/home",
     }
+
+
+def test_windows_dsh_waits_for_output_and_preserves_arguments_and_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
+) -> None:
+    child = tmp_path / "runtime fixture.py"
+    child.write_text(
+        "import os, sys\n"
+        "print(repr(sys.argv[1:]), flush=True)\n"
+        "print(os.environ['DSH_HOME'], file=sys.stderr, flush=True)\n"
+        "raise SystemExit(7)\n"
+    )
+    arguments = ["with space", 'with"quote', "trailing\\"]
+    monkeypatch.setenv("DSH_HOME", str(tmp_path))
+    monkeypatch.setattr(runtime.sys, "platform", "win32")
+    monkeypatch.setattr(runtime.sys, "argv", ["dsh", *arguments])
+    monkeypatch.setattr(runtime, "resolve_bundled_launch_args", lambda: (sys.executable, str(child)))
+
+    with pytest.raises(SystemExit) as excinfo:
+        main()
+
+    assert excinfo.value.code == 7
+    output = capfd.readouterr()
+    assert output.out.strip() == repr(arguments)
+    assert output.err.strip() == str(tmp_path)
+
+
+@pytest.mark.parametrize("code, expected", [(0, 0), (127, 127), (0xC0000005, -1073741819)])
+def test_windows_dsh_preserves_native_exit_status(
+    code: int, expected: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DSH_HOME", "/explicit/home")
+    monkeypatch.setattr(runtime.sys, "platform", "win32")
+    monkeypatch.setattr(runtime, "resolve_bundled_launch_args", lambda: ("/runtime",))
+    monkeypatch.setattr(runtime.subprocess, "call", lambda _argv: code)
+
+    with pytest.raises(SystemExit) as excinfo:
+        main()
+
+    assert excinfo.value.code == expected

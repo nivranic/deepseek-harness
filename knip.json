@@ -5,8 +5,10 @@
   ],
   "ignoreBinaries": [
     "bwrap",
+    "gh",
     "icacls",
     "musl-gcc",
+    "plutil",
     "powershell",
     "python3",
     "robocopy",

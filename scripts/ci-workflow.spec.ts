@@ -1,13 +1,49 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 import * as yaml from 'js-yaml'
 import { describe, expect, it } from 'vitest'
+import {
+  createProcessInspector,
+  type ProcessIdentity,
+} from '../packages/subprocess/subprocess-local/src/process-inspector.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const runnerPrivatePnpmDestination = /^\$\{\{ runner\.temp \}\}\/setup-pnpm-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}$/
 const nativeWindowsPnpmDestination = '${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}'
+const processTreeResultName = 'process-tree.json'
+const sensitiveProjectionSentinel = 'dsh-link-private-projection-7f3c9b1e'
+const processInspector = createProcessInspector()
 
 describe('CI workflow', () => {
+  it.each([
+    ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
+  ])('preserves the actual checkout before validation in %s', (file, jobId) => {
+    const workflow = loadWorkflow(`.github/workflows/${file}`)
+    const job = workflowJob(workflow, jobId)
+    if (!Array.isArray(job.steps)) throw new Error('source producer steps are absent')
+    const steps = job.steps.filter(isRecord)
+    const install = steps.findIndex(step => step.run === 'pnpm install --frozen-lockfile')
+    const capture = steps.findIndex(step => step.id === 'ci-source')
+    expect(install).toBeGreaterThanOrEqual(0)
+    expect(capture).toBeGreaterThan(install)
+    expect(steps[capture]).toMatchObject({
+      env: { DSH_CI_CANDIDATE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}' },
+      run: `pnpm exec tsx scripts/write-ci-source.ts .github/workflows/${file} "$RUNNER_TEMP/dsh-ci-source/source.json"`,
+    })
+    expect(steps[capture + 1]).toMatchObject({
+      if: 'always()',
+      with: {
+        name: 'ci-source-${{ github.run_id }}-${{ github.run_attempt }}',
+        path: '${{ runner.temp }}/dsh-ci-source/source.json',
+        'if-no-files-found': 'error',
+      },
+    })
+    expect(steps[capture + 1]?.uses).toMatch(/^actions\/upload-artifact@/)
+    expect(steps[capture]?.['continue-on-error']).not.toBe(true)
+  })
+
   it('isolates every pnpm action setup destination per runner', () => {
     const files = ['.github/workflows/ci.yml', '.github/workflows/ci-master.yml']
     const setups: Array<{ jobName: string; step: unknown }> = []
@@ -52,6 +88,97 @@ describe('CI workflow', () => {
       expect(step).toMatchObject({
         with: { dest: nativeWindowsPnpmDestination },
       })
+    }
+  })
+
+  it('materializes the tracked ACP profile symlink in every Windows-capable job', () => {
+    const workflows = new Map([
+      ['.github/workflows/ci.yml', loadWorkflow('.github/workflows/ci.yml')],
+      ['.github/workflows/ci-master.yml', loadWorkflow('.github/workflows/ci-master.yml')],
+      [
+        '.github/workflows/build-exe-for-python-sdk.yml',
+        loadWorkflow('.github/workflows/build-exe-for-python-sdk.yml'),
+      ],
+    ])
+    const windowsJobs: readonly {
+      readonly file: string
+      readonly job: string
+      readonly condition?: string
+    }[] = [
+      { file: '.github/workflows/ci.yml', job: 'windows-build' },
+      { file: '.github/workflows/ci.yml', job: 'windows-coverage' },
+      { file: '.github/workflows/ci.yml', job: 'windows-native-tests' },
+      { file: '.github/workflows/ci.yml', job: 'windows-observational' },
+      { file: '.github/workflows/ci-master.yml', job: 'serial-windows' },
+      {
+        file: '.github/workflows/ci-master.yml',
+        job: 'larger-runner-benchmark',
+        condition: "matrix.platform == 'windows'",
+      },
+      {
+        file: '.github/workflows/ci-master.yml',
+        job: 'consolidated-runner-benchmark',
+        condition: "matrix.platform == 'windows'",
+      },
+      {
+        file: '.github/workflows/build-exe-for-python-sdk.yml',
+        job: 'build',
+        condition: "matrix.target == 'node24-win-x64'",
+      },
+    ]
+
+    expect(windowsJobs).toHaveLength(8)
+    for (const { file, job: jobName, condition } of windowsJobs) {
+      const workflow = workflows.get(file)
+      if (workflow === undefined) throw new TypeError(`${file} must be loaded`)
+      const job = workflowJob(workflow, jobName)
+      if (!Array.isArray(job.steps)) throw new TypeError(`${file} ${jobName} must define steps`)
+      const steps = job.steps.filter(isRecord)
+      const preparationIndex = steps.findIndex(
+        step => step.name === 'Prepare Windows tracked symlink checkout',
+      )
+      const checkoutIndex = steps.findIndex(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))
+      const verificationIndex = steps.findIndex(
+        step => step.name === 'Verify Windows tracked symlink checkout',
+      )
+      expect(preparationIndex, `${file} ${jobName} must prepare immediately before checkout`)
+        .toBe(checkoutIndex - 1)
+      expect(verificationIndex, `${file} ${jobName} must verify immediately after checkout`)
+        .toBe(checkoutIndex + 1)
+
+      const preparation = steps[preparationIndex]
+      const verification = steps[verificationIndex]
+      if (!isRecord(preparation) || typeof preparation.run !== 'string'
+        || !isRecord(verification) || typeof verification.run !== 'string') {
+        throw new TypeError(`${file} ${jobName} must define symlink preparation and verification`)
+      }
+      expect(preparation.shell).toBe('pwsh')
+      expect(preparation.run).toContain(
+        'reg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock"',
+      )
+      expect(preparation.run).toContain('git config --global core.symlinks true')
+      expect(preparation.run.indexOf('reg add')).toBeLessThan(
+        preparation.run.indexOf('git config --global core.symlinks true'),
+      )
+      expect(preparation.run).toContain("'GIT_CONFIG_COUNT=1'")
+      expect(preparation.run).toContain("'GIT_CONFIG_KEY_0=core.symlinks'")
+      expect(preparation.run).toContain("'GIT_CONFIG_VALUE_0=true'")
+      expect(preparation.run).toContain('$env:GITHUB_ENV')
+      expect(verification.shell).toBe('pwsh')
+      expect(verification.run).toContain(
+        "$trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'",
+      )
+      expect(verification.run).toContain('git ls-files --stage -- $trackedSymlinkPath')
+      expect(verification.run).toContain("$indexEntry -notmatch '^120000\\s'")
+      expect(verification.run).toContain('[System.IO.FileAttributes]::ReparsePoint')
+
+      if (condition === undefined) {
+        expect(preparation).not.toHaveProperty('if')
+        expect(verification).not.toHaveProperty('if')
+      } else {
+        expect(preparation.if).toBe(condition)
+        expect(verification.if).toBe(condition)
+      }
     }
   })
 
@@ -105,7 +232,7 @@ describe('CI workflow', () => {
       expect(job['runs-on'], `${jobName} runs-on must not use the Linux failover switch`).not.toContain('DSH_CI_FAILOVER_LINUX')
       expect(job['runs-on']).toContain('self-hosted')
       expect(job['runs-on']).toContain('dsh-win-ci')
-      expect(job['runs-on']).toContain('dsh-windows-2025-16core')
+      expect(job['runs-on']).toContain("vars.DSH_CI_WINDOWS_RUNNER || 'windows-2025'")
       expect(job.if).toBe("github.event_name == 'pull_request'")
     }
 
@@ -168,6 +295,7 @@ describe('CI workflow', () => {
       expect(typeof job['runs-on']).toBe('string')
       expect(job['runs-on'], `${jobName} runs-on must use the Linux failover switch`).toContain('DSH_CI_FAILOVER_LINUX')
       expect(job['runs-on'], `${jobName} runs-on must not use the Windows failover switch`).not.toContain('DSH_CI_FAILOVER_WINDOWS')
+      expect(job['runs-on']).toContain("vars.DSH_CI_LINUX_RUNNER || 'ubuntu-24.04'")
       expect(job['runs-on']).toContain('vm-backup')
     }
     expect(aggregate['runs-on']).toContain('DSH_CI_FAILOVER_LINUX')
@@ -352,6 +480,24 @@ describe('E2B e2e workflow', () => {
 })
 
 describe('Python release workflows', () => {
+  it('retains a failed runtime wheel under a diagnostic artifact name in its producing job', () => {
+    const workflow = loadWorkflow('.github/workflows/build-exe-for-python-sdk.yml')
+    if (!isRecord(workflow.jobs) || !isRecord(workflow.jobs.build) || !Array.isArray(workflow.jobs.build.steps)) {
+      throw new TypeError('runtime wheel builder must define its build steps')
+    }
+    const diagnostics = workflow.jobs.build.steps.filter(isRecord)
+      .filter(step => step.name === 'Retain failed runtime wheel for diagnosis')
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0]).toMatchObject({
+      if: "failure() && (steps.runtime-posix.outputs.wheel != '' || steps.runtime-windows.outputs.wheel != '')",
+      with: {
+        name: 'failed-runtime-wheel-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.target }}',
+        path: 'dist-python/${{ steps.runtime-posix.outputs.wheel || steps.runtime-windows.outputs.wheel }}',
+        'if-no-files-found': 'error',
+      },
+    })
+  })
+
   it('keeps complete wheel validation separate from protected public publication', () => {
     const workflow = loadWorkflow('.github/workflows/python-release.yml')
     const dispatch = workflowEvent(workflow, 'workflow_dispatch')
@@ -420,7 +566,7 @@ describe('Python release workflows', () => {
       step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'),
     )).toBe(false)
     expect([...runtimeSteps, ...sdkSteps].filter(
-      step => step.uses === 'pypa/gh-action-pypi-publish@release/v1',
+      step => typeof step.uses === 'string' && step.uses.startsWith('pypa/gh-action-pypi-publish@'),
     )).toHaveLength(2)
     expect(runtimePublish).toMatchObject({
       with: { 'packages-dir': 'dist/runtime/', attestations: false },
@@ -660,6 +806,496 @@ describe('Documentation site publication', () => {
   })
 })
 
+describe('Native Link real-Host acceptance workflows', () => {
+  const hostAcceptance = readFileSync(
+    resolve(root, 'apps/cli/tests/link-native-acceptance.e2e.ts'),
+    'utf8',
+  )
+  const cases = [
+    {
+      file: '.github/workflows/apple-swift.yml',
+      jobName: 'swift-test',
+      language: 'swift',
+      driver: 'LinkNativeAcceptance',
+      result: 'g1-link-acceptance/swift/evidence.json',
+      nativePath: 'apps/apple/**',
+    },
+    {
+      file: '.github/workflows/android-kotlin.yml',
+      jobName: 'gradle-test',
+      language: 'kotlin',
+      driver: ':core:nativeAcceptance',
+      result: 'g1-link-acceptance/kotlin/evidence.json',
+      nativePath: 'apps/android/**',
+    },
+  ] as const
+
+  for (const entry of cases) {
+    it(`runs and preserves the ${entry.language} result`, () => {
+      const workflow = loadWorkflow(entry.file)
+      const job = workflowJob(workflow, entry.jobName)
+      const pullRequest = workflowEvent(workflow, 'pull_request')
+      const push = workflowEvent(workflow, 'push')
+      if (!Array.isArray(job.steps) || !Array.isArray(pullRequest.paths) || !Array.isArray(push.paths)) {
+        throw new TypeError(`${entry.file} must define steps plus pull-request and push paths`)
+      }
+      const steps = job.steps.filter(isRecord)
+      const commands = steps
+        .filter((step): step is Record<string, unknown> & { run: string } => typeof step.run === 'string')
+        .map(step => step.run)
+      const setupNode = steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/setup-node@'))
+      const install = steps.find(step => step.run === 'pnpm install --frozen-lockfile')
+      const acceptance = steps.find(step => (
+        typeof step.run === 'string' && step.run.includes('apps/cli/tests/link-native-acceptance.e2e.ts')
+      ))
+      const upload = steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@')
+        && isRecord(step.with) && typeof step.with.path === 'string' && step.with.path.includes(entry.result))
+      if (!isRecord(acceptance) || !isRecord(acceptance.env)
+        || typeof acceptance.run !== 'string') {
+        throw new TypeError(`${entry.file} must define the native acceptance step and environment`)
+      }
+      if (!isRecord(upload) || !isRecord(upload.with)) {
+        throw new TypeError(`${entry.file} must define the native evidence upload`)
+      }
+
+      expect(job['continue-on-error']).not.toBe(true)
+      expect(setupNode).toMatchObject({ with: { 'node-version': '24', cache: 'pnpm' } })
+      expect(install).toBeDefined()
+      expect(acceptance.env.DSH_LINK_ACCEPTANCE_LANGUAGE).toBe(entry.language)
+      expect(commands).toContain('pnpm run build:official')
+      expect(commands.indexOf('pnpm run build:official')).toBeLessThan(commands.indexOf(acceptance.run))
+      expect(acceptance.env.DSH_LINK_ACCEPTANCE_RESULT).toContain(entry.result)
+      expect(acceptance.env.DSH_LINK_ACCEPTANCE_DRIVER_JSON).toContain(entry.driver)
+      expect(acceptance.run).toContain('--no-file-parallelism')
+      expect(acceptance.run).toContain('--retry=0')
+      expect(acceptance['continue-on-error']).not.toBe(true)
+      expect(upload.if).toBe('always()')
+      expect(upload.with.path).toContain(entry.result)
+      expect(upload.with['if-no-files-found']).toBe('error')
+      const requiredPaths = [
+        '.gitignore',
+        entry.nativePath,
+        'apps/cli/config/**',
+        'apps/cli/package.json',
+        'apps/cli/tests/link-native-acceptance.e2e.ts',
+        'native/landlock-run/**',
+        // The composition resolves plugins across the package tree. A curated
+        // subset silently misses owners such as link-settings and credentials.
+        'packages/**',
+        'patches/**',
+        'vendor/**',
+        'package.json',
+        'pnpm-lock.yaml',
+        'pnpm-workspace.yaml',
+        'scripts/test-invariants.ts',
+        'tsconfig.base.json',
+        'tsconfig.json',
+        'vitest.e2e.config.ts',
+        'vitest.shared.ts',
+        entry.file,
+      ]
+      for (const event of [pullRequest, push]) {
+        expect(event.paths).toEqual(expect.arrayContaining(requiredPaths))
+      }
+      expect(push.branches).toEqual(['dev', 'master'])
+      expect(commands.some(command => command.includes('link-session-slice.e2e.ts'))).toBe(false)
+    })
+  }
+
+  it('initializes external failure evidence before setup validation', () => {
+    const setup = sourceSection(hostAcceptance, 'beforeAll(async () => {', 'afterAll(async () => {')
+    const parsed = setup.indexOf('const nativeDriver = parseNativeDriver(')
+    const claimed = setup.indexOf('nativeArtifact = await claimNativeArtifact(', parsed)
+    const failed = setup.indexOf('await writeSanitizedFailure(', claimed)
+    const validated = setup.indexOf('const commit = await assertExecutionInputsClean(', failed)
+    expect(parsed).toBeGreaterThanOrEqual(0)
+    expect(claimed).toBeGreaterThan(parsed)
+    expect(failed).toBeGreaterThan(claimed)
+    expect(validated).toBeGreaterThan(failed)
+
+    const claim = sourceSection(
+      hostAcceptance,
+      'async function claimNativeArtifact(',
+      'function pathIsInside(',
+    )
+    expect(claim).toContain('realpath(temporaryHome)')
+    expect(claim).toContain('realpath(resultParent)')
+    expect(claim).toContain('await lstat(driver.resultPath)')
+    expect(claim).toContain('must resolve outside the temporary Harness home')
+  })
+
+  it('requires Host-observed approval and revocation before native publication', () => {
+    const acceptance = sourceSection(
+      hostAcceptance,
+      "describe('the shared Link native acceptance corpus'",
+      '/** Boot the shipped base + desktop patches',
+    )
+    const nativeRun = acceptance.indexOf('const received = await runNativeDriver(')
+    const hostVerification = acceptance.indexOf(
+      'await current.control.verifyExpectedBehavior()',
+      nativeRun,
+    )
+    const nativeValidation = acceptance.indexOf('const native = validateResult(', nativeRun)
+    const publication = acceptance.indexOf('result: toPublishedAcceptanceResult(native),')
+    expect(nativeRun).toBeGreaterThanOrEqual(0)
+    expect(hostVerification).toBeGreaterThan(nativeRun)
+    expect(nativeValidation).toBeGreaterThan(hostVerification)
+    expect(publication).toBeGreaterThan(nativeValidation)
+
+    const control = sourceSection(hostAcceptance, 'async function startControl(', '/** Run every corpus action')
+    expect(control).toContain('const requests = mock.requests.slice(current.modelRequestBaseline)')
+    expect(control).toContain("stalled?.behavior !== 'stall' || stalled.outcome !== undefined")
+    expect(control).toContain('current.approvalStarts += 1')
+    expect(control).toContain("current.approval.outcome !== 'allowed-once'")
+    expect(control).toContain("current.revocation.kind !== 'complete'")
+    expect(control).toContain('revoked?.revokedAt === undefined')
+  })
+
+  it('publishes a privacy-safe PASS summary without Session projection payloads', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-pass-publication-'))
+    const resultPath = join(directory, 'evidence.json')
+    try {
+      const regression = runHostAcceptanceRegression('pass-publication', resultPath)
+      const output = `${regression.stdout}\n${regression.stderr}`
+      expect(regression.error).toBeUndefined()
+      expect(regression.status, output).toBe(0)
+      const serialized = readFileSync(resultPath, 'utf8')
+      expect(output).not.toContain(sensitiveProjectionSentinel)
+      expect(serialized).not.toContain(sensitiveProjectionSentinel)
+      const evidence: unknown = JSON.parse(serialized)
+      if (!isRecord(evidence) || !isRecord(evidence.recovery)) {
+        throw new TypeError('PASS acceptance evidence must define a recovery summary')
+      }
+      expect(Object.keys(evidence).sort()).toEqual([
+        'clientCommit',
+        'contractVersion',
+        'corpusSha256',
+        'hostCommit',
+        'language',
+        'linkProtocolVersion',
+        'recordKind',
+        'recovery',
+        'schemaVersion',
+        'sessionFormatVersion',
+        'status',
+        'steps',
+      ])
+      expect(Object.keys(evidence.recovery).sort()).toEqual([
+        'afterRepeatedReconnectProjectionSha256',
+        'beforeRepeatedReconnectProjectionSha256',
+        'eventReplacementCount',
+        'followReplacementCount',
+        'offlineSeqCount',
+        'preFaultSeq',
+        'projectionArtifactCount',
+        'projectionDigestEncoding',
+        'projectionEqualAfterRepeatedReconnect',
+        'projectionGoalCount',
+        'projectionImageCount',
+        'projectionItemCount',
+        'projectionPlanActive',
+        'projectionTodoCount',
+        'projectionToolCallCount',
+        'recoverySnapshotCursor',
+        'recoverySnapshotHasMore',
+        'repeatedSnapshotCursor',
+      ])
+      expect(evidence).toMatchObject({
+        schemaVersion: 1,
+        recordKind: 'privacy-safe-acceptance-summary',
+        language: 'swift',
+        status: 'PASS',
+        corpusSha256: '0'.repeat(64),
+        hostCommit: '0'.repeat(40),
+        clientCommit: '0'.repeat(40),
+        recovery: {
+          preFaultSeq: 6,
+          recoverySnapshotCursor: 7,
+          repeatedSnapshotCursor: 7,
+          offlineSeqCount: 1,
+          recoverySnapshotHasMore: false,
+          followReplacementCount: 2,
+          eventReplacementCount: 2,
+          projectionItemCount: 1,
+          projectionPlanActive: true,
+          projectionTodoCount: 1,
+          projectionGoalCount: 1,
+          projectionToolCallCount: 1,
+          projectionImageCount: 1,
+          projectionArtifactCount: 1,
+          projectionEqualAfterRepeatedReconnect: true,
+          projectionDigestEncoding: 'SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order',
+        },
+      })
+      expect(evidence.steps).toEqual([
+        'pair',
+        'connect',
+        'describe',
+        'list',
+        'open',
+        'history',
+        'follow',
+        'prompt',
+        'stream',
+        'approval',
+        'cancel',
+        'reconnect',
+        'revoke',
+      ].map(id => ({ id, status: 'PASS' })))
+      expect(evidence.recovery.beforeRepeatedReconnectProjectionSha256)
+        .toBe('9c97abbb4cf7f805e0ba8fd14d5fcf8d343403d2ac6f8aecfbf1f392f1d32ecc')
+      expect(evidence.recovery.afterRepeatedReconnectProjectionSha256)
+        .toBe(evidence.recovery.beforeRepeatedReconnectProjectionSha256)
+      expect(evidence.recovery).not.toHaveProperty('beforeRepeatedReconnectProjection')
+      expect(evidence.recovery).not.toHaveProperty('afterRepeatedReconnectProjection')
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }, 30_000)
+
+  it('keeps cleanup timeout and evidence publication inside the hook timeout', () => {
+    const teardown = sourceSection(
+      hostAcceptance,
+      'afterAll(async () => {',
+      "describe('the shared Link native acceptance corpus'",
+    )
+    const cleanup = teardown.indexOf('await settleCleanupBeforeDeadline(')
+    const publication = teardown.indexOf('await publishNativeEvidence(', cleanup)
+    expect(cleanup).toBeGreaterThanOrEqual(0)
+    expect(publication).toBeGreaterThan(cleanup)
+    expect(teardown.trimEnd().endsWith('}, AFTER_ALL_HOOK_TIMEOUT_MS)')).toBe(true)
+    expect(teardown).toContain(
+      'const evidenceRenameDeadline = teardownStartedAt + EVIDENCE_RENAME_DEADLINE_MS',
+    )
+
+    const deadline = numericConstant(hostAcceptance, 'TEARDOWN_DEADLINE_MS')
+    const renameDeadline = numericConstant(hostAcceptance, 'EVIDENCE_RENAME_DEADLINE_MS')
+    const hookTimeout = numericConstant(hostAcceptance, 'AFTER_ALL_HOOK_TIMEOUT_MS')
+    expect(renameDeadline).toBeGreaterThan(deadline)
+    expect(hookTimeout).toBeGreaterThan(renameDeadline)
+    const cleanupImplementation = sourceSection(
+      hostAcceptance,
+      'async function settleBeforeAbsoluteDeadline<T>(',
+      'async function stopActiveNativeProcess(',
+    )
+    expect(cleanupImplementation).toContain('Promise.race([')
+    expect(cleanupImplementation).not.toContain('writeEvidenceAtomically(')
+  })
+
+  it('threads Vitest cancellation through the subprocess service and joins the whole tree', () => {
+    const acceptance = sourceSection(
+      hostAcceptance,
+      "describe('the shared Link native acceptance corpus'",
+      '/** Boot the shipped base + desktop patches',
+    )
+    expect(acceptance).toContain('async ({ signal }) =>')
+    const nativeInvocation = sourceSection(
+      acceptance,
+      'const received = await runNativeDriver(',
+      'const nativeHostRecovery =',
+    )
+    expect(nativeInvocation).toContain('current,')
+    expect(nativeInvocation).toContain('nativeConfig,')
+    expect(nativeInvocation).toContain('signal,')
+
+    const runner = sourceSection(
+      hostAcceptance,
+      'async function runNativeDriver(',
+      'async function pathExists(',
+    )
+    expect(runner).toContain('cancelSignal: AbortSignal')
+    expect(runner).toContain('AbortSignal.timeout(NATIVE_DRIVER_TIMEOUT_MS)')
+    expect(runner).toContain('AbortSignal.any([cancelSignal, deadlineSignal])')
+    expect(runner).toContain('ctx.subprocess.spawn')
+    expect(runner).toContain('nativeDriverProcessArgv(driver)')
+    expect(runner).toContain("process.platform === 'win32' && driver.language === 'kotlin'")
+    expect(runner).toContain("['cmd.exe', '/d', '/s', '/c', ...driver.argv]")
+    expect(runner).toContain('DSH_HOME: home')
+    expect(runner).toContain('DSH_LINK_ACCEPTANCE_CONFIG: configPath')
+    expect(runner).toContain('await child.waitForExit()')
+    expect(runner).toContain('deadlineSignal.aborted')
+    expect(runner).toContain('cancelSignal.aborted')
+    expect(runner).not.toContain('execa(')
+    const failedOutcome = sourceSection(
+      runner,
+      'if (interruptions.length > 0 || result.exitCode !== 0 || result.signal !== null) {',
+      'return await readAndRemoveNativeCandidate(config)',
+    )
+    expect(failedOutcome.indexOf('await removeNativeCandidate(config.candidateResultPath)'))
+      .toBeGreaterThanOrEqual(0)
+    expect(failedOutcome.lastIndexOf('throw outcomeError'))
+      .toBeGreaterThan(failedOutcome.indexOf('await removeNativeCandidate(config.candidateResultPath)'))
+    expect(runner).toContain("code === 'ENOENT'")
+    const settlement = sourceSection(
+      runner,
+      'async function settleNativeProcess(',
+      'function readNativeProcessOutput(',
+    )
+    expect(settlement.indexOf('await child.done')).toBeGreaterThanOrEqual(0)
+    expect(settlement.indexOf('child.terminate()')).toBeGreaterThan(settlement.indexOf('await child.done'))
+    expect(settlement.indexOf('await child.waitForExit()')).toBeGreaterThan(settlement.indexOf('child.terminate()'))
+    const outputReader = sourceSection(
+      hostAcceptance,
+      'function readNativeProcessOutput(',
+      'async function pathExists(',
+    )
+    expect(outputReader).toContain('readCompleteNativeProcessOutput(child.collected.stdout)')
+    expect(outputReader).toContain('readCompleteNativeProcessOutput(child.collected.stderr)')
+    expect(outputReader).toContain('if (output === undefined || output.lossy)')
+
+    const stop = sourceSection(
+      hostAcceptance,
+      'async function stopActiveNativeProcess(',
+      'function restoreDshHome(',
+    )
+    expect(stop.indexOf('child.terminate()')).toBeGreaterThanOrEqual(0)
+    expect(stop.indexOf('child.done')).toBeGreaterThan(stop.indexOf('child.terminate()'))
+    expect(stop.indexOf('child.waitForExit()')).toBeGreaterThan(stop.indexOf('child.terminate()'))
+
+    const regressionCleanup = sourceSection(
+      hostAcceptance,
+      'async function waitForProcessTreeRegressionReady(',
+      'interface PublicationRegressionFixture',
+    )
+    expect(regressionCleanup).toContain('PROCESS_INSPECTOR.snapshot()')
+    expect(regressionCleanup).toContain("PROCESS_INSPECTOR.signalProcess(identity, 'SIGKILL')")
+    expect(regressionCleanup).not.toContain('process.kill(')
+  })
+
+  it('atomically replaces evidence only after flushing and closing a sibling file', () => {
+    const failureWriter = sourceSection(
+      hostAcceptance,
+      'async function writeSanitizedFailure(',
+      '/** Replace evidence only after a sibling temporary file',
+    )
+    const writer = sourceSection(
+      hostAcceptance,
+      'async function writeEvidenceAtomically(',
+      '/** Reject malformed or credential-bearing driver output',
+    )
+    const opened = writer.indexOf("await open(temporaryPath, 'wx', 0o600)")
+    const written = writer.indexOf('await handle.writeFile(', opened)
+    const flushed = writer.indexOf('await handle.sync()', written)
+    const closed = writer.indexOf('await handle.close()', flushed)
+    const deadlineCheck = writer.indexOf('performance.now() >= renameDeadline', closed)
+    const replaced = writer.indexOf('await rename(temporaryPath, resultPath)', closed)
+    expect(opened).toBeGreaterThanOrEqual(0)
+    expect(written).toBeGreaterThan(opened)
+    expect(flushed).toBeGreaterThan(written)
+    expect(closed).toBeGreaterThan(flushed)
+    expect(deadlineCheck).toBeGreaterThan(closed)
+    expect(replaced).toBeGreaterThan(deadlineCheck)
+    expect(writer).toContain('const resultParent = dirname(resultPath)')
+    expect(failureWriter).toContain('await writeEvidenceAtomically(resultPath, {')
+    expect(writer).toContain('await unlink(temporaryPath)')
+    expect(writer).not.toContain('writeFile(resultPath')
+    expect(writer).not.toContain('unlink(resultPath)')
+  })
+
+  it('publishes FAIL when teardown blocks past its absolute deadline', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-deadline-regression-'))
+    const resultPath = join(directory, 'evidence.json')
+    try {
+      const regression = runHostAcceptanceRegression('event-loop-deadline', resultPath)
+      const output = `${regression.stdout}\n${regression.stderr}`
+      expect(regression.error).toBeUndefined()
+      expect(regression.status, output).toBe(1)
+      expect(output).toContain('teardown exceeded its absolute deadline')
+      const evidence: unknown = JSON.parse(readFileSync(resultPath, 'utf8'))
+      expect(evidence).toMatchObject({
+        schemaVersion: 1,
+        language: 'swift',
+        status: 'FAIL',
+        reason: 'host-validation-failed',
+      })
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }, 30_000)
+
+  it('terminates the native process tree and keeps failure evidence after a Vitest timeout', () => {
+    const { evidence, observation, output, regression } = runProcessTreeRegression(
+      'test-timeout-publication',
+      'dsh-link-timeout-regression-',
+    )
+    expect(regression.error).toBeUndefined()
+    expect(regression.status, output).toBe(1)
+    expect(output).toContain('Test timed out in 10000ms')
+    expectProcessTreeRegressionQuiescent(observation)
+    expect(evidence).toMatchObject({
+      schemaVersion: 1,
+      language: 'swift',
+      status: 'FAIL',
+      reason: 'host-validation-failed',
+    })
+  }, 60_000)
+
+  it('rejects an explicitly cancelled native driver and keeps failure evidence', () => {
+    const { evidence, observation, output, regression } = runProcessTreeRegression(
+      'native-driver-cancellation',
+      'dsh-link-cancellation-regression-',
+    )
+    expect(regression.error).toBeUndefined()
+    expect(regression.status, output).toBe(0)
+    expectProcessTreeRegressionQuiescent(observation)
+    expect(evidence).toMatchObject({
+      schemaVersion: 1,
+      language: 'swift',
+      status: 'FAIL',
+      reason: 'host-validation-failed',
+    })
+  }, 60_000)
+
+  it('recovers identity-fenced interim readiness but rejects pid-only cleanup', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-pid-only-regression-'))
+    const path = join(directory, processTreeResultName)
+    try {
+      const readiness = {
+        childPid: 12_345,
+        childSentinelPresent: false,
+        grandchildPid: 12_346,
+        grandchildSentinelPresent: false,
+        ready: true,
+      }
+      writeFileSync(path, JSON.stringify(readiness))
+      expect(readRecordedProcessIdentities(path)).toEqual([])
+      writeFileSync(path, JSON.stringify({
+        ...readiness,
+        childStarted: 'child-start',
+        grandchildStarted: 'grandchild-start',
+      }))
+      expect(readRecordedProcessIdentities(path)).toEqual([
+        { pid: 12_346, started: 'grandchild-start' },
+        { pid: 12_345, started: 'child-start' },
+      ])
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  })
+
+  it('rejects unequal private projections without leaking their candidate payload', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-link-sensitive-mismatch-'))
+    const resultPath = join(directory, 'evidence.json')
+    try {
+      const regression = runHostAcceptanceRegression('sensitive-mismatch', resultPath)
+      const output = `${regression.stdout}\n${regression.stderr}`
+      expect(regression.error).toBeUndefined()
+      expect(regression.status, output).toBe(0)
+      expect(output).not.toContain(sensitiveProjectionSentinel)
+      const serialized = readFileSync(resultPath, 'utf8')
+      expect(serialized).not.toContain(sensitiveProjectionSentinel)
+      expect(JSON.parse(serialized)).toEqual({
+        schemaVersion: 1,
+        language: 'swift',
+        status: 'FAIL',
+        reason: 'host-validation-failed',
+      })
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }, 30_000)
+})
+
 describe('Git hooks', () => {
   it('leaves frozen Agent Note sidecars to the archive verifier', () => {
     const lefthook = loadWorkflow('lefthook.yml')
@@ -682,6 +1318,199 @@ function loadWorkflow(path: string): Record<string, unknown> {
   const workflow: unknown = yaml.load(readFileSync(resolve(root, path), 'utf8'))
   if (!isRecord(workflow)) throw new TypeError(`${path} must define a workflow`)
   return workflow
+}
+
+function sourceSection(source: string, start: string, end: string): string {
+  const startIndex = source.indexOf(start)
+  const endIndex = source.indexOf(end, startIndex + start.length)
+  if (startIndex < 0 || endIndex < 0) throw new Error(`source section ${start} .. ${end} is missing`)
+  return source.slice(startIndex, endIndex)
+}
+
+function numericConstant(source: string, name: string): number {
+  const match = new RegExp(`const ${name} = ([\\d_]+)`, 'u').exec(source)
+  if (match?.[1] === undefined) throw new Error(`numeric constant ${name} is missing`)
+  return Number(match[1].replaceAll('_', ''))
+}
+
+/** Run timeout-sensitive regressions in a fresh Vitest worker and module instance. */
+function runHostAcceptanceRegression(scenario: string, resultPath?: string) {
+  const environment = { ...process.env }
+  delete environment.DSH_LINK_ACCEPTANCE_DRIVER_JSON
+  delete environment.DSH_LINK_ACCEPTANCE_LANGUAGE
+  delete environment.DSH_LINK_ACCEPTANCE_RESULT
+  delete environment.VITEST
+  delete environment.VITEST_POOL_ID
+  delete environment.VITEST_WORKER_ID
+  environment.DSH_LINK_ACCEPTANCE_INTERNAL_REGRESSION = scenario
+  environment.DSH_LINK_ACCEPTANCE_REGRESSION_TOKEN = 'must-not-reach-native-processes'
+  if (resultPath !== undefined) environment.DSH_LINK_ACCEPTANCE_RESULT = resultPath
+  return spawnSync(process.execPath, [
+    resolve(root, 'node_modules/vitest/vitest.mjs'),
+    'run',
+    '--config',
+    'vitest.e2e.config.ts',
+    'apps/cli/tests/link-native-acceptance.e2e.ts',
+    '--no-file-parallelism',
+    '--reporter=verbose',
+    '--retry=0',
+  ], {
+    cwd: root,
+    encoding: 'utf8',
+    env: environment,
+    maxBuffer: 5 * 1024 * 1024,
+    timeout: 45_000,
+    windowsHide: true,
+  })
+}
+
+function runProcessTreeRegression(scenario: string, directoryPrefix: string) {
+  const directory = mkdtempSync(join(tmpdir(), directoryPrefix))
+  const resultPath = join(directory, 'evidence.json')
+  const processTreePath = join(directory, processTreeResultName)
+  let ownedProcesses: ProcessIdentity[] = []
+  try {
+    const regression = runHostAcceptanceRegression(scenario, resultPath)
+    const output = `${regression.stdout}\n${regression.stderr}`
+    const observation = readProcessTreeRegressionObservation(processTreePath)
+    ownedProcesses = processTreeRegressionIdentities(observation)
+    const evidence: unknown = JSON.parse(readFileSync(resultPath, 'utf8'))
+    return { evidence, observation, output, regression }
+  } finally {
+    if (ownedProcesses.length === 0) {
+      ownedProcesses = readRecordedProcessIdentities(processTreePath)
+    }
+    try {
+      stopRecordedProcesses(ownedProcesses)
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }
+}
+
+function expectProcessTreeRegressionQuiescent(
+  observation: ProcessTreeRegressionObservation,
+): void {
+  const [grandchild, child] = processTreeRegressionIdentities(observation)
+  const snapshot = processInspector.snapshot()
+  expect(observation.childSentinelPresent).toBe(false)
+  expect(observation.grandchildSentinelPresent).toBe(false)
+  expect(observation.terminatedBeforeCleanup).toBe(true)
+  expect(snapshot.alive(child), 'native child must be gone').toBe(false)
+  expect(snapshot.alive(grandchild), 'native grandchild must be gone').toBe(false)
+}
+
+interface ProcessTreeRegressionObservation {
+  readonly childSentinelPresent: boolean
+  readonly childPid: number
+  readonly childStarted: string
+  readonly grandchildSentinelPresent: boolean
+  readonly grandchildPid: number
+  readonly grandchildStarted: string
+  readonly ready: true
+  readonly terminatedBeforeCleanup: boolean
+}
+
+function readProcessTreeRegressionObservation(path: string): ProcessTreeRegressionObservation {
+  const value: unknown = JSON.parse(readFileSync(path, 'utf8'))
+  if (!isRecord(value) || value.ready !== true
+    || typeof value.childSentinelPresent !== 'boolean'
+    || typeof value.grandchildSentinelPresent !== 'boolean'
+    || typeof value.terminatedBeforeCleanup !== 'boolean') {
+    throw new Error('process-tree regression observation is malformed')
+  }
+  const childPid = requireRecordedProcessId(value.childPid, 'child')
+  const grandchildPid = requireRecordedProcessId(value.grandchildPid, 'grandchild')
+  const childStarted = requireRecordedProcessStart(value.childStarted, 'child')
+  const grandchildStarted = requireRecordedProcessStart(value.grandchildStarted, 'grandchild')
+  if (childPid === grandchildPid) {
+    throw new Error('process-tree regression child and grandchild pids must differ')
+  }
+  return {
+    childSentinelPresent: value.childSentinelPresent,
+    childPid,
+    childStarted,
+    grandchildSentinelPresent: value.grandchildSentinelPresent,
+    grandchildPid,
+    grandchildStarted,
+    ready: true,
+    terminatedBeforeCleanup: value.terminatedBeforeCleanup,
+  }
+}
+
+function requireRecordedProcessId(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0
+    || value === process.pid) {
+    throw new Error(`process-tree regression ${label} pid is invalid`)
+  }
+  return value
+}
+
+function requireRecordedProcessStart(value: unknown, label: string): string {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`process-tree regression ${label} start identity is invalid`)
+  }
+  return value
+}
+
+function processTreeRegressionIdentities(
+  observation: ProcessTreeRegressionObservation,
+): [ProcessIdentity, ProcessIdentity] {
+  return [
+    { pid: observation.grandchildPid, started: observation.grandchildStarted },
+    { pid: observation.childPid, started: observation.childStarted },
+  ]
+}
+
+function readRecordedProcessIdentities(path: string): ProcessIdentity[] {
+  try {
+    const value: unknown = JSON.parse(readFileSync(path, 'utf8'))
+    if (!isRecord(value)) return []
+    const childPid = requireRecordedProcessId(value.childPid, 'child')
+    const grandchildPid = requireRecordedProcessId(value.grandchildPid, 'grandchild')
+    if (childPid === grandchildPid) return []
+    return [
+      {
+        pid: grandchildPid,
+        started: requireRecordedProcessStart(value.grandchildStarted, 'grandchild'),
+      },
+      {
+        pid: childPid,
+        started: requireRecordedProcessStart(value.childStarted, 'child'),
+      },
+    ]
+  } catch {
+    // An incomplete observation has no start identity that can fence a cleanup signal.
+    return []
+  }
+}
+
+function stopRecordedProcesses(identities: readonly ProcessIdentity[]): void {
+  const failures: unknown[] = []
+  const deadline = Date.now() + 5_000
+  for (const identity of identities) {
+    try {
+      processInspector.signalProcess(identity, 'SIGKILL')
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ESRCH') failures.push(error)
+    }
+  }
+  while (true) {
+    const snapshot = processInspector.snapshot()
+    const running = identities.filter(identity => snapshot.alive(identity))
+    if (running.length === 0) break
+    if (Date.now() >= deadline) {
+      failures.push(new Error(
+        `process-tree regression cleanup left pids ${running.map(({ pid }) => pid).join(', ')} running`,
+      ))
+      break
+    }
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25)
+  }
+  if (failures.length === 1) throw failures[0]
+  if (failures.length > 1) {
+    throw new AggregateError(failures, 'process-tree regression cleanup failed')
+  }
 }
 
 function workflowEvent(workflow: Record<string, unknown>, event: string): Record<string, unknown> {

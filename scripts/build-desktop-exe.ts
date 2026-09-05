@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { officialClientBuildEnvironment, readClientBuildRecord } from './client-build-environment.ts'
+import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // The stage lives OUTSIDE the repository tree: inside it, electron-builder's
@@ -60,6 +61,9 @@ async function readJson<T>(path: string, hint: string): Promise<T> {
 }
 
 async function main(): Promise<void> {
+  const identity = readProductIdentity(root)
+  const stale = staleProductIdentityFiles(root, identity)
+  if (stale.length !== 0) fail(`product version inputs are stale: ${stale.join(', ')}; run pnpm run gen-product-identity`)
   // Build artifacts the stage consumes; their absence means an unbuilt tree,
   // not a packaging condition.
   if (!existsSync(join(root, 'apps', 'desktop', 'lib', 'main.js'))) {
@@ -125,6 +129,8 @@ async function main(): Promise<void> {
   // devDependencies; the stage ships none, so record the resolved runtime.
   const stageManifestPath = join(STAGE_DIR, 'package.json')
   const stageManifest = await readJson<Record<string, unknown>>(stageManifestPath, 'the staged manifest')
+  if (stageManifest.version !== identity.version) fail('staged desktop version differs from package.json')
+  stageManifest.dshProduct = { buildNumber: identity.buildNumber, channel: identity.channel }
   stageManifest.devDependencies = { ...(stageManifest.devDependencies as Record<string, string> | undefined), electron: electronVersion }
   await writeFile(stageManifestPath, `${JSON.stringify(stageManifest, undefined, 2)}\n`)
 
@@ -147,6 +153,7 @@ async function main(): Promise<void> {
   const builderConfig = [
     'appId: com.deepseek.dsh',
     'productName: DeepSeek Harness',
+    `buildVersion: ${identity.windowsFileVersion}`,
     'publish: null',
     // node-pty ships N-API prebuilds that load under Electron unchanged; a
     // node-gyp rebuild would demand a native toolchain the packaging host
@@ -219,6 +226,36 @@ async function materializeEscapingLinks(dir: string, stageRoot: string): Promise
   }
 }
 
+interface VirtualStorePackageSource {
+  readonly name: string
+  readonly dir: string
+}
+
+/**
+ * List packages nested in a pnpm virtual store in directory iteration order.
+ * @param pnpmDir - `.pnpm` directory whose package entries are scanned.
+ * @returns package names and their physical source directories.
+ */
+async function listVirtualStorePackageSources(pnpmDir: string): Promise<VirtualStorePackageSource[]> {
+  const sources: VirtualStorePackageSource[] = []
+  for (const entry of await readdir(pnpmDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const nm = join(pnpmDir, entry.name, 'node_modules')
+    if (!existsSync(nm)) continue
+    for (const inner of await readdir(nm, { withFileTypes: true })) {
+      if (inner.name.startsWith('.')) continue
+      if (inner.name.startsWith('@')) {
+        for (const scoped of await readdir(join(nm, inner.name), { withFileTypes: true })) {
+          if (scoped.isDirectory()) sources.push({ name: `${inner.name}/${scoped.name}`, dir: join(nm, inner.name, scoped.name) })
+        }
+      } else if (inner.isDirectory()) {
+        sources.push({ name: inner.name, dir: join(nm, inner.name) })
+      }
+    }
+  }
+  return sources
+}
+
 /**
  * Backfill peerDependencies that the pruned deploy left unlinked. Each
  * virtual-store package whose manifest names a peer missing from its sibling
@@ -229,20 +266,8 @@ async function materializeEscapingLinks(dir: string, stageRoot: string): Promise
 async function completeMissingPeers(stageRoot: string): Promise<void> {
   const pnpmDir = join(stageRoot, 'node_modules', '.pnpm')
   const providers = new Map<string, string>()
-  for (const entry of await readdir(pnpmDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue
-    const nm = join(pnpmDir, entry.name, 'node_modules')
-    if (!existsSync(nm)) continue
-    for (const inner of await readdir(nm, { withFileTypes: true })) {
-      if (inner.name.startsWith('.')) continue
-      if (inner.name.startsWith('@')) {
-        for (const scoped of await readdir(join(nm, inner.name), { withFileTypes: true })) {
-          if (scoped.isDirectory()) providers.set(`${inner.name}/${scoped.name}`, join(nm, inner.name, scoped.name))
-        }
-      } else if (inner.isDirectory()) {
-        providers.set(inner.name, join(nm, inner.name))
-      }
-    }
+  for (const source of await listVirtualStorePackageSources(pnpmDir)) {
+    providers.set(source.name, source.dir)
   }
   let backfilled = 0
   for (const dir of providers.values()) {
@@ -278,28 +303,12 @@ async function hoistClosureToTopLevel(stageRoot: string): Promise<void> {
   const top = join(stageRoot, 'node_modules')
   const pnpmDir = join(top, '.pnpm')
   let hoisted = 0
-  for (const entry of await readdir(pnpmDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue
-    const nm = join(pnpmDir, entry.name, 'node_modules')
-    if (!existsSync(nm)) continue
-    for (const inner of await readdir(nm, { withFileTypes: true })) {
-      if (inner.name.startsWith('.')) continue
-      const sources: Array<{ name: string; dir: string }> = []
-      if (inner.name.startsWith('@')) {
-        for (const scoped of await readdir(join(nm, inner.name), { withFileTypes: true })) {
-          if (scoped.isDirectory()) sources.push({ name: `${inner.name}/${scoped.name}`, dir: join(nm, inner.name, scoped.name) })
-        }
-      } else if (inner.isDirectory()) {
-        sources.push({ name: inner.name, dir: join(nm, inner.name) })
-      }
-      for (const source of sources) {
-        const dest = join(top, ...source.name.split('/'))
-        if (existsSync(dest)) continue
-        mkdirSync(dirname(dest), { recursive: true })
-        cpSync(source.dir, dest, { recursive: true, force: true })
-        hoisted++
-      }
-    }
+  for (const source of await listVirtualStorePackageSources(pnpmDir)) {
+    const dest = join(top, ...source.name.split('/'))
+    if (existsSync(dest)) continue
+    mkdirSync(dirname(dest), { recursive: true })
+    cpSync(source.dir, dest, { recursive: true, force: true })
+    hoisted++
   }
   console.log(`build-desktop-exe: hoisted ${String(hoisted)} package(s) to the top-level node_modules`)
 }

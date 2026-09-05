@@ -92,7 +92,10 @@ interface LiteFoldState {
   pendingHandoff: string | null
 }
 
-/** The state before any event arrives. */
+/**
+ * The state before any event arrives.
+ * @returns a fresh Lite-domain accumulator.
+ */
 export function emptyLiteDomain(): LiteDomainState {
   return {
     conversation: [],

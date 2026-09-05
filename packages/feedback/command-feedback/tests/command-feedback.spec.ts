@@ -35,9 +35,6 @@ class FakeTelemetry extends SessionTelemetryBackend {
     this.sharing = config.sharing
   }
 
-  emit(): void {}
-
-  async shutdown(): Promise<void> {}
 }
 
 /** Build a live idle agent over a store-owned session, as an app's spine does. */
@@ -192,7 +189,7 @@ describe('/feedback human command', () => {
     const test = await harness('feedback-only')
     await expect(run(test, ' gated sharing')).resolves.toEqual({
       kind: 'success',
-      text: `Feedback recorded for session ${test.session.id}\nAnonymous user: ${USER_ID}. Session sharing is feedback-gated; recording feedback uploads the session records not yet shared.`,
+      text: `Feedback recorded for session ${test.session.id}\nAnonymous user: ${USER_ID}. Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline.`,
     })
     expect(feedbackTexts(test.session)).toEqual(['gated sharing'])
   })

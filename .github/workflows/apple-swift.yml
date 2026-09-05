@@ -2,17 +2,57 @@ name: Apple Swift
 
 # The macOS compile lane (nativization plan chapter 62): Swift sources and
 # tests under apps/apple are authored and fixture-drift-gated on every
-# change, but only this lane actually compiles and runs them. Zero external
-# dependencies, so the job is a checkout plus `swift test`.
+# change, but only this lane actually compiles and runs them. The lane also
+# boots the shipped Host composition and runs the real Swift Link acceptance.
 on:
   pull_request:
     paths:
+      - '.gitignore'
       - 'apps/apple/**'
+      - 'apps/cli/config/**'
+      - 'apps/cli/package.json'
+      - 'apps/cli/tests/link-native-acceptance.e2e.ts'
+      - 'native/landlock-run/**'
+      - 'packages/**'
+      - 'patches/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/test-invariants.ts'
+      - 'scripts/write-ci-source.ts'
+      - 'scripts/release/**'
+      - 'release/**'
+      - 'scripts/verify-apple-product.ts'
+      - 'tsconfig.base.json'
+      - 'tsconfig.json'
+      - 'vitest.e2e.config.ts'
+      - 'vitest.shared.ts'
       - '.github/workflows/apple-swift.yml'
   push:
     branches: [dev, master]
     paths:
+      - '.gitignore'
       - 'apps/apple/**'
+      - 'apps/cli/config/**'
+      - 'apps/cli/package.json'
+      - 'apps/cli/tests/link-native-acceptance.e2e.ts'
+      - 'native/landlock-run/**'
+      - 'packages/**'
+      - 'patches/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/test-invariants.ts'
+      - 'scripts/write-ci-source.ts'
+      - 'scripts/release/**'
+      - 'release/**'
+      - 'scripts/verify-apple-product.ts'
+      - 'tsconfig.base.json'
+      - 'tsconfig.json'
+      - 'vitest.e2e.config.ts'
+      - 'vitest.shared.ts'
       - '.github/workflows/apple-swift.yml'
   workflow_dispatch:
 
@@ -30,14 +70,40 @@ jobs:
     runs-on: macos-latest
     name: swift test (macOS)
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Report toolchain
         run: swift --version
 
-      - uses: actions/cache@v4
+      - name: Record CI source
+        id: ci-source
+        env:
+          DSH_CI_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm exec tsx scripts/write-ci-source.ts .github/workflows/apple-swift.yml "$RUNNER_TEMP/dsh-ci-source/source.json"
+
+      - name: Preserve CI source
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ci-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/dsh-ci-source/source.json
+          if-no-files-found: error
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: apps/apple/.build
           key: apple-swift-${{ runner.os }}-${{ hashFiles('apps/apple/Package.swift') }}
@@ -47,6 +113,24 @@ jobs:
       - name: swift test
         working-directory: apps/apple
         run: swift test
+
+      - name: Build Host plugins for native acceptance
+        run: pnpm run build:official
+
+      - name: Real Host to Swift acceptance
+        env:
+          DSH_LINK_ACCEPTANCE_DRIVER_JSON: '["swift","run","--package-path","apps/apple","LinkNativeAcceptance"]'
+          DSH_LINK_ACCEPTANCE_LANGUAGE: swift
+          DSH_LINK_ACCEPTANCE_RESULT: ${{ runner.temp }}/g1-link-acceptance/swift/evidence.json
+        run: pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0
+
+      - name: Upload Swift real-Host acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: g1-link-acceptance-swift-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g1-link-acceptance/swift/evidence.json
+          if-no-files-found: error
 
       # The thin Xcode shells (chapter 49): XcodeGen turns project.yml into
       # Companion.xcodeproj (generated, never committed), and both hosts must
@@ -70,3 +154,55 @@ jobs:
       - name: Build the macOS Direct Host
         working-directory: apps/apple
         run: xcodebuild -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' build
+
+      - name: Verify resolved and embedded Apple product versions
+        run: pnpm exec tsx scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json"
+
+      - name: Upload Apple product identity evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: g2-apple-product-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g2-apple-product/identity.json
+          if-no-files-found: error
+
+      - name: Create a fresh iOS startup simulator
+        run: |
+          selection=$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; rows=[r for r in json.load(sys.stdin)["runtimes"] if r["isAvailable"] and ".iOS-" in r["identifier"] and any(d["productFamily"]=="iPhone" for d in r["supportedDeviceTypes"])]; runtime=max(rows,key=lambda r:tuple(map(int,r["version"].split(".")))); print(runtime["identifier"], [d["identifier"] for d in runtime["supportedDeviceTypes"] if d["productFamily"]=="iPhone"][-1])')
+          read -r runtime device_type <<< "$selection"
+          device=$(xcrun simctl create "DSH Startup $GITHUB_RUN_ID" "$device_type" "$runtime")
+          echo "DSH_STARTUP_SIMULATOR=$device" >> "$GITHUB_ENV"
+          xcrun simctl boot "$device"
+          xcrun simctl bootstatus "$device" -b
+
+      - name: Verify the installed iOS first screen
+        working-directory: apps/apple
+        run: |
+          mkdir -p "$RUNNER_TEMP/g1-apple-startup"
+          xcodebuild -project Companion.xcodeproj -scheme CompanioniOS \
+            -destination "platform=iOS Simulator,id=$DSH_STARTUP_SIMULATOR" \
+            -derivedDataPath "$RUNNER_TEMP/g1-apple-derived" \
+            -resultBundlePath "$RUNNER_TEMP/g1-apple-startup/Startup.xcresult" \
+            -parallel-testing-enabled NO \
+            -only-testing:CompanionStartupUITests \
+            CODE_SIGNING_ALLOWED=NO test
+
+      - name: Export iOS startup screenshots
+        if: always() && env.DSH_STARTUP_SIMULATOR != ''
+        run: |
+          xcrun xcresulttool export attachments \
+            --path "$RUNNER_TEMP/g1-apple-startup/Startup.xcresult" \
+            --output-path "$RUNNER_TEMP/g1-apple-startup/screenshots"
+
+      - name: Upload iOS simulator startup evidence
+        if: always() && env.DSH_STARTUP_SIMULATOR != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: g1-apple-startup-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g1-apple-startup
+          if-no-files-found: error
+
+      - name: Delete the startup simulator
+        if: always() && env.DSH_STARTUP_SIMULATOR != ''
+        run: |
+          xcrun simctl shutdown "$DSH_STARTUP_SIMULATOR" || echo "Simulator was not running at cleanup."
+          xcrun simctl delete "$DSH_STARTUP_SIMULATOR"

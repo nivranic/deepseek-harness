@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-session-telemetry-otel` delivers session records through OpenTelemetry logs and is the only entry a deployment loads for the [session-telemetry seam](../session-telemetry/README.md). Its `mode` decides whether session records follow the live stream, are released only at recorded feedback, or stay local: `FULL` hands every record to the OTel SDK immediately, `FEEDBACK_ONLY` replays the canonical log when a `feedback/record` lands, and `DISABLED` (the default) constructs nothing and shares nothing. Uploading modes compose the OTel JS SDK as-is — `LoggerProvider` → `BatchLogRecordProcessor` → OTLP/HTTP log exporter — and map each record onto `logger.emit()`, so batching, retry, queueing, and loss policy follow the SDK. Records carry the complete event data as the seam's redaction waterfall returns it, so a deployment exporting beyond a trusted boundary mounts its own redaction rules. Modes, configuration, and the export surface come first; the implementation internals live in a collapsible developer section below.
+`dsh-session-telemetry-otel` delivers privacy-safe diagnostics through OpenTelemetry logs and is the only entry a deployment loads for the [session-telemetry seam](../session-telemetry/README.md). Its `mode` decides whether records follow the live stream, are released only at recorded feedback, or stay local: `FULL` hands every record to OTel immediately, `FEEDBACK_ONLY` replays a canonical-log prefix when `feedback/record` lands, and `DISABLED` constructs no capture or reporting pipeline and shares nothing. Uploading modes compose the OTel JS SDK as-is and map each record onto `logger.emit()`, so batching, retry, queueing, and loss policy follow the SDK. The owner-level projection excludes Session payloads and workspace paths before this backend sees a record.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount this plugin when a deployment should export session records through OpenTelemetry logs. Choose a mode, give the exporter an endpoint, and decide whether to mount redaction rules on the seam.
+Mount this plugin when a deployment should export privacy-safe Session diagnostics through OpenTelemetry logs. Choose an explicit uploading mode and give the exporter an endpoint; omitted mode stays local.
 
 ### Modes
 
@@ -61,11 +61,11 @@ Uploading modes require an exporter URL and accept the SDK option blocks verbati
 | `exporter`, `processor` | — | Passed verbatim to the SDK exporter and batch processor |
 | `shutdownTimeoutMillis` | `3,000` | Outer deadline for the SDK's complete shutdown sequence |
 
-The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-session-telemetry-otel) is the exhaustive source for every accepted field. Upload authorization is positive and fail-closed: an unknown direct-construction mode fails before transport configuration is read, only `FULL` accepts direct `ctx.sessionTelemetry.emit()` calls, and `FEEDBACK_ONLY` treats only the exact `feedback/record` object already stored in the canonical log as consent.
+The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-session-telemetry-otel) is the exhaustive source for every accepted field. Upload authorization is positive and fail-closed: the shipped base and direct construction default to `DISABLED`, an unknown mode fails before transport configuration is read, and `FEEDBACK_ONLY` reacts only to the exact `feedback/record` object already stored in the canonical log. `ctx.sessionTelemetry` has no public emit or shutdown operation.
 
 ### What leaves the machine
 
-In uploading modes, records carry the complete `event.data` as the seam's `sessionTelemetry/record` waterfall returns it — message content, tool arguments and results, the system prompt and tool schemas, todo text, compaction summaries, feedback text, and the session `cwd`. Provider credentials never appear: adapter API keys are constructor parameters, not session events, so they are structurally absent from the log and therefore from telemetry. `DISABLED` constructs no SDK pipeline and hands no capture to a backend.
+Uploading modes send event time/type/sequence, severity, bounded turn/step/outcome fields, tool error state, a fixed error class, and lifecycle operation. The Resource sends product name/version, `os.type`, `host.arch`, and the derived harness-home anonymous `user.id`. The anonymous-identity owner converts raw Session and parent Session ids to stable HMAC-SHA-256 pseudonyms before the reduction waterfall or this backend sees them; its private root and Session key never leave that package. Every SDK record uses `ROOT_CONTEXT`, so an ambient span cannot add trace or span correlation. The log body carries no value or content, although the OTLP JSON encoder may serialize an empty `body: {}` object. Message content, reasoning, system prompts/tool schemas, model-produced tool names, tool arguments/results, feedback text, arbitrary error names/codes/messages, workspace paths, source code, file contents, trace ids, span ids, and trace flags never reach the exporter. The authoritative [privacy inventory](../../../docs/subsystems/session-telemetry.md#privacy-inventory) accounts for DSH-controlled content-bearing values, Resource and record attributes, and static instrumentation-scope metadata.
 
 ### Failures and shutdown
 
@@ -83,7 +83,7 @@ This section explains the backend's composition; the observable behavior is full
 
 ### Design concept
 
-The backend is a thin adapter over the OTel JS SDK: it owns capture mode, resource identity, and an outer shutdown deadline, and passes everything else through verbatim. Two instrumentation scopes separate record channels — ledger records on `@deepseek-ai/dsh-session-telemetry-otel`, operational records on `@deepseek-ai/dsh-session-telemetry-otel/ops` — so receivers can alert on ops without summing them. Resource identity carries `service.name`/`service.version` from `dsh-llm`'s `APP_IDENTITY` plus the package's anonymous `user.id` (from `$DSH_HOME/.anonymous-user-id`), once per export batch rather than per record.
+The backend is a thin adapter over the OTel JS SDK: it owns capture mode, publication of the derived Resource identity, and an outer shutdown deadline. The anonymous-identity package owns the private root and Session-id pseudonymization; the capture coordinator hands this backend already-pseudonymous identifiers. The static `@deepseek-ai/dsh-session-telemetry-otel` and `@deepseek-ai/dsh-session-telemetry-otel/ops` instrumentation scopes separate ledger and operational records; both carry the package-manifest version. Resource identity carries `service.name`/`service.version`, `os.type`, `host.arch`, and the derived anonymous `user.id`, once per export batch rather than per record.
 
 ### Source map
 
@@ -93,11 +93,11 @@ The backend is a thin adapter over the OTel JS SDK: it owns capture mode, resour
 
 ### Capture wiring
 
-`FULL` composes the coordinator in `live` mode and lets direct service calls through; `FEEDBACK_ONLY` composes it in `on-demand` mode, gives the coordinator a private backend capability, and triggers `captureSession(session, event.seq)` only for the exact canonical feedback record; `DISABLED` registers nothing but a warning on `feedback/record`. The backend deliberately implements no `flush()`: the batch processor owns ordinary flushing, and forwarding the hint to `forceFlush()` would create the sole source of concurrent flushes whose interaction with shutdown's drain is undocumented.
+`FULL` composes the coordinator in `live` mode; `FEEDBACK_ONLY` composes it in `on-demand` mode and triggers `captureSession(session, event.seq)` only for the exact canonical feedback record; `DISABLED` registers only a local-feedback warning. The coordinator receives a private sink, while `ctx.sessionTelemetry` exposes only `sharing`. The backend deliberately implements no `flush()` because the batch processor owns ordinary flushing.
 
 ### Field mapping
 
-Each seam record maps onto one SDK log record: `time` and `severity` become the SDK timestamp and severity fields, and `body` and `attributes` carry through verbatim; the exact field mapping lives in [`src/index.ts`](src/index.ts). In `FULL`, receivers can detect crashes by `shutdown`-record absence — the marker is emitted at the session's own disposal or application teardown, and a marker followed by more events is a telemetry reload. In `FEEDBACK_ONLY`, a released prefix normally has no later `shutdown` marker, so its absence is not a crash signal.
+Each seam record maps onto one SDK log record whose body carries no value or content: `time` and `severity` become SDK fields, the already-pseudonymous privacy-safe attributes carry through unchanged, and an explicit `ROOT_CONTEXT` prevents implicit trace-context inheritance. The OTLP JSON encoder may represent that absence as an empty object. In `FULL`, receivers can detect crashes by `shutdown`-record absence; in `FEEDBACK_ONLY`, a released prefix normally has no later marker, so absence is not a crash signal.
 
 </details>
 

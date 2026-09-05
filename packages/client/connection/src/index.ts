@@ -121,7 +121,8 @@ export async function apply(ctx: Context, config?: ConnectionConfig): Promise<vo
   // whole lifetime.
   let carrierBound = false
   const bindCarrier = (): void => {
-    if (carrierBound || ctx.get('webServer') === undefined) return
+    const webServer = ctx.get('webServer')
+    if (carrierBound || webServer === undefined) return
     carrierBound = true
     const fetchHandler = connection.createSharedFetchHandler(API_PATH)
     const route: WebRoute = {
@@ -137,7 +138,7 @@ export async function apply(ctx: Context, config?: ConnectionConfig): Promise<vo
         await bridge(req, res, fetchHandler, maxRequestBodyBytes)
       },
     }
-    ctx.effect(() => ctx.webServer.register(route), 'client-connection: /api route')
+    ctx.effect(() => webServer.register(route), 'client-connection: /api route')
   }
   bindCarrier()
   ctx.inject(['webServer'], bindCarrier)

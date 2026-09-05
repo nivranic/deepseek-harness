@@ -32,6 +32,7 @@ The `artifact/` group is chapter 56's host face: the `artifact_create` tool auth
 <a id="related-documentation"></a>
 ## Related documentation
 
+- [Artifact subsystem](../../docs/subsystems/artifact.md) — the durable content identity, journal lifecycle, and `ctx.artifacts` API.
 - [Persistence catalog](../../docs/persistence-catalog.md) — the generated documentation of every journal event, artifacts included.
 - [Session event vocabulary](../core/session/README.md) — the merge-extensible `SessionEventMap` this family extends.
 - [Companion fold](../remote/link-contracts/README.md) — the reference fold that consumes these events into the artifact pane.
@@ -39,9 +40,4 @@ The `artifact/` group is chapter 56's host face: the `artifact_create` tool auth
 <a id="dev-note"></a>
 ## Dev Note
 
-<details>
-<summary>Working context for maintainers — click to expand</summary>
-
-The host-side producer (a tool or capability that creates artifacts and journals these events) and the host-side resource channel are deferred increments; the vocabulary lands first so companion consumers and fixtures pin one shape.
-
-</details>
+None.

@@ -33,7 +33,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Entry } from '@deepseek-ai/cordis-plugin-loader'
-import type { IndexInjection } from '@deepseek-ai/dsh-host-webserver'
+import type { IndexInjection, WebServer } from '@deepseek-ai/dsh-host-webserver'
 import { optionalStringArray, stripClientSuffix } from './client/manifest.ts'
 import type { HostRuntimeInfo, WebBootBatch, WebBootBatchPhase, WebBootEntry, WebBootGraph } from './client/manifest.ts'
 
@@ -609,24 +609,33 @@ export class ClientModuleRegistry extends Service {
     }
 
     // The HTTP carrier: bundle route and boot-row index listener. A webServer
-    // present at construction binds synchronously (the composition-contract
-    // observers read it); one appearing later rebinds through the watcher. A
-    // webless surface (the desktop app) serves both through its own carrier
-    // over the reads below, and the binding never runs.
-    let carrierBound = false
-    const bindCarrier = (): void => {
-      if (carrierBound || ctx.get('webServer') === undefined) return
-      carrierBound = true
-      ctx.effect(
-        () => ctx.webServer.register({ kind: 'prefix', path: '/plugins', handler: this.serveBundle }),
+    // present at construction binds synchronously (the composition observers
+    // read it); once dependencies settle, the injection fiber takes ownership
+    // so a removed or replaced provider tears down and rebinds both effects. A
+    // webless surface serves both through its own carrier over the reads below,
+    // and no HTTP binding runs.
+    const bindCarrier = (owner: Context, webServer: WebServer): (() => void) => {
+      const disposeRoute = owner.effect(
+        () => webServer.register({ kind: 'prefix', path: '/plugins', handler: this.serveBundle }),
         'client-modules: bundle route',
       )
-      ctx.on('webserver/index-inject', (table) => {
+      const disposeIndex = owner.on('webserver/index-inject', (table) => {
         table.push(...bootInjections(this.composed))
       })
+      return () => {
+        disposeIndex()
+        void disposeRoute()
+      }
     }
-    bindCarrier()
-    ctx.inject(['webServer'], bindCarrier)
+    const initialWebServer = ctx.get('webServer')
+    let disposeInitialBinding = initialWebServer === undefined
+      ? undefined
+      : bindCarrier(ctx, initialWebServer)
+    ctx.inject(['webServer'], (webCtx) => {
+      disposeInitialBinding?.()
+      disposeInitialBinding = undefined
+      bindCarrier(webCtx, webCtx.webServer)
+    })
   }
 
   /**

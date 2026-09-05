@@ -40,6 +40,8 @@ Client sources declare typed Runtime, Console, and read-only Sources capabilitie
 
 Both plugin faces run the same browser-safe Cordis collector. It converts reachable Context and Fiber objects into a versioned `CordisTreeSnapshot`; the Worker stores that CDP-independent representation and projects each Host or Client source into the Elements panel.
 
+The Worker subscribes to Console events before enabling Runtime. Each connected Client acknowledges session readiness after processing earlier Console controls on its ordered source socket; `Runtime.enable` waits for those replies, and a later Client context is announced only after its own reply. Disconnect or the configured Runtime deadline rejects pending readiness. Detached Cordis tree snapshots remain available independently of Runtime activation.
+
 <a id="configuration"></a>
 ## Configuration
 

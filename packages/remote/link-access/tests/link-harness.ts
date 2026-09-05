@@ -10,7 +10,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { Context as RootContext, Service } from '@deepseek-ai/cordis'
 import { apply as applyConnection, inject as connectionInject } from '@deepseek-ai/dsh-client-connection'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
-import { Remote, bindTypertRemote } from '@deepseek-ai/dsh-typert-protocol'
+import { Remote, bindTypertRemote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import TypertGatewayService from '@deepseek-ai/dsh-api-gateway'
 import DeviceTrustStore from '@deepseek-ai/dsh-device-trust'
 import LinkAccessService from '../src/index.ts'
@@ -77,25 +77,150 @@ class ProbeService extends Service {
 
   @Remote({ mode: 'stream' })
   linger(signal: AbortSignal): AsyncIterable<string> {
+    const calls = this.calls
     return (async function* () {
-      yield 'open'
-      await new Promise<never>((_resolve, reject) => {
-        signal.addEventListener('abort', () => { reject(new Error('linger aborted')) }, { once: true })
-      })
+      try {
+        yield 'open'
+        await new Promise<never>((_resolve, reject) => {
+          const abort = (): void => {
+            calls.push('linger:aborted')
+            reject(new Error('linger aborted'))
+          }
+          if (signal.aborted) abort()
+          else signal.addEventListener('abort', abort, { once: true })
+        })
+      } finally {
+        calls.push('linger:closed')
+      }
     })()
+  }
+}
+
+/** Product-endpoint probes whose values make carrier scope filtering observable. */
+class ScopedSessionProbe extends TypertRemoteService {
+  readonly calls: string[] = []
+
+  constructor(ctx: Context) {
+    super(ctx, 'scopedSessionProbe', { namespace: 'session' })
+  }
+
+  @Remote
+  list(_request: object): object {
+    this.calls.push('list')
+    return {
+      items: [
+        { sessionId: 'session-allowed', updatedAt: 2, running: false, blank: false },
+        { sessionId: 'session-denied', updatedAt: 1, running: false, blank: false },
+      ],
+    }
+  }
+
+  @Remote
+  search(request: { readonly query: string }): object {
+    this.calls.push(`search:${request.query}`)
+    return {
+      items: [
+        { sessionId: 'session-allowed', snippet: 'allowed' },
+        { sessionId: 'session-denied', snippet: 'denied' },
+      ],
+      hasMore: true,
+    }
+  }
+
+  @Remote
+  prompt(request: { readonly sessionId: string }): object {
+    this.calls.push(`prompt:${request.sessionId}`)
+    return { accepted: true }
+  }
+
+  @Remote
+  attachment(request: { readonly sessionId: string; readonly attachmentId: string }): object {
+    this.calls.push(`attachment:${request.sessionId}:${request.attachmentId}`)
+    return { attachment: { attachmentId: request.attachmentId }, data: '' }
+  }
+
+  @Remote({ mode: 'stream' })
+  *follow(request: { readonly address: { readonly kind: string; readonly sessionId?: string } }): Iterable<object> {
+    this.calls.push(`follow:${request.address.sessionId ?? 'subagent'}`)
+    yield { type: 'snapshot', header: { id: request.address.sessionId }, cursor: 0, records: [], hasMore: false }
+  }
+
+  @Remote({ mode: 'stream' })
+  *control(): Iterable<object> {
+    this.calls.push('control')
+    yield {
+      type: 'baseline',
+      value: {
+        queues: { 'session-allowed': [], 'session-denied': [{ id: 'secret' }] },
+        jobs: { 'session-allowed': [], 'session-denied': [{ id: 'secret' }] },
+        projections: {
+          'session-allowed': { asOfSeq: 0, values: {} },
+          'session-denied': { asOfSeq: 0, values: { secret: true } },
+        },
+      },
+    }
+    yield { type: 'queue', sessionId: 'session-denied', items: [{ id: 'secret' }] }
+    yield { type: 'queue', sessionId: 'session-allowed', items: [] }
+  }
+}
+
+/** Registered-Workspace path probe; the carrier must reject before this owner runs. */
+class ScopedWorkspaceFilesProbe extends TypertRemoteService {
+  readonly calls: string[] = []
+
+  constructor(ctx: Context) {
+    super(ctx, 'scopedWorkspaceFilesProbe', { namespace: 'workspaceFiles' })
+  }
+
+  @Remote
+  read(workspaceId: string, path: string): object {
+    this.calls.push(`read:${workspaceId}:${path}`)
+    return { content: path, truncated: false, size: path.length, mediaType: 'text/plain' }
+  }
+}
+
+/** Workspace-feed probe exposing one allowed and one denied registry row. */
+class ScopedWorkspaceProbe extends TypertRemoteService {
+
+  constructor(ctx: Context) {
+    super(ctx, 'scopedWorkspaceProbe', { namespace: 'workspace' })
+  }
+
+  @Remote({ mode: 'stream' })
+  *follow(): Iterable<object> {
+    yield {
+      type: 'baseline',
+      value: {
+        items: [
+          { workspaceId: 'workspace-allowed', path: '/allowed', title: 'Allowed', sessionIds: ['session-allowed', 'session-denied'] },
+          { workspaceId: 'workspace-denied', path: '/denied', title: 'Denied', sessionIds: ['session-denied'] },
+        ],
+        archivedSessionIds: ['session-allowed', 'session-denied'],
+      },
+    }
+    yield { type: 'remove', workspaceId: 'workspace-denied' }
+    yield { type: 'remove', workspaceId: 'workspace-allowed' }
   }
 }
 
 /** Allowlist rows covering allowlist, role, kind, and approval gates in tests. */
 export const PROBE_ENDPOINTS: LinkEndpointInput[] = [
-  { endpoint: 'probe/echo', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'probe/admin', kind: 'unary', minRole: 'controller' },
-  { endpoint: 'probe/slow', kind: 'unary', minRole: 'observer' },
-  { endpoint: 'probe/ticks', kind: 'stream', minRole: 'observer' },
-  { endpoint: 'probe/boom', kind: 'stream', minRole: 'observer' },
-  { endpoint: 'probe/linger', kind: 'stream', minRole: 'observer' },
-  { endpoint: '$events', kind: 'stream', minRole: 'observer' },
-  { endpoint: '$events/result', kind: 'unary', minRole: 'controller' },
+  { endpoint: 'probe/echo', kind: 'unary', minRole: 'observer', scope: 'unscoped' },
+  { endpoint: 'probe/admin', kind: 'unary', minRole: 'controller', scope: 'unscoped' },
+  { endpoint: 'probe/slow', kind: 'unary', minRole: 'observer', scope: 'unscoped' },
+  { endpoint: 'probe/ticks', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
+  { endpoint: 'probe/boom', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
+  { endpoint: 'probe/linger', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
+  { endpoint: '$events', kind: 'stream', minRole: 'observer', scope: 'remote-events' },
+  { endpoint: '$events/result', kind: 'unary', minRole: 'controller', scope: 'interaction' },
+  { endpoint: 'session/list', kind: 'unary', minRole: 'observer', scope: 'session-collection' },
+  { endpoint: 'session/search', kind: 'unary', minRole: 'observer', scope: 'session-collection' },
+  { endpoint: 'session/prompt', kind: 'unary', minRole: 'controller', scope: 'session' },
+  { endpoint: 'session/attachment', kind: 'unary', minRole: 'observer', scope: 'session-resource' },
+  { endpoint: 'session/follow', kind: 'stream', minRole: 'observer', scope: 'session-address' },
+  { endpoint: 'session/control', kind: 'stream', minRole: 'observer', scope: 'session-collection' },
+  { endpoint: 'workspaceFiles/read', kind: 'unary', minRole: 'observer', scope: 'workspace-path' },
+  { endpoint: 'workspace/follow', kind: 'stream', minRole: 'observer', scope: 'workspace-collection' },
 ]
 
 /** Credentials of one paired test device. */
@@ -166,6 +291,9 @@ export async function mountComposition(
     await ctx.plugin(TypertRegistry)
     await ctx.plugin(TypertGatewayService)
     await ctx.plugin(ProbeService)
+    await ctx.plugin(ScopedSessionProbe)
+    await ctx.plugin(ScopedWorkspaceFilesProbe)
+    await ctx.plugin(ScopedWorkspaceProbe)
     await ctx.plugin(DeviceTrustStore, { path: ':memory:' })
     await ctx.plugin(LinkAccessService, {
       enabled: true,
@@ -280,7 +408,10 @@ export function issueSigned(
         'x-dsh-device-id': device.deviceId,
         'x-dsh-timestamp': timestamp,
         'x-dsh-signature': signature,
-        ...(body === '' ? {} : { 'content-type': 'application/json' }),
+        ...(body === '' ? {} : {
+          'content-type': 'application/json',
+          'content-length': String(Buffer.byteLength(body)),
+        }),
       },
     }, (response) => {
       void collect(response).then(({ text }) => {

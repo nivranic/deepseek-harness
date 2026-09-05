@@ -27,6 +27,7 @@ const DEVICES: PairedDevice[] = [
     createdAt: 100,
     lastSeenAt: 200,
     revokedAt: undefined,
+    access: { sessions: 'all', workspaces: 'all' },
   },
   {
     deviceId: 'device-2' as PairedDevice['deviceId'],
@@ -36,6 +37,7 @@ const DEVICES: PairedDevice[] = [
     createdAt: 300,
     lastSeenAt: undefined,
     revokedAt: 400,
+    access: { sessions: [], workspaces: [] },
   },
 ]
 

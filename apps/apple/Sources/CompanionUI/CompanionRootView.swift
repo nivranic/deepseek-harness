@@ -14,13 +14,12 @@ public struct CompanionRootView: View {
     @State private var filesModel: FilesViewModel?
     @State private var subagentsModel: SubagentsViewModel?
     @State private var pushModel: PushViewModel?
-
-    private let client: LinkClient?
+    @State private var activeClient: LinkClient?
 
     /// - Parameter client: the paired client, or nil before the first
     ///   pairing (the pairing view then constructs its own).
     public init(client: LinkClient?) {
-        self.client = client
+        _activeClient = State(initialValue: client)
         _paired = State(initialValue: client?.credentials != nil)
     }
 
@@ -35,15 +34,21 @@ public struct CompanionRootView: View {
                     style: $style
                 )
             } else {
-                HostPairingView { _ in
+                HostPairingView { client in
+                    activeClient = client
+                    sessionModel = nil
+                    interactionModel = nil
+                    filesModel = nil
+                    subagentsModel = nil
+                    pushModel = nil
                     paired = true
                 }
             }
         }
         .companionTheme(style)
         .task(id: paired) {
-            guard paired, sessionModel == nil else { return }
-            let wire = LinkClientWireDriver(client: client ?? unpairedClient())
+            guard paired, sessionModel == nil, let activeClient else { return }
+            let wire = LinkClientWireDriver(client: activeClient)
             let sessions = RemoteSessionViewModel(wire: wire)
             let interactions = InteractionViewModel(wire: wire)
             let files = FilesViewModel(wire: wire)
@@ -59,16 +64,6 @@ public struct CompanionRootView: View {
             await pushes.startWatching()
             await files.start()
         }
-    }
-
-    /// A placeholder client for the impossible window where pairing
-    /// finished without a client handle; calls fail `unpaired` loudly.
-    private func unpairedClient() -> LinkClient {
-        LinkClient(
-            baseURL: URL(string: "https://unpaired.invalid")!,
-            pinnedFingerprint: String(repeating: "0", count: 64),
-            store: MemoryLinkCredentialsStore()
-        )
     }
 }
 

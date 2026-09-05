@@ -1,0 +1,84 @@
+{
+  "taskId": "G1-COMP",
+  "status": "PASS",
+  "commit": "f022941453db1c3bcdc02262ed49070cc8178014",
+  "startedFrom": "f022941453db1c3bcdc02262ed49070cc8178014",
+  "commands": [
+    "pnpm exec vitest run packages/api/gateway/tests/gateway-stream.host.spec.ts",
+    "pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-session-slice.e2e.ts",
+    "pnpm exec vitest run packages/client/connection/tests",
+    "pnpm run build:official",
+    "pnpm run build:web",
+    "pnpm run verify-translation-pairing packages/client/connection/README.md .agents/notes/implemented/bug-fix/2026-09-02-optional-webserver-link-composition.md",
+    "pnpm run test:docs",
+    "git diff --check"
+  ],
+  "tests": [
+    {
+      "name": "Gateway stream before repair",
+      "result": "FAIL",
+      "passed": 8,
+      "failed": 14,
+      "reason": "client-connection accessed ctx.webServer without declaring the optional service as an injection"
+    },
+    {
+      "name": "Shipped Link slice before repair",
+      "result": "FAIL",
+      "passed": 0,
+      "failedSuites": 1,
+      "reason": "packages/bundle/base/cordis.patch.yml line 122 was not a YAML comment"
+    },
+    {
+      "name": "Gateway stream after repair",
+      "result": "PASS",
+      "passed": 22,
+      "failed": 0
+    },
+    {
+      "name": "Shipped Link slice after repair",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "name": "Connection package regression",
+      "result": "PASS",
+      "passed": 116,
+      "failed": 0
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-COMP-before.json",
+    "artifacts/verification/gate-1/G1-COMP-e2e-before.json",
+    "artifacts/verification/gate-1/G1-COMP-gateway-after.json",
+    "artifacts/verification/gate-1/G1-COMP-e2e-after.json",
+    "artifacts/verification/gate-1/G1-COMP-connection-after.json"
+  ],
+  "logs": [],
+  "changedFiles": [
+    "packages/bundle/base/cordis.patch.yml",
+    "packages/client/connection/src/index.ts",
+    "packages/client/connection/README.md",
+    "packages/client/connection/README.zh.md",
+    "packages/client/connection/README.i18n.yaml",
+    "apps/cli/tests/link-session-slice.e2e.ts",
+    ".agents/notes/implemented/bug-fix/2026-09-02-optional-webserver-link-composition.md",
+    ".agents/notes/implemented/bug-fix/2026-09-02-optional-webserver-link-composition.zh.md",
+    ".agents/notes/implemented/bug-fix/2026-09-02-optional-webserver-link-composition.i18n.yaml"
+  ],
+  "acceptance": [
+    "The shipped base patch parses.",
+    "The Gateway stream suite has zero setup failures.",
+    "The shipped desktop Link composition starts a real Host and reaches pairing, Session list, Remote events, and the Remote Approval switch.",
+    "The test uses a temporary credential document and does not read or write the user's Harness home.",
+    "The Connection service remains available without a WebServer and binds the HTTP carrier when the optional service is present or appears later."
+  ],
+  "knownLimitations": [
+    "The initial pnpm run build:official invocation completed Host and Client builds but its Web child could not resolve the relative host-workaround preload; pnpm run build:web passed with the same preload resolved to an absolute path. G1-CI will run the complete official aggregate with the absolute path."
+  ],
+  "notExecuted": [],
+  "nextDependencies": [
+    "G1-DOC",
+    "G1-CONTRACT"
+  ]
+}

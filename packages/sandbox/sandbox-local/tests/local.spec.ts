@@ -479,7 +479,7 @@ describe('the windows-acl probe (runner invocation contract)', () => {
       probeWindowsAcl: () => true,
       windowsAclRunnerEntry: absentRunnerEntry(),
     })
-    expect(plain.sandbox.confine(['true'], RO).env).toBeUndefined()
+    expect(plain.sandbox.confine(['true'], RO).env).toEqual({})
 
     const overridden = await setup({}, {
       chain: ['windows-acl', 'bwrap'],

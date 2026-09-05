@@ -5,7 +5,7 @@
 // acknowledgement — the recorded session id plus the session-sharing
 // disclosure — as a persistent command row. The scaffold mounts the shipped
 // telemetry row in FULL mode against a local dead endpoint (no record leaves
-// the process), so the golden pins the shipped default sentence
+// the process), so the golden pins the explicitly selected FULL sentence
 // `Session sharing is enabled.`; the per-status sentences are pinned by the
 // package and OTel unit tests.
 import { readFile } from 'node:fs/promises'
@@ -17,7 +17,8 @@ import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import {
   assertFixtureInventory, captureExpandedTurnProcessAria, captureStableAria,
   compareOrRefreshGolden, fixtureUserPrompts,
-  launchWebScaffold, recordFixture, watchConsole, webSnapshotMode, type WebScaffold,
+  launchWebScaffold, normalizeWebReplaySession, recordFixture, tokenizeWebReplaySessionCwd,
+  watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'
 import { connectFreshWorkspace, newEnglishPage, saveFailureShot } from './support.ts'
 
@@ -27,7 +28,7 @@ const ACK_EXPECTED = join(SNAPSHOT_DIR, 'ack.expected.md')
 const ACK_EXPANDED_EXPECTED = join(SNAPSHOT_DIR, 'ack-expanded.expected.md')
 const MODE = webSnapshotMode()
 // Discard port: loopback listener never binds, so FULL telemetry discloses
-// the shipped default policy without any record reaching a collector.
+// the explicitly selected policy without any record reaching a collector.
 const TELEMETRY_URL = 'http://127.0.0.1:9/v1/logs'
 
 const PROMPT = 'Reply with the single word LIGHTHOUSE and stop.'
@@ -41,10 +42,12 @@ describe('web e2e: /feedback command acknowledgement', () => {
   beforeAll(async () => {
     scaffold = await launchWebScaffold({
       telemetryUrl: TELEMETRY_URL,
+      telemetryMode: 'FULL',
       compareReplaySession: true,
       ...(MODE === 'record' ? {} : { replayFixture: FIXTURE }),
     })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
@@ -108,5 +111,32 @@ describe('web e2e: /feedback command acknowledgement', () => {
     await assertFixtureInventory(SNAPSHOT_DIR, [
       'session.jsonl', 'ack.expected.md', 'ack-expanded.expected.md',
     ])
+  })
+
+  it('normalizes only the native and JSON-escaped spellings of a Windows replay cwd', () => {
+    const cwd = String.raw`C:\Temp\dsh-web-e2e-ws\workspace`
+    const jsonEscapedCwd = cwd.replaceAll('\\', '\\\\')
+    const unrelated = String.raw`D:\Temp\dsh-web-e2e-ws\workspace`
+    const log = [
+      JSON.stringify({ type: 'session', version: 0, id: 'replay-session', createdAt: 1, cwd }),
+      JSON.stringify({
+        type: 'web-test/paths',
+        seq: 0,
+        time: 2,
+        data: { native: cwd, jsonEscaped: jsonEscapedCwd, unrelated },
+      }),
+      '',
+    ].join('\n')
+
+    const normalized = normalizeWebReplaySession(log, ['replay-session'], cwd)
+    expect(normalized).toContain('"native":"{{cwd}}"')
+    expect(normalized).toContain('"jsonEscaped":"{{cwd}}"')
+    expect(normalized).not.toContain('"unrelated":"{{cwd}}"')
+
+    const refreshed = tokenizeWebReplaySessionCwd(log, cwd)
+    expect(refreshed).toContain('"cwd":"{{cwd}}"')
+    expect(refreshed).toContain('"native":"{{cwd}}"')
+    expect(refreshed).toContain('"jsonEscaped":"{{cwd}}"')
+    expect(refreshed).toContain(JSON.stringify(unrelated).slice(1, -1))
   })
 })

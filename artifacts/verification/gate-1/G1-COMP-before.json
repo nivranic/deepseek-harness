@@ -1,0 +1,332 @@
+{
+  "numTotalTestSuites": 2,
+  "numPassedTestSuites": 0,
+  "numFailedTestSuites": 2,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 22,
+  "numPassedTests": 8,
+  "numFailedTests": 14,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1788286838836,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams validates the WebSocket heartbeat timer range",
+          "status": "passed",
+          "title": "validates the WebSocket heartbeat timer range",
+          "duration": 2.92879999999991,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams opens decoded carrier payloads through the in-process wire adapter",
+          "status": "passed",
+          "title": "opens decoded carrier payloads through the in-process wire adapter",
+          "duration": 26.266200000000026,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams passes Iterable and AsyncIterable items through and returns the iterator on cancellation",
+          "status": "passed",
+          "title": "passes Iterable and AsyncIterable items through and returns the iterator on cancellation",
+          "duration": 6.89689999999996,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams keeps unary and stream invocation modes distinct",
+          "status": "passed",
+          "title": "keeps unary and stream invocation modes distinct",
+          "duration": 3.05379999999991,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams uses the configured WebSocket heartbeat interval",
+          "status": "failed",
+          "title": "uses the configured WebSocket heartbeat interval",
+          "duration": 31.52059999999983,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:296:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams multiplexes independent streams over one WebSocket and propagates cancellation",
+          "status": "failed",
+          "title": "multiplexes independent streams over one WebSocket and propagates cancellation",
+          "duration": 5.826099999999769,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:309:30"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams carries the registered Remote event source and withdraws its active stream",
+          "status": "failed",
+          "title": "carries the registered Remote event source and withdraws its active stream",
+          "duration": 4.477100000000064,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:371:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams rejects a scoped dispatch yielded after its Remote event source is withdrawn",
+          "status": "passed",
+          "title": "rejects a scoped dispatch yielded after its Remote event source is withdrawn",
+          "duration": 2.915799999999763,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams cancels a pending waterfall when its source rejects during removal",
+          "status": "failed",
+          "title": "cancels a pending waterfall when its source rejects during removal",
+          "duration": 5.376000000000204,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:464:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams delegates unavailable Contexts and rejects malformed scoped invocations",
+          "status": "passed",
+          "title": "delegates unavailable Contexts and rejects malformed scoped invocations",
+          "duration": 6.571599999999762,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams rejects notification arguments that are not lossless JSON arrays",
+          "status": "passed",
+          "title": "rejects notification arguments that are not lossless JSON arrays",
+          "duration": 124.17549999999983,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams retries a colliding Remote event id before publishing the second waterfall",
+          "status": "passed",
+          "title": "retries a colliding Remote event id before publishing the second waterfall",
+          "duration": 124.62089999999989,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams retries a colliding Remote event Client id before opening the second generation",
+          "status": "failed",
+          "title": "retries a colliding Remote event Client id before opening the second generation",
+          "duration": 4.264799999999923,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:628:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams fans one scoped waterfall out and accepts the first Client result",
+          "status": "failed",
+          "title": "fans one scoped waterfall out and accepts the first Client result",
+          "duration": 3.9361000000003514,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:647:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams rejects the Host waterfall with the first Client listener rejection",
+          "status": "failed",
+          "title": "rejects the Host waterfall with the first Client listener rejection",
+          "duration": 3.850500000000011,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:701:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams delegates to the Host only after every active Client returns next",
+          "status": "failed",
+          "title": "delegates to the Host only after every active Client returns next",
+          "duration": 3.8813999999997577,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:741:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams delivers a pending waterfall to the first Client that connects",
+          "status": "failed",
+          "title": "delivers a pending waterfall to the first Client that connects",
+          "duration": 4.238600000000133,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:774:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams replays a pending event id to a replacement Client generation",
+          "status": "failed",
+          "title": "replays a pending event id to a replacement Client generation",
+          "duration": 3.901100000000042,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:807:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams cancels pending deliveries when the Host signal or Context ends",
+          "status": "failed",
+          "title": "cancels pending deliveries when the Host signal or Context ends",
+          "duration": 3.840400000000045,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:841:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams validates the internal Remote event request and reports an absent source",
+          "status": "failed",
+          "title": "validates the internal Remote event request and reports an absent source",
+          "duration": 3.9200000000000728,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:915:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams applies Connection trusted-host policy before accepting the Gateway socket",
+          "status": "failed",
+          "title": "applies Connection trusted-host policy before accepting the Gateway socket",
+          "duration": 3.9125999999996566,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:963:21"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Typert Remote streams"
+          ],
+          "fullName": "Typert Remote streams answers an unauthenticated trusted Host with 401 before opening a stream",
+          "status": "failed",
+          "title": "answers an unauthenticated trusted Host with 401 before opening a stream",
+          "duration": 4.116100000000188,
+          "failureMessages": [
+            "Error: cannot get property \"webServer\" without inject\n    at Fiber.<anonymous> (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:26)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:366:45\n    at bindCarrier (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:140:9)\n    at Object.apply [as callback] (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/src/index.ts:142:3)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at Fiber._reload (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:656:9)\n    at Fiber.await (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/vendor/cordis/src/fiber.ts:706:7)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/scripts/test-invariants.ts:260:14\n    at setup (E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:1005:5)\n    at E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts:979:21"
+          ],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788286841028,
+      "endTime": 1788286841413.1162,
+      "status": "failed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/api/gateway/tests/gateway-stream.host.spec.ts"
+    }
+  ]
+}

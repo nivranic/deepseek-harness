@@ -14,7 +14,7 @@ Status: implemented
 
 - `packages/host/electron-ipc`（`dsh-host-electron-ipc`）提供 `desktopGateway`：一个 `handle(request)` 分发器，应答渲染端经特权协议发来的 fetch——`/api` 走 Connection 共享通道链（拦截器认领优先于 `toFetchHandler(apiProxy)`），`/plugins/<id>/client.js` 走模块注册表，其余路径走注入了启动清单的 dist，并保持 frontend-static 语义（遍历 403、SPA 回退、未知扩展名 octet-stream）。它注入 `clientModules`、`connection`、`apiProxy`，不绑定任何套接字。桥上不适用 HTTP 信任围栏：每个请求都来自本进程自己的渲染端，因此回环限定的特权方法保持可达。
 - `apps/desktop` 是 Electron 壳：在 ready 之前将 `dsh:` 协议注册为特权协议（standard、secure、可 fetch、可流式），经共享的 `profile-boot` 启动器引导 `desktop` profile，把 `protocol.handle` 接到 gateway（早期请求在 boot promise 上排队），并在窗口关闭时经有界 shutdown 释放整棵树。没有 preload：协议本身就是桥，`contextIsolation` 保持开启且不暴露任何东西。事件流以 SSE 形式跑在流式协议处理器上；浏览器专用的 WebSocket 覆写永不被选中。
-- 载体插件从"要求 webServer"改为"载体条件化"：connection node 半无条件提供注册表服务，仅在 webServer 存在时绑定路由／upgrade（在场即同步绑定，watcher 在其后出现时重绑）；`dsh-client-modules` 以同样方式绑定 bundle 路由与 index tap；`dsh-host-directory-picker-auto` 在组合声明时从新增的 `bindHost` 配置读取绑定事实（桌面 patch 声明 `127.0.0.1`），否则等待 webServer。
+- 载体插件从"要求 webServer"改为"载体条件化"：connection node 半无条件提供注册表服务，仅在 webServer 存在时绑定路由／upgrade（在场即同步绑定，watcher 在其后出现时重绑）；`dsh-client-modules` 以同样方式绑定 bundle 路由与 index tap，由注入 Context 拥有两项 effect，因此 provider 释放时会移除两者，替换 provider 则重新注册两者；`dsh-host-directory-picker-auto` 在组合声明时从新增的 `bindHost` 配置读取绑定事实（桌面 patch 声明 `127.0.0.1`），否则等待 webServer。
 - 客户端 connection 半按页面协议选择载体：出现非 http(s) 协议即选中 `IpcApiClient`（基础 fetch+SSE 客户端——桥两者都能应答），http(s) 保持 `WebApiClient`，`?fixture` 保持 fixture。桌面句柄按构造报告回环同源。
 - 桌面 bundle patch 镜像 web patch，去掉其载体行（无 webserver、无 web-startup、无 client-hmr、无 URL 行／shell 变量），加上 electron-ipc 行；其粘合插件注册携带无 URL 约定的 `app:desktop-surface` 提示词段落。
 
