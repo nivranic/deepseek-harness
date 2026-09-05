@@ -12,6 +12,7 @@ node apps/relay/selftest.mjs      # local assertions over the full flow; exit 0 
 node apps/relay/gen-relay-vectors.mjs  # regenerate the fixed-key Noise vectors, then sync the two native copies
 ```
 
+<a id="transport-encryption"></a>
 ## Transport encryption
 
 The transport is Noise_XX_25519_ChaChaPoly_SHA256 (`noise.mjs`), carried over HTTP: `POST /relay/noise/hello` (body = handshake message 1) answers message 2 plus the `x-relay-session` header — the handshake transcript hash after message 2, which the client verifies against its own transcript; `POST /relay/noise/complete` (body = message 3) answers one encrypted ack frame `{"ok":true}` proving key confirmation. Every rendezvous body is then one or more transport frames — a u16 big-endian length prefix, then ChaCha20-Poly1305 ciphertext under the split session keys with empty associated data and a 64-bit little-endian counter nonce:
@@ -22,11 +23,13 @@ The transport is Noise_XX_25519_ChaChaPoly_SHA256 (`noise.mjs`), carried over HT
 - `POST /relay/stream` — framed `{token, streamKey}`: the stream rides the client-generated 32-byte one-time key inside the encrypted request, so live pushes never share a counter with HTTP responses. Connect flushes the pending queue, then live publishes and same-account presence changes arrive as one frame each; an unknown token gets a clean empty close, and a streamed device keeps nothing queued, so poll and stream never double-deliver.
 - `POST /relay/presence` — framed `{accountId}` → framed `[{deviceId, platform, online}]`, the roster with online derived from open streams. Presence frames are ephemeral — never queued for offline devices, which read the roster instead; a stream frame is a bare reference envelope, or `{"type":"presence","deviceId":…,"online":…}` when a same-account device's last stream opens or closes.
 
-A Noise session idles out after 15 minutes; the answer is 410 and the client handshakes again. An id the relay never established also answers 410. The handshake endpoints stay plaintext — Noise conceals the static keys inside messages 2 and 3, so the bytes are public by design.
+A Noise session idles out after 15 minutes; an expired or unknown id answers 410. Clients serialize each session's request/response exchanges and discard cached keys after transport, framing, or authentication failure. The failed call is never automatically replayed; the next explicit call establishes fresh keys. The handshake endpoints stay plaintext — Noise conceals the static keys inside messages 2 and 3, so the bytes are public by design.
+
+Counters use unsigned 64-bit values (`BigInt` in Node). Each key permits nonces 0 through `2^64−2`; the reserved `2^64−1` value fails before encryption or decryption, and authentication failure leaves the counter unchanged. The server retires an exhausted session with 410. An exhausted independent stream closes and detaches; envelopes it cannot send remain queued. Poll preserves its entire queue if response encryption fails before transmission. These rules do not provide delivery acknowledgments or durable queues.
 
 ## Cross-implementation proof
 
-No CI lane runs this Node service, so interop is pinned by fixed-key vectors: `gen-relay-vectors.mjs` drives one full handshake and both traffic directions under pinned X25519 scalars and writes `vectors/relay-noise-vectors.json`; copies live in the Android and Apple test bundles, and their Noise ports must reproduce the handshake bytes, session id, channel binding, split keys, and every frame exactly.
+The ordinary repository test gate runs the Node crypto corpus and real HTTP service through [`scripts/relay-noise.spec.ts`](../../scripts/relay-noise.spec.ts). `gen-relay-vectors.mjs` writes synthetic fixed-key vectors to `vectors/relay-noise-vectors.json`; both native copies must match byte-for-byte. Kotlin and Swift replay the handshake, split keys, and transport frames, including counters around `2^53`, `2^63`, and the final usable nonce, and reject invalid authentication tags without advancing the counter. Boundary frames use independently encoded nonce bytes to avoid copying a port's integer conversion error into its expected output.
 
 ## Boundaries
 

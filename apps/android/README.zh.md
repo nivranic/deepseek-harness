@@ -31,6 +31,8 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 ## 构建与测试
 
+参考实现 `RelayClient` 串行执行完整 HTTP 交换，在交换失败后退役缓存密钥且不自动重放。其无符号计数器在密码学运算前拒绝保留的最终 nonce；[中继传输语义](../relay/README.zh.md#transport-encryption)统一说明恢复规则与独立流密钥。
+
 应用版本和内嵌分发渠道来自[公共应用发布标识](../../docs/development/product-release-identity.zh.md)。Gradle 读取生成的 properties，不使用兜底版本。
 
 [Android Kotlin](../../.github/workflows/android-kotlin.yml) 车道在 Ubuntu 上运行 `gradle test`、对 shipped Host composition 执行独立 `:core:nativeAcceptance` driver，并运行 `:app:assembleDebug`（JDK 17、Gradle 8.14、不提交 wrapper、用 runner 的 Android SDK）；本地任何 Gradle 8.14+ 配 JDK 17 工具链加 Android SDK 即可。

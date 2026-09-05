@@ -31,6 +31,8 @@ The Android companion (nativization plan chapters 52 and 60): `core` is the pure
 
 ## Building and testing
 
+The reference `RelayClient` serializes complete HTTP exchanges and retires cached keys after a failed exchange without automatically replaying it. Its unsigned counters reject the reserved final nonce before cryptographic work; [relay transport semantics](../relay/README.md#transport-encryption) own the recovery rules and independent stream keys.
+
 App versions and the embedded distribution channel come from [the shared application release identity](../../docs/development/product-release-identity.md). Gradle reads the generated properties without a fallback version.
 
 The [Android Kotlin](../../.github/workflows/android-kotlin.yml) lane runs `gradle test`, the standalone `:core:nativeAcceptance` driver against the shipped Host composition, and `:app:assembleDebug` on Ubuntu (JDK 17, Gradle 8.14, no committed wrapper, the runner's Android SDK); locally the same works with any Gradle 8.14+ on a JDK 17 toolchain plus an Android SDK.

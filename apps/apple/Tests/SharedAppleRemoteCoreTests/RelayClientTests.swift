@@ -39,9 +39,53 @@ private func pinnedHandshake(_ role: NoiseHandshake.Role) throws -> NoiseHandsha
 /// implementation (apps/relay/noise.mjs) generated: every port must
 /// reproduce the handshake bytes, session id, channel binding, split keys,
 /// and transport frames exactly — that byte-level agreement is the
-/// cross-implementation interop proof, since no CI lane runs the node
-/// service itself.
+/// interop check alongside the Node service's real HTTP corpus in the
+/// repository test gate.
 final class NoiseVectorTests: XCTestCase {
+    func testHighNonceFramesAndAuthenticationRetry() throws {
+        let boundary = try vectors()["nonceBoundaries"] as! [String: Any]
+        let key = unhex(boundary["key"] as! String)
+        let ad = unhex(boundary["ad"] as! String)
+        let payload = unhex(boundary["payload"] as! String)
+        for vector in boundary["vectors"] as! [[String: String]] {
+            let counter = UInt64(vector["counter"]!)!
+            let sender = NoiseCipherState(key: key)
+            let receiver = NoiseCipherState(key: key)
+            sender.counter = counter
+            receiver.counter = counter
+            let frame = try sender.encryptWithAd(ad, payload)
+            XCTAssertEqual(frame, unhex(vector["frame"]!))
+            XCTAssertEqual(sender.counter, counter + 1)
+            var tampered = frame
+            tampered[0] ^= 1
+            XCTAssertThrowsError(try receiver.decryptWithAd(ad, tampered))
+            XCTAssertEqual(receiver.counter, counter)
+            XCTAssertEqual(try receiver.decryptWithAd(ad, frame), payload)
+            XCTAssertEqual(receiver.counter, counter + 1)
+        }
+    }
+
+    func testTheLastUsableNonceNeverWraps() throws {
+        let boundary = try vectors()["nonceBoundaries"] as! [String: Any]
+        let key = unhex(boundary["key"] as! String)
+        let sender = NoiseCipherState(key: key)
+        let receiver = NoiseCipherState(key: key)
+        sender.counter = UInt64.max - 1
+        receiver.counter = UInt64.max - 1
+        let frame = try sender.encryptWithAd([], [])
+        XCTAssertEqual(try receiver.decryptWithAd([], frame), [])
+        for _ in 0..<2 {
+            XCTAssertThrowsError(try sender.encryptWithAd([], [])) { error in
+                XCTAssertEqual(error as? NoiseError, .nonceExhausted)
+            }
+            XCTAssertThrowsError(try receiver.decryptWithAd([], frame)) { error in
+                XCTAssertEqual(error as? NoiseError, .nonceExhausted)
+            }
+            XCTAssertEqual(sender.counter, UInt64.max)
+            XCTAssertEqual(receiver.counter, UInt64.max)
+        }
+    }
+
     func testReproducesTheHandshakeBytesSessionIdAndChannelBinding() throws {
         let section = try vectors()["handshake"] as! [String: String]
         let alice = try pinnedHandshake(.initiator)
@@ -112,6 +156,9 @@ final class NoiseRelayServer {
     var corruptSessionHeader = false
     /// Seal the complete ack under an unrelated handshake's keys.
     var sealAckWithStrangerKeys = false
+    private var expirePresence = false
+    private var helloCount = 0
+    private var presenceCount = 0
 
     private let listener: NWListener
     private let queue = DispatchQueue(label: "noise-relay-test-server")
@@ -151,6 +198,10 @@ final class NoiseRelayServer {
     }
 
     var port: UInt16 { listener.port?.rawValue ?? 0 }
+
+    func expireNextPresence() { queue.sync { expirePresence = true } }
+    var handshakeCount: Int { queue.sync { helloCount } }
+    var presenceRequestCount: Int { queue.sync { presenceCount } }
 
     /// Let the held-open stream finish (its terminating chunk ends the flow).
     func releaseStream() {
@@ -200,6 +251,7 @@ final class NoiseRelayServer {
         do {
             switch path {
             case "/relay/noise/hello":
+                helloCount += 1
                 let handshake = try NoiseHandshake(role: .responder)
                 try handshake.readMessage1(body)
                 let message = try handshake.writeMessage2()
@@ -255,6 +307,13 @@ final class NoiseRelayServer {
                 respond(connection, status: 200, body: Data(bodyOut))
             case "/relay/presence":
                 let opened = try openSession(headers: headers, body: body, connection: connection)
+                presenceCount += 1
+                if expirePresence {
+                    expirePresence = false
+                    sessions.removeValue(forKey: headers["x-relay-session"]!)
+                    respond(connection, status: 410, body: Data())
+                    return
+                }
                 let accountId = opened.request["accountId"] as! String
                 let roster = devices
                     .filter { $0.accountId == accountId }
@@ -367,6 +426,45 @@ final class RelayClientNoiseTests: XCTestCase {
             group.cancelAll()
             return value
         }
+    }
+
+    func testAFailedExchangeIsNotReplayedAndTheNextCallUsesFreshKeys() async throws {
+        let server = try NoiseRelayServer()
+        try server.start()
+        defer { server.stop() }
+        let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
+        _ = try await withTestTimeout { try await client.register(RelayDevice(accountId: "acct", deviceId: "phone", platform: "ios")) }
+        server.expireNextPresence()
+        do {
+            _ = try await withTestTimeout { try await client.presence(accountId: "acct") }
+            XCTFail("The expired encrypted session must refuse this call")
+        } catch {
+            guard case RelayClientError.http(410) = error else { throw error }
+        }
+        XCTAssertEqual(server.handshakeCount, 1)
+        XCTAssertEqual(server.presenceRequestCount, 1)
+        let result = try await withTestTimeout { try await client.presence(accountId: "acct") }
+        XCTAssertEqual(result, [RelayPresence(deviceId: "phone", platform: "ios", online: false)])
+        XCTAssertEqual(server.handshakeCount, 2)
+        XCTAssertEqual(server.presenceRequestCount, 2)
+    }
+
+    func testConcurrentCallsKeepOneOrderedNoiseSession() async throws {
+        let server = try NoiseRelayServer()
+        try server.start()
+        defer { server.stop() }
+        let client = RelayClient(endpoint: URL(string: "http://127.0.0.1:\(server.port)")!)
+        _ = try await withTestTimeout { try await client.register(RelayDevice(accountId: "acct", deviceId: "phone", platform: "ios")) }
+        try await withTestTimeout {
+            try await withThrowingTaskGroup(of: [RelayPresence].self) { group in
+                for _ in 0..<20 { group.addTask { try await client.presence(accountId: "acct") } }
+                for try await result in group {
+                    XCTAssertEqual(result, [RelayPresence(deviceId: "phone", platform: "ios", online: false)])
+                }
+            }
+        }
+        XCTAssertEqual(server.handshakeCount, 1)
+        XCTAssertEqual(server.presenceRequestCount, 20)
     }
 
     func testHandshakesRegistersPublishesPollsAndAnswersPresence() async throws {
