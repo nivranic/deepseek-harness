@@ -14,6 +14,7 @@ import { createInspectorService } from '../../src/shared/service.ts'
 interface ClientFixtureInput {
   readonly bootstrap: InspectorClientBootstrap
   readonly label: string
+  readonly holdRuntimeEnable: boolean
   readonly sourceCatalog?: {
     readonly sourceText: string
     readonly sourceMap: string
@@ -29,11 +30,13 @@ interface ClientFixtureRequest {
     | 'close'
     | 'disconnect'
     | 'get-tree'
+    | 'held-runtime-enables'
     | 'log-cordis'
     | 'log-value'
     | 'publish'
     | 'refresh-tree'
     | 'remove-fiber'
+    | 'release-runtime-enable'
     | 'set-global'
   readonly name?: string
   readonly value?: InspectorJsonValue
@@ -44,7 +47,23 @@ interface ClientFixtureRequest {
 const port = parentPort
 if (port === null) throw new Error('Inspector Client fixture requires a Worker parent port')
 const input = workerData as ClientFixtureInput
-globalThis.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket
+let holdRuntimeEnable = input.holdRuntimeEnable
+const heldRuntimeEnables: Array<() => void> = []
+let heldConsoleControls = 0
+class FixtureWebSocket extends WebSocket {
+  override emit(event: string | symbol, ...args: unknown[]): boolean {
+    if (holdRuntimeEnable && event === 'message') {
+      const frame = JSON.parse(String(args[0])) as { t: string }
+      if (frame.t === 'client-console/enable' || heldRuntimeEnables.length !== 0) {
+        if (frame.t === 'client-console/enable') heldConsoleControls++
+        heldRuntimeEnables.push(() => { super.emit(event, ...args) })
+        return true
+      }
+    }
+    return super.emit(event, ...args)
+  }
+}
+globalThis.WebSocket = FixtureWebSocket as unknown as typeof globalThis.WebSocket
 console.log = () => {}
 
 const context = new Context()
@@ -92,6 +111,13 @@ port.postMessage({ type: 'ready', fiberUid: childFiber.uid })
 
 async function dispatch(message: ClientFixtureRequest): Promise<unknown> {
   switch (message.op) {
+    case 'held-runtime-enables':
+      return heldConsoleControls
+    case 'release-runtime-enable':
+      holdRuntimeEnable = false
+      heldConsoleControls = 0
+      for (const deliver of heldRuntimeEnables.splice(0)) deliver()
+      return undefined
     case 'publish':
       source.publish(requiredString(message.topic, 'topic'), message.value ?? null)
       return undefined
