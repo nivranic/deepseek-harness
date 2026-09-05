@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G2-CI",
+  "status": "PARTIAL",
+  "sourceHead": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
+  "recordedAt": "2026-09-05T09:08:16.297Z",
+  "aggregate": {
+    "workflow": ".github/workflows/ci.yml",
+    "job": "all-checks-passed",
+    "name": "all checks passed",
+    "needs": [
+      "node-24",
+      "node-24-coverage",
+      "node-24-consumers",
+      "node-compat",
+      "python-sdk",
+      "python-runtime",
+      "windows",
+      "windows-build",
+      "windows-native-tests"
+    ]
+  },
+  "independentNativeRequirements": [
+    "Android Kotlin / gradle test (core)",
+    "Apple Swift / swift test (macOS)"
+  ],
+  "branchProtection": {
+    "branch": "dev",
+    "status": "NOT_CONFIGURED",
+    "httpStatus": 404,
+    "response": "Branch not protected",
+    "readOnly": true
+  },
+  "latestCompletedCandidate": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+  "pending": [
+    "Machine-enforced cross-workflow evidence aggregation",
+    "Four-platform unsigned RC workflow and manifest",
+    "Required current-candidate verdicts"
+  ],
+  "manualExternalActionsExecuted": false
+}

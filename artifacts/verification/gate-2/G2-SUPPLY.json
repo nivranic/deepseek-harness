@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G2-SUPPLY",
+  "status": "PARTIAL",
+  "sourceHead": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
+  "recordedAt": "2026-09-05T09:08:16.297Z",
+  "implemented": {
+    "upstreamReferencesVerified": 21,
+    "workflowCorpus": 21,
+    "registry": "release/action-pins.json",
+    "permissionPolicy": "release/workflow-security.json",
+    "gate": "pnpm run verify-workflow-security",
+    "aggregates": [
+      "ci-static",
+      "ci-primary",
+      "hygiene",
+      "check-all"
+    ],
+    "checkoutCredentialPersistence": false
+  },
+  "verification": [
+    {
+      "command": "pnpm exec vitest run scripts/workflow-security.spec.ts scripts/run-gates.spec.ts scripts/ci-workflow.spec.ts",
+      "passed": 119,
+      "skipped": 1
+    },
+    {
+      "command": "pnpm exec vitest run scripts/ci-workflow.spec.ts",
+      "passed": 33
+    },
+    {
+      "command": "pnpm exec vitest run scripts/ci-workflow.spec.ts -t \"retains a failed runtime wheel\"",
+      "passed": 1,
+      "skipped": 33
+    },
+    {
+      "command": "pnpm run verify-workflow-security",
+      "status": "PASS",
+      "workflows": 21
+    },
+    {
+      "command": "pnpm run test:docs",
+      "passed": 15
+    },
+    {
+      "command": "pnpm run doc-sync",
+      "passed": 32
+    },
+    {
+      "command": "pnpm run lint",
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "command": "pnpm run knip",
+      "status": "PASS"
+    }
+  ],
+  "inputMaterialization": "Checks ran on pre-commit worktree bytes; Linux received explicit file synchronization and retained its older Git HEAD. No clean-HEAD rerun is claimed.",
+  "pending": [
+    "Dependency review",
+    "CodeQL/SAST",
+    "Secret scanning",
+    "Packaged-closure SBOM",
+    "Checksum-bound RC manifest",
+    "Portable provenance and protected attestation hook",
+    "Remote verdict after workflow pinning"
+  ],
+  "workflowEnablementChanged": false,
+  "productionPublicationExecuted": false
+}

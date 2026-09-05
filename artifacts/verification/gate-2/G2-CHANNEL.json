@@ -3,7 +3,7 @@
   "taskId": "G2-CHANNEL",
   "status": "PARTIAL",
   "sourceHead": "1f67cd996b13a86b8a2a48039dd8d5e5ed44b209",
-  "recordedAt": "2026-09-05T08:05:29.431Z",
+  "recordedAt": "2026-09-05T09:08:16.297Z",
   "identity": {
     "schemaVersion": 1,
     "version": "0.1.2-alpha.1",
@@ -21,12 +21,26 @@
     "Apple metadata and verification workflow"
   ],
   "pending": [
-    "Apple artifact receipt",
     "Windows artifact metadata",
     "RC comparison to prior distributed identity",
     "protected upload and promotion policy"
   ],
   "runtimeCompositionChanged": false,
   "protocolAdmissionChanged": false,
-  "manualExternalActionsExecuted": false
+  "manualExternalActionsExecuted": false,
+  "latestAppleArtifact": {
+    "status": "PASS",
+    "path": "artifacts/verification/gate-2/acceptance/apple-product-ac42842c38142e13859da4981f9a820906f5ec6b.json",
+    "sha256": "874675ad9e52cda011b5b16e3165f19a941e930a5f367f830b79ae5608ca3c77",
+    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+    "tree": "08cee8e622e7a9b2be68414c8c51c156a9902bd9",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270",
+    "schemes": [
+      "CompanioniOS",
+      "CompanionMac",
+      "DirectHostMac"
+    ],
+    "configuration": "Debug"
+  }
 }

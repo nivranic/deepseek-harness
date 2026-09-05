@@ -8,15 +8,15 @@
 
 ## Summary
 
-候选已推送，已创建以 `dev` 为目标的 [draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1)。最近完成远端验证的候选为 `d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6`；本轮版本接线的代码检查点为 `1f67cd996b13a86b8a2a48039dd8d5e5ed44b209`。最新发布与各项实际执行 SHA 由 [G1-REMOTE-PR.json](gate-1/G1-REMOTE-PR.json) 记录。
+[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持以 `dev` 为目标。最近完成远端 CI 的候选为 `53cd3e79ad9b5047ce7cde685ba79b989ddb22be`；当前 CI 加固代码检查点为 `c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8`，发布状态与后续 verdict 见 [G1-REMOTE-PR.json](gate-1/G1-REMOTE-PR.json)。
 
-Apple 与 Android workflow 均完整通过。Swift/Kotlin 各完成真实 Host 13/13 与恢复；三套 Xcode shell 构建及 iOS 新模拟器安装首屏通过。两种 native 验收执行在 `22912379f538c604f2de9f2e19b2ad23f5bd59ec`，其 tree 与 d72930ed61 相同。iOS 截图与 XCTest artifact 见 [G1-APPLE-STARTUP.json](gate-1/G1-APPLE-STARTUP.json)。这不等于 App→Host 配对或真机网络矩阵通过。
+Apple 和 Android workflow 完整通过。Swift/Kotlin 各完成真实 Host 13/13 与恢复，三套 Xcode 构建和 iOS 首屏通过；新增 Apple 内嵌版本校验也通过。实际执行提交 `ac42842c38142e13859da4981f9a820906f5ec6b` 的 tree 与 53cd3e79ad 一致。Apple 版本回执见 [G2-VERSION.json](gate-2/G2-VERSION.json)。模拟器首屏不替代 App→Host 配对或真机网络矩阵。
 
-Gate 1 仍为 `PARTIAL / OPEN`：当前 mandatory CI 仅因 Linux SQLite 成功重试测试的真实 100 ms 时钟失败；独立 Windows coverage 因取消流分支未覆盖失败。两处测试已在 `6c56f2464d` 修复；Linux SQLite 86/86、schema 四维 100%，Windows Link carrier 131/131、index 四维 100%。消费者、静态检查、Windows build/native/Wine 和 Python 四平台矩阵通过。新候选远端 verdict 仍须取得。
+Gate 1 仍为 `PARTIAL / OPEN`。53cd3e79ad 的静态检查、Linux coverage、消费者快照、Windows build/native/Wine 和三个非 Windows Python runtime 通过；Windows Python 已安装包的外部插件安装进程静默非零退出，原因尚未确认。下一候选补充退出码并保留失败 wheel。独立 Windows coverage 的 Git 混合冲突测试超过 15 秒，已调整为现有 CI 的 90 秒预算并通过聚焦复验。
 
-Gate 2 已开展独立准备：[应用版本标识](../../docs/development/product-release-identity.zh.md) 统一根 SemVer、build number 与 channel，并连接 Android、Apple、Windows staging 与 dsh bump。130 项聚焦测试、12 项 Apple 校验测试、二次生成无漂移、实际 dry-run 无 mutation、Android APK 元数据、doc-sync 32/32 与 lint 均通过。Apple 新版本内嵌验证待远端运行，Windows 资源版本待 G2-WIN；[G2-VERSION](gate-2/G2-VERSION.json) 与 [G2-CHANNEL](gate-2/G2-CHANNEL.json) 保留这些限制。
+Gate 2 已实施版本/渠道接线及第一部分 workflow 安全检查：21 个外部 Action 引用经过上游 SHA 核验，21 个 workflow 使用显式权限策略，checkout 不保留凭据，static/hygiene 执行同一验证器。聚焦测试、顶层验证器、test:docs 15/15、doc-sync 32/32、lint 与 Knip 通过；[G2-SUPPLY.json](gate-2/G2-SUPPLY.json) 记录仍未实施的 scanner、SBOM、provenance 和 RC 工作。只读查询确认 dev 尚无 branch protection，[G2-CI.json](gate-2/G2-CI.json) 保留源码定义的必要检查集合。
 
-用户已授权推送、draft PR 与 Swift/Apple 复验。macOS runner 当前可用，继续处理实际验证结果；生产签名、商店上传、合并和发布均未执行。下文历史数字保留其真实 SHA，完整 Gate 2–4 任务范围不变。
+Windows 实际资源版本、RC pipeline、供应链其余部分、完整 Gate 3–4 仍未完成。用户已授权推送、draft PR 与 Apple 复验；生产签名、商店上传、合并和发布均未执行。后续步骤见 [CI 与供应链实施计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md)。下文历史结果保留其真实执行 SHA。
 
 ## Table of Contents
 
@@ -57,9 +57,9 @@ Gate 2 已开展独立准备：[应用版本标识](../../docs/development/produ
 | 原规划基线 | `dev@90ef8b197fe2aa38cc40917cd157077a8d1dc6b9` | 用户工作区仍仅有原未跟踪核验文档 |
 | 本地 coverage 后检查点 | `c73daa2c6960afb9bfad5bc16edcef1ee2614b27` | 最后只修正测试夹具访问 Context；该包 17/17、单文件四维 100% 与完整 doc-sync 32/32 通过 |
 | 完整 coverage 执行候选 | `4dded5f0e9cb4ea00bd092d92740aa718c678be1` | 到最新检查点只有同一 Context 的测试访问修正；产品源码未变 |
-| 最近 Swift/Kotlin E4 SHA | `22912379f538c604f2de9f2e19b2ad23f5bd59ec` | PR 合并提交，tree 与 d72930ed61 相同；两种语言各 13/13，恢复 81→92 |
+| 最近 Swift/Kotlin E4 SHA | `ac42842c38142e13859da4981f9a820906f5ec6b` | PR 合并提交，tree 与 53cd3e79ad 相同；两种语言各 13/13，恢复见原始回执 |
 | Android App 输入检查点 | `1b181627e7c723dedb04d5ca429ee17b8701b0c3` | App tree 至最新候选完全相同；装配、签名检查、API 34 首屏通过 |
-| 分支 | `codex/goal-mode-full-implementation` | 最近完成 CI 的候选 d72930ed61；draft PR #1，base=dev |
+| 分支 | `codex/goal-mode-full-implementation` | 最近完成 CI 的候选 53cd3e79ad；draft PR #1，base=dev |
 | worktree | `E:\Mix\project\deepseek-harness\.worktrees\goal-mode-full-implementation` | 与用户 dev 隔离 |
 | Gate 1 | `PARTIAL / OPEN` | `canEnterGate2=false` |
 | Gate 2 / 3 / 4 | `PREPARATION_IN_PROGRESS / NOT_STARTED / NOT_STARTED` | 版本与渠道已接线；Gate 1 closure 尚待 mandatory CI |
@@ -109,7 +109,7 @@ Gate 1 的 Remote correctness、recovery 和 multi-device approval 要求 E4。�
 
 | Gate | 状态 | 完成内容 | 主要剩余项 |
 |---|---|---|---|
-| Gate 1 — P0 correctness | `PARTIAL` | 12/13 任务 PASS；Android/iOS 首屏、Swift/Kotlin E4 和便携 runner 证据齐备 | mandatory CI 的 SQLite 测试已修复，待新远端 verdict |
+| Gate 1 — P0 correctness | `PARTIAL` | 12/13 任务 PASS；Android/iOS 首屏、Swift/Kotlin E4 和便携 runner 证据齐备 | mandatory CI 尚有 Windows Python 已安装包失败；诊断候选待运行 |
 | Gate 2 — P1 release foundation | `PREPARATION_IN_PROGRESS` | 版本与渠道已接线，Android 元数据已验证 | Apple/Windows 版本产物验证、RC、供应链、发布/支持/迁移/回滚 |
 | Gate 3 — P2 Beta readiness | `NOT_STARTED` | 旧代码中已有部分 QR、Lite、Handoff、Windows/移动 UI 基线 | 必须重新按 Gate 3 验收，不得沿用旧报告的“完成”字样 |
 | Gate 4 — GA handoff | `NOT_STARTED` | 无 | GA dry-run、生产签名交接、商店包、rollout、incident、最终 handoff |
@@ -327,8 +327,8 @@ Windows/macOS Full Host、Apple/Android Remote Companion 与 Native Lite 的职�
 |---|---|---|
 | G2-VERSION | `PARTIAL` | 根 SemVer/build number 已统一，原 Android 0.1.0 漂移由测试拒绝，APK 已验证；Apple/Windows 实际版本产物仍须取得证据 |
 | G2-CHANNEL | `PARTIAL` | dev/canary/beta/stable 解析与版本兼容策略已实施；RC 分发递增比较及受保护的上传/晋级策略待实施 |
-| G2-CI | `NOT_STARTED` | 固化 PR aggregate、RC workflow、platform matrix、artifact/evidence summary；无法读取 branch protection 时输出准确 required-check 清单 |
-| G2-SUPPLY | `NOT_STARTED` | Actions full-SHA pin、最小 permissions、dependency review、CodeQL/SAST、secret scan、SBOM、checksum、portable provenance/attestation hook |
+| G2-CI | `PARTIAL` | 固化 PR aggregate、RC workflow、platform matrix、artifact/evidence summary；无法读取 branch protection 时输出准确 required-check 清单 |
+| G2-SUPPLY | `PARTIAL` | Actions full-SHA pin、最小 permissions、dependency review、CodeQL/SAST、secret scan、SBOM、checksum、portable provenance/attestation hook |
 | G2-WIN | `NOT_STARTED` | 保留 Electron + NSIS/portable；完成 unsigned RC、installer smoke、update feed、checksum mismatch 与 failed-update recovery |
 | G2-MAC | `NOT_STARTED` | 实现 DirectHostMac 的 Sidecar Supervisor、单一 local carrier、health、timeout、shutdown、restart、log 与 no-orphan |
 | G2-MACSIGN | `NOT_STARTED` | 建 nested executable inventory、最小 entitlement、Hardened Runtime、Developer ID/notary/staple 验证 dry-run；生产提交保持 `NOT_EXECUTED` |

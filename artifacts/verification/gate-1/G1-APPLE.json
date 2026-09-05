@@ -3,10 +3,10 @@
   "status": "PASS",
   "evidenceLevel": "E4",
   "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-  "sourceHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+  "sourceHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
   "workingTreeState": "Apple product, test, workflow, and documentation inputs were committed and clean at sourceHead before these evidence records were updated.",
-  "recordedAt": "2026-09-05T08:05:29.431Z",
+  "recordedAt": "2026-09-05T09:08:16.297Z",
   "evidenceBoundary": "SwiftPM, real Host 13/13 with recovery, three Xcode builds, and installed iOS simulator first screen passed on the same PR merge tree.",
   "toolchain": {
     "local": {
@@ -101,6 +101,13 @@
       "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
       "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
       "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330"
+    },
+    {
+      "name": "SwiftPM, real Host recovery, three Xcode builds, embedded product identity and installed first screen",
+      "result": "PASS",
+      "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+      "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+      "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270"
     }
   ],
   "artifacts": [
@@ -207,16 +214,16 @@
     ]
   },
   "latestRemoteSwiftAcceptance": {
-    "path": "artifacts/verification/gate-1/acceptance/swift-22912379f538c604f2de9f2e19b2ad23f5bd59ec.json",
-    "sha256": "d815232287a5d31cd3fb80285d8cdf5a6cabe67ae3cd240091c9347f0bbfe83e",
-    "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
-    "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
-    "tree": "1783d4cd28c57b3763da5b5f83b8a4f4b47b5cfe",
+    "path": "artifacts/verification/gate-1/acceptance/swift-ac42842c38142e13859da4981f9a820906f5ec6b.json",
+    "sha256": "93fd65ff7c7422fdde951d73357b78b4530037fa76b4af80e3903567113d2cce",
+    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+    "tree": "08cee8e622e7a9b2be68414c8c51c156a9902bd9",
     "parents": [
       "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
-      "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6"
+      "53cd3e79ad9b5047ce7cde685ba79b989ddb22be"
     ],
-    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270",
     "steps": 13,
     "recovery": {
       "preFaultSeq": 81,
@@ -234,10 +241,25 @@
       "projectionImageCount": 0,
       "projectionArtifactCount": 0,
       "projectionEqualAfterRepeatedReconnect": true,
-      "beforeRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
-      "afterRepeatedReconnectProjectionSha256": "6c828e3c6b74a100791206783b9c17d1f72dc23181410580cbced8c007f31ab3",
+      "beforeRepeatedReconnectProjectionSha256": "5e267ee134a6eef22c9a798689f81a33657d47c113886fb8f78190315b0ce231",
+      "afterRepeatedReconnectProjectionSha256": "5e267ee134a6eef22c9a798689f81a33657d47c113886fb8f78190315b0ce231",
       "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
   },
-  "latestStartupEvidence": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
+  "latestStartupEvidence": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json",
+  "latestAppleProductIdentity": {
+    "status": "PASS",
+    "path": "artifacts/verification/gate-2/acceptance/apple-product-ac42842c38142e13859da4981f9a820906f5ec6b.json",
+    "sha256": "874675ad9e52cda011b5b16e3165f19a941e930a5f367f830b79ae5608ca3c77",
+    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+    "tree": "08cee8e622e7a9b2be68414c8c51c156a9902bd9",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270",
+    "schemes": [
+      "CompanioniOS",
+      "CompanionMac",
+      "DirectHostMac"
+    ],
+    "configuration": "Debug"
+  }
 }

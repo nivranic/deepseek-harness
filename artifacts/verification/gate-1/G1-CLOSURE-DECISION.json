@@ -5,8 +5,8 @@
   "decision": "OPEN",
   "canEnterGate2": false,
   "isWaiver": true,
-  "sourceHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
-  "recordedAt": "2026-09-05T08:05:29.431Z",
+  "sourceHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+  "recordedAt": "2026-09-05T09:08:16.297Z",
   "localWork": "REPAIR_VALIDATED_REMOTE_PENDING",
   "completed": [
     "Android App 装配、启动修复及模拟器首屏回归",
@@ -14,10 +14,11 @@
     "17 文件覆盖率缺口与完整 coverage 门禁",
     "真实 Host 与 Kotlin 的 13 步验收",
     "Swift real Host 13/13 with recovery and all three Xcode shell builds at 6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
-    "iOS installed first-screen XCTest passed at d72930ed61; same merge tree as Swift and Kotlin acceptance"
+    "iOS installed first-screen XCTest passed at d72930ed61; same merge tree as Swift and Kotlin acceptance",
+    "Apple embedded product identity and simulator first screen passed at 53cd3e79ad; Linux coverage/static and all consumer snapshots passed"
   ],
   "remaining": [
-    "Remote mandatory CI verdict after locally verified coverage repairs"
+    "Windows Python installed-wheel plugin-add failure; diagnostic candidate pending"
   ],
   "authorization": {
     "push": "AUTHORIZED",
