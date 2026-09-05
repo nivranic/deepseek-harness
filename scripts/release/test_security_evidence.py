@@ -15,7 +15,7 @@ class SecurityEvidence(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.document = {"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "CodeQL", "semanticVersion": "2.23.9", "rules": [{"id": "py/code-injection"}]}},
-                          "invocations": [{"toolExecutionSuccessful": True}], "results": []}]}
+                          "invocations": [{"executionSuccessful": True}], "results": []}]}
 
     def write(self, document):
         (self.root / "python.sarif").write_text(json.dumps(document), encoding="utf-8")
@@ -39,8 +39,8 @@ class SecurityEvidence(unittest.TestCase):
     def test_rejects_absent_empty_or_failed_analysis(self):
         with self.assertRaises(ValueError):
             sast(self.root, "python", self.root)
-        for changed in ({"invocations": []}, {"invocations": [{"toolExecutionSuccessful": False}]},
-                        {"invocations": [{"toolExecutionSuccessful": True, "toolExecutionNotifications": [{"level": "warning"}]}]},
+        for changed in ({"invocations": []}, {"invocations": [{"executionSuccessful": False}]}, {"invocations": [{"toolExecutionSuccessful": True}]},
+                        {"invocations": [{"executionSuccessful": True, "toolExecutionNotifications": [{"level": "warning"}]}]},
                         {"results": None}, {"tool": {"driver": {"name": "CodeQL", "semanticVersion": "2.23.9", "rules": []}}}):
             document = copy.deepcopy(self.document)
             document["runs"][0].update(changed)
