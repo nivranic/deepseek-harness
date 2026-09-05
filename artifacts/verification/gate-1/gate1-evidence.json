@@ -7,12 +7,12 @@
   "closure": "OPEN",
   "canEnterGate2": false,
   "candidate": {
-    "commit": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "commit": "4c28043faf2c938a44f826b3a5f71f729cab6768",
     "branch": "codex/goal-mode-full-implementation",
     "published": true,
     "remoteCandidateCi": "FAIL"
   },
-  "recordedAt": "2026-09-05T09:08:16.297Z",
+  "recordedAt": "2026-09-05T12:19:13.100Z",
   "userDispositionNote": "Swift/Apple 已获重新验证授权；Apple 专属环境依赖允许临时延期并推进下一阶段，执行状态仍如实保留。",
   "taskEvidence": [
     {
@@ -159,10 +159,10 @@
   "blockingItems": [
     {
       "item": "Remote mandatory CI",
-      "status": "FAIL",
-      "reason": "WINDOWS_INSTALLED_WHEEL_PLUGIN_ADD_EXIT",
-      "cause": "External profile plugin installation returned non-zero with empty stdout/stderr; the old probe omitted returncode.",
-      "evidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json"
+      "status": "REMOTE_PENDING",
+      "reason": "LOCAL_REPAIRS_AWAIT_CANDIDATE_CI",
+      "cause": "Windows Python launch and Linux Inspector readiness fixed locally; latest completed remote candidate still fails.",
+      "evidence": "artifacts/verification/gate-1/G1-CI-REPAIRS.json"
     }
   ],
   "scope": {
@@ -235,5 +235,10 @@
       "afterRepeatedReconnectProjectionSha256": "5e267ee134a6eef22c9a798689f81a33657d47c113886fb8f78190315b0ce231",
       "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
+  },
+  "nextCandidate": {
+    "commit": "461ad62b29b9656667993216f50b755487b75708",
+    "published": false,
+    "verification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json"
   }
 }

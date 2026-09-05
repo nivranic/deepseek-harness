@@ -8,15 +8,13 @@
 
 ## Summary
 
-[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持以 `dev` 为目标。最近完成远端 CI 的候选为 `53cd3e79ad9b5047ce7cde685ba79b989ddb22be`；当前 CI 加固代码检查点为 `c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8`，发布状态与后续 verdict 见 [G1-REMOTE-PR.json](gate-1/G1-REMOTE-PR.json)。
+[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持以 dev 为目标。最新已完成远端 CI 的候选为 4c28043faf：Windows Python installed-wheel 与 Linux Inspector 各有一个实际失败，Apple、Android 和独立 Windows coverage 通过。当前修复代码检查点为 461ad62b29，尚未推送；完整本地证据见 [G1-CI-REPAIRS.json](gate-1/G1-CI-REPAIRS.json)。
 
-Apple 和 Android workflow 完整通过。Swift/Kotlin 各完成真实 Host 13/13 与恢复，三套 Xcode 构建和 iOS 首屏通过；新增 Apple 内嵌版本校验也通过。实际执行提交 `ac42842c38142e13859da4981f9a820906f5ec6b` 的 tree 与 53cd3e79ad 一致。Apple 版本回执见 [G2-VERSION.json](gate-2/G2-VERSION.json)。模拟器首屏不替代 App→Host 配对或真机网络矩阵。
+Windows 原始失败 artifact 已按 GitHub SHA-256 核验。相同内嵌 exe 在 Python os.execvpe 启动下复现 0xC0000005，并可把失败码 1 报成 0；Windows 改为等待子进程后，独立 venv 的已安装 wheel 插件场景通过。该验证使用 Python 3.12.10 与 pnpm 11.7.0；仍须取得新候选 Python 3.10 远端结果。Inspector 通过扣住 Client 控制帧复现过早就绪，已复用关联 Runtime 请求修复，并通过 Windows 140/140 与 Linux 聚焦复验。
 
-Gate 1 仍为 `PARTIAL / OPEN`。53cd3e79ad 的静态检查、Linux coverage、消费者快照、Windows build/native/Wine 和三个非 Windows Python runtime 通过；Windows Python 已安装包的外部插件安装进程静默非零退出，原因尚未确认。下一候选补充退出码并保留失败 wheel。独立 Windows coverage 的 Git 混合冲突测试超过 15 秒，已调整为现有 CI 的 90 秒预算并通过聚焦复验。
+Gate 1 仍为 PARTIAL / OPEN，不能用本地修复代替远端 mandatory verdict。Swift/Kotlin 真实 Host、恢复与 Apple/Android 应用构建的既有通过证据保持有效；模拟器首屏仍不替代真机网络矩阵。
 
-Gate 2 已实施版本/渠道接线及第一部分 workflow 安全检查：21 个外部 Action 引用经过上游 SHA 核验，21 个 workflow 使用显式权限策略，checkout 不保留凭据，static/hygiene 执行同一验证器。聚焦测试、顶层验证器、test:docs 15/15、doc-sync 32/32、lint 与 Knip 通过；[G2-SUPPLY.json](gate-2/G2-SUPPLY.json) 记录仍未实施的 scanner、SBOM、provenance 和 RC 工作。只读查询确认 dev 尚无 branch protection，[G2-CI.json](gate-2/G2-CI.json) 保留源码定义的必要检查集合。
-
-Windows 实际资源版本、RC pipeline、供应链其余部分、完整 Gate 3–4 仍未完成。用户已授权推送、draft PR 与 Apple 复验；生产签名、商店上传、合并和发布均未执行。后续步骤见 [CI 与供应链实施计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md)。下文历史结果保留其真实执行 SHA。
+Gate 2 新增从 workflow 派生的 required-check 清单、三条验证 workflow 的实际源码回执与离线求值器。135 项聚焦测试通过，1 项按既有平台条件跳过；顶层验证器、Knip、test:docs 15/15、doc-sync 32/32 与 lint 通过。在线回执汇集、GitHub commit 复核和新 run 检查仍未实现。[CI 与供应链计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md) 的 scanner、SBOM、provenance、RC，以及 Gate 2 其余发布工程与 Gate 3-4 继续待执行。生产签名、商店上传、merge 和 release 均未执行。
 
 ## Table of Contents
 
@@ -59,7 +57,7 @@ Windows 实际资源版本、RC pipeline、供应链其余部分、完整 Gate 3
 | 完整 coverage 执行候选 | `4dded5f0e9cb4ea00bd092d92740aa718c678be1` | 到最新检查点只有同一 Context 的测试访问修正；产品源码未变 |
 | 最近 Swift/Kotlin E4 SHA | `ac42842c38142e13859da4981f9a820906f5ec6b` | PR 合并提交，tree 与 53cd3e79ad 相同；两种语言各 13/13，恢复见原始回执 |
 | Android App 输入检查点 | `1b181627e7c723dedb04d5ca429ee17b8701b0c3` | App tree 至最新候选完全相同；装配、签名检查、API 34 首屏通过 |
-| 分支 | `codex/goal-mode-full-implementation` | 最近完成 CI 的候选 53cd3e79ad；draft PR #1，base=dev |
+| 分支 | `codex/goal-mode-full-implementation` | 最近完成 CI 的候选 4c28043faf；本地修复检查点 461ad62b29，draft PR #1，base=dev |
 | worktree | `E:\Mix\project\deepseek-harness\.worktrees\goal-mode-full-implementation` | 与用户 dev 隔离 |
 | Gate 1 | `PARTIAL / OPEN` | `canEnterGate2=false` |
 | Gate 2 / 3 / 4 | `PREPARATION_IN_PROGRESS / NOT_STARTED / NOT_STARTED` | 版本与渠道已接线；Gate 1 closure 尚待 mandatory CI |
@@ -109,7 +107,7 @@ Gate 1 的 Remote correctness、recovery 和 multi-device approval 要求 E4。�
 
 | Gate | 状态 | 完成内容 | 主要剩余项 |
 |---|---|---|---|
-| Gate 1 — P0 correctness | `PARTIAL` | 12/13 任务 PASS；Android/iOS 首屏、Swift/Kotlin E4 和便携 runner 证据齐备 | mandatory CI 尚有 Windows Python 已安装包失败；诊断候选待运行 |
+| Gate 1 — P0 correctness | `PARTIAL` | 12/13 任务 PASS；Android/iOS 首屏、Swift/Kotlin E4 和便携 runner 证据齐备 | Windows Python 与 Inspector 本地修复已通过，等待新候选 CI |
 | Gate 2 — P1 release foundation | `PREPARATION_IN_PROGRESS` | 版本与渠道已接线，Android 元数据已验证 | Apple/Windows 版本产物验证、RC、供应链、发布/支持/迁移/回滚 |
 | Gate 3 — P2 Beta readiness | `NOT_STARTED` | 旧代码中已有部分 QR、Lite、Handoff、Windows/移动 UI 基线 | 必须重新按 Gate 3 验收，不得沿用旧报告的“完成”字样 |
 | Gate 4 — GA handoff | `NOT_STARTED` | 无 | GA dry-run、生产签名交接、商店包、rollout、incident、最终 handoff |
@@ -491,6 +489,6 @@ Apple 的 SwiftPM 与 Host↔Swift 命令由 [`.github/workflows/apple-swift.yml
 
 ## 12. 当前结论
 
-当前 Gate 1 双语言 Remote correctness/recovery、三套 Xcode 构建及 Android/iOS 首屏均已有实际证据，mandatory CI 仍需在 coverage 修复后通过。Gate 2 版本与渠道接线已实施，完整 Release Engineering、Beta 和 GA 任务继续按第 8 节执行，不能声明整个目标完成。
+当前 Gate 1 双语言 Remote correctness/recovery、三套 Xcode 构建及 Android/iOS 首屏均已有实际证据，mandatory CI 仍需在本地修复后的新候选上通过。Gate 2 版本与渠道接线已实施，完整 Release Engineering、Beta 和 GA 任务继续按第 8 节执行，不能声明整个目标完成。
 
 后续 Agent 必须从 Gate 1 closure decision 开始，不能把旧报告中的绿色里程碑、当前文件存在或用户跳过动作提升为未实际执行的平台证据。

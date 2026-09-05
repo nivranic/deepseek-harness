@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "taskId": "G2-CI",
   "status": "PARTIAL",
-  "sourceHead": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
-  "recordedAt": "2026-09-05T09:08:16.297Z",
+  "sourceHead": "461ad62b29b9656667993216f50b755487b75708",
+  "recordedAt": "2026-09-05T12:19:13.100Z",
   "aggregate": {
     "workflow": ".github/workflows/ci.yml",
     "job": "all-checks-passed",
@@ -31,11 +31,19 @@
     "response": "Branch not protected",
     "readOnly": true
   },
-  "latestCompletedCandidate": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+  "latestCompletedCandidate": "4c28043faf2c938a44f826b3a5f71f729cab6768",
   "pending": [
-    "Machine-enforced cross-workflow evidence aggregation",
+    "Online source receipt collection and independent GitHub commit verification",
+    "Newest-run recheck during collection",
     "Four-platform unsigned RC workflow and manifest",
     "Required current-candidate verdicts"
   ],
-  "manualExternalActionsExecuted": false
+  "manualExternalActionsExecuted": false,
+  "requiredCheckProjection": "release/required-checks.generated.json",
+  "sourceReceipts": {
+    "status": "IMPLEMENTED_E3_REMOTE_PENDING",
+    "evidence": "artifacts/verification/gate-1/G1-CI-REPAIRS.json",
+    "producerArtifact": "ci-source-<runId>-<producer-attempt>",
+    "onlineCollector": "NOT_IMPLEMENTED"
+  }
 }

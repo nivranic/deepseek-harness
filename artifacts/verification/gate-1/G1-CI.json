@@ -4,7 +4,7 @@
   "status": "PARTIAL",
   "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
   "branch": "codex/goal-mode-full-implementation",
-  "recordedAt": "2026-09-05T09:08:16.297Z",
+  "recordedAt": "2026-09-05T12:19:13.100Z",
   "candidatePublication": {
     "status": "PASS",
     "head": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
@@ -96,7 +96,7 @@
     "status": "PARTIAL",
     "closure": "OPEN",
     "canEnterGate2": false,
-    "blockingReason": "远端 mandatory CI 与用户跳过的 Swift 验收尚未闭合。"
+    "blockingReason": "两个远端 mandatory CI 失败已完成本地复现和修复，等待新候选远端验收。Swift/Apple 已有真实通过证据。"
   },
   "historicalWindowsRun": {
     "schemaVersion": 1,
@@ -662,27 +662,9 @@
     }
   ],
   "latestCompletedRemote": {
-    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
-    "status": "FAIL",
-    "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520361",
-    "remaining": [
-      {
-        "area": "Python Windows installed wheel",
-        "status": "FAIL",
-        "job": 101278097283,
-        "cause": "External profile plugin installation returned non-zero with empty stdout/stderr; the old probe omitted returncode.",
-        "classification": "UNDETERMINED",
-        "next": "The next candidate records the exit code and retains the failed wheel for direct reproduction."
-      },
-      {
-        "area": "Independent Windows coverage",
-        "status": "REPAIRED_LOCALLY_REMOTE_PENDING",
-        "job": 101278037115,
-        "cause": "translation-pairing-merge mixed conflict test exceeded its explicit 15000 ms budget",
-        "repairCommit": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
-        "localResult": "Windows Node 24.19.0 focused case passed in 8.67 seconds with unchanged conflict-preservation assertions."
-      }
-    ]
+    "candidateHead": "4c28043faf2c938a44f826b3a5f71f729cab6768",
+    "runId": 33957335048,
+    "status": "FAIL"
   },
   "latestSwiftAcceptance": {
     "path": "artifacts/verification/gate-1/acceptance/swift-ac42842c38142e13859da4981f9a820906f5ec6b.json",
@@ -746,5 +728,6 @@
     "cause": "translation-pairing-merge mixed conflict test exceeded its explicit 15000 ms budget",
     "repairCommit": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
     "localResult": "Windows Node 24.19.0 focused case passed in 8.67 seconds with unchanged conflict-preservation assertions."
-  }
+  },
+  "latestRepairVerification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json"
 }

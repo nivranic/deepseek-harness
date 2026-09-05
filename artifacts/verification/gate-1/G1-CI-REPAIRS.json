@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "candidate-ci-repair-verification",
+  "recordedAt": "2026-09-05T12:19:13.100Z",
+  "sourceHead": "461ad62b29b9656667993216f50b755487b75708",
+  "status": "LOCAL_PASS_REMOTE_PENDING",
+  "commits": {
+    "inspector": "28170c14ca70adfb65cd16ed4a29c2f1b9abf728",
+    "python": "a370021a10aa4837402660e71647084838c13ee5",
+    "ciSources": "461ad62b29b9656667993216f50b755487b75708"
+  },
+  "inspector": {
+    "failureRun": 33957335048,
+    "failureJob": 101282932104,
+    "cause": "Runtime and synthetic Client contexts were reported ready before Client Console enable reached the source Worker.",
+    "regression": "Hold Client controls, reject early Runtime success, release once and observe one log in both isolated sessions; disconnect and late admission also covered.",
+    "windows": "Node 22.22.1: 20 files / 140 tests PASS",
+    "linux": "Node 22.22.1: Inspector plus CI-source tests, 22 files / 163 tests PASS",
+    "inputNote": "Linux validation uses synchronized working-tree files, not a claimed clean checkout of its stale Git HEAD."
+  },
+  "windowsPython": {
+    "failureRun": 33957335048,
+    "failureJob": 101282982487,
+    "exitCode": 3221225477,
+    "hex": "0xC0000005",
+    "artifact": {
+      "id": 9966915079,
+      "sha256": "760c98b52ccbb5c3973c2b0139d7b6b1e97a6c82ee47173faa92b373971476a2",
+      "bytes": 69286761,
+      "candidate": "4c28043faf2c938a44f826b3a5f71f729cab6768"
+    },
+    "before": [
+      {
+        "label": "native-help",
+        "returncode": 0
+      },
+      {
+        "label": "installed-help",
+        "returncode": 3221225477
+      },
+      {
+        "label": "native-invalid",
+        "returncode": 1
+      },
+      {
+        "label": "installed-invalid",
+        "returncode": 0
+      },
+      {
+        "label": "native-plugin",
+        "returncode": 1
+      },
+      {
+        "label": "installed-plugin",
+        "returncode": 3221225477
+      },
+      {
+        "label": "python-exec-plugin",
+        "returncode": 3221225477
+      },
+      {
+        "label": "python-spawn-plugin",
+        "returncode": 1
+      }
+    ],
+    "repair": "Windows waits for the native child; POSIX keeps exec. Preserve DWORD status and compare actual installed CLI output/status with the native executable.",
+    "unit": "15 runtime-resolution tests PASS on Windows Python 3.12.10",
+    "installedWheel": {
+      "status": "PASS",
+      "scenario": "sdk-profile-plugin --installed-wheel",
+      "includes": "Installed version/help/error byte comparisons, external plugin install, and real SDK loading against a local keyless model",
+      "python": "3.12.10",
+      "pnpm": "11.7.0",
+      "exeSha256": "7d03404db795740981bb1c5ec13f6853aeb1aa8888f19c87725b406244a8d2e1",
+      "originalExeSha256": "7d03404db795740981bb1c5ec13f6853aeb1aa8888f19c87725b406244a8d2e1",
+      "fixedWheelSha256": "9db9f8f1870a61f97a515463f22f38969063d6c2f6236e51c0310b35f550b5b7",
+      "sourceWrapperSha256": "3e8a97c966732e7b3ddbc4ae517c36f6227dba16cb791877d934e136bd880928",
+      "limitation": "Rebuilt Python wrapper around the exact failed CI executable. This is not a new full executable build or Python 3.10 remote acceptance."
+    }
+  },
+  "ciSources": {
+    "status": "IMPLEMENTED_E3_REMOTE_PENDING",
+    "requiredChecks": "release/required-checks.generated.json",
+    "tests": "135 passed / 1 platform-condition skip across the five owning files",
+    "validation": [
+      "verify-required-checks PASS",
+      "verify-workflow-security: 21 workflows PASS",
+      "Knip PASS"
+    ],
+    "remaining": [
+      "online collection",
+      "GitHub commit metadata verification",
+      "newest-run recheck",
+      "actual producer receipts from the published candidate"
+    ]
+  },
+  "sharedValidation": {
+    "testDocs": "15/15",
+    "docSync": "32/32",
+    "lint": "0 warnings / 0 errors",
+    "inputNote": "Checks ran on working-tree source later committed under the three listed commits; no claim that evidence-only commits were fully rerun."
+  },
+  "logs": [
+    {
+      "path": ".artifacts/g1-resume-20260905/inspector-enable-before.log",
+      "result": "expected regression failure",
+      "sha256": "f098f9180d6900928de237e5a30fc891b143d8ead14175d31f211506367a0ceb"
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/inspector-readiness-tests.log",
+      "result": "Inspector Windows PASS",
+      "sha256": "7c7e258178a1623f943674ac2457b4008ee16fa2c7c149af8bb7c00354d94d46"
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/ci-receipt-wiring-tests.log",
+      "result": "CI wiring PASS",
+      "sha256": "a4f90247563e74c2cc4fc7cd80803b107b6b86c600877aa24cdaa4dedcd53730"
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/windows-fixed-wheel-smoke.log",
+      "result": "installed-wheel PASS without decoding errors",
+      "sha256": "66956fb24c90126c2a8a48b9a67de5a511e9ceec28b8e9599647d5565cadc48a"
+    }
+  ],
+  "boundaries": [
+    "No merge, release, production signing, notarization submission, or store upload",
+    "Gate 1 remains OPEN until mandatory current-candidate CI passes",
+    "Gate 2-4 work remains active"
+  ]
+}
