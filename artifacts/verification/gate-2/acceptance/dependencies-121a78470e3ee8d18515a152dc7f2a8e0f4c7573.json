@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "kind": "dependencies",
+  "candidateSha": "121a78470e3ee8d18515a152dc7f2a8e0f4c7573",
+  "treeSha": "4d32fe79af317c183000fe3bcb81ce54e2775a2e",
+  "action": "actions/dependency-review-action",
+  "actionSha": "2031cfc080254a8a887f58cffee85186f0e49e48",
+  "registrySha256": "cec22b35ba74a01150bc1e40f20abb3f31180f69ac4d56a48dac794189d8ba23",
+  "reason": "dependency review did not complete"
+}

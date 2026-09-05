@@ -8,7 +8,7 @@
 
 ## Summary
 
-[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持 draft 且以 dev 为目标。候选 de346d2221 的[正式收集证据](gate-2/ci-evidence-de346d2221.json) 核验实际执行 SHA 83a67952f1、tree 和 producer 回执：Apple 与 Android 通过，必要 CI 失败。此前 Agent Teams 恢复用例已通过；新失败涉及 Inspector 启用阶段超时、持久化检查过早、完整类型分析超时，以及独立 Windows Vitest 进程意外退出。前三项已修复并通过目标回归；Worker 包在 Windows Node 22/24 各 106 项和两个文件四维 100% 通过，但没有据此宣称远端进程退出原因已定位。Gate 1 原准入仍绑定不可变候选 906d193595，不能借用旧结果声明后续候选通过。
+[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持 draft 且以 dev 为目标。候选 121a78470e 的[正式收集证据](gate-2/ci-evidence-121a78470e.json) 核验实际执行 SHA 38b4286772、tree 和 producer 回执：必要 CI、Apple 与 Android 均通过。此前 Inspector、cache、tools catalog 修复通过，Worker coverage 缺口未复现；独立 Windows coverage 新失败为 LSP 取消测试。600ms 初始化延迟与旧 300ms 等待的负向对照重现该错误，等待服务器收到请求后取消的修复已在 Windows/Linux 通过。Gate 1 原准入仍绑定不可变候选 906d193595，不能借用旧结果声明后续候选通过。
 
 Windows Python 启动与 Inspector readiness 两项原失败已取得真实远端通过结果。候选 1be28a4d44 在 Windows native 单项重跑后取得 mandatory aggregate、Apple 和 Android PASS；其初次 native worker 退出仍保留历史，不能称为已定位的产品缺陷。独立 Windows coverage 的 credentials 失败来自测试把截断空文档误认为完整外部编辑；受控复现 6 对 5 后已修复，新候选该用例通过。
 
@@ -21,6 +21,8 @@ Gate 2 的在线 CI 收集器保留真实 PASS/FAIL 与源码核验。候选安�
 Dependency review 实际失败：公开 fork 未提供所需 Dependency graph 功能，API 返回 403，浏览器无登录态，未更改设置，也未豁免此项。de346d2221 的 CodeQL Python 与 Swift 通过；Swift 分析完整，原始发现项 1、已审查 1、未审查 0，精确源码上下文审查已取得远端回执。JavaScript 从 91 降为 86，前轮两个线性扫描消除了对应的全部 5 项发现；Kotlin 仍有 7 项和位于 PushNotifications.kt 的阻断提取诊断。此前 d28a442df6 的原始 FAIL 持续保留。
 
 代码检查点 e228177a22 包含三项 CI 测试修复、Kotlin/Compose/JVM 2.2.21 与 AGP 8.10.1 对齐、通知的 javaObjectType 显式 Activity 映射及实际系统 token 验证。Android core 125/125、两套 debug APK 构建和 API 34 instrumentation 2/2 通过；三套 CI 回归在 Windows Node 22/24 和 Linux 均 29/29 通过，最后的类型收窄另有 Windows cache 16/16 及 Linux 29/29。独立 CodeQL 2.26.4/security-extended 实验完成分析，提取 ERROR 为 0，剩余 6 项 Noise 发现；原始提取 WARN 为 168，不能称为零 warning。实验使用 de346 archive 加两文件覆盖，不冒充正式候选准入。test:docs 15/15、doc-sync 32/32、lint 0 warning/0 error；准确源码摘要和边界见[本轮证据](gate-2/security-followup-de346d2221.json)。新候选仍需远端复验；[CI 与供应链计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md) 的其余 scanner、SBOM、provenance、RC 与 Gate 2-4 工作继续执行。
+
+代码检查点 24eff39f77 进一步修复用户文本 wire 发现与末尾标点的重复扫描，保持原展示语法、重叠顺序和 title。Windows UI 24/24 与单文件四维 100%、25,000 组渲染等价对照、真实 Chromium 组件页对照均通过；8,000 个嵌套 URI 前缀从约 325ms 降至 3.6ms，不能据此推断所有浏览器的标点正则耗时。LSP 生命周期 Windows Node 24 为 67 pass/1 平台 skip、实例源码四维 100%；Linux 完整 LSP 加 UI 为 175/175、两个源码文件四维 100%，包含本机受 EPERM 限制的 symlink 用例。test:docs 15/15、doc-sync 32/32、lint 0 warning/0 error。121a 的正式 Kotlin CodeQL 已确认分析完整、阻断诊断 0、发现从 7 降至 6；其余扫描与依赖回执边界及 Swift SAST 编译中状态见[本轮证据](gate-2/security-followup-121a78470e.json)。新修复仍需新候选远端验证。
 
 ## Table of Contents
 
@@ -63,7 +65,7 @@ Dependency review 实际失败：公开 fork 未提供所需 Dependency graph �
 | 完整 coverage 执行候选 | `4dded5f0e9cb4ea00bd092d92740aa718c678be1` | 到最新检查点只有同一 Context 的测试访问修正；产品源码未变 |
 | 最近 Swift/Kotlin E4 SHA | `ac42842c38142e13859da4981f9a820906f5ec6b` | PR 合并提交，tree 与 53cd3e79ad 相同；两种语言各 13/13，恢复见原始回执 |
 | Android App 输入检查点 | `1b181627e7c723dedb04d5ca429ee17b8701b0c3` | App tree 至最新候选完全相同；装配、签名检查、API 34 首屏通过 |
-| 分支 | `codex/goal-mode-full-implementation` | 代码检查点 e228177a22；de346d2221 的 Apple/Android/Swift SAST 通过，CI 与整体供应链 FAIL；新修复待远端复验；draft PR #1，base=dev |
+| 分支 | `codex/goal-mode-full-implementation` | 代码检查点 24eff39f77；121a78470e 的必要 CI/Apple/Android 通过，独立 Windows coverage 与供应链准入未通过；新修复待远端复验；draft PR #1，base=dev |
 | worktree | `E:\Mix\project\deepseek-harness\.worktrees\goal-mode-full-implementation` | 与用户 dev 隔离 |
 | Gate 1 | `PASS / CLOSED` | `canEnterGate2=true`；准入候选 906d193595 |
 | Gate 2 / 3 / 4 | `IN_PROGRESS / NOT_STARTED / NOT_STARTED` | 版本、渠道与在线 CI 证据已接线；继续供应链与平台发布工程 |
@@ -495,6 +497,6 @@ Apple 的 SwiftPM 与 Host↔Swift 命令由 [`.github/workflows/apple-swift.yml
 
 ## 12. 当前结论
 
-Gate 1 已按不可变候选 906d193595 的必要验收关闭。de346d2221 已确认 Apple、Android、完整密钥扫描、Python 与 Swift CodeQL 通过，以及 5 项 JavaScript 发现消失；CI、Kotlin/JavaScript SAST 和 Dependency review 保留实际 FAIL。e228177a22 的 CI 与 Android 修复已通过本地测试及独立 CodeQL 实验，仍需新候选远端验证。下一步确认新候选结果，处理 Noise 计数耗尽及六项密码学发现、剩余 JavaScript 发现、独立 Windows 进程退出和依赖扫描；继续产物/SBOM/provenance、四平台 RC 和第 8 节其余发布工程、Beta、GA，不能声明整个目标完成。
+Gate 1 已按不可变候选 906d193595 的必要验收关闭。121a78470e 的必要 CI、Apple、Android、完整密钥扫描与 Python CodeQL 已通过，正式 Kotlin 扫描不再有提取诊断但仍有六项 Noise 发现。独立 Windows LSP 失败已有 24eff39f77 的本地修复与负向对照；UI 两项正则修复也已完成渲染、浏览器和覆盖率验证。下一步确认新候选结果，处理 Noise 计数耗尽及密码学发现、剩余 JavaScript 发现和依赖扫描；继续产物/SBOM/provenance、四平台 RC 和第 8 节其余发布工程、Beta、GA，不能声明整个目标完成。
 
 后续 Agent 必须从 Gate 1 closure decision 开始，不能把旧报告中的绿色里程碑、当前文件存在或用户跳过动作提升为未实际执行的平台证据。

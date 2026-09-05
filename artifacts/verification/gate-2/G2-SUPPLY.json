@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "taskId": "G2-SUPPLY",
   "status": "PARTIAL",
-  "sourceHead": "e228177a22bb138dfd49fd90106a44ef0b78f067",
-  "recordedAt": "2026-09-05T20:17:55.920400+00:00",
+  "sourceHead": "24eff39f77372b2174341ec6703927e566b5a605",
+  "recordedAt": "2026-09-05T21:00:31.750240+00:00",
   "implemented": {
     "upstreamReferencesVerified": 24,
     "workflowCorpus": 22,
@@ -332,15 +332,15 @@
     "diagnosticImplementationHead": "76384701598397492c03135db998db5bef69eb4a",
     "diagnosticImplementationStatus": "REMOTE_VALIDATED"
   },
-  "followupEvidence": "artifacts/verification/gate-2/security-followup-de346d2221.json",
+  "followupEvidence": "artifacts/verification/gate-2/security-followup-121a78470e.json",
   "latestCandidate": {
-    "sha": "de346d222198b1aac14dec56546dd661adf8debf",
+    "sha": "121a78470e3ee8d18515a152dc7f2a8e0f4c7573",
     "status": "FAIL",
-    "workflowRun": 33985552798,
+    "workflowRun": 33989933318,
     "receipts": {
       "javascript-typescript": {
-        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-de346d222198b1aac14dec56546dd661adf8debf.json",
-        "sha256": "4287aec3e4b32479108d1ff90473a23dfcb483bb57e8b8b665b3d46f18484b68",
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "62b95a39eb653b194af986cd561c4049501d2196ed8dedc5c0aa4c9cc2d1a6b3",
         "status": "FAIL",
         "findingCount": 86,
         "analysisComplete": true,
@@ -349,35 +349,18 @@
         "reviewedFindings": 0
       },
       "java-kotlin": {
-        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-de346d222198b1aac14dec56546dd661adf8debf.json",
-        "sha256": "2f037d7d3846ce61f2193e70a3518d56c73a1bf8f7e736b540d5405bdf651ff3",
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "d3c8dd3ccbed8184ef22357d9f5f672a60b8d4034e09118a4adb3caeb5841dfc",
         "status": "FAIL",
-        "findingCount": 7,
-        "analysisComplete": false,
-        "blockingDiagnostics": [
-          {
-            "rule": "java/diagnostics/extraction-errors",
-            "level": "error",
-            "category": "unknown-extraction-errors",
-            "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt"
-          }
-        ],
-        "unreviewedFindings": 7,
-        "reviewedFindings": 0
-      },
-      "swift": {
-        "path": "artifacts/verification/gate-2/acceptance/sast-swift-de346d222198b1aac14dec56546dd661adf8debf.json",
-        "sha256": "9f5e4f20c08940e60e407d50634fd11059cdc8c8a6d741776d25f7199446fb77",
-        "status": "PASS",
-        "findingCount": 1,
+        "findingCount": 6,
         "analysisComplete": true,
         "blockingDiagnostics": [],
-        "unreviewedFindings": 0,
-        "reviewedFindings": 1
+        "unreviewedFindings": 6,
+        "reviewedFindings": 0
       },
       "python": {
-        "path": "artifacts/verification/gate-2/acceptance/sast-python-de346d222198b1aac14dec56546dd661adf8debf.json",
-        "sha256": "9943c5fb80a8e649ca75d7a9e9180a862fb818297dbe8148ae836f5e26d74332",
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "355568086ffa9250b79a83506d30021dc58492e58dfed1cae27bd0f7f4f0ec7c",
         "status": "PASS",
         "findingCount": 0,
         "analysisComplete": true,
@@ -386,16 +369,21 @@
         "reviewedFindings": 0
       },
       "secrets": {
-        "path": "artifacts/verification/gate-2/acceptance/secrets-de346d222198b1aac14dec56546dd661adf8debf.json",
-        "sha256": "3b8cdcf35704ff7cfa3fcbe107f420feb91b73796f505a02b345eee8ded9cc3e",
+        "path": "artifacts/verification/gate-2/acceptance/secrets-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "ac0a0c418c9a52cc39add96eb6b3dcd56a26b203ade5413a456a3cc74b8aedfc",
         "status": "PASS"
       },
       "dependencies": {
-        "path": "artifacts/verification/gate-2/acceptance/dependencies-de346d222198b1aac14dec56546dd661adf8debf.json",
-        "sha256": "61213e2d8e3e3510714a01ed462139b8d58374c8398ab48725ce48ad54ba213e",
+        "path": "artifacts/verification/gate-2/acceptance/dependencies-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "43e3f879947b46e0bf7fa71bb865f234a60612e9bfe39184fdf7d2a1482976d5",
         "status": "FAIL"
+      },
+      "swift": {
+        "status": "PENDING",
+        "jobId": 101370243530,
+        "observation": "Still compiling Apple apps at collection time. The de346 Swift SAST PASS is historical, not acceptance for this candidate."
       }
     },
-    "localFixesPendingCandidateValidation": "e228177a22bb138dfd49fd90106a44ef0b78f067"
+    "localFixesPendingCandidateValidation": "24eff39f77372b2174341ec6703927e566b5a605"
   }
 }
