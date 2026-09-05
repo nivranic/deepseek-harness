@@ -4,15 +4,15 @@
   "status": "PASS",
   "sourceHead": "906d19359588584ffe154d9abe8aea752e7b743a",
   "branch": "codex/goal-mode-full-implementation",
-  "recordedAt": "2026-09-05T14:25:50.994Z",
+  "recordedAt": "2026-09-05T16:37:09.535Z",
   "candidatePublication": {
     "status": "PASS",
-    "head": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "head": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
     "remoteBranchExists": true,
     "pullRequest": "https://github.com/nivranic/deepseek-harness/pull/1",
     "base": "dev",
     "isDraft": true,
-    "remoteCandidateCi": "PASS"
+    "remoteCandidateCi": "PENDING"
   },
   "localPortableEvidence": "artifacts/verification/gate-1/G1-PORTABLE-RUNNERS.json",
   "nativeCheck": {
@@ -657,12 +657,12 @@
     }
   ],
   "latestCompletedRemote": {
-    "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
-    "runId": 33970084834,
+    "candidateHead": "723335fefe9403453fa4e2868169143a8b6fd390",
+    "runId": 33972352078,
     "status": "PASS",
-    "workflowConclusion": "failure",
-    "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json",
-    "qualification": "Gate 1 accepts immutable candidate 906d193595 using the workflow-owned mandatory policy. Independent Windows coverage remains FAIL due to a documentation Git integration timeout; it is retained and repaired separately, not reported as PASS."
+    "workflowConclusion": "success",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-723335fefe.json",
+    "qualification": "Mandatory CI, independent Windows coverage, Apple and Android all passed; the collector verified actual merge source and current execution receipts."
   },
   "latestSwiftAcceptance": {
     "path": "artifacts/verification/gate-1/acceptance/swift-ac42842c38142e13859da4981f9a820906f5ec6b.json",
@@ -720,6 +720,22 @@
     "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
   },
   "latestWindowsCoverage": {
+    "candidateHead": "723335fefe9403453fa4e2868169143a8b6fd390",
+    "status": "PASS",
+    "mandatory": false,
+    "runId": 33972352078,
+    "jobName": "windows node 24 / coverage",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-723335fefe.json"
+  },
+  "latestRepairVerification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json",
+  "previousSuccessfulMandatoryCandidate": {
+    "candidate": "1be28a4d443a23f97b6214dddfb6c1597cb01c41",
+    "runId": 33966116877,
+    "attempt": 2,
+    "evidence": "artifacts/verification/gate-2/ci-evidence-1be28a4d44.json",
+    "qualification": "Mandatory aggregate passed after native-only retry; independent Windows coverage failed. Initial native worker exit remains historical, not a proven product repair."
+  },
+  "previousWindowsCoverage": {
     "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
     "status": "FAIL",
     "mandatory": false,
@@ -738,13 +754,5 @@
     },
     "remoteRepair": "PENDING",
     "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
-  },
-  "latestRepairVerification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json",
-  "previousSuccessfulMandatoryCandidate": {
-    "candidate": "1be28a4d443a23f97b6214dddfb6c1597cb01c41",
-    "runId": 33966116877,
-    "attempt": 2,
-    "evidence": "artifacts/verification/gate-2/ci-evidence-1be28a4d44.json",
-    "qualification": "Mandatory aggregate passed after native-only retry; independent Windows coverage failed. Initial native worker exit remains historical, not a proven product repair."
   }
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordKind": "remote-candidate-ci",
-  "recordedAt": "2026-09-05T14:25:50.994Z",
+  "recordedAt": "2026-09-05T16:37:09.535Z",
   "status": "PARTIAL",
   "pullRequest": {
     "baseRefName": "dev",
@@ -312,81 +312,13 @@
     "qualification": "The exact five-suite CI selection passes locally; the remote worker exit remains an unresolved failure."
   },
   "latestPublication": {
-    "head": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "candidateHead": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+    "branch": "codex/goal-mode-full-implementation",
+    "pullRequest": "https://github.com/nivranic/deepseek-harness/pull/1",
     "base": "dev",
-    "isDraft": true,
-    "remoteShaMatches": true,
-    "ahead": 0,
-    "behind": 0,
-    "prePushTypecheck": "PASS",
-    "runs": [
-      {
-        "databaseId": 33970084678,
-        "workflowName": "Build PR preview",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "queued",
-        "conclusion": null,
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084678"
-      },
-      {
-        "databaseId": 33970084631,
-        "workflowName": "Issue lifecycle",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "completed",
-        "conclusion": "failure",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084631"
-      },
-      {
-        "databaseId": 33970084622,
-        "workflowName": "Issue policy",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "completed",
-        "conclusion": "failure",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084622"
-      },
-      {
-        "databaseId": 33970084623,
-        "workflowName": "Release (vendor)",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084623"
-      },
-      {
-        "databaseId": 33970084627,
-        "workflowName": "Release (dsh)",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084627"
-      },
-      {
-        "databaseId": 33970084643,
-        "workflowName": "Android Kotlin",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084643"
-      },
-      {
-        "databaseId": 33970084624,
-        "workflowName": "Apple Swift",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "completed",
-        "conclusion": "success",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084624"
-      },
-      {
-        "databaseId": 33970084834,
-        "workflowName": "CI",
-        "headSha": "906d19359588584ffe154d9abe8aea752e7b743a",
-        "status": "completed",
-        "conclusion": "failure",
-        "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33970084834"
-      }
-    ],
-    "verdict": "PASS",
-    "qualification": "Gate 1 accepts immutable candidate 906d193595 using the workflow-owned mandatory policy. Independent Windows coverage remains FAIL due to a documentation Git integration timeout; it is retained and repaired separately, not reported as PASS."
+    "draft": true,
+    "status": "PASS",
+    "candidateChecks": "PENDING"
   },
   "followupValidation": {
     "executionInput": "4227f3a51375e648163171911bda59f52eac4503 plus repair inputs committed as 6dbbcf74570e53c30b823d2f529499c8b4a1bafd; isolated Linux checkout retains an older git HEAD and is not claimed as a clean execution of the new commit.",
@@ -619,13 +551,7 @@
     "status": "PASS",
     "job": 101316923677
   },
-  "remainingCiRepairs": [
-    {
-      "area": "Independent Windows documentation Git integration budget",
-      "status": "LOCAL_PASS_REMOTE_PENDING",
-      "commit": "7a786c8572cea834b560308b062dd6187404697a"
-    }
-  ],
+  "remainingCiRepairs": [],
   "nextRepairCandidate": {
     "commit": "7a786c8572cea834b560308b062dd6187404697a",
     "published": false,
@@ -650,24 +576,12 @@
     "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
   },
   "latestWindowsCoverage": {
-    "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
-    "status": "FAIL",
+    "candidateHead": "723335fefe9403453fa4e2868169143a8b6fd390",
+    "status": "PASS",
     "mandatory": false,
-    "job": 101316923755,
-    "failure": "translation-pairing-merge.spec.ts clean text fallback took 16153 ms; its suite forced 15000 ms despite the heavy lane specifying 90000 ms.",
-    "repairCommit": "7a786c8572cea834b560308b062dd6187404697a",
-    "localRepair": {
-      "status": "PASS",
-      "runner": "Windows Node 24.19.0",
-      "tests": 2,
-      "timingsMs": [
-        7274,
-        9574
-      ],
-      "log": ".artifacts/g1-resume-20260905/pairing-merge-budget.log"
-    },
-    "remoteRepair": "PENDING",
-    "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
+    "runId": 33972352078,
+    "jobName": "windows node 24 / coverage",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-723335fefe.json"
   },
   "nextImplementationHead": "7a786c8572cea834b560308b062dd6187404697a",
   "priorCi": {
@@ -937,5 +851,13 @@
     },
     "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json"
   },
-  "mandatoryVerdict": "PASS"
+  "mandatoryVerdict": "PASS",
+  "latestCompletedCandidate": {
+    "candidateHead": "723335fefe9403453fa4e2868169143a8b6fd390",
+    "runId": 33972352078,
+    "status": "PASS",
+    "workflowConclusion": "success",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-723335fefe.json",
+    "qualification": "Mandatory CI, independent Windows coverage, Apple and Android all passed; the collector verified actual merge source and current execution receipts."
+  }
 }

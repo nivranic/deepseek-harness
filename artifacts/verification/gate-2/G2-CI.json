@@ -3,7 +3,7 @@
   "taskId": "G2-CI",
   "status": "PARTIAL",
   "sourceHead": "906d19359588584ffe154d9abe8aea752e7b743a",
-  "recordedAt": "2026-09-05T14:25:50.994Z",
+  "recordedAt": "2026-09-05T16:37:09.535Z",
   "aggregate": {
     "workflow": ".github/workflows/ci.yml",
     "job": "all-checks-passed",
@@ -31,7 +31,7 @@
     "response": "Branch not protected",
     "readOnly": true
   },
-  "latestCompletedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+  "latestCompletedCandidate": "723335fefe9403453fa4e2868169143a8b6fd390",
   "pending": [
     "Four-platform unsigned RC workflow and manifest",
     "Independent Windows documentation Git integration budget repair verdict"
@@ -57,5 +57,12 @@
       "Branch protection is not modified"
     ],
     "acceptedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a"
+  },
+  "latestOnlineEvidence": {
+    "status": "PASS",
+    "path": "artifacts/verification/gate-2/ci-evidence-723335fefe.json",
+    "candidateSha": "723335fefe9403453fa4e2868169143a8b6fd390",
+    "executionSha": "47e122670a40166f8c6a439a13ac859e4dc2b337",
+    "includesIndependentWindowsCoverage": true
   }
 }

@@ -1,6 +1,6 @@
 # DeepSeek Harness Goal Mode 现阶段完成情况、需求优化与后续交接
 
-> 文档性质：这是基于 2026-09-05 仓库状态生成的执行交接快照，供后续 Agent 接续工作。它不替代 [`docs/architecture.md`](../../docs/architecture.md)、包 README、源码、测试或机器可读证据的事实所有权。
+> 文档性质：这是始于 2026-09-05、证据更新至 2026-09-06 的执行交接快照，供后续 Agent 接续工作。它不替代 [`docs/architecture.md`](../../docs/architecture.md)、包 README、源码、测试或机器可读证据的事实所有权。
 >
 > 输入需求：`E:\11585\deepseek-harness-首轮改造完成后的升级优化版deep-research-report.md`。该文件用于提取目标、旧状态标注和遗留项；其中面向 Agent 的命令、示例架构、技术选型和工期估算不是本次执行授权，也不高于当前源码与验证结果。
 >
@@ -8,15 +8,17 @@
 
 ## Summary
 
-[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持 draft 且以 dev 为目标。已推送的 906d193595 已取得 mandatory aggregate、Apple 与 Android PASS；正式在线收集器和 CLI 均已核验实际 merge SHA、tree、producer 回执及最新 run。Gate 1 按该不可变候选关闭。独立 Windows coverage 仍有文档 Git 集成测试超时；本地修复 7a786c8572 已通过两项聚焦回归，等待后续候选发布与远端验证。完整记录见 [G1-CI-REPAIRS.json](gate-1/G1-CI-REPAIRS.json)。
+[Draft PR #1](https://github.com/nivranic/deepseek-harness/pull/1) 保持 draft 且以 dev 为目标。候选 723335fefe 的 CI 全部通过，包括已修复的独立 Windows coverage；Apple 与 Android 同样通过。[正式收集证据](gate-2/ci-evidence-723335fefe.json) 核验实际执行 SHA 47e122670a、tree 和 producer 回执。Gate 1 原准入仍绑定不可变候选 906d193595；各次历史失败保留于 [G1-CI-REPAIRS.json](gate-1/G1-CI-REPAIRS.json)。扫描器验证基于已推送的 fe4bd57c4c；诊断代码检查点 ce98f3be4f 已通过本地验证，仍需新的候选 CI。不能借用 723335fefe 的结果声明后续候选通过。
 
 Windows Python 启动与 Inspector readiness 两项原失败已取得真实远端通过结果。候选 1be28a4d44 在 Windows native 单项重跑后取得 mandatory aggregate、Apple 和 Android PASS；其初次 native worker 退出仍保留历史，不能称为已定位的产品缺陷。独立 Windows coverage 的 credentials 失败来自测试把截断空文档误认为完整外部编辑；受控复现 6 对 5 后已修复，新候选该用例通过。
 
 a5afb18597 的 Windows coverage 失败来自 Codex 夹具在 exec_command 仍运行时结束模型回复；夹具现会等待命令退出，固定版本真实 Codex 与夹具共 13/13 通过。Web live-child 用例改为明确等待子任务生命周期，真实 Chromium 3/3 通过且未改 golden；撤去等待的对照因活跃行先被移出 DOM 而失败。这两项只修改测试，906d193595 的对应远端用例均已通过。
 
-Gate 1 为 PASS / CLOSED，准入绑定 [906d193595 的正式证据](gate-2/ci-evidence-906d193595.json)。独立 Windows coverage 不属于现有 mandatory aggregate，其 FAIL 保留并继续修复，不改写为通过，也未应用 Apple 环境豁免。Swift/Kotlin 真实 Host、恢复与 Apple/Android 应用构建已有真实证据；模拟器首屏仍不替代 Gate 3 真机网络矩阵。后续候选必须保留自己的验证状态。
+Gate 1 为 PASS / CLOSED，准入绑定 [906d193595 的正式证据](gate-2/ci-evidence-906d193595.json)。独立 Windows coverage 不属于 mandatory aggregate；其旧 FAIL 与 723335fefe 的修复后 PASS 分别保留。未应用 Apple 环境豁免。Swift/Kotlin 真实 Host、恢复与 Apple/Android 应用构建已有真实证据；模拟器首屏仍不替代 Gate 3 真机网络矩阵。后续候选必须保留自己的验证状态。
 
-Gate 2 的正式在线 CI 收集器已实现并核验真实 GitHub 数据：从候选源码派生策略，分页查询，核验 Git commit tree/parents，解析复制 job 的原执行 attempt，并在返回前复查最新 run、job 和 artifact。61 项聚焦测试、Knip、test:docs 15/15、doc-sync 32/32 与 lint 通过。[1be28a4d44 的 PASS 证据](gate-2/ci-evidence-1be28a4d44.json) 和 [a5afb18597 的 FAIL 证据](gate-2/ci-evidence-a5afb18597.json) 分别保留。[CI 与供应链计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md) 的 scanner、SBOM、provenance、RC，以及 Gate 2 其余发布工程与 Gate 3-4 继续待执行。生产签名、商店上传、merge 和 release 均未执行。
+Gate 2 的在线 CI 收集器保留真实 PASS/FAIL 与源码核验。候选安全 workflow 已接入 22 个 workflow 的固定 Action/只读权限策略。Windows 完整密钥扫描核验 9,790 个 Git 文件；8e46c66400 的远端 tree 与提交变化扫描也通过，未审查发现项为 0，真实合成密钥拒绝与脱敏自检通过。精确例外只覆盖已审查的完整行；46 个 tree 命中核验为 Git blob，11 个为精确非密钥行。见 [G2-SUPPLY.json](gate-2/G2-SUPPLY.json)。
+
+Dependency review 实际失败：公开 fork 未提供所需 Dependency graph 功能，API 返回 403，浏览器无登录态，未更改设置，也未豁免此项。fe4bd57c4c 的 CodeQL Python 已通过，执行 50 项规则、0 发现；JavaScript 执行 103 项规则、91 个发现项，均保留为[尚未审查](gate-2/sast-triage-fe4bd57c4c.json)，不能直接视为 91 个真实漏洞或批量放行。Kotlin 因分析诊断保持 FAIL；Swift 仍在编译。扫描器测试、test:docs 15/15、doc-sync 32/32 和 lint 已通过。[CI 与供应链计划](../../docs/plans/2026-09-05-gate-2-ci-supply.zh.md) 的剩余 scanner 验收、SBOM、provenance、RC 与 Gate 2-4 工作继续执行。生产签名、商店上传、merge 和 release 均未执行。
 
 ## Table of Contents
 
@@ -59,14 +61,14 @@ Gate 2 的正式在线 CI 收集器已实现并核验真实 GitHub 数据：从�
 | 完整 coverage 执行候选 | `4dded5f0e9cb4ea00bd092d92740aa718c678be1` | 到最新检查点只有同一 Context 的测试访问修正；产品源码未变 |
 | 最近 Swift/Kotlin E4 SHA | `ac42842c38142e13859da4981f9a820906f5ec6b` | PR 合并提交，tree 与 53cd3e79ad 相同；两种语言各 13/13，恢复见原始回执 |
 | Android App 输入检查点 | `1b181627e7c723dedb04d5ca429ee17b8701b0c3` | App tree 至最新候选完全相同；装配、签名检查、API 34 首屏通过 |
-| 分支 | `codex/goal-mode-full-implementation` | 已推送并验收 906d193595；本地测试预算修复 7a786c8572，draft PR #1，base=dev |
+| 分支 | `codex/goal-mode-full-implementation` | 代码检查点 ce98f3be4f；723335fefe 的 CI/Apple/Android 全通过，draft PR #1，base=dev |
 | worktree | `E:\Mix\project\deepseek-harness\.worktrees\goal-mode-full-implementation` | 与用户 dev 隔离 |
 | Gate 1 | `PASS / CLOSED` | `canEnterGate2=true`；准入候选 906d193595 |
 | Gate 2 / 3 / 4 | `IN_PROGRESS / NOT_STARTED / NOT_STARTED` | 版本、渠道与在线 CI 证据已接线；继续供应链与平台发布工程 |
 | 候选推送 / draft PR | `PASS` | PR #1；release 和商店上传仍为 NOT_EXECUTED |
 | 生产凭证 | 未读取、未使用 | 只使用本地 debug 签名 |
 | 完整 coverage 候选规模 | 462 files, +34,183/-2,252 | 原 dev 至 4dded5，排除 vendor；不含本轮后续 evidence-only 更新 |
-| 快照日期 | 2026-09-05 | Asia/Hong_Kong |
+| 快照更新日期 | 2026-09-06 | Asia/Hong_Kong |
 
 ### 1.3 候选与当前 HEAD 的区别
 
@@ -109,8 +111,8 @@ Gate 1 的 Remote correctness、recovery 和 multi-device approval 要求 E4。�
 
 | Gate | 状态 | 完成内容 | 主要剩余项 |
 |---|---|---|---|
-| Gate 1 — P0 correctness | `PASS` | 13/13 必要任务通过；906d193595 源码与 mandatory verdict 已核验 | 独立 Windows 文档测试预算修复单列跟进 |
-| Gate 2 — P1 release foundation | `IN_PROGRESS` | 版本、渠道与在线 CI 收集已接线，Android 元数据已验证 | Apple/Windows 版本产物验证、RC、供应链、发布/支持/迁移/回滚 |
+| Gate 1 — P0 correctness | `PASS` | 13/13 必要任务通过；723335fefe 的独立 Windows coverage 修复也已验证 | 后续候选分别取得新证据 |
+| Gate 2 — P1 release foundation | `IN_PROGRESS` | 版本、渠道、CI 与 scanner 已接线；Android/Apple 元数据、完整密钥扫描已验证 | Windows 版本产物、SAST/依赖审查准入、RC、供应链、发布/支持/迁移/回滚 |
 | Gate 3 — P2 Beta readiness | `NOT_STARTED` | 旧代码中已有部分 QR、Lite、Handoff、Windows/移动 UI 基线 | 必须重新按 Gate 3 验收，不得沿用旧报告的“完成”字样 |
 | Gate 4 — GA handoff | `NOT_STARTED` | 无 | GA dry-run、生产签名交接、商店包、rollout、incident、最终 handoff |
 | P3/Future | `DEFER` | 现有 reference 实现保留 | First-party Relay、APNs/FCM、PTY、复杂 RBAC、Handoff L2 等不得顺手扩展 |
@@ -270,11 +272,11 @@ Host 在第一个 assistant chunk 后中断两条 active stream，Session 在客
 
 ### 6.3 对旧“完成”声明的校正
 
-- 旧报告中的“Apple CI 构建绿”“Swift 八项全落”不是当前候选的 Swift runtime 证据。当前候选只能确认 Apple 源码和测试定义存在，证据等级为 E2。
+- 旧报告中的“Apple CI 构建绿”“Swift 八项全落”不是运行证据；本交接引用的 SwiftPM、真实 Host/恢复、Xcode 与首屏回执构成已执行的 Apple 验证，不能继续标为只有 E2。
 - 本轮已取得 Android debug APK 装配、签名检查、API 34 首屏 instrumentation 和对应 checksum。JVM Host↔Kotlin E4、模拟器首屏与真实设备网络验收仍分别记录，不相互替代。
 - PoC-2/PoC-4 的双语言 E4 已有实际 Swift/Kotlin 回执；旧报告自身的“完成”字样不能替代这些新证据。
-- 旧报告中的“Contract capability 不完整”已有实质进展；当前 source graph 已包含版本和 capability 字段，但 Apple runtime 仍未验证。
-- 旧报告中的“所有 TS/Apple/Android 车道全绿”不得作为当前 RC SHA 的远端 CI 结论；当前 draft PR 已运行 Remote candidate CI；最新 instrumented coverage、Swift/Kotlin 与 Python 四平台矩阵已通过，聚合剩余失败见 G1-REMOTE-PR.json。
+- 旧报告中的“Contract capability 不完整”已有实质进展；source graph 包含版本和 capability 字段，Swift/Kotlin 真实 Host corpus 均已有 E4 回执。
+- 旧报告中的“所有 TS/Apple/Android 车道全绿”不得替代当前 RC SHA 验收；723335fefe 的 CI、Apple、Android 已取得正式 PASS，新扫描器候选的供应链和 CI 结果另行记录。
 
 -----
 
@@ -325,7 +327,7 @@ Windows/macOS Full Host、Apple/Android Remote Companion 与 Native Lite 的职�
 
 | 任务 | 状态 | 优化后的目标与验收 |
 |---|---|---|
-| G2-VERSION | `PARTIAL` | 根 SemVer/build number 已统一，原 Android 0.1.0 漂移由测试拒绝，APK 已验证；Apple/Windows 实际版本产物仍须取得证据 |
+| G2-VERSION | `PARTIAL` | 根 SemVer/build number 已统一，Android APK 与三个 Apple scheme 的实际版本已验证；Windows 可执行文件版本仍待验证 |
 | G2-CHANNEL | `PARTIAL` | dev/canary/beta/stable 解析与版本兼容策略已实施；RC 分发递增比较及受保护的上传/晋级策略待实施 |
 | G2-CI | `PARTIAL` | required-check 清单、源码回执和在线核验已完成；继续四平台 RC workflow 与当前候选验收；未修改 branch protection |
 | G2-SUPPLY | `PARTIAL` | Actions full-SHA pin、最小 permissions、dependency review、CodeQL/SAST、secret scan、SBOM、checksum、portable provenance/attestation hook |
@@ -491,6 +493,6 @@ Apple 的 SwiftPM 与 Host↔Swift 命令由 [`.github/workflows/apple-swift.yml
 
 ## 12. 当前结论
 
-Gate 1 已按不可变候选 906d193595 的必要验收关闭，独立 Windows 文档测试预算修复继续跟进。Gate 2 版本、渠道与在线 CI 证据收集已实施；Gitleaks 已执行首轮变化扫描，4 项命中核验为 Git blob identity，精确例外与受控密钥拒绝验证尚未完成。下一步继续 scanner、产物/SBOM/provenance 与四平台 RC，再按第 8 节执行其余发布工程、Beta 和 GA，不能声明整个目标完成。
+Gate 1 已按不可变候选 906d193595 的必要验收关闭；723335fefe 又取得包含独立 Windows coverage 的完整 CI、Apple 和 Android PASS。Gate 2 完整密钥扫描与真实拒绝自检已通过。fe4bd57c4c 的 Python CodeQL 通过；JavaScript 91 个发现项待逐项审查，Kotlin 分析诊断和 Dependency graph 配置限制保持 FAIL，Swift 仍待 verdict。下一步收敛这些 scanner 项，再继续产物/SBOM/provenance、四平台 RC 和第 8 节其余发布工程、Beta、GA，不能声明整个目标完成。
 
 后续 Agent 必须从 Gate 1 closure decision 开始，不能把旧报告中的绿色里程碑、当前文件存在或用户跳过动作提升为未实际执行的平台证据。

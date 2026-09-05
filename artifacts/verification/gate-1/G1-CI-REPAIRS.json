@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordKind": "candidate-ci-repair-verification",
-  "recordedAt": "2026-09-05T14:25:50.994Z",
+  "recordedAt": "2026-09-05T16:37:09.535Z",
   "sourceHead": "461ad62b29b9656667993216f50b755487b75708",
   "status": "MANDATORY_REPAIRS_REMOTE_PASS_OPTIONAL_FOLLOWUP_LOCAL_PASS",
   "commits": {
@@ -130,7 +130,7 @@
   ],
   "boundaries": [
     "No merge, release, production signing, notarization submission, or store upload",
-    "Gate 1 remains OPEN until mandatory current-candidate CI passes",
+    "Gate 1 is closed for immutable candidate 906d193595; subsequent candidate evidence remains independent.",
     "Gate 2-4 work remains active"
   ],
   "originalRepairRemote": {
@@ -186,7 +186,14 @@
         ],
         "log": ".artifacts/g1-resume-20260905/pairing-merge-budget.log"
       },
-      "remoteRepair": "PENDING",
+      "remoteRepair": {
+        "candidateHead": "723335fefe9403453fa4e2868169143a8b6fd390",
+        "status": "PASS",
+        "mandatory": false,
+        "runId": 33972352078,
+        "jobName": "windows node 24 / coverage",
+        "evidence": "artifacts/verification/gate-2/ci-evidence-723335fefe.json"
+      },
       "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
     }
   }

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "kind": "sast",
+  "candidateSha": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+  "treeSha": "62be392c074e9e35ac1b09050cc4064d8ae5a297",
+  "action": "github/codeql-action/analyze",
+  "actionSha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+  "registrySha256": "cec22b35ba74a01150bc1e40f20abb3f31180f69ac4d56a48dac794189d8ba23",
+  "reason": "CodeQL reported incomplete analysis"
+}

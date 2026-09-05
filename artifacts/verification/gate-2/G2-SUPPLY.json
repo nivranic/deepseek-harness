@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "taskId": "G2-SUPPLY",
   "status": "PARTIAL",
-  "sourceHead": "c5c63afcbd4423d9b2a92aad8c5c674d9caa2fb8",
-  "recordedAt": "2026-09-05T14:25:50.994Z",
+  "sourceHead": "ce98f3be4f4dd55499f43e97bc1504ffacb20db8",
+  "recordedAt": "2026-09-05T17:04:38.865Z",
   "implemented": {
-    "upstreamReferencesVerified": 21,
-    "workflowCorpus": 21,
+    "upstreamReferencesVerified": 24,
+    "workflowCorpus": 22,
     "registry": "release/action-pins.json",
     "permissionPolicy": "release/workflow-security.json",
     "gate": "pnpm run verify-workflow-security",
@@ -16,7 +16,8 @@
       "hygiene",
       "check-all"
     ],
-    "checkoutCredentialPersistence": false
+    "checkoutCredentialPersistence": false,
+    "scannerWorkflow": ".github/workflows/supply-chain.yml"
   },
   "verification": [
     {
@@ -59,13 +60,12 @@
   ],
   "inputMaterialization": "Checks ran on pre-commit worktree bytes; Linux received explicit file synchronization and retained its older Git HEAD. No clean-HEAD rerun is claimed.",
   "pending": [
-    "Dependency review",
-    "CodeQL/SAST",
-    "Secret scanning",
+    "Dependency review feature or verified independent dependency scanner",
+    "Accepted actual CodeQL results for every declared language",
     "Packaged-closure SBOM",
     "Checksum-bound RC manifest",
     "Portable provenance and protected attestation hook",
-    "Remote verdict after workflow pinning"
+    "Four-platform RC artifacts"
   ],
   "workflowEnablementChanged": false,
   "productionPublicationExecuted": false,
@@ -85,5 +85,136 @@
     ],
     "log": ".artifacts/g1-resume-20260905/gitleaks-changes-906d.log",
     "classification": ".artifacts/g1-resume-20260905/verified-gitleaks-blob-findings.json"
+  },
+  "secretScanning": {
+    "status": "PASS",
+    "candidateSha": "8e46c66400b5181c43a06e1f2ac3aa9b4b87f850",
+    "remoteRun": 33977259106,
+    "remoteJob": 101336106503,
+    "evidence": "artifacts/verification/gate-2/acceptance/secrets-8e46c66400b5181c43a06e1f2ac3aa9b4b87f850.json",
+    "localWindowsEvidence": "artifacts/verification/gate-2/acceptance/secrets-windows-a49d64f20b.json",
+    "files": 9790,
+    "scannerNegativeFixture": "PASS",
+    "unreviewedFindings": 0,
+    "findingClasses": [
+      {
+        "kind": "tree",
+        "counts": {
+          "verified-git-blob": 46,
+          "reviewed-non-secret-line": 11
+        }
+      },
+      {
+        "kind": "changes",
+        "counts": {
+          "verified-git-blob": 4
+        }
+      }
+    ]
+  },
+  "scannerValidation": [
+    {
+      "command": "python -B -m unittest discover -s scripts/release -p test_secret_scan.py -v",
+      "status": "PASS",
+      "tests": 12,
+      "runner": "Windows Python 3.12.10"
+    },
+    {
+      "command": "PYTHONPATH=scripts python -B -m unittest discover -s scripts/release -p test_security_evidence.py -v",
+      "status": "PASS",
+      "tests": 7,
+      "runner": "Windows Python 3.12.10"
+    },
+    {
+      "command": "pnpm exec vitest run scripts/supply-chain-workflow.spec.ts scripts/workflow-security.spec.ts",
+      "status": "PASS",
+      "tests": 18,
+      "note": "The changed upload policy was subsequently rechecked by the 3-test workflow owner."
+    },
+    {
+      "command": "pnpm run test:docs; pnpm run doc-sync; pnpm run lint",
+      "status": "PASS",
+      "quick": 15,
+      "full": 32,
+      "lintWarnings": 0,
+      "lintErrors": 0,
+      "runner": "Explicitly synchronized isolated Linux source; not a clean-HEAD claim."
+    }
+  ],
+  "dependencyReview": {
+    "status": "FAIL",
+    "candidateSha": "8e46c66400b5181c43a06e1f2ac3aa9b4b87f850",
+    "runId": 33977259106,
+    "jobId": 101336106347,
+    "reason": "Dependency review is not supported on this repository; the action requires Dependency graph to be enabled.",
+    "repository": {
+      "visibility": "public",
+      "fork": true,
+      "admin": true
+    },
+    "apiStatus": 403,
+    "settingsChanged": false,
+    "browser": "Settings require a GitHub browser login; the available browser is signed out.",
+    "followup": "Enable Dependency graph through a supported authenticated settings entry, or implement an independently verified dependency scanner. This failure is not waived."
+  },
+  "sast": {
+    "status": "FAIL",
+    "implementationHead": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+    "languages": [
+      "javascript-typescript",
+      "python",
+      "java-kotlin",
+      "swift"
+    ],
+    "previous": [
+      {
+        "candidateSha": "a49d64f20bbfac0a10c0de4a91f2af0ed5f0339a",
+        "runId": 33976725210,
+        "reason": "Parser required the wrong SARIF invocation field."
+      },
+      {
+        "candidateSha": "8e46c66400b5181c43a06e1f2ac3aa9b4b87f850",
+        "runId": 33977259106,
+        "reason": "Completed Python, Java/Kotlin and JavaScript analyses were rejected for rule/result metadata; component-aware parsing and structural diagnostics await fresh execution."
+      }
+    ],
+    "databaseUpload": false,
+    "sarifUpload": false,
+    "coverageLimit": "Native C/C++ and Rust are outside this four-language matrix.",
+    "actualCandidate": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+    "runId": 33978265065,
+    "reports": {
+      "python": {
+        "status": "PASS",
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+        "findings": 0,
+        "reason": null
+      },
+      "javascript-typescript": {
+        "status": "FAIL",
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+        "findings": 91,
+        "reason": null
+      },
+      "java-kotlin": {
+        "status": "FAIL",
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+        "findings": null,
+        "reason": "CodeQL reported incomplete analysis"
+      }
+    },
+    "triage": "artifacts/verification/gate-2/sast-triage-fe4bd57c4c.json",
+    "swift": {
+      "status": "PENDING",
+      "lastObservedStep": "Compile Swift package and Apple apps"
+    },
+    "next": [
+      "Review all 91 JavaScript findings against their actual callers and tests without directory-wide suppression.",
+      "Collect payload-free Kotlin diagnostic IDs; analysis warnings remain blocking.",
+      "Collect Swift execution and verdict.",
+      "No vendor source changes or archived-note edits."
+    ],
+    "diagnosticImplementationHead": "ce98f3be4f4dd55499f43e97bc1504ffacb20db8",
+    "diagnosticImplementationStatus": "LOCAL_VALIDATED_REMOTE_PENDING"
   }
 }
