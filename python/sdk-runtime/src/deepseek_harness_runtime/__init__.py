@@ -24,6 +24,7 @@ from __future__ import annotations
 import os
 import platform
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -157,7 +158,7 @@ def _node_launch_args() -> tuple[str, str]:
 
 
 def main() -> None:
-    """Execute the bundled dsh CLI with an explicitly selected Harness home."""
+    """Launch dsh with an explicit home; wait on Windows and replace this process on POSIX."""
     if not os.environ.get("DSH_HOME", "").strip():
         print(
             "dsh: the Python runtime command requires an explicit DSH_HOME; "
@@ -166,6 +167,10 @@ def main() -> None:
         )
         raise SystemExit(2)
     argv = (*resolve_bundled_launch_args(), *sys.argv[1:])
+    if sys.platform == "win32":
+        code = subprocess.call(argv)
+        # SystemExit uses a signed C long on Windows; preserve the child's DWORD exit status.
+        raise SystemExit(code if code < 0x80000000 else code - 0x100000000)
     os.execvpe(argv[0], argv, os.environ)
 
 

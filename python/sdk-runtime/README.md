@@ -19,7 +19,7 @@ Both carriers execute the same `dsh` grammar and shipped profiles, including the
 - `bundled_package_dir() -> Path` returns the installed module-data root and verifies its release metadata.
 - `bundled_runtime_path() -> Path` returns the current platform executable and verifies required sidecars.
 - `resolve_bundled_launch_args(mode=None) -> tuple[str, ...]` returns the executable argv by default. Explicit `mode="node"` or `DSH_RUNTIME_MODE=node` selects the repo-only Node carrier.
-- `main()` implements the installed `dsh` console command and rejects an absent or blank `DSH_HOME` before replacing the Python process.
+- `main()` implements the installed `dsh` console command and rejects an absent or blank `DSH_HOME`. POSIX replaces the Python process; Windows waits for the native child, inherits its standard streams, preserves argument boundaries, and propagates its exit status.
 
 Unsupported platforms and missing executables or sidecars raise `FileNotFoundError` with the build and installation routes. Unknown runtime modes raise `ValueError`.
 
