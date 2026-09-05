@@ -4,7 +4,7 @@
 
 ## Summary
 
-GitHub Actions workflow 使用已记录的上游 commit SHA、显式 token 权限和源码回执。Static 与 hygiene 检查验证 workflow 策略及生成的 required-check metadata。Scanner、产物完整性与生产发布审批分别由其他所有者负责。
+GitHub Actions workflow 使用已记录的上游 commit SHA、显式 token 权限和源码回执。Static 与 hygiene 检查验证 workflow 策略及生成的 required-check metadata。[安全扫描](security-scanning.zh.md)、产物完整性与生产发布审批分别由其他所有者负责。
 
 ## Table of Contents
 

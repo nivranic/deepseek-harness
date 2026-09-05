@@ -4,7 +4,7 @@ English | [中文](workflow-security.zh.md)
 
 ## Summary
 
-GitHub Actions workflows use recorded upstream commit SHAs, explicit token permissions, and source receipts. Static and hygiene checks validate the workflow policy and generated required-check metadata. Scanners, artifact integrity, and production release approval have separate owners.
+GitHub Actions workflows use recorded upstream commit SHAs, explicit token permissions, and source receipts. Static and hygiene checks validate the workflow policy and generated required-check metadata. [Security scanning](security-scanning.md), artifact integrity, and production release approval have separate owners.
 
 ## Table of Contents
 

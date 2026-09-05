@@ -1,0 +1,182 @@
+name: Supply chain
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Full base commit SHA for dependency and history comparison
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DSH_SECURITY_CANDIDATE: ${{ github.event.pull_request.head.sha || github.sha }}
+  DSH_SECURITY_BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONPATH: scripts
+
+jobs:
+  secrets:
+    name: secrets (candidate and history)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_SECURITY_CANDIDATE }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scanner regression tests
+        run: python3 -B -m unittest discover -s scripts/release -p 'test_*_scan.py' -v
+      - name: Scan immutable candidate
+        run: |
+          [[ "$DSH_SECURITY_BASE" =~ ^[a-f0-9]{40}$ ]]
+          base=$(git merge-base "$DSH_SECURITY_BASE" "$DSH_SECURITY_CANDIDATE")
+          python3 -B scripts/scan-secrets.py --candidate "$DSH_SECURITY_CANDIDATE" --base "$base" --output "$RUNNER_TEMP/security/secrets.json"
+      - name: Preserve payload-free secret evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: security-secrets-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/security/secrets.json
+          if-no-files-found: error
+
+  dependencies:
+    name: dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_SECURITY_CANDIDATE }}
+          persist-credentials: false
+      - name: Review dependency changes
+        id: review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        with:
+          base-ref: ${{ env.DSH_SECURITY_BASE }}
+          head-ref: ${{ env.DSH_SECURITY_CANDIDATE }}
+          fail-on-severity: low
+          fail-on-scopes: runtime, development, unknown
+          license-check: false
+          vulnerability-check: true
+          comment-summary-in-pr: never
+          warn-only: false
+          show-openssf-scorecard: false
+      - name: Record dependency verdict
+        if: always()
+        env:
+          DSH_DEPENDENCY_OUTCOME: ${{ steps.review.outcome }}
+          DSH_DEPENDENCY_CHANGES: ${{ steps.review.outputs.dependency-changes }}
+          DSH_DEPENDENCY_VULNERABILITIES: ${{ steps.review.outputs.vulnerable-changes }}
+        run: python3 -B scripts/security-evidence.py dependencies --output "$RUNNER_TEMP/security/dependencies.json"
+      - name: Preserve dependency evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: security-dependencies-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/security/dependencies.json
+          if-no-files-found: error
+
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            os: ubuntu-latest
+            build-mode: none
+          - language: python
+            os: ubuntu-latest
+            build-mode: none
+          - language: java-kotlin
+            os: ubuntu-latest
+            build-mode: manual
+          - language: swift
+            os: macos-latest
+            build-mode: manual
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_SECURITY_CANDIDATE }}
+          persist-credentials: false
+      - name: Evidence regression tests
+        run: python3 -B -m unittest discover -s scripts/release -p test_security_evidence.py -v
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        if: matrix.language == 'java-kotlin'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        if: matrix.language == 'java-kotlin'
+        with:
+          gradle-version: '8.14'
+          cache-disabled: true
+      - name: Generate Apple app targets
+        if: matrix.language == 'swift'
+        working-directory: apps/apple
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          xcodegen generate
+      - uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended
+      - name: Compile Kotlin core and Android app
+        if: matrix.language == 'java-kotlin'
+        working-directory: apps/android
+        run: gradle --no-daemon --no-build-cache --rerun-tasks :core:classes :app:assembleDebug
+      - name: Compile Swift package and Apple apps
+        if: matrix.language == 'swift'
+        working-directory: apps/apple
+        run: |
+          swift build
+          xcodebuild -project Companion.xcodeproj -scheme CompanioniOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -project Companion.xcodeproj -scheme CompanionMac -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
+      - uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        id: analyze
+        with:
+          upload: never
+          output: ${{ runner.temp }}/sarif
+          category: /language:${{ matrix.language }}
+      - name: Reject security findings
+        if: always()
+        env:
+          DSH_CODEQL_OUTCOME: ${{ steps.analyze.outcome }}
+        run: python3 -B scripts/security-evidence.py sast --language '${{ matrix.language }}' --sarif "$RUNNER_TEMP/sarif" --output "$RUNNER_TEMP/security/sast.json"
+      - name: Preserve payload-free SAST evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: security-codeql-${{ matrix.language }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/security/sast.json
+          if-no-files-found: error
+
+  verdict:
+    name: supply chain passed
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [secrets, dependencies, codeql]
+    steps:
+      - name: Require every scanner
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          rows = json.loads(os.environ['RESULTS'])
+          assert set(rows) == {'secrets', 'dependencies', 'codeql'}
+          assert all(row['result'] == 'success' for row in rows.values()), 'Required security scanning did not pass'
+          PY

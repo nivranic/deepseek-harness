@@ -127,6 +127,24 @@
       "requestedRef": "1dcd0090116d15e7c562f8db72807de5e036a4ed",
       "sha": "1dcd0090116d15e7c562f8db72807de5e036a4ed",
       "repository": "reactivecircus/android-emulator-runner"
+    },
+    {
+      "action": "actions/dependency-review-action",
+      "requestedRef": "v4",
+      "sha": "2031cfc080254a8a887f58cffee85186f0e49e48",
+      "repository": "actions/dependency-review-action"
+    },
+    {
+      "action": "github/codeql-action/init",
+      "requestedRef": "v4",
+      "sha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "repository": "github/codeql-action"
+    },
+    {
+      "action": "github/codeql-action/analyze",
+      "requestedRef": "v4",
+      "sha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "repository": "github/codeql-action"
     }
   ]
 }

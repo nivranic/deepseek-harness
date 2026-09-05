@@ -21,7 +21,8 @@
     "release-vendor-publish.yml",
     "release-vendor.yml",
     "release.yml",
-    "sandbox.yml"
+    "sandbox.yml",
+    "supply-chain.yml"
   ],
   "writableJobs": {
     "build-preview-cloudflare.yml#preview": {
