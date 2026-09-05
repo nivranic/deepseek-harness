@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "reviews": [
+    {
+      "language": "swift",
+      "rule": "swift/weak-password-hashing",
+      "path": "apps/apple/Sources/SharedAppleRemoteCore/LinkSigning.swift",
+      "line": 22,
+      "reason": "SHA-256 hashes exact request bodies for Ed25519 signing input and DER public keys for SPKI fingerprints. All current Apple callers use those two public protocol roles; no caller stores a password hash. The full Apple source tree and its analysis workflow are pinned so new callers or changed source selection require renewed review.",
+      "materials": {
+        "apps/apple": {
+          "kind": "tree",
+          "oid": "25cecc2643bfd4125b14d85e53ad2031830c0c15"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "e3ce68c6a26d443a51d87435c9eb58760e0e6414"
+        }
+      }
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 
 ## Summary
 
-[供应链 workflow](../../.github/workflows/supply-chain.yml) 以只读权限扫描不可变 PR head。密钥检测、依赖审查和四个 CodeQL 语言 job 必须全部成功。发现项或未完成的扫描会阻断聚合 verdict。
+[供应链 workflow](../../.github/workflows/supply-chain.yml) 以只读权限扫描不可变 PR head。密钥检测、依赖审查和四个 CodeQL 语言 job 必须全部成功。未审查发现项或未完成的扫描会阻断聚合 verdict。
 
 ## Table of Contents
 
@@ -35,7 +35,9 @@ Gitleaks 使用默认规则并对报告脱敏。源码放行注释和忽略文�
 
 CodeQL 为 JavaScript/TypeScript、Python、Java/Kotlin 和 Swift 执行 `security-extended` 查询。Kotlin 编译包含 core 和 Android app。Swift 编译包含 SwiftPM 和全部三个 Apple app scheme。这些 job 不构成原生 C/C++ 或 Rust 分析证据。构建或提取失败会阻断对应语言 job。
 
-[security-evidence.py](../../scripts/security-evidence.py) 要求 analyzer outcome 成功，且 SARIF 含工具身份、driver 与 extensions 中的非空规则集、成功 invocation 和显式 results。包括已 suppression 的发现项都会失败；分析通知中的 warning/error 也会失败，并同时保留诊断 ID 与发现项。不上传含源码的 SARIF 和 CodeQL database。被拒绝的规则元数据只记录结构计数用于诊断。
+[security-evidence.py](../../scripts/security-evidence.py) 要求 analyzer outcome 成功，且 SARIF 含工具身份、driver 与 extensions 中的非空规则集、成功 invocation 和显式 results。所有发现项均保持可见，包括已 suppression 的发现项。分析通知中的 warning/error 会失败，并同时保留诊断 ID 与发现项。Java 提取诊断可包含类别，以及从 CodeQL 固定消息模板中识别的现存仓库路径；任意原始消息仍保持私有。不上传含源码的 SARIF 和 CodeQL database。被拒绝的规则元数据只记录结构计数用于诊断。
+
+候选的 [SAST 审查记录](../../.github/security/sast-reviews.json) 按精确语言、规则、路径和行号分类已确认的非问题项。每条审查记录包含理由，以及覆盖发现项源码和相关上下文的不可变 Git blob 或 tree identity。被审查的源码与行必须存在。发现项的每个位置都必须匹配；位置缺失、上下文变化或无效审查均不能通过。仅源码 suppression 不生效。证据保留已审查与未审查计数及登记表摘要。已审查发现项不能覆盖分析不完整。理由若依赖调用者或构建选择，固定上下文必须包含这些内容。
 
 -----
 

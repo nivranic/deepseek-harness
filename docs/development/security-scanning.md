@@ -4,7 +4,7 @@ English | [中文](security-scanning.zh.md)
 
 ## Summary
 
-The [supply-chain workflow](../../.github/workflows/supply-chain.yml) scans the immutable PR head with read-only permissions. Secret detection, dependency review, and four CodeQL language jobs must all succeed. Findings or incomplete scans block its aggregate verdict.
+The [supply-chain workflow](../../.github/workflows/supply-chain.yml) scans the immutable PR head with read-only permissions. Secret detection, dependency review, and four CodeQL language jobs must all succeed. Unreviewed findings or incomplete scans block its aggregate verdict.
 
 ## Table of Contents
 
@@ -35,7 +35,9 @@ Dependency review compares the explicit base and candidate using GitHub's depend
 
 CodeQL runs `security-extended` queries for JavaScript/TypeScript, Python, Java/Kotlin, and Swift. Kotlin compilation includes the core and Android app. Swift compilation includes SwiftPM and all three Apple app schemes. These jobs do not establish native C/C++ or Rust analysis. Build or extraction failure blocks the language job.
 
-[security-evidence.py](../../scripts/security-evidence.py) requires a successful analyzer outcome and SARIF with tool identity, a non-empty rule set across the driver and extensions, successful invocations, and explicit results. Findings, including suppressed findings, fail; warning/error analysis notifications also fail while preserving diagnostic IDs and findings together. Source-bearing SARIF and CodeQL databases are not uploaded. Rejected rule metadata records only structural counts for diagnosis.
+[security-evidence.py](../../scripts/security-evidence.py) requires a successful analyzer outcome and SARIF with tool identity, a non-empty rule set across the driver and extensions, successful invocations, and explicit results. Every finding remains visible, including suppressed findings. Warning/error analysis notifications fail while preserving diagnostic IDs and findings together. Java extraction diagnostics may include a category and an existing repository path recognized from CodeQL's fixed message templates; arbitrary messages remain private. Source-bearing SARIF and CodeQL databases are not uploaded. Rejected rule metadata records only structural counts for diagnosis.
+
+The candidate's [SAST reviews](../../.github/security/sast-reviews.json) classify confirmed non-issues by exact language, rule, path, and line. Each review records its rationale and immutable Git blob or tree identities covering the finding source and relevant context. The reviewed source and line must exist. Every location in a finding must match; missing locations, changed context, or invalid reviews cannot pass. Source suppression alone has no effect. Evidence keeps both reviewed and unreviewed counts plus the registry digest. Reviewed findings never override incomplete analysis. Callers and build selection belong in the pinned context whenever the rationale depends on them.
 
 -----
 

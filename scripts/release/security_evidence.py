@@ -9,6 +9,7 @@ import re
 from urllib.parse import unquote
 
 from .secret_scan import git, sha, source_path
+from .sast_reviews import ReviewError, parse_reviews, review_findings
 
 
 LANGUAGES = {"javascript-typescript", "python", "java-kotlin", "swift"}
@@ -22,8 +23,42 @@ class EvidenceError(ValueError):
         self.structure = structure
 
 
+def _existing_source_path(raw: str, root: Path) -> str | None:
+    path = Path(raw)
+    resolved = (path if path.is_absolute() else root / path).resolve()
+    relative = resolved.relative_to(root.resolve()).as_posix()
+    return str(source_path(relative)) if resolved.is_file() else None
+
+
+def diagnostic_source(note: dict, root: Path) -> dict:
+    """Project existing source paths from CodeQL's fixed Java diagnostic templates."""
+    message = note.get("message", {}).get("text")
+    if not isinstance(message, str):
+        return {}
+    templates = {"Frontend errors in file: ": "frontend-errors", "Extraction incomplete in file: ": "extraction-incomplete",
+                 "Unknown errors in file: ": "unknown-extraction-errors"}
+    for prefix, category in templates.items():
+        if not message.startswith(prefix):
+            continue
+        raw = message[len(prefix):]
+        result = {"category": category}
+        if category != "extraction-incomplete":
+            raw, separator, count = raw.rpartition(" (")
+            if not separator or not count.endswith(")") or not count[:-1].isascii() or not count[:-1].isdigit():
+                return result
+        try:
+            relative = _existing_source_path(raw, root)
+        except (OSError, ValueError):
+            # External, absent, or invalid diagnostic paths have no publishable source location.
+            return result
+        if relative is not None:
+            result["path"] = relative
+        return result
+    return {}
+
+
 def sast(directory: Path, language: str, root: Path) -> dict:
-    """Reject incomplete SARIF and every finding, including suppressed findings."""
+    """Require complete SARIF and retain every finding, including suppressed findings."""
     if language not in LANGUAGES:
         raise EvidenceError("unsupported SAST language")
     files = sorted(directory.glob("*.sarif"))
@@ -64,7 +99,8 @@ def sast(directory: Path, language: str, root: Path) -> dict:
                         if level in ("warning", "error"):
                             descriptor = note.get("descriptor", {}).get("id")
                             identifier = descriptor if isinstance(descriptor, str) and re.fullmatch(r"[a-zA-Z0-9/_.-]+", descriptor) else "unclassified"
-                            diagnostics.append({"rule": identifier, "level": level})
+                            location = diagnostic_source(note, root) if identifier == "java/diagnostics/extraction-errors" else {}
+                            diagnostics.append({"rule": identifier, "level": level, **location})
             for result in run["results"]:
                 if result["ruleId"] not in rule_ids:
                     raise EvidenceError("finding rule is not in the executed query set")
@@ -96,12 +132,12 @@ def dependencies(changes: str, vulnerabilities: str) -> dict:
     changed, vulnerable = json.loads(changes), json.loads(vulnerabilities)
     if not isinstance(changed, list) or not isinstance(vulnerable, list):
         raise EvidenceError("dependency review outputs must be arrays")
-    return {"scanner": "actions/dependency-review-action", "changeCount": len(changed), "findingCount": len(vulnerable), "analysisComplete": True,
+    return {"scanner": "actions/dependency-review-action", "changeCount": len(changed), "findingCount": len(vulnerable), "unreviewedFindings": len(vulnerable), "analysisComplete": True,
             "changesSha256": hashlib.sha256(changes.encode()).hexdigest(), "vulnerabilitiesSha256": hashlib.sha256(vulnerabilities.encode()).hexdigest()}
 
 
 def main() -> int:
-    """Write FAIL on missing scanner output, operational failure, or security findings."""
+    """Write FAIL on incomplete scans, invalid reviews, or unreviewed findings."""
     parser = argparse.ArgumentParser()
     parser.add_argument("kind", choices=("sast", "dependencies"))
     parser.add_argument("--output", type=Path, required=True)
@@ -130,12 +166,18 @@ def main() -> int:
             if os.environ.get("DSH_CODEQL_OUTCOME") != "success" or args.sarif is None or args.language is None:
                 raise EvidenceError("CodeQL did not complete")
             evidence.update(sast(args.sarif, args.language, root))
+            review_bytes = git(root, "show", f"{candidate}:.github/security/sast-reviews.json")
+            reviews = parse_reviews(json.loads(review_bytes))
+            evidence["reviewRegistrySha256"] = hashlib.sha256(review_bytes).hexdigest()
+            evidence.update(review_findings(evidence, reviews, root, candidate))
         else:
             if os.environ.get("DSH_DEPENDENCY_OUTCOME") != "success":
                 raise EvidenceError("dependency review did not complete")
             evidence["baseSha"] = sha(os.environ["DSH_SECURITY_BASE"])
             evidence.update(dependencies(os.environ["DSH_DEPENDENCY_CHANGES"], os.environ["DSH_DEPENDENCY_VULNERABILITIES"]))
-        evidence["status"] = "PASS" if evidence["findingCount"] == 0 and evidence["analysisComplete"] else "FAIL"
+        evidence["status"] = "PASS" if evidence["unreviewedFindings"] == 0 and evidence["analysisComplete"] else "FAIL"
+    except ReviewError as error:
+        evidence["reason"] = str(error)
     except EvidenceError as error:
         evidence["reason"] = str(error)
         if error.structure is not None:
