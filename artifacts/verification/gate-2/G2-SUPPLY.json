@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "taskId": "G2-SUPPLY",
   "status": "PARTIAL",
-  "sourceHead": "76384701598397492c03135db998db5bef69eb4a",
-  "recordedAt": "2026-09-05T18:52:10.801Z",
+  "sourceHead": "e228177a22bb138dfd49fd90106a44ef0b78f067",
+  "recordedAt": "2026-09-05T20:17:55.920400+00:00",
   "implemented": {
     "upstreamReferencesVerified": 24,
     "workflowCorpus": 22,
@@ -202,79 +202,200 @@
           }
         },
         "reason": "Prior language verdicts retained before the d28 scan."
+      },
+      {
+        "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+        "runId": 33980218202,
+        "reports": {
+          "javascript-typescript": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 91,
+            "analysisComplete": true,
+            "rules": [
+              103
+            ],
+            "blockingDiagnostics": [],
+            "receiptSha256": "e79f594310d4f9bb87826cd6e87d7ead951261b71b41e08fcc1136e55a99ddae"
+          },
+          "python": {
+            "status": "PASS",
+            "path": "artifacts/verification/gate-2/acceptance/sast-python-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 0,
+            "analysisComplete": true,
+            "rules": [
+              50
+            ],
+            "blockingDiagnostics": [],
+            "receiptSha256": "63ef5b1bf2efdf1d06a4f5533ffd9df8d5083de99180a4788394dd4b4edb4e21"
+          },
+          "java-kotlin": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 7,
+            "analysisComplete": false,
+            "rules": [
+              120
+            ],
+            "blockingDiagnostics": [
+              {
+                "rule": "java/diagnostics/extraction-errors",
+                "level": "error"
+              }
+            ],
+            "receiptSha256": "f6942d5f53841006c29d5c4f132bd94da9f45113f9c80cf4a15ad7674802a54a"
+          },
+          "swift": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-swift-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 1,
+            "analysisComplete": true,
+            "rules": [
+              28
+            ],
+            "blockingDiagnostics": [],
+            "receiptSha256": "56e774748fc5fdbd26987101c1fe985008633a5dd35c6b6fe8fe8fdc2a122f39"
+          }
+        },
+        "reason": "Prior candidate results retained before the de346 scan."
       }
     ],
     "databaseUpload": false,
     "sarifUpload": false,
     "coverageLimit": "Native C/C++ and Rust are outside this four-language matrix.",
-    "actualCandidate": "d28a442df621173dfd9f559446f9e7a963e7dfff",
-    "runId": 33980218202,
+    "actualCandidate": "de346d222198b1aac14dec56546dd661adf8debf",
+    "runId": 33985552798,
     "reports": {
       "javascript-typescript": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "4287aec3e4b32479108d1ff90473a23dfcb483bb57e8b8b665b3d46f18484b68",
         "status": "FAIL",
-        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
-        "findings": 91,
+        "findingCount": 86,
         "analysisComplete": true,
-        "rules": [
-          103
-        ],
         "blockingDiagnostics": [],
-        "receiptSha256": "e79f594310d4f9bb87826cd6e87d7ead951261b71b41e08fcc1136e55a99ddae"
-      },
-      "python": {
-        "status": "PASS",
-        "path": "artifacts/verification/gate-2/acceptance/sast-python-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
-        "findings": 0,
-        "analysisComplete": true,
-        "rules": [
-          50
-        ],
-        "blockingDiagnostics": [],
-        "receiptSha256": "63ef5b1bf2efdf1d06a4f5533ffd9df8d5083de99180a4788394dd4b4edb4e21"
+        "unreviewedFindings": 86,
+        "reviewedFindings": 0
       },
       "java-kotlin": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "2f037d7d3846ce61f2193e70a3518d56c73a1bf8f7e736b540d5405bdf651ff3",
         "status": "FAIL",
-        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
-        "findings": 7,
+        "findingCount": 7,
         "analysisComplete": false,
-        "rules": [
-          120
-        ],
         "blockingDiagnostics": [
           {
             "rule": "java/diagnostics/extraction-errors",
-            "level": "error"
+            "level": "error",
+            "category": "unknown-extraction-errors",
+            "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt"
           }
         ],
-        "receiptSha256": "f6942d5f53841006c29d5c4f132bd94da9f45113f9c80cf4a15ad7674802a54a"
+        "unreviewedFindings": 7,
+        "reviewedFindings": 0
       },
       "swift": {
-        "status": "FAIL",
-        "path": "artifacts/verification/gate-2/acceptance/sast-swift-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
-        "findings": 1,
+        "path": "artifacts/verification/gate-2/acceptance/sast-swift-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9f5e4f20c08940e60e407d50634fd11059cdc8c8a6d741776d25f7199446fb77",
+        "status": "PASS",
+        "findingCount": 1,
         "analysisComplete": true,
-        "rules": [
-          28
-        ],
         "blockingDiagnostics": [],
-        "receiptSha256": "56e774748fc5fdbd26987101c1fe985008633a5dd35c6b6fe8fe8fdc2a122f39"
+        "unreviewedFindings": 0,
+        "reviewedFindings": 1
+      },
+      "python": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9943c5fb80a8e649ca75d7a9e9180a862fb818297dbe8148ae836f5e26d74332",
+        "status": "PASS",
+        "findingCount": 0,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 0
       }
     },
     "triage": "artifacts/verification/gate-2/sast-triage-fe4bd57c4c.json",
     "swift": {
-      "status": "FAIL",
+      "status": "PASS",
       "findings": 1,
+      "reviewedFindings": 1,
+      "unreviewedFindings": 0,
       "analysisComplete": true,
-      "reviewImplementation": "LOCAL_PASS_REMOTE_PENDING"
+      "reviewImplementation": "REMOTE_VALIDATED"
     },
     "next": [
-      "Fresh candidate CodeQL and Windows coverage",
-      "Kotlin extraction error file diagnosis and seven unreviewed findings",
-      "Remaining JavaScript findings require individual review or fixes",
-      "Dependency graph availability or independent dependency scanning"
+      "Validate the aligned Android compiler and notification fix on a fresh candidate.",
+      "Resolve six remaining Kotlin Noise findings and 86 JavaScript findings.",
+      "Retain and investigate the independent Windows test-process exit.",
+      "Provide actual dependency scanning; the existing Dependency graph failure is not waived."
     ],
     "diagnosticImplementationHead": "76384701598397492c03135db998db5bef69eb4a",
-    "diagnosticImplementationStatus": "LOCAL_VALIDATED_REMOTE_PENDING"
+    "diagnosticImplementationStatus": "REMOTE_VALIDATED"
   },
-  "followupEvidence": "artifacts/verification/gate-2/security-followup-d28a442df6.json"
+  "followupEvidence": "artifacts/verification/gate-2/security-followup-de346d2221.json",
+  "latestCandidate": {
+    "sha": "de346d222198b1aac14dec56546dd661adf8debf",
+    "status": "FAIL",
+    "workflowRun": 33985552798,
+    "receipts": {
+      "javascript-typescript": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "4287aec3e4b32479108d1ff90473a23dfcb483bb57e8b8b665b3d46f18484b68",
+        "status": "FAIL",
+        "findingCount": 86,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 86,
+        "reviewedFindings": 0
+      },
+      "java-kotlin": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "2f037d7d3846ce61f2193e70a3518d56c73a1bf8f7e736b540d5405bdf651ff3",
+        "status": "FAIL",
+        "findingCount": 7,
+        "analysisComplete": false,
+        "blockingDiagnostics": [
+          {
+            "rule": "java/diagnostics/extraction-errors",
+            "level": "error",
+            "category": "unknown-extraction-errors",
+            "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt"
+          }
+        ],
+        "unreviewedFindings": 7,
+        "reviewedFindings": 0
+      },
+      "swift": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-swift-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9f5e4f20c08940e60e407d50634fd11059cdc8c8a6d741776d25f7199446fb77",
+        "status": "PASS",
+        "findingCount": 1,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 1
+      },
+      "python": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9943c5fb80a8e649ca75d7a9e9180a862fb818297dbe8148ae836f5e26d74332",
+        "status": "PASS",
+        "findingCount": 0,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 0
+      },
+      "secrets": {
+        "path": "artifacts/verification/gate-2/acceptance/secrets-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "3b8cdcf35704ff7cfa3fcbe107f420feb91b73796f505a02b345eee8ded9cc3e",
+        "status": "PASS"
+      },
+      "dependencies": {
+        "path": "artifacts/verification/gate-2/acceptance/dependencies-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "61213e2d8e3e3510714a01ed462139b8d58374c8398ab48725ce48ad54ba213e",
+        "status": "FAIL"
+      }
+    },
+    "localFixesPendingCandidateValidation": "e228177a22bb138dfd49fd90106a44ef0b78f067"
+  }
 }
