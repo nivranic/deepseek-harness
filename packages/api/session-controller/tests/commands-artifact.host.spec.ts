@@ -36,6 +36,16 @@ async function expectFailure(operation: Promise<unknown>, code: string): Promise
 }
 
 describe('Session artifact authorization', () => {
+  it('refuses a resource read when the authorizing journal cannot be read', async () => {
+    const get = vi.fn(() => Promise.resolve(new Uint8Array()))
+    const { ctx, controller, sessionId } = await persistedController([], { get })
+    vi.spyOn(ctx.sessionPersistence, 'borrowSession').mockRejectedValue(new Error('journal unavailable'))
+    await expect(controller.artifact({ sessionId, artifactId: 'art-1' })).rejects.toMatchObject({
+      failure: { code: 'internal', message: 'artifact authorization unavailable for session "cold-artifact": Error: journal unavailable' },
+    })
+    expect(get).not.toHaveBeenCalled()
+    await ctx.fiber.dispose()
+  })
   it('serves the journaled metadata and the channel bytes for a referenced id', async () => {
     const { ctx, controller, sessionId } = await persistedController(
       [createdEvent(0, 'art-1', 'report', '迁移报告')],
@@ -115,6 +125,9 @@ describe('Session artifact authorization', () => {
       [createdEvent(0, 'art-bin', 'png', '图标', 'bytes')],
       { get: () => Promise.resolve(raw) },
     )
+    await expect(controller.artifact({ sessionId, artifactId: 'art-bin' })).resolves.toMatchObject({
+      data: Buffer.from(raw).toString('base64'), size: raw.length, truncated: false,
+    })
     await expect(controller.artifact({ sessionId, artifactId: 'art-bin', offset: 2, limit: 3 }))
       .resolves.toEqual({
         id: 'art-bin',

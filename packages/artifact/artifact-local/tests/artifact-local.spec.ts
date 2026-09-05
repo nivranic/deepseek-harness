@@ -1,14 +1,20 @@
 /** The local artifact backend: atomic put, read-back, removal, and the opt-in retention sweep below the configured home. */
 
 import { mkdir, mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises'
+import * as fs from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { ArtifactId } from '@deepseek-ai/dsh-artifact'
 import LocalArtifactStore from '../src/index.ts'
 
 const DAY_MS = 24 * 60 * 60 * 1000
+
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs/promises')>()
+  return { ...actual, readdir: vi.fn(actual.readdir), stat: vi.fn(actual.stat) }
+})
 
 /** Backdate one stored artifact's bytes so a sweep window can see it as aged. */
 async function ageArtifact(home: string, id: string, days: number): Promise<void> {
@@ -20,6 +26,8 @@ async function ageArtifact(home: string, id: string, days: number): Promise<void
 const cleanup: string[] = []
 
 afterEach(async () => {
+  vi.restoreAllMocks()
+  vi.useRealTimers()
   await Promise.all(cleanup.splice(0).map(dir => rm(dir, { recursive: true, force: true })))
 })
 
@@ -77,6 +85,35 @@ describe('dsh-artifact-local', () => {
 })
 
 describe('dsh-artifact-local retention', () => {
+  it('repeats the configured sweep and disposes its timer with the owning context', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    const sweep = vi.spyOn(LocalArtifactStore.prototype, 'sweep').mockResolvedValue([])
+    const ctx = new Context()
+    new LocalArtifactStore(ctx, { dshHome: tmpdir(), retentionDays: 7 })
+    expect(sweep).toHaveBeenCalledExactlyOnceWith(7)
+    await vi.advanceTimersByTimeAsync(DAY_MS)
+    expect(sweep).toHaveBeenCalledTimes(2)
+    await ctx.fiber.dispose()
+    await vi.advanceTimersByTimeAsync(DAY_MS)
+    expect(sweep).toHaveBeenCalledTimes(2)
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('propagates directory failures and skips a failed file without blocking the sweep', async () => {
+    const { store, home } = await storeInFreshHome()
+    const denied = Object.assign(new Error('directory denied'), { code: 'EACCES' })
+    vi.mocked(fs.readdir).mockRejectedValueOnce(denied)
+    await expect(store.sweep(1)).rejects.toBe(denied)
+    for (const id of ['art-a', 'art-b']) {
+      await store.put(ArtifactId(id), new Uint8Array([1]))
+      await ageArtifact(home, id, 3)
+    }
+    const warning = vi.spyOn(store.ctx.logger, 'warn')
+    vi.mocked(fs.stat).mockRejectedValueOnce(new Error('file disappeared'))
+    expect(await store.sweep(1)).toHaveLength(1)
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining('file disappeared'))
+    expect(await store.sweep(1)).toHaveLength(1)
+  })
   it('sweeps only artifacts older than the window and reports their ids', async () => {
     const { store, home } = await storeInFreshHome()
     await store.put(ArtifactId('art-old'), new TextEncoder().encode('aged'))
@@ -114,13 +151,15 @@ describe('dsh-artifact-local retention', () => {
     await seeding.put(ArtifactId('art-aged'), new TextEncoder().encode('aged'))
     await seeding.put(ArtifactId('art-live'), new TextEncoder().encode('live'))
     await ageArtifact(home, 'art-aged', 3)
-    const sweeping = new LocalArtifactStore(new Context(), { dshHome: home, retentionDays: 1 })
+    const ctx = new Context()
+    const sweeping = new LocalArtifactStore(ctx, { dshHome: home, retentionDays: 1 })
     for (let round = 0; round < 100; round++) {
       if (await sweeping.get(ArtifactId('art-aged')) === null) break
       await new Promise(resolve => setTimeout(resolve, 10))
     }
     expect(await sweeping.get(ArtifactId('art-aged'))).toBeNull()
     expect(new TextDecoder().decode((await sweeping.get(ArtifactId('art-live')))!)).toBe('live')
+    await ctx.fiber.dispose()
   })
 
   it('rejects a non-positive or fractional retentionDays at load', () => {

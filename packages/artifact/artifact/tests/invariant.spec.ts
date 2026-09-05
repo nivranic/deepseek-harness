@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import SessionStore from '@deepseek-ai/dsh-session'
+import SessionStore, { Session, SessionId } from '@deepseek-ai/dsh-session'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import { ArtifactId } from '../src/index.ts'
 import * as ArtifactInvariant from '../src/invariant.ts'
@@ -16,6 +16,17 @@ async function setup(): Promise<Context> {
 }
 
 describe('artifact event invariants', () => {
+  it('seeds the existing log when a session first appears through an event', async () => {
+    const ctx = await setup()
+    const session = Session.create(SessionId('externally-created'))
+    session.append('turn/start', { turn: 1 })
+    const created = session.append('artifact/created', { id: ArtifactId('art-1'), kind: 'report', title: 'R', format: 'text' })
+    expect(() => { ctx.emit('session/event', session, created) }).not.toThrow()
+    const end = session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    ctx.emit('session/event', session, end)
+    expect(() => { ctx.emit('session/event', session, created) }).toThrow(/outside any open turn/)
+    await ctx.fiber.dispose()
+  })
   it('accepts a created/ready pair inside an open turn', async () => {
     const ctx = await setup()
     const session = ctx.sessions.create()

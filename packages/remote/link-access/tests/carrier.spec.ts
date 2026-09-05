@@ -414,6 +414,38 @@ describe('link-access carrier', () => {
     expect(failure).toContain('probe stream failure')
   })
 
+  it.each([false, true])('settles a stream under socket backpressure, cancelled=%s', async (cancelled) => {
+    const large = 'x'.repeat(8 * 1024 * 1024)
+    const stopped = Promise.withResolvers<undefined>()
+    let sourceSignal: AbortSignal | undefined
+    const open = vi.spyOn(harness.ctx.typertGateway.wireStream, 'open').mockImplementation(async (_endpoint, _payload, signal) => {
+      sourceSignal = signal
+      return (async function* () {
+        try {
+          yield large
+          if (cancelled) yield large
+        } finally {
+          stopped.resolve(undefined)
+        }
+      })()
+    })
+    try {
+      if (cancelled) {
+        const frames = await streamUntil(harness, device, 'probe/ticks', { args: { count: 1 } }, () => true)
+        await stopped.promise
+        expect(sourceSignal!.aborted).toBe(true)
+        expect(frames.some(line => line.includes('"k":"e"'))).toBe(false)
+      } else {
+        const response = await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'POST', '{"args":{"count":1}}')
+        expect(response.status).toBe(200)
+        expect(response.text).toBe(`${JSON.stringify({ k: 'v', v: large })}\n`)
+        await stopped.promise
+      }
+    } finally {
+      open.mockRestore()
+    }
+  })
+
   it('aborts and closes a vanished client stream without a failure frame', async () => {
     const probe = harness.ctx.get('probe') as unknown as { calls: readonly string[] }
     const priorCalls = probe.calls.length

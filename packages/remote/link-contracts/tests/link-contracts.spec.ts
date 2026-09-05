@@ -16,6 +16,14 @@ import { generateConformanceArtifacts } from '../src/companion-scenarios.ts'
 import { generateLiteConformance } from '../src/lite-spec.ts'
 
 describe('link contract fixtures', () => {
+  it('distinguishes an omitted void result from an explicitly undefined value', () => {
+    const rpc = { type: 'server-response', rpcId: 'rpc-void' }
+    expect(LinkRpcResponseEnvelopeSchema.safeParse({ ...rpc, result: { ok: true } }).success).toBe(true)
+    expect(LinkRpcResponseEnvelopeSchema.safeParse({ ...rpc, result: { ok: true, value: undefined } }).success).toBe(false)
+    const event = { eventId: 'event-void', clientId: 'client-1' }
+    expect(LinkRemoteEventResultSchema.safeParse({ ...event, outcome: { kind: 'result' } }).success).toBe(true)
+    expect(LinkRemoteEventResultSchema.safeParse({ ...event, outcome: { kind: 'result', value: undefined } }).success).toBe(false)
+  })
   it('round-trips the typed fixtures through the wire schemas', () => {
     const byId = new Map(LINK_CONTRACT_FIXTURES.map(fixture => [fixture.id, fixture.value]))
     expect(LinkPairingPayloadSchema.parse(byId.get('pairing-payload'))).toEqual(byId.get('pairing-payload'))
@@ -275,6 +283,14 @@ describe('link contract generator', () => {
       { ...todoItem, fields: [{ name: 'status', kind: 'enum' as const, ref: 'LinkGoalBlockReason' }] },
     ]
     expect(() => generateLinkContracts(shapeConfused)).toThrow(/as an enum/u)
+    expect(() => generateLinkContracts([
+      ...vocabulary,
+      { ...todoItem, fields: [{ name: 'status', kind: 'object', ref: 'LinkSessionEventKind' }] },
+    ])).toThrow(/as an object/u)
+    expect(() => generateLinkContracts([
+      ...vocabulary,
+      { ...todoItem, fields: [], chunkRows: ['unknown-chunk-row'] },
+    ])).toThrow(/unknown chunk row/u)
     const alienEvent = [
       ...LINK_CONTRACT_TYPES.filter(type => type.name !== 'LinkPlanModeData'),
       { ...LINK_CONTRACT_TYPES.find(type => type.name === 'LinkPlanModeData')!, sessionEvents: ['plan/exited'] },

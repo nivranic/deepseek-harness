@@ -1,7 +1,8 @@
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { TLSSocket } from 'node:tls'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { Context as RootContext, Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 import { apply as applyConnection, inject as connectionInject } from '@deepseek-ai/dsh-client-connection'
@@ -206,6 +207,19 @@ describe('LinkClient', () => {
     await expect(client.call('probe/echo', { value: 'x' }, abort.signal)).rejects.toMatchObject({ code: 'aborted' })
     const plain = AbortSignal.abort('caller cancelled')
     await expect(client.call('probe/echo', { value: 'x' }, plain)).rejects.toMatchObject({ code: 'aborted' })
+  })
+
+  it('allows a unary request with a live cancellation signal', async () => {
+    await expect(client.call('probe/echo', { value: 'live' }, new AbortController().signal)).resolves.toBe('echo:live')
+  })
+
+  it('refuses a connection that supplies no peer certificate', async () => {
+    const peer = vi.spyOn(TLSSocket.prototype, 'getPeerCertificate').mockReturnValue({} as ReturnType<TLSSocket['getPeerCertificate']>)
+    try {
+      await expect(LinkClient.pair(await harness.service.createPairing(), { deviceName: 'no certificate' })).rejects.toThrow(/fingerprint/u)
+    } finally {
+      peer.mockRestore()
+    }
   })
 
   it('ends a stream without error when the signal is already aborted', async () => {

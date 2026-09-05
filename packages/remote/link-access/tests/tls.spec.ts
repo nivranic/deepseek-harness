@@ -2,13 +2,24 @@ import { generateKeyPairSync, X509Certificate } from 'node:crypto'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ensureHostTlsMaterial,
   spkiFingerprintOfCertificate,
   spkiFingerprintOfDer,
   tlsInternals,
 } from '../src/tls.ts'
+
+const serialSamples = vi.hoisted(() => [] as Buffer[])
+vi.mock('node:crypto', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:crypto')>()
+  return {
+    ...actual,
+    randomBytes: (size: number) => size === 8 && serialSamples.length > 0
+      ? serialSamples.shift()!
+      : actual.randomBytes(size),
+  }
+})
 
 // Reproduce the non-minimal eight-byte serial emitted by the legacy generator.
 function withNonMinimalSerial(certPem: string): string {
@@ -31,7 +42,15 @@ describe('link-access TLS material', () => {
   })
 
   afterEach(async () => {
+    serialSamples.length = 0
     await rm(stateDir, { recursive: true, force: true })
+  })
+
+  it('resamples a zero-leading serial before persisting a valid certificate', async () => {
+    serialSamples.push(Buffer.alloc(8), Buffer.from([0x81, 2, 3, 4, 5, 6, 7, 8]))
+    const material = await ensureHostTlsMaterial(stateDir)
+    expect(new X509Certificate(material.certPem).serialNumber).toBe('0102030405060708')
+    expect(serialSamples).toHaveLength(0)
   })
 
   it('generates once and reuses the persisted pair with a stable fingerprint', async () => {
