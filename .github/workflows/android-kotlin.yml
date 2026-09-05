@@ -115,3 +115,31 @@ jobs:
       - name: assemble the debug APK
         working-directory: apps/android
         run: gradle --no-daemon :app:assembleDebug
+
+      - name: Allow the runner to use KVM
+        run: sudo chown "$USER" /dev/kvm
+
+      - name: Launch the unpaired companion on Android
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          working-directory: apps/android
+          script: gradle --no-daemon :app:connectedDebugAndroidTest
+
+      - name: Record Android artifact checksums
+        working-directory: apps/android/app/build/outputs/apk/debug
+        run: sha256sum app-debug.apk output-metadata.json > SHA256SUMS
+
+      - name: Upload Android app and startup evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: g1-android-app-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            apps/android/app/build/outputs/apk/debug/
+            apps/android/app/build/outputs/androidTest-results/connected/
+            apps/android/app/build/reports/androidTests/connected/
+          if-no-files-found: error

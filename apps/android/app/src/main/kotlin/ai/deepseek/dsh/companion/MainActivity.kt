@@ -65,14 +65,14 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CompanionTheme(content: @Composable () -> Unit) {
     val colors = MaterialTheme.colorScheme.copy(
-        background = Color(NeumorphicTokens.surface.toULong()),
-        surface = Color(NeumorphicTokens.surface.toULong()),
-        primary = Color(NeumorphicTokens.textPrimary.toULong()),
-        onPrimary = Color(NeumorphicTokens.surface.toULong()),
-        onBackground = Color(NeumorphicTokens.textPrimary.toULong()),
-        onSurface = Color(NeumorphicTokens.textPrimary.toULong()),
-        secondary = Color(NeumorphicTokens.textSecondary.toULong()),
-        onSecondary = Color(NeumorphicTokens.textSecondary.toULong()),
+        background = Color(NeumorphicTokens.surface.toLong()),
+        surface = Color(NeumorphicTokens.surface.toLong()),
+        primary = Color(NeumorphicTokens.textPrimary.toLong()),
+        onPrimary = Color(NeumorphicTokens.surface.toLong()),
+        onBackground = Color(NeumorphicTokens.textPrimary.toLong()),
+        onSurface = Color(NeumorphicTokens.textPrimary.toLong()),
+        secondary = Color(NeumorphicTokens.textSecondary.toLong()),
+        onSecondary = Color(NeumorphicTokens.textSecondary.toLong()),
     )
     MaterialTheme(colorScheme = colors, content = content)
 }
@@ -226,9 +226,14 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     // becomes one minimized local notification; details stay behind the
     // secure link the app opens into.
     LaunchedEffect(model.paired) {
+        if (!model.paired) return@LaunchedEffect
         model.pushes.startWatching()
-        model.pushes.pushes.collect { latest ->
-            latest.lastOrNull()?.let { PushNotifications.present(context, it) }
+        try {
+            model.pushes.pushes.collect { latest ->
+                latest.lastOrNull()?.let { PushNotifications.present(context, it) }
+            }
+        } finally {
+            model.pushes.stopWatching()
         }
     }
     if (!model.paired) {

@@ -35,6 +35,8 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 共享传输固定使用 OkHttp 5.3.2，以兼容 App 的 API 35 编译 SDK。依赖升级必须同时通过 App 的 `:app:checkDebugAarMetadata`、`:app:assembleDebug` 和 core 测试：Gradle 会选择不同的 OkHttp JVM 与 Android 产物，纯 JVM 测试通过不能证明 Android SDK 兼容性。
 
+App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose 的 `ULong` 构造器接收其专用 packed color 格式。未配对界面不会打开 Remote push stream。连接 Android 设备后，`gradle --no-daemon -p apps/android :app:connectedDebugAndroidTest` 会启动真实 Activity，并在凭据恢复后验证配对首屏；测试会预先授予通知权限，将系统弹窗排除于该启动断言之外。Android workflow 在 API 34 模拟器中运行此检查，并保留 APK、checksum 和 instrumentation 报告。
+
 ## 已知限制与延后工作
 
 - **生命周期感知收集**——各标签以 `collectAsStateWithLifecycle` 收集模型的 StateFlow，停止态暂停收集，不在后台空烧。

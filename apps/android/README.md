@@ -35,6 +35,8 @@ The [Android Kotlin](../../.github/workflows/android-kotlin.yml) lane runs `grad
 
 The shared transport pins OkHttp 5.3.2 for the app's API 35 compile SDK. Dependency updates must pass the app's `:app:checkDebugAarMetadata` and `:app:assembleDebug` tasks as well as the core tests: Gradle selects different OkHttp JVM and Android artifacts, and pure-JVM success does not establish Android SDK compatibility.
 
+The app converts the core's 32-bit ARGB tokens with `Color(token.toLong())`; Compose's `ULong` constructor consumes its own packed color format. The unpaired screen opens no Remote push stream. With a connected Android device, `gradle --no-daemon -p apps/android :app:connectedDebugAndroidTest` launches the real activity and verifies the pairing screen after credential restoration; the test grants notification permission to keep the system dialog outside this startup assertion. The Android workflow runs this check on an API 34 emulator and retains the APK, checksums, and instrumentation reports.
+
 ## Known Limitations and Deferred Work
 
 - **Lifecycle-aware collection** — the tabs collect the models' StateFlows with `collectAsStateWithLifecycle`, so collection pauses in stopped states instead of burning work in the background.
