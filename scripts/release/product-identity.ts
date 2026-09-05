@@ -1,7 +1,7 @@
 /** Application release identity shared by native packaging; protocol versions keep their own owners. */
 
 /** A distribution audience; it does not select runtime composition or protocol support. */
-export type ProductChannel = 'dev' | 'canary' | 'beta' | 'stable'
+type ProductChannel = 'dev' | 'canary' | 'beta' | 'stable'
 
 /** Validated application identity, including each platform's numeric version representation. */
 export interface ProductIdentity {
