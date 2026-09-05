@@ -12,7 +12,7 @@ Wheel 会安装 `dsh` 控制台命令和 `deepseek_harness_runtime` Python 模�
 
 仓库构建还会物化仅限开发的 `runtime/node/` 载体。它在系统 Node 22.19 或更高版本上运行 `node runtime/node/node_modules/@deepseek-ai/dsh/lib/bin.js`。系统不会自动选择它，而且 wheel 与 sdist 均不包含它。
 
-两种载体执行相同的 `dsh` 语法与随附 profile，包括独立的 `sdk-minimal` 配置树，以及包含前端产物的完整 `web` profile。私有 `dsh-python-runtime-closure` manifest 定义打包依赖闭包；不存在 Python 专用 Node 应用或检入的默认 `cordis.yml`。
+两种载体执行相同的 `dsh` 语法与随附 profile，包括独立的 `sdk-minimal` 配置树，以及包含前端产物的完整 `web` profile。私有 `dsh-python-runtime-closure` manifest 显式列出每个可达的工作区应用、bundle、插件与必需对等依赖，使 legacy deploy 恢复保留完整的扁平包目录。`verify-runtime-closure` 在打包前拒绝缺失的传递工作区依赖。不存在 Python 专用 Node 应用或检入的默认 `cordis.yml`。
 
 ## Python 模块 API
 
