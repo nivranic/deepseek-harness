@@ -17,6 +17,10 @@ LANGUAGES = {"javascript-typescript", "python", "java-kotlin", "swift"}
 class EvidenceError(ValueError):
     """A fixed diagnostic that contains no scanner-provided text."""
 
+    def __init__(self, message: str, structure: dict | None = None):
+        super().__init__(message)
+        self.structure = structure
+
 
 def sast(directory: Path, language: str, root: Path) -> dict:
     """Reject incomplete SARIF and every finding, including suppressed findings."""
@@ -35,9 +39,18 @@ def sast(directory: Path, language: str, root: Path) -> dict:
             driver = run["tool"]["driver"]
             if driver["name"] != "CodeQL" or not isinstance(driver.get("semanticVersion"), str) or not re.fullmatch(r"\d+\.\d+\.\d+", driver["semanticVersion"]):
                 raise EvidenceError("CodeQL tool identity is absent")
-            rules = driver["rules"]
-            if not isinstance(rules, list) or not rules or not isinstance(run.get("results"), list):
-                raise EvidenceError("CodeQL rules or results are missing")
+            extensions = run["tool"].get("extensions", [])
+            if not isinstance(extensions, list):
+                raise EvidenceError("invalid CodeQL tool components")
+            components = [driver, *extensions]
+            rule_sets = [component.get("rules", []) for component in components]
+            structure = {"driverRuleCount": len(rule_sets[0]) if isinstance(rule_sets[0], list) else None,
+                         "extensionRuleCounts": [len(rules) if isinstance(rules, list) else None for rules in rule_sets[1:]],
+                         "resultsPresent": "results" in run,
+                         "resultCount": len(run["results"]) if isinstance(run.get("results"), list) else None}
+            if any(not isinstance(rules, list) for rules in rule_sets) or not any(rule_sets) or not isinstance(run.get("results"), list):
+                raise EvidenceError("CodeQL rules or results are missing", structure)
+            rules = [rule for rules in rule_sets for rule in rules]
             rule_ids = {rule["id"] for rule in rules}
             if any(not isinstance(rule, str) or not re.fullmatch(r"[a-zA-Z0-9/_.-]+", rule) for rule in rule_ids):
                 raise EvidenceError("invalid CodeQL rule identity")
@@ -51,6 +64,12 @@ def sast(directory: Path, language: str, root: Path) -> dict:
             for result in run["results"]:
                 if result["ruleId"] not in rule_ids:
                     raise EvidenceError("finding rule is not in the executed query set")
+                reference = result.get("rule", {})
+                component = reference.get("toolComponent")
+                if component is not None:
+                    index = component.get("index")
+                    if type(index) is not int or index < 0 or index >= len(extensions) or result["ruleId"] not in {rule["id"] for rule in rule_sets[index + 1]}:
+                        raise EvidenceError("finding rule component is inconsistent")
                 locations = []
                 for location in result.get("locations", []):
                     physical = location["physicalLocation"]
@@ -63,7 +82,7 @@ def sast(directory: Path, language: str, root: Path) -> dict:
                         raise EvidenceError("invalid finding line")
                     locations.append({"path": path, "line": line})
                 projected.append({"rule": result["ruleId"], "locations": locations})
-            reports.append({"sha256": hashlib.sha256(content).hexdigest(), "version": driver["semanticVersion"], "rules": len(rules)})
+            reports.append({"sha256": hashlib.sha256(content).hexdigest(), "version": driver["semanticVersion"], "rules": len(rules), "structure": structure})
     return {"scanner": "CodeQL", "language": language, "reports": reports, "findings": projected, "findingCount": len(projected)}
 
 
@@ -114,6 +133,8 @@ def main() -> int:
         evidence["status"] = "PASS" if evidence["findingCount"] == 0 else "FAIL"
     except EvidenceError as error:
         evidence["reason"] = str(error)
+        if error.structure is not None:
+            evidence["sarifStructure"] = error.structure
     except Exception:
         # Scanner and parser exceptions can contain report excerpts.
         evidence["reason"] = "Security scan did not complete; no acceptance was recorded"

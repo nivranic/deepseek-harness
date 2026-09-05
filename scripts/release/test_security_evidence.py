@@ -36,6 +36,25 @@ class SecurityEvidence(unittest.TestCase):
         self.assertNotIn("private", json.dumps(projected))
         self.assertEqual(projected["findings"][0]["locations"], [{"path": "scripts/source.py", "line": 3}])
 
+    def test_accepts_query_rules_in_sarif_tool_extensions(self):
+        run = self.document["runs"][0]
+        rules = run["tool"]["driver"].pop("rules")
+        run["tool"]["extensions"] = [{"name": "codeql/python-queries", "rules": rules}]
+        run["results"] = [{"ruleId": "py/code-injection", "rule": {"toolComponent": {"index": 0}}}]
+        self.write(self.document)
+        self.assertEqual(sast(self.root, "python", self.root)["findingCount"], 1)
+        run["results"][0]["rule"]["toolComponent"]["index"] = 1
+        self.write(self.document)
+        with self.assertRaisesRegex(ValueError, "component"):
+            sast(self.root, "python", self.root)
+
+    def test_missing_rule_diagnostics_contain_only_structural_counts(self):
+        self.document["runs"][0]["tool"]["driver"]["rules"] = []
+        self.write(self.document)
+        with self.assertRaises(ValueError) as caught:
+            sast(self.root, "python", self.root)
+        self.assertEqual(caught.exception.structure, {"driverRuleCount": 0, "extensionRuleCounts": [], "resultsPresent": True, "resultCount": 0})
+
     def test_rejects_absent_empty_or_failed_analysis(self):
         with self.assertRaises(ValueError):
             sast(self.root, "python", self.root)

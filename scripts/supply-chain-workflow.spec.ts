@@ -39,6 +39,7 @@ describe('candidate security workflow', () => {
     for (const target of [':core:classes :app:assembleDebug', 'swift build', '-scheme CompanioniOS', '-scheme CompanionMac', '-scheme DirectHostMac']) expect(commands).toContain(target)
     expect(job.steps.find(step => step.uses?.startsWith('github/codeql-action/init@'))?.with?.queries).toBe('security-extended')
     expect(job.steps.find(step => step.uses?.startsWith('github/codeql-action/analyze@'))?.with?.upload).toBe('never')
+    expect(job.steps.find(step => step.uses?.startsWith('github/codeql-action/analyze@'))?.with?.['upload-database']).toBe(false)
     expect(job.steps.find(step => step.name === 'Reject security findings')?.run).toContain('scripts/security-evidence.py sast')
   })
 

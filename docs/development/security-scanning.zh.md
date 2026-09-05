@@ -35,7 +35,7 @@ Gitleaks 使用默认规则并对报告脱敏。源码放行注释和忽略文�
 
 CodeQL 为 JavaScript/TypeScript、Python、Java/Kotlin 和 Swift 执行 `security-extended` 查询。Kotlin 编译包含 core 和 Android app。Swift 编译包含 SwiftPM 和全部三个 Apple app scheme。这些 job 不构成原生 C/C++ 或 Rust 分析证据。构建或提取失败会阻断对应语言 job。
 
-[security-evidence.py](../../scripts/security-evidence.py) 要求 analyzer outcome 成功，且 SARIF 含工具身份、非空规则集、成功 invocation 和显式 results。包括已 suppression 的发现项都会失败；分析通知中的 warning/error 也会失败。含源码的 SARIF 不向 GitHub code scanning 或 artifact 上传。
+[security-evidence.py](../../scripts/security-evidence.py) 要求 analyzer outcome 成功，且 SARIF 含工具身份、driver 与 extensions 中的非空规则集、成功 invocation 和显式 results。包括已 suppression 的发现项都会失败；分析通知中的 warning/error 也会失败。不上传含源码的 SARIF 和 CodeQL database。被拒绝的规则元数据只记录结构计数用于诊断。
 
 -----
 

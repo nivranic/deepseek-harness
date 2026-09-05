@@ -149,6 +149,7 @@ jobs:
         id: analyze
         with:
           upload: never
+          upload-database: false
           output: ${{ runner.temp }}/sarif
           category: /language:${{ matrix.language }}
       - name: Reject security findings
