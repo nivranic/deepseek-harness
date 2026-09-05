@@ -1,18 +1,25 @@
 {
   "taskId": "G1-APPLE",
   "status": "PARTIAL",
-  "evidenceLevel": "E2",
+  "evidenceLevel": "E4",
   "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
-  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "sourceHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
   "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
   "workingTreeState": "Apple product, test, workflow, and documentation inputs were committed and clean at sourceHead before these evidence records were updated.",
-  "recordedAt": "2026-09-03T15:00:40.4359851+08:00",
-  "evidenceBoundary": "E2 source inspection only. This record does not claim Swift compilation, XCTest execution, real Host execution, or E4.",
+  "recordedAt": "2026-09-05T06:16:57.694Z",
+  "evidenceBoundary": "Real Host-to-Swift 13/13 and recovery passed on macOS; all three Xcode shells build. App first-screen XCTest is pending.",
   "toolchain": {
-    "swiftToolsVersionDeclared": "5.9",
-    "swift": "NOT_AVAILABLE",
-    "xcodebuild": "NOT_AVAILABLE",
-    "host": "Microsoft Windows NT 10.0.26200.0"
+    "local": {
+      "swiftToolsVersionDeclared": "5.9",
+      "swift": "NOT_AVAILABLE",
+      "xcodebuild": "NOT_AVAILABLE",
+      "host": "Microsoft Windows NT 10.0.26200.0"
+    },
+    "remote": {
+      "runner": "macos-latest",
+      "swiftPm": "AVAILABLE_AND_TESTED",
+      "xcode": "WORKFLOW_BUILD_PENDING"
+    }
   },
   "commands": [
     "git show --stat --oneline --decorate --no-renames e3bf0842 -- . ':(exclude)vendor/**'",
@@ -66,16 +73,27 @@
       "qualification": "This is retained non-Swift evidence and does not validate compilation or runtime behavior of the e3bf0842 Swift changes."
     },
     {
-      "name": "Apple SwiftPM tests, including LinkHTTPStatusTests",
-      "result": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      "name": "swift test",
+      "result": "PASS",
+      "candidateHead": "4227f3a51375e648163171911bda59f52eac4503",
+      "runner": "macos-latest",
+      "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33946453731"
     },
     {
       "name": "Real Host-to-Swift acceptance",
-      "result": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      "result": "FAIL",
+      "candidateHead": "4227f3a51375e648163171911bda59f52eac4503",
+      "runner": "macos-latest",
+      "failure": "pairing returned credentials for a different host",
+      "repairCommit": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+      "repairValidation": "Live-name TLS carrier regression passed locally; remote rerun pending",
+      "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33946453731"
+    },
+    {
+      "name": "SwiftPM, real Host acceptance and Xcode shells",
+      "result": "PASS",
+      "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+      "evidence": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004"
     }
   ],
   "artifacts": [
@@ -115,26 +133,109 @@
     "Source, test-definition, and workflow inspection cannot substitute for Swift compilation, SwiftPM execution, or a real Host-to-Swift run."
   ],
   "knownLimitations": [
-    "Windows has no Swift toolchain or Xcode. No Swift build, SwiftPM test, or real Host-to-Swift result is claimed.",
-    "The corrected native source is present in candidate dd319c3883934efc224d4caf7bf09b8fea725897, but a Swift-capable runner must compile it, execute SwiftPM tests, and complete real Host-to-Swift acceptance before the Apple lane can exceed E2."
+    "App first-screen runtime verification is pending. SwiftPM and real Host acceptance do not establish simulator App pairing or real-device network behavior."
   ],
   "notExecuted": [
     {
-      "item": "swift test",
+      "item": "iOS installed App first screen",
       "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "details": "Get-Command swift and Get-Command xcodebuild found no executable on the Windows host; the committed XCTest definitions in candidate dd319c3883934efc224d4caf7bf09b8fea725897 were not compiled or executed."
-    },
-    {
-      "item": "Real Host-to-Swift acceptance",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane for dd319c3883934efc224d4caf7bf09b8fea725897."
+      "reason": "STARTUP_XCTEST_ADDED_PENDING_CI"
     }
   ],
   "nextDependencies": [
     "G1-E2E",
     "G1-REC",
     "G1-CI"
-  ]
+  ],
+  "latestRemoteEvidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json",
+  "historicalLocalAudit": {
+    "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+    "toolchain": {
+      "swiftToolsVersionDeclared": "5.9",
+      "swift": "NOT_AVAILABLE",
+      "xcodebuild": "NOT_AVAILABLE",
+      "host": "Microsoft Windows NT 10.0.26200.0"
+    },
+    "tests": [
+      {
+        "name": "Generated Link contract freshness",
+        "result": "PASS",
+        "evidenceSourceCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+        "stale": 0,
+        "qualification": "No generated Link contract source or artifact changed between this evidence commit and sourceHead."
+      },
+      {
+        "name": "Contract, Host Remote Event, and TLS carrier suites",
+        "result": "PASS",
+        "evidenceSourceCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+        "testFiles": 3,
+        "passed": 87,
+        "failed": 0,
+        "qualification": "This is retained non-Swift evidence and does not validate compilation or runtime behavior of the e3bf0842 Swift changes."
+      },
+      {
+        "name": "Apple SwiftPM tests, including LinkHTTPStatusTests",
+        "result": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      },
+      {
+        "name": "Real Host-to-Swift acceptance",
+        "result": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      }
+    ],
+    "knownLimitations": [
+      "Windows has no Swift toolchain or Xcode. No Swift build, SwiftPM test, or real Host-to-Swift result is claimed.",
+      "The corrected native source is present in candidate dd319c3883934efc224d4caf7bf09b8fea725897, but a Swift-capable runner must compile it, execute SwiftPM tests, and complete real Host-to-Swift acceptance before the Apple lane can exceed E2."
+    ],
+    "notExecuted": [
+      {
+        "item": "swift test",
+        "status": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "details": "Get-Command swift and Get-Command xcodebuild found no executable on the Windows host; the committed XCTest definitions in candidate dd319c3883934efc224d4caf7bf09b8fea725897 were not compiled or executed."
+      },
+      {
+        "item": "Real Host-to-Swift acceptance",
+        "status": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane for dd319c3883934efc224d4caf7bf09b8fea725897."
+      }
+    ]
+  },
+  "latestRemoteSwiftAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
+    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
+    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
+    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "parents": [
+      "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+    ],
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+    }
+  }
 }

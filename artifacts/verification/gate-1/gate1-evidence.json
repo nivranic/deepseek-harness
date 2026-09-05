@@ -7,12 +7,12 @@
   "closure": "OPEN",
   "canEnterGate2": false,
   "candidate": {
-    "commit": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+    "commit": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
     "branch": "codex/goal-mode-full-implementation",
-    "published": false,
-    "remoteCandidateCi": "NOT_EXECUTED"
+    "published": true,
+    "remoteCandidateCi": "FAIL"
   },
-  "recordedAt": "2026-09-05T03:19:44.330Z",
+  "recordedAt": "2026-09-05T06:16:57.694Z",
   "userDispositionNote": "Swift/Apple 已获重新验证授权；Apple 专属环境依赖允许临时延期并推进下一阶段，执行状态仍如实保留。",
   "taskEvidence": [
     {
@@ -45,7 +45,7 @@
       "taskId": "G1-APPLE",
       "status": "PARTIAL",
       "evidence": "artifacts/verification/gate-1/G1-APPLE.json",
-      "blockingReason": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      "blockingReason": "IOS_STARTUP_XCTEST_PENDING"
     },
     {
       "taskId": "G1-ANDROID",
@@ -65,9 +65,8 @@
     },
     {
       "taskId": "G1-E2E",
-      "status": "PARTIAL",
-      "evidence": "artifacts/verification/gate-1/G1-E2E.json",
-      "blockingReason": "Real Host-to-Swift acceptance is not executed."
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-E2E.json"
     },
     {
       "taskId": "G1-MULTI",
@@ -76,9 +75,8 @@
     },
     {
       "taskId": "G1-REC",
-      "status": "PARTIAL",
-      "evidence": "artifacts/verification/gate-1/G1-REC.json",
-      "blockingReason": "Swift recovery is not executed."
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-REC.json"
     },
     {
       "taskId": "G1-CI",
@@ -89,8 +87,8 @@
   "exitCriteria": [
     {
       "criterion": "PoC-2 = VERIFIED / E4",
-      "status": "PARTIAL",
-      "reason": "Kotlin passed E4, but the required Swift real-Host lane is not executed."
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json"
     },
     {
       "criterion": "PoC-3 = VERIFIED / E4",
@@ -99,8 +97,8 @@
     },
     {
       "criterion": "PoC-4 = VERIFIED / E4",
-      "status": "PARTIAL",
-      "reason": "Kotlin recovery passed E4, but Swift recovery is not executed."
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json"
     },
     {
       "criterion": "PoC-5 >= VERIFIED-on-simulator with real-device plan ready",
@@ -121,14 +119,13 @@
     },
     {
       "criterion": "Host-to-Swift",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json"
     },
     {
       "criterion": "Host-to-Kotlin",
       "status": "PASS",
-      "evidence": "13/13 at 9fcde39df023c9dad790f41e6fc46c931e88898e；之后只有两处测试修正，保留实际验收 SHA。"
+      "evidence": "13/13 at bb3e7ed1006739cd099a49bf6db8317abe4a64bd, whose tree equals candidate 4227f3a513."
     },
     {
       "criterion": "Android wrong pin",
@@ -148,7 +145,7 @@
     {
       "criterion": "Single release-candidate SHA mandatory evidence",
       "status": "PARTIAL",
-      "reason": "本地 coverage 已关闭；Swift 和远端 mandatory CI 未执行。各证据保留实际执行 SHA，不伪造同一次完整矩阵运行。"
+      "reason": "Prior remote mandatory CI failed; the repair candidate is running. Historical local coverage retains its actual SHA."
     }
   ],
   "candidateEvidence": {
@@ -160,42 +157,26 @@
   },
   "blockingItems": [
     {
-      "item": "swift test",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
-      "previousUserDisposition": "SKIPPED_BY_USER",
-      "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
+      "item": "Remote mandatory CI",
+      "status": "FAIL",
+      "reason": "CURRENT_CANDIDATE_FAILED",
+      "cause": "Exempt lint timeout, Web goldens and preview runtime failure at 6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+      "evidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json"
     },
     {
-      "item": "Real Host-to-Swift acceptance",
+      "item": "iOS installed App first screen",
       "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
-      "previousUserDisposition": "SKIPPED_BY_USER",
-      "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
-    },
-    {
-      "item": "Swift disconnect and authoritative recovery",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
-      "previousUserDisposition": "SKIPPED_BY_USER",
-      "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
+      "reason": "STARTUP_XCTEST_ADDED_PENDING_CI"
     }
   ],
   "scope": {
     "gate2Started": false,
-    "pushed": false,
+    "pushed": true,
     "published": false,
     "productionCredentialsReadOrUsed": false,
-    "productionExternalActionsExecuted": false
+    "productionExternalActionsExecuted": false,
+    "branchPublished": true,
+    "pullRequestCreated": true
   },
   "decision": {
     "status": "PARTIAL",
@@ -216,5 +197,46 @@
     "aggregateLog": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
     "aggregateLogSha256": "3ae86c10b6b7488a44771807147bde79837617139F223D938813A45E85E521DB"
   },
-  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
+  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json",
+  "remoteEvidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json",
+  "completedSwiftPmEvidence": {
+    "name": "swift test",
+    "result": "PASS",
+    "candidateHead": "4227f3a51375e648163171911bda59f52eac4503",
+    "runner": "macos-latest",
+    "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33946453731"
+  },
+  "latestSwiftAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
+    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
+    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
+    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "parents": [
+      "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+    ],
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+    }
+  }
 }

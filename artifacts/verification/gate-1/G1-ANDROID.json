@@ -206,5 +206,33 @@
         "G1-CI"
       ]
     }
+  },
+  "latestRemoteKotlinAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/kotlin-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
+    "sha256": "b56ac5c48d6e14b88d10cfee44b584ef9de1f37ba2403dfb6b94ec01f9fada86",
+    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181010",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "25816ffdb6f13e72ed8cedb3e10aec6454f06630d10d0b3a7ea2898b2535205b",
+      "afterRepeatedReconnectProjectionSha256": "25816ffdb6f13e72ed8cedb3e10aec6454f06630d10d0b3a7ea2898b2535205b",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+    }
   }
 }

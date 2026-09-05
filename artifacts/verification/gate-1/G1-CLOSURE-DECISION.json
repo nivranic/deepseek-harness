@@ -7,17 +7,17 @@
   "isWaiver": true,
   "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
   "recordedAt": "2026-09-05T03:19:44.330Z",
-  "localWork": "COMPLETE",
+  "localWork": "REPAIR_VALIDATED_REMOTE_PENDING",
   "completed": [
     "Android App 装配、启动修复及模拟器首屏回归",
     "原五项便携 runner 阻断",
     "17 文件覆盖率缺口与完整 coverage 门禁",
-    "真实 Host 与 Kotlin 的 13 步验收"
+    "真实 Host 与 Kotlin 的 13 步验收",
+    "Swift real Host 13/13 with recovery and all three Xcode shell builds at 6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
   ],
   "remaining": [
-    "远端候选 mandatory CI",
-    "Swift 三项 NOT_EXECUTED / REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
-    "Apple simulator 证据"
+    "Remote mandatory CI verdict",
+    "iOS installed App first-screen XCTest"
   ],
   "authorization": {
     "push": "AUTHORIZED",
@@ -35,12 +35,12 @@
     "qualification": "推送、draft PR 与 Swift/Apple 复验均已明确授权；Apple 环境依赖按临时延期处理。"
   },
   "verification": {
-    "jsonRecords": 9,
-    "checksumReferences": 41,
-    "markdownFileLinks": 40,
+    "jsonRecords": 11,
+    "checksumReferences": 51,
+    "markdownFileLinks": 44,
     "taskCounts": {
-      "PASS": 9,
-      "PARTIAL": 4
+      "PASS": 11,
+      "PARTIAL": 2
     },
     "mainWorkspaceUnchanged": true
   },
@@ -52,5 +52,6 @@
   },
   "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json",
   "canPrepareGate2": true,
-  "entryPolicy": "Apple 环境依赖已经用户临时延期；下一阶段规划可继续。非 Apple mandatory CI 仍须取得并处理实际 verdict，不能被 Apple 延期覆盖。"
+  "entryPolicy": "Apple 环境依赖已经用户临时延期；下一阶段规划可继续。非 Apple mandatory CI 仍须取得并处理实际 verdict，不能被 Apple 延期覆盖。",
+  "remoteEvidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json"
 }

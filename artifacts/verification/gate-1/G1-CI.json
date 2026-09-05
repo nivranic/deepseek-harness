@@ -4,26 +4,16 @@
   "status": "PARTIAL",
   "sourceHead": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
   "branch": "codex/goal-mode-full-implementation",
-  "recordedAt": "2026-09-05T03:19:44.330Z",
+  "recordedAt": "2026-09-05T06:16:57.694Z",
   "candidatePublication": {
-    "status": "AUTHORIZED_PENDING_EXECUTION",
-    "reason": "CANDIDATE_NOT_PUBLISHED",
-    "remoteBranchExists": false,
-    "remoteCandidateCi": "NOT_EXECUTED",
-    "remoteBranchProbe": "git ls-remote --heads origin refs/heads/codex/goal-mode-full-implementation",
-    "details": "2026-09-05 用户授权推送和创建以 dev 为 base 的 draft PR；当前远端核验通过，正在执行发布。",
-    "lastSuccessfulProbe": {
-      "branchExisted": false,
-      "dev": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
-      "master": "76fda729799fe9b3848dbe2c211d4b231032b81e",
-      "qualification": "本次接续早期的只读结果；最后两次刷新失败，不能当作实时远端状态。"
-    },
-    "latestReadOnlyProbe": {
-      "status": "PASS",
-      "dev": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
-      "candidateBranchExists": false,
-      "changesMade": false
-    }
+    "status": "PASS",
+    "head": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "remoteBranchExists": true,
+    "pullRequest": "https://github.com/nivranic/deepseek-harness/pull/1",
+    "base": "dev",
+    "isDraft": true,
+    "remoteCandidateCi": "FAIL",
+    "details": "Candidate pushed with normal hooks; draft PR created against dev. Publication success does not assert passing CI."
   },
   "localPortableEvidence": "artifacts/verification/gate-1/G1-PORTABLE-RUNNERS.json",
   "nativeCheck": {
@@ -97,36 +87,9 @@
   },
   "notExecuted": [
     {
-      "item": "swift test",
+      "item": "iOS installed App first screen",
       "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
-      "previousUserDisposition": "SKIPPED_BY_USER"
-    },
-    {
-      "item": "Real Host-to-Swift acceptance",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
-      "previousUserDisposition": "SKIPPED_BY_USER"
-    },
-    {
-      "item": "Swift disconnect and authoritative recovery",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
-      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
-      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
-      "previousUserDisposition": "SKIPPED_BY_USER"
-    },
-    {
-      "item": "Remote candidate CI",
-      "status": "NOT_EXECUTED",
-      "reason": "CANDIDATE_NOT_PUBLISHED"
+      "reason": "STARTUP_XCTEST_ADDED_PENDING_CI"
     }
   ],
   "gateDecision": {
@@ -662,5 +625,95 @@
       "blockingReason": "Gate 1 requires SwiftPM tests, real Host-to-Swift acceptance, and Swift recovery at E4. This Windows host has no Swift or Xcode toolchain."
     }
   },
-  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json"
+  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json",
+  "remoteEvidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json",
+  "previousNotExecuted": [
+    {
+      "item": "swift test",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER"
+    },
+    {
+      "item": "Real Host-to-Swift acceptance",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER"
+    },
+    {
+      "item": "Swift disconnect and authoritative recovery",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE",
+      "userDisposition": "REOPENED_WITH_APPLE_ENVIRONMENT_DEFERRAL",
+      "userDispositionRecordedAt": "2026-09-05T02:10:56.6188413+08:00",
+      "previousUserDisposition": "SKIPPED_BY_USER"
+    },
+    {
+      "item": "Remote candidate CI",
+      "status": "NOT_EXECUTED",
+      "reason": "CANDIDATE_NOT_PUBLISHED"
+    }
+  ],
+  "latestCompletedRemote": {
+    "head": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "status": "FAIL",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
+  },
+  "latestSwiftAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
+    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
+    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
+    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "parents": [
+      "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+    ],
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+    }
+  },
+  "latestCoverage": {
+    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "runner": "ubuntu-24.04 / Node 24",
+    "instrumented": {
+      "status": "PASS",
+      "testsPassed": 16439,
+      "testsSkipped": 43,
+      "filesPassed": 1020,
+      "filesSkipped": 7,
+      "thresholds": "per-file 100% lines/statements/functions/branches"
+    },
+    "exemptHeavy": {
+      "status": "FAIL",
+      "cause": "scripts/oxlint-contract.spec.ts final diagnostics test exceeded its default 5000ms budget"
+    },
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181166"
+  }
 }

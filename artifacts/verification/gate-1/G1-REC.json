@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "taskId": "G1-REC",
-  "status": "PARTIAL",
+  "status": "PASS",
   "evidenceLevel": "E4",
   "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
-  "latestCandidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
-  "recordedAt": "2026-09-05T02:28:09.490Z",
+  "latestCandidate": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+  "recordedAt": "2026-09-05T06:16:57.694Z",
   "tests": [
     {
       "name": "真实 Host 与生产 Kotlin 客户端的共享验收",
@@ -68,18 +68,9 @@
     "The Host independently compared the native observations with its own Session projection before publishing the result."
   ],
   "knownLimitations": [
-    "Swift 对应验收仍为 NOT_EXECUTED / SKIPPED_BY_USER。Kotlin E4 不满足双语言退出条件。",
-    "Kotlin 验收运行于 JDK；模拟器只验证未配对首屏，未验证模拟器与 Host 配对或真机网络。"
+    "The native corpus passes for both Swift and Kotlin. It does not prove simulator App pairing or real-device network behavior."
   ],
-  "notExecuted": [
-    {
-      "item": "Swift disconnect, offline progress, reconnect, and duplicate-safe recovery",
-      "status": "NOT_EXECUTED",
-      "reason": "HOST_ENVIRONMENT",
-      "details": "No Swift toolchain or Xcode is installed on the Windows execution host.",
-      "userDisposition": "SKIPPED_BY_USER"
-    }
-  ],
+  "notExecuted": [],
   "artifacts": [
     "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
     "artifacts/verification/gate-1/G1-ANDROID-APP.json"
@@ -167,6 +158,76 @@
         "G1-E2E",
         "G1-CI"
       ]
+    }
+  },
+  "latestRemoteKotlinAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/kotlin-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
+    "sha256": "b56ac5c48d6e14b88d10cfee44b584ef9de1f37ba2403dfb6b94ec01f9fada86",
+    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181010",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "25816ffdb6f13e72ed8cedb3e10aec6454f06630d10d0b3a7ea2898b2535205b",
+      "afterRepeatedReconnectProjectionSha256": "25816ffdb6f13e72ed8cedb3e10aec6454f06630d10d0b3a7ea2898b2535205b",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+    }
+  },
+  "previousNotExecuted": [
+    {
+      "item": "Swift disconnect, offline progress, reconnect, and duplicate-safe recovery",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "No Swift toolchain or Xcode is installed on the Windows execution host.",
+      "userDisposition": "SKIPPED_BY_USER"
+    }
+  ],
+  "latestRemoteSwiftAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json",
+    "sha256": "c415ef7221ccf9a426aba6b54bcd542a0057e191f488a365679e27979f2679a5",
+    "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "executionCommit": "35c1300b33a45fb85bc958c5c7b83a190f888814",
+    "tree": "ca6a871744cf58d2c076aa351c810d1984b255b7",
+    "parents": [
+      "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "6dbbcf74570e53c30b823d2f529499c8b4a1bafd"
+    ],
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "afterRepeatedReconnectProjectionSha256": "8e64b0c55c15c59084b5d860e591137d36afa8d413c43d7eaad431e4f0a40025",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
     }
   }
 }
