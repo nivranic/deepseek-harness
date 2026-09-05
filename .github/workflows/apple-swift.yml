@@ -74,15 +74,15 @@ jobs:
     runs-on: macos-latest
     name: swift test (macOS)
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '24'
           cache: pnpm
@@ -93,7 +93,7 @@ jobs:
       - name: Report toolchain
         run: swift --version
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: apps/apple/.build
           key: apple-swift-${{ runner.os }}-${{ hashFiles('apps/apple/Package.swift') }}
@@ -116,7 +116,7 @@ jobs:
 
       - name: Upload Swift real-Host acceptance evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: g1-link-acceptance-swift-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/g1-link-acceptance/swift/evidence.json
@@ -149,7 +149,7 @@ jobs:
         run: pnpm exec tsx scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json"
 
       - name: Upload Apple product identity evidence
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: g2-apple-product-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/g2-apple-product/identity.json
@@ -185,7 +185,7 @@ jobs:
 
       - name: Upload iOS simulator startup evidence
         if: always() && env.DSH_STARTUP_SIMULATOR != ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: g1-apple-startup-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/g1-apple-startup

@@ -110,7 +110,7 @@ describe('CI workflow', () => {
       const preparationIndex = steps.findIndex(
         step => step.name === 'Prepare Windows tracked symlink checkout',
       )
-      const checkoutIndex = steps.findIndex(step => step.uses === 'actions/checkout@v6')
+      const checkoutIndex = steps.findIndex(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))
       const verificationIndex = steps.findIndex(
         step => step.name === 'Verify Windows tracked symlink checkout',
       )
@@ -453,6 +453,24 @@ describe('E2B e2e workflow', () => {
 })
 
 describe('Python release workflows', () => {
+  it('retains a failed runtime wheel under a diagnostic artifact name in its producing job', () => {
+    const workflow = loadWorkflow('.github/workflows/build-exe-for-python-sdk.yml')
+    if (!isRecord(workflow.jobs) || !isRecord(workflow.jobs.build) || !Array.isArray(workflow.jobs.build.steps)) {
+      throw new TypeError('runtime wheel builder must define its build steps')
+    }
+    const diagnostics = workflow.jobs.build.steps.filter(isRecord)
+      .filter(step => step.name === 'Retain failed runtime wheel for diagnosis')
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0]).toMatchObject({
+      if: "failure() && (steps.runtime-posix.outputs.wheel != '' || steps.runtime-windows.outputs.wheel != '')",
+      with: {
+        name: 'failed-runtime-wheel-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.target }}',
+        path: 'dist-python/${{ steps.runtime-posix.outputs.wheel || steps.runtime-windows.outputs.wheel }}',
+        'if-no-files-found': 'error',
+      },
+    })
+  })
+
   it('keeps complete wheel validation separate from protected public publication', () => {
     const workflow = loadWorkflow('.github/workflows/python-release.yml')
     const dispatch = workflowEvent(workflow, 'workflow_dispatch')
@@ -521,7 +539,7 @@ describe('Python release workflows', () => {
       step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'),
     )).toBe(false)
     expect([...runtimeSteps, ...sdkSteps].filter(
-      step => step.uses === 'pypa/gh-action-pypi-publish@release/v1',
+      step => typeof step.uses === 'string' && step.uses.startsWith('pypa/gh-action-pypi-publish@'),
     )).toHaveLength(2)
     expect(runtimePublish).toMatchObject({
       with: { 'packages-dir': 'dist/runtime/', attestations: false },
@@ -798,12 +816,12 @@ describe('Native Link real-Host acceptance workflows', () => {
       const commands = steps
         .filter((step): step is Record<string, unknown> & { run: string } => typeof step.run === 'string')
         .map(step => step.run)
-      const setupNode = steps.find(step => step.uses === 'actions/setup-node@v6')
+      const setupNode = steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/setup-node@'))
       const install = steps.find(step => step.run === 'pnpm install --frozen-lockfile')
       const acceptance = steps.find(step => (
         typeof step.run === 'string' && step.run.includes('apps/cli/tests/link-native-acceptance.e2e.ts')
       ))
-      const upload = steps.find(step => step.uses === 'actions/upload-artifact@v7')
+      const upload = steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@'))
       if (!isRecord(acceptance) || !isRecord(acceptance.env)
         || typeof acceptance.run !== 'string') {
         throw new TypeError(`${entry.file} must define the native acceptance step and environment`)

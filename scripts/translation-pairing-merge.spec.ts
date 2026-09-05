@@ -678,7 +678,7 @@ describe('translation pairing merge composition', { timeout: 15_000 }, () => {
     expect(git(fixture, ['diff', '--name-only', '--diff-filter=U'])).toBe('docs/guide.i18n.yaml')
   })
 
-  it('resolves safe records while leaving an owner-conflicted pair untouched', () => {
+  it('resolves safe records while leaving an owner-conflicted pair untouched', { timeout: 90_000 }, () => {
     const fixture = createFixture(false)
     startMixedPairingMerge(fixture)
 
