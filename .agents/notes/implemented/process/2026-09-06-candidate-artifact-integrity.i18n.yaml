@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-09-06-candidate-artifact-integrity.md
-2026-09-06-candidate-artifact-integrity.md: e3546150bfe58b631265ab28acc53c31de1bdeac
-2026-09-06-candidate-artifact-integrity.zh.md: d5b66ba4bbbd09a71979bf54eb0371f511a29ab1
+2026-09-06-candidate-artifact-integrity.md: e1096e6f0252b432fe5eca27ca9f3c3967fde784
+2026-09-06-candidate-artifact-integrity.zh.md: 9f463975d2d4964fdc242334e05c4fcc9097e150

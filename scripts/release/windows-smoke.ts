@@ -68,9 +68,10 @@ export async function installWindowsCandidate(installer: string, directory: stri
  * @param executable - installed main executable or the actual portable launcher.
  * @param directory - fresh test-owned state directory; it must remain separate for each launcher.
  * @param screenshot - destination for the rendered Settings view after interaction succeeds.
+ * @param portable - use the NSIS child endpoint adapter and allow time for extraction.
  * @returns the observed startup facts; no model API call or configured credential is required.
  */
-export async function smokeWindowsCandidate(executable: string, directory: string, screenshot: string): Promise<{
+export async function smokeWindowsCandidate(executable: string, directory: string, screenshot: string, portable = false): Promise<{
   settingsOpened: true
   providerFormOpened: true
   pageErrors: number
@@ -86,9 +87,12 @@ export async function smokeWindowsCandidate(executable: string, directory: strin
     .filter(([key]) => !['DSH_HOME', 'APPDATA', 'LOCALAPPDATA'].includes(key.toUpperCase())))
   const browserData = join(directory, 'browser')
   const application = await electron.launch({
-    executablePath: executable, locale: 'en-US', timeout: 90_000,
+    executablePath: portable ? join(import.meta.dirname, 'windows-portable-launch.cmd') : executable,
+    locale: 'en-US', timeout: portable ? 240_000 : 90_000,
     cwd: directory, args: [`--user-data-dir=${browserData}`],
-    env: { ...environment, DSH_HOME: join(directory, 'home'), APPDATA: appData, LOCALAPPDATA: localData },
+    env: { ...environment, DSH_HOME: join(directory, 'home'), APPDATA: appData, LOCALAPPDATA: localData,
+      ...(portable ? { DSH_RC_NODE: process.execPath, DSH_RC_TSX_HOOK: import.meta.resolve('tsx/esm'), DSH_RC_PORTABLE_EXECUTABLE: executable } : {}),
+    },
   })
   const child = application.process()
   console.log('Windows candidate: Electron inspector connected')

@@ -36,6 +36,8 @@ NSIS 候选为当前临时 runner 用户静默安装到本次运行目录。生�
 
 [Playwright Electron 驱动](../../scripts/release/windows-smoke.ts)分别启动已安装可执行文件和实际 portable 启动器。每次启动使用全新的 Harness 与应用数据目录，移除名称涉及凭据的环境变量和开发启动钩子。驱动通过真实首次提示继续，选择稍后配置凭据，打开设置、选择模型并打开提供方表单，不保存凭据，也不调用模型。
 
+NSIS 不转发 Electron 子进程的 stderr，而 Playwright 从该流获取调试地址。仅用于测试的 [portable 适配器](../../scripts/release/windows-portable-launch.ts)启动实际 portable 文件，发现两个已请求的本机回环端点，并将地址通知转发给同一 Electron 驱动。它等待 portable 进程退出，并保留在 Playwright 拥有的进程树中以便失败清理。Portable 启动允许四分钟完成解压与连接，已安装程序允许九十秒；驱动在交互前核验已连接应用的独立 user-data 路径。
+
 驱动截取已渲染的提供方表单、检查未捕获页面错误、记录运行中应用版本，并在 portable 清理前计算实际执行文件的哈希。两种运行中主程序均必须与打包主程序一致。正常应用关闭和进程退出都必须完成，退出码须为零；失败清理只终止该次启动拥有的进程树。PNG 大小阈值不用于授予启动验收。
 
 生产者记录安装、Inspector、窗口和表单阶段。主操作与清理失败同时保留，包括 Electron 驱动返回进程句柄之前的失败。目录删除在有限时间内重试 Windows 临时文件锁，清理仍未完成时继续报错；重试不构成启动验收。

@@ -60,7 +60,7 @@ await withRcCleanup(async () => {
   console.log('Windows candidate: installed bytes and PE versions verified; installed GUI start')
   const installed = await smokeWindowsCandidate(installedExecutable, join(work, 'installed-state'), join(output, 'windows/installed.png'))
   console.log('Windows candidate: installed GUI passed; portable GUI start')
-  const portableStartup = await smokeWindowsCandidate(portable, join(work, 'portable-state'), join(output, 'windows/portable.png'))
+  const portableStartup = await smokeWindowsCandidate(portable, join(work, 'portable-state'), join(output, 'windows/portable.png'), true)
   console.log('Windows candidate: portable GUI passed')
   for (const startup of [installed, portableStartup]) {
     if (startup.applicationVersion !== identity.version || startup.executableSha256 !== originalHash.sha256) {
