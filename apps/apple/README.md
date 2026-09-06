@@ -33,7 +33,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 
 ### Observable behavior
 
-The reference `RelayClient` serializes complete HTTP exchanges across actor suspension points and discards cached keys after transport, framing, or authentication failure without replaying the request. [Relay transport semantics](../relay/README.md#transport-encryption) own the unsigned nonce limits, recovery rules, and independent stream keys. The Apple workflow owns executable verification of this Swift implementation.
+The reference `RelayClient` serializes complete HTTP exchanges across actor suspension points and discards cached keys after transport, framing, or authentication failure without replaying the request. Cancelling a waiting call removes only that wait; it does not cancel the active exchange or invalidate its session. [Relay transport semantics](../relay/README.md#transport-encryption) own the unsigned nonce limits, recovery rules, and independent stream keys. The Apple workflow owns executable verification of this Swift implementation.
 
 All app schemes consume the generated product xcconfig and expand the explicit [AppInfo.plist](Config/AppInfo.plist) template to retain the full SemVer, build number, and distribution channel. [Application release identity](../../docs/development/product-release-identity.md) owns the shared inputs and platform validation.
 

@@ -24,6 +24,8 @@ Each Gitleaks invocation proves detection and redaction with a synthetic credent
 
 ## Consequences
 
+Cryptographic review follows the complete construction: the Kotlin relay uses ChaCha20-Poly1305 AEAD, while `ChaCha20` labels its JCA key. Noise's zero nonce prefix is combined with a unique per-key counter; fresh directional keys, serialized exchanges, and refusal before counter exhaustion are required together. Reviews pin the Android tree and analysis workflow so changed callers or nonce ownership require renewed assessment instead of inheriting an algorithm-name exception.
+
 Edited fixture lines or SAST context require renewed review. Unsupported platforms, submodules, incomplete analysis, unavailable account features, and missing outputs fail without retaining stale PASS. Even a fully reviewed finding set cannot override extraction errors. Source-free artifacts reduce remote diagnostic detail; reproduction uses the exact candidate and scanner revision. Unsigned receipts complement [CI source evidence](2026-09-05-ci-source-evidence.md) and [workflow policy](2026-09-05-workflow-security.md).
 
 Regressions cover archive transformations, path escape, changed exceptions, checksum-before-execution, stale output, suppressed findings, and incomplete reports. A real Gitleaks negative fixture verifies the installed tool. Actual language analysis and dependency-graph execution remain candidate-specific CI evidence. Native C/C++ and Rust are outside the four-language matrix.

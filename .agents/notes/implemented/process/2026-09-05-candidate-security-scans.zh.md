@@ -24,6 +24,8 @@ Status: implemented
 
 ## Consequences
 
+密码学审查覆盖完整构造：Kotlin 中继使用 ChaCha20-Poly1305 AEAD，`ChaCha20` 只是其 JCA 密钥的算法标签。Noise 的零 nonce 前缀与每个密钥内唯一的计数器组合；新的方向密钥、串行交换与计数耗尽前拒绝必须同时成立。审查固定 Android tree 和分析 workflow，使调用者或 nonce 所有权变化时必须重新评估，而不能沿用算法名称例外。
+
 修改 fixture 行或 SAST 上下文需要重新审查。不支持的平台、submodule、未完成分析、不可用的账号功能和缺失输出都会失败，不保留旧 PASS。即使全部发现项已审查，也不能覆盖提取错误。不含源码的 artifact 减少远端诊断细节；复现使用准确候选和 scanner revision。未签名回执补充 [CI 源码证据](2026-09-05-ci-source-evidence.zh.md) 和 [workflow 策略](2026-09-05-workflow-security.zh.md)。
 
 回归覆盖归档转换、路径逃逸、例外变化、执行前 checksum、旧输出、suppressed 发现项和不完整报告。真实 Gitleaks negative fixture 验证已安装工具。实际语言分析和 dependency graph 执行仍是绑定候选的 CI 证据。原生 C/C++ 和 Rust 不在四语言矩阵内。

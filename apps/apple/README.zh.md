@@ -33,7 +33,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 
 ### 可观察行为
 
-参考实现 `RelayClient` 跨 actor 挂起点串行执行完整 HTTP 交换，在传输、分帧或认证失败后丢弃缓存密钥，不重放请求。[中继传输语义](../relay/README.zh.md#transport-encryption)统一说明无符号 nonce 上限、恢复规则与独立流密钥。Apple workflow 负责执行此 Swift 实现的运行验证。
+参考实现 `RelayClient` 跨 actor 挂起点串行执行完整 HTTP 交换，在传输、分帧或认证失败后丢弃缓存密钥，不重放请求。取消等待中的调用只移除该次等待，不会取消正在执行的交换或使其会话失效。[中继传输语义](../relay/README.zh.md#transport-encryption)统一说明无符号 nonce 上限、恢复规则与独立流密钥。Apple workflow 负责执行此 Swift 实现的运行验证。
 
 所有应用 scheme 消费生成的产品 xcconfig，并展开显式 [AppInfo.plist](Config/AppInfo.plist) 模板，保留完整 SemVer、构建号和分发渠道。[应用发布标识](../../docs/development/product-release-identity.zh.md) 拥有公共输入与平台验证说明。
 
