@@ -50,7 +50,7 @@ kind: "package-bundle"
 <details>
 <summary>维护者的工作上下文——点击展开</summary>
 
-桌面 exe 由 `apps/desktop` 经 `scripts/build-desktop-release.ts` 构建；窗口标题按设计跟随活跃会话。
+桌面 exe 由 [`scripts/build-desktop-exe.ts`](../../../scripts/build-desktop-exe.ts) 从已构建的 `apps/desktop` 产物打包。打包过程独占仓库外的一份临时目录，并在成功或失败后移除它。窗口标题按设计跟随活跃会话。
 
 </details>
 
