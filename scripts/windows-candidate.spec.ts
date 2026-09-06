@@ -113,6 +113,7 @@ describe('Windows candidate production requirements', () => {
           with?: Record<string, unknown>
           run?: string
           if?: string
+          id?: string
         }>
       } }
     }
@@ -132,6 +133,10 @@ describe('Windows candidate production requirements', () => {
     expect(pack).toBeGreaterThan(build)
     expect(produce).toBeGreaterThan(pack)
     expect(commands[produce]).toMatch(/^node --import tsx\/esm /)
+    expect(job.steps[produce]?.id).toBe('acceptance')
+    const diagnostic = job.steps.find(step => step.run?.includes('read-windows-installer-crash.ps1'))
+    expect(diagnostic?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
+    expect(diagnostic?.run).toContain('$env:RUNNER_TEMP/windows-rc/windows/installer.exe')
     expect(upload).toBeGreaterThan(produce)
     expect(job.steps[upload]?.if).toBeUndefined()
     expect(job.steps[upload]?.with).toMatchObject({ 'if-no-files-found': 'error', 'compression-level': 0 })

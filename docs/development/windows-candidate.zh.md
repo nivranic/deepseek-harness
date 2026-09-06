@@ -40,6 +40,8 @@ NSIS 候选为当前临时 runner 用户静默安装到本次运行目录。生�
 
 生产者记录安装、Inspector、窗口和表单阶段。主操作与清理失败同时保留，包括 Electron 驱动返回进程句柄之前的失败。目录删除在有限时间内重试 Windows 临时文件锁，清理仍未完成时继续报错；重试不构成启动验收。
 
+验收失败后，独立的[只读诊断](../../scripts/release/read-windows-installer-crash.ps1)查询此前 45 分钟内最多 100 条 Application Error 事件，按候选安装器完整路径匹配。它记录安装器哈希、字节数和选定的崩溃字段，不输出完整事件消息或路径。空结果或事件日志不可用不能解释崩溃，也不改变作业失败状态；已验证产物仍只在验收成功后上传。
+
 -----
 
 <a id="packaged-inventory-and-evidence"></a>

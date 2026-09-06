@@ -40,6 +40,8 @@ The driver captures the rendered provider form, checks uncaught page errors, rec
 
 The producer logs installation, inspector, window and form milestones. Operation and cleanup failures are retained together, including failures before the Electron driver returns a process handle. Directory removal retries transient Windows locks for a bounded interval and still rejects unresolved cleanup; retries do not grant startup acceptance.
 
+After acceptance fails, a separate [read-only diagnostic](../../scripts/release/read-windows-installer-crash.ps1) queries up to 100 Application Error events from the preceding 45 minutes and matches the candidate installer's full path. It logs the installer hash, byte size and selected crash fields, excluding full event messages and paths. An empty result or unavailable event log does not explain the crash or change the failed job; verified-artifact upload remains conditional on acceptance.
+
 -----
 
 <a id="packaged-inventory-and-evidence"></a>

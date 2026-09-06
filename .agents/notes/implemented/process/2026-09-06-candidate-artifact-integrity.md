@@ -18,6 +18,8 @@ The [Windows producer](../../../../docs/development/windows-candidate.md) perfor
 
 Operation and cleanup failures remain distinguishable because startup acceptance and resource disposal are independent obligations. A cleanup exception does not replace the primary failure, and successful disposal does not grant acceptance to a failed operation.
 
+Installer crash diagnostics run in a separate failure-only step because a native exception can exit before the installer emits text. Exact executable-path matching excludes other applications, while selected event fields and executable digests support diagnosis without publishing full host event messages. Missing diagnostic records leave the original failure unresolved.
+
 Syft scans packaged directories with installed-package catalogers. Its directory defaults omit installed npm packages, so the producer explicitly selects `image` and independently checks every packaged name and available version against the SBOM. Unreadable directories fail; Windows extended paths prevent long paths from silently narrowing the audit. The scanner archive and executable version are verified before accepting its output.
 
 Retries retain source, identity and complete deliverable records while allowing refreshed evidence and invocation metadata. This implements the [product release identity](2026-09-05-product-release-identity.md) distinction between an unchanged retry and a new distribution. Every changed distribution uses the existing monotonic build-number rule. [Candidate security scans](2026-09-05-candidate-security-scans.md) retain their independent source-analysis and disclosure decisions.

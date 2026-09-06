@@ -78,7 +78,11 @@ jobs:
       - name: Package unsigned Windows candidates
         run: pnpm exec tsx scripts/build-desktop-exe.ts
       - name: Install, interact, scan and verify platform receipt
+        id: acceptance
         run: node --import tsx/esm scripts/produce-windows-candidate.ts --output "$env:RUNNER_TEMP/windows-rc"
+      - name: Read candidate installer crash records
+        if: failure() && steps.acceptance.outcome == 'failure'
+        run: ./scripts/release/read-windows-installer-crash.ps1 -ExecutablePath "$env:RUNNER_TEMP/windows-rc/windows/installer.exe"
       - name: Preserve verified Windows candidate
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
