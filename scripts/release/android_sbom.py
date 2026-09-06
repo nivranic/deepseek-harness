@@ -171,7 +171,10 @@ def main():
     require(not args.output or not output.exists(), 'Android SBOM output directory must be new')
     java_home, sdk_home = os.environ.get('JAVA_HOME'), os.environ.get('ANDROID_HOME')
     require(java_home and sdk_home, 'Android SBOM requires JAVA_HOME and ANDROID_HOME')
-    java = Path(java_home) / 'bin' / ('java.exe' if os.name == 'nt' else 'java')
+    require(Path(java_home).is_absolute() and Path(sdk_home).is_absolute(), 'Android Java and SDK roots must be absolute')
+    # Operator-selected tool roots can be aliases; pin their real locations before inspecting bytes.
+    java = (Path(java_home) / 'bin' / ('java.exe' if os.name == 'nt' else 'java')).resolve(strict=True)
+    sdk = Path(sdk_home).resolve(strict=True)
     node_path = shutil.which('node')
     require(node_path, 'Android SBOM requires Node and installed repository dependencies')
     # The launcher may be a PATH symlink; pin its resolved regular executable before running it.
@@ -180,7 +183,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='dsh-android-inventory-', dir=temporary_root) as directory:
         work = Path(directory)
         require(work.resolve().parent == temporary_root, 'Unexpected Android scanner temporary directory')
-        bom, receipt = scan(bundle, mapping, java, Path(sdk_home), node, work)
+        bom, receipt = scan(bundle, mapping, java, sdk, node, work)
         if args.output:
             publish(output, bom, receipt)
         else:

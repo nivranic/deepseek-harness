@@ -20,6 +20,8 @@ The [AAB inventory scanner](../../../../scripts/release/android_sbom.py) invokes
 
 ## Alternatives considered
 
+The scanner resolves the absolute, operator-selected Java and Android SDK locations before hashing tool bytes, matching its Node executable resolution. Toolchain managers can expose these locations through aliases. Bundle, mapping, Maven-cache and project-class inputs retain link rejection; resolving every input would erase that distinction.
+
 - A runner-installed Gradle version leaves local builds dependent on an unrecorded executable.
 - Debug assembly omits the shrinking and bundle paths exercised by release builds.
 - A successful unsigned bundle cannot stand in for an installed release application or a signed distribution.

@@ -60,7 +60,7 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 
 ### Release bundle 清单
 
-[AAB 扫描器](../../scripts/release/android_sbom.py) 读取已有的 release 构建，依赖 JDK 17、Python 3.10+、Node、已安装的仓库依赖、`JAVA_HOME`、`ANDROID_HOME` 及已填充的 Gradle 缓存。它要求匹配的 R8 mapping 和 app/core 编译类目录。从仓库根目录传入 `--bundle apps/android/app/build/outputs/bundle/release/app-release.aab --mapping apps/android/app/build/outputs/mapping/release/mapping.txt`，并选择 `--output <new-directory>` 或 `--verify <existing-directory>`。验证会重新执行实际扫描并比较两个完整文档，不信任外部提供的元数据导出。
+[AAB 扫描器](../../scripts/release/android_sbom.py) 读取已有的 release 构建，依赖 JDK 17、Python 3.10+、Node、已安装的仓库依赖、`JAVA_HOME`、`ANDROID_HOME` 及已填充的 Gradle 缓存。Java 与 SDK 根路径必须绝对；扫描前先解析这两个操作者选定路径中的别名。产物、缓存依赖和项目类路径仍拒绝链接。它要求匹配的 R8 mapping 和 app/core 编译类目录。从仓库根目录传入 `--bundle apps/android/app/build/outputs/bundle/release/app-release.aab --mapping apps/android/app/build/outputs/mapping/release/mapping.txt`，并选择 `--output <new-directory>` 或 `--verify <existing-directory>`。验证会重新执行实际扫描并比较两个完整文档，不信任外部提供的元数据导出。
 
 输出包含 CycloneDX 1.6 `sbom.cdx.json` 和 `inventory.json` 回执。扫描器对 AAB 的每个文件计算摘要，用精确的缓存 JAR/AAR 字节解析内嵌 Maven 图，并读取 POM 声明及父项继承的许可证。没有内嵌产物摘要的节点保留这一区别。回执保留重复依赖边、原始编译器与扫描器身份、项目编译类输入、原生库字节归属和 R8 mapping/class 证据。R8 验证 mapping checksum 与 DEX marker；所选 SDK 的 dexdump 读取实际定义类。Kotlin Java 类资源必须原样匹配 Maven 资源。
 

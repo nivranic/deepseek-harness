@@ -20,6 +20,8 @@ Release 签名默认为 `unsigned`。`keystore` 模式接收环境提供的完�
 
 ## Alternatives considered
 
+扫描器在计算工具摘要前解析操作者选定的绝对 Java 与 Android SDK 路径，与 Node 可执行文件的解析一致。工具链管理器可以通过别名提供这些位置。Bundle、mapping、Maven 缓存与项目类输入仍拒绝链接；统一解析所有输入会丢失这一区别。
+
 - 由 runner 安装 Gradle 会使本地构建依赖未记录的可执行文件。
 - Debug 装配没有覆盖 release 构建所执行的收缩和 bundle 路径。
 - 未签名 bundle 构建成功不能替代已安装 release 应用或已签名分发的验收。
