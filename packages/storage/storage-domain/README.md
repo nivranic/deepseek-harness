@@ -70,6 +70,8 @@ The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-a
 
 ### Observable behavior and failures
 
+`table.put(key, value, ready)` can reserve a write before an asynchronous prerequisite finishes. The domain observes `ready` immediately, waits for it at that write's queue slot, and includes the wait in `close()`. Rejection leaves storage, memory, and events unchanged, and later writes can still succeed. The prerequisite must resolve independently of later writes or closure of this domain; otherwise the queue deadlocks. Backend close invokes the domain owner callback to join initialization and close, so accepted writes also drain when the whole application unloads.
+
 Every write resolves only after the backend acknowledges durability, and each emits one `domain/changed` event in write order. Failures carry stable `DomainError` codes: `already-open` (the name is open or still closing), `facet-unsupported` (the routed backend serves no `kv` facet), `invalid-record` (a stored record or global fails its schema, naming the table and key), `missing-key` (an `update` on an absent record), and `closed` (any use after close). Backend failures such as `version-mismatch` pass through unchanged.
 
 -----

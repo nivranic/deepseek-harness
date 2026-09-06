@@ -102,6 +102,9 @@ export class DomainFacility {
       throw new DomainError('already-open', `domain '${spec.name}' is already open`)
     }
     this.reserved.add(spec.name)
+    // Backend teardown can start while loadAll is pending. Its owner callback
+    // joins initialization before closing the domain's accepted write queue.
+    const initialized = Promise.withResolvers<DomainImpl | undefined>()
     try {
       const backendName = this.config.routes?.[spec.name] ?? this.config.backend
       const backend = this.ctx.storage.backend.get(backendName)
@@ -111,7 +114,10 @@ export class DomainFacility {
           `backend '${backendName}' routed for domain '${spec.name}' has no kv facet`,
         )
       }
-      const unit = await backend.kv.open(descriptorOf(spec))
+      const unit = await backend.kv.open(descriptorOf(spec), async () => {
+        const domain = await initialized.promise
+        await domain?.close()
+      })
       try {
         const snapshot = await unit.loadAll()
         const tables = new Map<string, Map<string, unknown>>()
@@ -139,6 +145,7 @@ export class DomainFacility {
           this.reserved.delete(spec.name)
         })
         this.domains.set(spec.name, domain)
+        initialized.resolve(domain)
         // The single type-erasure point: DomainImpl is the untyped runtime,
         // Domain<S> the spec-typed view; the unknown hop is required because
         // S's conditional global-handle type stays unresolved here.
@@ -151,6 +158,7 @@ export class DomainFacility {
       // Any failure means the domain never registered (nothing can throw
       // after it), so releasing the name reservation is unconditional.
       this.reserved.delete(spec.name)
+      initialized.resolve(undefined)
       throw error
     }
   }

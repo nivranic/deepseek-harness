@@ -89,6 +89,8 @@ function dirOf(url: string): string {
 }
 
 interface SdkAssertions {
+  /** Check the persisted projection cache after the real SDK process closes. */
+  projectionCacheAfterClose?: boolean
   /** Environment overrides passed to the runtime subprocess. */
   environment?: Readonly<Record<string, string>>
   /** A separate DSH SDK child whose persisted session joins the evidence. */
@@ -109,6 +111,7 @@ interface SdkAssertions {
 }
 
 const SDK_ASSERTIONS: Readonly<Record<string, SdkAssertions>> = {
+  'text-turn': { projectionCacheAfterClose: true },
   'subagent-dsh-sdk-diagnostic': {
     environment: { DSH_TEST_CHILD_PATCH: dshSdkDiagnosticChildPatch },
   },
@@ -313,7 +316,8 @@ async function hydrateReplayFixtures(scenario: CorpusScenario, cwd: string): Pro
   await mkdir(root, { recursive: true })
   return Promise.all((await fixtureFiles(scenario)).map(async (source) => {
     const destination = join(root, basename(source))
-    await writeFile(destination, (await readFile(source, 'utf8')).replaceAll('{{cwd}}', cwd))
+    await writeFile(destination, (await readFile(source, 'utf8'))
+      .replaceAll('{{cwd}}', () => JSON.stringify(cwd).slice(1, -1)))
     return destination
   }))
 }
@@ -606,6 +610,20 @@ async function runScenario(scenario: CorpusScenario): Promise<{
       persistedLogs(sessionsRoot),
       ...(childSessionsRoot === undefined ? [] : [persistedLogs(childSessionsRoot)]),
     ])).flat()
+    if (assertions.projectionCacheAfterClose === true) {
+      const primary = logs.find(log => log.header.id === sessionId)
+      if (primary === undefined) throw new Error('projection cache assertion requires the root Session log')
+      const document: unknown = JSON.parse(await readFile(
+        join(dshHome, 'storages', 'session_projcache', 'sessions', `${sessionId}.json`), 'utf8',
+      ))
+      const finalEvent = records(primary.content).at(-1)
+      const message = records(primaryFixture).find(event => event.type === 'assistant/message')?.data as JsonObject
+      const usage = message.usage as JsonObject
+      expect(document).toMatchObject({ record: {
+        identity: { createdAt: primary.header.createdAt },
+        rows: { tokenUsage: { seq: finalEvent?.seq, val: { totals: { outputTokens: usage.outputTokens } } } },
+      } })
+    }
     const finalWorkspace = await captureWorkspaceSnapshot(cwd, {
       ignoredRootEntries: RUNTIME_WORKSPACE_ENTRIES,
     })

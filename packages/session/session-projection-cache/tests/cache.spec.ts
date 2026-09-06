@@ -189,6 +189,90 @@ describe('SessionProjectionCache write policy', () => {
       .toEqual({ marks: ['live'] })
   })
 
+  it('preserves the disposal cut when creation durability finishes later', async () => {
+    const { ctx, root, cache } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    vi.spyOn(ctx.sessions, 'flush').mockImplementationOnce(async () => {
+      entered.resolve(undefined)
+      await release.promise
+      return false
+    })
+    const writes = vi.spyOn(cache, 'write')
+    let session: Session | undefined
+    try {
+      const owner = await ctx.plugin(Object.assign((inner: Context) => {
+        session = inner.sessions.create(SessionId('held-create'))
+      }, { inject: ['sessions'] }))
+      await entered.promise
+      if (session === undefined) throw new Error('session was not created')
+      mark(session, ['live'])
+      await owner.dispose()
+      expect(writes).toHaveBeenCalledTimes(2)
+      release.resolve(undefined)
+      for (const result of writes.mock.results) {
+        if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
+        await result.value
+      }
+      expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['live'] })
+    } finally {
+      release.resolve(undefined)
+    }
+  })
+
+  it('drains accepted checkpoints still awaiting log durability before closing the cache', async () => {
+    const { ctx, root, cache, fiber } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const flush = ctx.sessions.flush.bind(ctx.sessions)
+    vi.spyOn(ctx.sessions, 'flush').mockImplementation(async (session) => {
+      if (session.id === 'held') {
+        entered.resolve(undefined)
+        await release.promise
+      }
+      return flush(session)
+    })
+    try {
+      const held = ctx.sessions.create(SessionId('held'))
+      await entered.promise
+      const disposalStarted = Promise.withResolvers<undefined>()
+      fiber.ctx.effect(() => () => { disposalStarted.resolve(undefined) }, 'test.disposalStarted')
+      let closed = false
+      const closing = fiber.dispose().then(() => { closed = true })
+      await disposalStarted.promise
+      expect(closed).toBe(false)
+      await expect(cache.write(held)).rejects.toThrow('closed')
+      release.resolve(undefined)
+      await closing
+      expect((await storedRows(root, held.id))?.['cache-test/marks']?.seq).toBe(-1)
+    } finally {
+      release.resolve(undefined)
+    }
+  })
+
+  it('drains a checkpoint still awaiting log durability during whole-context disposal', async () => {
+    const { ctx, root } = await harness()
+    const warn = vi.spyOn(ctx.logger, 'warn')
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    vi.spyOn(ctx.sessions, 'flush').mockImplementationOnce(async () => {
+      entered.resolve(undefined)
+      await release.promise
+      return false
+    })
+    const session = ctx.sessions.create(SessionId('root-close'))
+    await entered.promise
+    try {
+      const closing = ctx.fiber.dispose()
+      release.resolve(undefined)
+      await closing
+      expect(warn).not.toHaveBeenCalled()
+      expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
+    } finally {
+      release.resolve(undefined)
+    }
+  })
+
   it('flushes when the in-turn event count reaches the configured threshold', async () => {
     const { ctx, root } = await harness({ config: { writeEveryEvents: 3, writeIntervalMs: 60_000 } })
     const session = ctx.sessions.create(SessionId('count'))

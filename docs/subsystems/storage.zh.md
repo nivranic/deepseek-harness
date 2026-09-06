@@ -107,6 +107,8 @@ interface Domain<S extends DomainSpec> {
 
 ## 领域 facility：`ctx.storageDomain`
 
+`KvTable.put(key, value, ready?)` 立即预留队列位置。可选前置条件在接收时即被观察，并在后端 I/O 前等待完成；忽略其完成值，拒绝时不改变记录或发出事件。`close()` 包含已接收的前置条件等待。前置条件不得依赖同一领域的后续操作或关闭。每个领域向 `KvFacet.open` 提供 `onBackendClose` 回调，在后端释放单元前等待领域初始化和关闭完成；整个应用关闭时也遵守此顺序。
+
 `DomainFacility`（[签名](#ctxstoragedomain--domainfacility)）在经过路由的后端之上打开已声明的领域。路由是领域插件的配置，绝不属于枢纽：`backend` 指定必填的默认路由，`routes` 按领域名逐个覆盖。`open(spec)` 按严格顺序执行，每一步失败都使整个调用失败：拒绝已打开或仍在关闭中的名称（`already-open`），解析路由（`backend-not-found`），要求后端具备 `kv` facet（`facet-unsupported`），打开 unit（后端的 `version-mismatch`/`malformed-medium` 原样透传），并按 spec 的 zod schema 校验每条已存储记录和 global（`invalid-record`，附带出错的表与键）。调用方拥有返回的句柄，并用 `Domain.close()` 释放它；插件卸载时仍处于打开状态的领域由 facility 负责关闭，已关闭领域的名称只有在拆除完全结束后才释放出来供重新打开。`get(name)` 是无类型的诊断查找，命中的是每个类型化句柄背后包内私有的 `DomainImpl` 运行时；`closeAll()` 是卸载路径。
 
 ## 变更事件：`domain/changed`
