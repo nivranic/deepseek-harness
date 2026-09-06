@@ -109,7 +109,8 @@ jobs:
           validate-wrappers: true
 
       - name: Install Android compile SDK
-        run: sdkmanager 'platforms;android-36'
+        run: |
+          "${ANDROID_HOME:?Android SDK root is required}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36'
 
       - name: gradle test
         working-directory: apps/android

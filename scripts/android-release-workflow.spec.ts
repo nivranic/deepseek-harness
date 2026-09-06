@@ -1,7 +1,7 @@
 /** Exercise the hosted Linux artifact-preservation step with unsigned and rejected ZIP inputs. */
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { load } from 'js-yaml'
@@ -13,6 +13,28 @@ interface Workflow { jobs: { 'gradle-test': { steps: Step[] } } }
 const workflow = load(readFileSync('.github/workflows/android-kotlin.yml', 'utf8')) as Workflow
 const steps = workflow.jobs['gradle-test'].steps
 const preserve = steps.find(step => step.name === 'Preserve unsigned release bundle and R8 mapping')!
+
+it.skipIf(process.platform !== 'linux')('finds sdkmanager under an SDK root with spaces without requiring it on PATH', () => {
+  const root = mkdtempSync(join(tmpdir(), 'dsh android sdk '))
+  try {
+    const bin = join(root, 'cmdline-tools/latest/bin')
+    mkdirSync(bin, { recursive: true })
+    const executable = join(bin, 'sdkmanager')
+    writeFileSync(executable, '#!/bin/sh\n[ "$#" -eq 1 ] && [ "$1" = "platforms;android-36" ]\n')
+    chmodSync(executable, 0o700)
+    const supply = load(readFileSync('.github/workflows/supply-chain.yml', 'utf8')) as { jobs: { codeql: { steps: Step[] } } }
+    for (const workflowSteps of [steps, supply.jobs.codeql.steps]) {
+      const install = workflowSteps.find(step => step.name === 'Install Android compile SDK')!
+      expect(install.run).toBeTypeOf('string')
+      const result = spawnSync('/bin/bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', install.run!], {
+        env: { ...process.env, ANDROID_HOME: root, PATH: root }, encoding: 'utf8', timeout: 10_000,
+      })
+      expect(result.status, result.stderr).toBe(0)
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
 
 describe.skipIf(process.platform !== 'linux')('Android release artifact preservation on hosted Linux', () => {
   beforeAll(() => {

@@ -124,7 +124,8 @@ jobs:
           validate-wrappers: true
       - name: Install Android compile SDK
         if: matrix.language == 'java-kotlin'
-        run: sdkmanager 'platforms;android-36'
+        run: |
+          "${ANDROID_HOME:?Android SDK root is required}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36'
       - name: Generate Apple app targets
         if: matrix.language == 'swift'
         working-directory: apps/apple
