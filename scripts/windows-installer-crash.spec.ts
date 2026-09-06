@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join, resolve, sep } from 'node:path'
 import { promisify } from 'node:util'
 import { createHash } from 'node:crypto'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -11,11 +11,13 @@ const roots: string[] = []
 afterEach(async () => { for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }) })
 
 describe.skipIf(process.platform !== 'win32')('Windows installer crash diagnostics', () => {
-  async function observe(eventBody: string): Promise<{ output: string; result: unknown }> {
+  async function observe(eventBody: string, alias = false): Promise<{ output: string; result: unknown }> {
     const root = await mkdtemp(join(tmpdir(), 'dsh-installer-diagnostic-'))
     roots.push(root)
     const executable = join(root, 'installer.exe')
     await writeFile(executable, 'diagnostic bytes, never executed')
+    await mkdir(join(root, 'nested'))
+    const candidate = alias ? `${root}${sep}nested${sep}..${sep}installer.exe` : executable
     const wrapper = join(root, 'read.ps1')
     await writeFile(wrapper, `param($ScriptPath, $Candidate)
 function Get-WinEvent {
@@ -24,7 +26,7 @@ function Get-WinEvent {
 }
 & $ScriptPath -ExecutablePath $Candidate
 `)
-    const { stdout } = await promisify(execFile)('pwsh', ['-NoProfile', '-File', wrapper, script, executable], { windowsHide: true })
+    const { stdout } = await promisify(execFile)('pwsh', ['-NoProfile', '-File', wrapper, script, candidate], { windowsHide: true })
     return { output: stdout, result: JSON.parse(stdout) as unknown }
   }
 
@@ -70,5 +72,16 @@ function Get-WinEvent {
     const denied = await observe("throw 'synthetic-private-payload'")
     expect(denied.result).toMatchObject({ queryState: 'unavailable', records: [] })
     expect(empty.output + denied.output).not.toContain('synthetic-private-payload')
+  })
+
+  it('matches the supplied absolute spelling when file lookup resolves a different spelling', async () => {
+    const { result } = await observe(`
+  $xml = '<Event><System><Provider Name="Application Error"/><EventID>1000</EventID></System><EventData>' +
+    '<Data Name="AppPath">' + [Security.SecurityElement]::Escape($Candidate) + '</Data>' +
+    '<Data Name="ModuleName">ntdll.dll</Data><Data Name="ExceptionCode">C0000005</Data></EventData></Event>'
+  $item = [pscustomobject]@{ XmlText = $xml }
+  $item | Add-Member ScriptMethod ToXml { return $this.XmlText } -PassThru
+`, true)
+    expect(result).toMatchObject({ records: [{ module: 'ntdll.dll', exceptionCode: '0xc0000005' }] })
   })
 })

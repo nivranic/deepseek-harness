@@ -18,7 +18,7 @@ The [Windows producer](../../../../docs/development/windows-candidate.md) perfor
 
 Operation and cleanup failures remain distinguishable because startup acceptance and resource disposal are independent obligations. A cleanup exception does not replace the primary failure, and successful disposal does not grant acceptance to a failed operation.
 
-Installer crash diagnostics run in a separate failure-only step because a native exception can exit before the installer emits text. Exact executable-path matching excludes other applications, while selected event fields and executable digests support diagnosis without publishing full host event messages. Missing diagnostic records leave the original failure unresolved.
+Installer crash diagnostics run in a separate failure-only step because a native exception can exit before the installer emits text. Matching the supplied absolute path and its resolved full path preserves Windows filename aliases while excluding other applications; selected event fields and executable digests support diagnosis without publishing full host event messages. Missing diagnostic records leave the original failure unresolved.
 
 The NSIS portable launcher starts Electron through `ExecWait`, which does not inherit its redirected output handles. The verification adapter discovers loopback debugging addresses through HTTP and forwards only validated endpoints to Playwright. Keeping the actual portable launcher as a child preserves extraction, application close and launcher exit as required observations; launching an extracted executable separately would omit those behaviors.
 

@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 
 $executable = Get-Item -LiteralPath $ExecutablePath
 if ($executable.PSIsContainer) { throw 'Installer diagnostic input must be a file' }
+$requestedPath = $ExecutablePath.Replace('/', '\')
 $records = [Collections.Generic.List[object]]::new()
 $state = 'queried'
 $malformed = 0
@@ -27,7 +28,9 @@ foreach ($event in $events) {
         [string] $xml.Event.System.Provider.Name -ne 'Application Error') { continue }
     $fields = @{}
     foreach ($data in $xml.Event.EventData.Data) { $fields[[string] $data.Name] = [string] $data.'#text' }
-    if (-not [StringComparer]::OrdinalIgnoreCase.Equals($fields.AppPath, $executable.FullName)) { continue }
+    $matchesRequested = [IO.Path]::IsPathFullyQualified($requestedPath) -and
+        [StringComparer]::OrdinalIgnoreCase.Equals($fields.AppPath, $requestedPath)
+    if (-not $matchesRequested -and -not [StringComparer]::OrdinalIgnoreCase.Equals($fields.AppPath, $executable.FullName)) { continue }
     $module = [IO.Path]::GetFileName([string] $fields.ModuleName)
     if ($module -cnotmatch '^[A-Za-z0-9_.-]{1,128}$') { $module = $null }
     $exception = [string] $fields.ExceptionCode
