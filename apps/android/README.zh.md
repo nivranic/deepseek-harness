@@ -39,11 +39,24 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 共享传输固定使用 OkHttp 5.3.2。依赖升级必须同时通过 App 的 `:app:checkDebugAarMetadata`、`:app:assembleDebug` 和 core 测试：Gradle 会选择不同的 OkHttp JVM 与 Android 产物，纯 JVM 测试通过不能证明 Android SDK 兼容性。
 
-`./gradlew --no-daemon :app:lintRelease :app:validateReleaseBundle` 使用 R8 优化和资源收缩构建未签名 AAB，执行 release lint，并通过 bundletool 1.18.0 验证 bundle。产物位于 `app/build/outputs/bundle/release/app-release.aab` 和 `app/build/outputs/mapping/release/mapping.txt`。CI 拒绝已签名 bundle，并在验证后保留两个文件及其 checksum。[Release 基础](../../.agents/notes/implemented/process/2026-09-06-android-release-foundation.zh.md) 说明该证据与签名、release 设备验收、完整候选 provenance 的区别。
+在默认签名模式下，`./gradlew --no-daemon :app:lintRelease :app:validateReleaseBundle` 使用 R8 优化和资源收缩构建未签名 AAB，执行 release lint，并通过 bundletool 1.18.0 验证 bundle。产物位于 `app/build/outputs/bundle/release/app-release.aab` 和 `app/build/outputs/mapping/release/mapping.txt`。CI 拒绝已签名 bundle，并在验证后保留两个文件及其 checksum。[Release 基础](../../.agents/notes/implemented/process/2026-09-06-android-release-foundation.zh.md) 说明该证据与签名、release 设备验收、完整候选 provenance 的区别。
 
 JVM、Android 和 Compose 的 Kotlin 插件与实际解析的 Kotlin 标准库使用相同版本。[Android 分析输入](../../.agents/notes/implemented/process/2026-09-06-android-codeql-inputs.zh.md) 记录兼容的 AGP 配对和通知使用的显式 Activity 类映射。通知 instrumentation 检查实际 Android 通知与 immutable PendingIntent 注册项。
 
 App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose 的 `ULong` 构造器接收其专用 packed color 格式。未配对界面不会打开 Remote push stream。连接 Android 设备后，在本目录执行 `./gradlew --no-daemon :app:connectedDebugAndroidTest` 会启动真实 Activity，并在凭据恢复后验证配对首屏；测试会预先授予通知权限，将系统弹窗排除于该启动断言之外。Android workflow 在 API 34 模拟器中运行此检查，并保留 APK、checksum 和 instrumentation 报告。
+
+### Release 签名
+
+`DSH_ANDROID_SIGNING_MODE` 选择 `unsigned`（默认）或 `keystore`。Unsigned 构建拒绝任何已提供的 keystore 字段。Keystore 模式要求下表中的四个环境字段齐全，且 keystore 文件路径必须绝对、可读；未知模式、字段不全或文件无效都会拒绝 Gradle 配置。构建脚本将密码传给 Gradle 签名配置，不将值放入命令参数或诊断。Gradle 在实际签名时校验 keystore 凭据。
+
+| 环境字段 | 含义 |
+| --- | --- |
+| `DSH_ANDROID_SIGNING_STORE_FILE` | 调用方提供的 keystore 的绝对路径。 |
+| `DSH_ANDROID_SIGNING_STORE_PASSWORD` | Keystore 密码。 |
+| `DSH_ANDROID_SIGNING_KEY_ALIAS` | 签名密钥别名。 |
+| `DSH_ANDROID_SIGNING_KEY_PASSWORD` | 签名密钥密码。 |
+
+注入这些字段并选择 keystore 模式后，`./gradlew --no-daemon --no-configuration-cache :app:assembleRelease :app:validateReleaseBundle` 使用该密钥签署 release APK 和 AAB。候选验证时使用临时 debug key，并核对其公钥证书与实际产物；生产签名和分发保持为独立操作。Unsigned 基础 CI 在 bundle 验证后使用临时 debug keystore 测试签名，校验 APK 证书，并确认已验证的 unsigned AAB 字节没有变化。它还通过真实 Gradle 配置拒绝不完整或互相冲突的签名输入。
 
 ## 已知限制与延后工作
 

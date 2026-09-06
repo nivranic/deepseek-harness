@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.io.File
 
 plugins {
     id("com.android.application")
@@ -22,6 +23,36 @@ require(productVersionName.isNotBlank()) { "versionName must not be blank" }
 require(productVersionCode in 1..65535) { "versionCode must be from 1 to 65535" }
 require(productChannel in setOf("dev", "canary", "beta", "stable")) { "unknown product channel" }
 
+// Passwords stay in the environment and Gradle signing configuration, never in command arguments or diagnostics.
+class ReleaseSigningMaterial(val file: File, val storePassword: String, val alias: String, val keyPassword: String)
+
+val releaseSigningMode = providers.environmentVariable("DSH_ANDROID_SIGNING_MODE").getOrElse("unsigned")
+val releaseSigningNames = listOf("STORE_FILE", "STORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD")
+val releaseSigningValues = releaseSigningNames.associateWith {
+    providers.environmentVariable("DSH_ANDROID_SIGNING_$it").orNull
+}
+require(releaseSigningMode in setOf("unsigned", "keystore")) {
+    "DSH_ANDROID_SIGNING_MODE must be unsigned or keystore"
+}
+val releaseSigning = if (releaseSigningMode == "unsigned") {
+    require(releaseSigningValues.values.all { it == null }) {
+        "Unsigned Android builds must not receive DSH_ANDROID_SIGNING keystore inputs"
+    }
+    null
+} else {
+    fun signingValue(name: String): String = requireNotNull(releaseSigningValues[name]?.takeIf { it.isNotEmpty() }) {
+        "Keystore mode requires DSH_ANDROID_SIGNING_$name"
+    }
+    val store = File(signingValue("STORE_FILE"))
+    val storePassword = signingValue("STORE_PASSWORD")
+    val alias = signingValue("KEY_ALIAS")
+    val keyPassword = signingValue("KEY_PASSWORD")
+    require(store.isAbsolute && store.isFile && store.canRead()) {
+        "DSH_ANDROID_SIGNING_STORE_FILE must name an absolute readable keystore file"
+    }
+    ReleaseSigningMaterial(store, storePassword, alias, keyPassword)
+}
+
 android {
     namespace = "ai.deepseek.dsh.companion"
     compileSdk = 36
@@ -36,11 +67,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val releaseKeystore = releaseSigning?.let { material ->
+        signingConfigs.create("releaseKeystore") {
+            storeFile = material.file
+            storePassword = material.storePassword
+            keyAlias = material.alias
+            keyPassword = material.keyPassword
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = releaseKeystore
         }
     }
 
@@ -62,7 +103,7 @@ val bundletool by configurations.creating
 
 tasks.register<JavaExec>("validateReleaseBundle") {
     group = "verification"
-    description = "Validates the unsigned release AAB with the pinned bundletool."
+    description = "Validates the release AAB with the pinned bundletool."
     dependsOn("bundleRelease")
     classpath = bundletool
     mainClass.set("com.android.tools.build.bundletool.BundleToolMain")

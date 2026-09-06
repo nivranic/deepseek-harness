@@ -14,11 +14,14 @@ Status: implemented
 
 Release 构建使用 R8、Android 默认优化规则和资源收缩。固定版本的 bundletool 验证生成的 AAB。Workflow 拒绝 JAR 签名条目，并要求非空 R8 mapping，随后保留两个文件及 SHA-256 checksum。上传位于验证成功之后，不使用签名凭据。
 
+Release 签名默认为 `unsigned`。`keystore` 模式接收环境提供的完整文件路径、store 密码、别名和 key 密码。配置阶段拒绝未知模式、不完整输入、非绝对或不可读文件，以及向 unsigned 构建提供签名字段。构建脚本不输出凭据值，也不将其放入进程参数。Gradle 负责实际密钥校验和签名；签名产物仍需独立的证书和安装证据。
+
 ## Alternatives considered
 
 - 由 runner 安装 Gradle 会使本地构建依赖未记录的可执行文件。
 - Debug 装配没有覆盖 release 构建所执行的收缩和 bundle 路径。
 - 未签名 bundle 构建成功不能替代已安装 release 应用或已签名分发的验收。
+- 在签名配置不全时回退到 unsigned 输出，会掩盖签名请求失败。
 
 ## Consequences
 

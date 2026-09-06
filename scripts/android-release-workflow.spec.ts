@@ -81,14 +81,17 @@ describe.skipIf(process.platform !== 'linux')('Android release artifact preserva
 })
 
 it('runs bundle validation before preservation and publishes only after success', () => {
+  const signing = steps.findIndex(step => step.name === 'Verify Android signing configuration')
   const validate = steps.findIndex(step => step.name === 'Build and validate the unsigned release bundle')
   const preserveIndex = steps.indexOf(preserve)
   const upload = steps.findIndex(step => step.name === 'Upload unsigned Android release foundation')
   expect(validate).toBeGreaterThanOrEqual(0)
-  expect(preserveIndex).toBeGreaterThan(validate)
+  expect(signing).toBeGreaterThan(validate)
+  expect(steps[signing]?.run).toContain('test_android_signing.py')
+  expect(preserveIndex).toBeGreaterThan(signing)
   expect(upload).toBeGreaterThan(preserveIndex)
   expect(steps[validate]?.run).toContain(':app:lintRelease :app:validateReleaseBundle')
-  for (const index of [validate, preserveIndex, upload]) {
+  for (const index of [signing, validate, preserveIndex, upload]) {
     expect(steps[index]?.if).toBeUndefined()
     expect(steps[index]?.['continue-on-error']).toBeUndefined()
   }

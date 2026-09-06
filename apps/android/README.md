@@ -39,11 +39,24 @@ The [Android Kotlin](../../.github/workflows/android-kotlin.yml) lane and local 
 
 The shared transport pins OkHttp 5.3.2. Dependency updates must pass the app's `:app:checkDebugAarMetadata` and `:app:assembleDebug` tasks as well as the core tests: Gradle selects different OkHttp JVM and Android artifacts, and pure-JVM success does not establish Android SDK compatibility.
 
-`./gradlew --no-daemon :app:lintRelease :app:validateReleaseBundle` builds the unsigned AAB with R8 optimization and resource shrinking, runs release lint, and validates the bundle with bundletool 1.18.0. Outputs are `app/build/outputs/bundle/release/app-release.aab` and `app/build/outputs/mapping/release/mapping.txt`. CI rejects signed bundles and retains both files with checksums after validation. [Release foundation](../../.agents/notes/implemented/process/2026-09-06-android-release-foundation.md) explains the distinction from signing, release-device acceptance, and complete candidate provenance.
+With the default signing mode, `./gradlew --no-daemon :app:lintRelease :app:validateReleaseBundle` builds the unsigned AAB with R8 optimization and resource shrinking, runs release lint, and validates the bundle with bundletool 1.18.0. Outputs are `app/build/outputs/bundle/release/app-release.aab` and `app/build/outputs/mapping/release/mapping.txt`. CI rejects signed bundles and retains both files with checksums after validation. [Release foundation](../../.agents/notes/implemented/process/2026-09-06-android-release-foundation.md) explains the distinction from signing, release-device acceptance, and complete candidate provenance.
 
 The JVM, Android, and Compose Kotlin plugins use the same version as the resolved Kotlin standard library. [Android analysis inputs](../../.agents/notes/implemented/process/2026-09-06-android-codeql-inputs.md) records the supported AGP pairing and the notification's explicit Activity class mapping. The notification instrumentation checks the actual Android notification and immutable PendingIntent registry entry.
 
 The app converts the core's 32-bit ARGB tokens with `Color(token.toLong())`; Compose's `ULong` constructor consumes its own packed color format. The unpaired screen opens no Remote push stream. With a connected Android device, `./gradlew --no-daemon :app:connectedDebugAndroidTest` from this directory launches the real activity and verifies the pairing screen after credential restoration; the test grants notification permission to keep the system dialog outside this startup assertion. The Android workflow runs this check on an API 34 emulator and retains the APK, checksums, and instrumentation reports.
+
+### Release signing
+
+`DSH_ANDROID_SIGNING_MODE` selects `unsigned` (the default) or `keystore`. Unsigned builds reject any supplied keystore field. Keystore mode requires all four environment fields below and an absolute, readable keystore file; an unknown mode, incomplete fields, or an invalid file rejects Gradle configuration. The build script passes passwords to Gradle's signing configuration without placing their values in command arguments or diagnostics. Gradle validates the actual keystore credentials when signing.
+
+| Environment field | Meaning |
+| --- | --- |
+| `DSH_ANDROID_SIGNING_STORE_FILE` | Absolute path to the caller-provided keystore. |
+| `DSH_ANDROID_SIGNING_STORE_PASSWORD` | Keystore password. |
+| `DSH_ANDROID_SIGNING_KEY_ALIAS` | Signing key alias. |
+| `DSH_ANDROID_SIGNING_KEY_PASSWORD` | Signing key password. |
+
+After injecting those fields and selecting keystore mode, `./gradlew --no-daemon --no-configuration-cache :app:assembleRelease :app:validateReleaseBundle` signs the release APK and AAB with that key. For candidate verification, use a temporary debug key and verify its public certificate against the actual artifacts; production signing and distribution remain separate operations. The unsigned foundation CI tests signing with a temporary debug keystore after bundle validation, verifies the APK's certificate, and checks that the validated unsigned AAB bytes remain unchanged. It also rejects partial or conflicting signing inputs through real Gradle configuration.
 
 ## Known Limitations and Deferred Work
 

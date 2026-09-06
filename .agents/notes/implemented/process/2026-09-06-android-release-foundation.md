@@ -14,11 +14,14 @@ The [Android project](../../../../apps/android/README.md) commits the Gradle 8.1
 
 Release builds use R8, Android's optimized default rules, and resource shrinking. The pinned bundletool validates the resulting AAB. The workflow rejects JAR signature entries and requires a nonempty R8 mapping before preserving both files with SHA-256 checksums. Upload follows successful validation and uses no signing credentials.
 
+Release signing defaults to `unsigned`. The `keystore` mode accepts a complete environment-supplied file, store password, alias, and key password. Configuration rejects unknown modes, incomplete input, non-absolute or unreadable files, and signing fields supplied to unsigned builds. The build script does not print credential values or put them in process arguments. Gradle owns actual key validation and signing; a signed artifact still needs its own certificate and installation evidence.
+
 ## Alternatives considered
 
 - A runner-installed Gradle version leaves local builds dependent on an unrecorded executable.
 - Debug assembly omits the shrinking and bundle paths exercised by release builds.
 - A successful unsigned bundle cannot stand in for an installed release application or a signed distribution.
+- Falling back to unsigned output after partial signing configuration would conceal a failed signing request.
 
 ## Consequences
 
