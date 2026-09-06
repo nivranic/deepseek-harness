@@ -15,6 +15,9 @@ importers:
 
   .:
     devDependencies:
+      '@cyclonedx/cyclonedx-library':
+        specifier: 10.2.0
+        version: 10.2.0(ajv-formats-draft2019@1.6.1(ajv@8.20.0))(ajv-formats@3.0.1(ajv@8.20.0))(ajv@8.20.0)(spdx-expression-parse@5.0.0)
       '@deepseek-ai/dsh-tool-session-query':
         specifier: workspace:^
         version: link:packages/session-query/tool-session-query
@@ -51,6 +54,15 @@ importers:
       '@yarnpkg/cli-dist':
         specifier: 4.17.1
         version: 4.17.1
+      ajv:
+        specifier: 8.20.0
+        version: 8.20.0
+      ajv-formats:
+        specifier: 3.0.1
+        version: 3.0.1(ajv@8.20.0)
+      ajv-formats-draft2019:
+        specifier: 1.6.1
+        version: 1.6.1(ajv@8.20.0)
       electron-builder:
         specifier: 25.1.8
         version: 25.1.8(electron-builder-squirrel-windows@25.1.8)
@@ -11798,6 +11810,33 @@ packages:
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
     engines: {node: '>=20.19.0'}
 
+  '@cyclonedx/cyclonedx-library@10.2.0':
+    resolution: {integrity: sha512-hGeo1XXM0zuIeTyzJihxPxnEOeNBmgZkuPRmTR28RktlAqF9xLneonHRCzahZHLgCq/LOmtCs5vyojJlnmJ87w==}
+    engines: {node: '>=20.18.0'}
+    peerDependencies:
+      ajv: ^8.12.0
+      ajv-formats: ^3.0.1
+      ajv-formats-draft2019: ^1.6.1
+      libxmljs2: ^0.35||^0.37
+      packageurl-js: '*'
+      spdx-expression-parse: '*'
+      xmlbuilder2: ^3.0.2||^4.0.0
+    peerDependenciesMeta:
+      ajv:
+        optional: true
+      ajv-formats:
+        optional: true
+      ajv-formats-draft2019:
+        optional: true
+      libxmljs2:
+        optional: true
+      packageurl-js:
+        optional: true
+      spdx-expression-parse:
+        optional: true
+      xmlbuilder2:
+        optional: true
+
   '@develar/schema-utils@2.6.5':
     resolution: {integrity: sha512-0cp4PsWQ/9avqTVMCtZ+GirikIA36ikvjtHweU4/j8yLtgObI0+JUPhYFScgwlteveGB1rt3Cm8UhN04XayDig==}
     engines: {node: '>= 8.9.0'}
@@ -14438,6 +14477,11 @@ packages:
     resolution: {integrity: sha512-4I7Td01quW/RpocfNayFdFVk1qSuoh0E7JrbRJ16nH01HhKFQ88INq9Sd+nd72zqRySlr9BmDA8xlEJ6vJMrYA==}
     engines: {node: '>=8'}
 
+  ajv-formats-draft2019@1.6.1:
+    resolution: {integrity: sha512-JQPvavpkWDvIsBp2Z33UkYCtXCSpW4HD3tAZ+oL4iEFOk9obQZffx0yANwECt6vzr6ET+7HN5czRyqXbnq/u0Q==}
+    peerDependencies:
+      ajv: '*'
+
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
     peerDependencies:
@@ -14789,6 +14833,9 @@ packages:
   commander@15.0.0:
     resolution: {integrity: sha512-z67u4ZhzCL/Tydu1lJARtEZYWbWaN7oYLHbsuzocr6y4N6WZAagG3RQ4FW61V1/0+jImpj293XfrcYnd1qxtPg==}
     engines: {node: '>=22.12.0'}
+
+  commander@2.19.0:
+    resolution: {integrity: sha512-6tvAOO+D6OENvRAh524Dh9jcfKTYDQAqvqezbCW82xj5X0pSrcpxtvRKHLG0yBY6SD7PSDrJaj+0AiOcKVd1Xg==}
 
   commander@5.0.0:
     resolution: {integrity: sha512-JrDGPAKjMGSP1G0DUoaceEJ3DZgAfr/q6X7FVk4+U5KxUSKviYGM2k6zWkfyyBHy5rAtzgYJFa1ro2O9PtoxwQ==}
@@ -15168,6 +15215,9 @@ packages:
 
   dir-compare@4.2.0:
     resolution: {integrity: sha512-2xMCmOoMrdQIPHdsTawECdNPwlVFB9zGcz3kuhmBO6U3oU+UQjsue0i8ayLKpgBcm+hcXPMVSGUN9d+pvJ6+VQ==}
+
+  discontinuous-range@1.0.0:
+    resolution: {integrity: sha512-c68LpLbO+7kP/b1Hr1qs8/BJ09F5khZGTxqxZuhzxpmwJKOgRFHJWIb9/KmqnqHhLdO55aOxFH/EGBvUQbL/RQ==}
 
   dmg-builder@25.1.8:
     resolution: {integrity: sha512-NoXo6Liy2heSklTI5OIZbCgXC1RzrDQsZkeEwXhdOro3FT1VBOvbubvscdPnjVuQ4AMwwv61oaH96AbiYg9EnQ==}
@@ -16649,6 +16699,9 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  moo@0.5.3:
+    resolution: {integrity: sha512-m2fmM2dDm7GZQsY7KK2cme8agi+AAljILjQnof7p1ZMDe6dQ4bdnSMx0cPppudoeNv5hEFQirN6u+O4fDE0IWA==}
+
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -16669,6 +16722,10 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  nearley@2.20.1:
+    resolution: {integrity: sha512-+Mc8UaAebFzgV+KpI5n7DasuuQCHA89dmwm7JXw3TV43ukfNQ9DnBH3Mdb2g/I4Fdxc26pwimBWvjIw0UAILSQ==}
+    hasBin: true
 
   negotiator@0.6.4:
     resolution: {integrity: sha512-myRT3DiWPHqho5PrJaIRyaMv2kgYf0mUVgBNOYMuCH5Ki1yEiQaf/ZJuQ62nvpc44wL5WDbTX7yGJi1Neevw8w==}
@@ -17121,6 +17178,13 @@ packages:
     resolution: {integrity: sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==}
     engines: {node: '>=10'}
 
+  railroad-diagrams@1.0.0:
+    resolution: {integrity: sha512-cz93DjNeLY0idrCNOH6PviZGRN9GJhsdm9hpn1YCS879fj4W+x5IFJhhkRZcwVgMmFF7R82UA/7Oh+R8lLZg6A==}
+
+  randexp@0.4.6:
+    resolution: {integrity: sha512-80WNmd9DA0tmZrw9qQa62GPPWfuXJknrmVmLcxvq4uZBdYqb1wYoKTmnlGUchvVWe0XiLupYkBoXVOxz3C8DYQ==}
+    engines: {node: '>=0.12'}
+
   range-parser@1.3.0:
     resolution: {integrity: sha512-hek2mFQpPuI4E1BBKrSto+BU3e3x4xuarsbiwr3+lf7p44juvFMV0XFWQAP3xUyqXA4RrXLIoaSUGbSt056ZMw==}
     engines: {node: '>= 0.6'}
@@ -17220,6 +17284,10 @@ packages:
     resolution: {integrity: sha512-l+sSefzHpj5qimhFSE5a8nufZYAM3sBSVMAPtYkmC+4EH2anSGaEMXSD0izRQbu9nfyQ9y5JrVmp7E8oZrUjvA==}
     engines: {node: '>=8'}
 
+  ret@0.1.15:
+    resolution: {integrity: sha512-TTlYpa+OL+vMMNG24xSlQGEJ3B/RzEfUlLct7b5G/ytav+wPrplCpVMFuwzXbkecJrb6IYo1iFb0S9v37754mg==}
+    engines: {node: '>=0.12'}
+
   retry@0.12.0:
     resolution: {integrity: sha512-9LkiTwjUh6rT555DtE9rTX+BKByPfrMzEAtnlEtdEwr3Nkffwiihqe2bWADg+OQRjt9gl6ICdmB/ZFDCGAtSow==}
     engines: {node: '>= 4'}
@@ -17317,6 +17385,9 @@ packages:
 
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
+
+  schemes@1.4.0:
+    resolution: {integrity: sha512-ImFy9FbCsQlVgnE3TCWmLPCFnVzx0lHL/l+umHplDqAKd0dzFpnS6lFZIpagBlYhKwzVmlV36ec0Y1XTu8JBAQ==}
 
   scslre@0.3.0:
     resolution: {integrity: sha512-3A6sD0WYP7+QrjbfNA2FN3FsOaGGFoekCVgTyypy53gPxhbkCIjtO6YWgdrfM+n/8sI8JeXZOIxsHjMTNxQ4nQ==}
@@ -17435,6 +17506,10 @@ packages:
   smol-toml@1.7.1:
     resolution: {integrity: sha512-PPlsspAZ4jbMBu5DMFhfUGDQLu/vrL4SyBROVS37x8ynnVmFIs1VPBz1Co8Xks3TvpIaZXmU85y4DrQ+UyVFoQ==}
     engines: {node: '>= 18'}
+
+  smtp-address-parser@1.1.0:
+    resolution: {integrity: sha512-Gz11jbNU0plrReU9Sj7fmshSBxxJ9ShdD2q4ktHIHo/rpTH6lFyQoYHYKINPJtPe8aHFnsbtW46Ls0tCCBsIZg==}
+    engines: {node: '>=0.10'}
 
   socks-proxy-agent@6.1.1:
     resolution: {integrity: sha512-t8J0kG3csjA4g6FTbsMOWws+7R7vuRC8aQ/wy3/1OWmsgwA68zs/+cExQ0koSitUDXqhufF/YJr9wtNMZHw5Ew==}
@@ -18812,6 +18887,13 @@ snapshots:
       css-tree: 3.2.1
 
   '@csstools/css-tokenizer@4.0.0': {}
+
+  '@cyclonedx/cyclonedx-library@10.2.0(ajv-formats-draft2019@1.6.1(ajv@8.20.0))(ajv-formats@3.0.1(ajv@8.20.0))(ajv@8.20.0)(spdx-expression-parse@5.0.0)':
+    optionalDependencies:
+      ajv: 8.20.0
+      ajv-formats: 3.0.1(ajv@8.20.0)
+      ajv-formats-draft2019: 1.6.1(ajv@8.20.0)
+      spdx-expression-parse: 5.0.0
 
   '@develar/schema-utils@2.6.5':
     dependencies:
@@ -21028,6 +21110,14 @@ snapshots:
       clean-stack: 2.2.0
       indent-string: 4.0.0
 
+  ajv-formats-draft2019@1.6.1(ajv@8.20.0):
+    dependencies:
+      ajv: 8.20.0
+      punycode: 2.3.1
+      schemes: 1.4.0
+      smtp-address-parser: 1.1.0
+      uri-js: 4.4.1
+
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
       ajv: 8.20.0
@@ -21457,6 +21547,8 @@ snapshots:
 
   commander@15.0.0: {}
 
+  commander@2.19.0: {}
+
   commander@5.0.0: {}
 
   commander@7.2.0: {}
@@ -21841,6 +21933,8 @@ snapshots:
     dependencies:
       minimatch: 3.1.5
       p-limit: 3.1.0
+
+  discontinuous-range@1.0.0: {}
 
   dmg-builder@25.1.8(electron-builder-squirrel-windows@25.1.8):
     dependencies:
@@ -23746,6 +23840,8 @@ snapshots:
 
   mkdirp@1.0.4: {}
 
+  moo@0.5.3: {}
+
   mri@1.2.0: {}
 
   ms@2.0.0: {}
@@ -23757,6 +23853,13 @@ snapshots:
   nanoid@3.3.12: {}
 
   natural-compare@1.4.0: {}
+
+  nearley@2.20.1:
+    dependencies:
+      commander: 2.19.0
+      moo: 0.5.3
+      railroad-diagrams: 1.0.0
+      randexp: 0.4.6
 
   negotiator@0.6.4: {}
 
@@ -24237,6 +24340,13 @@ snapshots:
 
   quick-lru@5.1.1: {}
 
+  railroad-diagrams@1.0.0: {}
+
+  randexp@0.4.6:
+    dependencies:
+      discontinuous-range: 1.0.0
+      ret: 0.1.15
+
   range-parser@1.3.0: {}
 
   raw-body@3.0.2:
@@ -24341,6 +24451,8 @@ snapshots:
     dependencies:
       onetime: 5.1.0
       signal-exit: 3.0.7
+
+  ret@0.1.15: {}
 
   retry@0.12.0: {}
 
@@ -24497,6 +24609,10 @@ snapshots:
   scheduler@0.23.2:
     dependencies:
       loose-envify: 1.4.0
+
+  schemes@1.4.0:
+    dependencies:
+      extend: 3.0.2
 
   scslre@0.3.0:
     dependencies:
@@ -24664,6 +24780,10 @@ snapshots:
   smol-toml@1.6.1: {}
 
   smol-toml@1.7.1: {}
+
+  smtp-address-parser@1.1.0:
+    dependencies:
+      nearley: 2.20.1
 
   socks-proxy-agent@6.1.1:
     dependencies:

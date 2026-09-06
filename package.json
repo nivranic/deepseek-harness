@@ -133,6 +133,8 @@
     "verify-export-jsdoc": "tsx scripts/verify-export-jsdoc.ts",
     "verify-link-contracts": "tsx scripts/verify-link-contracts.ts",
     "verify-product-identity": "tsx scripts/verify-product-identity.ts",
+    "verify-rc-candidate": "tsx scripts/verify-rc-candidate.ts",
+    "verify-rc-policy": "tsx scripts/verify-rc-policy.ts",
     "verify-workflow-security": "tsx scripts/verify-workflow-security.ts",
     "verify-required-checks": "tsx scripts/verify-required-checks.ts",
     "collect-ci-evidence": "tsx scripts/collect-ci-evidence.ts",
@@ -163,6 +165,7 @@
     "website:dev": "pnpm run docs:dev"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-library": "10.2.0",
     "@deepseek-ai/dsh-tool-session-query": "workspace:^",
     "@deepseek-ai/dsh-web-fetch-http": "workspace:^",
     "@stylistic/eslint-plugin": "^5.10.0",
@@ -175,6 +178,9 @@
     "@types/spdx-expression-parse": "^4.0.0",
     "@vitest/coverage-v8": "^4.1.8",
     "@yarnpkg/cli-dist": "4.17.1",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "ajv-formats-draft2019": "1.6.1",
     "electron-builder": "25.1.8",
     "eslint-plugin-sonarjs": "^4.1.0",
     "execa": "^10.0.0",

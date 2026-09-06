@@ -21,7 +21,7 @@ Application packaging reads one SemVer from the [root manifest](../../package.js
 
 The root `package.json.version` is the application SemVer owner. `release/product.json` accepts exactly `schemaVersion: 1`, `buildNumber`, and `channel`. Build numbers are explicit integers from 1 to 65535. A new distributed candidate must advance the previous distributed build number across versions and channels; retrying the same artifact retains its identity. The comparison belongs to candidate distribution, while the parser validates each individual identity.
 
-The release sequence accepts canonical SemVer without build metadata. Numeric version components fit Windows unsigned 16-bit file-version fields. The generated marketing version removes the prerelease suffix; the full SemVer remains available in embedded metadata. Source SHA and artifact digests belong in the candidate manifest, avoiding a self-reference in committed generated files.
+The release sequence accepts canonical SemVer without build metadata. Numeric version components fit Windows unsigned 16-bit file-version fields. The generated marketing version removes the prerelease suffix; the full SemVer remains available in embedded metadata. Source SHA and artifact digests belong in the [candidate manifest](release-candidate.md), avoiding a self-reference in committed generated files.
 
 -----
 

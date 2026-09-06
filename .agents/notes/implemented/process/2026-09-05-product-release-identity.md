@@ -26,6 +26,6 @@ Unsigned Windows packaging edits PE version resources independently of signing. 
 
 ## Consequences
 
-Platform numeric limits constrain the shared identity. A new distributed candidate must advance its build number across versions and channels; same-artifact retries retain it. Identity parsing alone cannot enforce the comparison with the previous distributed manifest, nor prove signing, installation, or release readiness.
+Platform numeric limits constrain the shared identity. A new distributed candidate must advance its build number across versions and channels; same-artifact retries retain it. The [candidate integrity verifier](2026-09-06-candidate-artifact-integrity.md) owns comparison with a retained distribution manifest. Identity parsing alone cannot prove signing, installation, or release readiness.
 
 Required verification covers invalid metadata, channel/version mismatch, numeric overflow, missing and stale projections, release planning without writes, and actual embedded platform metadata. Apple settings and Info.plist comparison rejects divergence independently. Packaging and release evidence remain separate from these source checks.

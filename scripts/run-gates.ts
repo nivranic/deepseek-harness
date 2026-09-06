@@ -276,6 +276,7 @@ export function gatesForMode(selected: Mode): Gate[] {
 function ciSharedStaticGates(): Gate[] {
   return [
     pnpmScript('product-identity', 'verify-product-identity', { label: 'product identity' }),
+    pnpmScript('rc-policy', 'verify-rc-policy', { label: 'RC policy' }),
     pnpmScript('workflow-security', 'verify-workflow-security', { label: 'workflow security' }),
     pnpmScript('required-checks', 'verify-required-checks', { label: 'required checks' }),
     pnpmScript('runtime-closure', 'verify-runtime-closure', { label: 'runtime closure' }),
@@ -673,6 +674,7 @@ function hygieneLeafGates(options: { artifactNeeds?: string[] } = {}): Gate[] {
     pnpmScript('knip', 'knip'),
     pnpmScript('link-contracts', 'verify-link-contracts', { label: 'link contracts' }),
     pnpmScript('product-identity', 'verify-product-identity', { label: 'product identity' }),
+    pnpmScript('rc-policy', 'verify-rc-policy', { label: 'RC policy' }),
     pnpmScript('workflow-security', 'verify-workflow-security', { label: 'workflow security' }),
     pnpmScript('required-checks', 'verify-required-checks', { label: 'required checks' }),
     pnpmScript('publint', 'publint', artifactOptions),

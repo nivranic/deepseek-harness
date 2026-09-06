@@ -21,7 +21,7 @@
 
 根 `package.json.version` 拥有应用 SemVer。`release/product.json` 仅接受 `schemaVersion: 1`、`buildNumber` 和 `channel`。构建号是显式记录的 1 到 65535 整数。新的分发候选必须相对上一已分发构建递增，包括跨版本和渠道；重试同一产物时保留标识。递增比较由候选分发负责，解析器验证单份标识。
 
-发布序列接受不含 build metadata 的规范 SemVer。数字版本分量必须适配 Windows 无符号 16 位文件版本字段。生成的 marketing version 去掉预发布后缀，完整 SemVer 仍保留在内嵌元数据中。源码 SHA 与产物摘要属于候选 manifest（元数据清单），避免在已提交生成文件中形成自引用。
+发布序列接受不含 build metadata 的规范 SemVer。数字版本分量必须适配 Windows 无符号 16 位文件版本字段。生成的 marketing version 去掉预发布后缀，完整 SemVer 仍保留在内嵌元数据中。源码 SHA 与产物摘要属于[候选 manifest（元数据清单）](release-candidate.zh.md)，避免在已提交生成文件中形成自引用。
 
 -----
 
