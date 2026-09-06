@@ -23,6 +23,7 @@ export function desktopBuildOptions(stageDir: string, outputDir: string, identit
       appId: 'com.deepseek.dsh',
       productName: 'DeepSeek Harness',
       buildVersion: identity.windowsFileVersion,
+      buildNumber: String(identity.buildNumber),
       publish: null,
       // An explicit empty link overrides ambient CSC_LINK and WIN_CSC_LINK.
       cscLink: '',

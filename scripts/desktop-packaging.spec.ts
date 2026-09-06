@@ -1,9 +1,9 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Format, NtExecutable, NtExecutableResource, Resource } from 'resedit'
-import type { AfterPackContext, Configuration } from 'electron-builder'
+import { AppInfo, type AfterPackContext, type Configuration, type Packager } from 'electron-builder'
 import { desktopBuildOptions } from './desktop-packaging.ts'
 import { parseProductIdentity } from './release/product-identity.ts'
 import { rewriteWindowsExecutableVersion } from './release/windows-executable-version.ts'
@@ -12,6 +12,7 @@ const identity = parseProductIdentity({ version: '12.34.56-beta.2' }, { schemaVe
 const directories: string[] = []
 
 afterEach(async () => {
+  vi.unstubAllEnvs()
   await Promise.all(directories.splice(0).map(directory => rm(directory, { recursive: true, force: true })))
 })
 
@@ -77,6 +78,17 @@ describe('Windows executable application identity', () => {
 })
 
 describe('desktop candidate builder', () => {
+  it('pins numeric installer versions to release metadata instead of CI environment numbers', () => {
+    vi.stubEnv('BUILD_NUMBER', '9999')
+    const config = desktopBuildOptions('/deployed-app', '/output', identity).config as Configuration
+    const appInfo = new AppInfo({
+      config,
+      metadata: { name: 'desktop-fixture', version: identity.version },
+    } as Packager, undefined)
+    expect(appInfo.getVersionInWeirdWindowsForm()).toBe('12.34.56.43210')
+    expect(appInfo.buildVersion).toBe('12.34.56.43210')
+  })
+
   it('writes application versions in afterPack before installers consume the unsigned executable', async () => {
     const output = await mkdtemp(join(tmpdir(), 'dsh-desktop-version-'))
     directories.push(output)

@@ -14,7 +14,7 @@ Status: implemented
 
 应用标识扩展 [npm 发布序列](2026-08-10-npm-release-sequences.zh.md)，不取代其中独立的 vendor 与 native 发布所有权。dsh 版本规划器验证发布元数据，并将生成的平台输入纳入正常提交。渠道选择改变分发元数据，不启用 runtime capability，也不改变协议准入。
 
-未签名的 Windows 打包独立编辑 PE 版本资源。electron-builder 编程接口的 `afterPack` 回调在安装器收集可执行文件之前使用 `resedit`，保留非版本资源和可执行节。这避免了原生资源编辑器工具包解压时在 Windows 上创建 macOS 符号链接的要求。该生产者禁用发布，并提供不执行任何证书操作的签名回调；编辑前拒绝已签名输入，防止静默破坏签名。
+未签名的 Windows 打包独立编辑 PE 版本资源。electron-builder 编程接口的 `afterPack` 回调在安装器收集可执行文件之前使用 `resedit`，保留非版本资源和可执行节。这避免了原生资源编辑器工具包解压时在 Windows 上创建 macOS 符号链接的要求。`buildVersion` 和 `buildNumber` 都显式传入，因为 NSIS 独立地从后者派生数字版本字段；环境中的 CI 计数器不能替换发布元数据。该生产者禁用发布，并提供不执行任何证书操作的签名回调；编辑前拒绝已签名输入，防止静默破坏签名。
 
 ## 考虑过的替代方案
 
