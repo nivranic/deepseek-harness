@@ -1109,7 +1109,7 @@ describe('Native Link real-Host acceptance workflows', () => {
     expect(runner).toContain('ctx.subprocess.spawn')
     expect(runner).toContain('nativeDriverProcessArgv(driver)')
     expect(runner).toContain("process.platform === 'win32' && driver.language === 'kotlin'")
-    expect(runner).toContain("['cmd.exe', '/d', '/s', '/c', ...driver.argv]")
+    expect(runner).toContain("['cmd.exe', '/d', '/s', '/c', 'apps\\\\android\\\\gradlew.bat', ...driver.argv.slice(1)]")
     expect(runner).toContain('DSH_HOME: home')
     expect(runner).toContain('DSH_LINK_ACCEPTANCE_CONFIG: configPath')
     expect(runner).toContain('await child.waitForExit()')

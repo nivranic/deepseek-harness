@@ -104,22 +104,23 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # No committed wrapper: the action provisions the pinned Gradle and
-      # caches its dependencies per project.
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
         with:
-          gradle-version: '8.14'
+          validate-wrappers: true
+
+      - name: Install Android compile SDK
+        run: sdkmanager 'platforms;android-36'
 
       - name: gradle test
         working-directory: apps/android
-        run: gradle --no-daemon test
+        run: ./gradlew --no-daemon test
 
       - name: Build Host plugins for native acceptance
         run: pnpm run build:official
 
       - name: Real Host to Kotlin acceptance
         env:
-          DSH_LINK_ACCEPTANCE_DRIVER_JSON: '["gradle","--no-daemon","-p","apps/android",":core:nativeAcceptance"]'
+          DSH_LINK_ACCEPTANCE_DRIVER_JSON: '["apps/android/gradlew","--no-daemon","-p","apps/android",":core:nativeAcceptance"]'
           DSH_LINK_ACCEPTANCE_LANGUAGE: kotlin
           DSH_LINK_ACCEPTANCE_RESULT: ${{ runner.temp }}/g1-link-acceptance/kotlin/evidence.json
         run: pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0
@@ -137,7 +138,33 @@ jobs:
       # runner image ships the Android SDK with accepted licenses.
       - name: assemble the debug APK
         working-directory: apps/android
-        run: gradle --no-daemon :app:assembleDebug
+        run: ./gradlew --no-daemon :app:assembleDebug
+
+      - name: Build and validate the unsigned release bundle
+        working-directory: apps/android
+        run: ./gradlew --no-daemon :app:lintRelease :app:validateReleaseBundle
+
+      - name: Preserve unsigned release bundle and R8 mapping
+        working-directory: apps/android/app/build/outputs
+        run: |
+          unzip -t bundle/release/app-release.aab
+          unzip -Z1 bundle/release/app-release.aab > release-entries.txt
+          if grep -Ei '^META-INF/[^/]+\.(RSA|DSA|EC|SF)$' release-entries.txt; then
+            echo 'Release foundation requires an unsigned bundle' >&2
+            exit 1
+          fi
+          test -s mapping/release/mapping.txt
+          mkdir release-foundation
+          cp bundle/release/app-release.aab mapping/release/mapping.txt release-foundation/
+          cd release-foundation
+          sha256sum app-release.aab mapping.txt > SHA256SUMS
+
+      - name: Upload unsigned Android release foundation
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: android-release-foundation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: apps/android/app/build/outputs/release-foundation/
+          if-no-files-found: error
 
       - name: Allow the runner to use KVM
         run: sudo chown "$USER" /dev/kvm
@@ -150,7 +177,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           working-directory: apps/android
-          script: gradle --no-daemon :app:connectedDebugAndroidTest
+          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
 
       - name: Record Android artifact checksums
         working-directory: apps/android/app/build/outputs/apk/debug

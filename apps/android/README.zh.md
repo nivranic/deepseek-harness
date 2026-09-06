@@ -35,13 +35,15 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 应用版本和内嵌分发渠道来自[公共应用发布标识](../../docs/development/product-release-identity.zh.md)。Gradle 读取生成的 properties，不使用兜底版本。
 
-[Android Kotlin](../../.github/workflows/android-kotlin.yml) 车道在 Ubuntu 上运行 `gradle test`、对 shipped Host composition 执行独立 `:core:nativeAcceptance` driver，并运行 `:app:assembleDebug`（JDK 17、Gradle 8.14、不提交 wrapper、用 runner 的 Android SDK）；本地任何 Gradle 8.14+ 配 JDK 17 工具链加 Android SDK 即可。
+[Android Kotlin](../../.github/workflows/android-kotlin.yml) 车道和本地构建使用已提交的 Gradle 8.14 wrapper、经验证的分发 SHA-256、JDK 17 和 Android SDK 36。在本目录执行 `./gradlew --no-daemon test :app:assembleDebug`（Windows 使用 `gradlew.bat`）。CI 还对正式 Host composition 运行独立的 `:core:nativeAcceptance` driver。App 的编译和目标 API 均为 36，最低 API 保持 33。
 
-共享传输固定使用 OkHttp 5.3.2，以兼容 App 的 API 35 编译 SDK。依赖升级必须同时通过 App 的 `:app:checkDebugAarMetadata`、`:app:assembleDebug` 和 core 测试：Gradle 会选择不同的 OkHttp JVM 与 Android 产物，纯 JVM 测试通过不能证明 Android SDK 兼容性。
+共享传输固定使用 OkHttp 5.3.2。依赖升级必须同时通过 App 的 `:app:checkDebugAarMetadata`、`:app:assembleDebug` 和 core 测试：Gradle 会选择不同的 OkHttp JVM 与 Android 产物，纯 JVM 测试通过不能证明 Android SDK 兼容性。
+
+`./gradlew --no-daemon :app:lintRelease :app:validateReleaseBundle` 使用 R8 优化和资源收缩构建未签名 AAB，执行 release lint，并通过 bundletool 1.18.0 验证 bundle。产物位于 `app/build/outputs/bundle/release/app-release.aab` 和 `app/build/outputs/mapping/release/mapping.txt`。CI 拒绝已签名 bundle，并在验证后保留两个文件及其 checksum。[Release 基础](../../.agents/notes/implemented/process/2026-09-06-android-release-foundation.zh.md) 说明该证据与签名、release 设备验收、完整候选 provenance 的区别。
 
 JVM、Android 和 Compose 的 Kotlin 插件与实际解析的 Kotlin 标准库使用相同版本。[Android 分析输入](../../.agents/notes/implemented/process/2026-09-06-android-codeql-inputs.zh.md) 记录兼容的 AGP 配对和通知使用的显式 Activity 类映射。通知 instrumentation 检查实际 Android 通知与 immutable PendingIntent 注册项。
 
-App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose 的 `ULong` 构造器接收其专用 packed color 格式。未配对界面不会打开 Remote push stream。连接 Android 设备后，`gradle --no-daemon -p apps/android :app:connectedDebugAndroidTest` 会启动真实 Activity，并在凭据恢复后验证配对首屏；测试会预先授予通知权限，将系统弹窗排除于该启动断言之外。Android workflow 在 API 34 模拟器中运行此检查，并保留 APK、checksum 和 instrumentation 报告。
+App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose 的 `ULong` 构造器接收其专用 packed color 格式。未配对界面不会打开 Remote push stream。连接 Android 设备后，在本目录执行 `./gradlew --no-daemon :app:connectedDebugAndroidTest` 会启动真实 Activity，并在凭据恢复后验证配对首屏；测试会预先授予通知权限，将系统弹窗排除于该启动断言之外。Android workflow 在 API 34 模拟器中运行此检查，并保留 APK、checksum 和 instrumentation 报告。
 
 ## 已知限制与延后工作
 

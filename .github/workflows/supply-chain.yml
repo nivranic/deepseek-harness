@@ -120,8 +120,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
         if: matrix.language == 'java-kotlin'
         with:
-          gradle-version: '8.14'
           cache-disabled: true
+          validate-wrappers: true
+      - name: Install Android compile SDK
+        if: matrix.language == 'java-kotlin'
+        run: sdkmanager 'platforms;android-36'
       - name: Generate Apple app targets
         if: matrix.language == 'swift'
         working-directory: apps/apple
@@ -136,7 +139,7 @@ jobs:
       - name: Compile Kotlin core and Android app
         if: matrix.language == 'java-kotlin'
         working-directory: apps/android
-        run: gradle --no-daemon --no-build-cache --rerun-tasks :core:classes :app:assembleDebug
+        run: ./gradlew --no-daemon --no-build-cache --rerun-tasks :core:classes :app:assembleDebug
       - name: Compile Swift package and Apple apps
         if: matrix.language == 'swift'
         working-directory: apps/apple

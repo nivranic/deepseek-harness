@@ -99,7 +99,7 @@ const STEP_IDS = [
 ] as const
 const NATIVE_ARGV = {
   swift: ['swift', 'run', '--package-path', 'apps/apple', 'LinkNativeAcceptance'],
-  kotlin: ['gradle', '--no-daemon', '-p', 'apps/android', ':core:nativeAcceptance'],
+  kotlin: ['apps/android/gradlew', '--no-daemon', '-p', 'apps/android', ':core:nativeAcceptance'],
 } as const
 const HOST_EXECUTION_INPUTS = [
   '.gitignore',
@@ -1876,10 +1876,10 @@ async function removeNativeCandidate(candidateResultPath: string): Promise<void>
 
 /** Select an OS-spawnable argv after external drivers pass the canonical-token check. */
 function nativeDriverProcessArgv(driver: NativeDriver): readonly string[] {
-  // Node cannot spawn the Gradle .bat shim directly. The canonical argv has no
+  // Node cannot spawn the Gradle .bat wrapper directly. The canonical argv has no
   // caller-controlled token when cmd.exe interprets it.
   return process.platform === 'win32' && driver.language === 'kotlin'
-    ? ['cmd.exe', '/d', '/s', '/c', ...driver.argv]
+    ? ['cmd.exe', '/d', '/s', '/c', 'apps\\android\\gradlew.bat', ...driver.argv.slice(1)]
     : driver.argv
 }
 

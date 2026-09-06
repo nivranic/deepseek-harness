@@ -24,12 +24,12 @@ require(productChannel in setOf("dev", "canary", "beta", "stable")) { "unknown p
 
 android {
     namespace = "ai.deepseek.dsh.companion"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.deepseek.harness.companion"
         minSdk = 33
-        targetSdk = 35
+        targetSdk = 36
         versionCode = productVersionCode
         versionName = productVersionName
         manifestPlaceholders["dshProductChannel"] = productChannel
@@ -38,7 +38,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
 
@@ -56,7 +58,19 @@ android {
     }
 }
 
+val bundletool by configurations.creating
+
+tasks.register<JavaExec>("validateReleaseBundle") {
+    group = "verification"
+    description = "Validates the unsigned release AAB with the pinned bundletool."
+    dependsOn("bundleRelease")
+    classpath = bundletool
+    mainClass.set("com.android.tools.build.bundletool.BundleToolMain")
+    args("validate", "--bundle=${layout.buildDirectory.file("outputs/bundle/release/app-release.aab").get().asFile}")
+}
+
 dependencies {
+    bundletool("com.android.tools.build:bundletool:1.18.0")
     implementation(project(":core"))
     val composeBom = platform("androidx.compose:compose-bom:2025.01.00")
     implementation(composeBom)
