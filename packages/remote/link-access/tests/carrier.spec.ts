@@ -1,15 +1,26 @@
 import { connect as tcpConnect } from 'node:net'
 import { createHash, createPublicKey, generateKeyPairSync, sign as edSign } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { request as httpsRequest } from 'node:https'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { Context as RootContext } from '@deepseek-ai/cordis'
 import { apply as applyConnection, inject as connectionInject } from '@deepseek-ai/dsh-client-connection'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
-import TypertGatewayService from '@deepseek-ai/dsh-api-gateway'
-import DeviceTrustStore from '@deepseek-ai/dsh-device-trust'
+import TypertGatewayService, {
+  type TypertRemoteEventDispatch,
+  type TypertRemoteEventInvocation,
+  type TypertRemoteEventOutcome,
+} from '@deepseek-ai/dsh-api-gateway'
+import type { TypertContextMap, TypertContextWire } from '@deepseek-ai/dsh-typert-protocol'
+import DeviceTrustStore, {
+  DeviceSessionGrantId,
+  DeviceWorkspaceGrantId,
+  type DeviceAccess,
+  type DeviceId,
+} from '@deepseek-ai/dsh-device-trust'
 import LinkAccessService from '../src/index.ts'
 import { linkSigningInput } from '../src/protocol.ts'
 import {
@@ -25,8 +36,69 @@ import {
   type TestDevice,
 } from './link-harness.ts'
 
+type AgentWireId = TypertContextWire<TypertContextMap['agent']>
+
+class RemoteEventSourceProbe {
+  private readonly dispatches: TypertRemoteEventDispatch[] = []
+  private wake: (() => void) | undefined
+
+  readonly source = (signal: AbortSignal): AsyncIterable<TypertRemoteEventDispatch> => this.iterate(signal)
+
+  push(dispatch: TypertRemoteEventDispatch): void {
+    this.dispatches.push(dispatch)
+    this.wake?.()
+    this.wake = undefined
+  }
+
+  private async *iterate(signal: AbortSignal): AsyncGenerator<TypertRemoteEventDispatch> {
+    const wake = (): void => { this.wake?.() }
+    signal.addEventListener('abort', wake, { once: true })
+    try {
+      while (!signal.aborted) {
+        while (this.dispatches.length > 0) yield this.dispatches.shift() as TypertRemoteEventDispatch
+        if (signal.aborted) return
+        await new Promise<void>((resolve) => { this.wake = resolve })
+        this.wake = undefined
+      }
+    } finally {
+      signal.removeEventListener('abort', wake)
+    }
+  }
+}
+
+function pendingInteraction(agent: RootContext): {
+  readonly dispatch: TypertRemoteEventInvocation
+  readonly outcome: Promise<TypertRemoteEventOutcome>
+} {
+  const outcome = Promise.withResolvers<TypertRemoteEventOutcome>()
+  return {
+    dispatch: {
+      event: 'approval/request',
+      request: { agent, proposal: { reason: 'fixture' } },
+      context: { value: agent, subject: agent },
+      resolve: outcome.resolve,
+      reject: outcome.reject,
+    },
+    outcome: outcome.promise,
+  }
+}
+
+/** Register one Agent Context identity for a Remote Event source fixture. */
+function registerAgentIdentity(ctx: RootContext, agent: RootContext, sessionId: string): void {
+  ctx.typert.contexts.registerHost('agent', {
+    wire: 'agentId',
+    wireTypeSymbol: '@fixture#AgentId',
+    identity: candidate => candidate === agent ? sessionId as AgentWireId : undefined,
+    resolve: identity => identity === sessionId ? agent : undefined,
+  })
+}
+
 /** Pair one device directly through the trust store under an explicit role. */
-async function pairWithRole(harness: CarrierHarness, role: 'observer' | 'controller'): Promise<TestDevice> {
+async function pairWithRole(
+  harness: CarrierHarness,
+  role: 'observer' | 'controller',
+  access: DeviceAccess = { sessions: 'all', workspaces: 'all' },
+): Promise<TestDevice> {
   const pairing = await harness.service.createPairing()
   const store = harness.ctx.get('deviceTrust') as DeviceTrustStore
   const { privateKey, publicKey } = generateKeyPairSync('ed25519')
@@ -34,8 +106,16 @@ async function pairWithRole(harness: CarrierHarness, role: 'observer' | 'control
     pairing.code,
     { name: `direct-${role}`, publicKeySpki: publicKey.export({ type: 'spki', format: 'der' }).toString('base64') },
     role,
+    access,
   )
   return { deviceId: device.deviceId, privateKey }
+}
+
+function scopedAccess(sessions: readonly string[], workspaces: readonly string[]): DeviceAccess {
+  return {
+    sessions: sessions.map(DeviceSessionGrantId),
+    workspaces: workspaces.map(DeviceWorkspaceGrantId),
+  }
 }
 
 describe('link-access carrier', () => {
@@ -94,6 +174,7 @@ describe('link-access carrier', () => {
     expect(response.status).toBe(200)
     expect(response.json).toMatchObject({
       linkProtocolVersion: 1,
+      contractVersion: 1,
       runtimeClass: 'full',
       hostVersion: expect.any(String) as string,
       hostId: expect.any(String) as string,
@@ -107,6 +188,20 @@ describe('link-access carrier', () => {
 
   it('dispatches an allowlisted unary RPC through the existing gateway chain', async () => {
     const response = await signedRpc(harness.endpoint, device, 'probe/echo', { value: 'hi' })
+    expect(response.status).toBe(200)
+    expect(response.json).toEqual({
+      type: 'server-response',
+      rpcId: 'rpc-probe/echo',
+      result: { ok: true, value: 'echo:hi' },
+    })
+  })
+
+  it('dispatches the generated unary request fixture byte-for-byte', async () => {
+    const body = readFileSync(
+      new URL('../../link-contracts/generated/fixtures/rpc-request.json', import.meta.url),
+      'utf8',
+    )
+    const response = await issueSigned(harness.endpoint, device, '/api/probe/echo', 'POST', body)
     expect(response.status).toBe(200)
     expect(response.json).toEqual({
       type: 'server-response',
@@ -162,6 +257,120 @@ describe('link-access carrier', () => {
     expect((await signedRpc(harness.endpoint, device, 'probe/admin', { value: 'yes' })).status).toBe(200)
   })
 
+  it('denies out-of-scope resources before their owners run and filters global projections', async () => {
+    const scoped = await pairWithRole(
+      harness,
+      'controller',
+      scopedAccess(['session-allowed'], ['workspace-allowed']),
+    )
+    const sessionProbe = harness.ctx.get('scopedSessionProbe') as unknown as { readonly calls: string[] }
+    const filesProbe = harness.ctx.get('scopedWorkspaceFilesProbe') as unknown as { readonly calls: string[] }
+
+    const deniedSession = await signedRpc(harness.endpoint, scoped, 'session/prompt', {
+      request: { sessionId: 'session-denied' },
+    })
+    expect(deniedSession.status).toBe(403)
+    expect(deniedSession.json).toMatchObject({ error: 'forbidden', reason: 'session-scope' })
+    expect(sessionProbe.calls).not.toContain('prompt:session-denied')
+
+    const allowedSession = await signedRpc(harness.endpoint, scoped, 'session/prompt', {
+      request: { sessionId: 'session-allowed' },
+    })
+    expect(allowedSession.status).toBe(200)
+    expect(sessionProbe.calls).toContain('prompt:session-allowed')
+
+    const deniedResource = await signedRpc(harness.endpoint, scoped, 'session/attachment', {
+      request: { sessionId: 'session-denied', attachmentId: 'attachment-secret' },
+    })
+    expect(deniedResource.status).toBe(403)
+    expect(deniedResource.json).toMatchObject({ error: 'forbidden', reason: 'resource-scope' })
+    expect(sessionProbe.calls).not.toContain('attachment:session-denied:attachment-secret')
+
+    const deniedPath = await signedRpc(harness.endpoint, scoped, 'workspaceFiles/read', {
+      workspaceId: 'workspace-denied', path: '../secret',
+    })
+    expect(deniedPath.status).toBe(403)
+    expect(deniedPath.json).toMatchObject({ error: 'forbidden', reason: 'path-scope' })
+    expect(filesProbe.calls).not.toContain('read:workspace-denied:../secret')
+
+    const malformed = await issueSigned(
+      harness.endpoint,
+      scoped,
+      '/api/session/prompt',
+      'POST',
+      JSON.stringify({ method: 'session/list', payload: { args: {} } }),
+    )
+    expect(malformed.status).toBe(400)
+    expect(malformed.json).toMatchObject({ error: 'bad-request' })
+
+    const sessions = await signedRpc(harness.endpoint, scoped, 'session/list', { _request: {} })
+    expect(sessions.status).toBe(200)
+    expect(sessions.json).toMatchObject({
+      result: { ok: true, value: { items: [{ sessionId: 'session-allowed' }] } },
+    })
+    expect(JSON.stringify(sessions.json)).not.toContain('session-denied')
+
+    const search = await signedRpc(harness.endpoint, scoped, 'session/search', {
+      request: { query: 'secret' },
+    })
+    expect(search.status).toBe(200)
+    expect(search.json).toMatchObject({
+      result: { ok: true, value: { items: [{ sessionId: 'session-allowed' }], hasMore: false } },
+    })
+    expect(JSON.stringify(search.json)).not.toContain('session-denied')
+
+    const control = await streamUntil(
+      harness,
+      scoped,
+      'session/control',
+      { args: {} },
+      lines => lines.length >= 2,
+    )
+    expect(control).toHaveLength(2)
+    expect(control.join('\n')).toContain('session-allowed')
+    expect(control.join('\n')).not.toContain('session-denied')
+
+    const workspaces = await streamUntil(
+      harness,
+      scoped,
+      'workspace/follow',
+      { args: {} },
+      lines => lines.length >= 2,
+    )
+    expect(workspaces).toHaveLength(2)
+    expect(workspaces.join('\n')).toContain('workspace-allowed')
+    expect(workspaces.join('\n')).toContain('session-allowed')
+    expect(workspaces.join('\n')).not.toContain('workspace-denied')
+    expect(workspaces.join('\n')).not.toContain('session-denied')
+
+    const missingStreamArgs = await issueSigned(
+      harness.endpoint,
+      scoped,
+      '/link/stream/session%2Ffollow',
+      'POST',
+      '{}',
+    )
+    expect(missingStreamArgs.status).toBe(400)
+    expect(missingStreamArgs.json).toMatchObject({ error: 'bad-stream-request' })
+    const deniedStream = await issueSigned(
+      harness.endpoint,
+      scoped,
+      '/link/stream/session%2Ffollow',
+      'POST',
+      JSON.stringify({ args: { request: { address: { kind: 'session', sessionId: 'session-denied' } } } }),
+    )
+    expect(deniedStream.status).toBe(403)
+    expect(deniedStream.json).toMatchObject({ error: 'forbidden', reason: 'session-scope' })
+    const allowedStream = await streamUntil(
+      harness,
+      scoped,
+      'session/follow',
+      { args: { request: { address: { kind: 'session', sessionId: 'session-allowed' } } } },
+      lines => lines.length >= 1,
+    )
+    expect(allowedStream.join('\n')).toContain('session-allowed')
+  })
+
   it('serves an oversized unary body a 413 whether declared or streamed', async () => {
     const declared = await issueSigned(harness.endpoint, device, '/api/probe/echo', 'POST', '{}', {
       headers: {
@@ -180,6 +389,12 @@ describe('link-access carrier', () => {
   it('carries one Remote stream as signed NDJSON frames', async () => {
     const frames = await streamUntil(harness, device, 'probe/ticks', { args: { count: 3 } }, lines => lines.length >= 3)
     expect(frames).toEqual(['{"k":"v","v":"0"}', '{"k":"v","v":"1"}', '{"k":"v","v":"2"}'])
+    const fixture = JSON.parse(readFileSync(
+      new URL('../../link-contracts/generated/fixtures/stream-request.json', import.meta.url),
+      'utf8',
+    )) as unknown
+    expect(await streamUntil(harness, device, 'probe/ticks', fixture, lines => lines.length >= 2))
+      .toEqual(['{"k":"v","v":"0"}', '{"k":"v","v":"1"}'])
     expect((await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'GET', '')).status).toBe(405)
     expect((await issueSigned(harness.endpoint, device, '/link/stream/probe/echo', 'POST', '{"args":{"value":"x"}}')).status).toBe(403)
     expect((await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'POST', 'not json')).status).toBe(400)
@@ -199,7 +414,52 @@ describe('link-access carrier', () => {
     expect(failure).toContain('probe stream failure')
   })
 
-  it('skips the failure frame when the stream client vanishes first', async () => {
+  it.each([false, true])('settles a stream under socket backpressure, cancelled=%s', async (cancelled) => {
+    const large = 'x'.repeat(8 * 1024 * 1024)
+    const stopped = Promise.withResolvers<undefined>()
+    let sourceSignal: AbortSignal | undefined
+    let advancedAfterCancellation = false
+    const open = vi.spyOn(harness.ctx.typertGateway.wireStream, 'open').mockImplementation(async (_endpoint, _payload, signal) => {
+      sourceSignal = signal
+      return (async function* () {
+        try {
+          yield large
+          if (cancelled) {
+            yield large
+            // Buffered writes may finish before the client closes; keep the producer live until cancellation.
+            await new Promise<void>((resolve) => {
+              if (signal.aborted) resolve()
+              else signal.addEventListener('abort', () => { resolve() }, { once: true })
+            })
+            yield 'late-after-cancel'
+            advancedAfterCancellation = true
+          }
+        } finally {
+          stopped.resolve(undefined)
+        }
+      })()
+    })
+    try {
+      if (cancelled) {
+        const frames = await streamUntil(harness, device, 'probe/ticks', { args: { count: 1 } }, () => true)
+        await stopped.promise
+        expect(sourceSignal!.aborted).toBe(true)
+        expect(advancedAfterCancellation).toBe(false)
+        expect(frames.some(line => line.includes('"k":"e"'))).toBe(false)
+      } else {
+        const response = await issueSigned(harness.endpoint, device, '/link/stream/probe/ticks', 'POST', '{"args":{"count":1}}')
+        expect(response.status).toBe(200)
+        expect(response.text).toBe(`${JSON.stringify({ k: 'v', v: large })}\n`)
+        await stopped.promise
+      }
+    } finally {
+      open.mockRestore()
+    }
+  })
+
+  it('aborts and closes a vanished client stream without a failure frame', async () => {
+    const probe = harness.ctx.get('probe') as unknown as { calls: readonly string[] }
+    const priorCalls = probe.calls.length
     const url = new URL(harness.endpoint)
     const target = '/link/stream/probe/linger'
     const body = JSON.stringify({ args: {} })
@@ -236,25 +496,8 @@ describe('link-access carrier', () => {
       request.write(body)
       request.end()
     })
-    await new Promise(resolve => setTimeout(resolve, 200))
+    await expect.poll(() => probe.calls.slice(priorCalls)).toEqual(['linger:aborted', 'linger:closed'])
     expect(lines).toEqual(['{"k":"v","v":"open"}'])
-  })
-
-  it('stops a stream promptly when its client vanishes mid-flight', async () => {
-    const probe = harness.ctx.get('probe') as unknown as { calls: readonly string[] }
-    await streamUntil(harness, device, 'probe/ticks', { args: { count: 10_000 } }, lines => lines.length >= 2)
-    // The abort must freeze the server-side iteration well short of the full
-    // 10 000 items; poll until the count is stable instead of sleeping fixed
-    // windows, then require it to have stopped early.
-    let stable = -1
-    for (let attempt = 0; attempt < 100; attempt += 1) {
-      const current = probe.calls.length
-      if (current === stable) break
-      stable = current
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-    expect(stable).toBeGreaterThanOrEqual(2)
-    expect(stable).toBeLessThan(5_000)
   })
 
   it('aborts an in-flight unary RPC when its client vanishes', async () => {
@@ -373,16 +616,228 @@ describe('link-access carrier with remote approval enabled', () => {
       const answered = await signedRpc(harness.endpoint, controller, '$events/result', {
         clientId: events.clientId, eventId: 'missing', outcome: { kind: 'next' },
       })
-      expect(answered.status).toBe(200)
-      expect(answered.json).toMatchObject({ type: 'server-response', result: { ok: true } })
+      expect(answered.status).toBe(403)
+      expect(answered.json).toMatchObject({ error: 'forbidden', reason: 'client-generation' })
+
+      const controllerEvents = await openEventsStream(harness, controller)
+      try {
+        const missing = await signedRpc(harness.endpoint, controller, '$events/result', {
+          clientId: controllerEvents.clientId, eventId: 'missing', outcome: { kind: 'next' },
+        })
+        expect(missing.status).toBe(403)
+        expect(missing.json).toMatchObject({ error: 'forbidden', reason: 'interaction' })
+      } finally {
+        controllerEvents.close()
+      }
     } finally {
       events.close()
     }
     await unregister()
   })
+
+  it('delivers and accepts only pending interactions in the device Session scope', async () => {
+    const gateway = harness.ctx.get('typertGateway') as TypertGatewayService
+    const source = new RemoteEventSourceProbe()
+    const allowedAgent = harness.ctx.extend()
+    const deniedAgent = harness.ctx.extend()
+    harness.ctx.typert.contexts.registerHost('agent', {
+      wire: 'agentId',
+      wireTypeSymbol: '@fixture#AgentId',
+      identity: (candidate) => {
+        if (candidate === allowedAgent) return 'session-allowed' as AgentWireId
+        if (candidate === deniedAgent) return 'session-denied' as AgentWireId
+        return undefined
+      },
+      resolve: (identity) => {
+        if (identity === 'session-allowed') return allowedAgent
+        if (identity === 'session-denied') return deniedAgent
+        return undefined
+      },
+    })
+    const unregister = gateway.registerRemoteEvents(source.source, { home: '/home/fixture' })
+    const allowedDevice = await pairWithRole(harness, 'controller', scopedAccess(['session-allowed'], []))
+    const deniedDevice = await pairWithRole(harness, 'controller', scopedAccess([], []))
+    const allowedClient = await openEventsStream(harness, allowedDevice)
+    const deniedClient = await openEventsStream(harness, deniedDevice)
+    const denied = pendingInteraction(deniedAgent)
+    const allowed = pendingInteraction(allowedAgent)
+    source.push(denied.dispatch)
+    source.push(allowed.dispatch)
+
+    await vi.waitFor(() => {
+      expect(allowedClient.frames.some(frame => frame.type === 'waterfall')).toBe(true)
+    })
+    const waterfalls = allowedClient.frames.filter(frame => frame.type === 'waterfall')
+    expect(waterfalls).toHaveLength(1)
+    expect(waterfalls[0]).toMatchObject({ agentId: 'session-allowed' })
+    expect(deniedClient.frames.some(frame => frame.type === 'waterfall')).toBe(false)
+    await expect(denied.outcome).resolves.toEqual({ kind: 'next' })
+
+    const eventId = waterfalls[0]?.eventId
+    expect(typeof eventId).toBe('string')
+    const malformed = await signedRpc(harness.endpoint, allowedDevice, '$events/result', {
+      clientId: allowedClient.clientId,
+      eventId: '',
+      outcome: { kind: 'next' },
+    })
+    expect(malformed.status).toBe(403)
+    expect(malformed.json).toMatchObject({ error: 'forbidden', reason: 'interaction' })
+
+    const disposeFailure = harness.ctx.connection.fetch.register({
+      path: '/api/$events/result',
+      methods: ['GET'],
+      fetch: async () => { throw new Error('fixture shared-fetch failure') },
+    })
+    const failed = await issueSigned(
+      harness.endpoint,
+      allowedDevice,
+      '/api/$events/result',
+      'GET',
+      JSON.stringify({
+        type: 'client-request',
+        rpcId: 'rpc-failed-interaction',
+        method: '$events/result',
+        payload: { args: { clientId: allowedClient.clientId, eventId, outcome: { kind: 'next' } } },
+      }),
+    )
+    expect(failed.status).toBe(500)
+    await disposeFailure()
+
+    const invalidOutcome = await signedRpc(harness.endpoint, allowedDevice, '$events/result', {
+      clientId: allowedClient.clientId,
+      eventId,
+      outcome: { kind: 'future' },
+    })
+    expect(invalidOutcome.status).toBe(200)
+    expect(invalidOutcome.json).toMatchObject({ result: { ok: false } })
+    const response = await signedRpc(harness.endpoint, allowedDevice, '$events/result', {
+      clientId: allowedClient.clientId,
+      eventId,
+      outcome: { kind: 'result', value: { approved: true } },
+    })
+    expect(response.status).toBe(200)
+    await expect(allowed.outcome).resolves.toEqual({ kind: 'result', value: { approved: true } })
+
+    allowedClient.close()
+    deniedClient.close()
+    await unregister()
+  })
+})
+
+describe('link-access active interaction lifecycle', () => {
+  it('delegates delivered interactions when the approval switch is disabled', async () => {
+    const harness = await mountCarrier({ allowRemoteApproval: true })
+    try {
+      const source = new RemoteEventSourceProbe()
+      const agent = harness.ctx.extend()
+      registerAgentIdentity(harness.ctx.root, agent, 'session-allowed')
+      const unregister = (harness.ctx.get('typertGateway') as TypertGatewayService)
+        .registerRemoteEvents(source.source, { home: '/home/fixture' })
+      const device = await pairWithRole(harness, 'controller')
+      const client = await openEventsStream(harness, device)
+      const pending = pendingInteraction(agent)
+      source.push(pending.dispatch)
+      await vi.waitFor(() => { expect(client.frames.some(frame => frame.type === 'waterfall')).toBe(true) })
+
+      harness.service.setAllowRemoteApproval(false)
+      await expect(pending.outcome).resolves.toEqual({ kind: 'next' })
+      harness.service.setAllowRemoteApproval(false)
+      expect(harness.service.isRemoteApprovalAllowed()).toBe(false)
+
+      client.close()
+      await unregister()
+    } finally {
+      await harness.close()
+    }
+  }, 60_000)
+
+  it('delegates only the revoked device generation and closes its event stream', async () => {
+    const harness = await mountCarrier({ allowRemoteApproval: true })
+    try {
+      const source = new RemoteEventSourceProbe()
+      const agent = harness.ctx.extend()
+      registerAgentIdentity(harness.ctx.root, agent, 'session-allowed')
+      const unregister = (harness.ctx.get('typertGateway') as TypertGatewayService)
+        .registerRemoteEvents(source.source, { home: '/home/fixture' })
+      const firstDevice = await pairWithRole(harness, 'controller')
+      const secondDevice = await pairWithRole(harness, 'controller')
+      const first = await openEventsStream(harness, firstDevice)
+      const second = await openEventsStream(harness, secondDevice)
+      const pending = pendingInteraction(agent)
+      source.push(pending.dispatch)
+      await vi.waitFor(() => {
+        expect(first.frames.some(frame => frame.type === 'waterfall')).toBe(true)
+        expect(second.frames.some(frame => frame.type === 'waterfall')).toBe(true)
+      })
+
+      expect(await harness.service.revokeDevice('missing' as DeviceId)).toBeUndefined()
+      const revoked = await harness.ctx.deviceTrust.revoke(firstDevice.deviceId as DeviceId)
+      expect(revoked?.revokedAt).toEqual(expect.any(Number))
+
+      const secondWaterfall = second.frames.find(frame => frame.type === 'waterfall')
+      const response = await signedRpc(harness.endpoint, secondDevice, '$events/result', {
+        clientId: second.clientId,
+        eventId: secondWaterfall?.eventId,
+        outcome: { kind: 'next' },
+      })
+      expect(response.status).toBe(200)
+      await expect(pending.outcome).resolves.toEqual({ kind: 'next' })
+
+      first.close()
+      second.close()
+      await unregister()
+    } finally {
+      await harness.close()
+    }
+  }, 60_000)
+
+  it('delegates active interactions before stopping the carrier', async () => {
+    const harness = await mountCarrier({ allowRemoteApproval: true })
+    try {
+      const source = new RemoteEventSourceProbe()
+      const agent = harness.ctx.extend()
+      registerAgentIdentity(harness.ctx.root, agent, 'session-allowed')
+      const unregister = (harness.ctx.get('typertGateway') as TypertGatewayService)
+        .registerRemoteEvents(source.source, { home: '/home/fixture' })
+      const device = await pairWithRole(harness, 'controller')
+      const client = await openEventsStream(harness, device)
+      const pending = pendingInteraction(agent)
+      source.push(pending.dispatch)
+      await vi.waitFor(() => { expect(client.frames.some(frame => frame.type === 'waterfall')).toBe(true) })
+
+      await harness.service.setCarrierEnabled(false)
+      await expect(pending.outcome).resolves.toEqual({ kind: 'next' })
+      expect((await harness.service.carrierStatus()).listening).toBe(false)
+
+      client.close()
+      await unregister()
+    } finally {
+      await harness.close()
+    }
+  }, 60_000)
 })
 
 describe('link-access carrier lifecycle', () => {
+  it('persists configured selective grants for a newly paired device', async () => {
+    const harness = await mountCarrier({
+      pairingAccess: { sessions: ['session-allowed'], workspaces: ['workspace-allowed'] },
+    })
+    try {
+      const device = await pairDevice(harness, 'scoped-pairing')
+      await expect(harness.ctx.deviceTrust.device(device.deviceId as DeviceId)).resolves.toMatchObject({
+        access: { sessions: ['session-allowed'], workspaces: ['workspace-allowed'] },
+      })
+    } finally {
+      await harness.close()
+    }
+  }, 60_000)
+
+  it('rejects empty resource identities in pairing grants at config load', async () => {
+    await expect(mountCarrier({
+      pairingAccess: { sessions: [''], workspaces: [] },
+    })).rejects.toThrow()
+  })
+
   it('stays disabled by default and refuses pairing', async () => {
     const dshHome = await mkdtemp(join(tmpdir(), 'dsh-link-disabled-'))
     const ctx = new RootContext()
@@ -517,6 +972,17 @@ describe('link-access carrier lifecycle', () => {
 
       const pairing = await harness.service.createPairing()
       expect(pairing.hostName).toBe('Studio Desk')
+      const { publicKey } = generateKeyPairSync('ed25519')
+      const paired = await carrierRequest(harness.endpoint, '/link/pair', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: pairing.code,
+          deviceName: 'renamed-host-probe',
+          devicePublicKey: publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
+        }),
+      })
+      expect(paired.status).toBe(200)
+      expect(paired.json).toMatchObject({ hostName: pairing.hostName })
 
       const described = await issueSigned(harness.endpoint, device, '/link/describe', 'POST', '')
       expect(described.status).toBe(200)
@@ -534,7 +1000,14 @@ describe('link-access carrier lifecycle', () => {
  * @param device - paired device credentials.
  * @returns the bound Client id and a close handle.
  */
-function openEventsStream(harness: CarrierHarness, device: TestDevice): Promise<{ readonly clientId: string; close(): void }> {
+function openEventsStream(
+  harness: CarrierHarness,
+  device: TestDevice,
+): Promise<{
+  readonly clientId: string
+  readonly frames: Array<Record<string, unknown>>
+  close(): void
+}> {
   const target = '/link/stream/%24events'
   const body = JSON.stringify({ args: {} })
   const timestamp = String(Date.now())
@@ -546,6 +1019,8 @@ function openEventsStream(harness: CarrierHarness, device: TestDevice): Promise<
   ).toString('base64')
   return new Promise((resolve, reject) => {
     const url = new URL(harness.endpoint)
+    const values: Array<Record<string, unknown>> = []
+    let opened = false
     const request = httpsRequest({
       host: url.hostname,
       port: url.port,
@@ -562,18 +1037,23 @@ function openEventsStream(harness: CarrierHarness, device: TestDevice): Promise<
       let buffer = ''
       response.on('data', (chunk) => {
         buffer += (chunk as Buffer).toString('utf8')
-        const newline = buffer.indexOf('\n')
-        if (newline < 0) return
-        const frame = JSON.parse(buffer.slice(0, newline)) as {
-          readonly k: string
-          readonly v?: { readonly type: string; readonly clientId?: string }
-        }
-        buffer = buffer.slice(newline + 1)
-        if (frame.v?.type === 'ready' && frame.v.clientId !== undefined) {
-          resolve({
-            clientId: frame.v.clientId,
-            close: () => { request.destroy() },
-          })
+        let newline = buffer.indexOf('\n')
+        while (newline >= 0) {
+          const frame = JSON.parse(buffer.slice(0, newline)) as {
+            readonly k: string
+            readonly v?: Record<string, unknown>
+          }
+          buffer = buffer.slice(newline + 1)
+          newline = buffer.indexOf('\n')
+          if (frame.v !== undefined) values.push(frame.v)
+          if (!opened && frame.v?.type === 'ready' && typeof frame.v.clientId === 'string') {
+            opened = true
+            resolve({
+              clientId: frame.v.clientId,
+              frames: values,
+              close: () => { request.destroy() },
+            })
+          }
         }
       })
       response.on('error', (error) => { reject(error) })

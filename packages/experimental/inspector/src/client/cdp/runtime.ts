@@ -274,6 +274,9 @@ class ClientRuntimeSession {
     signal?: AbortSignal,
   ): Promise<ClientRuntimeResult> {
     switch (command.op) {
+      case 'enable':
+        // Session creation and earlier Console controls precede this response on the ordered source socket.
+        return { op: 'enable' }
       case 'evaluate':
         return { op: command.op, completion: await this.evaluate(command, allocation, signal) }
       case 'get-properties': {

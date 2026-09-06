@@ -22,8 +22,13 @@ function run(env: NodeJS.ProcessEnv, ...args: string[]) {
   })
 }
 
+function printablePart(part: string): string {
+  return part.includes(' ') ? JSON.stringify(part) : part
+}
+
 describe('Python runtime executable builder CLI', () => {
   it('runs pnpm through its JavaScript entrypoint without a command shell', () => {
+    const node = printablePart(process.execPath)
     const result = run(
       { npm_execpath: 'C:\\tools\\pnpm.cjs' },
       '--skip-build',
@@ -32,13 +37,14 @@ describe('Python runtime executable builder CLI', () => {
     )
 
     expect(result.status).toBe(0)
-    expect(result.stdout).toContain(`${process.execPath} C:\\tools\\pnpm.cjs run verify-runtime-closure`)
-    expect(result.stdout).toContain(`${process.execPath} C:\\tools\\pnpm.cjs --filter dsh-python-runtime-closure deploy`)
-    expect(result.stdout).toContain(`${process.execPath} C:\\tools\\pnpm.cjs dlx @yao-pkg/pkg@6.21.0`)
+    expect(result.stdout).toContain(`${node} C:\\tools\\pnpm.cjs run verify-runtime-closure`)
+    expect(result.stdout).toContain(`${node} C:\\tools\\pnpm.cjs --filter dsh-python-runtime-closure deploy`)
+    expect(result.stdout).toContain(`${node} C:\\tools\\pnpm.cjs dlx @yao-pkg/pkg@6.21.0`)
     expect(result.stdout).not.toMatch(/pnpm\.cmd/i)
   })
 
   it('resolves the pnpm package behind a Windows command shim', () => {
+    const node = printablePart(process.execPath)
     const setup = mkdtempSync(join(tmpdir(), 'dsh-pnpm-home-'))
     temporaryDirectories.push(setup)
     const home = join(setup, 'node_modules', '.bin')
@@ -55,7 +61,7 @@ describe('Python runtime executable builder CLI', () => {
     )
 
     expect(result.status).toBe(0)
-    expect(result.stdout).toContain(`${process.execPath} ${entrypoint} run verify-runtime-closure`)
+    expect(result.stdout).toContain(`${node} ${printablePart(entrypoint)} run verify-runtime-closure`)
     expect(result.stdout).not.toMatch(/pnpm\.cmd/i)
   })
 

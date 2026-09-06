@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "requiredWorkflows": [
+    "android-kotlin.yml",
+    "apple-swift.yml",
+    "build-exe-for-python-sdk.yml",
+    "build-preview-cloudflare.yml",
+    "ci-master.yml",
+    "ci.yml",
+    "docs-pages.yml",
+    "e2b-e2e.yml",
+    "e2e.yml",
+    "expected-filenames.yml",
+    "issue-lifecycle.yml",
+    "issue-policy.yml",
+    "landlock-run-release.yml",
+    "landlock-run.yml",
+    "pi-ai-provider-e2e.yml",
+    "python-release.yml",
+    "release-publish.yml",
+    "release-vendor-publish.yml",
+    "release-vendor.yml",
+    "release.yml",
+    "sandbox.yml",
+    "supply-chain.yml",
+    "windows-candidate.yml"
+  ],
+  "writableJobs": {
+    "build-preview-cloudflare.yml#preview": {
+      "permissions": [
+        "pull-requests"
+      ],
+      "environment": null,
+      "reason": "Existing preview job posts its deployment result to the pull request."
+    },
+    "docs-pages.yml#deploy": {
+      "permissions": [
+        "pages",
+        "id-token"
+      ],
+      "environment": "github-pages",
+      "reason": "Manually dispatched documentation publication uses the GitHub Pages deployment API."
+    },
+    "landlock-run-release.yml#publish": {
+      "permissions": [
+        "id-token"
+      ],
+      "environment": "npm-publish",
+      "reason": "Manually selected native package publication authenticates through npm trusted publishing."
+    },
+    "python-release.yml#publish-runtime": {
+      "permissions": [
+        "id-token"
+      ],
+      "environment": "pypi-runtime",
+      "reason": "Explicitly selected runtime-wheel publication authenticates to PyPI through OIDC."
+    },
+    "python-release.yml#publish-sdk": {
+      "permissions": [
+        "id-token"
+      ],
+      "environment": "pypi",
+      "reason": "Explicitly selected SDK-wheel publication authenticates to PyPI through OIDC."
+    }
+  }
+}

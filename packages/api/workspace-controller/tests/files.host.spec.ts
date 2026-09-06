@@ -5,7 +5,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { LocalFileSystem } from '@deepseek-ai/dsh-fs-local'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { FsError, FsVersion } from '@deepseek-ai/dsh-fs'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkspaceFiles } from '../src/files.ts'
 import type { Workspace } from '@deepseek-ai/dsh-workspace'
 
@@ -57,7 +58,45 @@ describe('WorkspaceFiles', () => {
   })
 
   afterEach(async () => {
+    vi.restoreAllMocks()
     await ctx?.fiber.dispose()
+  })
+
+  it('uses the default cap and plain-text media type for files without a known extension', async () => {
+    const defaultContext = new Context()
+    defaultContext.provide('fs', ctx!.fs)
+    defaultContext.provide('workspaceRegistry', ctx!.workspaceRegistry)
+    const defaults = new WorkspaceFiles(defaultContext, {})
+    expect((await defaults.read('ws-1', 'big.txt', undefined, undefined)).content).toHaveLength(300)
+    await defaultContext.fiber.dispose()
+    for (const name of ['LICENSE', 'data.unknown']) {
+      await writeFile(join(root!, name), 'text')
+      expect((await files!.read('ws-1', name, undefined, undefined)).mediaType).toBe('text/plain')
+    }
+  })
+
+  it('rejects invalid list payloads and special files', async () => {
+    expect((await failureOf(() => files!.list('', undefined))).code).toBe('bad-request')
+    vi.spyOn(ctx!.fs, 'stat').mockResolvedValue({ type: 'other', version: FsVersion('special') })
+    expect((await failureOf(() => files!.list('ws-1', 'readme.md'))).code).toBe('not-a-directory')
+  })
+
+  it('enforces the decoded range cap when backend metadata omits file size', async () => {
+    vi.spyOn(ctx!.fs, 'stat').mockResolvedValue({ type: 'file', version: FsVersion('size-unknown') })
+    expect((await failureOf(() => files!.read('ws-1', 'big.txt', undefined, undefined))).code).toBe('file-too-large')
+    expect((await files!.read('ws-1', 'big.txt', 0, 128)).content).toHaveLength(128)
+  })
+
+  it.each([
+    [new FsError('backend cap', 'FS_TOO_LARGE'), 'file-too-large'],
+    [new FsError('disk offline', 'FS_IO_ERROR'), 'internal'],
+    [new Error('transport lost'), 'internal'],
+    ['backend refused', 'internal'],
+  ])('classifies backend read failure %s', async (error, code) => {
+    vi.spyOn(ctx!.fs, 'readText').mockRejectedValue(error)
+    const failure = await failureOf(() => files!.read('ws-1', 'readme.md', undefined, undefined))
+    expect(failure.code).toBe(code)
+    if (code === 'file-too-large') expect(failure.details).toEqual({ path: 'readme.md', maxBytes: 128 })
   })
 
   it('lists the root and nested directories with names, types, and sizes', async () => {

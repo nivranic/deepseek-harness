@@ -4,6 +4,9 @@
 # both shells embed CompanionRootView, which owns pairing when no identity
 # exists and the six-tab surface after it.
 name: Companion
+configFiles:
+  Debug: Config/Product.xcconfig
+  Release: Config/Product.xcconfig
 options:
   bundleIdPrefix: com.deepseek-harness
   createIntermediateGroups: true
@@ -25,6 +28,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.ios
+        INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Companion
         GENERATE_INFOPLIST_FILE: true
         INFOPLIST_KEY_UILaunchScreen_Generation: true
@@ -41,6 +45,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.mac
+        INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Companion
         GENERATE_INFOPLIST_FILE: true
   DirectHostMac:
@@ -52,7 +57,19 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.mac
+        INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Host
+        GENERATE_INFOPLIST_FILE: true
+  CompanionStartupUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests/CompanionStartupTests.swift
+    dependencies:
+      - target: CompanioniOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.startup-tests
         GENERATE_INFOPLIST_FILE: true
 schemes:
   DirectHostMac:
@@ -63,6 +80,9 @@ schemes:
     build:
       targets:
         CompanioniOS: all
+    test:
+      targets:
+        - CompanionStartupUITests
   CompanionMac:
     build:
       targets:

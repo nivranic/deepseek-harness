@@ -41,6 +41,9 @@ public enum RelayStreamEvent: Equatable, Sendable {
 /// never share a counter with HTTP responses. The LAN-direct link stays
 /// the primary transport; the relay is the rendezvous path, and APNs/FCM
 /// delivery will extend it with a push-token step.
+/// Exchanges serialize through response consumption. A transport, framing,
+/// or authentication failure discards the cached session without replay;
+/// the next explicit call establishes fresh keys.
 public final class RelayClient: @unchecked Sendable {
     private let transport: RelayTransport
 
@@ -121,6 +124,7 @@ public final class RelayClient: @unchecked Sendable {
                     let body = Body(token: token, streamKey: Self.hex(streamKey))
                     let decrypt = NoiseCipherState(key: streamKey)
                     let (bytes, response) = try await self.transport.openStream(path: "/relay/stream", body: body)
+                    defer { bytes.task.cancel() }
                     try RelayTransport.check(response)
                     var buffer: [UInt8] = []
                     var decoder = JSONDecoder()
@@ -198,10 +202,46 @@ private actor RelayTransport {
     private let endpoint: URL
     private let session: URLSession
     private var established: (id: String, send: NoiseCipherState, recv: NoiseCipherState)?
+    private var exchangeBusy = false
+    private var exchangeWaiters: [(id: UUID, continuation: CheckedContinuation<Void, Error>)] = []
 
     init(endpoint: URL, session: URLSession) {
         self.endpoint = endpoint
         self.session = session
+    }
+
+    /// Actor reentrancy must not interleave HTTP responses over the same receive counter.
+    private func beginExchange() async throws {
+        try Task.checkCancellation()
+        if !exchangeBusy {
+            exchangeBusy = true
+            return
+        }
+        let id = UUID()
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                if Task.isCancelled {
+                    continuation.resume(throwing: CancellationError())
+                } else {
+                    exchangeWaiters.append((id, continuation))
+                }
+            }
+        } onCancel: {
+            Task { await self.cancelExchange(id) }
+        }
+    }
+
+    private func cancelExchange(_ id: UUID) {
+        guard let index = exchangeWaiters.firstIndex(where: { $0.id == id }) else { return }
+        exchangeWaiters.remove(at: index).continuation.resume(throwing: CancellationError())
+    }
+
+    private func finishExchange() {
+        if exchangeWaiters.isEmpty {
+            exchangeBusy = false
+        } else {
+            exchangeWaiters.removeFirst().continuation.resume()
+        }
     }
 
     /// Complete the XX handshake and consume the encrypted ack, once.
@@ -240,22 +280,45 @@ private actor RelayTransport {
 
     /// One framed encrypted request answered by any number of frames.
     func callFrames<Body: Encodable>(path: String, body: Body) async throws -> [Data] {
-        let sealed = try await seal(path: path, body: body)
-        let (data, response) = try await post(path, sealed: sealed.frame, sessionHeader: sealed.session.id)
-        try Self.check(response)
-        return try open(frames: decodeNoiseFrames([UInt8](data)), session: sealed.session)
+        try await beginExchange()
+        defer { finishExchange() }
+        try Task.checkCancellation()
+        do {
+            let sealed = try await seal(path: path, body: body)
+            let (data, response) = try await post(path, sealed: sealed.frame, sessionHeader: sealed.session.id)
+            try Self.check(response)
+            return try open(frames: decodeNoiseFrames([UInt8](data)), session: sealed.session)
+        } catch {
+            established = nil
+            throw error
+        }
     }
 
     /// Open the push stream: the sealed one-time-key request, then the raw
     /// byte stream of frames.
     func openStream<Body: Encodable>(path: String, body: Body) async throws -> (URLSession.AsyncBytes, URLResponse) {
-        let sealed = try await seal(path: path, body: body)
-        var request = URLRequest(url: endpoint.appendingPathComponent(path))
-        request.httpMethod = "POST"
-        request.setValue("application/octet-stream", forHTTPHeaderField: "content-type")
-        request.setValue(sealed.session.id, forHTTPHeaderField: "x-relay-session")
-        request.httpBody = Data(sealed.frame)
-        return try await session.bytes(for: request)
+        try await beginExchange()
+        defer { finishExchange() }
+        try Task.checkCancellation()
+        do {
+            let sealed = try await seal(path: path, body: body)
+            var request = URLRequest(url: endpoint.appendingPathComponent(path))
+            request.httpMethod = "POST"
+            request.setValue("application/octet-stream", forHTTPHeaderField: "content-type")
+            request.setValue(sealed.session.id, forHTTPHeaderField: "x-relay-session")
+            request.httpBody = Data(sealed.frame)
+            let result = try await session.bytes(for: request)
+            do {
+                try Self.check(result.1)
+            } catch {
+                result.0.task.cancel()
+                throw error
+            }
+            return result
+        } catch {
+            established = nil
+            throw error
+        }
     }
 
     private func seal<Body: Encodable>(path: String, body: Body) async throws -> (frame: [UInt8], session: (id: String, send: NoiseCipherState, recv: NoiseCipherState)) {

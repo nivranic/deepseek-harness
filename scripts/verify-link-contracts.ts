@@ -47,6 +47,7 @@ const expectFresh = (path: string, wanted: string): void => {
 }
 
 expectFresh(resolve(generatedDir, 'link-contracts.manifest.json'), artifacts.manifest)
+expectFresh(resolve(generatedDir, 'link-contracts.schema.json'), artifacts.schema)
 expectFresh(resolve(generatedDir, 'LinkContracts.swift'), artifacts.swift)
 expectFresh(resolve(generatedDir, 'LinkContracts.kt'), artifacts.kotlin)
 expectFresh(resolve(appleSources, 'LinkContracts.swift'), artifacts.swift)
@@ -70,4 +71,4 @@ for (const scenario of lite) {
   expectFresh(resolve(appleLite, `${scenario.id}.json`), scenario.json)
 }
 if (failures > 0) process.exit(1)
-console.log('verify-link-contracts: manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts are fresh (apps/apple and apps/android synced).')
+console.log('verify-link-contracts: manifest, JSON Schema, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts are fresh (apps/apple and apps/android synced).')

@@ -38,55 +38,68 @@ export const Config: z<Config> = z.object({
 /** JSON backend: owns the file-tree root and serves the `kv` facet. */
 export class JsonStorageBackend implements StorageBackend {
   private readonly open = new Map<string, KvUnit>()
+  private readonly owners = new Map<string, () => Promise<void>>()
   // Reserved synchronously at open() entry so a concurrent open of the same
   // unit fails, and close() can await opens still in flight.
   private readonly opening = new Map<string, Promise<KvUnit>>()
-  private closed = false
+  private closing?: Promise<void>
 
   constructor(private readonly root: string) {}
 
   readonly kv: KvFacet = {
     // The body up to the first await runs synchronously, so the opening-slot
     // reservation below still excludes a concurrent open of the same unit.
-    open: async (descriptor: KvUnitDescriptor): Promise<KvUnit> => {
-      if (this.closed) throw new StorageError('closed', 'json backend is closed')
+    open: async (descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit> => {
+      if (this.closing !== undefined) throw new StorageError('closed', 'json backend is closed')
       validateDescriptor(descriptor)
       if (this.open.has(descriptor.name) || this.opening.has(descriptor.name)) {
         // Double-open is a caller bug, not a medium condition.
         throw new Error(`unit '${descriptor.name}' is already open; a unit has exactly one live handle`)
       }
-      const opening = this.openUnit(descriptor)
+      const opening = this.openUnit(descriptor, onBackendClose)
       this.opening.set(descriptor.name, opening)
       return opening.finally(() => this.opening.delete(descriptor.name))
     },
   }
 
-  private async openUnit(descriptor: KvUnitDescriptor): Promise<KvUnit> {
+  private async openUnit(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit> {
     await mkdir(this.root, { recursive: true, mode: 0o700 })
     // The two layouts differ in medium shape only; each opener owns its own
     // path convention under the shared root.
-    const onClose = () => this.open.delete(descriptor.name)
+    const onClose = () => {
+      this.open.delete(descriptor.name)
+      this.owners.delete(descriptor.name)
+    }
     const unit = descriptor.layout === 'per-record'
       ? await openPerRecordUnit(descriptor, this.root, onClose)
       : await openSingleUnit(descriptor, this.root, onClose)
-    if (this.closed) {
+    if (this.closing !== undefined) {
       // The backend closed while this open was in flight: do not hand out a
       // live unit past close().
       await unit.close()
       throw new StorageError('closed', 'json backend is closed')
     }
     this.open.set(descriptor.name, unit)
+    if (onBackendClose !== undefined) this.owners.set(descriptor.name, onBackendClose)
     return unit
   }
 
-  async close(): Promise<void> {
-    if (!this.closed) {
-      this.closed = true
-    }
+  close(): Promise<void> {
+    this.closing ??= this.doClose()
+    return this.closing
+  }
+
+  private async doClose(): Promise<void> {
     await Promise.allSettled([...this.opening.values()])
-    for (const unit of [...this.open.values()]) {
-      await unit.close()
-    }
+    const results = await Promise.allSettled([...this.open].map(async ([name, unit]) => {
+      try {
+        await this.owners.get(name)?.()
+      } finally {
+        await unit.close()
+      }
+    }))
+    const failures = results.filter(result => result.status === 'rejected')
+    if (failures.length > 0) throw new AggregateError(failures.map(result => result.reason as unknown), 'JSON unit teardown failed')
   }
 }
 
@@ -108,12 +121,14 @@ function validateDescriptor(descriptor: KvUnitDescriptor): void {
  */
 export function apply(ctx: Context, config: Config) {
   const backend = new JsonStorageBackend(config.root)
-  ctx.effect(() => {
+  ctx.effect(function* () {
     const unregister = ctx.storage.backend.register('json', backend)
-    return async () => {
+    yield async () => {
       unregister()
       await backend.close()
     }
+    // Service withdrawal stops active consumers; owner callbacks also join
+    // consumers already detached from the registry during whole-tree teardown.
+    yield ctx.provide(storageBackendServiceKey('json'), backend)
   })
-  ctx.provide(storageBackendServiceKey('json'), backend)
 }

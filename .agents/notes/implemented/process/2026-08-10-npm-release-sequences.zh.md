@@ -16,6 +16,8 @@ Status: implemented
 
 ## 决策
 
+原生应用版本投影遵循[应用发布标识](2026-09-05-product-release-identity.zh.md)；它们扩展 dsh 版本规划，不改变下述独立发布序列。
+
 ### 三条独立序列
 
 `packages/`、`vendor/`、`native/` 各自一条 bump 序列、各自一次发布，不共享版本号、不共享触发、不互相等待。发 dsh 不重发 vendor，发 vendor 不重发 native。

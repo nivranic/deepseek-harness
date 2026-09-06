@@ -35,18 +35,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** The single-activity companion shell: pairing first, then the seven-tab
  * surface (nativization plan chapters 52 and 60 — Minimal Neumorphic only). */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CompanionRuntime.restore(filesDir)
-        setContent {
-            CompanionTheme {
-                CompanionApp()
+        lifecycleScope.launch {
+            CompanionRuntime.restore(filesDir)
+            if (!isFinishing && !isDestroyed) {
+                setContent {
+                    CompanionTheme {
+                        CompanionApp()
+                    }
+                }
             }
         }
     }
@@ -57,14 +65,14 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CompanionTheme(content: @Composable () -> Unit) {
     val colors = MaterialTheme.colorScheme.copy(
-        background = Color(NeumorphicTokens.surface.toULong()),
-        surface = Color(NeumorphicTokens.surface.toULong()),
-        primary = Color(NeumorphicTokens.textPrimary.toULong()),
-        onPrimary = Color(NeumorphicTokens.surface.toULong()),
-        onBackground = Color(NeumorphicTokens.textPrimary.toULong()),
-        onSurface = Color(NeumorphicTokens.textPrimary.toULong()),
-        secondary = Color(NeumorphicTokens.textSecondary.toULong()),
-        onSecondary = Color(NeumorphicTokens.textSecondary.toULong()),
+        background = Color(NeumorphicTokens.surface.toLong()),
+        surface = Color(NeumorphicTokens.surface.toLong()),
+        primary = Color(NeumorphicTokens.textPrimary.toLong()),
+        onPrimary = Color(NeumorphicTokens.surface.toLong()),
+        onBackground = Color(NeumorphicTokens.textPrimary.toLong()),
+        onSurface = Color(NeumorphicTokens.textPrimary.toLong()),
+        secondary = Color(NeumorphicTokens.textSecondary.toLong()),
+        onSecondary = Color(NeumorphicTokens.textSecondary.toLong()),
     )
     MaterialTheme(colorScheme = colors, content = content)
 }
@@ -83,9 +91,9 @@ fun RaisedCard(content: @Composable () -> Unit) {
     }
 }
 
-/** The view-model holder pairing once and hosting the six models. */
+/** The view-model holder pairing once and hosting the companion models. */
 class CompanionViewModel : ViewModel() {
-    var paired = CompanionRuntime.restored
+    var paired by mutableStateOf(CompanionRuntime.restored)
         private set
 
     val session = SessionModel(CompanionRuntime.wire, viewModelScope)
@@ -99,11 +107,26 @@ class CompanionViewModel : ViewModel() {
         CompanionRuntime.pair(payloadText, deviceName).also {
             if (it == null) paired = true
         }
+
+    override fun onCleared() {
+        session.close()
+        interactions.stopWatching()
+    }
 }
 
-/** The app-level pairing runtime: holds the wire the models drive, swaps
- * it after a successful pairing. */
+/** The process-owned pairing runtime: holds the wire the models drive and
+ * swaps it after restore or successful pairing. View-model teardown stops
+ * model streams without closing this process-lifetime transport. */
 object CompanionRuntime {
+    private val linkTransportConfig = ai.deepseek.dsh.link.LinkTransportConfig(
+        connectTimeoutMillis = 10_000,
+        writeTimeoutMillis = 30_000,
+        unaryReadTimeoutMillis = 30_000,
+        unaryCallTimeoutMillis = 60_000,
+        streamReadTimeoutMillis = 0,
+        streamCallTimeoutMillis = 0,
+    )
+
     /** Fails any pre-pairing call loud. */
     private class UnpairedWire : WireDriving {
         override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
@@ -113,14 +136,14 @@ object CompanionRuntime {
             throw IllegalStateException("not paired")
     }
 
-    @Volatile private var current: WireDriving = UnpairedWire()
+    private val switchingWire = SwitchableWireDriving(UnpairedWire())
 
     /** True once a stored identity rebuilt the client at launch or a
      * pairing succeeded in this process. */
     @Volatile var restored: Boolean = false
         private set
 
-    val wire: WireDriving get() = current
+    val wire: WireDriving get() = switchingWire
 
     /** Where the credentials file lives; MainActivity sets it at launch. */
     @Volatile var restoreDirectory: java.io.File? = null
@@ -128,13 +151,22 @@ object CompanionRuntime {
     /** Rebuild the client from persisted credentials so relaunch skips
      * pairing; returns true when a usable identity existed. The signing key
      * opens through the keystore-held AES key. */
-    fun restore(directory: java.io.File): Boolean {
+    suspend fun restore(directory: java.io.File): Boolean {
         restoreDirectory = directory
         val store = credentialsStore(directory)
-        val client = ai.deepseek.dsh.link.LinkClient.restore(store) ?: return false
-        current = LinkWireDriving(client)
-        restored = true
-        return true
+        var candidate: ai.deepseek.dsh.link.LinkClient? = null
+        return try {
+            withContext(Dispatchers.IO) {
+                candidate = ai.deepseek.dsh.link.LinkClient.restore(store, linkTransportConfig)
+            }
+            val client = candidate ?: return false
+            candidate = null
+            switchingWire.replaceAndAwait(LinkWireDriving(client))
+            restored = true
+            true
+        } finally {
+            candidate?.closeAndAwait()
+        }
     }
 
     private fun credentialsStore(directory: java.io.File): ai.deepseek.dsh.link.FileLinkCredentialsStore =
@@ -144,22 +176,32 @@ object CompanionRuntime {
         )
 
     /** Pair with a scanned payload; returns the failure message, or null. */
-    suspend fun pair(payloadText: String, deviceName: String): String? = try {
-        val payload = ai.deepseek.dsh.link.LinkPayloadParsing.pairingPayload(payloadText)
-            ?: error("配对载荷无法识别")
-        val directory = restoreDirectory ?: error("no restore directory configured")
-        val store = credentialsStore(directory)
-        val client = ai.deepseek.dsh.link.LinkClient(
-            baseUrl = payload.endpoint,
-            pinnedFingerprint = payload.spkiFingerprint,
-            store = store,
-        )
-        client.pair(payload, deviceName)
-        current = LinkWireDriving(client)
-        restored = true
-        null
-    } catch (failure: Exception) {
-        failure.message
+    suspend fun pair(payloadText: String, deviceName: String): String? {
+        var candidate: ai.deepseek.dsh.link.LinkClient? = null
+        return try {
+            val payload = ai.deepseek.dsh.link.LinkPayloadParsing.pairingPayload(payloadText)
+                ?: error("配对载荷无法识别")
+            val directory = restoreDirectory ?: error("no restore directory configured")
+            val store = credentialsStore(directory)
+            val client = ai.deepseek.dsh.link.LinkClient(
+                baseUrl = payload.endpoint,
+                pinnedFingerprint = payload.spkiFingerprint,
+                store = store,
+                transportConfig = linkTransportConfig,
+            )
+            candidate = client
+            client.pair(payload, deviceName)
+            candidate = null
+            switchingWire.replaceAndAwait(LinkWireDriving(client))
+            restored = true
+            null
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            failure.message
+        } finally {
+            candidate?.closeAndAwait()
+        }
     }
 }
 
@@ -184,9 +226,14 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     // becomes one minimized local notification; details stay behind the
     // secure link the app opens into.
     LaunchedEffect(model.paired) {
+        if (!model.paired) return@LaunchedEffect
         model.pushes.startWatching()
-        model.pushes.pushes.collect { latest ->
-            latest.lastOrNull()?.let { PushNotifications.present(context, it) }
+        try {
+            model.pushes.pushes.collect { latest ->
+                latest.lastOrNull()?.let { PushNotifications.present(context, it) }
+            }
+        } finally {
+            model.pushes.stopWatching()
         }
     }
     if (!model.paired) {

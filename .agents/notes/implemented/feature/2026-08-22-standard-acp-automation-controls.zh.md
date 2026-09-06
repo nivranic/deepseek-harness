@@ -36,7 +36,7 @@
 
 ## 标准配置选项
 
-建议性 LLM catalog 现在服务于另一个自动化 consumer，但不会成为请求校验。ACP 公开按提供方分组的 `model` select，其不透明值保留提供方／模型对；还会公开来自已解析确切模型的依赖 `reasoning_effort` select。具有 efforts 但没有 adapter 配置默认值的模型会包含 `Provider default`，以保留省略状态并让提供方自行选择。新建、恢复和设置响应都返回完整状态。Adapter 拓扑事件发出 `config_option_update`；每个会话按接收顺序串行处理变更。配置的 ACP 提供方／模型仍是初始选择；未列出的配置路由会合成到返回选项中，而不会被拒绝。
+建议性 LLM catalog 现在服务于另一个自动化 consumer，但不会成为请求校验。ACP 公开按提供方分组的 `model` select，其不透明值保留提供方／模型对；还会公开来自已解析确切模型的依赖 `reasoning_effort` select。具有 efforts 但没有 adapter 配置默认值的模型会包含 `Provider default`，以保留省略状态并让提供方自行选择。新建、恢复和设置响应都返回完整状态。Adapter 拓扑事件仅在完整选项与上次新建、恢复或设置响应，或已排队更新不同时发出 `config_option_update`；每个会话按接收顺序串行处理变更。可配置提供方目录变化可能不改变已公布的模型选项，因此仅有注册表事件不足以触发 wire 通知。配置的 ACP 提供方／模型仍是初始选择；未列出的配置路由会合成到返回选项中，而不会被拒绝。
 
 ## 标准 MCP 映射
 
@@ -48,7 +48,7 @@ ACP 客户端是受信任的控制器：stdio 声明授权执行进程，HTTP �
 
 ## 语义更新投影
 
-只有已提交的持久事实会进入 `session/update`。Assistant 文本／图片变成 `agent_message_chunk`；reasoning 变成 `agent_thought_chunk`；工具调用／结果变成通用 `tool_call` 和 `tool_call_update`；已知的测量上下文压力与容量变成 `usage_update`；adapter 拓扑变化变成 `config_option_update`。持久消息 id 和工具调用 id 保留关联。规范 DSH 工具名作为标准工具调用 title。
+`session/update` 中的执行更新投影已提交的持久事实；配置更新投影当前会话选项。Assistant 文本／图片变成 `agent_message_chunk`；reasoning 变成 `agent_thought_chunk`；工具调用／结果变成通用 `tool_call` 和 `tool_call_update`；已知的测量上下文压力与容量变成 `usage_update`；发生变化的 adapter 选项变成 `config_option_update`。持久消息 id 和工具调用 id 保留关联。规范 DSH 工具名作为标准工具调用 title。
 
 Per-session 链会串行处理所有更新，并在提示词完成前 drain。引用工具调用的权限请求只会在该工具调用通知 drain 后发送。原始模型 delta、重试尝试、卡片、终端状态、diff、位置、计划、标题、todo 和不受支持内容不会进入 wire。
 
@@ -68,7 +68,7 @@ Per-session 链会串行处理所有更新，并在提示词完成前 drain。�
 
 ## 验证
 
-聚焦测试覆盖：无私有元数据的确切能力公布；模型／reasoning 选择、无效和并发变更、拓扑更新以及图片路由固定；stdio／HTTP MCP 设置、声明回滚、scope 隔离、恢复和释放；列表分页、规范 workspace 校验、活动冲突、关闭／恢复和重启恢复；消息／思考／工具／用量顺序与 id；工具先于权限；标准 stop reason；请求和会话取消；连接丢失 teardown。
+聚焦测试覆盖：无私有元数据的确切能力公布；模型／reasoning 选择、无效和并发变更、拓扑更新、创建期间及选择后的相同选项抑制，以及图片路由固定；stdio／HTTP MCP 设置、声明回滚、scope 隔离、恢复和释放；列表分页、规范 workspace 校验、活动冲突、关闭／恢复和重启恢复；消息／思考／工具／用量顺序与 id；工具先于权限；标准 stop reason；请求和会话取消；连接丢失 teardown。
 
 通用 keyless conformance 测试会启动真实 ACP demo 两次，并且只使用公开 ACP SDK：选择模型和 reasoning effort、挂载 MCP 服务器、执行工具轮次、观察标准更新、关闭、重启、列出、恢复和取消。它不包含集成专用名称、依赖、元数据或环境行为。
 

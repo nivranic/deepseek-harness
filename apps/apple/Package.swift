@@ -16,6 +16,7 @@ let package = Package(
     products: [
         .library(name: "SharedAppleRemoteCore", targets: ["SharedAppleRemoteCore"]),
         .library(name: "CompanionUI", targets: ["CompanionUI"]),
+        .executable(name: "LinkNativeAcceptance", targets: ["LinkNativeAcceptance"]),
     ],
     targets: [
         .target(
@@ -34,6 +35,11 @@ let package = Package(
             name: "CompanionUI",
             dependencies: ["SharedAppleRemoteCore"],
             path: "Sources/CompanionUI"
+        ),
+        .executableTarget(
+            name: "LinkNativeAcceptance",
+            dependencies: ["CompanionUI", "SharedAppleRemoteCore"],
+            path: "Tests/LinkNativeAcceptance"
         ),
         .target(
             name: "LiteRuntime",

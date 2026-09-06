@@ -89,6 +89,7 @@ defineAcpSnapshotSuite({
 - **fixture 保护拒绝已提交文件**——遗留场景目录、缺失文件、一个 header 类别包含多个 pin、重复的伴随文件内容、未擦除的 JSONL header 与格式错误的 pin header 都会在比较运行前使套件失败。
 - **会话收集需要原始 JSONL mode**——快照配置使用 JSONL 后端的 `compression: 'none'`；压缩 JSONL 与 SQLite 组合没有快照收集路径。
 - **构建 mode 需要当前产物**——选择 `DSH_EXAMPLE_MODE=lib` 前先运行 `pnpm run build`；源 mode 仍是零构建路径。
+- **持久化等待到达截止时间**——即使首次异步读取仍未完成，错误也会指出所等待的记录。最后观察到的断言失败保持原样传播；尚未观察到失败时，截止错误保留 Vitest 失败作为 cause。稍后完成的读取不能让场景转为通过。[超时诊断决策](../../../.agents/notes/implemented/testing/2026-09-06-snapshot-pending-read-diagnostics.zh.md) 说明这一区别。
 
 -----
 
@@ -110,6 +111,7 @@ defineAcpSnapshotSuite({
 |---|---|
 | [`src/launcher.ts`](src/launcher.ts) | 子进程/客户端启动器与关闭所有权 |
 | [`src/harness.ts`](src/harness.ts) | 脚本化场景驱动与会话日志收集 |
+| [`src/wait-for-snapshot-check.ts`](src/wait-for-snapshot-check.ts) | 首次异步检查尚未完成时的持久化轮询诊断 |
 | [`src/manifest.ts`](src/manifest.ts) | 封闭 `snapshot.yml` schema、收集与归属规则 |
 | [`src/identity.ts`](src/identity.ts) | 跨父子日志的类型化首次出现身份 token 化 |
 | [`src/normalize.ts`](src/normalize.ts) | 纯规范化器与擦除辅助 |

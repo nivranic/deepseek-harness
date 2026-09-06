@@ -1,0 +1,7 @@
+{
+  "type": "server-response",
+  "rpcId": "rpc-session-cancel-1",
+  "result": {
+    "ok": true
+  }
+}

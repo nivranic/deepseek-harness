@@ -7,6 +7,8 @@ import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import { describe, expect, it, vi } from 'vitest'
 import SessionController from '../src/index.ts'
 import type { ApiSessionAgentController } from '../src/agent.ts'
+import { SessionCommandController } from '../src/commands.ts'
+import type { SessionHandoffRequest } from '../src/types.ts'
 import { createSessionTestController, testSessionPersistence } from './test-remote.ts'
 
 const defaults = {
@@ -15,6 +17,32 @@ const defaults = {
 }
 
 describe('SessionController facade', () => {
+  it('returns handoff acknowledgements and propagates artifact failures through the Remote methods', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    await ctx.plugin(AgentRegistry)
+    const controller = createSessionTestController(ctx, defaults)
+    const request: SessionHandoffRequest = { snapshot: {
+      sourceSessionId: 'lite-1', sourceRuntime: 'lite', requestedCapability: 'run_tests', recentContext: [],
+      planActive: false, todo: [], artifactRefs: [],
+      provenance: { deviceId: 'device-1', platform: 'android', at: 1 },
+    } }
+    const accepted = { sessionId: SessionId('full-1') }
+    const handoff = vi.spyOn(SessionCommandController.prototype, 'handoff').mockResolvedValue(accepted)
+    const failure = new Error('artifact authorization unavailable')
+    const artifact = vi.spyOn(SessionCommandController.prototype, 'artifact').mockRejectedValue(failure)
+    try {
+      await expect(controller.handoff(request)).resolves.toEqual(accepted)
+      expect(handoff).toHaveBeenCalledExactlyOnceWith(request)
+      const read = { sessionId: accepted.sessionId, artifactId: 'art-1', offset: 2, limit: 4 }
+      await expect(controller.artifact(read)).rejects.toBe(failure)
+      expect(artifact).toHaveBeenCalledExactlyOnceWith(read)
+    } finally {
+      handoff.mockRestore()
+      artifact.mockRestore()
+      await ctx.fiber.dispose()
+    }
+  })
   it('does not require the Tools service', () => {
     expect(SessionController.inject).not.toContain('tools')
   })

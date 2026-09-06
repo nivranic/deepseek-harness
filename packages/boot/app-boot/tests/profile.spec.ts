@@ -708,6 +708,38 @@ describe('healProfilesModuleFallback', () => {
     }
   })
 
+  it.each(['standalone', 'scoped'] as const)('keeps packaged %s installation fallbacks inside the deployed dependencies', async (layout) => {
+    const root = tmp()
+    const installation = join(root, 'installation')
+    const modules = join(installation, 'node_modules')
+    const app = layout === 'scoped' ? join(modules, '@fixture', 'app') : installation
+    mkdirSync(app, { recursive: true })
+    const anchor = join(app, 'package.json')
+    writeFileSync(anchor, JSON.stringify({
+      name: '@fixture/app', version: '0.0.0', type: 'module', main: './index.js',
+      dependencies: { 'installed-peer': '0.0.0', 'ambient-peer': '0.0.0' },
+    }))
+    writeFileSync(join(app, 'index.js'), 'export const app = true\n')
+    for (const [name, directory] of [
+      ['installed-peer', join(modules, 'installed-peer')],
+      ['ambient-peer', join(root, 'node_modules', 'ambient-peer')],
+    ] as const) {
+      mkdirSync(directory, { recursive: true })
+      writeFileSync(join(directory, 'package.json'), JSON.stringify({ name, version: '0.0.0', type: 'module', main: './index.js' }))
+      writeFileSync(join(directory, 'index.js'), 'export const peer = true\n')
+    }
+    Object.defineProperty(process, 'pkg', { configurable: true, value: {} })
+    try {
+      const home = tmp()
+      await healProfilesModuleFallback({ installAnchor: anchor, home })
+      const fallback = join(home, 'profiles', 'node_modules')
+      await expect(import(join(fallback, 'installed-peer', 'entry-0.js'))).resolves.toMatchObject({ peer: true })
+      expect(existsSync(join(fallback, 'ambient-peer'))).toBe(false)
+    } finally {
+      delete (process as NodeJS.Process & { pkg?: unknown }).pkg
+    }
+  })
+
   it('resolves import-only exports from each package installation', async () => {
     const anchor = stageInstallation({
       'bundle-a': { patch: '[]\n', deps: { 'nested-esm': '0.0.0' } },

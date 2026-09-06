@@ -9,7 +9,12 @@ import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
 import { Context, type Fiber } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { renderIndexInjections, type WebServer, type WebRoute } from '@deepseek-ai/dsh-host-webserver'
+import {
+  renderIndexInjections,
+  type IndexInjection,
+  type WebServer,
+  type WebRoute,
+} from '@deepseek-ai/dsh-host-webserver'
 import * as modulesClient from '../src/client/index.ts'
 import { ClientModuleRegistry, bootInjections, orderByModuleGraph } from '../src/index.ts'
 import type { ClientModuleLoaderTarget, WebBootEntry, WebBootGraph } from '../src/client/index.ts'
@@ -240,6 +245,86 @@ describe('HTML bootstrap facade', () => {
 })
 
 describe('client bundle activation', () => {
+  it('binds a later webServer and rebinds after its provider is replaced', async () => {
+    const packageName = '@fixture/delayed-webserver'
+    writeBuiltPackage(packageName, {})
+    const ctx = new Context()
+    ctx.baseUrl = pathToFileURL(root!).href + '/'
+    ctx.provide('loader', {
+      *entries() {
+        yield {
+          options: { name: packageName },
+          fiber: {},
+          disabled: false,
+          parent: { tree: { ctx: { baseUrl: ctx.baseUrl } } },
+        }
+      },
+    })
+
+    const modulesFiber = ctx.plugin(ClientModuleRegistry)
+    await modulesFiber.await()
+    expect(ctx.get('clientModules')).toBeDefined()
+
+    const createCarrier = (): { routes: WebRoute[]; server: WebServer } => {
+      const routes: WebRoute[] = []
+      const server: Pick<WebServer, 'port' | 'register' | 'tapIndex'> = {
+        port: 0,
+        register: (route) => {
+          routes.push(route)
+          return () => {
+            const index = routes.indexOf(route)
+            if (index !== -1) routes.splice(index, 1)
+          }
+        },
+        tapIndex: () => () => {},
+      }
+      return { routes, server: server as WebServer }
+    }
+    const renderIndex = (): string => {
+      const rows: IndexInjection[] = []
+      ctx.emit('webserver/index-inject', rows)
+      return renderIndexInjections('<html><head></head><body></body></html>', rows)
+    }
+    const provideCarrier = (server: WebServer) => ctx.plugin((providerCtx) => {
+      providerCtx.provide('webServer', server)
+    })
+
+    try {
+      expect(renderIndex()).not.toContain('window.__ModuleLoader__=')
+
+      const first = createCarrier()
+      const firstFiber = provideCarrier(first.server)
+      await firstFiber.await()
+      await vi.waitFor(() => {
+        expect(first.routes.map(route => route.path)).toEqual(['/plugins'])
+        expect(renderIndex()).toContain('window.__ModuleLoader__=')
+      })
+
+      await firstFiber.dispose()
+      await vi.waitFor(() => {
+        expect(first.routes).toEqual([])
+        expect(renderIndex()).not.toContain('window.__ModuleLoader__=')
+      })
+
+      const second = createCarrier()
+      const secondFiber = provideCarrier(second.server)
+      await secondFiber.await()
+      await vi.waitFor(() => {
+        expect(second.routes.map(route => route.path)).toEqual(['/plugins'])
+        expect(renderIndex()).toContain('window.__ModuleLoader__=')
+      })
+
+      await modulesFiber.dispose()
+      await vi.waitFor(() => {
+        expect(second.routes).toEqual([])
+        expect(renderIndex()).not.toContain('window.__ModuleLoader__=')
+      })
+      await secondFiber.dispose()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it.each(['v1', 'v2'] as const)(
     'resolves %s package metadata from the owning entry tree',
     (version) => {

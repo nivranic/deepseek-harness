@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-02-android-link-transport-and-stream-ownership.md
+2026-09-02-android-link-transport-and-stream-ownership.md: 12796d59fdb9612947d8944017faacf5539898bb
+2026-09-02-android-link-transport-and-stream-ownership.zh.md: e0d0a37559d60726d76f02259dcb70ad37805ebf

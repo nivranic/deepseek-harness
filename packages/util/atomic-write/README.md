@@ -81,7 +81,7 @@ The package is built on one separation: the atomic commit owns the swap, and the
 
 `writeFileAtomic` writes a random-suffix sibling opened with exclusive create (`wx`), then renames it over the target. The exclusive open refuses to follow a symlink planted at a guessable temp path; the same-directory sibling keeps the rename on one filesystem; and the rename replaces a symlinked target itself instead of writing through to its referent.
 
-`withFileLock` creates a `<filename>.lock` sibling with `wx`. `EEXIST` identifies contention directly; `EPERM` does so only when a fresh `lstat` confirms the lock path exists, covering Windows exclusive-create behavior without hiding an unrelated permission failure. The lock records its creator's PID and is removed by the holder in a `finally`; contention backs off exponentially and fails when the per-call `waitMs` deadline (default two seconds) passes.
+`withFileLock` creates a `<filename>.lock` sibling with `wx`. `EEXIST` identifies contention directly; `EPERM` does so when a fresh `lstat` confirms the lock path exists. If inspection finds the path absent, one immediate exclusive-create retry covers a holder releasing its lock between create failure and inspection. Consecutive `EPERM` failures with no lock, or any other inspection failure, preserve the permission error. The lock records its creator's PID and is removed by the holder in a `finally`; contention backs off exponentially and fails when the per-call `waitMs` deadline (default two seconds) passes.
 
 ### Why the swap stays safe
 

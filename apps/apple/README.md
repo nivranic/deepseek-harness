@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`apps/apple` holds the Apple half of the cross-device plan: one Swift package, `SharedAppleRemoteCore`, owns the link-client state machine — Ed25519 pairing against the QR payload, SPKI fingerprint pinning during the TLS handshake, signed unary RPC through the shared `/api` chain, and NDJSON Remote streams — while the generated `LinkContracts.swift` models and the golden fixture JSONs are synced here by `pnpm run gen-link-contracts` and drift-gated by `verify-link-contracts`. The second target, `CompanionUI`, carries the SwiftUI application layer: session list and timeline over the follow stream, the approval/question inbox with the host's outcome vocabulary, the plan/todo/goal pane, the read-only artifacts pane (chapter 56), and the dual visual styles (简约拟态 and 液态玻璃) as one semantic token set with an accessibility-aware degrade rule. Its view models depend only on a wire-driving protocol, so the whole layer tests without a host. The iOS/iPadOS/macOS app shells build on the two libraries; none exists yet, and the core still imports no UI framework.
+`apps/apple` holds the Apple half of the cross-device plan: one Swift package, `SharedAppleRemoteCore`, owns the link-client state machine — Ed25519 pairing against the QR payload, SPKI fingerprint pinning during the TLS handshake, signed unary RPC through the shared `/api` chain, and NDJSON Remote streams — while the generated `LinkContracts.swift` models and golden fixture JSONs are synced here by `pnpm run gen-link-contracts` and drift-gated by `verify-link-contracts`. `LinkClient` consumes the generated unary, stream, and recursive JSON models directly; no second Swift envelope vocabulary exists. The second target, `CompanionUI`, carries the SwiftUI application layer: session list and timeline over the follow stream, the approval/question inbox with the Host's Remote Event outcome vocabulary, the plan/todo/goal pane, the read-only artifacts pane (chapter 56), and the dual visual styles (简约拟态 and 液态玻璃) as one semantic token set with an accessibility-aware degrade rule. Its view models depend only on a wire-driving protocol, so the whole layer tests without a host. The iOS/iPadOS/macOS app shells are thin hosts over the two libraries and build in the Apple lane; the core still imports no UI framework.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-The Swift package builds with Xcode (SwiftPM; iOS 16+, macOS 13+). Generated files never change by hand:
+The Swift package builds with Xcode (SwiftPM; iOS 17+, macOS 14+). Generated files never change by hand:
 
 ```sh
 pnpm run gen-link-contracts     # regenerates Sources/SharedAppleRemoteCore/LinkContracts.swift and Tests/.../Fixtures/
@@ -33,7 +33,11 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 
 ### Observable behavior
 
-`LinkClient` mirrors the TypeScript reference client: `pair(payload:deviceName:)` exchanges the one-time code for a persisted `LinkCredentials` (Keychain in a real deployment, in-memory in previews and tests); `describe()` returns the host description; `call(_:args:)` unwraps the gateway envelope into a value or a `refused` failure; `stream(_:payload:)` yields NDJSON frame values and finishes with the typed failure on an error frame. Every request signs `timestamp\nmethod\npath\nsha256hex(body)` with the device key; every TLS handshake pins the certificate fingerprint before any request byte is written.
+The reference `RelayClient` serializes complete HTTP exchanges across actor suspension points and discards cached keys after transport, framing, or authentication failure without replaying the request. Cancelling a waiting call removes only that wait; it does not cancel the active exchange or invalidate its session. [Relay transport semantics](../relay/README.md#transport-encryption) own the unsigned nonce limits, recovery rules, and independent stream keys. The Apple workflow owns executable verification of this Swift implementation.
+
+All app schemes consume the generated product xcconfig and expand the explicit [AppInfo.plist](Config/AppInfo.plist) template to retain the full SemVer, build number, and distribution channel. [Application release identity](../../docs/development/product-release-identity.md) owns the shared inputs and platform validation.
+
+`LinkClient` mirrors the TypeScript reference client: `pair(payload:deviceName:)` accepts only the endpoint and pin its fresh client owns, exchanges the one-time code, and persists `LinkCredentials` (Keychain in a real deployment, in-memory in previews and tests); `describe()` returns the Host description; `call(_:args:)` verifies the echoed `rpcId`, maps a successful omitted value to `.null`, and surfaces a structured refusal; `stream(_:payload:)` yields NDJSON frame values and finishes with the typed failure on an error frame. Unary and stream transport handling maps only an HTTP 403 whose JSON string `error` equals `forbidden` to `.refused(code: "forbidden", message: ...)`; its message uses the first nonempty string among `message` and `reason`, then `HTTP 403`, while every other non-2xx response remains `.carrier`. A failed stream reads that response body for the classification, but a successful stream reaches the NDJSON parser without preconsuming bytes. Every request signs `timestamp\nmethod\npath\nsha256hex(body)` with the device key; every TLS handshake pins the certificate fingerprint before any request byte is written. `InteractionViewModel` updates its answer identity only from each Host `ready.clientId`, reads interaction fields from `waterfall.request`, applies cancel frames, and waits for a new ready frame after reconnect.
 
 -----
 
@@ -44,7 +48,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <summary>Implementation internals — click to expand</summary>
 
 - **Pinning in the challenge handler.** `LinkPinningDelegate` hashes the leaf certificate's SPKI DER (the fixed P-256 header plus the 65-byte point, or the Ed25519 header plus the 32 raw bytes) and cancels the handshake on any mismatch.
-- **Envelope fidelity.** `LinkWire` encodes exactly the `client-request` shape the gateway's shared `/api` chain expects and decodes `server-response` results, including pass-through JSON values.
+- **Generated envelope fidelity.** `LinkContracts.swift` supplies the request, response, stream, Remote Event, and recursive JSON models used by `LinkClient` and `CompanionUI`; fixture tests round-trip value, void, error, ready, waterfall, cancel, outcome, and Session recovery variants.
+- **Fresh transport ownership.** The pairing view returns its newly paired client to the root, and the root builds every model over that exact endpoint, pin, and credential store instead of a pre-pair placeholder.
 - **Credentials behind a protocol.** `LinkCredentialsStoring` splits the Keychain-backed store from the in-memory one, so the core compiles and tests off-device.
 
 ### Source map
@@ -59,11 +64,11 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 | `Sources/SharedAppleRemoteCore/RelayClient.swift` | The relay's Noise-encrypted HTTP consumer: lazy XX handshake with transcript-bound session id and encrypted key confirmation, framed AEAD bodies for register/publish/poll/presence, and the push stream riding a one-time in-request key; tested against a real local Noise responder |
 | [`Sources/SharedAppleRemoteCore/LinkSigning.swift`](Sources/SharedAppleRemoteCore/LinkSigning.swift) | Canonical signing input, SPKI framing, hex digests |
 | [`Sources/SharedAppleRemoteCore/LinkPinning.swift`](Sources/SharedAppleRemoteCore/LinkPinning.swift) | TLS challenge pinning against the pairing fingerprint |
-| [`Sources/SharedAppleRemoteCore/LinkWire.swift`](Sources/SharedAppleRemoteCore/LinkWire.swift) | Gateway request/response envelopes and stream frames |
 | [`Sources/SharedAppleRemoteCore/LinkCredentials.swift`](Sources/SharedAppleRemoteCore/LinkCredentials.swift) | Device identity and the storage protocol |
 | [`Sources/SharedAppleRemoteCore/LinkKeychain.swift`](Sources/SharedAppleRemoteCore/LinkKeychain.swift) | Keychain-backed identity storage |
-| `Sources/SharedAppleRemoteCore/LinkContracts.swift` | Generated wire models — never hand-edited |
+| `Sources/SharedAppleRemoteCore/LinkContracts.swift` | Generated unary, stream, Remote Event, recovery, and JSON models — never hand-edited |
 | `Tests/SharedAppleRemoteCoreTests/` | Fixture replay and signing vocabulary tests |
+| `Tests/LinkNativeAcceptance/LinkNativeAcceptance.swift` | The standalone Swift driver for the shared real-Host vertical-slice corpus |
 | [`Sources/CompanionUI/`](Sources/CompanionUI) | SwiftUI app layer: theming, session UI, interaction inbox, plan/todo/goal pane, tool trajectory, files browser, subagent children |
 | `Sources/CompanionUI/SessionFold.swift` | The pure domain-state fold — the Swift half of the conformance scenarios |
 | `Sources/CompanionUI/FileChange.swift` | The projection from the tool trajectory to read-only file changes — the chapter-55 first-version diff review |
@@ -90,7 +95,9 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 <a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
 
-- **Compiled and tested in CI** — the [Apple Swift](../.github/workflows/apple-swift.yml) lane compiles the package and runs all tests on `macos-latest` for every `apps/apple` change (pull request, dev, and master); the fixture replay runs on both sides of the drift gate.
+- **Compiled and tested in CI** — the [Apple Swift](../../.github/workflows/apple-swift.yml) lane compiles the package and runs all tests on `macos-latest` for every `apps/apple` change (pull request, dev, and master); the fixture replay runs on both sides of the drift gate.
+- **Real Host acceptance** — the same lane runs `LinkNativeAcceptance` against the shipped base plus desktop Host composition and the single shared 13-step corpus. The result records separate Host and Client commits plus protocol, contract, and Session format versions; a missing or skipped step fails the lane.
+- **Installed iOS startup** — [CompanionStartupTests](UITests/CompanionStartupTests.swift) launches the production shell on a fresh iPhone simulator, checks the unpaired form and disabled empty submission, and attaches a screenshot to the retained XCTest result. This check does not pair the App with a Host or test real-device networks.
 - **App shells build in CI** — `project.yml` (XcodeGen) defines the chapter-49 targets: DSH Companion for iPhone/iPad and the Mac companion, each a `@main` SwiftUI host embedding `CompanionRootView`; the lane generates `Companion.xcodeproj` (never committed) and builds both schemes. The macOS Direct Host target ships as the host-side skeleton (`Hosts/`, built on the lane); the files browser, the first-version read-only diff review, and the read-only artifacts pane have all shipped, and artifact content reads arrive with the resource channel.
 - **Single host identity** — the credentials store holds one pairing; multi-host switching arrives with the companion's host list.
 

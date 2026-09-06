@@ -1,0 +1,93 @@
+name: Windows candidate
+
+on:
+  pull_request:
+    paths:
+      - 'apps/desktop/**'
+      - 'apps/cli/**'
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'release/**'
+      - 'scripts/release/**'
+      - 'scripts/desktop-*.ts'
+      - 'scripts/build-desktop-exe.ts'
+      - 'scripts/produce-windows-candidate.ts'
+      - '.github/workflows/windows-candidate.yml'
+      - '.github/security/scanners.json'
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full immutable source commit
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-candidate-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  windows:
+    name: unsigned installer and portable acceptance
+    runs-on: windows-2025
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DSH_RC_SOURCE_SHA: ${{ inputs.source_sha || github.event.pull_request.head.sha || github.sha }}
+      ELECTRON_MIRROR: https://github.com/electron/electron/releases/download/
+      ELECTRON_BUILDER_BINARIES_MIRROR: https://github.com/electron-userland/electron-builder-binaries/releases/download/
+    steps:
+      - name: Require immutable source
+        run: |
+          if ($env:DSH_RC_SOURCE_SHA.Length -ne 40 -or $env:DSH_RC_SOURCE_SHA -cnotmatch '^[a-f0-9]{40}$') {
+            throw 'source_sha must be a full lowercase Git commit SHA'
+          }
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_RC_SOURCE_SHA }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22.22.1'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify source and generated identity
+        run: |
+          if ((git rev-parse HEAD) -cne $env:DSH_RC_SOURCE_SHA) { throw 'checkout SHA differs' }
+          pnpm run verify-product-identity
+      - name: SBOM regression tests
+        run: python -B -m unittest discover -s scripts/release -p test_sbom.py -v
+      - name: Build official application
+        run: pnpm run build:official
+      - name: Package unsigned Windows candidates
+        run: pnpm exec tsx scripts/build-desktop-exe.ts
+      - name: Install, interact, scan and verify platform receipt
+        id: acceptance
+        run: node --import tsx/esm scripts/produce-windows-candidate.ts --output "$env:RUNNER_TEMP/windows-rc"
+      - name: Read candidate installer crash records
+        if: failure() && steps.acceptance.outcome == 'failure'
+        run: ./scripts/release/read-windows-installer-crash.ps1 -ExecutablePath "$env:RUNNER_TEMP/windows-rc/windows/installer.exe"
+      - name: Preserve verified Windows candidate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: windows-rc-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/windows-rc/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

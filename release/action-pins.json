@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-05T08:17:27.246Z",
+  "pins": [
+    {
+      "action": "actions/cache",
+      "requestedRef": "v4",
+      "sha": "0057852bfaa89a56745cba8c7296529d2fc39830",
+      "repository": "actions/cache"
+    },
+    {
+      "action": "actions/cache/restore",
+      "requestedRef": "v4",
+      "sha": "0057852bfaa89a56745cba8c7296529d2fc39830",
+      "repository": "actions/cache"
+    },
+    {
+      "action": "actions/checkout",
+      "requestedRef": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "sha": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "repository": "actions/checkout"
+    },
+    {
+      "action": "actions/checkout",
+      "requestedRef": "v4",
+      "sha": "11d5960a326750d5838078e36cf38b85af677262",
+      "repository": "actions/checkout"
+    },
+    {
+      "action": "actions/checkout",
+      "requestedRef": "v6",
+      "sha": "d23441a48e516b6c34aea4fa41551a30e30af803",
+      "repository": "actions/checkout"
+    },
+    {
+      "action": "actions/configure-pages",
+      "requestedRef": "v6",
+      "sha": "45bfe0192ca1faeb007ade9deae92b16b8254a0d",
+      "repository": "actions/configure-pages"
+    },
+    {
+      "action": "actions/create-github-app-token",
+      "requestedRef": "bcd2ba49218906704ab6c1aa796996da409d3eb1",
+      "sha": "bcd2ba49218906704ab6c1aa796996da409d3eb1",
+      "repository": "actions/create-github-app-token"
+    },
+    {
+      "action": "actions/deploy-pages",
+      "requestedRef": "v5",
+      "sha": "368f82528645a54fb793d4d04e342629a3f51346",
+      "repository": "actions/deploy-pages"
+    },
+    {
+      "action": "actions/download-artifact",
+      "requestedRef": "v4",
+      "sha": "d3f86a106a0bac45b974a628896c90dbdf5c8093",
+      "repository": "actions/download-artifact"
+    },
+    {
+      "action": "actions/download-artifact",
+      "requestedRef": "v8",
+      "sha": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "repository": "actions/download-artifact"
+    },
+    {
+      "action": "actions/setup-java",
+      "requestedRef": "v4",
+      "sha": "cf277c60eb25467037889841efdb72551f06f6c3",
+      "repository": "actions/setup-java"
+    },
+    {
+      "action": "actions/setup-node",
+      "requestedRef": "v4",
+      "sha": "49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "repository": "actions/setup-node"
+    },
+    {
+      "action": "actions/setup-node",
+      "requestedRef": "v6",
+      "sha": "249970729cb0ef3589644e2896645e5dc5ba9c38",
+      "repository": "actions/setup-node"
+    },
+    {
+      "action": "actions/setup-python",
+      "requestedRef": "v6.3.0",
+      "sha": "ece7cb06caefa5fff74198d8649806c4678c61a1",
+      "repository": "actions/setup-python"
+    },
+    {
+      "action": "actions/upload-artifact",
+      "requestedRef": "v4",
+      "sha": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "repository": "actions/upload-artifact"
+    },
+    {
+      "action": "actions/upload-artifact",
+      "requestedRef": "v7",
+      "sha": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "repository": "actions/upload-artifact"
+    },
+    {
+      "action": "actions/upload-pages-artifact",
+      "requestedRef": "v5",
+      "sha": "fc324d3547104276b827a68afc52ff2a11cc49c9",
+      "repository": "actions/upload-pages-artifact"
+    },
+    {
+      "action": "gradle/actions/setup-gradle",
+      "requestedRef": "v4",
+      "sha": "ed408507eac070d1f99cc633dbcf757c94c7933a",
+      "repository": "gradle/actions"
+    },
+    {
+      "action": "pnpm/action-setup",
+      "requestedRef": "v4",
+      "sha": "b906affcce14559ad1aafd4ab0e942779e9f58b1",
+      "repository": "pnpm/action-setup"
+    },
+    {
+      "action": "pypa/gh-action-pypi-publish",
+      "requestedRef": "release/v1",
+      "sha": "dc37677b2e1c63e2034f94d8a5b11f265b73ba33",
+      "repository": "pypa/gh-action-pypi-publish"
+    },
+    {
+      "action": "reactivecircus/android-emulator-runner",
+      "requestedRef": "1dcd0090116d15e7c562f8db72807de5e036a4ed",
+      "sha": "1dcd0090116d15e7c562f8db72807de5e036a4ed",
+      "repository": "reactivecircus/android-emulator-runner"
+    },
+    {
+      "action": "actions/dependency-review-action",
+      "requestedRef": "v4",
+      "sha": "2031cfc080254a8a887f58cffee85186f0e49e48",
+      "repository": "actions/dependency-review-action"
+    },
+    {
+      "action": "github/codeql-action/init",
+      "requestedRef": "v4",
+      "sha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "repository": "github/codeql-action"
+    },
+    {
+      "action": "github/codeql-action/analyze",
+      "requestedRef": "v4",
+      "sha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "repository": "github/codeql-action"
+    }
+  ]
+}

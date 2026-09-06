@@ -91,8 +91,10 @@ class RelayClient(private val baseUrl: String) {
      * @return the forwarded envelopes, oldest first.
      */
     fun poll(token: String): List<RelayEnvelope> {
-        val response = exchange("/relay/poll", buildJsonObject { put("token", token) })
-        return response.map { parseEnvelope(Json.parseToJsonElement(String(current.recv.decryptWithAd(EMPTY, it))).jsonObject) }
+        return withSession { current ->
+            exchange(current, "/relay/poll", buildJsonObject { put("token", token) })
+                .map { parseEnvelope(Json.parseToJsonElement(String(it)).jsonObject) }
+        }
     }
 
     /**
@@ -110,17 +112,23 @@ class RelayClient(private val baseUrl: String) {
             put("token", token)
             put("streamKey", hex(streamKey))
         }
-        val sealed = encodeNoiseFrame(current.send.encryptWithAd(EMPTY, jsonBytes(request)))
-        val httpRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$baseUrl/relay/stream"))
-            // The timeout bounds waiting for the response head only; the
-            // body is a long-lived stream and stays unbounded.
-            .timeout(java.time.Duration.ofSeconds(60))
-            .header("x-relay-session", current.id)
-            .POST(HttpRequest.BodyPublishers.ofByteArray(sealed))
-            .build()
-        val response = http.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream())
-        if (response.statusCode() !in 200..299) error("relay stream failed: HTTP ${response.statusCode()}")
+        val response = withSession { current ->
+            val sealed = encodeNoiseFrame(current.send.encryptWithAd(EMPTY, jsonBytes(request)))
+            val httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create("$baseUrl/relay/stream"))
+                // The timeout bounds waiting for the response head only; the
+                // body is a long-lived stream and stays unbounded.
+                .timeout(java.time.Duration.ofSeconds(60))
+                .header("x-relay-session", current.id)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(sealed))
+                .build()
+            val opened = http.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream())
+            if (opened.statusCode() !in 200..299) {
+                opened.body().close()
+                error("relay stream failed: HTTP ${opened.statusCode()}")
+            }
+            opened
+        }
         response.body().use { body ->
             while (true) {
                 val frame = readFrame(body) ?: break
@@ -137,15 +145,17 @@ class RelayClient(private val baseUrl: String) {
      * account lists nothing.
      */
     fun presence(accountId: String): List<RelayPresence> {
-        val response = exchange("/relay/presence", buildJsonObject { put("accountId", accountId) })
-        val roster = Json.parseToJsonElement(String(current.recv.decryptWithAd(EMPTY, response.single())))
-        return roster.jsonArray.map { element ->
-            val obj = element.jsonObject
-            RelayPresence(
-                deviceId = obj.string("deviceId") ?: error("presence entry missing deviceId"),
-                platform = obj.string("platform") ?: "",
-                online = (obj["online"] as? JsonPrimitive)?.booleanOrNull ?: false,
-            )
+        return withSession { current ->
+            val response = exchange(current, "/relay/presence", buildJsonObject { put("accountId", accountId) })
+            val roster = Json.parseToJsonElement(String(response.single()))
+            roster.jsonArray.map { element ->
+                val obj = element.jsonObject
+                RelayPresence(
+                    deviceId = obj.string("deviceId") ?: error("presence entry missing deviceId"),
+                    platform = obj.string("platform") ?: "",
+                    online = (obj["online"] as? JsonPrimitive)?.booleanOrNull ?: false,
+                )
+            }
         }
     }
 
@@ -176,18 +186,32 @@ class RelayClient(private val baseUrl: String) {
             return session ?: error("relay session unavailable")
         }
 
-    /** One framed encrypted POST; the response body is the raw frames. */
-    private fun exchange(path: String, request: JsonObject): List<ByteArray> {
+    /** Ordered HTTP exchanges share counters; a failure retires the cached keys without replay. */
+    @Synchronized
+    private fun <T> withSession(operation: (Session) -> T): T {
+        val active = current
+        try {
+            return operation(active)
+        } catch (error: Exception) {
+            if (session === active) session = null
+            throw error
+        }
+    }
+
+    /** One framed encrypted POST; the result contains authenticated plaintext frames. */
+    private fun exchange(current: Session, path: String, request: JsonObject): List<ByteArray> {
         val sealed = encodeNoiseFrame(current.send.encryptWithAd(EMPTY, jsonBytes(request)))
         val response = post(path, sealed, current.id)
-        return decodeNoiseFrames(response.body())
+        return decodeNoiseFrames(response.body()).map { current.recv.decryptWithAd(EMPTY, it) }
     }
 
     /** One framed encrypted POST answered by exactly one JSON object. */
     private fun call(path: String, request: JsonObject): JsonObject {
-        val frames = exchange(path, request)
-        if (frames.size != 1) error("relay $path answered ${frames.size} frames")
-        return Json.parseToJsonElement(String(current.recv.decryptWithAd(EMPTY, frames.single()))).jsonObject
+        return withSession { current ->
+            val frames = exchange(current, path, request)
+            if (frames.size != 1) error("relay $path answered ${frames.size} frames")
+            Json.parseToJsonElement(String(frames.single())).jsonObject
+        }
     }
 
     private fun post(path: String, body: ByteArray, sessionHeader: String?): HttpResponse<ByteArray> {

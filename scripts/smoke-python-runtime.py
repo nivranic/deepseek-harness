@@ -731,6 +731,7 @@ def main() -> None:
         parser.error("--scenario sdk-profile-plugin requires --installed-wheel")
     if args.installed_wheel:
         args.exe = assert_installed_wheel_environment()
+        smoke_installed_dsh_cli(args.exe)
     if args.scenario in {"all", "sdk-custom", "sdk-minimal", "sdk-fs-search", "sdk-snapshot", "sdk-restart", "direct"} and args.exe is None:
         parser.error("--exe is required for custom, minimal, snapshot, and direct scenarios")
     if args.update_snapshots and args.scenario not in {"all", "sdk-minimal", "sdk-snapshot", "sdk-restart"}:
@@ -823,6 +824,27 @@ def assert_installed_wheel_environment() -> Path:
     if not any(Path(file).name == executable.name for file in runtime_files):
         raise AssertionError(f"runtime executable is absent from installed distribution records: {executable}")
     return executable
+
+
+def smoke_installed_dsh_cli(executable: Path) -> None:
+    """Compare installed CLI output and failure status with the same native executable."""
+    dsh = Path(sysconfig.get_path("scripts")) / ("dsh.exe" if IS_WINDOWS else "dsh")
+    with tempfile.TemporaryDirectory(prefix="dsh-installed-cli-") as temporary:
+        root = Path(temporary).resolve()
+        environment = {**os.environ, "DSH_HOME": str(root / "home")}
+        for argument, expected_code in (("--version", 0), ("--help", 0), ("--invalid-option", 1)):
+            results = [
+                subprocess.run(
+                    [str(command), argument], cwd=root, env=environment,
+                    capture_output=True, check=False, timeout=60,
+                )
+                for command in (executable, dsh)
+            ]
+            native, installed = results
+            assert native.returncode == expected_code, (argument, native.returncode, native.stderr)
+            assert native.stdout if expected_code == 0 else native.stderr, argument
+            assert installed.returncode == native.returncode, (argument, installed.returncode, native.returncode)
+            assert (installed.stdout, installed.stderr) == (native.stdout, native.stderr), argument
 
 
 def smoke_sdk_live() -> None:
@@ -1131,12 +1153,14 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
             cwd=root,
             env=environment,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             check=False,
         )
         if installed.returncode != 0:
             raise AssertionError(
                 f"Python-installed dsh could not add the external profile plugin: "
+                f"returncode={installed.returncode} "
                 f"stdout={installed.stdout!r} stderr={installed.stderr!r}"
             )
         manifest = json.loads((dsh_home / "profiles" / "sdk" / "package.json").read_text())

@@ -10,11 +10,13 @@ Status: implemented
 
 ## Decision
 
-`apps/apple` 是一个 SwiftPM 包（iOS 16+、macOS 13+），唯一库 target `SharedAppleRemoteCore` 不引入任何 UI 地镜像 `dsh-link-client` 的状态机：`LinkClient`（配对 / 描述 / 调用 / 流，`LinkWire` 处理网关 `client-request`/`server-response` 信封）、`LinkSigning`（规范签名输入 `timestamp\nmethod\npath\nsha256hex(body)`、CryptoKit 的 Ed25519、Ed25519 与 P-256 密钥的固定 SPKI 头）、`LinkPinningDelegate`（在 TLS 挑战处理器里计算叶证书的 SPKI 指纹，任何不匹配都在写出请求字节之前取消握手），以及藏在 `LinkCredentialsStoring` 协议后的凭据（Keychain 与内存两种实现）。生成产物是同步而非分叉：`gen-link-contracts` 现在还把 `LinkContracts.swift` 写进包源码、每个黄金 fixture 一份 JSON 写入 `generated/fixtures/`，并把 fixtures 拷贝进测试 bundle 资源；`verify-link-contracts`（hygiene 聚合的漂移门禁）逐字节比对每一份拷贝。XCTest fixtures 把每个 JSON 解码进生成的模型并往返配对载荷；签名测试覆盖规范输入、SPKI 组帧与签名/验签往返。
+`apps/apple` 是一个 SwiftPM 包（iOS 17+、macOS 14+），`SharedAppleRemoteCore` target 不引入任何 UI 地镜像 `dsh-link-client` 的状态机：`LinkClient`（在生成式 request、response、stream 与递归 JSON 模型上完成配对 / 描述 / 调用 / 流）、`LinkSigning`（规范签名输入 `timestamp\nmethod\npath\nsha256hex(body)`、CryptoKit 的 Ed25519、Ed25519 与 P-256 密钥的固定 SPKI 头）、`LinkPinningDelegate`（在 TLS 挑战处理器里计算叶证书的 SPKI 指纹，任何不匹配都在写出请求字节之前取消握手），以及藏在 `LinkCredentialsStoring` 协议后的凭据（Keychain 与内存两种实现）。生成产物是同步而非分叉：`gen-link-contracts` 把 `LinkContracts.swift` 写进包源码、每个黄金 fixture 一份 JSON 写入 `generated/fixtures/`，并把 fixtures 拷贝进测试 bundle 资源；`verify-link-contracts` 逐字节比对每一份拷贝。XCTest fixtures 把每个 JSON 解码进生成模型；签名测试覆盖规范输入、SPKI 组帧与签名/验签往返。
+
+fresh pairing 把新绑定的 `LinkClient` 返回给 `CompanionRootView`，全部模型都以这一组 endpoint、pin 与 credential store 构建。unary 调用要求 Host 回显请求 `rpcId`，把成功但省略 value 的响应当作 void，并拒绝跨分支 result 字段。unary 与 stream 的状态处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。stream 处理仅在响应非 2xx 时读取错误体，并让成功响应的 NDJSON 字节保持未消费。交互收件箱只接受 waterfall frame，从 `request` 读取用户可见字段，移除 cancel frame，并用当前 Host `ready.clientId` 发送 outcome；重连会清空旧一代身份，直到收到下一条 ready frame。
 
 ## Consequences
 
-wire 类型变更现在在伴侣端发布前会连续三道门禁失败：typecheck（zod schema 不再满足协议类型）、manifest/Swift/Kotlin 漂移门禁，以及——待 macOS runner 落地后——同步 fixtures 上的 `swift test`。Swift 源码已编写但尚未纳入本仓库 CI 编译：这台 Windows 主机无法运行 Xcode，仓库 runner 均为 Linux，编译验证等待 macOS 车道；期间由 fixture 与漂移门禁承载契约保证，且该包刻意避免花哨的 Swift 特性，使首次 `swift build` 低风险。伴侣应用本体（会话 UI、审批、Plan/Todo/Goal、文件/Diff/工件查看器、简约拟态 + 液态玻璃双主题）是基于此核心的后续增量。
+wire 类型变更会依次被 TypeScript 契约检查、生成产物漂移门禁与 macOS Apple 车道的 SwiftPM fixture 回放拦下。同一组 fixtures 覆盖 value、void、error、Remote Event 与 Session recovery 变体；`LinkClient.value` 另行证明 rpcId correlation 与 void 行为。Apple 车道还会让独立 Swift driver 对 shipped base 加 desktop Host composition 执行共享的配对至撤销 corpus，缺少任一步都会失败。Windows 无法执行 Swift/Xcode，本地证据因此保持 `NOT_EXECUTED`；只有上传的 macOS 结果能证明真实 Host-to-Swift 执行，生成式字节或 fake-wire view-model 测试不能替代它。
 
 ## Alternatives considered
 

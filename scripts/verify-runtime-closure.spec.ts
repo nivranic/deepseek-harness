@@ -1,6 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { verifyRuntimeClosure } from './verify-runtime-closure.ts'
 
@@ -36,6 +36,29 @@ afterEach(() => {
 })
 
 describe('verifyRuntimeClosure', () => {
+  it('rejects undeclared workspace bundles reached through the shipped app', async () => {
+    const root = fixture({
+      'python/sdk-runtime/package.json': { name: 'runtime', dependencies: { '@scope/app': 'workspace:^' } },
+      'python/sdk-runtime/platforms.json': platforms,
+      'packages/preset/agent-presets/presets/minimal/agent.cordis.yml': '[]\n',
+      'apps/cli/package.json': { name: '@scope/app', dependencies: { '@scope/base': 'workspace:^' } },
+    })
+    workspace(root, '@scope/base', { dependencies: { '@scope/plugin': 'workspace:^' } })
+    workspace(root, '@scope/plugin', {})
+
+    const result = await verifyRuntimeClosure(root)
+
+    expect(result.failures).toEqual([
+      'runtime -> @scope/app -> @scope/base [runtime workspace dependency missing]',
+      'runtime -> @scope/app -> @scope/base -> @scope/plugin [runtime workspace dependency missing]',
+    ])
+  })
+
+  it('ships the complete repository application dependency graph', async () => {
+    const result = await verifyRuntimeClosure(resolve(import.meta.dirname, '..'))
+    expect(result.failures).toEqual([])
+  })
+
   it('requires only plugins active for each published target', async () => {
     const root = fixture({
       'python/sdk-runtime/package.json': { name: 'runtime', dependencies: { '@scope/shared': 'workspace:^' } },

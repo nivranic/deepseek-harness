@@ -67,9 +67,13 @@ export interface KvTable<K extends string, V> {
    * Insert or overwrite one record durably.
    * @param key - Record key.
    * @param value - The full new record (no partial merge).
+   * @param ready - Optional prerequisite observed immediately and awaited in
+   *   this write's queue slot before backend I/O. Rejection skips the write
+   *   without changing memory or emitting an event. It must not depend on a
+   *   later write or close of this domain, which would deadlock the queue.
    * @returns resolution after durability and event emission.
    */
-  put(key: K, value: V): Promise<void>
+  put(key: K, value: V, ready?: Promise<unknown>): Promise<void>
 
   /**
    * Delete one record durably.
@@ -304,8 +308,13 @@ class KvTableImpl<K extends string, V> implements KvTable<K, V> {
     return this.records.size
   }
 
-  put(key: K, value: V): Promise<void> {
+  put(key: K, value: V, ready?: Promise<unknown>): Promise<void> {
+    // Observe rejection even while an earlier queue slot is pending, or when
+    // enqueue refuses a closed domain. The job rethrows it at its own slot.
+    const prerequisite = ready?.then(() => undefined, (error: unknown) => ({ error }))
     return this.host.enqueue(async () => {
+      const failure = await prerequisite
+      if (failure !== undefined) throw failure.error
       await this.host.unit.putRecord(this.tableName, key, value)
       this.records.set(key, value)
       this.emitPut(key, value)

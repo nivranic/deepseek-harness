@@ -69,7 +69,7 @@ node 半侧会在发布前快照每个客户端 bundle 及其现有 source map�
 
 ### 启动清单注入
 
-宿主 tap 索引渲染，并向 `<head>` 注入：`window.__ModuleLoader__` queue facade、每个 application combo 的提示性 preload、阻塞 parser 的 bootstrap combo 脚本，然后才是外壳读取前的启动图。facade 的 `create()` 物化 modules bundle、把构造委托给其 `createClientModuleSystem` 导出，并让同一 facade 进入 live registration 模式。
+宿主 tap 索引渲染，并向 `<head>` 注入：`window.__ModuleLoader__` queue facade、每个 application combo 的提示性 preload、阻塞 parser 的 bootstrap combo 脚本，然后才是外壳读取前的启动图。`webServer` 注入 fiber 拥有 bundle 路由与 index 监听器：provider 在模块激活后到达时会绑定两者，provider 离开时会移除两者，替换 provider 到达时会重新创建两者。facade 的 `create()` 物化 modules bundle、把构造委托给其 `createClientModuleSystem` 导出，并让同一 facade 进入 live registration 模式。
 
 ### 源码地图
 

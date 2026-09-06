@@ -296,7 +296,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-api-session-controller`
 
-需要：`agentDefaultModel` · `agents` · `attachments` · `llm` · `sessions` · `sessionProjections` · `sessionQuery` · `typert` · `workspaceRegistry`
+需要：`agentDefaultModel` · `agents` · `artifacts` · `attachments` · `llm` · `sessions` · `sessionProjections` · `sessionQuery` · `typert` · `workspaceRegistry`
 
 ```ts config-catalog
 /** Session Controller deployment policy. */
@@ -308,7 +308,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/api/session-controller/src/index.ts:67`](../packages/api/session-controller/src/index.ts)
+来源：[`packages/api/session-controller/src/index.ts:69`](../packages/api/session-controller/src/index.ts)
 
 <a id="deepseek-aidsh-api-settings-controller"></a>
 
@@ -323,6 +323,22 @@ export interface Config {
 ```
 
 来源：[`packages/api/settings-controller/src/index.ts:41`](../packages/api/settings-controller/src/index.ts)
+
+<a id="deepseek-aidsh-artifact-local"></a>
+
+## `@deepseek-ai/dsh-artifact-local`
+
+```ts config-catalog
+/** Local artifact backend configuration. */
+export interface Config {
+  /** Explicit harness home; omitted follows `DSH_HOME`, then `~/.dsh`. */
+  dshHome?: string
+  /** Days stored artifact bytes may age before the sweep removes them; omitted keeps every artifact forever. */
+  retentionDays?: number
+}
+```
+
+来源：[`packages/artifact/artifact-local/src/index.ts:28`](../packages/artifact/artifact-local/src/index.ts)
 
 <a id="deepseek-aidsh-attachment-local"></a>
 
@@ -624,7 +640,7 @@ export interface DeviceTrustConfig {
 }
 ```
 
-Source: [`packages/remote/device-trust/src/index.ts:75`](../packages/remote/device-trust/src/index.ts)
+Source: [`packages/remote/device-trust/src/index.ts:110`](../packages/remote/device-trust/src/index.ts)
 
 <a id="deepseek-aidsh-e2b"></a>
 
@@ -1040,13 +1056,15 @@ export interface LinkAccessConfig {
   dshHome?: string
   /**
    * The complete remote endpoint allowlist, replacing the default surface.
-   * Every row states its invocation kind and minimum device role.
+   * Every row states its invocation kind, minimum device role, and resource policy.
    */
   endpoints?: LinkEndpointInput[]
   /** Independent switch for answering remote approvals and questions; `Can prompt` never implies this. */
   allowRemoteApproval?: boolean
   /** Role granted to devices at pairing. Default `controller` (an ordinary phone). */
   pairingRole?: 'observer' | 'controller'
+  /** Session and Workspace grants persisted for each newly paired device; defaults to both `all`. */
+  pairingAccess?: LinkPairingAccessConfig
   /** Pairing code lifetime in seconds. */
   pairingTtlSeconds?: number
   /** Accepted request-timestamp skew in seconds. */
@@ -1063,6 +1081,16 @@ export interface LinkEndpointInput {
   readonly kind: LinkEndpointKind
   /** Minimum device role allowed to invoke the endpoint. */
   readonly minRole: LinkMinimumRole
+  /** Resource policy; product endpoints must match their fixed policy. */
+  readonly scope: LinkEndpointScope
+}
+
+/** Resource grants assigned to every device paired under one carrier configuration. */
+export interface LinkPairingAccessConfig {
+  /** Session identities paired devices may reach, or every Session. */
+  sessions: 'all' | string[]
+  /** Workspace identities paired devices may reach, or every Workspace. */
+  workspaces: 'all' | string[]
 }
 
 /** How a remote endpoint is invoked through the carrier. */
@@ -1070,9 +1098,21 @@ export type LinkEndpointKind = 'unary' | 'stream'
 
 /** Roles a deployment may pin as an endpoint's minimum. */
 export type LinkMinimumRole = 'observer' | 'controller'
+
+/** Resource policy enforced in addition to endpoint membership and role. */
+export type LinkEndpointScope =
+  | 'unscoped'
+  | 'session-collection'
+  | 'session'
+  | 'session-address'
+  | 'session-resource'
+  | 'workspace-collection'
+  | 'workspace-path'
+  | 'remote-events'
+  | 'interaction'
 ```
 
-Source: [`packages/remote/link-access/src/index.ts:77`](../packages/remote/link-access/src/index.ts)
+Source: [`packages/remote/link-access/src/index.ts:102`](../packages/remote/link-access/src/index.ts)
 
 <a id="deepseek-aidsh-llm-deepseek"></a>
 
@@ -2160,7 +2200,7 @@ export enum SessionTelemetryMode {
 
 依赖：`BatchLogRecordProcessorOptions`（`@opentelemetry/sdk-logs`）· `OTLPExporterNodeConfigBase`（`@opentelemetry/otlp-exporter-base`）
 
-来源：[`packages/session/session-telemetry-otel/src/index.ts:91`](../packages/session/session-telemetry-otel/src/index.ts)
+来源：[`packages/session/session-telemetry-otel/src/index.ts:90`](../packages/session/session-telemetry-otel/src/index.ts)
 
 <a id="deepseek-aidsh-session-title"></a>
 
@@ -3525,6 +3565,7 @@ export interface Config {
 - `@deepseek-ai/dsh-api-link-controller`（[`packages/api/link-controller/src/index.ts`](../packages/api/link-controller/src/index.ts)）
 - `@deepseek-ai/dsh-api-remotes` — 需要 `typertGateway`（[`packages/api/remotes/src/index.ts`](../packages/api/remotes/src/index.ts)）
 - `@deepseek-ai/dsh-api-workspace-controller` — 需要 `typert` · `workspaceRegistry`（[`packages/api/workspace-controller/src/index.ts`](../packages/api/workspace-controller/src/index.ts)）
+- `@deepseek-ai/dsh-artifact` — 需要 `tools` · `artifacts`（[`packages/artifact/artifact/src/index.ts`](../packages/artifact/artifact/src/index.ts)）
 - `@deepseek-ai/dsh-authorization` — 需要 `credentials`（[`packages/credentials/authorization/src/index.ts`](../packages/credentials/authorization/src/index.ts)）
 - `@deepseek-ai/dsh-client-locale`（[`packages/client/locale/src/index.ts`](../packages/client/locale/src/index.ts)）
 - `@deepseek-ai/dsh-client-modules` — 需要 `webServer` · `loader`（[`packages/client/modules/src/index.ts`](../packages/client/modules/src/index.ts)）

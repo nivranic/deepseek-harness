@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "local-experiment-not-candidate-acceptance",
+  "baseCandidateSha": "de346d222198b1aac14dec56546dd661adf8debf",
+  "implementedAt": "e228177a22bb138dfd49fd90106a44ef0b78f067",
+  "sourceSelection": "git archive of de346 plus the two listed implementation overlays; database creation completed over all 30 Android main Kotlin files. Test sources are outside the main extraction build.",
+  "overlaySha256": {
+    "apps/android/build.gradle.kts": "4dbde6cf46860e99ced19d0dc054d4b9793ac7c1cd59e872f27c1428cd1a6b46",
+    "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt": "692c5ffd1cf19fad3c87c174381873e3c6361859534fe1f0ed3684e45e5be987"
+  },
+  "experimentOverlaySha256": {
+    "apps/android/build.gradle.kts": "f652e166c6fde37dfa7e037050b5d3b1eb2a5ef2c29baf4bddccf1441189bc26",
+    "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt": "89a7f5e50571d491ec74fe6619a219ed3acf1b6d321a36838a5cce421c53fb18"
+  },
+  "overlayComparison": "UTF-8 text is identical after universal newline decoding; raw hashes preserve the LF/CRLF difference between archive experiment and committed worktree.",
+  "command": "codeql database analyze <completed-database> codeql/java-queries/1.11.9/codeql-suites/java-security-extended.qls --format=sarif-latest --sarif-category=/language:java-kotlin --threads=2 --ram=6000",
+  "extractor": {
+    "errors": 0,
+    "rawWarnings": 168,
+    "note": "Raw extractor warnings and blocking SARIF diagnostics are distinct. No zero-warning claim is made."
+  },
+  "status": "FAIL",
+  "reason": "Six Noise findings remain unreviewed; formal candidate CI is still required.",
+  "scanner": "CodeQL",
+  "language": "java-kotlin",
+  "reports": [
+    {
+      "sha256": "169fb94fdf8178066cb325180a99dd6704ff672aac3db0a99bb0a93f7ebb43fa",
+      "version": "2.26.4",
+      "rules": 120,
+      "structure": {
+        "driverRuleCount": 120,
+        "extensionRuleCounts": [
+          0,
+          0,
+          0
+        ],
+        "resultsPresent": true,
+        "resultCount": 6
+      }
+    }
+  ],
+  "findings": [
+    {
+      "rule": "java/static-initialization-vector",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 270
+        }
+      ]
+    },
+    {
+      "rule": "java/static-initialization-vector",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 278
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 269
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 270
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 277
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 278
+        }
+      ]
+    }
+  ],
+  "findingCount": 6,
+  "analysisComplete": true,
+  "blockingDiagnostics": []
+}

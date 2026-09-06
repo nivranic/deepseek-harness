@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "workflows": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "name": "CI",
+      "requiredJob": "all checks passed",
+      "sourceJob": "node 24 / static",
+      "workflowSha256": "8d1cd7bbaa5dcb92f79683d4f39667913609a40d5121147b949a91e173e2ea9e",
+      "aggregateNeeds": [
+        "node-24",
+        "node-24-coverage",
+        "node-24-consumers",
+        "node-compat",
+        "python-sdk",
+        "python-runtime",
+        "windows",
+        "windows-build",
+        "windows-native-tests"
+      ]
+    },
+    {
+      "path": ".github/workflows/apple-swift.yml",
+      "name": "Apple Swift",
+      "requiredJob": "swift test (macOS)",
+      "sourceJob": "swift test (macOS)",
+      "workflowSha256": "fbd8ef57d33ac67daaf0bfab8281bf0ad0a83856caf6d560e4d84d77d22019a1",
+      "aggregateNeeds": []
+    },
+    {
+      "path": ".github/workflows/android-kotlin.yml",
+      "name": "Android Kotlin",
+      "requiredJob": "gradle test (core)",
+      "sourceJob": "gradle test (core)",
+      "workflowSha256": "f8933e1fce2136a6aad22a7c83a3dea439eac2427cb61f7ad69ff29a2b2431d3",
+      "aggregateNeeds": []
+    }
+  ]
+}

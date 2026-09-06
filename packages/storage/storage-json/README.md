@@ -53,6 +53,8 @@ The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-a
 
 ### Observable behavior
 
+Backend close waits for each unit's `onBackendClose` owner callback before releasing the unit. The domain owner stops new writes and drains its accepted queue, including prerequisites. This ordering also applies during whole-application teardown, when consumers may already be absent from the Cordis registry. A rejected owner callback still releases the units and reports an aggregate error.
+
 A missing `single` file or `per-record` directory opens as an empty unit and materializes on the first write. In `single`, malformed content rejects with `malformed-medium`, and a different stored version rejects with `version-mismatch`. In `per-record`, each malformed, unreadable, or differently versioned document reads as an absent record, so one bad document does not reject the unit. Record keys must match `[a-zA-Z0-9_-]+`; an unsafe key rejects before any file operation. Every resolved write is durable, and operations after close reject with `closed`.
 
 An empty `per-record` tree can initialize its declared tables from a valid `<root>/<unit>.json` whole-unit document. The backend leaves that source file unchanged. Any document path in a declared table, or a declared `global.json`, suppresses this initialization for the complete unit, even if that document is unreadable or stale.

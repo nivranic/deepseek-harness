@@ -12,7 +12,13 @@ Status: implemented
 
 传输是 Noise_XX_25519_ChaChaPoly_SHA256，以 HTTP 作信使——涉及的每个运行时（node:crypto、JDK 17、CryptoKit）都原生携带 X25519、ChaCha20-Poly1305 与 SHA-256，而 TLS 会把证书生成拖进刻意零依赖的服务。`POST /relay/noise/hello` 携带握手消息 1，回答消息 2 加 `x-relay-session` 头——消息 2 之后的转录哈希，客户端对照自己的转录校验它，因此 id 是推导的而非断言的；`POST /relay/noise/complete` 携带消息 3，回答一个加密 `{"ok":true}` 帧证明密钥确认。此后每个会合体都是 u16 长度前缀的 ChaChaPoly 帧，骑拆分密钥、空关联数据与 Noise 的 64 位小端计数 nonce；poll 与 stream 回答帧序列，其余各一帧。流请求在已加密的体内携带客户端生成的 32 字节一次性密钥，流用自己的密码状态加密——这是 selftest 首先抓到的失败的设計修正：HTTP 应答与活动流推送共享会话计数器会让交错不确定、tag 错配。会话闲置 15 分钟过期（410，重新握手）；握手端点保持明文，因为 Noise 本就在消息 2 与 3 里隐藏静态密钥。
 
-四个运行时都直接实现框架——SymmetricState（链密钥、转录哈希）、CipherState（密钥、计数器）与双角色的 XX 消息序列——任何一处都没有 Noise 库。没有 CI 车道运行 node 服务，互操作由固定密钥向量钉住：`apps/relay/gen-relay-vectors.mjs` 以钉住的标量驱动一次握手与双向流量，Kotlin（`link/Noise.kt`）与 Swift（`Noise.swift`）端口必须逐字节复现握手消息、会话 id、通道绑定、拆分密钥与每一帧。node 参考 selftest 覆盖真实本地 socket 上的完整流程；原生车道回放向量并对照本地 Noise 应答方（JDK HttpServer；一个解析请求并路由的 NWListener 服务器）跑完整客户端流程。两个 JDK 事实支撑了移植：XDH KeyFactory 以小端字节序读 u 坐标的 BigInteger（raw 字节反转进 spec），且钉住标量的公钥没有直接推导入口——与可导入的 u=9 基点做一次 KeyAgreement 即得，因为 scalarmult_base(s) = DH(s, 9)。
+三个运行时基于各自原生密码学提供方实现 SymmetricState、CipherState 与两个 XX 角色。[Node 生成器](../../../../apps/relay/gen-relay-vectors.mjs)使用四个不同的合成标量，独立编码高位计数器的 nonce 字节。Kotlin 与 Swift 回放其握手、拆分密钥及流量向量。[仓库测试入口](../../../../scripts/relay-noise.spec.ts)运行 Node 密码学测试集和真实 HTTP selftest；原生 workflow 对本地应答方运行客户端。JDK 端口将小端 X25519 u 坐标字节转换为正 `BigInteger`；与 u=9 基点做密钥协商可推导固定标量的公钥。
+
+每个流量密钥拥有精确的无符号 64 位计数器（`BigInt`、`ULong` 或 `UInt64`）。[Noise CipherState 与 ChaChaPoly](https://noiseprotocol.org/noise.html)保留 `2^64−1`；所有端口均在加密或解密前拒绝该值。最后可用 nonce 是 `2^64−2`，认证失败不递增计数器。JavaScript `Number` 无法表示 `2^53` 以上的连续计数；截断或回绕会重复使用同一密钥与 nonce。因此边界向量覆盖 `2^53`、`2^63` 两侧及最后可用 nonce。
+
+客户端串行执行完整 HTTP 交换，包括惰性握手与响应认证。Swift 跨 actor 挂起点保持此顺序；取消会移除排队中的调用。传输、分帧或认证交换失败会退役缓存会话密钥并返回失败。下一次显式调用可建立新密钥；服务器可能已执行失败请求，因此禁止自动重放。独立流收到响应头后释放交换队列，并使用自己的流量密钥。
+
+Node 服务器移除耗尽的会话并返回 410。耗尽的流 writer 移除订阅并关闭；未投递的信封保留在队列中，包括冲排积压队列时未发送的尾部。poll 仅在完整响应加密成功后移除队列。[HTTP 故障测试](../../../../apps/relay/server.test.mjs)在隔离 worker 中注入计数器，部署入口不包含测试控制。这些内存队列与响应写入不承诺投递确认或持久性。
 
 ## 后果
 

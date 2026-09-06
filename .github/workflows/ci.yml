@@ -20,13 +20,14 @@ concurrency:
 
 jobs:
 
-  # Three enterprise jobs isolate coverage, static analysis, and the
+  # Three Linux jobs isolate coverage, static analysis, and the
   # build-backed consumer tail. The consumer job owns the only Linux build so
   # all three jobs enter runner allocation independently.
   #
-  # FAILOVER (Linux): each Linux enterprise job resolves its pool through the
-  # DSH_CI_FAILOVER_LINUX repository variable. Unset (normal), the expressions
-  # pick the hosted enterprise pools below. Setting the variable to
+  # Hosted labels default to standard GitHub runners; DSH_CI_LINUX_RUNNER and
+  # DSH_CI_WINDOWS_RUNNER select a provisioned larger runner explicitly.
+  # FAILOVER (Linux): each Linux job resolves its pool through the
+  # DSH_CI_FAILOVER_LINUX repository variable. Setting the variable to
   # 'selfhosted' (repo Settings → Actions → Variables; writer-manageable
   # repository state — not PR-editable, no merge required) retargets all
   # three onto the in-house
@@ -42,22 +43,22 @@ jobs:
       ${{ vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'dsh-ubuntu-24-04-16core' }}
+          || vars.DSH_CI_LINUX_RUNNER || 'ubuntu-24.04' }}
     name: node 24 / static
     env:
-      DSH_GATE_CONCURRENCY: '8'
+      DSH_GATE_CONCURRENCY: ${{ vars.DSH_CI_GATE_CONCURRENCY || '2' }}
     steps:
       # Fetch complete history so the archive gate can read the trusted PR base from a reused shallow checkout.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
 
@@ -72,7 +73,7 @@ jobs:
       # Pull requests consume the default-branch cache but do not put cache
       # compression and upload on the paid latency-critical path. Skipped
       # under failover — see the coverage lane's identical rationale.
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         if: vars.DSH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
@@ -82,6 +83,20 @@ jobs:
 
       - name: Install (immutable)
         run: pnpm install --frozen-lockfile
+
+      - name: Record CI source
+        id: ci-source
+        env:
+          DSH_CI_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm exec tsx scripts/write-ci-source.ts .github/workflows/ci.yml "$RUNNER_TEMP/dsh-ci-source/source.json"
+
+      - name: Preserve CI source
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ci-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/dsh-ci-source/source.json
+          if-no-files-found: error
 
       - name: Run static gates
         env:
@@ -94,7 +109,7 @@ jobs:
       ${{ vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'dsh-ubuntu-24-04-16core' }}
+          || vars.DSH_CI_LINUX_RUNNER || 'ubuntu-24.04' }}
     name: node 24 / coverage
     env:
       # Partitioning replaces the instrumented share; this budget gives the
@@ -103,15 +118,15 @@ jobs:
       DSH_COVERAGE_PARTITIONS: '4'
       DSH_GATE_CONCURRENCY: '3'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
 
@@ -126,7 +141,7 @@ jobs:
       # Skipped under failover: the self-hosted VM's persistent pnpm store
       # already serves warm installs, while restoring the hosted archive
       # would spend ~52 s pulling ~180 MB into that populated store.
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         if: vars.DSH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
@@ -156,26 +171,25 @@ jobs:
       ${{ vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'dsh-ubuntu-24-04-16core' }}
+          || vars.DSH_CI_LINUX_RUNNER || 'ubuntu-24.04' }}
     name: node 24 / snapshots and artifacts
     env:
-      DSH_GATE_CONCURRENCY: '10'
+      DSH_GATE_CONCURRENCY: ${{ vars.DSH_CI_GATE_CONCURRENCY || '2' }}
       DSH_NODE_COMPAT_SKIP_TYPECHECK: '1'
-      DSH_OXLINT_THREADS: '8'
-      DSH_PUBLINT_CONCURRENCY: '8'
-      DSH_WEB_SNAPSHOT_WORKERS: '6'
-      # Failover halves snapshot concurrency for the shared 64-core VM.
-      DSH_SNAPSHOT_MAX_CONCURRENCY: ${{ vars.DSH_CI_FAILOVER_LINUX == 'selfhosted' && github.event.pull_request.user.login != 'dependabot[bot]' && '12' || '32' }}
+      DSH_OXLINT_THREADS: ${{ vars.DSH_CI_OXLINT_THREADS || '2' }}
+      DSH_PUBLINT_CONCURRENCY: ${{ vars.DSH_CI_PUBLINT_CONCURRENCY || '2' }}
+      DSH_WEB_SNAPSHOT_WORKERS: ${{ vars.DSH_CI_WEB_SNAPSHOT_WORKERS || '2' }}
+      DSH_SNAPSHOT_MAX_CONCURRENCY: ${{ vars.DSH_CI_SNAPSHOT_MAX_CONCURRENCY || '4' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
 
@@ -192,7 +206,7 @@ jobs:
       # hosted cache keys, so each restore-keys fallback hits the matching archived
       # entry until it evicts, after which the store is cold. Skipped under failover
       # — the self-hosted VM's persistent store is already warm.
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         if: vars.DSH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
@@ -201,7 +215,7 @@ jobs:
             ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-
 
       # Skipped under failover: the VM's persistent browser cache is already warm.
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         if: vars.DSH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ~/.cache/ms-playwright
@@ -257,13 +271,15 @@ jobs:
             runner: ubuntu-latest
             gate_concurrency: '1'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
@@ -281,9 +297,11 @@ jobs:
     runs-on: ubuntu-latest
     name: python 3.10 / keyless SDK
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v6.3.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.10'
           cache: pip
@@ -323,15 +341,15 @@ jobs:
     name: windows node 24 / wine blocking
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
 
@@ -343,7 +361,7 @@ jobs:
           store_path=$(PNPM_CONFIG_STORE_DIR="$store_root" pnpm store path --silent)
           echo "path=$store_path" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
@@ -357,7 +375,7 @@ jobs:
         id: wine-cache-key
         run: echo "key=wine-debs-${ImageOS:-linux}-${ImageVersion:-v0}" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/wine-debs
           key: ${{ steps.wine-cache-key.outputs.key }}
@@ -409,22 +427,45 @@ jobs:
       ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
+          || vars.DSH_CI_WINDOWS_RUNNER || 'windows-2025' }}
     name: windows node 24 / build
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v6
+      - name: Prepare Windows tracked symlink checkout
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Windows Developer Mode.'
+          }
+          git config --global core.symlinks true
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Git symlink checkout.'
+          }
+          @(
+            'GIT_CONFIG_COUNT=1'
+            'GIT_CONFIG_KEY_0=core.symlinks'
+            'GIT_CONFIG_VALUE_0=true'
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Enable Developer Mode (symlink support)
+      - name: Verify Windows tracked symlink checkout
         shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
+        run: |
+          $trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'
+          $indexEntry = git ls-files --stage -- $trackedSymlinkPath
+          if ($LASTEXITCODE -ne 0 -or $indexEntry -notmatch '^120000\s') {
+            throw "$trackedSymlinkPath must have Git mode 120000."
+          }
+          $trackedSymlinkItem = Get-Item -LiteralPath $trackedSymlinkPath -Force
+          if (($trackedSymlinkItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+            throw "$trackedSymlinkPath must be materialized as a Windows reparse point."
+          }
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
       - name: Install (immutable)
@@ -440,7 +481,7 @@ jobs:
       ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
+          || vars.DSH_CI_WINDOWS_RUNNER || 'windows-2025' }}
     name: windows node 24 / coverage
     timeout-minutes: 120
     env:
@@ -449,18 +490,41 @@ jobs:
       DSH_COVERAGE_TEST_TIMEOUT_MS: '90000'
       DSH_GATE_CONCURRENCY: '3'
     steps:
-      - uses: actions/checkout@v6
+      - name: Prepare Windows tracked symlink checkout
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Windows Developer Mode.'
+          }
+          git config --global core.symlinks true
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Git symlink checkout.'
+          }
+          @(
+            'GIT_CONFIG_COUNT=1'
+            'GIT_CONFIG_KEY_0=core.symlinks'
+            'GIT_CONFIG_VALUE_0=true'
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Enable Developer Mode (symlink support)
+      - name: Verify Windows tracked symlink checkout
         shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
+        run: |
+          $trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'
+          $indexEntry = git ls-files --stage -- $trackedSymlinkPath
+          if ($LASTEXITCODE -ne 0 -or $indexEntry -notmatch '^120000\s') {
+            throw "$trackedSymlinkPath must have Git mode 120000."
+          }
+          $trackedSymlinkItem = Get-Item -LiteralPath $trackedSymlinkPath -Force
+          if (($trackedSymlinkItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+            throw "$trackedSymlinkPath must be materialized as a Windows reparse point."
+          }
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
       - name: Install (immutable)
@@ -479,22 +543,45 @@ jobs:
       ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
+          || vars.DSH_CI_WINDOWS_RUNNER || 'windows-2025' }}
     name: windows node 24 / native tests
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v6
+      - name: Prepare Windows tracked symlink checkout
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Windows Developer Mode.'
+          }
+          git config --global core.symlinks true
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Git symlink checkout.'
+          }
+          @(
+            'GIT_CONFIG_COUNT=1'
+            'GIT_CONFIG_KEY_0=core.symlinks'
+            'GIT_CONFIG_VALUE_0=true'
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Enable Developer Mode (symlink support)
+      - name: Verify Windows tracked symlink checkout
         shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
+        run: |
+          $trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'
+          $indexEntry = git ls-files --stage -- $trackedSymlinkPath
+          if ($LASTEXITCODE -ne 0 -or $indexEntry -notmatch '^120000\s') {
+            throw "$trackedSymlinkPath must have Git mode 120000."
+          }
+          $trackedSymlinkItem = Get-Item -LiteralPath $trackedSymlinkPath -Force
+          if (($trackedSymlinkItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+            throw "$trackedSymlinkPath must be materialized as a Windows reparse point."
+          }
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
       - name: Install (immutable)
@@ -504,6 +591,7 @@ jobs:
         shell: pwsh
         run: >-
           pnpm exec vitest run
+          --reporter=verbose
           --no-file-parallelism
           --testTimeout 90000
           packages/shell/tool-pwsh/tests/loader.spec.ts
@@ -519,24 +607,47 @@ jobs:
       ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
+          || vars.DSH_CI_WINDOWS_RUNNER || 'windows-2025' }}
     name: windows node 24 / observational
     timeout-minutes: 60
     env:
       DSH_PUBLINT_CONCURRENCY: '8'
     steps:
-      - uses: actions/checkout@v6
+      - name: Prepare Windows tracked symlink checkout
+        shell: pwsh
+        run: |
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Windows Developer Mode.'
+          }
+          git config --global core.symlinks true
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to enable Git symlink checkout.'
+          }
+          @(
+            'GIT_CONFIG_COUNT=1'
+            'GIT_CONFIG_KEY_0=core.symlinks'
+            'GIT_CONFIG_VALUE_0=true'
+          ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Enable Developer Mode (symlink support)
+      - name: Verify Windows tracked symlink checkout
         shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
+        run: |
+          $trackedSymlinkPath = 'apps/cli/tests/profiles/acp/cordis.yml'
+          $indexEntry = git ls-files --stage -- $trackedSymlinkPath
+          if ($LASTEXITCODE -ne 0 -or $indexEntry -notmatch '^120000\s') {
+            throw "$trackedSymlinkPath must have Git mode 120000."
+          }
+          $trackedSymlinkItem = Get-Item -LiteralPath $trackedSymlinkPath -Force
+          if (($trackedSymlinkItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+            throw "$trackedSymlinkPath must be materialized as a Windows reparse point."
+          }
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
       - name: Install (immutable)
@@ -549,9 +660,9 @@ jobs:
   # Single stable required check for branch protection: require "all checks
   # passed" instead of enumerating matrix legs whose names change as lanes and
   # node versions evolve. Every blocking job in THIS workflow must be listed in
-  # `needs`. The required Wine job is listed as `windows`; `windows-native` is
-  # deliberately absent so its independent result never delays or changes this
-  # verdict. (`needs` cannot reach across workflow files; the master-only jobs in
+  # `needs`. Wine, the native Windows build, and native tests are required;
+  # Windows coverage and observational gates report independently.
+  # (`needs` cannot reach across workflow files; the master-only jobs in
   # ci-master.yml are intentionally not part of this PR verdict.)
   # `if: always()` is load-bearing: without it a failed dependency
   # would SKIP this job, and GitHub counts a skipped required check as passing

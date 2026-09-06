@@ -209,7 +209,7 @@ Source: [`packages/interaction/user-approval/src/index.ts:32`](../packages/inter
 'artifact/created': { id: ArtifactId; kind: string; title: string; format: ArtifactFormat }
 ```
 
-Source: [`packages/artifact/artifact/src/types.ts:55`](../packages/artifact/artifact/src/types.ts)
+Source: [`packages/artifact/artifact/src/types.ts:92`](../packages/artifact/artifact/src/types.ts)
 
 <a id="artifactstatus--log-only"></a>
 
@@ -224,7 +224,7 @@ Source: [`packages/artifact/artifact/src/types.ts:55`](../packages/artifact/arti
 'artifact/status': { id: ArtifactId; status: ArtifactStatus }
 ```
 
-Source: [`packages/artifact/artifact/src/types.ts:61`](../packages/artifact/artifact/src/types.ts)
+Source: [`packages/artifact/artifact/src/types.ts:98`](../packages/artifact/artifact/src/types.ts)
 
 ### `assistant/*`
 

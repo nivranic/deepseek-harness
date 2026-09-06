@@ -27,6 +27,21 @@ final class FixtureDecodingTests: XCTestCase {
         XCTAssertEqual(try canonicalJson(reencoded), try canonicalJson(data))
     }
 
+    func testPairingPayloadOwnsTheFreshClientTransport() throws {
+        let payload = try JSONDecoder().decode(LinkPairingPayload.self, from: fixture("pairing-payload"))
+        let endpoint = try XCTUnwrap(URL(string: payload.endpoint + "/"))
+        XCTAssertTrue(LinkClient.pairingPayloadOwnsTransport(
+            payload,
+            baseURL: endpoint,
+            pinnedFingerprint: payload.spkiFingerprint
+        ))
+        XCTAssertFalse(LinkClient.pairingPayloadOwnsTransport(
+            payload,
+            baseURL: endpoint,
+            pinnedFingerprint: String(repeating: "cd", count: 32)
+        ))
+    }
+
     func testPairResponseDecodes() throws {
         let value = try JSONDecoder().decode(LinkPairResponse.self, from: fixture("pair-response"))
         XCTAssertEqual(value.role, .controller)
@@ -36,11 +51,69 @@ final class FixtureDecodingTests: XCTestCase {
 
     func testHostDescriptionCarriesCapabilities() throws {
         let description = try JSONDecoder().decode(LinkHostDescription.self, from: fixture("host-description"))
+        XCTAssertEqual(description.contractVersion, 1)
         XCTAssertEqual(description.runtimeClass, "full")
         XCTAssertTrue(description.capabilities.session.prompt)
         XCTAssertTrue(description.capabilities.workspace.follow)
         XCTAssertFalse(description.capabilities.interaction.approval)
         XCTAssertFalse(description.allowRemoteApproval)
+    }
+
+    func testTransportAndRemoteEventFixturesDecodeAndRoundTrip() throws {
+        try roundTrip("pair-request", as: LinkPairRequest.self)
+        try roundTrip("rpc-request", as: LinkRpcRequestEnvelope.self)
+        for id in ["rpc-response-value", "rpc-response-void", "rpc-response-error"] {
+            try roundTrip(id, as: LinkRpcResponseEnvelope.self)
+        }
+        try roundTrip("stream-request", as: LinkStreamRequest.self)
+        for id in ["stream-value", "stream-error"] {
+            try roundTrip(id, as: LinkStreamFrame.self)
+        }
+        try roundTrip("remote-event-ready", as: LinkRemoteEventReadyFrame.self)
+        try roundTrip("remote-event-emit", as: LinkRemoteEventEmitFrame.self)
+        try roundTrip("remote-event-waterfall", as: LinkRemoteEventWaterfallFrame.self)
+        try roundTrip("remote-event-cancel", as: LinkRemoteEventCancelFrame.self)
+        for id in [
+            "remote-event-result-next",
+            "remote-event-result-value",
+            "remote-event-result-void",
+            "remote-event-result-rejected",
+        ] {
+            try roundTrip(id, as: LinkRemoteEventResult.self)
+        }
+        try roundTrip("session-event-record", as: LinkSessionEventRecord.self)
+        try roundTrip("session-snapshot-frame", as: LinkSessionSnapshotFrame.self)
+    }
+
+    func testUnaryResultsAcceptVoidAndEnforceCorrelation() throws {
+        let void = try JSONDecoder().decode(LinkRpcResponseEnvelope.self, from: fixture("rpc-response-void"))
+        XCTAssertEqual(try LinkClient.value(from: void, expectedRpcId: "rpc-session-cancel-1"), .null)
+
+        let valued = try JSONDecoder().decode(LinkRpcResponseEnvelope.self, from: fixture("rpc-response-value"))
+        XCTAssertEqual(
+            try LinkClient.value(from: valued, expectedRpcId: "rpc-session-list-1"),
+            .object(["sessions": .array([])])
+        )
+
+        let refused = try JSONDecoder().decode(LinkRpcResponseEnvelope.self, from: fixture("rpc-response-error"))
+        XCTAssertThrowsError(try LinkClient.value(from: refused, expectedRpcId: "rpc-session-open-1")) { error in
+            XCTAssertEqual(error as? LinkClientError, .refused(code: "session-not-found", message: "Session not found."))
+        }
+        XCTAssertThrowsError(try LinkClient.value(from: void, expectedRpcId: "another-rpc")) { error in
+            XCTAssertEqual(error as? LinkClientError, .badWire("rpcId mismatch"))
+        }
+        let crossBranch = LinkRpcResponseEnvelope(
+            type: "server-response",
+            rpcId: "rpc-cross-branch",
+            result: LinkRpcResult(
+                ok: true,
+                value: nil,
+                error: LinkRpcError(code: "invalid", message: "must not coexist", details: [:])
+            )
+        )
+        XCTAssertThrowsError(try LinkClient.value(from: crossBranch, expectedRpcId: "rpc-cross-branch")) { error in
+            XCTAssertEqual(error as? LinkClientError, .badWire("successful result carried an error"))
+        }
     }
 
     func testCarrierStatusDecodes() throws {
@@ -152,6 +225,101 @@ final class FixtureDecodingTests: XCTestCase {
         XCTAssertEqual(block.toolCallId, "call-1")
         XCTAssertEqual(block.content?.first?.text, "已写入 42 行。")
         XCTAssertNil(payload.error)
+    }
+}
+
+/// HTTP status classification checks that need no network.
+final class LinkHTTPStatusTests: XCTestCase {
+    func testForbiddenStatusUsesMessageReasonAndHTTPFallbacks() throws {
+        let response = try httpResponse(statusCode: 403)
+        let cases = [
+            (
+                #"{"error":"forbidden","message":"Access denied.","reason":"ignored","details":{"attempt":1}}"#,
+                "Access denied."
+            ),
+            (
+                #"{"error":"forbidden","message":"","reason":"Device is revoked.","retryable":false}"#,
+                "Device is revoked."
+            ),
+            (
+                #"{"error":"forbidden","message":403,"reason":false}"#,
+                "HTTP 403"
+            ),
+        ]
+
+        for (json, expectedMessage) in cases {
+            XCTAssertThrowsError(try LinkClient.check(response: response, data: Data(json.utf8))) { error in
+                XCTAssertEqual(
+                    error as? LinkClientError,
+                    .refused(code: "forbidden", message: expectedMessage)
+                )
+            }
+        }
+    }
+
+    func testOnlyExactForbidden403IsAnAuthorizationRefusal() throws {
+        let cases = [
+            (403, #"{"error":"forbidden ","message":"Denied."}"#),
+            (403, #"{"error":403,"message":"Denied."}"#),
+            (401, #"{"error":"forbidden","message":"Denied."}"#),
+        ]
+
+        for (statusCode, json) in cases {
+            let response = try httpResponse(statusCode: statusCode)
+            XCTAssertThrowsError(try LinkClient.check(response: response, data: Data(json.utf8))) { error in
+                XCTAssertEqual(
+                    error as? LinkClientError,
+                    .carrier(status: statusCode, message: "Denied.")
+                )
+            }
+        }
+    }
+
+    func testStreamStatusReadsErrorBodyWithoutConsumingSuccessfulBytes() async throws {
+        let forbiddenBody = Data(#"{"error":"forbidden","reason":"Device is revoked."}"#.utf8)
+        do {
+            try await LinkClient.checkStreamResponse(
+                response: try httpResponse(statusCode: 403),
+                bytes: byteStream(forbiddenBody)
+            )
+            XCTFail("expected the forbidden stream response to fail")
+        } catch {
+            XCTAssertEqual(
+                error as? LinkClientError,
+                .refused(code: "forbidden", message: "Device is revoked.")
+            )
+        }
+
+        let successfulBody = Data(#"{"k":"v","v":{"ok":true}}\n"#.utf8)
+        let successfulBytes = byteStream(successfulBody)
+        try await LinkClient.checkStreamResponse(
+            response: try httpResponse(statusCode: 200),
+            bytes: successfulBytes
+        )
+        var received = Data()
+        for await byte in successfulBytes {
+            received.append(byte)
+        }
+        XCTAssertEqual(received, successfulBody)
+    }
+
+    private func httpResponse(statusCode: Int) throws -> HTTPURLResponse {
+        let url = try XCTUnwrap(URL(string: "https://host.invalid"))
+        return try XCTUnwrap(HTTPURLResponse(
+            url: url,
+            statusCode: statusCode,
+            httpVersion: nil,
+            headerFields: nil
+        ))
+    }
+
+    private func byteStream(_ data: Data) -> AsyncStream<UInt8> {
+        AsyncStream { continuation in
+            for byte in data {
+                continuation.yield(byte)
+            }
+            continuation.finish()
+        }
     }
 }
 

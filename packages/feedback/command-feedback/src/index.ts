@@ -29,7 +29,7 @@ function sharingSentence(sharing: SessionTelemetrySharingStatus): string {
     case 'full':
       return 'Session sharing is enabled.'
     case 'feedback-only':
-      return 'Session sharing is feedback-gated; recording feedback uploads the session records not yet shared.'
+      return 'Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline.'
     case 'disabled':
       return 'Session sharing is disabled.'
     /* v8 ignore next 2 -- the seam's closed union cannot reach the default; a future status must be given a sentence here. */

@@ -22,12 +22,17 @@
       "types": "./lib/types/invariant.d.ts",
       "default": "./lib/invariant.js"
     },
+    "./windows-bootstrap": {
+      "types": "./lib/types/windows-bootstrap.d.ts",
+      "default": "./lib/windows-bootstrap.js"
+    },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
   "files": [
     "lib/index.js",
     "lib/invariant.js",
+    "lib/windows-bootstrap.js",
     "scripts/ensure-spawn-helper.mjs",
     "lib/types/**/*.d.ts"
   ],
@@ -36,9 +41,11 @@
   },
   "license": "MIT",
   "peerDependencies": {
+    "@deepseek-ai/dsh-node-spawn": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^",
     "@deepseek-ai/dsh-subprocess": "workspace:^",
     "@deepseek-ai/dsh-timeout": "workspace:^",
+    "@deepseek-ai/dsh-win32-process": "workspace:^",
     "@deepseek-ai/cordis": "workspace:^"
   },
   "dependencies": {
@@ -46,10 +53,12 @@
     "node-pty": "1.2.0-beta.15"
   },
   "devDependencies": {
+    "@deepseek-ai/dsh-node-spawn": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^",
     "@deepseek-ai/dsh-loader-smoke": "workspace:^",
     "@deepseek-ai/dsh-subprocess": "workspace:^",
     "@deepseek-ai/dsh-timeout": "workspace:^",
+    "@deepseek-ai/dsh-win32-process": "workspace:^",
     "@deepseek-ai/cordis": "workspace:^"
   }
 }

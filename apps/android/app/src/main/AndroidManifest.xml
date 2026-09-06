@@ -7,6 +7,7 @@
         android:label="DSH Companion"
         android:supportsRtl="true"
         android:theme="@style/Theme.DshCompanion">
+        <meta-data android:name="ai.deepseek.dsh.distributionChannel" android:value="${dshProductChannel}" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -32,6 +32,8 @@ Windows lane 会创建干净的 Windows 虚拟环境，安装版本精确匹配�
 
 极简黑盒测试在 Windows 上使用持久 `pwsh` 与 `str_replace_editor`，并由 `minimal/win-x64/model-visible.json` 固定预期；Linux 与 macOS 保留持久 Bash 和共享的 `minimal/model-visible.json`。高级进程／subagent 快照与重启／持久日志快照继续由所有目标共享。随附的 [`sdk-minimal` 组合包](../../../../packages/bundle/sdk-minimal/README.zh.md)为可运行 Python 教程选择同一组平台 shell。
 
+安装后的 Windows `dsh` 控制台命令启动并等待原生子进程，继承标准流且保留显式 argv 分隔。Windows `os.execvpe` 不提供 POSIX 进程替换语义：打包后的可执行文件可能在该启动方式下崩溃，普通子进程失败也可能被报告为成功。等待子进程可保留其输出和退出状态；DWORD 状态在 Python 的 `SystemExit` 处表示为有符号 32 位值。POSIX 保留进程替换。已安装 wheel 的 smoke 在 profile 与外部插件安装前，对照同一个原生可执行文件检查版本、帮助和无效选项的输出及状态。
+
 ## Existing decisions and supersession
 
 本决策部分取代[单文件运行时分发](2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md)中的 Windows 非目标声明，并扩展[安装后 Python wheel 黑盒决策](../testing/2026-08-23-installed-python-wheel-black-box-ci.zh.md)中的必需目标集合。上述 Note 继续负责 SEA 打包、两个 Python distribution、来源校验、密钥处理与通用黑盒场景。

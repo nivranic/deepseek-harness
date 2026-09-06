@@ -37,9 +37,14 @@ export interface KvFacet {
    * with `malformed-medium`. Opening the same unit name twice without closing
    * is a caller bug and rejects.
    * @param descriptor - Static identity and shape of the unit to open.
+   * @param onBackendClose - Optional owner teardown called by backend close
+   *   before it closes this unit. The owner must stop accepting work and drain
+   *   its queue, including writes not yet submitted to the unit. It may close
+   *   the unit itself, but must not await backend close. Unit close alone does
+   *   not call this callback.
    * @returns the opened unit.
    */
-  open(descriptor: KvUnitDescriptor): Promise<KvUnit>
+  open(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit>
 }
 
 /** Static identity and shape of one KV unit, projected from its owner's spec. */

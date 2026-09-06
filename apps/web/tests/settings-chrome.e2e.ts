@@ -51,6 +51,31 @@ describe('web e2e: settings modal and General preferences', () => {
     await scaffold?.close()
   })
 
+  it.each([
+    { locale: 'en-US', label: 'Settings', close: 'Close', snapshot: 'rail-en.expected.md' },
+    { locale: ZH_BROWSER_LOCALE, label: '设置', close: '关闭', snapshot: 'rail-zh.expected.md' },
+  ])('keeps the Settings control named and operable in the $locale collapsed sidebar', async ({ locale, label, close, snapshot }) => {
+    const narrowPage = await browser.newPage({ viewport: { width: 960, height: 720 }, locale })
+    const narrowConsole = watchConsole(narrowPage)
+    onTestFailed(() => saveFailureShot(narrowPage, `web-e2e-settings-rail-${locale}`))
+    try {
+      await narrowPage.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
+      await narrowPage.locator('[data-sidebar-collapsed]').waitFor({ timeout: 15_000 })
+      const trigger = narrowPage.getByRole('button', { name: label, exact: true })
+      await trigger.waitFor({ timeout: 15_000 })
+      await compareOrRefreshGolden(join(SNAPSHOT_DIR, snapshot), await trigger.ariaSnapshot(), MODE)
+      await trigger.click()
+      const dialog = narrowPage.getByRole('dialog', { name: label, exact: true })
+      await dialog.waitFor({ timeout: 15_000 })
+      await dialog.getByRole('button', { name: close, exact: true }).click()
+      await dialog.waitFor({ state: 'detached', timeout: 15_000 })
+      expect(narrowConsole.pageErrors).toEqual([])
+      expect(narrowConsole.warnings).toEqual([])
+    } finally {
+      await narrowPage.close()
+    }
+  })
+
   it('opens the settings dialog, switches sections, and closes by every path', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-settings-shell'))
     const trigger = page.getByRole('button', { name: '设置', exact: true })
@@ -618,6 +643,8 @@ describe('web e2e: settings modal and General preferences', () => {
 
   it.skipIf(MODE === 'record')('keeps the fixture inventory closed', async () => {
     expect(tripwire.warnings).toEqual([])
-    await assertFixtureInventory(SNAPSHOT_DIR, ['dialog-en.expected.md', 'dialog.expected.md', 'plugins.expected.md'])
+    await assertFixtureInventory(SNAPSHOT_DIR, [
+      'dialog-en.expected.md', 'dialog.expected.md', 'plugins.expected.md', 'rail-en.expected.md', 'rail-zh.expected.md',
+    ])
   })
 })

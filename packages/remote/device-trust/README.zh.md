@@ -1,5 +1,5 @@
 ---
-description: "面向 securing 原生远程访问的宿主与维护者的配对设备信任存储：宿主身份、一次性配对码、带角色与吊销的设备记录。"
+description: "面向保护原生远程访问的宿主与维护者的配对设备信任存储：宿主身份、一次性配对码，以及带角色、资源授权与吊销状态的设备记录。"
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`dsh-device-trust` 是宿主用于原生远程访问的持久信任存储：一个 SQLite 数据库拥有稳定的宿主身份、一次性配对码（仅以 SHA-256 摘要存储），以及 [link 载体](../link-access/README.zh.md)据以授权请求的设备记录。每条记录携带设备的 Ed25519 公钥——宿主从不存储设备密钥——以及角色、时间戳与吊销状态。设备凭据绝不进入 LLM 供应商凭据存储。
+`dsh-device-trust` 是宿主用于原生远程访问的持久信任存储：一个 SQLite 数据库拥有稳定的宿主身份、一次性配对码（仅以 SHA-256 摘要存储），以及 [link 载体](../link-access/README.zh.md)据以授权请求的设备记录。每条记录携带设备的 Ed25519 公钥——宿主从不存储设备密钥——以及角色、Session 与 Workspace 授权、时间戳和吊销状态。设备凭据绝不进入 LLM 供应商凭据存储。
 
 ## 目录
 
@@ -24,7 +24,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-在 link 载体运行的组合中挂载本包；它注册 `ctx.deviceTrust`，在有人配对设备之前保持惰性。
+在 link 载体运行的组合中挂载本包；它注册 `ctx.deviceTrust`，在操作需要持久状态前保持惰性。导入、挂载、未使用即销毁以及配置检查都不会加载 `node:sqlite`；首次数据库操作才会打开数据库并激活 SQLite。
 
 ### 配置
 
@@ -41,7 +41,7 @@ kind: "package-reference"
 
 ### 可观察行为
 
-`createPairing(ttlSeconds)` 签发 256 位一次性配对码；`consumePairing` 先删除配对码行再注册设备，因此无论两次调用并发还是先后，第二个消费者都会失败，过期配对码首次使用即作废。`revoke` 保留记录以备审计，`touch` 只为受信设备记录 `lastSeenAt`。盖有其他布局版本戳的数据库直接拒绝——不做迁移，预发布立场。
+`createPairing(ttlSeconds)` 签发 256 位一次性配对码。`consumePairing` 在一个 `BEGIN IMMEDIATE` 事务中作废该配对码，并持久化设备及其 `all` 或显式 Session 与 Workspace 授权行，因此无论两次调用并发还是先后，第二个消费者都会失败，设备也不可能脱离预期授权单独存在。过期配对码首次使用即作废。首次 `revoke` 会保留记录以备审计，并在提交后发出 `device-trust/revoked`，因此无论哪个宿主组件发起吊销，活动载体都会关闭该设备；`touch` 只为受信设备记录 `lastSeenAt`。盖有其他布局版本戳的数据库直接拒绝：预发布阶段不做迁移。
 
 -----
 
@@ -52,7 +52,7 @@ kind: "package-reference"
 <summary>实现细节——点击展开</summary>
 
 - **配对码只存摘要。** 数据库存储 `sha256(code)`；读取数据库无法铸造凭据，且对 256 位随机值的查表无需时序安全比较。
-- **同步原子消费。** `node:sqlite` 调用在宿主唯一连接上同步执行，select-then-delete 的配对消费在单进程内不可能交错。
+- **事务化配对消费。** `BEGIN IMMEDIATE` 在读取配对码之前串行化消费者；配对码删除、设备插入及授权行插入在宿主唯一 SQLite 连接上共同提交。
 - **密钥在边界校验。** 配对拒绝任何不可解析为 DER SubjectPublicKeyInfo 的公钥，因此每条存储的密钥都可用于请求验证。
 - **宿主身份存于 meta。** 稳定的 `host_id` 位于 `meta` 表，首次读取时惰性创建，跨重启与重挂载存活。
 

@@ -32,6 +32,12 @@ export const JobObjectExtendedLimitInformation = 9
 export const JOBOBJECT_EXTENDED_LIMIT_SIZE = 144
 /** Byte offset of BasicLimitInformation.LimitFlags in the extended Job record. */
 export const JOBOBJECT_EXTENDED_LIMIT_FLAGS_OFFSET = 16
+/** QueryInformationJobObject class for the basic accounting record. */
+export const JobObjectBasicAccountingInformation = 1
+/** x64 JOBOBJECT_BASIC_ACCOUNTING_INFORMATION byte size. */
+export const JOBOBJECT_BASIC_ACCOUNTING_SIZE = 48
+/** Byte offset of ActiveProcesses in the basic Job accounting record. */
+export const JOBOBJECT_ACTIVE_PROCESSES_OFFSET = 40
 /** x64 STARTUPINFOW byte size verified by the native probe. */
 export const STARTUPINFOW_SIZE = 104
 /** x64 PROCESS_INFORMATION byte size verified by the native probe. */

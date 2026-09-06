@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "reviews": [
+    {
+      "language": "swift",
+      "rule": "swift/weak-password-hashing",
+      "path": "apps/apple/Sources/SharedAppleRemoteCore/LinkSigning.swift",
+      "line": 22,
+      "reason": "SHA-256 hashes exact request bodies for Ed25519 signing input and DER public keys for SPKI fingerprints. All current Apple callers use those two public protocol roles; no caller stores a password hash. The full Apple source tree and its analysis workflow are pinned so new callers or changed source selection require renewed review.",
+      "materials": {
+        "apps/apple": {
+          "kind": "tree",
+          "oid": "061fe82bab10a1e3fa7e147bfcdcbe7d9dc70b41"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/static-initialization-vector",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 276,
+      "reason": "Noise ChaChaPoly uses a 96-bit nonce with a four-byte zero prefix and a unique little-endian unsigned counter per traffic key. This code advances after successful AEAD operations and rejects 2^64-1 before either operation. The pinned Android callers create fresh directional handshake keys, serialize complete exchanges, retire failed sessions without replay, and use separate random stream keys. The nonce is not constant across messages; shared vectors cover high counters, exhaustion, and invalid tags.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/static-initialization-vector",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 284,
+      "reason": "Noise ChaChaPoly uses a 96-bit nonce with a four-byte zero prefix and a unique little-endian unsigned counter per traffic key. This code advances after successful AEAD operations and rejects 2^64-1 before either operation. The pinned Android callers create fresh directional handshake keys, serialize complete exchanges, retire failed sessions without replay, and use separate random stream keys. The nonce is not constant across messages; shared vectors cover high counters, exhaustion, and invalid tags.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 275,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 276,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 283,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 284,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    }
+  ]
+}

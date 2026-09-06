@@ -1,13 +1,13 @@
 /**
  * Process plumbing for the local subprocess service: detached process-tree
  * spawn with per-stream stdio dispositions, tail-keep collection with spill
- * files, tree-scoped signalling (POSIX groups; Windows taskkill), and the
+ * files, tree-scoped signalling (POSIX groups; Windows Jobs), and the
  * SIGTERM→SIGKILL escalation. This layer reacts to an abort signal; callers
  * own deadlines, teardown ladders, and cause classification.
  * @module dsh-subprocess-local/spawn
  */
 
-import { type ChildProcess, spawn, spawnSync } from 'node:child_process'
+import { type ChildProcess, type SpawnOptions, spawn } from 'node:child_process'
 import type { Readable } from 'node:stream'
 import { randomBytes } from 'node:crypto'
 import { closeSync, mkdtempSync, openSync, unlinkSync, writeSync } from 'node:fs'
@@ -25,6 +25,8 @@ import type {
   SubprocessSpawnSpec,
 } from '@deepseek-ai/dsh-subprocess'
 import { linuxProcessGroupHasLiveMembers } from './process-inspector.ts'
+import { spawnWindowsSubprocess } from './windows-spawn.ts'
+import type { ProcessJob } from '@deepseek-ai/dsh-win32-process'
 
 /**
  * Build a child environment: explicit caller entries override the scrubbed
@@ -50,8 +52,8 @@ export function childEnv(extra?: Readonly<NodeJS.ProcessEnv>): NodeJS.ProcessEnv
 export interface SpawnInternals {
   /** Directory for spill files (defaults to the OS temp dir). */
   spillDir?: string
-  /** Windows tree-termination runner (defaults to `taskkill /PID <pid> /T /F`). */
-  taskkill?: (pid: number) => void
+  /** Windows kernel Job factory; overrides exercise membership and failure observations. */
+  createWindowsJob?: () => ProcessJob
   /** Host platform override for signalling decisions. */
   platform?: NodeJS.Platform
   /** Linux process-group member probe (defaults to `/proc` inspection). */
@@ -266,38 +268,12 @@ export function killGroup(pid: number, sig: NodeJS.Signals): void {
   }
 }
 
-/**
- * Terminate one Windows process tree with `taskkill /T /F`. Contained like
- * POSIX group signalling — delivery races tree exit, so an absent tree, a
- * nonzero status, or a missing taskkill binary must not break idempotent
- * teardown.
- * @param pid - root process id; non-positive is a no-op.
- */
-export function taskkillProcessTree(pid: number): void {
-  if (pid <= 0) return
-  // Outcome deliberately unchecked: an already-absent tree (status 128), exit
-  // races, and a missing taskkill binary (spawnSync reports, never throws) are
-  // as tolerable here as ESRCH is for a POSIX group signal.
-  spawnSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' })
-}
-
-/**
- * Signal a detached process tree with platform-correct semantics: POSIX
- * signals the negative process-group id and falls back to the direct child
- * when the group is gone; Windows terminates the tree via taskkill (any
- * signal value force-terminates — Node maps signals to TerminateProcess).
- */
+/** Signal a POSIX process group and fall back to the direct child when its group is unavailable. */
 function signalTree(
-  platform: NodeJS.Platform,
   pid: number,
   sig: NodeJS.Signals,
   child: ChildProcess,
-  taskkill: (pid: number) => void,
 ): void {
-  if (platform === 'win32') {
-    taskkill(pid)
-    return
-  }
   /* v8 ignore next -- kill/terminate gate on treeAlive(), which is false for pid -1; this guard protects direct callers only. */
   if (pid <= 0) return
   try {
@@ -329,7 +305,6 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
   }
   const spillDir = internals.spillDir ?? privateSpillDir()
   const platform = internals.platform ?? process.platform
-  const taskkill = internals.taskkill ?? taskkillProcessTree
   const linuxGroupHasLiveMembers = internals.linuxProcessGroupHasLiveMembers ?? linuxProcessGroupHasLiveMembers
 
   if (spec.signal?.aborted) {
@@ -347,7 +322,7 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
   const stdinMode = spec.stdio.stdin
 
   const env = childEnv(spec.env)
-  const child = spawn(program, args, {
+  const options: SpawnOptions = {
     cwd: spec.cwd,
     env,
     stdio: [
@@ -355,10 +330,12 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
       outMode === 'inherit' ? 'inherit' : 'pipe',
       errMode === 'inherit' ? 'inherit' : 'pipe',
     ],
-    // `detached` gives teardown a tree root on POSIX (its own process group);
-    // Windows terminates by root pid through taskkill /T instead.
+    // Windows uses kernel Job membership; POSIX owns a detached process group.
     detached: platform !== 'win32',
-  })
+    windowsHide: true,
+  }
+  const windows = platform === 'win32' ? spawnWindowsSubprocess(program, args, options, internals.createWindowsJob) : undefined
+  const child = windows?.child ?? spawn(program, args, options)
 
   const collectStream = (mode: SubprocessOutputMode, stream: Readable | null, label: string): OutputCollector | undefined => {
     if (!isCollect(mode) || stream === null) return undefined
@@ -383,11 +360,7 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
        the guard is the final defense against probing an id after its tree was confirmed absent. */
     if (treeExitObserved) return false
     if (pid <= 0) return false
-    if (platform === 'win32') {
-      // Windows has no group-liveness probe; the direct child's exit is the
-      // observable boundary (taskkill /T already took the tree with it).
-      return child.exitCode === null && child.signalCode === null
-    }
+    if (windows !== undefined) return windows.alive()
     try {
       process.kill(-pid, 0)
       // A group containing only unreaped zombies still answers kill(0), but
@@ -416,10 +389,14 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
    */
   const observeTreeExit = (): Promise<void> => {
     treeExitObservation ??= (async () => {
-      while (treeAlive()) await sleepTick()
-      treeExitObserved = true
-      if (graceTimer !== undefined) clearTimeout(graceTimer)
-      graceTimer = undefined
+      try {
+        while (treeAlive()) await sleepTick()
+        windows?.close()
+        treeExitObserved = true
+      } finally {
+        if (graceTimer !== undefined) clearTimeout(graceTimer)
+        graceTimer = undefined
+      }
     })()
     return treeExitObservation
   }
@@ -433,16 +410,20 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
     /* v8 ignore next -- the shared exit observer cancels the ordinary dead-tree timer;
        this remains the timer/death race guard and cannot be staged deterministically. */
     if (!treeAlive()) return
-    signalTree(platform, pid, sig, child, taskkill)
+    signalTree(pid, sig, child)
   }
 
   const terminate = (): void => {
     if (treeExitObserved || graceTimer !== undefined) return
     // Observe from the first termination tier onward, even when inherited
     // pipes delay `done` and no consumer has begun its own teardown wait.
-    void observeTreeExit()
+    void observeTreeExit().catch(() => { /* The handle's exit wait and service disposal retain the failed ownership observation. */ })
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- observer can record absence before its first await.
     if (treeExitObserved) return
+    if (windows !== undefined) {
+      windows.terminate()
+      return
+    }
     kill('SIGTERM')
     // The escalation must survive direct-child settlement — the leader dying
     // does not mean the tree died — so settle does not clear this timer, and
@@ -453,7 +434,8 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
   }
 
   const terminateForHostExit = (): void => {
-    kill('SIGKILL')
+    if (windows !== undefined) windows.close()
+    else kill('SIGKILL')
   }
 
   // The caller owns timeout classification; this layer only reacts to abort.
@@ -471,23 +453,21 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
     let pipeDrainTimer: ReturnType<typeof setTimeout> | undefined
     const settle = (exitCode: number | null, signal: NodeJS.Signals | null): void => {
       if (settled) return
-      settled = true
-      // Only harness-collected pipes are force-closed at the drain boundary;
-      // a 'pipe'-mode stream belongs to the caller and closes with the child.
-      if (stdoutCollector !== undefined) child.stdout?.destroy()
-      if (stderrCollector !== undefined) child.stderr?.destroy()
-      stdoutCollector?.seal()
-      stderrCollector?.seal()
       cleanup()
-      resolve({ exitCode, signal })
+      try {
+        resolve(windows?.outcome(exitCode, signal) ?? { exitCode, signal })
+      } catch (error) {
+        // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- The Windows projector only throws Error.
+        reject(error)
+      }
     }
     child.on('error', (error) => {
-      // No meaningful close outcome follows a spawn failure.
-      settled = true
+      if (settled) return
       cleanup()
       reject(error)
     })
     child.on('exit', (exitCode, signal) => {
+      if (settled) return
       // A surviving descendant that inherited a pipe must not hold the
       // outcome open indefinitely: after exit, the same bounded grace that
       // governs kills also bounds the close wait.
@@ -497,6 +477,13 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
     })
     child.on('close', settle)
     function cleanup(): void {
+      settled = true
+      // Collected streams and spill descriptors belong to the harness on both
+      // success and error; pipe-mode streams remain owned by the caller.
+      if (stdoutCollector !== undefined) child.stdout?.destroy()
+      if (stderrCollector !== undefined) child.stderr?.destroy()
+      stdoutCollector?.seal()
+      stderrCollector?.seal()
       // graceTimer deliberately NOT cleared: the SIGKILL escalation must be
       // able to reach tree survivors after the direct child settles.
       if (pipeDrainTimer !== undefined) clearTimeout(pipeDrainTimer)
@@ -507,7 +494,10 @@ export function spawnSubprocess(spec: SubprocessSpawnSpec, internals: SpawnInter
   const waitForExit = async (signal?: AbortSignal): Promise<boolean> => {
     const observed = observeTreeExit()
     if (treeExitObserved) return true
-    if (signal?.aborted) return false
+    if (signal?.aborted) {
+      void observed.catch(() => { /* An already-aborted caller leaves ownership errors to later waits and disposal. */ })
+      return false
+    }
     if (signal === undefined) {
       await observed
       return true
