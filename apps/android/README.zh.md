@@ -58,6 +58,14 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 
 注入这些字段并选择 keystore 模式后，`./gradlew --no-daemon --no-configuration-cache :app:assembleRelease :app:validateReleaseBundle` 使用该密钥签署 release APK 和 AAB。候选验证时使用临时 debug key，并核对其公钥证书与实际产物；生产签名和分发保持为独立操作。Unsigned 基础 CI 在 bundle 验证后使用临时 debug keystore 测试签名，校验 APK 证书，并确认已验证的 unsigned AAB 字节没有变化。它还通过真实 Gradle 配置拒绝不完整或互相冲突的签名输入。
 
+### Release bundle 清单
+
+[AAB 扫描器](../../scripts/release/android_sbom.py) 读取已有的 release 构建，依赖 JDK 17、Python 3.10+、Node、已安装的仓库依赖、`JAVA_HOME`、`ANDROID_HOME` 及已填充的 Gradle 缓存。它要求匹配的 R8 mapping 和 app/core 编译类目录。从仓库根目录传入 `--bundle apps/android/app/build/outputs/bundle/release/app-release.aab --mapping apps/android/app/build/outputs/mapping/release/mapping.txt`，并选择 `--output <new-directory>` 或 `--verify <existing-directory>`。验证会重新执行实际扫描并比较两个完整文档，不信任外部提供的元数据导出。
+
+输出包含 CycloneDX 1.6 `sbom.cdx.json` 和 `inventory.json` 回执。扫描器对 AAB 的每个文件计算摘要，用精确的缓存 JAR/AAR 字节解析内嵌 Maven 图，并读取 POM 声明及父项继承的许可证。没有内嵌产物摘要的节点保留这一区别。回执保留重复依赖边、原始编译器与扫描器身份、项目编译类输入、原生库字节归属和 R8 mapping/class 证据。R8 验证 mapping checksum 与 DEX marker；所选 SDK 的 dexdump 读取实际定义类。Kotlin Java 类资源必须原样匹配 Maven 资源。
+
+仅支持 base 模块和 R8 full-release mapping 2.2。Maven 许可证是声明，不是法律许可结论。转换后的 Android 资源按打包文件计算摘要；只有原样 JAR/AAR 资源具有输入归属。清单证明字节一致性，不认证构建者，也不证明源码、应用身份、设备启动或完整平台 RC。CI 在签名测试后执行扫描器拒绝回归和实际 bundle 验证，再将两个文档与 unsigned AAB、mapping 及 checksum 一起保留。
+
 ## 已知限制与延后工作
 
 - **生命周期感知收集**——各标签以 `collectAsStateWithLifecycle` 收集模型的 StateFlow，停止态暂停收集，不在后台空烧。

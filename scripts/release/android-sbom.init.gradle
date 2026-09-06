@@ -1,0 +1,102 @@
+// Read the built Android release inputs with the project's AGP protobuf implementation.
+// This task does not build or sign an artifact; its caller must finish the release build first.
+import java.security.MessageDigest
+import java.util.zip.ZipFile
+import groovy.json.JsonOutput
+
+String fileSha256(File file) {
+    def digest = MessageDigest.getInstance('SHA-256')
+    file.withInputStream { stream ->
+        byte[] buffer = new byte[65536]
+        int count
+        while ((count = stream.read(buffer)) != -1) digest.update(buffer, 0, count)
+    }
+    return digest.digest().encodeHex().toString()
+}
+
+void requireKnownFields(message) {
+    if (!message.unknownFields.asMap().isEmpty()) throw new GradleException('Unknown Android dependency metadata fields')
+    message.allFields.each { field, value ->
+        if (field.javaType.toString() == 'MESSAGE') {
+            (field.isRepeated() ? value : [value]).each { requireKnownFields(it) }
+        }
+    }
+}
+
+File requiredInput(String name) {
+    def value = System.getenv(name)
+    if (value == null) throw new GradleException("Require ${name}")
+    def file = new File(value)
+    if (!file.isAbsolute() || !file.isFile() || !file.canRead()) {
+        throw new GradleException("${name} must be an absolute readable file")
+    }
+    return file
+}
+
+gradle.afterProject { project ->
+    if (project.path == ':app') {
+        project.tasks.register('exportAndroidSbomInputs') {
+            group = 'verification'
+            description = 'Exports actual AAB dependency metadata and the release compiler input locations.'
+            doLast {
+                def input = requiredInput('DSH_ANDROID_SBOM_INPUT')
+                def outputValue = System.getenv('DSH_ANDROID_SBOM_EXPORT')
+                if (outputValue == null) throw new GradleException('Require DSH_ANDROID_SBOM_EXPORT')
+                def output = new File(outputValue)
+                if (!output.isAbsolute() || output.exists() || !output.parentFile.isDirectory()) {
+                    throw new GradleException('DSH_ANDROID_SBOM_EXPORT must be a new absolute file in an existing directory')
+                }
+                def inputHash = fileSha256(input)
+                def loader = project.buildscript.classLoader
+                def parser = loader.loadClass('com.android.tools.build.libraries.metadata.AppDependencies')
+                def metadataPath = 'BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb'
+                def parsed
+                byte[] bytes
+                new ZipFile(input).withCloseable { archive ->
+                    def entries = Collections.list(archive.entries()).findAll { it.name == metadataPath }
+                    if (entries.size() != 1 || entries[0].isDirectory() || entries[0].size < 1 || entries[0].size > 4 * 1024 * 1024) {
+                        throw new GradleException('AAB requires one bounded dependency metadata entry')
+                    }
+                    bytes = archive.getInputStream(entries[0]).withCloseable { stream -> stream.readNBytes(4 * 1024 * 1024 + 1) }
+                    if (bytes.length > 4 * 1024 * 1024 || bytes.length != entries[0].size) {
+                        throw new GradleException('AAB requires one bounded dependency metadata entry')
+                    }
+                    parsed = parser.getMethod('parseFrom', InputStream).invoke(null, new ByteArrayInputStream(bytes))
+                }
+                requireKnownFields(parsed)
+                def libraries = parsed.libraryList.withIndex().collect { library, index ->
+                    if (!library.hasMavenLibrary()) throw new GradleException('AAB dependency metadata requires Maven coordinates')
+                    def maven = library.mavenLibrary
+                    [index: index, group: maven.groupId, name: maven.artifactId, version: maven.version,
+                     sha256: library.digests.sha256.toByteArray().encodeHex().toString(),
+                     repositoryIndex: library.hasRepoIndex() ? library.repoIndex.value : null]
+                }
+                // Original Gradle artifacts remain executable outside Gradle's instrumented classloader.
+                def artifacts = project.rootProject.buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts
+                def tools = ['gradle', 'builder'].collectEntries { name ->
+                    def matching = artifacts.findAll { it.moduleVersion.id.group == 'com.android.tools.build' && it.name == name }
+                    if (matching.size() != 1) throw new GradleException("Require one AGP ${name} artifact")
+                    def artifact = matching[0]
+                    [(name): [version: artifact.moduleVersion.id.version, path: artifact.file.absolutePath, sha256: fileSha256(artifact.file)]]
+                }
+                def projects = [['app', project, 'compileReleaseKotlin'], ['core', project.rootProject.project(':core'), 'compileKotlin']].collect { item ->
+                    def directory = item[1].tasks.getByName(item[2]).destinationDirectory.get().asFile
+                    if (!directory.isDirectory()) throw new GradleException('Build Android release classes before collecting SBOM inputs')
+                    [name: item[0], classes: directory.absolutePath]
+                }
+                def result = [schemaVersion: 1, inputSha256: inputHash,
+                              metadata: [path: metadataPath, size: bytes.length, sha256: MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString()],
+                              libraries: libraries,
+                              dependencies: parsed.libraryDependenciesList.collect { [index: it.libraryIndex, dependsOn: it.libraryDepIndexList] },
+                              modules: parsed.moduleDependenciesList.collect { [name: it.moduleName, dependsOn: it.dependencyIndexList] },
+                              repositoryKinds: parsed.repositoriesList.collect { it.repoOneofCase.toString() },
+                              tools: tools, projects: projects,
+                              gradleUserHome: gradle.gradleUserHomeDir.absolutePath,
+                              buildToolsVersion: project.android.buildToolsVersion]
+                if (fileSha256(input) != inputHash) throw new GradleException('AAB changed during dependency inspection')
+                // CREATE_NEW prevents replacing an existing receipt even if another process races the preflight.
+                java.nio.file.Files.writeString(output.toPath(), JsonOutput.prettyPrint(JsonOutput.toJson(result)) + '\n', java.nio.file.StandardOpenOption.CREATE_NEW)
+            }
+        }
+    }
+}

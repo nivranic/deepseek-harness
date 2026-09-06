@@ -58,6 +58,14 @@ The app converts the core's 32-bit ARGB tokens with `Color(token.toLong())`; Com
 
 After injecting those fields and selecting keystore mode, `./gradlew --no-daemon --no-configuration-cache :app:assembleRelease :app:validateReleaseBundle` signs the release APK and AAB with that key. For candidate verification, use a temporary debug key and verify its public certificate against the actual artifacts; production signing and distribution remain separate operations. The unsigned foundation CI tests signing with a temporary debug keystore after bundle validation, verifies the APK's certificate, and checks that the validated unsigned AAB bytes remain unchanged. It also rejects partial or conflicting signing inputs through real Gradle configuration.
 
+### Release bundle inventory
+
+The [AAB scanner](../../scripts/release/android_sbom.py) reads an existing release build with JDK 17, Python 3.10+, Node, installed repository dependencies, `JAVA_HOME`, `ANDROID_HOME`, and its populated Gradle cache. It requires the matching R8 mapping and app/core compiler class directories. From the repository root, pass `--bundle apps/android/app/build/outputs/bundle/release/app-release.aab --mapping apps/android/app/build/outputs/mapping/release/mapping.txt` and either `--output <new-directory>` or `--verify <existing-directory>`. Verification repeats the actual scan and compares both complete documents; it does not trust a supplied metadata export.
+
+The output contains a CycloneDX 1.6 `sbom.cdx.json` and an `inventory.json` receipt. The scanner hashes every AAB file, resolves the embedded Maven graph against exact cached JAR/AAR bytes, and reads declared POM licenses with parent inheritance. Nodes without an embedded artifact digest retain that distinction. The receipt preserves repeated dependency edges, original compiler and scanner identities, project class inputs, native-library byte ownership, and R8 mapping/class evidence. R8 verifies the mapping checksum and DEX markers; the selected SDK dexdump reads actual class definitions. Kotlin Java class resources require a verbatim Maven resource match.
+
+Only the base module with R8 full-release mapping 2.2 is supported. Maven licenses are declarations, not legal clearance. Transformed Android resources are hashed as packaged files; only verbatim JAR/AAR resources receive input ownership. The inventory provides byte consistency without authenticating the builder or establishing source, application identity, device startup, or a full platform RC. CI runs scanner rejection tests and actual-bundle verification after signing tests, then retains both documents alongside the unsigned AAB and mapping with checksums.
+
 ## Known Limitations and Deferred Work
 
 - **Lifecycle-aware collection** — the tabs collect the models' StateFlows with `collectAsStateWithLifecycle`, so collection pauses in stopped states instead of burning work in the background.

@@ -41,11 +41,14 @@ describe.skipIf(process.platform !== 'linux')('Android release artifact preserva
     expect(spawnSync('unzip', ['-v']).status, 'hosted Linux preservation requires unzip').toBe(0)
   })
 
-  it.each(['unsigned', 'signed', 'missing-mapping', 'corrupt'] as const)('handles %s input before upload', (kind) => {
+  it.each(['unsigned', 'signed', 'missing-mapping', 'missing-sbom', 'missing-inventory', 'corrupt'] as const)('handles %s input before upload', (kind) => {
     const root = mkdtempSync(join(tmpdir(), 'dsh-android-release-'))
     try {
       mkdirSync(join(root, 'bundle/release'), { recursive: true })
       mkdirSync(join(root, 'mapping/release'), { recursive: true })
+      mkdirSync(join(root, 'release-inventory'))
+      if (kind !== 'missing-sbom') writeFileSync(join(root, 'release-inventory/sbom.cdx.json'), '{}\n')
+      if (kind !== 'missing-inventory') writeFileSync(join(root, 'release-inventory/inventory.json'), '{}\n')
       const bundle = join(root, 'bundle/release/app-release.aab')
       const generated = spawnSync('python3', ['-c', [
         'import sys, zipfile',
@@ -63,14 +66,14 @@ describe.skipIf(process.platform !== 'linux')('Android release artifact preserva
       const output = join(root, 'release-foundation')
       if (kind !== 'unsigned') {
         expect(result.status, result.stderr).not.toBe(0)
-        expect(existsSync(output)).toBe(false)
+        if (kind !== 'missing-sbom' && kind !== 'missing-inventory') expect(existsSync(output)).toBe(false)
         return
       }
       expect(result.status, result.stderr).toBe(0)
       expect(readFileSync(join(output, 'app-release.aab'))).toEqual(readFileSync(bundle))
       expect(readFileSync(join(output, 'mapping.txt'), 'utf8')).toBe('mapping sentinel\n')
       const checksums = readFileSync(join(output, 'SHA256SUMS'), 'utf8')
-      for (const file of ['app-release.aab', 'mapping.txt']) {
+      for (const file of ['app-release.aab', 'mapping.txt', 'sbom.cdx.json', 'inventory.json']) {
         const digest = createHash('sha256').update(readFileSync(join(output, file))).digest('hex')
         expect(checksums).toContain(`${digest}  ${file}\n`)
       }
@@ -82,16 +85,23 @@ describe.skipIf(process.platform !== 'linux')('Android release artifact preserva
 
 it('runs bundle validation before preservation and publishes only after success', () => {
   const signing = steps.findIndex(step => step.name === 'Verify Android signing configuration')
+  const sbomTests = steps.findIndex(step => step.name === 'Verify Android SBOM scanners')
+  const sbom = steps.findIndex(step => step.name === 'Inventory unsigned Android release bundle')
   const validate = steps.findIndex(step => step.name === 'Build and validate the unsigned release bundle')
   const preserveIndex = steps.indexOf(preserve)
   const upload = steps.findIndex(step => step.name === 'Upload unsigned Android release foundation')
   expect(validate).toBeGreaterThanOrEqual(0)
   expect(signing).toBeGreaterThan(validate)
   expect(steps[signing]?.run).toContain('test_android_signing.py')
-  expect(preserveIndex).toBeGreaterThan(signing)
+  expect(sbomTests).toBeGreaterThan(signing)
+  expect(sbom).toBeGreaterThan(sbomTests)
+  expect(steps[sbomTests]?.run).toContain('test_android_sbom*.py')
+  expect(steps[sbom]?.run).toContain('scripts/release/android_sbom.py')
+  expect(steps[sbom]?.run).toContain('--output apps/android/app/build/outputs/release-inventory')
+  expect(preserveIndex).toBeGreaterThan(sbom)
   expect(upload).toBeGreaterThan(preserveIndex)
   expect(steps[validate]?.run).toContain(':app:lintRelease :app:validateReleaseBundle')
-  for (const index of [signing, validate, preserveIndex, upload]) {
+  for (const index of [signing, validate, sbomTests, sbom, preserveIndex, upload]) {
     expect(steps[index]?.if).toBeUndefined()
     expect(steps[index]?.['continue-on-error']).toBeUndefined()
   }

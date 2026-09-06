@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-09-06-android-release-foundation.md
-2026-09-06-android-release-foundation.md: e28bcc0520cffe000de4c56196167e5cfd0005ca
-2026-09-06-android-release-foundation.zh.md: a2de5963eab0a0b06e48fd70b17d9250763b6ac5
+2026-09-06-android-release-foundation.md: 7c33318623f351a1972a079cdf53afd9f528ae20
+2026-09-06-android-release-foundation.zh.md: fa40d2138616dc40e8895cf3c3dee9a05975935a

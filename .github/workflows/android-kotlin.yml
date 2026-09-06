@@ -148,6 +148,16 @@ jobs:
       - name: Verify Android signing configuration
         run: python3 -B -m unittest discover -s scripts/release -p test_android_signing.py -v
 
+      - name: Verify Android SBOM scanners
+        run: python3 -B -m unittest discover -s scripts/release -p 'test_android_sbom*.py' -v
+
+      - name: Inventory unsigned Android release bundle
+        run: >-
+          python3 -B scripts/release/android_sbom.py
+          --bundle apps/android/app/build/outputs/bundle/release/app-release.aab
+          --mapping apps/android/app/build/outputs/mapping/release/mapping.txt
+          --output apps/android/app/build/outputs/release-inventory
+
       - name: Preserve unsigned release bundle and R8 mapping
         working-directory: apps/android/app/build/outputs
         run: |
@@ -160,8 +170,9 @@ jobs:
           test -s mapping/release/mapping.txt
           mkdir release-foundation
           cp bundle/release/app-release.aab mapping/release/mapping.txt release-foundation/
+          cp release-inventory/sbom.cdx.json release-inventory/inventory.json release-foundation/
           cd release-foundation
-          sha256sum app-release.aab mapping.txt > SHA256SUMS
+          sha256sum app-release.aab mapping.txt sbom.cdx.json inventory.json > SHA256SUMS
 
       - name: Upload unsigned Android release foundation
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
