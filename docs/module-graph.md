@@ -441,8 +441,10 @@ flowchart TD
   pkg_storage_sqlite --> pkg_invariants
   pkg_storage_sqlite --> pkg_storage
   pkg_subprocess_local --> pkg_invariants
+  pkg_subprocess_local --> pkg_node_spawn
   pkg_subprocess_local --> pkg_subprocess
   pkg_subprocess_local --> pkg_timeout
+  pkg_subprocess_local --> pkg_win32_process
   pkg_typert_loader --> pkg_invariants
   pkg_typert_loader --> pkg_typert_registry
   pkg_llm --> pkg_attachment
@@ -1818,7 +1820,7 @@ flowchart TD
 | [`storage-domain`](../packages/storage/storage-domain) | `storage` | [`invariants`](../packages/runtime-diagnostics/invariants), [`storage`](../packages/storage/storage) |
 | [`storage-json`](../packages/storage/storage-json) | `storage` | [`invariants`](../packages/runtime-diagnostics/invariants), [`storage`](../packages/storage/storage) |
 | [`storage-sqlite`](../packages/storage/storage-sqlite) | `storage` | [`invariants`](../packages/runtime-diagnostics/invariants), [`storage`](../packages/storage/storage) |
-| [`subprocess-local`](../packages/subprocess/subprocess-local) | `subprocess` | [`invariants`](../packages/runtime-diagnostics/invariants), [`subprocess`](../packages/subprocess/subprocess), [`timeout`](../packages/util/timeout) |
+| [`subprocess-local`](../packages/subprocess/subprocess-local) | `subprocess` | [`invariants`](../packages/runtime-diagnostics/invariants), [`node-spawn`](../packages/util/node-spawn), [`subprocess`](../packages/subprocess/subprocess), [`timeout`](../packages/util/timeout), [`win32-process`](../packages/subprocess/win32-process) |
 | [`typert-loader`](../packages/typert/loader) | `typert` | [`invariants`](../packages/runtime-diagnostics/invariants), [`typert-registry`](../packages/typert/registry) |
 | [`llm`](../packages/llm/llm) | `llm` | [`attachment`](../packages/attachment/attachment), [`brand`](../packages/util/brand), [`invariants`](../packages/runtime-diagnostics/invariants), [`timeout`](../packages/util/timeout), [`typert-protocol`](../packages/typert/protocol) |
 | [`attachment-local`](../packages/attachment/attachment-local) | `attachment` | [`attachment`](../packages/attachment/attachment), [`home-paths`](../packages/util/home-paths), [`invariants`](../packages/runtime-diagnostics/invariants) |

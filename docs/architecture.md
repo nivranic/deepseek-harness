@@ -42,7 +42,7 @@ Composition mechanics are in [app-boot](../packages/boot/app-boot/README.md#prof
 
 Every supported Harness Node application starts at the `dsh` CLI with a named profile. The shipped applications are `dsh web` (the deliberate alias for `--profile web`), `dsh --profile headless`, `dsh --profile sdk`, `dsh --profile sdk-minimal`, and `dsh --profile acp`. The TypeScript SDK resolves its same-version `dsh` dependency and selects `sdk`; custom plugin composition remains a profile plus ordered patch files, not another executable or inline application tree. `sdk-minimal` is a repository-owned standalone bundle behind the same launcher, not a caller-supplied Cordis tree.
 
-Vendored CLIs, build-only and test-only executables, direct in-process plugin mounting, and the private browser WebWorker preview are not Harness application launchers. The separately deployed [Relay rendezvous](../apps/relay/README.md) is infrastructure rather than a Harness application: it mounts no Cordis tree, owns no Session authority or business Gateway, and persists no Harness business state; its in-memory device, queue, stream, and Noise-session records are ephemeral.
+Vendored CLIs, build-only and test-only executables, private subprocess bootstraps, direct in-process plugin mounting, and the private browser WebWorker preview are not Harness application launchers. A Windows SEA re-enters only the fixed [subprocess bootstrap](../packages/subprocess/subprocess-local/README.md) over parent IPC. The separately deployed [Relay rendezvous](../apps/relay/README.md) is infrastructure: it mounts no Cordis tree, owns no Session authority or business Gateway, and persists no Harness business state; its device, queue, stream, and Noise-session records are ephemeral.
 
 [`verify-application-entrypoints`](../scripts/verify-application-entrypoints.ts) keeps every package bin, shebang-marked executable source, and root demo in an explicit application, infrastructure, build, or test class and rejects a Harness Node application path that bypasses `dsh`.
 
@@ -63,6 +63,8 @@ Here are some core packages that contribute to the Cordis tree.
 | [`llm/llm`](subsystems/llm-streaming.md) | Message and stream vocabulary plus the adapter seam | `ctx.llm` |
 | [`webhook/webhook`](subsystems/webhook.md) | Authenticated-delivery dispatch and Workspace Session creation | `ctx.webhookRuntime` |
 
+<a id="events"></a>
+
 ## Events
 
 Events are the extension points, and picking the right domain is the first decision in most changes.
@@ -72,6 +74,8 @@ Events are the extension points, and picking the right domain is the first decis
 - **Capability events** attach policy and adapters to a seam (`fs/*`, `tools/*`, `telemetry/*`) without importing the loop.
 
 The [event map](event-producer-consumer.md) lists every event's producers and consumers.
+
+<a id="turn-flow"></a>
 
 ## Turn flow
 

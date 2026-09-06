@@ -78,6 +78,7 @@
       "@deepseek-ai/dsh-session-projection/types": ["./packages/session/session-projection/src/types.ts"],
       "@deepseek-ai/dsh-tool-todo/types": ["./packages/todo/tool-todo/src/types.ts"],
       "@deepseek-ai/dsh-tool-todo/client": ["./packages/todo/tool-todo/src/client.ts"],
+      "@deepseek-ai/dsh-subprocess-local/windows-bootstrap": ["./packages/subprocess/subprocess-local/src/windows-bootstrap.ts"],
       "@deepseek-ai/dsh-session-title/types": ["./packages/session/session-title/src/types.ts"],
       "@deepseek-ai/dsh-session-title/client": ["./packages/session/session-title/src/client.ts"],
       "@deepseek-ai/dsh-subagent/client": ["./packages/subagent/subagent/src/client.ts"],

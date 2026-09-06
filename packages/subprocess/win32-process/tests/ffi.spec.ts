@@ -12,6 +12,18 @@ import { PROCESS_INFORMATION, STARTUPINFOW, errorText } from '../src/ffi.ts'
 import type { NativePtr, Win32ProcessBindings } from '../src/index.ts'
 
 describe('shared Win32 process ABI', () => {
+  it('permits independent module generations without native type-name collisions', async () => {
+    vi.resetModules()
+    const reloaded = await import('../src/ffi.ts')
+    expect(reloaded.STARTUPINFOW.size).toBe(STARTUPINFOW_SIZE)
+    expect(reloaded.PROCESS_INFORMATION.size).toBe(PROCESS_INFORMATION_SIZE)
+    const info = reloaded.allocProcessInfo()
+    try {
+      koffi.encode(info, reloaded.PROCESS_INFORMATION, { hProcess: 123n, hThread: null, dwProcessId: 42, dwThreadId: 43 })
+      expect(reloaded.decodeProcessInfo(info)).toEqual({ hProcess: 123n, hThread: null, dwProcessId: 42, dwThreadId: 43 })
+    } finally { koffi.free(info) }
+  })
+
   it('matches the verified x64 structure sizes', () => {
     expect(STARTUPINFOW.size).toBe(STARTUPINFOW_SIZE)
     expect(PROCESS_INFORMATION.size).toBe(PROCESS_INFORMATION_SIZE)

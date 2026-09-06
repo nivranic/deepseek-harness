@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Mount `dsh-subprocess-local` in any composition that runs child processes on the host: it resolves local executables, spawns detached process trees with explicit stdio, and provides real terminal sessions through `node-pty`. It has no configuration, so every disposition, limit, terminal size, and grace arrives on the spawn request from the calling capability seam. Output collection keeps a bounded in-memory tail with optional spill files for full-stream recovery, children start from a scrubbed environment, and disposal terminates and joins every running tree.
+Mount `dsh-subprocess-local` in a composition that runs child processes on the host: it resolves local executables, owns POSIX process groups or Windows Jobs with explicit stdio, and provides real terminal sessions through `node-pty`. It has no configuration; each spawn request supplies its dispositions, limits, terminal size, and grace. Collected output retains a bounded tail with optional spill files, children receive a scrubbed environment, and disposal terminates and joins every owned tree.
 
 ## Table of Contents
 
@@ -50,11 +50,11 @@ Collect mode keeps the last `maxBytes` of a stream in memory — errors and fina
 
 ### Shutdown behavior
 
-Normal disposal terminates every running tree and terminal and awaits their exit. During a JavaScript-observable host exit — direct `process.exit()`, default uncaught exceptions, default unhandled rejections — a synchronous finalization force-terminates everything still owned (SIGKILL to the group, `taskkill /T /F` on Windows) without creating promises or timers. Unhandled `SIGTERM`/`SIGINT`/`SIGHUP`, `SIGKILL`, fatal OOM, native crashes, and power loss need an external supervisor.
+Normal disposal terminates every owned tree and terminal and awaits their exit. At a JavaScript-observable host exit, synchronous finalization sends SIGKILL to POSIX groups, closes ordinary Windows Job handles, and terminates observable terminal members without promises or timers. Windows kill-on-close Jobs also terminate ordinary members when the host dies without running JavaScript; POSIX groups and terminal sessions require an external owner for those failures.
 
 ### What can go wrong
 
-An executable that cannot be resolved fails loud with a stable error; a spawn that never starts rejects `done`. A read past the retained tail is `lossy` and points at the spill file when one exists. A daemonized descendant that leaves the tree or terminal session can outlive cleanup — see the limitations below.
+An unresolved executable fails loudly. `done` rejects launch failures and an unexpected bootstrap exit without a target outcome; the latter also terminates the Windows Job. Collected pipes and spill descriptors close on success and error. A failed Job query or termination remains an error, and the service retains ownership for final cleanup. A read past the retained tail is `lossy`; POSIX or terminal descendants outside the owned group or observable session can outlive cleanup.
 
 -----
 
@@ -68,14 +68,15 @@ This section explains the design decisions behind the provider and points at the
 
 ### Design concept
 
-The provider treats the process tree as the unit of lifetime. POSIX children spawn detached (their own process group) so the whole tree is signalled by negative group id with a direct-child fallback; Windows terminates by root pid through `taskkill /T`. Signalling, escalation, and teardown guard on tree liveness rather than direct-child settlement, so a TERM-trapping helper cannot outlive the handle unnoticed.
+The provider owns a POSIX process group or a non-breakaway Windows Job independently of the requested program's exit. A Windows bootstrap receives executable, argv, and target environment over IPC only after Job assignment. Its startup environment excludes caller `NODE_*`, `ELECTRON_*`, and `TSX_*` hooks; the target still receives the explicit environment. The bootstrap reports the target outcome separately and permits descendants to remain in the Job after the target exits. `pid` identifies the bootstrap tree root on Windows. The [Job ownership decision](../../../.agents/notes/implemented/architecture/2026-09-07-windows-subprocess-job-ownership.md) explains the fixed SEA entry and assignment interval.
 
 ### Source map
 
 | File | Role |
 |---|---|
 | [`src/index.ts`](src/index.ts) | Service wiring: live-handle sets, disposal, host-exit finalization, executable lookup |
-| [`src/spawn.ts`](src/spawn.ts) | Process plumbing: detached spawn, tail-keep collection, spill files, escalation, tree-exit observer |
+| [`src/spawn.ts`](src/spawn.ts) | Standard streams, tail collection, spill files, POSIX escalation, and tree-exit observation |
+| [`src/windows-spawn.ts`](src/windows-spawn.ts) / [`src/windows-bootstrap.ts`](src/windows-bootstrap.ts) | Job assignment, private IPC launch, and target exit facts |
 | [`src/terminal.ts`](src/terminal.ts) | `node-pty` terminal handle: foreground inspection, session cleanup, Windows teardown |
 | [`src/process-inspector.ts`](src/process-inspector.ts) | POSIX process-tree and session inspection |
 | [`src/windows-inspector.ts`](src/windows-inspector.ts) | Windows Toolhelp32 process-table inspection via koffi |
@@ -83,7 +84,7 @@ The provider treats the process tree as the unit of lifetime. POSIX children spa
 
 ### Main flow
 
-A spawn builds the scrubbed child environment, starts the detached process, attaches collectors to the collected streams, and returns a handle. `done` settles at process close after a bounded pipe-drain grace, so a surviving descendant that inherited a pipe cannot hold the outcome open indefinitely; the escalation timer survives direct-child settlement so SIGKILL still reaches tree survivors. Terminal cleanup sweeps descendants by exact identity, stops the shell, re-sweeps, and verifies absence through the process table.
+`done` retains the requested program's outcome after a bounded pipe-drain grace, so a descendant holding an inherited pipe cannot delay settlement indefinitely. Whole-tree observation remains independent: POSIX escalation survives direct-child settlement, and Windows waits for zero active Job members before closing the owner handle. Terminal cleanup sweeps exact process identities, stops the shell, re-sweeps, and verifies absence through the process table.
 
 ### Safety invariants
 
@@ -122,10 +123,10 @@ No direct invalidation; the named consumers own any request-prefix changes.
 
 These limits define when the provider is a poor fit or needs special operational care. They are current package constraints, not a general platform comparison or a task backlog.
 
-- **Windows tree support is best-effort** — termination routes through `taskkill /PID <pid> /T /F` with all outcomes contained (absent tree, races, missing binary), and liveness falls back to the direct-child boundary.
+- **Windows Job assignment is required** — creation or assignment failure rejects the launch before target code runs. Restrictive enclosing Jobs can prevent assignment; the provider does not fall back to PID-only termination.
 - **Windows terminal signalling is console-wide** — SIGINT is delivered as a `\x03` Ctrl-C input write that conhost turns into a console-wide CTRL_C event; SIGTSTP and SIGHUP are rejected as unavailable; a `taskkill` without `/F` does not terminate console processes, so the teardown TERM tier is a grace wait before the `/F` escalation.
 - **A daemonized terminal descendant can still escape the observable boundary** — on macOS, a child that reparents before any foreground-inspection snapshot is no longer discoverable from the PTY root; on Linux, a `setsid` child leaves both the tree and the owned terminal session; the provider adds no continuous process-table monitor.
-- **In-process cleanup requires a JavaScript-observable exit** — direct `process.exit()`, default uncaught exceptions, and default unhandled rejections emit Node's synchronous `exit` event; an unhandled `SIGTERM`, `SIGINT`, or `SIGHUP`, `SIGKILL`, fatal OOM, `process.abort()`, native crashes, and power loss require an external supervisor, container init, or equivalent OS owner.
+- **POSIX and terminal finalization requires a JavaScript-observable exit** — unhandled signals, fatal OOM, `process.abort()`, and native crashes need an external owner. Ordinary Windows Jobs retain kernel ownership when the host exits; this is lifetime management, not a security sandbox or a power-loss recovery mechanism.
 - **The credential scrub is a name heuristic** — `*KEY*`/`*PASSWORD*`/`*SECRET*`/`*TOKEN*` only; differently named secrets (for example `*PASSPHRASE*`) pass through, and a whitelist for over-scrubbed variables is noted future work.
 - **Completed spill files are not deleted** — bounded full-output recovery files (and the private per-process spill directory) accumulate under the OS tmpdir until something external cleans them.
 

@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-在需要于宿主机上运行子进程的组合中挂载 `dsh-subprocess-local`：它解析本地可执行文件、以显式 stdio 运行 detached 进程树，并通过 `node-pty` 提供真实终端会话。它没有任何配置，因此每项处置方式、限制、终端尺寸与宽限期都随 spawn 请求来自调用方能力 seam。输出收集在内存中保留一段有界尾部，并可选地用 spill 文件恢复完整流；子进程从清理后的环境起步；dispose（资源释放）会终止并等待每棵仍在运行的进程树退出。
+在需要运行宿主子进程的组合中挂载 `dsh-subprocess-local`：它解析本地可执行文件，以显式 stdio 管理 POSIX 进程组或 Windows Job，并通过 `node-pty` 提供真实终端会话。本包没有配置；每次 spawn 请求提供流处理方式、限制、终端尺寸与宽限期。输出收集保留有界尾部及可选 spill 文件，子进程接收清理后的环境，dispose（资源释放）会终止并等待每棵拥有的进程树退出。
 
 ## 目录
 
@@ -50,11 +50,11 @@ kind: "package-reference"
 
 ### 关闭行为
 
-正常 dispose 会终止每棵仍在运行的进程树与终端并等待其退出。在 JavaScript 可观察的宿主退出期间——直接 `process.exit()`、默认未捕获异常、默认未处理 rejection——同步最终清理会强制终止所有仍归本包所有的对象（对进程组发送 SIGKILL，Windows 上运行 `taskkill /T /F`），且不创建任何 Promise 或定时器。未处理的 `SIGTERM`/`SIGINT`/`SIGHUP`、`SIGKILL`、fatal OOM、native crash 与断电则需要外部 supervisor。
+正常 dispose 会终止拥有的每棵进程树与终端，并等待其退出。在 JavaScript 可观察的宿主退出期间，同步最终清理向 POSIX 进程组发送 SIGKILL、关闭普通 Windows Job 句柄，并终止可观察的终端成员，不创建 Promise 或定时器。Windows kill-on-close Job 也会在宿主未执行 JavaScript 就死亡时终止普通成员；POSIX 进程组和终端会话在这些失败路径上需要外部所有者。
 
 ### 可能出错的地方
 
-无法解析的可执行文件会以稳定的错误快速失败；从未启动成功的 spawn 会让 `done` reject。越过保留尾部的读取是 `lossy` 的，并在 spill 文件存在时指向它。脱离进程树或终端会话的 daemon 化后代可能比清理更长寿——见下文限制。
+无法解析的可执行文件会明确报错。`done` 拒绝启动失败，以及未提供目标结果就意外退出的 bootstrap；后者也会终止 Windows Job。收集用管道和 spill 文件描述符在成功和错误路径上都会关闭。Job 查询或终止失败仍是错误，服务会保留所有权供最终清理使用。超出保留尾部的读取标记为 `lossy`；离开拥有的进程组或可观察会话的 POSIX 后代或终端后代可能在清理后继续存活。
 
 -----
 
@@ -68,14 +68,15 @@ kind: "package-reference"
 
 ### 设计理念
 
-本提供方把进程树视为生命周期单元。POSIX 子进程以 detached 方式 spawn（拥有独立进程组），因此整棵进程树以负进程组 id 发送信号，并以直接子进程作为回退；Windows 通过 `taskkill /T` 按根 pid 终止。信号发送、升级与拆卸都以进程树存活状态为守卫，而非以直接子进程结算为准，因此拦截 TERM 的辅助进程无法在无人察觉的情况下比句柄更长寿。
+提供方独立于请求程序的退出，持有 POSIX 进程组或不允许 breakaway 的 Windows Job。Windows bootstrap 仅在分配到 Job 后才通过 IPC 接收可执行文件、argv 和目标环境。它的启动环境排除调用方的 `NODE_*`、`ELECTRON_*` 和 `TSX_*` 启动钩子；目标仍接收显式环境。bootstrap 单独报告目标结果，并允许后代在目标退出后继续留在 Job 中。Windows 上的 `pid` 标识 bootstrap 进程树根。[Job 所有权决策](../../../.agents/notes/implemented/architecture/2026-09-07-windows-subprocess-job-ownership.zh.md) 说明固定 SEA 入口及分配前的间隔。
 
 ### 源码地图
 
 | 文件 | 职责 |
 |---|---|
 | [`src/index.ts`](src/index.ts) | 服务接线：存活句柄集合、dispose、宿主退出最终清理、可执行文件查找 |
-| [`src/spawn.ts`](src/spawn.ts) | 进程管道：detached spawn、保尾收集、spill 文件、升级、进程树退出观察器 |
+| [`src/spawn.ts`](src/spawn.ts) | 标准流、尾部收集、spill 文件、POSIX 升级及进程树退出观察 |
+| [`src/windows-spawn.ts`](src/windows-spawn.ts) / [`src/windows-bootstrap.ts`](src/windows-bootstrap.ts) | Job 分配、私有 IPC 启动与目标退出事实 |
 | [`src/terminal.ts`](src/terminal.ts) | `node-pty` 终端句柄：前台检查、会话清理、Windows 拆卸 |
 | [`src/process-inspector.ts`](src/process-inspector.ts) | POSIX 进程树与会话检查 |
 | [`src/windows-inspector.ts`](src/windows-inspector.ts) | 经 koffi 的 Windows Toolhelp32 进程表检查 |
@@ -83,7 +84,7 @@ kind: "package-reference"
 
 ### 主流程
 
-一次 spawn 会构建清理后的子进程环境、启动 detached 进程、把收集器挂到收集模式的流上，然后返回句柄。`done` 在进程关闭后、经过一段有界管道排空宽限期才结算，因此继承了管道的存活后代无法无限期拖住结果；升级定时器在直接子进程结算后依然存活，使 SIGKILL 仍能到达进程树幸存者。终端清理按精确身份清扫后代、停止 shell、再次清扫，并通过进程表验证其已不存在。
+`done` 在有界管道排空宽限期后保留请求程序的结果，因此持有继承管道的后代无法无限延迟结算。整树观察仍独立进行：POSIX 升级在直接子进程结算后仍有效，Windows 则等待 Job 活跃成员归零后再关闭所有者句柄。终端清理按精确进程身份扫描，停止 shell、再次扫描，并通过进程表验证进程已消失。
 
 ### 安全不变式
 
@@ -122,10 +123,10 @@ spill 文件以 `0600` 权限、`O_EXCL` 与随机名称在 `0700` 每进程目�
 
 这些限制说明本提供方何时不合适，或何时需要特别的运维注意。它们是当前包约束，不是通用平台对比或任务积压。
 
-- **Windows 进程树支持仅为尽力而为**——终止经由 `taskkill /PID <pid> /T /F` 完成，所有结果都被就地吸收（进程树已不存在、竞态、二进制缺失），存活探测则回退到直接子进程边界。
+- **Windows 必须完成 Job 分配**——创建或分配失败会在目标代码运行前拒绝启动。外层 Job 的限制可能阻止分配；提供方不会回退到仅按 PID 终止。
 - **Windows 终端信号是控制台级的**——SIGINT 以 `\x03` Ctrl-C 输入写入投递，由 conhost 转为控制台级 CTRL_C 事件；SIGTSTP 与 SIGHUP 因不可用而被拒绝；不带 `/F` 的 `taskkill` 无法终止控制台进程，因此拆卸的 TERM 档是 `/F` 升级前的宽限等待。
 - **守护化的终端后代仍可能逃出可观察边界**——在 macOS 上，子进程如果在任何前台检查快照之前重新设定父进程，将无法再从 PTY 根进程发现；在 Linux 上，调用 `setsid` 的子进程会同时离开进程树与自有终端会话；本提供方不新增持续进程表监视器。
-- **进程内清理要求退出阶段仍能执行 JavaScript**——直接 `process.exit()`、默认未捕获异常和默认未处理 rejection 会发出 Node 同步 `exit` 事件；未处理的 `SIGTERM`、`SIGINT` 或 `SIGHUP`、`SIGKILL`、fatal OOM、`process.abort()`、native crash 与断电，都需要外部 supervisor、容器 init 或等价的 OS 所有者负责。
+- **POSIX 与终端最终清理要求 JavaScript 可观察的退出**——未处理信号、fatal OOM、`process.abort()` 和 native crash 需要外部所有者。普通 Windows Job 在宿主退出时保留内核所有权；这属于生命周期管理，不是安全沙箱或断电恢复机制。
 - **凭据清除依赖名称启发式规则**——只匹配 `*KEY*`/`*PASSWORD*`/`*SECRET*`/`*TOKEN*`；名称不同的 secret（例如 `*PASSPHRASE*`）会继续传递，对误删变量引入白名单属于已记录的后续工作。
 - **不会删除已完成的 spill 文件**——有界的完整输出恢复文件（以及每进程私有 spill 目录）会在 OS tmpdir 下累积，直到外部机制进行清理。
 

@@ -1,5 +1,5 @@
 ---
-description: "Low-level Win32 process primitives for maintainers implementing or debugging the Windows ACL sandbox."
+description: "Shared Win32 process primitives for maintainers of ordinary subprocess Jobs and the Windows ACL sandbox."
 kind: "package-library"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Low-level Win32 process library consumed by the Windows ACL sandbox. It owns the repository's one Koffi binding table for reusable restricted-process, stdio, and Job Object operations; it is not a Cordis service and does not choose sandbox policy or public child behavior. Read this page when maintaining the sandbox's native process path or checking its handle-lifetime limits.
+Low-level Win32 process library consumed by `subprocess-local` and the Windows ACL sandbox. It owns reusable Koffi bindings, restricted-process creation, stdio, and Job operations. Consumers own scheduling, target outcomes, sandbox policy, and public child behavior; this package is not a Cordis service.
 
 ## Table of Contents
 
@@ -24,10 +24,11 @@ Low-level Win32 process library consumed by the Windows ACL sandbox. It owns the
 <a id="behavior"></a>
 ## Behavior
 
-- **One reusable ABI owner** — `abi.ts` owns the Win32 constants and x64 layout values consumed by the sandbox process paths. `ffi.ts` lazily loads `kernel32.dll` and `advapi32.dll`, verifies `STARTUPINFOW` and `PROCESS_INFORMATION`, exposes typed operations and error formatting, and lets sandbox policy bind its remaining APIs through the same loaded libraries.
+- **One reusable ABI owner** — `abi.ts` owns constants and x64 layouts. `ffi.ts` lazily loads the Windows libraries and verifies module-owned anonymous `STARTUPINFOW` and `PROCESS_INFORMATION` types, allowing independent module generations without global type-name collisions. Consumers extend the same binding context.
 - **Restricted-token creation** — `RestrictedProcessSpawnOptions` requires the sandbox's primary token and uses `CreateProcessAsUserW`. Piped and inherited-stdio paths share command-line quoting, cwd, the inherited environment block, checked return values, and handle cleanup.
 - **Piped process primitive** — `spawnPipedProcess()` creates anonymous stdin/stdout/stderr pipes, closes stdin immediately, returns the two read ends, and leaves process waiting and pipe draining to the caller. Every partial failure closes the handles already owned by the operation, and every Koffi out-parameter or struct allocation is freed after its Win32 lifetime.
-- **Inherited-stdio Job primitive** — `spawnInheritedJobProcess()` creates one kill-on-close Job, temporarily marks the current stdio handles inheritable, creates the restricted child suspended, assigns it to the Job, and then resumes its initial thread. Target code cannot run before Job assignment; controlled assignment or resume failures terminate the suspended child or close the assigned Job before releasing every owned handle.
+- **Owned Job primitive** — `createProcessJob()` creates a non-inheritable kill-on-close Job, assigns a caller-owned gated process, queries active kernel membership, requests whole-Job termination, and closes its handle. Query, assignment, termination, and close failures remain errors; only a successful membership query proves emptiness.
+- **Inherited-stdio Job primitive** — `spawnInheritedJobProcess()` creates one kill-on-close Job, temporarily marks the current stdio handles inheritable, creates the restricted child suspended, assigns it to the Job, and resumes its initial thread. Controlled assignment or resume failures release every owned handle after terminating the suspended child or closing the assigned Job.
 - **Explicit settlement ownership** — `waitForProcessExit()` waits and closes the process handle. `drainPipe()` reuses one native count slot while draining, frees it, and closes the pipe read handle. The sandbox retains its existing scheduling, result composition, and caller-owned Job closure.
 
 The Windows ACL sandbox adds SID, DACL, grant, workspace, and public child policy above these primitives.

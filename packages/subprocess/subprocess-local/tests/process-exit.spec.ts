@@ -7,7 +7,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { resolveExampleLaunch } from '@deepseek-ai/dsh-loader-smoke'
 import { createProcessInspector } from '../src/process-inspector.ts'
 import type { ProcessIdentity, ProcessInspector } from '../src/process-inspector.ts'
-import { taskkillProcessTree } from '../src/spawn.ts'
 
 type ExitTrigger = 'direct' | 'uncaught-exception' | 'unhandled-rejection' | 'dispose'
 type ManagedKind = 'ordinary' | 'terminal'
@@ -56,17 +55,6 @@ async function waitForGone(state: TreeState): Promise<void> {
 
 function cleanupTree(state: TreeState | undefined, identities: ProcessIdentity[]): void {
   if (state === undefined) return
-  if (process.platform === 'win32') {
-    taskkillProcessTree(state.root)
-    for (const pid of [state.descendant, state.root]) {
-      try {
-        process.kill(pid, 'SIGKILL')
-      } catch (_alreadyGone) {
-        // The exact recorded process already exited.
-      }
-    }
-    return
-  }
   const inspector = createProcessInspector()
   for (const identity of identities) {
     try {
@@ -109,7 +97,7 @@ async function runScenario(kind: ManagedKind, trigger: ExitTrigger) {
     // The host validates tree.json before waiting for proceed, so observing it
     // is sufficient readiness; a second marker only adds a redundant Windows poll.
     state = await readTree(join(root, 'tree.json'))
-    if (process.platform !== 'win32') identities = await captureIdentities(createProcessInspector(), state)
+    identities = await captureIdentities(createProcessInspector(), state)
     await writeFile(join(root, 'proceed'), 'proceed')
     const outcome = await child
     settled = true
