@@ -1,7 +1,8 @@
-import { spawn } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { promisify } from 'node:util'
 import { load } from 'js-yaml'
 import { afterEach, describe, expect, it } from 'vitest'
 import { describeRcOutput, writeRcOutput } from './release/rc-output.ts'
@@ -13,6 +14,13 @@ const roots: string[] = []
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }) })
 
 describe('Windows candidate production requirements', () => {
+  it('loads the post-packaging producer through Node and refuses a persistent host before installation', async () => {
+    await expect(promisify(execFile)(process.execPath, [
+      '--import', 'tsx/esm', 'scripts/produce-windows-candidate.ts', '--output', 'must-not-be-created',
+    ], { cwd: repository, env: { ...process.env, GITHUB_ACTIONS: 'false' }, windowsHide: true }))
+      .rejects.toMatchObject({ code: 1, stderr: expect.stringContaining('require a disposable GitHub-hosted Windows runner') as unknown })
+  }, 30_000)
+
   it('joins real process exit and reports timeout independently of eventual success', async () => {
     const child = spawn(process.execPath, ['-e', 'setTimeout(() => process.exit(0), 50)'], { stdio: 'ignore', windowsHide: true })
     await expect(waitForRcProcessExit(child, 1)).rejects.toThrow('deadline')
@@ -91,6 +99,7 @@ describe('Windows candidate production requirements', () => {
     expect(build).toBeGreaterThan(-1)
     expect(pack).toBeGreaterThan(build)
     expect(produce).toBeGreaterThan(pack)
+    expect(commands[produce]).toMatch(/^node --import tsx\/esm /)
     expect(upload).toBeGreaterThan(produce)
     expect(job.steps[upload]?.if).toBeUndefined()
     expect(job.steps[upload]?.with).toMatchObject({ 'if-no-files-found': 'error', 'compression-level': 0 })

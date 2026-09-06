@@ -78,7 +78,7 @@ jobs:
       - name: Package unsigned Windows candidates
         run: pnpm exec tsx scripts/build-desktop-exe.ts
       - name: Install, interact, scan and verify platform receipt
-        run: pnpm exec tsx scripts/produce-windows-candidate.ts --output "$env:RUNNER_TEMP/windows-rc"
+        run: node --import tsx/esm scripts/produce-windows-candidate.ts --output "$env:RUNNER_TEMP/windows-rc"
       - name: Preserve verified Windows candidate
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:

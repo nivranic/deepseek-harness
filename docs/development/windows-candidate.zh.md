@@ -23,6 +23,8 @@
 
 作业在一次性的 `windows-2025` runner 上使用原生 PowerShell。它安装锁定依赖、检查生成的产品标识、运行 SBOM 回归、构建官方客户端，并调用[现有打包器](../../scripts/build-desktop-exe.ts)。Electron 和 builder 从上游 GitHub release 下载。打包保持未签名并禁用发布。
 
+打包后，生产者通过 `node --import tsx/esm` 使用已经安装的开发工具链。生产部署会修改 pnpm workspace-state 元数据；随后运行 `pnpm exec` 可能自动按仅生产依赖重新安装，在验证工具启动前将其移除。
+
 [生产者](../../scripts/produce-windows-candidate.ts)要求在 `RUNNER_TEMP` 下新建输出目录，并为安装和应用状态创建另一个唯一运行目录。托管 runner 标记用于防止在开发者机器上误执行；它不认证故意伪造环境变量的调用方。不得在持久化自托管 runner 上运行该生产者。
 
 -----

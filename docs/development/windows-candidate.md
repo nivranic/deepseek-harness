@@ -23,6 +23,8 @@ Pull requests changing the declared inputs run the workflow against their full h
 
 The job uses native PowerShell on a disposable `windows-2025` runner. It installs the locked dependencies, checks generated product identity, runs the SBOM regressions, builds the official client and invokes [the existing packager](../../scripts/build-desktop-exe.ts). Electron and builder downloads use their upstream GitHub release locations. Packaging remains unsigned and disables publication.
 
+After packaging, the producer runs through `node --import tsx/esm` against the installed development toolchain. The production deployment changes pnpm workspace-state metadata; a subsequent `pnpm exec` can automatically reinstall with production-only dependencies and remove the verification tools before they start.
+
 The [producer](../../scripts/produce-windows-candidate.ts) requires a new output directory beneath `RUNNER_TEMP`. It creates a separate unique run directory for installation and application state. Its hosted-runner markers prevent accidental use on a developer machine; they are not authentication against a caller deliberately spoofing environment variables. This producer must not run on persistent self-hosted runners.
 
 -----
