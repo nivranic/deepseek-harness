@@ -10,7 +10,7 @@ Status: implemented
 
 ## Decision
 
-[强制投影检查点测试](../../../../packages/session/session-projection-cache/tests/cache.spec.ts) 在读取存储之前等待实际创建、turn-end 和销毁写入的 Promise。它们断言写入次数，保留真实持久化实现，并在完成后检查已存储事件水位或数值。会话销毁会启动最终缓存写入；仅凭会话所属 fiber 完成销毁，不能确定缓存已持久化。
+[投影检查点测试](../../../../packages/session/session-projection-cache/tests/cache.spec.ts) 在读取存储之前等待创建、turn-end、销毁、计数阈值及恢复所触发的实际写入 Promise。它们断言写入次数及两次失败写入的拒绝，保留真实持久化，并在完成后检查已存储水位或数值。冷读测试通过销毁缓存插件来排空其 domain，再检查存储或失败警告。会话销毁会启动最终缓存写入；仅凭会话所属 fiber 完成销毁，不能确定缓存已持久化。
 
 [Inspector 期限测试](../../../../packages/experimental/inspector/tests/integration.host.spec.ts) 为真实跨线程往返保留一秒，要求 Runtime 启用成功，并验证永不结算的求值确实在期限前启动。后续求值证明同一 Client 仍可使用。产品默认超时时间保持不变。
 

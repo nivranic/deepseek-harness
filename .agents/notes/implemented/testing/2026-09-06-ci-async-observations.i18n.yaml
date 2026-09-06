@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-09-06-ci-async-observations.md
-2026-09-06-ci-async-observations.md: a50b19c67b6332fefcc79400432be162be9c5735
-2026-09-06-ci-async-observations.zh.md: 340a2dcbfc7fde581d8dca5b265696f2cdb8cd59
+2026-09-06-ci-async-observations.md: 15e09c8981c29bfe35c1a2ee3f251c500503b2a7
+2026-09-06-ci-async-observations.zh.md: ff28bea4b68dc00937fb7071f9cabf69993051bd

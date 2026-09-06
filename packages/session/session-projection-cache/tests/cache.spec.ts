@@ -10,7 +10,7 @@
  * only after durability.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -120,6 +120,15 @@ async function storedRows(root: string, id: Session['id']): Promise<CheckpointRe
   return (await storedRecord(root, id))?.rows
 }
 
+/** Observe automatic writes without issuing an extra checkpoint or racing durability. */
+function pendingWrites(writes: MockInstance<SessionProjectionCache['write']>, count: number): Promise<void>[] {
+  expect(writes).toHaveBeenCalledTimes(count)
+  return writes.mock.results.map((result) => {
+    if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
+    return result.value
+  })
+}
+
 /** Pre-seed one session's record document with a stored checkpoint record. */
 async function seedRecord(
   root: string,
@@ -142,36 +151,29 @@ describe('SessionProjectionCache write policy', () => {
   it('writes a durable checkpoint at turn/end (mandatory point)', async () => {
     const { ctx, root, cache } = await harness()
     const writes = vi.spyOn(cache, 'write')
-    const completedWrites = async (): Promise<void> => {
-      for (const result of writes.mock.results) {
-        if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
-        await result.value
-      }
-    }
     const session = ctx.sessions.create(SessionId('turn-end'))
     mark(session, ['a'])
     // Creation already wrote the init cut; the mark is throttled, so the
     // stored row is still the creation-time cut (no marks folded).
-    expect(writes).toHaveBeenCalledTimes(1)
-    await completedWrites()
+    await Promise.all(pendingWrites(writes, 1))
     expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
     const end = endTurn(session)
-    expect(writes).toHaveBeenCalledTimes(2)
-    await completedWrites()
+    await Promise.all(pendingWrites(writes, 2))
     expect((await storedRows(root, session.id))?.['cache-test/marks'])
       .toEqual({ ver: 1, seq: end.seq, val: { marks: ['a'] } })
   })
 
   it('writes a checkpoint at session creation, capturing the seed-derived cut', async () => {
-    const { ctx, root } = await harness()
+    const { ctx, root, cache } = await harness()
+    const writes = vi.spyOn(cache, 'write')
     // A forked child seeded with its ancestor's title-like event: no
     // conversation follows, yet the creation write must capture the fold so
     // a crash or a live-held fork still lists the derived value.
     const session = ctx.sessions.create(SessionId('seeded'), {
       seed: [{ type: 'cache-test/mark', seq: 0, time: 1, data: { marks: ['seed'] } }] as SessionEvent[],
     })
-    await expect.poll(async () => (await storedRows(root, session.id))?.['cache-test/marks']?.val)
-      .toEqual({ marks: ['seed'] })
+    await Promise.all(pendingWrites(writes, 1))
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['seed'] })
   })
 
   it('writes at session disposal (detach, the live-to-cold moment)', async () => {
@@ -185,12 +187,8 @@ describe('SessionProjectionCache write policy', () => {
     if (session === undefined) throw new Error('session was not created')
     mark(session, ['live'])
     await owner.dispose()
-    expect(writes).toHaveBeenCalledTimes(2)
     // Session disposal starts the fail-soft write; its promise owns durability.
-    for (const result of writes.mock.results) {
-      if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
-      await result.value
-    }
+    await Promise.all(pendingWrites(writes, 2))
     expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['live'] })
   })
 
@@ -213,12 +211,8 @@ describe('SessionProjectionCache write policy', () => {
       if (session === undefined) throw new Error('session was not created')
       mark(session, ['live'])
       await owner.dispose()
-      expect(writes).toHaveBeenCalledTimes(2)
       release.resolve(undefined)
-      for (const result of writes.mock.results) {
-        if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
-        await result.value
-      }
+      await Promise.all(pendingWrites(writes, 2))
       expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['live'] })
     } finally {
       release.resolve(undefined)
@@ -279,14 +273,16 @@ describe('SessionProjectionCache write policy', () => {
   })
 
   it('flushes when the in-turn event count reaches the configured threshold', async () => {
-    const { ctx, root } = await harness({ config: { writeEveryEvents: 3, writeIntervalMs: 60_000 } })
+    const { ctx, root, cache } = await harness({ config: { writeEveryEvents: 3, writeIntervalMs: 60_000 } })
+    const writes = vi.spyOn(cache, 'write')
     const session = ctx.sessions.create(SessionId('count'))
     mark(session, ['1'])
     mark(session, ['2'])
-    await expect.poll(async () => (await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
+    await Promise.all(pendingWrites(writes, 1))
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
     mark(session, ['3'])
-    await expect.poll(async () => (await storedRows(root, session.id))?.['cache-test/marks']?.val)
-      .toEqual({ marks: ['3'] })
+    await Promise.all(pendingWrites(writes, 2))
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['3'] })
   })
 
   it('flushes on the configured interval when the count threshold is not reached', async () => {
@@ -347,6 +343,7 @@ describe('SessionProjectionCache write policy', () => {
     await ctx.plugin(SessionProjectionRegistry)
     ctx.sessionProjections.register(marksUnit())
     await ctx.plugin(SessionProjectionCache, { writeEveryEvents: 100, writeIntervalMs: 60_000 })
+    const writes = vi.spyOn(ctx.sessionProjectionCache, 'write')
     const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
     // A directory where the record document must land makes the atomic
     // rename fail — including the creation write, so no row ever lands.
@@ -355,15 +352,17 @@ describe('SessionProjectionCache write policy', () => {
     const session = ctx.sessions.create(SessionId('fail-soft'))
     mark(session, ['x'])
     endTurn(session)
-    await expect.poll(() => warn)
-      .toHaveBeenCalledWith(expect.stringContaining('turn/end write for "fail-soft" failed'))
+    const failed = await Promise.allSettled(pendingWrites(writes, 2))
+    expect(failed.map(result => result.status)).toEqual(['rejected', 'rejected'])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('turn/end write for "fail-soft" failed'))
     expect(await storedRows(root, session.id)).toBeUndefined()
     // Self-heal: once the blocker clears, the next mandatory point writes.
     await rm(recordPath(root, session.id), { recursive: true })
+    writes.mockClear()
     mark(session, ['y'])
     endTurn(session)
-    await expect.poll(async () => (await storedRows(root, session.id))?.['cache-test/marks']?.val)
-      .toEqual({ marks: ['y'] })
+    await Promise.all(pendingWrites(writes, 1))
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['y'] })
   })
 })
 
@@ -530,14 +529,14 @@ describe('SessionProjectionCache cold-read seeding', () => {
     await ctx.plugin(SessionStore)
     await ctx.plugin(SessionProjectionRegistry)
     ctx.sessionProjections.register(marksUnit())
-    await ctx.plugin(SessionProjectionCache, { writeEveryEvents: 100, writeIntervalMs: 60_000 })
+    const fiber = await ctx.plugin(SessionProjectionCache, { writeEveryEvents: 100, writeIntervalMs: 60_000 })
     const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
     // A directory where the record document must land makes the write-back
     // fail; the cold read itself still succeeds and never throws.
     const meta = headerOf(SessionId('cold-fail'))
     await mkdir(recordPath(root, meta.id), { recursive: true })
     expect(ctx.sessionProjectionCache.coldSnapshot(meta, [])).toBeDefined()
-    await expect.poll(() => warn)
-      .toHaveBeenCalledWith(expect.stringContaining('cold-read write-back for "cold-fail" failed'))
+    await fiber.dispose()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('cold-read write-back for "cold-fail" failed'))
   })
 })

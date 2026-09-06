@@ -10,7 +10,7 @@ Short polling deadlines can expire while a correct filesystem write is still run
 
 ## Decision
 
-The [mandatory projection checkpoint tests](../../../../packages/session/session-projection-cache/tests/cache.spec.ts) observe the actual creation, turn-end, and disposal write promises before reading storage. They assert the number of writes, retain the real persistence implementation, and check the stored event watermark or value after completion. Session disposal starts the final cache write; completion of the session's owning fiber alone does not establish cache durability.
+The [projection checkpoint tests](../../../../packages/session/session-projection-cache/tests/cache.spec.ts) observe the actual write promises for creation, turn-end, disposal, count thresholds, and recovery before reading storage. They assert write counts and both failed-write rejections, retain real persistence, and check stored watermarks or values after completion. Cold-read tests drain the cache's domain through cache-plugin disposal before checking storage or failure warnings. Session disposal starts the final cache write; completion of the session's owning fiber alone does not establish cache durability.
 
 The [Inspector deadline test](../../../../packages/experimental/inspector/tests/integration.host.spec.ts) gives real cross-thread round trips one second, requires successful Runtime enablement, and verifies that the never-settling evaluation actually started before its deadline. A subsequent evaluation proves that the same Client remains usable. Product timeout defaults are unchanged.
 
