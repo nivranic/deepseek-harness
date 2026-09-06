@@ -62,11 +62,11 @@ The dsh release planner validates the requested version against release metadata
 |---|---|---|
 | Android | Full SemVer `versionName`; integer `versionCode` | `ai.deepseek.dsh.distributionChannel` |
 | Apple applications | Numeric `MARKETING_VERSION`; three-part `CURRENT_PROJECT_VERSION` | `DSHDistributionChannel` |
-| Windows staging | Full SemVer package version; four-part file version | Staged package `dshProduct.channel` |
+| Windows candidates | Full SemVer package and PE product version; four-part numeric file/product version | Staged package `dshProduct.channel` |
 
 Apple build numbers map monotonically to `1 + floor(n / 10000)`, `floor(n / 100) % 100`, and `n % 100`; Windows uses `<major>.<minor>.<patch>.<n>`. Thus build 12345 maps to Apple `2.23.45`. Apple metadata also retains `DSHProductVersion` and `DSHBuildNumber`.
 
-Android consumes the generated properties during Gradle configuration. All three Apple app schemes consume the generated xcconfig; the [Apple workflow](../../.github/workflows/apple-swift.yml) compares resolved Debug settings and built Info.plist fields using [the artifact verifier](../../scripts/verify-apple-product.ts). Windows staging refuses stale generated inputs and a staged package version that differs from the root. Signed packages, installer behavior, and Release archives require separate platform validation.
+Android consumes the generated properties during Gradle configuration. All three Apple app schemes consume the generated xcconfig; the [Apple workflow](../../.github/workflows/apple-swift.yml) compares resolved Debug settings and built Info.plist fields using [the artifact verifier](../../scripts/verify-apple-product.ts). Windows staging refuses stale generated inputs and a staged package version that differs from the root. The [Windows candidate producer](../../scripts/desktop-packaging.ts) rewrites every main-executable PE version resource in `afterPack`, before NSIS and portable targets collect the executable. Numeric file/product versions include the build number; localized `ProductVersion` strings retain the full SemVer. Malformed, signed, and missing-version inputs fail. The producer disables publishing and certificate-backed signing. Signed packages, installer behavior, and Release archives require separate platform validation.
 
 -----
 

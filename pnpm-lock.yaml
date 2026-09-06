@@ -51,6 +51,9 @@ importers:
       '@yarnpkg/cli-dist':
         specifier: 4.17.1
         version: 4.17.1
+      electron-builder:
+        specifier: 25.1.8
+        version: 25.1.8(electron-builder-squirrel-windows@25.1.8)
       eslint-plugin-sonarjs:
         specifier: ^4.1.0
         version: 4.1.0(eslint@10.5.0(jiti@2.7.0))
@@ -102,6 +105,9 @@ importers:
       publint:
         specifier: ^0.3.21
         version: 0.3.21
+      resedit:
+        specifier: 1.7.0
+        version: 1.7.0
       smol-toml:
         specifier: ^1.7.1
         version: 1.7.1

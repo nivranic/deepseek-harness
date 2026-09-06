@@ -50,7 +50,7 @@ The bundle is a patch layer, not code: every row it inserts is an existing packa
 <details>
 <summary>Working context for maintainers — click to expand</summary>
 
-The desktop exe is packaged from built `apps/desktop` artifacts by [`scripts/build-desktop-exe.ts`](../../../scripts/build-desktop-exe.ts). Packaging owns a unique temporary directory outside the workspace and removes it after success or failure. The window title follows the live session by design.
+The desktop exe is packaged from built `apps/desktop` artifacts by [`scripts/build-desktop-exe.ts`](../../../scripts/build-desktop-exe.ts). Packaging owns a unique temporary directory outside the workspace and removes it after success or failure. Unsigned candidates embed the [application release identity](../../../docs/development/product-release-identity.md#platform-consumers) before installer collection. The window title follows the live session by design.
 
 </details>
 

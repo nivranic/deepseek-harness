@@ -8,6 +8,7 @@
  */
 
 import { spawn } from 'node:child_process'
+import { build } from 'electron-builder'
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs'
 import { readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve, sep } from 'node:path'
@@ -15,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 import { officialClientBuildEnvironment, readClientBuildRecord } from './client-build-environment.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 import { withDesktopStage } from './desktop-stage.ts'
+import { desktopBuildOptions } from './desktop-packaging.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT_DIR = join(root, 'dist-desktop', 'out')
@@ -139,56 +141,8 @@ async function main(stageDir: string): Promise<void> {
   // the closure directly.
   await unlink(join(stageDir, 'node_modules', '.modules.yaml')).catch(() => {})
 
-  // Package from the stage; the builder's own Electron download honors the
-  // mirror environments for constrained networks. The config lands in the
-  // stage so its output directory stays absolute.
-  const builderConfig = [
-    'appId: com.deepseek.dsh',
-    'productName: DeepSeek Harness',
-    `buildVersion: ${identity.windowsFileVersion}`,
-    'publish: null',
-    // node-pty ships N-API prebuilds that load under Electron unchanged; a
-    // node-gyp rebuild would demand a native toolchain the packaging host
-    // does not need.
-    'npmRebuild: false',
-    'directories:',
-    `  output: ${JSON.stringify(OUT_DIR)}`,
-    'files:',
-    '  - lib/**/*.js',
-    '  - resources/**',
-    '  - package.json',
-    // The packaged tree must stay real directories: at boot the launcher
-    // heals the shared $DSH_HOME/profiles/node_modules fallback into
-    // junctions targeting the installation's packages, and Node's CJS
-    // resolution from those junctions cannot enter an asar archive — an
-    // asar-packed app silently served an empty browser boot graph through
-    // them (ClientModuleRegistry negative-caches unresolvable packages).
-    'asar: false',
-    'win:',
-    '  target:',
-    '    - nsis',
-    '    - portable',
-    // Unsigned build: resource editing pulls the winCodeSign archive, whose
-    // extraction needs symlink privileges this environment lacks.
-    '  signAndEditExecutable: false',
-    'nsis:',
-    '  oneClick: false',
-    '  allowToChangeInstallationDirectory: true',
-    '',
-  ].join('\n')
-  await writeFile(join(stageDir, 'electron-builder.yml'), builderConfig)
   console.log('build-desktop-exe: running electron-builder (win)')
-  // Invoke the builder CLI through node directly: `pnpm exec` runs its own
-  // dependency-status install first, which cannot work while packaging.
-  const builderCli = join(root, 'apps', 'desktop', 'node_modules', 'electron-builder', 'cli.js')
-  const builderCode = await run(
-    process.execPath,
-    [builderCli, '--win', '--x64', '--project', stageDir],
-    join(root, 'apps', 'desktop'),
-    { CI: 'true', CSC_IDENTITY_AUTO_DISCOVERY: 'false' },
-    false,
-  )
-  if (builderCode !== 0) fail(`electron-builder exited ${String(builderCode)}`)
+  await build(desktopBuildOptions(stageDir, OUT_DIR, identity))
   console.log(`build-desktop-exe: artifacts in ${OUT_DIR}`)
 }
 

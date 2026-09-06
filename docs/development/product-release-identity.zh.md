@@ -62,11 +62,11 @@ dsh 发布规划器在写入 manifest 前验证目标版本与发布元数据，
 |---|---|---|
 | Android | 完整 SemVer `versionName`；整数 `versionCode` | `ai.deepseek.dsh.distributionChannel` |
 | Apple 应用 | 数字 `MARKETING_VERSION`；三段 `CURRENT_PROJECT_VERSION` | `DSHDistributionChannel` |
-| Windows staging | 完整 SemVer 包版本；四段文件版本 | staging 包的 `dshProduct.channel` |
+| Windows 候选 | 完整 SemVer 包版本与 PE 产品版本；四段数字文件/产品版本 | staging 包的 `dshProduct.channel` |
 
 Apple 构建号单调映射为 `1 + floor(n / 10000)`、`floor(n / 100) % 100` 和 `n % 100`；Windows 使用 `<major>.<minor>.<patch>.<n>`。因此构建号 12345 对应 Apple `2.23.45`。Apple 元数据还保留 `DSHProductVersion` 和 `DSHBuildNumber`。
 
-Android 在 Gradle 配置期间消费生成的 properties。三个 Apple 应用 scheme 均消费生成的 xcconfig；[Apple workflow](../../.github/workflows/apple-swift.yml) 通过[产物验证器](../../scripts/verify-apple-product.ts) 比较解析后的 Debug 设置和已构建 Info.plist 字段。Windows staging 拒绝过期生成输入，以及与根版本不同的 staging 包版本。签名包、安装器行为和 Release archive 需要独立平台验证。
+Android 在 Gradle 配置期间消费生成的 properties。三个 Apple 应用 scheme 均消费生成的 xcconfig；[Apple workflow](../../.github/workflows/apple-swift.yml) 通过[产物验证器](../../scripts/verify-apple-product.ts) 比较解析后的 Debug 设置和已构建 Info.plist 字段。Windows staging 拒绝过期生成输入，以及与根版本不同的 staging 包版本。[Windows 候选生产者](../../scripts/desktop-packaging.ts) 在 `afterPack` 中改写主程序的每份 PE 版本资源，然后才由 NSIS 和 portable 目标收集可执行文件。数字文件/产品版本包含构建号；本地化的 `ProductVersion` 字符串保留完整 SemVer。畸形、已签名或缺少版本资源的输入均失败。该生产者禁用发布和证书签名。签名包、安装器行为和 Release archive 需要独立平台验证。
 
 -----
 

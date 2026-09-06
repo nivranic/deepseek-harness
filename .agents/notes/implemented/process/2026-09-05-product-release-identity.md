@@ -14,12 +14,15 @@ The root package manifest owns application SemVer. Explicit release metadata own
 
 The application identity extends the [npm release sequences](2026-08-10-npm-release-sequences.md) without replacing their independent vendor and native publication ownership. The dsh version planner validates release metadata and includes generated platform inputs in its normal commit. Channel selection changes distribution metadata without enabling runtime capabilities or changing protocol admission.
 
+Unsigned Windows packaging edits PE version resources independently of signing. The programmatic electron-builder `afterPack` callback uses `resedit` before installers collect the executable, preserving non-version resources and executable sections. This avoids the native resource editor's archive extraction requiring macOS symbolic links on Windows. The producer disables publishing and supplies a signing callback that performs no certificate operation; signed input is rejected before editing so a signature cannot silently become invalid.
+
 ## Alternatives considered
 
 - Manual native versions leave drift possible even when package versions agree.
 - Deriving an application version from a protocol version couples releases that have different compatibility meanings.
 - CI run numbers cannot reproduce a candidate from committed inputs; explicit build numbers can.
 - Embedding the current source SHA in a committed generated file creates a self-reference. Candidate manifests bind source SHA and artifact digests after checkout.
+- Editing only the outer installer or the unpacked executable after packaging leaves the installed main program reporting Electron's version. Resource editing must precede installer collection.
 
 ## Consequences
 
