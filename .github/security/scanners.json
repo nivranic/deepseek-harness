@@ -1,5 +1,20 @@
 {
   "schemaVersion": 1,
+  "syft": {
+    "version": "1.51.1",
+    "archives": {
+      "linux-x64": {
+        "url": "https://github.com/anchore/syft/releases/download/v1.51.1/syft_1.51.1_linux_amd64.tar.gz",
+        "sha256": "8fcb33017a0dc1058298c923c436d19dfa68ae93968e0b423248542e3afb9fc3",
+        "binary": "syft"
+      },
+      "win32-x64": {
+        "url": "https://github.com/anchore/syft/releases/download/v1.51.1/syft_1.51.1_windows_amd64.zip",
+        "sha256": "5e4bc3e6b6344b4625de0f7aa5351aaa72856d11d78462972de0a101ee2c1c8f",
+        "binary": "syft.exe"
+      }
+    }
+  },
   "gitleaks": {
     "version": "8.30.1",
     "archives": {

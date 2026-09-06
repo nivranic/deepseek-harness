@@ -82,7 +82,7 @@ export function verifyRcProvenance(input: unknown, receipt: RcPlatformReceipt, s
   if (statement._type !== 'https://in-toto.io/Statement/v1' || statement.predicateType !== 'https://slsa.dev/provenance/v1') {
     throw new Error('RC provenance must be an in-toto Statement v1 with SLSA provenance v1')
   }
-  requireSubjects(statement.subject, [...receipt.artifacts, ...receipt.checks, receipt.sbom])
+  requireSubjects(statement.subject, [...receipt.artifacts, ...receipt.checks, ...receipt.attachments, receipt.sbom])
   const predicate = record(statement.predicate)
   const definition = record(predicate.buildDefinition)
   if (definition.buildType !== RC_BUILD_TYPE || !isDeepStrictEqual(definition.externalParameters, {

@@ -4,7 +4,7 @@
 
 ## Summary
 
-候选验证器将下载的应用产物与独立选定的提交、当前 checkout 的[产品标识](product-release-identity.zh.md)进行核对。完整清单必须包含 Windows、macOS、iOS 和 Android 回执。单个平台回执可以单独检查，但不构成完整发布候选验收。这两种操作均不授权发布。
+候选验证器将下载的应用产物与独立选定的提交、当前 checkout 的[产品标识](product-release-identity.zh.md)进行核对。完整清单必须包含 Windows、macOS、iOS 和 Android 回执。单个平台回执可以单独检查，但不构成完整发布候选验收。这两种操作均不授权发布。[Windows 生产者](windows-candidate.zh.md)负责该平台的安装、GUI 操作与打包目录扫描。
 
 ## Table of Contents
 
@@ -40,13 +40,13 @@
 
 [元数据解析器](../../scripts/release/rc-manifest.ts)定义 schema version 1 和规范排序。策略要求每个受支持平台各有一份回执，并声明各平台的产物种类和运行时类别。`full` 表示 Host 分发；`companion` 表示可包含原生 Lite 功能的客户端分发。该分类不验证 Lite 功能。候选签名类别为 `unsigned` 和 `debug`。
 
-文件引用采用所属平台目录下的 ASCII 相对路径，例如 `windows/installer.exe`。绝对路径、父目录跳转、Windows 设备名、保留字符、末尾点号或空格及大小写别名均被拒绝。所有文件包含正整数字节大小和 SHA-256。[读取器](../../scripts/release/rc-files.ts)以流方式读取二进制文件、限制 JSON 大小、拒绝符号链接和硬链接，并在接受结果前检查已观察文件和目录是否被替换或修改。
+文件引用采用所属平台目录下的 ASCII 相对路径，例如 `windows/installer.exe`。绝对路径、父目录跳转、Windows 设备名、保留字符、末尾点号或空格及大小写别名均被拒绝。所有文件包含正整数字节大小和 SHA-256。必填的 `attachments` 数组可为空，也可包含截图和诊断文件。[读取器](../../scripts/release/rc-files.ts)以流方式读取二进制文件、限制 JSON 大小、拒绝符号链接和硬链接，并在接受结果前检查已观察文件和目录是否被替换或修改。
 
 每个命名检查为 JSON，包含 `schemaVersion: 1`、检查名称、源码 SHA、完整标识、平台、`status: PASS`，以及覆盖全部交付文件的 in-toto subjects。额外或不匹配的声明被拒绝。这验证的是记录中的声明；平台生产者仍负责实际测试标识与启动。
 
 [证据验证器](../../scripts/release/rc-evidence.ts)使用固定版本的官方 CycloneDX 库及其 JSON schema 依赖校验 CycloneDX 1.6 SBOM。文档必须声明 1.6 版本、包含记录的扫描器名称和版本、标明扫描目标，并提供非空组件清单。其他 SBOM 格式被拒绝。生产者必须用持续维护的扫描工具扫描实际打包依赖集合；schema 有效的合成清单不等于真实扫描。
 
-可移植 provenance 使用 in-toto Statement v1、SLSA provenance v1 和 build type `urn:dsh:release-candidate:v1`。subjects 绑定全部交付文件、检查和 SBOM 摘要。external parameters 绑定源码 SHA、标识和平台；解析后的源码材料绑定独立选定的仓库 URI 与提交。run details 绑定回执中的构建者与执行标识。这些未签名声明不认证其作者。
+可移植 provenance 使用 in-toto Statement v1、SLSA provenance v1 和 build type `urn:dsh:release-candidate:v1`。subjects 绑定全部交付文件、检查、附件和 SBOM 摘要。external parameters 绑定源码 SHA、标识和平台；解析后的源码材料绑定独立选定的仓库 URI 与提交。run details 绑定回执中的构建者与执行标识。这些未签名声明不认证其作者。
 
 -----
 

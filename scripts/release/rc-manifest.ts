@@ -49,6 +49,7 @@ export interface RcPlatformReceipt {
   platform: RcPlatform
   artifacts: RcArtifact[]
   checks: RcCheck[]
+  attachments: RcFile[]
   sbom: RcSbom
   provenance: RcProvenance
 }
@@ -170,7 +171,7 @@ export function parseRcPolicy(input: unknown): RcPolicy {
  * @returns canonical producer metadata; no file contents are trusted by this parser.
  */
 export function parseRcPlatformReceipt(input: unknown, policy: RcPolicy): RcPlatformReceipt {
-  const row = object(input, ['schemaVersion', 'sourceSha', 'identity', 'platform', 'artifacts', 'checks', 'sbom', 'provenance'], 'platform receipt')
+  const row = object(input, ['schemaVersion', 'sourceSha', 'identity', 'platform', 'artifacts', 'checks', 'attachments', 'sbom', 'provenance'], 'platform receipt')
   if (row.schemaVersion !== 1) throw new Error('unsupported RC receipt schema')
   const artifacts = list(row.artifacts, (item) => {
     const artifact = object(item, ['path', 'bytes', 'sha256', 'kind', 'runtimeClass', 'signing'], 'artifact')
@@ -181,12 +182,14 @@ export function parseRcPlatformReceipt(input: unknown, policy: RcPolicy): RcPlat
     return { ...file(check), name: checkName(check.name) }
   }, 'checks')
   unique(checks.map(check => check.name), 'producer check')
+  if (!Array.isArray(row.attachments)) throw new Error('RC attachments must be an array')
+  const attachments = row.attachments.map((item: unknown) => file(object(item, ['path', 'bytes', 'sha256'], 'attachment')))
   const sbom = object(row.sbom, ['path', 'bytes', 'sha256', 'format', 'tool'], 'SBOM reference')
   const tool = object(sbom.tool, ['name', 'version'], 'SBOM tool')
   const provenance = object(row.provenance, ['path', 'bytes', 'sha256', 'builderId', 'invocationId'], 'provenance reference')
   const result: RcPlatformReceipt = {
     schemaVersion: 1, sourceSha: sourceSha(row.sourceSha), identity: identity(row.identity),
-    platform: platform(row.platform), artifacts, checks,
+    platform: platform(row.platform), artifacts, checks, attachments,
     sbom: {
       ...file(sbom), format: choice(sbom.format, ['cyclonedx-1.6'], 'SBOM format'),
       tool: { name: text(tool.name, 'scanner name'), version: text(tool.version, 'scanner version') },
@@ -199,11 +202,12 @@ export function parseRcPlatformReceipt(input: unknown, policy: RcPolicy): RcPlat
     if (!artifacts.some(item => item.kind === artifact.kind && item.runtimeClass === artifact.runtimeClass)) throw new Error(`${result.platform} required artifact missing: ${artifact.kind}/${artifact.runtimeClass}`)
   }
   for (const name of policy.requiredChecks) if (!checks.some(check => check.name === name)) throw new Error(`${result.platform} required check missing: ${name}`)
-  const files = [...artifacts, ...checks, result.sbom, result.provenance]
+  const files = [...artifacts, ...checks, ...attachments, result.sbom, result.provenance]
   unique(files.map(item => item.path.toLowerCase()), 'artifact/evidence path')
   if (files.some(item => !item.path.startsWith(`${result.platform}/`))) throw new Error('platform files must stay in their platform namespace')
   result.artifacts.sort((a, b) => a.path.localeCompare(b.path, 'en'))
   result.checks.sort((a, b) => a.name.localeCompare(b.name, 'en'))
+  result.attachments.sort((a, b) => a.path.localeCompare(b.path, 'en'))
   return result
 }
 

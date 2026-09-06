@@ -198,6 +198,7 @@
     "micromark-extension-gfm": "^3.0.0",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",
+    "playwright-core": "1.61.1",
     "publint": "^0.3.21",
     "resedit": "1.7.0",
     "smol-toml": "^1.7.1",

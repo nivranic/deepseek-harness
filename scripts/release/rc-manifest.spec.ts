@@ -14,6 +14,7 @@ function manifest(): RcManifest {
     schemaVersion: 1, sourceSha, identity: { ...identity }, platform,
     artifacts: required.map((artifact, index) => ({ ...ref(`${platform}/artifact-${index}`), ...artifact, signing: 'unsigned' })),
     checks: policy.requiredChecks.map(name => ({ ...ref(`${platform}/${name}.json`), name })),
+    attachments: [],
     sbom: { ...ref(`${platform}/sbom.json`), format: 'cyclonedx-1.6', tool: { name: 'scanner', version: '1' } },
     provenance: { ...ref(`${platform}/provenance.json`), builderId: 'builder', invocationId: 'run' },
   }))

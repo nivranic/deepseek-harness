@@ -19,6 +19,7 @@ async function verifyReceipt(reader: RcFileReader, receipt: RcPlatformReceipt, e
   }
   if (expected.sourceRepository.trim().length === 0) throw new Error('RC expected source repository is required')
   for (const artifact of receipt.artifacts) await reader.read(artifact)
+  for (const attachment of receipt.attachments) await reader.read(attachment)
   for (const check of receipt.checks) verifyRcCheck(await reader.read(check, true), check.name, receipt)
   await verifyRcSbom(await reader.read(receipt.sbom, true), receipt)
   verifyRcProvenance(await reader.read(receipt.provenance, true), receipt, expected.sourceRepository)

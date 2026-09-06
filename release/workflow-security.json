@@ -22,7 +22,8 @@
     "release-vendor.yml",
     "release.yml",
     "sandbox.yml",
-    "supply-chain.yml"
+    "supply-chain.yml",
+    "windows-candidate.yml"
   ],
   "writableJobs": {
     "build-preview-cloudflare.yml#preview": {

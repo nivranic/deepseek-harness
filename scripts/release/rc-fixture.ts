@@ -54,10 +54,11 @@ export function writeRcFixture(
       })), format: 'cyclonedx-1.6' as const, tool,
     }
     const builderId = 'urn:dsh:synthetic-builder', invocationId = 'urn:dsh:synthetic-run:1'
+    const attachments = [writeRcFixtureFile(root, `${platform}/observation.txt`, 'synthetic observation')]
     const provenance = {
       ...writeRcFixtureFile(root, `${platform}/provenance.json`, JSON.stringify({
         _type: 'https://in-toto.io/Statement/v1', predicateType: 'https://slsa.dev/provenance/v1',
-        subject: rcSubjects([...artifacts, ...checks, sbom]),
+        subject: rcSubjects([...artifacts, ...checks, ...attachments, sbom]),
         predicate: {
           buildDefinition: {
             buildType: RC_BUILD_TYPE, externalParameters: { sourceSha, identity, platform },
@@ -67,7 +68,7 @@ export function writeRcFixture(
         },
       })), builderId, invocationId,
     }
-    return { schemaVersion: 1, sourceSha, identity, platform, artifacts, checks, sbom, provenance }
+    return { schemaVersion: 1, sourceSha, identity, platform, artifacts, checks, attachments, sbom, provenance }
   })
   return { schemaVersion: 1, sourceSha, identity, platforms }
 }

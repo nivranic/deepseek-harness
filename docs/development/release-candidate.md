@@ -4,7 +4,7 @@ English | [中文](release-candidate.zh.md)
 
 ## Summary
 
-The candidate verifier checks downloaded application artifacts against an independently selected commit and the checkout's [product identity](product-release-identity.md). A complete manifest requires Windows, macOS, iOS and Android receipts. A platform receipt can be checked separately without accepting a complete release candidate. Neither operation authorizes publication.
+The candidate verifier checks downloaded application artifacts against an independently selected commit and the checkout's [product identity](product-release-identity.md). A complete manifest requires Windows, macOS, iOS and Android receipts. A platform receipt can be checked separately without accepting a complete release candidate. Neither operation authorizes publication. The [Windows producer](windows-candidate.md) owns installation, GUI interaction and packaged-directory scanning for its platform.
 
 ## Table of Contents
 
@@ -40,13 +40,13 @@ Without `--previous`, distribution advancement is `not-checked`. With it, a retr
 
 The [metadata parser](../../scripts/release/rc-manifest.ts) owns schema version 1 and canonical ordering. The policy requires one receipt per supported platform and declares each platform's artifact kinds and runtime classes. `full` identifies a host distribution; `companion` identifies a client distribution that may include native Lite features. That classification does not verify Lite functionality. Candidate signing classes are `unsigned` and `debug`.
 
-References use ASCII relative paths beneath their platform directory, such as `windows/installer.exe`. Absolute paths, parent traversal, Windows device names, reserved characters, trailing dots or spaces, and case aliases fail. All files carry a positive byte size and SHA-256. The [reader](../../scripts/release/rc-files.ts) streams binary files, bounds JSON, rejects symbolic and hard links, and checks observed files and directories for replacement or modification before accepting the result.
+References use ASCII relative paths beneath their platform directory, such as `windows/installer.exe`. Absolute paths, parent traversal, Windows device names, reserved characters, trailing dots or spaces, and case aliases fail. All files carry a positive byte size and SHA-256. The required `attachments` array may be empty or contain screenshots and diagnostic files. The [reader](../../scripts/release/rc-files.ts) streams binary files, bounds JSON, rejects symbolic and hard links, and checks observed files and directories for replacement or modification before accepting the result.
 
 Each named check is JSON containing `schemaVersion: 1`, its name, source SHA, complete identity, platform, `status: PASS`, and in-toto subjects for every deliverable. Extra or mismatched claims fail. This verifies the recorded claim; the platform producer remains responsible for actually testing identity and startup.
 
 The [evidence verifier](../../scripts/release/rc-evidence.ts) validates a CycloneDX 1.6 SBOM with the pinned official CycloneDX library and its JSON schema dependencies. The document must declare version 1.6, name the recorded scanner and version, identify its scan target, and contain a non-empty component inventory. Other SBOM formats fail. The producer must run maintained scanning tools over the actual packaged closure; a schema-valid synthetic inventory is not a real scan.
 
-Portable provenance uses in-toto Statement v1 and SLSA provenance v1 with build type `urn:dsh:release-candidate:v1`. Its subjects bind every deliverable, check and SBOM digest. External parameters bind source SHA, identity and platform; the resolved source material binds the independently expected repository URI and commit. Run details bind the receipt's builder and invocation identifiers. These unsigned claims do not authenticate their author.
+Portable provenance uses in-toto Statement v1 and SLSA provenance v1 with build type `urn:dsh:release-candidate:v1`. Its subjects bind every deliverable, check, attachment and SBOM digest. External parameters bind source SHA, identity and platform; the resolved source material binds the independently expected repository URI and commit. Run details bind the receipt's builder and invocation identifiers. These unsigned claims do not authenticate their author.
 
 -----
 

@@ -102,6 +102,17 @@ describe('release candidate bytes and claims', () => {
     await expect(verifyRcArtifacts(root, manifest, policy, { ...expected, maxJsonBytes: 8 })).rejects.toThrow('byte limit')
   })
 
+  it('binds diagnostic attachments to both their bytes and provenance', async () => {
+    const { root, manifest, receipt } = fixture()
+    const attachment = receipt.attachments[0]!
+    const bytes = readFileSync(join(root, attachment.path))
+    bytes[0] = bytes[0]! ^ 1
+    writeFileSync(join(root, attachment.path), bytes)
+    await expect(verifyRcArtifacts(root, manifest, policy, expected)).rejects.toThrow('checksum mismatch')
+    Object.assign(attachment, writeRcFixtureFile(root, attachment.path, 'new observation'))
+    await expect(verifyRcArtifacts(root, manifest, policy, expected)).rejects.toThrow('subjects')
+  })
+
   it('rejects malformed JSON and UTF-8 without echoing input content', async () => {
     const { root, manifest, receipt } = fixture()
     const file = receipt.checks[0]!
