@@ -175,7 +175,8 @@ describe('SessionProjectionCache write policy', () => {
   })
 
   it('writes at session disposal (detach, the live-to-cold moment)', async () => {
-    const { ctx, root } = await harness()
+    const { ctx, root, cache } = await harness()
+    const writes = vi.spyOn(cache, 'write')
     // Sessions dispose with their owning fiber: create in a child plugin.
     let session: Session | undefined
     const owner = await ctx.plugin(Object.assign((inner: Context) => {
@@ -184,9 +185,13 @@ describe('SessionProjectionCache write policy', () => {
     if (session === undefined) throw new Error('session was not created')
     mark(session, ['live'])
     await owner.dispose()
-    const id = session.id
-    await expect.poll(async () => (await storedRows(root, id))?.['cache-test/marks']?.val)
-      .toEqual({ marks: ['live'] })
+    expect(writes).toHaveBeenCalledTimes(2)
+    // Session disposal starts the fail-soft write; its promise owns durability.
+    for (const result of writes.mock.results) {
+      if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
+      await result.value
+    }
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['live'] })
   })
 
   it('preserves the disposal cut when creation durability finishes later', async () => {
