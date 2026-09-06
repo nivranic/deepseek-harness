@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { _electron as electron } from 'playwright-core'
 import { hashRcOutput } from './rc-output.ts'
+import { withRcCleanup } from './rc-lifecycle.ts'
 
 const execute = promisify(execFile)
 
@@ -90,15 +91,18 @@ export async function smokeWindowsCandidate(executable: string, directory: strin
     env: { ...environment, DSH_HOME: join(directory, 'home'), APPDATA: appData, LOCALAPPDATA: localData },
   })
   const child = application.process()
-  try {
+  console.log('Windows candidate: Electron inspector connected')
+  return await withRcCleanup(async () => {
     const observedData = await application.evaluate(({ app }) => app.getPath('userData'))
     if (resolve(observedData).toLowerCase() !== resolve(browserData).toLowerCase()) {
       throw new Error('Windows candidate did not use its isolated browser data directory')
     }
     const page = await application.firstWindow({ timeout: 90_000 })
+    console.log('Windows candidate: application window attached')
     let pageErrors = 0
     page.on('pageerror', () => { pageErrors++ })
     await page.waitForURL(/^dsh:/, { timeout: 90_000 })
+    console.log('Windows candidate: desktop URL loaded')
     await page.locator('[data-shell-overlay]').waitFor({ state: 'attached', timeout: 90_000 })
     const welcome = page.getByRole('dialog', { name: 'Internal Testing Notice', exact: true })
     await welcome.getByRole('button', { name: 'Continue', exact: true }).click({ timeout: 30_000 })
@@ -110,6 +114,7 @@ export async function smokeWindowsCandidate(executable: string, directory: strin
     await settings.getByRole('button', { name: 'Models', exact: true }).click({ timeout: 30_000 })
     await settings.getByRole('button', { name: 'Add provider', exact: true }).click({ timeout: 30_000 })
     await settings.getByLabel('Provider', { exact: true }).waitFor({ state: 'visible', timeout: 30_000 })
+    console.log('Windows candidate: provider form opened')
     await page.screenshot({ path: screenshot, fullPage: true })
     const observed = await application.evaluate(({ app }) => ({
       executablePath: process.execPath, applicationVersion: app.getVersion(),
@@ -119,9 +124,9 @@ export async function smokeWindowsCandidate(executable: string, directory: strin
     const exited = waitForRcProcessExit(child, 30_000)
     const [, exitCode] = await Promise.all([application.close(), exited])
     if (exitCode !== 0) throw new Error('Windows GUI did not exit normally with code zero')
-    return { settingsOpened: true, providerFormOpened: true, pageErrors, exitCode,
+    return { settingsOpened: true as const, providerFormOpened: true as const, pageErrors, exitCode,
       applicationVersion: observed.applicationVersion, executableSha256: executableHash.sha256 }
-  } finally {
+  }, async () => {
     if (child.exitCode === null && child.signalCode === null && child.pid !== undefined) {
       const exited = waitForRcProcessExit(child, 15_000)
       const results = await Promise.allSettled([
@@ -130,5 +135,5 @@ export async function smokeWindowsCandidate(executable: string, directory: strin
       const failures = results.filter(result => result.status === 'rejected').map(result => result.reason as unknown)
       if (failures.length !== 0) throw new AggregateError(failures, 'Windows candidate cleanup failed')
     }
-  }
+  })
 }

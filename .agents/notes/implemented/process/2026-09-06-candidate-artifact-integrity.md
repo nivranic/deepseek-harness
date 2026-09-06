@@ -16,6 +16,8 @@ The caller owns an exclusive, quiescent artifact directory throughout verificati
 
 The [Windows producer](../../../../docs/development/windows-candidate.md) performs actual installation and GUI interaction only on disposable hosted runners, with separate state and credential-scrubbed subprocesses. It requires normal exit and compares each running executable with the packaged bytes. Screenshots and observations are referenced attachments whose hashes also appear in provenance; an image-size heuristic cannot establish readiness.
 
+Operation and cleanup failures remain distinguishable because startup acceptance and resource disposal are independent obligations. A cleanup exception does not replace the primary failure, and successful disposal does not grant acceptance to a failed operation.
+
 Syft scans packaged directories with installed-package catalogers. Its directory defaults omit installed npm packages, so the producer explicitly selects `image` and independently checks every packaged name and available version against the SBOM. Unreadable directories fail; Windows extended paths prevent long paths from silently narrowing the audit. The scanner archive and executable version are verified before accepting its output.
 
 Retries retain source, identity and complete deliverable records while allowing refreshed evidence and invocation metadata. This implements the [product release identity](2026-09-05-product-release-identity.md) distinction between an unchanged retry and a new distribution. Every changed distribution uses the existing monotonic build-number rule. [Candidate security scans](2026-09-05-candidate-security-scans.md) retain their independent source-analysis and disclosure decisions.

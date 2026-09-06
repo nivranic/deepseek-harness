@@ -38,6 +38,8 @@ The NSIS candidate installs silently for the current disposable runner user into
 
 The driver captures the rendered provider form, checks uncaught page errors, records the running application version and hashes its actual executable before portable cleanup. Both running executables must match the packaged main executable. Normal application close and process exit must both finish with exit code zero; failure cleanup terminates only the process tree owned by that launch. No PNG-size threshold grants startup acceptance.
 
+The producer logs installation, inspector, window and form milestones. Operation and cleanup failures are retained together, including failures before the Electron driver returns a process handle. Directory removal retries transient Windows locks for a bounded interval and still rejects unresolved cleanup; retries do not grant startup acceptance.
+
 -----
 
 <a id="packaged-inventory-and-evidence"></a>

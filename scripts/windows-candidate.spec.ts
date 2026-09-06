@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { load } from 'js-yaml'
 import { afterEach, describe, expect, it } from 'vitest'
 import { describeRcOutput, writeRcOutput } from './release/rc-output.ts'
+import { withRcCleanup } from './release/rc-lifecycle.ts'
 import { parseSyftReceipt } from './release/sbom-receipt.ts'
 import { requireHostedWindows, waitForRcProcessExit, windowsCandidateEnvironment } from './release/windows-smoke.ts'
 
@@ -14,6 +15,37 @@ const roots: string[] = []
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }) })
 
 describe('Windows candidate production requirements', () => {
+  it('retains both operation and cleanup failures in order, including a non-Error operation failure', async () => {
+    const disposal = new Error('owned directory is busy')
+    for (const failure of [new Error('GUI startup failed'), undefined]) {
+      let cleanupCalls = 0
+      await expect(withRcCleanup(async () => { throw failure }, async () => {
+        cleanupCalls++
+        throw disposal
+      })).rejects.toMatchObject({ errors: [failure, disposal] })
+      expect(cleanupCalls).toBe(1)
+    }
+  })
+
+  it('returns only after cleanup and preserves single failures', async () => {
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    let completed = false
+    const result = withRcCleanup(async () => 123, async () => {
+      entered.resolve(undefined)
+      await release.promise
+    }).then((value) => { completed = true; return value })
+    await entered.promise
+    expect(completed).toBe(false)
+    release.resolve(undefined)
+    expect(await result).toBe(123)
+    const failure = new Error('failure')
+    let cleaned = false
+    await expect(withRcCleanup(async () => { throw failure }, async () => { cleaned = true })).rejects.toBe(failure)
+    expect(cleaned).toBe(true)
+    await expect(withRcCleanup(async () => 123, async () => { throw failure })).rejects.toBe(failure)
+  })
+
   it('loads the post-packaging producer through Node and refuses a persistent host before installation', async () => {
     await expect(promisify(execFile)(process.execPath, [
       '--import', 'tsx/esm', 'scripts/produce-windows-candidate.ts', '--output', 'must-not-be-created',

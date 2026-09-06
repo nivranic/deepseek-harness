@@ -7,6 +7,7 @@ import { readProductIdentity } from './release/product-files.ts'
 import { verifyRcPlatform } from './release/rc-artifacts.ts'
 import { RC_BUILD_TYPE, rcSubjects } from './release/rc-evidence.ts'
 import { parseRcPolicy, type RcPlatformReceipt } from './release/rc-manifest.ts'
+import { withRcCleanup } from './release/rc-lifecycle.ts'
 import { describeRcOutput, hashRcOutput, writeRcOutput } from './release/rc-output.ts'
 import { parseSyftReceipt } from './release/sbom-receipt.ts'
 import { installWindowsCandidate, requireHostedWindows, smokeWindowsCandidate, windowsCandidateEnvironment } from './release/windows-smoke.ts'
@@ -33,7 +34,7 @@ const sourceRepository = `git+https://github.com/${githubRepository}`
 const builderId = `https://github.com/${githubRepository}/blob/${sourceSha}/.github/workflows/windows-candidate.yml`
 const invocationId = `https://github.com/${githubRepository}/actions/runs/${runId}/attempts/${attempt}`
 
-try {
+await withRcCleanup(async () => {
   await mkdir(output)
   await mkdir(join(output, 'windows'))
   const packaged = join(repository, 'dist-desktop/out'), unpacked = join(packaged, 'win-unpacked')
@@ -45,7 +46,9 @@ try {
     { ...await describeRcOutput(output, 'windows/portable.exe'), kind: 'portable' as const, runtimeClass: 'full' as const, signing: 'unsigned' as const },
   ]
   const installDirectory = join(work, 'installed')
+  console.log('Windows candidate: install start')
   await installWindowsCandidate(installer, installDirectory)
+  console.log('Windows candidate: install complete')
   const installedExecutable = join(installDirectory, 'DeepSeek Harness.exe')
   const originalExecutable = join(unpacked, 'DeepSeek Harness.exe')
   const originalHash = await hashRcOutput(originalExecutable), installedHash = await hashRcOutput(installedExecutable)
@@ -54,8 +57,11 @@ try {
   await writeFile(versionInput, JSON.stringify({ identity, files: [installer, portable, originalExecutable, installedExecutable] }))
   await execute('pwsh', ['-NoProfile', '-File', join(repository, 'scripts/release/verify-windows-product.ps1'),
     '-InputFile', versionInput, '-OutputFile', versionOutput], { windowsHide: true, env: windowsCandidateEnvironment(process.env) })
+  console.log('Windows candidate: installed bytes and PE versions verified; installed GUI start')
   const installed = await smokeWindowsCandidate(installedExecutable, join(work, 'installed-state'), join(output, 'windows/installed.png'))
+  console.log('Windows candidate: installed GUI passed; portable GUI start')
   const portableStartup = await smokeWindowsCandidate(portable, join(work, 'portable-state'), join(output, 'windows/portable.png'))
+  console.log('Windows candidate: portable GUI passed')
   for (const startup of [installed, portableStartup]) {
     if (startup.applicationVersion !== identity.version || startup.executableSha256 !== originalHash.sha256) {
       throw new Error('The running application differs from the packaged version or executable bytes')
@@ -102,8 +108,8 @@ try {
   const policy = parseRcPolicy(JSON.parse(await readFile(join(repository, 'release/rc-policy.json'), 'utf8')) as unknown)
   await verifyRcPlatform(output, receipt, policy, { sourceSha, sourceRepository, identity, maxJsonBytes: 32 * 1024 * 1024 })
   await writeRcOutput(output, 'windows/receipt.json', receipt)
-  console.log(JSON.stringify({ status: 'PASS', scope: 'windows-platform', sourceSha, authenticated: false }))
-} finally {
+}, async () => {
   if (!work.toLowerCase().startsWith(`${temporary.toLowerCase()}\\dsh-windows-rc-`)) throw new Error('Refusing cleanup outside the owned run directory')
-  await rm(work, { recursive: true, force: true })
-}
+  await rm(work, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
+})
+console.log(JSON.stringify({ status: 'PASS', scope: 'windows-platform', sourceSha, authenticated: false }))
