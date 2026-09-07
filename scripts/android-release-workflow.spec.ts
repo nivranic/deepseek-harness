@@ -7,12 +7,44 @@ import { join } from 'node:path'
 import { load } from 'js-yaml'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-interface Step { name?: string; run?: string; if?: string; uses?: string; 'continue-on-error'?: boolean }
+interface Step {
+  name?: string
+  run?: string
+  if?: string
+  uses?: string
+  'continue-on-error'?: boolean
+  with?: { script?: string; 'api-level'?: number; target?: string; arch?: string }
+}
 interface Workflow { jobs: { 'gradle-test': { steps: Step[] } } }
 
 const workflow = load(readFileSync('.github/workflows/android-kotlin.yml', 'utf8')) as Workflow
 const steps = workflow.jobs['gradle-test'].steps
 const preserve = steps.find(step => step.name === 'Preserve unsigned release bundle and R8 mapping')!
+
+it.skipIf(process.platform !== 'linux').each([
+  ['36', '16384', 0, true], ['35', '16384', 0, false], ['36', '4096', 0, false], ['36', '16384', 1, false],
+] as const)('starts instrumentation only after actual API %s / page size %s / adb exit %s is accepted', (api, pages, adbExit, accepted) => {
+  const launch = steps.find(step => step.name === 'Launch the unpaired companion on Android')!
+  expect(launch.with).toMatchObject({ 'api-level': 36, target: 'google_apis_ps16k', arch: 'x86_64' })
+  const root = mkdtempSync(join(tmpdir(), 'dsh android runtime '))
+  try {
+    const bin = join(root, 'bin'), cwd = join(root, 'apps/android'), scripts = join(root, 'scripts/release')
+    for (const directory of [bin, cwd, scripts]) mkdirSync(directory, { recursive: true })
+    writeFileSync(join(scripts, 'android_runtime.py'), readFileSync('scripts/release/android_runtime.py'))
+    const adb = join(bin, 'adb'), gradle = join(cwd, 'gradlew')
+    writeFileSync(adb, '#!/bin/sh\n[ "$DSH_TEST_ADB_EXIT" = 0 ] || exit "$DSH_TEST_ADB_EXIT"\ncase "$*" in\n"shell getprop ro.build.version.sdk") printf "%s\\n" "$DSH_TEST_API";;\n"shell getconf PAGE_SIZE") printf "%s\\n" "$DSH_TEST_PAGES";;\n*) exit 2;;\nesac\n')
+    writeFileSync(gradle, '#!/bin/sh\n[ "$*" = "--no-daemon :app:connectedDebugAndroidTest" ] || exit 2\nprintf started > instrumentation-started\n')
+    for (const path of [adb, gradle]) chmodSync(path, 0o700)
+    const result = spawnSync('/bin/bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', launch.with!.script!], {
+      cwd, encoding: 'utf8', timeout: 10_000,
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, DSH_TEST_API: api, DSH_TEST_PAGES: pages, DSH_TEST_ADB_EXIT: String(adbExit) },
+    })
+    expect(result.status === 0, result.stderr).toBe(accepted)
+    expect(existsSync(join(cwd, 'instrumentation-started'))).toBe(accepted)
+    const receipt = JSON.parse(readFileSync(join(cwd, 'app/build/outputs/android-runtime.json'), 'utf8')) as { status: string }
+    expect(receipt.status).toBe(accepted ? 'PASS' : 'FAIL')
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})
 
 it.skipIf(process.platform !== 'linux')('finds sdkmanager under an SDK root with spaces without requiring it on PATH', () => {
   const root = mkdtempSync(join(tmpdir(), 'dsh android sdk '))

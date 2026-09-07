@@ -43,7 +43,7 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 JVM、Android 和 Compose 的 Kotlin 插件与实际解析的 Kotlin 标准库使用相同版本。[Android 分析输入](../../.agents/notes/implemented/process/2026-09-06-android-codeql-inputs.zh.md) 记录兼容的 AGP 配对和通知使用的显式 Activity 类映射。通知 instrumentation 检查实际 Android 通知与 immutable PendingIntent 注册项。
 
-App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose 的 `ULong` 构造器接收其专用 packed color 格式。未配对界面不会打开 Remote push stream。连接 Android 设备后，在本目录执行 `./gradlew --no-daemon :app:connectedDebugAndroidTest` 会启动真实 Activity，并在凭据恢复后验证配对首屏；测试会预先授予通知权限，将系统弹窗排除于该启动断言之外。Android workflow 在 API 34 模拟器中运行此检查，并保留 APK、checksum 和 instrumentation 报告。
+App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose 的 `ULong` 构造器接收其专用 packed color 格式。未配对界面不会打开 Remote push stream。连接 Android 设备后，在本目录执行 `./gradlew --no-daemon :app:connectedDebugAndroidTest` 会启动真实 Activity，并在凭据恢复后验证配对首屏；测试会预先授予通知权限，将系统弹窗排除于该启动断言之外。Android workflow 使用 API 36、16 KiB 页大小的模拟器。它在 instrumentation 前通过 adb 读取运行设备的 API 级别和内核页大小，拒绝不匹配或查询失败，并随 APK、checksum 和 instrumentation 报告保留数值观察记录。
 
 ### Release 签名
 
