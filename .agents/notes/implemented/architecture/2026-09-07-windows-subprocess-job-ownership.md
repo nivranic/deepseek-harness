@@ -38,6 +38,8 @@ This decision supersedes the ordinary Windows PID-tree realization in the [subpr
 
 ## Consequences
 
+[Node's Windows spawn implementation](https://github.com/nodejs/node/blob/v24.19.0/deps/uv/src/win/process.c) assigns non-detached children to its own kill-on-close Job. Their parent's exit can therefore remove them independently of the provider. Node's `detached` flag avoids that attachment without requesting `CREATE_BREAKAWAY_FROM_JOB`; detached descendants still inherit the provider's non-breakaway Job. `unref()` changes event-loop ownership but does not remove Node's Job membership. A descendant used to observe provider-owned retention must report that it has started and remain independent of the direct parent's cleanup.
+
 Each ordinary Windows launch adds one bootstrap process and one Job handle. Restrictive enclosing Jobs can reject assignment, and the provider fails instead of falling back to PID-only cleanup. The interval before assignment contains only trusted bootstrap startup; parent IPC disconnect ends an unassigned helper. Job membership can reach zero before separately held process handles become signaled, so those observations remain distinct.
 
 This changes ordinary Windows process ownership only. It does not strengthen terminal descendant discovery, confine target filesystem access, guarantee POSIX cleanup after native host failure, or recover work after power loss.

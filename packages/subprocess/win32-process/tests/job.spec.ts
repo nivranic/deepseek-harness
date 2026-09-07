@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { describe, expect, it, vi } from 'vitest'
 import { createProcessJob } from '../src/job.ts'
-import type { ProcessJobBindings } from '../src/job.ts'
+import type { ProcessJob, ProcessJobBindings } from '../src/job.ts'
 import type { NativePtr } from '../src/ffi.ts'
 
 const jobHandle = 50n as NativePtr
@@ -101,32 +101,56 @@ describe('owned Win32 Jobs', () => {
   })
 })
 
-it.skipIf(process.platform !== 'win32')('retains a real descendant after its assigned parent exits and terminates the complete Job', async () => {
+async function expectEmptyJob(job: ProcessJob): Promise<void> {
+  const deadline = performance.now() + 10_000
+  while (!job.isEmpty() && performance.now() < deadline) await sleep(10)
+  expect(job.isEmpty()).toBe(true)
+}
+
+it.skipIf(process.platform !== 'win32').each([
+  { detached: true, description: 'retains a detached descendant after its assigned parent exits until the complete Job is terminated' },
+  { detached: false, description: 'observes Node cleanup of a non-detached descendant when its parent exits' },
+])('$description', async ({ detached }) => {
   const job = createProcessJob()
+  const descendant = "setInterval(() => {}, 1000); process.stdout.write('ready\\n')"
   const child = spawn(process.execPath, ['-e', `
     process.stdin.once('data', () => {
-      const child = require('node:child_process').spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore', windowsHide: true });
-      child.unref();
-      process.stdout.write('descendant-created\\n');
-      process.exit(0);
+      const child = require('node:child_process').spawn(process.execPath, ['-e', ${JSON.stringify(descendant)}], {
+        stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true, detached: ${String(detached)},
+      });
+      child.once('error', () => process.exit(2));
+      child.once('exit', code => process.exit(code || 3));
+      require('node:readline').createInterface({ input: child.stdout }).once('line', line => {
+        if (line !== 'ready') process.exit(4);
+        child.unref();
+        process.stdout.write('descendant-ready\\n', () => process.exit(0));
+      });
     });
   `], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true })
-  const exited = new Promise<number | null>((resolve, reject) => {
+  let output = '', errors = ''
+  child.stdout.setEncoding('utf8').on('data', (chunk) => { output += String(chunk) })
+  child.stderr.setEncoding('utf8').on('data', (chunk) => { errors += String(chunk) })
+  const closed = new Promise<number | null>((resolve, reject) => {
     child.once('error', reject)
-    child.once('exit', resolve)
+    child.once('close', resolve)
   })
   try {
     job.assign(child.pid!)
     child.stdin.end('launch after Job assignment')
-    expect(await exited).toBe(0)
-    expect(job.isEmpty()).toBe(false)
+    expect({ code: await closed, output, errors }).toEqual({ code: 0, output: 'descendant-ready\n', errors: '' })
+    // Node's own kill-on-close Job contains only non-detached children; detached children still inherit this non-breakaway Job.
+    if (!detached) await expectEmptyJob(job)
+    expect(job.isEmpty()).toBe(!detached)
     job.terminate()
-    const deadline = performance.now() + 10_000
-    while (!job.isEmpty() && performance.now() < deadline) await sleep(10)
-    expect(job.isEmpty()).toBe(true)
+    await expectEmptyJob(job)
   } finally {
     child.kill('SIGKILL')
-    job.close()
-    await exited
+    try {
+      job.terminate()
+      await expectEmptyJob(job)
+    } finally {
+      job.close()
+      await closed
+    }
   }
 }, 15_000)

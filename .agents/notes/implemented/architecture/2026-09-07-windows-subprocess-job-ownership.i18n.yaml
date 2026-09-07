@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-07-windows-subprocess-job-ownership.md
-2026-09-07-windows-subprocess-job-ownership.md: 9a62f87760ae01061af1851e86fac20584559c95
-2026-09-07-windows-subprocess-job-ownership.zh.md: 8ac56674a6c2267ce0c7066c889739ad3c505db2
+2026-09-07-windows-subprocess-job-ownership.md: c660f0eb8398f2cc57bf15df90a6baeb3741cf3e
+2026-09-07-windows-subprocess-job-ownership.zh.md: 66cf2022adf9d6252f6cc2d747d0a7e1bc582e0c

@@ -38,6 +38,8 @@ bootstrap 启动先排除继承的 `NODE_*`、`ELECTRON_*` 和 `TSX_*` 钩子，
 
 ## Consequences
 
+[Node 的 Windows spawn 实现](https://github.com/nodejs/node/blob/v24.19.0/deps/uv/src/win/process.c) 将非 detached 子进程加入自身的 kill-on-close Job，因此直接父进程退出即可独立于提供方清除它们。Node 的 `detached` 标志避免该附加关系，但不请求 `CREATE_BREAKAWAY_FROM_JOB`；detached 后代仍继承提供方的 non-breakaway Job。`unref()` 改变事件循环所有权，不会移除 Node 的 Job 成员关系。用于观察提供方保留能力的后代必须报告其已启动，并保持独立于直接父进程的清理。
+
 每次普通 Windows 启动增加一个 bootstrap 进程和一个 Job 句柄。外层 Job 的限制可能拒绝分配，提供方会失败，而不回退到仅按 PID 清理。分配前的间隔只包含可信 bootstrap 启动；父进程 IPC 断开会结束未分配的 helper。Job 成员可能在单独持有的进程句柄变为 signaled 前归零，因此这两种观察保持区分。
 
 此改动仅改变普通 Windows 进程所有权。它不加强终端后代发现、不限制目标文件系统访问、不保证 POSIX 在宿主原生失败后的清理，也不恢复断电后的工作。
