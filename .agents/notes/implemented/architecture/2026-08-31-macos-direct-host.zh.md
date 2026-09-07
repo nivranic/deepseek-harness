@@ -12,7 +12,7 @@ Mac Host 运行 Harness 运行时，而 Companion 消费另一个 Host。共享�
 
 `DirectHostMac` 把原生控制保留在 `Hosts/` 中，并依赖独立的 `DirectHostRuntime` 产品。Companion target 均不依赖该产品。原生管理器只通过 `dsh --profile web --no-open --host 127.0.0.1 --port 0` 启动打包运行时；临时 WebView 消费这一单一本地载体。会话与管理语义仍由现有 Node 服务和 Web UI 拥有。
 
-管理器只接受带认证的回环根地址公告，在发布 ready 前验证 HTTP 健康状态，限制启动等待，并拒绝过时 activation 的回调。重新启动等待关闭完成后才创建新的 activation，并保留应用 home。固定的失败枚举拥有原生诊断；运行时输出、cookie、响应正文和启动 URL 从不作为状态文本或持久日志。
+管理器只接受带认证的回环根地址公告，在发布 ready 前验证 HTTP 健康状态，限制启动等待，并拒绝过时 activation 的回调。管道读取器每次 DispatchSource 事件消费一块可用数据，不等待指定字节数或 EOF；拥有的描述符只在其处理器结束后关闭。重新启动等待关闭完成后才创建新的 activation，并保留应用 home。固定的失败枚举拥有原生诊断；运行时输出、cookie、响应正文和启动 URL 从不作为状态文本或持久日志。
 
 原生 `HostRuntimeSupervisor` helper 观察由 Swift 应用持有的管道，并在新的 POSIX 进程组中启动固定运行时调用。管道关闭或停止信号会请求终止进程组；宽限期到期会强制终止并返回失败状态。运行时自行失败会保留其退出状态。该 helper 是进程基础设施，不挂载 Harness 服务或第二套 Gateway。
 

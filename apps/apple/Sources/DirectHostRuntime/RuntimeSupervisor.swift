@@ -57,6 +57,8 @@ public final class RuntimeSupervisor: ObservableObject {
         let control = Pipe()
         let output = Pipe()
         let errors = Pipe()
+        var outputReader: RuntimePipeReader?
+        var errorReader: RuntimePipeReader?
         var buffer = Data()
         var stopping = false
         var failure: RuntimeFailure?
@@ -111,18 +113,6 @@ public final class RuntimeSupervisor: ObservableObject {
         run.process.standardInput = run.control
         run.process.standardOutput = run.output
         run.process.standardError = run.errors
-        run.output.fileHandleForReading.readabilityHandler = { [weak self, weak run] handle in
-            let data = (try? handle.read(upToCount: 65536)) ?? Data()
-            if data.isEmpty { handle.readabilityHandler = nil }
-            Task { @MainActor in
-                guard let self, let run else { return }
-                self.consume(data, from: run)
-            }
-        }
-        run.errors.fileHandleForReading.readabilityHandler = { handle in
-            // Stderr is drained but excluded from product diagnostics.
-            if ((try? handle.read(upToCount: 65536)) ?? Data()).isEmpty { handle.readabilityHandler = nil }
-        }
         run.process.terminationHandler = { [weak self, weak run] _ in
             Task { @MainActor in
                 guard let self, let run else { return }
@@ -130,6 +120,13 @@ public final class RuntimeSupervisor: ObservableObject {
             }
         }
         do {
+            run.outputReader = try RuntimePipeReader(run.output.fileHandleForReading) { [weak self, weak run] data in
+                Task { @MainActor in
+                    guard let self, let run else { return }
+                    self.consume(data, from: run)
+                }
+            }
+            run.errorReader = try RuntimePipeReader(run.errors.fileHandleForReading) { _ in }
             try run.process.run()
         } catch {
             run.failure = .startFailed
@@ -236,8 +233,8 @@ public final class RuntimeSupervisor: ObservableObject {
         run.startup?.cancel()
         run.health?.cancel()
         run.session?.invalidateAndCancel()
-        run.output.fileHandleForReading.readabilityHandler = nil
-        run.errors.fileHandleForReading.readabilityHandler = nil
+        run.outputReader?.cancel()
+        run.errorReader?.cancel()
         for handle in [run.control.fileHandleForReading, run.control.fileHandleForWriting,
                        run.output.fileHandleForReading, run.output.fileHandleForWriting,
                        run.errors.fileHandleForReading, run.errors.fileHandleForWriting] {

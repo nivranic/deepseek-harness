@@ -6,6 +6,22 @@ import XCTest
 
 @MainActor
 final class RuntimeSupervisorTests: XCTestCase {
+    func testPipeDeliversAShortMessageWhileTheWriterRemainsOpen() async throws {
+        let pipe = Pipe()
+        let delivered = expectation(description: "short pipe message")
+        let expected = Data("ready\n".utf8)
+        let reader = try RuntimePipeReader(pipe.fileHandleForReading) { data in
+            if data == expected { delivered.fulfill() }
+        }
+        defer {
+            reader.cancel()
+            pipe.fileHandleForReading.closeFile()
+            pipe.fileHandleForWriting.closeFile()
+        }
+        try pipe.fileHandleForWriting.write(contentsOf: expected)
+        await fulfillment(of: [delivered], timeout: 1)
+    }
+
     private func makeRuntime(_ behavior: String = "serve") throws -> (RuntimeSupervisor, URL) {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -44,10 +60,13 @@ final class RuntimeSupervisorTests: XCTestCase {
         return (runtime, root)
     }
 
-    private func waitUntil(_ predicate: () -> Bool) async throws {
+    private func waitUntil(_ runtime: RuntimeSupervisor, _ predicate: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(10)
         while !predicate() {
-            guard Date() < deadline else { XCTFail("runtime state did not settle"); throw RuntimeFailure.startupTimeout }
+            guard Date() < deadline else {
+                XCTFail("runtime state did not settle: \(runtime.status)")
+                throw RuntimeFailure.startupTimeout
+            }
             try await Task.sleep(nanoseconds: 20_000_000)
         }
     }
@@ -60,13 +79,13 @@ final class RuntimeSupervisorTests: XCTestCase {
     func testStartIsIdempotentAndRestartWaitsForTheOldRuntime() async throws {
         let (runtime, root) = try makeRuntime()
         runtime.start()
-        try await waitUntil { runtime.status == .ready }
+        try await waitUntil(runtime) { runtime.status == .ready }
         let first = runtime.activationID
         runtime.start()
         XCTAssertEqual(runtime.activationID, first)
         XCTAssertEqual(try pids(root).count, 1)
         await runtime.restart()
-        try await waitUntil { runtime.status == .ready }
+        try await waitUntil(runtime) { runtime.status == .ready }
         XCTAssertNotEqual(runtime.activationID, first)
         let processes = try pids(root)
         XCTAssertEqual(processes.count, 2)
@@ -80,7 +99,7 @@ final class RuntimeSupervisorTests: XCTestCase {
     func testStartupTimeoutStopsTheUnreadyRuntime() async throws {
         let (runtime, root) = try makeRuntime("silent")
         runtime.start()
-        try await waitUntil { runtime.status == .failed(.startupTimeout) }
+        try await waitUntil(runtime) { runtime.status == .failed(.startupTimeout) }
         await runtime.stop()
         XCTAssertNil(runtime.launchURL)
         // Cancellation can win before the fixture executable creates its startup marker.
@@ -92,7 +111,7 @@ final class RuntimeSupervisorTests: XCTestCase {
     func testFailedHealthDoesNotPublishReadyAndReapsTheRuntime() async throws {
         let (runtime, root) = try makeRuntime("unhealthy")
         runtime.start()
-        try await waitUntil { runtime.status == .failed(.healthFailed) }
+        try await waitUntil(runtime) { runtime.status == .failed(.healthFailed) }
         XCTAssertNil(runtime.launchURL)
         for pid in try pids(root) { XCTAssertEqual(kill(pid, 0), -1) }
     }
@@ -110,9 +129,9 @@ final class RuntimeSupervisorTests: XCTestCase {
     func testUnexpectedRuntimeDeathClosesTheCarrier() async throws {
         let (runtime, root) = try makeRuntime()
         runtime.start()
-        try await waitUntil { runtime.status == .ready }
+        try await waitUntil(runtime) { runtime.status == .ready }
         XCTAssertEqual(kill(try XCTUnwrap(pids(root).first), SIGKILL), 0)
-        try await waitUntil { if case .failed = runtime.status { return true }; return false }
+        try await waitUntil(runtime) { if case .failed = runtime.status { return true }; return false }
         XCTAssertNil(runtime.launchURL)
     }
 }
