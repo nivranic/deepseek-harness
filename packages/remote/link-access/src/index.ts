@@ -462,9 +462,8 @@ export class LinkAccessService extends Service {
         return
       }
       respond(res, 404, { error: 'not-found' })
-    } catch (error) {
-      /* v8 ignore next 2 -- defensive: every route owns its failures; this guard only contains a carrier bug. */
-      respond(res, 500, { error: 'internal', message: messageOf(error) })
+    } catch {
+      respond(res, 500, { error: 'internal', message: 'Internal carrier failure' })
     }
   }
 
@@ -478,8 +477,8 @@ export class LinkAccessService extends Service {
     let request: ReturnType<typeof parseLinkPairRequest>
     try {
       request = parseLinkPairRequest(parseJson(body))
-    } catch (error) {
-      respond(res, 400, { error: 'bad-pairing-request', message: messageOf(error) })
+    } catch {
+      respond(res, 400, { error: 'bad-pairing-request', message: 'Invalid pairing request' })
       return
     }
     try {
@@ -503,7 +502,7 @@ export class LinkAccessService extends Service {
         respond(res, 403, { error: 'pairing-rejected', message: error.message })
         return
       }
-      respond(res, 400, { error: 'bad-pairing-request', message: messageOf(error) })
+      respond(res, 400, { error: 'bad-pairing-request', message: 'Invalid pairing request' })
     }
   }
 
@@ -543,8 +542,8 @@ export class LinkAccessService extends Service {
       let args: Readonly<Record<string, unknown>>
       try {
         args = parseScopedRpcArgs(body, endpoint)
-      } catch (error) {
-        respond(res, 400, { error: 'bad-request', message: messageOf(error) })
+      } catch {
+        respond(res, 400, { error: 'bad-request', message: 'Invalid RPC request' })
         return
       }
       if (access.scope === 'interaction') {
@@ -631,8 +630,8 @@ export class LinkAccessService extends Service {
     let payload: unknown
     try {
       payload = parseJson(body)
-    } catch (error) {
-      respond(res, 400, { error: 'bad-stream-request', message: messageOf(error) })
+    } catch {
+      respond(res, 400, { error: 'bad-stream-request', message: 'Invalid stream request' })
       return
     }
     const access = this.table.get(endpoint) as LinkEndpointAccess

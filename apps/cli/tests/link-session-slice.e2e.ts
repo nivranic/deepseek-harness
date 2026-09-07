@@ -420,8 +420,25 @@ describe('the carrier-level session slice', () => {
     })
     const endpoint = await link.endpoint() as string
 
+    expect(await carrierCall(endpoint, '/link/pair', 'PRIVATE_REQUEST_SENTINEL is not JSON')).toEqual({
+      status: 400, json: { error: 'bad-pairing-request', message: 'Invalid pairing request' },
+    })
+
     // Pair a real device through the pairing ingress.
     const device = await pairController(endpoint, link, 'Slice Phone')
+
+    expect(await carrierCall(endpoint, '/api/session/prompt', 'PRIVATE_REQUEST_SENTINEL is not JSON', device)).toEqual({
+      status: 400, json: { error: 'bad-request', message: 'Invalid RPC request' },
+    })
+    const identityFailure = vi.spyOn(root.get('deviceTrust')!, 'hostIdentity')
+      .mockRejectedValueOnce(new Error('PRIVATE_EXCEPTION_SENTINEL at /private/host-state.sqlite'))
+    try {
+      expect(await carrierCall(endpoint, '/link/describe', '', device)).toEqual({
+        status: 500, json: { error: 'internal', message: 'Internal carrier failure' },
+      })
+    } finally {
+      identityFailure.mockRestore()
+    }
 
     // The real SessionController answers through the carrier's /api chain.
     const sessions = await carrierCall(endpoint, '/api/session/list', wireBody('session/list', { _request: {} }), device)

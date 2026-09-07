@@ -16,6 +16,8 @@ Status: implemented
 
 接线：`dsh-web-app` 增加惰性 `device-trust` 行与随附 `disabled: true` 的 `link-access` 行（远程访问绝不默认打开；部署用 patch overlay 启用），`SERVICE_PAGE`/`LINK_MAP` 把这些服务与公开类型归类到 `docs/subsystems/remote-link(.zh).md`，tsconfig 别名、`tsconfig.host.json` 引用、宿主 tsdown 入口 glob 与包图同步更新。配对授权默认覆盖全部 Session 与 Workspace，以保留显式单用户配对流程；部署可用 `pairingAccess` 收窄新配对设备的范围，更改既有设备授权则需要吊销后重新配对。防重放只有时钟偏移窗口；按方案"不做超前传输复杂度"的规则，逐 nonce 追踪等基准证明必要后再做。
 
+载体的解析与基础设施失败返回固定 HTTP 诊断，因为解析异常可能回显请求片段，存储异常可能包含本地路径。真实 TLS 失败记录固定畸形配对、带作用域 RPC、流请求及未预期信任存储失败的响应。记录仅在包的测试目录保存公开响应字段；这些失败不产生 Session 事件。已知 Device Trust 纠正消息和共享 Gateway 业务错误继续由原 owner 定义。
+
 ## Consequences
 
 真实 TLS 载体与 built Host 组合覆盖选择性授权、在 owner 执行前拒绝 Session、Attachment 与 Workspace path、在写入套接字前投影 Session 与 Workspace、宿主签发交互关联、待定检查、observer 与审批开关拒绝、分发失败后的安全重试、吊销以及载体停止。直接授权测试拒绝畸形 envelope 与 frame，并覆盖每种 Session 地址、集合 baseline、增量 frame、Remote 通知、waterfall 与取消分支；`dsh-device-trust`、`dsh-link-access` 和 Gateway 保持逐文件 100% 覆盖。Client 代次断线时，待定交互留在 Gateway 中供重连重放；显式策略变更、吊销或载体停止则立即委托投递。授权管理 UI 与 mDNS 广播仍是延后的产品工作；资源授权表和 `pairingAccess` 配置已经提供安全行为，无需创建复杂 RBAC。

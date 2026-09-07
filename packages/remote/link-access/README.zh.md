@@ -56,6 +56,8 @@ kind: "package-reference"
 
 `ctx.linkAccess.createPairing()` 返回 QR 载荷（宿主 id 与名称、端点、证书 SPKI 指纹、一次性配对码、过期时间）。每个设备请求携带身份、时间戳与覆盖方法、路径、请求体摘要的 Ed25519 签名；未知、已吊销、过期时间戳或签名错误的设备得到 401，超出 Allowlist、低于设备角色、超出持久授权，或——对交互回答——审批开关关闭时得到 403。宿主全局的 Session 与 Workspace 集合在写入套接字前完成投影。交互回答还必须携带该设备的宿主签发 Client 代次、指向已投递且仍待定的事件，并通过事件所属 Session 的授权检查；关闭审批、吊销设备或停止载体时，已经投递的交互会委托回宿主 waterfall。证书一次性生成（ECDSA P-256）并持久化在 `<dshHome>/link-access/` 下，已配对设备跨重启持续有效。`link/describe` 报告相互独立的 Link protocol、contract 与 Session format 版本，客户端无需把应用发布版本误当成 wire 版本，即可分别诊断每条兼容轴。
 
+载体自有的 HTTP 解析与基础设施失败使用固定消息，不包含请求片段或未预期异常文本。Device Trust 配对拒绝保留其明确编写的纠正消息；业务 RPC 和流错误继续由共享 Gateway 定义。
+
 ### 默认远程面
 
 每台设备都可在自身授权内只读观察 Session 与 Workspace（`session/list|search|page|modelCatalog|attachment|artifact|follow|control`、`workspace/follow`、`workspaceFiles/list|read`、`subagents/list`、`fileReferences/list`、`$events`）。controller 可在这些授权内执行 Session 操作（`prompt`、`cancel`、`updateQueue`、`rename`、`fork`、`selectModel`），也可提交 `session/handoff`；该 snapshot 会创建新的 Full Session，因此没有既有 Session 身份可供检查。`$events/result` 只能回答同一 controller 代次实际收到的交互，并继续受独立审批开关保护。设置变更、凭据、插件管理与直接创建 Session 在部署列出之前均不远程暴露。
