@@ -76,7 +76,11 @@ class CandidateProducerTests(unittest.TestCase):
                 certificate.write_bytes(b'synthetic public certificate')
             if label == 'Android candidate APK generation':
                 self.assertTrue(Path(environment['DSH_ANDROID_RC_STORE']).parent.exists())
-                self.assertTrue(Path(environment['DSH_ANDROID_RC_PASSWORD_FILE']).is_file())
+                password_file = Path(environment['DSH_ANDROID_RC_PASSWORD_FILE'])
+                self.assertTrue(password_file.is_file())
+                if os.name == 'posix':
+                    self.assertEqual(password_file.stat().st_mode & 0o777, 0o600)
+                    self.assertEqual(password_file.parent.stat().st_mode & 0o777, 0o700)
                 Path(environment['DSH_ANDROID_RC_APKS']).write_bytes(b'synthetic set')
                 Path(environment['DSH_ANDROID_RC_CLASSPATH_RECEIPT']).write_text('[]')
             if label == 'Android candidate inventory':

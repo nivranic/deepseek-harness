@@ -10,7 +10,7 @@
       "materials": {
         "apps/apple": {
           "kind": "tree",
-          "oid": "061fe82bab10a1e3fa7e147bfcdcbe7d9dc70b41"
+          "oid": "626c53272ea67636067434111d1b866747dfdb12"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -27,7 +27,7 @@
       "materials": {
         "apps/android": {
           "kind": "tree",
-          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -44,7 +44,7 @@
       "materials": {
         "apps/android": {
           "kind": "tree",
-          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -61,7 +61,7 @@
       "materials": {
         "apps/android": {
           "kind": "tree",
-          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -78,7 +78,7 @@
       "materials": {
         "apps/android": {
           "kind": "tree",
-          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -95,7 +95,7 @@
       "materials": {
         "apps/android": {
           "kind": "tree",
-          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -112,7 +112,7 @@
       "materials": {
         "apps/android": {
           "kind": "tree",
-          "oid": "4ad0ec4f29475ab2ef4616f1bc2126fbf353d913"
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -138,6 +138,51 @@
         "packages/remote/link-access/src/tls.ts": {
           "kind": "blob",
           "oid": "3dc579be756b52f44da6306a0087d0b6456d0135"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "python",
+      "rule": "py/clear-text-storage-sensitive-data",
+      "path": "scripts/release/android_candidate.py",
+      "line": 86,
+      "reason": "This locally generated random password protects a two-day disposable debug keystore, never a user or production signing credential. The producer rejects persistent hosts and production signing inputs before generation. Bundletool consumes the 0600 password file inside a 0700 private temporary directory; the password is not passed on its command line or retained in diagnostics. Both private inputs are removed before APK inspection and artifact receipts, including on generation failure. The review pins the producer, tool environment, private-directory checks, Gradle invocation, cleanup/permission tests and candidate/analysis workflows; it does not permit persistent password storage.",
+      "materials": {
+        "scripts/release/android_candidate.py": {
+          "kind": "blob",
+          "oid": "66ec4a923c242d20830d4373f56332c9f67942d9"
+        },
+        "scripts/release/android_candidate_device.py": {
+          "kind": "blob",
+          "oid": "1602810cd11086d9587b7274a0800203331daef6"
+        },
+        "scripts/release/android_sbom_payload.py": {
+          "kind": "blob",
+          "oid": "63d0b2762d82f454d6dd5b5bc91d9f1d77289d10"
+        },
+        "scripts/release/android_sbom_inventory.py": {
+          "kind": "blob",
+          "oid": "5d7bd90b4caabebbcb9c73088b53ae636e5a249c"
+        },
+        "scripts/release/android-candidate.init.gradle": {
+          "kind": "blob",
+          "oid": "2b9ce0862e39d18a29faeb5ca06ab9846c1e417f"
+        },
+        "scripts/release/test_android_candidate.py": {
+          "kind": "blob",
+          "oid": "d262e4b2541914569b8c8ae26d8bdadc1c017b62"
+        },
+        "scripts/produce-android-candidate.ts": {
+          "kind": "blob",
+          "oid": "c42c856257e1695f6687a01616c6d08305579897"
+        },
+        ".github/workflows/android-candidate.yml": {
+          "kind": "blob",
+          "oid": "17059da60200c4f920f7f2acf1c76168b0c3bf21"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
