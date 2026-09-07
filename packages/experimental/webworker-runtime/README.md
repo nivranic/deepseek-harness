@@ -36,6 +36,8 @@ Acceptance lives in `apps/web/tests/preview-boot.e2e.ts`, which serves the real 
 
 `node:sea` exposes `isSea()` as false: the browser worker has no Node executable or embedded SEA assets. Asset APIs are absent.
 
+`node:crypto.randomInt(max)` returns a uniform integer in `[0, max)` from WebCrypto. It accepts positive integer bounds below `2 ** 48`, throws `RangeError` for other bounds, and propagates entropy-source errors. Only the synchronous single-bound form is implemented.
+
 <a id="model-experience"></a>
 ## Model Experience
 

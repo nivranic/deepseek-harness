@@ -14,6 +14,8 @@ worker 逐字节运行 web profile 的 Cordis 配置——没有 worker 专属�
 
 SEA 检测属于平台事实：worker 中的 `node:sea.isSea()` 返回 false，使未修改的原生包可以加载，而不声称存在可执行文件或内嵌资源。代理表与运行时模块表共享该检测实现。
 
+同步的 `node:crypto.randomInt(max)` 使用 48 位 WebCrypto 样本，在对上界取模前拒绝不完整的余数组。缩放 32 位样本会使不能整除样本空间的区间出现偏差，也无法覆盖更大区间中的每个整数。上界必须是小于 `2 ** 48` 的正整数；其他上界在请求熵之前失败。该实现不增加 Node 的回调或双边界重载。确定性熵 fixture 验证拒绝采样、区间端点、非法上界和熵源失败。
+
 **VFS。** 内存为真相。`statSync(path, { bigint: true })` 返回 Node 的 BigInt 形状，其中两个字段承载真实信息，因为 `dsh-fs-local` 的 stale-write guard 依赖它们：`ino` 是按路径的身份（单调计数器分配，路径重建即新身份），`mtimeMs` 按条目严格递增（`max(now, previous + 1)`）——内存写例行落在同一毫秒内，相等的时间戳会放过陈旧覆写。已提交的 mutation 还会驱动 [Node 兼容 watcher 与 confinement 实现](2026-08-23-webworker-vfs-watch-and-landlock.zh.md)。Cordis 日志器的详细度数值向上计数，因此 `startWorkerHost` 会在任何 entry 挂载前安装 `levels: { default: 2 }` 的 console exporter，避免未声明等级的 exporter 丢掉所有 warning。
 
 **Shell。** `node:child_process` 是 VFS 之上的真实现。语法是买来的——`@yarnpkg/parsers` 的 `parseShell`——求值器与命令表是自有的，因为每个候选解释器都自带文件系统：管道是逐段传递的字符串，每个程序是 VFS 上的一个函数。普通命令从该表解析；native 包协议可以通过 [watcher 与 confinement 决策](2026-08-23-webworker-vfs-watch-and-landlock.zh.md)提供 Worker 自有的虚拟 executable wrapper。两处都没有的名字在直接 spawn 时报告 `ENOENT`，在 shell source 中则报告 `command not found`（127）。每次 `spawn` 从同一个 bundle 起一个子 Web Worker，首帧声明 shell 进程角色，因此终止梯是真的：`SIGTERM` 在下一命令边界处请求停止，`SIGKILL` 在任意时刻终止 worker——这是线程内解释器永远没有的抢占。文件系统面端到端异步（子进程经帧到宿主 VFS）；`execSync`、`execFileSync`、`fork` 拒绝，`node-pty` 保持桩。

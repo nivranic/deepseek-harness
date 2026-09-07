@@ -36,6 +36,8 @@ kind: "package-library"
 
 `node:sea` 的 `isSea()` 返回 false：浏览器 worker 没有 Node 可执行文件或内嵌 SEA 资源，不提供资源 API。
 
+`node:crypto.randomInt(max)` 使用 WebCrypto 返回 `[0, max)` 内等概率的整数。上界必须是小于 `2 ** 48` 的正整数；其他上界触发 `RangeError`，熵源错误直接传播给调用方。当前仅实现同步的单上界形式。
+
 <a id="model-experience"></a>
 ## 模型体验
 
