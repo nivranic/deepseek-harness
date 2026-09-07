@@ -1,4 +1,4 @@
-import { chmod, mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -208,10 +208,11 @@ describe('WorkspaceFileSearch', () => {
     await new Promise((resolve) => { setTimeout(resolve, 50) })
     expect(await files.list('README', signal)).toEqual([{ path: 'README.md', kind: 'file' }])
 
-    // The failed attempt left the index stale, so its return is picked up
-    // without waiting for another invalidation.
-    await mkdir(root, { recursive: true })
-    await writeFile(join(root, 'restored.ts'), 'restored')
+    // An in-flight retry can index an empty root between mkdir and writeFile.
+    // Publish the populated replacement atomically so restoration needs no new invalidation.
+    const restoredRoot = await workspace()
+    await writeFile(join(restoredRoot, 'restored.ts'), 'restored')
+    await rename(restoredRoot, root)
     await vi.waitFor(async () => {
       expect(await files.list('restored', signal)).toEqual([{ path: 'restored.ts', kind: 'file' }])
     })
