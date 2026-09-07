@@ -1,7 +1,7 @@
 /** Build and exercise one ad-hoc Mac Host candidate from its exact clean source checkout. */
 import { execFile } from 'node:child_process'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { appleArchiveSettings } from './release/apple-archive.ts'
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
@@ -82,9 +82,15 @@ if (plist === null || typeof plist !== 'object' || !('CFBundleIdentifier' in pli
   || plist.CFBundleIdentifier !== 'com.deepseek-harness.host.mac') throw new Error('Mac Host bundle identifier differs from its target')
 const runtime = join(repository, 'dist-exe', `deepseek-harness-sdk-runtime-macos-${process.arch}`)
 const inputs = [runtime, `${runtime}-rg`, `${runtime}-spawn-helper`, join(swiftBin, 'HostRuntimeSupervisor')]
-for (const file of [executable, ...inputs]) {
+const inspections = await Promise.all([executable, ...inputs].map(async (file) => {
   const slices = await command('/usr/bin/lipo', ['-archs', file])
   const build = await command('/usr/bin/xcrun', ['vtool', '-show-build', '-arch', architecture, file])
+  // Keep native build fields without source paths, command arguments or runtime output.
+  const fields = build.split(/\r?\n/).filter(line => /^\s*(cmd|cmdsize|platform|minos|sdk|ntools|tool|version)\s+/.test(line)).join('\n')
+  return { name: basename(file), slices, build: fields }
+}))
+await jsonFile(join(output, 'binary-inspections.json'), { sourceSha, architecture, binaries: inspections })
+for (const { slices, build } of inspections) {
   verifyMacHostMachO(architecture, slices, build)
 }
 const resources = join(app, 'Contents/Resources/Runtime')
@@ -128,7 +134,7 @@ await jsonFile(join(output, 'bundle.json'), {
   schemaVersion: 1, kind: 'mac-host-candidate', sourceSha, identity, architecture, runtimeClass: 'full',
   status: 'BUNDLE_AND_STARTUP_VERIFIED',
   archive: { path: 'DSH-Host.app.zip', ...await hashRcOutput(zip) },
-  evidence: await Promise.all(['source.json', 'toolchain.json', 'runtime-inputs.json', 'inventory.json',
+  evidence: await Promise.all(['source.json', 'toolchain.json', 'binary-inspections.json', 'runtime-inputs.json', 'inventory.json',
     'packaged-web.log', 'app-test.log'].map(async path => ({ path, ...await hashRcOutput(join(output, path)) }))),
   producers: await Promise.all(producers.map(async path => ({ path, ...await hashRcOutput(join(repository, path)) }))),
   signing: { kind: 'ad-hoc', developerId: 'NOT_EXECUTED', notarization: 'NOT_EXECUTED' },

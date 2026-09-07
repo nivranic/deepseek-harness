@@ -10,6 +10,7 @@ const modern = 'cmd LC_BUILD_VERSION\nplatform MACOS\nminos 14.0\nsdk 15.5\n'
 describe('Mac Host native platform', () => {
   it('accepts native and universal macOS inputs including legacy deployment commands', () => {
     expect(() => { verifyMacHostMachO('arm64', 'arm64', modern) }).not.toThrow()
+    expect(() => { verifyMacHostMachO('arm64', 'arm64', modern + 'ntools 1\ntool LD\nversion 1230.1\n') }).not.toThrow()
     expect(() => { verifyMacHostMachO('x86_64', 'x86_64 arm64', modern) }).not.toThrow()
     expect(() => { verifyMacHostMachO('arm64', 'arm64', 'cmd LC_VERSION_MIN_MACOSX\nversion 11.0\nsdk 12.0') }).not.toThrow()
   })
@@ -18,6 +19,7 @@ describe('Mac Host native platform', () => {
     ['arm64', modern.replace('MACOS', 'IOSSIMULATOR')],
     ['arm64', modern.replace('MACOS', 'IOS')], ['arm64', modern + modern],
     ['arm64', modern.replace('14.0', '14.1')], ['arm64', modern.replace('14.0', '15.0')],
+    ['arm64', modern.replace('14.0', '15.0') + 'ntools 1\ntool LD\nversion 13.0\n'],
     ['arm64', modern.replace('14.0', '0.0')], ['arm64', modern.replace('minos 14.0\n', '')],
     ['arm64', modern + 'cmd LC_VERSION_MIN_MACOSX\nversion 11.0\n'],
   ])('rejects incompatible or ambiguous executable metadata %s', (slices, build) => {

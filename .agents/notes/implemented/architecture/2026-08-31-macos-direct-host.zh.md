@@ -18,7 +18,7 @@ Mac Host 运行 Harness 运行时，而 Companion 消费另一个 Host。共享�
 
 ## 后果
 
-[Mac Host 生产器](../../../../scripts/produce-mac-host.ts) 从一个干净候选提交把 runtime、rg、spawn-helper 和生命周期 helper 组装到 `Contents/Resources/Runtime`。原生二进制工具拒绝错误架构、非 macOS 切片和高于 macOS 14 的最低系统版本；复制后的字节、内嵌产品版本、签名与 ZIP 往返结果分别核验。生产器只用 ad-hoc 签名封装外层应用，保留 SEA builder 的嵌套签名与 entitlement。缺少资源的源码壳会报告不可用。Companion 归档证据不覆盖 Host bundle。
+[Mac Host 生产器](../../../../scripts/produce-mac-host.ts) 从一个干净候选提交把 runtime、rg、spawn-helper 和生命周期 helper 组装到 `Contents/Resources/Runtime`。原生二进制工具拒绝错误架构、非 macOS 切片和高于 macOS 14 的最低系统版本；复制后的字节、内嵌产品版本、签名与 ZIP 往返结果分别核验。系统版本检查独立读取 `LC_BUILD_VERSION.minos`，不混入各构建工具的 `version`；验证前保留不含源码路径的原生字段。生产器只用 ad-hoc 签名封装外层应用，保留 SEA builder 的嵌套签名与 entitlement。缺少资源的源码壳会报告不可用。Companion 归档证据不覆盖 Host bundle。
 
 应用的显式 `DSH_HOME` 在启动前解析，且必须是 POSIX 绝对目录路径。非法值不能回退到默认 home。已安装应用通过运行时实际消费的同一配置完成隔离验证，无需测试专用启动器或第二套持久化实现。
 

@@ -23,7 +23,11 @@ export function verifyMacHostMachO(architecture: 'arm64' | 'x86_64', slices: str
     || (platforms.length === 0 && modern.length === 0 && legacy.length === 1))) {
     throw new Error('Mac Host executable must declare exactly one macOS platform')
   }
-  const versions = [...build.matchAll(/^\s*(?:minos|version)\s+(\d+(?:\.\d+){0,2})\s*$/gm)]
+  // LC_BUILD_VERSION also reports each build tool's version after its minimum OS field.
+  const versionField = modern.length === 1
+    ? /^\s*minos\s+(\d+(?:\.\d+){0,2})\s*$/gm
+    : /^\s*version\s+(\d+(?:\.\d+){0,2})\s*$/gm
+  const versions = [...build.matchAll(versionField)]
   if (versions.length !== 1) throw new Error('Mac Host executable must declare one minimum OS version')
   const version = versions[0]?.[1]?.split('.').map(Number) ?? []
   if ((version[0] ?? 0) < 1 || (version[0] ?? 0) > 14
