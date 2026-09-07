@@ -8,6 +8,7 @@ import { promisify } from 'node:util'
 import { load } from 'js-yaml'
 import { afterEach, describe, expect, it } from 'vitest'
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
+import { readAppleArchiveProperties } from './release/apple-archive.ts'
 import { inspectWorkflowSecurity } from './workflow-security.ts'
 
 const repository = resolve(import.meta.dirname, '..')
@@ -61,6 +62,18 @@ describe('Apple archive file inventory', () => {
 })
 
 describe('Apple archive producer workflow', () => {
+  it.runIf(process.platform === 'darwin')('reads actual archive properties while retaining a non-JSON CreationDate', async () => {
+    const path = join(temporary(), 'Info.plist')
+    await writeFile(path, `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CreationDate</key><date>2026-09-07T00:00:00Z</date>
+<key>ApplicationProperties</key><dict><key>ApplicationPath</key><string>Applications/DSH Companion.app</string></dict>
+</dict></plist>\n`)
+    await expect(promisify(execFile)('/usr/bin/plutil', ['-convert', 'json', '-o', '-', path])).rejects.toMatchObject({ code: 1 })
+    expect(await readAppleArchiveProperties(path)).toEqual({ ApplicationProperties: { ApplicationPath: 'Applications/DSH Companion.app' } })
+    expect(readFileSync(path, 'utf8')).toContain('<date>2026-09-07T00:00:00Z</date>')
+  })
   it.runIf(process.platform !== 'darwin')('loads through tsx and rejects a non-macOS host before writing', async () => {
     const output = join(temporary(), 'output')
     await expect(promisify(execFile)(process.execPath, ['--import', 'tsx/esm', 'scripts/produce-apple-archives.ts', '--output', output],

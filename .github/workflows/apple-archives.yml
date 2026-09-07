@@ -87,6 +87,7 @@ jobs:
             ${{ runner.temp }}/apple-archives/source.json
             ${{ runner.temp }}/apple-archives/toolchain.json
             ${{ runner.temp }}/apple-archives/*/build.log
+            ${{ runner.temp }}/apple-archives/*/*.xcarchive/Info.plist
             ${{ runner.temp }}/apple-archives/*/Archive.xcresult
           if-no-files-found: warn
           retention-days: 7

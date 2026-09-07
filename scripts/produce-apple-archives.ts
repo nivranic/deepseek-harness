@@ -3,7 +3,7 @@ import { execFile } from 'node:child_process'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
-import { APPLE_ARCHIVE_TARGETS, appleArchiveSettings, verifyAppleArchive } from './release/apple-archive.ts'
+import { APPLE_ARCHIVE_TARGETS, appleArchiveSettings, readAppleArchiveProperties, verifyAppleArchive } from './release/apple-archive.ts'
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
 import { captureCiSource } from './release/ci-source.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
@@ -74,7 +74,7 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
   const appRoot = join(archivePath, 'Products/Applications/DSH Companion.app')
   const plistPath = target.platform === 'macos' ? join(appRoot, 'Contents/Info.plist') : join(appRoot, 'Info.plist')
   const appPlist: unknown = JSON.parse(await command('/usr/bin/plutil', ['-convert', 'json', '-o', '-', plistPath]))
-  const archivePlist: unknown = JSON.parse(await command('/usr/bin/plutil', ['-convert', 'json', '-o', '-', join(archivePath, 'Info.plist')]))
+  const archivePlist = await readAppleArchiveProperties(join(archivePath, 'Info.plist'))
   // The executable path is fixed by the target policy before reading untrusted plist fields.
   const executable = target.platform === 'macos' ? join(appRoot, 'Contents/MacOS/DSH Companion') : join(appRoot, 'DSH Companion')
   const architectures = (await command('/usr/bin/lipo', ['-archs', executable])).split(/\s+/)

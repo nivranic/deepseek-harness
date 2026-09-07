@@ -1,4 +1,6 @@
 /** Validate device and desktop Companion archive metadata independently of simulator builds. */
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import { verifyAppleProduct } from './apple-product.ts'
 import type { ProductIdentity } from './product-identity.ts'
 
@@ -26,6 +28,18 @@ export interface AppleArchiveObservation {
   appPlist: unknown
   architectures: string[]
   binaryPlatforms: string[]
+}
+
+/**
+ * Read application properties without converting the archive's non-JSON CreationDate.
+ * @param path - actual xcarchive Info.plist filename on macOS.
+ * @returns the selected dictionary in the verifier's archive metadata container.
+ */
+export async function readAppleArchiveProperties(path: string): Promise<unknown> {
+  const result = await promisify(execFile)('/usr/bin/plutil', [
+    '-extract', 'ApplicationProperties', 'json', '-o', '-', path,
+  ], { encoding: 'utf8' })
+  return { ApplicationProperties: JSON.parse(result.stdout) as unknown }
 }
 
 function fields(value: unknown, owner: string): Record<string, unknown> {
