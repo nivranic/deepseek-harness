@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-09-07-apple-companion-archives.md
-2026-09-07-apple-companion-archives.md: f9fa0a75d64f7644e03b2d712168d168ad42f2d3
-2026-09-07-apple-companion-archives.zh.md: 33d8d887476417868658d268256ffb7bc548776a
+2026-09-07-apple-companion-archives.md: daa90aca1792e85ee6e6af15b11675270e325e86
+2026-09-07-apple-companion-archives.zh.md: aa71a42f6a96de2eca5fd5a966f9babd560a00b9

@@ -16,6 +16,8 @@ The archive report binds source, producer inputs, toolchain and file digests, bu
 
 ## Alternatives considered
 
+Python's standard-library `plistlib` reads XML and binary archive metadata, including dates that JSON cannot represent. Only `ApplicationProperties` is projected into JSON; the original plist bytes remain in the archive inventory. The reader does not convert the entire archive plist through `plutil`.
+
 - Reusing the simulator app as a device archive would bind acceptance to a different executable platform.
 - Including the Direct Host shell as a Full artifact would assert runtime functionality that its target does not contain.
 - Adding signing credentials to obtain archives couples build verification to an external production operation. Archive generation needs neither signing secrets nor store access; a linker-created ad hoc code signature is not a production signature.

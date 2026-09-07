@@ -16,6 +16,8 @@ Status: implemented
 
 ## Alternatives considered
 
+Python 标准库 `plistlib` 读取 XML 和二进制归档元数据，包括 JSON 无法表示的日期。只有 `ApplicationProperties` 被投影为 JSON；原始 plist 字节仍保留在归档清单中。读取器不通过 `plutil` 转换整个归档 plist。
+
 - 将模拟器 App 用作设备归档，会把验收绑定到不同的可执行平台。
 - 把 Direct Host 外壳列为 Full 产物，会宣称其目标尚未包含的运行时功能。
 - 为获得归档而加入签名凭据，会将构建验证耦合到外部生产操作。归档生成既不需要签名秘密，也不需要商店访问；链接器产生的 ad hoc 代码签名不属于生产签名。

@@ -62,7 +62,9 @@ jobs:
           command -v xcodegen >/dev/null || brew install xcodegen
           pnpm run verify-product-identity
       - name: Verify archive rejection paths
-        run: pnpm exec vitest run scripts/release/apple-archive.spec.ts scripts/apple-archives.spec.ts
+        run: |
+          python3 -B -m unittest discover -s scripts/release -p 'test_apple_archive_plist.py' -v
+          pnpm exec vitest run scripts/release/apple-archive.spec.ts scripts/apple-archives.spec.ts
       - name: Build and verify archives
         run: node --import tsx/esm scripts/produce-apple-archives.ts --output "$RUNNER_TEMP/apple-archives"
       - name: Preserve verified Companion archives

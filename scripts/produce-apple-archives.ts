@@ -40,6 +40,7 @@ await jsonFile(join(output, 'source.json'), source)
 await jsonFile(join(output, 'toolchain.json'), {
   xcode: await command('/usr/bin/xcodebuild', ['-version']),
   swift: await command('/usr/bin/xcrun', ['swift', '--version']),
+  python: await command('python3', ['--version']),
   xcodegen: await command('xcodegen', ['--version']), node: process.version,
 })
 const appleRoot = join(repository, 'apps/apple')
@@ -107,6 +108,7 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
   console.log(`${target.scheme}: archive identity, executable platform and ZIP round trip PASS`)
 }
 const producerPaths = ['scripts/produce-apple-archives.ts', 'scripts/release/apple-archive.ts', 'scripts/release/apple-archive-files.ts',
+  'scripts/release/apple_archive_plist.py',
   'scripts/release/apple-product.ts', 'scripts/release/product-files.ts', 'scripts/release/product-identity.ts',
   'scripts/release/ci-source.ts', 'scripts/release/ci-evidence.ts', 'scripts/release/rc-output.ts',
   'scripts/release/rc-manifest.ts', '.github/workflows/apple-archives.yml', 'pnpm-lock.yaml']
