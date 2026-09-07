@@ -16,10 +16,10 @@ process.once('message', (message: unknown) => {
     || !Array.isArray(args) || args.some(argument => typeof argument !== 'string')) {
     throw new Error('Invalid Windows subprocess launch argv')
   }
-  // Skip libuv's additional kill-on-parent-exit Job; the target inherits the parent's explicit non-breakaway Job.
+  // The target inherits the parent's non-breakaway Job and keeps Windows standard handles available to console programs.
   let child: ChildProcess
   try {
-    child = spawn(program, args, { stdio: 'inherit', detached: true, windowsHide: true, env: value.environment as Record<string, string> })
+    child = spawn(program, args, { stdio: 'inherit', windowsHide: true, env: value.environment as Record<string, string> })
   } catch (error) {
     if (!(error instanceof Error)) throw error
     reportSpawnFailure(error)
@@ -36,5 +36,8 @@ process.once('disconnect', () => { process.exit(1) })
 /** Preserve both synchronous native argument errors and asynchronous executable lookup failures. */
 function reportSpawnFailure(error: NodeJS.ErrnoException): void {
   // oxlint-disable-next-line typescript/no-non-null-assertion -- IPC was required at module entry; this process never replaces send.
-  process.send!({ type: 'spawn-error', message: error.message, code: error.code }, () => { process.exit(1) })
+  process.send!({
+    type: 'spawn-error', message: error.message, code: error.code,
+    syscall: error.syscall, path: error.path,
+  }, () => { process.exit(1) })
 }

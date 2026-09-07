@@ -12,7 +12,7 @@ Assigning an already-running target to a Job leaves a second gap: target code ca
 
 ## Decision
 
-The local provider owns one non-inheritable, non-breakaway, kill-on-close Job per ordinary Windows subprocess. A trusted bootstrap starts without the target's startup environment. The parent assigns that bootstrap to the Job before sending the executable, argv, and explicit environment over IPC. The bootstrap inherits the caller's three standard streams and starts the target detached from libuv's additional kill-on-bootstrap-exit Job; the target and its descendants still inherit the provider's Job.
+The local provider owns one non-inheritable, non-breakaway, kill-on-close Job per ordinary Windows subprocess. A trusted bootstrap starts without the target's startup environment. The parent assigns that bootstrap to the Job before sending the executable, argv, and explicit environment over IPC. The bootstrap inherits the caller's three standard streams and starts the target without Windows detached mode, so console programs retain usable standard handles. The target and its descendants inherit the provider's Job.
 
 The bootstrap reports the target's exit facts over IPC separately from its own exit. A target can exit while descendants remain active. `done` retains that result; `waitForExit()` requires a successful kernel query showing zero active Job members. Normal termination requests `TerminateJobObject`, then observes membership. Closing the owner handle terminates remaining members even if the host exits without executing JavaScript, but handle closure alone is not an exit observation.
 

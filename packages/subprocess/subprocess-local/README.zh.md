@@ -68,7 +68,7 @@ kind: "package-reference"
 
 ### 设计理念
 
-提供方独立于请求程序的退出，持有 POSIX 进程组或不允许 breakaway 的 Windows Job。Windows bootstrap 仅在分配到 Job 后才通过 IPC 接收可执行文件、argv 和目标环境。它的启动环境排除调用方的 `NODE_*`、`ELECTRON_*` 和 `TSX_*` 启动钩子；目标仍接收显式环境。bootstrap 单独报告目标结果，并允许后代在目标退出后继续留在 Job 中。Windows 上的 `pid` 标识 bootstrap 进程树根。[Job 所有权决策](../../../.agents/notes/implemented/architecture/2026-09-07-windows-subprocess-job-ownership.zh.md) 说明固定 SEA 入口及分配前的间隔。
+提供方独立于请求程序的退出，持有 POSIX 进程组或不允许 breakaway 的 Windows Job。Windows bootstrap 仅在分配到 Job 后才通过 IPC 接收可执行文件、argv 和目标环境。目标继承标准句柄，不启用 detached 模式。spawn 错误通过 IPC 保留 `code`、`syscall` 和 `path`，供可执行文件归因使用。它的启动环境排除调用方的 `NODE_*`、`ELECTRON_*` 和 `TSX_*` 启动钩子；目标仍接收显式环境。bootstrap 单独报告目标结果，并允许后代在目标退出后继续留在 Job 中。Windows 上的 `pid` 标识 bootstrap 进程树根。[Job 所有权决策](../../../.agents/notes/implemented/architecture/2026-09-07-windows-subprocess-job-ownership.zh.md) 说明固定 SEA 入口及分配前的间隔。
 
 ### 源码地图
 

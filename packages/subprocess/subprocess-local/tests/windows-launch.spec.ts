@@ -170,6 +170,7 @@ describe('Windows bootstrap launch protocol', () => {
   })
 
   it.each([null, 1, { type: 'unknown' }, { type: 'spawn-error', message: 'failed', code: 1 },
+    { type: 'spawn-error', message: 'failed', syscall: 1 }, { type: 'spawn-error', message: 'failed', path: [] },
     { type: 'outcome', exitCode: 0.5, signal: null }, { type: 'outcome', exitCode: '0', signal: null },
     { type: 'outcome', exitCode: 0, signal: 'invalid' }])('rejects malformed bootstrap messages: %j', (message) => {
     const f = fixture()
@@ -181,12 +182,12 @@ describe('Windows bootstrap launch protocol', () => {
     expect(f.job.terminate).toHaveBeenCalledOnce()
   })
 
-  it.each([undefined, 'ENOENT'])('preserves a target spawn failure with code %s', (code) => {
+  it.each([{ code: undefined }, { code: 'ENOENT', syscall: 'spawn missing', path: 'missing' }])('preserves target spawn attribution %j', (details) => {
     const f = fixture()
     f.launch()
     f.child.emit('spawn')
-    f.child.emit('message', { type: 'spawn-error', message: 'target failed', code })
-    expect(f.errors).toEqual([expect.objectContaining({ message: 'target failed', code })])
+    f.child.emit('message', { type: 'spawn-error', message: 'target failed', ...details })
+    expect(f.errors).toEqual([expect.objectContaining({ message: 'target failed', ...details })])
     expect(f.job.terminate).toHaveBeenCalledOnce()
   })
 

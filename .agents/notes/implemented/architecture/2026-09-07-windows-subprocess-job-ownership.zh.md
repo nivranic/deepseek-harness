@@ -12,7 +12,7 @@ Windows 程序可能创建 detached 后代，并在消费者请求终止前退�
 
 ## Decision
 
-本地提供方为每个普通 Windows 子进程持有一个不可继承、不允许 breakaway、关闭即终止的 Job。可信 bootstrap 启动时不带目标的启动环境。父进程先将 bootstrap 分配到 Job，再通过 IPC 发送可执行文件、argv 和显式环境。bootstrap 继承调用方的三条标准流，并以 detached 方式启动目标，避免加入 libuv 额外的随 bootstrap 退出而终止的 Job；目标及后代仍继承提供方的 Job。
+本地提供方为每个普通 Windows 子进程持有一个不可继承、不允许 breakaway、关闭即终止的 Job。可信 bootstrap 启动时不带目标的启动环境。父进程先将 bootstrap 分配到 Job，再通过 IPC 发送可执行文件、argv 和显式环境。bootstrap 继承调用方的三条标准流，启动目标时不启用 Windows detached 模式，使控制台程序保留可用的标准句柄。目标及后代继承提供方的 Job。
 
 bootstrap 通过 IPC 单独报告目标退出事实，与自身退出分开。目标可以退出而后代仍活跃。`done` 保留该结果；`waitForExit()` 要求内核查询成功并确认 Job 活跃成员归零。正常终止请求 `TerminateJobObject`，随后观察成员。即使宿主退出时未执行 JavaScript，关闭所有者句柄也会终止剩余成员，但句柄关闭本身不是退出观察。
 

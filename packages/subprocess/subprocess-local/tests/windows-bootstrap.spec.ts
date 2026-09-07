@@ -63,9 +63,10 @@ describe('Windows bootstrap process IPC', () => {
   })
 
   it('reports asynchronous executable lookup failure', async () => {
-    const result = await runBootstrap({ ...valid, program: fileURLToPath(new URL('./missing-bootstrap-executable', import.meta.url)) })
+    const program = fileURLToPath(new URL('./missing-bootstrap-executable', import.meta.url))
+    const result = await runBootstrap({ ...valid, program })
     expect(result.code).toBe(1)
-    expect(result.messages).toEqual([expect.objectContaining({ type: 'spawn-error', code: 'ENOENT' })])
+    expect(result.messages).toEqual([expect.objectContaining({ type: 'spawn-error', code: 'ENOENT', syscall: `spawn ${program}`, path: program })])
   })
 
   it('reports synchronous native argv rejection as a launch failure', async () => {

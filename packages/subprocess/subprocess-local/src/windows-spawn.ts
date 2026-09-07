@@ -91,8 +91,10 @@ export function spawnWindowsSubprocess(
     }
     const value = input as Record<string, unknown>
     if (value.type === 'spawn-error' && typeof value.message === 'string'
-      && (value.code === undefined || typeof value.code === 'string')) {
-      failLaunch(Object.assign(new Error(value.message), { code: value.code }))
+      && (value.code === undefined || typeof value.code === 'string')
+      && (value.syscall === undefined || typeof value.syscall === 'string')
+      && (value.path === undefined || typeof value.path === 'string')) {
+      failLaunch(Object.assign(new Error(value.message), { code: value.code, syscall: value.syscall, path: value.path }))
     } else if (value.type === 'outcome' && targetOutcome === undefined
       && (value.exitCode === null || typeof value.exitCode === 'number' && Number.isSafeInteger(value.exitCode))
       && (value.signal === null || typeof value.signal === 'string' && /^SIG[A-Z0-9]+$/.test(value.signal))) {

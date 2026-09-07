@@ -68,7 +68,7 @@ This section explains the design decisions behind the provider and points at the
 
 ### Design concept
 
-The provider owns a POSIX process group or a non-breakaway Windows Job independently of the requested program's exit. A Windows bootstrap receives executable, argv, and target environment over IPC only after Job assignment. Its startup environment excludes caller `NODE_*`, `ELECTRON_*`, and `TSX_*` hooks; the target still receives the explicit environment. The bootstrap reports the target outcome separately and permits descendants to remain in the Job after the target exits. `pid` identifies the bootstrap tree root on Windows. The [Job ownership decision](../../../.agents/notes/implemented/architecture/2026-09-07-windows-subprocess-job-ownership.md) explains the fixed SEA entry and assignment interval.
+The provider owns a POSIX process group or a non-breakaway Windows Job independently of the requested program's exit. A Windows bootstrap receives executable, argv, and target environment over IPC only after Job assignment. The target inherits standard handles without detached mode. Spawn errors preserve `code`, `syscall`, and `path` across IPC for executable attribution. Its startup environment excludes caller `NODE_*`, `ELECTRON_*`, and `TSX_*` hooks; the target still receives the explicit environment. The bootstrap reports the target outcome separately and permits descendants to remain in the Job after the target exits. `pid` identifies the bootstrap tree root on Windows. The [Job ownership decision](../../../.agents/notes/implemented/architecture/2026-09-07-windows-subprocess-job-ownership.md) explains the fixed SEA entry and assignment interval.
 
 ### Source map
 
