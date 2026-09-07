@@ -26,7 +26,7 @@ describe('Files endpoint spelling', () => {
       assert.equal(filesEndpoint(prefix + '///'), prefix);
       assert.equal(filesEndpoint('/'.repeat(1_000_000)), '');
     `
-    execFileSync(process.execPath, ['--import', 'tsx/esm', '--input-type=module', '--eval', program], {
+    execFileSync(process.execPath, ['--input-type=module', '--eval', program], {
       timeout: 5_000,
       stdio: 'pipe',
     })

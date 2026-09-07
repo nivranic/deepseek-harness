@@ -190,6 +190,17 @@ describe('gate graph validation', () => {
     },
   )
 
+  it.each(['ci-coverage', 'ci-windows-complete'] as const)(
+    'runs the complete client catalog suite without instrumentation in %s', (mode) => {
+      const gate = withPnpmEntrypoint(() => gatesForMode(mode))
+        .find(subject => subject.id === 'coverage-exempt-heavy')
+      expect(gate?.args).toContain('scripts/gen-client-catalog.spec.ts')
+      expect(gate?.args).not.toContain('--coverage')
+      expect(gate?.env?.DSH_COVERAGE_EXEMPT_HEAVY).toBeUndefined()
+      expect(gate?.allowFailure).not.toBe(true)
+    },
+  )
+
   it('keeps native Windows coverage blocking and behind the complete build', () => {
     const complete = withPnpmEntrypoint(() => gatesForMode('ci-windows-complete'))
     const observational = withPnpmEntrypoint(() => gatesForMode('ci-windows-observational'))
