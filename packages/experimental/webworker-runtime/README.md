@@ -34,6 +34,8 @@ Acceptance lives in `apps/web/tests/preview-boot.e2e.ts`, which serves the real 
 
 -----
 
+`node:sea` exposes `isSea()` as false: the browser worker has no Node executable or embedded SEA assets. Asset APIs are absent.
+
 <a id="model-experience"></a>
 ## Model Experience
 

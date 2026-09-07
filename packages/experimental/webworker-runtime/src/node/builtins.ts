@@ -44,6 +44,7 @@ import * as nodeZlib from './builtin_modules/implemented/zlib.ts'
 import * as nodeChildProcess from './builtin_modules/implemented/child_process.ts'
 import * as nodeNet from './builtin_modules/mock/net.ts'
 import * as nodeSqlite from './builtin_modules/mock/sqlite.ts'
+import * as nodeSea from './builtin_modules/implemented/sea.ts'
 import * as nodeVm from './builtin_modules/mock/vm.ts'
 import * as nodeWorkerThreads from './builtin_modules/mock/worker_threads.ts'
 import * as koffi from './external_packages/koffi.ts'
@@ -73,6 +74,7 @@ const BUILTINS: Record<string, StaticModuleFactory> = {
   path: () => nodePath,
   'path/posix': () => nodePath,
   perf_hooks: () => nodePerfHooks,
+  sea: () => nodeSea,
   sqlite: () => nodeSqlite,
   stream: () => nodeStream,
   'timers/promises': () => nodeTimersPromises,

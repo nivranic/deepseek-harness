@@ -34,6 +34,8 @@ kind: "package-library"
 
 -----
 
+`node:sea` 的 `isSea()` 返回 false：浏览器 worker 没有 Node 可执行文件或内嵌 SEA 资源，不提供资源 API。
+
 <a id="model-experience"></a>
 ## 模型体验
 

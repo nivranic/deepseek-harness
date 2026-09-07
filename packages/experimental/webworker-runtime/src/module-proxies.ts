@@ -50,6 +50,7 @@ export const MODULE_PROXIES: Record<string, string> = {
   'node:timers/promises': './node/builtin_modules/implemented/timers/promises.ts',
   'node:perf_hooks': './node/builtin_modules/implemented/perf_hooks.ts',
   'node:tty': './node/builtin_modules/implemented/tty.ts',
+  'node:sea': './node/builtin_modules/implemented/sea.ts',
   'tty': './node/builtin_modules/implemented/tty.ts',
   // Real zstd codec: session-log appends compress on every write.
   'node:zlib': './node/builtin_modules/implemented/zlib.ts',

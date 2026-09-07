@@ -95,6 +95,11 @@ describe('module identity through the loader', () => {
     expect(tty.isatty(2)).toBe(false)
   })
 
+  it('loads the SEA detector through the worker table without claiming a native executable', () => {
+    const sea = loaderRequire()('node:sea') as { isSea(): boolean }
+    expect(sea.isSea()).toBe(false)
+  })
+
   it('keeps class identity across those specifiers', () => {
     // The consequence the single-instance rule exists for: a second copy would
     // make this comparison answer false with nothing failing.
