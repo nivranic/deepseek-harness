@@ -27,6 +27,16 @@ function file(overrides: Record<string, unknown> = {}) {
 }
 
 describe('DeepSeekFilesClient', () => {
+  it('preserves interior endpoint slashes when joining a Files request', async () => {
+    const endpoint = 'https://example.test/' + '/'.repeat(16_384) + 'v1'
+    const fetchImpl = vi.fn(async (url: string | URL | Request) => {
+      expect(requestUrl(url)).toBe(`${endpoint}/files/file-api-one`)
+      return new Response(JSON.stringify(file()), { status: 200 })
+    }) as typeof fetch
+    const client = new DeepSeekFilesClient({ baseURL: `${endpoint}///`, apiKey: 'key', fetch: fetchImpl })
+    await expect(client.retrieve(DeepSeekFileId('file-api-one'))).resolves.toMatchObject({ id: 'file-api-one' })
+  })
+
   it('uploads multipart bytes with the required purpose and explicit expiry', async () => {
     const fetchImpl = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       expect(requestUrl(url)).toBe('https://api.deepseek.com/files')
