@@ -29,8 +29,11 @@ describe('Mac Host executable assembly', () => {
   it.skipIf(process.platform === 'win32')('preserves executable bytes and refuses stale outputs, empty files, and directories', async () => {
     const root = await mkdtemp(join(tmpdir(), 'mac-host-copy-'))
     try {
+      // Separate payloads from their destination on case-insensitive macOS volumes.
+      const inputDirectory = join(root, 'inputs')
+      await mkdir(inputDirectory)
       const inputs = await Promise.all(['runtime', 'rg', 'spawn-helper', 'HostRuntimeSupervisor'].map(async (name) => {
-        const path = join(root, name)
+        const path = join(inputDirectory, name)
         await writeFile(path, name, { mode: 0o755 })
         return path
       }))

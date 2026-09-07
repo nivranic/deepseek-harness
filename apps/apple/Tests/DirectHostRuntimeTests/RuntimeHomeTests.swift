@@ -27,8 +27,10 @@ final class RuntimeHomeTests: XCTestCase {
 
     func testInvalidExplicitHomeCannotFallBackToUserData() throws {
         let base = URL(fileURLWithPath: "/Users/fixture/host")
-        for value in ["", "relative", "~/host", "/", "/tmp/..", "//server/share", "/tmp/host\n", "/tmp/host\u{0}"] {
-            XCTAssertThrowsError(try RuntimeHome.resolve(defaultHome: base, override: value))
+        // Root aliases must not traverse the system's /tmp symlink.
+        let invalid = ["", "relative", "~/host", "/", "/.", "/..", "//server/share", "/tmp/host\n", "/tmp/host\u{0}"]
+        for (index, value) in invalid.enumerated() {
+            XCTAssertThrowsError(try RuntimeHome.resolve(defaultHome: base, override: value), "invalid home fixture \(index)")
         }
         XCTAssertThrowsError(try RuntimeHome.resolve(defaultHome: XCTUnwrap(URL(string: "https://example.com")), override: nil))
     }
