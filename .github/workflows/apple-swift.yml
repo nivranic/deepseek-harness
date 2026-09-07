@@ -112,7 +112,12 @@ jobs:
 
       - name: swift test
         working-directory: apps/apple
-        run: swift test
+        run: |
+          swift build --product HostRuntimeSupervisor
+          swift test
+
+      - name: Verify native Host supervisor lifetime
+        run: python3 -B -m unittest discover -s apps/apple/Tests/HostRuntimeSupervisorTests -v
 
       - name: Build Host plugins for native acceptance
         run: pnpm run build:official

@@ -39,6 +39,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 
 [Apple archives workflow](../../.github/workflows/apple-archives.yml) 拥有 iOS 设备 Companion 与通用 Mac Companion 的 Release 归档验证。它选择一个干净提交，禁用 Xcode 签名，拒绝 provisioning profile，并通过 ZIP 往返检查内嵌标识、可执行文件平台、架构切片、文件字节、符号链接及 Unix 权限。归档报告保留启动未执行状态，并排除 DirectHostMac；它不是完整 RC 或 iOS 模拟器验收报告。实际归档生产需要该 workflow 的 macOS/Xcode runner，以及用于解析 plist 的 Python 3。[归档决策](../../.agents/notes/implemented/process/2026-09-07-apple-companion-archives.zh.md) 说明这些证据为何分开。
 
+DirectHostMac 拥有 `DirectHostRuntime` 管理器与临时本地 WebView。它通过 `HostRuntimeSupervisor` 启动打包的 `dsh` 可执行程序，等待已认证的 HTTP 健康检查，并把会话与管理行为交给现有 Web UI。重新启动会等待前一 helper 退出，并保留应用 home。原生状态消息不包含运行时 stdout、stderr 或认证 URL。应用要求其架构的运行时可执行程序与 helper 位于 `Contents/Resources/Runtime`；缺少这些文件的源码壳会报告不可用。[直连宿主决策](../../.agents/notes/implemented/architecture/2026-08-31-macos-direct-host.zh.md) 拥有生命周期限制和验证要求。
+
 `LinkClient` 镜像 TypeScript 参考客户端：`pair(payload:deviceName:)` 只接受 fresh client 自身拥有的 endpoint 与 pin，以一次性配对码换取持久化的 `LinkCredentials`（真实部署存 Keychain，预览与测试用内存实现）；`describe()` 返回 Host 描述；`call(_:args:)` 校验回显的 `rpcId`，把成功但省略 value 的响应映射为 `.null`，并带出结构化 refusal；`stream(_:payload:)` 逐帧产出 NDJSON 值，错误帧以类型化失败结束。unary 与 stream 的传输处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。失败的 stream 会读取该响应体以完成分类，成功的 stream 则在未预消费字节的前提下进入 NDJSON 解析。每个请求以设备密钥对 `timestamp\nmethod\npath\nsha256hex(body)` 签名；每次 TLS 握手在写出任何请求字节之前钉扎证书指纹。`InteractionViewModel` 只从每代 Host `ready.clientId` 更新回答身份，从 `waterfall.request` 读取交互字段，应用 cancel frame，并在重连后等待新的 ready frame。
 
 -----
@@ -100,7 +102,7 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 - **已纳入 CI 编译与测试**——[Apple Swift](../../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
 - **真实 Host 验收**——同一车道让 `LinkNativeAcceptance` 对 shipped base 加 desktop Host composition 执行唯一的 13 步共享 corpus。结果分别记录 Host 与 Client commit 以及 protocol、contract、Session format 版本；缺少或跳过任一步都会让车道失败。
 - **已安装 iOS 应用启动**——[CompanionStartupTests](UITests/CompanionStartupTests.swift) 在全新 iPhone 模拟器上启动生产应用壳，检查未配对表单和空输入下禁用的提交按钮，并向保留的 XCTest 结果附加截图。此检查不验证 App 与 Host 配对或真实设备网络。
-- **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义第 49 章 target：iPhone/iPad 与 Mac 伴侣各一个 DSH Companion，均为嵌入 `CompanionRootView` 的 `@main` SwiftUI 壳；车道生成 `Companion.xcodeproj`（不提交）并构建两个 scheme。macOS 直连宿主 target 以宿主侧骨架交付（`Hosts/`，车道构建）；文件查看、首版只读 Diff 与只读工件面板均已交付，工件内容读取随资源通道到来。
+- **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义基于 `CompanionRootView` 的 iPhone/iPad 与 Mac Companion 壳，以及基于 `DirectHostRuntime` 的独立 `DirectHostMac` target。车道生成 `Companion.xcodeproj` 并构建三个 scheme。Full Host 发布验收仍要求直连宿主资源组装、已安装 WebView 验收，以及脱离运行时进程组的工具组由外部所有者管理；Companion 归档不覆盖这些要求。
 - **单一宿主身份**——凭据存储只持有一份配对；多宿主切换随伴侣端的宿主列表到来。
 
 <a id="dev-note"></a>

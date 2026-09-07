@@ -54,6 +54,10 @@ targets:
     sources:
       - Hosts/macOSHostApp.swift
       - Hosts/HostSurface.swift
+      - Hosts/HostCopy.swift
+    dependencies:
+      - package: DshApple
+        product: DirectHostRuntime
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.mac

@@ -16,9 +16,15 @@ let package = Package(
     products: [
         .library(name: "SharedAppleRemoteCore", targets: ["SharedAppleRemoteCore"]),
         .library(name: "CompanionUI", targets: ["CompanionUI"]),
+        .library(name: "DirectHostRuntime", targets: ["DirectHostRuntime"]),
+        .executable(name: "HostRuntimeSupervisor", targets: ["HostRuntimeSupervisor"]),
         .executable(name: "LinkNativeAcceptance", targets: ["LinkNativeAcceptance"]),
     ],
     targets: [
+        .executableTarget(name: "HostRuntimeSupervisor", path: "Sources/HostRuntimeSupervisor"),
+        .target(name: "DirectHostRuntime", path: "Sources/DirectHostRuntime"),
+        .testTarget(name: "DirectHostRuntimeTests", dependencies: ["DirectHostRuntime"],
+                    path: "Tests/DirectHostRuntimeTests"),
         .target(
             name: "SharedAppleRemoteCore",
             path: "Sources/SharedAppleRemoteCore"

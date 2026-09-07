@@ -6,16 +6,24 @@ English | [中文](2026-08-31-macos-direct-host.zh.md)
 
 ## Problem
 
-Chapter 49 names four targets; three shipped (iPhone/iPad and Mac companions) while the macOS Direct Host — the host-side runtime surface — existed only as a line in a limitations list, with no target graph proving host code could stay isolated from the companions.
+A Mac Host runs the Harness runtime, while a Companion consumes another Host. Sharing their application composition would mix runtime authority, process ownership and remote client state. The native Host also needs an external lifecycle owner: a Swift termination callback cannot run after the application is killed.
 
 ## Decision
 
-`project.yml` grows `DirectHostMac`, a macOS application whose sources live under `Hosts/` and belong to no companion target — chapter 49's isolation rule made structural: host-only code cannot leak into iOS, iPadOS, or the Mac companion because it is not in their source lists. The target depends on no package product; the host face is its own thing. `HostHomeView` lays out the host's three administration concerns — remote access, pairing issuance, and paired devices — each an `HostEmptyState` that says plainly the embedded runtime has not landed, honoring the plan's holding position that Runtime Authority stays on the desktop host. The lane builds the scheme beside the companions.
+`DirectHostMac` keeps its native controls under `Hosts/` and depends on the separate `DirectHostRuntime` product. No Companion target depends on that product. The native supervisor launches the bundled runtime only through `dsh --profile web --no-open --host 127.0.0.1 --port 0`; an ephemeral WebView consumes that single local carrier. Session and administration semantics remain owned by the existing Node services and Web UI.
+
+The supervisor accepts only the authenticated loopback root announcement, verifies HTTP health before publishing ready, bounds startup, and rejects stale activation callbacks. Restart waits for shutdown before starting another activation and preserves the application home. A closed failure enum owns native diagnostics; runtime output, cookies, response bodies and launch URLs are never status text or persisted logs.
+
+The native `HostRuntimeSupervisor` helper observes a pipe owned by the Swift application and spawns the fixed runtime invocation in a new POSIX process group. Pipe closure or a stop signal requests group termination; grace expiry forces termination and returns a failure status. Natural runtime failure retains its exit status. This helper is process infrastructure and mounts no Harness services or second Gateway.
 
 ## Consequences
 
-All four chapter-49 targets now exist and build on the lane (55 tests plus three app schemes). The skeleton is deliberately honest: no fake toggles, no invented device rows — the empty states name what each card awaits. Embedding the host runtime is the plan's own later phase and now has a target waiting for it.
+Runtime and helper executables must be assembled under the app's `Contents/Resources/Runtime` directory for the selected architecture. A source shell without those resources reports unavailable. Archive generation for Companions does not establish a Full Host bundle or installed WebView behavior.
+
+The helper owns the runtime group, not the separate POSIX groups and PTY sessions created by tools. As documented by the [local subprocess provider](../../../../packages/subprocess/subprocess-local/README.md), JavaScript-observable shutdown finalizes those resources, while an abrupt runtime or helper death needs external ownership. Full Host no-orphan acceptance remains incomplete until those lifetimes are covered; a group-only smoke cannot close it.
+
+The Apple lane exercises the native helper against real processes and Swift lifecycle behavior against an executable fixture, including startup cancellation, failed health, restart and unexpected death. Real installed runtime/WebView execution, detached-tool cleanup, signing and bundle production remain separate required evidence.
 
 ## Alternatives considered
 
-Reusing CompanionUI for the host face was rejected — the companion surface consumes a host; the host administers one, and mixing them invites exactly the pollution chapter 49 forbids. Deferring the target until the runtime embeds was rejected — the isolation boundary is cheapest to prove while the host code is small.
+Reusing CompanionUI for the host face is rejected because remote client state is not runtime authority. Reimplementing the Harness core or administration API in Swift is rejected because it would introduce a second service implementation. Relying solely on application termination callbacks is rejected because abrupt application death bypasses them. The isolated target remains useful before resource assembly because the dependency graph can already prevent Host code from entering Companion applications.
