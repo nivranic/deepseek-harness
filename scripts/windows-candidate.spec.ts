@@ -128,7 +128,9 @@ describe('Windows candidate production requirements', () => {
     const build = commands.findIndex(command => command.includes('pnpm run build:official'))
     const pack = commands.findIndex(command => command.includes('scripts/build-desktop-exe.ts'))
     const produce = commands.findIndex(command => command.includes('scripts/produce-windows-candidate.ts'))
-    const upload = job.steps.findIndex(step => step.uses?.startsWith('actions/upload-artifact@'))
+    const uploads = job.steps.filter(step => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(uploads).toHaveLength(2)
+    const upload = job.steps.findIndex(step => step.with?.['path'] === '${{ runner.temp }}/windows-rc/')
     expect(build).toBeGreaterThan(-1)
     expect(pack).toBeGreaterThan(build)
     expect(produce).toBeGreaterThan(pack)
@@ -137,6 +139,14 @@ describe('Windows candidate production requirements', () => {
     const diagnostic = job.steps.find(step => step.run?.includes('read-windows-installer-crash.ps1'))
     expect(diagnostic?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
     expect(diagnostic?.run).toContain('$env:RUNNER_TEMP/windows-rc/windows/installer.exe')
+    expect(diagnostic?.run).toContain('Tee-Object -FilePath "$env:RUNNER_TEMP/windows-rc/installer-crash.json"')
+    const failedInputs = uploads.find(step => step.if !== undefined)
+    expect(failedInputs?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
+    expect(failedInputs?.with).toMatchObject({
+      name: 'windows-installer-failure-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}',
+      path: '${{ runner.temp }}/windows-rc/windows/installer.exe\n${{ runner.temp }}/windows-rc/installer-crash.json\n',
+      'if-no-files-found': 'error', 'retention-days': 7, 'compression-level': 0,
+    })
     expect(upload).toBeGreaterThan(produce)
     expect(job.steps[upload]?.if).toBeUndefined()
     expect(job.steps[upload]?.with).toMatchObject({ 'if-no-files-found': 'error', 'compression-level': 0 })

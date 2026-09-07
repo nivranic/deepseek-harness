@@ -42,7 +42,7 @@ The driver captures the rendered provider form, checks uncaught page errors, rec
 
 The producer logs installation, inspector, window and form milestones. Operation and cleanup failures are retained together, including failures before the Electron driver returns a process handle. Directory removal retries transient Windows locks for a bounded interval and still rejects unresolved cleanup; retries do not grant startup acceptance.
 
-After acceptance fails, a separate [read-only diagnostic](../../scripts/release/read-windows-installer-crash.ps1) queries up to 100 Application Error events from the preceding 45 minutes. It matches the supplied absolute path or the file lookup's full path, retaining matches when Windows expands an 8.3 name. It logs the installer hash, byte size and selected crash fields, excluding full event messages and paths. An empty result or unavailable event log does not explain the crash or change the failed job; verified-artifact upload remains conditional on acceptance.
+After acceptance fails, a separate [read-only diagnostic](../../scripts/release/read-windows-installer-crash.ps1) queries up to 100 Application Error events from the preceding 45 minutes. It matches the supplied absolute path or the file lookup's full path, retaining matches when Windows expands an 8.3 name. It logs the installer hash, byte size and selected crash fields, excluding full event messages and paths. An empty result or unavailable event log does not explain the crash or change the failed job; verified-artifact upload remains conditional on acceptance. A failure-only artifact retains the exact installer and this diagnostic JSON for seven days under a `windows-installer-failure-` name, including candidate SHA, run ID and attempt; it contains no platform acceptance receipt.
 
 -----
 
@@ -53,7 +53,7 @@ After acceptance fails, a separate [read-only diagnostic](../../scripts/release/
 
 The npm audit walks the actual packaged application directory, fails on unreadable directories and links, and compares every named package and every available name/version pair with the generated SBOM. Manifests that contain only module metadata do not become packages. Unversioned named manifests remain counted and must appear by name. Windows extended paths preserve coverage for long deployed paths. An empty inventory or an omitted package fails before a tool receipt is emitted.
 
-The final platform receipt binds installer and portable files, named PASS checks, the standard SBOM, screenshots and observed metadata attachments. Portable SLSA provenance names the source repository, commit, builder and workflow invocation and binds all referenced file digests. The common verifier reads all referenced bytes again before the producer writes `windows/receipt.json`. Upload runs only after production succeeds; the artifact name includes source SHA, run ID and attempt, and retention is seven days.
+The final platform receipt binds installer and portable files, named PASS checks, the standard SBOM, screenshots and observed metadata attachments. Portable SLSA provenance names the source repository, commit, builder and workflow invocation and binds all referenced file digests. The common verifier reads all referenced bytes again before the producer writes `windows/receipt.json`. Verified-candidate upload runs only after production succeeds; the artifact name includes source SHA, run ID and attempt, and retention is seven days.
 
 -----
 

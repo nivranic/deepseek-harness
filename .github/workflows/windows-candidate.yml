@@ -82,7 +82,20 @@ jobs:
         run: node --import tsx/esm scripts/produce-windows-candidate.ts --output "$env:RUNNER_TEMP/windows-rc"
       - name: Read candidate installer crash records
         if: failure() && steps.acceptance.outcome == 'failure'
-        run: ./scripts/release/read-windows-installer-crash.ps1 -ExecutablePath "$env:RUNNER_TEMP/windows-rc/windows/installer.exe"
+        run: |
+          ./scripts/release/read-windows-installer-crash.ps1 -ExecutablePath "$env:RUNNER_TEMP/windows-rc/windows/installer.exe" |
+            Tee-Object -FilePath "$env:RUNNER_TEMP/windows-rc/installer-crash.json"
+      - name: Preserve failed installer inputs
+        if: failure() && steps.acceptance.outcome == 'failure'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: windows-installer-failure-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/windows-rc/windows/installer.exe
+            ${{ runner.temp }}/windows-rc/installer-crash.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
       - name: Preserve verified Windows candidate
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
