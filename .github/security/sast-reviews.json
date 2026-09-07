@@ -119,6 +119,31 @@
           "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
         }
       }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-client/src/index.ts",
+      "line": 102,
+      "reason": "The private PinnedAgent authenticates the configured SHA-256 SPKI instead of a public CA chain. It installs the secureConnect verifier before returning the socket and destroys connections with missing, unparseable, differently sized, or mismatching certificate fingerprints. The same source routes pairing, description, unary calls and streams only through that agent. Callers must authenticate the pairing fingerprint out of band. Real TLS regressions wait for natural peer closure and observe zero application bytes for wrong pins across all four operations, with a matching-pin positive control. This review does not cover another TLS transport or a caller-supplied untrusted trust anchor.",
+      "materials": {
+        "packages/remote/link-client/src/index.ts": {
+          "kind": "blob",
+          "oid": "2de64286d8bb3fab8c3150dca5cb340d99915306"
+        },
+        "packages/remote/link-client/tests/pinning.spec.ts": {
+          "kind": "blob",
+          "oid": "c2e6f5432949cd3533a90383dab96b4b3d676d5b"
+        },
+        "packages/remote/link-access/src/tls.ts": {
+          "kind": "blob",
+          "oid": "3dc579be756b52f44da6306a0087d0b6456d0135"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
     }
   ]
 }

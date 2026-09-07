@@ -41,6 +41,8 @@ async function runCompanion(pairingPayload: LinkPairingPayload, sessionId: strin
 
 ### 保管好凭据
 
+TLS 的信任锚是配对流程提供的 SPKI 指纹。调用方必须在配对前通过带外方式验证该指纹；公共 CA 证书链与证书主机名不用于识别私有 Link Host。
+
 把设备 id 与签名密钥持久化到平台安全存储（Apple 用 Keychain，Android 用 Keystore 支撑的存储）。密钥丢失通过重新配对恢复；旧设备记录应予吊销。
 
 -----

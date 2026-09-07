@@ -41,6 +41,8 @@ async function runCompanion(pairingPayload: LinkPairingPayload, sessionId: strin
 
 ### Keep the credentials
 
+The TLS trust anchor is the SPKI fingerprint supplied by the pairing flow. The caller must authenticate that fingerprint out of band before pairing; public CA chains and certificate hostnames do not identify a private Link Host.
+
 Persist the device id and signing key in platform secure storage (Keychain on Apple, Keystore-backed storage on Android). A lost key is recovered by pairing again; the old device record should be revoked.
 
 -----

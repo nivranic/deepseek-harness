@@ -24,6 +24,8 @@ Each Gitleaks invocation proves detection and redaction with a synthetic credent
 
 ## Consequences
 
+The reference Link client's private HTTPS agent authenticates the configured SPKI on every TLS connection. Disabling public-CA validation does not bypass that check. Its exact review pins the implementation, certificate fixture, request-byte regression, and analysis workflow. The regression observes the peer until natural close: incorrect pins for pairing, unary calls, description, and streams transmit no application bytes, while a matching pin reaches the server. A client rejection alone would not establish that property.
+
 Cryptographic review follows the complete construction: the Kotlin relay uses ChaCha20-Poly1305 AEAD, while `ChaCha20` labels its JCA key. Noise's zero nonce prefix is combined with a unique per-key counter; fresh directional keys, serialized exchanges, and refusal before counter exhaustion are required together. Reviews pin the Android tree and analysis workflow so changed callers or nonce ownership require renewed assessment instead of inheriting an algorithm-name exception.
 
 Edited fixture lines or SAST context require renewed review. Unsupported platforms, submodules, incomplete analysis, unavailable account features, and missing outputs fail without retaining stale PASS. Even a fully reviewed finding set cannot override extraction errors. Source-free artifacts reduce remote diagnostic detail; reproduction uses the exact candidate and scanner revision. Unsigned receipts complement [CI source evidence](2026-09-05-ci-source-evidence.md) and [workflow policy](2026-09-05-workflow-security.md).

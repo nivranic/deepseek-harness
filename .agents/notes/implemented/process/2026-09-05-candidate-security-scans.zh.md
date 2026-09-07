@@ -24,6 +24,8 @@ Status: implemented
 
 ## Consequences
 
+参考 Link 客户端的私有 HTTPS agent 在每次 TLS 连接上验证配置的 SPKI。关闭公共 CA 校验不会绕过该检查。精确审查固定实现、证书 fixture、请求字节回归和分析 workflow。回归持续观察对端直到连接自然关闭：配对、单次调用、描述查询与流请求使用错误指纹时都不发送应用字节；正确指纹的对照请求能够到达服务器。仅客户端报错不足以证明这一性质。
+
 密码学审查覆盖完整构造：Kotlin 中继使用 ChaCha20-Poly1305 AEAD，`ChaCha20` 只是其 JCA 密钥的算法标签。Noise 的零 nonce 前缀与每个密钥内唯一的计数器组合；新的方向密钥、串行交换与计数耗尽前拒绝必须同时成立。审查固定 Android tree 和分析 workflow，使调用者或 nonce 所有权变化时必须重新评估，而不能沿用算法名称例外。
 
 修改 fixture 行或 SAST 上下文需要重新审查。不支持的平台、submodule、未完成分析、不可用的账号功能和缺失输出都会失败，不保留旧 PASS。即使全部发现项已审查，也不能覆盖提取错误。不含源码的 artifact 减少远端诊断细节；复现使用准确候选和 scanner revision。未签名回执补充 [CI 源码证据](2026-09-05-ci-source-evidence.zh.md) 和 [workflow 策略](2026-09-05-workflow-security.zh.md)。
