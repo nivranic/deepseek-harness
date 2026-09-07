@@ -116,7 +116,7 @@ describe.skipIf(process.platform !== 'win32')('Windows subprocess Job ownership'
       expect(result).toBeInstanceOf(Error)
       expect((result as Error).message).toContain('without a target outcome')
       expect(await handle.waitForExit(AbortSignal.timeout(10_000))).toBe(true)
-      await vi.waitFor(() =>{  expect(identities.some(identity => inspector.isAlive(identity))).toBe(false) })
+      await vi.waitFor(() => { expect(identities.filter(identity => inspector.isAlive(identity))).toEqual([]) })
     } finally { handle.terminateForHostExit() }
   }, 15_000)
 
@@ -164,7 +164,7 @@ describe.skipIf(process.platform !== 'win32')('Windows subprocess Job ownership'
       await fiber.dispose()
       expect(disposalErrors).toEqual([expect.objectContaining({ message: 'controlled membership query failure' })])
       await handle.done
-      await vi.waitFor(() =>{  expect(identities.some(identity => inspector.isAlive(identity))).toBe(false) })
+      await vi.waitFor(() => { expect(identities.filter(identity => inspector.isAlive(identity))).toEqual([]) })
     } finally { job.close() }
   }, 15_000)
 })

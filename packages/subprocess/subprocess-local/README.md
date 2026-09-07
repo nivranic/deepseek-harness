@@ -88,7 +88,11 @@ The provider owns a POSIX process group or a non-breakaway Windows Job independe
 
 ### Safety invariants
 
-Spill files are opened `0600` with `O_EXCL` and random names under a `0700` per-process directory, defeating symlink planting in shared temp dirs; a failed final close withholds the spill path. Process identities carry start times, so cleanup never follows PID reuse. Host-exit finalization creates no promises or timers, preserves the host exit code and diagnostic, contains each target's failure, and does not claim quiescence.
+Windows process-tree inspection rejects a child created before its observed parent and stops at unreadable parent identities. Creator PIDs can outlive their original process, so matching a parent PID alone cannot establish current ancestry. These process-table observations do not replace kernel Job ownership.
+
+The inspector uses anonymous native structures across module reloads and Node-managed buffers for synchronous output. Win32 retains none of those output pointers after a call returns.
+
+Spill files are opened `0600` with `O_EXCL` and random names under a `0700` per-process directory, defeating symlink planting in shared temp dirs; a failed final close withholds the spill path. Process identities carry start times, and signalling rechecks the recorded creation identity instead of trusting a PID alone. Host-exit finalization creates no promises or timers, preserves the host exit code and diagnostic, contains each target's failure, and does not claim quiescence.
 
 </details>
 
