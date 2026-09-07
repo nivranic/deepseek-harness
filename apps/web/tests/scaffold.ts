@@ -574,6 +574,15 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
   let baseUrl = ''
   let authenticatedUrl = ''
   let cookieHeader = ''
+
+  // The fixture listens on loopback; preserve its browser authority without requiring an OS DNS alias.
+  function fetchHost(path: string, init: RequestInit = {}): Promise<Response> {
+    const target = new URL(path, baseUrl)
+    const headers = new Headers(init.headers)
+    headers.set('host', target.host)
+    target.hostname = '127.0.0.1'
+    return fetch(target, { ...init, headers })
+  }
   let replayHandle: ReplayHandle | undefined
   try {
     process.chdir(workspaceCwd)
@@ -704,7 +713,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     }
     baseUrl = `http://${browserHost}:${String(port)}`
     authenticatedUrl = ctx.connection.authenticatedUrl(baseUrl)
-    const login = await fetch(authenticatedUrl, { redirect: 'manual' })
+    const login = await fetchHost(authenticatedUrl, { redirect: 'manual' })
     const setCookie = login.headers.get('set-cookie')
     if (login.status !== 303 || login.headers.get('location') !== '/' || setCookie === null) {
       throw new Error('web e2e scaffold: browser token exchange did not return its session cookie')
@@ -737,7 +746,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     hostFetch(path: string, init: RequestInit = {}): Promise<Response> {
       const headers = new Headers(init.headers)
       headers.set('cookie', cookieHeader)
-      return fetch(new URL(path, baseUrl), { ...init, headers })
+      return fetchHost(path, { ...init, headers })
     },
     // Barrier stack: the in-process turn/end identifies the session, its
     // explicit flush makes the transcript durable, and the caller's browser

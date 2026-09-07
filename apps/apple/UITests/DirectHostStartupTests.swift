@@ -30,8 +30,7 @@ final class DirectHostStartupTests: XCTestCase {
         let stop = app.buttons["host.runtime.stop"]
         let start = app.buttons["host.runtime.start"]
         XCTAssertTrue(restart.waitForExistence(timeout: 60), "Bundled runtime did not become ready")
-        XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 15))
-        XCTAssertTrue(app.webViews.buttons["New session"].firstMatch.waitForExistence(timeout: 15), "Production Web UI did not render")
+        prepareWebSurface(app, acknowledgeNotice: true)
         XCTAssertEqual(try runtimePids().count, 1)
         XCTAssertTrue(FileManager.default.fileExists(atPath: home.path))
         let screenshot = XCTAttachment(screenshot: app.screenshot())
@@ -44,6 +43,7 @@ final class DirectHostStartupTests: XCTestCase {
         XCTAssertTrue(try runtimePids().isEmpty)
         start.click()
         XCTAssertTrue(restart.waitForExistence(timeout: 60))
+        prepareWebSurface(app, acknowledgeNotice: false)
         let previous = try runtimePids()
         XCTAssertEqual(previous.count, 1)
         restart.click()
@@ -53,11 +53,29 @@ final class DirectHostStartupTests: XCTestCase {
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [replaced], timeout: 60), .completed)
         XCTAssertTrue(stop.waitForExistence(timeout: 60))
-        XCTAssertTrue(app.webViews.buttons["New session"].firstMatch.waitForExistence(timeout: 15))
+        prepareWebSurface(app, acknowledgeNotice: false)
         stop.click()
         XCTAssertTrue(start.waitForExistence(timeout: 15))
         XCTAssertFalse(app.webViews.firstMatch.exists)
         XCTAssertTrue(try runtimePids().isEmpty)
+    }
+
+    /// Fresh WebViews use the shipped onboarding controls; the keyless candidate keeps provider setup deferred.
+    @MainActor
+    private func prepareWebSurface(_ app: XCUIApplication, acknowledgeNotice: Bool) {
+        XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 15))
+        if acknowledgeNotice {
+            let proceed = app.webViews.buttons["Continue"].firstMatch
+            XCTAssertTrue(proceed.waitForExistence(timeout: 15), "The first-run notice did not render")
+            proceed.click()
+        }
+        let later = app.webViews.buttons["Configure later"].firstMatch
+        XCTAssertTrue(later.waitForExistence(timeout: 15), "The keyless provider setup did not render")
+        later.click()
+        let newSession = app.webViews.buttons["New session"].firstMatch
+        let usable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: newSession)
+        XCTAssertEqual(XCTWaiter.wait(for: [usable], timeout: 15), .completed, "Production Web UI is not interactive")
+        newSession.click()
     }
 
     /// ps comm excludes arguments; only PIDs of this assembled application's runtime are retained.

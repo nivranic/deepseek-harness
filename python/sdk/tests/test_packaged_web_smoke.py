@@ -39,7 +39,11 @@ def test_readiness_refuses_nonlocal_or_ambiguous_urls_without_echo(suffix: str) 
 
 
 @pytest.mark.parametrize("fault", [None, "index-auth", "login", "index", "asset", "external",
-                                     "rpc-auth", "rpc-refusal", "rpc-id"])
+                                     "rpc-auth", "rpc-refusal", "rpc-id", "empty-graph", "no-loader",
+                                     "no-bootstrap", "no-application", "unloaded-bootstrap",
+                                     "async-bootstrap", "missing-application-bytes", "duplicate-graph",
+                                     "invalid-json", "invalid-entries", "invalid-batches", "external-batch",
+                                     "wrong-bootstrap-entries"])
 def test_http_checks_use_served_bytes_and_authenticated_rpc(fault: str | None) -> None:
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args: object) -> None:
@@ -54,13 +58,46 @@ def test_http_checks_use_served_bytes_and_authenticated_rpc(fault: str | None) -
                 status = 200 if fault == "index-auth" else 401
             elif self.path == "/":
                 script = "https://example.com/main.js" if fault == "external" else "./assets/main.js"
-                data = (f'<script>window.__DSH_BOOT__={{}}</script><script src="{script}"></script>').encode()
+                graph = {
+                    "entries": [{"id": "@deepseek-ai/dsh-client-modules"}, {"id": "@fixture/app"}],
+                    "batches": [{"phase": "bootstrap", "url": "/plugins/bootstrap.js",
+                                 "entries": ["@deepseek-ai/dsh-client-modules"]},
+                                {"phase": "application", "url": "/plugins/app.js", "entries": ["@fixture/app"]}],
+                }
+                if fault == "empty-graph":
+                    graph = {"entries": [], "batches": []}
+                if fault == "no-loader":
+                    graph["entries"] = [{"id": "@fixture/app"}]
+                if fault == "no-bootstrap":
+                    graph["batches"] = graph["batches"][1:]
+                if fault == "no-application":
+                    graph["batches"] = graph["batches"][:1]
+                if fault == "wrong-bootstrap-entries":
+                    graph["batches"][0]["entries"] = ["@fixture/app"]
+                if fault == "invalid-entries":
+                    graph["entries"] = [None]
+                if fault == "invalid-batches":
+                    graph["batches"] = [None]
+                if fault == "external-batch":
+                    graph["batches"][1]["url"] = "https://example.com/app.js"
+                declaration = json.dumps(graph) if fault != "invalid-json" else "fixture-token"
+                declaration = f'<script>globalThis["__DSH_BOOT__"] = {declaration}</script>'
+                if fault == "duplicate-graph":
+                    declaration *= 2
+                bootstrap = '<script src="/plugins/bootstrap.js"></script>'
+                if fault == "unloaded-bootstrap":
+                    bootstrap = ""
+                if fault == "async-bootstrap":
+                    bootstrap = '<script async src="/plugins/bootstrap.js"></script>'
+                data = (bootstrap + declaration + f'<script type="module" src="{script}"></script>').encode()
                 if fault == "index":
                     data = b"<html>missing boot manifest</html>"
                 headers["content-type"] = "text/html"
             else:
                 headers["content-type"] = "text/html" if fault == "asset" else "application/javascript"
                 data = b"<html>fallback</html>" if fault == "asset" else b"export default 1"
+                if fault == "missing-application-bytes" and self.path == "/plugins/app.js":
+                    status = 404
             self.send_response(status)
             for name, value in headers.items():
                 self.send_header(name, value)
@@ -90,7 +127,8 @@ def test_http_checks_use_served_bytes_and_authenticated_rpc(fault: str | None) -
         value = f"http://127.0.0.1:{server.server_port}/?token=fixture-token"
         if fault is None:
             assert SMOKE["verify_http"](value) == {
-                "authentication": "PASS", "frontend": "PASS", "scriptCount": 1, "sessionRpc": "PASS",
+                "authentication": "PASS", "frontend": "PASS", "scriptCount": 2,
+                "pluginCount": 2, "batchCount": 2, "sessionRpc": "PASS",
             }
         else:
             with pytest.raises(SMOKE["WebSmokeFailure"]) as error:

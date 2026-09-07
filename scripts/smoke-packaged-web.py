@@ -52,15 +52,63 @@ def parse_ready(line: str) -> str | None:
 
 
 class Scripts(HTMLParser):
-    """Read actual script references from the served production index."""
+    """Read script references and the JSON boot declaration without executing JavaScript."""
 
     def __init__(self) -> None:
         super().__init__()
         self.sources: list[str] = []
+        self.blocking_sources: list[str] = []
+        self.inline: list[str] = []
+        self.current: list[str] | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag == "script":
-            self.sources.extend(value for key, value in attrs if key == "src" and value)
+            attributes = dict(attrs)
+            source = attributes.get("src")
+            self.current = [] if source is None else None
+            if source:
+                self.sources.append(source)
+                if not any(key in attributes for key in ("async", "defer", "type")):
+                    self.blocking_sources.append(source)
+
+    def handle_data(self, data: str) -> None:
+        if self.current is not None:
+            self.current.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "script" and self.current is not None:
+            self.inline.append("".join(self.current))
+            self.current = None
+
+
+def boot_assets(scripts: Scripts) -> tuple[int, list[str]]:
+    """Require the packaged web composition's module bootstrap and application bundle declarations."""
+    prefix = 'globalThis["__DSH_BOOT__"] = '
+    declarations = [text[len(prefix):] for text in scripts.inline if text.startswith(prefix)]
+    require(len(declarations) == 1, "packaged frontend must declare one JSON boot graph")
+    try:
+        graph = json.loads(declarations[0])
+    except ValueError:
+        raise WebSmokeFailure("packaged frontend boot graph is not JSON") from None
+    require(isinstance(graph, dict), "packaged frontend boot graph is not an object")
+    entries, batches = graph.get("entries"), graph.get("batches")
+    require(isinstance(entries, list) and bool(entries)
+            and all(isinstance(entry, dict) for entry in entries),
+            "packaged frontend boot graph has no valid plugin entries")
+    require(any(entry.get("id") == "@deepseek-ai/dsh-client-modules" for entry in entries),
+            "packaged frontend boot graph has no client module loader")
+    require(isinstance(batches, list) and bool(batches)
+            and all(isinstance(batch, dict) and isinstance(batch.get("url"), str)
+                    and bool(batch["url"]) for batch in batches),
+            "packaged frontend boot graph has no valid bundle batches")
+    bootstrap = [batch for batch in batches if batch.get("phase") == "bootstrap"]
+    require(any(isinstance(batch.get("entries"), list)
+                and "@deepseek-ai/dsh-client-modules" in batch["entries"] for batch in bootstrap)
+            and all(batch["url"] in scripts.blocking_sources for batch in bootstrap),
+            "packaged frontend module bootstrap is not parser loaded")
+    require(any(batch.get("phase") == "application" for batch in batches),
+            "packaged frontend boot graph has no application bundle")
+    return len(entries), [batch["url"] for batch in batches]
 
 
 def request(port: int, target: str, headers: dict[str, str] | None = None,
@@ -96,7 +144,8 @@ def verify_http(ready_url: str) -> dict[str, object]:
     scripts = Scripts()
     scripts.feed(index.decode("utf-8"))
     require(bool(scripts.sources), "packaged frontend has no script references")
-    for source in scripts.sources:
+    entry_count, batches = boot_assets(scripts)
+    for source in dict.fromkeys([*scripts.sources, *batches]):
         asset = urlsplit(urljoin(origin + "/", source))
         require(asset.scheme == "http" and asset.netloc == address.netloc,
                 "frontend script leaves the local carrier")
@@ -117,7 +166,7 @@ def verify_http(ready_url: str) -> dict[str, object]:
                        "result": {"ok": True, "value": {"items": []}}},
             "Session RPC did not return the fresh home's empty session list")
     return {"authentication": "PASS", "frontend": "PASS", "scriptCount": len(scripts.sources),
-            "sessionRpc": "PASS"}
+            "pluginCount": entry_count, "batchCount": len(batches), "sessionRpc": "PASS"}
 
 
 def stop_process(child: subprocess.Popen[str], timeout: float = 10) -> None:

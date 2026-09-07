@@ -69,6 +69,14 @@ jobs:
         run: pnpm exec vitest run scripts/release/mac-host-bundle.spec.ts
       - name: Build, assemble and exercise the Mac Host
         run: node --import tsx/esm scripts/produce-mac-host.ts --output "$RUNNER_TEMP/mac-host-candidate"
+      - name: Export native Host screenshots
+        if: always()
+        run: |
+          if [[ -d "$RUNNER_TEMP/mac-host-candidate/HostStartup.xcresult" ]]; then
+            xcrun xcresulttool export attachments \
+              --path "$RUNNER_TEMP/mac-host-candidate/HostStartup.xcresult" \
+              --output-path "$RUNNER_TEMP/mac-host-candidate/screenshots"
+          fi
       - name: Preserve verified Mac Host candidate
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -78,6 +86,7 @@ jobs:
             ${{ runner.temp }}/mac-host-candidate/*.json
             ${{ runner.temp }}/mac-host-candidate/packaged-web.log
             ${{ runner.temp }}/mac-host-candidate/app-test.log
+            ${{ runner.temp }}/mac-host-candidate/screenshots
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
@@ -90,5 +99,6 @@ jobs:
             ${{ runner.temp }}/mac-host-candidate/*.json
             ${{ runner.temp }}/mac-host-candidate/*.log
             ${{ runner.temp }}/mac-host-candidate/HostStartup.xcresult
+            ${{ runner.temp }}/mac-host-candidate/screenshots
           if-no-files-found: warn
           retention-days: 7

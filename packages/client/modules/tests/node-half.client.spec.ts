@@ -62,6 +62,24 @@ function writeBuiltPackage(packageName: string, client: Record<string, unknown>)
   writeFileSync(clientPath, 'module.exports = {}\n')
 }
 
+/** A managed runtime fallback imports its source module but carries no client declaration or bundle bytes. */
+function writeModuleFallback(
+  packageName: string, target: string, overrides: Record<string, unknown> = {}, label = 'fallback',
+): string {
+  root ??= realpathSync(mkdtempSync(join(tmpdir(), 'dsh-client-modules-')))
+  const directory = join(root, label, ...packageName.split('/'))
+  mkdirSync(directory, { recursive: true })
+  const entry = join(directory, 'entry-0.js')
+  writeFileSync(entry, `export * from ${JSON.stringify(target)}\n`)
+  writeFileSync(join(directory, 'package.json'), JSON.stringify({
+    name: packageName,
+    exports: { '.': './entry-0.js' },
+    dsh: { moduleFallback: { targets: { '.': target } } },
+    ...overrides,
+  }))
+  return pathToFileURL(entry).href
+}
+
 /** Construct the node-half service and capture its plugin-bundle route. */
 function constructWithRoute(
   packageNames: string[],
@@ -357,6 +375,49 @@ describe('client bundle activation', () => {
     },
   )
 
+  it('loads the canonical client declaration and bytes through a packaged module fallback', async () => {
+    const clientPath = writePackage(MODULES_ID)
+    mkdirSync(dirname(clientPath), { recursive: true })
+    writeFileSync(clientPath, 'window.__ModuleLoader__.load({id:"canonical-client"})\n')
+    const hostPath = join(dirname(clientPath), 'index.js')
+    writeFileSync(hostPath, 'export default {}\n')
+    const first = writeModuleFallback(MODULES_ID, pathToFileURL(hostPath).href)
+    const nested = writeModuleFallback(MODULES_ID, first, {}, 'nested-fallback')
+    const internal = { version: 'v2' as const, resolveSync: () => ({ format: 'module' as const, url: nested }) }
+    const { service } = constructWithRoute([MODULES_ID], {
+      internal: internal as unknown as NonNullable<Context['loader']['internal']>,
+    })
+    expect(service.clientPath(MODULES_ID)).toBe(clientPath)
+    expect(service.graph().entries.map(entry => entry.id)).toEqual([MODULES_ID])
+    const batch = service.graph().batches.find(row => row.phase === 'bootstrap')!
+    expect(bootInjections(service.graph())).toContainEqual({ kind: 'script-src', placement: 'head', src: batch.url })
+    expect(await service.bundleFetch(new Request('http://fixture.test' + batch.url)).text()).toContain('canonical-client')
+  })
+
+  it.each([
+    { dsh: { moduleFallback: null } },
+    { dsh: { moduleFallback: 'invalid' } },
+    { dsh: { moduleFallback: { targets: null } } },
+    { dsh: { moduleFallback: { targets: [] } } },
+    { exports: null }, { exports: 'invalid' }, { exports: [] },
+    { exports: { '.': 42 } }, { exports: { '.': 'entry-0.js' } },
+    { exports: { '.': './different.js' } },
+    { exports: { '.': './entry-0.js', './alias': './entry-0.js' } },
+    { dsh: { moduleFallback: { targets: {} } } },
+    { dsh: { moduleFallback: { targets: { '.': 42 } } } },
+    { dsh: { moduleFallback: { targets: { '.': 'https://example.test/module.js' } } } },
+  ])('rejects malformed managed fallback metadata %j', (overrides) => {
+    const proxy = writeModuleFallback(MODULES_ID, pathToFileURL(join(tmpdir(), 'unowned-module.js')).href, overrides)
+    expect(() => construct([proxy])).toThrow('managed module fallback')
+  })
+
+  it('rejects cyclic and unowned module fallback targets', () => {
+    const proxy = writeModuleFallback(MODULES_ID, pathToFileURL(join(tmpdir(), 'unowned-module.js')).href)
+    expect(() => construct([proxy])).toThrow('target has no owning package')
+    writeModuleFallback(MODULES_ID, proxy)
+    expect(() => construct([proxy])).toThrow('fallback cycle')
+  })
+
   it('derives the browser module id from a file entry owning manifest', () => {
     const packageName = '@fixture/file-entry'
     const clientPath = writePackage(packageName)
@@ -369,6 +430,21 @@ describe('client bundle activation', () => {
 
     expect(service.clientPath(packageName)).toBe(clientPath)
     expect(service.graph().entries.map(entry => entry.id)).toEqual([packageName])
+  })
+
+  it.each([undefined, null, 'not-a-declaration'])('ignores file packages without client metadata %j', (dsh) => {
+    const path = writePackage('@fixture/plain-module', { dsh })
+    expect(construct([pathToFileURL(path).href]).graph().entries).toEqual([])
+  })
+
+  it.each(['node:fs', 'mismatched-package'])('does not borrow client metadata from %s', (target) => {
+    const path = writePackage('@fixture/different-package')
+    const url = target === 'node:fs' ? target : pathToFileURL(path).href
+    const internal = { version: 'v2' as const, resolveSync: () => ({ format: 'module' as const, url }) }
+    const { service } = constructWithRoute([MODULES_ID], {
+      internal: internal as unknown as NonNullable<Context['loader']['internal']>,
+    })
+    expect(service.graph().entries).toEqual([])
   })
 
   it.each(['relative', 'absolute'] as const)(

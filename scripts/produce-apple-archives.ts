@@ -7,7 +7,7 @@ import { APPLE_ARCHIVE_TARGETS, appleArchiveSettings, readAppleArchiveProperties
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
 import { captureCiSource } from './release/ci-source.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
-import { hashRcOutput } from './release/rc-output.ts'
+import { hashRcOutput, writeRcOutput } from './release/rc-output.ts'
 
 const execute = promisify(execFile)
 const repository = process.cwd()
@@ -27,17 +27,13 @@ if (staleProductIdentityFiles(repository, identity).length !== 0) throw new Erro
 const output = resolve(outputArg)
 await mkdir(output, { recursive: false })
 
-async function jsonFile(path: string, value: unknown): Promise<void> {
-  await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx' })
-}
-
 async function command(file: string, args: string[], cwd = repository): Promise<string> {
   const result = await execute(file, args, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
   return result.stdout.trim()
 }
 
-await jsonFile(join(output, 'source.json'), source)
-await jsonFile(join(output, 'toolchain.json'), {
+await writeRcOutput(output, 'source.json', source)
+await writeRcOutput(output, 'toolchain.json', {
   xcode: await command('/usr/bin/xcodebuild', ['-version']),
   swift: await command('/usr/bin/xcrun', ['swift', '--version']),
   python: await command('python3', ['--version']),
@@ -90,7 +86,7 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
   verifyAppleArchive(identity, target, { settings, appPlist, archivePlist, architectures, binaryPlatforms })
   const files = await inventoryAppleArchive(archivePath)
   const inventoryPath = join(targetRoot, 'inventory.json')
-  await jsonFile(inventoryPath, { schemaVersion: 1, sourceSha, archive: archiveName, files })
+  await writeRcOutput(targetRoot, 'inventory.json', { schemaVersion: 1, sourceSha, archive: archiveName, files })
   const zipPath = join(targetRoot, `${archiveName}.zip`)
   await command('/usr/bin/ditto', ['-c', '-k', '--keepParent', archivePath, zipPath])
   const extractedRoot = join(targetRoot, 'recheck')
@@ -117,13 +113,13 @@ const finalSource = captureCiSource(repository, '.github/workflows/apple-archive
 })
 if (finalSource.dirty || finalSource.checkoutSha !== source.checkoutSha || finalSource.treeSha !== source.treeSha
   || finalSource.workflowSha256 !== source.workflowSha256) throw new Error('source checkout changed during archive production')
-await jsonFile(join(output, 'archives.json'), {
+await writeRcOutput(output, 'archives.json', {
   schemaVersion: 1, kind: 'apple-companion-archives', status: 'ARCHIVES_VERIFIED', sourceSha, identity,
   source: { path: 'source.json', ...await hashRcOutput(join(output, 'source.json')) },
   toolchain: { path: 'toolchain.json', ...await hashRcOutput(join(output, 'toolchain.json')) },
   producers: await Promise.all(producerPaths.map(async path => ({ path, ...await hashRcOutput(join(repository, path)) }))),
   artifacts, signing: { requested: false, provisioning: 'absent', distributionExport: 'NOT_EXECUTED' },
   startup: { status: 'NOT_EXECUTED', reason: 'Archive verification does not run an application; simulator builds are different binaries.' },
-  fullRuntime: { status: 'NOT_PRODUCED', reason: 'DirectHostMac has no embedded runtime producer.' },
+  fullRuntime: { status: 'NOT_PRODUCED', reason: 'This workflow produces Companion archives; Mac Host candidates have a separate producer.' },
   completeRc: false,
 })

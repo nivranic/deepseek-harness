@@ -9,7 +9,7 @@ import { verifyAppleProduct } from './release/apple-product.ts'
 import { captureCiSource } from './release/ci-source.ts'
 import { copyMacHostExecutables, verifyMacHostMachO } from './release/mac-host-bundle.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
-import { hashRcOutput } from './release/rc-output.ts'
+import { hashRcOutput, writeRcOutput } from './release/rc-output.ts'
 
 const execute = promisify(execFile)
 const repository = process.cwd()
@@ -32,10 +32,6 @@ if (staleProductIdentityFiles(repository, identity).length !== 0) throw new Erro
 const output = resolve(directory)
 await mkdir(output, { recursive: false })
 
-async function jsonFile(path: string, value: unknown): Promise<void> {
-  await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx' })
-}
-
 async function command(file: string, args: string[], cwd = repository, log?: string): Promise<string> {
   try {
     const result = await execute(file, args, { cwd, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024,
@@ -51,8 +47,8 @@ async function command(file: string, args: string[], cwd = repository, log?: str
   }
 }
 
-await jsonFile(join(output, 'source.json'), source)
-await jsonFile(join(output, 'toolchain.json'), {
+await writeRcOutput(output, 'source.json', source)
+await writeRcOutput(output, 'toolchain.json', {
   xcode: await command('/usr/bin/xcodebuild', ['-version']),
   swift: await command('/usr/bin/xcrun', ['swift', '--version']),
   xcodegen: await command('xcodegen', ['--version']), node: process.version,
@@ -89,14 +85,14 @@ const inspections = await Promise.all([executable, ...inputs].map(async (file) =
   const fields = build.split(/\r?\n/).filter(line => /^\s*(cmd|cmdsize|platform|minos|sdk|ntools|tool|version)\s+/.test(line)).join('\n')
   return { name: basename(file), slices, build: fields }
 }))
-await jsonFile(join(output, 'binary-inspections.json'), { sourceSha, architecture, binaries: inspections })
+await writeRcOutput(output, 'binary-inspections.json', { sourceSha, architecture, binaries: inspections })
 for (const { slices, build } of inspections) {
   verifyMacHostMachO(architecture, slices, build)
 }
 const resources = join(app, 'Contents/Resources/Runtime')
 await mkdir(join(app, 'Contents/Resources'), { recursive: true })
 const files = await copyMacHostExecutables(resources, inputs)
-await jsonFile(join(output, 'runtime-inputs.json'), { sourceSha, architecture, files })
+await writeRcOutput(output, 'runtime-inputs.json', { sourceSha, architecture, files })
 const bundledRuntime = join(resources, `deepseek-harness-sdk-runtime-macos-${process.arch}`)
 if (await command(bundledRuntime, ['--version'], output) !== identity.version) {
   throw new Error('bundled dsh version differs from the Mac Host product identity')
@@ -121,7 +117,7 @@ await command('/usr/bin/ditto', ['-x', '-k', zip, recheck])
 if (JSON.stringify(await inventoryAppleArchive(join(recheck, 'DSH Host.app'))) !== JSON.stringify(before)) {
   throw new Error('Mac Host ZIP round trip changed packaged files or permissions')
 }
-await jsonFile(join(output, 'inventory.json'), { sourceSha, files: before })
+await writeRcOutput(output, 'inventory.json', { sourceSha, files: before })
 const finalSource = captureCiSource(repository, workflow, environment)
 if (finalSource.dirty || finalSource.checkoutSha !== source.checkoutSha || finalSource.treeSha !== source.treeSha
   || finalSource.workflowSha256 !== source.workflowSha256) throw new Error('source checkout changed during Mac Host production')
@@ -130,7 +126,7 @@ const producers = [workflow, 'scripts/produce-mac-host.ts', 'scripts/release/mac
   'scripts/release/ci-source.ts', 'scripts/release/ci-evidence.ts', 'scripts/release/rc-output.ts',
   'scripts/release/product-files.ts', 'scripts/release/product-identity.ts', 'scripts/build-exe-for-python-sdk.ts',
   'scripts/build-exe-for-python-sdk-native-pty.ts', 'scripts/smoke-packaged-web.py', 'pnpm-lock.yaml']
-await jsonFile(join(output, 'bundle.json'), {
+await writeRcOutput(output, 'bundle.json', {
   schemaVersion: 1, kind: 'mac-host-candidate', sourceSha, identity, architecture, runtimeClass: 'full',
   status: 'BUNDLE_AND_STARTUP_VERIFIED',
   archive: { path: 'DSH-Host.app.zip', ...await hashRcOutput(zip) },

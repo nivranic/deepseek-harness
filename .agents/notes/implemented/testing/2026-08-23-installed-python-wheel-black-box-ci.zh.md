@@ -22,7 +22,7 @@ Python SDK 单元测试驱动 fake peer，而打包运行时工作流可以在�
 
 Linux 另外保留 manylinux 2.28 干净安装冒烟测试与 GLIBC 检查。macOS 保留部署目标与原生 helper 检查。这些平台约束补充共同黑盒行为，不能替代它。
 
-POSIX installed-wheel 流程还通过同一打包 `dsh` 可执行程序验证内置 `web` profile。单独完成 SDK 轮次无法证明封闭运行时包含生产前端，或挂载了带认证的 HTTP 载体。Web smoke 使用全新 home，验证未认证请求被拒绝，交换内存中的启动 token，读取实际脚本字节和空 Session 列表，并要求 SIGTERM 后以零状态退出且进程组无残留成员。其固定诊断字段不包含运行时输出、URL、cookie 或响应正文。HTTP 夹具反例与真实 POSIX 停机失败用例约束这条验收路径；浏览器交互和 DirectHostMac 内嵌仍由各自验证负责。
+POSIX installed-wheel 流程还通过同一打包 `dsh` 可执行程序验证内置 `web` profile。单独完成 SDK 轮次无法证明封闭运行时包含生产前端，或挂载了带认证的 HTTP 载体。Web smoke 使用全新 home，验证未认证请求被拒绝，交换内存中的启动 token，拒绝空启动图或缺少 parser 已加载模块 bootstrap 的页面，读取所有声明的 bundle 和空 Session 列表，并要求 SIGTERM 后以零状态退出且进程组无残留成员。其固定诊断字段不包含运行时输出、URL、cookie 或响应正文。HTTP 夹具反例与真实 POSIX 停机失败用例约束这条验收路径；浏览器交互和 DirectHostMac 内嵌仍由各自验证负责。
 
 ### 真实 DeepSeek API
 
