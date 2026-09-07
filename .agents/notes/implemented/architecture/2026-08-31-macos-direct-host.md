@@ -18,11 +18,13 @@ The native `HostRuntimeSupervisor` helper observes a pipe owned by the Swift app
 
 ## Consequences
 
-Runtime and helper executables must be assembled under the app's `Contents/Resources/Runtime` directory for the selected architecture. A source shell without those resources reports unavailable. Archive generation for Companions does not establish a Full Host bundle or installed WebView behavior.
+The [Mac Host producer](../../../../scripts/produce-mac-host.ts) assembles the runtime, rg, spawn-helper and lifecycle helper under `Contents/Resources/Runtime` from one clean candidate checkout. Native binary tools reject wrong architectures, non-macOS slices and deployment targets above macOS 14; copied bytes, embedded product versions, signatures and the ZIP round trip are checked independently. The producer seals only the outer app with an ad-hoc signature, preserving the SEA builder's nested signatures and entitlements. A source shell without resources reports unavailable. Companion archive evidence does not cover the Host bundle.
+
+An explicit application `DSH_HOME` is resolved before launch and must be an absolute POSIX directory path. Invalid values cannot fall back to the default home. This supports isolated installed-app verification through the same configuration consumed by the runtime, without a test-only launcher or a second persistence implementation.
 
 The helper owns the runtime group, not the separate POSIX groups and PTY sessions created by tools. As documented by the [local subprocess provider](../../../../packages/subprocess/subprocess-local/README.md), JavaScript-observable shutdown finalizes those resources, while an abrupt runtime or helper death needs external ownership. Full Host no-orphan acceptance remains incomplete until those lifetimes are covered; a group-only smoke cannot close it.
 
-The Apple lane exercises the native helper against real processes and Swift lifecycle behavior against an executable fixture, including startup cancellation, failed health, restart and unexpected death. Real installed runtime/WebView execution, detached-tool cleanup, signing and bundle production remain separate required evidence.
+The Apple lane exercises the native helper against real processes and Swift lifecycle behavior against an executable fixture. The separate Mac Host candidate lane builds and tests the assembled app on an ephemeral macOS runner, with production Web content and an isolated home. Its verified artifact requires native UI and bundled Web acceptance; build success alone cannot produce that artifact. Detached-tool cleanup, Developer ID signing, notarization and full supply-chain acceptance remain separate requirements.
 
 ## Alternatives considered
 

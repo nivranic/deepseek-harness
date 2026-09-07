@@ -18,6 +18,7 @@ struct HostHomeView: View {
                     Button(copy.restart) { Task { await runtime.restart() } }
                         .accessibilityIdentifier("host.runtime.restart")
                     Button(copy.stop) { Task { await runtime.stop() } }
+                        .accessibilityIdentifier("host.runtime.stop")
                 } else if runtime.status == .stopped || isFailed {
                     Button(copy.start) { runtime.start() }
                         .accessibilityIdentifier("host.runtime.start")
@@ -56,6 +57,7 @@ private struct LocalRuntimeView: NSViewRepresentable {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
         let view = WKWebView(frame: .zero, configuration: configuration)
+        view.setAccessibilityIdentifier("host.runtime.web")
         view.navigationDelegate = context.coordinator
         view.load(URLRequest(url: launch))
         return view

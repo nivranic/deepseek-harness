@@ -20,7 +20,7 @@ struct DirectHostMacApp: App {
         #endif
         _runtime = StateObject(wrappedValue: RuntimeSupervisor(
             executable: executable, helper: resources.appendingPathComponent("HostRuntimeSupervisor"),
-            home: home, policy: policy
+            home: home, policy: policy, homeOverride: ProcessInfo.processInfo.environment["DSH_HOME"]
         ))
     }
 

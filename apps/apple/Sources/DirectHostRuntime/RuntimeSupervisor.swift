@@ -4,7 +4,7 @@ import Foundation
 
 /// Closed failure classes keep runtime output and authentication material out of diagnostics.
 public enum RuntimeFailure: String, Equatable {
-    case unavailable, startFailed, startupTimeout, invalidAnnouncement, healthFailed, unexpectedExit, shutdownFailed
+    case unavailable, invalidConfiguration, startFailed, startupTimeout, invalidAnnouncement, healthFailed, unexpectedExit, shutdownFailed
 }
 
 /// User-observable state of one owned runtime activation.
@@ -70,20 +70,25 @@ public final class RuntimeSupervisor: ObservableObject {
 
     private let executable: URL
     private let helper: URL
-    private let home: URL
+    private let home: URL?
     private let policy: RuntimePolicy
     private var activation: Activation?
 
-    public init(executable: URL, helper: URL, home: URL, policy: RuntimePolicy) {
+    /// Invalid explicit home configuration fails on start without creating or using the default home.
+    public init(executable: URL, helper: URL, home: URL, policy: RuntimePolicy, homeOverride: String? = nil) {
         self.executable = executable
         self.helper = helper
-        self.home = home
+        self.home = try? RuntimeHome.resolve(defaultHome: home, override: homeOverride)
         self.policy = policy
     }
 
     /// Start only when the previous activation has exited. Duplicate starts join the existing state.
     public func start() {
         guard activation == nil else { return }
+        guard let home else {
+            status = .failed(.invalidConfiguration)
+            return
+        }
         guard [executable, helper, home].allSatisfy(\.isFileURL),
               FileManager.default.isExecutableFile(atPath: executable.path),
               FileManager.default.isExecutableFile(atPath: helper.path) else {

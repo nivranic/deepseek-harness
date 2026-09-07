@@ -1,0 +1,138 @@
+/** Build and exercise one ad-hoc Mac Host candidate from its exact clean source checkout. */
+import { execFile } from 'node:child_process'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+import { promisify } from 'node:util'
+import { appleArchiveSettings } from './release/apple-archive.ts'
+import { inventoryAppleArchive } from './release/apple-archive-files.ts'
+import { verifyAppleProduct } from './release/apple-product.ts'
+import { captureCiSource } from './release/ci-source.ts'
+import { copyMacHostExecutables, verifyMacHostMachO } from './release/mac-host-bundle.ts'
+import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
+import { hashRcOutput } from './release/rc-output.ts'
+
+const execute = promisify(execFile)
+const repository = process.cwd()
+const workflow = '.github/workflows/mac-host-candidate.yml'
+const [option, directory, ...extra] = process.argv.slice(2)
+if (option !== '--output' || directory === undefined || extra.length !== 0) {
+  throw new Error('usage: produce-mac-host.ts --output <new-directory>')
+}
+if (process.platform !== 'darwin' || process.env.RUNNER_ENVIRONMENT !== 'github-hosted') {
+  throw new Error('Mac Host application acceptance requires an ephemeral hosted macOS runner')
+}
+if (process.arch !== 'arm64' && process.arch !== 'x64') throw new Error('unsupported Mac Host architecture')
+const sourceSha = process.env.DSH_RC_SOURCE_SHA
+if (sourceSha === undefined || !/^[a-f0-9]{40}$/.test(sourceSha)) throw new Error('an immutable DSH_RC_SOURCE_SHA is required')
+const environment = { ...process.env, DSH_CI_CANDIDATE_SHA: sourceSha }
+const source = captureCiSource(repository, workflow, environment)
+if (source.checkoutSha !== sourceSha || source.dirty) throw new Error('Mac Host producer requires the exact clean candidate checkout')
+const identity = readProductIdentity(repository)
+if (staleProductIdentityFiles(repository, identity).length !== 0) throw new Error('generated product identity is stale')
+const output = resolve(directory)
+await mkdir(output, { recursive: false })
+
+async function jsonFile(path: string, value: unknown): Promise<void> {
+  await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx' })
+}
+
+async function command(file: string, args: string[], cwd = repository, log?: string): Promise<string> {
+  try {
+    const result = await execute(file, args, { cwd, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024,
+      env: { ...process.env, DSH_BUILD_CLIENT_PROFILE: 'official', DSH_TELEMETRY_DISABLED: '1' } })
+    if (log !== undefined) await writeFile(join(output, log), result.stdout + result.stderr, { flag: 'wx' })
+    return result.stdout.trim()
+  } catch (error) {
+    if (log !== undefined && error instanceof Error && 'stdout' in error && 'stderr' in error) {
+      await writeFile(join(output, log), String(error.stdout) + String(error.stderr), { flag: 'wx' })
+    }
+    // Build commands contain no credentials; application smoke owns payload-free failure diagnostics.
+    throw error
+  }
+}
+
+await jsonFile(join(output, 'source.json'), source)
+await jsonFile(join(output, 'toolchain.json'), {
+  xcode: await command('/usr/bin/xcodebuild', ['-version']),
+  swift: await command('/usr/bin/xcrun', ['swift', '--version']),
+  xcodegen: await command('xcodegen', ['--version']), node: process.version,
+})
+await command('pnpm', ['exec', 'tsx', 'scripts/build-exe-for-python-sdk.ts', `--targets=node24-macos-${process.arch}`], repository, 'runtime-build.log')
+const apple = join(repository, 'apps/apple')
+const scratch = join(output, 'swift')
+await command('/usr/bin/xcrun', ['swift', 'build', '--package-path', apple, '--scratch-path', scratch,
+  '-c', 'release', '--product', 'HostRuntimeSupervisor'], repository, 'helper-build.log')
+const swiftBin = await command('/usr/bin/xcrun', ['swift', 'build', '--package-path', apple,
+  '--scratch-path', scratch, '-c', 'release', '--show-bin-path'])
+await command('xcodegen', ['generate'], apple)
+const derived = join(output, 'derived')
+const architecture = process.arch === 'arm64' ? 'arm64' : 'x86_64'
+const options = ['-project', 'Companion.xcodeproj', '-scheme', 'DirectHostMac', '-configuration', 'Release',
+  '-destination', 'platform=macOS', '-derivedDataPath', derived, `ARCHS=${architecture}`, 'ONLY_ACTIVE_ARCH=YES',
+  'CODE_SIGN_IDENTITY=-', 'CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_STYLE=Manual']
+const settings = appleArchiveSettings(JSON.parse(await command('/usr/bin/xcodebuild', [
+  ...options, '-showBuildSettings', '-json',
+], apple)) as unknown, 'DirectHostMac')
+await command('/usr/bin/xcodebuild', [...options, 'build-for-testing'], apple, 'app-build.log')
+const app = join(derived, 'Build/Products/Release/DSH Host.app')
+const executable = join(app, 'Contents/MacOS/DSH Host')
+const plist: unknown = JSON.parse(await command('/usr/bin/plutil', ['-convert', 'json', '-o', '-', join(app, 'Contents/Info.plist')]))
+verifyAppleProduct(identity, settings, plist)
+if (plist === null || typeof plist !== 'object' || !('CFBundleIdentifier' in plist)
+  || plist.CFBundleIdentifier !== 'com.deepseek-harness.host.mac') throw new Error('Mac Host bundle identifier differs from its target')
+const runtime = join(repository, 'dist-exe', `deepseek-harness-sdk-runtime-macos-${process.arch}`)
+const inputs = [runtime, `${runtime}-rg`, `${runtime}-spawn-helper`, join(swiftBin, 'HostRuntimeSupervisor')]
+for (const file of [executable, ...inputs]) {
+  const slices = await command('/usr/bin/lipo', ['-archs', file])
+  const build = await command('/usr/bin/xcrun', ['vtool', '-show-build', '-arch', architecture, file])
+  verifyMacHostMachO(architecture, slices, build)
+}
+const resources = join(app, 'Contents/Resources/Runtime')
+await mkdir(join(app, 'Contents/Resources'), { recursive: true })
+const files = await copyMacHostExecutables(resources, inputs)
+await jsonFile(join(output, 'runtime-inputs.json'), { sourceSha, architecture, files })
+const bundledRuntime = join(resources, `deepseek-harness-sdk-runtime-macos-${process.arch}`)
+if (await command(bundledRuntime, ['--version'], output) !== identity.version) {
+  throw new Error('bundled dsh version differs from the Mac Host product identity')
+}
+for (const file of files) {
+  await command('/usr/bin/codesign', ['--verify', '--strict', join(resources, file.path)])
+}
+// The SEA builder owns its JIT signature. Seal only the assembled app; never recursively replace nested entitlements.
+await command('/usr/bin/codesign', ['--force', '--sign', '-', app])
+await command('/usr/bin/codesign', ['--verify', '--strict', '--deep', app])
+await command('python3', [join(repository, 'scripts/smoke-packaged-web.py'), '--exe',
+  bundledRuntime], output, 'packaged-web.log')
+const before = await inventoryAppleArchive(app)
+await command('/usr/bin/xcodebuild', [...options, '-resultBundlePath', join(output, 'HostStartup.xcresult'),
+  'test-without-building'], apple, 'app-test.log')
+if (JSON.stringify(await inventoryAppleArchive(app)) !== JSON.stringify(before)) throw new Error('Mac Host application bytes changed during acceptance')
+const zip = join(output, 'DSH-Host.app.zip')
+await command('/usr/bin/ditto', ['-c', '-k', '--keepParent', app, zip])
+const recheck = join(output, 'recheck')
+await mkdir(recheck)
+await command('/usr/bin/ditto', ['-x', '-k', zip, recheck])
+if (JSON.stringify(await inventoryAppleArchive(join(recheck, 'DSH Host.app'))) !== JSON.stringify(before)) {
+  throw new Error('Mac Host ZIP round trip changed packaged files or permissions')
+}
+await jsonFile(join(output, 'inventory.json'), { sourceSha, files: before })
+const finalSource = captureCiSource(repository, workflow, environment)
+if (finalSource.dirty || finalSource.checkoutSha !== source.checkoutSha || finalSource.treeSha !== source.treeSha
+  || finalSource.workflowSha256 !== source.workflowSha256) throw new Error('source checkout changed during Mac Host production')
+const producers = [workflow, 'scripts/produce-mac-host.ts', 'scripts/release/mac-host-bundle.ts',
+  'scripts/release/apple-archive-files.ts', 'scripts/release/apple-product.ts', 'scripts/release/apple-archive.ts',
+  'scripts/release/ci-source.ts', 'scripts/release/ci-evidence.ts', 'scripts/release/rc-output.ts',
+  'scripts/release/product-files.ts', 'scripts/release/product-identity.ts', 'scripts/build-exe-for-python-sdk.ts',
+  'scripts/build-exe-for-python-sdk-native-pty.ts', 'scripts/smoke-packaged-web.py', 'pnpm-lock.yaml']
+await jsonFile(join(output, 'bundle.json'), {
+  schemaVersion: 1, kind: 'mac-host-candidate', sourceSha, identity, architecture, runtimeClass: 'full',
+  status: 'BUNDLE_AND_STARTUP_VERIFIED',
+  archive: { path: 'DSH-Host.app.zip', ...await hashRcOutput(zip) },
+  evidence: await Promise.all(['source.json', 'toolchain.json', 'runtime-inputs.json', 'inventory.json',
+    'packaged-web.log', 'app-test.log'].map(async path => ({ path, ...await hashRcOutput(join(output, path)) }))),
+  producers: await Promise.all(producers.map(async path => ({ path, ...await hashRcOutput(join(repository, path)) }))),
+  signing: { kind: 'ad-hoc', developerId: 'NOT_EXECUTED', notarization: 'NOT_EXECUTED' },
+  noOrphan: { status: 'INCOMPLETE', reason: 'Detached tools, PTY sessions and abrupt helper death require external ownership.' },
+  completeRc: false,
+})
+console.log('Mac Host: candidate bytes, architecture, product identity, packaged Web, native UI and ZIP round trip PASS')

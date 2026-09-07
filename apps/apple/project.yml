@@ -64,6 +64,17 @@ targets:
         INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Host
         GENERATE_INFOPLIST_FILE: true
+  DirectHostStartupUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - UITests/DirectHostStartupTests.swift
+    dependencies:
+      - target: DirectHostMac
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.startup-tests
+        GENERATE_INFOPLIST_FILE: true
   CompanionStartupUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -80,6 +91,9 @@ schemes:
     build:
       targets:
         DirectHostMac: all
+    test:
+      targets:
+        - DirectHostStartupUITests
   CompanioniOS:
     build:
       targets:

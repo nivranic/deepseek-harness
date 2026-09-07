@@ -12,6 +12,7 @@ struct HostCopy {
     let stopping: String
     let failed: String
     let unavailable: String
+    let invalidConfiguration: String
     let recovery: String
 
     static var current: HostCopy {
@@ -25,6 +26,7 @@ struct HostCopy {
         case .ready: return ready
         case .stopping: return stopping
         case .failed(.unavailable): return unavailable
+        case .failed(.invalidConfiguration): return invalidConfiguration
         case .failed: return failed
         }
     }
@@ -32,11 +34,13 @@ struct HostCopy {
     private static let chinese = HostCopy(
         start: "启动", stop: "停止", restart: "重新启动", stopped: "已停止", starting: "正在启动…",
         ready: "运行中", stopping: "正在停止…", failed: "运行时已停止，发生错误",
-        unavailable: "运行时组件不可用", recovery: "可尝试重新启动；若组件不可用，请重新安装完整应用。"
+        unavailable: "运行时组件不可用", invalidConfiguration: "DSH_HOME 必须是有效的绝对目录路径",
+        recovery: "修正配置后重新启动；若组件不可用，请重新安装完整应用。"
     )
     private static let english = HostCopy(
         start: "Start", stop: "Stop", restart: "Restart", stopped: "Stopped", starting: "Starting…",
         ready: "Running", stopping: "Stopping…", failed: "Runtime stopped with an error",
-        unavailable: "Runtime components unavailable", recovery: "Try starting again. If components are unavailable, reinstall the complete app."
+        unavailable: "Runtime components unavailable", invalidConfiguration: "DSH_HOME must be a valid absolute directory path",
+        recovery: "Correct the configuration and start again. If components are unavailable, reinstall the complete app."
     )
 }

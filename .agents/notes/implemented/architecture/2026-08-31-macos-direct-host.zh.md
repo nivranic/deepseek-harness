@@ -18,11 +18,13 @@ Mac Host 运行 Harness 运行时，而 Companion 消费另一个 Host。共享�
 
 ## 后果
 
-必须把所选架构的运行时与 helper 可执行程序组装到应用的 `Contents/Resources/Runtime` 目录。缺少这些资源的源码壳会报告不可用。Companion 的归档生成不证明 Full Host bundle 或已安装 WebView 的行为。
+[Mac Host 生产器](../../../../scripts/produce-mac-host.ts) 从一个干净候选提交把 runtime、rg、spawn-helper 和生命周期 helper 组装到 `Contents/Resources/Runtime`。原生二进制工具拒绝错误架构、非 macOS 切片和高于 macOS 14 的最低系统版本；复制后的字节、内嵌产品版本、签名与 ZIP 往返结果分别核验。生产器只用 ad-hoc 签名封装外层应用，保留 SEA builder 的嵌套签名与 entitlement。缺少资源的源码壳会报告不可用。Companion 归档证据不覆盖 Host bundle。
+
+应用的显式 `DSH_HOME` 在启动前解析，且必须是 POSIX 绝对目录路径。非法值不能回退到默认 home。已安装应用通过运行时实际消费的同一配置完成隔离验证，无需测试专用启动器或第二套持久化实现。
 
 该 helper 拥有运行时进程组，不拥有工具创建的独立 POSIX 进程组与 PTY session。[本地子进程提供方](../../../../packages/subprocess/subprocess-local/README.zh.md)明确说明：JavaScript 可观察到的关闭会终结这些资源，而运行时或 helper 突然死亡需要外部所有者。在这些生命周期得到覆盖前，Full Host 无孤儿进程验收仍未完成；只覆盖进程组的 smoke 不能关闭该项。
 
-Apple 车道以真实进程验证原生 helper，并用可执行夹具验证 Swift 生命周期行为，包括启动取消、健康检查失败、重新启动与意外死亡。真实已安装运行时与 WebView 执行、脱离进程组的工具清理、签名和 bundle 生产仍需要各自的证据。
+Apple 车道以真实进程验证原生 helper，并用可执行夹具验证 Swift 生命周期行为。独立的 Mac Host candidate 车道在临时 macOS runner 上构建并测试组装后的应用，使用生产 Web 内容和隔离 home。其已验证产物必须通过原生 UI 与 bundle 内 Web 验收；仅构建成功不能生成该产物。脱离进程组的工具清理、Developer ID 签名、公证与完整供应链验收仍是独立要求。
 
 ## 考虑过的替代方案
 
