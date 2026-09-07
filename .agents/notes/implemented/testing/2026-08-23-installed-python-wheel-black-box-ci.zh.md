@@ -22,6 +22,8 @@ Python SDK 单元测试驱动 fake peer，而打包运行时工作流可以在�
 
 Linux 另外保留 manylinux 2.28 干净安装冒烟测试与 GLIBC 检查。macOS 保留部署目标与原生 helper 检查。这些平台约束补充共同黑盒行为，不能替代它。
 
+POSIX installed-wheel 流程还通过同一打包 `dsh` 可执行程序验证内置 `web` profile。单独完成 SDK 轮次无法证明封闭运行时包含生产前端，或挂载了带认证的 HTTP 载体。Web smoke 使用全新 home，验证未认证请求被拒绝，交换内存中的启动 token，读取实际脚本字节和空 Session 列表，并要求 SIGTERM 后以零状态退出且进程组无残留成员。其固定诊断字段不包含运行时输出、URL、cookie 或响应正文。HTTP 夹具反例与真实 POSIX 停机失败用例约束这条验收路径；浏览器交互和 DirectHostMac 内嵌仍由各自验证负责。
+
 ### 真实 DeepSeek API
 
 可信拉取请求会在每个原生目标上运行第二项安装后 wheel 检查，并且只在预检与 live 测试步骤中把 `DEEPSEEK_API_KEY_EXTERNAL` 映射进去。密钥为空时预检失败，因此提供方测试不能通过自行 skip 产生假绿。该测试通过公开 SDK 访问 `https://api.deepseek.com`，要求模型通过当前平台 shell 写入内容精确的 sentinel 文件，再在同一 session 的第二个轮次中读取它，并校验外部文件行内容、最终响应、已完成的轮次结束原因、模型请求的工具调用，以及 session 日志存在且采用 Zstandard framing。解码后的记录内容与已完成轮次的持久性是由 restart 快照负责的确定性 keyless 要求，不从压缩后的 live 提供方字节推断。

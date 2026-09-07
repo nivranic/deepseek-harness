@@ -361,6 +361,18 @@ jobs:
             --scenario all \
             --installed-wheel
 
+      - name: Verify installed web profile and graceful shutdown (POSIX)
+        if: runner.os != 'Windows'
+        run: |
+          set -euo pipefail
+          blackbox_root="$(python -c 'import tempfile; print(tempfile.mkdtemp(prefix="dsh-web-blackbox-"))')"
+          cd "$blackbox_root"
+          env -u PYTHONPATH -u DSH_RUNTIME_MODE \
+            "${{ steps.smoke-venv-posix.outputs.python }}" \
+            "$GITHUB_WORKSPACE/scripts/smoke-python-runtime.py" \
+            --scenario web \
+            --installed-wheel
+
       - name: Run installed-wheel keyless black-box tests (Windows)
         if: runner.os == 'Windows'
         shell: pwsh

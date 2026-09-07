@@ -34,3 +34,5 @@ Wheel 会安装 `dsh` 控制台命令和 `deepseek_harness_runtime` Python 模�
 在仓库根目录运行 `pnpm exec tsx scripts/build-exe-for-python-sdk.ts`，会校验闭包、构建包、部署无符号链接的文件树、打包所选目标，并把可执行程序及伴随文件同步到本模块。`scripts/build-python-release.py` 按仓库根版本暂存发布形态的 wheel，并将 `deepseek-harness-sdk` 固定到完全相同的运行时版本。
 
 Installed-wheel smoke 会在 checkout 外创建干净虚拟环境，证明 distribution 与可执行程序来源，然后覆盖默认及自定义 SDK profile、外部插件、MCP、原生工具、直接 JSON-RPC、检入快照，以及可信运行中的真实提供方。另见 [Python 贡献者工作流](../development.zh.md)与 [installed-wheel 测试决策](../../.agents/notes/implemented/testing/2026-08-23-installed-python-wheel-black-box-ci.zh.md)。
+
+Linux 与 macOS 另有 installed-wheel smoke，在全新 home 中启动 `dsh --profile web --no-open --host 127.0.0.1 --port 0`。它检查已认证首页、生产脚本字节和 Session RPC，随后要求 SIGTERM 正常关闭且进程组清空。启动 token、cookie 和运行时输出只保留在内存中。这项 HTTP 检查不操作浏览器或 DirectHostMac 应用。
