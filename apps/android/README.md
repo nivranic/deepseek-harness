@@ -68,6 +68,8 @@ Only the base module with R8 full-release mapping 2.2 is supported. Maven licens
 
 ## Known Limitations and Deferred Work
 
+The [Android candidate producer](../../docs/development/release-candidate.md#android-production) combines the unsigned bundle inventory with an APK derived from that exact AAB, release identity and native alignment checks, and actual installation/startup/removal on a disposable API 36 / 16 KiB emulator. Its platform receipt remains separate from production signing and four-platform release acceptance.
+
 - **Lifecycle-aware collection** — the tabs collect the models' StateFlows with `collectAsStateWithLifecycle`, so collection pauses in stopped states instead of burning work in the background.
 - **Pin-authenticated private Host TLS** — the shared OkHttp transport installs a pin-only trust manager and a hostname verifier that repeats the leaf SPKI check before any `Call` is created. The Host certificate intentionally has no public-CA DNS identity; the QR-authenticated SPKI identifies it. A wrong-pin HTTPS fixture must fail before its HTTP handler receives bytes. The signing key persists only under AndroidKeyStore AES/GCM seal through the `CredentialsCipher` seam.
 - **Real Host acceptance** — the Kotlin driver and Host orchestrator consume the single shared 13-step corpus from pair through revoke. The result records separate Host and Client commits plus protocol, contract, and Session format versions; a missing or skipped step fails the lane.

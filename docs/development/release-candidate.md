@@ -10,6 +10,7 @@ The candidate verifier checks downloaded application artifacts against an indepe
 
 - [Inputs and commands](#inputs-and-commands)
 - [Artifact and evidence requirements](#artifact-and-evidence-requirements)
+- [Android production](#android-production)
 - [Trust and verification limits](#trust-and-verification-limits)
 - [Dev Note](#dev-note)
 
@@ -47,6 +48,17 @@ Each named check is JSON containing `schemaVersion: 1`, its name, source SHA, co
 The [evidence verifier](../../scripts/release/rc-evidence.ts) validates a CycloneDX 1.6 SBOM with the pinned official CycloneDX library and its JSON schema dependencies. The document must declare version 1.6, name the recorded scanner and version, identify its scan target, and contain a non-empty component inventory. Other SBOM formats fail. The producer must run maintained scanning tools over the actual packaged closure; a schema-valid synthetic inventory is not a real scan.
 
 Portable provenance uses in-toto Statement v1 and SLSA provenance v1 with build type `urn:dsh:release-candidate:v1`. Its subjects bind every deliverable, check, attachment and SBOM digest. External parameters bind source SHA, identity and platform; the resolved source material binds the independently expected repository URI and commit. Run details bind the receipt's builder and invocation identifiers. These unsigned claims do not authenticate their author.
+
+-----
+
+<a id="android-production"></a>
+## Android production
+
+The [Android candidate workflow](../../.github/workflows/android-candidate.yml) checks out the full `source_sha` input or PR head, builds and validates the unsigned release AAB with its R8 mapping, and invokes the [producer](../../scripts/produce-android-candidate.ts) on a disposable GitHub-hosted Linux runner. It requires the selected JDK/SDK roots, an explicit `DSH_ANDROID_BUILD_TOOLS_VERSION`, and a new output beneath `RUNNER_TEMP`. It rejects a dirty or mismatched source, external signing material, physical or ambiguous devices, and a preinstalled application. Actual device queries must report API 36 and 16384-byte kernel pages before installation.
+
+The pinned bundletool derives a universal APK from the retained AAB using a fresh temporary debug certificate. The producer checks the release manifest and product identity, signer certificate, exact DEX/native bytes, ZIP alignment, and every 64-bit ELF LOAD segment's 16 KiB alignment. It scans the retained AAB and mapping with the [Android inventory scanner](../../apps/android/README.md#release-bundle-inventory), installs the derived APK, requires the real pairing title in a visible rectangle, retains the UI hierarchy and screenshot, and pulls the installed base APK for byte comparison. It then stops and uninstalls the app and verifies package/process absence. Private signing inputs and scratch files are removed before observations receive `PASS`.
+
+The verified `android/receipt.json` binds the unsigned AAB, mapping, debug-signed release APK, public certificate, tool and bundletool-classpath digests, inventory, startup evidence and portable provenance to the same source and complete product identity. A failed stage prevents the workflow's verified-artifact upload. Debug signing is only for disposable emulator acceptance; this producer does not authorize a store upload, production signing, authenticated provenance, or a complete four-platform RC.
 
 -----
 

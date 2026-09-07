@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "requiredWorkflows": [
+    "android-candidate.yml",
     "android-kotlin.yml",
     "apple-swift.yml",
     "build-exe-for-python-sdk.yml",

@@ -10,6 +10,7 @@
 
 - [输入与命令](#inputs-and-commands)
 - [产物与证据要求](#artifact-and-evidence-requirements)
+- [Android 生产](#android-production)
 - [信任与验证限制](#trust-and-verification-limits)
 - [Dev Note](#dev-note)
 
@@ -47,6 +48,17 @@
 [证据验证器](../../scripts/release/rc-evidence.ts)使用固定版本的官方 CycloneDX 库及其 JSON schema 依赖校验 CycloneDX 1.6 SBOM。文档必须声明 1.6 版本、包含记录的扫描器名称和版本、标明扫描目标，并提供非空组件清单。其他 SBOM 格式被拒绝。生产者必须用持续维护的扫描工具扫描实际打包依赖集合；schema 有效的合成清单不等于真实扫描。
 
 可移植 provenance 使用 in-toto Statement v1、SLSA provenance v1 和 build type `urn:dsh:release-candidate:v1`。subjects 绑定全部交付文件、检查、附件和 SBOM 摘要。external parameters 绑定源码 SHA、标识和平台；解析后的源码材料绑定独立选定的仓库 URI 与提交。run details 绑定回执中的构建者与执行标识。这些未签名声明不认证其作者。
+
+-----
+
+<a id="android-production"></a>
+## Android 生产
+
+[Android candidate workflow](../../.github/workflows/android-candidate.yml) checkout 完整 `source_sha` 输入或 PR head，构建并验证 unsigned release AAB 及其 R8 mapping，再在一次性 GitHub-hosted Linux runner 上调用[生产者](../../scripts/produce-android-candidate.ts)。它要求选定的 JDK/SDK 根路径、显式 `DSH_ANDROID_BUILD_TOOLS_VERSION`，以及 `RUNNER_TEMP` 下的新输出目录。源码 dirty 或 SHA 不匹配、外部签名材料、物理或不唯一的设备、已安装的应用均被拒绝。安装前必须实际查询到 API 36 和 16384 字节内核页。
+
+固定版本 bundletool 使用新建的临时 debug 证书，从留存的 AAB 派生 universal APK。生产者检查 release manifest 与产品标识、签名证书、DEX/native 精确字节、ZIP 对齐，以及每个 64 位 ELF LOAD segment 的 16 KiB 对齐。它用 [Android 清单扫描器](../../apps/android/README.zh.md#release-bundle-inventory)扫描留存的 AAB 和 mapping，安装派生 APK，要求可见矩形内出现真实配对标题，保存 UI hierarchy 与截图，并拉取已安装的 base APK 比较字节。随后停止并卸载应用，验证包与进程均已消失。私有签名输入和临时文件清理成功后，observations 才写入 `PASS`。
+
+验证后的 `android/receipt.json` 将 unsigned AAB、mapping、debug 签名的 release APK、公开证书、工具和 bundletool classpath 摘要、清单、首屏证据及可移植 provenance 绑定到同一源码和完整产品标识。任何阶段失败都会阻止 workflow 上传 verified artifact。Debug 签名仅用于一次性模拟器验收；该生产者不授权商店上传、生产签名、认证 provenance 或完整四平台 RC。
 
 -----
 
