@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-macos-direct-host.md
-2026-08-31-macos-direct-host.md: 530f39b2b7fa6bc061db949714da9d08e69f4427
-2026-08-31-macos-direct-host.zh.md: 355d00748a927bb9f122f42ee3a108eea895852b
+2026-08-31-macos-direct-host.md: f67bd335309a2905d4b9ca32d1e1ad2d33c67494
+2026-08-31-macos-direct-host.zh.md: 305d2d1ec663703119ab456972c3627c2ebed2d7

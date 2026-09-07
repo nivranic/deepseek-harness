@@ -5,6 +5,24 @@ import { basename, join } from 'node:path'
 import { hashRcOutput } from './rc-output.ts'
 
 /**
+ * Preserve XCTest permissions while allowing its independent native process observer to execute.
+ * @param value - Xcode's generated test-runner entitlements decoded by plutil.
+ * @returns Entitlements for the test runner and its XCTest bundle only.
+ */
+export function macHostTestRunnerEntitlements(value: unknown): Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Mac Host test-runner entitlements must be a dictionary')
+  }
+  const fields = value as Record<string, unknown>
+  if (fields['com.apple.application-identifier'] !== 'com.deepseek-harness.host.startup-tests.xctrunner'
+    || fields['com.apple.security.get-task-allow'] !== true
+    || typeof fields['com.apple.security.app-sandbox'] !== 'boolean') {
+    throw new Error('Mac Host observer signing requires the generated XCTest runner entitlements')
+  }
+  return { ...fields, 'com.apple.security.app-sandbox': false }
+}
+
+/**
  * Require a macOS executable slice for the selected native candidate architecture.
  * @param architecture - Xcode/lipo CPU spelling selected by the native producer.
  * @param slices - lipo -archs output from the actual executable.

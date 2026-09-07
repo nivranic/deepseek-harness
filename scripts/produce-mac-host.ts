@@ -7,7 +7,7 @@ import { appleArchiveSettings } from './release/apple-archive.ts'
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
 import { verifyAppleProduct } from './release/apple-product.ts'
 import { captureCiSource } from './release/ci-source.ts'
-import { copyMacHostExecutables, verifyMacHostMachO } from './release/mac-host-bundle.ts'
+import { copyMacHostExecutables, macHostTestRunnerEntitlements, verifyMacHostMachO } from './release/mac-host-bundle.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 import { hashRcOutput, writeRcOutput } from './release/rc-output.ts'
 
@@ -70,8 +70,21 @@ const settings = appleArchiveSettings(JSON.parse(await command('/usr/bin/xcodebu
   ...options, '-showBuildSettings', '-json',
 ], apple)) as unknown, 'DirectHostMac')
 await command('/usr/bin/xcodebuild', [...options, 'build-for-testing'], apple, 'app-build.log')
+const testRunner = join(derived, 'Build/Products/Release/DirectHostStartupUITests-Runner.app')
+const generatedEntitlements = join(derived, 'Build/Intermediates.noindex/Companion.build/Release',
+  'DirectHostStartupUITests.build/DirectHostStartupUITests.xctest.xcent')
+const observerEntitlements = macHostTestRunnerEntitlements(JSON.parse(await command('/usr/bin/plutil', [
+  '-convert', 'json', '-o', '-', generatedEntitlements,
+])) as unknown)
+const observerPlist = join(output, 'test-runner-entitlements.plist')
+await writeFile(observerPlist, JSON.stringify(observerEntitlements), { flag: 'wx' })
+await command('/usr/bin/plutil', ['-convert', 'xml1', observerPlist])
+for (const target of [join(testRunner, 'Contents/PlugIns/DirectHostStartupUITests.xctest'), testRunner]) {
+  await command('/usr/bin/codesign', ['--force', '--sign', '-', '--timestamp=none', '--entitlements', observerPlist, target])
+}
+await command('/usr/bin/codesign', ['--verify', '--deep', '--strict', testRunner])
 await command('/usr/bin/codesign', [
-  '--display', '--entitlements', '-', join(derived, 'Build/Products/Release/DirectHostStartupUITests-Runner.app'),
+  '--display', '--entitlements', '-', testRunner,
 ], apple, 'test-runner-signing.log')
 const app = join(derived, 'Build/Products/Release/DSH Host.app')
 const executable = join(app, 'Contents/MacOS/DSH Host')

@@ -3,9 +3,31 @@ import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { copyMacHostExecutables, verifyMacHostMachO } from './mac-host-bundle.ts'
+import { copyMacHostExecutables, macHostTestRunnerEntitlements, verifyMacHostMachO } from './mac-host-bundle.ts'
 
 const modern = 'cmd LC_BUILD_VERSION\nplatform MACOS\nminos 14.0\nsdk 15.5\n'
+
+describe('Mac Host test-runner signing', () => {
+  const generated = {
+    'com.apple.application-identifier': 'com.deepseek-harness.host.startup-tests.xctrunner',
+    'com.apple.security.get-task-allow': true,
+    'com.apple.security.app-sandbox': true,
+    'com.apple.security.network.client': true,
+    'com.apple.security.temporary-exception.mach-lookup.global-name': ['com.apple.testmanagerd'],
+  }
+  it('changes only the test runner sandbox entitlement and preserves generated XCTest permissions', () => {
+    expect(macHostTestRunnerEntitlements(generated)).toEqual({ ...generated, 'com.apple.security.app-sandbox': false })
+    expect(generated['com.apple.security.app-sandbox']).toBe(true)
+  })
+  it.each([
+    null, [], 'plist', {},
+    { ...generated, 'com.apple.application-identifier': 'com.deepseek-harness.host.mac' },
+    { ...generated, 'com.apple.security.get-task-allow': false },
+    { ...generated, 'com.apple.security.app-sandbox': 'true' },
+  ])('rejects malformed or non-test-target entitlements %j', (value) => {
+    expect(() => macHostTestRunnerEntitlements(value)).toThrow()
+  })
+})
 
 describe('Mac Host native platform', () => {
   it('accepts native and universal macOS inputs including legacy deployment commands', () => {
