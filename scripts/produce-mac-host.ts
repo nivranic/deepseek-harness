@@ -122,6 +122,7 @@ await command('/usr/bin/codesign', ['--verify', '--strict', '--deep', app])
 await command('python3', [join(repository, 'scripts/smoke-packaged-web.py'), '--exe',
   bundledRuntime], output, 'packaged-web.log')
 const before = await inventoryAppleArchive(app)
+await writeRcOutput(output, 'native-test-start.json', { epochSeconds: Date.now() / 1000 })
 await command('/usr/bin/xcodebuild', [...options, '-resultBundlePath', join(output, 'HostStartup.xcresult'),
   'test-without-building'], apple, 'app-test.log')
 if (JSON.stringify(await inventoryAppleArchive(app)) !== JSON.stringify(before)) throw new Error('Mac Host application bytes changed during acceptance')
@@ -138,6 +139,7 @@ const finalSource = captureCiSource(repository, workflow, environment)
 if (finalSource.dirty || finalSource.checkoutSha !== source.checkoutSha || finalSource.treeSha !== source.treeSha
   || finalSource.workflowSha256 !== source.workflowSha256) throw new Error('source checkout changed during Mac Host production')
 const producers = [workflow, 'scripts/produce-mac-host.ts', 'scripts/release/mac-host-bundle.ts',
+  'scripts/release/mac_host_crash.py',
   'scripts/release/apple-archive-files.ts', 'scripts/release/apple-product.ts', 'scripts/release/apple-archive.ts',
   'scripts/release/ci-source.ts', 'scripts/release/ci-evidence.ts', 'scripts/release/rc-output.ts',
   'scripts/release/product-files.ts', 'scripts/release/product-identity.ts', 'scripts/build-exe-for-python-sdk.ts',

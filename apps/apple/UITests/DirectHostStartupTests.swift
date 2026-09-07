@@ -48,10 +48,15 @@ final class DirectHostStartupTests: XCTestCase {
         XCTAssertEqual(previous.count, 1)
         restart.click()
         let replaced = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            if app.state == .notRunning { return true }
             guard let current = try? self.runtimePids() else { return false }
             return current.count == 1 && current.isDisjoint(with: previous)
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [replaced], timeout: 60), .completed)
+        XCTAssertNotEqual(app.state, .notRunning, "Host application terminated during restart")
+        let restarted = try runtimePids()
+        XCTAssertEqual(restarted.count, 1)
+        XCTAssertTrue(restarted.isDisjoint(with: previous))
         XCTAssertTrue(stop.waitForExistence(timeout: 60))
         prepareWebSurface(app, acknowledgeNotice: false)
         stop.click()

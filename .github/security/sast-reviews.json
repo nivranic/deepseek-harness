@@ -10,7 +10,7 @@
       "materials": {
         "apps/apple": {
           "kind": "tree",
-          "oid": "626c53272ea67636067434111d1b866747dfdb12"
+          "oid": "ef238664b8d6fe305b8be2f2fbdffbedfb5e1614"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
