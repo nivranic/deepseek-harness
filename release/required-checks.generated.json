@@ -32,7 +32,7 @@
       "name": "Android Kotlin",
       "requiredJob": "gradle test (core)",
       "sourceJob": "gradle test (core)",
-      "workflowSha256": "c5765cf4191083227b34d01937ed9037f893a999c4f7d031b544b55dd541e992",
+      "workflowSha256": "e2fa120dc9f0dbe762a4c38011157b59920cf94a5ab946b2df25e6b0f471520a",
       "aggregateNeeds": []
     }
   ]

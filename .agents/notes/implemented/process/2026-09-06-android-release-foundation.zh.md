@@ -30,7 +30,7 @@ Release 签名默认为 `unsigned`。`keystore` 模式接收环境提供的完�
 
 ## Consequences
 
-首屏验证选择 Google 的 API 36 `google_apis_ps16k` x86_64 镜像，并在启动 instrumentation 前读取运行设备的 `ro.build.version.sdk` 与 `getconf PAGE_SIZE`。镜像名称或编译成功不能证明设备的 API 与页大小。观察器拒绝不匹配和查询失败，仅保留设备数值属性，并拒绝覆盖已有回执。Workflow 测试执行实际启动命令，证明 API 35、4 KiB 页或 adb 失败都会阻止 instrumentation。这份 debug 首屏证据与 release 安装和原生库对齐验证仍分别验收。
+首屏验证选择 Google 的 API 36 `google_apis_ps16k` x86_64 镜像，并在启动 instrumentation 前读取运行设备的 `ro.build.version.sdk` 与 `getconf PAGE_SIZE`。固定的 emulator action 接受该 16 KiB 镜像标识；Google SDK 索引中存在该镜像，并不能单独证明 action 的输入验证支持它。镜像名称或编译成功不能证明设备的 API 与页大小。观察器拒绝不匹配和查询失败，仅保留设备数值属性，并拒绝覆盖已有回执。Workflow 测试执行实际启动命令，证明 API 35、4 KiB 页或 adb 失败都会阻止 instrumentation。这份 debug 首屏证据与 release 安装和原生库对齐验证仍分别验收。
 
 Wrapper 验证下载的分发包，CI 通过 Gradle setup action 检查其 JAR。构建输入已固定，但不承诺产物逐字节可重现。Debug instrumentation、release 设备启动、生产签名、包级 SBOM 和候选 provenance 仍是各自独立的证据要求。R8 mapping 与对应的精确 AAB 一起留存，两者均不自动晋级。
 
