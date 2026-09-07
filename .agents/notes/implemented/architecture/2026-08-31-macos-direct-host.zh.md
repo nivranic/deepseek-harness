@@ -24,7 +24,7 @@ Mac Host 运行 Harness 运行时，而 Companion 消费另一个 Host。共享�
 
 该 helper 拥有运行时进程组，不拥有工具创建的独立 POSIX 进程组与 PTY session。[本地子进程提供方](../../../../packages/subprocess/subprocess-local/README.zh.md)明确说明：JavaScript 可观察到的关闭会终结这些资源，而运行时或 helper 突然死亡需要外部所有者。在这些生命周期得到覆盖前，Full Host 无孤儿进程验收仍未完成；只覆盖进程组的 smoke 不能关闭该项。
 
-Apple 车道以真实进程验证原生 helper，并用可执行夹具验证 Swift 生命周期行为。独立的 Mac Host candidate 车道在临时 macOS runner 上构建并测试组装后的应用，使用生产 Web 内容和隔离 home。UI 场景通过常规控件完成内置首次使用声明与无密钥 provider 配置，并要求每次启动后 New session 控件均可交互。其已验证产物必须通过原生 UI 与 bundle 内 Web 验收；仅构建成功不能生成该产物。脱离进程组的工具清理、Developer ID 签名、公证与完整供应链验收仍是独立要求。
+Apple 车道以真实进程验证原生 helper，并用可执行夹具验证 Swift 生命周期行为。独立的 Mac Host candidate 车道在临时 macOS runner 上构建并测试组装后的应用，使用生产 Web 内容和隔离 home。UI 场景通过常规控件完成内置首次使用声明与无密钥 provider 配置，并要求每次启动后 New session 控件均可交互。XCTest runner 关闭 App Sandbox，使独立的 `/bin/ps` 观察器可以核验停止、启动和重启期间的 runtime PID 所有权；该设置仅属于测试 target。生产器在诊断和已验证产物中均保留 runner 的签名权限。其已验证产物必须通过原生 UI 与 bundle 内 Web 验收；仅构建成功不能生成该产物。脱离进程组的工具清理、Developer ID 签名、公证与完整供应链验收仍是独立要求。
 
 ## 考虑过的替代方案
 

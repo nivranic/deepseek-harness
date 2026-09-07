@@ -75,6 +75,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.startup-tests
         GENERATE_INFOPLIST_FILE: true
+        ENABLE_APP_SANDBOX: false
   CompanionStartupUITests:
     type: bundle.ui-testing
     platform: iOS

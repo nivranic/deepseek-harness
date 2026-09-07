@@ -86,6 +86,7 @@ jobs:
             ${{ runner.temp }}/mac-host-candidate/*.json
             ${{ runner.temp }}/mac-host-candidate/packaged-web.log
             ${{ runner.temp }}/mac-host-candidate/app-test.log
+            ${{ runner.temp }}/mac-host-candidate/test-runner-signing.log
             ${{ runner.temp }}/mac-host-candidate/screenshots
           if-no-files-found: error
           retention-days: 7

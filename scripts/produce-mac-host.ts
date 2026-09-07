@@ -70,6 +70,9 @@ const settings = appleArchiveSettings(JSON.parse(await command('/usr/bin/xcodebu
   ...options, '-showBuildSettings', '-json',
 ], apple)) as unknown, 'DirectHostMac')
 await command('/usr/bin/xcodebuild', [...options, 'build-for-testing'], apple, 'app-build.log')
+await command('/usr/bin/codesign', [
+  '--display', '--entitlements', '-', join(derived, 'Build/Products/Release/DirectHostStartupUITests-Runner.app'),
+], apple, 'test-runner-signing.log')
 const app = join(derived, 'Build/Products/Release/DSH Host.app')
 const executable = join(app, 'Contents/MacOS/DSH Host')
 const plist: unknown = JSON.parse(await command('/usr/bin/plutil', ['-convert', 'json', '-o', '-', join(app, 'Contents/Info.plist')]))
@@ -130,8 +133,10 @@ await writeRcOutput(output, 'bundle.json', {
   schemaVersion: 1, kind: 'mac-host-candidate', sourceSha, identity, architecture, runtimeClass: 'full',
   status: 'BUNDLE_AND_STARTUP_VERIFIED',
   archive: { path: 'DSH-Host.app.zip', ...await hashRcOutput(zip) },
-  evidence: await Promise.all(['source.json', 'toolchain.json', 'binary-inspections.json', 'runtime-inputs.json', 'inventory.json',
-    'packaged-web.log', 'app-test.log'].map(async path => ({ path, ...await hashRcOutput(join(output, path)) }))),
+  evidence: await Promise.all([
+    'source.json', 'toolchain.json', 'binary-inspections.json', 'runtime-inputs.json', 'inventory.json',
+    'packaged-web.log', 'app-test.log', 'test-runner-signing.log',
+  ].map(async path => ({ path, ...await hashRcOutput(join(output, path)) }))),
   producers: await Promise.all(producers.map(async path => ({ path, ...await hashRcOutput(join(repository, path)) }))),
   signing: { kind: 'ad-hoc', developerId: 'NOT_EXECUTED', notarization: 'NOT_EXECUTED' },
   noOrphan: { status: 'INCOMPLETE', reason: 'Detached tools, PTY sessions and abrupt helper death require external ownership.' },
