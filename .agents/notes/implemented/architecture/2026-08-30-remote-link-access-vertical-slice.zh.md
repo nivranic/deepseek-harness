@@ -20,6 +20,8 @@ Status: implemented
 
 原始 TLS 测试驱动仅连接自身的临时 loopback Host，并使用新生成的测试设备密钥。对应的精确 [SAST 审阅](../../../../.github/security/sast-reviews.json)绑定完整 carrier 与 CLI 代码树，包括测试调用方、监听配置、包清单和生产入口源码。这些测试验证损坏请求、授权和取消，不声称覆盖服务端身份验证；生产客户端仍由独立的 SPKI 固定校验和错误指纹零请求字节回归验证。调用方、发布入口、监听地址或 TLS 策略改变会使审阅上下文失效。
 
+参考客户端的 NDJSON reader 使用 Node 响应流的 UTF-8 decoder，因为 TLS record 可能拆开一个多字节字符。逐个解码 data chunk 会向原本有效的 JSON 插入替换字符，改变伴侣端投影。真实 pinned-carrier 回归在一个跨多个 TLS record 的帧中传输二、三、四字节码点，要求完整文本保持不变；原生验收语料另行将得到的 Session 投影与 Host 比较。
+
 ## Consequences
 
 真实 TLS 载体与 built Host 组合覆盖选择性授权、在 owner 执行前拒绝 Session、Attachment 与 Workspace path、在写入套接字前投影 Session 与 Workspace、宿主签发交互关联、待定检查、observer 与审批开关拒绝、分发失败后的安全重试、吊销以及载体停止。直接授权测试拒绝畸形 envelope 与 frame，并覆盖每种 Session 地址、集合 baseline、增量 frame、Remote 通知、waterfall 与取消分支；`dsh-device-trust`、`dsh-link-access` 和 Gateway 保持逐文件 100% 覆盖。Client 代次断线时，待定交互留在 Gateway 中供重连重放；显式策略变更、吊销或载体停止则立即委托投递。授权管理 UI 与 mDNS 广播仍是延后的产品工作；资源授权表和 `pairingAccess` 配置已经提供安全行为，无需创建复杂 RBAC。

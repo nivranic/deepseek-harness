@@ -39,6 +39,8 @@ async function runCompanion(pairingPayload: LinkPairingPayload, sessionId: strin
 
 `pair` 校验载荷的协议版本与过期时间，然后在钉扎连接上用一次性配对码换取设备身份。`call` 失败时抛出携带载体或网关稳定错误码的 `LinkError`；`openStream` 在调用方中止时安静结束，载体中途断开时抛出 `LinkError`（`carrier-lost`）——调用方重订阅，与浏览器载体的流重启完全一致。
 
+`openStream` 在解析 NDJSON 帧前连续解码 UTF-8，保留跨响应数据块拆分的多字节字符。
+
 ### 保管好凭据
 
 TLS 的信任锚是配对流程提供的 SPKI 指纹。调用方必须在配对前通过带外方式验证该指纹；公共 CA 证书链与证书主机名不用于识别私有 Link Host。

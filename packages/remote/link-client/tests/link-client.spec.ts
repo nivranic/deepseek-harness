@@ -37,6 +37,13 @@ class ClientProbeService extends Service {
   }
 
   @Remote({ mode: 'stream' })
+  text(value: string): AsyncIterable<string> {
+    return (async function* () {
+      yield value.repeat(8192)
+    })()
+  }
+
+  @Remote({ mode: 'stream' })
   ticks(count: number, signal: AbortSignal): AsyncIterable<string> {
     return (async function* () {
       for (let index = 0; index < count && !signal.aborted; index += 1) {
@@ -88,6 +95,7 @@ async function mount(): Promise<ClientHarness> {
       endpoints: [
         { endpoint: 'probe/echo', kind: 'unary', minRole: 'observer', scope: 'unscoped' },
         { endpoint: 'probe/fail', kind: 'unary', minRole: 'observer', scope: 'unscoped' },
+        { endpoint: 'probe/text', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
         { endpoint: 'probe/ticks', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
         { endpoint: 'probe/replay', kind: 'stream', minRole: 'observer', scope: 'unscoped' },
         { endpoint: '$events', kind: 'stream', minRole: 'observer', scope: 'remote-events' },
@@ -183,6 +191,16 @@ describe('LinkClient', () => {
     )
     expect(failure).toBeInstanceOf(LinkError)
     expect(failure.code).toBe('internal')
+  })
+
+  it('preserves multibyte text across TLS records in one NDJSON frame', async () => {
+    // More than four maximum-size TLS records, with two-, three-, and four-byte code points.
+    const text = 'é汉🙂'
+    const received: unknown[] = []
+    for await (const value of client.openStream('probe/text', { value: text })) {
+      received.push(value)
+    }
+    expect(received).toEqual([text.repeat(8192)])
   })
 
   it('resumes a stream after reconnect from its cursor', async () => {
