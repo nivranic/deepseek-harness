@@ -139,6 +139,7 @@ describe('Windows candidate production requirements', () => {
     const diagnostic = job.steps.find(step => step.run?.includes('read-windows-installer-crash.ps1'))
     expect(diagnostic?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
     expect(diagnostic?.run).toContain('$env:RUNNER_TEMP/windows-rc/windows/installer.exe')
+    expect(diagnostic?.run).toContain('-WaitMilliseconds 10000')
     expect(diagnostic?.run).toContain('Tee-Object -FilePath "$env:RUNNER_TEMP/windows-rc/installer-crash.json"')
     const failedInputs = uploads.find(step => step.if !== undefined)
     expect(failedInputs?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")

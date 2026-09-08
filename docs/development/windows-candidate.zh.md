@@ -42,7 +42,7 @@ NSIS 不转发 Electron 子进程的 stderr，而 Playwright 从该流获取调�
 
 生产者记录安装、Inspector、窗口和表单阶段。主操作与清理失败同时保留，包括 Electron 驱动返回进程句柄之前的失败。目录删除在有限时间内重试 Windows 临时文件锁，清理仍未完成时继续报错；重试不构成启动验收。
 
-验收失败后，独立的[只读诊断](../../scripts/release/read-windows-installer-crash.ps1)查询此前 45 分钟内最多 100 条 Application Error 事件。它匹配传入的绝对路径或文件查询返回的完整路径，保留 Windows 展开 8.3 名称时的匹配。它记录安装器哈希、字节数和选定的崩溃字段，不输出完整事件消息或路径。空结果或事件日志不可用不能解释崩溃，也不改变作业失败状态；已验证产物仍只在验收成功后上传。仅失败时上传的 artifact 以 `windows-installer-failure-` 为名称前缀，包含候选 SHA、run ID 和 attempt，保留实际安装器及该诊断 JSON 七天；其中没有平台验收回执。
+验收失败后，独立的[只读诊断](../../scripts/release/read-windows-installer-crash.ps1)查询此前 45 分钟内最多 100 条 Application Error 事件。它匹配传入的绝对路径或文件查询返回的完整路径，保留 Windows 展开 8.3 名称时的匹配。工作流为迟到事件提供 10 秒诊断等待；查询不可用时立即结束。脚本的 `WaitMilliseconds` 接受 0 到 30000，默认只立即查询一次。它记录查询次数、经过的毫秒数、安装器哈希、字节数和选定的崩溃字段，不输出完整事件消息或路径。空结果或事件日志不可用不能解释崩溃，也不改变作业失败状态；已验证产物仍只在验收成功后上传。仅失败时上传的 artifact 以 `windows-installer-failure-` 为名称前缀，包含候选 SHA、run ID 和 attempt，保留实际安装器及该诊断 JSON 七天；其中没有平台验收回执。
 
 -----
 

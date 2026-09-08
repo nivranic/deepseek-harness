@@ -11,7 +11,7 @@ const roots: string[] = []
 afterEach(async () => { for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }) })
 
 describe.skipIf(process.platform !== 'win32')('Windows installer crash diagnostics', () => {
-  async function observe(eventBody: string, alias = false): Promise<{ output: string; result: unknown }> {
+  async function observe(eventBody: string, alias = false, waitMilliseconds = 0): Promise<{ output: string; result: unknown }> {
     const root = await mkdtemp(join(tmpdir(), 'dsh-installer-diagnostic-'))
     roots.push(root)
     const executable = join(root, 'installer.exe')
@@ -20,11 +20,12 @@ describe.skipIf(process.platform !== 'win32')('Windows installer crash diagnosti
     const candidate = alias ? `${root}${sep}nested${sep}..${sep}installer.exe` : executable
     const wrapper = join(root, 'read.ps1')
     await writeFile(wrapper, `param($ScriptPath, $Candidate)
+$ErrorActionPreference = 'Stop'
 function Get-WinEvent {
   [CmdletBinding()] param($FilterHashtable, $MaxEvents)
   ${eventBody}
 }
-& $ScriptPath -ExecutablePath $Candidate
+& $ScriptPath -ExecutablePath $Candidate -WaitMilliseconds ${String(waitMilliseconds)}
 `)
     const { stdout } = await promisify(execFile)('pwsh', ['-NoProfile', '-File', wrapper, script, candidate], { windowsHide: true })
     return { output: stdout, result: JSON.parse(stdout) as unknown }
@@ -44,6 +45,7 @@ function Get-WinEvent {
   }`)
     expect(result).toEqual({
       schemaVersion: 1, scope: 'windows-installer-crash-diagnostic', queryState: 'queried', malformedRecords: 0,
+      queryAttempts: 1, waitedMilliseconds: expect.any(Number) as unknown,
       sha256: createHash('sha256').update('diagnostic bytes, never executed').digest('hex'), sizeBytes: 32,
       records: [{ module: 'ntdll.dll', exceptionCode: '0xc0000005', faultOffset: '0x00000abc', applicationVersion: '0.1.2.1' }],
     })
@@ -72,6 +74,33 @@ function Get-WinEvent {
     const denied = await observe("throw 'synthetic-private-payload'")
     expect(denied.result).toMatchObject({ queryState: 'unavailable', records: [] })
     expect(empty.output + denied.output).not.toContain('synthetic-private-payload')
+  })
+
+  it('waits for a matching Application Error event within the requested diagnostic interval', async () => {
+    const { result } = await observe(`
+  $script:attempts++
+  if ($script:attempts -lt 2) { return }
+  $xml = '<Event><System><Provider Name="Application Error"/><EventID>1000</EventID></System><EventData>' +
+    '<Data Name="AppPath">' + [Security.SecurityElement]::Escape($Candidate) + '</Data>' +
+    '<Data Name="ModuleName">ntdll.dll</Data><Data Name="ExceptionCode">C0000005</Data></EventData></Event>'
+  $item = [pscustomobject]@{ XmlText = $xml }
+  $item | Add-Member ScriptMethod ToXml { return $this.XmlText } -PassThru
+`, false, 1_000)
+    expect(result).toMatchObject({ queryState: 'queried', queryAttempts: 2,
+      records: [{ module: 'ntdll.dll', exceptionCode: '0xc0000005' }] })
+  })
+
+  it('finishes an empty diagnostic interval and retains query failure independently', async () => {
+    const empty = await observe('return', false, 20)
+    expect(empty.result).toMatchObject({ queryState: 'queried', records: [] })
+    expect((empty.result as { waitedMilliseconds: number }).waitedMilliseconds).toBeGreaterThanOrEqual(20)
+    const denied = await observe("throw 'synthetic-private-payload'", false, 1_000)
+    expect(denied.result).toMatchObject({ queryState: 'unavailable', queryAttempts: 1, records: [] })
+    expect(denied.output).not.toContain('synthetic-private-payload')
+  })
+
+  it.each([-1, 30_001])('rejects the invalid diagnostic wait %i before querying', async (waitMilliseconds) => {
+    await expect(observe('return', false, waitMilliseconds)).rejects.toThrow('WaitMilliseconds')
   })
 
   it('matches the supplied absolute spelling when file lookup resolves a different spelling', async () => {

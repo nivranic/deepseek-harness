@@ -83,7 +83,7 @@ jobs:
       - name: Read candidate installer crash records
         if: failure() && steps.acceptance.outcome == 'failure'
         run: |
-          ./scripts/release/read-windows-installer-crash.ps1 -ExecutablePath "$env:RUNNER_TEMP/windows-rc/windows/installer.exe" |
+          ./scripts/release/read-windows-installer-crash.ps1 -ExecutablePath "$env:RUNNER_TEMP/windows-rc/windows/installer.exe" -WaitMilliseconds 10000 |
             Tee-Object -FilePath "$env:RUNNER_TEMP/windows-rc/installer-crash.json"
       - name: Preserve failed installer inputs
         if: failure() && steps.acceptance.outcome == 'failure'
