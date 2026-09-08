@@ -119,7 +119,7 @@ for (const file of files) {
 }
 const supportResources = join(app, 'Contents/Resources/SupportScanner')
 const scanner = parseMacSupportScannerIdentity(JSON.parse(await command('python3', [
-  'scripts/stage-support-scanner.py', '--output', supportResources,
+  '-B', 'scripts/stage-support-scanner.py', '--output', supportResources,
 ])) as unknown)
 await verifyMacSupportScannerFiles(supportResources, scanner)
 const scannerExecutable = join(supportResources, 'gitleaks')
@@ -142,7 +142,7 @@ await command('/usr/bin/xcodebuild', [...options, '-resultBundlePath', join(outp
 const supportAttachments = join(output, 'support-attachments')
 await command('/usr/bin/xcrun', ['xcresulttool', 'export', 'attachments', '--path', join(output, 'HostStartup.xcresult'),
   '--output-path', supportAttachments])
-await command('python3', ['scripts/verify-support-exports.py', '--attachments', supportAttachments,
+await command('python3', ['-B', 'scripts/verify-support-exports.py', '--attachments', supportAttachments,
   '--scanner-directory', supportResources, '--approved', join(output, 'approved-support'),
   '--output', join(output, 'support-exports.json')])
 if (JSON.stringify(await inventoryAppleArchive(app)) !== JSON.stringify(before)) throw new Error('Mac Host application bytes changed during acceptance')
