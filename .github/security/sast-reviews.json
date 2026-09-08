@@ -357,6 +357,48 @@
           "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
         }
       }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/file-access-to-http",
+      "path": "packages/remote/link-access/tests/link-harness.ts",
+      "line": 422,
+      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+        },
+        "packages/remote/link-contracts": {
+          "kind": "tree",
+          "oid": "23b7e277b3d7c7b61d990d291da497a5397f24e8"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/file-access-to-http",
+      "path": "packages/remote/link-access/tests/carrier.spec.ts",
+      "line": 1130,
+      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+        },
+        "packages/remote/link-contracts": {
+          "kind": "tree",
+          "oid": "23b7e277b3d7c7b61d990d291da497a5397f24e8"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
     }
   ]
 }
