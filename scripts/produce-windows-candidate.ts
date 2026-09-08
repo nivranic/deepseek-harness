@@ -10,6 +10,7 @@ import { parseRcPolicy, type RcPlatformReceipt } from './release/rc-manifest.ts'
 import { withRcCleanup } from './release/rc-lifecycle.ts'
 import { describeRcOutput, hashRcOutput, writeRcOutput } from './release/rc-output.ts'
 import { parseSyftReceipt } from './release/sbom-receipt.ts'
+import { parseSupportScannerIdentity, verifySupportScannerFiles } from './release/support-scanner.ts'
 import { installWindowsCandidate, requireHostedWindows, smokeWindowsCandidate, windowsCandidateEnvironment } from './release/windows-smoke.ts'
 
 const execute = promisify(execFile)
@@ -38,6 +39,9 @@ await withRcCleanup(async () => {
   await mkdir(output)
   await mkdir(join(output, 'windows'))
   const packaged = join(repository, 'dist-desktop/out'), unpacked = join(packaged, 'win-unpacked')
+  const scannerDirectory = join(unpacked, 'resources', 'app', 'resources', 'SupportScanner')
+  const scanner = parseSupportScannerIdentity(JSON.parse(await readFile(join(scannerDirectory, 'scanner.json'), 'utf8')) as unknown)
+  await verifySupportScannerFiles(scannerDirectory, scanner, 'win32')
   const installer = join(output, 'windows/installer.exe'), portable = join(output, 'windows/portable.exe')
   await copyFile(join(packaged, `DeepSeek Harness Setup ${identity.version}.exe`), installer)
   await copyFile(join(packaged, `DeepSeek Harness ${identity.version}.exe`), portable)
@@ -58,9 +62,9 @@ await withRcCleanup(async () => {
   await execute('pwsh', ['-NoProfile', '-File', join(repository, 'scripts/release/verify-windows-product.ps1'),
     '-InputFile', versionInput, '-OutputFile', versionOutput], { windowsHide: true, env: windowsCandidateEnvironment(process.env) })
   console.log('Windows candidate: installed bytes and PE versions verified; installed GUI start')
-  const installed = await smokeWindowsCandidate(installedExecutable, join(work, 'installed-state'), join(output, 'windows/installed.png'))
+  const installed = await smokeWindowsCandidate(installedExecutable, join(work, 'installed-state'), join(output, 'windows/installed.png'), scanner)
   console.log('Windows candidate: installed GUI passed; portable GUI start')
-  const portableStartup = await smokeWindowsCandidate(portable, join(work, 'portable-state'), join(output, 'windows/portable.png'), true)
+  const portableStartup = await smokeWindowsCandidate(portable, join(work, 'portable-state'), join(output, 'windows/portable.png'), scanner, true)
   console.log('Windows candidate: portable GUI passed')
   for (const startup of [installed, portableStartup]) {
     if (startup.applicationVersion !== identity.version || startup.executableSha256 !== originalHash.sha256) {
@@ -83,6 +87,7 @@ await withRcCleanup(async () => {
     checks.push({ ...file, name })
   }
   const attachments = [
+    await writeRcOutput(output, 'windows/support-scanner.json', { sourceSha, ...scanner }),
     await describeRcOutput(output, 'windows/installed.png'),
     await describeRcOutput(output, 'windows/portable.png'),
     await writeRcOutput(output, 'windows/observations.json', {

@@ -1,4 +1,4 @@
-"""Prepare the pinned native scanner consumed by the Mac Host support exporter."""
+"""Prepare the pinned native scanner resources for desktop support exports."""
 
 from release.support_scanner import main
 

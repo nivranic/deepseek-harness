@@ -23,6 +23,8 @@
 
 作业在一次性的 `windows-2025` runner 上使用原生 PowerShell。它安装锁定依赖、检查生成的产品标识、运行 SBOM 回归、构建官方客户端，并调用[现有打包器](../../scripts/build-desktop-exe.ts)。Electron 和 builder 从上游 GitHub release 下载。打包保持未签名并禁用发布。
 
+打包要求原生 Windows 和 Python。[桌面扫描器安装器](../../scripts/release/support_scanner.py)验证固定的 Gitleaks 归档、版本及检出/脱敏 canary 后，将 `gitleaks.exe`、`LICENSE` 和 `scanner.json` 放入应用的 `resources/SupportScanner`。许可证条目缺失、重复、为链接、为目录或为空时，获取失败。打包器在内存中保留获取回执，并在 NSIS 或 portable 收集前比较实际 Electron 输出资源；字节变化、多余文件和非普通文件均使打包失败。
+
 打包后，生产者通过 `node --import tsx/esm` 使用已经安装的开发工具链。生产部署会修改 pnpm workspace-state 元数据；随后运行 `pnpm exec` 可能自动按仅生产依赖重新安装，在验证工具启动前将其移除。
 
 [生产者](../../scripts/produce-windows-candidate.ts)要求在 `RUNNER_TEMP` 下新建输出目录，并为安装和应用状态创建另一个唯一运行目录。托管 runner 标记用于防止在开发者机器上误执行；它不认证故意伪造环境变量的调用方。不得在持久化自托管 runner 上运行该生产者。
@@ -39,6 +41,8 @@ NSIS 候选为当前临时 runner 用户静默安装到本次运行目录。生�
 NSIS 不转发 Electron 子进程的 stderr，而 Playwright 从该流获取调试地址。仅用于测试的 [portable 适配器](../../scripts/release/windows-portable-launch.ts)启动实际 portable 文件，发现两个已请求的本机回环端点，并将地址通知转发给同一 Electron 驱动。它等待 portable 进程退出，并保留在 Playwright 拥有的进程树中以便失败清理。Portable 启动允许四分钟完成解压与连接，已安装程序允许九十秒；驱动在交互前核验已连接应用的独立 user-data 路径。
 
 驱动截取已渲染的提供方表单、检查未捕获页面错误、记录运行中应用版本，并在 portable 清理前计算实际执行文件的哈希。两种运行中主程序均必须与打包主程序一致。正常应用关闭和进程退出都必须完成，退出码须为零；失败清理只终止该次启动拥有的进程树。PNG 大小阈值不用于授予启动验收。
+
+对于两种启动器，驱动通过运行中应用的 `app.getAppPath()` 定位扫描器资源，将三个文件与解包候选的回执比较，并执行已安装扫描器的版本查询。平台回执将该扫描器标识保留为带哈希的附件。这些检查验证资源交付与执行；Windows 支持导出操作及最终文档扫描仍未完成。
 
 生产者记录安装、Inspector、窗口和表单阶段。主操作与清理失败同时保留，包括 Electron 驱动返回进程句柄之前的失败。目录删除在有限时间内重试 Windows 临时文件锁，清理仍未完成时继续报错；重试不构成启动验收。
 

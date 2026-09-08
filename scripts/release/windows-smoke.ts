@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { _electron as electron } from 'playwright-core'
 import { hashRcOutput } from './rc-output.ts'
 import { withRcCleanup } from './rc-lifecycle.ts'
+import { verifySupportScannerFiles, type SupportScannerIdentity } from './support-scanner.ts'
 
 const execute = promisify(execFile)
 
@@ -68,16 +69,20 @@ export async function installWindowsCandidate(installer: string, directory: stri
  * @param executable - installed main executable or the actual portable launcher.
  * @param directory - fresh test-owned state directory; it must remain separate for each launcher.
  * @param screenshot - destination for the rendered Settings view after interaction succeeds.
+ * @param scanner - validated acquisition identity from the unpacked candidate.
  * @param portable - use the NSIS child endpoint adapter and allow time for extraction.
  * @returns the observed startup facts; no model API call or configured credential is required.
  */
-export async function smokeWindowsCandidate(executable: string, directory: string, screenshot: string, portable = false): Promise<{
+export async function smokeWindowsCandidate(
+  executable: string, directory: string, screenshot: string, scanner: SupportScannerIdentity, portable = false,
+): Promise<{
   settingsOpened: true
   providerFormOpened: true
   pageErrors: number
   exitCode: number
   applicationVersion: string
   executableSha256: string
+  supportScannerVerified: true
 }> {
   requireHostedWindows(process.platform, process.env)
   const appData = join(directory, 'roaming'), localData = join(directory, 'local')
@@ -121,15 +126,21 @@ export async function smokeWindowsCandidate(executable: string, directory: strin
     console.log('Windows candidate: provider form opened')
     await page.screenshot({ path: screenshot, fullPage: true })
     const observed = await application.evaluate(({ app }) => ({
-      executablePath: process.execPath, applicationVersion: app.getVersion(),
+      executablePath: process.execPath, applicationVersion: app.getVersion(), appPath: app.getAppPath(),
     }))
     const executableHash = await hashRcOutput(observed.executablePath)
+    const scannerDirectory = join(observed.appPath, 'resources', 'SupportScanner')
+    await verifySupportScannerFiles(scannerDirectory, scanner, 'win32')
+    const scannerVersion = await execute(join(scannerDirectory, 'gitleaks.exe'), ['version'], {
+      windowsHide: true, timeout: 10_000, env: windowsCandidateEnvironment(process.env),
+    })
+    if (scannerVersion.stdout.trim() !== scanner.version) throw new Error('Running candidate support scanner version differs')
     if (pageErrors !== 0) throw new Error(`Windows GUI raised ${pageErrors} uncaught page errors`)
     const exited = waitForRcProcessExit(child, 30_000)
     const [, exitCode] = await Promise.all([application.close(), exited])
     if (exitCode !== 0) throw new Error('Windows GUI did not exit normally with code zero')
     return { settingsOpened: true as const, providerFormOpened: true as const, pageErrors, exitCode,
-      applicationVersion: observed.applicationVersion, executableSha256: executableHash.sha256 }
+      applicationVersion: observed.applicationVersion, executableSha256: executableHash.sha256, supportScannerVerified: true as const }
   }, async () => {
     if (child.exitCode === null && child.signalCode === null && child.pid !== undefined) {
       const exited = waitForRcProcessExit(child, 15_000)

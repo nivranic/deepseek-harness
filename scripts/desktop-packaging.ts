@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { Arch, Platform, type CliOptions } from 'electron-builder'
 import type { ProductIdentity } from './release/product-identity.ts'
 import { rewriteWindowsExecutableVersion } from './release/windows-executable-version.ts'
+import { verifySupportScannerFiles, type SupportScannerIdentity } from './release/support-scanner.ts'
 
 /**
  * Configure unsigned NSIS and portable candidates over a deployed app closure.
@@ -12,9 +13,12 @@ import { rewriteWindowsExecutableVersion } from './release/windows-executable-ve
  * @param stageDir - exclusive deployed application directory outside the workspace.
  * @param outputDir - destination for the unpacked application and installers.
  * @param identity - validated application identity shared by every platform.
+ * @param scanner - receipt from native acquisition, retained to verify packaged resource bytes.
  * @returns electron-builder options for one Windows x64 candidate build.
  */
-export function desktopBuildOptions(stageDir: string, outputDir: string, identity: ProductIdentity): CliOptions {
+export function desktopBuildOptions(
+  stageDir: string, outputDir: string, identity: ProductIdentity, scanner: SupportScannerIdentity,
+): CliOptions {
   return {
     projectDir: stageDir,
     targets: Platform.WINDOWS.createTarget(['nsis', 'portable'], Arch.x64),
@@ -40,6 +44,7 @@ export function desktopBuildOptions(stageDir: string, outputDir: string, identit
       },
       nsis: { oneClick: false, allowToChangeInstallationDirectory: true },
       afterPack: async (context) => {
+        await verifySupportScannerFiles(join(context.appOutDir, 'resources', 'app', 'resources', 'SupportScanner'), scanner, 'win32')
         const filename = join(context.appOutDir, `${context.packager.appInfo.productFilename}.exe`)
         const content = await readFile(filename)
         const updated = rewriteWindowsExecutableVersion(content, identity, context.packager.appInfo.productName)

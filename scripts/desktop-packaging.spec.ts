@@ -1,4 +1,5 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -9,6 +10,9 @@ import { parseProductIdentity } from './release/product-identity.ts'
 import { rewriteWindowsExecutableVersion } from './release/windows-executable-version.ts'
 
 const identity = parseProductIdentity({ version: '12.34.56-beta.2' }, { schemaVersion: 1, buildNumber: 43210, channel: 'beta' })
+const digest = (value: string): string => createHash('sha256').update(value).digest('hex')
+const scanner = { schemaVersion: 1, version: '8.30.1', archiveSha256: 'a'.repeat(64),
+  originalBinarySha256: digest('native scanner'), binarySha256: digest('native scanner'), licenseSha256: digest('MIT fixture') } as const
 const directories: string[] = []
 
 afterEach(async () => {
@@ -80,7 +84,7 @@ describe('Windows executable application identity', () => {
 describe('desktop candidate builder', () => {
   it('pins numeric installer versions to release metadata instead of CI environment numbers', () => {
     vi.stubEnv('BUILD_NUMBER', '9999')
-    const config = desktopBuildOptions('/deployed-app', '/output', identity).config as Configuration
+    const config = desktopBuildOptions('/deployed-app', '/output', identity, scanner).config as Configuration
     const appInfo = new AppInfo({
       config,
       metadata: { name: 'desktop-fixture', version: identity.version },
@@ -94,7 +98,12 @@ describe('desktop candidate builder', () => {
     directories.push(output)
     const filename = join(output, 'Renamed App.exe')
     await writeFile(filename, fixture())
-    const options = desktopBuildOptions('/deployed-app', output, identity)
+    const scannerDirectory = join(output, 'resources', 'app', 'resources', 'SupportScanner')
+    await mkdir(scannerDirectory, { recursive: true })
+    await writeFile(join(scannerDirectory, 'gitleaks.exe'), 'native scanner')
+    await writeFile(join(scannerDirectory, 'LICENSE'), 'MIT fixture')
+    await writeFile(join(scannerDirectory, 'scanner.json'), JSON.stringify(scanner))
+    const options = desktopBuildOptions('/deployed-app', output, identity, scanner)
     expect(options.publish).toBe('never')
     const config = options.config as Configuration
     expect(config.publish).toBeNull()
@@ -112,6 +121,22 @@ describe('desktop candidate builder', () => {
         ProductName: 'Renamed App', ProductVersion: '12.34.56-beta.2', FileVersion: '12.34.56.43210',
       })
     }
+    const validExecutable = await readFile(filename)
+    await writeFile(join(scannerDirectory, 'gitleaks.exe'), 'changed')
+    await writeFile(join(scannerDirectory, 'scanner.json'), JSON.stringify({
+      ...scanner, binarySha256: digest('changed'), originalBinarySha256: digest('changed'),
+    }))
+    await writeFile(join(scannerDirectory, 'scanner.json'), JSON.stringify({
+      ...scanner, binarySha256: digest('changed'), originalBinarySha256: digest('changed'),
+    }))
+    await expect(hook({
+      appOutDir: output,
+      packager: { appInfo: { productFilename: 'Renamed App', productName: 'Renamed App' } },
+    } as AfterPackContext)).rejects.toThrow('changed after acquisition')
+    expect(await readFile(filename)).toEqual(validExecutable)
+    await writeFile(join(scannerDirectory, 'gitleaks.exe'), 'native scanner')
+    await writeFile(join(scannerDirectory, 'scanner.json'), JSON.stringify(scanner))
+    await writeFile(join(scannerDirectory, 'scanner.json'), JSON.stringify(scanner))
     await writeFile(filename, 'corrupted input')
     await expect(hook({
       appOutDir: output,

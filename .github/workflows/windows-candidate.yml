@@ -14,6 +14,7 @@ on:
       - 'scripts/release/**'
       - 'scripts/desktop-*.ts'
       - 'scripts/build-desktop-exe.ts'
+      - 'scripts/stage-support-scanner.py'
       - 'scripts/produce-windows-candidate.ts'
       - '.github/workflows/windows-candidate.yml'
       - '.github/security/scanners.json'
@@ -73,6 +74,10 @@ jobs:
           pnpm run verify-product-identity
       - name: SBOM regression tests
         run: python -B -m unittest discover -s scripts/release -p test_sbom.py -v
+      - name: Support scanner resource regressions
+        run: |
+          python -B -m unittest discover -s scripts/release -p test_support_scanner.py -v
+          pnpm exec vitest run scripts/release/support-scanner.spec.ts scripts/desktop-packaging.spec.ts
       - name: Build official application
         run: pnpm run build:official
       - name: Package unsigned Windows candidates

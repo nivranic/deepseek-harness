@@ -8,7 +8,7 @@ import { inventoryAppleArchive } from './release/apple-archive-files.ts'
 import { verifyAppleProduct } from './release/apple-product.ts'
 import { captureCiSource } from './release/ci-source.ts'
 import { copyMacHostExecutables, macHostTestRunnerEntitlements, verifyMacHostMachO } from './release/mac-host-bundle.ts'
-import { parseMacSupportScannerIdentity, verifyMacSupportScannerFiles } from './release/mac-support-scanner.ts'
+import { parseSupportScannerIdentity, verifySupportScannerFiles } from './release/support-scanner.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 import { hashRcOutput, writeRcOutput } from './release/rc-output.ts'
 
@@ -118,10 +118,10 @@ for (const file of files) {
   await command('/usr/bin/codesign', ['--verify', '--strict', join(resources, file.path)])
 }
 const supportResources = join(app, 'Contents/Resources/SupportScanner')
-const scanner = parseMacSupportScannerIdentity(JSON.parse(await command('python3', [
+const scanner = parseSupportScannerIdentity(JSON.parse(await command('python3', [
   '-B', 'scripts/stage-support-scanner.py', '--output', supportResources,
 ])) as unknown)
-await verifyMacSupportScannerFiles(supportResources, scanner)
+await verifySupportScannerFiles(supportResources, scanner, 'darwin')
 const scannerExecutable = join(supportResources, 'gitleaks')
 verifyMacHostMachO(architecture, await command('/usr/bin/lipo', ['-archs', scannerExecutable]),
   await command('/usr/bin/xcrun', ['vtool', '-show-build', '-arch', architecture, scannerExecutable]))
@@ -159,7 +159,7 @@ const finalSource = captureCiSource(repository, workflow, environment)
 if (finalSource.dirty || finalSource.checkoutSha !== source.checkoutSha || finalSource.treeSha !== source.treeSha
   || finalSource.workflowSha256 !== source.workflowSha256) throw new Error('source checkout changed during Mac Host production')
 const producers = [workflow, 'scripts/produce-mac-host.ts', 'scripts/release/mac-host-bundle.ts',
-  'scripts/release/mac-support-scanner.ts', 'scripts/stage-support-scanner.py', 'scripts/release/support_scanner.py',
+  'scripts/release/support-scanner.ts', 'scripts/stage-support-scanner.py', 'scripts/release/support_scanner.py',
   'scripts/verify-support-exports.py', 'scripts/release/support_exports.py',
   'scripts/release/secret_scan.py', '.github/security/scanners.json',
   'scripts/release/mac_host_crash.py',

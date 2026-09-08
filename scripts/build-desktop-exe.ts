@@ -7,16 +7,18 @@
  * closure shape, the packager only consumes the stage.
  */
 
-import { spawn } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import { build } from 'electron-builder'
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs'
 import { readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 import { officialClientBuildEnvironment, readClientBuildRecord } from './client-build-environment.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 import { withDesktopStage } from './desktop-stage.ts'
 import { desktopBuildOptions } from './desktop-packaging.ts'
+import { parseSupportScannerIdentity, verifySupportScannerFiles } from './release/support-scanner.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT_DIR = join(root, 'dist-desktop', 'out')
@@ -58,6 +60,7 @@ async function readJson<T>(path: string, hint: string): Promise<T> {
 }
 
 async function main(stageDir: string): Promise<void> {
+  if (process.platform !== 'win32') fail('Windows packaging requires native Windows scanner verification')
   const identity = readProductIdentity(root)
   const stale = staleProductIdentityFiles(root, identity)
   if (stale.length !== 0) fail(`product version inputs are stale: ${stale.join(', ')}; run pnpm run gen-product-identity`)
@@ -93,6 +96,14 @@ async function main(stageDir: string): Promise<void> {
   // lay them down.
   cpSync(join(root, 'apps', 'desktop', 'lib'), join(stageDir, 'lib'), { recursive: true, force: true })
   cpSync(join(root, 'apps', 'desktop', 'resources'), join(stageDir, 'resources'), { recursive: true, force: true })
+  const scannerDirectory = join(stageDir, 'resources', 'SupportScanner')
+  const acquired = await promisify(execFile)('python', ['-B', 'scripts/stage-support-scanner.py', '--output', scannerDirectory], {
+    cwd: root, windowsHide: true, maxBuffer: 32_768,
+    env: Object.fromEntries(Object.entries(process.env).filter(([key]) =>
+      !/KEY|SECRET|TOKEN|PASSWORD/i.test(key) && !/^(DSH_|GITLEAKS_|PYTHONPATH$|PYTHONHOME$)/i.test(key))),
+  })
+  const scanner = parseSupportScannerIdentity(JSON.parse(acquired.stdout) as unknown)
+  await verifySupportScannerFiles(scannerDirectory, scanner, 'win32')
 
   // Materialize every link that escapes the stage: file-linked workspace
   // packages land in the closure as junctions back into the repository, and
@@ -142,7 +153,7 @@ async function main(stageDir: string): Promise<void> {
   await unlink(join(stageDir, 'node_modules', '.modules.yaml')).catch(() => {})
 
   console.log('build-desktop-exe: running electron-builder (win)')
-  await build(desktopBuildOptions(stageDir, OUT_DIR, identity))
+  await build(desktopBuildOptions(stageDir, OUT_DIR, identity, scanner))
   console.log(`build-desktop-exe: artifacts in ${OUT_DIR}`)
 }
 
