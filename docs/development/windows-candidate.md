@@ -60,6 +60,8 @@ The final platform receipt binds installer and portable files, named PASS checks
 <a id="limitations"></a>
 ## Limitations
 
+The failure artifact also retains the version-correlated [product diagnostic record](product-diagnostics.md), whose collection status remains independent of installation acceptance.
+
 Synthetic regression tests do not establish installer or GUI success; only the actual candidate workflow does. The npm comparison proves coverage against shipped manifests, not against code whose dependencies were bundled without manifests or missing license metadata. This workflow checks a fresh installation and keyless GUI configuration, not upgrade, rollback, model execution, production signing or store distribution. Unsigned provenance does not authenticate the builder, and one Windows receipt is not a complete four-platform RC.
 
 -----

@@ -85,6 +85,11 @@ jobs:
         run: |
           ./scripts/release/read-windows-installer-crash.ps1 -ExecutablePath "$env:RUNNER_TEMP/windows-rc/windows/installer.exe" -WaitMilliseconds 10000 |
             Tee-Object -FilePath "$env:RUNNER_TEMP/windows-rc/installer-crash.json"
+      - name: Bind installer crash facts to product identity
+        if: failure() && steps.acceptance.outcome == 'failure'
+        run: |
+          node --import tsx/esm scripts/collect-product-diagnostics.ts --platform windows `
+            --directory "$env:RUNNER_TEMP/windows-rc" --max-input-bytes 4194304
       - name: Preserve failed installer inputs
         if: failure() && steps.acceptance.outcome == 'failure'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -93,6 +98,7 @@ jobs:
           path: |
             ${{ runner.temp }}/windows-rc/windows/installer.exe
             ${{ runner.temp }}/windows-rc/installer-crash.json
+            ${{ runner.temp }}/windows-rc/product-diagnostics.json
           if-no-files-found: error
           retention-days: 7
           compression-level: 0

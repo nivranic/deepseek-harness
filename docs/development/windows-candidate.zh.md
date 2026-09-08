@@ -60,6 +60,8 @@ npm 审计遍历实际打包应用目录，遇到不可读目录或链接就失�
 <a id="limitations"></a>
 ## 限制
 
+失败 artifact 也保留与版本关联的[产品诊断记录](product-diagnostics.zh.md)，其中的采集状态与安装验收分别记录。
+
 合成回归测试不证明安装器或 GUI 成功；只有真实候选 workflow 才能提供此类证据。npm 比较证明相对于已交付 manifest 的覆盖，不证明缺少 manifest 的打包代码依赖或缺失的许可证元数据。此 workflow 检查全新安装和无密钥 GUI 配置，不验证升级、回滚、模型执行、生产签名或商店分发。未签名 provenance 不认证构建者，单个 Windows 回执也不构成完整四平台 RC。
 
 -----

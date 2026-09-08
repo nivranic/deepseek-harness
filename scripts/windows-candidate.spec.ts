@@ -141,11 +141,15 @@ describe('Windows candidate production requirements', () => {
     expect(diagnostic?.run).toContain('$env:RUNNER_TEMP/windows-rc/windows/installer.exe')
     expect(diagnostic?.run).toContain('-WaitMilliseconds 10000')
     expect(diagnostic?.run).toContain('Tee-Object -FilePath "$env:RUNNER_TEMP/windows-rc/installer-crash.json"')
+    const productDiagnostic = job.steps.find(step => step.run?.includes('scripts/collect-product-diagnostics.ts'))
+    expect(productDiagnostic?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
+    expect(productDiagnostic?.run).toContain('--platform windows')
+    expect(productDiagnostic?.run).toContain('--max-input-bytes 4194304')
     const failedInputs = uploads.find(step => step.if !== undefined)
     expect(failedInputs?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
     expect(failedInputs?.with).toMatchObject({
       name: 'windows-installer-failure-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}',
-      path: '${{ runner.temp }}/windows-rc/windows/installer.exe\n${{ runner.temp }}/windows-rc/installer-crash.json\n',
+      path: '${{ runner.temp }}/windows-rc/windows/installer.exe\n${{ runner.temp }}/windows-rc/installer-crash.json\n${{ runner.temp }}/windows-rc/product-diagnostics.json\n',
       'if-no-files-found': 'error', 'retention-days': 7, 'compression-level': 0,
     })
     expect(upload).toBeGreaterThan(produce)

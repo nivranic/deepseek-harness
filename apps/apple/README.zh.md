@@ -43,6 +43,8 @@ DirectHostMac 拥有 `DirectHostRuntime` 管理器与临时本地 WebView。它�
 
 [Mac Host candidate workflow](../../.github/workflows/mac-host-candidate.yml) 在临时 macOS runner 上拥有原生 bundle 组装与应用验收。生产器从所选干净提交构建 runtime、rg、spawn-helper 和生命周期 helper，检查可执行文件架构、平台、最低系统版本与产品版本，并使用 ad-hoc 签名封装应用。它以临时 home 运行 bundle 内的 Web profile 和生产 WebView，然后用 SHA256 摘要绑定源码、工具链、文件清单与 ZIP。构建或验收失败会阻止已验证候选 artifact 的生成。Developer ID 签名、公证、完整进程所有权与完整 RC 供应链回执仍是独立要求。
 
+原生崩溃采集也会生成[产品诊断记录](../../docs/development/product-diagnostics.zh.md)，关联 checkout 中的版本、构建号和源码 SHA。它保留错误类别与采集完整性，不复制报告消息或栈帧。
+
 `LinkClient` 镜像 TypeScript 参考客户端：`pair(payload:deviceName:)` 只接受 fresh client 自身拥有的 endpoint 与 pin，以一次性配对码换取持久化的 `LinkCredentials`（真实部署存 Keychain，预览与测试用内存实现）；`describe()` 返回 Host 描述；`call(_:args:)` 校验回显的 `rpcId`，把成功但省略 value 的响应映射为 `.null`，并带出结构化 refusal；`stream(_:payload:)` 逐帧产出 NDJSON 值，错误帧以类型化失败结束。unary 与 stream 的传输处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。失败的 stream 会读取该响应体以完成分类，成功的 stream 则在未预消费字节的前提下进入 NDJSON 解析。每个请求以设备密钥对 `timestamp\nmethod\npath\nsha256hex(body)` 签名；每次 TLS 握手在写出任何请求字节之前钉扎证书指纹。`InteractionViewModel` 只从每代 Host `ready.clientId` 更新回答身份，从 `waterfall.request` 读取交互字段，应用 cancel frame，并在重连后等待新的 ready frame。
 
 -----
