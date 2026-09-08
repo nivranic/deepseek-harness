@@ -194,7 +194,7 @@ autoInstallPeers: false
 
 /**
  * Initialize a profile directory: manifest, empty user patch layer, and the
- * pnpm settings out-of-tree plugins need. Existing files are never touched,
+ * pnpm settings out-of-tree plugins need. Exclusive creation preserves existing files,
  * so re-running is a no-op on an initialized profile.
  * @param dir - the profile directory from {@link resolveProfileDir}.
  * @param bundles - the initial `dsh.profile.bundles` layer list.
@@ -206,20 +206,24 @@ export function initProfile(
   patchReload: ProfilePatchReload = DEFAULT_PROFILE_PATCH_RELOAD,
 ): void {
   mkdirSync(dir, { recursive: true })
-  const manifestPath = join(dir, 'package.json')
-  if (!existsSync(manifestPath)) {
-    const manifest: ProfileManifest & { private: boolean } = {
-      name: `dsh-profile-${basename(dir)}`,
-      private: true,
-      dependencies: {},
-      dsh: { profile: { bundles: [...bundles], patchReload } },
-    }
-    writeFileSync(manifestPath, JSON.stringify(manifest, undefined, 2) + '\n')
+  const manifest: ProfileManifest & { private: boolean } = {
+    name: `dsh-profile-${basename(dir)}`,
+    private: true,
+    dependencies: {},
+    dsh: { profile: { bundles: [...bundles], patchReload } },
   }
-  const patchPath = join(dir, PROFILE_PATCH_FILENAME)
-  if (!existsSync(patchPath)) writeFileSync(patchPath, PROFILE_PATCH_TEMPLATE)
-  const workspacePath = join(dir, 'pnpm-workspace.yaml')
-  if (!existsSync(workspacePath)) writeFileSync(workspacePath, PROFILE_PNPM_WORKSPACE)
+  createProfileFile(join(dir, 'package.json'), JSON.stringify(manifest, undefined, 2) + '\n')
+  createProfileFile(join(dir, PROFILE_PATCH_FILENAME), PROFILE_PATCH_TEMPLATE)
+  createProfileFile(join(dir, 'pnpm-workspace.yaml'), PROFILE_PNPM_WORKSPACE)
+}
+
+/** Preserve any entry that already occupies a profile file's final path. */
+function createProfileFile(path: string, content: string): void {
+  try {
+    writeFileSync(path, content, { flag: 'wx' })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+  }
 }
 
 function readModuleProxyRecord(link: string): ModuleProxyRecord | undefined {
