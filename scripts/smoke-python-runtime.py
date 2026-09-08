@@ -1424,10 +1424,11 @@ class RuntimePeer:
 
 
 def assert_session_log(sessions: Path, cwd: Path, *expected_texts: str) -> None:
+    """Read persisted UTF-8 JSONL independently of the host locale."""
     logs = list(sessions.rglob("*.jsonl"))
     if len(logs) != 1:
         raise AssertionError(f"expected one JSONL session log under {sessions}, found {logs}")
-    lines = logs[0].read_text().splitlines()
+    lines = logs[0].read_text(encoding="utf-8").splitlines()
     header = json.loads(lines[0])
     if header.get("cwd") != str(cwd):
         raise AssertionError(f"session header cwd is not absolute/canonical: {header}")
