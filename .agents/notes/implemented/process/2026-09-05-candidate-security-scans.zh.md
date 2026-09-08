@@ -30,6 +30,8 @@ Link carrier 测试驱动将固定的生成协议夹具发送到临时 loopback 
 
 密码学审查覆盖完整构造：Kotlin 中继使用 ChaCha20-Poly1305 AEAD，`ChaCha20` 只是其 JCA 密钥的算法标签。Noise 的零 nonce 前缀与每个密钥内唯一的计数器组合；新的方向密钥、串行交换与计数耗尽前拒绝必须同时成立。审查固定 Android tree 和分析 workflow，使调用者或 nonce 所有权变化时必须重新评估，而不能沿用算法名称例外。
 
+Apple 的 `LinkSigning.sha256Hex` 对请求体计算摘要以供 Ed25519 签名，并对 DER 公钥计算证书指纹；它不存储密码哈希。Mac 诊断导出使用独立的摘要函数验证扫描器可执行文件和许可证字节。精确的 LinkSigning 审阅固定完整 Apple tree 和分析 workflow，并覆盖这些不同用途，使新增密码处理调用者不能继承协议用途的理由。
+
 Android candidate 生产器仅在临时托管 Linux runner 上创建一次性 debug keystore。Bundletool 从权限为 0700 的私有临时目录中的 0600 文件读取随机密码；密钥材料与密码在产物检查前移除，生成失败时也清理。精确 SAST 审阅固定这些所有者及权限和清理回归。该例外不允许保留用户密码或生产签名材料。
 
 修改 fixture 行或 SAST 上下文需要重新审查。不支持的平台、submodule、未完成分析、不可用的账号功能和缺失输出都会失败，不保留旧 PASS。即使全部发现项已审查，也不能覆盖提取错误。不含源码的 artifact 减少远端诊断细节；复现使用准确候选和 scanner revision。未签名回执补充 [CI 源码证据](2026-09-05-ci-source-evidence.zh.md) 和 [workflow 策略](2026-09-05-workflow-security.zh.md)。

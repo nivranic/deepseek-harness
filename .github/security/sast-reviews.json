@@ -6,11 +6,11 @@
       "rule": "swift/weak-password-hashing",
       "path": "apps/apple/Sources/SharedAppleRemoteCore/LinkSigning.swift",
       "line": 22,
-      "reason": "SHA-256 hashes exact request bodies for Ed25519 signing input and DER public keys for SPKI fingerprints. All current Apple callers use those two public protocol roles; no caller stores a password hash. The full Apple source tree and its analysis workflow are pinned so new callers or changed source selection require renewed review.",
+      "reason": "SHA-256 hashes exact request bodies for Ed25519 signing input and DER public keys for SPKI fingerprints. LinkClient.applyCredentials and LinkPinningDelegate remain the production callers of those protocol operations; no caller stores a password hash. The Mac support export uses a separate supportDigest function only to verify its sealed scanner executable and license bytes, without adding a LinkSigning caller. The full Apple source tree and its analysis workflow are pinned so new callers or changed source selection require renewed review.",
       "materials": {
         "apps/apple": {
           "kind": "tree",
-          "oid": "00d4b91e6906aa09f176049d845b2ee19c21d335"
+          "oid": "a41d1a620f44de0757a28d4b0f4f4e9c21c943fb"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
