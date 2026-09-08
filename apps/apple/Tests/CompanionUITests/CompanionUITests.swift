@@ -1112,7 +1112,8 @@ final class ArtifactFoldTests: XCTestCase {
         ]))
         let model = RemoteSessionViewModel(wire: wire)
         await model.open(sessionId: "s1")
-        try? await Task.sleep(for: .milliseconds(50))
+        let folded = await eventually { model.active?.cursor == 8 }
+        XCTAssertTrue(folded)
         XCTAssertEqual(model.artifacts, [
             CompanionDomainState.Artifact(id: "a1", kind: "markdown", title: "报告.md", status: .ready),
             CompanionDomainState.Artifact(id: "a2", kind: "image", title: "截图.png", status: .failed),
@@ -1128,12 +1129,14 @@ final class ArtifactFoldTests: XCTestCase {
         ]))
         let model = RemoteSessionViewModel(wire: wire)
         await model.open(sessionId: "s1")
-        try? await Task.sleep(for: .milliseconds(50))
+        let folded = await eventually { model.active?.cursor == 2 }
+        XCTAssertTrue(folded)
         XCTAssertEqual(model.artifacts.map(\.status), [.ready])
 
         await wire.stubStream("session/follow", frames: .success([]))
         await model.open(sessionId: "s2")
-        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.active?.sessionId, "s2")
+        XCTAssertEqual(model.active?.cursor, 0)
         XCTAssertTrue(model.artifacts.isEmpty)
     }
 }
