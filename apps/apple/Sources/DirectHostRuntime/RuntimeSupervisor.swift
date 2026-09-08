@@ -47,7 +47,11 @@ private final class LocalRedirects: NSObject, URLSessionTaskDelegate {
 /// The helper reaps the runtime group on parent death; detached tool groups require their own owner.
 @MainActor
 public final class RuntimeSupervisor: ObservableObject {
-    @Published public private(set) var status: RuntimeStatus = .stopped
+    @Published public private(set) var status: RuntimeStatus = .stopped {
+        didSet {
+            if oldValue != status { supportCounts.record(status) }
+        }
+    }
     /// Passed only to the local WebView; never persisted or included in status/error descriptions.
     @Published public private(set) var launchURL: URL?
     @Published public private(set) var activationID = UUID()
@@ -73,6 +77,12 @@ public final class RuntimeSupervisor: ObservableObject {
     private let home: URL?
     private let policy: RuntimePolicy
     private var activation: Activation?
+    private var supportCounts = SupportRuntimeCounts()
+
+    /// Copy current lifecycle facts without starting the runtime or reading its output, home or credentials.
+    public func supportSnapshot() -> RuntimeSupportSnapshot {
+        RuntimeSupportSnapshot(status: status, counts: supportCounts)
+    }
 
     /// Invalid explicit home configuration fails on start without creating or using the default home.
     public init(executable: URL, helper: URL, home: URL, policy: RuntimePolicy, homeOverride: String? = nil) {

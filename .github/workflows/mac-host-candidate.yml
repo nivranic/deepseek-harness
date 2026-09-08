@@ -14,6 +14,9 @@ on:
       - 'scripts/build-exe-for-python-sdk*'
       - 'scripts/smoke-packaged-web.py'
       - 'scripts/produce-mac-host.ts'
+      - 'scripts/stage-support-scanner.py'
+      - 'scripts/verify-support-exports.py'
+      - '.github/security/scanners.json'
       - 'scripts/release/**'
       - 'release/**'
       - '.github/workflows/mac-host-candidate.yml'
@@ -67,8 +70,9 @@ jobs:
           command -v xcodegen >/dev/null || brew install xcodegen
       - name: Verify native bundle rejection paths
         run: |
-          pnpm exec vitest run scripts/release/mac-host-bundle.spec.ts
+          pnpm exec vitest run scripts/release/mac-host-bundle.spec.ts scripts/release/mac-support-scanner.spec.ts
           python3 -B -m unittest discover -s scripts/release -p test_mac_host_crash.py
+          python3 -B -m unittest discover -s scripts/release -p 'test_support_*.py'
       - name: Build, assemble and exercise the Mac Host
         run: node --import tsx/esm scripts/produce-mac-host.ts --output "$RUNNER_TEMP/mac-host-candidate"
       - name: Export native Host screenshots
@@ -100,6 +104,7 @@ jobs:
             ${{ runner.temp }}/mac-host-candidate/app-test.log
             ${{ runner.temp }}/mac-host-candidate/test-runner-signing.log
             ${{ runner.temp }}/mac-host-candidate/screenshots
+            ${{ runner.temp }}/mac-host-candidate/approved-support
           if-no-files-found: error
           retention-days: 7
           compression-level: 0

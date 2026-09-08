@@ -3,7 +3,7 @@ import XCTest
 /// Exercises the assembled app with its real bundled runtime on the ephemeral macOS runner.
 final class DirectHostStartupTests: XCTestCase {
     @MainActor
-    func testInvalidHomeConfigurationDoesNotLaunchTheRuntime() {
+    func testInvalidHomeConfigurationDoesNotLaunchTheRuntime() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launchEnvironment["DSH_HOME"] = "relative-home"
@@ -12,6 +12,7 @@ final class DirectHostStartupTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["DSH_HOME must be a valid absolute directory path"].firstMatch.waitForExistence(timeout: 15))
         XCTAssertTrue(app.buttons["host.runtime.start"].exists)
         XCTAssertFalse(app.webViews.firstMatch.exists)
+        try exportSupport(app, state: "failed", failure: "invalidConfiguration")
     }
 
     @MainActor
@@ -37,10 +38,12 @@ final class DirectHostStartupTests: XCTestCase {
         screenshot.name = "bundled-host-ready"
         screenshot.lifetime = .keepAlways
         add(screenshot)
+        try exportSupport(app, state: "ready")
         stop.click()
         XCTAssertTrue(start.waitForExistence(timeout: 15))
         XCTAssertFalse(app.webViews.firstMatch.exists)
         XCTAssertTrue(try runtimePids().isEmpty)
+        try exportSupport(app, state: "stopped")
         start.click()
         XCTAssertTrue(restart.waitForExistence(timeout: 60))
         prepareWebSurface(app, acknowledgeNotice: false)
@@ -63,6 +66,61 @@ final class DirectHostStartupTests: XCTestCase {
         XCTAssertTrue(start.waitForExistence(timeout: 15))
         XCTAssertFalse(app.webViews.firstMatch.exists)
         XCTAssertTrue(try runtimePids().isEmpty)
+    }
+
+    /// Saves through the production FileDocument path; only validated, fixed-field JSON becomes an attachment.
+    @MainActor
+    private func exportSupport(_ app: XCUIApplication, state: String, failure: String? = nil) throws {
+        continueAfterFailure = false
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("dsh-export-ui-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let button = app.buttons["host.support.export"]
+        XCTAssertTrue(button.waitForExistence(timeout: 5))
+        button.click()
+        let panel = app.sheets.firstMatch
+        XCTAssertTrue(panel.waitForExistence(timeout: 25), "The scanned export did not open its save dialog")
+        let name = panel.textFields.matching(NSPredicate(format: "value BEGINSWITH %@", "dsh-host-runtime-diagnostics")).firstMatch
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        name.click()
+        name.typeKey("a", modifierFlags: .command)
+        let filename = "host-runtime-support-\(state).json"
+        name.typeText(filename)
+        app.typeKey("g", modifierFlags: [.command, .shift])
+        let folder = panel.sheets.firstMatch
+        XCTAssertTrue(folder.waitForExistence(timeout: 5))
+        let location = folder.comboBoxes.firstMatch.exists ? folder.comboBoxes.firstMatch : folder.textFields.firstMatch
+        XCTAssertTrue(location.waitForExistence(timeout: 5))
+        location.click()
+        location.typeKey("a", modifierFlags: .command)
+        location.typeText(directory.path)
+        app.typeKey(.return, modifierFlags: [])
+        let folderClosed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: folder)
+        XCTAssertEqual(XCTWaiter.wait(for: [folderClosed], timeout: 5), .completed)
+        panel.buttons["Save"].click()
+        let file = directory.appendingPathComponent(filename)
+        let saved = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            FileManager.default.fileExists(atPath: file.path)
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [saved], timeout: 10), .completed)
+        let data = try Data(contentsOf: file)
+        XCTAssertLessThanOrEqual(data.count, 16384)
+        let value = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertEqual(Set(value.keys), Set(["schemaVersion", "platform", "runtimeClass", "complete", "product", "runtime", "scanner", "uncollected"]))
+        XCTAssertEqual(value["complete"] as? Bool, false)
+        XCTAssertEqual(value["platform"] as? String, "macos")
+        let runtime = try XCTUnwrap(value["runtime"] as? [String: Any])
+        XCTAssertEqual(Set(runtime.keys), Set(failure == nil ? ["state", "lifecycleCounts"] : ["state", "failure", "lifecycleCounts"]))
+        XCTAssertEqual(runtime["state"] as? String, state)
+        XCTAssertEqual(runtime["failure"] as? String, failure)
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = "host-runtime-support-" + state
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "host-runtime-support-saved-" + state
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
     }
 
     /// Fresh WebViews use the shipped onboarding controls; the keyless candidate keeps provider setup deferred.

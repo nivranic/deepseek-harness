@@ -24,7 +24,7 @@ let package = Package(
         .executableTarget(name: "HostRuntimeSupervisor", path: "Sources/HostRuntimeSupervisor"),
         .target(name: "DirectHostRuntime", path: "Sources/DirectHostRuntime"),
         .testTarget(name: "DirectHostRuntimeTests", dependencies: ["DirectHostRuntime"],
-                    path: "Tests/DirectHostRuntimeTests"),
+                    path: "Tests/DirectHostRuntimeTests", resources: [.copy("Fixtures")]),
         .target(
             name: "SharedAppleRemoteCore",
             path: "Sources/SharedAppleRemoteCore"

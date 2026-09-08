@@ -1,15 +1,17 @@
-/* Parent-pipe lifetime guard for the Mac Host's fixed dsh web invocation.
+/* Parent-pipe lifetime guard for the Mac Host's fixed dsh web and support scanner invocations.
  * This owns the runtime's POSIX group, not detached tool groups or sessions.
  */
 #define _POSIX_C_SOURCE 200809L
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <poll.h>
 #include <signal.h>
 #include <spawn.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -40,20 +42,53 @@ static int outcome(int status) {
     return 70;
 }
 
+static bool duration(const char *value, long maximum, long *result) {
+    char *end = NULL;
+    errno = 0;
+    long parsed = strtol(value, &end, 10);
+    if (errno != 0 || *value == '\0' || *end != '\0' || parsed < 1 || parsed > maximum) return false;
+    *result = parsed;
+    return true;
+}
+
+static bool scanner_path(char *output, size_t capacity, const char *prefix, const char *root, const char *name) {
+    int length = snprintf(output, capacity, "%s%s/%s", prefix, root, name);
+    return length >= 0 && (size_t)length < capacity;
+}
+
 int main(int argc, char **argv) {
     struct stat input;
     const char *home = getenv("DSH_HOME");
-    if (argc != 3 || argv[1][0] != '/' || home == NULL || home[0] != '/'
+    bool scan = argc > 1 && strcmp(argv[1], "--support-scan") == 0;
+    if ((scan ? argc != 7 : argc != 3)
         || fstat(STDIN_FILENO, &input) != 0 || !S_ISFIFO(input.st_mode)) {
-        fputs("host-supervisor: requires runtime path, grace milliseconds, DSH_HOME and a parent pipe\n", stderr);
+        fputs("host-supervisor: requires a supported invocation and a parent pipe\n", stderr);
         return 64;
     }
-    char *end = NULL;
-    errno = 0;
-    long grace = strtol(argv[2], &end, 10);
-    if (errno != 0 || *argv[2] == '\0' || *end != '\0' || grace < 1 || grace > 60000) {
+    const char *executable = scan ? argv[2] : argv[1];
+    if (executable[0] != '/' || (!scan && (home == NULL || home[0] != '/'))
+        || (scan && (argv[3][0] != '/' || (strcmp(argv[4], "canary") != 0 && strcmp(argv[4], "export") != 0)))) {
+        fputs("host-supervisor: invalid invocation fields\n", stderr);
+        return 64;
+    }
+    long grace;
+    if (!duration(scan ? argv[6] : argv[2], 60000, &grace)) {
         fputs("host-supervisor: invalid shutdown grace\n", stderr);
         return 64;
+    }
+    char source[PATH_MAX], config[PATH_MAX], ignore[PATH_MAX], report[PATH_MAX], timeout[32];
+    if (scan) {
+        long seconds;
+        if (!duration(argv[5], 60, &seconds)
+            || !scanner_path(source, sizeof(source), "", argv[3], argv[4])
+            || !scanner_path(config, sizeof(config), "--config=", argv[3], "default-rules.toml")
+            || !scanner_path(ignore, sizeof(ignore), "--gitleaks-ignore-path=", argv[3], "no-ignore")
+            || !scanner_path(report, sizeof(report), "--report-path=", argv[3],
+                             strcmp(argv[4], "canary") == 0 ? "canary-report.json" : "export-report.json")) {
+            fputs("host-supervisor: invalid scanner fields\n", stderr);
+            return 64;
+        }
+        snprintf(timeout, sizeof(timeout), "--timeout=%ld", seconds);
     }
     struct sigaction action = {0};
     action.sa_handler = request_stop;
@@ -86,9 +121,12 @@ int main(int argc, char **argv) {
     if (error == 0) error = posix_spawnattr_setflags(&attributes,
         POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK);
     if (error == 0) error = posix_spawn_file_actions_addopen(&files, STDIN_FILENO, "/dev/null", O_RDONLY, 0);
-    char *arguments[] = {argv[1], "--profile", "web", "--no-open", "--host", "127.0.0.1", "--port", "0", NULL};
+    char *runtime_arguments[] = {argv[1], "--profile", "web", "--no-open", "--host", "127.0.0.1", "--port", "0", NULL};
+    char *scanner_arguments[] = {argv[2], "dir", source, config, "--redact=100", "--no-banner",
+                                "--ignore-gitleaks-allow", ignore, "--report-format=json", report, timeout, NULL};
+    char **arguments = scan ? scanner_arguments : runtime_arguments;
     pid_t child = -1;
-    if (error == 0) error = posix_spawn(&child, argv[1], &files, &attributes, arguments, environ);
+    if (error == 0) error = posix_spawn(&child, executable, &files, &attributes, arguments, environ);
     posix_spawn_file_actions_destroy(&files);
     posix_spawnattr_destroy(&attributes);
     if (error != 0) {

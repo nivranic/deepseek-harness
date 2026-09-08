@@ -80,10 +80,16 @@ final class RuntimeSupervisorTests: XCTestCase {
         let (runtime, root) = try makeRuntime()
         runtime.start()
         try await waitUntil(runtime) { runtime.status == .ready }
+        let observed = runtime.supportSnapshot()
+        XCTAssertEqual(observed.state, "ready")
+        XCTAssertNil(observed.failure)
+        XCTAssertEqual(observed.lifecycleCounts.first(where: { $0.event == .starting })?.count, 1)
+        XCTAssertEqual(observed.lifecycleCounts.first(where: { $0.event == .ready })?.count, 1)
         let first = runtime.activationID
         runtime.start()
         XCTAssertEqual(runtime.activationID, first)
         XCTAssertEqual(try pids(root).count, 1)
+        XCTAssertEqual(runtime.supportSnapshot().lifecycleCounts.first(where: { $0.event == .starting })?.count, 1)
         await runtime.restart()
         try await waitUntil(runtime) { runtime.status == .ready }
         XCTAssertNotEqual(runtime.activationID, first)
@@ -92,6 +98,8 @@ final class RuntimeSupervisorTests: XCTestCase {
         XCTAssertEqual(kill(processes[0], 0), -1)
         await runtime.stop()
         XCTAssertEqual(runtime.status, .stopped)
+        XCTAssertEqual(runtime.supportSnapshot().lifecycleCounts.first(where: { $0.event == .stopped })?.count, 3)
+        XCTAssertEqual(observed.state, "ready")
         XCTAssertNil(runtime.launchURL)
         XCTAssertEqual(kill(processes[1], 0), -1)
     }

@@ -8,6 +8,7 @@ import { inventoryAppleArchive } from './release/apple-archive-files.ts'
 import { verifyAppleProduct } from './release/apple-product.ts'
 import { captureCiSource } from './release/ci-source.ts'
 import { copyMacHostExecutables, macHostTestRunnerEntitlements, verifyMacHostMachO } from './release/mac-host-bundle.ts'
+import { parseMacSupportScannerIdentity, verifyMacSupportScannerFiles } from './release/mac-support-scanner.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 import { hashRcOutput, writeRcOutput } from './release/rc-output.ts'
 
@@ -116,6 +117,19 @@ if (await command(bundledRuntime, ['--version'], output) !== identity.version) {
 for (const file of files) {
   await command('/usr/bin/codesign', ['--verify', '--strict', join(resources, file.path)])
 }
+const supportResources = join(app, 'Contents/Resources/SupportScanner')
+const scanner = parseMacSupportScannerIdentity(JSON.parse(await command('python3', [
+  'scripts/stage-support-scanner.py', '--output', supportResources,
+])) as unknown)
+await verifyMacSupportScannerFiles(supportResources, scanner)
+const scannerExecutable = join(supportResources, 'gitleaks')
+verifyMacHostMachO(architecture, await command('/usr/bin/lipo', ['-archs', scannerExecutable]),
+  await command('/usr/bin/xcrun', ['vtool', '-show-build', '-arch', architecture, scannerExecutable]))
+await command('/usr/bin/codesign', ['--force', '--sign', '-', '--timestamp=none', scannerExecutable])
+await command('/usr/bin/codesign', ['--verify', '--strict', scannerExecutable])
+const signedScanner = { ...scanner, binarySha256: (await hashRcOutput(scannerExecutable)).sha256 }
+await writeFile(join(supportResources, 'scanner.json'), `${JSON.stringify(signedScanner, null, 2)}\n`)
+await writeRcOutput(output, 'support-scanner.json', { sourceSha, ...signedScanner })
 // The SEA builder owns its JIT signature. Seal only the assembled app; never recursively replace nested entitlements.
 await command('/usr/bin/codesign', ['--force', '--sign', '-', app])
 await command('/usr/bin/codesign', ['--verify', '--strict', '--deep', app])
@@ -125,6 +139,12 @@ const before = await inventoryAppleArchive(app)
 await writeRcOutput(output, 'native-test-start.json', { epochSeconds: Date.now() / 1000 })
 await command('/usr/bin/xcodebuild', [...options, '-resultBundlePath', join(output, 'HostStartup.xcresult'),
   'test-without-building'], apple, 'app-test.log')
+const supportAttachments = join(output, 'support-attachments')
+await command('/usr/bin/xcrun', ['xcresulttool', 'export', 'attachments', '--path', join(output, 'HostStartup.xcresult'),
+  '--output-path', supportAttachments])
+await command('python3', ['scripts/verify-support-exports.py', '--attachments', supportAttachments,
+  '--scanner-directory', supportResources, '--approved', join(output, 'approved-support'),
+  '--output', join(output, 'support-exports.json')])
 if (JSON.stringify(await inventoryAppleArchive(app)) !== JSON.stringify(before)) throw new Error('Mac Host application bytes changed during acceptance')
 const zip = join(output, 'DSH-Host.app.zip')
 await command('/usr/bin/ditto', ['-c', '-k', '--keepParent', app, zip])
@@ -139,6 +159,9 @@ const finalSource = captureCiSource(repository, workflow, environment)
 if (finalSource.dirty || finalSource.checkoutSha !== source.checkoutSha || finalSource.treeSha !== source.treeSha
   || finalSource.workflowSha256 !== source.workflowSha256) throw new Error('source checkout changed during Mac Host production')
 const producers = [workflow, 'scripts/produce-mac-host.ts', 'scripts/release/mac-host-bundle.ts',
+  'scripts/release/mac-support-scanner.ts', 'scripts/stage-support-scanner.py', 'scripts/release/support_scanner.py',
+  'scripts/verify-support-exports.py', 'scripts/release/support_exports.py',
+  'scripts/release/secret_scan.py', '.github/security/scanners.json',
   'scripts/release/mac_host_crash.py',
   'scripts/release/apple-archive-files.ts', 'scripts/release/apple-product.ts', 'scripts/release/apple-archive.ts',
   'scripts/release/ci-source.ts', 'scripts/release/ci-evidence.ts', 'scripts/release/rc-output.ts',
@@ -150,6 +173,8 @@ await writeRcOutput(output, 'bundle.json', {
   archive: { path: 'DSH-Host.app.zip', ...await hashRcOutput(zip) },
   evidence: await Promise.all([
     'source.json', 'toolchain.json', 'binary-inspections.json', 'runtime-inputs.json', 'inventory.json',
+    'support-scanner.json',
+    'support-exports.json',
     'packaged-web.log', 'app-test.log', 'test-runner-signing.log',
   ].map(async path => ({ path, ...await hashRcOutput(join(output, path)) }))),
   producers: await Promise.all(producers.map(async path => ({ path, ...await hashRcOutput(join(repository, path)) }))),

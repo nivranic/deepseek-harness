@@ -6,6 +6,7 @@ import DirectHostRuntime
 struct DirectHostMacApp: App {
     @NSApplicationDelegateAdaptor(HostApplicationDelegate.self) private var delegate
     @StateObject private var runtime: RuntimeSupervisor
+    @StateObject private var support = HostSupportModel()
 
     init() {
         let resources = Bundle.main.resourceURL!.appendingPathComponent("Runtime", isDirectory: true)
@@ -26,9 +27,10 @@ struct DirectHostMacApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HostHomeView(runtime: runtime)
+            HostHomeView(runtime: runtime, support: support)
                 .onAppear {
                     delegate.runtime = runtime
+                    delegate.support = support
                     runtime.start()
                 }
         }
@@ -38,13 +40,17 @@ struct DirectHostMacApp: App {
 @MainActor
 final class HostApplicationDelegate: NSObject, NSApplicationDelegate {
     weak var runtime: RuntimeSupervisor?
+    weak var support: HostSupportModel?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard let runtime else { return .terminateNow }
+        let runtime = self.runtime
+        let support = self.support
+        guard runtime != nil || support != nil else { return .terminateNow }
         Task {
-            await runtime.stop()
+            await support?.shutdown()
+            await runtime?.stop()
             sender.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
