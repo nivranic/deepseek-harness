@@ -6,6 +6,10 @@
 
 配对由宿主发起（`ctx.linkAccess.createPairing()` 渲染 QR 载荷：宿主 id 与名称、端点、证书指纹、一次性配对码、过期时间）。设备在 TLS 握手期、写出任何请求字节之前校验指纹，用配对码换取设备身份，并把签名密钥保存在平台安全存储中。配对会持久化部署的 `pairingAccess` 授权；显式单用户配对流程默认允许访问全部 Session 与 Workspace。载体在调用资源 owner 前检查这些授权，并在写入设备套接字前投影宿主全局的 Session、Workspace 与事件 feed。远程交互回答还必须同时满足 controller 角色、独立的 `allowRemoteApproval` 开关、设备自己的宿主签发 Client 代次、Gateway 仍拥有的待定投递，以及交互所属 Session 的授权；被过滤、禁用、吊销或停止的代次会委托回现有宿主 waterfall，不会创建第二套审批注册表。`ctx.linkSettings` 注册 `remote` 用户设置命名空间——启用跨设备访问、允许远程审批、设备名——并把每次提交实时应用到载体。`ctx.linkController` 支撑面向本地 UI 生成的 `ctx.remote.link` 命名空间：带 LAN 端点与绑定诊断的载体状态、供二维码展示的一次性配对签发、受信设备列表与吊销；远程 Allowlist 不收录这些端点，因此已配对设备永远无法管理宿主。可执行参考客户端是 [`dsh-link-client`](../../packages/remote/link-client/README.zh.md)；Apple 伴侣端的 `SharedAppleRemoteCore` 在 Swift 中通过生成的 [`dsh-link-contracts`](../../packages/remote/link-contracts/README.zh.md) 模型复用同一状态机，Kotlin 伴侣端遵循同一契约。
 
+## 本地诊断观测
+
+[`LinkDiagnosticsSnapshot`](../../packages/remote/link-access/src/protocol.ts) 在本地控制器中以 `LinkDiagnosticsValue` 暴露，包含 `schemaVersion: 1`、`listenerState`（`stopped`、`listening` 或 `failed`）和 `protocol`。`protocol` 从 Host 描述的生产者选择公布的 Link/contract/Session 版本、运行时类别、审批开关和 capability。它不包含应用标识和设备授权；这些数据需要独立观测。监听状态不能证明客户端连接或应用健康。[Link 控制器](../../packages/api/link-controller/README.zh.md)拥有查询行为，[支持导出决策](../../.agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.zh.md)拥有最终字节准入。
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -114,6 +118,13 @@ async spkiFingerprint(): Promise<string | undefined>
  */
 async carrierStatus(): Promise<LinkCarrierStatus>
 
+/**
+ * Observe listener state and advertised protocol facts for a local diagnostic collector.
+ * Reading does not bind the listener, issue pairing material, or read the trust store.
+ * @returns a fresh fixed-field snapshot; listener failures contain no exception text.
+ */
+async diagnostics(): Promise<LinkDiagnosticsSnapshot>
+
 /** The device-facing host name; the OS hostname until {@link LinkAccessService.setDeviceName} overrides it.
  * @returns the host name carried in pairing payloads and descriptions.
  */
@@ -187,6 +198,14 @@ Host service backing the generated `ctx.remote.link` namespace. Every method rea
  * @throws TypertRemoteFailure when no link carrier is mounted.
  */
 @Remote async status(): Promise<LinkStatusValue>
+
+/**
+ * Read fixed-field Link observations for a local support collector. This is
+ * an unscanned projection, not an export or a complete Support Bundle.
+ * @returns listener state and the carrier's advertised protocol facts, without identity or error text.
+ * @throws TypertRemoteFailure when no link carrier is mounted.
+ */
+@Remote async diagnostics(): Promise<LinkDiagnosticsValue>
 
 /**
  * Issue one pairing payload for the QR display: host identity, endpoint,

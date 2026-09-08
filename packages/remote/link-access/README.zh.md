@@ -54,6 +54,8 @@ kind: "package-reference"
 
 配对载荷、配对响应与 Host 描述均使用 `ctx.linkAccess.setDeviceName()` 设置的当前名称，操作系统 hostname 只作为初始值。
 
+`ctx.linkAccess.diagnostics()` 将监听器状态观测为 `stopped`、`listening` 或 `failed`，并复用经认证 Host 描述的协议/capability 生产者。固定字段快照省略 Host 身份、包版本、端点、指纹和绑定错误文本。读取不会启动监听器，也不访问信任记录；监听状态与公布的 capability 不代表客户端已连接、运行时健康或设备有效授权。本地 [Link 控制器](../../api/link-controller/README.zh.md)通过现有 Gateway 提供该未扫描投影。
+
 `ctx.linkAccess.createPairing()` 返回 QR 载荷（宿主 id 与名称、端点、证书 SPKI 指纹、一次性配对码、过期时间）。每个设备请求携带身份、时间戳与覆盖方法、路径、请求体摘要的 Ed25519 签名；未知、已吊销、过期时间戳或签名错误的设备得到 401，超出 Allowlist、低于设备角色、超出持久授权，或——对交互回答——审批开关关闭时得到 403。宿主全局的 Session 与 Workspace 集合在写入套接字前完成投影。交互回答还必须携带该设备的宿主签发 Client 代次、指向已投递且仍待定的事件，并通过事件所属 Session 的授权检查；关闭审批、吊销设备或停止载体时，已经投递的交互会委托回宿主 waterfall。证书一次性生成（ECDSA P-256）并持久化在 `<dshHome>/link-access/` 下，已配对设备跨重启持续有效。`link/describe` 报告相互独立的 Link protocol、contract 与 Session format 版本，客户端无需把应用发布版本误当成 wire 版本，即可分别诊断每条兼容轴。
 
 载体自有的 HTTP 解析与基础设施失败使用固定消息，不包含请求片段或未预期异常文本。Device Trust 配对拒绝保留其明确编写的纠正消息；业务 RPC 和流错误继续由共享 Gateway 定义。

@@ -259,6 +259,8 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   HostIdentity: 'remote-link.md',
   LinkCarrierStatus: 'remote-link.md',
   LinkDeviceValue: 'remote-link.md',
+  LinkDiagnosticsSnapshot: 'remote-link.md',
+  LinkDiagnosticsValue: 'remote-link.md',
   LinkPairingPayload: 'remote-link.md',
   LinkPairingValue: 'remote-link.md',
   LinkStatusValue: 'remote-link.md',

@@ -18,6 +18,8 @@ Status: implemented
 
 [候选生产器](../../../../scripts/produce-mac-host.ts)准备固定的扫描器与许可证，验证原生架构和最低系统版本，并在封装应用前分别记录获取时与 ad-hoc 签名后的可执行文件摘要。原生 UI 通过生产对话框保存 ready、stopped 和启动失败文档。[独立验证器](../../../../scripts/release/support_exports.py)拒绝未知字段和矛盾观测，复核签名后的扫描器，并在发布摘要和已准入副本前重新扫描真实保存字节。其准入范围始终只覆盖运行时诊断。
 
+[Link 控制器](../../../../packages/api/link-controller/README.zh.md)通过现有 Gateway 提供未扫描、固定字段的监听/协议快照。载体与经认证 Host 描述共用协议/capability 生产者。监听失败只包含类别而不含错误文本，查询也不读取身份或配对记录。默认远程 Allowlist 在 Gateway 执行前拒绝该查询。公布的 capability 与设备有效授权保持区分，监听器可用性与连接及应用健康也保持区分。
+
 ## Alternatives considered
 
 **原始日志脱敏。** 未知消息可能包含新的敏感字段。状态和计数的封闭投影可以阻止这些消息进入序列化。

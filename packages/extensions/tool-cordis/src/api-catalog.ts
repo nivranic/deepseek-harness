@@ -1212,6 +1212,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the current carrier status.',
       },
       {
+        signature: 'async diagnostics(): Promise<LinkDiagnosticsSnapshot>',
+        description: 'Observe listener state and advertised protocol facts for a local diagnostic collector. Reading does not bind the listener, issue pairing material, or read the trust store.',
+        parameters: [],
+        returns: 'a fresh fixed-field snapshot; listener failures contain no exception text.',
+      },
+      {
         signature: 'deviceName(): string',
         description: 'The device-facing host name; the OS hostname until LinkAccessService.setDeviceName overrides it.',
         parameters: [],
@@ -1270,6 +1276,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Report the live carrier and identity facts the settings page renders: listening state, LAN endpoint, certificate fingerprint, bind diagnostics, device-facing name, the approval switch, and the trusted-device count.',
         parameters: [],
         returns: 'the cross-device status row.',
+        throws: ['TypertRemoteFailure when no link carrier is mounted.'],
+      },
+      {
+        signature: '@Remote async diagnostics(): Promise<LinkDiagnosticsValue>',
+        description: 'Read fixed-field Link observations for a local support collector. This is an unscanned projection, not an export or a complete Support Bundle.',
+        parameters: [],
+        returns: 'listener state and the carrier\'s advertised protocol facts, without identity or error text.',
         throws: ['TypertRemoteFailure when no link carrier is mounted.'],
       },
       {
@@ -4515,12 +4528,28 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface LinkDeviceValue {\n    readonly deviceId: string;\n    readonly name: string;\n    readonly role: \'observer\' | \'controller\' | \'administrator\';\n    readonly createdAt: number;\n    readonly lastSeenAt?: number;\n    readonly revokedAt?: number;\n}',
   },
   {
+    name: 'LinkDiagnosticsSnapshot',
+    declaration: 'export interface LinkDiagnosticsSnapshot {\n    readonly schemaVersion: 1;\n    readonly listenerState: \'stopped\' | \'listening\' | \'failed\';\n    readonly protocol: LinkProtocolDescription;\n}',
+  },
+  {
+    name: 'LinkDiagnosticsValue',
+    declaration: 'export type LinkDiagnosticsValue = LinkDiagnosticsSnapshot;',
+  },
+  {
+    name: 'LinkHostDescription',
+    declaration: 'export interface LinkHostDescription {\n    readonly linkProtocolVersion: number;\n    readonly contractVersion: number;\n    readonly hostVersion: string;\n    readonly hostId: string;\n    readonly hostName: string;\n    readonly runtimeClass: \'full\';\n    readonly sessionFormatVersion: number;\n    readonly allowRemoteApproval: boolean;\n    readonly capabilities: {\n        readonly session: {\n            readonly list: true;\n            readonly history: true;\n            readonly follow: true;\n            readonly prompt: true;\n            readonly cancel: true;\n        };\n        readonly workspace: {\n            readonly follow: true;\n        };\n        readonly interaction: {\n            readonly approval: boolean;\n            readonly question: boolean;\n        };\n    };\n}',
+  },
+  {
     name: 'LinkPairingPayload',
     declaration: 'export interface LinkPairingPayload {\n    readonly v: 1;\n    readonly kind: \'dsh-link-pairing\';\n    readonly hostId: string;\n    readonly hostName: string;\n    readonly endpoint: string;\n    readonly spkiFingerprint: string;\n    readonly code: string;\n    readonly expiresAt: number;\n}',
   },
   {
     name: 'LinkPairingValue',
     declaration: 'export type LinkPairingValue = {\n    readonly v: 1;\n    readonly kind: \'dsh-link-pairing\';\n    readonly hostId: string;\n    readonly hostName: string;\n    readonly endpoint: string;\n    readonly spkiFingerprint: string;\n    readonly code: string;\n    readonly expiresAt: number;\n};',
+  },
+  {
+    name: 'LinkProtocolDescription',
+    declaration: 'export type LinkProtocolDescription = Pick<LinkHostDescription, \'linkProtocolVersion\' | \'contractVersion\' | \'runtimeClass\' | \'sessionFormatVersion\' | \'allowRemoteApproval\' | \'capabilities\'>;',
   },
   {
     name: 'LinkStatusValue',

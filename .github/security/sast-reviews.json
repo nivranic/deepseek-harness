@@ -195,15 +195,15 @@
       "rule": "js/disabling-certificate-validation",
       "path": "apps/cli/tests/link-session-slice.e2e.ts",
       "line": 167,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -216,15 +216,15 @@
       "rule": "js/disabling-certificate-validation",
       "path": "apps/cli/tests/link-session-slice.e2e.ts",
       "line": 277,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -237,15 +237,15 @@
       "rule": "js/disabling-certificate-validation",
       "path": "packages/remote/link-access/tests/link-harness.ts",
       "line": 361,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -258,15 +258,15 @@
       "rule": "js/disabling-certificate-validation",
       "path": "packages/remote/link-access/tests/link-harness.ts",
       "line": 406,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -278,16 +278,16 @@
       "language": "javascript-typescript",
       "rule": "js/disabling-certificate-validation",
       "path": "packages/remote/link-access/tests/carrier.spec.ts",
-      "line": 476,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "line": 509,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -299,16 +299,16 @@
       "language": "javascript-typescript",
       "rule": "js/disabling-certificate-validation",
       "path": "packages/remote/link-access/tests/carrier.spec.ts",
-      "line": 522,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "line": 555,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -320,16 +320,16 @@
       "language": "javascript-typescript",
       "rule": "js/disabling-certificate-validation",
       "path": "packages/remote/link-access/tests/carrier.spec.ts",
-      "line": 1029,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "line": 1074,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -341,16 +341,16 @@
       "language": "javascript-typescript",
       "rule": "js/disabling-certificate-validation",
       "path": "packages/remote/link-access/tests/carrier.spec.ts",
-      "line": 1100,
-      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint.",
+      "line": 1145,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "apps/cli": {
           "kind": "tree",
-          "oid": "7cbed4c6b5e151e6a34c1550283d3dcb022983e3"
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
         },
         ".github/workflows/supply-chain.yml": {
           "kind": "blob",
@@ -363,11 +363,11 @@
       "rule": "js/file-access-to-http",
       "path": "packages/remote/link-access/tests/link-harness.ts",
       "line": 422,
-      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review.",
+      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "packages/remote/link-contracts": {
           "kind": "tree",
@@ -383,12 +383,12 @@
       "language": "javascript-typescript",
       "rule": "js/file-access-to-http",
       "path": "packages/remote/link-access/tests/carrier.spec.ts",
-      "line": 1130,
-      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review.",
+      "line": 1175,
+      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review. The diagnostic-query regression uses the same temporary loopback harness with fixed empty arguments and verifies denial before Gateway dispatch; the projection introduces no external destination or file input.",
       "materials": {
         "packages/remote/link-access": {
           "kind": "tree",
-          "oid": "b67c6820d07acd8496ae4c8b93d0f06fb4ffd2fc"
+          "oid": "fa4a39e5b150bf5046ab38a2f9bf7980c0dc16e3"
         },
         "packages/remote/link-contracts": {
           "kind": "tree",

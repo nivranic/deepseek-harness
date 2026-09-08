@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/remote-link.md
-remote-link.md: 70a80e29d388f1f568af34f440ca910b8639f552
-remote-link.zh.md: 347060a31c2e0bf5c2e09d5109833274746ca78e
+remote-link.md: 463fdca4fadb45ba0d64e161dacd01845408b037
+remote-link.zh.md: 909d9b5d581fd1ee253ce3613d5baa6962ea7758

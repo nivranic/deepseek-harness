@@ -18,6 +18,8 @@ The existing parent-pipe [Host supervisor](2026-08-31-macos-direct-host.md) has 
 
 The [candidate producer](../../../../scripts/produce-mac-host.ts) stages the pinned scanner and license, verifies native architecture and deployment target, and records both the acquired and ad-hoc-signed executable digests before sealing the app. The native UI saves ready, stopped and failed-startup documents through the production dialog. An [independent verifier](../../../../scripts/release/support_exports.py) rejects unknown fields and contradictory observations, rechecks the signed scanner, and rescans the saved bytes before publishing their hashes and approved copies. Its acceptance remains specific to runtime diagnostics.
 
+The [Link controller](../../../../packages/api/link-controller/README.md) supplies an unscanned, fixed-field listener/protocol snapshot through the existing Gateway. The carrier and authenticated Host description share one protocol/capability producer. Listener failures contain a category instead of error text, and the query does not read identity or pairing records. The default remote allowlist refuses the query before Gateway execution. Its advertised capabilities remain distinct from effective device grants; listener availability remains distinct from connection and application health.
+
 ## Alternatives considered
 
 **Raw-log redaction.** Unknown messages can contain new sensitive fields. A closed projection of state and counts prevents those messages from entering serialization.

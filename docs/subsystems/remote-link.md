@@ -6,6 +6,10 @@ The remote link subsystem lets paired native companion clients reach one Harness
 
 Pairing is initiated on the host (`ctx.linkAccess.createPairing()` renders a QR payload: host id and name, endpoint, certificate fingerprint, one-time code, expiry). The device verifies the fingerprint during the TLS handshake before any request byte is written, exchanges the code for a device identity, and keeps its signing key in platform secure storage. Pairing persists the deployment's `pairingAccess` grants, defaulting to every Session and Workspace for the explicit single-user pairing flow. The carrier checks those grants before calling a resource owner and projects Host-wide Session, Workspace, and event feeds before writing to the device socket. A remote interaction answer additionally requires a controller role, the independent `allowRemoteApproval` switch, the device's Host-issued Client generation, a delivery the Gateway still owns as pending, and the interaction Session grant; filtered, disabled, revoked, and stopped generations delegate to the existing Host waterfall instead of creating another approval registry. `ctx.linkSettings` registers the `remote` user-settings namespace — enable cross-device access, allow remote approval, device name — and applies every commit live to the carrier. `ctx.linkController` backs the generated `ctx.remote.link` namespace for local UIs: carrier status with the LAN endpoint and bind diagnostics, one-time pairing issuance for the QR display, and trusted-device listing and revocation; the remote allowlist carries none of those endpoints, so a paired device can never administer the host. The executable reference client is [`dsh-link-client`](../../packages/remote/link-client/README.md); the Apple companion's `SharedAppleRemoteCore` mirrors its state machine in Swift over the generated [`dsh-link-contracts`](../../packages/remote/link-contracts/README.md) models, and Kotlin companions follow the same contract.
 
+## Local diagnostic observations
+
+[`LinkDiagnosticsSnapshot`](../../packages/remote/link-access/src/protocol.ts), exposed as `LinkDiagnosticsValue` by the local controller, contains `schemaVersion: 1`, `listenerState` (`stopped`, `listening` or `failed`) and `protocol`. The `protocol` value selects the advertised Link/contract/Session versions, runtime class, approval switch and capabilities from the Host description's producer. It excludes application identity and device grants; those require their own observations. Listener state establishes neither client connection nor application health. The [Link controller](../../packages/api/link-controller/README.md) owns query behavior, and the [support-export decision](../../.agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.md) owns final-byte admission.
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -114,6 +118,13 @@ async spkiFingerprint(): Promise<string | undefined>
  */
 async carrierStatus(): Promise<LinkCarrierStatus>
 
+/**
+ * Observe listener state and advertised protocol facts for a local diagnostic collector.
+ * Reading does not bind the listener, issue pairing material, or read the trust store.
+ * @returns a fresh fixed-field snapshot; listener failures contain no exception text.
+ */
+async diagnostics(): Promise<LinkDiagnosticsSnapshot>
+
 /** The device-facing host name; the OS hostname until {@link LinkAccessService.setDeviceName} overrides it.
  * @returns the host name carried in pairing payloads and descriptions.
  */
@@ -187,6 +198,14 @@ Host service backing the generated `ctx.remote.link` namespace. Every method rea
  * @throws TypertRemoteFailure when no link carrier is mounted.
  */
 @Remote async status(): Promise<LinkStatusValue>
+
+/**
+ * Read fixed-field Link observations for a local support collector. This is
+ * an unscanned projection, not an export or a complete Support Bundle.
+ * @returns listener state and the carrier's advertised protocol facts, without identity or error text.
+ * @throws TypertRemoteFailure when no link carrier is mounted.
+ */
+@Remote async diagnostics(): Promise<LinkDiagnosticsValue>
 
 /**
  * Issue one pairing payload for the QR display: host identity, endpoint,

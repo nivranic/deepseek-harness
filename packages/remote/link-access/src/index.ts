@@ -67,10 +67,12 @@ import {
   parseLinkPairRequest,
   resolveLinkEndpointScope,
   type LinkCarrierStatus,
+  type LinkDiagnosticsSnapshot,
   type LinkEndpointAccess,
   type LinkEndpointInput,
   type LinkHostDescription,
   type LinkPairingPayload,
+  type LinkProtocolDescription,
 } from './protocol.ts'
 
 const require = createRequire(import.meta.url)
@@ -278,6 +280,20 @@ export class LinkAccessService extends Service {
       listening: state !== undefined,
       ...state === undefined ? {} : { endpoint: state.endpoint, spkiFingerprint: state.spkiFingerprint },
       ...this.bindFailure === undefined ? {} : { bindError: this.bindFailure },
+    }
+  }
+
+  /**
+   * Observe listener state and advertised protocol facts for a local diagnostic collector.
+   * Reading does not bind the listener, issue pairing material, or read the trust store.
+   * @returns a fresh fixed-field snapshot; listener failures contain no exception text.
+   */
+  async diagnostics(): Promise<LinkDiagnosticsSnapshot> {
+    const carrier = await this.carrierStatus()
+    return {
+      schemaVersion: 1,
+      listenerState: carrier.bindError !== undefined ? 'failed' : carrier.listening ? 'listening' : 'stopped',
+      protocol: describeProtocol(this.allowRemoteApproval),
     }
   }
 
@@ -788,11 +804,17 @@ function pairingAccessFromConfig(config: LinkPairingAccessConfig): DeviceAccess 
 
 function describeHost(hostId: string, hostName: string, allowRemoteApproval: boolean): LinkHostDescription {
   return {
-    linkProtocolVersion: LINK_PROTOCOL_VERSION,
-    contractVersion: LINK_CONTRACT_VERSION,
+    ...describeProtocol(allowRemoteApproval),
     hostVersion: HOST_VERSION,
     hostId,
     hostName,
+  }
+}
+
+function describeProtocol(allowRemoteApproval: boolean): LinkProtocolDescription {
+  return {
+    linkProtocolVersion: LINK_PROTOCOL_VERSION,
+    contractVersion: LINK_CONTRACT_VERSION,
     runtimeClass: 'full',
     sessionFormatVersion: SESSION_FORMAT_VERSION,
     allowRemoteApproval,

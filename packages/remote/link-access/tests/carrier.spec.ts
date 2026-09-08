@@ -22,7 +22,7 @@ import DeviceTrustStore, {
   type DeviceId,
 } from '@deepseek-ai/dsh-device-trust'
 import LinkAccessService from '../src/index.ts'
-import { linkSigningInput } from '../src/protocol.ts'
+import { DEFAULT_LINK_ENDPOINTS, linkSigningInput } from '../src/protocol.ts'
 import {
   PROBE_ENDPOINTS,
   carrierRequest,
@@ -195,6 +195,39 @@ describe('link-access carrier', () => {
       result: { ok: true, value: 'echo:hi' },
     })
   })
+
+  it('projects the advertised protocol without host identity and refuses remote diagnostic queries', async () => {
+    const local = await mountCarrier({ endpoints: DEFAULT_LINK_ENDPOINTS })
+    try {
+      const paired = await pairDevice(local, 'diagnostic-device')
+      const invoke = vi.spyOn(local.ctx.typertGateway, 'invoke')
+      const diagnostics = await local.service.diagnostics()
+      const description = await issueSigned(local.endpoint, paired, '/link/describe', 'POST', '')
+      expect(description.status).toBe(200)
+      expect(diagnostics).toEqual({
+        schemaVersion: 1,
+        listenerState: 'listening',
+        protocol: {
+          linkProtocolVersion: 1, contractVersion: 1, runtimeClass: 'full', sessionFormatVersion: 0,
+          allowRemoteApproval: false,
+          capabilities: {
+            session: { list: true, history: true, follow: true, prompt: true, cancel: true },
+            workspace: { follow: true }, interaction: { approval: false, question: false },
+          },
+        },
+      })
+      expect(description.json).toMatchObject(diagnostics.protocol)
+      local.service.setAllowRemoteApproval(true)
+      expect((await local.service.diagnostics()).protocol.capabilities.interaction).toEqual({ approval: true, question: true })
+      expect(diagnostics.protocol.capabilities.interaction).toEqual({ approval: false, question: false })
+      const denied = await signedRpc(local.endpoint, paired, 'link/diagnostics', {})
+      expect(denied.status).toBe(403)
+      expect(denied.json).toMatchObject({ error: 'forbidden' })
+      expect(invoke).not.toHaveBeenCalled()
+    } finally {
+      await local.close()
+    }
+  }, 60_000)
 
   it('dispatches the generated unary request fixture byte-for-byte', async () => {
     const body = readFileSync(
@@ -889,16 +922,23 @@ describe('link-access carrier lifecycle', () => {
     const harness = await mountComposition({ enabled: false })
     try {
       await expect(harness.service.endpoint()).resolves.toBeUndefined()
+      const store = harness.ctx.get('deviceTrust') as DeviceTrustStore
+      const identityRead = vi.spyOn(store, 'hostIdentity')
+      await expect(harness.service.diagnostics()).resolves.toMatchObject({ listenerState: 'stopped' })
+      expect(identityRead).not.toHaveBeenCalled()
+      await expect(harness.service.endpoint()).resolves.toBeUndefined()
       await harness.service.setCarrierEnabled(true)
       const first = await harness.service.carrierStatus()
       expect(first.listening).toBe(true)
       expect(first.endpoint).toMatch(/^https:\/\//u)
       expect(first.spkiFingerprint).toMatch(/^[0-9a-f]{64}$/u)
       expect(first.bindError).toBeUndefined()
+      await expect(harness.service.diagnostics()).resolves.toMatchObject({ listenerState: 'listening' })
       const firstEndpoint = first.endpoint
 
       await harness.service.setCarrierEnabled(false)
       await expect(harness.service.carrierStatus()).resolves.toEqual({ listening: false })
+      await expect(harness.service.diagnostics()).resolves.toMatchObject({ listenerState: 'stopped' })
       await expect(harness.service.endpoint()).resolves.toBeUndefined()
       await harness.service.setCarrierEnabled(true)
       const second = await harness.service.carrierStatus()
@@ -949,6 +989,10 @@ describe('link-access carrier lifecycle', () => {
       const failed = await harness.service.carrierStatus()
       expect(failed.listening).toBe(false)
       expect(failed.bindError).toMatch(/EADDRINUSE|listen/u)
+      const diagnostics = await harness.service.diagnostics()
+      expect(diagnostics.listenerState).toBe('failed')
+      expect(Object.keys(diagnostics)).toEqual(['schemaVersion', 'listenerState', 'protocol'])
+      expect(JSON.stringify(diagnostics)).not.toMatch(/EADDRINUSE|127\.0\.0\.1|endpoint|fingerprint|hostId|hostName|hostVersion/u)
       await expect(harness.service.createPairing()).rejects.toThrow(/failed to bind/u)
 
       await blocker.close()
@@ -956,6 +1000,7 @@ describe('link-access carrier lifecycle', () => {
       const recovered = await harness.service.carrierStatus()
       expect(recovered.listening).toBe(true)
       expect(recovered.bindError).toBeUndefined()
+      await expect(harness.service.diagnostics()).resolves.toMatchObject({ listenerState: 'listening' })
     } finally {
       await harness.close()
     }

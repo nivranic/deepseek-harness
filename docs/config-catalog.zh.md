@@ -1112,7 +1112,7 @@ export type LinkEndpointScope =
   | 'interaction'
 ```
 
-Source: [`packages/remote/link-access/src/index.ts:102`](../packages/remote/link-access/src/index.ts)
+Source: [`packages/remote/link-access/src/index.ts:104`](../packages/remote/link-access/src/index.ts)
 
 <a id="deepseek-aidsh-llm-deepseek"></a>
 

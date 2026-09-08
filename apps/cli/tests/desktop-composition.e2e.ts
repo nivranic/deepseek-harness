@@ -262,6 +262,24 @@ describe('the shipped desktop composition', () => {
     expect(statusBody.result.ok).toBe(true)
     expect(statusBody.result.value?.listening).toBe(false)
 
+    const diagnostics = await post('link/diagnostics', 'link-diagnostics')
+    expect(diagnostics.status).toBe(200)
+    const diagnosticBody = await diagnostics.json() as { result: { ok: boolean; value?: unknown } }
+    expect(diagnosticBody.result).toEqual({
+      ok: true,
+      value: {
+        schemaVersion: 1, listenerState: 'stopped',
+        protocol: {
+          linkProtocolVersion: 1, contractVersion: 1, sessionFormatVersion: 0, runtimeClass: 'full',
+          allowRemoteApproval: false,
+          capabilities: {
+            session: { list: true, history: true, follow: true, prompt: true, cancel: true },
+            workspace: { follow: true }, interaction: { approval: false, question: false },
+          },
+        },
+      },
+    })
+
     const devices = await post('link/devices', 'link-devices')
     expect(devices.status).toBe(200)
     const deviceBody = await devices.json() as { result: { ok: boolean; value?: unknown[] } }

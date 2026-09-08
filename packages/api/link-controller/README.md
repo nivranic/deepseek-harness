@@ -36,6 +36,8 @@ Mount the controller in any composition that also mounts the link carrier; a com
 
 `status` merges the carrier status with the live name, approval switch, and device count. `createPairing` re-serves the carrier's QR payload, mapping a stopped or failed carrier to `link-disabled`. Device rows never carry the public key; revocation by id returns the updated row or `undefined` for an unknown id, and an empty id fails with `bad-request`.
 
+`diagnostics` returns only listener state and the carrier's advertised protocol versions, runtime class, approval switch and capabilities. The default remote allowlist excludes this query. It includes no host identity, address, fingerprint or error message, and reading it neither starts the listener nor accesses pairing records. The result is an unscanned input for a local support collector; it does not establish client connection, device authorization, application identity, runtime health or a complete Support Bundle.
+
 -----
 
 <a id="understand-the-implementation"></a>

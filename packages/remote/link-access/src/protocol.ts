@@ -259,6 +259,19 @@ export interface LinkHostDescription {
   }
 }
 
+/** Advertised protocol facts; application identity and effective device grants are separate observations. */
+export type LinkProtocolDescription = Pick<LinkHostDescription,
+  'linkProtocolVersion' | 'contractVersion' | 'runtimeClass' | 'sessionFormatVersion' | 'allowRemoteApproval' | 'capabilities'>
+
+/** Fixed-field local diagnostics without addresses, identifiers, fingerprints, or error text. */
+export interface LinkDiagnosticsSnapshot {
+  readonly schemaVersion: 1
+  /** Listener state only; it does not establish a connected client or runtime health. */
+  readonly listenerState: 'stopped' | 'listening' | 'failed'
+  /** The same advertised versions and capabilities served by the authenticated description. */
+  readonly protocol: LinkProtocolDescription
+}
+
 /** Payload rendered into the host's pairing QR code. */
 export interface LinkPairingPayload {
   readonly v: 1
