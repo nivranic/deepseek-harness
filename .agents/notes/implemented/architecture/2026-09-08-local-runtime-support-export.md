@@ -38,6 +38,8 @@ The [Link controller](../../../../packages/api/link-controller/README.md) suppli
 
 **Application callbacks alone.** Abrupt termination bypasses Swift cleanup. Reusing the existing parent-pipe helper extends its owned group lifetime without creating another business Gateway or Harness launcher.
 
+Scanner unit tests exercise both Windows and POSIX argument and environment rules on either host, including original-binary refusal and opened-file identity checks without `O_NOFOLLOW`. Settings tests retain fixed public feedback for RPC failures and ignore both resolved and rejected exports after unmount; these doubles do not replace native candidate acceptance.
+
 ## Consequences
 
 Mac exports remain incomplete for connection, protocol, role, capabilities, updates, native crash records and session diagnostics. Windows exports list runtime health, connection, effective role, updates and native crashes as uncollected, and require the Settings renderer and Gateway to remain available. Runtime readiness describes the Mac supervisor's authenticated local Web health observation, not provider availability or full release acceptance. Missing desktop/mobile producers and mobile offline scanning remain independent work under the [complete Support Bundle plan](../../../../docs/plans/2026-09-08-support-bundle.md).

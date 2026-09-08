@@ -35,7 +35,7 @@ it.each([
   await waitFor(() => { expect(screen.getByRole('status').textContent).toBe(en[key]) })
 })
 
-it('contains a transport failure and ignores completion after unmount', async () => {
+it.each(['resolve', 'reject'] as const)('contains a transport failure and ignores %s after unmount', async (outcome) => {
   const pending = Promise.withResolvers<DesktopSupportResult>()
   const callback = vi.fn((): Promise<DesktopSupportResult> => Promise.reject(new Error('private transport text')))
   const props = { exportSupport: callback, t: (key: keyof typeof en) => en[key] } as unknown as SupportExportRowProps
@@ -46,7 +46,8 @@ it('contains a transport failure and ignores completion after unmount', async ()
   callback.mockImplementation(() => pending.promise)
   fireEvent.click(screen.getByRole('button', { name: en.supportExport }))
   rendered.unmount()
-  pending.resolve({ status: 'cancelled' })
+  if (outcome === 'resolve') pending.resolve({ status: 'cancelled' })
+  else pending.reject(new Error('private post-unmount failure'))
   await Promise.resolve()
   expect(screen.queryByRole('status')).toBeNull()
 })

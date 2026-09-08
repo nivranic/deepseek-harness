@@ -163,6 +163,19 @@ describe('support-export admission', () => {
     expect(f.calls[1]!.env?.SystemRoot).toBeUndefined()
   })
 
+  it('uses Windows scanner arguments and rejects a changed original binary receipt', async () => {
+    vi.stubGlobal('process', Object.create(process, { platform: { value: 'win32' } }))
+    vi.stubEnv('SystemRoot', 'fixture-system-root')
+    const f = await fixture()
+    await ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())
+    expect(f.calls[1]!.argv.at(-1)).toBe('NUL')
+    expect(f.calls[1]!.argv[0]).toBe(join(f.directory, 'gitleaks.exe'))
+    expect(f.calls[1]!.env?.SystemRoot).toBe('fixture-system-root')
+    await writeFile(join(f.directory, 'scanner.json'), JSON.stringify({ ...f.identity, originalBinarySha256: 'b'.repeat(64) }))
+    await expect(ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())).rejects.toMatchObject({ reason: 'invalid-scanner' })
+    expect(f.calls).toHaveLength(3)
+  })
+
   it('cleans a failed save and leaves an existing destination intact when cancelled', async () => {
     const f = await fixture()
     const document = await ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())

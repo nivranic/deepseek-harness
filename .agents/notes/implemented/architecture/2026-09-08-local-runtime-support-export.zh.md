@@ -38,6 +38,8 @@ Electron 应用为每个原生保存对话框拥有一个独立、未加载页�
 
 **仅应用回调。** 突然终止会绕过 Swift 清理。复用现有父管道 helper 可以扩展其进程组生命周期管理，而不创建另一业务 Gateway 或 Harness 启动器。
 
+扫描器单元测试在任一宿主上执行 Windows 与 POSIX 参数和环境规则，包括原始二进制不匹配时拒绝、没有 `O_NOFOLLOW` 时检查已打开文件标识。Settings 测试保留 RPC 失败的固定公开反馈，并忽略卸载后兑现或拒绝的导出；这些替身不替代原生候选验收。
+
 ## Consequences
 
 Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、连接、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者、移动端离线扫描仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。

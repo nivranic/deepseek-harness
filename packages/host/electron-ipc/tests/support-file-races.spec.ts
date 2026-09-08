@@ -10,7 +10,18 @@ const faults = vi.hoisted(() => ({
   onOpen: undefined as ((path: string, handle: FileHandle) => Promise<void>) | undefined,
   rename: false,
   unlink: false,
+  noFollow: true,
 }))
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return {
+    ...actual,
+    constants: {
+      ...actual.constants,
+      get O_NOFOLLOW() { return faults.noFollow ? actual.constants.O_NOFOLLOW : undefined },
+    },
+  }
+})
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
   return {
@@ -36,6 +47,7 @@ afterEach(async () => {
   faults.onOpen = undefined
   faults.rename = false
   faults.unlink = false
+  faults.noFollow = true
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
 async function fixture() {
@@ -44,6 +56,19 @@ async function fixture() {
   return f
 }
 const signal = () => new AbortController().signal
+
+it('checks opened file identity when O_NOFOLLOW is unavailable', async () => {
+  faults.noFollow = false
+  const f = await fixture()
+  await ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())
+  faults.onOpen = async (path, handle) => {
+    if (path !== f.executable) return
+    const stat = await handle.stat()
+    vi.spyOn(handle, 'stat').mockResolvedValueOnce(Object.assign(stat, { ino: stat.ino + 1 }))
+  }
+  await expect(ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())).rejects.toMatchObject({ reason: 'invalid-scanner' })
+  expect(f.calls).toHaveLength(3)
+})
 
 it.each(['before-stat', 'after-stat'] as const)('refuses resource truncation %s without launching a scanner', async (when) => {
   const f = await fixture()
