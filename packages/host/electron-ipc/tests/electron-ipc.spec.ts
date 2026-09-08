@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { RpcId } from '@deepseek-ai/dsh-client-connection'
-import { apply, inject, internals, name, type DesktopGateway } from '../src/index.ts'
+import { apply, Config, inject, internals, name, type DesktopGateway } from '../src/index.ts'
 
 let dist: string | undefined
 const originalResolve = internals.resolveDistIndex
@@ -128,7 +128,8 @@ async function mounted(options: {
   ctx.provide('connection', connection.service as never)
   const typertGateway = fakeTypertGateway(options.streamItems, options.streamFailure)
   ctx.provide('typertGateway', typertGateway.service as never)
-  const fiber = ctx.plugin({ name, inject: [...inject], apply })
+  // Loader input is unparsed here; an omitted YAML block reaches Cordis as undefined before schema validation.
+  const fiber = ctx.plugin({ name, inject: [...inject], Config, apply }, undefined as unknown as Config)
   await fiber.await()
   const gateway = ctx.get('desktopGateway')
   if (gateway === undefined) throw new Error('desktopGateway was not provided')
@@ -138,6 +139,16 @@ async function mounted(options: {
 const url = (path: string): string => `dsh://desktop${path}`
 
 describe('electron-ipc desktop gateway', () => {
+  it('serves the desktop shell when the plugin configuration block is omitted', async () => {
+    stageDist()
+    const { gateway, dispose } = await mounted()
+    try {
+      const response = await gateway.handle(new Request(url('/')))
+      expect(response.status).toBe(200)
+      expect(await response.text()).toContain('shell</body>')
+    } finally { await dispose() }
+  })
+
   it.each(['late-value', 'throw'] as const)('stops the gateway source after request cancellation: %s', async (settlement) => {
     stageDist()
     const { gateway, typertGateway, dispose } = await mounted()

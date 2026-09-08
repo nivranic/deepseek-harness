@@ -30,6 +30,8 @@ The [native application](../../../apps/desktop/src/support.ts) registers one sav
 
 The [configuration catalog](../../../docs/config-catalog.md) owns document/report byte limits and scanner/shutdown durations. Export results distinguish saved byte identity, cancellation, a concurrent export and fixed failure categories. The default Link allowlist refuses this local operation. The [support-export decision](../../../.agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.md) owns privacy and lifecycle rationale.
 
+An omitted `config` block resolves every limit's default before plugin activation. An explicit invalid value remains a load failure; the gateway's `apply` function receives only resolved configuration.
+
 ## Dev Note
 
 <details>

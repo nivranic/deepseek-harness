@@ -247,7 +247,7 @@ async function serveStatic(
  * @param ctx - plugin context carrying clientModules, connection, and typertGateway.
  * @param config - validated support-export limits, resolved at plugin activation.
  */
-export function apply(ctx: Context, config: Config = Config.parse({})): void {
+export function apply(ctx: Context, config: Config): void {
   ctx.plugin(DesktopSupport, config)
   const distIndex = internals.resolveDistIndex()
   const distRoot = dirname(distIndex)

@@ -31,6 +31,8 @@ Windows Settings 操作通过生成式 `desktopSupport/export` 操作和应用�
 
 [配置目录](../../../docs/config-catalog.zh.md)拥有文档与报告字节上限、扫描与关闭时长。导出结果区分已保存字节标识、取消、并发导出和固定失败类别。默认 Link allowlist 拒绝这个本地操作。[支持导出决策](../../../.agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.zh.md)拥有隐私与生命周期依据。
 
+省略 `config` 块时，各项上限的默认值在插件激活前完成解析。显式无效值仍会导致加载失败；Gateway 的 `apply` 函数只接收已解析配置。
+
 <a id="dev-note"></a>
 ## 开发备注
 

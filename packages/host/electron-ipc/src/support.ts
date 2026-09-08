@@ -20,7 +20,7 @@ export const Config = z.object({
   scanMilliseconds: z.number().int().positive().max(MAX_TIMER_DELAY_MS).default(10_000),
   /** Managed scanner process termination grace period in milliseconds. */
   shutdownMilliseconds: z.number().int().positive().max(MAX_TIMER_DELAY_MS).default(2_000),
-})
+}).prefault({})
 
 /** Validated configuration consumed by one desktop export service. */
 export type Config = z.infer<typeof Config>
