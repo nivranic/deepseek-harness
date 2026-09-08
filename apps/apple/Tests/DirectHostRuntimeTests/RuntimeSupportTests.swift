@@ -101,7 +101,7 @@ final class RuntimeSupportTests: XCTestCase {
           oversized) i=0; while [ "$i" -lt 5000 ]; do printf ' '; i=$((i+1)); done > "$report"; exit 0;;
         esac
         printf '[]' > "$report"
-        """
+        """#
         let binary = Data((script + "\n").utf8)
         let executable = root.appendingPathComponent("gitleaks")
         try binary.write(to: executable)

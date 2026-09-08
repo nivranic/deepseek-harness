@@ -97,7 +97,7 @@ final class DirectHostStartupTests: XCTestCase {
         app.typeKey(.return, modifierFlags: [])
         let folderClosed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: folder)
         XCTAssertEqual(XCTWaiter.wait(for: [folderClosed], timeout: 5), .completed)
-        panel.buttons["Save"].click()
+        panel.buttons["OKButton"].click()
         let file = directory.appendingPathComponent(filename)
         let saved = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             FileManager.default.fileExists(atPath: file.path)
