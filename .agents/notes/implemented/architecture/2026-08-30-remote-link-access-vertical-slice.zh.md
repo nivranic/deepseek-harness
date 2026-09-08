@@ -18,6 +18,8 @@ Status: implemented
 
 载体的解析与基础设施失败返回固定 HTTP 诊断，因为解析异常可能回显请求片段，存储异常可能包含本地路径。真实 TLS 失败记录固定畸形配对、带作用域 RPC、流请求及未预期信任存储失败的响应。记录仅在包的测试目录保存公开响应字段；这些失败不产生 Session 事件。已知 Device Trust 纠正消息和共享 Gateway 业务错误继续由原 owner 定义。
 
+原始 TLS 测试驱动仅连接自身的临时 loopback Host，并使用新生成的测试设备密钥。对应的精确 [SAST 审阅](../../../../.github/security/sast-reviews.json)绑定完整 carrier 与 CLI 代码树，包括测试调用方、监听配置、包清单和生产入口源码。这些测试验证损坏请求、授权和取消，不声称覆盖服务端身份验证；生产客户端仍由独立的 SPKI 固定校验和错误指纹零请求字节回归验证。调用方、发布入口、监听地址或 TLS 策略改变会使审阅上下文失效。
+
 ## Consequences
 
 真实 TLS 载体与 built Host 组合覆盖选择性授权、在 owner 执行前拒绝 Session、Attachment 与 Workspace path、在写入套接字前投影 Session 与 Workspace、宿主签发交互关联、待定检查、observer 与审批开关拒绝、分发失败后的安全重试、吊销以及载体停止。直接授权测试拒绝畸形 envelope 与 frame，并覆盖每种 Session 地址、集合 baseline、增量 frame、Remote 通知、waterfall 与取消分支；`dsh-device-trust`、`dsh-link-access` 和 Gateway 保持逐文件 100% 覆盖。Client 代次断线时，待定交互留在 Gateway 中供重连重放；显式策略变更、吊销或载体停止则立即委托投递。授权管理 UI 与 mDNS 广播仍是延后的产品工作；资源授权表和 `pairingAccess` 配置已经提供安全行为，无需创建复杂 RBAC。
