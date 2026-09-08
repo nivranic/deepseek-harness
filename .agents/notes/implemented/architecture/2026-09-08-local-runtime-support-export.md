@@ -28,6 +28,8 @@ The Electron application owns a separate unloaded hidden window for each native 
 
 The [Link controller](../../../../packages/api/link-controller/README.md) supplies an unscanned, fixed-field listener/protocol snapshot through the existing Gateway. The carrier and authenticated Host description share one protocol/capability producer. Listener failures contain a category instead of error text, and the query does not read identity or pairing records. The default remote allowlist refuses the query before Gateway execution. Its advertised capabilities remain distinct from effective device grants; listener availability remains distinct from connection and application health.
 
+Finding a native dialog does not establish that its filename and button patterns are ready. The Windows driver waits for enabled patterns within the same deadline used for dialog discovery and closure. A failed control lookup emits a bounded, fixed-field inventory without names or values, so a native control-ID mismatch can be distinguished from unavailable controls without publishing the user's file-picker contents. Pure PowerShell regressions cover delayed readiness, expired budgets, probe failure and private-identifier exclusion; actual selection and saving still require the candidate lane.
+
 ## Alternatives considered
 
 **Raw-log redaction.** Unknown messages can contain new sensitive fields. A closed projection of state and counts prevents those messages from entering serialization.

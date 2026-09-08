@@ -27,6 +27,46 @@ function Find-SupportDialog {
     if ($selected.Count -eq 1) { return $selected[0] }
     return $null
 }
+function Wait-SupportElement {
+    param([scriptblock]$Probe, [System.Diagnostics.Stopwatch]$Clock, [int]$TimeoutMilliseconds, [string]$Failure)
+    while ($Clock.ElapsedMilliseconds -lt $TimeoutMilliseconds) {
+        $found = & $Probe
+        if ($null -ne $found) { return $found }
+        Start-Sleep -Milliseconds 100
+    }
+    throw $Failure
+}
+function ConvertTo-SupportControlDiagnostic {
+    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern)
+    $id = if ($AutomationId -cmatch '\A[0-9]{1,5}\z' -or $AutomationId -cin @('FileNameControlHost', 'FileNameTextBox')) { $AutomationId } else { '<other>' }
+    $kind = switch ($ControlType) { 50000 { 'button' } 50003 { 'combo-box' } 50004 { 'edit' } default { 'other' } }
+    return @{ id = $id; kind = $kind; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
+}
+function Write-SupportControlDiagnostic {
+    try {
+        $interactive = [System.Windows.Automation.OrCondition]::new(
+            [System.Windows.Automation.OrCondition]::new(
+                [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit),
+                [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::ComboBox)
+            ),
+            [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)
+        )
+        $controls = $nativeDialog.FindAll($scope::Descendants, $interactive)
+        $rows = @()
+        for ($index = 0; $index -lt [Math]::Min($controls.Count, 64); $index++) {
+            $control = $controls[$index]
+            $current = $control.Current
+            $rows += ConvertTo-SupportControlDiagnostic -AutomationId $current.AutomationId -ControlType $current.ControlType.Id `
+                -Enabled $current.IsEnabled -Offscreen $current.IsOffscreen `
+                -ValuePattern ($control.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty) -eq $true) `
+                -InvokePattern ($control.GetCurrentPropertyValue($element::IsInvokePatternAvailableProperty) -eq $true)
+        }
+        $record = @{ schemaVersion = 1; scope = 'candidate-support-controls'; truncated = $controls.Count -gt 64; controls = $rows }
+        [Console]::Error.WriteLine(($record | ConvertTo-Json -Depth 4 -Compress))
+    } catch {
+        [Console]::Error.WriteLine('{"schemaVersion":1,"scope":"candidate-support-controls","unavailable":true}')
+    }
+}
 $clock = [System.Diagnostics.Stopwatch]::StartNew()
 $nativeDialog = $null
 do {
@@ -49,23 +89,49 @@ if ($Action -eq 'save') {
     if ([string]::IsNullOrEmpty($Destination) -or -not [System.IO.Path]::IsPathFullyQualified($Destination)) {
         throw 'Saving requires an absolute test-owned destination'
     }
-    $filename = $nativeDialog.FindFirst($scope::Descendants,
+    $filenameCondition = [System.Windows.Automation.AndCondition]::new(
         [System.Windows.Automation.AndCondition]::new(
             [System.Windows.Automation.PropertyCondition]::new($element::AutomationIdProperty, '1001'),
             [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
-        ))
-    if ($null -eq $filename) { throw 'Candidate save dialog has no native filename edit control' }
+        ),
+        [System.Windows.Automation.AndCondition]::new(
+            [System.Windows.Automation.PropertyCondition]::new($element::IsEnabledProperty, $true),
+            [System.Windows.Automation.PropertyCondition]::new($element::IsValuePatternAvailableProperty, $true)
+        )
+    )
+    try {
+        $filename = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
+            -Probe { $nativeDialog.FindFirst($scope::Descendants, $filenameCondition) } `
+            -Failure 'Candidate save dialog has no ready native filename edit control'
+    } catch {
+        Write-SupportControlDiagnostic
+        throw
+    }
     $value = [System.Windows.Automation.ValuePattern]$filename.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
     $value.SetValue($Destination)
     if ($value.Current.Value -cne $Destination) { throw 'Native filename control did not accept the destination' }
 }
 $buttonId = if ($Action -eq 'save') { '1' } else { '2' }
-$button = $nativeDialog.FindFirst($scope::Descendants,
-    [System.Windows.Automation.PropertyCondition]::new($element::AutomationIdProperty, $buttonId))
-if ($null -eq $button) { throw 'Candidate save dialog has no requested native button' }
+$buttonCondition = [System.Windows.Automation.AndCondition]::new(
+    [System.Windows.Automation.AndCondition]::new(
+        [System.Windows.Automation.PropertyCondition]::new($element::AutomationIdProperty, $buttonId),
+        [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)
+    ),
+    [System.Windows.Automation.AndCondition]::new(
+        [System.Windows.Automation.PropertyCondition]::new($element::IsEnabledProperty, $true),
+        [System.Windows.Automation.PropertyCondition]::new($element::IsInvokePatternAvailableProperty, $true)
+    )
+)
+try {
+    $button = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
+        -Probe { $nativeDialog.FindFirst($scope::Descendants, $buttonCondition) } `
+        -Failure 'Candidate save dialog has no ready requested native button'
+} catch {
+    Write-SupportControlDiagnostic
+    throw
+}
 $invoke = [System.Windows.Automation.InvokePattern]$button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
 $invoke.Invoke()
-$clock.Restart()
 while ($null -ne (Find-SupportDialog)) {
     if ($clock.ElapsedMilliseconds -ge $TimeoutMilliseconds) { throw 'Candidate support save dialog did not close' }
     Start-Sleep -Milliseconds 100
