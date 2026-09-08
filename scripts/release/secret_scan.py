@@ -101,11 +101,20 @@ def install_gitleaks(registry: dict, directory: Path) -> tuple[Path, dict]:
     tool = registry["gitleaks"]
     if not isinstance(tool["version"], str) or not re.fullmatch(r"\d+\.\d+\.\d+", tool["version"]):
         raise ValueError("scanner version must be pinned")
-    if platform.machine().lower() not in ("amd64", "x86_64"):
+    architecture = {"amd64": "x64", "x86_64": "x64", "arm64": "arm64"}.get(platform.machine().lower())
+    target = {
+        ("linux", "x64"): ("linux_x64.tar.gz", "gitleaks"),
+        ("win32", "x64"): ("windows_x64.zip", "gitleaks.exe"),
+        ("darwin", "x64"): ("darwin_x64.tar.gz", "gitleaks"),
+        ("darwin", "arm64"): ("darwin_arm64.tar.gz", "gitleaks"),
+    }.get((sys.platform, architecture))
+    if target is None:
         raise ValueError("Gitleaks installer requires a recorded platform")
-    artifact = tool["archives"][f"{sys.platform}-x64"]
+    artifact = tool["archives"].get(f"{sys.platform}-{architecture}")
+    if artifact is None:
+        raise ValueError("unrecorded Gitleaks download owner")
     url = artifact["url"]
-    suffix, binary_name = {"linux": ("linux_x64.tar.gz", "gitleaks"), "win32": ("windows_x64.zip", "gitleaks.exe")}[sys.platform]
+    suffix, binary_name = target
     expected_url = f"https://github.com/gitleaks/gitleaks/releases/download/v{tool['version']}/gitleaks_{tool['version']}_{suffix}"
     if url != expected_url or artifact["binary"] != binary_name or not re.fullmatch(r"[a-f0-9]{64}", artifact["sha256"]):
         raise ValueError("unrecorded Gitleaks download owner")

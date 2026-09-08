@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - '.gitignore'
+      - '.github/security/scanners.json'
       - 'apps/apple/**'
       - 'apps/cli/config/**'
       - 'apps/cli/package.json'
@@ -33,6 +34,7 @@ on:
     branches: [dev, master]
     paths:
       - '.gitignore'
+      - '.github/security/scanners.json'
       - 'apps/apple/**'
       - 'apps/cli/config/**'
       - 'apps/cli/package.json'
@@ -102,6 +104,9 @@ jobs:
           name: ci-source-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/dsh-ci-source/source.json
           if-no-files-found: error
+
+      - name: Verify pinned native secret scanner
+        run: python3 -B -m unittest discover -s scripts/release -p test_secret_scan.py -v
 
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:

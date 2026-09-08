@@ -4,12 +4,16 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import platform
 import subprocess
+import sys
+import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
+import zipfile
 
-from secret_scan import classify, findings, git, install_gitleaks, main, materialize, parse_exceptions, scan
+from secret_scan import classify, findings, git, install_gitleaks, main, materialize, parse_exceptions, scan, self_test
 
 
 class SourceFixture(unittest.TestCase):
@@ -150,6 +154,104 @@ class ScannerBoundary(unittest.TestCase):
             value = json.loads(report.read_text(encoding="utf-8"))
             self.assertEqual(value["status"], "FAIL")
             self.assertNotIn("invalid", report.read_text(encoding="utf-8"))
+
+
+class ScannerInstallation(unittest.TestCase):
+    def fixture(self, suffix, binary="gitleaks", linked=False):
+        payload = b"scanner-fixture"
+        output = io.BytesIO()
+        if suffix.endswith(".zip"):
+            with zipfile.ZipFile(output, "w") as archive:
+                archive.writestr(binary, payload)
+        else:
+            with tarfile.open(fileobj=output, mode="w:gz") as archive:
+                member = tarfile.TarInfo(binary)
+                if linked:
+                    member.type = tarfile.SYMTYPE
+                    member.linkname = "../outside"
+                    archive.addfile(member)
+                else:
+                    member.size = len(payload)
+                    archive.addfile(member, io.BytesIO(payload))
+        data = output.getvalue()
+        return data, {"url": f"https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_{suffix}",
+                      "sha256": hashlib.sha256(data).hexdigest(), "binary": binary}
+
+    def test_installs_only_the_archive_for_the_running_platform_and_architecture(self):
+        cases = [("linux", "x86_64", "x64", "linux_x64.tar.gz", "gitleaks"),
+                 ("win32", "AMD64", "x64", "windows_x64.zip", "gitleaks.exe"),
+                 ("darwin", "x86_64", "x64", "darwin_x64.tar.gz", "gitleaks"),
+                 ("darwin", "arm64", "arm64", "darwin_arm64.tar.gz", "gitleaks")]
+        for system, machine, arch, suffix, binary in cases:
+            data, artifact = self.fixture(suffix, binary)
+            registry = {"schemaVersion": 1, "gitleaks": {"version": "8.30.1", "archives": {f"{system}-{arch}": artifact}}}
+            with self.subTest(system=system, machine=machine), tempfile.TemporaryDirectory(prefix="dsh-scan-tool-") as directory, \
+                    patch("secret_scan.sys.platform", system), patch("secret_scan.platform.machine", return_value=machine), \
+                    patch("secret_scan.urllib.request.urlopen", return_value=io.BytesIO(data)) as download, \
+                    patch("secret_scan.subprocess.run", return_value=subprocess.CompletedProcess([], 0, stdout="8.30.1\n")) as execute:
+                executable, record = install_gitleaks(registry, Path(directory))
+                self.assertEqual(executable, Path(directory) / binary)
+                self.assertEqual(executable.read_bytes(), b"scanner-fixture")
+                self.assertEqual(record, {"name": "gitleaks", "version": "8.30.1", "archiveSha256": artifact["sha256"],
+                                          "binarySha256": hashlib.sha256(b"scanner-fixture").hexdigest()})
+                download.assert_called_once_with(artifact["url"], timeout=60)
+                execute.assert_called_once_with([str(executable), "version"], check=True, capture_output=True, text=True)
+
+    def test_unrecorded_platform_pairs_are_refused_before_download(self):
+        registry = {"schemaVersion": 1, "gitleaks": {"version": "8.30.1", "archives": {}}}
+        for system, machine in [("linux", "arm64"), ("win32", "ARM64"), ("darwin", "i386"), ("freebsd", "x86_64")]:
+            with self.subTest(system=system, machine=machine), patch("secret_scan.sys.platform", system), \
+                    patch("secret_scan.platform.machine", return_value=machine), \
+                    patch("secret_scan.urllib.request.urlopen") as download, patch("secret_scan.subprocess.run") as execute:
+                with self.assertRaisesRegex(ValueError, "recorded platform"):
+                    install_gitleaks(registry, Path("unused"))
+                download.assert_not_called()
+                execute.assert_not_called()
+
+    def test_darwin_refuses_missing_pins_or_another_architecture_before_download(self):
+        _, artifact = self.fixture("darwin_x64.tar.gz")
+        _, native = self.fixture("darwin_arm64.tar.gz")
+        for archives in [{}, {"darwin-arm64": artifact}, {"darwin-arm64": {**native, "binary": "other"}}]:
+            registry = {"schemaVersion": 1, "gitleaks": {"version": "8.30.1", "archives": archives}}
+            with self.subTest(archives=archives), patch("secret_scan.sys.platform", "darwin"), \
+                    patch("secret_scan.platform.machine", return_value="arm64"), \
+                    patch("secret_scan.urllib.request.urlopen") as download, patch("secret_scan.subprocess.run") as execute:
+                with self.assertRaisesRegex(ValueError, "unrecorded Gitleaks"):
+                    install_gitleaks(registry, Path("unused"))
+                download.assert_not_called()
+                execute.assert_not_called()
+
+    def test_darwin_refuses_tampering_linked_executables_and_version_mismatch(self):
+        for failure in ("digest", "symlink", "version"):
+            data, artifact = self.fixture("darwin_arm64.tar.gz", linked=failure == "symlink")
+            if failure == "digest":
+                artifact["sha256"] = "a" * 64
+            registry = {"schemaVersion": 1, "gitleaks": {"version": "8.30.1", "archives": {"darwin-arm64": artifact}}}
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory(prefix="dsh-scan-tool-") as directory, \
+                    patch("secret_scan.sys.platform", "darwin"), patch("secret_scan.platform.machine", return_value="arm64"), \
+                    patch("secret_scan.urllib.request.urlopen", return_value=io.BytesIO(data)), \
+                    patch("secret_scan.subprocess.run", return_value=subprocess.CompletedProcess([], 0, stdout="8.30.0\n")) as execute:
+                with self.assertRaises(ValueError):
+                    install_gitleaks(registry, Path(directory))
+                self.assertEqual(execute.call_count, 1 if failure == "version" else 0)
+
+
+@unittest.skipUnless(sys.platform == "darwin", "native Gitleaks execution requires macOS")
+class NativeScannerInstallation(unittest.TestCase):
+    def test_pinned_native_scanner_detects_the_canary_and_accepts_clean_utf8(self):
+        registry = json.loads((Path(__file__).resolve().parents[2] / ".github/security/scanners.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory(prefix="dsh-native-scanner-") as directory:
+            root = Path(directory)
+            executable, tool = install_gitleaks(registry, root)
+            self_test(executable, root)
+            clean = root / "clean"
+            clean.mkdir()
+            content = '{"state":"stopped","label":"已停止"}\n'.encode("utf-8")
+            (clean / "fixture.json").write_bytes(content)
+            self.assertEqual(scan(executable, ["dir", str(clean)], root, "clean"), [])
+            print(json.dumps({"nativeScanner": tool, "platform": sys.platform, "architecture": platform.machine(),
+                              "negativeFixture": "PASS", "cleanFindings": 0,
+                              "cleanBytesSha256": hashlib.sha256(content).hexdigest()}), flush=True)
 
 
 if __name__ == "__main__":

@@ -34,4 +34,6 @@ Android candidate 生产器仅在临时托管 Linux runner 上创建一次性 de
 
 修改 fixture 行或 SAST 上下文需要重新审查。不支持的平台、submodule、未完成分析、不可用的账号功能和缺失输出都会失败，不保留旧 PASS。即使全部发现项已审查，也不能覆盖提取错误。不含源码的 artifact 减少远端诊断细节；复现使用准确候选和 scanner revision。未签名回执补充 [CI 源码证据](2026-09-05-ci-source-evidence.zh.md) 和 [workflow 策略](2026-09-05-workflow-security.zh.md)。
 
+扫描器获取使用显式操作系统/架构组合。Darwin x64 和 arm64 使用独立的官方归档摘要；架构别名不能回退到其他二进制。Apple 车道使用检测/脱敏 canary 和干净 UTF-8 字节执行其原生扫描器。这仅提供原生扫描器证据，不证明运行中应用的 Support Bundle、移动端扫描或 runner 未执行架构的覆盖。
+
 回归覆盖归档转换、路径逃逸、例外变化、执行前 checksum、旧输出、suppressed 发现项和不完整报告。真实 Gitleaks negative fixture 验证已安装工具。实际语言分析和 dependency graph 执行仍是绑定候选的 CI 证据。原生 C/C++ 和 Rust 不在四语言矩阵内。[候选产物完整性](2026-09-06-candidate-artifact-integrity.zh.md)独立检查打包字节及未签名生产者声明。

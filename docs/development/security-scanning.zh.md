@@ -18,7 +18,7 @@
 <a id="secret-scanning"></a>
 ## 密钥扫描
 
-[scan-secrets.py](../../scripts/scan-secrets.py) 要求 Python 3.10+、Git、tracked 内容干净且与候选 tree 相同的 checkout，以及祖先 base commit。`--candidate`、`--base` 和 `--output` 选择完整 commit SHA 与 verdict 文件。扫描器从候选的[登记表](../../.github/security/scanners.json) 安装 Linux 或 Windows x64 归档，在执行前验证 SHA-256，并确认可执行文件版本。未登记平台会失败。
+[scan-secrets.py](../../scripts/scan-secrets.py) 要求 Python 3.10+、Git、tracked 内容干净且与候选 tree 相同的 checkout，以及祖先 base commit。`--candidate`、`--base` 和 `--output` 选择完整 commit SHA 与 verdict 文件。安装器从候选的[登记表](../../.github/security/scanners.json)选择当前运行平台的 Linux/Windows x64 或 macOS x64/arm64 归档，在执行前验证 SHA-256，并确认可执行文件版本。不支持的平台组合、缺失的固定记录和指向其他架构的 URL 会在下载前失败。[Apple 车道](../../.github/workflows/apple-swift.yml)负责原生执行固定的 macOS 扫描器、检测/脱敏 canary 和干净 UTF-8 输入；仅模拟平台选择的测试不能证明原生执行。
 
 完整候选 tree 和 base 到候选 commit 范围的新增行是两个独立输入。导出文件必须与每个 Git blob 的字节一致；遗漏或替换都会失败。符号链接仅贡献链接文本，不跟随目标。未跟踪文件（包括本地凭据）不在输入范围内。Submodule 需要独立固定的扫描输入，当前会失败。
 
