@@ -62,9 +62,11 @@ await withRcCleanup(async () => {
   await execute('pwsh', ['-NoProfile', '-File', join(repository, 'scripts/release/verify-windows-product.ps1'),
     '-InputFile', versionInput, '-OutputFile', versionOutput], { windowsHide: true, env: windowsCandidateEnvironment(process.env) })
   console.log('Windows candidate: installed bytes and PE versions verified; installed GUI start')
-  const installed = await smokeWindowsCandidate(installedExecutable, join(work, 'installed-state'), join(output, 'windows/installed.png'), scanner)
+  const installed = await smokeWindowsCandidate(installedExecutable, join(work, 'installed-state'), join(output, 'windows/installed.png'),
+    scanner, identity, join(output, 'windows/installed-support'))
   console.log('Windows candidate: installed GUI passed; portable GUI start')
-  const portableStartup = await smokeWindowsCandidate(portable, join(work, 'portable-state'), join(output, 'windows/portable.png'), scanner, true)
+  const portableStartup = await smokeWindowsCandidate(portable, join(work, 'portable-state'), join(output, 'windows/portable.png'),
+    scanner, identity, join(output, 'windows/portable-support'), true)
   console.log('Windows candidate: portable GUI passed')
   for (const startup of [installed, portableStartup]) {
     if (startup.applicationVersion !== identity.version || startup.executableSha256 !== originalHash.sha256) {
@@ -80,7 +82,7 @@ await withRcCleanup(async () => {
   const sbom = { ...await describeRcOutput(output, 'windows/sbom.cdx.json'), format: 'cyclonedx-1.6' as const,
     tool: { name: toolReceipt.name, version: toolReceipt.version } }
   const checks: RcPlatformReceipt['checks'] = []
-  for (const name of ['identity', 'startup', 'npm-inventory']) {
+  for (const name of ['identity', 'startup', 'npm-inventory', 'support-export']) {
     const file = await writeRcOutput(output, `windows/${name}.json`, {
       schemaVersion: 1, name, sourceSha, identity, platform: 'windows', status: 'PASS', subjects: rcSubjects(artifacts),
     })
@@ -95,6 +97,11 @@ await withRcCleanup(async () => {
       versions: JSON.parse((await readFile(versionOutput, 'utf8')).replace(/^\uFEFF/, '')) as unknown,
     }),
   ]
+  for (const launcher of ['installed', 'portable']) {
+    for (const suffix of ['.json', '-saved.png', '-cancelled.png', '-rejected.png']) {
+      attachments.push(await describeRcOutput(output, `windows/${launcher}-support${suffix}`))
+    }
+  }
   const provenanceFile = await writeRcOutput(output, 'windows/provenance.json', {
     _type: 'https://in-toto.io/Statement/v1', predicateType: 'https://slsa.dev/provenance/v1',
     subject: rcSubjects([...artifacts, ...checks, ...attachments, sbom]),

@@ -812,6 +812,31 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'desktopSupport',
+    summary: 'One local export at a time; unloading revokes native callbacks, aborts and joins the active operation.',
+    description: 'One local export at a time; unloading revokes native callbacks, aborts and joins the active operation.',
+    methods: [
+      {
+        signature: 'diagnosticCounts(): DesktopSupportCounts',
+        description: 'Read process-local counters without exposing retained Session objects or sequence cursors.',
+        parameters: [],
+        returns: 'a value copy of the diagnostic counters since this plugin started.',
+      },
+      {
+        signature: 'registerHost(host: DesktopSupportHost): () => Promise<void>',
+        description: 'Register the application\'s sole native exporter with the service\'s lifecycle.',
+        parameters: [{ name: 'host', description: 'native callbacks; a second live registration is rejected.' }],
+        returns: 'disposer that revokes new requests, aborts and joins any active export.',
+      },
+      {
+        signature: '@Remote(\'export\') exportSupport(): Promise<DesktopSupportResult>',
+        description: 'Export the application\'s current safe projection to a user-selected local file.',
+        parameters: [],
+        returns: 'saved-byte identity, cancellation, busy state, or a fixed refusal without paths or raw errors.',
+      },
+    ],
+  },
+  {
     key: 'deviceTrust',
     summary: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and device records with role, resource grants, timestamps, and revocation that the link carrier authorizes against.',
     description: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and device records with role, resource grants, timestamps, and revocation that the link carrier authorizes against.',
@@ -3716,6 +3741,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ApprovalRequestEvent {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: ToolCallId;\n    readonly reason?: string;\n    readonly signal?: AbortSignal;\n}',
   },
   {
+    name: 'ApprovedSupportDocument',
+    declaration: 'export class ApprovedSupportDocument {\n    get bytes(): number;\n    get sha256(): string;\n    static async prepare(runtime: Pick<SubprocessRuntime, \'spawn\'>, directory: string, snapshot: Readonly<Record<string, unknown>>, policy: DesktopSupportPolicy, signal: AbortSignal): Promise<ApprovedSupportDocument>;\n    async save(destination: string, signal: AbortSignal): Promise<void>;\n}',
+  },
+  {
     name: 'ArtifactId',
     declaration: 'export type ArtifactId = Branded<\'ArtifactId\'>;',
   },
@@ -4102,6 +4131,26 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'DeepSeekLlmApiJson',
     declaration: 'export type DeepSeekLlmApiJson = null | boolean | number | string | DeepSeekLlmApiJson[] | {\n    [key: string]: DeepSeekLlmApiJson;\n};',
+  },
+  {
+    name: 'DesktopSupportCounts',
+    declaration: 'export interface DesktopSupportCounts {\n    readonly turnsStarted: number;\n    readonly turnsEnded: number;\n    readonly toolCalls: number;\n    readonly toolResults: number;\n}',
+  },
+  {
+    name: 'DesktopSupportFailure',
+    declaration: 'export type DesktopSupportFailure = \'invalid-identity\' | \'invalid-scanner\' | \'unavailable\' | \'oversized\' | \'scan-failed\' | \'secrets-detected\' | \'timed-out\' | \'cleanup-failed\' | \'save-failed\';',
+  },
+  {
+    name: 'DesktopSupportHost',
+    declaration: 'export interface DesktopSupportHost {\n    readonly scannerDirectory: string;\n    readProductManifest(): Promise<unknown>;\n    save(document: ApprovedSupportDocument, signal: AbortSignal): Promise<\'saved\' | \'cancelled\'>;\n}',
+  },
+  {
+    name: 'DesktopSupportPolicy',
+    declaration: 'export interface DesktopSupportPolicy {\n    readonly maximumBytes: number;\n    readonly maximumReportBytes: number;\n    readonly scanMilliseconds: number;\n    readonly shutdownMilliseconds: number;\n}',
+  },
+  {
+    name: 'DesktopSupportResult',
+    declaration: 'export type DesktopSupportResult = {\n    readonly status: \'saved\';\n    readonly bytes: number;\n    readonly sha256: string;\n    readonly complete: false;\n} | {\n    readonly status: \'cancelled\';\n} | {\n    readonly status: \'busy\';\n} | {\n    readonly status: \'failed\';\n    readonly reason: DesktopSupportFailure;\n};',
   },
   {
     name: 'DeviceAccess',
@@ -5838,6 +5887,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SubprocessOutputReader',
     declaration: 'export interface SubprocessOutputReader {\n    readFrom(fromByte: number): SubprocessOutputRead;\n}',
+  },
+  {
+    name: 'SubprocessRuntime',
+    declaration: 'export abstract class SubprocessRuntime extends Service {\n    constructor(ctx: Context);\n    abstract resolveExecutable(command: string, env?: Readonly<Record<string, string>>, signal?: AbortSignal): Promise<string>;\n    abstract spawn(spec: SubprocessSpawnSpec): SubprocessHandle;\n    abstract spawnTerminal(spec: SubprocessTerminalSpawnSpec): Promise<SubprocessTerminalHandle>;\n}',
   },
   {
     name: 'SubprocessSpawnSpec',

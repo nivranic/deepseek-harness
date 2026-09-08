@@ -35,7 +35,9 @@ The Electron app shell ([`apps/desktop`](../../../apps/desktop)) reads the names
 
 ## When a row is absent
 
-While the namespace is loading, not yet accepted, or not exposed to this client, each row renders nothing — the same degradation every settings-scope row uses. A read-only settings document disables the options without hiding the row.
+The Diagnostics row requests a local JSON export through the generated `desktopSupport` namespace. It disables duplicate clicks while the operation is pending and renders localized saved, cancelled, busy or refused feedback. The [Host exporter](../../host/electron-ipc/README.md#diagnostics-export) owns collection, scanning and native saving; this row receives no document contents, destination path or raw error.
+
+While a settings namespace is loading, not yet accepted, or not exposed to this client, its settings-backed rows render nothing. A read-only settings document disables those options without hiding the row. The Diagnostics action reports unavailable when its local export operation cannot be reached.
 
 ## Dev Note
 
@@ -48,7 +50,7 @@ The tray and login-entry implementation lives in the Electron app shell (`apps/d
 
 ## Model Experience
 
-None, as the package contributes window-chrome preferences only; nothing here reaches a model request.
+None, as the package contributes desktop settings and a local diagnostics action; nothing here reaches a model request.
 
 #### KV Cache effect
 

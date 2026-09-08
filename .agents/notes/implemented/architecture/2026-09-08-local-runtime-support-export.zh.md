@@ -18,7 +18,11 @@ Status: implemented
 
 [候选生产器](../../../../scripts/produce-mac-host.ts)准备固定的扫描器与许可证，验证原生架构和最低系统版本，并在封装应用前分别记录获取时与 ad-hoc 签名后的可执行文件摘要。原生 UI 通过生产对话框保存 ready、stopped 和启动失败文档。[独立验证器](../../../../scripts/release/support_exports.py)拒绝未知字段和矛盾观测，复核签名后的扫描器，并在发布摘要和已准入副本前重新扫描真实保存字节。其准入范围始终只覆盖运行时诊断。
 
-[Windows 打包器](../../../../scripts/build-desktop-exe.ts)使用同一个固定安装器和[资源验证器](../../../../scripts/release/support-scanner.ts)，处理原生 ZIP 许可证和可执行文件后缀。获取回执与待打包文件分开保留，因此同时替换暂存文件及其本地回执，也不能让变化的字节通过 `afterPack`。[Windows 候选检查](../../../../docs/development/windows-candidate.zh.md#installation-and-gui-checks)在已安装与 portable 执行期间保留该标识。扫描器交付是 Windows 导出操作的前置条件，不能证明文档已采集或扫描。
+[Windows 打包器](../../../../scripts/build-desktop-exe.ts)使用同一个固定安装器和[资源验证器](../../../../scripts/release/support-scanner.ts)，处理原生 ZIP 许可证和可执行文件后缀。获取回执与待打包文件分开保留，因此同时替换暂存文件及其本地回执，也不能让变化的字节通过 `afterPack`。[Windows 候选检查](../../../../docs/development/windows-candidate.zh.md#installation-and-gui-checks)在已安装与 portable 执行期间保留该标识。
+
+[Windows 导出器](../../../../packages/host/electron-ipc/src/support.ts)在现有生成式 Gateway 中增加一个桌面本地操作。它选择暂存应用元数据、去重后的 Session 事件计数和可选 Link 观测。异步扫描前完成序列化，通过受管理子进程的 stdin 传入 canary 和最终 JSON，并在扫描器资源仍匹配时才准入不可变文档。原生保存把这些准确字节写入目标旁随机且独占创建的临时文件，通过 rename 提交。提交前取消保持目标文件不变；即使同时发生取消，清理失败仍报告失败。
+
+Electron 应用为每个原生保存对话框拥有一个独立、未加载页面的隐藏窗口。销毁该所有者可以关闭对话框并保留主窗口。服务的 effect disposer 撤销新工作准入、中止并等待活动操作。Windows 候选驱动通过 UIAutomation 操作真实原生控件，将本地化 Settings 反馈与所有者本地期望输出比较，并要求执行保存、取消、无效资源和合成密钥场景。独立验证器检查完整保存文档并重扫，再将准确字节及截图纳入 provenance。单元测试替身和受管理扫描器冒烟不能证明原生对话框或打包应用行为；该证据由一次性 Windows 候选车道提供。
 
 [Link 控制器](../../../../packages/api/link-controller/README.zh.md)通过现有 Gateway 提供未扫描、固定字段的监听/协议快照。载体与经认证 Host 描述共用协议/capability 生产者。监听失败只包含类别而不含错误文本，查询也不读取身份或配对记录。默认远程 Allowlist 在 Gateway 执行前拒绝该查询。公布的 capability 与设备有效授权保持区分，监听器可用性与连接及应用健康也保持区分。
 
@@ -34,7 +38,7 @@ Status: implemented
 
 ## Consequences
 
-连接、协议、角色、capability、更新、原生崩溃记录和会话诊断均明确标为未采集。运行时 ready 描述管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。Windows、原生移动端生产者及移动端离线扫描仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
+Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、连接、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者、移动端离线扫描仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
 
 [源码扫描决策](../process/2026-09-05-candidate-security-scans.zh.md)继续拥有固定获取与源码例外；这些例外不能放行支持导出中的发现项。[产物完整性决策](../process/2026-09-06-candidate-artifact-integrity.zh.md)继续拥有完整 RC 准入。helper 突然终止、detached 工具进程组和 PTY 所有权不属于本导出的清理保证，仍会阻止 Full Host no-orphan 准入。
 

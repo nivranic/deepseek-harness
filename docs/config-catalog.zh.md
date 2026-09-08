@@ -961,6 +961,21 @@ export interface Config {
 
 来源：[`packages/host/directory-picker-browse/src/index.ts:181`](../packages/host/directory-picker-browse/src/index.ts)
 
+<a id="deepseek-aidsh-host-electron-ipc"></a>
+
+## `@deepseek-ai/dsh-host-electron-ipc`
+
+需要：`clientModules` · `connection` · `typertGateway`
+
+```ts config-catalog
+/** Validated configuration consumed by one desktop export service. */
+export type Config = z.infer<typeof Config>
+```
+
+依赖：`z` (`zod`)
+
+来源：[`packages/host/electron-ipc/src/support.ts:26`](../packages/host/electron-ipc/src/support.ts)
+
 <a id="deepseek-aidsh-host-frontend-static"></a>
 
 ## `@deepseek-ai/dsh-host-frontend-static`
@@ -3617,7 +3632,6 @@ export interface Config {
 - `@deepseek-ai/dsh-fs-observation-policy`（[`packages/fs/fs-observation-policy/src/index.ts`](../packages/fs/fs-observation-policy/src/index.ts)）
 - `@deepseek-ai/dsh-goal-round-driver` — 需要 `agents` · `goals` · `sessions`（[`packages/goal/goal-round-driver/src/index.ts`](../packages/goal/goal-round-driver/src/index.ts)）
 - `@deepseek-ai/dsh-host-directory-picker-native`（[`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts)）
-- `@deepseek-ai/dsh-host-electron-ipc` — 需要 `clientModules` · `connection` · `typertGateway`（[`packages/host/electron-ipc/src/index.ts`](../packages/host/electron-ipc/src/index.ts)）
 - `@deepseek-ai/dsh-host-plugin-inventory` — 需要 `loader`（[`packages/host/plugin-inventory/src/index.ts`](../packages/host/plugin-inventory/src/index.ts)）
 - `@deepseek-ai/dsh-link-settings` — 需要 `settings` · `linkAccess`（[`packages/remote/link-settings/src/index.ts`](../packages/remote/link-settings/src/index.ts)）
 - `@deepseek-ai/dsh-llm`（[`packages/llm/llm/src/index.ts`](../packages/llm/llm/src/index.ts)）

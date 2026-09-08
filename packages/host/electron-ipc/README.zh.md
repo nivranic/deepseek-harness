@@ -15,11 +15,21 @@ kind: "package-reference"
 ## 目录
 
 - [概述](#summary)
+- [诊断导出](#diagnostics-export)
 - [Model Experience](#model-experience)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
 
 -----
+
+<a id="diagnostics-export"></a>
+## 诊断导出
+
+Windows Settings 操作通过生成式 `desktopSupport/export` 操作和应用的原生保存对话框保存可用诊断。采集器选择应用版本、构建号和渠道、进程内 Session 事件计数，以及 Link 所有者公布的监听与协议观测。Session 负载、设备身份、连接地址和原始错误输出均不进入序列化。
+
+[原生应用](../../../apps/desktop/src/support.ts)注册唯一保存回调。服务一次只准入一个导出；注销会撤销准入、取消待完成工作并等待其结束。[扫描实现](src/support-export.ts)核验内嵌资源，检出并脱敏合成凭据，再通过受管理子进程的 stdin 扫描最终不可变 JSON。只有通过扫描的字节才进入原生对话框；保存通过原子 rename 提交。提交前取消不改变目标文件，rename 已提交则报告保存成功。扫描和清理失败均拒绝完成，并且不暴露原生错误文本。
+
+[配置目录](../../../docs/config-catalog.zh.md)拥有文档与报告字节上限、扫描与关闭时长。导出结果区分已保存字节标识、取消、并发导出和固定失败类别。默认 Link allowlist 拒绝这个本地操作。[支持导出决策](../../../.agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.zh.md)拥有隐私与生命周期依据。
 
 <a id="dev-note"></a>
 ## 开发备注
@@ -46,3 +56,4 @@ kind: "package-reference"
 
 - **前端 dist 必须已构建**——激活时 `require.resolve` 失败会带着构建提示大声报错；没有源码供给的回退。
 - **流式响应依赖 Electron 的协议处理器**——NDJSON Remote 流主体经协议桥流式传输，不支持流式的载体会让事件流停滞。
+- **支持导出仍不完整**——`complete:false` 与 `uncollected` 披露尚缺运行时健康、连接、有效角色、更新和原生崩溃生产者。监听状态和公布的能力不能证明这些事实。Settings 导出还要求桌面 Gateway 与渲染端可用。

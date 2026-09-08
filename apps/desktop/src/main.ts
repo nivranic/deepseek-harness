@@ -24,6 +24,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import { DSH_SCHEME, ENTRY_URL } from './scheme.ts'
+import { registerDesktopSupport } from './support.ts'
 
 /**
  * The settings namespace the ui-desktop host half registers — a local mirror
@@ -345,6 +346,9 @@ async function startGateway(): Promise<DesktopGateway> {
   if (gateway === undefined) {
     throw new Error('dsh desktop: boot settled without a desktopGateway; the electron-ipc row did not mount')
   }
+  const support = started.ctx.get('desktopSupport')
+  if (support === undefined) throw new Error('dsh desktop: boot settled without desktopSupport')
+  await registerDesktopSupport(support, () => mainWindow)
   return gateway
 }
 

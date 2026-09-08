@@ -223,6 +223,9 @@ describe('link-access carrier', () => {
       const denied = await signedRpc(local.endpoint, paired, 'link/diagnostics', {})
       expect(denied.status).toBe(403)
       expect(denied.json).toMatchObject({ error: 'forbidden' })
+      const desktopDenied = await signedRpc(local.endpoint, paired, 'desktopSupport/export', {})
+      expect(desktopDenied.status).toBe(403)
+      expect(desktopDenied.json).toMatchObject({ error: 'forbidden' })
       expect(invoke).not.toHaveBeenCalled()
     } finally {
       await local.close()

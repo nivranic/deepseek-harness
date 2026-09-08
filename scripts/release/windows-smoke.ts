@@ -7,6 +7,8 @@ import { _electron as electron } from 'playwright-core'
 import { hashRcOutput } from './rc-output.ts'
 import { withRcCleanup } from './rc-lifecycle.ts'
 import { verifySupportScannerFiles, type SupportScannerIdentity } from './support-scanner.ts'
+import type { ProductIdentity } from './product-identity.ts'
+import { nativeSupportDialog, smokeWindowsSupport } from './windows-support-smoke.ts'
 
 const execute = promisify(execFile)
 
@@ -70,11 +72,14 @@ export async function installWindowsCandidate(installer: string, directory: stri
  * @param directory - fresh test-owned state directory; it must remain separate for each launcher.
  * @param screenshot - destination for the rendered Settings view after interaction succeeds.
  * @param scanner - validated acquisition identity from the unpacked candidate.
+ * @param product - validated release identity of this candidate.
+ * @param supportOutput - output prefix for approved support bytes and scenario screenshots.
  * @param portable - use the NSIS child endpoint adapter and allow time for extraction.
  * @returns the observed startup facts; no model API call or configured credential is required.
  */
 export async function smokeWindowsCandidate(
-  executable: string, directory: string, screenshot: string, scanner: SupportScannerIdentity, portable = false,
+  executable: string, directory: string, screenshot: string, scanner: SupportScannerIdentity,
+  product: ProductIdentity, supportOutput: string, portable = false,
 ): Promise<{
   settingsOpened: true
   providerFormOpened: true
@@ -83,6 +88,8 @@ export async function smokeWindowsCandidate(
   applicationVersion: string
   executableSha256: string
   supportScannerVerified: true
+  support: Awaited<ReturnType<typeof smokeWindowsSupport>>
+  shutdownDialogClosed: true
 }> {
   requireHostedWindows(process.platform, process.env)
   const appData = join(directory, 'roaming'), localData = join(directory, 'local')
@@ -126,7 +133,7 @@ export async function smokeWindowsCandidate(
     console.log('Windows candidate: provider form opened')
     await page.screenshot({ path: screenshot, fullPage: true })
     const observed = await application.evaluate(({ app }) => ({
-      executablePath: process.execPath, applicationVersion: app.getVersion(), appPath: app.getAppPath(),
+      executablePath: process.execPath, applicationVersion: app.getVersion(), appPath: app.getAppPath(), processId: process.pid,
     }))
     const executableHash = await hashRcOutput(observed.executablePath)
     const scannerDirectory = join(observed.appPath, 'resources', 'SupportScanner')
@@ -135,12 +142,19 @@ export async function smokeWindowsCandidate(
       windowsHide: true, timeout: 10_000, env: windowsCandidateEnvironment(process.env),
     })
     if (scannerVersion.stdout.trim() !== scanner.version) throw new Error('Running candidate support scanner version differs')
+    const support = await smokeWindowsSupport(application, page, observed.appPath, scanner, product, directory, supportOutput, environment)
+    await verifySupportScannerFiles(scannerDirectory, scanner, 'win32')
+    // Normal application shutdown must also close the real pending native dialog owned by its hidden child window.
+    await page.locator('[data-support-export]').click()
+    await nativeSupportDialog(observed.processId, 'observe', environment)
     if (pageErrors !== 0) throw new Error(`Windows GUI raised ${pageErrors} uncaught page errors`)
     const exited = waitForRcProcessExit(child, 30_000)
     const [, exitCode] = await Promise.all([application.close(), exited])
     if (exitCode !== 0) throw new Error('Windows GUI did not exit normally with code zero')
+    await nativeSupportDialog(observed.processId, 'absent', environment)
     return { settingsOpened: true as const, providerFormOpened: true as const, pageErrors, exitCode,
-      applicationVersion: observed.applicationVersion, executableSha256: executableHash.sha256, supportScannerVerified: true as const }
+      applicationVersion: observed.applicationVersion, executableSha256: executableHash.sha256, supportScannerVerified: true as const,
+      support, shutdownDialogClosed: true as const }
   }, async () => {
     if (child.exitCode === null && child.signalCode === null && child.pid !== undefined) {
       const exited = waitForRcProcessExit(child, 15_000)

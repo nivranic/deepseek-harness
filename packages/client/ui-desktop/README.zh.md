@@ -38,7 +38,9 @@ Electron 应用壳（[`apps/desktop`](../../../apps/desktop)）在关闭按钮�
 <a id="when-a-row-is-absent"></a>
 ## 行缺席时
 
-命名空间加载中、尚未接受、或未暴露给此客户端时，这些行不渲染——与所有 settings-scope 行相同的降级。只读的设置文档会禁用选项，而不是隐藏整行。
+诊断信息行通过生成式 `desktopSupport` 命名空间请求本地 JSON 导出。操作待完成时禁用重复点击，并显示本地化的已保存、已取消、忙碌或拒绝反馈。[Host 导出器](../../host/electron-ipc/README.zh.md#diagnostics-export)拥有采集、扫描和原生保存；该行不会收到文档内容、目标路径或原始错误。
+
+设置命名空间加载中、尚未接受、或未暴露给此客户端时，依赖该设置的行不渲染。只读的设置文档会禁用这些选项，而不是隐藏整行。无法访问本地导出操作时，诊断操作报告不可用。
 
 <a id="dev-note"></a>
 ## 开发备注
@@ -53,7 +55,7 @@ Electron 应用壳（[`apps/desktop`](../../../apps/desktop)）在关闭按钮�
 <a id="model-experience"></a>
 ## Model Experience
 
-无：本包只贡献窗口 chrome 偏好；这里没有任何东西到达模型请求。
+无：本包贡献桌面设置和本地诊断操作；这里没有任何东西到达模型请求。
 
 #### KV Cache effect
 

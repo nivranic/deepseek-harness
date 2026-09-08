@@ -14,11 +14,21 @@ The desktop carrier for the browser surface: a function plugin (injects `clientM
 ## Table of Contents
 
 - [Summary](#summary)
+- [Diagnostics export](#diagnostics-export)
 - [Model Experience](#model-experience)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
 -----
+
+<a id="diagnostics-export"></a>
+## Diagnostics export
+
+The Windows Settings action saves available diagnostics through the generated `desktopSupport/export` operation and the application's native save dialog. The collector selects application version, build number and channel, process-local Session event counts, and the Link owner's advertised listener/protocol observations. It never serializes Session payloads, device identities, connection addresses or raw error output.
+
+The [native application](../../../apps/desktop/src/support.ts) registers one save callback. The service admits one export at a time; unregistering revokes admission, cancels pending work and waits for it to finish. The [scanner implementation](src/support-export.ts) verifies bundled resources, detects and redacts a synthetic credential, then scans the final immutable JSON through managed subprocess stdin. Only admitted bytes reach the native dialog; saving commits by atomic rename. Cancellation before commit leaves the destination unchanged, while a committed rename reports saved. Scanner and cleanup failures refuse completion without exposing native error text.
+
+The [configuration catalog](../../../docs/config-catalog.md) owns document/report byte limits and scanner/shutdown durations. Export results distinguish saved byte identity, cancellation, a concurrent export and fixed failure categories. The default Link allowlist refuses this local operation. The [support-export decision](../../../.agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.md) owns privacy and lifecycle rationale.
 
 ## Dev Note
 
@@ -41,3 +51,4 @@ None; this package neither assembles nor sends a provider request.
 
 - **The frontend dist must be built** — `require.resolve` of the dist fails loud at activation with a build hint; there is no source-serving fallback.
 - **Streaming responses ride Electron's protocol handler** — the NDJSON Remote-stream bodies stream through the scheme bridge, and a carrier without streaming support would see event streams stall.
+- **Support exports remain partial** — `complete:false` and `uncollected` disclose missing runtime health, connection, effective role, update and native crash producers. Listener state and advertised capabilities do not establish those facts. The Settings export also requires the desktop Gateway and renderer to be available.

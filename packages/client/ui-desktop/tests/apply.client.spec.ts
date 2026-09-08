@@ -14,6 +14,7 @@ import { apply, inject } from '../src/client/index.ts'
 import type {
   CloseActionRowInjected, DeviceNameRowInjected, LaunchAtLoginRowInjected,
   RemoteDevicesRowInjected, RemoteToggleRowInjected,
+  SupportExportRowInjected,
 } from '../src/client/index.ts'
 import { DesktopSettingsSchema, DESKTOP_SETTINGS_NAMESPACE } from '../src/desktop-settings.ts'
 import { REMOTE_SETTINGS_NAMESPACE } from '../src/remote-settings.ts'
@@ -50,6 +51,7 @@ function remoteView(enabled: boolean, revision: number) {
 async function bench() {
   const ctx = new Context()
   const mutate = vi.fn()
+  const exportSupport = vi.fn(async () => ({ ok: true as const, value: { status: 'cancelled' as const } }))
   const link = {
     status: vi.fn((): Promise<
       | { ok: true; value: { listening: boolean; endpoint: string; hostName: string; allowRemoteApproval: boolean; deviceCount: number } }
@@ -89,6 +91,7 @@ async function bench() {
       },
     },
     link,
+    desktopSupport: { export: exportSupport },
   })
   ctx.get('slots')!.register({
     name: 'root',
@@ -96,14 +99,14 @@ async function bench() {
   } as never, () => null)
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   await ctx.plugin({ inject: [...inject], apply }).await()
-  return { ctx, locale, mutate, link }
+  return { ctx, locale, mutate, link, exportSupport }
 }
 
 /** Every row's inject face, as the renderer would materialize them. */
 async function rowFaces() {
-  const { ctx, locale, mutate, link } = await bench()
+  const { ctx, locale, mutate, link, exportSupport } = await bench()
   const entries = (ctx.get('slots')!).entries('settings.general.item')
-  expect(entries).toHaveLength(6)
+  expect(entries).toHaveLength(7)
   const byId = (id: string) => entries.find(candidate => candidate.options.id === id)!
   expect(byId('desktop-close').options.order).toBe(10)
   expect(byId('desktop-launch-at-login').options.order).toBe(11)
@@ -117,10 +120,17 @@ async function rowFaces() {
   const approvalFace = (byId('desktop-remote-approval').inject as unknown as () => RemoteToggleRowInjected)()
   const deviceNameFace = (byId('desktop-remote-device-name').inject as unknown as () => DeviceNameRowInjected)()
   const devicesFace = (byId('desktop-remote-devices').inject as unknown as () => RemoteDevicesRowInjected)()
-  return { ctx, locale, mutate, link, closeFace, launchFace, accessFace, approvalFace, deviceNameFace, devicesFace }
+  const supportFace = (byId('desktop-support-export').inject as unknown as () => SupportExportRowInjected)()
+  return { ctx, locale, mutate, link, exportSupport, supportFace,
+    closeFace, launchFace, accessFace, approvalFace, deviceNameFace, devicesFace }
 }
 
 describe('ui-desktop apply', () => {
+  it('calls the registered desktop Remote from the diagnostics action', async () => {
+    const { supportFace, exportSupport } = await rowFaces()
+    await expect(supportFace.exportSupport()).resolves.toEqual({ status: 'cancelled' })
+    expect(exportSupport).toHaveBeenCalledOnce()
+  })
   it('registers the zh dictionaries under its own namespace', async () => {
     const { locale } = await rowFaces()
     expect(locale.bind('settings.desktop')('title')).toBe('关闭窗口时')

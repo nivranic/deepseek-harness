@@ -36,6 +36,7 @@ import {
   REMOTE_SETTINGS_NAMESPACE, type RemoteSettings,
 } from '../remote-settings.ts'
 import { en, zh } from './locales.ts'
+import { SupportExportRow, type SupportExportRowInjected } from './SupportExportRow.tsx'
 
 export type { CloseActionRowComponentProps, CloseActionRowInjected } from './CloseActionRow.tsx'
 export type { DeviceNameRowComponentProps, DeviceNameRowInjected } from './DeviceNameRow.tsx'
@@ -43,12 +44,13 @@ export type { LaunchAtLoginRowComponentProps, LaunchAtLoginRowInjected } from '.
 export type { LinkAdminApi, RemoteDevicesRowComponentProps, RemoteDevicesRowInjected } from './RemoteDevicesRow.tsx'
 export type { RemoteToggleRowComponentProps, RemoteToggleRowInjected } from './RemoteToggleRow.tsx'
 export type { DesktopSettingsKey } from './locales.ts'
+export type { SupportExportRowProps, SupportExportRowInjected } from './SupportExportRow.tsx'
 
 /** Dictionary namespace owned by this plugin. */
 const NS = 'settings.desktop'
 
 /** Required services (cordis fiber inject). */
-export const inject = ['slots', 'locale', 'settingsScope', 'remote', 'remote.link']
+export const inject = ['slots', 'locale', 'settingsScope', 'remote', 'remote.link', 'remote.desktopSupport']
 
 /**
  * Register the `settings.desktop` dictionaries and the General-section rows.
@@ -56,6 +58,18 @@ export const inject = ['slots', 'locale', 'settingsScope', 'remote', 'remote.lin
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-desktop: dictionaries')
+  ctx.slots.inject('settings.general.item', () => ctx.slots.register({
+    name: 'settings.general.item',
+    id: 'desktop-support-export',
+    order: 20,
+    locale: NS,
+    inject: (): SupportExportRowInjected => ({
+      exportSupport: async () => {
+        const result = await ctx.remote.desktopSupport.export()
+        return result.ok ? result.value : { status: 'failed', reason: 'unavailable' }
+      },
+    }),
+  }, SupportExportRow))
   // The scope derives from the shared describe mirror; each row re-renders on
   // every commit (its own write, an external settings edit, a reconnect).
   const scope = ctx.settingsScope.bind<DesktopSettings>({ namespace: DESKTOP_SETTINGS_NAMESPACE })

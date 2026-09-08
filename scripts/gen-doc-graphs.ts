@@ -670,6 +670,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: "In-process desktop carrier: answers the Electron renderer's privileged-scheme fetches with the shared /api chain, the client plugin bundles, and the boot-manifest-injected dist; binds no socket.",
   },
   {
+    key: 'desktopSupport',
+    pkg: 'host-electron-ipc',
+    title: 'Desktop diagnostics export',
+    mode: 'core',
+    consumers: ['client-ui-desktop'],
+    note: 'Selects local diagnostic fields, scans immutable JSON through managed subprocesses, and delegates native saving to the desktop application; missing producers remain explicit.',
+  },
+  {
     key: 'clientModules',
     pkg: 'client-modules',
     title: 'Client plugin graph host',

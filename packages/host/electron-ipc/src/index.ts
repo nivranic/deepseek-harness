@@ -22,6 +22,12 @@ import type {} from '@deepseek-ai/dsh-api-gateway'
 import { bootInjections } from '@deepseek-ai/dsh-client-modules'
 import { renderIndexInjections } from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@deepseek-ai/dsh-client-connection'
+import { Config, DesktopSupport } from './support.ts'
+
+export { Config, DesktopSupport } from './support.ts'
+export { ApprovedSupportDocument, SupportExportError } from './support-export.ts'
+export type * from './types.ts'
+export type { DesktopSupportHost } from './native.ts'
 
 /** Stable Cordis plugin name. */
 export const name = 'electron-ipc'
@@ -239,8 +245,10 @@ async function serveStatic(
  * Remote-stream carrier, the client-plugin combo bundles, and the
  * boot-manifest-injected dist.
  * @param ctx - plugin context carrying clientModules, connection, and typertGateway.
+ * @param config - validated support-export limits, resolved at plugin activation.
  */
-export function apply(ctx: Context): void {
+export function apply(ctx: Context, config: Config = Config.parse({})): void {
+  ctx.plugin(DesktopSupport, config)
   const distIndex = internals.resolveDistIndex()
   const distRoot = dirname(distIndex)
   const renderIndex = async (): Promise<string> =>

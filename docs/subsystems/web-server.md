@@ -6,6 +6,12 @@ English | [中文](web-server.zh.md)
 
 Source: [`packages/host/webserver/src/index.ts`](../../packages/host/webserver/src/index.ts)
 
+## Desktop support types
+
+[`DesktopSupportResult`](../../packages/host/electron-ipc/src/types.ts) is a closed result union: `saved` carries the exact UTF-8 byte count, SHA-256 and `complete:false`; `cancelled` and `busy` carry only their status; `failed` carries a fixed `DesktopSupportFailure` category. No variant contains document contents or a destination path. `DesktopSupportCounts` contains saturating unsigned 32-bit `turnsStarted`, `turnsEnded`, `toolCalls` and `toolResults` counters since plugin start, without Session ids or event payloads.
+
+[`DesktopSupportHost`](../../packages/host/electron-ipc/src/native.ts) supplies the bundled scanner directory, a bounded staged-product metadata reader and a cancellable native save callback. The callback accepts only an immutable `ApprovedSupportDocument`; its `save` operation commits by atomic rename. Callback registration has one live owner and returns an asynchronous disposer that revokes admission, aborts and joins outstanding work. The [package reference](../../packages/host/electron-ipc/README.md#diagnostics-export) owns collection and failure behavior.
+
 ## Routes
 
 ```ts type-equiv
@@ -76,6 +82,35 @@ handle(request: Request): Promise<Response>
 ```
 
 Source: [`packages/host/electron-ipc/src/index.ts`](../../packages/host/electron-ipc/src/index.ts)
+
+<a id="ctxdesktopsupport--desktopsupport"></a>
+
+### `ctx.desktopSupport` — `DesktopSupport`
+
+One local export at a time; unloading revokes native callbacks, aborts and joins the active operation.
+
+```ts cordis-catalog
+/**
+ * Read process-local counters without exposing retained Session objects or sequence cursors.
+ * @returns a value copy of the diagnostic counters since this plugin started.
+ */
+diagnosticCounts(): DesktopSupportCounts
+
+/**
+ * Register the application's sole native exporter with the service's lifecycle.
+ * @param host - native callbacks; a second live registration is rejected.
+ * @returns disposer that revokes new requests, aborts and joins any active export.
+ */
+registerHost(host: DesktopSupportHost): () => Promise<void>
+
+/**
+ * Export the application's current safe projection to a user-selected local file.
+ * @returns saved-byte identity, cancellation, busy state, or a fixed refusal without paths or raw errors.
+ */
+@Remote('export') exportSupport(): Promise<DesktopSupportResult>
+```
+
+Source: [`packages/host/electron-ipc/src/support.ts`](../../packages/host/electron-ipc/src/support.ts)
 
 <a id="ctxwebserver--webserver"></a>
 

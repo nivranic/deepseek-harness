@@ -77,7 +77,8 @@ jobs:
       - name: Support scanner resource regressions
         run: |
           python -B -m unittest discover -s scripts/release -p test_support_scanner.py -v
-          pnpm exec vitest run scripts/release/support-scanner.spec.ts scripts/desktop-packaging.spec.ts
+          python -B -m unittest discover -s scripts/release -p test_windows_support_exports.py -v
+          pnpm exec vitest run scripts/release/support-scanner.spec.ts scripts/desktop-packaging.spec.ts scripts/windows-candidate.spec.ts
       - name: Build official application
         run: pnpm run build:official
       - name: Package unsigned Windows candidates

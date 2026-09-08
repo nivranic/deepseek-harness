@@ -72,6 +72,13 @@ describe('Windows candidate production requirements', () => {
     for (const key of Object.keys(environment)) expect(() =>{  requireHostedWindows('win32', { ...environment, [key]: 'wrong' }) }).toThrow('disposable')
   })
 
+  it.skipIf(process.platform !== 'win32')('refuses native support dialog interaction before loading UIAutomation on a persistent host', async () => {
+    await expect(promisify(execFile)('pwsh', ['-NoProfile', '-File', 'scripts/release/windows-support-dialog.ps1',
+      '-CandidateProcessId', String(process.pid), '-Action', 'observe'], {
+      cwd: repository, windowsHide: true, env: { ...process.env, GITHUB_ACTIONS: 'false' },
+    })).rejects.toMatchObject({ code: 1, stderr: expect.stringContaining('requires a disposable GitHub-hosted Windows runner') as unknown })
+  })
+
   it('retains new evidence without overwriting earlier files', async () => {
     const root = mkdtempSync(join(tmpdir(), 'dsh-rc-output-'))
     roots.push(root)
