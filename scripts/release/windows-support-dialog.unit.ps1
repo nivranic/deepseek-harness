@@ -11,7 +11,7 @@ $nativeDefinitions = @($ast.FindAll({ param($node) $node -is [System.Management.
 if ($nativeDefinitions.Count -ne 1) { throw 'Expected one native diagnostic declaration' }
 Add-Type -TypeDefinition $nativeDefinitions[0].Value
 $phaseClock = [System.Diagnostics.Stopwatch]::StartNew()
-foreach ($name in @('Write-SupportPhase', 'Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic')) {
+foreach ($name in @('Write-SupportPhase', 'Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic', 'ConvertTo-SupportValueDiagnostic')) {
     $definitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name }, $false))
     if ($definitions.Count -ne 1) { throw 'Expected one owned helper definition' }
     . ([scriptblock]::Create($definitions[0].Extent.Text))
@@ -50,7 +50,7 @@ if (($rows.id -join ',') -cne '1001,1148,FileNameControlHost,<other>,<other>,<ot
 $json = ConvertTo-Json -InputObject @($rows) -Compress
 if ($json.Contains('private') -or $json.Contains('canary')) { throw 'Private control identifier leaked' }
 foreach ($row in $rows) {
-    if (($row.Keys | Sort-Object) -join ',' -cne 'captionRole,controlTypeId,defaultFilenameMatch,enabled,id,idPresent,invokePattern,kind,namePresent,native,normalizedCaptionRole,offscreen,valuePattern') { throw 'Unexpected diagnostic field' }
+    if (($row.Keys | Sort-Object) -join ',' -cne 'captionRole,controlTypeId,defaultFilenameMatch,enabled,id,idPresent,invokePattern,kind,namePresent,native,normalizedCaptionRole,offscreen,valueObservation,valuePattern') { throw 'Unexpected diagnostic field' }
     if ($row.kind -cne 'edit') { throw 'Control type projection differs' }
 }
 $missingHandle = Get-SupportNativeControlDiagnostic -WindowHandle 0 -DialogHandle 0
@@ -83,4 +83,16 @@ try {
 } catch {
     if ($_.Exception.Message -cne 'Candidate has multiple matching native support controls') { throw }
 }
-@{ status = 'PASS'; scenarios = 9; desktopLaunched = $false } | ConvertTo-Json -Compress
+$values = @($null, 123, '', 'fixture.json', 'fixture', 'C:\private-canary\fixture.json', 'private-value-canary')
+$expectedStates = @('null', 'non-string', 'empty', 'expected', 'expected-stem', 'expected-leaf', 'other')
+for ($index = 0; $index -lt $values.Count; $index++) {
+    $row = ConvertTo-SupportValueDiagnostic -Availability $true -Value $values[$index] -ReadOnly $false -Expected 'fixture.json'
+    if ($row.state -cne $expectedStates[$index] -or $row.readOnly -cne $false -or -not $row.availabilityIsBoolean -or $row.patternIsValuePattern) { throw 'Value metadata projection differs' }
+    if (($row.Keys | Sort-Object) -join ',' -cne 'availabilityIsBoolean,patternIsValuePattern,readOnly,state') { throw 'Unexpected value diagnostic field' }
+    if (($row | ConvertTo-Json -Compress).Contains('canary')) { throw 'Private native value leaked' }
+}
+$row = ConvertTo-SupportValueDiagnostic -Availability 'private-canary' -Pattern ([object]::new()) -ReadOnly 'private-canary'
+if ($row.availabilityIsBoolean -or $row.patternIsValuePattern -or $null -ne $row.readOnly) { throw 'Unknown pattern metadata became authoritative' }
+$row = ConvertTo-SupportValueDiagnostic -Availability $true -ReadOnly $true
+if ($row.readOnly -cne $true) { throw 'Read-only metadata was lost' }
+@{ status = 'PASS'; scenarios = 10; desktopLaunched = $false } | ConvertTo-Json -Compress

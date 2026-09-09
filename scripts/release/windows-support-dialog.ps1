@@ -108,7 +108,7 @@ function Get-SupportNativeControlDiagnostic {
     return $record
 }
 function ConvertTo-SupportControlDiagnostic {
-    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern, [string]$Name, [hashtable]$Native, [Nullable[bool]]$DefaultFilenameMatch)
+    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern, [string]$Name, [hashtable]$Native, [Nullable[bool]]$DefaultFilenameMatch, [hashtable]$ValueObservation)
     $id = if ($AutomationId -cmatch '\A[0-9]{1,5}\z' -or $AutomationId -cin @('FileNameControlHost', 'FileNameTextBox')) { $AutomationId } else { '<other>' }
     $kind = switch ($ControlType) { 50000 { 'button' } 50003 { 'combo-box' } 50004 { 'edit' } default { 'other' } }
     $typeId = if ($ControlType -ge 50000 -and $ControlType -le 50040) { $ControlType } else { 0 }
@@ -118,7 +118,23 @@ function ConvertTo-SupportControlDiagnostic {
         if (Test-SupportControlCaption -Role $role -Name $Name) { $captionRole = $role }
         if (Test-SupportControlCaption -Role $role -Name $Name.Trim().Replace('&', '')) { $normalizedCaptionRole = $role }
     }
-    return @{ id = $id; idPresent = -not [string]::IsNullOrEmpty($AutomationId); kind = $kind; controlTypeId = $typeId; defaultFilenameMatch = $DefaultFilenameMatch; captionRole = $captionRole; normalizedCaptionRole = $normalizedCaptionRole; namePresent = -not [string]::IsNullOrEmpty($Name); native = $Native; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
+    return @{ id = $id; idPresent = -not [string]::IsNullOrEmpty($AutomationId); kind = $kind; controlTypeId = $typeId; defaultFilenameMatch = $DefaultFilenameMatch; valueObservation = $ValueObservation; captionRole = $captionRole; normalizedCaptionRole = $normalizedCaptionRole; namePresent = -not [string]::IsNullOrEmpty($Name); native = $Native; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
+}
+function ConvertTo-SupportValueDiagnostic {
+    param([object]$Availability, [object]$Pattern, [object]$Value, [object]$ReadOnly, [string]$Expected)
+    $state = if ($null -eq $Value) { 'null' }
+        elseif ($Value -isnot [string]) { 'non-string' }
+        elseif ($Value.Length -eq 0) { 'empty' }
+        elseif ($Value -ceq $Expected) { 'expected' }
+        elseif ($Value -ceq [IO.Path]::GetFileNameWithoutExtension($Expected)) { 'expected-stem' }
+        elseif ([IO.Path]::GetFileName($Value) -ceq $Expected) { 'expected-leaf' }
+        else { 'other' }
+    return @{
+        availabilityIsBoolean = $Availability -is [bool]
+        patternIsValuePattern = $Pattern -is [System.Windows.Automation.ValuePattern]
+        readOnly = if ($ReadOnly -is [bool]) { $ReadOnly } else { $null }
+        state = $state
+    }
 }
 function Write-SupportControlDiagnostic {
     try {
@@ -132,16 +148,19 @@ function Write-SupportControlDiagnostic {
             $control = $controls[$index]
             $current = $control.Current
             $native = Get-SupportNativeControlDiagnostic -WindowHandle $current.NativeWindowHandle -DialogHandle $script:dialogHandle
-            $valueAvailable = $control.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty) -eq $true
+            $availability = $control.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty)
+            $valueAvailable = $availability -eq $true
             $defaultMatch = $null
+            $valueObservation = $null
             if ($valueAvailable) {
-                $value = [System.Windows.Automation.ValuePattern]$control.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+                $value = $control.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
                 $defaultMatch = $value.Current.Value -ceq $ExpectedFileName
+                $valueObservation = ConvertTo-SupportValueDiagnostic -Availability $availability -Pattern $value -Value $value.Current.Value -ReadOnly $value.Current.IsReadOnly -Expected $ExpectedFileName
             }
             $rows += ConvertTo-SupportControlDiagnostic -AutomationId $current.AutomationId -ControlType $current.ControlType.Id -Name $current.Name `
                 -Enabled $current.IsEnabled -Offscreen $current.IsOffscreen `
                 -Native $native `
-                -ValuePattern $valueAvailable -DefaultFilenameMatch $defaultMatch `
+                -ValuePattern $valueAvailable -DefaultFilenameMatch $defaultMatch -ValueObservation $valueObservation `
                 -InvokePattern ($control.GetCurrentPropertyValue($element::IsInvokePatternAvailableProperty) -eq $true)
         }
         $record = @{ schemaVersion = 1; scope = 'candidate-support-controls'; truncated = $controls.Count -gt 64; controls = $rows }
