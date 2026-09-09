@@ -697,6 +697,8 @@ jobs:
       - name: Check reachable scanner dependency vulnerabilities
         working-directory: native/support-scanner
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+      - name: Verify mobile scanner packaging rejection paths
+        run: python3 -B -m unittest discover -s scripts/release -p 'test_mobile_scanner_*.py' -v
       - name: Reject Go security findings
         if: always()
         env:

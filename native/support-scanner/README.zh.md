@@ -16,6 +16,7 @@ kind: "package-library"
 - [使用库](#use-the-library)
 - [理解实现](#understand-the-implementation)
 - [验证](#verification)
+- [构建 Android 资源](#build-android-resources)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 
 <a id="use-the-library"></a>
@@ -48,6 +49,23 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 ```
 
 [CI 工作流](../../.github/workflows/ci.yml)要求扫描器竞争检测、Go CodeQL 分析和可达依赖漏洞检查。未解决的 CodeQL 发现和不完整的提取均由共享[安全证据验证器](../../scripts/release/security_evidence.py)拒绝验收。Govulncheck 拒绝从本库可达的脆弱调用；模块级提示本身不证明调用路径。安全修复后的依赖要求模块使用 Go 1.26 或更高版本。
+
+<a id="build-android-resources"></a>
+## 构建 Android 资源
+
+[Python 构建入口](../../scripts/build-mobile-support-scanner.py)使用 [build.json](build.json) 中的工具版本生成 AAR 和 `scanner.json`。在仓库根目录使用 Python 3.10 或更高版本运行。源码提交必须包含与正在运行的构建器完全相同的文件；已编辑或未提交的构建器不能为旧提交生成资源。
+
+| 参数 | 必需输入 |
+|---|---|
+| `--source-sha` | 完整小写 Git commit SHA |
+| `--go` | 固定 Go 可执行文件的绝对路径 |
+| `--android-sdk`、`--android-ndk`、`--java-home` | 已安装的 SDK、固定 NDK 和 Java 17 目录 |
+| `--cache` | 私有 Go 模块与编译缓存目录 |
+| `--work-dir`、`--output` | 新建且相互分离的工作与产物目录；产物目录不能包含缓存 |
+
+构建将已提交的扫描器文件读入带版本的本地模块代理，并将下载后的源码字节与 Git 比较。外部模块继续由 Go 校验和数据库验证。两个 JNI 库保留模块版本与校验和，排除从构建目录推断的 VCS 标识，并通过 ELF 架构和 16 KiB 对齐检查。R8 保留规则保护生成的 Java 入口。AAR 的 `assets/dsh-support-scanner/` 包含源码与模块清单、模块许可证、Go 许可证及 NDK 声明；归档顺序和时间戳统一规范化。
+
+[移动扫描器工作流](../../.github/workflows/mobile-support-scanner.yml)在 Linux 上构建这些资源。其 `BUILT` 回执证明静态打包检查通过。原生执行、应用接入和实际 16 KiB 设备验收仍是独立要求。
 
 ## Model Experience
 

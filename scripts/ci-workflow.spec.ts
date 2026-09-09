@@ -47,7 +47,36 @@ describe('CI workflow', () => {
     const vulnerabilities = steps.find(step => step.name === 'Check reachable scanner dependency vulnerabilities')
     expect(vulnerabilities?.['working-directory']).toBe('native/support-scanner')
     expect(vulnerabilities?.run).toBe('go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...')
+    expect(steps.find(step => step.name === 'Verify mobile scanner packaging rejection paths')?.run)
+      .toContain("unittest discover -s scripts/release -p 'test_mobile_scanner_*.py'")
     expect(workflowJob(workflow, 'all-checks-passed').needs).toContain('support-scanner')
+  })
+
+  it('builds the mobile scanner from its exact candidate and preserves verified resources', () => {
+    const workflow = loadWorkflow('.github/workflows/mobile-support-scanner.yml')
+    const job = workflowJob(workflow, 'android')
+    expect(workflow.permissions).toEqual({ contents: 'read' })
+    expect(job['runs-on']).toBe('ubuntu-24.04')
+    if (!Array.isArray(job.steps)) throw new Error('mobile scanner packaging steps are absent')
+    const steps = job.steps.filter(isRecord)
+    expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
+    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))).toMatchObject({
+      with: { ref: '${{ env.DSH_SCANNER_SOURCE }}', 'persist-credentials': false },
+    })
+    const policy: unknown = JSON.parse(readFileSync(resolve(root, 'native/support-scanner/build.json'), 'utf8'))
+    if (!isRecord(policy)) throw new Error('mobile scanner build policy is absent')
+    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/setup-go@'))).toMatchObject({
+      with: { 'go-version': policy.goVersion },
+    })
+    const build = steps.findIndex(step => step.name === 'Build and verify the scanner AAR')
+    expect(build).toBeGreaterThan(0)
+    expect(steps[build]?.run).toContain('scripts/build-mobile-support-scanner.py')
+    expect(steps[build]?.run).toContain('--source-sha "$DSH_SCANNER_SOURCE"')
+    expect(steps[build + 1]).toMatchObject({
+      name: 'Preserve verified scanner resources',
+      with: { path: '${{ runner.temp }}/mobile-scanner-artifact/', 'if-no-files-found': 'error' },
+    })
+    expect(steps[build + 1]?.if).toBeUndefined()
   })
 
   it.each([

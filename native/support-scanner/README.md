@@ -16,6 +16,7 @@ Callers can scan one bounded diagnostic document entirely in memory and retrieve
 - [Use the library](#use-the-library)
 - [Understand the implementation](#understand-the-implementation)
 - [Verification](#verification)
+- [Build Android resources](#build-android-resources)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 
 <a id="use-the-library"></a>
@@ -48,6 +49,23 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 ```
 
 The [CI workflow](../../.github/workflows/ci.yml) requires scanner race tests, Go CodeQL analysis and reachable-dependency vulnerability checks. Unresolved CodeQL findings and incomplete extraction refuse acceptance through the shared [security evidence validator](../../scripts/release/security_evidence.py). Govulncheck rejects vulnerable calls reachable from this library; module-only notices do not establish a call path. The module requires Go 1.26 or later for its security-fixed dependencies.
+
+<a id="build-android-resources"></a>
+## Build Android resources
+
+The [Python build entrypoint](../../scripts/build-mobile-support-scanner.py) produces an AAR and `scanner.json` using the tool versions in [build.json](build.json). Run it with Python 3.10 or later from the repository root. The source commit must contain the exact running builder files; edited or uncommitted builders cannot produce resources for an older commit.
+
+| Argument | Required input |
+|---|---|
+| `--source-sha` | Full lowercase Git commit SHA |
+| `--go` | Absolute path to the pinned Go executable |
+| `--android-sdk`, `--android-ndk`, `--java-home` | Installed SDK, pinned NDK and Java 17 directories |
+| `--cache` | Private Go module and compilation cache directory |
+| `--work-dir`, `--output` | New, separate work and artifact directories; the artifact directory cannot contain the cache |
+
+The build reads committed scanner files into a versioned local module proxy and checks downloaded source bytes against Git. External modules retain Go checksum-database verification. Both JNI libraries retain module versions and checksums, omit inferred build-directory VCS identity, and pass ELF architecture and 16 KiB alignment checks. R8 keep rules preserve the generated Java entrypoints. The AAR contains the source/module manifest, module licenses, Go license and NDK notices under `assets/dsh-support-scanner/`; archive ordering and timestamps are canonicalized.
+
+The [mobile scanner workflow](../../.github/workflows/mobile-support-scanner.yml) builds these resources on Linux. Its `BUILT` receipt establishes static packaging checks. Native execution, application integration and actual 16 KiB-device acceptance remain separate requirements.
 
 ## Model Experience
 
