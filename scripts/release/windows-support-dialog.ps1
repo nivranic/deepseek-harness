@@ -86,10 +86,15 @@ function Test-SupportControlCaption {
         'cancel' { return @('Cancel', '取消') -ccontains $Name }
     }
 }
+function Test-SupportDefaultFilename {
+    param([string]$Value, [string]$Expected)
+    $stem = [IO.Path]::GetFileNameWithoutExtension($Expected)
+    return $Value -ceq $Expected -or ($stem.Length -gt 0 -and $stem -cne $Expected -and $Value -ceq $stem)
+}
 function Find-SupportFilename {
     param([string]$Expected, [object[]]$Controls)
     $selected = @($Controls | Where-Object {
-        $_.Visible -and $_.Enabled -and -not $_.ReadOnly -and $_.Value -ceq $Expected
+        $_.Visible -and $_.Enabled -and -not $_.ReadOnly -and (Test-SupportDefaultFilename -Value $_.Value -Expected $Expected)
     })
     if ($selected.Count -gt 1) { throw 'Candidate has multiple matching native support controls' }
     if ($selected.Count -eq 1) { return $selected[0] }
@@ -272,7 +277,9 @@ if ($Action -eq 'save') {
     if ($filenameOwner -ne $CandidateProcessId -or -not [DshSupportDialogNative]::IsChild($script:dialogHandle, $filename.Window)) {
         throw 'Candidate native filename ownership changed before writing'
     }
-    if ((Read-SupportNativeText -Window $filename.Window) -cne $ExpectedFileName) { throw 'Candidate native filename changed before writing' }
+    if (-not (Test-SupportDefaultFilename -Value (Read-SupportNativeText -Window $filename.Window) -Expected $ExpectedFileName)) {
+        throw 'Candidate native filename changed before writing'
+    }
     Write-SupportPhase -Phase 'write-value'
     [UIntPtr]$writeResult = [UIntPtr]::Zero
     $written = [DshSupportDialogNative]::WriteWindowText($filename.Window, 0x000C, [UIntPtr]::Zero, $Destination, 0x0002, (Get-SupportRemainingWait), [ref]$writeResult)

@@ -11,7 +11,7 @@ $nativeDefinitions = @($ast.FindAll({ param($node) $node -is [System.Management.
 if ($nativeDefinitions.Count -ne 1) { throw 'Expected one native diagnostic declaration' }
 Add-Type -TypeDefinition $nativeDefinitions[0].Value
 $phaseClock = [System.Diagnostics.Stopwatch]::StartNew()
-foreach ($name in @('Write-SupportPhase', 'Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportRemainingWait', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic', 'ConvertTo-SupportValueDiagnostic')) {
+foreach ($name in @('Write-SupportPhase', 'Wait-SupportElement', 'Test-SupportControlCaption', 'Test-SupportDefaultFilename', 'Find-SupportFilename', 'Get-SupportRemainingWait', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic', 'ConvertTo-SupportValueDiagnostic')) {
     $definitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name }, $false))
     if ($definitions.Count -ne 1) { throw 'Expected one owned helper definition' }
     . ([scriptblock]::Create($definitions[0].Extent.Text))
@@ -73,14 +73,18 @@ $controls = @((New-FixtureEdit -Value 'Search'), (New-FixtureEdit -Value 'fixtur
     (New-FixtureEdit -Value 'fixture.json' -Visible $false), (New-FixtureEdit -Value 'fixture.json' -Enabled $false))
 $selected = Find-SupportFilename -Expected 'fixture.json' -Controls $controls
 if (-not [object]::ReferenceEquals($selected, $controls[1])) { throw 'An unrelated or unavailable edit control was selected' }
-$controls += New-FixtureEdit -Value 'fixture.json'
+$controls += New-FixtureEdit -Value 'fixture'
 try {
     $null = Find-SupportFilename -Expected 'fixture.json' -Controls $controls
     throw 'Ambiguous control selection was accepted'
 } catch {
     if ($_.Exception.Message -cne 'Candidate has multiple matching native support controls') { throw }
 }
-$absent = Find-SupportFilename -Expected 'fixture.json' -Controls @((New-FixtureEdit -Value 'fixture'), (New-FixtureEdit -Value ''), (New-FixtureEdit -Value 'C:\private\fixture.json'))
+$stemControl = New-FixtureEdit -Value 'fixture'
+$selected = Find-SupportFilename -Expected 'fixture.json' -Controls @($stemControl)
+if (-not [object]::ReferenceEquals($selected, $stemControl)) { throw 'The extension-hidden default filename was refused' }
+if (Test-SupportDefaultFilename -Value '' -Expected '.json') { throw 'An empty filename became a valid default' }
+$absent = Find-SupportFilename -Expected 'fixture.json' -Controls @((New-FixtureEdit -Value 'fixture.txt'), (New-FixtureEdit -Value 'FIXTURE'), (New-FixtureEdit -Value ''), (New-FixtureEdit -Value 'C:\private\fixture.json'))
 if ($null -ne $absent) { throw 'An inexact native filename was selected' }
 $clock = [Diagnostics.Stopwatch]::StartNew()
 $TimeoutMilliseconds = 2000
