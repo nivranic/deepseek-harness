@@ -98,25 +98,23 @@ function Get-SupportNativeControlDiagnostic {
     return $record
 }
 function ConvertTo-SupportControlDiagnostic {
-    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern, [string]$Name, [hashtable]$Native)
+    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern, [string]$Name, [hashtable]$Native, [Nullable[bool]]$DefaultFilenameMatch)
     $id = if ($AutomationId -cmatch '\A[0-9]{1,5}\z' -or $AutomationId -cin @('FileNameControlHost', 'FileNameTextBox')) { $AutomationId } else { '<other>' }
     $kind = switch ($ControlType) { 50000 { 'button' } 50003 { 'combo-box' } 50004 { 'edit' } default { 'other' } }
+    $typeId = if ($ControlType -ge 50000 -and $ControlType -le 50040) { $ControlType } else { 0 }
     $captionRole = 'other'
     $normalizedCaptionRole = 'other'
     foreach ($role in @('filename', 'save', 'cancel')) {
         if (Test-SupportControlCaption -Role $role -Name $Name) { $captionRole = $role }
         if (Test-SupportControlCaption -Role $role -Name $Name.Trim().Replace('&', '')) { $normalizedCaptionRole = $role }
     }
-    return @{ id = $id; idPresent = -not [string]::IsNullOrEmpty($AutomationId); kind = $kind; captionRole = $captionRole; normalizedCaptionRole = $normalizedCaptionRole; namePresent = -not [string]::IsNullOrEmpty($Name); native = $Native; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
+    return @{ id = $id; idPresent = -not [string]::IsNullOrEmpty($AutomationId); kind = $kind; controlTypeId = $typeId; defaultFilenameMatch = $DefaultFilenameMatch; captionRole = $captionRole; normalizedCaptionRole = $normalizedCaptionRole; namePresent = -not [string]::IsNullOrEmpty($Name); native = $Native; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
 }
 function Write-SupportControlDiagnostic {
     try {
         $interactive = [System.Windows.Automation.OrCondition]::new(
-            [System.Windows.Automation.OrCondition]::new(
-                [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit),
-                [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::ComboBox)
-            ),
-            [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)
+            [System.Windows.Automation.PropertyCondition]::new($element::IsValuePatternAvailableProperty, $true),
+            [System.Windows.Automation.PropertyCondition]::new($element::IsInvokePatternAvailableProperty, $true)
         )
         $controls = $nativeDialog.FindAll($scope::Descendants, $interactive)
         $rows = @()
@@ -124,10 +122,16 @@ function Write-SupportControlDiagnostic {
             $control = $controls[$index]
             $current = $control.Current
             $native = Get-SupportNativeControlDiagnostic -WindowHandle $current.NativeWindowHandle -DialogHandle $script:dialogHandle
+            $valueAvailable = $control.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty) -eq $true
+            $defaultMatch = $null
+            if ($valueAvailable) {
+                $value = [System.Windows.Automation.ValuePattern]$control.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+                $defaultMatch = $value.Current.Value -ceq $ExpectedFileName
+            }
             $rows += ConvertTo-SupportControlDiagnostic -AutomationId $current.AutomationId -ControlType $current.ControlType.Id -Name $current.Name `
                 -Enabled $current.IsEnabled -Offscreen $current.IsOffscreen `
                 -Native $native `
-                -ValuePattern ($control.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty) -eq $true) `
+                -ValuePattern $valueAvailable -DefaultFilenameMatch $defaultMatch `
                 -InvokePattern ($control.GetCurrentPropertyValue($element::IsInvokePatternAvailableProperty) -eq $true)
         }
         $record = @{ schemaVersion = 1; scope = 'candidate-support-controls'; truncated = $controls.Count -gt 64; controls = $rows }
@@ -162,10 +166,7 @@ if ($Action -eq 'save') {
         throw 'Saving requires the known default filename without a directory'
     }
     $filenameCondition = [System.Windows.Automation.AndCondition]::new(
-        [System.Windows.Automation.AndCondition]::new(
-            [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit),
-            [System.Windows.Automation.PropertyCondition]::new($element::IsOffscreenProperty, $false)
-        ),
+        [System.Windows.Automation.PropertyCondition]::new($element::IsOffscreenProperty, $false),
         [System.Windows.Automation.AndCondition]::new(
             [System.Windows.Automation.PropertyCondition]::new($element::IsEnabledProperty, $true),
             [System.Windows.Automation.PropertyCondition]::new($element::IsValuePatternAvailableProperty, $true)
@@ -174,7 +175,7 @@ if ($Action -eq 'save') {
     try {
         $filename = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
             -Probe { Find-SupportFilename -Expected $ExpectedFileName -Condition $filenameCondition } `
-            -Failure 'Candidate save dialog has no ready native filename edit control'
+            -Failure 'Candidate save dialog has no ready writable filename value'
     } catch {
         Write-SupportControlDiagnostic
         throw

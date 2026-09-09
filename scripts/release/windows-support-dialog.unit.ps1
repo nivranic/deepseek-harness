@@ -49,7 +49,7 @@ if (($rows.id -join ',') -cne '1001,1148,FileNameControlHost,<other>,<other>,<ot
 $json = ConvertTo-Json -InputObject @($rows) -Compress
 if ($json.Contains('private') -or $json.Contains('canary')) { throw 'Private control identifier leaked' }
 foreach ($row in $rows) {
-    if (($row.Keys | Sort-Object) -join ',' -cne 'captionRole,enabled,id,idPresent,invokePattern,kind,namePresent,native,normalizedCaptionRole,offscreen,valuePattern') { throw 'Unexpected diagnostic field' }
+    if (($row.Keys | Sort-Object) -join ',' -cne 'captionRole,controlTypeId,defaultFilenameMatch,enabled,id,idPresent,invokePattern,kind,namePresent,native,normalizedCaptionRole,offscreen,valuePattern') { throw 'Unexpected diagnostic field' }
     if ($row.kind -cne 'edit') { throw 'Control type projection differs' }
 }
 $missingHandle = Get-SupportNativeControlDiagnostic -WindowHandle 0 -DialogHandle 0
