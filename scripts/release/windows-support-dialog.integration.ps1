@@ -70,6 +70,22 @@ try {
         $process = Start-DialogTestProcess -Arguments @('-NoProfile', '-STA', '-File', $PSCommandPath, '-Fixture', '-FixtureRoot', $root)
         $stdout = $process.StandardOutput.ReadToEndAsync()
         $stderr = $process.StandardError.ReadToEndAsync()
+        if ($action -ceq 'save') {
+            foreach ($probe in @('observe', 'absent')) {
+                $target = if ($probe -ceq 'observe') { $process.Id } else { $PID }
+                $budget = if ($probe -ceq 'observe') { 30000 } else { 300 }
+                $driver = Start-DialogTestProcess -Arguments @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'windows-support-dialog.ps1'),
+                    '-CandidateProcessId', [string]$target, '-Action', $probe, '-TimeoutMilliseconds', [string]$budget)
+                $driverOutput = $driver.StandardOutput.ReadToEndAsync()
+                $driverError = $driver.StandardError.ReadToEndAsync()
+                if (-not $driver.WaitForExit(40000) -or $driver.ExitCode -ne 0) { throw 'Native dialog process isolation regression failed' }
+                $observed = $driverOutput.GetAwaiter().GetResult() | ConvertFrom-Json
+                if ($observed.action -cne $probe -or $observed.dialogObserved -ne ($probe -ceq 'observe') -or $observed.dialogClosed -ne ($probe -ceq 'absent')) { throw 'Another process acquired the native dialog' }
+                if ($process.HasExited) { throw 'Process isolation probe closed the native dialog' }
+                $driver.Dispose()
+                $driver = $null
+            }
+        }
         $arguments = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'windows-support-dialog.ps1'), '-CandidateProcessId', [string]$process.Id, '-Action', $action)
         if ($action -ceq 'save') { $arguments += @('-Destination', (Join-Path $root 'saved.json'), '-ExpectedFileName', 'fixture.json') }
         $driver = Start-DialogTestProcess -Arguments $arguments
@@ -119,4 +135,4 @@ try {
     }
 }
 if ($failures.Count -ne 0) { throw [AggregateException]::new('Native save dialog regression or cleanup failed', $failures) }
-@{ status = 'PASS'; scenarios = 2; fixture = 'Windows common save dialog' } | ConvertTo-Json -Compress
+@{ status = 'PASS'; scenarios = 3; fixture = 'Windows common save dialog' } | ConvertTo-Json -Compress

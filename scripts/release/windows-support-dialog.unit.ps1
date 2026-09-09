@@ -11,7 +11,7 @@ $nativeDefinitions = @($ast.FindAll({ param($node) $node -is [System.Management.
 if ($nativeDefinitions.Count -ne 1) { throw 'Expected one native diagnostic declaration' }
 Add-Type -TypeDefinition $nativeDefinitions[0].Value
 $phaseClock = [System.Diagnostics.Stopwatch]::StartNew()
-foreach ($name in @('Write-SupportPhase', 'Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic', 'ConvertTo-SupportValueDiagnostic')) {
+foreach ($name in @('Write-SupportPhase', 'Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportRemainingWait', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic', 'ConvertTo-SupportValueDiagnostic')) {
     $definitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name }, $false))
     if ($definitions.Count -ne 1) { throw 'Expected one owned helper definition' }
     . ([scriptblock]::Create($definitions[0].Extent.Text))
@@ -65,23 +65,33 @@ foreach ($name in @('Address', 'Search', 'File name: private-value-canary', 'Fil
     $row = ConvertTo-SupportControlDiagnostic -AutomationId '' -ControlType 50004 -Enabled $true -Offscreen $false -ValuePattern $true -InvokePattern $false -Name $name
     if ($row.captionRole -cne 'other' -or ($row | ConvertTo-Json -Compress).Contains($name)) { throw 'Native caption leaked' }
 }
-$scope = [System.Windows.Automation.TreeScope]
 function New-FixtureEdit {
-    param([string]$Value, [bool]$ReadOnly = $false)
-    $control = [pscustomobject]@{ Pattern = [pscustomobject]@{ Current = @{ Value = $Value; IsReadOnly = $ReadOnly } } }
-    $control | Add-Member -MemberType ScriptMethod -Name GetCurrentPattern -Value { param($Pattern) return $this.Pattern }
-    return $control
+    param([string]$Value, [bool]$ReadOnly = $false, [bool]$Visible = $true, [bool]$Enabled = $true)
+    return [pscustomobject]@{ Value = $Value; ReadOnly = $ReadOnly; Visible = $Visible; Enabled = $Enabled }
 }
-$nativeDialog = [pscustomobject]@{ Nodes = @((New-FixtureEdit -Value 'Search'), (New-FixtureEdit -Value 'fixture.json'), (New-FixtureEdit -Value 'fixture.json' -ReadOnly $true)) }
-$nativeDialog | Add-Member -MemberType ScriptMethod -Name FindAll -Value { param($SearchScope, $Condition) return $this.Nodes }
-$selected = Find-SupportFilename -Expected 'fixture.json' -Condition ([System.Windows.Automation.Condition]::TrueCondition)
-if (-not [object]::ReferenceEquals($selected, $nativeDialog.Nodes[1])) { throw 'The unrelated edit control was selected' }
-$nativeDialog.Nodes += New-FixtureEdit -Value 'fixture.json'
+$controls = @((New-FixtureEdit -Value 'Search'), (New-FixtureEdit -Value 'fixture.json'), (New-FixtureEdit -Value 'fixture.json' -ReadOnly $true),
+    (New-FixtureEdit -Value 'fixture.json' -Visible $false), (New-FixtureEdit -Value 'fixture.json' -Enabled $false))
+$selected = Find-SupportFilename -Expected 'fixture.json' -Controls $controls
+if (-not [object]::ReferenceEquals($selected, $controls[1])) { throw 'An unrelated or unavailable edit control was selected' }
+$controls += New-FixtureEdit -Value 'fixture.json'
 try {
-    $null = Find-SupportFilename -Expected 'fixture.json' -Condition ([System.Windows.Automation.Condition]::TrueCondition)
+    $null = Find-SupportFilename -Expected 'fixture.json' -Controls $controls
     throw 'Ambiguous control selection was accepted'
 } catch {
     if ($_.Exception.Message -cne 'Candidate has multiple matching native support controls') { throw }
+}
+$absent = Find-SupportFilename -Expected 'fixture.json' -Controls @((New-FixtureEdit -Value 'fixture'), (New-FixtureEdit -Value ''), (New-FixtureEdit -Value 'C:\private\fixture.json'))
+if ($null -ne $absent) { throw 'An inexact native filename was selected' }
+$clock = [Diagnostics.Stopwatch]::StartNew()
+$TimeoutMilliseconds = 2000
+if ((Get-SupportRemainingWait) -gt 2000) { throw 'Native command extended the deadline' }
+$TimeoutMilliseconds = 1
+Start-Sleep -Milliseconds 10
+try {
+    $null = Get-SupportRemainingWait
+    throw 'Native command admitted an exhausted deadline'
+} catch {
+    if ($_.Exception.Message -cne 'Candidate support dialog command exhausted its deadline') { throw }
 }
 $values = @($null, 123, '', 'fixture.json', 'fixture', 'C:\private-canary\fixture.json', 'private-value-canary')
 $expectedStates = @('null', 'non-string', 'empty', 'expected', 'expected-stem', 'expected-leaf', 'other')
@@ -95,4 +105,4 @@ $row = ConvertTo-SupportValueDiagnostic -Availability 'private-canary' -Pattern 
 if ($row.availabilityIsBoolean -or $row.patternIsValuePattern -or $null -ne $row.readOnly) { throw 'Unknown pattern metadata became authoritative' }
 $row = ConvertTo-SupportValueDiagnostic -Availability $true -ReadOnly $true
 if ($row.readOnly -cne $true) { throw 'Read-only metadata was lost' }
-@{ status = 'PASS'; scenarios = 10; desktopLaunched = $false } | ConvertTo-Json -Compress
+@{ status = 'PASS'; scenarios = 12; desktopLaunched = $false } | ConvertTo-Json -Compress

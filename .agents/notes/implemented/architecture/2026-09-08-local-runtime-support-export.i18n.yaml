@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.md
-2026-09-08-local-runtime-support-export.md: 77835fab470912cddf2313a85558263694aed619
-2026-09-08-local-runtime-support-export.zh.md: 99633d05b430e05a25814c7ea3dbf50857316e19
+2026-09-08-local-runtime-support-export.md: 1196de8bd73d9c06ab65ab2fe05db23dce57c448
+2026-09-08-local-runtime-support-export.zh.md: b634a3f96035ec8ab21b5e38bd2305b15b07ceee
