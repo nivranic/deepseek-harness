@@ -44,7 +44,7 @@ NSIS 不转发 Electron 子进程的 stderr，而 Playwright 从该流获取调�
 
 对于两种启动器，驱动通过运行中应用的 `app.getAppPath()` 定位扫描器资源，将三个文件与解包候选的回执比较，并执行已安装扫描器的版本查询。平台回执将该扫描器标识保留为带哈希的附件。
 
-[支持导出场景](../../scripts/release/windows-support-smoke.ts)打开 General 设置，通过 [Win32 驱动](../../scripts/release/windows-support-dialog.ps1)操作真实原生文件名控件和通用对话框 Save/Cancel 命令。它将保存字节与 Gateway 结果比较，要求取消时保留既有文件，并拒绝扫描器资源缺失、多余扫描器元数据，以及嵌入其余字段合法的产品元数据中的合成凭据。每次临时修改候选资源后均恢复原件。另一个原生对话框待完成时关闭应用，必须关闭该对话框并正常退出。
+[支持导出场景](../../scripts/release/windows-support-smoke.ts)打开 General 设置，通过 [Win32 驱动](../../scripts/release/windows-support-dialog.ps1)操作真实原生文件名控件和通用对话框 Save/Cancel 命令。它将保存字节与 Gateway 结果比较，要求取消时保留既有文件，并拒绝扫描器资源缺失、多余扫描器元数据，以及嵌入其余字段合法的产品元数据中的合成凭据。扫描器缺失场景使用位于运行应用同一卷上的[私有同级目录](../../scripts/release/windows-support-resources.ts)，不改变被验证的扫描器文件清单。恢复完成后才进入下一场景；恢复失败会保留移出的副本，直到应用资源被清理，并使运行失败。其他临时元数据修改在 `finally` 中恢复。另一个原生对话框待完成时关闭应用，必须关闭该对话框并正常退出。
 
 [独立验证器](../../scripts/release/windows_support_exports.py)拒绝未知或矛盾字段，要求新启动应用的 Session 计数为零且 Link 观测为 stopped，并重扫准确的已保存字节。只有通过验证的文档才复制到候选证据。已保存、已取消和拒绝的 Settings 反馈由所有者本地期望文件固定，每个场景保留截图。诊断明确不完整：尚缺运行时健康、连接、有效角色、更新和原生崩溃，仍在 `uncollected` 中列出并标记 `complete:false`。
 
@@ -56,7 +56,7 @@ NSIS 不转发 Electron 子进程的 stderr，而 Playwright 从该流获取调�
 
 生产者记录安装、Inspector、窗口和表单阶段。主操作与清理失败同时保留，包括 Electron 驱动返回进程句柄之前的失败。目录删除在有限时间内重试 Windows 临时文件锁，清理仍未完成时继续报错；重试不构成启动验收。
 
-验收失败后，独立的[只读诊断](../../scripts/release/read-windows-installer-crash.ps1)查询此前 45 分钟内最多 100 条 Application Error 事件。它匹配传入的绝对路径或文件查询返回的完整路径，保留 Windows 展开 8.3 名称时的匹配。工作流为迟到事件提供 10 秒诊断等待；查询不可用时立即结束。脚本的 `WaitMilliseconds` 接受 0 到 30000，默认只立即查询一次。它记录查询次数、经过的毫秒数、安装器哈希、字节数和选定的崩溃字段，不输出完整事件消息或路径。空结果或事件日志不可用不能解释崩溃，也不改变作业失败状态；已验证产物仍只在验收成功后上传。仅失败时上传的 artifact 以 `windows-installer-failure-` 为名称前缀，包含候选 SHA、run ID 和 attempt，保留实际安装器及该诊断 JSON 七天；其中没有平台验收回执。
+验收失败后，独立的[只读诊断](../../scripts/release/read-windows-installer-crash.ps1)查询此前 45 分钟内最多 100 条 Application Error 事件。它匹配传入的绝对路径或文件查询返回的完整路径，保留 Windows 展开 8.3 名称时的匹配。工作流为迟到事件提供 10 秒诊断等待；查询不可用时立即结束。脚本的 `WaitMilliseconds` 接受 0 到 30000，默认只立即查询一次。它记录查询次数、经过的毫秒数、安装器哈希、字节数和选定的崩溃字段，不输出完整事件消息或路径。空结果或事件日志不可用不能解释崩溃，也不改变作业失败状态；已验证产物仍只在验收成功后上传。仅失败时上传的 artifact 以 `windows-installer-failure-` 为名称前缀，包含候选 SHA、run ID 和 attempt，保留实际安装器及该诊断 JSON 七天；它也保留失败前已经通过验证的支持导出 JSON 和 Settings 截图，不包含平台验收回执。
 
 -----
 
@@ -74,7 +74,7 @@ npm 审计遍历实际打包应用目录，遇到不可读目录或链接就失�
 <a id="limitations"></a>
 ## 限制
 
-失败 artifact 也保留与版本关联的[产品诊断记录](product-diagnostics.zh.md)，其中的采集状态与安装验收分别记录。
+生成成功时，失败 artifact 也保留与版本关联的[产品诊断记录](product-diagnostics.zh.md)，其中的采集状态与安装验收分别记录。
 
 合成回归测试不证明安装器或 GUI 成功；只有真实候选 workflow 才能提供此类证据。npm 比较证明相对于已交付 manifest 的覆盖，不证明缺少 manifest 的打包代码依赖或缺失的许可证元数据。此 workflow 检查全新安装和无密钥 GUI 配置，不验证升级、回滚、模型执行、生产签名或商店分发。未签名 provenance 不认证构建者，单个 Windows 回执也不构成完整四平台 RC。
 

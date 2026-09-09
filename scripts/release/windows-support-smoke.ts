@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
-import { readFile, readdir, rename, writeFile } from 'node:fs/promises'
+import { readFile, readdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 import type { ElectronApplication, Page } from 'playwright-core'
@@ -10,6 +10,7 @@ import type { DesktopSupportResult } from '@deepseek-ai/dsh-host-electron-ipc/ty
 import type { ProductIdentity } from './product-identity.ts'
 import { hashRcOutput } from './rc-output.ts'
 import type { SupportScannerIdentity } from './support-scanner.ts'
+import { withMissingSupportScanner } from './windows-support-resources.ts'
 
 const execute = promisify(execFile)
 const endpoint = '/api/desktopSupport/export'
@@ -116,12 +117,10 @@ export async function smokeWindowsSupport(
   assert.deepEqual(cancelled, { status: 'cancelled' })
   const feedback = { saved: savedFeedback, cancelled: await page.locator('[data-support-result]').innerText(), rejected: '' }
   await page.screenshot({ path: `${output}-cancelled.png`, fullPage: true })
-  const binary = join(scannerDirectory, 'gitleaks.exe'), withheld = join(directory, 'withheld-gitleaks.exe')
-  await rename(binary, withheld)
-  try {
+  await withMissingSupportScanner(scannerDirectory, async () => {
     assert.deepEqual(await exportFromSettings(page), { status: 'failed', reason: 'invalid-scanner' })
     await native('absent')
-  } finally { await rename(withheld, binary) }
+  })
   const scannerManifest = join(scannerDirectory, 'scanner.json')
   const originalScanner = await readFile(scannerManifest)
   try {

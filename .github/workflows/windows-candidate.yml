@@ -78,7 +78,7 @@ jobs:
         run: |
           python -B -m unittest discover -s scripts/release -p test_support_scanner.py -v
           python -B -m unittest discover -s scripts/release -p test_windows_support_exports.py -v
-          pnpm exec vitest run scripts/release/support-scanner.spec.ts scripts/desktop-packaging.spec.ts scripts/windows-candidate.spec.ts
+          pnpm exec vitest run scripts/release/support-scanner.spec.ts scripts/release/windows-support-resources.spec.ts scripts/desktop-packaging.spec.ts scripts/windows-candidate.spec.ts
       - name: Native save dialog driver regression
         run: ./scripts/release/windows-support-dialog.integration.ps1
       - name: Build official application
@@ -107,6 +107,16 @@ jobs:
             ${{ runner.temp }}/windows-rc/windows/installer.exe
             ${{ runner.temp }}/windows-rc/installer-crash.json
             ${{ runner.temp }}/windows-rc/product-diagnostics.json
+            ${{ runner.temp }}/windows-rc/windows/installed.png
+            ${{ runner.temp }}/windows-rc/windows/portable.png
+            ${{ runner.temp }}/windows-rc/windows/installed-support.json
+            ${{ runner.temp }}/windows-rc/windows/portable-support.json
+            ${{ runner.temp }}/windows-rc/windows/installed-support-saved.png
+            ${{ runner.temp }}/windows-rc/windows/installed-support-cancelled.png
+            ${{ runner.temp }}/windows-rc/windows/installed-support-rejected.png
+            ${{ runner.temp }}/windows-rc/windows/portable-support-saved.png
+            ${{ runner.temp }}/windows-rc/windows/portable-support-cancelled.png
+            ${{ runner.temp }}/windows-rc/windows/portable-support-rejected.png
           if-no-files-found: error
           retention-days: 7
           compression-level: 0

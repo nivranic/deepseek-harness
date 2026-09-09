@@ -162,7 +162,12 @@ describe('Windows candidate production requirements', () => {
     expect(failedInputs?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
     expect(failedInputs?.with).toMatchObject({
       name: 'windows-installer-failure-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}',
-      path: '${{ runner.temp }}/windows-rc/windows/installer.exe\n${{ runner.temp }}/windows-rc/installer-crash.json\n${{ runner.temp }}/windows-rc/product-diagnostics.json\n',
+      path: [
+        'windows/installer.exe', 'installer-crash.json', 'product-diagnostics.json',
+        'windows/installed.png', 'windows/portable.png', 'windows/installed-support.json', 'windows/portable-support.json',
+        'windows/installed-support-saved.png', 'windows/installed-support-cancelled.png', 'windows/installed-support-rejected.png',
+        'windows/portable-support-saved.png', 'windows/portable-support-cancelled.png', 'windows/portable-support-rejected.png',
+      ].map(path => '${{ runner.temp }}/windows-rc/' + path + '\n').join(''),
       'if-no-files-found': 'error', 'retention-days': 7, 'compression-level': 0,
     })
     expect(upload).toBeGreaterThan(produce)
