@@ -31,6 +31,24 @@ class SecurityEvidence(unittest.TestCase):
         self.assertEqual(result["findingCount"], 0)
         self.assertEqual(result["reports"][0]["version"], "2.23.9")
 
+    def test_go_reports_keep_findings_and_refuse_incomplete_extraction(self):
+        run = self.document["runs"][0]
+        run["tool"]["driver"]["rules"] = [{"id": "go/log-injection"}]
+        run["results"] = [{"ruleId": "go/log-injection", "message": {"text": "private diagnostic"},
+                           "locations": [{"physicalLocation": {"artifactLocation": {"uri": "native/support-scanner/scanner.go"},
+                                                                  "region": {"startLine": 1}}}]}]
+        self.write(self.document)
+        result = review_findings(sast(self.root, "go", self.root), [], self.root, "1" * 40)
+        self.assertEqual(result["unreviewedFindings"], 1)
+        self.assertNotIn("private", json.dumps(result))
+        run["invocations"][0]["toolExecutionNotifications"] = [{"level": "warning", "descriptor": {"id": "go/extraction-warning"}}]
+        self.write(self.document)
+        self.assertFalse(sast(self.root, "go", self.root)["analysisComplete"])
+        run["invocations"][0]["executionSuccessful"] = False
+        self.write(self.document)
+        with self.assertRaisesRegex(ValueError, "not successful"):
+            sast(self.root, "go", self.root)
+
     def test_preserves_suppressed_findings_without_source_or_messages(self):
         result = {"ruleId": "py/code-injection", "message": {"text": "private source"}, "suppressions": [{"kind": "inSource"}],
                   "locations": [{"physicalLocation": {"artifactLocation": {"uri": "scripts/source.py"}, "region": {"startLine": 3, "snippet": {"text": "private payload"}}}}]}
@@ -122,6 +140,16 @@ def review_fixture():
 
 
 class SastReviewParsing(unittest.TestCase):
+    def test_go_review_requires_materials_covering_its_source(self):
+        registry = review_fixture()
+        review = registry["reviews"][0]
+        review.update(language="go", rule="go/log-injection", path="native/support-scanner/scanner.go",
+                      materials={"native/support-scanner/scanner.go": {"kind": "blob", "oid": "a" * 40}})
+        self.assertEqual(parse_reviews(registry)[0]["language"], "go")
+        review["materials"] = {"native/unrelated.go": {"kind": "blob", "oid": "a" * 40}}
+        with self.assertRaisesRegex(ReviewError, "does not cover"):
+            parse_reviews(registry)
+
     def test_requires_exact_schema(self):
         for value in ([], {}, {"schemaVersion": True, "reviews": []}, {"schemaVersion": 2, "reviews": []},
                       {"schemaVersion": 1, "reviews": {}}, {**review_fixture(), "allowAll": True}):

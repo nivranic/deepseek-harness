@@ -50,6 +50,8 @@ Win32 控件 ID 与 UIAutomation ID 是不同的观测。查找失败诊断仅�
 
 ## Consequences
 
+[移动扫描库](../../../../native/support-scanner/README.zh.md)使用相同的固定上游规则，在内存中执行 canary 与文档准入。独立解析器排除环境配置；隔离 Go 运行时在检测前禁用扫描器日志。Gitleaks 可能在取消后返回部分发现，因此操作在准入字节前检查 context 完成状态，并在取消返回前等待扫描结束。结果访问器复制私有已准入字节。必需的 Go CI 作业运行竞争检测，并为 Go CodeQL 编译库和测试。原生绑定、打包与移动导出操作仍需各自的平台验收。
+
 Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、连接、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者、移动端离线扫描仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
 
 [源码扫描决策](../process/2026-09-05-candidate-security-scans.zh.md)继续拥有固定获取与源码例外；这些例外不能放行支持导出中的发现项。[产物完整性决策](../process/2026-09-06-candidate-artifact-integrity.zh.md)继续拥有完整 RC 准入。helper 突然终止、detached 工具进程组和 PTY 所有权不属于本导出的清理保证，仍会阻止 Full Host no-orphan 准入。

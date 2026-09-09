@@ -657,6 +657,55 @@ jobs:
         shell: pwsh
         run: pnpm run check:ci:windows-observational
 
+  support-scanner:
+    name: mobile support scanner / Go tests and CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      GOFLAGS: -mod=readonly
+      DSH_SECURITY_CANDIDATE: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_SECURITY_CANDIDATE }}
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: native/support-scanner/go.sum
+      - uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          languages: go
+          build-mode: manual
+          queries: security-extended
+      - name: Verify modules and scanner concurrency
+        working-directory: native/support-scanner
+        run: |
+          go mod verify
+          go test -race -count=1 -timeout=60s ./...
+          go vet ./...
+      - uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        id: analyze
+        with:
+          upload: never
+          upload-database: false
+          output: ${{ runner.temp }}/go-sarif
+          category: /language:go
+      - name: Reject Go security findings
+        if: always()
+        env:
+          DSH_CODEQL_OUTCOME: ${{ steps.analyze.outcome }}
+        run: python3 -B scripts/security-evidence.py sast --language go --sarif "$RUNNER_TEMP/go-sarif" --output "$RUNNER_TEMP/security-go/sast.json"
+      - name: Preserve payload-free Go SAST evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: security-codeql-go-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/security-go/sast.json
+          if-no-files-found: error
+
   # Single stable required check for branch protection: require "all checks
   # passed" instead of enumerating matrix legs whose names change as lanes and
   # node versions evolve. Every blocking job in THIS workflow must be listed in
@@ -681,7 +730,7 @@ jobs:
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}
-    needs: [node-24, node-24-coverage, node-24-consumers, node-compat, python-sdk, python-runtime, windows, windows-build, windows-native-tests]
+    needs: [node-24, node-24-coverage, node-24-consumers, node-compat, python-sdk, python-runtime, windows, windows-build, windows-native-tests, support-scanner]
     if: always() && github.event_name == 'pull_request'
     steps:
       - name: Fail if any needed job did not succeed

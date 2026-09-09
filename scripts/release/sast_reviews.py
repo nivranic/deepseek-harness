@@ -30,7 +30,7 @@ def parse_reviews(value: object) -> list[dict]:
     for review in value["reviews"]:
         if not isinstance(review, dict) or set(review) != {"language", "rule", "path", "line", "reason", "materials"}:
             raise ReviewError("invalid SAST review fields")
-        if review["language"] not in ("javascript-typescript", "python", "java-kotlin", "swift") or not isinstance(review["rule"], str) or not re.fullmatch(r"[a-zA-Z0-9/_.-]+", review["rule"]):
+        if review["language"] not in ("javascript-typescript", "python", "java-kotlin", "swift", "go") or not isinstance(review["rule"], str) or not re.fullmatch(r"[a-zA-Z0-9/_.-]+", review["rule"]):
             raise ReviewError("invalid SAST review language or rule")
         path = _path(review["path"])
         if type(review["line"]) is not int or review["line"] < 1 or not isinstance(review["reason"], str) or not review["reason"].strip():

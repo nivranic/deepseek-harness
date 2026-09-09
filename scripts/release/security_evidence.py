@@ -12,7 +12,7 @@ from .secret_scan import git, sha, source_path
 from .sast_reviews import ReviewError, parse_reviews, review_findings
 
 
-LANGUAGES = {"javascript-typescript", "python", "java-kotlin", "swift"}
+LANGUAGES = {"javascript-typescript", "python", "java-kotlin", "swift", "go"}
 
 
 class EvidenceError(ValueError):

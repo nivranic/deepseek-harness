@@ -4,7 +4,7 @@ English | [中文](security-scanning.zh.md)
 
 ## Summary
 
-The [supply-chain workflow](../../.github/workflows/supply-chain.yml) scans the immutable PR head with read-only permissions. Secret detection, dependency review, and four CodeQL language jobs must all succeed. Unreviewed findings or incomplete scans block its aggregate verdict.
+The [supply-chain workflow](../../.github/workflows/supply-chain.yml) scans the immutable PR head with read-only permissions. Secret detection, dependency review, and four application-language CodeQL jobs must all succeed. The required Go scanner job in [CI](../../.github/workflows/ci.yml) adds Go analysis on the same immutable candidate. Unreviewed findings or incomplete scans block the respective verdicts.
 
 ## Table of Contents
 
@@ -33,7 +33,7 @@ The [exceptions](../../.github/security/secret-exceptions.json) match exact path
 
 Dependency review compares the explicit base and candidate using GitHub's dependency graph. Vulnerabilities at every severity in runtime, development, or unknown scopes fail. License approval is outside this check. Missing outputs or unavailable account features produce no acceptance; a successful empty diff is valid. The job does not post PR comments.
 
-CodeQL runs `security-extended` queries for JavaScript/TypeScript, Python, Java/Kotlin, and Swift. Kotlin compilation includes the core and Android app. Swift compilation includes SwiftPM and all three Apple app schemes. These jobs do not establish native C/C++ or Rust analysis. Build or extraction failure blocks the language job.
+CodeQL runs `security-extended` queries for JavaScript/TypeScript, Python, Java/Kotlin, Swift, and the Go support scanner. Kotlin compilation includes the core and Android app. Swift compilation includes SwiftPM and all three Apple app schemes. The Go CI job compiles the scanner and its tests with a read-only module graph before analysis. These jobs do not establish native C/C++ or Rust analysis. Build or extraction failure blocks the language job.
 
 [security-evidence.py](../../scripts/security-evidence.py) requires a successful analyzer outcome and SARIF with tool identity, a non-empty rule set across the driver and extensions, successful invocations, and explicit results. Every finding remains visible, including suppressed findings. Warning/error analysis notifications fail while preserving diagnostic IDs and findings together. Java extraction diagnostics may include a category and an existing repository path recognized from CodeQL's fixed message templates; arbitrary messages remain private. Source-bearing SARIF and CodeQL databases are not uploaded. Rejected rule metadata records only structural counts for diagnosis.
 

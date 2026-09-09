@@ -17,6 +17,36 @@ const sensitiveProjectionSentinel = 'dsh-link-private-projection-7f3c9b1e'
 const processInspector = createProcessInspector()
 
 describe('CI workflow', () => {
+  it('requires scanner race tests and CodeQL on the immutable candidate', () => {
+    const workflow = loadWorkflow('.github/workflows/ci.yml')
+    const job = workflowJob(workflow, 'support-scanner')
+    expect(job).toMatchObject({ 'runs-on': 'ubuntu-latest', env: { GOFLAGS: '-mod=readonly' } })
+    expect(job.permissions).toEqual({ contents: 'read' })
+    expect(job['continue-on-error']).not.toBe(true)
+    expect(job.if).toBeUndefined()
+    if (!Array.isArray(job.steps)) throw new Error('scanner steps are absent')
+    const steps = job.steps.filter(isRecord)
+    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))).toMatchObject({
+      with: { ref: '${{ env.DSH_SECURITY_CANDIDATE }}', 'persist-credentials': false },
+    })
+    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('github/codeql-action/init@'))).toMatchObject({
+      with: { languages: 'go', 'build-mode': 'manual', queries: 'security-extended' },
+    })
+    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('github/codeql-action/analyze@'))).toMatchObject({
+      with: { upload: 'never', 'upload-database': false },
+    })
+    const security = steps.find(step => step.name === 'Reject Go security findings')
+    expect(security).toMatchObject({
+      if: 'always()', env: { DSH_CODEQL_OUTCOME: '${{ steps.analyze.outcome }}' },
+    })
+    expect(security?.run).toContain('scripts/security-evidence.py sast --language go')
+    expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
+    const verification = steps.find(step => step.name === 'Verify modules and scanner concurrency')
+    expect(verification?.['working-directory']).toBe('native/support-scanner')
+    expect(verification?.run).toContain('go mod verify\ngo test -race -count=1 -timeout=60s ./...\ngo vet ./...')
+    expect(workflowJob(workflow, 'all-checks-passed').needs).toContain('support-scanner')
+  })
+
   it.each([
     ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
   ])('preserves the actual checkout before validation in %s', (file, jobId) => {
