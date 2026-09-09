@@ -10,7 +10,7 @@ Add-Type -AssemblyName UIAutomationTypes
 $nativeDefinitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $node.Value.Contains('public static class DshSupportDialogNative') }, $false))
 if ($nativeDefinitions.Count -ne 1) { throw 'Expected one native diagnostic declaration' }
 Add-Type -TypeDefinition $nativeDefinitions[0].Value
-foreach ($name in @('Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportControl', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic')) {
+foreach ($name in @('Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic')) {
     $definitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name }, $false))
     if ($definitions.Count -ne 1) { throw 'Expected one owned helper definition' }
     . ([scriptblock]::Create($definitions[0].Extent.Text))
@@ -65,13 +65,19 @@ foreach ($name in @('Address', 'Search', 'File name: private-value-canary', 'Fil
     if ($row.captionRole -cne 'other' -or ($row | ConvertTo-Json -Compress).Contains($name)) { throw 'Native caption leaked' }
 }
 $scope = [System.Windows.Automation.TreeScope]
-$nativeDialog = [pscustomobject]@{ Nodes = @([pscustomobject]@{ Current = @{ Name = 'Search' } }, [pscustomobject]@{ Current = @{ Name = 'File name:' } }) }
+function New-FixtureEdit {
+    param([string]$Value, [bool]$ReadOnly = $false)
+    $control = [pscustomobject]@{ Pattern = [pscustomobject]@{ Current = @{ Value = $Value; IsReadOnly = $ReadOnly } } }
+    $control | Add-Member -MemberType ScriptMethod -Name GetCurrentPattern -Value { param($Pattern) return $this.Pattern }
+    return $control
+}
+$nativeDialog = [pscustomobject]@{ Nodes = @((New-FixtureEdit -Value 'Search'), (New-FixtureEdit -Value 'fixture.json'), (New-FixtureEdit -Value 'fixture.json' -ReadOnly $true)) }
 $nativeDialog | Add-Member -MemberType ScriptMethod -Name FindAll -Value { param($SearchScope, $Condition) return $this.Nodes }
-$selected = Find-SupportControl -Role 'filename' -Condition ([System.Windows.Automation.Condition]::TrueCondition)
+$selected = Find-SupportFilename -Expected 'fixture.json' -Condition ([System.Windows.Automation.Condition]::TrueCondition)
 if (-not [object]::ReferenceEquals($selected, $nativeDialog.Nodes[1])) { throw 'The unrelated edit control was selected' }
-$nativeDialog.Nodes += [pscustomobject]@{ Current = @{ Name = 'File name:' } }
+$nativeDialog.Nodes += New-FixtureEdit -Value 'fixture.json'
 try {
-    $null = Find-SupportControl -Role 'filename' -Condition ([System.Windows.Automation.Condition]::TrueCondition)
+    $null = Find-SupportFilename -Expected 'fixture.json' -Condition ([System.Windows.Automation.Condition]::TrueCondition)
     throw 'Ambiguous control selection was accepted'
 } catch {
     if ($_.Exception.Message -cne 'Candidate has multiple matching native support controls') { throw }

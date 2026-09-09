@@ -6,6 +6,7 @@ param(
     [Parameter(Mandatory)][ValidateRange(1, 2147483647)][int]$CandidateProcessId,
     [Parameter(Mandatory)][ValidateSet('save', 'cancel', 'observe', 'absent')][string]$Action,
     [string]$Destination,
+    [string]$ExpectedFileName = 'deepseek-harness-diagnostics.json',
     [ValidateRange(100, 60000)][int]$TimeoutMilliseconds = 30000
 )
 $ErrorActionPreference = 'Stop'
@@ -23,19 +24,33 @@ public static class DshSupportDialogNative {
     [DllImport("user32.dll")] public static extern IntPtr GetParent(IntPtr window);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool IsChild(IntPtr parent, IntPtr window);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetClassName(IntPtr window, StringBuilder name, int count);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowEx(IntPtr parent, IntPtr after, string className, string title);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+    [DllImport("user32.dll", SetLastError = true)] public static extern IntPtr SendMessageTimeout(IntPtr window, uint message, UIntPtr parameter, IntPtr data, uint flags, uint milliseconds, out UIntPtr result);
 }
 '@
 $scope = [System.Windows.Automation.TreeScope]
 $element = [System.Windows.Automation.AutomationElement]
-$condition = [System.Windows.Automation.AndCondition]::new(
-    [System.Windows.Automation.PropertyCondition]::new($element::ProcessIdProperty, $CandidateProcessId),
-    [System.Windows.Automation.PropertyCondition]::new($element::ClassNameProperty, '#32770')
-)
+$script:dialogHandle = [IntPtr]::Zero
 function Find-SupportDialog {
-    $matches = $element::RootElement.FindAll($scope::Children, $condition)
-    $selected = @($matches | Where-Object { $_.Current.Name -ceq 'Export diagnostics' -or $_.Current.Name -ceq '导出诊断信息' })
+    $selected = @()
+    foreach ($title in @('Export diagnostics', '导出诊断信息')) {
+        $previous = [IntPtr]::Zero
+        while ($true) {
+            $window = [DshSupportDialogNative]::FindWindowEx([IntPtr]::Zero, $previous, '#32770', $title)
+            if ($window -eq [IntPtr]::Zero) { break }
+            $previous = $window
+            [uint32]$owner = 0
+            $null = [DshSupportDialogNative]::GetWindowThreadProcessId($window, [ref]$owner)
+            if ($owner -eq $CandidateProcessId) { $selected += $window }
+        }
+    }
     if ($selected.Count -gt 1) { throw 'Candidate has multiple support save dialogs' }
-    if ($selected.Count -eq 1) { return $selected[0] }
+    $script:dialogHandle = [IntPtr]::Zero
+    if ($selected.Count -eq 1) {
+        $script:dialogHandle = $selected[0]
+        return $element::FromHandle($script:dialogHandle)
+    }
     return $null
 }
 function Wait-SupportElement {
@@ -55,20 +70,23 @@ function Test-SupportControlCaption {
         'cancel' { return @('Cancel', '取消') -ccontains $Name }
     }
 }
-function Find-SupportControl {
-    param([string]$Role, [System.Windows.Automation.Condition]$Condition)
+function Find-SupportFilename {
+    param([string]$Expected, [System.Windows.Automation.Condition]$Condition)
     $controls = $nativeDialog.FindAll($scope::Descendants, $Condition)
-    $selected = @($controls | Where-Object { Test-SupportControlCaption -Role $Role -Name $_.Current.Name })
+    $selected = @($controls | Where-Object {
+        $pattern = $_.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+        -not $pattern.Current.IsReadOnly -and $pattern.Current.Value -ceq $Expected
+    })
     if ($selected.Count -gt 1) { throw 'Candidate has multiple matching native support controls' }
     if ($selected.Count -eq 1) { return $selected[0] }
     return $null
 }
 function Get-SupportNativeControlDiagnostic {
-    param([int]$WindowHandle, [int]$DialogHandle)
+    param([int]$WindowHandle, [IntPtr]$DialogHandle)
     $record = @{ handlePresent = $WindowHandle -ne 0; dialogDescendant = $false; id = -1; parentId = -1; kind = 'other' }
-    if ($WindowHandle -eq 0 -or $DialogHandle -eq 0) { return $record }
+    if ($WindowHandle -eq 0 -or $DialogHandle -eq [IntPtr]::Zero) { return $record }
     $window = [IntPtr]::new($WindowHandle)
-    $record.dialogDescendant = [DshSupportDialogNative]::IsChild([IntPtr]::new($DialogHandle), $window)
+    $record.dialogDescendant = [DshSupportDialogNative]::IsChild($DialogHandle, $window)
     if (-not $record.dialogDescendant) { return $record }
     $record.id = [DshSupportDialogNative]::GetDlgCtrlID($window)
     $record.parentId = [DshSupportDialogNative]::GetDlgCtrlID([DshSupportDialogNative]::GetParent($window))
@@ -105,7 +123,7 @@ function Write-SupportControlDiagnostic {
         for ($index = 0; $index -lt [Math]::Min($controls.Count, 64); $index++) {
             $control = $controls[$index]
             $current = $control.Current
-            $native = Get-SupportNativeControlDiagnostic -WindowHandle $current.NativeWindowHandle -DialogHandle $nativeDialog.Current.NativeWindowHandle
+            $native = Get-SupportNativeControlDiagnostic -WindowHandle $current.NativeWindowHandle -DialogHandle $script:dialogHandle
             $rows += ConvertTo-SupportControlDiagnostic -AutomationId $current.AutomationId -ControlType $current.ControlType.Id -Name $current.Name `
                 -Enabled $current.IsEnabled -Offscreen $current.IsOffscreen `
                 -Native $native `
@@ -140,6 +158,9 @@ if ($Action -eq 'save') {
     if ([string]::IsNullOrEmpty($Destination) -or -not [System.IO.Path]::IsPathFullyQualified($Destination)) {
         throw 'Saving requires an absolute test-owned destination'
     }
+    if ([string]::IsNullOrEmpty($ExpectedFileName) -or [IO.Path]::GetFileName($ExpectedFileName) -cne $ExpectedFileName) {
+        throw 'Saving requires the known default filename without a directory'
+    }
     $filenameCondition = [System.Windows.Automation.AndCondition]::new(
         [System.Windows.Automation.AndCondition]::new(
             [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit),
@@ -152,7 +173,7 @@ if ($Action -eq 'save') {
     )
     try {
         $filename = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
-            -Probe { Find-SupportControl -Role 'filename' -Condition $filenameCondition } `
+            -Probe { Find-SupportFilename -Expected $ExpectedFileName -Condition $filenameCondition } `
             -Failure 'Candidate save dialog has no ready native filename edit control'
     } catch {
         Write-SupportControlDiagnostic
@@ -162,26 +183,16 @@ if ($Action -eq 'save') {
     $value.SetValue($Destination)
     if ($value.Current.Value -cne $Destination) { throw 'Native filename control did not accept the destination' }
 }
-$buttonCondition = [System.Windows.Automation.AndCondition]::new(
-    [System.Windows.Automation.AndCondition]::new(
-        [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button),
-        [System.Windows.Automation.PropertyCondition]::new($element::IsOffscreenProperty, $false)
-    ),
-    [System.Windows.Automation.AndCondition]::new(
-        [System.Windows.Automation.PropertyCondition]::new($element::IsEnabledProperty, $true),
-        [System.Windows.Automation.PropertyCondition]::new($element::IsInvokePatternAvailableProperty, $true)
-    )
-)
-try {
-    $button = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
-        -Probe { Find-SupportControl -Role $Action -Condition $buttonCondition } `
-        -Failure 'Candidate save dialog has no ready requested native button'
-} catch {
-    Write-SupportControlDiagnostic
-    throw
-}
-$invoke = [System.Windows.Automation.InvokePattern]$button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-$invoke.Invoke()
+$remaining = $TimeoutMilliseconds - $clock.ElapsedMilliseconds
+if ($remaining -le 0) { throw 'Candidate support dialog command exhausted its deadline' }
+[uint32]$owner = 0
+$null = [DshSupportDialogNative]::GetWindowThreadProcessId($script:dialogHandle, [ref]$owner)
+if ($owner -ne $CandidateProcessId) { throw 'Candidate support dialog owner changed before the native command' }
+$command = if ($Action -ceq 'save') { 1 } else { 2 }
+[UIntPtr]$messageResult = [UIntPtr]::Zero
+# WM_COMMAND routes IDOK/IDCANCEL through the common dialog's own validation and result handling.
+$sent = [DshSupportDialogNative]::SendMessageTimeout($script:dialogHandle, 0x0111, [UIntPtr]::new([uint32]$command), [IntPtr]::Zero, 0x0002, [uint32]$remaining, [ref]$messageResult)
+if ($sent -eq [IntPtr]::Zero) { throw 'Candidate support dialog did not process its native command' }
 while ($null -ne (Find-SupportDialog)) {
     if ($clock.ElapsedMilliseconds -ge $TimeoutMilliseconds) { throw 'Candidate support save dialog did not close' }
     Start-Sleep -Milliseconds 100

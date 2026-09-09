@@ -71,7 +71,7 @@ try {
         $stdout = $process.StandardOutput.ReadToEndAsync()
         $stderr = $process.StandardError.ReadToEndAsync()
         $arguments = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'windows-support-dialog.ps1'), '-CandidateProcessId', [string]$process.Id, '-Action', $action)
-        if ($action -ceq 'save') { $arguments += @('-Destination', (Join-Path $root 'saved.json')) }
+        if ($action -ceq 'save') { $arguments += @('-Destination', (Join-Path $root 'saved.json'), '-ExpectedFileName', 'fixture.json') }
         $driver = Start-DialogTestProcess -Arguments $arguments
         $driverOutput = $driver.StandardOutput.ReadToEndAsync()
         $driverError = $driver.StandardError.ReadToEndAsync()
