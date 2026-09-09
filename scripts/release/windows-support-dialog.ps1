@@ -13,6 +13,12 @@ $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted' -or $env:RUNNER_OS -cne 'Windows') {
     throw 'Native dialog interaction requires a disposable GitHub-hosted Windows runner'
 }
+$phaseClock = [System.Diagnostics.Stopwatch]::StartNew()
+function Write-SupportPhase {
+    param([ValidateSet('initialize', 'find-dialog', 'query-values', 'read-patterns', 'filename-selected', 'write-value', 'read-value', 'native-command', 'wait-closed')][string]$Phase)
+    [Console]::Error.WriteLine((@{ schemaVersion = 1; scope = 'candidate-support-driver'; phase = $Phase; elapsedMilliseconds = $phaseClock.ElapsedMilliseconds } | ConvertTo-Json -Compress))
+}
+Write-SupportPhase -Phase 'initialize'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -TypeDefinition @'
@@ -27,6 +33,8 @@ public static class DshSupportDialogNative {
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowEx(IntPtr parent, IntPtr after, string className, string title);
     [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
     [DllImport("user32.dll", SetLastError = true)] public static extern IntPtr SendMessageTimeout(IntPtr window, uint message, UIntPtr parameter, IntPtr data, uint flags, uint milliseconds, out UIntPtr result);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool IsWindowVisible(IntPtr window);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool IsIconic(IntPtr window);
 }
 '@
 $scope = [System.Windows.Automation.TreeScope]
@@ -72,7 +80,9 @@ function Test-SupportControlCaption {
 }
 function Find-SupportFilename {
     param([string]$Expected, [System.Windows.Automation.Condition]$Condition)
+    Write-SupportPhase -Phase 'query-values'
     $controls = $nativeDialog.FindAll($scope::Descendants, $Condition)
+    Write-SupportPhase -Phase 'read-patterns'
     $selected = @($controls | Where-Object {
         $pattern = $_.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
         -not $pattern.Current.IsReadOnly -and $pattern.Current.Value -ceq $Expected
@@ -142,6 +152,7 @@ function Write-SupportControlDiagnostic {
 }
 $clock = [System.Diagnostics.Stopwatch]::StartNew()
 $nativeDialog = $null
+Write-SupportPhase -Phase 'find-dialog'
 do {
     $nativeDialog = Find-SupportDialog
     if ($Action -eq 'absent') {
@@ -154,6 +165,7 @@ if ($Action -eq 'absent') {
     exit 0
 }
 if ($null -eq $nativeDialog) { throw 'Candidate support save dialog did not appear' }
+[Console]::Error.WriteLine((@{ schemaVersion = 1; scope = 'candidate-support-window'; visible = [DshSupportDialogNative]::IsWindowVisible($script:dialogHandle); minimized = [DshSupportDialogNative]::IsIconic($script:dialogHandle) } | ConvertTo-Json -Compress))
 if ($Action -eq 'observe') {
     @{ schemaVersion = 1; action = $Action; dialogObserved = $true; dialogClosed = $false } | ConvertTo-Json -Compress
     exit 0
@@ -180,8 +192,11 @@ if ($Action -eq 'save') {
         Write-SupportControlDiagnostic
         throw
     }
+    Write-SupportPhase -Phase 'filename-selected'
     $value = [System.Windows.Automation.ValuePattern]$filename.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+    Write-SupportPhase -Phase 'write-value'
     $value.SetValue($Destination)
+    Write-SupportPhase -Phase 'read-value'
     if ($value.Current.Value -cne $Destination) { throw 'Native filename control did not accept the destination' }
 }
 $remaining = $TimeoutMilliseconds - $clock.ElapsedMilliseconds
@@ -192,8 +207,10 @@ if ($owner -ne $CandidateProcessId) { throw 'Candidate support dialog owner chan
 $command = if ($Action -ceq 'save') { 1 } else { 2 }
 [UIntPtr]$messageResult = [UIntPtr]::Zero
 # WM_COMMAND routes IDOK/IDCANCEL through the common dialog's own validation and result handling.
+Write-SupportPhase -Phase 'native-command'
 $sent = [DshSupportDialogNative]::SendMessageTimeout($script:dialogHandle, 0x0111, [UIntPtr]::new([uint32]$command), [IntPtr]::Zero, 0x0002, [uint32]$remaining, [ref]$messageResult)
 if ($sent -eq [IntPtr]::Zero) { throw 'Candidate support dialog did not process its native command' }
+Write-SupportPhase -Phase 'wait-closed'
 while ($null -ne (Find-SupportDialog)) {
     if ($clock.ElapsedMilliseconds -ge $TimeoutMilliseconds) { throw 'Candidate support save dialog did not close' }
     Start-Sleep -Milliseconds 100

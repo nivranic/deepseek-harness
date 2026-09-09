@@ -77,7 +77,6 @@ try {
         $driverError = $driver.StandardError.ReadToEndAsync()
         if (-not $driver.WaitForExit(40000)) { throw 'Native dialog driver exceeded its process deadline' }
         if ($driver.ExitCode -ne 0) {
-            [Console]::Error.WriteLine($driverError.GetAwaiter().GetResult())
             throw 'Native dialog driver failed against the common dialog fixture'
         }
         $observation = $driverOutput.GetAwaiter().GetResult()
@@ -103,6 +102,7 @@ try {
         try {
             if (-not $owned.HasExited) { $owned.Kill($true) }
             if (-not $owned.WaitForExit(10000)) { throw 'Native dialog fixture cleanup did not reach process exit' }
+            if ([object]::ReferenceEquals($owned, $driver)) { [Console]::Error.WriteLine($driverError.GetAwaiter().GetResult()) }
             $owned.Dispose()
         } catch {
             $quiescent = $false

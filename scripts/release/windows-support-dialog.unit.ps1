@@ -10,7 +10,8 @@ Add-Type -AssemblyName UIAutomationTypes
 $nativeDefinitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $node.Value.Contains('public static class DshSupportDialogNative') }, $false))
 if ($nativeDefinitions.Count -ne 1) { throw 'Expected one native diagnostic declaration' }
 Add-Type -TypeDefinition $nativeDefinitions[0].Value
-foreach ($name in @('Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic')) {
+$phaseClock = [System.Diagnostics.Stopwatch]::StartNew()
+foreach ($name in @('Write-SupportPhase', 'Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportFilename', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic')) {
     $definitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name }, $false))
     if ($definitions.Count -ne 1) { throw 'Expected one owned helper definition' }
     . ([scriptblock]::Create($definitions[0].Extent.Text))
