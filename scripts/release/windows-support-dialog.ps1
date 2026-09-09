@@ -296,8 +296,11 @@ if ($Action -eq 'save') {
     }
     Write-SupportPhase -Phase 'write-value'
     [UIntPtr]$writeResult = [UIntPtr]::Zero
-    $written = [DshSupportDialogNative]::WriteWindowText($filename.Window, 0x000C, [UIntPtr]::Zero, $Destination, 0x0002, (Get-SupportRemainingWait), [ref]$writeResult)
-    if ($written -eq [IntPtr]::Zero -or $writeResult -eq [UIntPtr]::Zero) { throw 'Candidate native filename write was refused' }
+    $selected = [DshSupportDialogNative]::SendMessageTimeout($filename.Window, 0x00B1, [UIntPtr]::Zero, [IntPtr]::new(-1), 0x0002, (Get-SupportRemainingWait), [ref]$writeResult)
+    if ($selected -eq [IntPtr]::Zero) { throw 'Candidate native filename selection was refused' }
+    # EM_REPLACESEL sends edit-change notifications; visible WM_SETTEXT replacement alone does not submit the filename state.
+    $written = [DshSupportDialogNative]::WriteWindowText($filename.Window, 0x00C2, [UIntPtr]::Zero, $Destination, 0x0002, (Get-SupportRemainingWait), [ref]$writeResult)
+    if ($written -eq [IntPtr]::Zero) { throw 'Candidate native filename write was refused' }
     Write-SupportPhase -Phase 'read-value'
     if ((Read-SupportNativeText -Window $filename.Window) -cne $Destination) { throw 'Native filename control did not accept the destination' }
 }
