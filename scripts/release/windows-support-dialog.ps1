@@ -36,11 +36,31 @@ function Wait-SupportElement {
     }
     throw $Failure
 }
+function Test-SupportControlCaption {
+    param([ValidateSet('filename', 'save', 'cancel')][string]$Role, [string]$Name)
+    switch ($Role) {
+        'filename' { return @('File name:', 'File name', '文件名(N):', '文件名:', '文件名：') -ccontains $Name }
+        'save' { return @('Save', '保存(S)', '保存') -ccontains $Name }
+        'cancel' { return @('Cancel', '取消') -ccontains $Name }
+    }
+}
+function Find-SupportControl {
+    param([string]$Role, [System.Windows.Automation.Condition]$Condition)
+    $controls = $nativeDialog.FindAll($scope::Descendants, $Condition)
+    $selected = @($controls | Where-Object { Test-SupportControlCaption -Role $Role -Name $_.Current.Name })
+    if ($selected.Count -gt 1) { throw 'Candidate has multiple matching native support controls' }
+    if ($selected.Count -eq 1) { return $selected[0] }
+    return $null
+}
 function ConvertTo-SupportControlDiagnostic {
-    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern)
+    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern, [string]$Name)
     $id = if ($AutomationId -cmatch '\A[0-9]{1,5}\z' -or $AutomationId -cin @('FileNameControlHost', 'FileNameTextBox')) { $AutomationId } else { '<other>' }
     $kind = switch ($ControlType) { 50000 { 'button' } 50003 { 'combo-box' } 50004 { 'edit' } default { 'other' } }
-    return @{ id = $id; kind = $kind; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
+    $captionRole = 'other'
+    foreach ($role in @('filename', 'save', 'cancel')) {
+        if (Test-SupportControlCaption -Role $role -Name $Name) { $captionRole = $role; break }
+    }
+    return @{ id = $id; idPresent = -not [string]::IsNullOrEmpty($AutomationId); kind = $kind; captionRole = $captionRole; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
 }
 function Write-SupportControlDiagnostic {
     try {
@@ -56,7 +76,7 @@ function Write-SupportControlDiagnostic {
         for ($index = 0; $index -lt [Math]::Min($controls.Count, 64); $index++) {
             $control = $controls[$index]
             $current = $control.Current
-            $rows += ConvertTo-SupportControlDiagnostic -AutomationId $current.AutomationId -ControlType $current.ControlType.Id `
+            $rows += ConvertTo-SupportControlDiagnostic -AutomationId $current.AutomationId -ControlType $current.ControlType.Id -Name $current.Name `
                 -Enabled $current.IsEnabled -Offscreen $current.IsOffscreen `
                 -ValuePattern ($control.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty) -eq $true) `
                 -InvokePattern ($control.GetCurrentPropertyValue($element::IsInvokePatternAvailableProperty) -eq $true)
@@ -91,8 +111,8 @@ if ($Action -eq 'save') {
     }
     $filenameCondition = [System.Windows.Automation.AndCondition]::new(
         [System.Windows.Automation.AndCondition]::new(
-            [System.Windows.Automation.PropertyCondition]::new($element::AutomationIdProperty, '1001'),
-            [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
+            [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit),
+            [System.Windows.Automation.PropertyCondition]::new($element::IsOffscreenProperty, $false)
         ),
         [System.Windows.Automation.AndCondition]::new(
             [System.Windows.Automation.PropertyCondition]::new($element::IsEnabledProperty, $true),
@@ -101,7 +121,7 @@ if ($Action -eq 'save') {
     )
     try {
         $filename = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
-            -Probe { $nativeDialog.FindFirst($scope::Descendants, $filenameCondition) } `
+            -Probe { Find-SupportControl -Role 'filename' -Condition $filenameCondition } `
             -Failure 'Candidate save dialog has no ready native filename edit control'
     } catch {
         Write-SupportControlDiagnostic
@@ -111,11 +131,10 @@ if ($Action -eq 'save') {
     $value.SetValue($Destination)
     if ($value.Current.Value -cne $Destination) { throw 'Native filename control did not accept the destination' }
 }
-$buttonId = if ($Action -eq 'save') { '1' } else { '2' }
 $buttonCondition = [System.Windows.Automation.AndCondition]::new(
     [System.Windows.Automation.AndCondition]::new(
-        [System.Windows.Automation.PropertyCondition]::new($element::AutomationIdProperty, $buttonId),
-        [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)
+        [System.Windows.Automation.PropertyCondition]::new($element::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button),
+        [System.Windows.Automation.PropertyCondition]::new($element::IsOffscreenProperty, $false)
     ),
     [System.Windows.Automation.AndCondition]::new(
         [System.Windows.Automation.PropertyCondition]::new($element::IsEnabledProperty, $true),
@@ -124,7 +143,7 @@ $buttonCondition = [System.Windows.Automation.AndCondition]::new(
 )
 try {
     $button = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
-        -Probe { $nativeDialog.FindFirst($scope::Descendants, $buttonCondition) } `
+        -Probe { Find-SupportControl -Role $Action -Condition $buttonCondition } `
         -Failure 'Candidate save dialog has no ready requested native button'
 } catch {
     Write-SupportControlDiagnostic

@@ -8,5 +8,5 @@ it.skipIf(process.platform !== 'win32')('waits for native control readiness with
   const { stdout } = await promisify(execFile)('pwsh', ['-NoProfile', '-File', 'scripts/release/windows-support-dialog.unit.ps1'], {
     cwd: resolve(import.meta.dirname, '..'), windowsHide: true,
   })
-  expect(JSON.parse(stdout) as unknown).toEqual({ status: 'PASS', scenarios: 5, desktopLaunched: false })
+  expect(JSON.parse(stdout) as unknown).toEqual({ status: 'PASS', scenarios: 7, desktopLaunched: false })
 })
