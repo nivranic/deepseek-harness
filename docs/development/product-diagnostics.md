@@ -19,7 +19,7 @@ Product diagnostics correlate fixed error categories with version, build number,
 
 Windows collects a record after installer acceptance fails. Mac Host collects one when its native test interval produced a crash-report result; a missing interval produces no record. Both workflows require the exact clean candidate checkout and current generated [product identity](product-release-identity.md). They retain `product-diagnostics.json` beside the native report in the corresponding artifacts.
 
-The collector requires `--platform windows` or `--platform macos`, `--directory` and a positive `--max-input-bytes`; workflows supply 4194304 bytes. It reads the platform's fixed report filename through the [artifact reader](../../scripts/release/rc-files.ts), verifies its bytes and metadata, and refuses to replace existing output. The producer must keep the report directory and its ancestors exclusive and quiescent. Collection failures emit a fixed message without the rejected input and leave the workflow failed.
+The collector requires `--platform windows` or `--platform macos`, `--directory` and a positive `--max-input-bytes`; workflows supply 4194304 bytes. It reads the platform's fixed report filename through the [artifact reader](../../scripts/release/rc-files.ts), verifies its bytes and metadata, and refuses to replace existing output. The producer must keep the report directory and its ancestors exclusive and quiescent. Collection failures emit a fixed message and stage without rejected input: `arguments`, `source-metadata`, `source-clean`, `source-candidate`, `product-identity`, `product-freshness` or `native-report`. The workflow remains failed; the stage identifies the failing check, not the underlying cause.
 
 ## Record format
 

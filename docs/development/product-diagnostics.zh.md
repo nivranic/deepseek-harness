@@ -19,7 +19,7 @@
 
 Windows 在安装验收失败后采集记录。Mac Host 在原生测试区间产生崩溃报告结果时采集记录；缺少测试区间时不产生记录。两个工作流均要求准确且干净的候选 checkout，以及当前生成的[产品标识](product-release-identity.zh.md)。它们将 `product-diagnostics.json` 与原生报告一同保留在相应 artifact 中。
 
-采集器要求 `--platform windows` 或 `--platform macos`、`--directory` 和正数 `--max-input-bytes`；工作流传入 4194304 字节。它通过[产物读取器](../../scripts/release/rc-files.ts)读取该平台的固定报告文件名，核验字节及元数据，并拒绝替换已有输出。生产者必须独占报告目录及其祖先目录，保持它们不被并发修改。采集失败输出不含被拒输入的固定消息，并保留工作流失败状态。
+采集器要求 `--platform windows` 或 `--platform macos`、`--directory` 和正数 `--max-input-bytes`；工作流传入 4194304 字节。它通过[产物读取器](../../scripts/release/rc-files.ts)读取该平台的固定报告文件名，核验字节及元数据，并拒绝替换已有输出。生产者必须独占报告目录及其祖先目录，保持它们不被并发修改。采集失败输出不含被拒输入的固定消息及阶段：`arguments`、`source-metadata`、`source-clean`、`source-candidate`、`product-identity`、`product-freshness` 或 `native-report`。工作流保持失败；阶段标识失败的检查，不代表底层根因。
 
 ## Record format
 
