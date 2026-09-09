@@ -14,6 +14,8 @@ Status: implemented
 
 [Workspace 路径辅助函数](../../../../packages/util/workspace-path/src/index.ts) 用一次反向遍历移除末尾分隔符。理解 Windows 路径的调用方识别两种分隔符；POSIX 主目录缩写只识别 `/`。长输入不会被截断，也不会新增调用方限制。
 
+[Worker VFS 路径辅助函数](../../../../packages/experimental/webworker-runtime/src/module-system/posix-path.ts)移除规范化后最多保留的一个末尾分隔符。File URL 转换反向扫描最后一个原始行，保留该行首个 query 或 fragment 定界符的位置，再对选出的路径执行百分号解码。行终止符会结束扫描，因为已接纳的字符串格式将更早行的定界符视为字面值。这样保留路径结果，也避免定界符序列后接行终止符时反复尝试失败匹配。面向 Node 的字面路径代理保持独立。
+
 [已发送用户文本投影](../../../../packages/client/ui-primitives/src/user-text.tsx) 同样在嵌套 wire 候选间复用标签与 URI 定界符，并反向移除 token 末尾标点。其展示语法仍独立于 prompt 准入：标签保持字面值，URI payload 不作解码，空标签或空 payload 不形成 session chip。普通 token 的重叠、引号路径、chip title 与 recall 标签优先级保留现有行为。Wire 发现与标点裁剪为线性操作；recall 标签查找与区间排序另有各自的成本。
 
 ## Alternatives considered
@@ -24,7 +26,7 @@ Status: implemented
 
 ## Consequences
 
-Mention parser 使用显式定界符状态，同时保留优先级与线性发现。移除缓存前需要重新证明未完成的嵌套候选不会重复扫描同一后缀。路径辅助函数仍只处理字面值，不增加文件系统访问。
+Mention parser 使用显式定界符状态，同时保留优先级与线性发现。移除缓存前需要重新证明未完成的嵌套候选不会重复扫描同一后缀。Workspace 路径保留字面处理，VFS 路径保留规范化；两者均不增加文件系统访问。
 
 回归用例保留空标签、嵌套标签、Unicode 和行终止符转义、格式错误的引用异常与裸 URI 回退。长未完成 prompt 和内部长分隔符序列具有宽松的执行预算。针对已提交 parser 的 25,000 组对照检查文本、引用和错误等价性；聚焦覆盖率包含两个改动源码文件的全部分支。模型记录文本格式和运行时 composition 不变。
 

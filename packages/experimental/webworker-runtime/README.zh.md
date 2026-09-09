@@ -38,6 +38,8 @@ kind: "package-library"
 
 `node:crypto.randomInt(max)` 使用 WebCrypto 返回 `[0, max)` 内等概率的整数。上界必须是小于 `2 ** 48` 的正整数；其他上界触发 `RangeError`，熵源错误直接传播给调用方。当前仅实现同步的单上界形式。
 
+[VFS 路径辅助函数](src/module-system/posix-path.ts)规范化条目路径，并在线性时间内扫描 file URL 后缀，保留原始字符串中的行终止符和百分号解码行为。面向 Node 的路径代理继续使用独立的字面路径语义（[决策](../../../.agents/notes/implemented/bug-fix/2026-09-06-linear-reference-path-scans.zh.md)）。
+
 <a id="model-experience"></a>
 ## 模型体验
 

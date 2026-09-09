@@ -38,6 +38,8 @@ Acceptance lives in `apps/web/tests/preview-boot.e2e.ts`, which serves the real 
 
 `node:crypto.randomInt(max)` returns a uniform integer in `[0, max)` from WebCrypto. It accepts positive integer bounds below `2 ** 48`, throws `RangeError` for other bounds, and propagates entropy-source errors. Only the synchronous single-bound form is implemented.
 
+The [VFS path helpers](src/module-system/posix-path.ts) normalize entry paths and scan file-URL suffixes in linear time, preserving raw-string line terminators and percent-decoding behavior. The Node-facing path proxy retains its separate lexical semantics ([decision](../../../.agents/notes/implemented/bug-fix/2026-09-06-linear-reference-path-scans.md)).
+
 <a id="model-experience"></a>
 ## Model Experience
 
