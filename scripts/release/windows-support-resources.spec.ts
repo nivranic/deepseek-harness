@@ -1,5 +1,5 @@
 /** Filesystem-only candidate fault injection; no scanner or desktop process runs here. */
-import { lstat, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import { lstat, mkdir, mkdtemp, open, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it } from 'vitest'
@@ -20,19 +20,31 @@ async function fixture() {
 
 afterEach(async () => { for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }) })
 
+async function scannerSnapshot(path: string) {
+  const handle = await open(path, 'r')
+  try {
+    return { stat: await handle.stat({ bigint: true }), bytes: await handle.readFile() }
+  } finally { await handle.close() }
+}
+
 it('withholds only the executable on its own filesystem and restores it before returning', async () => {
   const { root, scanner, binary } = await fixture()
-  const original = await lstat(binary, { bigint: true })
+  const original = await scannerSnapshot(binary)
   expect(await withMissingSupportScanner(scanner, async () => {
     expect(await readdir(scanner)).toEqual(['LICENSE'])
     const holding = (await readdir(root)).filter(name => name.startsWith('.dsh-withheld-scanner-'))
     expect(holding).toHaveLength(1)
     const stored = join(root, holding[0]!, 'gitleaks.exe')
-    expect((await lstat(stored, { bigint: true })).dev).toBe(original.dev)
-    expect(await readFile(stored)).toEqual(bytes)
+    const snapshot = await scannerSnapshot(stored)
+    expect(snapshot.stat.dev).toBe(original.stat.dev)
+    expect(snapshot.stat.ino).toBe(original.stat.ino)
+    expect(snapshot.bytes).toEqual(bytes)
     return 'refused'
   })).toBe('refused')
-  expect(await readFile(binary)).toEqual(bytes)
+  const restored = await scannerSnapshot(binary)
+  expect(restored.stat.dev).toBe(original.stat.dev)
+  expect(restored.stat.ino).toBe(original.stat.ino)
+  expect(restored.bytes).toEqual(bytes)
   expect(await readdir(root)).toEqual(['SupportScanner'])
 })
 
