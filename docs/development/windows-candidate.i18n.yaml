@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/development/windows-candidate.md
-windows-candidate.md: 0cd3b67c517a7d92304f096cde23183dc44bec7d
-windows-candidate.zh.md: 6482c77e1df5031c91f750dcfddac8c2b2639cd4
+windows-candidate.md: c8247ed2795f6443e038d3c6c3d665052378fd6d
+windows-candidate.zh.md: fd9f67befd733902c9812a7fb2ee463e81bbcd37

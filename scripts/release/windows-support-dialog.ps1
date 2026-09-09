@@ -27,6 +27,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 public static class DshSupportDialogNative {
     [DllImport("user32.dll")] public static extern int GetDlgCtrlID(IntPtr window);
+    [DllImport("user32.dll")] public static extern IntPtr GetDlgItem(IntPtr dialog, int id);
     [DllImport("user32.dll")] public static extern IntPtr GetParent(IntPtr window);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool IsChild(IntPtr parent, IntPtr window);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetClassName(IntPtr window, StringBuilder name, int count);
@@ -104,6 +105,19 @@ function Get-SupportRemainingWait {
     $remaining = $TimeoutMilliseconds - $clock.ElapsedMilliseconds
     if ($remaining -le 0) { throw 'Candidate support dialog command exhausted its deadline' }
     return [uint32]$remaining
+}
+function Find-SupportButton {
+    param([ValidateSet(1, 2)][int]$Command)
+    $window = [DshSupportDialogNative]::GetDlgItem($script:dialogHandle, $Command)
+    if ($window -eq [IntPtr]::Zero) { return $null }
+    [uint32]$owner = 0
+    $null = [DshSupportDialogNative]::GetWindowThreadProcessId($window, [ref]$owner)
+    $native = Get-SupportNativeControlDiagnostic -WindowHandle $window -DialogHandle $script:dialogHandle
+    if ($owner -ne $CandidateProcessId -or -not $native.dialogDescendant -or $native.kind -cne 'button' -or $native.id -ne $Command) {
+        throw 'Candidate native dialog button ownership differs'
+    }
+    if (-not [DshSupportDialogNative]::IsWindowVisible($window) -or -not [DshSupportDialogNative]::IsWindowEnabled($window)) { return $null }
+    return $window
 }
 function Read-SupportNativeText {
     param([IntPtr]$Window)
@@ -293,10 +307,12 @@ if ($remaining -le 0) { throw 'Candidate support dialog command exhausted its de
 $null = [DshSupportDialogNative]::GetWindowThreadProcessId($script:dialogHandle, [ref]$owner)
 if ($owner -ne $CandidateProcessId) { throw 'Candidate support dialog owner changed before the native command' }
 $command = if ($Action -ceq 'save') { 1 } else { 2 }
+$button = Wait-SupportElement -Clock $clock -TimeoutMilliseconds $TimeoutMilliseconds `
+    -Probe { Find-SupportButton -Command $command } -Failure 'Candidate native dialog button did not become ready'
 [UIntPtr]$messageResult = [UIntPtr]::Zero
-# WM_COMMAND routes IDOK/IDCANCEL through the common dialog's own validation and result handling.
+# BM_CLICK lets the actual button notify its owner and submit the common dialog's filename state.
 Write-SupportPhase -Phase 'native-command'
-$sent = [DshSupportDialogNative]::SendMessageTimeout($script:dialogHandle, 0x0111, [UIntPtr]::new([uint32]$command), [IntPtr]::Zero, 0x0002, [uint32]$remaining, [ref]$messageResult)
+$sent = [DshSupportDialogNative]::SendMessageTimeout($button, 0x00F5, [UIntPtr]::Zero, [IntPtr]::Zero, 0x0002, (Get-SupportRemainingWait), [ref]$messageResult)
 if ($sent -eq [IntPtr]::Zero) { throw 'Candidate support dialog did not process its native command' }
 Write-SupportPhase -Phase 'wait-closed'
 while ($null -ne (Find-SupportDialog)) {

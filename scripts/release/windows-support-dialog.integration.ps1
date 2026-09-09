@@ -34,7 +34,9 @@ if ($Fixture) {
             $stage = 'validate-path'
             $expected = Join-Path $FixtureRoot 'saved.json'
             $destinationFacts = @{ exact = $dialog.FileName -ceq $expected; parentMatches = [IO.Path]::GetDirectoryName($dialog.FileName) -ceq $FixtureRoot
-                leafMatches = [IO.Path]::GetFileName($dialog.FileName) -ceq 'saved.json'; duplicateExtension = [IO.Path]::GetFileName($dialog.FileName) -ceq 'saved.json.json' }
+                leafMatches = [IO.Path]::GetFileName($dialog.FileName) -ceq 'saved.json'; duplicateExtension = [IO.Path]::GetFileName($dialog.FileName) -ceq 'saved.json.json'
+                savedStem = [IO.Path]::GetFileName($dialog.FileName) -ceq 'saved'; defaultFilename = [IO.Path]::GetFileName($dialog.FileName) -ceq 'fixture.json'
+                caseInsensitiveExact = $dialog.FileName -ieq $expected }
             if ($dialog.FileName -cne $expected) { throw 'Native save dialog returned a different destination' }
             $stage = 'write-file'
             [IO.File]::WriteAllText($expected, '{"fixture":true}')
@@ -60,7 +62,7 @@ function ConvertTo-DialogFixtureFailure {
     $status = if ($record.status -cin @('saved', 'cancelled', 'failed')) { $record.status } else { 'unavailable' }
     $stage = if ($record.stage -cin @('configure', 'show', 'validate-path', 'write-file')) { $record.stage } else { 'unavailable' }
     $facts = @{}
-    foreach ($key in @('exact', 'parentMatches', 'leafMatches', 'duplicateExtension')) {
+    foreach ($key in @('exact', 'parentMatches', 'leafMatches', 'duplicateExtension', 'savedStem', 'defaultFilename', 'caseInsensitiveExact')) {
         $facts[$key] = if ($record.destinationFacts.$key -is [bool]) { $record.destinationFacts.$key } else { $null }
     }
     return @{ schemaVersion = 1; scope = 'candidate-dialog-fixture'; exitCode = $ExitCode; status = $status; stage = $stage; destinationFacts = $facts
