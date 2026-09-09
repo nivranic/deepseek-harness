@@ -43,7 +43,7 @@ describe('CI workflow', () => {
     expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
     const verification = steps.find(step => step.name === 'Verify modules and scanner concurrency')
     expect(verification?.['working-directory']).toBe('native/support-scanner')
-    expect(verification?.run).toContain('go mod verify\ngo test -race -count=1 -timeout=60s ./...\ngo vet ./...')
+    expect(verification?.run).toContain('go mod verify\ngo build -a ./...\ngo test -race -count=1 -timeout=60s ./...\ngo vet ./...')
     expect(workflowJob(workflow, 'all-checks-passed').needs).toContain('support-scanner')
   })
 
