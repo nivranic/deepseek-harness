@@ -44,6 +44,9 @@ describe('CI workflow', () => {
     const verification = steps.find(step => step.name === 'Verify modules and scanner concurrency')
     expect(verification?.['working-directory']).toBe('native/support-scanner')
     expect(verification?.run).toContain('go mod verify\ngo build -a ./...\ngo test -race -count=1 -timeout=60s ./...\ngo vet ./...')
+    const vulnerabilities = steps.find(step => step.name === 'Check reachable scanner dependency vulnerabilities')
+    expect(vulnerabilities?.['working-directory']).toBe('native/support-scanner')
+    expect(vulnerabilities?.run).toBe('go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...')
     expect(workflowJob(workflow, 'all-checks-passed').needs).toContain('support-scanner')
   })
 

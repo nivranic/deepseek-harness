@@ -44,9 +44,10 @@ With Go 1.27.1 and a supported C compiler, run these commands from this director
 go mod verify
 go test -race -count=1 -timeout=60s -v ./...
 go vet ./...
+go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 ```
 
-The [CI workflow](../../.github/workflows/ci.yml) requires scanner race tests and Go CodeQL analysis. Unresolved findings and incomplete extraction refuse acceptance through the shared [security evidence validator](../../scripts/release/security_evidence.py).
+The [CI workflow](../../.github/workflows/ci.yml) requires scanner race tests, Go CodeQL analysis and reachable-dependency vulnerability checks. Unresolved CodeQL findings and incomplete extraction refuse acceptance through the shared [security evidence validator](../../scripts/release/security_evidence.py). Govulncheck rejects vulnerable calls reachable from this library; module-only notices do not establish a call path. The module requires Go 1.26 or later for its security-fixed dependencies.
 
 ## Model Experience
 

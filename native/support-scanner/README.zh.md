@@ -44,9 +44,10 @@ kind: "package-library"
 go mod verify
 go test -race -count=1 -timeout=60s -v ./...
 go vet ./...
+go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 ```
 
-[CI 工作流](../../.github/workflows/ci.yml)要求扫描器竞争检测和 Go CodeQL 分析。未解决的发现和不完整的提取均由共享[安全证据验证器](../../scripts/release/security_evidence.py)拒绝验收。
+[CI 工作流](../../.github/workflows/ci.yml)要求扫描器竞争检测、Go CodeQL 分析和可达依赖漏洞检查。未解决的 CodeQL 发现和不完整的提取均由共享[安全证据验证器](../../scripts/release/security_evidence.py)拒绝验收。Govulncheck 拒绝从本库可达的脆弱调用；模块级提示本身不证明调用路径。安全修复后的依赖要求模块使用 Go 1.26 或更高版本。
 
 ## Model Experience
 
