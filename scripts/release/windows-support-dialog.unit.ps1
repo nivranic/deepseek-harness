@@ -109,4 +109,15 @@ $row = ConvertTo-SupportValueDiagnostic -Availability 'private-canary' -Pattern 
 if ($row.availabilityIsBoolean -or $row.patternIsValuePattern -or $null -ne $row.readOnly) { throw 'Unknown pattern metadata became authoritative' }
 $row = ConvertTo-SupportValueDiagnostic -Availability $true -ReadOnly $true
 if ($row.readOnly -cne $true) { throw 'Read-only metadata was lost' }
-@{ status = 'PASS'; scenarios = 12; desktopLaunched = $false } | ConvertTo-Json -Compress
+$fixtureAst = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'windows-support-dialog.integration.ps1'), [ref]$tokens, [ref]$errors)
+if ($errors.Count -ne 0) { throw 'Native fixture script has syntax errors' }
+$definitions = @($fixtureAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'ConvertTo-DialogFixtureFailure' }, $false))
+if ($definitions.Count -ne 1) { throw 'Expected one fixture diagnostic projection' }
+. ([scriptblock]::Create($definitions[0].Extent.Text))
+foreach ($output in @('private-canary', '{"status":"private-canary","stage":"private-canary","destinationFacts":{"exact":"private-canary"}}')) {
+    $row = ConvertTo-DialogFixtureFailure -ExitCode 1 -Output $output -ErrorOutput 'private-canary'
+    if (($row | ConvertTo-Json -Compress).Contains('canary') -or $row.status -cne 'unavailable' -or $row.stage -cne 'unavailable' -or $null -ne $row.destinationFacts.exact) { throw 'Private fixture diagnostics leaked or acquired authority' }
+}
+$row = ConvertTo-DialogFixtureFailure -ExitCode 0 -Output '{"status":"saved"}' -ErrorOutput '#< CLIXML <Obj S="progress">private-canary</Obj>'
+if ($row.status -cne 'saved' -or -not $row.stderrIsClixml -or -not $row.stderrHasProgress -or ($row | ConvertTo-Json -Compress).Contains('canary')) { throw 'Fixture stderr category differs or leaked' }
+@{ status = 'PASS'; scenarios = 13; desktopLaunched = $false } | ConvertTo-Json -Compress

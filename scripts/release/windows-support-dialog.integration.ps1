@@ -19,6 +19,8 @@ if ($Fixture) {
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.Application]::EnableVisualStyles()
     $dialog = [System.Windows.Forms.SaveFileDialog]::new()
+    $stage = 'configure'
+    $destinationFacts = $null
     try {
         $dialog.AutoUpgradeEnabled = $true
         $dialog.Title = 'Export diagnostics'
@@ -26,10 +28,15 @@ if ($Fixture) {
         $dialog.FileName = 'fixture.json'
         $dialog.Filter = 'Diagnostics (*.json)|*.json'
         $dialog.DefaultExt = 'json'
+        $stage = 'show'
         $result = $dialog.ShowDialog()
         if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+            $stage = 'validate-path'
             $expected = Join-Path $FixtureRoot 'saved.json'
+            $destinationFacts = @{ exact = $dialog.FileName -ceq $expected; parentMatches = [IO.Path]::GetDirectoryName($dialog.FileName) -ceq $FixtureRoot
+                leafMatches = [IO.Path]::GetFileName($dialog.FileName) -ceq 'saved.json'; duplicateExtension = [IO.Path]::GetFileName($dialog.FileName) -ceq 'saved.json.json' }
             if ($dialog.FileName -cne $expected) { throw 'Native save dialog returned a different destination' }
+            $stage = 'write-file'
             [IO.File]::WriteAllText($expected, '{"fixture":true}')
             @{ status = 'saved' } | ConvertTo-Json -Compress
         } elseif ($result -eq [System.Windows.Forms.DialogResult]::Cancel) {
@@ -37,12 +44,28 @@ if ($Fixture) {
         } else {
             throw 'Native dialog returned an unexpected result'
         }
+    } catch {
+        @{ status = 'failed'; stage = $stage; destinationFacts = $destinationFacts } | ConvertTo-Json -Compress
+        throw
     } finally {
         $dialog.Dispose()
     }
     exit 0
 }
 if ($FixtureRoot) { throw 'The regression owns its fixture directory' }
+function ConvertTo-DialogFixtureFailure {
+    param([int]$ExitCode, [string]$Output, [string]$ErrorOutput)
+    $record = $null
+    try { $record = $Output | ConvertFrom-Json } catch { <# Only malformed fixture stdout is unavailable. #> }
+    $status = if ($record.status -cin @('saved', 'cancelled', 'failed')) { $record.status } else { 'unavailable' }
+    $stage = if ($record.stage -cin @('configure', 'show', 'validate-path', 'write-file')) { $record.stage } else { 'unavailable' }
+    $facts = @{}
+    foreach ($key in @('exact', 'parentMatches', 'leafMatches', 'duplicateExtension')) {
+        $facts[$key] = if ($record.destinationFacts.$key -is [bool]) { $record.destinationFacts.$key } else { $null }
+    }
+    return @{ schemaVersion = 1; scope = 'candidate-dialog-fixture'; exitCode = $ExitCode; status = $status; stage = $stage; destinationFacts = $facts
+        stderrPresent = $ErrorOutput.Length -ne 0; stderrIsClixml = $ErrorOutput.StartsWith('#< CLIXML'); stderrHasProgress = $ErrorOutput.Contains('S="progress"') }
+}
 function Start-DialogTestProcess {
     param([string[]]$Arguments)
     $start = [Diagnostics.ProcessStartInfo]::new('pwsh')
@@ -96,10 +119,14 @@ try {
             throw 'Native dialog driver failed against the common dialog fixture'
         }
         $observation = $driverOutput.GetAwaiter().GetResult()
+        [Console]::Error.WriteLine($driverError.GetAwaiter().GetResult())
         $driver.Dispose()
         $driver = $null
         if (-not $process.WaitForExit(10000)) { throw 'Native dialog fixture did not exit' }
-        if ($process.ExitCode -ne 0 -or $stderr.GetAwaiter().GetResult()) { throw 'Native dialog fixture reported a failure' }
+        if ($process.ExitCode -ne 0 -or $stderr.GetAwaiter().GetResult()) {
+            [Console]::Error.WriteLine(((ConvertTo-DialogFixtureFailure -ExitCode $process.ExitCode -Output $stdout.GetAwaiter().GetResult() -ErrorOutput $stderr.GetAwaiter().GetResult()) | ConvertTo-Json -Depth 4 -Compress))
+            throw 'Native dialog fixture reported a failure'
+        }
         $record = $stdout.GetAwaiter().GetResult() | ConvertFrom-Json
         $expected = if ($action -ceq 'save') { 'saved' } else { 'cancelled' }
         if (($record.PSObject.Properties.Name -join ',') -cne 'status' -or $record.status -cne $expected) { throw 'Native dialog fixture result differs' }

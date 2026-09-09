@@ -34,7 +34,7 @@ UIAutomation providers can advertise value support while returning empty, read-o
 
 Win32 control IDs and UIAutomation IDs are distinct observations. Failed lookup diagnostics retain native control/parent IDs and fixed class categories only for handles confirmed as descendants of the selected dialog; raw handles and labels stay private. A common-dialog fixture exercises the same driver before application build, with independently observed save/cancel results and joined child processes. This separates provider/driver failures from application startup without accepting fixture results as packaged-product evidence.
 
-An outer process deadline can expire before UIAutomation returns, so timeout handling joins the driver and retains its fixed phase markers. Window visibility and minimization are recorded independently of descendant readiness. Diagnostic elapsed time includes initialization; the operation clock starts after initialization so short absence observations retain their complete interval.
+Driver completion and fixture completion are separate outcomes. Fixed child status/stage, destination comparisons and stderr categories distinguish path validation, writing and process failures without exposing child output. An outer process deadline can expire before UIAutomation returns, so timeout handling joins the driver and retains its fixed phase markers. Window visibility and minimization are recorded independently of descendant readiness. Diagnostic elapsed time includes initialization; the operation clock starts after initialization so short absence observations retain their complete interval.
 
 ## Alternatives considered
 
