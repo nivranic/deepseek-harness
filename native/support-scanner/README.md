@@ -65,7 +65,7 @@ The [Python build entrypoint](../../scripts/build-mobile-support-scanner.py) pro
 
 The build reads committed scanner files into a versioned local module proxy and checks downloaded source bytes against Git. External modules retain Go checksum-database verification. Both JNI libraries retain module versions and checksums, omit inferred build-directory VCS identity, and pass ELF architecture and 16 KiB alignment checks. R8 keep rules preserve the generated Java entrypoints. The AAR contains the source/module manifest, module licenses, Go license and NDK notices under `assets/dsh-support-scanner/`; archive ordering and timestamps are canonicalized.
 
-The [mobile scanner workflow](../../.github/workflows/mobile-support-scanner.yml) builds these resources on Linux. Its `BUILT` receipt establishes static packaging checks. Native execution, application integration and actual 16 KiB-device acceptance remain separate requirements.
+The [mobile scanner workflow](../../.github/workflows/mobile-support-scanner.yml) builds these resources on Linux and runs govulncheck on both native libraries before uploading them. Libraries retain native symbol tables for package and symbol analysis; consumers must preserve those bytes when assembling applications. Its `BUILT` receipt establishes static packaging checks. Native execution, application integration and acceptance on devices with 16 KiB pages remain separate requirements.
 
 ## Model Experience
 

@@ -72,11 +72,15 @@ describe('CI workflow', () => {
     expect(build).toBeGreaterThan(0)
     expect(steps[build]?.run).toContain('scripts/build-mobile-support-scanner.py')
     expect(steps[build]?.run).toContain('--source-sha "$DSH_SCANNER_SOURCE"')
-    expect(steps[build + 1]).toMatchObject({
+    expect(steps[build + 1]?.name).toBe('Check native scanner vulnerabilities')
+    expect(steps[build + 1]?.run).toContain('govulncheck@v1.8.0 -mode=binary')
+    expect(steps[build + 1]?.run).toContain('for abi in arm64-v8a x86_64')
+    expect(steps[build + 1]?.if).toBeUndefined()
+    expect(steps[build + 2]).toMatchObject({
       name: 'Preserve verified scanner resources',
       with: { path: '${{ runner.temp }}/mobile-scanner-artifact/', 'if-no-files-found': 'error' },
     })
-    expect(steps[build + 1]?.if).toBeUndefined()
+    expect(steps[build + 2]?.if).toBeUndefined()
   })
 
   it.each([

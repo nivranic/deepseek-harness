@@ -65,7 +65,7 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
 构建将已提交的扫描器文件读入带版本的本地模块代理，并将下载后的源码字节与 Git 比较。外部模块继续由 Go 校验和数据库验证。两个 JNI 库保留模块版本与校验和，排除从构建目录推断的 VCS 标识，并通过 ELF 架构和 16 KiB 对齐检查。R8 保留规则保护生成的 Java 入口。AAR 的 `assets/dsh-support-scanner/` 包含源码与模块清单、模块许可证、Go 许可证及 NDK 声明；归档顺序和时间戳统一规范化。
 
-[移动扫描器工作流](../../.github/workflows/mobile-support-scanner.yml)在 Linux 上构建这些资源。其 `BUILT` 回执证明静态打包检查通过。原生执行、应用接入和实际 16 KiB 设备验收仍是独立要求。
+[移动扫描器工作流](../../.github/workflows/mobile-support-scanner.yml)在 Linux 上构建这些资源，并在上传前对两个原生库运行 govulncheck。库保留原生符号表以支持包与符号分析；消费方组装应用时必须保留这些字节。其 `BUILT` 回执证明静态打包检查通过。原生执行、应用接入和实际 16 KiB 页设备验收仍是独立要求。
 
 ## Model Experience
 

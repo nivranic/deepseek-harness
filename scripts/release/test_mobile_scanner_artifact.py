@@ -20,11 +20,13 @@ from release.mobile_scanner_artifact import (
 from release.mobile_scanner_source import MODULE
 
 
-def elf(abi, *, alignment=16384, kind=3, file_size=256):
-    data = bytearray(256)
+def elf(abi, *, alignment=16384, kind=3, file_size=512, symbols=True):
+    data = bytearray(512)
     data[:6] = b"\x7fELF\x02\x01"
-    struct.pack_into("<HHIQQQIHHHHHH", data, 16, kind, ANDROID_LIBRARIES[abi][0], 1, 0, 64, 0, 0, 64, 56, 1, 0, 0, 0)
+    struct.pack_into("<HHIQQQIHHHHHH", data, 16, kind, ANDROID_LIBRARIES[abi][0], 1, 0, 64, 128, 0, 64, 56, 1, 64, 2, 0)
     struct.pack_into("<IIQQQQQQ", data, 64, 1, 5, 0, 0, 0, file_size, file_size, alignment)
+    if symbols:
+        struct.pack_into("<IIQQQQIIQQ", data, 192, 0, 2, 0, 0, 256, 48, 0, 0, 8, 24)
     return bytes(data)
 
 
@@ -73,7 +75,7 @@ class MobileScannerArtifactTests(unittest.TestCase):
         for abi in ANDROID_LIBRARIES:
             self.assertEqual(inspect_android_elf(elf(abi), abi)["loadSegments"][0]["alignment"], 16384)
             for malformed in [elf(abi, alignment=4096), elf(abi, alignment=24576), elf(abi, kind=2),
-                              elf(abi, file_size=257), elf(abi)[:80]]:
+                              elf(abi, file_size=513), elf(abi, symbols=False), elf(abi)[:80]]:
                 with self.subTest(abi=abi), self.assertRaises(ValueError):
                     inspect_android_elf(malformed, abi)
         with self.assertRaises(ValueError):

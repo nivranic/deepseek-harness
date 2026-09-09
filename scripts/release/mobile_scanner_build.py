@@ -123,7 +123,7 @@ def build_android(repository: Path, commit: str, *, go: Path, sdk: Path, ndk: Pa
     env["GOFLAGS"] = "-mod=readonly -buildvcs=false"
     raw = work / "scanner.aar"
     run([gomobile, "bind", "-target=android/arm64,android/amd64", "-androidapi=" + str(policy["androidApi"]),
-         "-trimpath", "-javapkg=" + JAVA_PACKAGE, "-ldflags=-s -w -extldflags=-Wl,-z,max-page-size=16384",
+         "-trimpath", "-javapkg=" + JAVA_PACKAGE, "-ldflags=-w -extldflags=-Wl,-z,max-page-size=16384",
          "-o", str(raw), MODULE])
     verify_materialized_source(source, Path(downloaded["Dir"]))
     run([str(go), "mod", "verify"])

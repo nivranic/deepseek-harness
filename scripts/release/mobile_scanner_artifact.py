@@ -60,7 +60,7 @@ def inspect_android_elf(data: bytes, abi: str) -> dict:
     if abi not in ANDROID_LIBRARIES or len(data) < 64 or data[:6] != b"\x7fELF\x02\x01":
         raise ValueError("Scanner library has an unsupported ELF format")
     header = struct.unpack_from("<HHIQQQIHHHHHH", data, 16)
-    kind, machine, version, _, phoff, _, _, header_size, phsize, phnum, _, _, _ = header
+    kind, machine, version, _, phoff, shoff, _, header_size, phsize, phnum, shsize, shnum, _ = header
     if kind != 3 or version != 1 or machine != ANDROID_LIBRARIES[abi][0] or header_size != 64 or phsize != 56 or phnum == 0:
         raise ValueError("Scanner library architecture or program headers are invalid")
     if phoff < 64 or phoff + phnum * phsize > len(data):
@@ -78,6 +78,17 @@ def inspect_android_elf(data: bytes, abi: str) -> dict:
         loads.append({"offset": offset, "virtualAddress": address, "alignment": alignment})
     if not loads:
         raise ValueError("Scanner library has no LOAD segments")
+    if shsize != 64 or shnum == 0 or shoff + shnum * shsize > len(data):
+        raise ValueError("Scanner library must retain section headers for symbol analysis")
+    symbols = []
+    for index in range(shnum):
+        _, section_type, _, _, offset, size, _, _, _, entry_size = struct.unpack_from("<IIQQQQIIQQ", data, shoff + index * shsize)
+        if section_type == 2:
+            if entry_size != 24 or size < 48 or size % entry_size or offset + size > len(data):
+                raise ValueError("Scanner library has an invalid native symbol table")
+            symbols.append(size // entry_size)
+    if not symbols:
+        raise ValueError("Scanner library must retain native symbols for vulnerability analysis")
     return {"abi": abi, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(), "loadSegments": loads}
 
 

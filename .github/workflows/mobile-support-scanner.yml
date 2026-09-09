@@ -63,6 +63,14 @@ jobs:
             --cache "$RUNNER_TEMP/mobile-scanner-cache" \
             --work-dir "$RUNNER_TEMP/mobile-scanner-work" \
             --output "$RUNNER_TEMP/mobile-scanner-artifact"
+      - name: Check native scanner vulnerabilities
+        run: |
+          export GOENV=off GOWORK=off GOVCS='*:off' GOSUMDB=sum.golang.org
+          export GOCACHE="$RUNNER_TEMP/mobile-scanner-cache/gocache"
+          export GOMODCACHE="$RUNNER_TEMP/mobile-scanner-cache/modcache"
+          for abi in arm64-v8a x86_64; do
+            go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -mode=binary "$RUNNER_TEMP/mobile-scanner-work/$abi.so"
+          done
       - name: Preserve verified scanner resources
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
