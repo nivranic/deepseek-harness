@@ -72,9 +72,12 @@ describe('Windows candidate production requirements', () => {
     for (const key of Object.keys(environment)) expect(() =>{  requireHostedWindows('win32', { ...environment, [key]: 'wrong' }) }).toThrow('disposable')
   })
 
-  it.skipIf(process.platform !== 'win32')('refuses native support dialog interaction before loading UIAutomation on a persistent host', async () => {
-    await expect(promisify(execFile)('pwsh', ['-NoProfile', '-File', 'scripts/release/windows-support-dialog.ps1',
-      '-CandidateProcessId', String(process.pid), '-Action', 'observe'], {
+  it.skipIf(process.platform !== 'win32').each([
+    ['scripts/release/windows-support-dialog.ps1', '-CandidateProcessId', String(process.pid), '-Action', 'observe'],
+    ['scripts/release/windows-support-dialog.integration.ps1'],
+    ['scripts/release/windows-support-dialog.integration.ps1', '-Fixture'],
+  ])('refuses native support dialog entry %s before desktop interaction on a persistent host', async (...args) => {
+    await expect(promisify(execFile)('pwsh', ['-NoProfile', '-File', ...args], {
       cwd: repository, windowsHide: true, env: { ...process.env, GITHUB_ACTIONS: 'false' },
     })).rejects.toMatchObject({ code: 1, stderr: expect.stringContaining('requires a disposable GitHub-hosted Windows runner') as unknown })
   })
@@ -133,12 +136,15 @@ describe('Windows candidate production requirements', () => {
     expect(checkout?.with).toMatchObject({ ref: '${{ env.DSH_RC_SOURCE_SHA }}', 'persist-credentials': false })
     const commands = job.steps.map(step => step.run ?? '')
     const build = commands.findIndex(command => command.includes('pnpm run build:official'))
+    const nativeDialog = commands.findIndex(command => command.includes('windows-support-dialog.integration.ps1'))
     const pack = commands.findIndex(command => command.includes('scripts/build-desktop-exe.ts'))
     const produce = commands.findIndex(command => command.includes('scripts/produce-windows-candidate.ts'))
     const uploads = job.steps.filter(step => step.uses?.startsWith('actions/upload-artifact@'))
     expect(uploads).toHaveLength(2)
     const upload = job.steps.findIndex(step => step.with?.['path'] === '${{ runner.temp }}/windows-rc/')
     expect(build).toBeGreaterThan(-1)
+    expect(nativeDialog).toBeGreaterThan(-1)
+    expect(build).toBeGreaterThan(nativeDialog)
     expect(pack).toBeGreaterThan(build)
     expect(produce).toBeGreaterThan(pack)
     expect(commands[produce]).toMatch(/^node --import tsx\/esm /)

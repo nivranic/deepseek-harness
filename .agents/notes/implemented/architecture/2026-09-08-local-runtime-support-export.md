@@ -32,6 +32,8 @@ The [Link controller](../../../../packages/api/link-controller/README.md) suppli
 
 Finding a native dialog does not establish that its filename and button patterns are ready. The Windows driver selects exactly one visible, enabled control by its required type, pattern and supported system caption, within the same deadline used for discovery and closure. UIAutomation IDs are diagnostic metadata because native providers do not consistently expose numeric dialog IDs. A failed lookup emits a bounded, fixed-field inventory that reduces captions to filename/save/cancel/other and omits names and values. Pure PowerShell regressions cover delayed readiness, expired budgets, probe failure, exact-caption selection, ambiguity refusal and private-identifier exclusion; actual selection and saving still require the candidate lane.
 
+Win32 control IDs and UIAutomation IDs are distinct observations. Failed lookup diagnostics retain native control/parent IDs and fixed class categories only for handles confirmed as descendants of the selected dialog; raw handles and labels stay private. A common-dialog fixture exercises the same driver before application build, with independently observed save/cancel results and joined child processes. This separates provider/driver failures from application startup without accepting fixture results as packaged-product evidence.
+
 ## Alternatives considered
 
 **Raw-log redaction.** Unknown messages can contain new sensitive fields. A closed projection of state and counts prevents those messages from entering serialization.

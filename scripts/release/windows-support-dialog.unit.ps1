@@ -7,7 +7,10 @@ $ast = [System.Management.Automation.Language.Parser]::ParseFile($source, [ref]$
 if ($errors.Count -ne 0) { throw 'Native dialog script has syntax errors' }
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
-foreach ($name in @('Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportControl', 'ConvertTo-SupportControlDiagnostic')) {
+$nativeDefinitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $node.Value.Contains('public static class DshSupportDialogNative') }, $false))
+if ($nativeDefinitions.Count -ne 1) { throw 'Expected one native diagnostic declaration' }
+Add-Type -TypeDefinition $nativeDefinitions[0].Value
+foreach ($name in @('Wait-SupportElement', 'Test-SupportControlCaption', 'Find-SupportControl', 'Get-SupportNativeControlDiagnostic', 'ConvertTo-SupportControlDiagnostic')) {
     $definitions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name }, $false))
     if ($definitions.Count -ne 1) { throw 'Expected one owned helper definition' }
     . ([scriptblock]::Create($definitions[0].Extent.Text))
@@ -46,9 +49,13 @@ if (($rows.id -join ',') -cne '1001,1148,FileNameControlHost,<other>,<other>,<ot
 $json = ConvertTo-Json -InputObject @($rows) -Compress
 if ($json.Contains('private') -or $json.Contains('canary')) { throw 'Private control identifier leaked' }
 foreach ($row in $rows) {
-    if (($row.Keys | Sort-Object) -join ',' -cne 'captionRole,enabled,id,idPresent,invokePattern,kind,offscreen,valuePattern') { throw 'Unexpected diagnostic field' }
+    if (($row.Keys | Sort-Object) -join ',' -cne 'captionRole,enabled,id,idPresent,invokePattern,kind,namePresent,native,normalizedCaptionRole,offscreen,valuePattern') { throw 'Unexpected diagnostic field' }
     if ($row.kind -cne 'edit') { throw 'Control type projection differs' }
 }
+$missingHandle = Get-SupportNativeControlDiagnostic -WindowHandle 0 -DialogHandle 0
+if ($missingHandle.handlePresent -or $missingHandle.dialogDescendant -or $missingHandle.id -ne -1 -or $missingHandle.parentId -ne -1 -or $missingHandle.kind -cne 'other') { throw 'Absent native handle acquired an identity' }
+$accelerator = ConvertTo-SupportControlDiagnostic -AutomationId '' -ControlType 50000 -Name ' &Save '
+if ($accelerator.captionRole -cne 'other' -or $accelerator.normalizedCaptionRole -cne 'save' -or ($accelerator | ConvertTo-Json -Compress).Contains('&Save')) { throw 'Caption normalization leaked or changed raw selection facts' }
 foreach ($case in @(@('filename', 'File name:'), @('filename', '文件名(N):'), @('save', 'Save'), @('save', '保存'), @('cancel', 'Cancel'), @('cancel', '取消'))) {
     if (-not (Test-SupportControlCaption -Role $case[0] -Name $case[1])) { throw 'Supported native caption was refused' }
 }
@@ -69,4 +76,4 @@ try {
 } catch {
     if ($_.Exception.Message -cne 'Candidate has multiple matching native support controls') { throw }
 }
-@{ status = 'PASS'; scenarios = 7; desktopLaunched = $false } | ConvertTo-Json -Compress
+@{ status = 'PASS'; scenarios = 9; desktopLaunched = $false } | ConvertTo-Json -Compress

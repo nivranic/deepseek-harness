@@ -14,6 +14,17 @@ if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONM
 }
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public static class DshSupportDialogNative {
+    [DllImport("user32.dll")] public static extern int GetDlgCtrlID(IntPtr window);
+    [DllImport("user32.dll")] public static extern IntPtr GetParent(IntPtr window);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool IsChild(IntPtr parent, IntPtr window);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetClassName(IntPtr window, StringBuilder name, int count);
+}
+'@
 $scope = [System.Windows.Automation.TreeScope]
 $element = [System.Windows.Automation.AutomationElement]
 $condition = [System.Windows.Automation.AndCondition]::new(
@@ -52,15 +63,33 @@ function Find-SupportControl {
     if ($selected.Count -eq 1) { return $selected[0] }
     return $null
 }
+function Get-SupportNativeControlDiagnostic {
+    param([int]$WindowHandle, [int]$DialogHandle)
+    $record = @{ handlePresent = $WindowHandle -ne 0; dialogDescendant = $false; id = -1; parentId = -1; kind = 'other' }
+    if ($WindowHandle -eq 0 -or $DialogHandle -eq 0) { return $record }
+    $window = [IntPtr]::new($WindowHandle)
+    $record.dialogDescendant = [DshSupportDialogNative]::IsChild([IntPtr]::new($DialogHandle), $window)
+    if (-not $record.dialogDescendant) { return $record }
+    $record.id = [DshSupportDialogNative]::GetDlgCtrlID($window)
+    $record.parentId = [DshSupportDialogNative]::GetDlgCtrlID([DshSupportDialogNative]::GetParent($window))
+    $name = [System.Text.StringBuilder]::new(256)
+    $length = [DshSupportDialogNative]::GetClassName($window, $name, $name.Capacity)
+    if ($length -gt 0) {
+        $record.kind = switch -CaseSensitive ($name.ToString()) { 'Edit' { 'edit' } 'Button' { 'button' } 'ComboBox' { 'combo-box' } 'ComboBoxEx32' { 'combo-box-host' } default { 'other' } }
+    }
+    return $record
+}
 function ConvertTo-SupportControlDiagnostic {
-    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern, [string]$Name)
+    param([string]$AutomationId, [int]$ControlType, [bool]$Enabled, [bool]$Offscreen, [bool]$ValuePattern, [bool]$InvokePattern, [string]$Name, [hashtable]$Native)
     $id = if ($AutomationId -cmatch '\A[0-9]{1,5}\z' -or $AutomationId -cin @('FileNameControlHost', 'FileNameTextBox')) { $AutomationId } else { '<other>' }
     $kind = switch ($ControlType) { 50000 { 'button' } 50003 { 'combo-box' } 50004 { 'edit' } default { 'other' } }
     $captionRole = 'other'
+    $normalizedCaptionRole = 'other'
     foreach ($role in @('filename', 'save', 'cancel')) {
-        if (Test-SupportControlCaption -Role $role -Name $Name) { $captionRole = $role; break }
+        if (Test-SupportControlCaption -Role $role -Name $Name) { $captionRole = $role }
+        if (Test-SupportControlCaption -Role $role -Name $Name.Trim().Replace('&', '')) { $normalizedCaptionRole = $role }
     }
-    return @{ id = $id; idPresent = -not [string]::IsNullOrEmpty($AutomationId); kind = $kind; captionRole = $captionRole; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
+    return @{ id = $id; idPresent = -not [string]::IsNullOrEmpty($AutomationId); kind = $kind; captionRole = $captionRole; normalizedCaptionRole = $normalizedCaptionRole; namePresent = -not [string]::IsNullOrEmpty($Name); native = $Native; enabled = $Enabled; offscreen = $Offscreen; valuePattern = $ValuePattern; invokePattern = $InvokePattern }
 }
 function Write-SupportControlDiagnostic {
     try {
@@ -76,13 +105,15 @@ function Write-SupportControlDiagnostic {
         for ($index = 0; $index -lt [Math]::Min($controls.Count, 64); $index++) {
             $control = $controls[$index]
             $current = $control.Current
+            $native = Get-SupportNativeControlDiagnostic -WindowHandle $current.NativeWindowHandle -DialogHandle $nativeDialog.Current.NativeWindowHandle
             $rows += ConvertTo-SupportControlDiagnostic -AutomationId $current.AutomationId -ControlType $current.ControlType.Id -Name $current.Name `
                 -Enabled $current.IsEnabled -Offscreen $current.IsOffscreen `
+                -Native $native `
                 -ValuePattern ($control.GetCurrentPropertyValue($element::IsValuePatternAvailableProperty) -eq $true) `
                 -InvokePattern ($control.GetCurrentPropertyValue($element::IsInvokePatternAvailableProperty) -eq $true)
         }
         $record = @{ schemaVersion = 1; scope = 'candidate-support-controls'; truncated = $controls.Count -gt 64; controls = $rows }
-        [Console]::Error.WriteLine(($record | ConvertTo-Json -Depth 4 -Compress))
+        [Console]::Error.WriteLine(($record | ConvertTo-Json -Depth 5 -Compress))
     } catch {
         [Console]::Error.WriteLine('{"schemaVersion":1,"scope":"candidate-support-controls","unavailable":true}')
     }
