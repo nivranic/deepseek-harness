@@ -36,25 +36,26 @@ function digest(data: Uint8Array | string): string {
   return createHash('sha256').update(data).digest('hex')
 }
 
-/** Read a bounded regular file, rejecting links and replacement between lstat and open. */
+/** Read a bounded regular file, rejecting links and replacement using full-width file identifiers. */
 async function regularFile(path: string, maximumBytes: number): Promise<Buffer> {
-  const before = await lstat(path)
-  if (!before.isFile() || before.size === 0 || before.size > maximumBytes) throw new SupportExportError('invalid-scanner')
+  const before = await lstat(path, { bigint: true })
+  if (!before.isFile() || before.size === 0n || before.size > BigInt(maximumBytes)) throw new SupportExportError('invalid-scanner')
   const noFollow = (constants as { readonly O_NOFOLLOW?: number }).O_NOFOLLOW ?? 0
   const handle = await open(path, constants.O_RDONLY | noFollow)
   try {
-    const after = await handle.stat()
+    const after = await handle.stat({ bigint: true })
     if (!after.isFile() || before.ino !== after.ino || before.dev !== after.dev || before.size !== after.size) {
       throw new SupportExportError('invalid-scanner')
     }
-    const data = Buffer.alloc(after.size + 1)
+    const size = Number(after.size)
+    const data = Buffer.alloc(size + 1)
     let offset = 0
     while (offset < data.length) {
       const { bytesRead } = await handle.read(data, offset, data.length - offset, null)
       if (bytesRead === 0) break
       offset += bytesRead
     }
-    if (offset !== after.size) throw new SupportExportError('invalid-scanner')
+    if (offset !== size) throw new SupportExportError('invalid-scanner')
     return data.subarray(0, offset)
   } finally {
     await handle.close()

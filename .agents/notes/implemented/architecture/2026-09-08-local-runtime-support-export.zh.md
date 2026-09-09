@@ -24,6 +24,8 @@ Status: implemented
 
 配置默认值在插件激活前由 schema 解析，包括省略整个配置块的情况。`apply` 内的回退无法处理 schema 拒绝，因此 Gateway 单元组合保留导出的 schema，并由无密钥 Link 参考验收执行正式桌面 Host 组合。
 
+资源标识检查保留 `lstat` 和已打开句柄返回的 `bigint` 文件与设备标识。文件系统可能分配超出 JavaScript 安全整数范围的标识，不同值会舍入为同一个 `number`；数值相等不能证明已打开文件与检查过的路径匹配。资源大小仅在固定字节上限与大小未变检查通过后转为 `number`。不支持 `O_NOFOLLOW` 时仍保留这些比较。
+
 Electron 应用为每个原生保存对话框拥有一个独立、未加载页面的隐藏窗口。销毁该所有者可以关闭对话框并保留主窗口。服务的 effect disposer 撤销新工作准入、中止并等待活动操作。Windows 候选驱动通过 UIAutomation 操作真实原生控件，将本地化 Settings 反馈与所有者本地期望输出比较，并要求执行保存、取消、无效资源和合成密钥场景。独立验证器检查完整保存文档并重扫，再将准确字节及截图纳入 provenance。单元测试替身和受管理扫描器冒烟不能证明原生对话框或打包应用行为；该证据由一次性 Windows 候选车道提供。
 
 [Link 控制器](../../../../packages/api/link-controller/README.zh.md)通过现有 Gateway 提供未扫描、固定字段的监听/协议快照。载体与经认证 Host 描述共用协议/capability 生产者。监听失败只包含类别而不含错误文本，查询也不读取身份或配对记录。默认远程 Allowlist 在 Gateway 执行前拒绝该查询。公布的 capability 与设备有效授权保持区分，监听器可用性与连接及应用健康也保持区分。

@@ -11,6 +11,7 @@ const faults = vi.hoisted(() => ({
   rename: false,
   unlink: false,
   noFollow: true,
+  identity: undefined as { path: string; field: 'ino' | 'dev'; before: bigint; after: bigint } | undefined,
 }))
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>()
@@ -26,8 +27,24 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
   return {
     ...actual,
+    lstat: async (...args: Parameters<typeof actual.lstat>) => {
+      const stat = await actual.lstat(...args)
+      const identity = faults.identity
+      if (identity?.path === String(args[0])) {
+        Object.assign(stat, { [identity.field]: typeof stat.ino === 'bigint' ? identity.before : Number(identity.before) })
+      }
+      return stat
+    },
     open: async (...args: Parameters<typeof actual.open>) => {
       const handle = await actual.open(...args)
+      const identity = faults.identity
+      if (identity?.path === String(args[0])) {
+        const stat = handle.stat.bind(handle)
+        vi.spyOn(handle, 'stat').mockImplementationOnce(async (options) => {
+          const result = await stat(options)
+          return Object.assign(result, { [identity.field]: typeof result.ino === 'bigint' ? identity.after : Number(identity.after) })
+        })
+      }
       await faults.onOpen?.(String(args[0]), handle)
       return handle
     },
@@ -48,6 +65,7 @@ afterEach(async () => {
   faults.rename = false
   faults.unlink = false
   faults.noFollow = true
+  faults.identity = undefined
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
 async function fixture() {
@@ -57,17 +75,17 @@ async function fixture() {
 }
 const signal = () => new AbortController().signal
 
-it('checks opened file identity when O_NOFOLLOW is unavailable', async () => {
+it.each(['ino', 'dev'] as const)('checks full %s precision when O_NOFOLLOW is unavailable', async (field) => {
   faults.noFollow = false
   const f = await fixture()
   await ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())
-  faults.onOpen = async (path, handle) => {
-    if (path !== f.executable) return
-    const stat = await handle.stat()
-    vi.spyOn(handle, 'stat').mockResolvedValueOnce(Object.assign(stat, { ino: stat.ino + 1 }))
-  }
+  const before = 2n ** 54n
+  faults.identity = { path: f.executable, field, before, after: before }
+  await ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())
+  faults.identity.after += 1n
+  expect(Number(before)).toBe(Number(faults.identity.after))
   await expect(ApprovedSupportDocument.prepare(f.runtime, f.directory, {}, POLICY, signal())).rejects.toMatchObject({ reason: 'invalid-scanner' })
-  expect(f.calls).toHaveLength(3)
+  expect(f.calls).toHaveLength(6)
 })
 
 it.each(['before-stat', 'after-stat'] as const)('refuses resource truncation %s without launching a scanner', async (when) => {
@@ -77,8 +95,8 @@ it.each(['before-stat', 'after-stat'] as const)('refuses resource truncation %s 
     if (when === 'before-stat') await writeFile(path, '')
     else {
       const stat = handle.stat.bind(handle)
-      vi.spyOn(handle, 'stat').mockImplementationOnce(async () => {
-        const result = await stat()
+      vi.spyOn(handle, 'stat').mockImplementationOnce(async (options) => {
+        const result = await stat(options)
         await writeFile(path, '')
         return result
       })

@@ -32,6 +32,8 @@ The [configuration catalog](../../../docs/config-catalog.md) owns document/repor
 
 An omitted `config` block resolves every limit's default before plugin activation. An explicit invalid value remains a load failure; the gateway's `apply` function receives only resolved configuration.
 
+Scanner resource reads compare full-width file and device identifiers before and after opening, including on systems without `O_NOFOLLOW`. A changed identifier or size rejects the resource before scanner execution; byte allocation follows the checked resource limit.
+
 ## Dev Note
 
 <details>
