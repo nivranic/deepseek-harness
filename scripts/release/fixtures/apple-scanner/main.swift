@@ -72,11 +72,20 @@ func exercise() throws {
         group.leave()
     }
     try require(entered.wait(timeout: .now() + 5) == .success)
-    Thread.sleep(forTimeInterval: 0.01)
     pending.cancel()
     try require(group.wait(timeout: .now() + 15) == .success)
-    try require(completion.load()?.status() == "cancelled")
-    try require(completion.load()?.data() == nil)
+    // Cancellation can race a committed result; either outcome must preserve complete byte ownership.
+    let raced = completion.load()
+    let cancelledBeforeCommit = raced?.status() == "cancelled"
+    try require(cancelledBeforeCommit || raced?.status() == "approved")
+    if cancelledBeforeCommit {
+        try require(raced?.data() == nil && raced?.bytes() == 0 && raced?.digest() == "")
+        FileHandle.standardError.write(Data("Concurrent scan cancelled before commit\n".utf8))
+    } else {
+        let digest = SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined()
+        try require(raced?.data() == payload && raced?.bytes() == Int64(payload.count) && raced?.digest() == digest)
+        FileHandle.standardError.write(Data("Concurrent scan committed before cancellation\n".utf8))
+    }
     try require(DSHSupportscannerRulesDigest().count == 64)
     try require(DSHSupportscannerOperation(original, maximumBytes: 1024, scanMilliseconds: 10_000)?.run()?.status() == "approved")
 }
