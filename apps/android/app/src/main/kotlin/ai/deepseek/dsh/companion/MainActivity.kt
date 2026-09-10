@@ -108,9 +108,19 @@ class CompanionViewModel : ViewModel() {
             if (it == null) paired = true
         }
 
+    /** Capture each live owner once without opening subscriptions or loading credentials. */
+    fun supportSnapshot() = SupportLocalSnapshot(
+        CompanionRuntime.restored,
+        CompanionRuntime.wire.diagnosticSnapshot(),
+        ConnectionSnapshots(session.connectionSnapshot, interactions.connectionSnapshot,
+            files.connectionSnapshot, pushes.connectionSnapshot),
+    )
+
     override fun onCleared() {
         session.close()
         interactions.stopWatching()
+        files.stop()
+        pushes.stopWatching()
     }
 }
 
@@ -239,7 +249,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     }
     if (!model.paired) {
         Column {
-            SupportExportAction()
+            SupportExportAction(model::supportSnapshot)
             PairingScreen(model)
         }
         return
@@ -259,7 +269,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
-            SupportExportAction()
+            SupportExportAction(model::supportSnapshot)
             when (tab) {
                 0 -> SessionsTab(model)
                 1 -> ApprovalsTab(model)

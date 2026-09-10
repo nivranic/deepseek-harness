@@ -16,6 +16,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlin.test.Test
@@ -34,7 +35,7 @@ class SupportExportTest {
         LinkCapabilities(LinkSessionCapabilities(true, true, true, true, true), LinkWorkspaceCapabilities(true), LinkInteractionCapabilities(false, true)))
     private val link = LinkDiagnosticSnapshot(LinkRequestSnapshot(false, 2, 5, 3), LinkDeviceRole.CONTROLLER,
         LinkDescriptionState.AVAILABLE, null, protocol)
-    private val snapshot = SupportLocalSnapshot(true, link)
+    private val snapshot = SupportLocalSnapshot(true, link, ConnectionSnapshots.unavailable)
     private val policy = SupportExportPolicy(1024 * 1024, 10_000)
 
     @Test fun projectsLocalFactsWithoutClaimingHealthOrAuthorization() {
@@ -50,7 +51,7 @@ class SupportExportTest {
         assertEquals("\"last-known\"", value["protocol"]!!.jsonObject["observation"].toString())
         assertFalse(bytes.decodeToString().contains("hostId"))
         assertTrue(bytes.last() == 10.toByte())
-        val absent = Json.parseToJsonElement(encodeSupportDocument(product, SupportLocalSnapshot(false, null), identity, policy.maximumBytes).decodeToString()).jsonObject
+        val absent = Json.parseToJsonElement(encodeSupportDocument(product, SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable), identity, policy.maximumBytes).decodeToString()).jsonObject
         assertEquals("\"unavailable\"", absent["transport"]!!.jsonObject["observation"].toString())
         assertEquals("\"unavailable\"", absent["role"]!!.jsonObject["observation"].toString())
         assertEquals("\"unavailable\"", absent["capabilities"]!!.jsonObject["observation"].toString())
@@ -101,6 +102,33 @@ class SupportExportTest {
         val copy = document.copyBytes(); copy[0] = 0
         assertContentEquals(expected, document.copyBytes())
         assertEquals(supportSha256(expected), document.digest)
+    }
+
+    @Test fun exportRetainsCapturedModelObservationsWithoutStartingSubscriptions() = runTest {
+        val wire = object : WireDriving {
+            override suspend fun call(method: String, args: Map<String, ai.deepseek.dsh.link.WireValue>): ai.deepseek.dsh.link.WireValue =
+                error("export must not send requests")
+            override fun stream(endpoint: String, payload: Map<String, ai.deepseek.dsh.link.WireValue>): kotlinx.coroutines.flow.Flow<ai.deepseek.dsh.link.WireValue> =
+                error("export must not subscribe")
+        }
+        val session = SessionModel(wire, backgroundScope)
+        val interactions = InteractionModel(wire, backgroundScope)
+        val files = FilesModel(wire, backgroundScope)
+        val pushes = PushModel(wire, backgroundScope)
+        val captured = snapshot.copy(connections = ConnectionSnapshots(session.connectionSnapshot,
+            interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot))
+        session.closeAndAwait(); interactions.stopWatchingAndAwait(); files.stopAndAwait(); pushes.stopWatchingAndAwait()
+        assertEquals(ConnectionState.STOPPED, session.connectionSnapshot.state)
+        val exporter = SupportDocumentExporter(scanner({ SupportScanResult("approved", it, supportSha256(it)) }), policy)
+        val value = Json.parseToJsonElement(exporter.prepare(product, captured).copyBytes().decodeToString()).jsonObject
+        val connections = value["connections"]!!.jsonObject
+        val owners = mapOf("sessionFollow" to "SessionModel", "interactions" to "InteractionModel", "workspaces" to "FilesModel", "pushes" to "PushModel")
+        assertEquals(owners.keys, connections.keys)
+        for ((key, owner) in owners) {
+            assertEquals(Json.parseToJsonElement("""{"producer":"$owner","observation":"current","activityScope":"model-lifetime","snapshot":{"state":"idle","attempts":0,"interruptions":0,"countsSaturated":false}}"""), connections[key])
+        }
+        assertFalse(value["uncollected"].toString().contains("connection"))
+        assertEquals("false", value["complete"].toString())
     }
 
     @Test fun refusesFindingsUnknownResultsAndMismatchedAdmissionBytes() = runBlocking {

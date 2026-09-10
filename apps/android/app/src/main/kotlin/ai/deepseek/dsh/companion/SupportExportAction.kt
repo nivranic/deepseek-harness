@@ -62,7 +62,7 @@ private class AndroidSupportDestination(private val resolver: ContentResolver, p
 
 /** Available before pairing; only an admitted in-memory document can reach the selected local destination. */
 @Composable
-fun SupportExportAction() {
+fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
     val context = LocalContext.current
     val copy = SupportExportCopy.forLocale(context.resources.configuration.locales[0])
     val scope = rememberCoroutineScope()
@@ -99,13 +99,13 @@ fun SupportExportAction() {
                 pending = null
                 stage = ExportStage.SCANNING
                 try {
+                    val snapshot = readSnapshot()
                     val product = withContext(Dispatchers.IO) {
                         val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0))
                         val application = context.packageManager.getApplicationInfo(context.packageName, PackageManager.ApplicationInfoFlags.of(PackageManager.GET_META_DATA.toLong()))
                         SupportProductIdentity(info.versionName.orEmpty(), info.longVersionCode,
                             application.metaData?.getString("ai.deepseek.dsh.distributionChannel").orEmpty())
                     }
-                    val snapshot = SupportLocalSnapshot(CompanionRuntime.restored, CompanionRuntime.wire.diagnosticSnapshot())
                     val document = exporter.prepare(product, snapshot)
                     currentCoroutineContext().ensureActive()
                     pending = document

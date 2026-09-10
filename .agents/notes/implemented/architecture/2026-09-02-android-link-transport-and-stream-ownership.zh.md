@@ -14,7 +14,9 @@ Android [Kotlin wire 客户端](2026-08-30-android-wire-client.zh.md)使用 `Htt
 
 `LinkTransportConfig` 显式给出 connect、write、unary read/call 与 stream read/call timeout。stream read 或 call timeout 为零时，刻意允许长期 stream 空闲；取消仍是终止机制。共享 client 在创建任何 call 前安装同一个 pin-only trust manager 与 hostname verifier。这保留 [Remote Link 访问](2026-08-30-remote-link-access-vertical-slice.zh.md)规则：由 QR 认证的叶子 SPKI 标识私有 Host，public-CA DNS identity 不会取而代之。
 
-`SessionModel` 与 `InteractionModel` 把 stream 生命周期交给单一 generation owner。mutex 串行化 replacement，atomic generation 使陈旧 transition 失效，独立的 active 与 pending job 集合则让每条已启动 transition 都可等待。同步 stop 使 generation 失效并请求取消；可等待 stop 会 join pending transition 与 active stream，达到完全停稳后才返回。`CompanionRuntime` 为 Android 进程拥有稳定的 switchable wire。view model teardown 只停止该模型的 stream，因此配置变更可以重建 view model，而不会退役进程所有的 transport；配对失败会关闭临时 client，配对成功则把该 client 转交给稳定 wire。
+`SessionModel`、`InteractionModel`、`FilesModel` 与 `PushModel` 各自把 stream 生命周期交给一个 generation owner。mutex 串行化 replacement；同一个原子记录保存权威 generation 及其诊断快照，防止退役 job 发布连接观测。active 与 pending job 让每条已启动 transition 都可等待。同步 stop 使 generation 失效，并保持 `stopping` 直到两组工作全部结算；可等待 stop 会 join 它们，达到完全停稳。`CompanionRuntime` 为 Android 进程拥有稳定的 switchable wire。view model teardown 停止全部四个模型的流，不退役进程所有的 transport；配对失败会关闭临时 client，配对成功则把该 client 转交给稳定 wire。
+
+连接尝试在收集执行到 wire 时开始。惰性 Flow 尚未建立订阅，因此只有已解码帧才把观测变为 `open`。EOF 和固定失败增加饱和中断计数；会话和交互重试保留最后失败，直到收到帧。工作区和推送所有者不自动重试。已取消作用域和已被取代的待处理 transition 不会让未启动观测一直保持 `opening`。诊断快照排除 generation 和全部帧内容。
 
 共享 Gradle 依赖固定为与 App 编译 SDK 兼容的版本。OkHttp 的 JVM 与 Android variant 分别解析；Android AAR 元数据要求由 `:app:checkDebugAarMetadata` 检查。依赖升级必须同时通过 App 装配、core 生命周期测试和真实 Host 验收，不能仅凭纯 JVM 结果接受。
 
