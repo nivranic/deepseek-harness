@@ -76,7 +76,11 @@ class AppleScannerAppTests(unittest.TestCase):
         root = Path(self.temporary.name)
         app = root / "app"; app.mkdir()
         (app / "DSH Companion").write_bytes(b"executable")
-        self.assertEqual(application_paths(app, "ios"), (app, app, app / "DSH Companion"))
+        canonical = app.resolve()
+        expected = (canonical, canonical, canonical / "DSH Companion")
+        self.assertEqual(application_paths(app, "ios"), expected)
+        parent_alias = root / "parent-alias"; parent_alias.symlink_to(root)
+        self.assertEqual(application_paths(parent_alias / "app", "ios"), expected)
         alias = root / "alias"; alias.symlink_to(app)
         with self.assertRaisesRegex(ValueError, "regular directory"):
             application_paths(alias, "ios")
