@@ -49,6 +49,8 @@ Mac Host 的**导出运行时诊断…**操作会准备本地 JSON 快照，包�
 
 `LinkClient` 镜像 TypeScript 参考客户端：`pair(payload:deviceName:)` 只接受 fresh client 自身拥有的 endpoint 与 pin，以一次性配对码换取持久化的 `LinkCredentials`（真实部署存 Keychain，预览与测试用内存实现）；`describe()` 返回 Host 描述；`call(_:args:)` 校验回显的 `rpcId`，把成功但省略 value 的响应映射为 `.null`，并带出结构化 refusal；`stream(_:payload:)` 逐帧产出 NDJSON 值，错误帧以类型化失败结束。unary 与 stream 的传输处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。失败的 stream 会读取该响应体以完成分类，成功的 stream 则在未预消费字节的前提下进入 NDJSON 解析。每个请求以设备密钥对 `timestamp\nmethod\npath\nsha256hex(body)` 签名；每次 TLS 握手在写出任何请求字节之前钉扎证书指纹。`InteractionViewModel` 只从每代 Host `ready.clientId` 更新回答身份，从 `waterfall.request` 读取交互字段，应用 cancel frame，并在重连后等待新的 ready frame。
 
+[本地 Link 诊断投影](Sources/SharedAppleRemoteCore/LinkDiagnostics.swift)记录有界 HTTP 与流计数、固定失败类别、最后已知配对角色和选定的已认证协议字段。读取投影不会加载凭据或发起请求。刷新、失败或取消配对会清空 Host 描述值，早先查询不能覆盖较新观测。计数描述本地工作，不代表连接健康或当前授权。[共享导出核心](Sources/SupportExportCore/DocumentScanner.swift)负责完整字节准入，并等待后台打开、扫描和取消操作全部结束；原生应用接线与保存验收独立于协议测试。
+
 -----
 
 <a id="understand-the-implementation"></a>

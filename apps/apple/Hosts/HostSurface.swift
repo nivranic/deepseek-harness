@@ -1,4 +1,5 @@
 import DirectHostRuntime
+import SupportExportCore
 import SwiftUI
 import UniformTypeIdentifiers
 import WebKit

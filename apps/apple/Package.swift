@@ -17,13 +17,16 @@ let package = Package(
         .library(name: "SharedAppleRemoteCore", targets: ["SharedAppleRemoteCore"]),
         .library(name: "CompanionUI", targets: ["CompanionUI"]),
         .library(name: "DirectHostRuntime", targets: ["DirectHostRuntime"]),
+        .library(name: "SupportExportCore", targets: ["SupportExportCore"]),
         .executable(name: "HostRuntimeSupervisor", targets: ["HostRuntimeSupervisor"]),
         .executable(name: "LinkNativeAcceptance", targets: ["LinkNativeAcceptance"]),
     ],
     targets: [
         .executableTarget(name: "HostRuntimeSupervisor", path: "Sources/HostRuntimeSupervisor"),
-        .target(name: "DirectHostRuntime", path: "Sources/DirectHostRuntime"),
-        .testTarget(name: "DirectHostRuntimeTests", dependencies: ["DirectHostRuntime"],
+        .target(name: "SupportExportCore", path: "Sources/SupportExportCore"),
+        .testTarget(name: "SupportExportCoreTests", dependencies: ["SupportExportCore"]),
+        .target(name: "DirectHostRuntime", dependencies: ["SupportExportCore"], path: "Sources/DirectHostRuntime"),
+        .testTarget(name: "DirectHostRuntimeTests", dependencies: ["DirectHostRuntime", "SupportExportCore"],
                     path: "Tests/DirectHostRuntimeTests", resources: [.copy("Fixtures")]),
         .target(
             name: "SharedAppleRemoteCore",
@@ -39,7 +42,7 @@ let package = Package(
         ),
         .target(
             name: "CompanionUI",
-            dependencies: ["SharedAppleRemoteCore"],
+            dependencies: ["SharedAppleRemoteCore", "SupportExportCore"],
             path: "Sources/CompanionUI"
         ),
         .executableTarget(

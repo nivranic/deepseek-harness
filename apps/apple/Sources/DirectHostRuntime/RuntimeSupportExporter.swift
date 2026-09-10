@@ -2,6 +2,7 @@
 import CryptoKit
 import Darwin
 import Foundation
+import SupportExportCore
 
 /// Immutable bytes admitted by the bundled scanner; callers cannot construct an unscanned export.
 public struct RuntimeSupportExport {

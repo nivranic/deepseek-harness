@@ -25,6 +25,7 @@ public final class LinkClient {
     private let session: URLSession
     private let store: LinkCredentialsStoring
     private let pinned: String
+    private let diagnostics = LinkDiagnostics()
 
     /// - Parameters:
     ///   - baseURL: the carrier endpoint from the pairing payload.
@@ -46,6 +47,9 @@ public final class LinkClient {
 
     /// The persisted identity, or nil before the first successful pairing.
     public var credentials: LinkCredentials? { store.load() }
+
+    /// Read local owner observations without loading credentials, opening a connection or collecting payloads.
+    public func supportSnapshot() -> LinkDiagnosticSnapshot { diagnostics.snapshot() }
 
     /// Pair with a host by exchanging the one-time QR code for a durable
     /// identity. Generates a fresh Ed25519 key whose SPKI DER the host
@@ -77,13 +81,25 @@ public final class LinkClient {
             signingKeyBase64: key.rawRepresentation.base64EncodedString()
         )
         store.save(credentials)
+        diagnostics.pairedRole(credentials.role)
         return credentials
     }
 
     /// Ask the authenticated host for its description and capabilities.
     public func describe() async throws -> LinkHostDescription {
-        let data = try await post(path: "/link/describe", body: Data(), signed: true)
-        return try Self.decode(LinkHostDescription.self, from: data)
+        let attempt = diagnostics.describing()
+        do {
+            try Task.checkCancellation()
+            let data = try await post(path: "/link/describe", body: Data(), signed: true)
+            let value = try Self.decode(LinkHostDescription.self, from: data)
+            try Task.checkCancellation()
+            do { diagnostics.described(attempt, result: .success(try LinkSupportDescription(value))) }
+            catch { diagnostics.described(attempt, result: .failure(.invalidResponse)) }
+            return value
+        } catch {
+            diagnostics.described(attempt, result: .failure(Task.isCancelled ? .cancelled : LinkDiagnosticFailure(error)))
+            throw error
+        }
     }
 
     /// Call one unary Remote endpoint through the shared `/api` chain.
@@ -129,6 +145,9 @@ public final class LinkClient {
     ) async throws -> AsyncThrowingStream<LinkJsonValue, Error> {
         let body = try JSONEncoder().encode(LinkStreamRequest(args: payload))
         let data: (bytes: URLSession.AsyncBytes, response: URLResponse)
+        diagnostics.requestStarted()
+        var requestFailure: LinkDiagnosticFailure?
+        defer { diagnostics.requestFinished(requestFailure) }
         do {
             var request = try URLRequest(url: Self.url(base: baseURL, path: "/link/stream/\(endpoint)"))
             request.httpMethod = "POST"
@@ -136,19 +155,25 @@ public final class LinkClient {
             try Self.applyCredentials(to: &request, body: body, store: store)
             request.httpBody = body
             data = try await session.bytes(for: request)
+            try await Self.checkStreamResponse(response: data.response, bytes: data.bytes)
         } catch let error as LinkClientError {
+            requestFailure = LinkDiagnosticFailure(error)
             throw error
         } catch {
+            requestFailure = LinkDiagnosticFailure(error)
             throw LinkClientError.carrier(status: 0, message: String(describing: error))
         }
-        try await Self.checkStreamResponse(response: data.response, bytes: data.bytes)
+        diagnostics.streamStarted()
         return AsyncThrowingStream { continuation in
-            let task = Task {
+            let task = Task { [diagnostics] in
+                var streamFailure: LinkDiagnosticFailure?
+                defer { diagnostics.streamFinished(streamFailure) }
                 do {
                     for try await line in data.bytes.lines {
                         guard let frameData = line.data(using: .utf8), !frameData.isEmpty else { continue }
                         let frame = try Self.decode(LinkStreamFrame.self, from: frameData)
                         if frame.k == .e {
+                            streamFailure = .refused
                             continuation.finish(throwing: LinkClientError.refused(
                                 code: frame.c ?? "internal",
                                 message: frame.m ?? "stream failed"
@@ -159,6 +184,7 @@ public final class LinkClient {
                     }
                     continuation.finish()
                 } catch {
+                    streamFailure = LinkDiagnosticFailure(error)
                     continuation.finish(throwing: error)
                 }
             }
@@ -169,6 +195,7 @@ public final class LinkClient {
     /// Forget the paired identity; the host refuses the next request.
     public func unpair() {
         store.clear()
+        diagnostics.pairedRole(nil)
     }
 
     /// Rebuild the paired client from persisted credentials — the relaunch
@@ -179,11 +206,13 @@ public final class LinkClient {
     public static func restore(store: LinkCredentialsStoring) -> LinkClient? {
         guard let credentials = store.load() else { return nil }
         guard let endpoint = URL(string: credentials.endpoint) else { return nil }
-        return LinkClient(
+        let client = LinkClient(
             baseURL: endpoint,
             pinnedFingerprint: credentials.pinnedFingerprint,
             store: store
         )
+        client.diagnostics.pairedRole(credentials.role)
+        return client
     }
 
     // MARK: - Internals
@@ -210,6 +239,9 @@ public final class LinkClient {
 
     /// Send one unary request, optionally device-signed, checking the status.
     private func post(path: String, body: Data, signed: Bool) async throws -> Data {
+        diagnostics.requestStarted()
+        var failure: LinkDiagnosticFailure?
+        defer { diagnostics.requestFinished(failure) }
         do {
             var request = try URLRequest(url: Self.url(base: baseURL, path: path))
             request.httpMethod = "POST"
@@ -222,8 +254,10 @@ public final class LinkClient {
             try Self.check(response: response, data: data)
             return data
         } catch let error as LinkClientError {
+            failure = LinkDiagnosticFailure(error)
             throw error
         } catch {
+            failure = LinkDiagnosticFailure(error)
             throw LinkClientError.carrier(status: 0, message: String(describing: error))
         }
     }

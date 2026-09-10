@@ -1,6 +1,7 @@
 #if os(macOS)
 import Darwin
 import Foundation
+import SupportExportCore
 import XCTest
 @testable import DirectHostRuntime
 

@@ -158,6 +158,13 @@ struct AcceptanceRunner {
         }
         try pass("describe")
 
+        let support = client.supportSnapshot()
+        guard support.lastKnownRole == "controller", support.descriptionState == .observed,
+              support.description?.linkProtocolVersion == 1, support.description?.sessionPrompt == true,
+              support.activeRequests == 0, support.startedRequests == support.finishedRequests else {
+            throw AcceptanceFailure("Link diagnostic observations do not match the authenticated owner")
+        }
+
         let productionWire = LinkClientWireDriver(client: client)
         let wire = ObservedCompanionWire(base: productionWire)
         let sessions = RemoteSessionViewModel(wire: wire)
@@ -684,6 +691,12 @@ struct AcceptanceRunner {
             }
         }
         try pass("revoke")
+        let revokedSupport = client.supportSnapshot()
+        guard revokedSupport.descriptionState == .failed, revokedSupport.lastKnownRole == "controller",
+              revokedSupport.description == nil,
+              revokedSupport.activeRequests == revokedSupport.startedRequests - revokedSupport.finishedRequests else {
+            throw AcceptanceFailure("Link diagnostics did not clear Host metadata after revocation")
+        }
         try writeResult(description: description, recovery: recoveryResult)
     }
 

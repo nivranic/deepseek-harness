@@ -58,6 +58,8 @@ targets:
     dependencies:
       - package: DshApple
         product: DirectHostRuntime
+      - package: DshApple
+        product: SupportExportCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.mac
