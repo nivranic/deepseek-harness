@@ -25,12 +25,11 @@ final class CompanionStartupTests: XCTestCase {
         let save = navigation.buttons["Save"]
         XCTAssertTrue(save.exists && save.isEnabled)
         save.tap()
-        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: navigation)
-        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 30), .completed)
         let ready = app.buttons["companion.support.export"]
         XCTAssertTrue(ready.waitForExistence(timeout: 15))
-        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: ready)
-        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 10), .completed)
+        // The system picker can retire its accessibility element while the application restores its own control.
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true AND hittable == true"), object: ready)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 30), .completed)
         XCTAssertFalse(app.alerts.firstMatch.exists)
         XCTAssertEqual(app.state, .runningForeground)
         let screenshot = XCTAttachment(screenshot: app.screenshot())
