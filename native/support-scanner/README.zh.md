@@ -77,6 +77,8 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
 [原生验证器](../../scripts/verify-apple-support-scanner.py)比较归档字节与编译使用的 framework，在 macOS 和自有 iOS 模拟器上执行 Swift 绑定探针，并记录已链接二进制摘要。工作流在发布库前检查这些已链接二进制的漏洞。库的 `BUILT` 状态不能证明原生执行或应用导出；验收顺序由 [Apple 接入计划](../../docs/plans/2026-09-10-apple-support-scanner.zh.md)拥有。
 
+面向应用的[准备入口](../../scripts/stage-apple-support-scanner.py)接收 `--source-sha`、构建 `--directory`、编译器 `--framework`、原生 `--verification` 和新的 `--output` 目录。它在复制前对照 Git 重查源码与构建器记录，核对归档和 framework 字节，并要求原生规则标识一致。输出保留 framework 链接，`SupportScannerResources/` 包含标识、来源及全部模块/Go 许可证。`STAGED` 回执不证明应用已链接或执行；扫描器工作流在发布资源前执行该步骤。
+
 ## Model Experience
 
 无。该库准入本地诊断字节。

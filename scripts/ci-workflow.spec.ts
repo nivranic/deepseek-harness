@@ -93,11 +93,19 @@ describe('CI workflow', () => {
     expect(steps[build + 1]?.run).toContain('scripts/verify-apple-support-scanner.py')
     expect(steps[build + 2]?.run).toContain('for target in macos ios-simulator')
     expect(steps[build + 2]?.run).toContain('govulncheck@v1.8.0 -mode=binary')
-    expect(steps[build + 3]).toMatchObject({
+    expect(steps[build + 3]?.name).toBe('Stage verified Apple application resources')
+    expect(steps[build + 3]?.run).toContain('scripts/stage-apple-support-scanner.py')
+    expect(steps[build + 3]?.run).toContain('--source-sha "$DSH_SCANNER_SOURCE"')
+    expect(steps[build + 3]?.run).toContain('--verification "$RUNNER_TEMP/apple-scanner-native/verification.json"')
+    expect(steps[build + 4]).toMatchObject({
       name: 'Preserve verified Apple scanner resources',
       with: { 'if-no-files-found': 'error' },
     })
-    expect(steps.slice(build, build + 4).every(step => step.if === undefined)).toBe(true)
+    expect(steps[build + 5]).toMatchObject({
+      name: 'Preserve Apple application staging receipt',
+      with: { path: '${{ runner.temp }}/apple-scanner-staged/staging.json', 'if-no-files-found': 'error' },
+    })
+    expect(steps.slice(build, build + 6).every(step => step.if === undefined)).toBe(true)
     const diagnostics = steps.find(step => step.name === 'Preserve Apple scanner failure diagnostics')
     expect(diagnostics?.if).toBe('failure()')
     if (!isRecord(diagnostics?.with)) throw new Error('Apple scanner failure diagnostics are absent')

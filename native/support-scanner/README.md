@@ -77,6 +77,8 @@ The output ZIP contains `SupportScanner.xcframework`, a source/module manifest a
 
 The [native verifier](../../scripts/verify-apple-support-scanner.py) compares archived bytes with the framework used for compilation, runs Swift binding probes on macOS and an owned iOS simulator, and records linked-binary digests. The workflow checks vulnerabilities in those linked binaries before publishing the library. A `BUILT` library does not establish native execution or application export; the [Apple integration plan](../../docs/plans/2026-09-10-apple-support-scanner.md) owns the acceptance sequence.
 
+The [application stager](../../scripts/stage-apple-support-scanner.py) accepts `--source-sha`, the build `--directory`, compiler `--framework`, native `--verification` and a new `--output` directory. It rechecks source and builder records against Git, archive and framework bytes, and matching native rules identities before copying. The output preserves framework links and includes `SupportScannerResources/` with identity, provenance and all module/Go licenses. Its `STAGED` receipt does not establish application linking or execution; the scanner workflow exercises staging before publishing resources.
+
 ## Model Experience
 
 None. The library admits local diagnostic bytes.

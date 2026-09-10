@@ -68,6 +68,8 @@ Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩
 
 Apple 绑定通过 gomobile 静态 framework 使用同一扫描器。[生产者](../../../../scripts/build-apple-support-scanner.py)将设备、模拟器和 Mac 各架构的归档切片强制链接到最小检查程序，再由 Go 读取器检查其模块。可执行文件解析由维护中的工具链负责，无需重建 object 元数据，也不将源码依赖视为已链接内容。归档、Go object 和检查程序摘要保留其与分发 framework 字节的对应关系。Framework 索引及生成的版本链接必须匹配声明矩阵。静态打包与 [Swift 原生探针](../../../../scripts/verify-apple-support-scanner.py)具有独立回执；二者均不能替代原生应用导出或物理设备验收。
 
+面向应用的[准备入口](../../../../scripts/stage-apple-support-scanner.py)将这些准确的编译输入和许可证字节保存在新目录中。其标识来自绑定同一归档与已提交源码的两平台一致原生观测。把复制结果与已检查 framework 比较，可以防止打包时静默替换库；保留的来源记录与应用执行证据继续分离。
+
 Apple 通过 [SupportExportCore](../../../../apps/apple/Sources/SupportExportCore/SupportProductIdentity.swift)复用产品标识校验。扫描协调器拥有独立的后台执行与取消队列，等待二者结束后才交付字节；在原生打开期间取消也会等待后续操作结束。Link 诊断通过锁和各次查询的所有权投影真实客户端活动，不读取身份存储。刷新与失败会移除 Host 元数据，配对角色在取消配对前保持最后已知观测。结果字节或摘要与完整输入不一致时拒绝交付。这些共享组件本身不提供应用导出操作。
 
 [源码扫描决策](../process/2026-09-05-candidate-security-scans.zh.md)继续拥有固定获取与源码例外；这些例外不能放行支持导出中的发现项。[产物完整性决策](../process/2026-09-06-candidate-artifact-integrity.zh.md)继续拥有完整 RC 准入。helper 突然终止、detached 工具进程组和 PTY 所有权不属于本导出的清理保证，仍会阻止 Full Host no-orphan 准入。

@@ -7,6 +7,7 @@ on:
       - 'scripts/build-mobile-support-scanner.py'
       - 'scripts/build-apple-support-scanner.py'
       - 'scripts/verify-apple-support-scanner.py'
+      - 'scripts/stage-apple-support-scanner.py'
       - 'scripts/release/apple_scanner_*.py'
       - 'scripts/release/test_apple_scanner_*.py'
       - 'scripts/release/fixtures/apple-scanner/**'
@@ -125,6 +126,13 @@ jobs:
           for target in macos ios-simulator; do
             go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -mode=binary "$RUNNER_TEMP/apple-scanner-native/$target"
           done
+      - name: Stage verified Apple application resources
+        run: |
+          python3 -B scripts/stage-apple-support-scanner.py \
+            --source-sha "$DSH_SCANNER_SOURCE" --directory "$RUNNER_TEMP/apple-scanner-artifact" \
+            --framework "$RUNNER_TEMP/apple-scanner-work/SupportScanner.xcframework" \
+            --verification "$RUNNER_TEMP/apple-scanner-native/verification.json" \
+            --output "$RUNNER_TEMP/apple-scanner-staged"
       - name: Preserve verified Apple scanner resources
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -135,6 +143,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+      - name: Preserve Apple application staging receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: apple-scanner-staging-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/apple-scanner-staged/staging.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Preserve Apple scanner failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
