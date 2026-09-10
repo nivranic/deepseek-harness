@@ -22,8 +22,9 @@ const steps = workflow.jobs['gradle-test'].steps
 const preserve = steps.find(step => step.name === 'Preserve unsigned release bundle and R8 mapping')!
 
 it.skipIf(process.platform !== 'linux').each([
-  ['36', '16384', 0, true], ['35', '16384', 0, false], ['36', '4096', 0, false], ['36', '16384', 1, false],
-] as const)('starts instrumentation only after actual API %s / page size %s / adb exit %s is accepted', (api, pages, adbExit, accepted) => {
+  ['36', '16384', 0, 0, 0, true], ['35', '16384', 0, 0, 0, false], ['36', '4096', 0, 0, 0, false],
+  ['36', '16384', 1, 0, 0, false], ['36', '16384', 0, 1, 0, false], ['36', '16384', 0, 0, 1, false],
+] as const)('requires API %s / page size %s / adb %s / instrumentation %s / system export %s', (api, pages, adbExit, gradleExit, exportExit, accepted) => {
   const launch = steps.find(step => step.name === 'Launch the unpaired companion on Android')!
   expect(launch.with).toMatchObject({ 'api-level': 36, target: 'google_apis_ps16k', arch: 'x86_64' })
   const root = mkdtempSync(join(tmpdir(), 'dsh android runtime '))
@@ -31,18 +32,23 @@ it.skipIf(process.platform !== 'linux').each([
     const bin = join(root, 'bin'), cwd = join(root, 'apps/android'), scripts = join(root, 'scripts/release')
     for (const directory of [bin, cwd, scripts]) mkdirSync(directory, { recursive: true })
     writeFileSync(join(scripts, 'android_runtime.py'), readFileSync('scripts/release/android_runtime.py'))
+    writeFileSync(join(scripts, 'android_support_exports.py'), 'import os, sys\nfrom pathlib import Path\nassert Path("instrumentation-started").exists()\nassert sys.argv[1:] == ["--apk", "app/build/outputs/apk/debug/app-debug.apk", "--source-sha", "a" * 40, "--output", os.environ["RUNNER_TEMP"] + "/android-support-export"]\nPath("system-export-started").write_text("started")\nsys.exit(int(os.environ["DSH_TEST_EXPORT_EXIT"]))\n')
     const adb = join(bin, 'adb'), gradle = join(cwd, 'gradlew')
     writeFileSync(adb, '#!/bin/sh\n[ "$DSH_TEST_ADB_EXIT" = 0 ] || exit "$DSH_TEST_ADB_EXIT"\ncase "$*" in\n"shell getprop ro.build.version.sdk") printf "%s\\n" "$DSH_TEST_API";;\n"shell getconf PAGE_SIZE") printf "%s\\n" "$DSH_TEST_PAGES";;\n*) exit 2;;\nesac\n')
-    writeFileSync(gradle, '#!/bin/sh\n[ "$*" = "--no-daemon :app:connectedDebugAndroidTest" ] || exit 2\nprintf started > instrumentation-started\n')
+    writeFileSync(gradle, '#!/bin/sh\n[ "$*" = "--no-daemon :app:connectedDebugAndroidTest" ] || exit 2\nprintf started > instrumentation-started\nexit "$DSH_TEST_GRADLE_EXIT"\n')
     for (const path of [adb, gradle]) chmodSync(path, 0o700)
     const result = spawnSync('/bin/bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', launch.with!.script!], {
       cwd, encoding: 'utf8', timeout: 10_000,
-      env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, DSH_TEST_API: api, DSH_TEST_PAGES: pages, DSH_TEST_ADB_EXIT: String(adbExit) },
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, DSH_TEST_API: api, DSH_TEST_PAGES: pages,
+        DSH_TEST_ADB_EXIT: String(adbExit), DSH_TEST_GRADLE_EXIT: String(gradleExit), DSH_TEST_EXPORT_EXIT: String(exportExit),
+        DSH_SUPPORT_SOURCE_SHA: 'a'.repeat(40), RUNNER_TEMP: root },
     })
     expect(result.status === 0, result.stderr).toBe(accepted)
-    expect(existsSync(join(cwd, 'instrumentation-started'))).toBe(accepted)
+    const runtimeAccepted = api === '36' && pages === '16384' && adbExit === 0
+    expect(existsSync(join(cwd, 'instrumentation-started'))).toBe(runtimeAccepted)
+    expect(existsSync(join(cwd, 'system-export-started'))).toBe(runtimeAccepted && gradleExit === 0)
     const receipt = JSON.parse(readFileSync(join(cwd, 'app/build/outputs/android-runtime.json'), 'utf8')) as { status: string }
-    expect(receipt.status).toBe(accepted ? 'PASS' : 'FAIL')
+    expect(receipt.status).toBe(runtimeAccepted ? 'PASS' : 'FAIL')
   } finally { rmSync(root, { recursive: true, force: true }) }
 })
 

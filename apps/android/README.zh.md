@@ -84,6 +84,8 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 
 [原生适配器](app/src/main/kotlin/ai/deepseek/dsh/companion/AndroidSupportScanner.kt)在准入前验证已安装 JNI 字节和扫描器源码元数据。扫描与取消等待都在 UI 线程之外执行。导出器只接受与序列化结果完全相同且摘要匹配的字节，选定的保存目标接收已准入字节，写入前不再添加字段。取消选择器会丢弃待保存的准入结果；失败或取消的操作不会显示导出成功。[交付操作](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportDocumentDelivery.kt)在取消返回前等待写入结束，并在失败或取消后尝试丢弃新文档。提供方拒绝删除文档时，操作仍报告保存失败。[完整 Support Bundle 计划](../../docs/plans/2026-09-08-support-bundle.zh.md)拥有其余生产者与平台验收要求。
 
+[原生系统导出检查](../../scripts/release/android_support_exports.py)仅在临时托管模拟器运行。它先取消本地 DocumentsUI 目标，再保存到该目标，读取 Downloads 中的实际文件，并要求未配对字段完全匹配、扫描器身份绑定 APK、真实独立 canary 通过、扫描零发现且扫描后字节不变。instrumentation 用例与系统保存观测仍是两份独立证据；该场景不能证明已配对 Host 行为或完整 Support 覆盖。
+
 ## 已知限制与延后工作
 
 [Android 候选生产者](../../docs/development/release-candidate.zh.md#android-production) 将 unsigned bundle 清单、从该精确 AAB 派生的 APK、release 标识与原生库对齐检查，以及一次性 API 36／16 KiB 模拟器上的真实安装、启动和卸载合并为平台回执。该回执与生产签名、四平台发布验收仍分别负责。

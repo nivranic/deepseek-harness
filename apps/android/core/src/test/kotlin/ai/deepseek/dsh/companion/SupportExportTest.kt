@@ -115,12 +115,15 @@ class SupportExportTest {
         val interactions = InteractionModel(wire, backgroundScope)
         val files = FilesModel(wire, backgroundScope)
         val pushes = PushModel(wire, backgroundScope)
-        val captured = snapshot.copy(connections = ConnectionSnapshots(session.connectionSnapshot,
+        val captured = snapshot.copy(identityRestored = false, link = null, connections = ConnectionSnapshots(session.connectionSnapshot,
             interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot))
         session.closeAndAwait(); interactions.stopWatchingAndAwait(); files.stopAndAwait(); pushes.stopWatchingAndAwait()
         assertEquals(ConnectionState.STOPPED, session.connectionSnapshot.state)
         val exporter = SupportDocumentExporter(scanner({ SupportScanResult("approved", it, supportSha256(it)) }), policy)
-        val value = Json.parseToJsonElement(exporter.prepare(product, captured).copyBytes().decodeToString()).jsonObject
+        val bytes = exporter.prepare(product, captured).copyBytes()
+        val expected = requireNotNull(javaClass.getResourceAsStream("/support-unpaired-app.json")).use { it.readBytes() }
+        assertContentEquals(expected, bytes)
+        val value = Json.parseToJsonElement(bytes.decodeToString()).jsonObject
         val connections = value["connections"]!!.jsonObject
         val owners = mapOf("sessionFollow" to "SessionModel", "interactions" to "InteractionModel", "workspaces" to "FilesModel", "pushes" to "PushModel")
         assertEquals(owners.keys, connections.keys)

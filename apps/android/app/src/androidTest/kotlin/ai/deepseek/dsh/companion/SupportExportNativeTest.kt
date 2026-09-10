@@ -9,6 +9,9 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.security.SecureRandom
+import java.io.File
+import java.security.MessageDigest
+import org.json.JSONObject
 
 /** Exercises the installed APK's verified JNI library with exact admission and real random credential rejection. */
 class SupportExportNativeTest {
@@ -41,12 +44,28 @@ class SupportExportNativeTest {
     }
 
     @Test fun installedExporterProducesACompleteScannedDocument() = runBlocking(Dispatchers.IO) {
-        val scanner = AndroidSupportScanner(InstrumentationRegistry.getInstrumentation().targetContext)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val scanner = AndroidSupportScanner(context)
         val document = SupportDocumentExporter(scanner, policy).prepare(
             SupportProductIdentity("0.1.2-alpha.1", 1, "dev"), SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable),
         )
         assertTrue(document.copyBytes().decodeToString().contains("\"restored\":false"))
         val copy = document.copyBytes(); copy[0] = 0
         assertNotEquals(0.toByte(), document.copyBytes()[0])
+        val identity = scanner.identity()
+        val digest = MessageDigest.getInstance("SHA-256")
+        File(context.applicationInfo.sourceDir).inputStream().use { input ->
+            val buffer = ByteArray(65536)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        val proof = JSONObject().put("schemaVersion", 1)
+            .put("apkSha256", digest.digest().joinToString("") { "%02x".format(it.toInt() and 255) })
+            .put("scanner", JSONObject().put("version", identity.version).put("rulesDigest", identity.rulesDigest)
+                .put("sourceSha", identity.sourceSha).put("nativeSha256", identity.nativeSha256))
+        File(context.cacheDir, "support-scanner-identity.json").writeText(proof.toString() + "\n", Charsets.UTF_8)
     }
 }
