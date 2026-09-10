@@ -107,6 +107,10 @@ describe('CI workflow', () => {
       with: { 'if-no-files-found': 'error' },
     })
     expect(steps.slice(build, build + 4).every(step => step.if === undefined)).toBe(true)
+    const diagnostics = steps.find(step => step.name === 'Preserve Apple scanner failure diagnostics')
+    expect(diagnostics?.if).toBe('failure()')
+    if (!isRecord(diagnostics?.with)) throw new Error('Apple scanner failure diagnostics are absent')
+    expect(diagnostics.with.path).toContain('${{ runner.temp }}/apple-scanner-work/*.log')
   })
 
   it('builds the scanner before every Android application compilation lane', () => {

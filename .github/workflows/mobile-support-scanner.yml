@@ -141,7 +141,7 @@ jobs:
         with:
           name: mobile-support-scanner-apple-failure-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ${{ runner.temp }}/apple-scanner-work/build.log
+            ${{ runner.temp }}/apple-scanner-work/*.log
             ${{ runner.temp }}/apple-scanner-native/*.stdout
             ${{ runner.temp }}/apple-scanner-native/*.stderr
           if-no-files-found: warn

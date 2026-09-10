@@ -71,7 +71,7 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 <a id="build-apple-resources"></a>
 ## 构建 Apple 资源
 
-[Apple 构建入口](../../scripts/build-apple-support-scanner.py)复用相同的 Go/gomobile 版本与源码检查，并使用 [apple-build.json](apple-build.json) 中的 Xcode/部署标识。它要求 macOS，以及显式的 `--source-sha`、`--go`、`--developer-dir`、`--cache`、`--work-dir` 和 `--output` 输入。工作与输出目录必须新建且相互分离；缓存必须位于产物目录之外。
+[Apple 构建入口](../../scripts/build-apple-support-scanner.py)复用相同的 Go/gomobile 版本与源码检查，并使用 [apple-build.json](apple-build.json) 中的 Xcode/部署标识。它要求 macOS，以及显式的 `--source-sha`、`--go`、`--developer-dir`、`--cache`、`--work-dir` 和 `--output` 输入。工作与输出目录必须新建且相互分离；缓存必须位于产物目录之外。编译输出、framework 布局和校验异常保留在私有工作日志中；公开失败信息不包含诊断细节。
 
 输出 ZIP 包含 `SupportScanner.xcframework`、源码/模块清单与许可证。iOS 设备 arm64、模拟器 arm64/x86_64 和 macOS arm64/x86_64 均通过实际 Go archive object 独立检查。只准入生成的 Mac framework 版本链接。静态 framework 的 plist 版本属于规范化包元数据；不可变源码标识由 manifest 拥有。Apple SDK 是构建输入，不作为内容重新分发。
 

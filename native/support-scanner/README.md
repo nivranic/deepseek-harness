@@ -71,7 +71,7 @@ The [mobile scanner workflow](../../.github/workflows/mobile-support-scanner.yml
 <a id="build-apple-resources"></a>
 ## Build Apple resources
 
-The [Apple build entrypoint](../../scripts/build-apple-support-scanner.py) uses the same Go/gomobile versions and source checks with the Xcode/deployment identities in [apple-build.json](apple-build.json). It requires macOS and explicit `--source-sha`, `--go`, `--developer-dir`, `--cache`, `--work-dir` and `--output` inputs. Work and output directories must be new and separate; the cache must be outside the artifact directory.
+The [Apple build entrypoint](../../scripts/build-apple-support-scanner.py) uses the same Go/gomobile versions and source checks with the Xcode/deployment identities in [apple-build.json](apple-build.json). It requires macOS and explicit `--source-sha`, `--go`, `--developer-dir`, `--cache`, `--work-dir` and `--output` inputs. Work and output directories must be new and separate; the cache must be outside the artifact directory. Compiler output, framework layout and validation exceptions stay in private work logs; public failures contain no diagnostic details.
 
 The output ZIP contains `SupportScanner.xcframework`, a source/module manifest and licenses. Device iOS arm64, simulator arm64/x86_64 and macOS arm64/x86_64 are independently inspected through their actual Go archive objects. Only the generated Mac framework version links are admitted. Static framework plist versions are canonical package metadata; the manifest owns immutable source identity. Apple SDKs are build inputs, not redistributed contents.
 

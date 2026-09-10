@@ -1,5 +1,7 @@
 """Apple builder rejection paths preserve existing files and never invoke unavailable compilers."""
 
+from contextlib import redirect_stderr
+import io
 import json
 from pathlib import Path
 import subprocess
@@ -9,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from release.apple_scanner_build import BUILD_FILES, build_apple
+from release.apple_scanner_build import BUILD_FILES, build_apple, main
 from release.mobile_scanner_source import MODULE
 
 
@@ -63,6 +65,29 @@ class AppleScannerBuildTests(unittest.TestCase):
         with patch("release.apple_scanner_build.sys.platform", "linux"), self.assertRaisesRegex(ValueError, "requires macOS"):
             build_apple(self.repo, self.commit, **self.arguments)
         self.assertFalse(self.arguments["work"].exists())
+
+    def test_cli_retains_validation_exception_privately_without_replacing_existing_work(self):
+        arguments = ["builder", "--source-sha", self.commit]
+        for flag, name in [("go", "go"), ("developer-dir", "developer"), ("cache", "cache"),
+                           ("work-dir", "work"), ("output", "output")]:
+            arguments.extend(["--" + flag, str(self.arguments[name])])
+        work = self.arguments["work"]
+
+        def failed_build(*args, **kwargs):
+            work.mkdir(exist_ok=True)
+            raise ValueError("fixture private framework validation detail")
+
+        for existing in (False, True):
+            if existing:
+                (work / "failure.log").write_bytes(b"existing diagnostic")
+            public = io.StringIO()
+            with patch("sys.argv", arguments), patch("release.apple_scanner_build.build_apple", failed_build), redirect_stderr(public):
+                self.assertEqual(main(), 1)
+            self.assertEqual(public.getvalue(), "Apple scanner build failed; inspect the private work log\n")
+            if existing:
+                self.assertEqual((work / "failure.log").read_bytes(), b"existing diagnostic")
+            else:
+                self.assertIn("ValueError: fixture private framework validation detail", (work / "failure.log").read_text())
 
 
 if __name__ == "__main__":

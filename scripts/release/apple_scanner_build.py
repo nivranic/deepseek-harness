@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import traceback
 
 from .apple_scanner_artifact import apple_dependencies, apple_policy, framework_entries, package_apple
 from .mobile_scanner_artifact import license_files
@@ -110,6 +111,15 @@ def build_apple(repository: Path, commit: str, *, go: Path, developer: Path, cac
          "-prefix=DSH", "-trimpath", "-ldflags=-w", "-o", str(raw), MODULE])
     verify_materialized_source(source, Path(downloaded["Dir"]))
     run([str(go), "mod", "verify"])
+    with (work / "framework-layout.log").open("x", encoding="utf-8") as stream:
+        for path in sorted(raw.rglob("*")):
+            name = path.relative_to(raw).as_posix()
+            if path.is_symlink():
+                stream.write(json.dumps({"path": name, "link": str(path.readlink())}) + "\n")
+            elif path.is_file():
+                stream.write(json.dumps({"path": name, "bytes": path.stat().st_size}) + "\n")
+                if path.suffix == ".plist":
+                    stream.write(path.read_bytes().decode("utf-8", errors="backslashreplace") + "\n")
     files, links, libraries = framework_entries(raw)
     graphs, slices = [], []
     for library in libraries:
@@ -188,6 +198,7 @@ def main() -> int:
     for name in ("go", "developer-dir", "cache", "work-dir", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args()
+    work_existed = args.work_dir.exists() or args.work_dir.is_symlink()
     try:
         receipt = build_apple(Path(__file__).resolve().parents[2], args.source_sha, go=args.go.resolve(),
                               developer=args.developer_dir.resolve(), cache=args.cache, work=args.work_dir, output=args.output)
@@ -195,5 +206,12 @@ def main() -> int:
         return 0
     except Exception:
         # SDK, process and filesystem errors may contain private paths; only the fixed outcome is public.
+        if not work_existed and args.work_dir.is_dir() and not args.work_dir.is_symlink():
+            try:
+                with (args.work_dir / "failure.log").open("x", encoding="utf-8") as stream:
+                    traceback.print_exc(file=stream)
+            except OSError:
+                # Diagnostic I/O must preserve the original failure and must not overwrite an existing file.
+                pass
         print("Apple scanner build failed; inspect the private work log", file=sys.stderr)
         return 1
