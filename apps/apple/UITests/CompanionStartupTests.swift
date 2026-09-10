@@ -30,8 +30,15 @@ final class CompanionStartupTests: XCTestCase {
         XCTAssertTrue(export.waitForExistence(timeout: 15))
         XCTAssertTrue(export.isEnabled)
         export.tap()
-        let cancel = app.navigationBars.buttons["Cancel"].firstMatch
-        let appeared = cancel.waitForExistence(timeout: 30)
+        let picker = app.otherElements["Browse View (Picker)"].firstMatch
+        let navigationCancel = app.navigationBars.buttons["Cancel"].firstMatch
+        // The system picker can expose its dismissal overlay as Other instead of a navigation button.
+        let overlayCancel = app.otherElements["Cancel"].firstMatch
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            picker.exists && ((navigationCancel.exists && navigationCancel.isHittable)
+                || (overlayCancel.exists && overlayCancel.isHittable))
+        }, object: nil)
+        let appeared = XCTWaiter.wait(for: [ready], timeout: 30) == .completed
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "unpaired-diagnostics-system-exporter"
         screenshot.lifetime = .keepAlways
@@ -44,6 +51,7 @@ final class CompanionStartupTests: XCTestCase {
         }
         XCTAssertTrue(appeared)
         XCTAssertFalse(app.buttons["companion.support.cancel"].exists)
+        let cancel = navigationCancel.exists && navigationCancel.isHittable ? navigationCancel : overlayCancel
         cancel.tap()
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in export.exists && export.isEnabled }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 10), .completed)
