@@ -54,7 +54,7 @@ def framework_libraries(value: object) -> list[dict]:
             raise ValueError("Scanner framework library identity is unknown or duplicated")
         seen.add(name)
         platform, variant, architectures = LIBRARIES[name]
-        fields = {"LibraryIdentifier", "LibraryPath", "SupportedArchitectures", "SupportedPlatform"}
+        fields = {"BinaryPath", "LibraryIdentifier", "LibraryPath", "SupportedArchitectures", "SupportedPlatform"}
         if variant:
             fields.add("SupportedPlatformVariant")
         arches = row.get("SupportedArchitectures")
@@ -64,6 +64,8 @@ def framework_libraries(value: object) -> list[dict]:
             raise ValueError("Scanner framework architecture list differs")
         prefix = name + "/" + FRAMEWORK + "/"
         version = "Versions/A/" if platform == "macos" else ""
+        if row["BinaryPath"] != FRAMEWORK + "/" + version + BINARY:
+            raise ValueError("Scanner framework binary path differs from its declared library")
         result.append({"identifier": name, "platform": platform, "variant": variant,
                        "architectures": list(architectures), "binary": prefix + version + BINARY,
                        "headers": prefix + version + "Headers/", "modules": prefix + version + "Modules/",

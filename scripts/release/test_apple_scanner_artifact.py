@@ -18,12 +18,8 @@ from release.mobile_scanner_source import MODULE
 
 
 def index():
-    """An independently declared device, simulator and Mac framework index."""
-    return {"XCFrameworkFormatVersion": "1.0", "CFBundlePackageType": "XFWK", "AvailableLibraries": [
-        {"LibraryIdentifier": "ios-arm64", "LibraryPath": "SupportScanner.framework", "SupportedArchitectures": ["arm64"], "SupportedPlatform": "ios"},
-        {"LibraryIdentifier": "ios-arm64_x86_64-simulator", "LibraryPath": "SupportScanner.framework", "SupportedArchitectures": ["arm64", "x86_64"], "SupportedPlatform": "ios", "SupportedPlatformVariant": "simulator"},
-        {"LibraryIdentifier": "macos-arm64_x86_64", "LibraryPath": "SupportScanner.framework", "SupportedArchitectures": ["arm64", "x86_64"], "SupportedPlatform": "macos"},
-    ]}
+    """The index emitted by the pinned Xcode 16.4 producer on a hosted Mac."""
+    return plistlib.loads((Path(__file__).parent / "fixtures/apple-scanner/Info.plist").read_bytes())
 
 
 class AppleScannerArtifactTests(unittest.TestCase):
@@ -60,12 +56,16 @@ class AppleScannerArtifactTests(unittest.TestCase):
         self.assertEqual(len(framework_libraries(index())), 3)
         mutations = [lambda v: v["AvailableLibraries"].pop(),
                      lambda v: v["AvailableLibraries"].append(copy.deepcopy(v["AvailableLibraries"][0])),
-                     lambda v: v["AvailableLibraries"][1].update(SupportedPlatformVariant="maccatalyst"),
+                     lambda v: v["AvailableLibraries"][0].update(SupportedPlatformVariant="maccatalyst"),
                      lambda v: v["AvailableLibraries"][0].update(LibraryIdentifier="../outside"),
                      lambda v: v["AvailableLibraries"][0].update(LibraryPath="Other.framework"),
                      lambda v: v["AvailableLibraries"][0].update(SupportedArchitectures=["arm64", "arm64"]),
                      lambda v: v["AvailableLibraries"][0].update(SupportedArchitectures=[False]),
-                     lambda v: v["AvailableLibraries"][2].update(SupportedPlatform="ios"),
+                     lambda v: v["AvailableLibraries"][2].update(SupportedPlatform="macos"),
+                     lambda v: v["AvailableLibraries"][0].pop("BinaryPath"),
+                     lambda v: v["AvailableLibraries"][0].update(BinaryPath="../outside"),
+                     lambda v: v["AvailableLibraries"][0].update(BinaryPath="SupportScanner.framework/Other"),
+                     lambda v: v["AvailableLibraries"][1].update(BinaryPath="SupportScanner.framework/SupportScanner"),
                      lambda v: v.update(XCFrameworkFormatVersion="2.0")]
         for mutate in mutations:
             value = index(); mutate(value)
