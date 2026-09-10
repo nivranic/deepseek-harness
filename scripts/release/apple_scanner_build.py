@@ -23,6 +23,7 @@ BUILD_FILES = (
     "scripts/build-apple-support-scanner.py", "scripts/release/apple_scanner_build.py",
     "scripts/release/apple_scanner_artifact.py", "scripts/release/mobile_scanner_source.py",
     "scripts/release/mobile_scanner_artifact.py", "scripts/release/mobile_scanner_build.py",
+    "scripts/release/fixtures/apple-scanner/link.m",
 )
 
 
@@ -34,6 +35,18 @@ def thin_archive(binary: Path, architecture: str, output: Path, run: Callable[[l
         shutil.copyfile(binary, output)
     else:
         run(["/usr/bin/xcrun", "lipo", str(binary), "-thin", architecture, "-output", str(output)])
+
+
+def inspection_target(platform: str, variant: str | None, architecture: str, policy: dict) -> tuple[str, str]:
+    """Select the SDK and deployment triple for the same declared framework slice."""
+    if architecture not in ("arm64", "x86_64"):
+        raise ValueError("Apple scanner inspection architecture is unsupported")
+    if platform == "macos" and variant is None:
+        return "macosx", architecture + "-apple-macosx" + policy["minimumMacOSVersion"]
+    if platform == "ios" and variant in (None, "simulator"):
+        return ("iphonesimulator" if variant else "iphoneos",
+                architecture + "-apple-ios" + policy["minimumIOSVersion"] + ("-simulator" if variant else ""))
+    raise ValueError("Apple scanner inspection platform is unsupported")
 
 
 def build_apple(repository: Path, commit: str, *, go: Path, developer: Path, cache: Path, work: Path, output: Path) -> dict:
@@ -148,13 +161,22 @@ def build_apple(repository: Path, commit: str, *, go: Path, developer: Path, cac
             object_bytes = run(["/usr/bin/xcrun", "ar", "-p", str(thin), "go.o"], binary=True)
             object_file = work / (identifier + ".o")
             object_file.write_bytes(object_bytes)
-            info = json.loads(run([str(go), "version", "-m", "-json", str(object_file)]))
+            sdk, triple = inspection_target(library["platform"], library["variant"], architecture, policy)
+            sdk_path = run(["/usr/bin/xcrun", "--sdk", sdk, "--show-sdk-path"]).decode().strip()
+            inspection = work / (identifier + "-inspection")
+            run(["/usr/bin/xcrun", "--sdk", sdk, "clang", "-fobjc-arc", "-fmodules", "-isysroot", sdk_path,
+                 "-target", triple, "-I", str(raw / library["headers"]),
+                 "-Xlinker", "-force_load", "-Xlinker", str(thin),
+                 "-framework", "Foundation", "-framework", "Security", "-lresolv",
+                 str(repository / "scripts/release/fixtures/apple-scanner/link.m"), "-o", str(inspection)])
+            info = json.loads(run([str(go), "version", "-m", "-json", str(inspection)]))
             if info.get("GoVersion") != "go" + tools_policy["goVersion"]:
-                raise ValueError("Apple scanner object compiler differs from policy")
+                raise ValueError("Apple scanner linked compiler differs from policy")
             graphs.append(apple_dependencies(info, source.version, library["platform"], architecture))
             slices.append({"library": library["identifier"], "architecture": architecture,
                            "archiveSha256": hashlib.sha256(thin.read_bytes()).hexdigest(),
-                           "goObjectSha256": hashlib.sha256(object_bytes).hexdigest()})
+                           "goObjectSha256": hashlib.sha256(object_bytes).hexdigest(),
+                           "inspectionBinarySha256": hashlib.sha256(inspection.read_bytes()).hexdigest()})
         metadata = plistlib.loads(files[library["plist"]])
         # Gomobile's static-framework plist has a timestamp version; source identity belongs in the manifest.
         metadata["CFBundleVersion"] = "1.0"

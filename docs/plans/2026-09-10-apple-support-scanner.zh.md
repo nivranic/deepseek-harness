@@ -10,7 +10,7 @@
 
 使用与 Android 相同的 [Go 扫描器](../../native/support-scanner/README.zh.md)和固定 gomobile 生成器。独立的 Apple 生产者处理 Xcode、静态 framework 及平台验证。复用生成的 Objective-C 接口可保留扫描器的不可变字节与取消等待语义。自定义 C 适配器会增加不必要的 ABI 实现；将规则复制到 Swift 会形成第二套扫描器。
 
-XCFramework 包含 iOS arm64、模拟器 arm64/x86_64 和 macOS arm64/x86_64。[Apple 构建策略](../../native/support-scanner/apple-build.json)固定 Xcode 和部署版本。生产者通过既有且经过核验的本地代理读取已提交模块文件，检查各架构静态归档内的实际 Go object，并保留源码、模块校验和与许可证。Framework 版本链接必须与生成布局完全一致；归档元数据规范化时不得重写原生字节。
+XCFramework 包含 iOS arm64、模拟器 arm64/x86_64 和 macOS arm64/x86_64。[Apple 构建策略](../../native/support-scanner/apple-build.json)固定 Xcode 和部署版本。生产者通过既有且经过核验的本地代理读取已提交模块文件，并将每个准确的归档切片强制链接到绑定源码的检查程序。维护中的 Go 读取器检查其实际模块图；归档、Go object 和检查程序摘要绑定源码、校验和与许可证。该方案使用 SDK 链接器，无需维护 Mach-O object 解码器，也不以源码依赖清单替代二进制检查。Framework 版本链接必须与生成布局完全一致；归档元数据规范化时不得重写原生字节。
 
 [原生验证器](../../scripts/verify-apple-support-scanner.py)比较准确包内容与编译输入，链接 Swift 探针，并在 macOS 和自有 iOS 模拟器上运行。它验证准入字节身份、修改隔离、凭据拒绝及取消完成。两个已链接二进制均执行维护中的 Go 漏洞检查。静态 `BUILT` 回执不能替代执行证据，也不能证明物理设备验收。
 

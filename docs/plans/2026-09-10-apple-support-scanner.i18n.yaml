@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/plans/2026-09-10-apple-support-scanner.md
-2026-09-10-apple-support-scanner.md: edc87290ff0e7583ec8d3274f46390efa221c41f
-2026-09-10-apple-support-scanner.zh.md: ab13324fd6ff395fd1031c8f1fcb34c4bbfdb183
+2026-09-10-apple-support-scanner.md: f671029011a8dd024dd3a463696de8d1a7e3d976
+2026-09-10-apple-support-scanner.zh.md: 8c764a496e1859d2f9ead22e4ad0a4cf74b64e68

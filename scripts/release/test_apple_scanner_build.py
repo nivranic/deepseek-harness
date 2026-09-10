@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from release.apple_scanner_build import BUILD_FILES, build_apple, main, thin_archive
+from release.apple_scanner_build import BUILD_FILES, build_apple, inspection_target, main, thin_archive
 from release.mobile_scanner_source import MODULE
 
 
@@ -85,6 +85,21 @@ class AppleScannerBuildTests(unittest.TestCase):
         thin_archive(source, "arm64", output, lipo)
         self.assertEqual(calls, [])
         self.assertEqual(output.read_bytes(), archive)
+
+    def test_inspection_links_the_declared_platform_and_deployment_version(self):
+        policy = {"minimumIOSVersion": "17.0", "minimumMacOSVersion": "14.0"}
+        targets = [("ios", None, "arm64", "iphoneos", "arm64-apple-ios17.0"),
+                   ("ios", "simulator", "arm64", "iphonesimulator", "arm64-apple-ios17.0-simulator"),
+                   ("ios", "simulator", "x86_64", "iphonesimulator", "x86_64-apple-ios17.0-simulator"),
+                   ("macos", None, "arm64", "macosx", "arm64-apple-macosx14.0"),
+                   ("macos", None, "x86_64", "macosx", "x86_64-apple-macosx14.0")]
+        for platform, variant, arch, sdk, triple in targets:
+            with self.subTest(platform=platform, variant=variant, architecture=arch):
+                self.assertEqual(inspection_target(platform, variant, arch, policy), (sdk, triple))
+        for platform, variant, arch in [("ios", "maccatalyst", "arm64"), ("macos", "simulator", "arm64"),
+                                      ("android", None, "arm64"), ("ios", None, "arm64e")]:
+            with self.subTest(platform=platform, variant=variant, architecture=arch), self.assertRaises(ValueError):
+                inspection_target(platform, variant, arch, policy)
 
     def test_cli_retains_validation_exception_privately_without_replacing_existing_work(self):
         arguments = ["builder", "--source-sha", self.commit]

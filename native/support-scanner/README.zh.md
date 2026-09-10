@@ -73,7 +73,7 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
 [Apple 构建入口](../../scripts/build-apple-support-scanner.py)复用相同的 Go/gomobile 版本与源码检查，并使用 [apple-build.json](apple-build.json) 中的 Xcode/部署标识。它要求 macOS，以及显式的 `--source-sha`、`--go`、`--developer-dir`、`--cache`、`--work-dir` 和 `--output` 输入。工作与输出目录必须新建且相互分离；缓存必须位于产物目录之外。编译输出、framework 布局和校验异常保留在私有工作日志中；公开失败信息不包含诊断细节。
 
-输出 ZIP 包含 `SupportScanner.xcframework`、源码/模块清单与许可证。iOS 设备 arm64、模拟器 arm64/x86_64 和 macOS arm64/x86_64 均先移除 universal 容器，再通过实际 Go archive object 独立检查，容器只有一个架构时也不例外。每项索引必须声明准确的平台二进制路径；只准入生成的 Mac framework 版本链接。静态 framework 的 plist 版本属于规范化包元数据；不可变源码标识由 manifest 拥有。Apple SDK 是构建输入，不作为内容重新分发。
+输出 ZIP 包含 `SupportScanner.xcframework`、源码/模块清单与许可证。对于 iOS 设备 arm64、模拟器 arm64/x86_64 和 macOS arm64/x86_64，生产者移除 universal 容器，并将准确的归档切片强制链接到最小检查程序。Go 的可执行文件读取器检查各架构链接后的模块图；manifest 保留归档、Go object 和检查程序摘要。每项索引必须声明准确的平台二进制路径；只准入生成的 Mac framework 版本链接。静态 framework 的 plist 版本属于规范化包元数据；不可变源码标识由 manifest 拥有。Apple SDK 是构建输入，不作为内容重新分发。
 
 [原生验证器](../../scripts/verify-apple-support-scanner.py)比较归档字节与编译使用的 framework，在 macOS 和自有 iOS 模拟器上执行 Swift 绑定探针，并记录已链接二进制摘要。工作流在发布库前检查这些已链接二进制的漏洞。库的 `BUILT` 状态不能证明原生执行或应用导出；验收顺序由 [Apple 接入计划](../../docs/plans/2026-09-10-apple-support-scanner.zh.md)拥有。
 

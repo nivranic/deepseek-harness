@@ -122,7 +122,7 @@ def framework_entries(root: Path) -> tuple[dict[str, bytes], dict[str, str], lis
 
 
 def apple_dependencies(info: dict, version: str, platform: str, architecture: str) -> list[dict]:
-    """Read each archive's actual Go object metadata, retaining source checksums."""
+    """Read the linked archive's Go metadata, retaining target settings and source checksums."""
     if platform not in ("ios", "macos") or architecture not in ("arm64", "x86_64"):
         raise ValueError("Scanner Apple target is unsupported")
     expected = {"GOOS": "ios" if platform == "ios" else "darwin", "GOARCH": "amd64" if architecture == "x86_64" else "arm64",
