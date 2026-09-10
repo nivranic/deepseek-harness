@@ -13,6 +13,11 @@ final class CompanionStartupTests: XCTestCase {
         export.tap()
         let navigation = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
         XCTAssertTrue(navigation.waitForExistence(timeout: 30))
+        if !navigation.staticTexts["On My iPhone"].exists {
+            let localFiles = app.staticTexts["On My iPhone"].firstMatch
+            XCTAssertTrue(localFiles.waitForExistence(timeout: 30))
+            localFiles.tap()
+        }
         XCTAssertTrue(navigation.staticTexts["On My iPhone"].waitForExistence(timeout: 30))
         let filename = app.textFields["DOCPicker.filenameTextField"]
         XCTAssertTrue(filename.exists)
