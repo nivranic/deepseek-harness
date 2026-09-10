@@ -49,7 +49,11 @@ Mac Host 的**导出运行时诊断…**操作会准备本地 JSON 快照，包�
 
 `LinkClient` 镜像 TypeScript 参考客户端：`pair(payload:deviceName:)` 只接受 fresh client 自身拥有的 endpoint 与 pin，以一次性配对码换取持久化的 `LinkCredentials`（真实部署存 Keychain，预览与测试用内存实现）；`describe()` 返回 Host 描述；`call(_:args:)` 校验回显的 `rpcId`，把成功但省略 value 的响应映射为 `.null`，并带出结构化 refusal；`stream(_:payload:)` 逐帧产出 NDJSON 值，错误帧以类型化失败结束。unary 与 stream 的传输处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。失败的 stream 会读取该响应体以完成分类，成功的 stream 则在未预消费字节的前提下进入 NDJSON 解析。每个请求以设备密钥对 `timestamp\nmethod\npath\nsha256hex(body)` 签名；每次 TLS 握手在写出任何请求字节之前钉扎证书指纹。`InteractionViewModel` 只从每代 Host `ready.clientId` 更新回答身份，从 `waterfall.request` 读取交互字段，应用 cancel frame，并在重连后等待新的 ready frame。
 
-[本地 Link 诊断投影](Sources/SharedAppleRemoteCore/LinkDiagnostics.swift)记录有界 HTTP 与流计数、固定失败类别、最后已知配对角色和选定的已认证协议字段。读取投影不会加载凭据或发起请求。刷新、失败或取消配对会清空 Host 描述值，早先查询不能覆盖较新观测。计数描述本地工作，不代表连接健康或当前授权。[共享导出核心](Sources/SupportExportCore/DocumentScanner.swift)负责完整字节准入，并等待后台打开、扫描和取消操作全部结束；原生应用接线与保存验收独立于协议测试。
+[本地 Link 诊断投影](Sources/SharedAppleRemoteCore/LinkDiagnostics.swift)记录有界 HTTP 与流计数、固定失败类别、最后已知配对角色和选定的已认证协议字段。读取投影不会加载凭据或发起请求。已配对应用在进入前台时刷新描述；刷新、失败或取消配对会清空 Host 值，早先查询不能覆盖较新观测。计数描述本地工作，不代表连接健康或当前授权。[共享导出核心](Sources/SupportExportCore/DocumentScanner.swift)负责完整字节准入，并等待后台打开、扫描和取消操作全部结束。
+
+Companion 的**导出诊断信息**操作在配对前后均可使用。[导出器](Sources/CompanionUI/CompanionSupportExporter.swift)将应用标识、扫描器来源和既有 Link 观测序列化为一份文档，上限为 16 KiB，扫描期限为 10 秒。[原生适配器](Shells/SupportScannerAdapter.swift)要求内嵌标识匹配已链接扫描器的版本和规则。系统保存操作只接收准确批准字节；交付前取消会拒绝输出。文档保持 `complete: false`，列出缺失的应用源码、健康、连接、有效角色、更新、崩溃与会话生产者。扫描器源码 SHA 不充当缺失的应用源码标识。
+
+生成 Xcode 项目前，需要[扫描器准备 Action](../../.github/actions/apple-support-scanner/action.yml)在 `.support-scanner/` 下的输出。两个 Companion 目标链接静态 framework，并以文件夹资源打包其来源和许可证。[最终应用检查](../../scripts/verify-apple-app-scanner.py)对照准备记录与 Git 重查这些字节，比较各可执行切片的 Go 模块图，并执行维护中的二进制漏洞检查器。Debug 标识与 Release 归档报告绑定这些结果；包测试和库探针不能证明保存文档或设备验收。
 
 -----
 
@@ -107,7 +111,7 @@ Mac Host 的**导出运行时诊断…**操作会准备本地 JSON 快照，包�
 <a id="known-limitations-and-deferred-work"></a>
 ## 已知限制与延后工作
 
-- **已纳入 CI 编译与测试**——[Apple Swift](../../.github/workflows/apple-swift.yml) 车道在 `macos-latest` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
+- **已纳入 CI 编译与测试**——[Apple Swift](../../.github/workflows/apple-swift.yml) 车道在 `macos-15` 上编译包并运行全部测试（PR、dev 与 master 的每次 `apps/apple` 变更）；fixture 回放在漂移门禁的两侧运行。
 - **真实 Host 验收**——同一车道让 `LinkNativeAcceptance` 对 shipped base 加 desktop Host composition 执行唯一的 13 步共享 corpus。结果分别记录 Host 与 Client commit 以及 protocol、contract、Session format 版本；缺少或跳过任一步都会让车道失败。
 - **已安装 iOS 应用启动**——[CompanionStartupTests](UITests/CompanionStartupTests.swift) 在全新 iPhone 模拟器上启动生产应用壳，检查未配对表单和空输入下禁用的提交按钮，并向保留的 XCTest 结果附加截图。此检查不验证 App 与 Host 配对或真实设备网络。
 - **应用壳已入 CI 构建**——`project.yml`（XcodeGen）定义基于 `CompanionRootView` 的 iPhone/iPad 与 Mac Companion 壳，以及基于 `DirectHostRuntime` 的独立 `DirectHostMac` target。Apple Swift 车道构建三个 scheme；独立的 Mac Host candidate 车道组装并验证 Host bundle。其无密钥 UI 测试确认首次使用声明、选择 Configure later，并操作生产界面的 New session 控件，随后检查停止、启动与重启。[Mac Host 决策](../../.agents/notes/implemented/architecture/2026-08-31-macos-direct-host.zh.md)说明测试观察器权限和签名证据。Full Host 发布验收仍要求外部所有者管理脱离的工具进程组、PTY session 及 helper 意外死亡；Companion 归档不覆盖此要求。

@@ -103,7 +103,7 @@ jobs:
             os: ubuntu-latest
             build-mode: manual
           - language: swift
-            os: macos-latest
+            os: macos-15
             build-mode: manual
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -128,6 +128,8 @@ jobs:
           "${ANDROID_HOME:?Android SDK root is required}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36'
       - uses: ./.github/actions/android-support-scanner
         if: matrix.language == 'java-kotlin'
+      - uses: ./.github/actions/apple-support-scanner
+        if: matrix.language == 'swift'
       - name: Generate Apple app targets
         if: matrix.language == 'swift'
         working-directory: apps/apple

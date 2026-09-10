@@ -137,6 +137,44 @@ describe('CI workflow', () => {
     expect(build?.run).not.toContain('continue-on-error')
   })
 
+  it('prepares the Apple scanner before every Xcode project generation lane', () => {
+    for (const [file, jobId, name] of [
+      ['apple-swift.yml', 'swift-test', 'Generate the Xcode project'],
+      ['apple-archives.yml', 'archives', 'Build and verify archives'],
+      ['mac-host-candidate.yml', 'candidate', 'Build, assemble and exercise the Mac Host'],
+      ['supply-chain.yml', 'codeql', 'Generate Apple app targets'],
+    ] as const) {
+      const job = workflowJob(loadWorkflow(`.github/workflows/${file}`), jobId)
+      if (!Array.isArray(job.steps)) throw new Error('Apple compilation steps are absent')
+      const steps = job.steps.filter(isRecord)
+      const setup = steps.findIndex(step => step.uses === './.github/actions/apple-support-scanner')
+      expect(setup).toBeGreaterThan(0)
+      expect(setup).toBeLessThan(steps.findIndex(step => step.name === name))
+      expect(steps[setup]?.['continue-on-error']).toBeUndefined()
+      expect(steps[setup]?.if).toBe(file === 'supply-chain.yml' ? "matrix.language == 'swift'" : undefined)
+      if (file !== 'supply-chain.yml') expect(job['runs-on']).toBe('macos-15')
+    }
+    const action = loadWorkflow('.github/actions/apple-support-scanner/action.yml')
+    if (!isRecord(action.runs) || !Array.isArray(action.runs.steps)) throw new Error('Apple scanner composite steps are absent')
+    const steps = action.runs.steps.filter(isRecord)
+    const build = steps.find(step => typeof step.run === 'string')
+    expect(build?.run).toContain('source_sha=$(git rev-parse HEAD)')
+    expect(build?.run).toContain('scripts/verify-apple-support-scanner.py')
+    expect(build?.run).toContain('govulncheck@v1.8.0 -mode=binary')
+    expect(build?.run).toContain('--output apps/apple/.support-scanner')
+    expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
+    const project = loadWorkflow('apps/apple/project.yml')
+    if (!isRecord(project.targets)) throw new Error('Apple application targets are absent')
+    for (const name of ['CompanioniOS', 'CompanionMac']) {
+      const target = project.targets[name]
+      if (!isRecord(target) || !isRecord(target.settings) || !isRecord(target.settings.base)) throw new Error('Companion settings are absent')
+      expect(target.dependencies).toContainEqual({ framework: '.support-scanner/SupportScanner.xcframework', embed: false })
+      expect(target.sources).toContainEqual({ path: '.support-scanner/SupportScannerResources', type: 'folder', buildPhase: 'resources' })
+      expect(target.settings.base.STRIP_INSTALLED_PRODUCT).toBe(false)
+      expect(target.settings.base.COPY_PHASE_STRIP).toBe(false)
+    }
+  })
+
   it.each([
     ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
   ])('preserves the actual checkout before validation in %s', (file, jobId) => {

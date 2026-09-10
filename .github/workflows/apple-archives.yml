@@ -4,6 +4,12 @@ on:
   pull_request:
     paths:
       - 'apps/apple/**'
+      - '.github/actions/apple-support-scanner/**'
+      - 'native/support-scanner/**'
+      - 'scripts/build-apple-support-scanner.py'
+      - 'scripts/verify-apple-support-scanner.py'
+      - 'scripts/stage-apple-support-scanner.py'
+      - 'scripts/verify-apple-app-scanner.py'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -65,6 +71,7 @@ jobs:
         run: |
           python3 -B -m unittest discover -s scripts/release -p 'test_apple_archive_plist.py' -v
           pnpm exec vitest run scripts/release/apple-archive.spec.ts scripts/apple-archives.spec.ts
+      - uses: ./.github/actions/apple-support-scanner
       - name: Build and verify archives
         run: node --import tsx/esm scripts/produce-apple-archives.ts --output "$RUNNER_TEMP/apple-archives"
       - name: Preserve verified Companion archives
@@ -77,6 +84,7 @@ jobs:
             ${{ runner.temp }}/apple-archives/toolchain.json
             ${{ runner.temp }}/apple-archives/*/*.zip
             ${{ runner.temp }}/apple-archives/*/inventory.json
+            ${{ runner.temp }}/apple-archives/*/scanner/verification.json
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
@@ -89,6 +97,8 @@ jobs:
             ${{ runner.temp }}/apple-archives/source.json
             ${{ runner.temp }}/apple-archives/toolchain.json
             ${{ runner.temp }}/apple-archives/*/build.log
+            ${{ runner.temp }}/apple-archives/*/scanner/*.stdout
+            ${{ runner.temp }}/apple-archives/*/scanner/*.stderr
             ${{ runner.temp }}/apple-archives/*/*.xcarchive/Info.plist
             ${{ runner.temp }}/apple-archives/*/Archive.xcresult
           if-no-files-found: warn

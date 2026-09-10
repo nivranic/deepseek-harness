@@ -13,7 +13,23 @@ import zipfile
 
 from .apple_scanner_artifact import framework_entries, native_observation, verify_archived_framework
 from .apple_scanner_build import BUILD_FILES
-from .mobile_scanner_source import read_source, write_proxy
+from .mobile_scanner_source import ScannerSource, read_source, write_proxy
+
+
+def verify_source_material(repository: Path, commit: str, manifest: dict) -> ScannerSource:
+    """Bind scanner source and every builder record to Git independently of copied receipts."""
+    source = read_source(repository, commit)
+    with tempfile.TemporaryDirectory(prefix="dsh-apple-stage-source-") as temporary:
+        expected_source = write_proxy(source, Path(temporary) / "proxy")
+    if manifest["source"] != expected_source:
+        raise ValueError("Apple scanner source material differs from Git")
+    builders = []
+    for name in BUILD_FILES:
+        blob = subprocess.check_output(["git", "-c", "core.fsmonitor=false", "-C", str(repository), "show", commit + ":" + name], stderr=subprocess.PIPE)
+        builders.append({"path": name, "sha256": hashlib.sha256(blob).hexdigest()})
+    if manifest["builderFiles"] != builders:
+        raise ValueError("Apple scanner builder material differs from Git")
+    return source
 
 
 def stage_apple(repository: Path, commit: str, *, directory: Path, framework: Path, verification: Path, output: Path) -> dict:
@@ -27,7 +43,7 @@ def stage_apple(repository: Path, commit: str, *, directory: Path, framework: Pa
     receipt = json.loads(receipt_bytes)
     proof_bytes = verification.read_bytes()
     proof = json.loads(proof_bytes)
-    source = read_source(repository, commit)
+    source = verify_source_material(repository, commit, receipt["manifest"])
     if type(receipt.get("schemaVersion")) is not int or receipt["schemaVersion"] != 1 or receipt.get("status") != "BUILT" or receipt.get("staticVerification") != "PASS":
         raise ValueError("Apple scanner staging requires a verified build")
     if receipt.get("sourceSha") != commit or receipt.get("treeSha") != source.tree or receipt.get("artifact") != "support-scanner-apple.zip":
@@ -40,16 +56,6 @@ def stage_apple(repository: Path, commit: str, *, directory: Path, framework: Pa
     if receipt.get("bytes") != len(archive) or receipt.get("sha256") != digest:
         raise ValueError("Apple scanner archive digest differs")
     manifest = receipt["manifest"]
-    with tempfile.TemporaryDirectory(prefix="dsh-apple-stage-source-") as temporary:
-        expected_source = write_proxy(source, Path(temporary) / "proxy")
-    if manifest["source"] != expected_source:
-        raise ValueError("Apple scanner source material differs from Git")
-    builders = []
-    for name in BUILD_FILES:
-        blob = subprocess.check_output(["git", "-c", "core.fsmonitor=false", "-C", str(repository), "show", commit + ":" + name], stderr=subprocess.PIPE)
-        builders.append({"path": name, "sha256": hashlib.sha256(blob).hexdigest()})
-    if manifest["builderFiles"] != builders:
-        raise ValueError("Apple scanner builder material differs from Git")
     if type(proof.get("schemaVersion")) is not int or proof["schemaVersion"] != 1 or proof.get("status") != "PASS" or proof.get("sourceSha") != commit or proof.get("treeSha") != source.tree:
         raise ValueError("Apple scanner native verification source differs")
     if proof.get("scannerArchiveSha256") != digest or proof.get("simulatorDeleted") is not True:

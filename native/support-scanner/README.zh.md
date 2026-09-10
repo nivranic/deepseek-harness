@@ -9,7 +9,7 @@ kind: "package-library"
 
 ## Summary
 
-调用者可以完全在内存中扫描一个有界诊断文档，并且只取得已准入的准确字节。每个操作先检查真实 canary，再使用固定的 Gitleaks 默认规则扫描文档。取消会等待扫描结束并拒绝部分结果。[Android companion](../../apps/android/README.zh.md#local-support-export)消费 JNI 库；Swift 绑定仍需独立接入。
+调用者可以完全在内存中扫描一个有界诊断文档，并且只取得已准入的准确字节。每个操作先检查真实 canary，再使用固定的 Gitleaks 默认规则扫描文档。取消会等待扫描结束并拒绝部分结果。[Android companion](../../apps/android/README.zh.md#local-support-export)消费 JNI 库；[Apple Companion](../../apps/apple/README.zh.md)通过原生壳链接静态 framework。
 
 ## Table of Contents
 
@@ -86,7 +86,7 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 <a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
 
-- Apple 应用尚未内嵌此库，也未通过它提供支持导出操作。Android 消费方的采集缺口见其[导出约定](../../apps/android/README.zh.md#local-support-export)。Go 测试不能证明 Android/iOS 绑定、原生取消、打包或保存字节行为。
+- 原生导出的采集缺口由 [Android 导出约定](../../apps/android/README.zh.md#local-support-export)和 [Apple 应用约定](../../apps/apple/README.zh.md)说明。Go 测试不能证明 Android/iOS 绑定、原生取消、最终应用打包或保存字节行为。
 - 已准入只表示固定默认规则未报告发现。生产者字段选择与应用标识仍是独立要求。
 - 库在隔离 Go 运行时中拥有 Gitleaks 日志与配置。其他 Go 消费方不得重新配置该上游共享状态。
 - 期限会拒绝准入，但不会中断单次正则调用；只有有界扫描停止后，取消才返回。

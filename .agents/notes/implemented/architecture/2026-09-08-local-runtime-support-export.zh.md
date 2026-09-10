@@ -72,6 +72,10 @@ Apple 绑定通过 gomobile 静态 framework 使用同一扫描器。[生产者]
 
 Apple 通过 [SupportExportCore](../../../../apps/apple/Sources/SupportExportCore/SupportProductIdentity.swift)复用产品标识校验。扫描协调器拥有独立的后台执行与取消队列，等待二者结束后才交付字节；在原生打开期间取消也会等待后续操作结束。Link 诊断通过锁和各次查询的所有权投影真实客户端活动，不读取身份存储。刷新与失败会移除 Host 元数据，配对角色在取消配对前保持最后已知观测。结果字节或摘要与完整输入不一致时拒绝交付。这些共享组件本身不提供应用导出操作。
 
+Companion 壳向使用语言字典的 SwiftUI 导出操作提供真实[原生扫描适配器](../../../../apps/apple/Shells/SupportScannerAdapter.swift)。描述刷新属于前台活动，因此导出读取既有观测时不联网，也不读取身份存储。系统只接收由已准入字节构造的 FileDocument，防止扫描后追加字段。缺失生产者保持显式声明；扫描器来源不能填补应用缺失的源码标识。
+
+[应用检查器](../../../../scripts/verify-apple-app-scanner.py)检查最终资源字节与每个应用切片的 Go 模块图。库探针无法发现应用链接时选中了另一 framework，或打包时遗漏了许可证。Companion 归档保留原生符号供维护中的二进制漏洞检查器分析，检查结果绑定最终可执行文件摘要。
+
 [源码扫描决策](../process/2026-09-05-candidate-security-scans.zh.md)继续拥有固定获取与源码例外；这些例外不能放行支持导出中的发现项。[产物完整性决策](../process/2026-09-06-candidate-artifact-integrity.zh.md)继续拥有完整 RC 准入。helper 突然终止、detached 工具进程组和 PTY 所有权不属于本导出的清理保证，仍会阻止 Full Host no-orphan 准入。
 
 Swift 所有者本地夹具固定 stopped、ready 和 failed 状态的完整序列化字段。原生测试覆盖污染元数据、真实扫描器准入、报告失败、不可变交付、取消和超时清理。POSIX 测试执行 helper 的固定参数、发现项退出码、强制扫描器关闭及应用突然终止。原生编译和保存对话框行为需要 Apple 与 Mac 候选车道；仅 Windows/Linux 解析器和资源测试不能证明这些结果。

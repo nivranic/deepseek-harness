@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - 'apps/apple/**'
+      - '.github/actions/apple-support-scanner/**'
+      - 'native/support-scanner/**'
+      - 'scripts/build-apple-support-scanner.py'
+      - 'scripts/verify-apple-support-scanner.py'
+      - 'scripts/stage-apple-support-scanner.py'
       - 'apps/cli/**'
       - 'apps/web/**'
       - 'packages/**'
@@ -73,6 +78,7 @@ jobs:
           pnpm exec vitest run scripts/release/mac-host-bundle.spec.ts scripts/release/support-scanner.spec.ts
           python3 -B -m unittest discover -s scripts/release -p test_mac_host_crash.py
           python3 -B -m unittest discover -s scripts/release -p 'test_support_*.py'
+      - uses: ./.github/actions/apple-support-scanner
       - name: Build, assemble and exercise the Mac Host
         run: node --import tsx/esm scripts/produce-mac-host.ts --output "$RUNNER_TEMP/mac-host-candidate"
       - name: Export native Host screenshots

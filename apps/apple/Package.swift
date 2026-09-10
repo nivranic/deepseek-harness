@@ -64,7 +64,7 @@ let package = Package(
         ),
         .testTarget(
             name: "CompanionUITests",
-            dependencies: ["CompanionUI", "SharedAppleRemoteCore"],
+            dependencies: ["CompanionUI", "SharedAppleRemoteCore", "SupportExportCore"],
             path: "Tests/CompanionUITests",
             resources: [
                 .copy("Fixtures"),

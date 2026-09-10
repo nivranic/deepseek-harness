@@ -22,12 +22,22 @@ targets:
     platform: iOS
     sources:
       - Shells/iOSApp.swift
+      - Shells/SupportScannerAdapter.swift
+      - path: .support-scanner/SupportScannerResources
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: DshApple
         product: CompanionUI
+      - package: DshApple
+        product: SupportExportCore
+      - framework: .support-scanner/SupportScanner.xcframework
+        embed: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.ios
+        STRIP_INSTALLED_PRODUCT: false
+        COPY_PHASE_STRIP: false
         INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Companion
         GENERATE_INFOPLIST_FILE: true
@@ -39,12 +49,22 @@ targets:
     platform: macOS
     sources:
       - Shells/macOSApp.swift
+      - Shells/SupportScannerAdapter.swift
+      - path: .support-scanner/SupportScannerResources
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: DshApple
         product: CompanionUI
+      - package: DshApple
+        product: SupportExportCore
+      - framework: .support-scanner/SupportScanner.xcframework
+        embed: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.mac
+        STRIP_INSTALLED_PRODUCT: false
+        COPY_PHASE_STRIP: false
         INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Companion
         GENERATE_INFOPLIST_FILE: true

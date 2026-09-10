@@ -84,6 +84,9 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
     binaryPlatforms.push(platform)
   }
   verifyAppleArchive(identity, target, { settings, appPlist, archivePlist, architectures, binaryPlatforms })
+  const scannerDirectory = join(targetRoot, 'scanner')
+  await command('python3', ['-B', 'scripts/verify-apple-app-scanner.py', '--app', appRoot,
+    '--platform', target.platform, '--stage', join(appleRoot, '.support-scanner'), '--output', scannerDirectory])
   const files = await inventoryAppleArchive(archivePath)
   const inventoryPath = join(targetRoot, 'inventory.json')
   await writeRcOutput(targetRoot, 'inventory.json', { schemaVersion: 1, sourceSha, archive: archiveName, files })
@@ -100,11 +103,14 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
     path: `${target.platform}/${archiveName}.zip`, ...await hashRcOutput(zipPath),
     inventory: { path: `${target.platform}/inventory.json`, ...await hashRcOutput(inventoryPath) },
     executable: await hashRcOutput(executable),
+    scanner: { path: `${target.platform}/scanner/verification.json`, ...await hashRcOutput(join(scannerDirectory, 'verification.json')) },
   })
   console.log(`${target.scheme}: archive identity, executable platform and ZIP round trip PASS`)
 }
 const producerPaths = ['scripts/produce-apple-archives.ts', 'scripts/release/apple-archive.ts', 'scripts/release/apple-archive-files.ts',
   'scripts/release/apple_archive_plist.py',
+  'scripts/verify-apple-app-scanner.py', 'scripts/release/apple_scanner_app.py', 'scripts/release/apple_scanner_stage.py',
+  '.github/actions/apple-support-scanner/action.yml',
   'scripts/release/apple-product.ts', 'scripts/release/product-files.ts', 'scripts/release/product-identity.ts',
   'scripts/release/ci-source.ts', 'scripts/release/ci-evidence.ts', 'scripts/release/rc-output.ts',
   'scripts/release/rc-manifest.ts', '.github/workflows/apple-archives.yml', 'pnpm-lock.yaml']
