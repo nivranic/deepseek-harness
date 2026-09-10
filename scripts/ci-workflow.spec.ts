@@ -57,12 +57,7 @@ describe('CI workflow', () => {
     const job = workflowJob(workflow, 'android')
     expect(workflow.permissions).toEqual({ contents: 'read' })
     expect(job['runs-on']).toBe('ubuntu-24.04')
-    if (!Array.isArray(job.steps)) throw new Error('mobile scanner packaging steps are absent')
-    const steps = job.steps.filter(isRecord)
-    expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
-    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))).toMatchObject({
-      with: { ref: '${{ env.DSH_SCANNER_SOURCE }}', 'persist-credentials': false },
-    })
+    const steps = scannerPackagingSteps(job)
     const policy: unknown = JSON.parse(readFileSync(resolve(root, 'native/support-scanner/build.json'), 'utf8'))
     if (!isRecord(policy)) throw new Error('mobile scanner build policy is absent')
     expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/setup-go@'))).toMatchObject({
@@ -87,14 +82,10 @@ describe('CI workflow', () => {
     const workflow = loadWorkflow('.github/workflows/mobile-support-scanner.yml')
     const job = workflowJob(workflow, 'apple')
     const policy: unknown = JSON.parse(readFileSync(resolve(root, 'native/support-scanner/apple-build.json'), 'utf8'))
-    if (!isRecord(policy) || !Array.isArray(job.steps)) throw new Error('Apple scanner policy or steps are absent')
+    if (!isRecord(policy)) throw new Error('Apple scanner policy is absent')
     expect(job['runs-on']).toBe('macos-15')
     expect(job.env).toMatchObject({ DEVELOPER_DIR: `/Applications/Xcode_${String(policy.xcodeVersion)}.app/Contents/Developer` })
-    const steps = job.steps.filter(isRecord)
-    expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
-    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))).toMatchObject({
-      with: { ref: '${{ env.DSH_SCANNER_SOURCE }}', 'persist-credentials': false },
-    })
+    const steps = scannerPackagingSteps(job)
     const build = steps.findIndex(step => step.name === 'Build and verify the scanner XCFramework')
     expect(build).toBeGreaterThan(0)
     expect(steps[build]?.run).toContain('scripts/build-apple-support-scanner.py')
@@ -1434,6 +1425,16 @@ describe('Git hooks', () => {
     }
   })
 })
+
+function scannerPackagingSteps(job: Record<string, unknown>): Record<string, unknown>[] {
+  if (!Array.isArray(job.steps)) throw new Error('Scanner packaging steps are absent')
+  const steps = job.steps.filter(isRecord)
+  expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
+  expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))).toMatchObject({
+    with: { ref: '${{ env.DSH_SCANNER_SOURCE }}', 'persist-credentials': false },
+  })
+  return steps
+}
 
 function loadWorkflow(path: string): Record<string, unknown> {
   const workflow: unknown = yaml.load(readFileSync(resolve(root, path), 'utf8'))
