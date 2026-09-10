@@ -180,6 +180,35 @@ jobs:
         working-directory: apps/apple
         run: xcodebuild -project Companion.xcodeproj -scheme CompanionMac -destination 'platform=macOS' build
 
+      - name: Verify Companion saved-document admission
+        run: python3 -B -m unittest discover -s scripts/release -p test_companion_support_exports.py -v
+
+      - name: Verify the Mac Companion system save dialog
+        id: companion-save
+        working-directory: apps/apple
+        run: |
+          mkdir -p "$RUNNER_TEMP/g2-companion-mac"
+          xcodebuild -project Companion.xcodeproj -scheme CompanionMac \
+            -destination 'platform=macOS' -parallel-testing-enabled NO \
+            -resultBundlePath "$RUNNER_TEMP/g2-companion-mac/Support.xcresult" \
+            -only-testing:CompanionMacSupportUITests test
+
+      - name: Export Mac Companion save diagnostics
+        if: always() && steps.companion-save.outcome != 'skipped'
+        run: |
+          xcrun xcresulttool export attachments \
+            --path "$RUNNER_TEMP/g2-companion-mac/Support.xcresult" \
+            --output-path "$RUNNER_TEMP/g2-companion-mac/screenshots"
+
+      - name: Preserve Mac Companion save diagnostics
+        if: always() && steps.companion-save.outcome != 'skipped'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: companion-mac-save-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g2-companion-mac
+          if-no-files-found: warn
+          retention-days: 7
+
       # Chapter 49's fourth target: the host-side surface, isolated from the
       # companion targets so host-only code never pollutes them.
       - name: Build the macOS Direct Host
@@ -209,6 +238,24 @@ jobs:
 
       - name: Verify resolved and embedded Apple product versions
         run: pnpm exec tsx scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json" "$DSH_STARTUP_SIMULATOR"
+
+      - name: Independently scan the saved Mac Companion document
+        run: |
+          python3 -B scripts/verify-companion-support-exports.py \
+            --attachments "$RUNNER_TEMP/g2-companion-mac/screenshots" \
+            --scanner-directory "$RUNNER_TEMP/dsh-support-scanner" \
+            --library-identity apps/apple/.support-scanner/SupportScannerResources/identity.json \
+            --approved "$RUNNER_TEMP/g2-companion-mac/approved" \
+            --output "$RUNNER_TEMP/g2-companion-mac/verification.json"
+
+      - name: Upload approved Mac Companion diagnostics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: companion-mac-support-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/g2-companion-mac/approved
+            ${{ runner.temp }}/g2-companion-mac/verification.json
+          if-no-files-found: error
 
       - name: Upload Apple product identity evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

@@ -99,6 +99,17 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.startup-tests
         GENERATE_INFOPLIST_FILE: true
+  CompanionMacSupportUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - UITests/CompanionMacSupportTests.swift
+    dependencies:
+      - target: CompanionMac
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.mac-support-tests
+        GENERATE_INFOPLIST_FILE: true
   CompanionStartupUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -129,3 +140,6 @@ schemes:
     build:
       targets:
         CompanionMac: all
+    test:
+      targets:
+        - CompanionMacSupportUITests

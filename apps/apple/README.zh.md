@@ -55,6 +55,8 @@ Companion 的**导出诊断信息**操作在配对前后均可使用。[导出�
 
 生成 Xcode 项目前，需要[扫描器准备 Action](../../.github/actions/apple-support-scanner/action.yml)在 `.support-scanner/` 下的输出。两个 Companion 目标链接静态 framework，并以文件夹资源打包其来源和许可证。它们禁用 Xcode 的 Debug dylib 布局，使 Debug 与 Release 的扫描器代码均保留在被检查的可执行文件中。[最终应用检查](../../scripts/verify-apple-app-scanner.py)对照准备记录与 Git 重查这些字节，比较各可执行切片的 Go 模块图，并执行维护中的二进制漏洞检查器。Debug iOS 检查在原生 UI 用例结束后读取同一模拟器中的实际安装应用。Debug 标识与 Release 归档报告绑定这些结果；包测试和库探针不能证明保存文档或设备验收。
 
+[Apple 工作流](../../.github/workflows/apple-swift.yml)拥有 Mac Companion 保存对话框验收。未配对原生用例先在空临时目录取消，再次导出并附加实际保存文件。[保存文档检查器](../../scripts/verify-companion-support-exports.py)要求文档匹配应用的固定未配对字段和准备后的扫描器标识，随后独立扫描准确字节，通过后才保留。已配对 Companion 场景和 iOS 实际保存文件仍需要独立的原生验收。
+
 -----
 
 <a id="understand-the-implementation"></a>

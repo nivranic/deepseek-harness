@@ -191,6 +191,28 @@ describe('CI workflow', () => {
     expect(steps[inspection]?.['continue-on-error']).toBeUndefined()
   })
 
+  it('binds the Mac Companion saved bytes to required native and scanner checks', () => {
+    const job = workflowJob(loadWorkflow('.github/workflows/apple-swift.yml'), 'swift-test')
+    if (!Array.isArray(job.steps)) throw new Error('Apple verification steps are absent')
+    const steps = job.steps.filter(isRecord)
+    const native = steps.findIndex(step => step.name === 'Verify the Mac Companion system save dialog')
+    const identity = steps.findIndex(step => step.name === 'Verify resolved and embedded Apple product versions')
+    const scan = steps.findIndex(step => step.name === 'Independently scan the saved Mac Companion document')
+    const upload = steps.findIndex(step => step.name === 'Upload approved Mac Companion diagnostics')
+    expect(native).toBeGreaterThan(-1)
+    expect(identity).toBeGreaterThan(native)
+    expect(scan).toBeGreaterThan(identity)
+    expect(upload).toBeGreaterThan(scan)
+    expect(steps[native]?.run).toContain('-only-testing:CompanionMacSupportUITests test')
+    expect(steps[native]?.run).not.toContain('-derivedDataPath')
+    expect(steps[scan]?.run).toContain('scripts/verify-companion-support-exports.py')
+    expect(steps[scan]?.run).toContain('--attachments "$RUNNER_TEMP/g2-companion-mac/screenshots"')
+    for (const index of [native, identity, scan, upload]) {
+      expect(steps[index]?.if).toBeUndefined()
+      expect(steps[index]?.['continue-on-error']).toBeUndefined()
+    }
+  })
+
   it.each([
     ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
   ])('preserves the actual checkout before validation in %s', (file, jobId) => {

@@ -76,6 +76,8 @@ Companion 壳向使用语言字典的 SwiftUI 导出操作提供真实[原生扫
 
 [应用检查器](../../../../scripts/verify-apple-app-scanner.py)检查最终资源字节与每个应用切片的 Go 模块图。库探针无法发现应用链接时选中了另一 framework，或打包时遗漏了许可证。Companion 归档保留原生符号供维护中的二进制漏洞检查器分析，检查结果绑定最终可执行文件摘要。iOS 检查在原生 UI 用例结束后，从同一测试模拟器定位实际安装应用。另一个 DerivedData 构建可能具有不同字节，不能标识这些用例实际执行的扫描器。
 
+Mac Companion 原生验收保留实际保存字节，因为导出器的内存结果不能证明系统写入了该文档。未配对场景确认取消后的目标目录为空，重试后只允许保存文件存在。独立[准入检查](../../../../scripts/verify-companion-support-exports.py)拒绝该场景之外的字段、变化的产品或扫描器标识、重复 JSON 键及任何扫描发现。工作流只有在原生执行、最终应用检查和保存字节准入均通过后，才发布已批准证据。
+
 [源码扫描决策](../process/2026-09-05-candidate-security-scans.zh.md)继续拥有固定获取与源码例外；这些例外不能放行支持导出中的发现项。[产物完整性决策](../process/2026-09-06-candidate-artifact-integrity.zh.md)继续拥有完整 RC 准入。helper 突然终止、detached 工具进程组和 PTY 所有权不属于本导出的清理保证，仍会阻止 Full Host no-orphan 准入。
 
 Swift 所有者本地夹具固定 stopped、ready 和 failed 状态的完整序列化字段。原生测试覆盖污染元数据、真实扫描器准入、报告失败、不可变交付、取消和超时清理。POSIX 测试执行 helper 的固定参数、发现项退出码、强制扫描器关闭及应用突然终止。原生编译和保存对话框行为需要 Apple 与 Mac 候选车道；仅 Windows/Linux 解析器和资源测试不能证明这些结果。
