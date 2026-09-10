@@ -158,12 +158,16 @@ describe('Windows candidate production requirements', () => {
     expect(productDiagnostic?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
     expect(productDiagnostic?.run).toContain('--platform windows')
     expect(productDiagnostic?.run).toContain('--max-input-bytes 4194304')
+    const sourceDiagnostic = job.steps.find(step => step.run?.includes('git status --porcelain=v1'))
+    expect(sourceDiagnostic?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
+    expect(sourceDiagnostic?.run).toContain('--untracked-files=all')
+    expect(sourceDiagnostic?.run).toContain('Set-Content -LiteralPath "$env:RUNNER_TEMP/windows-rc/source-status.log"')
     const failedInputs = uploads.find(step => step.if !== undefined)
     expect(failedInputs?.if).toBe("failure() && steps.acceptance.outcome == 'failure'")
     expect(failedInputs?.with).toMatchObject({
       name: 'windows-installer-failure-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}',
       path: [
-        'windows/installer.exe', 'installer-crash.json', 'product-diagnostics.json',
+        'windows/installer.exe', 'installer-crash.json', 'product-diagnostics.json', 'source-status.log',
         'windows/installed.png', 'windows/portable.png', 'windows/installed-support.json', 'windows/portable-support.json',
         'windows/installed-support-saved.png', 'windows/installed-support-cancelled.png', 'windows/installed-support-rejected.png',
         'windows/portable-support-saved.png', 'windows/portable-support-cancelled.png', 'windows/portable-support-rejected.png',
