@@ -3,6 +3,36 @@ import XCTest
 /// Runs the installed iOS shell on a fresh simulator without credentials or a test Host.
 final class CompanionStartupTests: XCTestCase {
     @MainActor
+    func testUnpairedDiagnosticsSaveToLocalFiles() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        let export = app.buttons["companion.support.export"]
+        XCTAssertTrue(export.waitForExistence(timeout: 15))
+        export.tap()
+        let navigation = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
+        XCTAssertTrue(navigation.waitForExistence(timeout: 30))
+        XCTAssertTrue(navigation.staticTexts["On My iPhone"].waitForExistence(timeout: 30))
+        let filename = app.textFields["DOCPicker.filenameTextField"]
+        XCTAssertTrue(filename.exists)
+        XCTAssertEqual(filename.value as? String, "dsh-companion-diagnostics")
+        let save = navigation.buttons["Save"]
+        XCTAssertTrue(save.exists && save.isEnabled)
+        save.tap()
+        let saved = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !navigation.exists && export.exists && export.isEnabled
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [saved], timeout: 15), .completed)
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        XCTAssertEqual(app.state, .runningForeground)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "unpaired-diagnostics-saved-ios"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
+    @MainActor
     func testUnpairedStartupRendersPairing() {
         continueAfterFailure = false
         let app = XCUIApplication()

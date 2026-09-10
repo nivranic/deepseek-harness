@@ -33,16 +33,28 @@ def validate_export(data: bytes, product: dict, library: dict) -> None:
         raise ValueError("Companion support fields or producer identity differ")
 
 
-def verify_exports(attachments: Path, scanner_directory: Path, product: dict, library: dict, approved: Path) -> dict:
-    """Publish the saved document only after strict JSON validation, a scanner canary and a zero-finding scan."""
-    if approved.exists() or approved.is_symlink():
-        raise ValueError("approved Companion support output must be new")
+def scan_saved_document(data: bytes, scanner_directory: Path, library: dict) -> None:
+    """Scan complete saved bytes with a matching pinned CLI and its real canary before publication."""
     scanner = json.loads((scanner_directory / "scanner.json").read_bytes())
     executable = scanner_directory / "gitleaks"
     if executable.is_symlink() or not executable.is_file() \
             or hashlib.sha256(executable.read_bytes()).hexdigest() != scanner["binarySha256"] \
             or scanner["version"] != library["scannerVersion"]:
         raise ValueError("independent Companion scanner differs")
+    with tempfile.TemporaryDirectory(prefix="dsh-companion-verify-") as directory:
+        scratch = Path(directory)
+        self_test(executable, scratch)
+        sample = scratch / "saved"
+        sample.mkdir()
+        (sample / "export.json").write_bytes(data)
+        if scan(executable, ["dir", str(sample)], scratch, "companion-saved"):
+            raise ValueError("saved Companion document contains a secret finding")
+
+
+def verify_exports(attachments: Path, scanner_directory: Path, product: dict, library: dict, approved: Path) -> dict:
+    """Publish the saved document only after strict JSON validation, a scanner canary and a zero-finding scan."""
+    if approved.exists() or approved.is_symlink():
+        raise ValueError("approved Companion support output must be new")
     manifest = json.loads((attachments / "manifest.json").read_bytes())
     selected = []
     for test in manifest:
@@ -62,14 +74,7 @@ def verify_exports(attachments: Path, scanner_directory: Path, product: dict, li
     if len(selected) != 1:
         raise ValueError("expected one saved unpaired Companion document")
     data = selected[0]
-    with tempfile.TemporaryDirectory(prefix="dsh-companion-verify-") as directory:
-        scratch = Path(directory)
-        self_test(executable, scratch)
-        sample = scratch / "saved"
-        sample.mkdir()
-        (sample / "export.json").write_bytes(data)
-        if scan(executable, ["dir", str(sample)], scratch, "companion-macos"):
-            raise ValueError("saved Companion document contains a secret finding")
+    scan_saved_document(data, scanner_directory, library)
     approved.mkdir()
     with (approved / (TITLE + ".json")).open("xb") as output:
         output.write(data)

@@ -217,6 +217,37 @@ describe('CI workflow', () => {
     }
   })
 
+  it('requires separate iOS cancellation, real Files save and scanner admission', () => {
+    const workflow = loadWorkflow('.github/workflows/apple-swift.yml')
+    for (const event of ['pull_request', 'push']) {
+      expect(workflowEvent(workflow, event).paths).toContain('scripts/verify-ios-support-exports.py')
+    }
+    const job = workflowJob(workflow, 'swift-test')
+    if (!Array.isArray(job.steps)) throw new Error('Apple verification steps are absent')
+    const steps = job.steps.filter(isRecord)
+    const names = ['Verify the installed iOS first screen', 'Verify iOS cancellation left no saved document',
+      'Save iOS diagnostics through local Files', 'Verify resolved and embedded Apple product versions',
+      'Independently scan the saved iOS document', 'Upload approved iOS diagnostics']
+    let previous = -1
+    for (const name of names) {
+      const index = steps.findIndex(step => step.name === name)
+      expect(index).toBeGreaterThan(previous)
+      expect(steps[index]?.if).toBeUndefined()
+      expect(steps[index]?.['continue-on-error']).toBeUndefined()
+      previous = index
+    }
+    const cancellation = steps.find(step => step.name === names[1])
+    const save = steps.find(step => step.name === names[2])
+    const scan = steps.find(step => step.name === names[4])
+    expect(cancellation?.run).toContain('scripts/verify-ios-support-exports.py --phase cancelled')
+    expect(save?.run).toContain('-only-testing:CompanionStartupUITests/CompanionStartupTests/testUnpairedDiagnosticsSaveToLocalFiles')
+    expect(save?.run).toContain('-destination "platform=iOS Simulator,id=$DSH_STARTUP_SIMULATOR"')
+    expect(scan?.run).toContain('scripts/verify-ios-support-exports.py --phase saved')
+    for (const step of [cancellation, scan]) {
+      expect(step?.run).toContain('--simulator "$DSH_STARTUP_SIMULATOR" --output "$RUNNER_TEMP/g2-ios-support"')
+    }
+  })
+
   it.each([
     ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
   ])('preserves the actual checkout before validation in %s', (file, jobId) => {

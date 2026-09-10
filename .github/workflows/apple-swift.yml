@@ -33,6 +33,7 @@ on:
       - 'release/**'
       - 'scripts/verify-apple-product.ts'
       - 'scripts/verify-companion-support-exports.py'
+      - 'scripts/verify-ios-support-exports.py'
       - 'tsconfig.base.json'
       - 'tsconfig.json'
       - 'vitest.e2e.config.ts'
@@ -67,6 +68,7 @@ on:
       - 'release/**'
       - 'scripts/verify-apple-product.ts'
       - 'scripts/verify-companion-support-exports.py'
+      - 'scripts/verify-ios-support-exports.py'
       - 'tsconfig.base.json'
       - 'tsconfig.json'
       - 'vitest.e2e.config.ts'
@@ -185,6 +187,9 @@ jobs:
       - name: Verify Companion saved-document admission
         run: python3 -B -m unittest discover -s scripts/release -p test_companion_support_exports.py -v
 
+      - name: Verify iOS saved-document admission
+        run: python3 -B -m unittest discover -s scripts/release -p test_ios_support_exports.py -v
+
       - name: Verify the Mac Companion system save dialog
         id: companion-save
         working-directory: apps/apple
@@ -236,10 +241,43 @@ jobs:
             -resultBundlePath "$RUNNER_TEMP/g1-apple-startup/Startup.xcresult" \
             -parallel-testing-enabled NO \
             -only-testing:CompanionStartupUITests \
+            -skip-testing:CompanionStartupUITests/CompanionStartupTests/testUnpairedDiagnosticsSaveToLocalFiles \
+            CODE_SIGNING_ALLOWED=NO test
+
+      - name: Verify iOS cancellation left no saved document
+        run: |
+          python3 -B scripts/verify-ios-support-exports.py --phase cancelled \
+            --simulator "$DSH_STARTUP_SIMULATOR" --output "$RUNNER_TEMP/g2-ios-support" \
+            --library-identity apps/apple/.support-scanner/SupportScannerResources/identity.json \
+            --scanner-directory "$RUNNER_TEMP/dsh-support-scanner"
+
+      - name: Save iOS diagnostics through local Files
+        working-directory: apps/apple
+        run: |
+          xcodebuild -project Companion.xcodeproj -scheme CompanioniOS \
+            -destination "platform=iOS Simulator,id=$DSH_STARTUP_SIMULATOR" \
+            -derivedDataPath "$RUNNER_TEMP/g1-apple-derived" \
+            -resultBundlePath "$RUNNER_TEMP/g1-apple-startup/Save.xcresult" \
+            -parallel-testing-enabled NO \
+            -only-testing:CompanionStartupUITests/CompanionStartupTests/testUnpairedDiagnosticsSaveToLocalFiles \
             CODE_SIGNING_ALLOWED=NO test
 
       - name: Verify resolved and embedded Apple product versions
         run: pnpm exec tsx scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json" "$DSH_STARTUP_SIMULATOR"
+
+      - name: Independently scan the saved iOS document
+        run: |
+          python3 -B scripts/verify-ios-support-exports.py --phase saved \
+            --simulator "$DSH_STARTUP_SIMULATOR" --output "$RUNNER_TEMP/g2-ios-support" \
+            --library-identity apps/apple/.support-scanner/SupportScannerResources/identity.json \
+            --scanner-directory "$RUNNER_TEMP/dsh-support-scanner"
+
+      - name: Upload approved iOS diagnostics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: companion-ios-support-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/g2-ios-support
+          if-no-files-found: error
 
       - name: Independently scan the saved Mac Companion document
         run: |
@@ -285,6 +323,11 @@ jobs:
           xcrun xcresulttool export attachments \
             --path "$RUNNER_TEMP/g1-apple-startup/Startup.xcresult" \
             --output-path "$RUNNER_TEMP/g1-apple-startup/screenshots"
+          if [ -d "$RUNNER_TEMP/g1-apple-startup/Save.xcresult" ]; then
+            xcrun xcresulttool export attachments \
+              --path "$RUNNER_TEMP/g1-apple-startup/Save.xcresult" \
+              --output-path "$RUNNER_TEMP/g1-apple-startup/save-screenshots"
+          fi
 
       - name: Upload iOS simulator startup evidence
         if: always() && env.DSH_STARTUP_SIMULATOR != ''
