@@ -186,29 +186,6 @@ jobs:
         working-directory: apps/apple
         run: xcodebuild -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' build
 
-      - name: Verify resolved and embedded Apple product versions
-        run: pnpm exec tsx scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json"
-
-      - name: Upload Apple product identity evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: g2-apple-product-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ${{ runner.temp }}/g2-apple-product/identity.json
-            ${{ runner.temp }}/g2-apple-product/*-scanner/verification.json
-          if-no-files-found: error
-
-      - name: Preserve final Apple scanner failure diagnostics
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: apple-app-scanner-inspection-failure-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ${{ runner.temp }}/g2-apple-product/*-scanner/*.stdout
-            ${{ runner.temp }}/g2-apple-product/*-scanner/*.stderr
-          if-no-files-found: warn
-          retention-days: 7
-
       - name: Create a fresh iOS startup simulator
         run: |
           selection=$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; rows=[r for r in json.load(sys.stdin)["runtimes"] if r["isAvailable"] and ".iOS-" in r["identifier"] and any(d["productFamily"]=="iPhone" for d in r["supportedDeviceTypes"])]; runtime=max(rows,key=lambda r:tuple(map(int,r["version"].split(".")))); print(runtime["identifier"], [d["identifier"] for d in runtime["supportedDeviceTypes"] if d["productFamily"]=="iPhone"][-1])')
@@ -229,6 +206,29 @@ jobs:
             -parallel-testing-enabled NO \
             -only-testing:CompanionStartupUITests \
             CODE_SIGNING_ALLOWED=NO test
+
+      - name: Verify resolved and embedded Apple product versions
+        run: pnpm exec tsx scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json" "$DSH_STARTUP_SIMULATOR"
+
+      - name: Upload Apple product identity evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: g2-apple-product-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/g2-apple-product/identity.json
+            ${{ runner.temp }}/g2-apple-product/*-scanner/verification.json
+          if-no-files-found: error
+
+      - name: Preserve final Apple scanner failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: apple-app-scanner-inspection-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/g2-apple-product/*-scanner/*.stdout
+            ${{ runner.temp }}/g2-apple-product/*-scanner/*.stderr
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Export iOS startup screenshots
         if: always() && env.DSH_STARTUP_SIMULATOR != ''

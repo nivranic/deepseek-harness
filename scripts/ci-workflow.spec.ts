@@ -176,6 +176,21 @@ describe('CI workflow', () => {
     }
   })
 
+  it('inspects the installed iOS scanner after native UI and before simulator removal', () => {
+    const job = workflowJob(loadWorkflow('.github/workflows/apple-swift.yml'), 'swift-test')
+    if (!Array.isArray(job.steps)) throw new Error('Apple verification steps are absent')
+    const steps = job.steps.filter(isRecord)
+    const startup = steps.findIndex(step => step.name === 'Verify the installed iOS first screen')
+    const inspection = steps.findIndex(step => step.name === 'Verify resolved and embedded Apple product versions')
+    const removal = steps.findIndex(step => step.name === 'Delete the startup simulator')
+    expect(startup).toBeGreaterThan(-1)
+    expect(inspection).toBeGreaterThan(startup)
+    expect(removal).toBeGreaterThan(inspection)
+    expect(steps[inspection]?.run).toContain('scripts/verify-apple-product.ts "$RUNNER_TEMP/g2-apple-product/identity.json" "$DSH_STARTUP_SIMULATOR"')
+    expect(steps[inspection]?.if).toBeUndefined()
+    expect(steps[inspection]?.['continue-on-error']).toBeUndefined()
+  })
+
   it.each([
     ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
   ])('preserves the actual checkout before validation in %s', (file, jobId) => {

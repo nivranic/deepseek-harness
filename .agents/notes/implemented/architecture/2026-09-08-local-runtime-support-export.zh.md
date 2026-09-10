@@ -74,7 +74,7 @@ Apple 通过 [SupportExportCore](../../../../apps/apple/Sources/SupportExportCor
 
 Companion 壳向使用语言字典的 SwiftUI 导出操作提供真实[原生扫描适配器](../../../../apps/apple/Shells/SupportScannerAdapter.swift)。描述刷新属于前台活动，因此导出读取既有观测时不联网，也不读取身份存储。系统只接收由已准入字节构造的 FileDocument，防止扫描后追加字段。两个 Apple 界面通过 [fileExporter 取消回调](https://developer.apple.com/documentation/swiftui/view/fileexporter%28ispresented%3Adocument%3Acontenttypes%3Adefaultfilename%3Aoncompletion%3Aoncancellation%3A%29)释放已批准文档。取消不会调用完成回调，因此只在完成时清理会保留字节，并可能阻止后续导出。缺失生产者保持显式声明；扫描器来源不能填补应用缺失的源码标识。
 
-[应用检查器](../../../../scripts/verify-apple-app-scanner.py)检查最终资源字节与每个应用切片的 Go 模块图。库探针无法发现应用链接时选中了另一 framework，或打包时遗漏了许可证。Companion 归档保留原生符号供维护中的二进制漏洞检查器分析，检查结果绑定最终可执行文件摘要。
+[应用检查器](../../../../scripts/verify-apple-app-scanner.py)检查最终资源字节与每个应用切片的 Go 模块图。库探针无法发现应用链接时选中了另一 framework，或打包时遗漏了许可证。Companion 归档保留原生符号供维护中的二进制漏洞检查器分析，检查结果绑定最终可执行文件摘要。iOS 检查在原生 UI 用例结束后，从同一测试模拟器定位实际安装应用。另一个 DerivedData 构建可能具有不同字节，不能标识这些用例实际执行的扫描器。
 
 [源码扫描决策](../process/2026-09-05-candidate-security-scans.zh.md)继续拥有固定获取与源码例外；这些例外不能放行支持导出中的发现项。[产物完整性决策](../process/2026-09-06-candidate-artifact-integrity.zh.md)继续拥有完整 RC 准入。helper 突然终止、detached 工具进程组和 PTY 所有权不属于本导出的清理保证，仍会阻止 Full Host no-orphan 准入。
 
