@@ -23,7 +23,7 @@ struct HostHomeView: View {
                 }
                     .accessibilityIdentifier("host.support.export")
                     .help(copy.exportScope)
-                    .disabled(support.isPreparing)
+                    .disabled(support.isPreparing || support.document != nil)
                 if support.isPreparing {
                     Button(copy.cancelExport) { support.cancel() }
                         .accessibilityIdentifier("host.support.cancel")
@@ -54,12 +54,14 @@ struct HostHomeView: View {
             }
         }
         .frame(minWidth: 760, minHeight: 540)
-        .fileExporter(isPresented: $support.exporting, document: support.document, contentType: .json,
+        .fileExporter(isPresented: $support.exporting, document: support.document, contentTypes: [.json],
                       defaultFilename: "dsh-host-runtime-diagnostics") { result in
             if case .failure(let error) = result, (error as? CocoaError)?.code != .userCancelled {
                 support.failed = true
             }
-            support.document = nil
+            support.dismissExport()
+        } onCancellation: {
+            support.dismissExport()
         }
         .alert(copy.exportFailed, isPresented: $support.failed) {
             Button(copy.dismiss, role: .cancel) {}
@@ -83,7 +85,7 @@ final class HostSupportModel: ObservableObject {
     var isPreparing: Bool { preparation != nil }
 
     func prepare(snapshot: RuntimeSupportSnapshot) {
-        guard preparation == nil else { return }
+        guard preparation == nil, document == nil else { return }
         preparation = Task { @MainActor in
             defer { preparation = nil }
             do {
@@ -103,6 +105,11 @@ final class HostSupportModel: ObservableObject {
     }
 
     func cancel() { preparation?.cancel() }
+
+    func dismissExport() {
+        exporting = false
+        document = nil
+    }
 
     func shutdown() async {
         let pending = preparation

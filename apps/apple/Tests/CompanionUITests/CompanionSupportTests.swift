@@ -57,7 +57,7 @@ final class CompanionSupportTests: XCTestCase {
     }
 
     @MainActor
-    func testSaveCancellationReleasesDocumentAndScannerRefusalNeverOpensSave() async throws {
+    func testSaveCancellationAllowsAnotherExportAndScannerRefusalNeverOpensSave() async throws {
         let scanner = RecordingScanner()
         let producer = try exporter(scanner)
         let model = CompanionSupportModel { producer }
@@ -65,8 +65,16 @@ final class CompanionSupportTests: XCTestCase {
         await waitUntil { !model.isPreparing }
         XCTAssertTrue(model.exporting)
         XCTAssertEqual(model.document?.approved.data, scanner.input)
-        model.finishedSaving(.failure(CocoaError(.userCancelled)))
+        model.dismissExport()
         XCTAssertFalse(model.failed)
+        XCTAssertFalse(model.exporting)
+        XCTAssertNil(model.document)
+        model.prepare(link: nil)
+        await waitUntil { !model.isPreparing }
+        XCTAssertTrue(model.exporting)
+        XCTAssertEqual(model.document?.approved.data, scanner.input)
+        model.finishedSaving(.failure(CocoaError(.fileWriteNoPermission)))
+        XCTAssertTrue(model.failed)
         XCTAssertFalse(model.exporting)
         XCTAssertNil(model.document)
 

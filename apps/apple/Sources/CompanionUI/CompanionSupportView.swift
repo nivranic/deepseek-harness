@@ -27,9 +27,11 @@ struct CompanionSupportView: View {
         }
         .padding(12)
         .background(.bar)
-        .fileExporter(isPresented: $model.exporting, document: model.document, contentType: .json,
+        .fileExporter(isPresented: $model.exporting, document: model.document, contentTypes: [.json],
                       defaultFilename: "dsh-companion-diagnostics") { result in
             model.finishedSaving(result)
+        } onCancellation: {
+            model.dismissExport()
         }
         .alert(copy.failed, isPresented: $model.failed) {
             Button(copy.dismiss, role: .cancel) {}
@@ -80,6 +82,10 @@ final class CompanionSupportModel: ObservableObject {
         if case .failure(let error) = result, (error as? CocoaError)?.code != .userCancelled {
             failed = true
         }
+        dismissExport()
+    }
+
+    func dismissExport() {
         exporting = false
         document = nil
     }

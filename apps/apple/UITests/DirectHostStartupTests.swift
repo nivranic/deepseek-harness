@@ -77,32 +77,30 @@ final class DirectHostStartupTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: directory) }
         let button = app.buttons["host.support.export"]
         XCTAssertTrue(button.waitForExistence(timeout: 5))
-        button.click()
         let panel = app.sheets.firstMatch
-        XCTAssertTrue(panel.waitForExistence(timeout: 25), "The scanned export did not open its save dialog")
-        let name = panel.textFields.matching(NSPredicate(format: "value BEGINSWITH %@", "dsh-host-runtime-diagnostics")).firstMatch
-        XCTAssertTrue(name.waitForExistence(timeout: 5))
-        name.click()
-        name.typeKey("a", modifierFlags: .command)
         let filename = "host-runtime-support-\(state).json"
-        name.typeText(filename)
-        app.typeKey("g", modifierFlags: [.command, .shift])
-        let folder = panel.sheets.firstMatch
-        XCTAssertTrue(folder.waitForExistence(timeout: 5))
-        let location = folder.comboBoxes.firstMatch.exists ? folder.comboBoxes.firstMatch : folder.textFields.firstMatch
-        XCTAssertTrue(location.waitForExistence(timeout: 5))
-        location.click()
-        location.typeKey("a", modifierFlags: .command)
-        location.typeText(directory.path)
-        app.typeKey(.return, modifierFlags: [])
-        let folderClosed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: folder)
-        XCTAssertEqual(XCTWaiter.wait(for: [folderClosed], timeout: 5), .completed)
+        chooseExportDestination(app, directory: directory, filename: "cancelled-" + filename)
+        let cancel = panel.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+        cancel.click()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !panel.exists && button.isEnabled
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 10), .completed)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.path), [])
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        let cancellation = XCTAttachment(screenshot: app.screenshot())
+        cancellation.name = "host-runtime-support-cancelled-" + state
+        cancellation.lifetime = .keepAlways
+        add(cancellation)
+        chooseExportDestination(app, directory: directory, filename: filename)
         panel.buttons["OKButton"].click()
         let file = directory.appendingPathComponent(filename)
         let saved = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             FileManager.default.fileExists(atPath: file.path)
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [saved], timeout: 10), .completed)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.path), [filename])
         let data = try Data(contentsOf: file)
         XCTAssertLessThanOrEqual(data.count, 16384)
         let value = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
@@ -121,6 +119,29 @@ final class DirectHostStartupTests: XCTestCase {
         screenshot.name = "host-runtime-support-saved-" + state
         screenshot.lifetime = .keepAlways
         add(screenshot)
+    }
+
+    @MainActor
+    private func chooseExportDestination(_ app: XCUIApplication, directory: URL, filename: String) {
+        app.buttons["host.support.export"].click()
+        let panel = app.sheets.firstMatch
+        XCTAssertTrue(panel.waitForExistence(timeout: 25), "The scanned export did not open its save dialog")
+        let name = panel.textFields.matching(NSPredicate(format: "value BEGINSWITH %@", "dsh-host-runtime-diagnostics")).firstMatch
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        name.click()
+        name.typeKey("a", modifierFlags: .command)
+        name.typeText(filename)
+        app.typeKey("g", modifierFlags: [.command, .shift])
+        let folder = panel.sheets.firstMatch
+        XCTAssertTrue(folder.waitForExistence(timeout: 5))
+        let location = folder.comboBoxes.firstMatch.exists ? folder.comboBoxes.firstMatch : folder.textFields.firstMatch
+        XCTAssertTrue(location.waitForExistence(timeout: 5))
+        location.click()
+        location.typeKey("a", modifierFlags: .command)
+        location.typeText(directory.path)
+        app.typeKey(.return, modifierFlags: [])
+        let closed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: folder)
+        XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 5), .completed)
     }
 
     /// Fresh WebViews use the shipped onboarding controls; the keyless candidate keeps provider setup deferred.

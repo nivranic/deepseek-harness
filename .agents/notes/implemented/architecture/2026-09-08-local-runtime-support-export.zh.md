@@ -72,7 +72,7 @@ Apple 绑定通过 gomobile 静态 framework 使用同一扫描器。[生产者]
 
 Apple 通过 [SupportExportCore](../../../../apps/apple/Sources/SupportExportCore/SupportProductIdentity.swift)复用产品标识校验。扫描协调器拥有独立的后台执行与取消队列，等待二者结束后才交付字节；在原生打开期间取消也会等待后续操作结束。Link 诊断通过锁和各次查询的所有权投影真实客户端活动，不读取身份存储。刷新与失败会移除 Host 元数据，配对角色在取消配对前保持最后已知观测。结果字节或摘要与完整输入不一致时拒绝交付。这些共享组件本身不提供应用导出操作。
 
-Companion 壳向使用语言字典的 SwiftUI 导出操作提供真实[原生扫描适配器](../../../../apps/apple/Shells/SupportScannerAdapter.swift)。描述刷新属于前台活动，因此导出读取既有观测时不联网，也不读取身份存储。系统只接收由已准入字节构造的 FileDocument，防止扫描后追加字段。缺失生产者保持显式声明；扫描器来源不能填补应用缺失的源码标识。
+Companion 壳向使用语言字典的 SwiftUI 导出操作提供真实[原生扫描适配器](../../../../apps/apple/Shells/SupportScannerAdapter.swift)。描述刷新属于前台活动，因此导出读取既有观测时不联网，也不读取身份存储。系统只接收由已准入字节构造的 FileDocument，防止扫描后追加字段。两个 Apple 界面通过 [fileExporter 取消回调](https://developer.apple.com/documentation/swiftui/view/fileexporter%28ispresented%3Adocument%3Acontenttypes%3Adefaultfilename%3Aoncompletion%3Aoncancellation%3A%29)释放已批准文档。取消不会调用完成回调，因此只在完成时清理会保留字节，并可能阻止后续导出。缺失生产者保持显式声明；扫描器来源不能填补应用缺失的源码标识。
 
 [应用检查器](../../../../scripts/verify-apple-app-scanner.py)检查最终资源字节与每个应用切片的 Go 模块图。库探针无法发现应用链接时选中了另一 framework，或打包时遗漏了许可证。Companion 归档保留原生符号供维护中的二进制漏洞检查器分析，检查结果绑定最终可执行文件摘要。
 
