@@ -6,7 +6,7 @@
       "name": "CI",
       "requiredJob": "all checks passed",
       "sourceJob": "node 24 / static",
-      "workflowSha256": "f0c15626ae69265f62cad66d429c3795896d1399255188df14a6a923136bfed1",
+      "workflowSha256": "188dcd05521605b63691b0391fde6aac95783fb7d2595532e73a0b6500a3441b",
       "aggregateNeeds": [
         "node-24",
         "node-24-coverage",

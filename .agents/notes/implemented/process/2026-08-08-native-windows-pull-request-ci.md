@@ -38,6 +38,8 @@ Post-boot profile watcher setup proceeds only while the root fiber and Loader ar
 
 Shiki disables lazy TextMate-regex compilation and warms each boot grammar before user content enters the unchanged per-line tokenization budget, so scheduler contention cannot publish a partial highlighted stream. The Codex real-product fixture is pinned to stable 0.149.1 schemas and selects an actually advertised command tool and argument shape, preserving the provider-owned protocol while proving unattended rejection and whole-tree exit on each host.
 
+The native test command preloads a [child-exit observer](../../../../scripts/ci-child-exits.mjs) through Node's diagnostic channel. CI records Node version, parent and child process ids, exit code and signal because the test pool's unexpected-exit error omits the termination cause. The observer preserves test failures and excludes child arguments, environment, paths and output. These exit facts narrow diagnosis; they do not establish a crash's root cause.
+
 ## Alternatives considered
 
 **Make every native Windows result a dependency of `all checks passed`.** This gives the aggregate the highest-fidelity Windows verdict, but makes every merge wait for coverage and the duplicated observational inventory. Requiring the build and targeted native-process suite retains fast native correctness signals while the other results remain automatic.

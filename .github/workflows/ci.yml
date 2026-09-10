@@ -590,7 +590,7 @@ jobs:
       - name: Run Windows-specific native tests
         shell: pwsh
         run: >-
-          pnpm exec vitest run
+          node --import ./scripts/ci-child-exits.mjs ./node_modules/vitest/vitest.mjs run
           --reporter=verbose
           --no-file-parallelism
           --testTimeout 90000
