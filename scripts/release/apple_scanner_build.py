@@ -1,6 +1,7 @@
 """Build a pinned XCFramework from committed Go sources and inspect every archive slice."""
 
 import argparse
+from collections.abc import Callable
 import hashlib
 import json
 import os
@@ -23,6 +24,16 @@ BUILD_FILES = (
     "scripts/release/apple_scanner_artifact.py", "scripts/release/mobile_scanner_source.py",
     "scripts/release/mobile_scanner_artifact.py", "scripts/release/mobile_scanner_build.py",
 )
+
+
+def thin_archive(binary: Path, architecture: str, output: Path, run: Callable[[list[str]], bytes]) -> None:
+    """Remove a universal container even when it holds only one architecture."""
+    with binary.open("rb") as stream:
+        plain = stream.read(8) == b"!<arch>\n"
+    if plain:
+        shutil.copyfile(binary, output)
+    else:
+        run(["/usr/bin/xcrun", "lipo", str(binary), "-thin", architecture, "-output", str(output)])
 
 
 def build_apple(repository: Path, commit: str, *, go: Path, developer: Path, cache: Path, work: Path, output: Path) -> dict:
@@ -130,10 +141,7 @@ def build_apple(repository: Path, commit: str, *, go: Path, developer: Path, cac
         for architecture in architectures:
             identifier = library["identifier"] + "-" + architecture
             thin = work / (identifier + ".a")
-            if len(architectures) == 1:
-                shutil.copyfile(binary, thin)
-            else:
-                run(["/usr/bin/xcrun", "lipo", str(binary), "-thin", architecture, "-output", str(thin)])
+            thin_archive(binary, architecture, thin, run)
             members = run(["/usr/bin/xcrun", "ar", "-t", str(thin)]).decode().splitlines()
             if members.count("go.o") != 1:
                 raise ValueError("Apple scanner archive must contain one Go object")

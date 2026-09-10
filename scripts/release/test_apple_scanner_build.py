@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from release.apple_scanner_build import BUILD_FILES, build_apple, main
+from release.apple_scanner_build import BUILD_FILES, build_apple, main, thin_archive
 from release.mobile_scanner_source import MODULE
 
 
@@ -65,6 +65,26 @@ class AppleScannerBuildTests(unittest.TestCase):
         with patch("release.apple_scanner_build.sys.platform", "linux"), self.assertRaisesRegex(ValueError, "requires macOS"):
             build_apple(self.repo, self.commit, **self.arguments)
         self.assertFalse(self.arguments["work"].exists())
+
+    def test_single_architecture_universal_archive_is_thinned_before_inspection(self):
+        source = self.root / "framework"; output = self.root / "slice.a"
+        archive = b"!<arch>\nfixture members"
+        calls = []
+
+        def lipo(arguments):
+            calls.append(arguments)
+            output.write_bytes(archive)
+            return b""
+
+        # A one-slice universal header still needs lipo; architecture count is not the container format.
+        source.write_bytes(bytes.fromhex("cafebabe00000001") + b"fixture slice")
+        thin_archive(source, "arm64", output, lipo)
+        self.assertEqual(calls, [["/usr/bin/xcrun", "lipo", str(source), "-thin", "arm64", "-output", str(output)]])
+        self.assertEqual(output.read_bytes(), archive)
+        calls.clear(); output.unlink(); source.write_bytes(archive)
+        thin_archive(source, "arm64", output, lipo)
+        self.assertEqual(calls, [])
+        self.assertEqual(output.read_bytes(), archive)
 
     def test_cli_retains_validation_exception_privately_without_replacing_existing_work(self):
         arguments = ["builder", "--source-sha", self.commit]
