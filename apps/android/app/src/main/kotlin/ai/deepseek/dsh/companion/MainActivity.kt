@@ -209,6 +209,7 @@ object CompanionRuntime {
 fun CompanionApp(model: CompanionViewModel = viewModel()) {
     var tab by remember { mutableStateOf(0) }
     val context = androidx.compose.ui.platform.LocalContext.current
+    HostDescriptionObserver(CompanionRuntime.wire, model.paired)
     // The chapter-70 runtime grant: Android 13+ asks for POST_NOTIFICATIONS
     // at runtime — once per process while the grant is missing — and the
     // answer lands in the projection the push chain reads.

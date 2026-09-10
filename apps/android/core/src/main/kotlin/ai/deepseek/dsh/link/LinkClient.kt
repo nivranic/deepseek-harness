@@ -23,7 +23,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import okhttp3.Call
 import okhttp3.Callback
@@ -161,11 +160,26 @@ class LinkClient private constructor(
     private var closed = false
     private var startedRequests = 0L
     private var finishedRequests = 0L
+    private var observedRole: LinkDeviceRole? = null
+    private var descriptionOwner: Any? = null
+    private var descriptionState = LinkDescriptionState.NOT_REQUESTED
+    private var descriptionFailure: LinkDescriptionFailure? = null
+    private var observedDescription: LinkProtocolObservation? = null
     private val transportRetired = AtomicBoolean(false)
 
     /** Observe this client's owned requests without loading identity storage or sending traffic. */
     fun requestSnapshot(): LinkRequestSnapshot = synchronized(lifecycleLock) {
         LinkRequestSnapshot(closed, activeCalls.size, startedRequests, finishedRequests)
+    }
+
+    /** Project local ownership and previously read metadata without loading credentials or sending traffic. */
+    fun diagnosticSnapshot(): LinkDiagnosticSnapshot = synchronized(lifecycleLock) {
+        LinkDiagnosticSnapshot(LinkRequestSnapshot(closed, activeCalls.size, startedRequests, finishedRequests),
+            observedRole, descriptionState, descriptionFailure, observedDescription)
+    }
+
+    private fun observeRole(role: String) = synchronized(lifecycleLock) {
+        if (!closed) observedRole = LinkDeviceRole.entries.singleOrNull { it.wire == role }
     }
 
     private class TrackedCall(
@@ -225,14 +239,55 @@ class LinkClient private constructor(
             ),
         )
         store.save(credentials)
+        observeRole(credentials.role)
         credentials
     }
 
     /** Ask the authenticated host for its description without blocking the caller's dispatcher.
+     * Required fields retain their JSON types; absent or malformed values fail as [LinkClientException.BadWire].
      * Cancellation cancels the owned OkHttp call. */
     suspend fun describe(): LinkHostDescription = withContext(Dispatchers.IO) {
-        val data = post("/link/describe", ByteArray(0), signed = true)
-        mapHostDescription(Json.parseToJsonElement(data.decodeToString()).jsonObject)
+        val owner = synchronized(lifecycleLock) {
+            if (closed) throw LinkClientException.Carrier(0, "Link client is closed")
+            Any().also {
+                descriptionOwner = it
+                descriptionState = LinkDescriptionState.CHECKING
+                descriptionFailure = null
+                observedDescription = null
+            }
+        }
+        fun settle(state: LinkDescriptionState, failure: LinkDescriptionFailure?, value: LinkProtocolObservation?) {
+            synchronized(lifecycleLock) {
+                if (!closed && descriptionOwner === owner) {
+                    descriptionState = state; descriptionFailure = failure; observedDescription = value
+                    descriptionOwner = null
+                }
+            }
+        }
+        try {
+            val data = post("/link/describe", ByteArray(0), signed = true)
+            val document = runCatching { Json.parseToJsonElement(data.decodeToString()) as? JsonObject }.getOrNull()
+                ?: throw LinkClientException.BadWire("host description is not a JSON object")
+            val value = mapHostDescription(document)
+            currentCoroutineContext().ensureActive()
+            settle(LinkDescriptionState.AVAILABLE, null, LinkProtocolObservation(value.linkProtocolVersion, value.contractVersion,
+                value.sessionFormatVersion, if (value.runtimeClass == "full") LinkObservedRuntimeClass.FULL else LinkObservedRuntimeClass.UNRECOGNIZED,
+                value.allowRemoteApproval, value.capabilities))
+            value
+        } catch (cancelled: CancellationException) {
+            settle(LinkDescriptionState.CANCELLED, null, null)
+            throw cancelled
+        } catch (failure: Exception) {
+            val category = when (failure) {
+                is LinkClientException.Unpaired -> LinkDescriptionFailure.UNPAIRED
+                is LinkClientException.Refused -> LinkDescriptionFailure.REFUSED
+                is LinkClientException.Carrier -> LinkDescriptionFailure.CARRIER
+                is LinkClientException.BadWire -> LinkDescriptionFailure.BAD_WIRE
+                else -> LinkDescriptionFailure.INTERNAL
+            }
+            settle(LinkDescriptionState.FAILED, category, null)
+            throw failure
+        }
     }
 
     /**
@@ -410,7 +465,7 @@ class LinkClient private constructor(
                 pinnedFingerprint = credentials.pinnedFingerprint,
                 store = store,
                 transportConfig = transportConfig,
-            )
+            ).also { it.observeRole(credentials.role) }
         }
     }
 
@@ -504,6 +559,10 @@ class LinkClient private constructor(
     private fun requestClose(): List<TrackedCall> {
         val calls = synchronized(lifecycleLock) {
             closed = true
+            descriptionOwner = null
+            descriptionState = LinkDescriptionState.RETIRED
+            descriptionFailure = null
+            observedDescription = null
             activeCalls.toList()
         }
         calls.forEach { tracked -> tracked.retire() }
@@ -516,6 +575,7 @@ class LinkClient private constructor(
 
     private fun applyCredentials(builder: Request.Builder, path: String, body: ByteArray) {
         val credentials = store.load() ?: throw LinkClientException.Unpaired()
+        observeRole(credentials.role)
         val privateKeyRaw = credentials.signingKeyRaw
             ?: throw LinkClientException.BadWire("stored signing key is not base64")
         val timestamp = System.currentTimeMillis().toString()
@@ -556,7 +616,7 @@ private fun JsonObject.requiredString(field: String): String =
         ?: throw LinkClientException.BadWire("missing or invalid string field $field")
 
 private fun JsonObject.requiredNumber(field: String): Double =
-    (this[field] as? JsonPrimitive)?.takeUnless { it.isString }?.doubleOrNull
+    (this[field] as? JsonPrimitive)?.takeUnless { it.isString }?.doubleOrNull?.takeIf { it.isFinite() }
         ?: throw LinkClientException.BadWire("missing or invalid number field $field")
 
 private fun JsonObject.pairResponse(expectedProtocolVersion: Double): LinkPairResponse {
@@ -575,39 +635,40 @@ private fun JsonObject.pairResponse(expectedProtocolVersion: Double): LinkPairRe
     )
 }
 
-private fun JsonObject.boolean(field: String): Boolean =
-    this[field]?.jsonPrimitive?.booleanOrNull ?: false
+private fun JsonObject.requiredBoolean(field: String): Boolean =
+    (this[field] as? JsonPrimitive)?.takeUnless { it.isString }?.booleanOrNull
+        ?: throw LinkClientException.BadWire("missing or invalid boolean field $field")
 
-private fun JsonObject.number(field: String): Double =
-    this[field]?.jsonPrimitive?.content?.toDoubleOrNull() ?: 0.0
+private fun JsonObject.requiredObject(field: String): JsonObject =
+    this[field] as? JsonObject ?: throw LinkClientException.BadWire("missing or invalid object field $field")
 
-/** Map the host-description JSON onto the generated contract model. */
+/** Decode required fields without fabricated defaults; unknown optional fields do not alter known observations. */
 internal fun mapHostDescription(obj: JsonObject): LinkHostDescription {
-    val capabilities = obj["capabilities"]?.jsonObject ?: JsonObject(emptyMap())
-    val session = capabilities["session"]?.jsonObject ?: JsonObject(emptyMap())
-    val workspace = capabilities["workspace"]?.jsonObject ?: JsonObject(emptyMap())
-    val interaction = capabilities["interaction"]?.jsonObject ?: JsonObject(emptyMap())
+    val capabilities = obj.requiredObject("capabilities")
+    val session = capabilities.requiredObject("session")
+    val workspace = capabilities.requiredObject("workspace")
+    val interaction = capabilities.requiredObject("interaction")
     return LinkHostDescription(
-        linkProtocolVersion = obj.number("linkProtocolVersion"),
-        contractVersion = obj.number("contractVersion"),
+        linkProtocolVersion = obj.requiredNumber("linkProtocolVersion"),
+        contractVersion = obj.requiredNumber("contractVersion"),
         hostVersion = obj.requiredString("hostVersion"),
         hostId = obj.requiredString("hostId"),
         hostName = obj.requiredString("hostName"),
         runtimeClass = obj.requiredString("runtimeClass"),
-        sessionFormatVersion = obj.number("sessionFormatVersion"),
-        allowRemoteApproval = obj.boolean("allowRemoteApproval"),
+        sessionFormatVersion = obj.requiredNumber("sessionFormatVersion"),
+        allowRemoteApproval = obj.requiredBoolean("allowRemoteApproval"),
         capabilities = LinkCapabilities(
             session = LinkSessionCapabilities(
-                list = session.boolean("list"),
-                history = session.boolean("history"),
-                follow = session.boolean("follow"),
-                prompt = session.boolean("prompt"),
-                cancel = session.boolean("cancel"),
+                list = session.requiredBoolean("list"),
+                history = session.requiredBoolean("history"),
+                follow = session.requiredBoolean("follow"),
+                prompt = session.requiredBoolean("prompt"),
+                cancel = session.requiredBoolean("cancel"),
             ),
-            workspace = LinkWorkspaceCapabilities(follow = workspace.boolean("follow")),
+            workspace = LinkWorkspaceCapabilities(follow = workspace.requiredBoolean("follow")),
             interaction = LinkInteractionCapabilities(
-                approval = interaction.boolean("approval"),
-                question = interaction.boolean("question"),
+                approval = interaction.requiredBoolean("approval"),
+                question = interaction.requiredBoolean("question"),
             ),
         ),
     )

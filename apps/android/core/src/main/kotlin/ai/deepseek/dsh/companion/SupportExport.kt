@@ -1,6 +1,7 @@
 package ai.deepseek.dsh.companion
 
-import ai.deepseek.dsh.link.LinkRequestSnapshot
+import ai.deepseek.dsh.link.LinkDiagnosticSnapshot
+import ai.deepseek.dsh.link.LinkDescriptionState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -55,7 +56,7 @@ data class SupportProductIdentity(val version: String, val buildNumber: Long, va
     }
 }
 
-data class SupportLocalSnapshot(val identityRestored: Boolean, val transport: LinkRequestSnapshot?)
+data class SupportLocalSnapshot(val identityRestored: Boolean, val link: LinkDiagnosticSnapshot?)
 
 data class SupportScannerIdentity(val version: String, val rulesDigest: String, val sourceSha: String, val nativeSha256: String)
 
@@ -147,11 +148,44 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
             put("producer", "CompanionRuntime"); put("observation", "current"); put("restored", snapshot.identityRestored)
         })
         put("transport", buildJsonObject {
-            put("producer", "LinkClient"); put("observation", if (snapshot.transport == null) "unavailable" else "current")
-            snapshot.transport?.let {
+            put("producer", "LinkClient"); put("observation", if (snapshot.link == null) "unavailable" else "current")
+            snapshot.link?.requests?.let {
                 put("closed", it.closed); put("pendingRequests", it.pendingRequests)
                 put("startedRequests", it.startedRequests); put("finishedRequests", it.finishedRequests)
                 put("countsSaturated", it.startedRequests == Long.MAX_VALUE || it.finishedRequests == Long.MAX_VALUE)
+            }
+        })
+        put("role", buildJsonObject {
+            put("producer", "LinkCredentials")
+            val role = snapshot.link?.lastKnownRole
+            put("observation", if (role == null) "unavailable" else "last-known")
+            role?.let { put("value", it.wire) }
+        })
+        val description = snapshot.link?.description
+        val descriptionObservation = when {
+            description != null -> "last-known"
+            snapshot.link?.descriptionState == LinkDescriptionState.FAILED -> "failed"
+            else -> "unavailable"
+        }
+        put("protocol", buildJsonObject {
+            put("producer", "LinkClient.describe"); put("observation", descriptionObservation)
+            put("queryState", snapshot.link?.descriptionState?.wire ?: "unavailable")
+            snapshot.link?.descriptionFailure?.let { put("failure", it.wire) }
+            description?.let {
+                put("linkProtocolVersion", it.linkProtocolVersion); put("contractVersion", it.contractVersion)
+                put("sessionFormatVersion", it.sessionFormatVersion); put("runtimeClass", it.runtimeClass.wire)
+                put("allowRemoteApproval", it.allowRemoteApproval)
+            }
+        })
+        put("capabilities", buildJsonObject {
+            put("producer", "LinkClient.describe"); put("observation", descriptionObservation)
+            description?.capabilities?.let {
+                put("session", buildJsonObject {
+                    put("list", it.session.list); put("history", it.session.history); put("follow", it.session.follow)
+                    put("prompt", it.session.prompt); put("cancel", it.session.cancel)
+                })
+                put("workspace", buildJsonObject { put("follow", it.workspace.follow) })
+                put("interaction", buildJsonObject { put("approval", it.interaction.approval); put("question", it.interaction.question) })
             }
         })
         put("scanner", buildJsonObject {
@@ -159,7 +193,7 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
             put("sourceSha", scanner.sourceSha); put("nativeSha256", scanner.nativeSha256)
         })
         put("uncollected", buildJsonArray {
-            listOf("runtime-health", "connection", "protocol", "role", "capabilities", "updates", "native-crashes", "session-diagnostics").forEach { add(it) }
+            listOf("runtime-health", "connection", "updates", "native-crashes", "session-diagnostics").forEach { add(it) }
         })
     }
     val bytes = (Json.encodeToString(kotlinx.serialization.json.JsonObject.serializer(), value) + "\n").toByteArray(Charsets.UTF_8)

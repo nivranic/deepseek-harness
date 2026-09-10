@@ -7,6 +7,12 @@ import java.util.concurrent.atomic.AtomicReference
 /** The wire surface the companion models drive — the Kotlin mirror of the
  * Swift `CompanionWireDriving`; tests drive a fake, the app a LinkClient. */
 interface WireDriving : AutoCloseable {
+    /** Stateless and unpaired wires have no local Link metadata owner. */
+    fun diagnosticSnapshot(): ai.deepseek.dsh.link.LinkDiagnosticSnapshot? = null
+
+    /** Refresh an owned Host observation; stateless wires have no query to perform. */
+    suspend fun refreshHostDescription() = Unit
+
     /** Observe local transport ownership; stateless and unpaired wires have no transport. */
     fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot? = null
 
@@ -34,6 +40,8 @@ class SwitchableWireDriving(initial: WireDriving) : WireDriving {
     private var closed = false
 
     override fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot? = delegate.get().requestSnapshot()
+    override fun diagnosticSnapshot(): ai.deepseek.dsh.link.LinkDiagnosticSnapshot? = delegate.get().diagnosticSnapshot()
+    override suspend fun refreshHostDescription() = delegate.get().refreshHostDescription()
 
     /** Route subsequent calls and streams through [next], retiring the previous wire. */
     fun replace(next: WireDriving) {
@@ -88,6 +96,14 @@ class SwitchableWireDriving(initial: WireDriving) : WireDriving {
 /** The wire over one paired [ai.deepseek.dsh.link.LinkClient]. */
 class LinkWireDriving(private val client: ai.deepseek.dsh.link.LinkClient) : WireDriving {
     override fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot = client.requestSnapshot()
+    override fun diagnosticSnapshot(): ai.deepseek.dsh.link.LinkDiagnosticSnapshot = client.diagnosticSnapshot()
+
+    override suspend fun refreshHostDescription() {
+        try { client.describe() }
+        catch (_: ai.deepseek.dsh.link.LinkClientException) {
+            // The client retains the fixed query refusal; normal model streams remain independently owned.
+        }
+    }
 
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
         client.call(method, args)

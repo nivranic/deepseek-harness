@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 import kotlin.test.AfterTest
@@ -280,6 +281,139 @@ class LinkClientTest {
         assertEquals(true, description.capabilities.session.follow)
         assertEquals(true, description.capabilities.interaction.approval)
         assertEquals(true, description.capabilities.interaction.question)
+    }
+
+    @Test
+    fun describeRejectsMalformedBodiesAndMissingRequiredFields() = runBlocking {
+        val client = client(MemoryLinkCredentialsStore())
+        client.pair(pairingPayload(), "private device label")
+        for (body in listOf("{private malformed response", "[]", "null", "{}", "{\"capabilities\":false}")) {
+            server.removeContext("/link/describe")
+            server.createContext("/link/describe") { exchange ->
+                capture(exchange)
+                respond(exchange, 200, body)
+            }
+            val failure = assertFailsWith<LinkClientException.BadWire> { client.describe() }
+            assertFalse(failure.message.orEmpty().contains("private malformed response"))
+        }
+    }
+
+    @Test
+    fun diagnosticSnapshotsUseReadObservationsWithoutReadingIdentityStorage() = runBlocking {
+        val backing = MemoryLinkCredentialsStore()
+        var reads = 0
+        val store = object : LinkCredentialsStoring by backing {
+            override fun load(): LinkCredentials? { reads++; return backing.load() }
+        }
+        val client = client(store)
+        assertEquals(LinkDescriptionState.NOT_REQUESTED, client.diagnosticSnapshot().descriptionState)
+        client.pair(pairingPayload(), "private device label")
+        assertEquals(LinkDeviceRole.CONTROLLER, client.diagnosticSnapshot().lastKnownRole)
+        assertEquals(0, reads)
+        val wire = LinkWireDriving(client)
+        wire.refreshHostDescription()
+        val before = reads
+        val observed = wire.diagnosticSnapshot()
+        assertEquals(LinkDescriptionState.AVAILABLE, observed.descriptionState)
+        assertEquals(1.0, observed.description!!.contractVersion)
+        assertEquals(LinkObservedRuntimeClass.UNRECOGNIZED, observed.description.runtimeClass)
+        assertFalse(observed.toString().contains("Studio Desk"))
+        assertFalse(observed.toString().contains("h-1"))
+        assertEquals(before, reads)
+        server.removeContext("/link/describe")
+        server.createContext("/link/describe") { exchange -> respond(exchange, 403, """{"error":"forbidden","message":"private refusal"}""") }
+        wire.refreshHostDescription()
+        val refused = wire.diagnosticSnapshot()
+        assertEquals(LinkDescriptionState.FAILED, refused.descriptionState)
+        assertEquals(LinkDescriptionFailure.REFUSED, refused.descriptionFailure)
+        assertEquals(null, refused.description)
+        assertEquals(LinkDeviceRole.CONTROLLER, refused.lastKnownRole)
+        assertFalse(refused.toString().contains("private refusal"))
+        client.closeAndAwait()
+        assertEquals(LinkDescriptionState.RETIRED, client.diagnosticSnapshot().descriptionState)
+        val restored = LinkClient.restore(store, transportConfig)!!
+        try {
+            val count = reads
+            assertEquals(LinkDeviceRole.CONTROLLER, restored.diagnosticSnapshot().lastKnownRole)
+            assertEquals(LinkDescriptionState.NOT_REQUESTED, restored.diagnosticSnapshot().descriptionState)
+            assertEquals(count, reads)
+        } finally { restored.closeAndAwait() }
+    }
+
+    @Test
+    fun anOlderDescriptionCannotReplaceTheNewerObservation() = runBlocking {
+        val executor = Executors.newCachedThreadPool()
+        val receiver = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        receiver.executor = executor
+        val entered = CountDownLatch(1); val release = CountDownLatch(1); val sequence = AtomicInteger()
+        receiver.createContext("/link/describe") { exchange ->
+            exchange.requestBody.use { it.readBytes() }
+            val version = sequence.incrementAndGet()
+            if (version == 1) { entered.countDown(); check(release.await(10, java.util.concurrent.TimeUnit.SECONDS)) }
+            respond(exchange, 200, """{"linkProtocolVersion":1,"contractVersion":$version,"hostVersion":"test","hostId":"private","hostName":"private","runtimeClass":"full","sessionFormatVersion":0,"allowRemoteApproval":false,"capabilities":{"session":{"list":true,"history":true,"follow":true,"prompt":true,"cancel":true},"workspace":{"follow":true},"interaction":{"approval":false,"question":false}}}""")
+        }
+        receiver.start()
+        val endpoint = "http://127.0.0.1:${receiver.address.port}"
+        val client = client(endpoint, "ab".repeat(32), pairedStore(endpoint, "ab".repeat(32)))
+        val first = async(Dispatchers.IO) { client.describe() }
+        try {
+            assertTrue(kotlinx.coroutines.withContext(Dispatchers.IO) { entered.await(5, java.util.concurrent.TimeUnit.SECONDS) })
+            assertEquals(LinkDescriptionState.CHECKING, client.diagnosticSnapshot().descriptionState)
+            assertEquals(2.0, client.describe().contractVersion)
+            release.countDown()
+            assertEquals(1.0, first.await().contractVersion)
+            assertEquals(2.0, client.diagnosticSnapshot().description!!.contractVersion)
+        } finally {
+            release.countDown(); first.cancelAndJoin(); client.closeAndAwait()
+            receiver.stop(0); executor.shutdownNow()
+            assertTrue(executor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS))
+        }
+    }
+
+    @Test
+    fun cancelledAndRetiredDescriptionsCannotPublishValues() = runBlocking {
+        val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        server.removeContext("/link/describe")
+        server.createContext("/link/describe") { exchange ->
+            exchange.requestBody.use { it.readBytes() }; entered.countDown()
+            try { check(release.await(10, java.util.concurrent.TimeUnit.SECONDS)) } finally { exchange.close() }
+        }
+        val endpoint = "http://127.0.0.1:${server.address.port}"
+        val client = client(pairedStore(endpoint, "ab".repeat(32)))
+        val pending = async(Dispatchers.IO) { client.describe() }
+        try {
+            assertTrue(kotlinx.coroutines.withContext(Dispatchers.IO) { entered.await(5, java.util.concurrent.TimeUnit.SECONDS) })
+            pending.cancelAndJoin()
+            assertEquals(LinkDescriptionState.CANCELLED, client.diagnosticSnapshot().descriptionState)
+            assertEquals(null, client.diagnosticSnapshot().description)
+            client.closeAndAwait()
+            assertEquals(LinkDescriptionState.RETIRED, client.diagnosticSnapshot().descriptionState)
+            assertFailsWith<LinkClientException.Carrier> { client.describe() }
+            assertEquals(LinkDescriptionState.RETIRED, client.diagnosticSnapshot().descriptionState)
+        } finally { release.countDown(); pending.cancelAndJoin() }
+    }
+
+    @Test
+    fun closingAnInFlightDescriptionKeepsTheRetiredObservation() = runBlocking {
+        val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        server.removeContext("/link/describe")
+        server.createContext("/link/describe") { exchange ->
+            exchange.requestBody.use { it.readBytes() }; entered.countDown()
+            try { check(release.await(10, java.util.concurrent.TimeUnit.SECONDS)) } finally { exchange.close() }
+        }
+        val endpoint = "http://127.0.0.1:${server.address.port}"
+        val client = client(pairedStore(endpoint, "ab".repeat(32)))
+        val pending = async(Dispatchers.IO) { runCatching { client.describe() } }
+        try {
+            assertTrue(kotlinx.coroutines.withContext(Dispatchers.IO) { entered.await(5, java.util.concurrent.TimeUnit.SECONDS) })
+            client.closeAndAwait()
+            assertTrue(pending.await().exceptionOrNull() is LinkClientException.Carrier)
+            val snapshot = client.diagnosticSnapshot()
+            assertEquals(LinkDescriptionState.RETIRED, snapshot.descriptionState)
+            assertEquals(null, snapshot.description)
+            assertEquals(null, snapshot.descriptionFailure)
+            assertEquals(0, snapshot.requests.pendingRequests)
+        } finally { release.countDown(); pending.cancelAndJoin() }
     }
 
     @Test

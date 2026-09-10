@@ -1,6 +1,16 @@
 package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.LinkRequestSnapshot
+import ai.deepseek.dsh.link.LinkDiagnosticSnapshot
+import ai.deepseek.dsh.link.LinkDescriptionState
+import ai.deepseek.dsh.link.LinkDescriptionFailure
+import ai.deepseek.dsh.link.LinkDeviceRole
+import ai.deepseek.dsh.link.LinkProtocolObservation
+import ai.deepseek.dsh.link.LinkObservedRuntimeClass
+import ai.deepseek.dsh.link.LinkCapabilities
+import ai.deepseek.dsh.link.LinkSessionCapabilities
+import ai.deepseek.dsh.link.LinkWorkspaceCapabilities
+import ai.deepseek.dsh.link.LinkInteractionCapabilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -20,7 +30,11 @@ import java.util.concurrent.TimeUnit
 class SupportExportTest {
     private val identity = SupportScannerIdentity("8.30.1", "a".repeat(64), "b".repeat(40), "c".repeat(64))
     private val product = SupportProductIdentity("0.1.2-alpha.1", 1, "dev")
-    private val snapshot = SupportLocalSnapshot(true, LinkRequestSnapshot(false, 2, 5, 3))
+    private val protocol = LinkProtocolObservation(1.0, 1.0, 0.0, LinkObservedRuntimeClass.FULL, false,
+        LinkCapabilities(LinkSessionCapabilities(true, true, true, true, true), LinkWorkspaceCapabilities(true), LinkInteractionCapabilities(false, true)))
+    private val link = LinkDiagnosticSnapshot(LinkRequestSnapshot(false, 2, 5, 3), LinkDeviceRole.CONTROLLER,
+        LinkDescriptionState.AVAILABLE, null, protocol)
+    private val snapshot = SupportLocalSnapshot(true, link)
     private val policy = SupportExportPolicy(1024 * 1024, 10_000)
 
     @Test fun projectsLocalFactsWithoutClaimingHealthOrAuthorization() {
@@ -31,11 +45,26 @@ class SupportExportTest {
         assertEquals("false", value["complete"].toString())
         assertEquals("2", value["transport"]!!.jsonObject["pendingRequests"].toString())
         assertEquals("true", value["localIdentity"]!!.jsonObject["restored"].toString())
-        assertTrue(value["uncollected"].toString().contains("role"))
+        assertFalse(value["uncollected"].toString().contains("role"))
+        assertEquals("\"last-known\"", value["role"]!!.jsonObject["observation"].toString())
+        assertEquals("\"last-known\"", value["protocol"]!!.jsonObject["observation"].toString())
         assertFalse(bytes.decodeToString().contains("hostId"))
         assertTrue(bytes.last() == 10.toByte())
         val absent = Json.parseToJsonElement(encodeSupportDocument(product, SupportLocalSnapshot(false, null), identity, policy.maximumBytes).decodeToString()).jsonObject
         assertEquals("\"unavailable\"", absent["transport"]!!.jsonObject["observation"].toString())
+        assertEquals("\"unavailable\"", absent["role"]!!.jsonObject["observation"].toString())
+        assertEquals("\"unavailable\"", absent["capabilities"]!!.jsonObject["observation"].toString())
+    }
+
+    @Test fun failedDescriptionDoesNotRetainCapabilityOrProtocolValues() {
+        val unavailable = snapshot.copy(link = link.copy(descriptionState = LinkDescriptionState.FAILED,
+            descriptionFailure = LinkDescriptionFailure.REFUSED, description = null))
+        val value = Json.parseToJsonElement(encodeSupportDocument(product, unavailable, identity, policy.maximumBytes).decodeToString()).jsonObject
+        assertEquals("\"failed\"", value["protocol"]!!.jsonObject["observation"].toString())
+        assertEquals("\"refused\"", value["protocol"]!!.jsonObject["failure"].toString())
+        assertFalse(value["protocol"]!!.jsonObject.containsKey("linkProtocolVersion"))
+        assertFalse(value["capabilities"]!!.jsonObject.containsKey("session"))
+        assertEquals("\"last-known\"", value["role"]!!.jsonObject["observation"].toString())
     }
 
     @Test fun rejectsInvalidProductMetadataAndScannerIdentity() {

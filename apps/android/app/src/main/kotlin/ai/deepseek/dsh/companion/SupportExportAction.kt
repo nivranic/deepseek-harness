@@ -105,7 +105,7 @@ fun SupportExportAction() {
                         SupportProductIdentity(info.versionName.orEmpty(), info.longVersionCode,
                             application.metaData?.getString("ai.deepseek.dsh.distributionChannel").orEmpty())
                     }
-                    val snapshot = SupportLocalSnapshot(CompanionRuntime.restored, CompanionRuntime.wire.requestSnapshot())
+                    val snapshot = SupportLocalSnapshot(CompanionRuntime.restored, CompanionRuntime.wire.diagnosticSnapshot())
                     val document = exporter.prepare(product, snapshot)
                     currentCoroutineContext().ensureActive()
                     pending = document

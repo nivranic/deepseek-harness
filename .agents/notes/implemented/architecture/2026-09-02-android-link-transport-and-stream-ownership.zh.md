@@ -20,6 +20,8 @@ Android [Kotlin wire 客户端](2026-08-30-android-wire-client.zh.md)使用 `Htt
 
 ## 验证
 
+经过认证的 Host 描述保留必填字段类型，不虚构能力或版本默认值。对象缺失、布尔值缺失或类型错误、版本不是数值或不是有限值时，均以 `BadWire` 失败；显式的零和 false 仍有效。按生成的 Link 兼容规则，未知可选字段仍可忽略。真实 HTTP describe 路径也会把畸形或非对象 JSON 映射为固定 `BadWire` 拒绝，不保留响应原文。
+
 聚焦 Kotlin 测试证明从类 Main 单线程 dispatcher 发出的 unary call 不会阻塞该 dispatcher，取消会到达 active OkHttp call，close 与 enqueue 竞争仍会结算。其他确定性 barrier 覆盖 TLS connect、request-body write、response-header wait、response-body read，以及被 collector backpressure 阻塞的 stream reader。钉扎 TLS fixture 会保持两条 chunked NDJSON response 打开、并发取消两名 collector，并要求两名 collector 与 client 退役全部结算。Replacement 必须等待被阻塞 collector，并防止其排队的旧 frame 到达模型。这些测试还交错模型 replacement 与 stop，要求可等待 teardown 等待每一代，要求模型 teardown 保持进程所有 wire 可替换，并在不持久化凭据的前提下拒绝畸形的配对身份、角色与版本字段。传输状态测试钉住 unary 与 stream 授权两个路径：规范的 `403 forbidden` 应答带出稳定拒绝码，畸形 `403` 则保留为使用 HTTP 兜底消息的载体失败。[真实 Host 原生 Link 验收](../testing/2026-09-02-real-host-native-link-acceptance.zh.md)仍是共享 pair 至 revoke corpus 的执行 owner；源码检查与生成 fixture 不能替代 Kotlin 车道结果。
 
 ## 考虑过的替代方案

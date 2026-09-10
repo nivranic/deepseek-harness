@@ -74,7 +74,11 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 <a id="local-support-export"></a>
 ## 本地诊断导出
 
-诊断导出操作在配对前即可使用，并调用 Android 本地文档选择器。[导出器](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportExport.kt)序列化已安装应用标识、本地身份恢复状态和当前 Link 请求所有权。请求计数不能证明连接健康或当前授权。尚未接入的运行时、协议、角色、capability、更新、崩溃和会话生产者列在 `uncollected` 中，文档声明 `complete: false`。
+诊断导出操作在配对前即可使用，并调用 Android 本地文档选择器。[导出器](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportExport.kt)序列化已安装应用标识、本地身份恢复状态、当前 Link 请求所有权、最后已知配对角色，以及经过认证的 Host 协议和 capability 观测。请求计数和最后已知值不能证明当前连接健康或授权。尚未接入的运行时健康、连接、更新、崩溃和会话生产者列在 `uncollected` 中，文档声明 `complete: false`。
+
+已配对身份进入前台时会独立刷新 Host 描述，导出不触发刷新。[Link 诊断](core/src/main/kotlin/ai/deepseek/dsh/link/LinkDiagnostics.kt)只保留固定字段、查询状态和失败类别，不保留 Host 名称、标识符、地址或错误原文。新查询和客户端退役使先前请求的完成失效。失败或取消会清空描述值；成功描述和已存配对角色标为 `last-known`。读取导出快照既不加载凭据，也不发送请求。
+
+经过认证的 Host 描述要求版本使用有限 JSON 数值、能力标志和审批策略使用显式 JSON 布尔值，并提供全部声明的能力对象。必填字段缺失或类型错误时以 `LinkClientException.BadWire` 失败；显式的零和 false 仍有效。未知可选字段被忽略。未知运行时标签映射为固定的 `unrecognized` 诊断类别。
 
 [原生适配器](app/src/main/kotlin/ai/deepseek/dsh/companion/AndroidSupportScanner.kt)在准入前验证已安装 JNI 字节和扫描器源码元数据。扫描与取消等待都在 UI 线程之外执行。导出器只接受与序列化结果完全相同且摘要匹配的字节，选定的保存目标接收已准入字节，写入前不再添加字段。取消选择器会丢弃待保存的准入结果；失败或取消的操作不会显示导出成功。[交付操作](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportDocumentDelivery.kt)在取消返回前等待写入结束，并在失败或取消后尝试丢弃新文档。提供方拒绝删除文档时，操作仍报告保存失败。[完整 Support Bundle 计划](../../docs/plans/2026-09-08-support-bundle.zh.md)拥有其余生产者与平台验收要求。
 
