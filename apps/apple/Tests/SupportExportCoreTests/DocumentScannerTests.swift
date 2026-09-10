@@ -97,35 +97,46 @@ final class DocumentScannerTests: XCTestCase {
 
     func testCancellationDuringOpeningOrRunJoinsCancellationBeforeReturning() async throws {
         for duringOpening in [false, true] {
-            let started = expectation(description: "native work entered")
-            let cancelling = expectation(description: "native cancellation entered")
-            let returned = expectation(description: "export returned before cancellation joined")
-            returned.isInverted = true
             let scanner = ScanFixture(blockOpening: duringOpening, blockRunning: !duringOpening,
-                                      blockCancellation: true, entered: started, cancelling: cancelling)
-            defer { scanner.releaseAll() }
+                                      blockCancellation: true)
             let exporter = try exporter(scanner)
             let input = data
             let task = Task {
-                defer { returned.fulfill() }
+                defer { scanner.recordExportReturn() }
                 return try await exporter.prepare(input)
             }
-            await fulfillment(of: [started], timeout: 10)
-            task.cancel()
-            scanner.releaseOpening()
-            await fulfillment(of: [cancelling], timeout: 10)
-            await fulfillment(of: [returned], timeout: 0.05)
-            returned.isInverted = false
-            scanner.releaseCancellation()
             do {
-                _ = try await task.value
-                XCTFail("cancelled export was admitted")
-            } catch { XCTAssertEqual(error as? SupportExportError, .cancelled) }
+                try await waitFor { duringOpening ? scanner.snapshot().opens == 1 : scanner.snapshot().runStarted }
+                task.cancel()
+                scanner.releaseOpening()
+                try await waitFor { scanner.snapshot().cancellations == 1 }
+                try await Task.sleep(nanoseconds: 50_000_000)
+                XCTAssertFalse(scanner.snapshot().exportReturned)
+                scanner.releaseCancellation()
+                do {
+                    _ = try await task.value
+                    XCTFail("cancelled export was admitted")
+                } catch { XCTAssertEqual(error as? SupportExportError, .cancelled) }
+            } catch {
+                task.cancel()
+                scanner.releaseAll()
+                _ = try? await task.value
+                throw error
+            }
+            scanner.releaseAll()
             XCTAssertTrue(scanner.snapshot().runFinished)
             XCTAssertTrue(scanner.snapshot().cancelFinished)
             XCTAssertEqual(scanner.snapshot().cancellations, 1)
             XCTAssertFalse(scanner.snapshot().usedMainThread)
             XCTAssertFalse(scanner.snapshot().timedOut)
+        }
+    }
+
+    private func waitFor(_ condition: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(10)
+        while !condition() {
+            guard Date() < deadline else { throw SupportExportError.timedOut }
+            try await Task.sleep(nanoseconds: 10_000_000)
         }
     }
 }
@@ -137,8 +148,10 @@ private final class ScanFixture: DocumentScanner, DocumentScanOperation, @unchec
     struct Snapshot {
         var opens = 0
         var cancellations = 0
+        var runStarted = false
         var runFinished = false
         var cancelFinished = false
+        var exportReturned = false
         var usedMainThread = false
         var timedOut = false
     }
@@ -152,8 +165,6 @@ private final class ScanFixture: DocumentScanner, DocumentScanOperation, @unchec
     private let blockOpening: Bool
     private let blockRunning: Bool
     private let blockCancellation: Bool
-    private let entered: XCTestExpectation?
-    private let cancelling: XCTestExpectation?
     private let opening = DispatchSemaphore(value: 0)
     private let running = DispatchSemaphore(value: 0)
     private let cancellation = DispatchSemaphore(value: 0)
@@ -161,11 +172,10 @@ private final class ScanFixture: DocumentScanner, DocumentScanOperation, @unchec
 
     init(status: String = "approved", corruption: Corruption = .none, failsOpening: Bool = false,
          failsRunning: Bool = false, blockOpening: Bool = false, blockRunning: Bool = false,
-         blockCancellation: Bool = false, entered: XCTestExpectation? = nil, cancelling: XCTestExpectation? = nil) {
+         blockCancellation: Bool = false) {
         self.status = status; self.corruption = corruption
         self.failsOpening = failsOpening; self.failsRunning = failsRunning
         self.blockOpening = blockOpening; self.blockRunning = blockRunning; self.blockCancellation = blockCancellation
-        self.entered = entered; self.cancelling = cancelling
     }
 
     func open(_ data: Data, policy: DocumentScanPolicy) throws -> any DocumentScanOperation {
@@ -174,13 +184,14 @@ private final class ScanFixture: DocumentScanner, DocumentScanOperation, @unchec
         observed.usedMainThread = observed.usedMainThread || Thread.isMainThread
         input = data
         lock.unlock()
-        if blockOpening { entered?.fulfill(); wait(opening) }
+        if blockOpening { wait(opening) }
         if failsOpening { throw FixtureError() }
         return self
     }
 
     func run() throws -> DocumentScanResult {
         lock.lock()
+        observed.runStarted = true
         observed.usedMainThread = observed.usedMainThread || Thread.isMainThread
         let data = input
         lock.unlock()
@@ -188,7 +199,7 @@ private final class ScanFixture: DocumentScanner, DocumentScanOperation, @unchec
             lock.lock(); observed.runFinished = true; lock.unlock()
             runReturned.signal()
         }
-        if blockRunning { entered?.fulfill(); wait(running) }
+        if blockRunning { wait(running) }
         if failsRunning { throw FixtureError() }
         return DocumentScanResult(status: status,
                                   data: corruption == .missing ? nil : corruption == .changed ? Data([0]) : data,
@@ -200,7 +211,6 @@ private final class ScanFixture: DocumentScanner, DocumentScanOperation, @unchec
         observed.cancellations += 1
         observed.usedMainThread = observed.usedMainThread || Thread.isMainThread
         lock.unlock()
-        cancelling?.fulfill()
         running.signal()
         wait(runReturned)
         if blockCancellation { wait(cancellation) }
@@ -208,6 +218,7 @@ private final class ScanFixture: DocumentScanner, DocumentScanOperation, @unchec
     }
 
     func snapshot() -> Snapshot { lock.lock(); defer { lock.unlock() }; return observed }
+    func recordExportReturn() { lock.lock(); observed.exportReturned = true; lock.unlock() }
     func releaseOpening() { opening.signal() }
     func releaseCancellation() { cancellation.signal() }
     func releaseAll() { opening.signal(); running.signal(); cancellation.signal() }
