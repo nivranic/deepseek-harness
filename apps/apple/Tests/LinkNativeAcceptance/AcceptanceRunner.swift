@@ -524,7 +524,9 @@ struct AcceptanceRunner {
                   interruptedRecoveryFollow.failure == nil,
                   interruptedRecoveryEvents.ended,
                   interruptedRecoveryEvents.failure == nil else {
-                throw AcceptanceFailure("recovery did not cancel both production stream iterators cleanly")
+                throw AcceptanceFailure("recovery stream termination: follow ended=\(interruptedRecoveryFollow.ended) "
+                    + "failure=\(interruptedRecoveryFollow.failure ?? "none"); events ended=\(interruptedRecoveryEvents.ended) "
+                    + "failure=\(interruptedRecoveryEvents.failure ?? "none")")
             }
             try await Self.waitForStreamGate(wire, endpoints: gatedEndpoints)
             recoveryStatus = try await control.waitForRecoveryStatus(
@@ -598,7 +600,9 @@ struct AcceptanceRunner {
                   interruptedRepeatedFollow.failure == nil,
                   interruptedRepeatedEvents.ended,
                   interruptedRepeatedEvents.failure == nil else {
-                throw AcceptanceFailure("same-cut reconnect did not cancel both production stream iterators cleanly")
+                throw AcceptanceFailure("same-cut stream termination: follow ended=\(interruptedRepeatedFollow.ended) "
+                    + "failure=\(interruptedRepeatedFollow.failure ?? "none"); events ended=\(interruptedRepeatedEvents.ended) "
+                    + "failure=\(interruptedRepeatedEvents.failure ?? "none")")
             }
             try await Self.waitForStreamGate(wire, endpoints: gatedEndpoints)
             repeatedActiveMutation = Self.observeNextActiveMutation(sessions)
