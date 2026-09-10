@@ -5,6 +5,11 @@ on:
     paths:
       - 'native/support-scanner/**'
       - 'scripts/build-mobile-support-scanner.py'
+      - 'scripts/build-apple-support-scanner.py'
+      - 'scripts/verify-apple-support-scanner.py'
+      - 'scripts/release/apple_scanner_*.py'
+      - 'scripts/release/test_apple_scanner_*.py'
+      - 'scripts/release/fixtures/apple-scanner/**'
       - 'scripts/release/mobile_scanner_*.py'
       - 'scripts/release/test_mobile_scanner_*.py'
       - '.github/workflows/mobile-support-scanner.yml'
@@ -79,3 +84,65 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+  apple:
+    name: Apple scanner frameworks and Swift native acceptance
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      DSH_SCANNER_SOURCE: ${{ inputs.source_sha || github.event.pull_request.head.sha || github.sha }}
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_SCANNER_SOURCE }}
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Verify source and packaging rejection paths
+        run: |
+          test "$(git rev-parse HEAD)" = "$DSH_SCANNER_SOURCE"
+          python3 -B -m unittest discover -s scripts/release -p 'test_mobile_scanner_*.py' -v
+          python3 -B -m unittest discover -s scripts/release -p 'test_apple_scanner_*.py' -v
+      - name: Build and verify the scanner XCFramework
+        run: |
+          python3 -B scripts/build-apple-support-scanner.py \
+            --source-sha "$DSH_SCANNER_SOURCE" --go "$(command -v go)" \
+            --developer-dir "$DEVELOPER_DIR" --cache "$RUNNER_TEMP/apple-scanner-cache" \
+            --work-dir "$RUNNER_TEMP/apple-scanner-work" --output "$RUNNER_TEMP/apple-scanner-artifact"
+      - name: Execute Swift scanner bindings on macOS and iOS simulator
+        run: |
+          python3 -B scripts/verify-apple-support-scanner.py \
+            --directory "$RUNNER_TEMP/apple-scanner-artifact" --work-dir "$RUNNER_TEMP/apple-scanner-work" \
+            --developer-dir "$DEVELOPER_DIR" --go "$(command -v go)" --output "$RUNNER_TEMP/apple-scanner-native"
+      - name: Check linked native scanner vulnerabilities
+        run: |
+          export GOENV=off GOWORK=off GOVCS='*:off' GOSUMDB=sum.golang.org
+          export GOCACHE="$RUNNER_TEMP/apple-scanner-cache/gocache"
+          export GOMODCACHE="$RUNNER_TEMP/apple-scanner-cache/modcache"
+          for target in macos ios-simulator; do
+            go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -mode=binary "$RUNNER_TEMP/apple-scanner-native/$target"
+          done
+      - name: Preserve verified Apple scanner resources
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mobile-support-scanner-apple-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/apple-scanner-artifact/
+            ${{ runner.temp }}/apple-scanner-native/verification.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Preserve Apple scanner failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mobile-support-scanner-apple-failure-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/apple-scanner-work/build.log
+            ${{ runner.temp }}/apple-scanner-native/*.stdout
+            ${{ runner.temp }}/apple-scanner-native/*.stderr
+          if-no-files-found: warn
+          retention-days: 7

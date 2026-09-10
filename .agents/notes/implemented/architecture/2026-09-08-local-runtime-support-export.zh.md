@@ -66,6 +66,8 @@ AGP 将文件形式的扫描 AAR 记录为仅含摘要的依赖。清单保留�
 
 Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、连接、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者、移动端离线扫描仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
 
+Apple 绑定通过 gomobile 静态 framework 使用同一扫描器。[生产者](../../../../scripts/build-apple-support-scanner.py)在记录模块校验和与许可证前，读取设备、模拟器和 Mac 各架构的实际 Go object 元数据。Framework 索引及生成的版本链接必须匹配声明矩阵。静态打包与 [Swift 原生探针](../../../../scripts/verify-apple-support-scanner.py)具有独立回执；二者均不能替代原生应用导出或物理设备验收。
+
 [源码扫描决策](../process/2026-09-05-candidate-security-scans.zh.md)继续拥有固定获取与源码例外；这些例外不能放行支持导出中的发现项。[产物完整性决策](../process/2026-09-06-candidate-artifact-integrity.zh.md)继续拥有完整 RC 准入。helper 突然终止、detached 工具进程组和 PTY 所有权不属于本导出的清理保证，仍会阻止 Full Host no-orphan 准入。
 
 Swift 所有者本地夹具固定 stopped、ready 和 failed 状态的完整序列化字段。原生测试覆盖污染元数据、真实扫描器准入、报告失败、不可变交付、取消和超时清理。POSIX 测试执行 helper 的固定参数、发现项退出码、强制扫描器关闭及应用突然终止。原生编译和保存对话框行为需要 Apple 与 Mac 候选车道；仅 Windows/Linux 解析器和资源测试不能证明这些结果。

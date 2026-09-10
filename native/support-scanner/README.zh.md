@@ -17,6 +17,7 @@ kind: "package-library"
 - [理解实现](#understand-the-implementation)
 - [验证](#verification)
 - [构建 Android 资源](#build-android-resources)
+- [构建 Apple 资源](#build-apple-resources)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 
 <a id="use-the-library"></a>
@@ -66,6 +67,15 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 构建将已提交的扫描器文件读入带版本的本地模块代理，并将下载后的源码字节与 Git 比较。外部模块继续由 Go 校验和数据库验证。两个 JNI 库保留模块版本与校验和，排除从构建目录推断的 VCS 标识，并通过 ELF 架构和 16 KiB 对齐检查。R8 保留规则保护生成的 Java 入口。AAR 的 `assets/dsh-support-scanner/` 包含源码与模块清单、模块许可证、Go 许可证及 NDK 声明；归档顺序和时间戳统一规范化。
 
 [移动扫描器工作流](../../.github/workflows/mobile-support-scanner.yml)在 Linux 上构建这些资源，并在上传前对两个原生库运行 govulncheck。库保留原生符号表以支持包与符号分析；消费方组装应用时必须保留这些字节。其 `BUILT` 回执证明静态打包检查通过。原生执行、应用接入和实际 16 KiB 页设备验收仍是独立要求。
+
+<a id="build-apple-resources"></a>
+## 构建 Apple 资源
+
+[Apple 构建入口](../../scripts/build-apple-support-scanner.py)复用相同的 Go/gomobile 版本与源码检查，并使用 [apple-build.json](apple-build.json) 中的 Xcode/部署标识。它要求 macOS，以及显式的 `--source-sha`、`--go`、`--developer-dir`、`--cache`、`--work-dir` 和 `--output` 输入。工作与输出目录必须新建且相互分离；缓存必须位于产物目录之外。
+
+输出 ZIP 包含 `SupportScanner.xcframework`、源码/模块清单与许可证。iOS 设备 arm64、模拟器 arm64/x86_64 和 macOS arm64/x86_64 均通过实际 Go archive object 独立检查。只准入生成的 Mac framework 版本链接。静态 framework 的 plist 版本属于规范化包元数据；不可变源码标识由 manifest 拥有。Apple SDK 是构建输入，不作为内容重新分发。
+
+[原生验证器](../../scripts/verify-apple-support-scanner.py)比较归档字节与编译使用的 framework，在 macOS 和自有 iOS 模拟器上执行 Swift 绑定探针，并记录已链接二进制摘要。工作流在发布库前检查这些已链接二进制的漏洞。库的 `BUILT` 状态不能证明原生执行或应用导出；验收顺序由 [Apple 接入计划](../../docs/plans/2026-09-10-apple-support-scanner.zh.md)拥有。
 
 ## Model Experience
 

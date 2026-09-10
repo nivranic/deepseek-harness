@@ -83,6 +83,32 @@ describe('CI workflow', () => {
     expect(steps[build + 2]?.if).toBeUndefined()
   })
 
+  it('requires Apple scanner native execution and linked-binary analysis before publishing frameworks', () => {
+    const workflow = loadWorkflow('.github/workflows/mobile-support-scanner.yml')
+    const job = workflowJob(workflow, 'apple')
+    const policy: unknown = JSON.parse(readFileSync(resolve(root, 'native/support-scanner/apple-build.json'), 'utf8'))
+    if (!isRecord(policy) || !Array.isArray(job.steps)) throw new Error('Apple scanner policy or steps are absent')
+    expect(job['runs-on']).toBe('macos-15')
+    expect(job.env).toMatchObject({ DEVELOPER_DIR: `/Applications/Xcode_${String(policy.xcodeVersion)}.app/Contents/Developer` })
+    const steps = job.steps.filter(isRecord)
+    expect(steps.every(step => step['continue-on-error'] !== true)).toBe(true)
+    expect(steps.find(step => typeof step.uses === 'string' && step.uses.startsWith('actions/checkout@'))).toMatchObject({
+      with: { ref: '${{ env.DSH_SCANNER_SOURCE }}', 'persist-credentials': false },
+    })
+    const build = steps.findIndex(step => step.name === 'Build and verify the scanner XCFramework')
+    expect(build).toBeGreaterThan(0)
+    expect(steps[build]?.run).toContain('scripts/build-apple-support-scanner.py')
+    expect(steps[build]?.run).toContain('--source-sha "$DSH_SCANNER_SOURCE"')
+    expect(steps[build + 1]?.run).toContain('scripts/verify-apple-support-scanner.py')
+    expect(steps[build + 2]?.run).toContain('for target in macos ios-simulator')
+    expect(steps[build + 2]?.run).toContain('govulncheck@v1.8.0 -mode=binary')
+    expect(steps[build + 3]).toMatchObject({
+      name: 'Preserve verified Apple scanner resources',
+      with: { 'if-no-files-found': 'error' },
+    })
+    expect(steps.slice(build, build + 4).every(step => step.if === undefined)).toBe(true)
+  })
+
   it('builds the scanner before every Android application compilation lane', () => {
     for (const [file, jobId, name] of [
       ['android-candidate.yml', 'android', 'Build and validate unsigned release bundle'],

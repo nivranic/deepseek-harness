@@ -118,14 +118,19 @@ def android_entries(data: bytes, api: int) -> tuple[dict[str, bytes], list[dict]
 
 
 def build_dependencies(info: dict, version: str, abi: str) -> list[dict]:
-    """Project verified Go buildinfo, rejecting local replacements or missing checksums."""
+    """Project the module graph of one verified Android JNI library."""
+    expected = {"GOOS": "android", "GOARCH": ANDROID_LIBRARIES[abi][1], "CGO_ENABLED": "1",
+                "-buildmode": "c-shared", "-trimpath": "true"}
+    return native_dependencies(info, version, expected)
+
+
+def native_dependencies(info: dict, version: str, expected: dict[str, str]) -> list[dict]:
+    """Check actual Go buildinfo against the producer's explicit target and source version."""
     if info.get("Path") != "gobind/gobind" or info.get("Main", {}).get("Path") != "gobind" or info.get("Main", {}).get("Replace"):
         raise ValueError("Scanner binary was not built from the gomobile binding package")
     settings = {item["Key"]: item["Value"] for item in info.get("Settings", [])}
     if any(key == "vcs" or key.startswith("vcs.") for key in settings):
         raise ValueError("Scanner binary must not infer VCS identity from the build directory")
-    expected = {"GOOS": "android", "GOARCH": ANDROID_LIBRARIES[abi][1], "CGO_ENABLED": "1",
-                "-buildmode": "c-shared", "-trimpath": "true"}
     if any(settings.get(key) != value for key, value in expected.items()):
         raise ValueError("Scanner binary build settings differ from the declared target")
     modules = []

@@ -17,6 +17,7 @@ Callers can scan one bounded diagnostic document entirely in memory and retrieve
 - [Understand the implementation](#understand-the-implementation)
 - [Verification](#verification)
 - [Build Android resources](#build-android-resources)
+- [Build Apple resources](#build-apple-resources)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 
 <a id="use-the-library"></a>
@@ -66,6 +67,15 @@ The [Python build entrypoint](../../scripts/build-mobile-support-scanner.py) pro
 The build reads committed scanner files into a versioned local module proxy and checks downloaded source bytes against Git. External modules retain Go checksum-database verification. Both JNI libraries retain module versions and checksums, omit inferred build-directory VCS identity, and pass ELF architecture and 16 KiB alignment checks. R8 keep rules preserve the generated Java entrypoints. The AAR contains the source/module manifest, module licenses, Go license and NDK notices under `assets/dsh-support-scanner/`; archive ordering and timestamps are canonicalized.
 
 The [mobile scanner workflow](../../.github/workflows/mobile-support-scanner.yml) builds these resources on Linux and runs govulncheck on both native libraries before uploading them. Libraries retain native symbol tables for package and symbol analysis; consumers must preserve those bytes when assembling applications. Its `BUILT` receipt establishes static packaging checks. Native execution, application integration and acceptance on devices with 16 KiB pages remain separate requirements.
+
+<a id="build-apple-resources"></a>
+## Build Apple resources
+
+The [Apple build entrypoint](../../scripts/build-apple-support-scanner.py) uses the same Go/gomobile versions and source checks with the Xcode/deployment identities in [apple-build.json](apple-build.json). It requires macOS and explicit `--source-sha`, `--go`, `--developer-dir`, `--cache`, `--work-dir` and `--output` inputs. Work and output directories must be new and separate; the cache must be outside the artifact directory.
+
+The output ZIP contains `SupportScanner.xcframework`, a source/module manifest and licenses. Device iOS arm64, simulator arm64/x86_64 and macOS arm64/x86_64 are independently inspected through their actual Go archive objects. Only the generated Mac framework version links are admitted. Static framework plist versions are canonical package metadata; the manifest owns immutable source identity. Apple SDKs are build inputs, not redistributed contents.
+
+The [native verifier](../../scripts/verify-apple-support-scanner.py) compares archived bytes with the framework used for compilation, runs Swift binding probes on macOS and an owned iOS simulator, and records linked-binary digests. The workflow checks vulnerabilities in those linked binaries before publishing the library. A `BUILT` library does not establish native execution or application export; the [Apple integration plan](../../docs/plans/2026-09-10-apple-support-scanner.md) owns the acceptance sequence.
 
 ## Model Experience
 
