@@ -10,7 +10,7 @@ import { readProductIdentity } from './release/product-files.ts'
 import { writeRcFixtureFile } from './release/rc-fixture.ts'
 import { parseRcPolicy } from './release/rc-manifest.ts'
 import { verifyRcPlatform } from './release/rc-artifacts.ts'
-import { inspectWorkflowSecurity } from './workflow-security.ts'
+import { inspectWorkflowSecurity, readLocalActions } from './workflow-security.ts'
 
 const repository = resolve(import.meta.dirname, '..')
 const context = { sourceSha: 'a'.repeat(40), identity: readProductIdentity(repository), maxJsonBytes: 1024 * 1024,
@@ -140,7 +140,7 @@ describe('Android candidate entry', () => {
     const files = new Map(readdirSync(path).filter(name => /\.ya?ml$/.test(name)).map(name => [name, readFileSync(join(path, name), 'utf8')]))
     const pins: unknown = JSON.parse(readFileSync(join(repository, 'release/action-pins.json'), 'utf8'))
     const permissions: unknown = JSON.parse(readFileSync(join(repository, 'release/workflow-security.json'), 'utf8'))
-    expect(inspectWorkflowSecurity(files, pins, permissions)).toEqual([])
+    expect(inspectWorkflowSecurity(files, pins, permissions, readLocalActions(repository))).toEqual([])
   })
   it('loads with the supported source launcher and rejects a persistent host before output or device access', async () => {
     const root = mkdtempSync(join(tmpdir(), 'dsh-android-entry-'))

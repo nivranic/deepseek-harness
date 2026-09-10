@@ -9,7 +9,7 @@ import { load } from 'js-yaml'
 import { afterEach, describe, expect, it } from 'vitest'
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
 import { readAppleArchiveProperties } from './release/apple-archive.ts'
-import { inspectWorkflowSecurity } from './workflow-security.ts'
+import { inspectWorkflowSecurity, readLocalActions } from './workflow-security.ts'
 
 const repository = resolve(import.meta.dirname, '..')
 const roots: string[] = []
@@ -100,6 +100,6 @@ describe('Apple archive producer workflow', () => {
     const files = new Map(readdirSync(directory).filter(name => /\.ya?ml$/.test(name)).map(name => [name, readFileSync(join(directory, name), 'utf8')]))
     expect(inspectWorkflowSecurity(files,
       JSON.parse(readFileSync(join(repository, 'release/action-pins.json'), 'utf8')) as unknown,
-      JSON.parse(readFileSync(join(repository, 'release/workflow-security.json'), 'utf8')) as unknown)).toEqual([])
+      JSON.parse(readFileSync(join(repository, 'release/workflow-security.json'), 'utf8')) as unknown, readLocalActions(repository))).toEqual([])
   })
 })

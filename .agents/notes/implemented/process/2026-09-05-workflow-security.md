@@ -14,6 +14,8 @@ Every external Action reference uses a full commit SHA recorded after lookup in 
 
 The policy preserves independent publication decisions, including [Python publication](2026-08-11-python-publication-workflow.md) and [documentation publication](2026-07-13-documentation-site-projection.md). It limits `GITHUB_TOKEN` use without replacing protected environments or the scopes of GitHub App and external-service credentials.
 
+Local composite Actions share build steps without copying revision pins across workflows. Their manifests belong to the same checkout, and the verifier checks every nested dependency and checkout configuration before accepting a caller. Missing, linked, duplicate, unsupported or cyclic local definitions fail; local reuse does not exempt an external dependency from the pin registry or grant additional token permissions.
+
 ## Alternatives considered
 
 - Version tags are easier to read but can move; readable comments preserve revision context beside immutable references.

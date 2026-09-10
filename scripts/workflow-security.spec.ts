@@ -1,10 +1,10 @@
 /** Workflow dependency and token-permission acceptance, including the CI entry point. */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { inspectWorkflowSecurity } from './workflow-security.ts'
+import { inspectWorkflowSecurity, readLocalActions } from './workflow-security.ts'
 
 const sha = 'a'.repeat(40)
 const pins = { schemaVersion: 1, pins: [{ action: 'actions/checkout', sha, requestedRef: 'v6', repository: 'actions/checkout' }] }
@@ -59,6 +59,54 @@ describe('workflow security', () => {
     const external = 'permissions: {}\njobs:\n  call:\n    uses: owner/repo/.github/workflows/reuse.yml@main\n'
     expect(inspect(external).join('\n')).toContain('action revision')
   })
+  it('checks nested local composite dependencies and checkout credentials', () => {
+    const caller = 'permissions: {}\njobs:\n  build:\n    steps:\n      - uses: ./.github/actions/wrapper\n'
+    const wrapper = 'runs:\n  using: composite\n  steps:\n    - uses: ./.github/actions/nested\n'
+    const nested = `runs:\n  using: composite\n  steps:\n    - uses: actions/checkout@${sha}\n      with: { persist-credentials: false }\n`
+    const actions = new Map([['./.github/actions/wrapper', wrapper], ['./.github/actions/nested', nested]])
+    const check = (): string[] => inspectWorkflowSecurity(new Map([['ci.yml', caller]]), pins, policy, actions)
+    expect(check()).toEqual([])
+    actions.set('./.github/actions/nested', nested.replace(sha, 'v6'))
+    expect(check().join('\n')).toContain('action revision')
+    actions.set('./.github/actions/nested', nested.replace('persist-credentials: false', 'persist-credentials: true'))
+    expect(check().join('\n')).toContain('persist-credentials')
+    actions.set('./.github/actions/nested', wrapper.replace('/nested', '/wrapper'))
+    expect(check().join('\n')).toContain('cycle')
+    actions.delete('./.github/actions/nested')
+    expect(check().join('\n')).toContain('missing or outside')
+  })
+  it('rejects local Action escapes, unsupported manifests and invalid composite steps', () => {
+    const files = new Map([['ci.yml', valid]])
+    const shell = 'runs:\n  using: composite\n  steps:\n    - run: echo fixture\n      shell: bash\n'
+    expect(inspectWorkflowSecurity(files, pins, policy, new Map([['./.github/actions/a', shell]]))).toEqual([])
+    for (const [reference, manifest] of [
+      ['./.github/actions/../outside', shell], ['./other/action', shell],
+      ['./.github/actions/a', 'runs: [broken'], ['./.github/actions/a', 'runs: { using: node24, main: index.js }'],
+      ['./.github/actions/a', 'runs: { using: composite, steps: [] }'],
+      ['./.github/actions/a', shell.replace('      shell: bash\n', '')],
+      ['./.github/actions/a', shell.replace('    - run: echo fixture', '    - unexpected: value')],
+    ]) {
+      expect(inspectWorkflowSecurity(files, pins, policy, new Map([[reference!, manifest!]]))).not.toEqual([])
+    }
+    const job = 'permissions: {}\njobs:\n  build:\n    uses: ./.github/actions/a\n'
+    expect(inspectWorkflowSecurity(new Map([['ci.yml', job]]), pins, policy, new Map([['./.github/actions/a', shell]])).join('\n')).toContain('local workflow')
+  })
+  it('refuses duplicate local manifests and linked Action directories', () => {
+    const fixture = mkdtempSync(join(tmpdir(), 'dsh-local-action-'))
+    const directory = join(fixture, '.github/actions/a')
+    try {
+      mkdirSync(directory, { recursive: true })
+      writeFileSync(join(directory, 'action.yml'), 'name: fixture')
+      expect([...readLocalActions(fixture)]).toEqual([['./.github/actions/a', 'name: fixture']])
+      writeFileSync(join(directory, 'action.yaml'), 'name: duplicate')
+      expect(() => readLocalActions(fixture)).toThrow('one regular manifest')
+      rmSync(join(directory, 'action.yaml'))
+      symlinkSync(directory, join(fixture, '.github/actions/link'), process.platform === 'win32' ? 'junction' : 'dir')
+      expect(() => readLocalActions(fixture)).toThrow('links')
+    } finally {
+      rmSync(fixture, { recursive: true, force: true })
+    }
+  })
   it('rejects narrowed and malformed workflow corpora', () => {
     expect(inspectWorkflowSecurity(new Map(), pins, policy).join('\n')).toContain('required workflow')
     expect(inspect('jobs: [broken').join('\n')).toContain('YAML')
@@ -90,6 +138,14 @@ describe('workflow security', () => {
       const accepted = invoke()
       expect(accepted.status).toBe(0)
       expect(String(accepted.stdout)).toContain('1 workflows satisfy action and permission policy')
+      write('.github/workflows/ci.yml', 'permissions: {}\njobs:\n  build:\n    steps:\n      - uses: ./.github/actions/local\n')
+      const action = `runs:\n  using: composite\n  steps:\n    - uses: actions/checkout@${sha}\n      with: { persist-credentials: false }\n`
+      write('.github/actions/local/action.yml', action)
+      expect(invoke().status).toBe(0)
+      write('.github/actions/local/action.yml', action.replace(sha, 'v6'))
+      const nestedRejected = invoke()
+      expect(nestedRejected.status).toBe(1)
+      expect(String(nestedRejected.stderr)).toContain('action revision must match a recorded upstream commit SHA')
     } finally {
       rmSync(fixture, { recursive: true, force: true })
     }

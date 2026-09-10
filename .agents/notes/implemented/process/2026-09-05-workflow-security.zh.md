@@ -14,6 +14,8 @@ Status: implemented
 
 策略保留独立发布决策，包括 [Python 发布](2026-08-11-python-publication-workflow.zh.md) 和[文档发布](2026-07-13-documentation-site-projection.zh.md)。它限制 `GITHUB_TOKEN` 使用，不取代受保护 environment，也不取代 GitHub App 与外部服务凭证的 scope。
 
+本地 composite Action 复用构建步骤，避免在多个 workflow 复制版本引用。其清单属于同一 checkout，验证器在接受调用方前检查每个嵌套依赖和 checkout 配置。本地定义缺失、使用链接、重复、不受支持或存在循环时均拒绝；本地复用不豁免外部依赖的固定版本登记，也不授予额外 token 权限。
+
 ## 考虑过的替代方案
 
 - 版本 tag 更易读，但会移动；不可变引用旁的可读注释保留版本语境。

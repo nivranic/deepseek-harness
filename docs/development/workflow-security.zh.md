@@ -23,6 +23,8 @@ GitHub Actions workflow 使用已记录的上游 commit SHA、显式 token 权�
 
 本地 reusable workflow 解析到 `.github/workflows` 下的现有文件，验证器也会检查这些文件。外部 reusable workflow 与 step Action 遵循相同的已登记 SHA 规则。已检查的必要文件清单拒绝空集合或被缩减的 workflow 集合。
 
+本地 step Action 解析到 `.github/actions` 下唯一的 `action.yml` 或 `action.yaml`。验证器读取真实文件且不跟随链接，只接受非空 composite 定义。每个嵌套 `uses` 引用都执行相同的固定版本与 checkout 凭证检查。目标缺失、路径越界、循环、重复清单，以及缺少显式 shell 的 run step 均验证失败。Composite Action 继承调用 job 的 token 权限。
+
 -----
 
 <a id="token-permissions"></a>

@@ -23,6 +23,8 @@ GitHub Actions workflows use recorded upstream commit SHAs, explicit token permi
 
 Local reusable workflows resolve to existing files under `.github/workflows`; the verifier inspects those files too. External reusable workflow references follow the same recorded-SHA rule as step actions. The checked required-file list prevents acceptance of an empty or narrowed workflow corpus.
 
+Local step Actions resolve to one `action.yml` or `action.yaml` under `.github/actions`. The verifier reads real files without following links and accepts only non-empty composite definitions. Every nested `uses` reference receives the same pin and checkout-credential checks. Missing targets, path escapes, cycles, duplicate manifests and run steps without explicit shells fail validation. Composite Actions inherit their calling job's token permissions.
+
 -----
 
 <a id="token-permissions"></a>
