@@ -25,7 +25,7 @@
       "name": "Apple Swift",
       "requiredJob": "swift test (macOS)",
       "sourceJob": "swift test (macOS)",
-      "workflowSha256": "a2a6fb2a73c96ae7401c031e4c5116b8d9d9a68bc2535f15821cee9b18152293",
+      "workflowSha256": "228a33baa57b0fe1320105d8bcb7098312f6f26ab9072f91d5940b9767beffc3",
       "aggregateNeeds": []
     },
     {

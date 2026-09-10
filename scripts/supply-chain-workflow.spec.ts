@@ -33,7 +33,7 @@ describe('candidate security workflow', () => {
       { language: 'javascript-typescript', os: 'ubuntu-latest', 'build-mode': 'none' },
       { language: 'python', os: 'ubuntu-latest', 'build-mode': 'none' },
       { language: 'java-kotlin', os: 'ubuntu-latest', 'build-mode': 'manual' },
-      { language: 'swift', os: 'macos-latest', 'build-mode': 'manual' },
+      { language: 'swift', os: 'macos-15', 'build-mode': 'manual' },
     ])
     const commands = job.steps.map(step => step.run ?? '').join('\n')
     for (const target of [':core:classes :app:assembleDebug', 'swift build', '-scheme CompanioniOS', '-scheme CompanionMac', '-scheme DirectHostMac']) expect(commands).toContain(target)
