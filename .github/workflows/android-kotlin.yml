@@ -211,7 +211,7 @@ jobs:
           script: >-
             python3 -B ../../scripts/release/android_runtime.py
             --api-level 36 --page-size 16384 --output app/build/outputs/android-runtime.json
-            && ./gradlew --no-daemon :app:connectedDebugAndroidTest
+            && ./gradlew --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest
             && python3 -B ../../scripts/release/android_support_exports.py
             --apk app/build/outputs/apk/debug/app-debug.apk
             --source-sha "$DSH_SUPPORT_SOURCE_SHA"

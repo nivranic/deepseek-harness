@@ -93,37 +93,55 @@ def saved_bytes(device, path):
     return data
 
 
-def collect_export(device, ui, filename, product, identity, scanner, scratch):
+def collect_export(device, ui, filename, product, identity, scanner, scratch, progress=None):
     """Cancel before saving and admit final bytes only after a canary, independent scan and stable reread."""
+    progress = {} if progress is None else progress
+    progress["stage"] = "destination-check"
     prefix = filename.removesuffix(".json")
     path = "/sdcard/Download/" + filename
     require(not owned_files(device, prefix), "Android support destination already exists")
     try:
+        progress["stage"] = "cancel-picker"
         ui.open_picker(filename)
+        progress["stage"] = "cancel"
         ui.cancel()
         require(not owned_files(device, prefix), "Android cancellation created a document")
         ui.screenshot("cancelled")
-        ui.save(ui.open_picker(filename))
+        progress["stage"] = "save-picker"
+        picker = ui.open_picker(filename)
+        progress["stage"] = "save"
+        ui.save(picker)
+        progress["stage"] = "saved-document"
         require(owned_files(device, prefix) == [path], "Android save did not create the exact destination")
         data = saved_bytes(device, path)
         validate_export(data, product, identity)
+        progress["stage"] = "independent-canary"
         self_test(scanner, scratch)
         sample = scratch / "saved"
         sample.mkdir()
         (sample / "export.json").write_bytes(data)
+        progress["stage"] = "independent-scan"
         require(not scan(scanner, ["dir", str(sample)], scratch, "android-saved"), "Android saved document has a secret finding")
+        progress["stage"] = "saved-reread"
         require(saved_bytes(device, path) == data and owned_files(device, prefix) == [path], "Android saved document changed during admission")
         ui.screenshot("saved")
         return data
     finally:
-        for file in owned_files(device, prefix):
-            device.shell(["rm", "--", file])
-        require(not owned_files(device, prefix), "Android support destination cleanup failed")
+        try:
+            for file in owned_files(device, prefix):
+                device.shell(["rm", "--", file])
+            require(not owned_files(device, prefix), "Android support destination cleanup failed")
+        except Exception:
+            progress["stage"] = "destination-cleanup"
+            raise
 
 
-def verify(apk, source, output):
+def verify(apk, source, output, progress=None):
     """Exercise the installed candidate only on the hosted Linux emulator and preserve admitted evidence."""
+    progress = {} if progress is None else progress
+    progress["stage"] = "disposable-host"
     require_disposable_host(sys.platform, os.environ)
+    progress["stage"] = "source-checkout"
     require(re.fullmatch(r"[a-f0-9]{40}", source) is not None, "Android support requires an immutable source")
     def git(*arguments):
         return subprocess.check_output(["git", "-C", str(ROOT), *arguments], stderr=subprocess.DEVNULL).strip()
@@ -133,8 +151,10 @@ def verify(apk, source, output):
     registry = json.loads((ROOT / ".github/security/scanners.json").read_bytes())
     sdk = Path(os.environ.get("ANDROID_HOME", ""))
     require(sdk.is_absolute(), "Android support requires an absolute SDK directory")
+    progress["stage"] = "device-runtime"
     device = CandidateDevice(sdk / "platform-tools/adb")
     runtime = device.runtime()
+    progress["stage"] = "installed-apk"
     paths = device.shell(["pm", "path", PACKAGE]).decode("utf-8").strip().splitlines()
     require(len(paths) == 1 and re.fullmatch(r"package:/data/app/[^\r\n]+/base\.apk", paths[0]), "Android support requires the installed test APK")
     nonce = uuid.uuid4().hex
@@ -144,20 +164,28 @@ def verify(apk, source, output):
         installed = scratch / "installed.apk"
         device.command(["pull", paths[0].removeprefix("package:"), str(installed)], "Android support installed APK retrieval", 120)
         require(sha_file(installed) == sha_file(apk), "Android support installed APK differs")
+        progress["stage"] = "native-scanner-identity"
         proof = read_json(device.shell(["run-as", PACKAGE, "cat", "cache/support-scanner-identity.json"]))
         identity = scanner_identity(apk, proof, source, device.shell(["getprop", "ro.product.cpu.abi"]).decode().strip(), registry)
+        progress["stage"] = "independent-scanner"
         scanner, tool = install_gitleaks(registry, scratch)
         try:
+            progress["stage"] = "application-launch"
             device.shell(["am", "force-stop", PACKAGE])
             launched = device.shell(["am", "start", "-W", "-n", PACKAGE + "/ai.deepseek.dsh.companion.MainActivity"])
             require(re.search(rb"(?m)^Status: ok\r?$", launched), "Android support Activity launch failed")
-            data = collect_export(device, ui, "dsh-support-" + nonce + ".json", product, identity, scanner, scratch)
+            data = collect_export(device, ui, "dsh-support-" + nonce + ".json", product, identity, scanner, scratch, progress)
         finally:
             try:
-                ui.close()
-            finally:
-                device.shell(["am", "force-stop", PACKAGE])
-                require(not device.shell(["pidof", PACKAGE], empty_exit=True).strip(), "Android support process remains after cleanup")
+                try:
+                    ui.close()
+                finally:
+                    device.shell(["am", "force-stop", PACKAGE])
+                    require(not device.shell(["pidof", PACKAGE], empty_exit=True).strip(), "Android support process remains after cleanup")
+            except Exception:
+                progress["stage"] = "application-cleanup"
+                raise
+    progress["stage"] = "evidence-publication"
     (output / "scanner-identity.json").write_text(json.dumps(proof, indent=2) + "\n", encoding="utf-8")
     with (output / "approved.json").open("xb") as file:
         file.write(data)
@@ -176,11 +204,13 @@ def main():
     args = parser.parse_args()
     require(not args.output.exists() and not args.output.is_symlink(), "Android support output must be new")
     args.output.mkdir(parents=True)
+    progress = {"stage": "initialization"}
     try:
-        record = verify(args.apk.resolve(), args.source_sha, args.output)
+        record = verify(args.apk.resolve(), args.source_sha, args.output, progress)
     except Exception:
         # Device, parser and scanner failures can contain unapproved bytes or private paths.
-        record = {"schemaVersion": 1, "status": "FAIL", "reason": "Android system support export was not accepted"}
+        record = {"schemaVersion": 1, "status": "FAIL", "stage": progress["stage"],
+                  "reason": "Android system support export was not accepted"}
     (args.output / "verification.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: record[key] for key in ("schemaVersion", "status")}))
     return 0 if record["status"] == "PASS" else 1

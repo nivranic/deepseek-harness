@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 import zipfile
 
-from android_support_exports import collect_export, scanner_identity, validate_export, verify
+from android_support_exports import collect_export, main, scanner_identity, validate_export, verify
 
 
 class Device:
@@ -67,8 +67,8 @@ class AndroidSupportExportTests(unittest.TestCase):
         self.device = Device(self.data, "/sdcard/Download/" + self.filename)
         self.ui = Ui(self.device)
 
-    def collect(self):
-        return collect_export(self.device, self.ui, self.filename, self.product, self.identity, self.root / "scanner", self.root)
+    def collect(self, progress=None):
+        return collect_export(self.device, self.ui, self.filename, self.product, self.identity, self.root / "scanner", self.root, progress)
 
     def test_accepts_the_kotlin_model_owned_unpaired_fixture(self):
         validate_export(self.data, self.product, self.identity)
@@ -133,18 +133,35 @@ class AndroidSupportExportTests(unittest.TestCase):
         for failure in ("findings", "scan-error", "canary-error", "changed"):
             self.setUp()
             self.device.changed = failure == "changed"
+            progress = {}
             with patch("android_support_exports.self_test", side_effect=ValueError("canary") if failure == "canary-error" else None), \
                     patch("android_support_exports.scan", return_value=[{}] if failure == "findings" else [],
                           side_effect=ValueError("scan") if failure == "scan-error" else None), \
                     self.subTest(failure=failure), self.assertRaises(ValueError):
-                self.collect()
+                self.collect(progress)
             self.assertFalse(self.device.present)
             self.assertNotIn("saved screenshot", self.ui.events)
+            self.assertEqual(progress["stage"], {"findings": "independent-scan", "scan-error": "independent-scan",
+                                               "canary-error": "independent-canary", "changed": "saved-reread"}[failure])
 
     def test_cleanup_failure_cannot_return_admitted_bytes(self):
         self.device.fail_cleanup = True
+        progress = {}
         with patch("android_support_exports.self_test"), patch("android_support_exports.scan", return_value=[]), self.assertRaises(ValueError):
-            self.collect()
+            self.collect(progress)
+        self.assertEqual(progress["stage"], "destination-cleanup")
+
+    def test_failure_receipt_names_the_stage_without_exception_text_or_input_paths(self):
+        output = self.root / "evidence"
+        with patch("android_support_exports.sys.argv", ["collector", "--apk", "private-input.apk", "--source-sha", "b" * 40,
+                                                       "--output", str(output)]), \
+                patch("android_support_exports.require_disposable_host", side_effect=ValueError("private exception")):
+            self.assertEqual(main(), 1)
+        self.assertEqual(json.loads((output / "verification.json").read_bytes()), {
+            "schemaVersion": 1, "status": "FAIL", "stage": "disposable-host",
+            "reason": "Android system support export was not accepted",
+        })
+        self.assertEqual([path.name for path in output.iterdir()], ["verification.json"])
 
     def test_requires_disposable_host_before_any_device_or_scanner_operation(self):
         with patch("android_support_exports.sys.platform", "win32"), patch("android_support_exports.CandidateDevice") as device, \

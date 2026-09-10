@@ -35,7 +35,7 @@ it.skipIf(process.platform !== 'linux').each([
     writeFileSync(join(scripts, 'android_support_exports.py'), 'import os, sys\nfrom pathlib import Path\nassert Path("instrumentation-started").exists()\nassert sys.argv[1:] == ["--apk", "app/build/outputs/apk/debug/app-debug.apk", "--source-sha", "a" * 40, "--output", os.environ["RUNNER_TEMP"] + "/android-support-export"]\nPath("system-export-started").write_text("started")\nsys.exit(int(os.environ["DSH_TEST_EXPORT_EXIT"]))\n')
     const adb = join(bin, 'adb'), gradle = join(cwd, 'gradlew')
     writeFileSync(adb, '#!/bin/sh\n[ "$DSH_TEST_ADB_EXIT" = 0 ] || exit "$DSH_TEST_ADB_EXIT"\ncase "$*" in\n"shell getprop ro.build.version.sdk") printf "%s\\n" "$DSH_TEST_API";;\n"shell getconf PAGE_SIZE") printf "%s\\n" "$DSH_TEST_PAGES";;\n*) exit 2;;\nesac\n')
-    writeFileSync(gradle, '#!/bin/sh\n[ "$*" = "--no-daemon :app:connectedDebugAndroidTest" ] || exit 2\nprintf started > instrumentation-started\nexit "$DSH_TEST_GRADLE_EXIT"\n')
+    writeFileSync(gradle, '#!/bin/sh\n[ "$*" = "--no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest" ] || exit 2\nprintf started > instrumentation-started\nexit "$DSH_TEST_GRADLE_EXIT"\n')
     for (const path of [adb, gradle]) chmodSync(path, 0o700)
     const result = spawnSync('/bin/bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', launch.with!.script!], {
       cwd, encoding: 'utf8', timeout: 10_000,
