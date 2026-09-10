@@ -192,7 +192,11 @@ describe('CI workflow', () => {
   })
 
   it('binds the Mac Companion saved bytes to required native and scanner checks', () => {
-    const job = workflowJob(loadWorkflow('.github/workflows/apple-swift.yml'), 'swift-test')
+    const workflow = loadWorkflow('.github/workflows/apple-swift.yml')
+    for (const event of ['pull_request', 'push']) {
+      expect(workflowEvent(workflow, event).paths).toContain('scripts/verify-companion-support-exports.py')
+    }
+    const job = workflowJob(workflow, 'swift-test')
     if (!Array.isArray(job.steps)) throw new Error('Apple verification steps are absent')
     const steps = job.steps.filter(isRecord)
     const native = steps.findIndex(step => step.name === 'Verify the Mac Companion system save dialog')
