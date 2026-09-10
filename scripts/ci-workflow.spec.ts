@@ -172,6 +172,7 @@ describe('CI workflow', () => {
       expect(target.sources).toContainEqual({ path: '.support-scanner/SupportScannerResources', type: 'folder', buildPhase: 'resources' })
       expect(target.settings.base.STRIP_INSTALLED_PRODUCT).toBe(false)
       expect(target.settings.base.COPY_PHASE_STRIP).toBe(false)
+      expect(target.settings.base.ENABLE_DEBUG_DYLIB).toBe(false)
     }
   })
 

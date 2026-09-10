@@ -53,7 +53,7 @@ Mac Host 的**导出运行时诊断…**操作会准备本地 JSON 快照，包�
 
 Companion 的**导出诊断信息**操作在配对前后均可使用。[导出器](Sources/CompanionUI/CompanionSupportExporter.swift)将应用标识、扫描器来源和既有 Link 观测序列化为一份文档，上限为 16 KiB，扫描期限为 10 秒。[原生适配器](Shells/SupportScannerAdapter.swift)要求内嵌标识匹配已链接扫描器的版本和规则。系统保存操作只接收准确批准字节；交付前取消会拒绝输出。文档保持 `complete: false`，列出缺失的应用源码、健康、连接、有效角色、更新、崩溃与会话生产者。扫描器源码 SHA 不充当缺失的应用源码标识。
 
-生成 Xcode 项目前，需要[扫描器准备 Action](../../.github/actions/apple-support-scanner/action.yml)在 `.support-scanner/` 下的输出。两个 Companion 目标链接静态 framework，并以文件夹资源打包其来源和许可证。[最终应用检查](../../scripts/verify-apple-app-scanner.py)对照准备记录与 Git 重查这些字节，比较各可执行切片的 Go 模块图，并执行维护中的二进制漏洞检查器。Debug 标识与 Release 归档报告绑定这些结果；包测试和库探针不能证明保存文档或设备验收。
+生成 Xcode 项目前，需要[扫描器准备 Action](../../.github/actions/apple-support-scanner/action.yml)在 `.support-scanner/` 下的输出。两个 Companion 目标链接静态 framework，并以文件夹资源打包其来源和许可证。它们禁用 Xcode 的 Debug dylib 布局，使 Debug 与 Release 的扫描器代码均保留在被检查的可执行文件中。[最终应用检查](../../scripts/verify-apple-app-scanner.py)对照准备记录与 Git 重查这些字节，比较各可执行切片的 Go 模块图，并执行维护中的二进制漏洞检查器。Debug 标识与 Release 归档报告绑定这些结果；包测试和库探针不能证明保存文档或设备验收。
 
 -----
 
