@@ -35,6 +35,8 @@ Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与
 
 应用版本和内嵌分发渠道来自[公共应用发布标识](../../docs/development/product-release-identity.zh.md)。Gradle 读取生成的 properties，不使用兜底版本。
 
+执行 App 任务前，先为当前提交构建 [Android 扫描器资源](../../native/support-scanner/README.zh.md#build-android-resources)。将 `DSH_ANDROID_SCANNER_DIRECTORY` 设置为资源目录的绝对路径，将 `DSH_ANDROID_SCANNER_SOURCE` 设置为完整提交 SHA。Gradle 核验 AAR 摘要、回执和内嵌源码清单，并保留 JNI 符号表。纯 `:core:` 任务不需要这些资源。[共享 CI action](../../.github/actions/android-support-scanner/action.yml)在应用编译前构建并检查两个扫描器 ABI。
+
 [Android Kotlin](../../.github/workflows/android-kotlin.yml) 车道和本地构建使用已提交的 Gradle 8.14 wrapper、经验证的分发 SHA-256、JDK 17 和 Android SDK 36。在本目录执行 `./gradlew --no-daemon test :app:assembleDebug`（Windows 使用 `gradlew.bat`）。CI 还对正式 Host composition 运行独立的 `:core:nativeAcceptance` driver。App 的编译和目标 API 均为 36，最低 API 保持 33。
 
 共享传输固定使用 OkHttp 5.3.2。依赖升级必须同时通过 App 的 `:app:checkDebugAarMetadata`、`:app:assembleDebug` 和 core 测试：Gradle 会选择不同的 OkHttp JVM 与 Android 产物，纯 JVM 测试通过不能证明 Android SDK 兼容性。
@@ -66,6 +68,15 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 输出包含 CycloneDX 1.6 `sbom.cdx.json` 和 `inventory.json` 回执。扫描器对 AAB 的每个文件计算摘要，用精确的缓存 JAR/AAR 字节解析内嵌 Maven 图，并读取 POM 声明及父项继承的许可证。没有内嵌产物摘要的节点保留这一区别。回执保留重复依赖边、原始编译器与扫描器身份、项目编译类输入、原生库字节归属和 R8 mapping/class 证据。R8 验证 mapping checksum 与 DEX marker；所选 SDK 的 dexdump 读取实际定义类。Kotlin Java 类资源必须原样匹配 Maven 资源。
 
 仅支持 base 模块和 R8 full-release mapping 2.2。Maven 许可证是声明，不是法律许可结论。转换后的 Android 资源按打包文件计算摘要；只有原样 JAR/AAR 资源具有输入归属。清单证明字节一致性，不认证构建者，也不证明源码、应用身份、设备启动或完整平台 RC。CI 在签名测试后执行扫描器拒绝回归和实际 bundle 验证，再将两个文档与 unsigned AAB、mapping 及 checksum 一起保留。
+
+扫描器的本地依赖节点必须匹配实际 AAR 摘要，清单保留原始 AGP 索引和依赖边。SBOM 包含已编译 Go 模块及其内嵌许可证文本。扫描器 Java 类、原生库和 provenance 资源保留其 AAR 所有者。R8 省略未改名类的映射时，扫描器生成的资源类归属于实际 `processReleaseResources` R.jar 输出；其他未映射类会被拒绝。AGP 丢弃输入 JAR manifest，扫描器 provenance 与许可证资源则必须保持字节相同。
+
+<a id="local-support-export"></a>
+## 本地诊断导出
+
+诊断导出操作在配对前即可使用，并调用 Android 本地文档选择器。[导出器](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportExport.kt)序列化已安装应用标识、本地身份恢复状态和当前 Link 请求所有权。请求计数不能证明连接健康或当前授权。尚未接入的运行时、协议、角色、capability、更新、崩溃和会话生产者列在 `uncollected` 中，文档声明 `complete: false`。
+
+[原生适配器](app/src/main/kotlin/ai/deepseek/dsh/companion/AndroidSupportScanner.kt)在准入前验证已安装 JNI 字节和扫描器源码元数据。扫描与取消等待都在 UI 线程之外执行。导出器只接受与序列化结果完全相同且摘要匹配的字节，选定的保存目标接收已准入字节，写入前不再添加字段。取消选择器会丢弃待保存的准入结果；失败或取消的操作不会显示导出成功。[交付操作](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportDocumentDelivery.kt)在取消返回前等待写入结束，并在失败或取消后尝试丢弃新文档。提供方拒绝删除文档时，操作仍报告保存失败。[完整 Support Bundle 计划](../../docs/plans/2026-09-08-support-bundle.zh.md)拥有其余生产者与平台验收要求。
 
 ## 已知限制与延后工作
 

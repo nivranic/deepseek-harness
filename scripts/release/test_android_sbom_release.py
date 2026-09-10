@@ -39,7 +39,15 @@ class AndroidReleaseInventory(unittest.TestCase):
         self.assertEqual(receipt['bundle']['sha256'], before[0])
         self.assertEqual(receipt['payload']['mappingSha256'], before[1])
         self.assertEqual(receipt['sbom']['sha256'], sha_file(output / 'sbom.cdx.json'))
-        self.assertEqual(len(bom['components']), len(receipt['graph']['libraries']) + len(receipt['payload']['files']) + 2)
+        modules = receipt['scanner']['manifest']['modules']
+        go_components = {item['name']: item for item in bom['components'] if item.get('purl', '').startswith('pkg:golang/')}
+        self.assertEqual(set(go_components), {item['module'] for item in modules})
+        for module in modules:
+            component = go_components[module['module']]
+            self.assertEqual(component['version'], module['version'])
+            self.assertTrue(component['licenses'][0]['license']['text']['content'])
+            self.assertIn({'name': 'dsh:go:module-sum', 'value': module['sum']}, component['properties'])
+        self.assertEqual(len(bom['components']), len(receipt['graph']['libraries']) + len(modules) + len(receipt['payload']['files']) + 2)
         self.assertGreater(receipt['payload']['dexClassCount'], 0)
         self.assertGreater(len(receipt['payload']['native']), 0)
         self.assertEqual(receipt['tools']['cycloneDx']['name'], '@cyclonedx/cyclonedx-library')

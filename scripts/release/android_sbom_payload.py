@@ -90,15 +90,15 @@ def project_classes(projects):
     return owners, materials
 
 
-def class_attribution(records, maven, projects):
+def class_attribution(records, maven, projects, scanner=None):
     """Require an exact input owner or R8's explicit class marker for every original mapping class."""
     result = []
     for record in records:
-        owners = sorted(maven.get(record['original'], []))
+        owners = sorted(set(maven.get(record['original'], [])) | set((scanner or {}).get(record['original'], [])))
         project = projects.get(record['original'])
         require(len(owners) <= 1 and not (owners and project), 'Ambiguous Android class input owner')
         require(owners or project or record['synthesized'], 'R8 original class has no inspected input or class synthesis marker')
-        result.append({**record, 'mavenOwners': owners, 'project': project})
+        result.append({**record, 'libraryOwners': owners, 'project': project})
     return result
 
 
@@ -124,7 +124,7 @@ def dexdump_classes(output):
     return set(names)
 
 
-def inspect_payload(bundle, mapping, data, maven, java, sdk, work):
+def inspect_payload(bundle, mapping, data, maven, java, sdk, work, scanner=None):
     """Inventory every AAB file, verify native bytes, and match actual DEX definitions to an intact R8 mapping."""
     require(sha_file(bundle) == data['inputSha256'], 'AAB differs from the AGP metadata export')
     tools = data['tools']
@@ -140,7 +140,7 @@ def inspect_payload(bundle, mapping, data, maven, java, sdk, work):
     require(hashlib.sha256(mapping_content).hexdigest() == mapping_sha, 'R8 mapping changed during inspection')
     records, compiler = mapping_records(mapping_content.decode('utf-8'))
     projects, project_materials = project_classes(data['projects'])
-    attribution = class_attribution(records, maven['classes'], projects)
+    attribution = class_attribution(records, maven['classes'], projects, scanner['classes'] if scanner else None)
     renamed = defaultdict(list)
     for item in attribution:
         renamed[item['renamed']].append(item['original'])
@@ -169,7 +169,10 @@ def inspect_payload(bundle, mapping, data, maven, java, sdk, work):
             files.append(item)
             if name.endswith('.so') or content.startswith(b'\x7fELF'):
                 require(re.fullmatch(r'base/lib/[^/]+/[^/]+\.so', name), 'Unsupported native-code location in AAB')
-                owners = [value['ref'] for value in maven['natives'].get(name[len('base/lib/'):], []) if value['sha256'] == item['sha256']]
+                native_inputs = list(maven['natives'].get(name[len('base/lib/'):], []))
+                if scanner:
+                    native_inputs += scanner['natives'].get(name[len('base/lib/'):], [])
+                owners = [value['ref'] for value in native_inputs if value['sha256'] == item['sha256']]
                 require(len(owners) == 1, 'Packaged native library must match one inspected AAR input')
                 natives.append({**item, 'owner': owners[0]})
             elif name.endswith('.dex') or content.startswith(b'dex\n'):
@@ -180,12 +183,22 @@ def inspect_payload(bundle, mapping, data, maven, java, sdk, work):
                 marker = dex_marker(execute([java, '-cp', builder, 'com.android.tools.r8.ExtractMarker', temporary],
                                             'R8 marker extraction').decode('utf-8'), compiler)
                 classes = dexdump_classes(execute([dexdump, '-l', 'xml', temporary], 'SDK DEX inspection'))
-                require(not classes - renamed.keys(), 'DEX contains classes absent from the R8 mapping')
+                unmapped = classes - renamed.keys()
+                require(not unmapped or scanner and unmapped <= scanner['generatedResourceClasses'].keys(),
+                        'DEX contains classes absent from the R8 mapping and verified resource compiler input')
+                for name_without_mapping in sorted(unmapped):
+                    attribution.append({'original': name_without_mapping, 'renamed': name_without_mapping, 'synthesized': False,
+                                        'libraryOwners': [scanner['root']], 'project': None, 'origin': 'agp-resource-compiler',
+                                        'inputSha256': scanner['generatedResourceClasses'][name_without_mapping]})
+                    renamed[name_without_mapping].append(name_without_mapping)
                 require(not classes & defined, 'AAB defines a class in multiple DEX files')
                 defined.update(classes)
                 dex.append({**item, 'marker': marker, 'classes': sorted(classes)})
             else:
-                owners = sorted({value['ref'] for value in maven['resources'].get(name, []) if value['sha256'] == item['sha256']})
+                resource_inputs = list(maven['resources'].get(name, []))
+                if scanner:
+                    resource_inputs += scanner['resources'].get(name, [])
+                owners = sorted({value['ref'] for value in resource_inputs if value['sha256'] == item['sha256']})
                 if owners:
                     resources.append({**item, 'owners': owners})
                 require(Path(name).suffix.lower() not in ('.jar', '.aar', '.apk', '.aab', '.class', '.wasm', '.dll', '.exe'),
@@ -196,6 +209,15 @@ def inspect_payload(bundle, mapping, data, maven, java, sdk, work):
                 require(not content.startswith(b'\xca\xfe\xba\xbe') or name.startswith('base/root/') and len(owners) == 1,
                         'Packaged Java class resource has no exact Maven input owner')
     require(dex and files, 'AAB inventory has no DEX or files')
+    if scanner:
+        packaged = {item['path']: item['sha256'] for item in files}
+        for name, inputs in scanner['natives'].items():
+            require(packaged.get('base/lib/' + name) == inputs[0]['sha256'], 'AAB omitted or changed a scanner native library')
+        for name, inputs in scanner['resources'].items():
+            # AGP discards the input JAR manifest; it is not an Android runtime resource.
+            if name == 'base/root/META-INF/MANIFEST.MF':
+                continue
+            require(packaged.get(name) == inputs[0]['sha256'], 'AAB omitted or changed scanner provenance or license resources')
     require({module['name'] for module in data['modules']} == {'base'}, 'Only the current base Android module is supported')
     require(sha_file(bundle) == data['inputSha256'] and sha_file(mapping) == mapping_sha, 'Android inputs changed during inspection')
     require(all(sha_file(Path(tool['path'])) == tool['sha256'] for tool in tools.values())

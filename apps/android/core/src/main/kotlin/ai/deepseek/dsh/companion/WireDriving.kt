@@ -7,6 +7,9 @@ import java.util.concurrent.atomic.AtomicReference
 /** The wire surface the companion models drive — the Kotlin mirror of the
  * Swift `CompanionWireDriving`; tests drive a fake, the app a LinkClient. */
 interface WireDriving : AutoCloseable {
+    /** Observe local transport ownership; stateless and unpaired wires have no transport. */
+    fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot? = null
+
     /** Execute one unary call without occupying the caller's dispatcher;
      * cancellation propagates to the transport owner. */
     suspend fun call(method: String, args: Map<String, WireValue> = emptyMap()): WireValue
@@ -29,6 +32,8 @@ class SwitchableWireDriving(initial: WireDriving) : WireDriving {
     private val delegate = AtomicReference(initial)
     private val transitionLock = Any()
     private var closed = false
+
+    override fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot? = delegate.get().requestSnapshot()
 
     /** Route subsequent calls and streams through [next], retiring the previous wire. */
     fun replace(next: WireDriving) {
@@ -82,6 +87,8 @@ class SwitchableWireDriving(initial: WireDriving) : WireDriving {
 
 /** The wire over one paired [ai.deepseek.dsh.link.LinkClient]. */
 class LinkWireDriving(private val client: ai.deepseek.dsh.link.LinkClient) : WireDriving {
+    override fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot = client.requestSnapshot()
+
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
         client.call(method, args)
 

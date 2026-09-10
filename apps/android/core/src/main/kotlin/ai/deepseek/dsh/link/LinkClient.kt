@@ -159,7 +159,14 @@ class LinkClient private constructor(
     private val lifecycleLock = Any()
     private val activeCalls = mutableSetOf<TrackedCall>()
     private var closed = false
+    private var startedRequests = 0L
+    private var finishedRequests = 0L
     private val transportRetired = AtomicBoolean(false)
+
+    /** Observe this client's owned requests without loading identity storage or sending traffic. */
+    fun requestSnapshot(): LinkRequestSnapshot = synchronized(lifecycleLock) {
+        LinkRequestSnapshot(closed, activeCalls.size, startedRequests, finishedRequests)
+    }
 
     private class TrackedCall(
         val call: Call,
@@ -483,12 +490,13 @@ class LinkClient private constructor(
         if (closed) throw LinkClientException.Carrier(0, "Link client is closed")
         TrackedCall(client.newCall(request), retireCall).also { tracked ->
             activeCalls.add(tracked)
+            if (startedRequests != Long.MAX_VALUE) startedRequests++
         }
     }
 
     private fun finishTrackedCall(tracked: TrackedCall) {
         synchronized(lifecycleLock) {
-            activeCalls.remove(tracked)
+            if (activeCalls.remove(tracked) && finishedRequests != Long.MAX_VALUE) finishedRequests++
             tracked.settled.complete(Unit)
         }
     }

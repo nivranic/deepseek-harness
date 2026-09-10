@@ -126,6 +126,8 @@ jobs:
         if: matrix.language == 'java-kotlin'
         run: |
           "${ANDROID_HOME:?Android SDK root is required}/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36'
+      - uses: ./.github/actions/android-support-scanner
+        if: matrix.language == 'java-kotlin'
       - name: Generate Apple app targets
         if: matrix.language == 'swift'
         working-directory: apps/apple

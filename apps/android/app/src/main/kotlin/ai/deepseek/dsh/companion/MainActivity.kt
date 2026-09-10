@@ -237,7 +237,10 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         }
     }
     if (!model.paired) {
-        PairingScreen(model)
+        Column {
+            SupportExportAction()
+            PairingScreen(model)
+        }
         return
     }
     Scaffold(
@@ -255,6 +258,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            SupportExportAction()
             when (tab) {
                 0 -> SessionsTab(model)
                 1 -> ApprovalsTab(model)

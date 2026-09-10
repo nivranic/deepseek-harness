@@ -83,6 +83,31 @@ describe('CI workflow', () => {
     expect(steps[build + 2]?.if).toBeUndefined()
   })
 
+  it('builds the scanner before every Android application compilation lane', () => {
+    for (const [file, jobId, name] of [
+      ['android-candidate.yml', 'android', 'Build and validate unsigned release bundle'],
+      ['android-kotlin.yml', 'gradle-test', 'gradle test'],
+      ['supply-chain.yml', 'codeql', 'Compile Kotlin core and Android app'],
+    ] as const) {
+      const job = workflowJob(loadWorkflow(`.github/workflows/${file}`), jobId)
+      if (!Array.isArray(job.steps)) throw new Error('Android compilation steps are absent')
+      const steps = job.steps.filter(isRecord)
+      const setup = steps.findIndex(step => step.uses === './.github/actions/android-support-scanner')
+      expect(setup).toBeGreaterThan(0)
+      expect(setup).toBeLessThan(steps.findIndex(step => step.name === name))
+      expect(steps[setup]?.['continue-on-error']).toBeUndefined()
+      expect(steps[setup]?.if).toBe(file === 'supply-chain.yml' ? "matrix.language == 'java-kotlin'" : undefined)
+    }
+    const action = loadWorkflow('.github/actions/android-support-scanner/action.yml')
+    if (!isRecord(action.runs) || !Array.isArray(action.runs.steps)) throw new Error('Scanner composite steps are absent')
+    const build = action.runs.steps.filter(isRecord).find(step => typeof step.run === 'string')
+    expect(build?.run).toContain('source_sha=$(git rev-parse HEAD)')
+    expect(build?.run).toContain('govulncheck@v1.8.0 -mode=binary')
+    expect(build?.run).toContain('DSH_ANDROID_SCANNER_DIRECTORY=')
+    expect(build?.run).toContain('DSH_ANDROID_SCANNER_SOURCE=')
+    expect(build?.run).not.toContain('continue-on-error')
+  })
+
   it.each([
     ['ci.yml', 'node-24'], ['apple-swift.yml', 'swift-test'], ['android-kotlin.yml', 'gradle-test'],
   ])('preserves the actual checkout before validation in %s', (file, jobId) => {

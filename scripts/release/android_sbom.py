@@ -15,10 +15,11 @@ import zipfile
 
 from android_sbom_inventory import InventoryError, maven_inventory, no_links, read_file, regular_file, require, sha_file
 from android_sbom_payload import execute, inspect_payload, tool_environment
+from android_sbom_scanner import scanner_inventory
 
 ROOT = Path(__file__).resolve().parents[2]
 SCANNER = {'name': 'dsh-android-aab-inventory', 'version': '1'}
-SOURCES = ('android_sbom.py', 'android_sbom_inventory.py', 'android_sbom_payload.py',
+SOURCES = ('android_sbom.py', 'android_sbom_inventory.py', 'android_sbom_payload.py', 'android_sbom_scanner.py', 'mobile_scanner_source.py',
            'android-sbom.init.gradle', 'android-sbom-schema.mjs')
 
 
@@ -61,12 +62,15 @@ def collect_inputs(bundle, work):
     return data
 
 
-def bom_document(bundle, data, maven, payload, generator):
+def bom_document(bundle, data, maven, payload, generator, scanner=None):
     """Project every inspected Maven node, project input, packaged file, and dependency into CycloneDX."""
     target = 'urn:sha256:' + data['inputSha256']
     project_refs = {item['project']: 'urn:dsh:android-project:' + item['project'] for item in payload['projectInputs']}
     components = list(maven['components'])
     dependencies = list(maven['dependencies'])
+    if scanner:
+        components.extend(scanner['components'])
+        dependencies.extend(scanner['dependencies'])
     for project in payload['projectInputs']:
         ref = project_refs[project['project']]
         components.append({'type': 'library', 'bom-ref': ref, 'name': project['project'],
@@ -80,7 +84,7 @@ def bom_document(bundle, data, maven, payload, generator):
         owners = set()
         for item in payload['classAttribution']:
             if item['renamed'] in classes:
-                owners.update(item['mavenOwners'])
+                owners.update(item['libraryOwners'])
                 if item['project']:
                     owners.add(project_refs[item['project']])
         dex_owners[dex['path']] = sorted(owners)
@@ -93,7 +97,9 @@ def bom_document(bundle, data, maven, payload, generator):
                            'properties': [{'name': 'dsh:android:uncompressed-size', 'value': str(item['size'])}]})
         owners = native_owners.get(item['path'], dex_owners.get(item['path'], resource_owners.get(item['path'], [])))
         dependencies.append({'ref': ref, 'dependsOn': owners})
-    roots = {maven['components'][index]['bom-ref'] for module in data['modules'] for index in module['dependsOn']}
+    roots = {maven['nodeRefs'][index] for module in data['modules'] for index in module['dependsOn']}
+    if scanner:
+        roots.add(scanner['root'])
     dependencies.append({'ref': target, 'dependsOn': sorted(roots | set(file_refs) | set(project_refs.values()))})
     return {'bomFormat': 'CycloneDX', 'specVersion': '1.6', 'version': 1,
             'metadata': {'component': {'type': 'application', 'bom-ref': target, 'name': bundle.name,
@@ -115,9 +121,10 @@ def scan(bundle, mapping, java, sdk, node, work):
     generator = generator_identity()
     java_sha, node_sha = sha_file(java), sha_file(node)
     data = collect_inputs(bundle, work)
-    maven = maven_inventory(data)
-    payload = inspect_payload(bundle, mapping, data, maven, java, sdk, work)
-    bom = bom_document(bundle, data, maven, payload, generator)
+    scanner = scanner_inventory(data['scanner'], ROOT, work)
+    maven = maven_inventory(data, scanner)
+    payload = inspect_payload(bundle, mapping, data, maven, java, sdk, work, scanner)
+    bom = bom_document(bundle, data, maven, payload, generator, scanner)
     bom_path = work / 'sbom.cdx.json'
     with bom_path.open('xb') as stream:
         stream.write(json_bytes(bom))
@@ -126,11 +133,12 @@ def scan(bundle, mapping, java, sdk, node, work):
     require(generator_identity() == generator and sha_file(java) == java_sha and sha_file(node) == node_sha,
             'Android scanner tools changed during inspection')
     receipt = {'schemaVersion': 1, 'kind': 'android-aab-inventory', 'status': 'PASS',
-               'scope': 'base-module files, embedded Maven graph and declared licenses, R8 classes and native input attribution',
+               'scope': 'base-module files, Maven graph, scanner Go modules and declared licenses, R8 classes and native input attribution',
                'bundle': {'name': bundle.name, 'sha256': data['inputSha256']}, 'generator': generator,
                'sbom': {'path': 'sbom.cdx.json', 'sha256': sha_file(bom_path)}, 'metadata': data['metadata'],
                'graph': {key: data[key] for key in ('libraries', 'dependencies', 'modules', 'repositoryKinds')},
                'maven': maven['materials'], 'dependencyEdgeOccurrences': maven['edgeOccurrences'],
+               'scanner': scanner['material'],
                'duplicateDependencyEdges': maven['duplicateEdges'], 'payload': payload,
                'tools': {'agp': {name: {key: item[key] for key in ('version', 'sha256')} for name, item in data['tools'].items()},
                          'java': {'sha256': java_sha}, 'node': {'sha256': node_sha}, 'cycloneDx': validator}}

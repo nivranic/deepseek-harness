@@ -1,5 +1,8 @@
 import java.util.Properties
 import java.io.File
+import java.security.MessageDigest
+import java.util.zip.ZipFile
+import groovy.json.JsonSlurper
 
 plugins {
     id("com.android.application")
@@ -22,6 +25,44 @@ val productChannel = requireNotNull(productVersion.getProperty("channel")) {
 require(productVersionName.isNotBlank()) { "versionName must not be blank" }
 require(productVersionCode in 1..65535) { "versionCode must be from 1 to 65535" }
 require(productChannel in setOf("dev", "canary", "beta", "stable")) { "unknown product channel" }
+
+val scannerDirectory = providers.environmentVariable("DSH_ANDROID_SCANNER_DIRECTORY").map { File(it) }
+val scannerSource = providers.environmentVariable("DSH_ANDROID_SCANNER_SOURCE").map {
+    require(Regex("[a-f0-9]{40}").matches(it)) { "Scanner source must be a full lowercase commit SHA" }
+    it
+}
+val scannerAar = scannerDirectory.map { File(it, "support-scanner.aar") }
+val verifyScannerResources = tasks.register("verifyScannerResources") {
+    group = "verification"
+    doLast {
+        val source = scannerSource.get()
+        val directory = scannerDirectory.get()
+        require(Regex("[a-f0-9]{40}").matches(source) && directory.isAbsolute) { "Require an absolute scanner directory and full source SHA" }
+        val receiptFile = File(directory, "scanner.json")
+        require(receiptFile.isFile && receiptFile.length() in 1..4 * 1024 * 1024) { "Scanner receipt is missing or oversized" }
+        val receipt = JsonSlurper().parse(receiptFile) as Map<*, *>
+        val aar = scannerAar.get()
+        require(aar.isFile && aar.length() == (receipt["bytes"] as Number).toLong()) { "Scanner AAR size differs" }
+        val digest = MessageDigest.getInstance("SHA-256")
+        aar.inputStream().use { input ->
+            val buffer = ByteArray(65536)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        require(digest.digest().joinToString("") { "%02x".format(it.toInt() and 255) } == receipt["sha256"]) { "Scanner AAR checksum differs" }
+        require(receipt["sourceSha"] == source && receipt["status"] == "BUILT" && receipt["staticVerification"] == "PASS") { "Scanner source or verification differs" }
+        ZipFile(aar).use { archive ->
+            val entry = requireNotNull(archive.getEntry("assets/dsh-support-scanner/manifest.json")) { "Scanner source manifest is missing" }
+            require(entry.size in 1..4 * 1024 * 1024) { "Scanner source manifest is oversized" }
+            val manifest = archive.getInputStream(entry).use { JsonSlurper().parse(it) }
+            require(manifest == receipt["manifest"] && ((manifest as Map<*, *>)["source"] as Map<*, *>)["sourceSha"] == source) { "Embedded scanner manifest differs" }
+        }
+    }
+}
+tasks.matching { it.name == "preBuild" }.configureEach { dependsOn(verifyScannerResources) }
 
 // Passwords stay in the environment and Gradle signing configuration, never in command arguments or diagnostics.
 class ReleaseSigningMaterial(val file: File, val storePassword: String, val alias: String, val keyPassword: String)
@@ -65,6 +106,8 @@ android {
         versionName = productVersionName
         manifestPlaceholders["dshProductChannel"] = productChannel
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["dshScannerSource"] = scannerSource.orNull.orEmpty()
+        ndk { abiFilters += setOf("arm64-v8a", "x86_64") }
     }
 
     val releaseKeystore = releaseSigning?.let { material ->
@@ -97,6 +140,7 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging { jniLibs.keepDebugSymbols += "**/libgojni.so" }
 }
 
 val bundletool by configurations.creating
@@ -113,6 +157,7 @@ tasks.register<JavaExec>("validateReleaseBundle") {
 dependencies {
     bundletool("com.android.tools.build:bundletool:1.18.0")
     implementation(project(":core"))
+    implementation(files(scannerAar))
     val composeBom = platform("androidx.compose:compose-bom:2025.01.00")
     implementation(composeBom)
     implementation("androidx.activity:activity-compose:1.9.3")

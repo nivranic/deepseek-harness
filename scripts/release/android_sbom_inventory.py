@@ -143,11 +143,18 @@ def validate_graph(data):
     require(isinstance(repositories, list) and repositories and all(kind == 'MAVEN_REPO' for kind in repositories),
             'Android inventory supports Maven repositories only')
     seen = set()
+    scanner_count = 0
     for index, item in enumerate(libraries):
         require(type(item['index']) is int and item['index'] == index, 'Android library indexes are inconsistent')
-        gav = coordinate([item['group'], item['name'], item['version']])
-        require(gav not in seen, 'Duplicate Android Maven coordinate')
-        seen.add(gav)
+        require(item.get('kind') in ('maven', 'scanner'), 'Unsupported Android library kind')
+        if item['kind'] == 'maven':
+            gav = coordinate([item['group'], item['name'], item['version']])
+            require(gav not in seen, 'Duplicate Android Maven coordinate')
+            seen.add(gav)
+        else:
+            scanner_count += 1
+            require(scanner_count == 1 and item['sha256'] and item['repositoryIndex'] is None,
+                    'Require one digest-bound local scanner node')
         digest = item['sha256']
         require(isinstance(digest, str) and (digest == '' or re.fullmatch(r'[a-f0-9]{64}', digest)), 'Invalid embedded artifact SHA-256')
         repo = item['repositoryIndex']
@@ -193,12 +200,13 @@ def jar_inventory(content):
         return classes, resources
 
 
-def maven_inventory(data):
+def maven_inventory(data, scanner=None):
     """Match every embedded digest to a real JAR/AAR and collect license, class, and native-library evidence."""
     edges = validate_graph(data)
     cache = Path(data['gradleUserHome']) / 'caches/modules-2/files-2.1'
     require(cache.is_dir(), 'Gradle dependency cache is unavailable')
     components, materials = [], []
+    node_refs = {}
     classes, natives, resources = defaultdict(set), defaultdict(list), defaultdict(list)
     def collect_jar(content, ref):
         names, files = jar_inventory(content)
@@ -207,8 +215,14 @@ def maven_inventory(data):
         for item in files:
             resources['base/root/' + item['path']].append({'ref': ref, 'sha256': item['sha256']})
     for item in data['libraries']:
+        if item['kind'] == 'scanner':
+            require(scanner and scanner['material']['aarSha256'] == item['sha256'], 'Local scanner metadata digest differs from the inspected AAR')
+            require(not edges.get(item['index']), 'Scanner metadata has unexpected Maven dependencies')
+            node_refs[item['index']] = scanner['root']
+            continue
         gav = coordinate([item['group'], item['name'], item['version']])
         ref = maven_ref(gav)
+        node_refs[item['index']] = ref
         licenses, poms = pom_licenses(cache, gav)
         component = {'type': 'library', 'bom-ref': ref, 'purl': ref, 'group': gav[0], 'name': gav[1], 'version': gav[2],
                      'licenses': [{'license': {'name': name}} for name in licenses],
@@ -239,9 +253,11 @@ def maven_inventory(data):
         materials.append(material)
         components.append(component)
     require(any(item['embeddedSha256'] for item in materials), 'Android inventory requires actual artifact digests')
-    dependencies = [{'ref': components[index]['bom-ref'], 'dependsOn': sorted({components[target]['bom-ref'] for target in edges.get(index, [])})}
-                    for index in range(len(components))]
+    require(scanner is None or sum(item['kind'] == 'scanner' for item in data['libraries']) == 1, 'AAB metadata omitted the scanner input')
+    dependencies = [{'ref': node_refs[item['index']], 'dependsOn': sorted({node_refs[target] for target in edges.get(item['index'], [])})}
+                    for item in data['libraries'] if item['kind'] == 'maven']
     return {'components': components, 'materials': materials, 'dependencies': dependencies,
+            'nodeRefs': node_refs,
             'classes': classes, 'natives': natives, 'resources': resources,
             'edgeOccurrences': sum(len(targets) for targets in edges.values()),
             'duplicateEdges': sum(len(targets) - len(set(targets)) for targets in edges.values())}

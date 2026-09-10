@@ -174,6 +174,39 @@ class LinkClientTest {
     }
 
     @Test
+    fun requestSnapshotsTrackRealOwnershipAndRetiredClients() = runBlocking {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        server.createContext("/api/session/support-check") { exchange ->
+            val body = capture(exchange)
+            entered.countDown()
+            try {
+                check(release.await(10, java.util.concurrent.TimeUnit.SECONDS))
+                respond(exchange, 200, """{"type":"server-response","rpcId":"${rpcId(body)}","result":{"ok":true,"value":null}}""")
+            } finally { exchange.close() }
+        }
+        val client = client(MemoryLinkCredentialsStore())
+        assertEquals(LinkRequestSnapshot(false, 0, 0, 0), client.requestSnapshot())
+        client.pair(pairingPayload(), "private-device-name")
+        val wire = SwitchableWireDriving(LinkWireDriving(client))
+        val request = async(Dispatchers.IO) { wire.call("session/support-check") }
+        try {
+            assertTrue(kotlinx.coroutines.withContext(Dispatchers.IO) { entered.await(5, java.util.concurrent.TimeUnit.SECONDS) })
+            val snapshot = wire.requestSnapshot()!!
+            assertEquals(1, snapshot.pendingRequests)
+            assertEquals(2, snapshot.startedRequests)
+        } finally {
+            release.countDown()
+            request.await()
+            client.closeAndAwait()
+        }
+        assertEquals(LinkRequestSnapshot(true, 0, 2, 2), client.requestSnapshot())
+        val next = client(MemoryLinkCredentialsStore())
+        wire.replaceAndAwait(LinkWireDriving(next))
+        assertEquals(LinkRequestSnapshot(false, 0, 0, 0), wire.requestSnapshot())
+    }
+
+    @Test
     fun pairExchangesTheCodeAndSignsSubsequentCalls() = runBlocking {
         val store = MemoryLinkCredentialsStore()
         val client = client(store)

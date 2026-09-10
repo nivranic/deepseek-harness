@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'apps/android/**'
+      - 'native/support-scanner/**'
+      - 'scripts/build-mobile-support-scanner.py'
+      - '.github/actions/android-support-scanner/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -79,6 +82,7 @@ jobs:
         run: |
           python3 -B -m unittest discover -s scripts/release -p 'test_android_candidate*.py' -v
           pnpm exec vitest run scripts/android-candidate.spec.ts
+      - uses: ./.github/actions/android-support-scanner
       - name: Build and validate unsigned release bundle
         working-directory: apps/android
         run: ./gradlew --no-daemon :app:lintRelease :app:validateReleaseBundle

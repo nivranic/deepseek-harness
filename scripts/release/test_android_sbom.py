@@ -43,9 +43,9 @@ class AndroidInventory(unittest.TestCase):
         self.aar = self.cache.joinpath(*self.gav, 'hash/sample.aar')
         self.aar.write_bytes(self.artifact)
         self.data = {'schemaVersion': 1, 'gradleUserHome': str(self.root), 'repositoryKinds': ['MAVEN_REPO'],
-                     'libraries': [{'index': 0, 'group': 'org.example', 'name': 'sample', 'version': '1',
+                     'libraries': [{'index': 0, 'kind': 'maven', 'group': 'org.example', 'name': 'sample', 'version': '1',
                                     'sha256': sha_file(self.aar), 'repositoryIndex': 0},
-                                   {'index': 1, 'group': 'org.example', 'name': 'bom', 'version': '1',
+                                   {'index': 1, 'kind': 'maven', 'group': 'org.example', 'name': 'bom', 'version': '1',
                                     'sha256': '', 'repositoryIndex': None}],
                      'dependencies': [{'index': 0, 'dependsOn': [1, 1]}], 'modules': [{'name': 'base', 'dependsOn': [0]}]}
         self.mapping = self.root / 'mapping.txt'
@@ -131,6 +131,21 @@ class AndroidInventory(unittest.TestCase):
         self.aar.with_name('duplicate.aar').write_bytes(self.artifact)
         with self.assertRaisesRegex(ValueError, 'exactly one'):
             maven_inventory(self.data)
+
+    def test_local_scanner_node_preserves_indexes_and_refuses_other_bytes(self):
+        data = copy.deepcopy(self.data)
+        data['libraries'].append({'index': 2, 'kind': 'scanner', 'sha256': 'a' * 64, 'repositoryIndex': None})
+        data['modules'][0]['dependsOn'].append(2)
+        scanner = {'root': 'urn:dsh:scanner:test', 'material': {'aarSha256': 'a' * 64}}
+        result = maven_inventory(data, scanner)
+        self.assertEqual(result['nodeRefs'][2], scanner['root'])
+        self.assertEqual(result['duplicateEdges'], 1)
+        scanner['material']['aarSha256'] = 'b' * 64
+        with self.assertRaisesRegex(ValueError, 'scanner metadata digest'):
+            maven_inventory(data, scanner)
+        data['libraries'].append({'index': 3, 'kind': 'scanner', 'sha256': 'a' * 64, 'repositoryIndex': None})
+        with self.assertRaisesRegex(ValueError, 'one digest-bound'):
+            validate_graph(data)
 
     def test_rejects_unresolved_absent_cyclic_and_external_entity_licenses(self):
         for content in ('<project/>', '<project><licenses><license><name>${license}</name></license></licenses></project>',

@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Callers can scan one bounded diagnostic document entirely in memory and retrieve only the exact approved bytes. Each operation checks a real canary before scanning the document with the pinned Gitleaks default rules. Cancellation waits for scanner completion and refuses partial results. Swift/Kotlin bindings and mobile application export actions require separate integration.
+Callers can scan one bounded diagnostic document entirely in memory and retrieve only the exact approved bytes. Each operation checks a real canary before scanning the document with the pinned Gitleaks default rules. Cancellation waits for scanner completion and refuses partial results. The [Android companion](../../apps/android/README.md#local-support-export) consumes the JNI library; Swift bindings require separate integration.
 
 ## Table of Contents
 
@@ -74,7 +74,7 @@ None. The library admits local diagnostic bytes.
 <a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
 
-- Mobile applications do not bundle this library or expose a support-export action through it. Go tests do not establish Android/iOS binding, native cancellation, packaging, or saved-byte behavior.
+- Apple applications do not bundle this library or expose a support-export action through it. The Android consumer's collection gaps are documented in its [export contract](../../apps/android/README.md#local-support-export). Go tests do not establish Android/iOS binding, native cancellation, packaging, or saved-byte behavior.
 - An approved result means the pinned default rules reported no findings. Producer field selection and application identity remain separate requirements.
 - The library owns Gitleaks' logger and configuration within an isolated Go runtime. Unrelated Go consumers must not reconfigure that shared upstream state.
 - A deadline refuses admission but does not interrupt an individual regular-expression call; cancellation returns only after the bounded scan has stopped.
