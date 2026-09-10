@@ -31,14 +31,8 @@ final class CompanionStartupTests: XCTestCase {
         XCTAssertTrue(export.isEnabled)
         export.tap()
         let picker = app.otherElements["Browse View (Picker)"].firstMatch
-        let navigationCancel = app.navigationBars.buttons["Cancel"].firstMatch
-        // The system picker can expose its dismissal overlay as Other instead of a navigation button.
-        let overlayCancel = app.otherElements["Cancel"].firstMatch
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            picker.exists && ((navigationCancel.exists && navigationCancel.isHittable)
-                || (overlayCancel.exists && overlayCancel.isHittable))
-        }, object: nil)
-        let appeared = XCTWaiter.wait(for: [ready], timeout: 30) == .completed
+        let navigation = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
+        let appeared = navigation.waitForExistence(timeout: 30) && picker.exists
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "unpaired-diagnostics-system-exporter"
         screenshot.lifetime = .keepAlways
@@ -51,11 +45,24 @@ final class CompanionStartupTests: XCTestCase {
         }
         XCTAssertTrue(appeared)
         XCTAssertFalse(app.buttons["companion.support.cancel"].exists)
-        let cancel = navigationCancel.exists && navigationCancel.isHittable ? navigationCancel : overlayCancel
-        cancel.tap()
-        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in export.exists && export.isEnabled }, object: nil)
+        let cancel = navigation.buttons["Cancel"].firstMatch
+        if cancel.exists && cancel.isHittable {
+            cancel.tap()
+        } else {
+            // Some system pickers omit a Cancel button; dismiss their modal sheet using its navigation area.
+            let start = navigation.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9))
+            start.press(forDuration: 0.1, thenDragTo: end)
+        }
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !picker.exists && export.exists && export.isEnabled
+        }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 10), .completed)
         XCTAssertFalse(app.alerts.firstMatch.exists)
         XCTAssertEqual(app.state, .runningForeground)
+        let cancelled = XCTAttachment(screenshot: app.screenshot())
+        cancelled.name = "unpaired-diagnostics-cancelled"
+        cancelled.lifetime = .keepAlways
+        add(cancelled)
     }
 }
