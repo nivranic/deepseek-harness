@@ -20,10 +20,12 @@ final class CompanionStartupTests: XCTestCase {
         }
         XCTAssertTrue(navigation.staticTexts["On My iPhone"].waitForExistence(timeout: 30))
         let filename = app.textFields["DOCPicker.filenameTextField"]
-        XCTAssertTrue(filename.exists)
-        XCTAssertEqual(filename.value as? String, "dsh-companion-diagnostics")
         let save = navigation.buttons["Save"]
-        XCTAssertTrue(save.exists && save.isEnabled)
+        let formReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            filename.exists && filename.isHittable && save.exists && save.isEnabled && save.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [formReady], timeout: 30), .completed)
+        XCTAssertEqual(filename.value as? String, "dsh-companion-diagnostics")
         save.tap()
         let ready = app.buttons["companion.support.export"]
         XCTAssertTrue(ready.waitForExistence(timeout: 15))
