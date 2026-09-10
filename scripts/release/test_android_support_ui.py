@@ -1,5 +1,6 @@
 """System UI controls must belong to the expected package and expose unambiguous visible bounds."""
 
+import json
 import tempfile
 from pathlib import Path
 import unittest
@@ -61,3 +62,40 @@ class AndroidSupportUiTests(unittest.TestCase):
             ui.screenshot("saved")
             with self.assertRaises(FileExistsError):
                 ui.screenshot("saved")
+
+    def test_failure_metadata_projects_controls_without_retaining_ui_text_or_attributes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device = Mock(); ui = SupportUi(device, Path(directory), "a" * 32)
+            root = ET.Element("hierarchy")
+            ET.SubElement(root, "node", {"package": DOCUMENTS, "resource-id": "android:id/title",
+                                         "class": "android.widget.EditText", "text": "private-document-name",
+                                         "content-desc": "private-description"})
+            ET.SubElement(root, "node", {"package": DOCUMENTS, "resource-id": DOCUMENTS + ":id/breadcrumb_text", "text": "Downloads"})
+            device.shell.side_effect = [b"", b"", ET.tostring(root)]
+            ui.step = "local-location"
+            ui.observe()
+            device.command.return_value = b"\x89PNG\r\n\x1a\nfixture"
+            ui.record_failure()
+            text = (Path(directory) / "ui-failure.json").read_text(encoding="utf-8")
+            self.assertNotIn("private", text)
+            value = json.loads(text)
+            self.assertEqual(value["step"], "local-location")
+            self.assertEqual(value["query"], "observed")
+            self.assertEqual(value["screenshot"], "captured")
+            self.assertEqual(value["controls"]["filenameFields"], 1)
+            self.assertTrue(value["controls"]["downloadsBreadcrumb"])
+            self.assertFalse(value["controls"]["expectedFilename"])
+            self.assertTrue((Path(directory) / "failed.png").exists())
+
+    def test_unknown_app_is_not_captured_and_screenshot_errors_do_not_expose_device_output(self):
+        for package in ("unknown.application", PACKAGE):
+            with self.subTest(package=package), tempfile.TemporaryDirectory() as directory:
+                device = Mock(); ui = SupportUi(device, Path(directory), "a" * 32)
+                device.shell.side_effect = [b"", b"", ('<hierarchy><node package="' + package + '"/></hierarchy>').encode()]
+                ui.observe()
+                device.command.side_effect = ValueError("private-device-output")
+                ui.record_failure()
+                text = (Path(directory) / "ui-failure.json").read_text(encoding="utf-8")
+                self.assertNotIn("private", text)
+                self.assertEqual(json.loads(text)["screenshot"], "not-captured" if package == "unknown.application" else "failed")
+                self.assertEqual(device.command.call_count, 0 if package == "unknown.application" else 1)

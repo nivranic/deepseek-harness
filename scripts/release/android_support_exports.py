@@ -175,6 +175,9 @@ def verify(apk, source, output, progress=None):
             launched = device.shell(["am", "start", "-W", "-n", PACKAGE + "/ai.deepseek.dsh.companion.MainActivity"])
             require(re.search(rb"(?m)^Status: ok\r?$", launched), "Android support Activity launch failed")
             data = collect_export(device, ui, "dsh-support-" + nonce + ".json", product, identity, scanner, scratch, progress)
+        except Exception:
+            ui.record_failure()
+            raise
         finally:
             try:
                 try:
