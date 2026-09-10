@@ -74,7 +74,7 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 <a id="local-support-export"></a>
 ## 本地诊断导出
 
-诊断导出操作在配对前即可使用，并调用 Android 本地文档选择器。[导出器](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportExport.kt)序列化已安装应用标识、本地身份恢复状态、当前 Link 请求所有权、四份模型所有的连接快照、最后已知配对角色，以及经过认证的 Host 协议和 capability 观测。这些观测不能证明 Host 健康或当前授权。尚未接入的运行时健康、更新、崩溃和会话生产者列在 `uncollected` 中，文档声明 `complete: false`。
+诊断导出操作在配对前即可使用，位于系统安全绘制区域内，并调用 Android 本地文档选择器。[导出器](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportExport.kt)序列化已安装应用标识、本地身份恢复状态、当前 Link 请求所有权、四份模型所有的连接快照、最后已知配对角色，以及经过认证的 Host 协议和 capability 观测。这些观测不能证明 Host 健康或当前授权。尚未接入的运行时健康、更新、崩溃和会话生产者列在 `uncollected` 中，文档声明 `complete: false`。
 
 [连接诊断](core/src/main/kotlin/ai/deepseek/dsh/companion/ConnectionDiagnostics.kt)报告 `idle`、`opening`、`open`、`reconnecting`、`ended`、`stopping` 或 `stopped`、模型生命周期内的尝试和中断计数，以及固定失败类别。`open` 要求收到已解码帧，仅启动惰性 Flow 不足以成立。会话和交互流会重试；工作区和推送流丢失后保持 ended。应用在配对前已拥有四个模型，因此未配对导出记录当前 idle 所有者。没有模型的调用方显式报告 unavailable。导出在扫描前捕获不可变快照，不包含流地址、身份、载荷或异常原文。
 
