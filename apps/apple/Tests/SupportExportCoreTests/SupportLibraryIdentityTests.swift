@@ -2,14 +2,14 @@ import Foundation
 import XCTest
 @testable import SupportExportCore
 
-final class SupportScannerIdentityTests: XCTestCase {
+final class SupportLibraryIdentityTests: XCTestCase {
     private var fields: [String: Any] {
         ["schemaVersion": 1, "sourceSha": String(repeating: "a", count: 40), "treeSha": String(repeating: "b", count: 40),
          "archiveSha256": String(repeating: "c", count: 64), "scannerVersion": "8.30.1", "rulesDigest": String(repeating: "d", count: 64)]
     }
 
-    private func parse(_ value: [String: Any]) throws -> SupportScannerIdentity {
-        try SupportScannerIdentity(data: JSONSerialization.data(withJSONObject: value), linkedVersion: "8.30.1",
+    private func parse(_ value: [String: Any]) throws -> SupportLibraryIdentity {
+        try SupportLibraryIdentity(data: JSONSerialization.data(withJSONObject: value), linkedVersion: "8.30.1",
                                    linkedRulesDigest: String(repeating: "d", count: 64))
     }
 
@@ -39,7 +39,7 @@ final class SupportScannerIdentityTests: XCTestCase {
             XCTAssertThrowsError(try parse(value)) { XCTAssertEqual($0 as? SupportExportError, .invalidScanner) }
         }
         for data in [Data("invalid-json".utf8), Data(repeating: 32, count: 16385)] {
-            XCTAssertThrowsError(try SupportScannerIdentity(data: data, linkedVersion: "8.30.1", linkedRulesDigest: String(repeating: "d", count: 64))) {
+            XCTAssertThrowsError(try SupportLibraryIdentity(data: data, linkedVersion: "8.30.1", linkedRulesDigest: String(repeating: "d", count: 64))) {
                 XCTAssertEqual($0 as? SupportExportError, .invalidScanner)
             }
         }

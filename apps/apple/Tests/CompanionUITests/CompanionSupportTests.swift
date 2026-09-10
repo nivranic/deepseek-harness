@@ -11,7 +11,7 @@ final class CompanionSupportTests: XCTestCase {
             "scannerVersion": "8.30.1", "rulesDigest": String(repeating: "d", count: 64)]
         return CompanionSupportExporter(product: try SupportProductIdentity(info: ["DSHProductVersion": "1.2.3",
             "DSHBuildNumber": "1", "DSHDistributionChannel": "dev", "privateMetadata": "ignored"]),
-            identity: try SupportScannerIdentity(data: JSONSerialization.data(withJSONObject: identity),
+            identity: try SupportLibraryIdentity(data: JSONSerialization.data(withJSONObject: identity),
                 linkedVersion: "8.30.1", linkedRulesDigest: String(repeating: "d", count: 64)),
             scanner: scanner, policy: try DocumentScanPolicy(maximumBytes: maximumBytes, scanMilliseconds: 10000))
     }

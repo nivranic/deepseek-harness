@@ -5,10 +5,10 @@ import SupportExportCore
 /// Prepares local application and Link observations without loading credentials or opening a connection.
 public struct CompanionSupportExporter: Sendable {
     private let product: SupportProductIdentity
-    private let identity: SupportScannerIdentity
+    private let identity: SupportLibraryIdentity
     private let exporter: SupportDocumentExporter
 
-    public init(product: SupportProductIdentity, identity: SupportScannerIdentity,
+    public init(product: SupportProductIdentity, identity: SupportLibraryIdentity,
                 scanner: any DocumentScanner, policy: DocumentScanPolicy) {
         self.product = product
         self.identity = identity
@@ -33,7 +33,7 @@ private struct CompanionSupportSnapshot: Encodable {
     let kind = "companion-support"
     let complete = false
     let application: SupportProductIdentity
-    let scanner: SupportScannerIdentity
+    let scanner: SupportLibraryIdentity
     let link: LinkSection
     let uncollected = ["application-source", "runtime-health", "connection", "effective-role",
                        "updates", "native-crashes", "session-diagnostics"]

@@ -5,7 +5,7 @@ import SupportScanner
 
 /// The native shell binds the installed resource identity to the actual linked Go rules.
 struct NativeDocumentScanner: DocumentScanner {
-    let identity: SupportScannerIdentity
+    let identity: SupportLibraryIdentity
 
     init(bundle: Bundle) throws {
         guard let url = bundle.url(forResource: "identity", withExtension: "json", subdirectory: "SupportScannerResources") else {
@@ -22,7 +22,7 @@ struct NativeDocumentScanner: DocumentScanner {
                 throw error
             }
             try file.close()
-            identity = try SupportScannerIdentity(data: bytes, linkedVersion: DSHSupportscannerVersion,
+            identity = try SupportLibraryIdentity(data: bytes, linkedVersion: DSHSupportscannerVersion,
                                                   linkedRulesDigest: DSHSupportscannerRulesDigest())
         } catch {
             throw SupportExportError.invalidScanner

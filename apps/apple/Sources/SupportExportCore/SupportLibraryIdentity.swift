@@ -1,7 +1,7 @@
 import Foundation
 
 /// Build provenance must agree with the scanner version and rules in the linked native library.
-public struct SupportScannerIdentity: Encodable, Sendable {
+public struct SupportLibraryIdentity: Encodable, Sendable {
     public let schemaVersion: Int
     public let sourceSha: String
     public let treeSha: String
