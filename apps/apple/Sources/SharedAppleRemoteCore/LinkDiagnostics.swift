@@ -4,7 +4,8 @@ import Foundation
 public enum LinkDiagnosticFailure: String, Error, Encodable, CaseIterable, Sendable {
     case unpaired, refused, transport, invalidResponse = "invalid-response", cancelled
 
-    init(_ error: Error) {
+    /// Project a carrier or owner failure without retaining its message, code or URL.
+    public init(_ error: Error) {
         if error is CancellationError || (error as? URLError)?.code == .cancelled {
             self = .cancelled
         } else if let error = error as? LinkClientError {

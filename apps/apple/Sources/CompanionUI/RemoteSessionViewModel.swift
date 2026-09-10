@@ -125,6 +125,9 @@ public final class RemoteSessionViewModel {
     }
 
     private let wire: any CompanionWireDriving
+    private let connectionDiagnostics = CompanionConnectionDiagnostics()
+    /// Current follow ownership and fixed failure categories, without session identifiers or payloads.
+    public var connectionSnapshot: CompanionConnectionSnapshot { connectionDiagnostics.snapshot }
     private var followTask: Task<Void, Never>?
     private var followTaskId = 0
     private var followTransition = 0
@@ -196,6 +199,7 @@ public final class RemoteSessionViewModel {
         let task = followTask
         active = nil
         reconnecting = false
+        connectionDiagnostics.stop()
         task?.cancel()
     }
 
@@ -301,28 +305,35 @@ public final class RemoteSessionViewModel {
     private func startFollowing(_ address: [String: WireValue]) {
         let wire = self.wire
         followTaskId += 1
+        let connection = connectionDiagnostics
+        let token = connection.begin(reconnecting: reconnecting)
         followTask = Task { [weak self] in
+            defer { connection.finished(token) }
             var reconnectAttempt = 0
             while !Task.isCancelled, self?.active != nil {
+                connection.attempt(token)
                 do {
                     // Each generation reuses the durable address and replaces
                     // the fold from its authoritative opening snapshot.
                     let frames = try await wire.stream("session/follow", payload: [
                         "request": .object(["address": .object(address)]),
                     ])
+                    connection.opened(token)
                     self?.reconnecting = false
                     for try await frame in frames {
                         try Task.checkCancellation()
                         guard let self else { return }
                         await self.fold(frame)
                     }
+                    connection.interrupted(token, error: nil)
                 } catch is CancellationError {
                     return
                 } catch {
-                    // A carrier failure and a clean end both require a new generation.
+                    connection.interrupted(token, error: error)
                 }
                 guard !Task.isCancelled, self?.active != nil else { return }
                 self?.reconnecting = true
+                connection.retrying(token)
                 let delay = Double(min(reconnectAttempt, 5))
                 reconnectAttempt += 1
                 do {
@@ -337,6 +348,7 @@ public final class RemoteSessionViewModel {
     }
 
     private func stopFollowing() async {
+        connectionDiagnostics.stop()
         guard let task = followTask else { return }
         let taskId = followTaskId
         task.cancel()

@@ -7,14 +7,17 @@ import UniformTypeIdentifiers
 @MainActor
 struct CompanionSupportView: View {
     @ObservedObject var model: CompanionSupportModel
-    let snapshot: () -> LinkDiagnosticSnapshot?
+    let snapshot: () -> (link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots)
     @Environment(\.locale) private var locale
     private var copy: CompanionSupportCopy { .select(locale) }
 
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Button(model.isPreparing ? copy.scanning : copy.export) { model.prepare(link: snapshot()) }
+                Button(model.isPreparing ? copy.scanning : copy.export) {
+                    let value = snapshot()
+                    model.prepare(link: value.link, connections: value.connections)
+                }
                     .accessibilityIdentifier("companion.support.export")
                     .disabled(model.isPreparing || model.document != nil)
                 Text(copy.scope).font(.caption).foregroundStyle(.secondary)
@@ -53,14 +56,14 @@ final class CompanionSupportModel: ObservableObject {
         self.makeExporter = makeExporter
     }
 
-    func prepare(link: LinkDiagnosticSnapshot?) {
+    func prepare(link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots) {
         guard preparation == nil, document == nil else { return }
         failed = false
         preparation = Task { @MainActor in
             defer { preparation = nil }
             do {
                 let exporter = try makeExporter()
-                let approved = try await exporter.prepare(link: link)
+                let approved = try await exporter.prepare(link: link, connections: connections)
                 try Task.checkCancellation()
                 document = CompanionSupportDocument(approved: approved)
                 exporting = true

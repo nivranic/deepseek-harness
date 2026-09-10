@@ -52,7 +52,11 @@ public struct CompanionRootView: View {
         }
         .companionTheme(style)
         .safeAreaInset(edge: .bottom) {
-            CompanionSupportView(model: support) { activeClient?.supportSnapshot() }
+            CompanionSupportView(model: support) {
+                (activeClient?.supportSnapshot(), CompanionConnectionSnapshots(
+                    session: sessionModel?.connectionSnapshot, interactions: interactionModel?.connectionSnapshot,
+                    workspaces: filesModel?.connectionSnapshot, pushes: pushModel?.connectionSnapshot))
+            }
         }
         .task(id: paired && scenePhase == .active) {
             guard paired, scenePhase == .active, let activeClient else { return }

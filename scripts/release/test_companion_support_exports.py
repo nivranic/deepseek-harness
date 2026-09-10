@@ -55,11 +55,12 @@ class CompanionSupportExportTests(unittest.TestCase):
                                  "sha256": hashlib.sha256(self.data).hexdigest(), "findings": 0})
 
     def test_private_fields_and_false_completeness_are_refused(self):
-        for section in (None, "application", "scanner", "link"):
+        for section in (None, "application", "scanner", "link", "connections"):
             value = json.loads(self.data)
             (value if section is None else value[section])["private"] = "payload"
             with self.subTest(section=section), self.assertRaises(ValueError):
                 validate_export(json.dumps(value).encode(), self.product, self.library)
+
         for change in ({"complete": True}, {"complete": 0}, {"schemaVersion": True}, {"uncollected": []}):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 validate_export(json.dumps({**json.loads(self.data), **change}).encode(), self.product, self.library)
@@ -68,6 +69,15 @@ class CompanionSupportExportTests(unittest.TestCase):
             value[section][key] = True
             with self.assertRaises(ValueError):
                 validate_export(json.dumps(value).encode(), self.product, self.library)
+
+    def test_unpaired_admission_rejects_invented_connection_owners_and_observations(self):
+        for key in ("sessionFollow", "interactions", "workspaces", "pushes"):
+            for field, changed in (("producer", "another"), ("observation", "current"),
+                                   ("activityScope", "host-lifetime"), ("snapshot", {"state": "open"})):
+                value = json.loads(self.data)
+                value["connections"][key][field] = changed
+                with self.subTest(key=key, field=field), self.assertRaises(ValueError):
+                    validate_export(json.dumps(value).encode(), self.product, self.library)
 
     def test_different_product_scanner_and_link_observations_are_refused(self):
         for section, key, new in (("application", "version", "another"), ("scanner", "sourceSha", "f" * 40),

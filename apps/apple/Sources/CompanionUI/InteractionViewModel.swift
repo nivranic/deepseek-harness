@@ -52,6 +52,9 @@ public final class InteractionViewModel {
     public private(set) var clientId: String = ""
 
     private let wire: any CompanionWireDriving
+    private let connectionDiagnostics = CompanionConnectionDiagnostics()
+    /// Current event subscription ownership; an open carrier does not grant approval authority.
+    public var connectionSnapshot: CompanionConnectionSnapshot { connectionDiagnostics.snapshot }
     private var watchTask: Task<Void, Never>?
     private var watching = false
 
@@ -74,29 +77,37 @@ public final class InteractionViewModel {
         guard !watching else { return }
         watching = true
         if let previous = watchTask {
+            connectionDiagnostics.stop()
             previous.cancel()
             await previous.value
         }
         guard watching else { return }
         let wire = self.wire
+        let connection = connectionDiagnostics
+        let token = connection.begin(reconnecting: false)
         watchTask = Task { [weak self] in
+            defer { connection.finished(token) }
             while !Task.isCancelled {
                 guard self != nil else { return }
                 self?.clientId = ""
+                connection.attempt(token)
                 do {
                     let frames = try await wire.stream("$events", payload: [:])
+                    connection.opened(token)
                     for try await frame in frames {
                         try Task.checkCancellation()
                         guard let self else { return }
                         self.collect(frame)
                     }
+                    connection.interrupted(token, error: nil)
                 } catch is CancellationError {
                     return
                 } catch {
-                    // A carrier failure and a clean end both invalidate this generation.
+                    connection.interrupted(token, error: error)
                 }
                 guard !Task.isCancelled else { return }
                 self?.clientId = ""
+                connection.retrying(token)
                 do {
                     try await Task.sleep(for: .seconds(1))
                 } catch is CancellationError {
@@ -112,6 +123,7 @@ public final class InteractionViewModel {
     /// A later start waits for cancellation to complete before opening another generation.
     public func stopWatching() {
         watching = false
+        connectionDiagnostics.stop()
         watchTask?.cancel()
         clientId = ""
     }

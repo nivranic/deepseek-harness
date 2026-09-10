@@ -64,7 +64,7 @@ AGP 将文件形式的扫描 AAR 记录为仅含摘要的依赖。清单保留�
 
 [移动扫描库](../../../../native/support-scanner/README.zh.md)使用相同的固定上游规则，在内存中执行 canary 与文档准入。独立解析器排除环境配置；隔离 Go 运行时在检测前禁用扫描器日志。Gitleaks 可能在取消后返回部分发现，因此操作在准入字节前检查 context 完成状态，并在取消返回前等待扫描结束。结果访问器复制私有已准入字节。必需的 Go CI 作业在竞争检测前强制执行普通构建，使 CodeQL 获取独立于竞争检测缓存的编译。原生绑定、打包与移动导出操作仍需各自的平台验收。
 
-Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、连接、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者、移动端离线扫描仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
+Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、连接、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
 
 Apple 绑定通过 gomobile 静态 framework 使用同一扫描器。[生产者](../../../../scripts/build-apple-support-scanner.py)将设备、模拟器和 Mac 各架构的归档切片强制链接到最小检查程序，再由 Go 读取器检查其模块。可执行文件解析由维护中的工具链负责，无需重建 object 元数据，也不将源码依赖视为已链接内容。归档、Go object 和检查程序摘要保留其与分发 framework 字节的对应关系。Framework 索引及生成的版本链接必须匹配声明矩阵。静态打包与 [Swift 原生探针](../../../../scripts/verify-apple-support-scanner.py)具有独立回执；二者均不能替代原生应用导出或物理设备验收。
 
@@ -73,6 +73,8 @@ Apple 绑定通过 gomobile 静态 framework 使用同一扫描器。[生产者]
 Apple 通过 [SupportExportCore](../../../../apps/apple/Sources/SupportExportCore/SupportProductIdentity.swift)复用产品标识校验。扫描协调器拥有独立的后台执行与取消队列，等待二者结束后才交付字节；在原生打开期间取消也会等待后续操作结束。Link 诊断通过锁和各次查询的所有权投影真实客户端活动，不读取身份存储。刷新与失败会移除 Host 元数据，配对角色在取消配对前保持最后已知观测。结果字节或摘要与完整输入不一致时拒绝交付。这些共享组件本身不提供应用导出操作。
 
 Companion 壳向使用语言字典的 SwiftUI 导出操作提供真实[原生扫描适配器](../../../../apps/apple/Shells/SupportScannerAdapter.swift)。描述刷新属于前台活动，因此导出读取既有观测时不联网，也不读取身份存储。系统只接收由已准入字节构造的 FileDocument，防止扫描后追加字段。两个 Apple 界面通过 [fileExporter 取消回调](https://developer.apple.com/documentation/swiftui/view/fileexporter%28ispresented%3Adocument%3Acontenttypes%3Adefaultfilename%3Aoncompletion%3Aoncancellation%3A%29)释放已批准文档。取消不会调用完成回调，因此只在完成时清理会保留字节，并可能阻止后续导出。缺失生产者保持显式声明；扫描器来源不能填补应用缺失的源码标识。
+
+Companion 连接观测属于现有的会话、交互、注册表和推送订阅所有者。各所有者发布固定生命周期状态与有上限的计数，不保留请求地址、身份或载荷。观测令牌阻止迟到完成改写替代订阅。注册表还会在接收帧或安排重试前检查订阅代次，因为挂起的退役操作可能在被替换后重新启动。导出在异步扫描前复制四份快照；这些观测只说明订阅活动，不升级为 Host 健康或当前授权。
 
 [应用检查器](../../../../scripts/verify-apple-app-scanner.py)检查最终资源字节与每个应用切片的 Go 模块图。库探针无法发现应用链接时选中了另一 framework，或打包时遗漏了许可证。Companion 归档保留原生符号供维护中的二进制漏洞检查器分析，检查结果绑定最终可执行文件摘要。iOS 检查在原生 UI 用例结束后，从同一测试模拟器定位实际安装应用。另一个 DerivedData 构建可能具有不同字节，不能标识这些用例实际执行的扫描器。
 

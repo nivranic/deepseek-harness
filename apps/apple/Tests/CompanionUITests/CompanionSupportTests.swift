@@ -18,7 +18,7 @@ final class CompanionSupportTests: XCTestCase {
 
     func testUnpairedDocumentMatchesOwnedOutputAndScansAllBytesOffMainThread() async throws {
         let scanner = RecordingScanner()
-        let approved = try await exporter(scanner).prepare(link: nil)
+        let approved = try await exporter(scanner).prepare(link: nil, connections: .unavailable)
         let expected = try Data(contentsOf: Bundle.module.url(forResource: "support-unpaired", withExtension: "json", subdirectory: "Fixtures")!)
         XCTAssertEqual(approved.data, expected)
         XCTAssertEqual(scanner.input, expected)
@@ -30,7 +30,7 @@ final class CompanionSupportTests: XCTestCase {
         let store = SupportCredentials()
         let client = try XCTUnwrap(LinkClient.restore(store: store))
         XCTAssertEqual(store.loads, 1)
-        let approved = try await exporter(RecordingScanner()).prepare(link: client.supportSnapshot())
+        let approved = try await exporter(RecordingScanner()).prepare(link: client.supportSnapshot(), connections: .unavailable)
         XCTAssertEqual(store.loads, 1)
         let value = try XCTUnwrap(JSONSerialization.jsonObject(with: approved.data) as? [String: Any])
         let link = try XCTUnwrap(value["link"] as? [String: Any])
@@ -50,10 +50,45 @@ final class CompanionSupportTests: XCTestCase {
     func testWholeDocumentLimitRefusesBeforeNativeOpening() async throws {
         let scanner = RecordingScanner()
         do {
-            _ = try await exporter(scanner, maximumBytes: 64).prepare(link: nil)
+            _ = try await exporter(scanner, maximumBytes: 64).prepare(link: nil, connections: .unavailable)
             XCTFail("oversized complete document was admitted")
         } catch { XCTAssertEqual(error as? SupportExportError, .oversized) }
         XCTAssertNil(scanner.input)
+    }
+
+    @MainActor
+    func testAllConnectionOwnersAreCapturedBeforeScanningWithoutFurtherRequests() async throws {
+        let wire = FakeWire()
+        let sessions = RemoteSessionViewModel(wire: wire)
+        let interactions = InteractionViewModel(wire: wire)
+        let files = FilesViewModel(wire: wire)
+        let pushes = PushViewModel(wire: wire)
+        await sessions.open(sessionId: "private-session-id")
+        await interactions.startWatching()
+        await files.start()
+        await pushes.startWatching()
+        await waitUntil {
+            [sessions.connectionSnapshot, interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot]
+                .allSatisfy { $0.state == .open }
+        }
+        let captured = CompanionConnectionSnapshots(session: sessions.connectionSnapshot,
+            interactions: interactions.connectionSnapshot, workspaces: files.connectionSnapshot, pushes: pushes.connectionSnapshot)
+        sessions.close()
+        interactions.stopWatching()
+        files.stop()
+        pushes.stopWatching()
+        await waitUntil {
+            [sessions.connectionSnapshot, interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot]
+                .allSatisfy { $0.state == .stopped }
+        }
+        let scanner = RecordingScanner()
+        let approved = try await exporter(scanner).prepare(link: nil, connections: captured)
+        let expected = try Data(contentsOf: Bundle.module.url(forResource: "support-connections", withExtension: "json", subdirectory: "Fixtures")!)
+        XCTAssertEqual(approved.data, expected)
+        XCTAssertEqual(scanner.input, expected)
+        let requests = await wire.streamCalls
+        XCTAssertEqual(requests.count, 4)
+        XCTAssertFalse(String(decoding: approved.data, as: UTF8.self).contains("private-session-id"))
     }
 
     @MainActor
@@ -61,7 +96,7 @@ final class CompanionSupportTests: XCTestCase {
         let scanner = RecordingScanner()
         let producer = try exporter(scanner)
         let model = CompanionSupportModel { producer }
-        model.prepare(link: nil)
+        model.prepare(link: nil, connections: .unavailable)
         await waitUntil { !model.isPreparing }
         XCTAssertTrue(model.exporting)
         XCTAssertEqual(model.document?.approved.data, scanner.input)
@@ -69,7 +104,7 @@ final class CompanionSupportTests: XCTestCase {
         XCTAssertFalse(model.failed)
         XCTAssertFalse(model.exporting)
         XCTAssertNil(model.document)
-        model.prepare(link: nil)
+        model.prepare(link: nil, connections: .unavailable)
         await waitUntil { !model.isPreparing }
         XCTAssertTrue(model.exporting)
         XCTAssertEqual(model.document?.approved.data, scanner.input)
@@ -80,7 +115,7 @@ final class CompanionSupportTests: XCTestCase {
 
         let refused = try exporter(RecordingScanner(status: "secrets-detected"))
         let failure = CompanionSupportModel { refused }
-        failure.prepare(link: nil)
+        failure.prepare(link: nil, connections: .unavailable)
         await waitUntil { !failure.isPreparing }
         XCTAssertTrue(failure.failed)
         XCTAssertFalse(failure.exporting)
@@ -94,7 +129,7 @@ final class CompanionSupportTests: XCTestCase {
         let scanner = RecordingScanner(blocked: true)
         let producer = try exporter(scanner)
         let model = CompanionSupportModel { producer }
-        model.prepare(link: nil)
+        model.prepare(link: nil, connections: .unavailable)
         await waitUntil { scanner.running }
         model.cancel()
         await model.shutdown()

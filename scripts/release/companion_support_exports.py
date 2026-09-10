@@ -14,7 +14,7 @@ from .support_exports import unique_object
 
 TEST = "CompanionMacSupportTests/testUnpairedDiagnosticsCancelThenSave()"
 TITLE = "companion-support-unpaired-macos"
-UNCOLLECTED = ["application-source", "runtime-health", "connection", "effective-role",
+UNCOLLECTED = ["application-source", "runtime-health", "effective-role",
                "updates", "native-crashes", "session-diagnostics"]
 
 
@@ -27,6 +27,10 @@ def validate_export(data: bytes, product: dict, library: dict) -> None:
                 "application": {key: product[key] for key in ("version", "buildNumber", "channel")},
                 "scanner": library, "link": {"producer": "LinkClient", "activityScope": "client-lifetime",
                 "roleFreshness": "last-known", "descriptionFreshness": "last-known", "state": "unavailable"},
+                "connections": {key: {"producer": producer, "observation": "unavailable", "activityScope": "model-lifetime"}
+                                for key, producer in (("sessionFollow", "RemoteSessionViewModel"),
+                                                      ("interactions", "InteractionViewModel"),
+                                                      ("workspaces", "FilesViewModel"), ("pushes", "PushViewModel"))},
                 "uncollected": UNCOLLECTED}
     if value != expected or type(value["schemaVersion"]) is not int or value["complete"] is not False \
             or type(value["application"]["buildNumber"]) is not int or type(value["scanner"]["schemaVersion"]) is not int:

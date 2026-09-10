@@ -16,9 +16,10 @@ public struct CompanionSupportExporter: Sendable {
     }
 
     /// The caller supplies an owner snapshot; only the complete serialized document can be admitted.
-    public func prepare(link: LinkDiagnosticSnapshot?) async throws -> ApprovedSupportDocument {
+    public func prepare(link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots) async throws -> ApprovedSupportDocument {
         try Task.checkCancellation()
-        let document = CompanionSupportSnapshot(application: product, scanner: identity, link: .init(snapshot: link))
+        let document = CompanionSupportSnapshot(application: product, scanner: identity, link: .init(snapshot: link),
+                                                connections: connections)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         var data = try encoder.encode(document)
@@ -35,7 +36,8 @@ private struct CompanionSupportSnapshot: Encodable {
     let application: SupportProductIdentity
     let scanner: SupportLibraryIdentity
     let link: LinkSection
-    let uncollected = ["application-source", "runtime-health", "connection", "effective-role",
+    let connections: CompanionConnectionSnapshots
+    let uncollected = ["application-source", "runtime-health", "effective-role",
                        "updates", "native-crashes", "session-diagnostics"]
 
     struct LinkSection: Encodable {

@@ -69,7 +69,11 @@ public final class FilesViewModel {
     public private(set) var openingFile = false
 
     private let wire: any CompanionWireDriving
+    private let connectionDiagnostics = CompanionConnectionDiagnostics()
+    /// Current registry subscription ownership, without Workspace identifiers or paths.
+    public var connectionSnapshot: CompanionConnectionSnapshot { connectionDiagnostics.snapshot }
     private var followTask: Task<Void, Never>?
+    private var followGeneration = 0
 
     /// - Parameter wire: the wire driver; tests pass a fake.
     public init(wire: any CompanionWireDriving) {
@@ -87,25 +91,42 @@ public final class FilesViewModel {
     /// Workspaces are browsable and are ignored. The stream resubscribes on
     /// loss the way the interaction watcher does.
     public func start() async {
+        startFollowing(reconnecting: false)
+    }
+
+    private func startFollowing(reconnecting: Bool) {
+        followGeneration += 1
+        let generation = followGeneration
         followTask?.cancel()
+        let connection = connectionDiagnostics
+        let token = connection.begin(reconnecting: reconnecting)
         followTask = Task { [weak self] in
+            defer { connection.finished(token) }
             guard let self else { return }
+            connection.attempt(token)
             do {
                 let frames = try await self.wire.stream("workspace/follow", payload: [:])
+                connection.opened(token)
                 for try await frame in frames {
+                    try Task.checkCancellation()
+                    guard self.followGeneration == generation else { return }
                     self.applyRegistryFrame(frame)
                 }
-                await self.restart()
+                connection.interrupted(token, error: nil)
+                await self.restart(generation: generation, token: token)
             } catch is CancellationError {
                 // Deliberate stop.
             } catch {
-                await self.restart()
+                connection.interrupted(token, error: error)
+                await self.restart(generation: generation, token: token)
             }
         }
     }
 
     /// Stop following the registry; the collected rows stay for review.
     public func stop() {
+        followGeneration += 1
+        connectionDiagnostics.stop()
         followTask?.cancel()
         followTask = nil
     }
@@ -151,11 +172,13 @@ public final class FilesViewModel {
 
     // MARK: - Internals
 
-    private func restart() async {
-        guard followTask != nil else { return }
-        try? await Task.sleep(for: .seconds(1))
-        guard followTask != nil else { return }
-        await start()
+    private func restart(generation: Int, token: UUID) async {
+        guard followGeneration == generation, followTask != nil, !Task.isCancelled else { return }
+        connectionDiagnostics.retrying(token)
+        do { try await Task.sleep(for: .seconds(1)) }
+        catch { return } // Task.sleep can only fail when the subscription is cancelled.
+        guard followGeneration == generation, followTask != nil, !Task.isCancelled else { return }
+        startFollowing(reconnecting: true)
     }
 
     private func loadDirectory() async {
