@@ -447,7 +447,7 @@ export interface ConnectionConfig {
 }
 ```
 
-来源：[`packages/client/connection/src/index.ts:55`](../packages/client/connection/src/index.ts)
+来源：[`packages/client/connection/src/index.ts:76`](../packages/client/connection/src/index.ts)
 
 <a id="deepseek-aidsh-client-hmr"></a>
 
@@ -974,7 +974,7 @@ export type Config = z.infer<typeof Config>
 
 依赖：`z` (`zod`)
 
-来源：[`packages/host/electron-ipc/src/support.ts:26`](../packages/host/electron-ipc/src/support.ts)
+来源：[`packages/host/electron-ipc/src/support.ts:27`](../packages/host/electron-ipc/src/support.ts)
 
 <a id="deepseek-aidsh-host-frontend-static"></a>
 

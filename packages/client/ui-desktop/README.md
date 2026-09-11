@@ -35,7 +35,7 @@ The Electron app shell ([`apps/desktop`](../../../apps/desktop)) reads the names
 
 ## When a row is absent
 
-The Diagnostics row requests a local JSON export through the generated `desktopSupport` namespace. It disables duplicate clicks while the operation is pending and renders localized saved, cancelled, busy or refused feedback. The [Host exporter](../../host/electron-ipc/README.md#diagnostics-export) owns collection, scanning and native saving; this row receives no document contents, destination path or raw error.
+The Diagnostics row reads the current Connection owner's snapshot on each click and requests a local JSON export through the generated `desktopSupport` namespace. It disables duplicate clicks while the operation is pending and renders localized saved, cancelled, busy or refused feedback. The [Host exporter](../../host/electron-ipc/README.md#diagnostics-export) owns collection, scanning and native saving; this row receives no document contents, destination path or raw error.
 
 While a settings namespace is loading, not yet accepted, or not exposed to this client, its settings-backed rows render nothing. A read-only settings document disables those options without hiding the row. The Diagnostics action reports unavailable when its local export operation cannot be reached.
 

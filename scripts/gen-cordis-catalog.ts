@@ -251,6 +251,7 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   AgentCancelCause: 'core.md',
   AgentFactory: 'core.md',
   AgentHandle: 'core.md',
+  ConnectionDiagnosticSnapshot: 'web-client.md',
   DesktopSupportCounts: 'web-server.md',
   DesktopSupportHost: 'web-server.md',
   DesktopSupportResult: 'web-server.md',

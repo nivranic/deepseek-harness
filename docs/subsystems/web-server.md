@@ -105,10 +105,13 @@ registerHost(host: DesktopSupportHost): () => Promise<void>
 
 /**
  * Export the application's current safe projection to a user-selected local file.
+ * @param connection - requesting renderer's captured generation facts; wire counts are validated and copied before asynchronous work.
  * @returns saved-byte identity, cancellation, busy state, or a fixed refusal without paths or raw errors.
  */
-@Remote('export') exportSupport(): Promise<DesktopSupportResult>
+@Remote('export') exportSupport(connection?: ConnectionDiagnosticSnapshot): Promise<DesktopSupportResult>
 ```
+
+Types: [ConnectionDiagnosticSnapshot](web-client.md)
 
 Source: [`packages/host/electron-ipc/src/support.ts`](../../packages/host/electron-ipc/src/support.ts)
 

@@ -2,7 +2,7 @@
 
 /** Fixed refusals; native messages, paths and scanner output never cross the Gateway. */
 export type DesktopSupportFailure =
-  | 'invalid-identity' | 'invalid-scanner' | 'unavailable' | 'oversized'
+  | 'invalid-identity' | 'invalid-scanner' | 'invalid-diagnostics' | 'unavailable' | 'oversized'
   | 'scan-failed' | 'secrets-detected' | 'timed-out' | 'cleanup-failed' | 'save-failed'
 
 /** Result of one user-requested local export; a cancelled operation has no saved file. */

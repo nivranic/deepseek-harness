@@ -10,7 +10,7 @@ from .secret_scan import scan, self_test
 from .support_exports import unique_object
 
 
-UNCOLLECTED = ["runtime-health", "connection", "effective-role", "updates", "native-crashes"]
+UNCOLLECTED = ["runtime-health", "effective-role", "updates", "native-crashes"]
 COUNTERS = {"turnsStarted", "turnsEnded", "toolCalls", "toolResults"}
 
 
@@ -21,12 +21,12 @@ def fields(value: object, expected: set[str]) -> dict:
     return value
 
 
-def validate_export(data: bytes, product: dict, scanner: dict) -> None:
+def validate_export(data: bytes, product: dict, scanner: dict, connection: dict) -> None:
     """Accept the fresh no-session candidate projection without treating missing producers as complete."""
     if not data or len(data) > 1024 * 1024:
         raise ValueError("Windows support byte limit")
     value = fields(json.loads(data.decode("utf-8"), object_pairs_hook=unique_object), {
-        "schemaVersion", "platform", "runtimeClass", "complete", "product", "diagnostics", "link", "scanner", "uncollected"})
+        "schemaVersion", "platform", "runtimeClass", "complete", "product", "diagnostics", "connection", "link", "scanner", "uncollected"})
     if type(value["schemaVersion"]) is not int or value["schemaVersion"] != 1 or value["platform"] != "windows" \
             or value["runtimeClass"] != "full" or value["complete"] is not False or value["uncollected"] != UNCOLLECTED:
         raise ValueError("unsupported Windows support export")
@@ -37,6 +37,17 @@ def validate_export(data: bytes, product: dict, scanner: dict) -> None:
         raise ValueError("Windows support product identity differs")
     if value["scanner"] != scanner or type(value["scanner"].get("schemaVersion")) is not int:
         raise ValueError("Windows support scanner identity differs")
+    observed = fields(value["connection"], {"producer", "freshness", "scope", "activityScope", "value"})
+    snapshot = fields(observed["value"], {"state", "attempts", "interruptions", "countsSaturated"})
+    connection = fields(connection, {"state", "attempts", "interruptions", "countsSaturated"})
+    if observed != {"producer": "client-connection", "freshness": "last-known", "scope": "requesting-renderer",
+                    "activityScope": "controller-lifetime", "value": connection} \
+            or any(type(snapshot[key]) is not type(connection[key]) for key in snapshot) \
+            or snapshot["state"] not in ("idle", "opening", "connected", "reconnecting", "stopping", "stopped") \
+            or any(type(snapshot[key]) is not int or not 0 <= snapshot[key] <= 0xffff_ffff for key in ("attempts", "interruptions")) \
+            or snapshot["interruptions"] > snapshot["attempts"] or type(snapshot["countsSaturated"]) is not bool \
+            or snapshot["countsSaturated"] != (snapshot["attempts"] == 0xffff_ffff):
+        raise ValueError("Windows support connection differs from the captured renderer request")
     diagnostics = fields(value["diagnostics"], {"producer", "freshness", "scope", "counts", "saturated"})
     counts = fields(diagnostics["counts"], COUNTERS)
     if diagnostics["producer"] != "desktop-support" or diagnostics["freshness"] != "current" \
@@ -60,13 +71,13 @@ def validate_export(data: bytes, product: dict, scanner: dict) -> None:
             raise ValueError("invalid Windows support capability")
 
 
-def verify_export(source: Path, scanner_directory: Path, product: dict, scanner: dict, approved: Path) -> dict:
+def verify_export(source: Path, scanner_directory: Path, product: dict, scanner: dict, approved: Path, connection: dict) -> dict:
     """Publish a new approved copy only after strict validation, scanner self-test and zero findings."""
     if approved.exists() or approved.is_symlink() or source.is_symlink() or not source.is_file() \
             or not 0 < source.stat().st_size <= 1024 * 1024:
         raise ValueError("invalid Windows support input or output")
     data = source.read_bytes()
-    validate_export(data, product, scanner)
+    validate_export(data, product, scanner, connection)
     executable = scanner_directory / "gitleaks.exe"
     for name, digest_key in (("gitleaks.exe", "binarySha256"), ("LICENSE", "licenseSha256")):
         path = scanner_directory / name
@@ -94,7 +105,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         identity = json.loads(args.identity.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
-        receipt = verify_export(args.input, args.scanner_directory, identity["product"], identity["scanner"], args.approved)
+        receipt = verify_export(args.input, args.scanner_directory, identity["product"], identity["scanner"], args.approved, identity["connection"])
         args.output.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
         return 0
     except Exception:

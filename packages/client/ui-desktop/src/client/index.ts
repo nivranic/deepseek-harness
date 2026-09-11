@@ -9,6 +9,7 @@
  */
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 // Type-only: pulls ctx.locale, ctx.slots, and ctx.settingsScope Context merges
 // into this program. Cross-plugin collaboration goes through the service,
 // never a value import (client bundle purity gate).
@@ -50,13 +51,14 @@ export type { SupportExportRowProps, SupportExportRowInjected } from './SupportE
 const NS = 'settings.desktop'
 
 /** Required services (cordis fiber inject). */
-export const inject = ['slots', 'locale', 'settingsScope', 'remote', 'remote.link', 'remote.desktopSupport']
+export const inject = ['slots', 'locale', 'settingsScope', 'connection', 'remote', 'remote.link', 'remote.desktopSupport']
 
 /**
  * Register the `settings.desktop` dictionaries and the General-section rows.
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
+  const connection = ctx.get('connection') as ConnectionHandle
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-desktop: dictionaries')
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({
     name: 'settings.general.item',
@@ -65,7 +67,7 @@ export function apply(ctx: ClientContext): void {
     locale: NS,
     inject: (): SupportExportRowInjected => ({
       exportSupport: async () => {
-        const result = await ctx.remote.desktopSupport.export()
+        const result = await ctx.remote.desktopSupport.export(connection.diagnosticSnapshot())
         return result.ok ? result.value : { status: 'failed', reason: 'unavailable' }
       },
     }),

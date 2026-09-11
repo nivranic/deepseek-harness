@@ -486,6 +486,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ConnectionConfig {\n    backoffBaseMs?: number;\n    backoffFactor?: number;\n    backoffMaxMs?: number;\n    generationReadyTimeoutMs?: number;\n}',
   },
   {
+    name: 'ConnectionDiagnosticSnapshot',
+    declaration: 'export interface ConnectionDiagnosticSnapshot {\n    readonly state: \'idle\' | \'opening\' | \'connected\' | \'reconnecting\' | \'stopping\' | \'stopped\';\n    readonly attempts: number;\n    readonly interruptions: number;\n    readonly countsSaturated: boolean;\n}',
+  },
+  {
     name: 'ConnectionGeneration',
     declaration: 'export interface ConnectionGeneration {\n    readonly id: number;\n    readonly host: ConnectionHostInfo;\n}',
   },
@@ -499,7 +503,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConnectionHandle',
-    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly rpc: ClientConnectionRpc;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionConfig): {\n        stop(): void;\n    };\n}',
+    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly rpc: ClientConnectionRpc;\n    diagnosticSnapshot(): ConnectionDiagnosticSnapshot;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionConfig): {\n        stop(): void;\n    };\n}',
   },
   {
     name: 'ConnectionHostInfo',

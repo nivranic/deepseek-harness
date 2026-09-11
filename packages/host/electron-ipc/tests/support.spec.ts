@@ -3,6 +3,7 @@ import { readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+import type { ConnectionDiagnosticSnapshot } from '@deepseek-ai/dsh-client-connection'
 import { remoteMethods } from '@deepseek-ai/dsh-typert-protocol'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Config, DesktopSupport } from '../src/support.ts'
@@ -35,6 +36,33 @@ async function fixture() {
 }
 
 describe('desktop support Gateway', () => {
+  it('captures the requesting renderer observation before asynchronous collection', async () => {
+    const f = await fixture()
+    f.support.registerHost(f.host)
+    const connection: ConnectionDiagnosticSnapshot = { state: 'opening', attempts: 1, interruptions: 0, countsSaturated: false }
+    const exported = f.support.exportSupport(connection)
+    Object.assign(connection, { state: 'connected', attempts: 2 })
+    await expect(exported).resolves.toMatchObject({ status: 'saved' })
+    const document = JSON.parse(await readFile(f.target, 'utf8')) as { connection: unknown; uncollected: string[] }
+    expect(document.connection).toEqual({
+      producer: 'client-connection', freshness: 'last-known', scope: 'requesting-renderer', activityScope: 'controller-lifetime',
+      value: { state: 'opening', attempts: 1, interruptions: 0, countsSaturated: false },
+    })
+    expect(document.uncollected).not.toContain('connection')
+  })
+
+  it.each([
+    { attempts: -1 }, { attempts: 0.5 }, { attempts: 0x1_0000_0000 }, { attempts: Number.NaN },
+    { interruptions: 2 }, { countsSaturated: true }, { private: 'unapproved-field' },
+  ])('refuses invalid renderer diagnostic fields before scanning: %j', async (change) => {
+    const f = await fixture()
+    f.support.registerHost(f.host)
+    const connection: ConnectionDiagnosticSnapshot = { state: 'connected', attempts: 1, interruptions: 0, countsSaturated: false, ...change }
+    await expect(f.support.exportSupport(connection)).resolves.toEqual({ status: 'failed', reason: 'invalid-diagnostics' })
+    expect(f.calls).toHaveLength(0)
+    expect(f.save).not.toHaveBeenCalled()
+  })
+
   it('publishes only the export method and refuses calls until a native host registers', async () => {
     const f = await fixture()
     expect(remoteMethods(f.support)).toEqual([{ method: 'exportSupport', invocation: { kind: 'direct' }, exportName: 'export' }])

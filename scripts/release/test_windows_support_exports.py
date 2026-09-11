@@ -28,12 +28,15 @@ class WindowsSupportExports(unittest.TestCase):
         (self.scanner_directory / "LICENSE").write_bytes(b"license")
         self.source = self.root / "saved.json"
         self.approved = self.root / "approved.json"
+        self.connection = {"state": "connected", "attempts": 1, "interruptions": 0, "countsSaturated": False}
         self.source.write_bytes(self.encode(self.value()))
 
     def value(self):
         return {"schemaVersion": 1, "platform": "windows", "runtimeClass": "full", "complete": False,
                 "product": {"producer": "application-package", "freshness": "current", "value": copy.deepcopy(self.product)},
                 "scanner": copy.deepcopy(self.scanner), "uncollected": UNCOLLECTED.copy(),
+                "connection": {"producer": "client-connection", "freshness": "last-known", "scope": "requesting-renderer",
+                               "activityScope": "controller-lifetime", "value": copy.deepcopy(self.connection)},
                 "diagnostics": {"producer": "desktop-support", "freshness": "current", "scope": "since-plugin-start",
                                 "counts": dict.fromkeys(COUNTERS, 0), "saturated": False},
                 "link": {"producer": "link-access", "freshness": "current", "value": {
@@ -46,7 +49,7 @@ class WindowsSupportExports(unittest.TestCase):
         return (json.dumps(value, indent=2) + "\n").encode("utf-8")
 
     def verify(self):
-        return verify_export(self.source, self.scanner_directory, self.product, self.scanner, self.approved)
+        return verify_export(self.source, self.scanner_directory, self.product, self.scanner, self.approved, self.connection)
 
     def test_publishes_only_exact_saved_bytes_after_zero_findings(self):
         data = self.source.read_bytes()
@@ -64,7 +67,7 @@ class WindowsSupportExports(unittest.TestCase):
 
     def test_refuses_unknown_fields_at_every_nested_level(self):
         paths = [(), ("product",), ("product", "value"), ("scanner",), ("diagnostics",), ("diagnostics", "counts"),
-                 ("link",), ("link", "value"), ("link", "value", "capabilities")]
+                 ("link",), ("link", "value"), ("link", "value", "capabilities"), ("connection",), ("connection", "value")]
         paths.extend(("link", "value", "capabilities", key) for key in ("session", "workspace", "interaction"))
         for path in paths:
             value = self.value()
@@ -73,7 +76,7 @@ class WindowsSupportExports(unittest.TestCase):
                 selected = selected[key]
             selected["private"] = "must-not-export"
             with self.subTest(path=path), self.assertRaises(ValueError):
-                validate_export(self.encode(value), self.product, self.scanner)
+                validate_export(self.encode(value), self.product, self.scanner, self.connection)
 
     def test_refuses_missing_producers_and_contradictory_fresh_application_facts(self):
         changes = [((), "complete", True), ((), "schemaVersion", True), ((), "uncollected", []), ((), "platform", "macos"),
@@ -91,14 +94,30 @@ class WindowsSupportExports(unittest.TestCase):
                 selected = selected[key]
             selected[field] = replacement
             with self.subTest(path=path, field=field), self.assertRaises(ValueError):
-                validate_export(self.encode(value), self.product, self.scanner)
+                validate_export(self.encode(value), self.product, self.scanner, self.connection)
 
     def test_refuses_duplicate_keys_malformed_json_and_complete_byte_overflow(self):
         data = self.source.read_bytes()
-        validate_export(data + b" " * (1024 * 1024 - len(data)), self.product, self.scanner)
+        validate_export(data + b" " * (1024 * 1024 - len(data)), self.product, self.scanner, self.connection)
         for invalid in (b"", b"null", b"{", b'{"schemaVersion":1,"schemaVersion":1}', data + bytes([255]), data + b" " * 1024 * 1024):
             with self.assertRaises((ValueError, UnicodeError)):
-                validate_export(invalid, self.product, self.scanner)
+                validate_export(invalid, self.product, self.scanner, self.connection)
+
+    def test_requires_the_actual_request_snapshot_and_rejects_numeric_boolean_aliases(self):
+        data = self.source.read_bytes()
+        for change in ({"state": "reconnecting"}, {"attempts": 2}, {"attempts": True}, {"attempts": 1.0},
+                       {"interruptions": False}, {"private": "unapproved"}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_export(data, self.product, self.scanner, {**self.connection, **change})
+        for change in ({"state": "private"}, {"attempts": -1}, {"attempts": 0.5}, {"attempts": 0x1_0000_0000},
+                       {"interruptions": 2}, {"countsSaturated": True}, {"countsSaturated": 0}):
+            value = self.value(); value["connection"]["value"].update(change)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_export(self.encode(value), self.product, self.scanner, value["connection"]["value"])
+        for change in ({"freshness": "current"}, {"scope": "all-clients"}, {"activityScope": "unknown"}, {"producer": "link-access"}):
+            value = self.value(); value["connection"].update(change)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_export(self.encode(value), self.product, self.scanner, self.connection)
 
     def test_finding_or_scanner_failure_never_publishes_a_file(self):
         for failure in ("finding", "canary", "scan", "binary", "license"):
@@ -115,7 +134,7 @@ class WindowsSupportExports(unittest.TestCase):
 
     def test_cli_rejects_invalid_input_without_retaining_payload_in_receipt(self):
         identity = self.root / "identity.json"
-        identity.write_text(json.dumps({"product": self.product, "scanner": self.scanner}), encoding="utf-8")
+        identity.write_text(json.dumps({"product": self.product, "scanner": self.scanner, "connection": self.connection}), encoding="utf-8")
         receipt = self.root / "receipt.json"
         self.source.write_text('{"private":"must-not-retain"}', encoding="utf-8")
         argv = ["verify", "--input", str(self.source), "--scanner-directory", str(self.scanner_directory),

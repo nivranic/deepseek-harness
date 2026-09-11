@@ -45,6 +45,8 @@ API Gateway Client 把内部 `$events` logical stream 注册为唯一 generation
 
 `$events` 结束、返回 Remote stream error、收到非 ready 首项或畸形事件项，都会使当前 generation 失效。Controller 立即撤回 generation、发布 `reconnecting`，并在退避后重开 `$events`。Gateway mux 自己负责重建底层 WebSocket；Connection generation 负责重开 logical stream 并建立下一次 baseline 起点。
 
+`diagnosticSnapshot()` 返回最新 controller 的固定状态、无符号 32 位尝试/中断计数及饱和标记，不含 Host home、地址、请求 ID、帧或错误文本。计数覆盖该 controller 的生命周期；尚未启动 controller 时为零，状态为 `idle`。停止会取消退避，并在退役 source 工作结算前报告 `stopping`；退役 loop 不会在替换后恢复。这份观测描述本地 generation 活动，不能证明 Host 健康。
+
 <a id="model-experience"></a>
 ## 模型体验
 

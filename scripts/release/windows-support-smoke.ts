@@ -7,10 +7,12 @@ import { join } from 'node:path'
 import { promisify } from 'node:util'
 import type { ElectronApplication, Page } from 'playwright-core'
 import type { DesktopSupportResult } from '@deepseek-ai/dsh-host-electron-ipc/types'
+import type { ConnectionDiagnosticSnapshot } from '@deepseek-ai/dsh-client-connection'
 import type { ProductIdentity } from './product-identity.ts'
 import { hashRcOutput } from './rc-output.ts'
 import type { SupportScannerIdentity } from './support-scanner.ts'
 import { withMissingSupportScanner } from './windows-support-resources.ts'
+import { readConnectionObservation } from './windows-support-observation.ts'
 
 const execute = promisify(execFile)
 const endpoint = '/api/desktopSupport/export'
@@ -45,7 +47,9 @@ export async function nativeSupportDialog(
   return expected as NativeObservation
 }
 
-async function exportFromSettings(page: Page, nativeAction?: () => Promise<NativeObservation>): Promise<DesktopSupportResult> {
+async function exportFromSettings(
+  page: Page, nativeAction?: () => Promise<NativeObservation>, captured?: (connection: ConnectionDiagnosticSnapshot) => void,
+): Promise<DesktopSupportResult> {
   const response = page.waitForResponse(value => new URL(value.url()).pathname === endpoint, { timeout: 60_000 })
   const results = await Promise.allSettled([
     response.then(async (value) => {
@@ -54,6 +58,8 @@ async function exportFromSettings(page: Page, nativeAction?: () => Promise<Nativ
       assert.equal(envelope.type, 'server-response')
       assert.equal(envelope.result?.ok, true, 'desktop export Gateway rejected the operation')
       assert.ok(envelope.result.value)
+      const connection = readConnectionObservation(value.request().postDataJSON())
+      captured?.(connection)
       return envelope.result.value
     }),
     page.locator('[data-support-export]').click().then(async () => { await nativeAction?.() }),
@@ -97,13 +103,15 @@ export async function smokeWindowsSupport(
   await page.getByRole('dialog', { name: 'Settings', exact: true }).getByRole('button', { name: 'General', exact: true }).click()
   const savedFile = join(directory, 'support-saved.json')
   const native = (action: 'save' | 'cancel' | 'absent') => nativeSupportDialog(processId, action, environment, action === 'save' ? savedFile : undefined)
-  const saved = await exportFromSettings(page, () => native('save'))
+  let connection: ConnectionDiagnosticSnapshot | undefined
+  const saved = await exportFromSettings(page, () => native('save'), (observed) => { connection = observed })
   assert.equal(saved.status, 'saved', 'native export did not report a saved file')
   const digest = await hashRcOutput(savedFile)
   assert.deepEqual(saved, { status: 'saved', bytes: digest.bytes, sha256: digest.sha256, complete: false })
+  assert.ok(connection, 'Settings did not supply its Connection owner snapshot')
   const identityFile = join(directory, 'support-identity.json')
   const verificationFile = join(directory, 'support-verification.json')
-  await writeFile(identityFile, JSON.stringify({ product, scanner }), { flag: 'wx' })
+  await writeFile(identityFile, JSON.stringify({ product, scanner, connection }), { flag: 'wx' })
   await execute('python', ['-B', join(import.meta.dirname, '../verify-windows-support-export.py'),
     '--input', savedFile, '--scanner-directory', scannerDirectory, '--identity', identityFile,
     '--approved', `${output}.json`, '--output', verificationFile,

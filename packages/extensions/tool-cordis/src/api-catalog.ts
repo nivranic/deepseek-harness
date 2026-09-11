@@ -829,9 +829,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'disposer that revokes new requests, aborts and joins any active export.',
       },
       {
-        signature: '@Remote(\'export\') exportSupport(): Promise<DesktopSupportResult>',
+        signature: '@Remote(\'export\') exportSupport(connection?: ConnectionDiagnosticSnapshot): Promise<DesktopSupportResult>',
         description: 'Export the application\'s current safe projection to a user-selected local file.',
-        parameters: [],
+        parameters: [{ name: 'connection', description: 'requesting renderer\'s captured generation facts; wire counts are validated and copied before asynchronous work.' }],
         returns: 'saved-byte identity, cancellation, busy state, or a fixed refusal without paths or raw errors.',
       },
     ],
@@ -4138,7 +4138,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'DesktopSupportFailure',
-    declaration: 'export type DesktopSupportFailure = \'invalid-identity\' | \'invalid-scanner\' | \'unavailable\' | \'oversized\' | \'scan-failed\' | \'secrets-detected\' | \'timed-out\' | \'cleanup-failed\' | \'save-failed\';',
+    declaration: 'export type DesktopSupportFailure = \'invalid-identity\' | \'invalid-scanner\' | \'invalid-diagnostics\' | \'unavailable\' | \'oversized\' | \'scan-failed\' | \'secrets-detected\' | \'timed-out\' | \'cleanup-failed\' | \'save-failed\';',
   },
   {
     name: 'DesktopSupportHost',

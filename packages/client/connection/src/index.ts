@@ -11,6 +11,8 @@ import { assertTrustedAuthority } from './api-request-trust.ts'
 import { BrowserAuth } from './browser-auth.ts'
 import { HostConnectionService } from './rpc-host.ts'
 
+export type { ConnectionDiagnosticSnapshot } from './types.ts'
+
 export type {
   ConnectionFetchMethod,
   ConnectionFetchHandler,

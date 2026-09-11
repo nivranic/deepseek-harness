@@ -1,6 +1,7 @@
 /** Local Gateway operation coordinating fixed-field diagnostics, scanner admission and native saving. */
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-link-controller'
+import type { ConnectionDiagnosticSnapshot } from '@deepseek-ai/dsh-client-connection'
 import type { Session } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-subprocess'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
@@ -24,6 +25,14 @@ export const Config = z.object({
 
 /** Validated configuration consumed by one desktop export service. */
 export type Config = z.infer<typeof Config>
+
+const connectionSchema = z.strictObject({
+  state: z.enum(['idle', 'opening', 'connected', 'reconnecting', 'stopping', 'stopped']),
+  attempts: z.number().int().min(0).max(0xffff_ffff),
+  interruptions: z.number().int().min(0).max(0xffff_ffff),
+  countsSaturated: z.boolean(),
+}).refine(value => value.interruptions <= value.attempts
+  && value.countsSaturated === (value.attempts === 0xffff_ffff))
 
 const productSchema = z.object({
   version: z.string().min(1).max(128),
@@ -114,23 +123,29 @@ export class DesktopSupport extends TypertRemoteService {
 
   /**
    * Export the application's current safe projection to a user-selected local file.
+   * @param connection - requesting renderer's captured generation facts; wire counts are validated and copied before asynchronous work.
    * @returns saved-byte identity, cancellation, busy state, or a fixed refusal without paths or raw errors.
    */
   @Remote('export')
-  exportSupport(): Promise<DesktopSupportResult> {
+  exportSupport(connection?: ConnectionDiagnosticSnapshot): Promise<DesktopSupportResult> {
     const host = this.host
     if (host === undefined) return Promise.resolve({ status: 'failed', reason: 'unavailable' })
     if (this.active !== undefined) return Promise.resolve({ status: 'busy' })
+    const parsed = connection === undefined ? undefined : connectionSchema.safeParse(connection)
+    if (parsed !== undefined && !parsed.success) return Promise.resolve({ status: 'failed', reason: 'invalid-diagnostics' })
+    const observation = parsed?.data
     const controller = new AbortController()
     // Start in a microtask so native callbacks cannot re-enter before the operation owns admission.
-    const result = Promise.resolve().then(() => this.exportToHost(host, controller.signal)).finally(() => {
+    const result = Promise.resolve().then(() => this.exportToHost(host, observation, controller.signal)).finally(() => {
       this.active = undefined
     })
     this.active = { controller, result }
     return result
   }
 
-  private async exportToHost(host: DesktopSupportHost, signal: AbortSignal): Promise<DesktopSupportResult> {
+  private async exportToHost(
+    host: DesktopSupportHost, connection: ConnectionDiagnosticSnapshot | undefined, signal: AbortSignal,
+  ): Promise<DesktopSupportResult> {
     try {
       signal.throwIfAborted()
       const product = productIdentity(await host.readProductManifest())
@@ -177,7 +192,11 @@ export class DesktopSupport extends TypertRemoteService {
           counts: this.diagnosticCounts(), saturated: Object.values(this.counts).some(count => count === 0xffff_ffff),
         },
         link: linkObservation,
-        uncollected: ['runtime-health', 'connection', 'effective-role', 'updates', 'native-crashes'],
+        connection: connection === undefined ? { producer: 'client-connection', freshness: 'unavailable' } : {
+          producer: 'client-connection', freshness: 'last-known', scope: 'requesting-renderer',
+          activityScope: 'controller-lifetime', value: connection,
+        },
+        uncollected: ['runtime-health', ...(connection === undefined ? ['connection'] : []), 'effective-role', 'updates', 'native-crashes'],
       }
       const document = await ApprovedSupportDocument.prepare(this.ctx.subprocess, host.scannerDirectory, snapshot, this.policy, signal)
       signal.throwIfAborted()

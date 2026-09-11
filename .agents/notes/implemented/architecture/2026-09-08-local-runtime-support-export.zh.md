@@ -22,6 +22,8 @@ Status: implemented
 
 [Windows 导出器](../../../../packages/host/electron-ipc/src/support.ts)在现有生成式 Gateway 中增加一个桌面本地操作。它选择暂存应用元数据、去重后的 Session 事件计数和可选 Link 观测。异步扫描前完成序列化，通过受管理子进程的 stdin 传入 canary 和最终 JSON，并在扫描器资源仍匹配时才准入不可变文档。原生保存把这些准确字节写入目标旁随机且独占创建的临时文件，通过 rename 提交。提交前取消保持目标文件不变；即使同时发生取消，清理失败仍报告失败。
 
+发起请求的渲染端拥有 Connection generation 状态，因此 Settings 在点击时捕获其固定快照，通过现有本地操作发送。Host 在让出执行前验证并复制该值，将其标为 `last-known`，范围限定为该渲染端最新 controller 的生命周期。省略输入时生产者保持不可用；Gateway 成功不能推导健康状态。Controller 所有权阻止退役 loop 在替换后重启，停止状态保持可观测直到 source 结算。Windows 验收独立捕获实际请求，并将其固定字段与原生对话框保存的文件比较。
+
 配置默认值在插件激活前由 schema 解析，包括省略整个配置块的情况。`apply` 内的回退无法处理 schema 拒绝，因此 Gateway 单元组合保留导出的 schema，并由无密钥 Link 参考验收执行正式桌面 Host 组合。
 
 资源标识检查保留 `lstat` 和已打开句柄返回的 `bigint` 文件与设备标识。文件系统可能分配超出 JavaScript 安全整数范围的标识，不同值会舍入为同一个 `number`；数值相等不能证明已打开文件与检查过的路径匹配。资源大小仅在固定字节上限与大小未变检查通过后转为 `number`。不支持 `O_NOFOLLOW` 时仍保留这些比较。
@@ -66,7 +68,7 @@ AGP 将文件形式的扫描 AAR 记录为仅含摘要的依赖。清单保留�
 
 [移动扫描库](../../../../native/support-scanner/README.zh.md)使用相同的固定上游规则，在内存中执行 canary 与文档准入。独立解析器排除环境配置；隔离 Go 运行时在检测前禁用扫描器日志。Gitleaks 可能在取消后返回部分发现，因此操作在准入字节前检查 context 完成状态，并在取消返回前等待扫描结束。结果访问器复制私有已准入字节。必需的 Go CI 作业在竞争检测前强制执行普通构建，使 CodeQL 获取独立于竞争检测缓存的编译。原生绑定、打包与移动导出操作仍需各自的平台验收。
 
-Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、连接、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
+Mac 导出仍未采集连接、协议、角色、capability、更新、原生崩溃记录和会话诊断。Windows 导出将运行时健康、有效角色、更新和原生崩溃列为未采集，并要求 Settings 渲染端与 Gateway 保持可用。运行时 ready 描述 Mac 管理器经过认证的本地 Web 健康观测，不代表 provider 可用或完整发布准入。缺失的桌面与移动端生产者仍由[完整 Support Bundle 计划](../../../../docs/plans/2026-09-08-support-bundle.zh.md)独立推进。
 
 Apple 绑定通过 gomobile 静态 framework 使用同一扫描器。[生产者](../../../../scripts/build-apple-support-scanner.py)将设备、模拟器和 Mac 各架构的归档切片强制链接到最小检查程序，再由 Go 读取器检查其模块。可执行文件解析由维护中的工具链负责，无需重建 object 元数据，也不将源码依赖视为已链接内容。归档、Go object 和检查程序摘要保留其与分发 framework 字节的对应关系。Framework 索引及生成的版本链接必须匹配声明矩阵。静态打包与 [Swift 原生探针](../../../../scripts/verify-apple-support-scanner.py)具有独立回执；二者均不能替代原生应用导出或物理设备验收。
 
