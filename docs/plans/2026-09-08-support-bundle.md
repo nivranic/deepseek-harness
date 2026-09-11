@@ -68,7 +68,7 @@ Windows lifecycle design: wrap the existing native profile startup and shutdown 
 
 1. Prove the maintained scanner's offline library adapter can execute on iOS and Android with the pinned rules and canary. Keep build artifacts platform-specific and disclose their source/module inventory.
 2. Project connection recovery, authenticated host description, last-known pairing role and application identity from their owners. Exercise revoked, disconnected, reconnecting and unavailable states without serializing identity stores.
-3. Add native local export through the same immutable-byte and zero-findings admission rule. Test cancellation, oversized input, poisoned metadata, scanner failure and unknown protocol data.
+3. Add native local export through the same immutable-byte and zero-findings admission rule. Test cancellation, oversized input, poisoned metadata, scanner failure and unknown protocol data. Android retains admitted bytes in its Activity ViewModel across configuration recreation; native tests must prove exact-byte retention, one-time consumption and clearing after final destruction, while process restoration remains unapproved.
 4. Exercise actual iOS/iPadOS and Android export actions in their remote native lanes. Missing local Xcode does not stop independent implementation; remote compilation and product evidence remain required for those claims.
 
 ## Task 5: Close only verified coverage

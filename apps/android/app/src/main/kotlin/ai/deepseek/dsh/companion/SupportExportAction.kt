@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,8 +29,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
-
-private enum class ExportStage { IDLE, SCANNING, CHOOSING, SAVING, SAVED, CANCELLED, FAILED, APPROVAL_LOST, SAVE_FAILED }
 
 /** Locale-owned labels never include an exception, scanner output or destination path. */
 private data class SupportExportCopy(val export: String, val cancel: String, val scanning: String, val choosing: String,
@@ -70,37 +69,36 @@ fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
     val copy = SupportExportCopy.forLocale(context.resources.configuration.locales[0])
     val scope = rememberCoroutineScope()
     val exporter = remember(context) { SupportDocumentExporter(AndroidSupportScanner(context), SupportExportPolicy(1024 * 1024, 10_000)) }
-    var stage by remember { mutableStateOf(ExportStage.IDLE) }
-    var pending by remember { mutableStateOf<ApprovedSupportDocument?>(null) }
+    val owner: SupportExportState = viewModel()
+    var stage by owner.stage
     var work by remember { mutableStateOf<Job?>(null) }
     val destination = rememberLauncherForActivityResult(LocalSupportDocument()) { uri ->
-        val document = pending
-        pending = null
+        val document = owner.takeApproval()
         if (uri == null) {
-            stage = ExportStage.CANCELLED
+            stage = SupportExportStage.CANCELLED
         } else if (document == null) {
-            // Process or activity recreation discards approval; the new owner cannot deliver bytes.
-            stage = ExportStage.APPROVAL_LOST
+            // A new process or cleared owner has no approval to deliver.
+            stage = SupportExportStage.APPROVAL_LOST
         } else {
             work = scope.launch {
-                stage = ExportStage.SAVING
+                stage = SupportExportStage.SAVING
                 try {
                     deliverSupportDocument(document, AndroidSupportDestination(context.contentResolver, uri))
-                    stage = ExportStage.SAVED
+                    stage = SupportExportStage.SAVED
                 } catch (cancelled: CancellationException) {
-                    stage = ExportStage.CANCELLED
+                    stage = SupportExportStage.CANCELLED
                     throw cancelled
                 } catch (_: Exception) {
-                    stage = ExportStage.SAVE_FAILED
+                    stage = SupportExportStage.SAVE_FAILED
                 }
             }
         }
     }
     Column {
-        Button(modifier = Modifier.testTag("support-export"), enabled = stage !in setOf(ExportStage.SCANNING, ExportStage.CHOOSING, ExportStage.SAVING), onClick = {
+        Button(modifier = Modifier.testTag("support-export"), enabled = stage !in setOf(SupportExportStage.SCANNING, SupportExportStage.CHOOSING, SupportExportStage.SAVING), onClick = {
             work = scope.launch {
-                pending = null
-                stage = ExportStage.SCANNING
+                owner.takeApproval()
+                stage = SupportExportStage.SCANNING
                 try {
                     val snapshot = readSnapshot()
                     val product = withContext(Dispatchers.IO) {
@@ -111,31 +109,30 @@ fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
                     }
                     val document = exporter.prepare(product, snapshot)
                     currentCoroutineContext().ensureActive()
-                    pending = document
-                    stage = ExportStage.CHOOSING
+                    owner.approve(document)
                     destination.launch("dsh-support.json")
                 } catch (cancelled: CancellationException) {
-                    stage = ExportStage.CANCELLED
+                    stage = SupportExportStage.CANCELLED
                     throw cancelled
                 } catch (_: Exception) {
-                    pending = null
-                    stage = ExportStage.FAILED
+                    owner.takeApproval()
+                    stage = SupportExportStage.FAILED
                 }
             }
         }) { Text(copy.export) }
-        if (stage == ExportStage.SCANNING) {
+        if (stage == SupportExportStage.SCANNING) {
             Button(modifier = Modifier.testTag("support-export-cancel"), onClick = { work?.cancel() }) { Text(copy.cancel) }
         }
         val message = when (stage) {
-            ExportStage.IDLE -> null
-            ExportStage.SCANNING -> copy.scanning
-            ExportStage.CHOOSING -> copy.choosing
-            ExportStage.SAVING -> copy.saving
-            ExportStage.SAVED -> copy.saved
-            ExportStage.CANCELLED -> copy.cancelled
-            ExportStage.FAILED -> copy.failed
-            ExportStage.APPROVAL_LOST -> copy.approvalLost
-            ExportStage.SAVE_FAILED -> copy.saveFailed
+            SupportExportStage.IDLE -> null
+            SupportExportStage.SCANNING -> copy.scanning
+            SupportExportStage.CHOOSING -> copy.choosing
+            SupportExportStage.SAVING -> copy.saving
+            SupportExportStage.SAVED -> copy.saved
+            SupportExportStage.CANCELLED -> copy.cancelled
+            SupportExportStage.FAILED -> copy.failed
+            SupportExportStage.APPROVAL_LOST -> copy.approvalLost
+            SupportExportStage.SAVE_FAILED -> copy.saveFailed
         }
         message?.let { Text(it, modifier = Modifier.testTag("support-export-status")) }
     }
