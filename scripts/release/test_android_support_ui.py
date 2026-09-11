@@ -39,6 +39,29 @@ class AndroidSupportUiTests(unittest.TestCase):
         with patch.object(ui, "wait", return_value=picker), self.assertRaises(ValueError):
             ui.cancel()
 
+    def test_failure_receipt_retains_only_owned_fixed_export_categories(self):
+        cases = [("Diagnostics expired. Export again", "approvalLost"),
+                 ("Cannot write to the selected destination. Export again", "saveFailed"),
+                 ("Diagnostics unavailable", "preparationFailed")]
+        for text, category in cases:
+            for package in (PACKAGE, "foreign"):
+                with self.subTest(category=category, package=package), tempfile.TemporaryDirectory() as directory:
+                    device = Mock(); ui = SupportUi(device, Path(directory), "a" * 32)
+                    root = ET.Element("hierarchy")
+                    ET.SubElement(root, "node", {"package": PACKAGE, "text": "Export diagnostics"})
+                    ET.SubElement(root, "node", {"package": package, "text": text})
+                    ET.SubElement(root, "node", {"package": PACKAGE, "text": "private destination or exception"})
+                    device.shell.side_effect = [b"", ui.path.encode(), ET.tostring(root)]
+                    ui.observe()
+                    with patch.object(ui, "screenshot"):
+                        ui.record_failure()
+                    serialized = (Path(directory) / "ui-failure.json").read_text()
+                    record = json.loads(serialized)
+                    for _, field in cases:
+                        self.assertEqual(record["controls"][field], package == PACKAGE and field == category)
+                    self.assertNotIn("private destination", serialized)
+                    self.assertNotIn(text, serialized)
+
     def test_unowned_filename_is_rejected_before_observing_or_clicking(self):
         device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
         for filename in ("../private.json", "dsh-support.json", "x;echo bad.json"):

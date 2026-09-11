@@ -62,6 +62,9 @@ class SupportUi:
             "downloadsBreadcrumb": bool(matching(root, DOCUMENTS, **{"resource-id": DOCUMENTS + ":id/breadcrumb_text", "text": "Downloads"})),
             "expectedFilename": self.expected_filename is not None and bool(matching(root, DOCUMENTS, **{"resource-id": "android:id/title", "text": self.expected_filename})),
             "saveButtons": min(2, len(matching(root, DOCUMENTS, **{"resource-id": "android:id/button1", "text": "SAVE"}))),
+            "approvalLost": bool(matching(root, PACKAGE, text="Diagnostics expired. Export again")),
+            "saveFailed": bool(matching(root, PACKAGE, text="Cannot write to the selected destination. Export again")),
+            "preparationFailed": bool(matching(root, PACKAGE, text="Diagnostics unavailable")),
         }
         self.query = "observed"
         return root

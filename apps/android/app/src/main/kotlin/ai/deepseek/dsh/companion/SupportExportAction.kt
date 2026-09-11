@@ -29,16 +29,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-private enum class ExportStage { IDLE, SCANNING, CHOOSING, SAVING, SAVED, CANCELLED, FAILED }
+private enum class ExportStage { IDLE, SCANNING, CHOOSING, SAVING, SAVED, CANCELLED, FAILED, APPROVAL_LOST, SAVE_FAILED }
 
 /** Locale-owned labels never include an exception, scanner output or destination path. */
 private data class SupportExportCopy(val export: String, val cancel: String, val scanning: String, val choosing: String,
-                                     val saving: String, val saved: String, val cancelled: String, val failed: String) {
+                                     val saving: String, val saved: String, val cancelled: String, val failed: String,
+                                     val approvalLost: String, val saveFailed: String) {
     companion object {
         fun forLocale(locale: Locale) = if (locale.language == "zh") {
-            SupportExportCopy("导出诊断", "取消", "正在检查诊断内容", "请选择本地保存位置", "正在保存", "诊断已保存", "已取消导出", "无法导出诊断")
+            SupportExportCopy("导出诊断", "取消", "正在检查诊断内容", "请选择本地保存位置", "正在保存", "诊断已保存", "已取消导出", "无法导出诊断",
+                "诊断内容已失效，请重新导出", "无法写入所选位置，请重新导出")
         } else {
-            SupportExportCopy("Export diagnostics", "Cancel", "Checking diagnostics", "Choose a local destination", "Saving", "Diagnostics saved", "Export cancelled", "Diagnostics unavailable")
+            SupportExportCopy("Export diagnostics", "Cancel", "Checking diagnostics", "Choose a local destination", "Saving", "Diagnostics saved", "Export cancelled", "Diagnostics unavailable",
+                "Diagnostics expired. Export again", "Cannot write to the selected destination. Export again")
         }
     }
 }
@@ -77,7 +80,7 @@ fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
             stage = ExportStage.CANCELLED
         } else if (document == null) {
             // Process or activity recreation discards approval; the new owner cannot deliver bytes.
-            stage = ExportStage.FAILED
+            stage = ExportStage.APPROVAL_LOST
         } else {
             work = scope.launch {
                 stage = ExportStage.SAVING
@@ -88,7 +91,7 @@ fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
                     stage = ExportStage.CANCELLED
                     throw cancelled
                 } catch (_: Exception) {
-                    stage = ExportStage.FAILED
+                    stage = ExportStage.SAVE_FAILED
                 }
             }
         }
@@ -131,6 +134,8 @@ fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
             ExportStage.SAVED -> copy.saved
             ExportStage.CANCELLED -> copy.cancelled
             ExportStage.FAILED -> copy.failed
+            ExportStage.APPROVAL_LOST -> copy.approvalLost
+            ExportStage.SAVE_FAILED -> copy.saveFailed
         }
         message?.let { Text(it, modifier = Modifier.testTag("support-export-status")) }
     }
