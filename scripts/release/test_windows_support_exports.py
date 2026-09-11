@@ -35,6 +35,7 @@ class WindowsSupportExports(unittest.TestCase):
         return {"schemaVersion": 1, "platform": "windows", "runtimeClass": "full", "complete": False,
                 "product": {"producer": "application-package", "freshness": "current", "value": copy.deepcopy(self.product)},
                 "scanner": copy.deepcopy(self.scanner), "uncollected": UNCOLLECTED.copy(),
+                "runtime": {"producer": "desktop-application", "freshness": "current", "scope": "profile-lifecycle", "value": {"phase": "ready"}},
                 "connection": {"producer": "client-connection", "freshness": "last-known", "scope": "requesting-renderer",
                                "activityScope": "controller-lifetime", "value": copy.deepcopy(self.connection)},
                 "diagnostics": {"producer": "desktop-support", "freshness": "current", "scope": "since-plugin-start",
@@ -65,9 +66,18 @@ class WindowsSupportExports(unittest.TestCase):
         self.assertEqual(receipt, {"schemaVersion": 1, "status": "PASS", "completeSupportBundle": False,
                                    "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(), "findings": 0})
 
+    def test_refuses_nonready_or_misattributed_native_runtime_observations(self):
+        for change in ({"producer": "client-connection"}, {"freshness": "last-known"}, {"scope": "provider-health"},
+                       {"value": {"phase": "starting"}}, {"value": {"phase": "stopped"}},
+                       {"value": {"phase": "failed", "operation": "startup"}}):
+            value = self.value()
+            value["runtime"].update(change)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_export(self.encode(value), self.product, self.scanner, self.connection)
+
     def test_refuses_unknown_fields_at_every_nested_level(self):
         paths = [(), ("product",), ("product", "value"), ("scanner",), ("diagnostics",), ("diagnostics", "counts"),
-                 ("link",), ("link", "value"), ("link", "value", "capabilities"), ("connection",), ("connection", "value")]
+                 ("link",), ("link", "value"), ("link", "value", "capabilities"), ("connection",), ("connection", "value"), ("runtime",), ("runtime", "value")]
         paths.extend(("link", "value", "capabilities", key) for key in ("session", "workspace", "interaction"))
         for path in paths:
             value = self.value()

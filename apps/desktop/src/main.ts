@@ -25,6 +25,7 @@ import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import { DSH_SCHEME, ENTRY_URL } from './scheme.ts'
 import { registerDesktopSupport } from './support.ts'
+import { DesktopRuntimeDiagnostics } from './runtime-diagnostics.ts'
 
 /**
  * The settings namespace the ui-desktop host half registers — a local mirror
@@ -162,6 +163,13 @@ const PRELUDE_URL = `data:text/html,${encodeURIComponent(`<!doctype html>
 
 /** The booted tree, kept for window-close teardown. */
 let booted: { ctx: Context; shutdown: { shutdown(code: number): Promise<void> } } | undefined
+const runtimeDiagnostics = new DesktopRuntimeDiagnostics()
+
+/** Observe settlement of the existing profile shutdown without adding another shutdown owner. */
+async function shutdownRuntime(): Promise<void> {
+  const started = booted
+  if (started !== undefined) await runtimeDiagnostics.shutdown(() => started.shutdown.shutdown(0))
+}
 
 /** The application window, tracked for tray restore and second-instance focus. */
 let mainWindow: BrowserWindow | undefined
@@ -348,7 +356,7 @@ async function startGateway(): Promise<DesktopGateway> {
   }
   const support = started.ctx.get('desktopSupport')
   if (support === undefined) throw new Error('dsh desktop: boot settled without desktopSupport')
-  await registerDesktopSupport(support, () => mainWindow)
+  await registerDesktopSupport(support, () => mainWindow, () => runtimeDiagnostics.snapshot())
   return gateway
 }
 
@@ -431,7 +439,7 @@ function armSmokeShot(window: BrowserWindow): void {
       void (async () => {
         const image = await window.capturePage()
         await writeFile(shotPath, image.toPNG())
-        if (booted !== undefined) await booted.shutdown.shutdown(0)
+        await shutdownRuntime()
         app.quit()
       })()
     }, 8_000)
@@ -470,7 +478,7 @@ if (!app.requestSingleInstanceLock()) {
   let resolveGateway!: (gateway: DesktopGateway) => void
   const gatewayReady = new Promise<DesktopGateway>((resolve) => { resolveGateway = resolve })
   void (installWarmup ?? Promise.resolve()).then(() => {
-    void startGateway().then((gateway) => {
+    void runtimeDiagnostics.startup(startGateway).then((gateway) => {
       // Settings serve from here on: apply the login preference once, then
       // follow every commit so the toggle lands in the registry immediately.
       watchLaunchAtLogin()
@@ -512,7 +520,7 @@ app.on('window-all-closed', () => {
   // The desktop surface is single-window by construction: closing it tears
   // down the whole tree through the bounded shutdown, then quits.
   void (async () => {
-    if (booted !== undefined) await booted.shutdown.shutdown(0)
+    await shutdownRuntime()
     app.quit()
   })()
 })

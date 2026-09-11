@@ -3,6 +3,7 @@ import { app, BrowserWindow, dialog } from 'electron'
 import { open } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { DesktopSupport, SupportExportError } from '@deepseek-ai/dsh-host-electron-ipc'
+import type { DesktopRuntimeSnapshot } from '@deepseek-ai/dsh-host-electron-ipc/types'
 
 async function productManifest(Failure: typeof SupportExportError): Promise<unknown> {
   try {
@@ -32,14 +33,18 @@ async function productManifest(Failure: typeof SupportExportError): Promise<unkn
  * Bind the application's native exporter to the desktop Gateway service.
  * @param support - live profile-owned export service.
  * @param mainWindow - current application window; read only when the user exports.
+ * @param runtimeSnapshot - latest native profile lifecycle, captured when collection begins.
  * @returns completion of native callback registration after the profile has loaded its Host modules.
  */
-export async function registerDesktopSupport(support: DesktopSupport, mainWindow: () => BrowserWindow | undefined): Promise<void> {
+export async function registerDesktopSupport(
+  support: DesktopSupport, mainWindow: () => BrowserWindow | undefined, runtimeSnapshot: () => DesktopRuntimeSnapshot,
+): Promise<void> {
   // Host module loading stays behind startGateway's existing dynamic profile boot and install warmup.
   const { SupportExportError } = await import('@deepseek-ai/dsh-host-electron-ipc')
   support.registerHost({
     scannerDirectory: join(app.getAppPath(), 'resources', 'SupportScanner'),
     readProductManifest: () => productManifest(SupportExportError),
+    runtimeSnapshot,
     async save(document, signal) {
       signal.throwIfAborted()
       const parent = mainWindow()

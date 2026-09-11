@@ -255,6 +255,7 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   DesktopSupportCounts: 'web-server.md',
   DesktopSupportHost: 'web-server.md',
   DesktopSupportResult: 'web-server.md',
+  DesktopRuntimeSnapshot: 'web-server.md',
   DeviceAccess: 'remote-link.md',
   DeviceId: 'remote-link.md',
   DeviceResourceAccess: 'remote-link.md',

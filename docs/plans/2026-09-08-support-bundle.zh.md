@@ -60,6 +60,8 @@ Mac 运行时健康来自 RuntimeSupervisor。Web 连接观测使用实际 gener
 4. 在真实 updater 所有者实现后连接其状态。只有该所有者发出事实时才记录未检查、检查中、可更新、应用中和失败；没有实现不代表最新。
 5. 在临时 runner 上执行正式 Windows profile 和已安装候选的导出。扫描最终字节，并保留成功和拒绝导出的证据。
 
+Windows 生命周期设计：用仅负责观测的所有者包装现有原生 profile 启动和关闭调用。保留结果和拒绝，防止旧操作覆盖新阶段，并在异步导出采集前复制固定阶段和失败操作字段。将当前观测标为 `profile-lifecycle`，不推断 provider 可用性。在本地验证未完成和失败操作、退役操作结算及快照复制，然后要求新安装版与 portable 导出包含原生 ready 阶段。
+
 ## 任务 4：连接原生移动端生产者与扫描
 
 **文件：** `apps/apple/Sources/SharedAppleRemoteCore/`、`apps/apple/Sources/CompanionUI/`、`apps/android/core/`、`apps/android/app/` 及其现有平台工作流。

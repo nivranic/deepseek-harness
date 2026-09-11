@@ -27,6 +27,8 @@ kind: "package-reference"
 
 Windows Settings 操作通过生成式 `desktopSupport/export` 操作和应用的原生保存对话框保存可用诊断。采集器选择应用版本、构建号和渠道、进程内 Session 事件计数，Link 所有者公布的监听与协议观测，以及发起请求的渲染端捕获的 Connection 状态和有界计数。Session 负载、设备身份、连接地址和原始错误输出均不进入序列化。
 
+原生应用从实际启动和关闭操作提供当前 profile 生命周期快照。采集在异步工作前复制固定阶段；失败阶段仅标明 startup 或 shutdown，不含异常详情。该观测不探测 provider 可用性。
+
 Connection 输入在异步采集前验证并复制。未知字段、无效状态或相互矛盾的计数返回 `invalid-diagnostics`。接受的值是限定于发起请求的渲染端及 controller 生命周期的 `last-known` 观测；省略输入时，Connection 记录为不可用且未采集。这些值不能证明当前 Host 健康或其他渲染端的活动。
 
 [原生应用](../../../apps/desktop/src/support.ts)注册唯一保存回调。服务一次只准入一个导出；注销会撤销准入、取消待完成工作并等待其结束。[扫描实现](src/support-export.ts)核验内嵌资源，检出并脱敏合成凭据，再通过受管理子进程的 stdin 扫描最终不可变 JSON。只有通过扫描的字节才进入原生对话框；保存通过原子 rename 提交。提交前取消不改变目标文件，rename 已提交则报告保存成功。扫描和清理失败均拒绝完成，并且不暴露原生错误文本。
@@ -62,4 +64,4 @@ Connection 输入在异步采集前验证并复制。未知字段、无效状态
 
 - **前端 dist 必须已构建**——激活时 `require.resolve` 失败会带着构建提示大声报错；没有源码供给的回退。
 - **流式响应依赖 Electron 的协议处理器**——NDJSON Remote 流主体经协议桥流式传输，不支持流式的载体会让事件流停滞。
-- **支持导出仍不完整**——`complete:false` 与 `uncollected` 披露尚缺运行时健康、有效角色、更新和原生崩溃生产者。监听状态和公布的能力不能证明这些事实。Settings 导出还要求桌面 Gateway 与渲染端可用。
+- **支持导出仍不完整**——`complete:false` 与 `uncollected` 披露尚缺有效角色、更新和原生崩溃生产者。Profile 生命周期不能证明 provider 可用。监听状态和公布的能力不能证明这些事实。Settings 导出还要求桌面 Gateway 与渲染端可用。

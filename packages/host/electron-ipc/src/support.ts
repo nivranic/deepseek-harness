@@ -148,6 +148,10 @@ export class DesktopSupport extends TypertRemoteService {
   ): Promise<DesktopSupportResult> {
     try {
       signal.throwIfAborted()
+      const observation = host.runtimeSnapshot()
+      const runtime = observation.phase === 'failed'
+        ? { phase: observation.phase, operation: observation.operation }
+        : { phase: observation.phase }
       const product = productIdentity(await host.readProductManifest())
       const link = this.ctx.get('linkController')
       let linkObservation: Readonly<Record<string, unknown>> = { producer: 'link-access', freshness: 'unavailable' }
@@ -187,6 +191,7 @@ export class DesktopSupport extends TypertRemoteService {
         runtimeClass: 'full',
         complete: false,
         product: { producer: 'application-package', freshness: 'current', value: product },
+        runtime: { producer: 'desktop-application', freshness: 'current', scope: 'profile-lifecycle', value: runtime },
         diagnostics: {
           producer: 'desktop-support', freshness: 'current', scope: 'since-plugin-start',
           counts: this.diagnosticCounts(), saturated: Object.values(this.counts).some(count => count === 0xffff_ffff),
@@ -196,7 +201,7 @@ export class DesktopSupport extends TypertRemoteService {
           producer: 'client-connection', freshness: 'last-known', scope: 'requesting-renderer',
           activityScope: 'controller-lifetime', value: connection,
         },
-        uncollected: ['runtime-health', ...(connection === undefined ? ['connection'] : []), 'effective-role', 'updates', 'native-crashes'],
+        uncollected: [...(connection === undefined ? ['connection'] : []), 'effective-role', 'updates', 'native-crashes'],
       }
       const document = await ApprovedSupportDocument.prepare(this.ctx.subprocess, host.scannerDirectory, snapshot, this.policy, signal)
       signal.throwIfAborted()

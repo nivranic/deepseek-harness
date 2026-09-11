@@ -27,3 +27,8 @@ export interface DesktopSupportCounts {
   readonly toolCalls: number
   readonly toolResults: number
 }
+
+/** Native profile lifecycle, independent of provider availability or renderer connection state. */
+export type DesktopRuntimeSnapshot =
+  | { readonly phase: 'idle' | 'starting' | 'ready' | 'stopping' | 'stopped' }
+  | { readonly phase: 'failed'; readonly operation: 'startup' | 'shutdown' }

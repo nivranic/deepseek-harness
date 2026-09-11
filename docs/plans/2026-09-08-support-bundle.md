@@ -60,6 +60,8 @@ Mobile platforms cannot launch the desktop CLI. Before connecting mobile deliver
 4. Connect the real updater owner once implemented. Record unchecked, checking, available, applying and failed outcomes only when that owner emits them; absent implementation does not imply up to date.
 5. Exercise the shipped Windows profile and installed candidate export on an ephemeral runner. Scan final bytes and retain the successful and denied-export evidence.
 
+Windows lifecycle design: wrap the existing native profile startup and shutdown calls with an observation-only owner. Preserve results and rejections, prevent older operations from replacing newer phases, and copy fixed phase/failed-operation fields before asynchronous export collection. Label the current observation `profile-lifecycle`; do not infer provider availability. Verify pending and failed operations, retired settlements and snapshot copying locally, then require the fresh installed/portable export to contain the native ready phase.
+
 ## Task 4: Connect native mobile producers and scanning
 
 **Files:** `apps/apple/Sources/SharedAppleRemoteCore/`, `apps/apple/Sources/CompanionUI/`, `apps/android/core/`, `apps/android/app/` and their existing platform workflows.

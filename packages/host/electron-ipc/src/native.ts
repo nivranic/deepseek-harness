@@ -1,5 +1,6 @@
 /** Native application callbacks kept outside the client-safe support result types. */
 import type { ApprovedSupportDocument } from './support-export.ts'
+import type { DesktopRuntimeSnapshot } from './types.ts'
 
 /** The Electron application owns product metadata, bundled resources and the native save operation. */
 export interface DesktopSupportHost {
@@ -9,6 +10,8 @@ export interface DesktopSupportHost {
    * @returns parsed package metadata, without logging or projecting the complete manifest.
    */
   readProductManifest(): Promise<unknown>
+  /** @returns a synchronous value snapshot of the native owner's profile lifecycle, without I/O. */
+  runtimeSnapshot(): DesktopRuntimeSnapshot
   /**
    * Present a cancellable native save dialog and write only the document's approved bytes.
    * @param document - immutable bytes already admitted by the bundled scanner.

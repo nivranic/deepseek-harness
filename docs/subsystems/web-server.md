@@ -10,7 +10,9 @@ Source: [`packages/host/webserver/src/index.ts`](../../packages/host/webserver/s
 
 [`DesktopSupportResult`](../../packages/host/electron-ipc/src/types.ts) is a closed result union: `saved` carries the exact UTF-8 byte count, SHA-256 and `complete:false`; `cancelled` and `busy` carry only their status; `failed` carries a fixed `DesktopSupportFailure` category. No variant contains document contents or a destination path. `DesktopSupportCounts` contains saturating unsigned 32-bit `turnsStarted`, `turnsEnded`, `toolCalls` and `toolResults` counters since plugin start, without Session ids or event payloads.
 
-[`DesktopSupportHost`](../../packages/host/electron-ipc/src/native.ts) supplies the bundled scanner directory, a bounded staged-product metadata reader and a cancellable native save callback. The callback accepts only an immutable `ApprovedSupportDocument`; its `save` operation commits by atomic rename. Callback registration has one live owner and returns an asynchronous disposer that revokes admission, aborts and joins outstanding work. The [package reference](../../packages/host/electron-ipc/README.md#diagnostics-export) owns collection and failure behavior.
+[`DesktopSupportHost`](../../packages/host/electron-ipc/src/native.ts) supplies the bundled scanner directory, a bounded staged-product metadata reader, a synchronous profile lifecycle snapshot and a cancellable native save callback. The callback accepts only an immutable `ApprovedSupportDocument`; its `save` operation commits by atomic rename. Callback registration has one live owner and returns an asynchronous disposer that revokes admission, aborts and joins outstanding work. The [package reference](../../packages/host/electron-ipc/README.md#diagnostics-export) owns collection and failure behavior.
+
+`DesktopRuntimeSnapshot` records `idle`, `starting`, `ready`, `stopping`, `stopped`, or `failed` with the failed `startup` or `shutdown` operation. These phases describe the native profile lifecycle; they do not establish provider availability. The collector copies the snapshot before awaiting product metadata.
 
 ## Routes
 

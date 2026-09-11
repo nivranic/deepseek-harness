@@ -10,7 +10,7 @@ from .secret_scan import scan, self_test
 from .support_exports import unique_object
 
 
-UNCOLLECTED = ["runtime-health", "effective-role", "updates", "native-crashes"]
+UNCOLLECTED = ["effective-role", "updates", "native-crashes"]
 COUNTERS = {"turnsStarted", "turnsEnded", "toolCalls", "toolResults"}
 
 
@@ -26,7 +26,7 @@ def validate_export(data: bytes, product: dict, scanner: dict, connection: dict)
     if not data or len(data) > 1024 * 1024:
         raise ValueError("Windows support byte limit")
     value = fields(json.loads(data.decode("utf-8"), object_pairs_hook=unique_object), {
-        "schemaVersion", "platform", "runtimeClass", "complete", "product", "diagnostics", "connection", "link", "scanner", "uncollected"})
+        "schemaVersion", "platform", "runtimeClass", "complete", "product", "runtime", "diagnostics", "connection", "link", "scanner", "uncollected"})
     if type(value["schemaVersion"]) is not int or value["schemaVersion"] != 1 or value["platform"] != "windows" \
             or value["runtimeClass"] != "full" or value["complete"] is not False or value["uncollected"] != UNCOLLECTED:
         raise ValueError("unsupported Windows support export")
@@ -37,6 +37,10 @@ def validate_export(data: bytes, product: dict, scanner: dict, connection: dict)
         raise ValueError("Windows support product identity differs")
     if value["scanner"] != scanner or type(value["scanner"].get("schemaVersion")) is not int:
         raise ValueError("Windows support scanner identity differs")
+    runtime = fields(value["runtime"], {"producer", "freshness", "scope", "value"})
+    fields(runtime["value"], {"phase"})
+    if runtime != {"producer": "desktop-application", "freshness": "current", "scope": "profile-lifecycle", "value": {"phase": "ready"}}:
+        raise ValueError("Windows candidate profile lifecycle was not ready")
     observed = fields(value["connection"], {"producer", "freshness", "scope", "activityScope", "value"})
     snapshot = fields(observed["value"], {"state", "attempts", "interruptions", "countsSaturated"})
     connection = fields(connection, {"state", "attempts", "interruptions", "countsSaturated"})

@@ -31,11 +31,43 @@ async function fixture() {
     await document.save(target, signal)
     return 'saved'
   })
-  const host: DesktopSupportHost = { scannerDirectory: files.directory, readProductManifest: () => Promise.resolve(manifest), save }
+  const host: DesktopSupportHost = {
+    scannerDirectory: files.directory, readProductManifest: () => Promise.resolve(manifest), save,
+    runtimeSnapshot: () => ({ phase: 'ready' }),
+  }
   return { ...files, ctx, support, host, save, target, manifest }
 }
 
 describe('desktop support Gateway', () => {
+  it.each([
+    { phase: 'ready' }, { phase: 'failed', operation: 'startup' }, { phase: 'failed', operation: 'shutdown' },
+  ] as const)('exports the native profile observation: %j', async (runtime) => {
+    const f = await fixture()
+    f.support.registerHost({ ...f.host, runtimeSnapshot: () => runtime })
+    await expect(f.support.exportSupport()).resolves.toMatchObject({ status: 'saved' })
+    const document = JSON.parse(await readFile(f.target, 'utf8')) as { runtime: unknown; uncollected: string[] }
+    expect(document.runtime).toEqual({ producer: 'desktop-application', freshness: 'current', scope: 'profile-lifecycle', value: runtime })
+    expect(document.uncollected).not.toContain('runtime-health')
+  })
+
+  it('copies native lifecycle fields before waiting for application metadata', async () => {
+    const f = await fixture()
+    const observed = Promise.withResolvers<undefined>()
+    const metadata = Promise.withResolvers<typeof f.manifest>()
+    const runtime = { phase: 'starting' } as const
+    f.support.registerHost({ ...f.host, runtimeSnapshot: () => runtime, readProductManifest: () => {
+      observed.resolve(undefined)
+      return metadata.promise
+    } })
+    const exported = f.support.exportSupport()
+    await observed.promise
+    Object.assign(runtime, { phase: 'ready' })
+    metadata.resolve(f.manifest)
+    await expect(exported).resolves.toMatchObject({ status: 'saved' })
+    const document = JSON.parse(await readFile(f.target, 'utf8')) as { runtime: { value: unknown } }
+    expect(document.runtime.value).toEqual({ phase: 'starting' })
+  })
+
   it('captures the requesting renderer observation before asynchronous collection', async () => {
     const f = await fixture()
     f.support.registerHost(f.host)
@@ -92,7 +124,7 @@ describe('desktop support Gateway', () => {
       value: { version: '0.1.2-alpha.1', buildNumber: 1, channel: 'dev' } })
     expect(value.diagnostics).toMatchObject({ counts: { turnsStarted: 1, turnsEnded: 1, toolCalls: 1, toolResults: 1 } })
     expect(value.link).toMatchObject({ freshness: 'unavailable' })
-    expect(value.uncollected).toContain('runtime-health')
+    expect(value.uncollected).not.toContain('runtime-health')
     expect(value.uncollected).toContain('connection')
     expect(value.complete).toBe(false)
     expect(f.save).toHaveBeenCalledOnce()

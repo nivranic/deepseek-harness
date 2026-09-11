@@ -10,7 +10,9 @@
 
 [`DesktopSupportResult`](../../packages/host/electron-ipc/src/types.ts)是封闭结果联合：`saved` 携带准确的 UTF-8 字节数、SHA-256 和 `complete:false`；`cancelled` 与 `busy` 仅携带状态；`failed` 携带固定 `DesktopSupportFailure` 类别。任何分支均不包含文档内容或目标路径。`DesktopSupportCounts` 包含插件启动以来的无符号 32 位饱和计数 `turnsStarted`、`turnsEnded`、`toolCalls` 和 `toolResults`，不含 Session id 或事件负载。
 
-[`DesktopSupportHost`](../../packages/host/electron-ipc/src/native.ts)提供内嵌扫描器目录、有界暂存产品元数据读取器和可取消的原生保存回调。回调仅接收不可变的 `ApprovedSupportDocument`；其 `save` 操作通过原子 rename 提交。回调注册只有一个活动所有者，并返回异步 disposer，负责撤销准入、中止并等待未完成工作。[包参考](../../packages/host/electron-ipc/README.zh.md#diagnostics-export)拥有采集和失败行为。
+[`DesktopSupportHost`](../../packages/host/electron-ipc/src/native.ts)提供内嵌扫描器目录、有界暂存产品元数据读取器、同步 profile 生命周期快照和可取消的原生保存回调。回调仅接收不可变的 `ApprovedSupportDocument`；其 `save` 操作通过原子 rename 提交。回调注册只有一个活动所有者，并返回异步 disposer，负责撤销准入、中止并等待未完成工作。[包参考](../../packages/host/electron-ipc/README.zh.md#diagnostics-export)拥有采集和失败行为。
+
+`DesktopRuntimeSnapshot` 记录 `idle`、`starting`、`ready`、`stopping`、`stopped`，或包含失败 `startup` / `shutdown` 操作的 `failed`。这些阶段描述原生 profile 生命周期，不能证明 provider 可用。采集器在等待产品元数据前复制快照。
 
 ## 路由
 

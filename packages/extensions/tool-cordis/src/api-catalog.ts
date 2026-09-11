@@ -4133,6 +4133,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type DeepSeekLlmApiJson = null | boolean | number | string | DeepSeekLlmApiJson[] | {\n    [key: string]: DeepSeekLlmApiJson;\n};',
   },
   {
+    name: 'DesktopRuntimeSnapshot',
+    declaration: 'export type DesktopRuntimeSnapshot = {\n    readonly phase: \'idle\' | \'starting\' | \'ready\' | \'stopping\' | \'stopped\';\n} | {\n    readonly phase: \'failed\';\n    readonly operation: \'startup\' | \'shutdown\';\n};',
+  },
+  {
     name: 'DesktopSupportCounts',
     declaration: 'export interface DesktopSupportCounts {\n    readonly turnsStarted: number;\n    readonly turnsEnded: number;\n    readonly toolCalls: number;\n    readonly toolResults: number;\n}',
   },
@@ -4142,7 +4146,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'DesktopSupportHost',
-    declaration: 'export interface DesktopSupportHost {\n    readonly scannerDirectory: string;\n    readProductManifest(): Promise<unknown>;\n    save(document: ApprovedSupportDocument, signal: AbortSignal): Promise<\'saved\' | \'cancelled\'>;\n}',
+    declaration: 'export interface DesktopSupportHost {\n    readonly scannerDirectory: string;\n    readProductManifest(): Promise<unknown>;\n    runtimeSnapshot(): DesktopRuntimeSnapshot;\n    save(document: ApprovedSupportDocument, signal: AbortSignal): Promise<\'saved\' | \'cancelled\'>;\n}',
   },
   {
     name: 'DesktopSupportPolicy',
