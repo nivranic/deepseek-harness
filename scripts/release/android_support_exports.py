@@ -136,6 +136,19 @@ def collect_export(device, ui, filename, product, identity, scanner, scratch, pr
             raise
 
 
+def copy_installed_apk(device, apk, installed, progress):
+    """Keep location, retrieval and byte-identity failures distinct without retaining device paths."""
+    progress["stage"] = "installed-apk-location"
+    paths = device.shell(["pm", "path", PACKAGE]).decode("utf-8").strip().splitlines()
+    require(len(paths) == 1 and re.fullmatch(r"package:/data/app/[^\r\n]+/base\.apk", paths[0]), "Android support requires the installed test APK")
+    progress["stage"] = "installed-apk-retrieval"
+    device.command(["pull", paths[0].removeprefix("package:"), str(installed)], "Android support installed APK retrieval", 120)
+    progress["stage"] = "installed-apk-identity"
+    identity = {"candidateSha256": sha_file(apk), "installedSha256": sha_file(installed)}
+    progress["apkIdentity"] = identity
+    require(identity["candidateSha256"] == identity["installedSha256"], "Android support installed APK differs")
+
+
 def verify(apk, source, output, progress=None):
     """Exercise the installed candidate only on the hosted Linux emulator and preserve admitted evidence."""
     progress = {} if progress is None else progress
@@ -154,16 +167,12 @@ def verify(apk, source, output, progress=None):
     progress["stage"] = "device-runtime"
     device = CandidateDevice(sdk / "platform-tools/adb")
     runtime = device.runtime()
-    progress["stage"] = "installed-apk"
-    paths = device.shell(["pm", "path", PACKAGE]).decode("utf-8").strip().splitlines()
-    require(len(paths) == 1 and re.fullmatch(r"package:/data/app/[^\r\n]+/base\.apk", paths[0]), "Android support requires the installed test APK")
     nonce = uuid.uuid4().hex
     ui = SupportUi(device, output, nonce)
     with tempfile.TemporaryDirectory(prefix="dsh-android-support-") as temporary:
         scratch = Path(temporary)
         installed = scratch / "installed.apk"
-        device.command(["pull", paths[0].removeprefix("package:"), str(installed)], "Android support installed APK retrieval", 120)
-        require(sha_file(installed) == sha_file(apk), "Android support installed APK differs")
+        copy_installed_apk(device, apk, installed, progress)
         progress["stage"] = "native-scanner-identity"
         proof = read_json(device.shell(["run-as", PACKAGE, "cat", "cache/support-scanner-identity.json"]))
         identity = scanner_identity(apk, proof, source, device.shell(["getprop", "ro.product.cpu.abi"]).decode().strip(), registry)
@@ -214,6 +223,8 @@ def main():
         # Device, parser and scanner failures can contain unapproved bytes or private paths.
         record = {"schemaVersion": 1, "status": "FAIL", "stage": progress["stage"],
                   "reason": "Android system support export was not accepted"}
+        if "apkIdentity" in progress:
+            record["apkIdentity"] = progress["apkIdentity"]
     (args.output / "verification.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: record[key] for key in ("schemaVersion", "status")}))
     return 0 if record["status"] == "PASS" else 1

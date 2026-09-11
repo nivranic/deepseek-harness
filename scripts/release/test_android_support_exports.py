@@ -6,10 +6,10 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import zipfile
 
-from android_support_exports import collect_export, main, scanner_identity, validate_export, verify
+from android_support_exports import collect_export, copy_installed_apk, main, scanner_identity, validate_export, verify
 
 
 class Device:
@@ -162,6 +162,52 @@ class AndroidSupportExportTests(unittest.TestCase):
             "reason": "Android system support export was not accepted",
         })
         self.assertEqual([path.name for path in output.iterdir()], ["verification.json"])
+
+    def test_installed_apk_failures_distinguish_location_retrieval_and_identity(self):
+        candidate, installed = self.root / "candidate.apk", self.root / "installed.apk"
+        candidate.write_bytes(b"candidate bytes")
+        for failure in ("location", "retrieval", "identity", None):
+            with self.subTest(failure=failure):
+                device = Mock()
+                device.shell.return_value = b"" if failure == "location" else b"package:/data/app/~~random/companion/base.apk\n"
+                def pull(*_arguments):
+                    if failure == "retrieval":
+                        raise ValueError("private device path")
+                    installed.write_bytes(b"different bytes" if failure == "identity" else candidate.read_bytes())
+                device.command.side_effect = pull
+                progress = {}
+                if failure is None:
+                    copy_installed_apk(device, candidate, installed, progress)
+                    self.assertEqual(progress["apkIdentity"]["candidateSha256"], progress["apkIdentity"]["installedSha256"])
+                else:
+                    with self.assertRaises(ValueError):
+                        copy_installed_apk(device, candidate, installed, progress)
+                    self.assertEqual(progress["stage"], "installed-apk-" + failure)
+                if failure == "location":
+                    device.command.assert_not_called()
+                if failure in ("location", "retrieval"):
+                    self.assertNotIn("apkIdentity", progress)
+                if failure == "identity":
+                    self.assertEqual(progress["apkIdentity"], {
+                        "candidateSha256": hashlib.sha256(b"candidate bytes").hexdigest(),
+                        "installedSha256": hashlib.sha256(b"different bytes").hexdigest(),
+                    })
+                self.assertNotIn("private", json.dumps(progress))
+                self.assertNotIn("/data/", json.dumps(progress))
+
+    def test_identity_failure_receipt_retains_only_digests_and_fixed_stage(self):
+        output = self.root / "identity-evidence"
+        identity = {"candidateSha256": "a" * 64, "installedSha256": "b" * 64}
+        def fail(_apk, _source, _output, progress):
+            progress.update(stage="installed-apk-identity", apkIdentity=identity)
+            raise ValueError("private device path")
+        with patch("android_support_exports.sys.argv", ["collector", "--apk", "private.apk", "--source-sha", "b" * 40,
+                                                       "--output", str(output)]), patch("android_support_exports.verify", side_effect=fail):
+            self.assertEqual(main(), 1)
+        self.assertEqual(json.loads((output / "verification.json").read_bytes()), {
+            "schemaVersion": 1, "status": "FAIL", "stage": "installed-apk-identity",
+            "reason": "Android system support export was not accepted", "apkIdentity": identity,
+        })
 
     def test_requires_disposable_host_before_any_device_or_scanner_operation(self):
         with patch("android_support_exports.sys.platform", "win32"), patch("android_support_exports.CandidateDevice") as device, \
