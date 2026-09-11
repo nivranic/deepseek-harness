@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-20-webworker-node-face.md
-2026-08-20-webworker-node-face.md: d941ec5b257aa39f47c5504fe022faf5f23408b0
-2026-08-20-webworker-node-face.zh.md: 5665165c50e29fca584be3dd0ad786c9a0373eeb
+2026-08-20-webworker-node-face.md: 102002b05e901a093efbdc059af2fa6cbefe4b63
+2026-08-20-webworker-node-face.zh.md: 777e5c46c7544cf6ccdde7adba0bb2b311248697
