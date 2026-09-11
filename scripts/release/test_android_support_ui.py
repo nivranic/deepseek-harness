@@ -1,6 +1,7 @@
 """System UI controls must belong to the expected package and expose unambiguous visible bounds."""
 
 import json
+import itertools
 import tempfile
 from pathlib import Path
 import unittest
@@ -48,7 +49,7 @@ class AndroidSupportUiTests(unittest.TestCase):
     def test_observation_rejects_oversized_hierarchy_and_foreign_root(self):
         device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
         for data in (b"x" * (2 * 1024 * 1024 + 1), b"<foreign/>"):
-            device.shell.side_effect = [b"", b"", data]
+            device.shell.side_effect = [b"", ui.path.encode(), data]
             with self.assertRaises(ValueError):
                 ui.observe()
 
@@ -71,7 +72,7 @@ class AndroidSupportUiTests(unittest.TestCase):
                                          "class": "android.widget.EditText", "text": "private-document-name",
                                          "content-desc": "private-description"})
             ET.SubElement(root, "node", {"package": DOCUMENTS, "resource-id": DOCUMENTS + ":id/breadcrumb_text", "text": "Downloads"})
-            device.shell.side_effect = [b"", b"", ET.tostring(root)]
+            device.shell.side_effect = [b"", ui.path.encode(), ET.tostring(root)]
             ui.step = "local-location"
             ui.observe()
             device.command.return_value = b"\x89PNG\r\n\x1a\nfixture"
@@ -91,7 +92,7 @@ class AndroidSupportUiTests(unittest.TestCase):
         for package in ("unknown.application", PACKAGE):
             with self.subTest(package=package), tempfile.TemporaryDirectory() as directory:
                 device = Mock(); ui = SupportUi(device, Path(directory), "a" * 32)
-                device.shell.side_effect = [b"", b"", ('<hierarchy><node package="' + package + '"/></hierarchy>').encode()]
+                device.shell.side_effect = [b"", ui.path.encode(), ('<hierarchy><node package="' + package + '"/></hierarchy>').encode()]
                 ui.observe()
                 device.command.side_effect = ValueError("private-device-output")
                 ui.record_failure()
@@ -99,3 +100,26 @@ class AndroidSupportUiTests(unittest.TestCase):
                 self.assertNotIn("private", text)
                 self.assertEqual(json.loads(text)["screenshot"], "not-captured" if package == "unknown.application" else "failed")
                 self.assertEqual(device.command.call_count, 0 if package == "unknown.application" else 1)
+
+    def test_waits_for_a_fresh_dump_after_a_transition_without_reading_stale_xml(self):
+        device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
+        data = ('<hierarchy><node package="' + PACKAGE + '" text="Export diagnostics"/></hierarchy>').encode()
+        device.shell.side_effect = [b"", b"", b"", ui.path.encode(), data]
+        with patch("android_support_ui.time.sleep"):
+            root = ui.wait(lambda tree: matching(tree, PACKAGE, text="Export diagnostics"), "Export action")
+        self.assertTrue(matching(root, PACKAGE, text="Export diagnostics"))
+        self.assertEqual([call.args[0][0] for call in device.shell.call_args_list], ["rm", "uiautomator", "rm", "uiautomator", "cat"])
+
+    def test_missing_dumps_keep_the_deadline_and_device_errors_remain_terminal(self):
+        device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
+        device.shell.return_value = b""
+        predicate = Mock()
+        with patch("android_support_ui.time.monotonic", side_effect=itertools.count(0, 0.05)), \
+                patch("android_support_ui.time.sleep"), self.assertRaises(ValueError):
+            ui.wait(predicate, "Export action", timeout=0.3)
+        predicate.assert_not_called()
+        self.assertFalse(any(call.args[0][0] == "cat" for call in device.shell.call_args_list))
+        device.shell.reset_mock(); device.shell.side_effect = ValueError("device unavailable")
+        with self.assertRaises(ValueError):
+            ui.wait(predicate, "Export action")
+        self.assertEqual(device.shell.call_count, 1)

@@ -38,11 +38,14 @@ class SupportUi:
         self.controls = None
 
     def observe(self, timeout=30):
+        """Read a fresh hierarchy; a dump without a published target is a pending UI observation."""
         deadline = time.monotonic() + timeout
         self.query = "remove-observation"
         self.device.shell(["rm", "-f", self.path], max(0.1, deadline - time.monotonic()))
         self.query = "dump-hierarchy"
-        self.device.shell(["uiautomator", "dump", self.path], max(0.1, deadline - time.monotonic()))
+        dumped = self.device.shell(["uiautomator", "dump", self.path], max(0.1, deadline - time.monotonic()))
+        if self.path.encode("utf-8") not in dumped:
+            return None
         self.query = "read-hierarchy"
         data = self.device.shell(["cat", self.path], max(0.1, deadline - time.monotonic()))
         self.query = "parse-hierarchy"
@@ -67,7 +70,7 @@ class SupportUi:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             root = self.observe(max(0.1, deadline - time.monotonic()))
-            if predicate(root):
+            if root is not None and predicate(root):
                 return root
             time.sleep(min(0.2, max(0, deadline - time.monotonic())))
         raise ValueError(label + " did not become visible")
