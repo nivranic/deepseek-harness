@@ -200,8 +200,6 @@ jobs:
 
       - name: Launch the unpaired companion on Android
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        env:
-          DSH_SUPPORT_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         with:
           api-level: 36
           target: google_apis_ps16k
@@ -214,7 +212,7 @@ jobs:
             && ./gradlew --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest
             && python3 -B ../../scripts/release/android_support_exports.py
             --apk app/build/outputs/apk/debug/app-debug.apk
-            --source-sha "$DSH_SUPPORT_SOURCE_SHA"
+            --source-sha "$DSH_ANDROID_SCANNER_SOURCE"
             --output "$RUNNER_TEMP/android-support-export"
 
       - name: Preserve Android system export evidence

@@ -41,7 +41,7 @@ it.skipIf(process.platform !== 'linux').each([
       cwd, encoding: 'utf8', timeout: 10_000,
       env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, DSH_TEST_API: api, DSH_TEST_PAGES: pages,
         DSH_TEST_ADB_EXIT: String(adbExit), DSH_TEST_GRADLE_EXIT: String(gradleExit), DSH_TEST_EXPORT_EXIT: String(exportExit),
-        DSH_SUPPORT_SOURCE_SHA: 'a'.repeat(40), RUNNER_TEMP: root },
+        DSH_ANDROID_SCANNER_SOURCE: 'a'.repeat(40), DSH_SUPPORT_SOURCE_SHA: 'b'.repeat(40), RUNNER_TEMP: root },
     })
     expect(result.status === 0, result.stderr).toBe(accepted)
     const runtimeAccepted = api === '36' && pages === '16384' && adbExit === 0
