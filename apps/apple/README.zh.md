@@ -51,7 +51,9 @@ Mac Host 的**导出运行时诊断…**操作会准备本地 JSON 快照，包�
 
 [本地 Link 诊断投影](Sources/SharedAppleRemoteCore/LinkDiagnostics.swift)记录有界 HTTP 与流计数、固定失败类别、最后已知配对角色和选定的已认证协议字段。读取投影不会加载凭据或发起请求。已配对应用在进入前台时刷新描述；刷新、失败或取消配对会清空 Host 值，早先查询不能覆盖较新观测。计数描述本地工作，不代表连接健康或当前授权。[共享导出核心](Sources/SupportExportCore/DocumentScanner.swift)负责完整字节准入，并等待后台打开、扫描和取消操作全部结束。
 
-Companion 的**导出诊断信息**操作在配对前后均可使用。[导出器](Sources/CompanionUI/CompanionSupportExporter.swift)将应用标识、扫描器来源、既有 Link 观测和订阅所有者快照序列化为一份文档，上限为 16 KiB，扫描期限为 10 秒。[原生适配器](Shells/SupportScannerAdapter.swift)要求内嵌标识匹配已链接扫描器的版本和规则。系统保存操作只接收准确批准字节；交付前取消会拒绝输出。取消任一 Apple 保存对话框后，应用释放已批准文档，并允许再次导出。文档保持 `complete: false`，列出缺失的应用源码、健康、有效角色、更新、崩溃与会话生产者。扫描器源码 SHA 不充当缺失的应用源码标识。
+Companion 的**导出诊断信息**操作在配对前后均可使用。[导出器](Sources/CompanionUI/CompanionSupportExporter.swift)将应用标识、扫描器来源、既有 Link 观测和订阅所有者快照序列化为一份文档，上限为 16 KiB，扫描期限为 10 秒。[原生适配器](Shells/SupportScannerAdapter.swift)要求内嵌标识匹配已链接扫描器的版本和规则。系统保存操作只接收准确批准字节；交付前取消会拒绝输出。取消任一 Apple 保存对话框后，应用释放已批准文档，并允许再次导出。文档保持 `complete: false`，列出缺失的健康、有效角色、更新、崩溃与会话生产者。
+
+[应用源码元数据](Sources/SupportExportCore/SupportApplicationSource.swift)来自应用展开后的 Info.plist，记录构建提交及源码树。未标注来源的本地构建仍将 `application-source` 列入 `uncollected`；来源字段不完整或格式错误时拒绝导出。原生构建及保存文档的验证器要求这两个字段匹配独立选定的应用检出。扫描库来源保持独立，不能补充缺失的应用字段。
 
 [订阅诊断](Sources/CompanionUI/CompanionConnectionDiagnostics.swift)区分会话跟随、交互、Workspace 注册表和推送订阅。各现有模型报告正在打开、已打开、重连中、已结束和停止状态、有上限的尝试与中断计数，以及固定失败类别。已打开的订阅不代表 Host 健康或当前授权。导出在扫描前捕获这些值；缺失的模型保持不可用，退役任务不能覆盖较新观测。
 

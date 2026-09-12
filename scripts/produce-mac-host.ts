@@ -5,7 +5,7 @@ import { basename, join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { appleArchiveSettings } from './release/apple-archive.ts'
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
-import { verifyAppleProduct } from './release/apple-product.ts'
+import { appleApplicationSourceSettings, verifyAppleApplicationSource, verifyAppleProduct } from './release/apple-product.ts'
 import { captureCiSource } from './release/ci-source.ts'
 import { copyMacHostExecutables, macHostTestRunnerEntitlements, verifyMacHostMachO } from './release/mac-host-bundle.ts'
 import { parseSupportScannerIdentity, verifySupportScannerFiles } from './release/support-scanner.ts'
@@ -66,7 +66,7 @@ const derived = join(output, 'derived')
 const architecture = process.arch === 'arm64' ? 'arm64' : 'x86_64'
 const options = ['-project', 'Companion.xcodeproj', '-scheme', 'DirectHostMac', '-configuration', 'Release',
   '-destination', 'platform=macOS', '-derivedDataPath', derived, `ARCHS=${architecture}`, 'ONLY_ACTIVE_ARCH=YES',
-  'CODE_SIGN_IDENTITY=-', 'CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_STYLE=Manual']
+  'CODE_SIGN_IDENTITY=-', 'CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_STYLE=Manual', ...appleApplicationSourceSettings(source)]
 const settings = appleArchiveSettings(JSON.parse(await command('/usr/bin/xcodebuild', [
   ...options, '-showBuildSettings', '-json',
 ], apple)) as unknown, 'DirectHostMac')
@@ -91,6 +91,7 @@ const app = join(derived, 'Build/Products/Release/DSH Host.app')
 const executable = join(app, 'Contents/MacOS/DSH Host')
 const plist: unknown = JSON.parse(await command('/usr/bin/plutil', ['-convert', 'json', '-o', '-', join(app, 'Contents/Info.plist')]))
 verifyAppleProduct(identity, settings, plist)
+verifyAppleApplicationSource(source, settings, plist)
 if (plist === null || typeof plist !== 'object' || !('CFBundleIdentifier' in plist)
   || plist.CFBundleIdentifier !== 'com.deepseek-harness.host.mac') throw new Error('Mac Host bundle identifier differs from its target')
 const runtime = join(repository, 'dist-exe', `deepseek-harness-sdk-runtime-macos-${process.arch}`)

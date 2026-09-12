@@ -56,5 +56,6 @@ private final class NativeScanOperation: DocumentScanOperation, @unchecked Senda
 func companionSupportExporter() throws -> CompanionSupportExporter {
     let scanner = try NativeDocumentScanner(bundle: .main)
     return CompanionSupportExporter(product: try SupportProductIdentity(info: Bundle.main.infoDictionary ?? [:]),
+        applicationSource: try SupportApplicationSource(info: Bundle.main.infoDictionary ?? [:]),
         identity: scanner.identity, scanner: scanner, policy: try DocumentScanPolicy(maximumBytes: 16384, scanMilliseconds: 10000))
 }

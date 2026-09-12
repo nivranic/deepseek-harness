@@ -12,5 +12,9 @@
     <string>$(DSH_PRODUCT_CHANNEL)</string>
     <key>DSHBuildNumber</key>
     <string>$(DSH_PRODUCT_BUILD_NUMBER)</string>
+    <key>DSHApplicationSourceSHA</key>
+    <string>$(DSH_APPLICATION_SOURCE_SHA)</string>
+    <key>DSHApplicationSourceTree</key>
+    <string>$(DSH_APPLICATION_SOURCE_TREE)</string>
 </dict>
 </plist>

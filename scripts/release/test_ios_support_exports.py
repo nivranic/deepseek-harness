@@ -29,10 +29,11 @@ class IosSupportExportTests(unittest.TestCase):
         value = json.loads(self.data)
         self.product, self.library = value["application"], value["scanner"]
         self.source = self.library["sourceSha"]
+        self.source_tree = self.library["treeSha"]
         self.output = self.root / "evidence"
 
     def phase(self, phase):
-        return collect(self.simulator, self.output, phase, self.source, self.product, self.library, self.root / "scanner")
+        return collect(self.simulator, self.output, phase, self.source, self.product, self.library, self.root / "scanner", self.source_tree)
 
     def test_cancellation_then_actual_saved_bytes_are_independently_scanned(self):
         self.assertIsNone(document_at_destination(self.simulator))
@@ -160,6 +161,7 @@ class IosSupportExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.phase("cancelled")
         self.source = self.library["sourceSha"]
+        self.source_tree = self.library["treeSha"]
         self.output = self.simulator / "evidence"
         with self.assertRaises(ValueError):
             self.phase("cancelled")

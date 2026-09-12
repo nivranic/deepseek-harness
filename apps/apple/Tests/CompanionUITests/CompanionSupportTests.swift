@@ -5,12 +5,15 @@ import XCTest
 @testable import CompanionUI
 
 final class CompanionSupportTests: XCTestCase {
-    private func exporter(_ scanner: RecordingScanner, maximumBytes: Int = 16384) throws -> CompanionSupportExporter {
+    private func exporter(_ scanner: RecordingScanner, maximumBytes: Int = 16384,
+                          sourceInfo: [String: Any] = ["DSHApplicationSourceSHA": String(repeating: "a", count: 40),
+                                                       "DSHApplicationSourceTree": String(repeating: "b", count: 40)]) throws -> CompanionSupportExporter {
         let identity: [String: Any] = ["schemaVersion": 1, "sourceSha": String(repeating: "a", count: 40),
             "treeSha": String(repeating: "b", count: 40), "archiveSha256": String(repeating: "c", count: 64),
             "scannerVersion": "8.30.1", "rulesDigest": String(repeating: "d", count: 64)]
         return CompanionSupportExporter(product: try SupportProductIdentity(info: ["DSHProductVersion": "1.2.3",
             "DSHBuildNumber": "1", "DSHDistributionChannel": "dev", "privateMetadata": "ignored"]),
+            applicationSource: try SupportApplicationSource(info: sourceInfo),
             identity: try SupportLibraryIdentity(data: JSONSerialization.data(withJSONObject: identity),
                 linkedVersion: "8.30.1", linkedRulesDigest: String(repeating: "d", count: 64)),
             scanner: scanner, policy: try DocumentScanPolicy(maximumBytes: maximumBytes, scanMilliseconds: 10000))
@@ -24,6 +27,28 @@ final class CompanionSupportTests: XCTestCase {
         XCTAssertEqual(scanner.input, expected)
         XCTAssertEqual(approved.digest, supportDocumentDigest(expected))
         XCTAssertFalse(scanner.openedOnMain)
+    }
+
+    func testApplicationSourceIsCapturedIndependentlyOfScannerProvenance() async throws {
+        let source = String(repeating: "e", count: 40), tree = String(repeating: "f", count: 40)
+        let approved = try await exporter(RecordingScanner(), sourceInfo: [
+            "DSHApplicationSourceSHA": source, "DSHApplicationSourceTree": tree,
+        ]).prepare(link: nil, connections: .unavailable)
+        let value = try XCTUnwrap(JSONSerialization.jsonObject(with: approved.data) as? [String: Any])
+        let application = try XCTUnwrap(value["applicationSource"] as? [String: String])
+        XCTAssertEqual(application["sourceSha"], source)
+        XCTAssertEqual(application["treeSha"], tree)
+        XCTAssertFalse(try XCTUnwrap(value["uncollected"] as? [String]).contains("application-source"))
+        let scanner = try XCTUnwrap(value["scanner"] as? [String: Any])
+        XCTAssertEqual(scanner["sourceSha"] as? String, String(repeating: "a", count: 40))
+    }
+
+    func testUnstampedApplicationDoesNotBorrowTheScannerSource() async throws {
+        let approved = try await exporter(RecordingScanner(), sourceInfo: [:]).prepare(link: nil, connections: .unavailable)
+        let value = try XCTUnwrap(JSONSerialization.jsonObject(with: approved.data) as? [String: Any])
+        XCTAssertNil(value["applicationSource"])
+        XCTAssertTrue(try XCTUnwrap(value["uncollected"] as? [String]).contains("application-source"))
+        XCTAssertEqual(value["complete"] as? Bool, false)
     }
 
     func testLastKnownLinkProjectionDoesNotReadCredentialsOrExportPrivateIdentity() async throws {

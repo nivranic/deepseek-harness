@@ -22,6 +22,7 @@ class CompanionSupportExportTests(unittest.TestCase):
         value = json.loads(self.data)
         self.product = value["application"]
         self.library = value["scanner"]
+        self.application_source = {"sourceSha": "a" * 40, "treeSha": "b" * 40}
         self.scanner_directory = self.root / "scanner"
         self.scanner_directory.mkdir()
         (self.scanner_directory / "gitleaks").write_bytes(b"test scanner executable")
@@ -39,7 +40,7 @@ class CompanionSupportExportTests(unittest.TestCase):
         (self.attachments / "manifest.json").write_text(json.dumps(self.manifest), encoding="utf-8")
 
     def verify(self, approved):
-        return verify_exports(self.attachments, self.scanner_directory, self.product, self.library, approved)
+        return verify_exports(self.attachments, self.scanner_directory, self.product, self.library, approved, self.application_source)
 
     def test_scans_and_preserves_exact_swift_fixture_bytes(self):
         approved = self.root / "approved"
@@ -55,20 +56,20 @@ class CompanionSupportExportTests(unittest.TestCase):
                                  "sha256": hashlib.sha256(self.data).hexdigest(), "findings": 0})
 
     def test_private_fields_and_false_completeness_are_refused(self):
-        for section in (None, "application", "scanner", "link", "connections"):
+        for section in (None, "application", "applicationSource", "scanner", "link", "connections"):
             value = json.loads(self.data)
             (value if section is None else value[section])["private"] = "payload"
             with self.subTest(section=section), self.assertRaises(ValueError):
-                validate_export(json.dumps(value).encode(), self.product, self.library)
+                validate_export(json.dumps(value).encode(), self.product, self.library, self.application_source)
 
         for change in ({"complete": True}, {"complete": 0}, {"schemaVersion": True}, {"uncollected": []}):
             with self.subTest(change=change), self.assertRaises(ValueError):
-                validate_export(json.dumps({**json.loads(self.data), **change}).encode(), self.product, self.library)
+                validate_export(json.dumps({**json.loads(self.data), **change}).encode(), self.product, self.library, self.application_source)
         for section, key in (("application", "buildNumber"), ("scanner", "schemaVersion")):
             value = json.loads(self.data)
             value[section][key] = True
             with self.assertRaises(ValueError):
-                validate_export(json.dumps(value).encode(), self.product, self.library)
+                validate_export(json.dumps(value).encode(), self.product, self.library, self.application_source)
 
     def test_unpaired_admission_rejects_invented_connection_owners_and_observations(self):
         for key in ("sessionFollow", "interactions", "workspaces", "pushes"):
@@ -77,7 +78,21 @@ class CompanionSupportExportTests(unittest.TestCase):
                 value = json.loads(self.data)
                 value["connections"][key][field] = changed
                 with self.subTest(key=key, field=field), self.assertRaises(ValueError):
-                    validate_export(json.dumps(value).encode(), self.product, self.library)
+                    validate_export(json.dumps(value).encode(), self.product, self.library, self.application_source)
+
+    def test_native_admission_requires_the_application_source_even_with_the_expected_scanner(self):
+        for field in ("sourceSha", "treeSha", "producer", "observation", None):
+            value = json.loads(self.data)
+            if field is None:
+                del value["applicationSource"]
+                value["uncollected"].insert(0, "application-source")
+            else:
+                value["applicationSource"][field] = "c" * 40
+            (self.attachments / "saved.json").write_bytes(json.dumps(value).encode())
+            with self.subTest(field=field), patch("release.companion_support_exports.scan_saved_document") as scan, self.assertRaises(ValueError):
+                self.verify(self.root / "approved")
+            scan.assert_not_called()
+            self.assertFalse((self.root / "approved").exists())
 
     def test_different_product_scanner_and_link_observations_are_refused(self):
         for section, key, new in (("application", "version", "another"), ("scanner", "sourceSha", "f" * 40),
@@ -85,13 +100,13 @@ class CompanionSupportExportTests(unittest.TestCase):
             value = json.loads(self.data)
             value[section][key] = new
             with self.subTest(section=section, key=key), self.assertRaises(ValueError):
-                validate_export(json.dumps(value).encode(), self.product, self.library)
+                validate_export(json.dumps(value).encode(), self.product, self.library, self.application_source)
 
     def test_full_utf8_size_and_duplicate_keys_are_checked(self):
-        validate_export(self.data + b" " * (16384 - len(self.data)), self.product, self.library)
+        validate_export(self.data + b" " * (16384 - len(self.data)), self.product, self.library, self.application_source)
         for data in (self.data + b" " * 16384, self.data + bytes([255]), b'{"kind":"companion-support","kind":"companion-support"}', b'[]'):
             with self.subTest(dataLength=len(data)), self.assertRaises((ValueError, UnicodeError)):
-                validate_export(data, self.product, self.library)
+                validate_export(data, self.product, self.library, self.application_source)
 
     def test_no_bytes_are_published_on_findings_scan_errors_or_failed_canary(self):
         for failure in ("finding", "scan", "canary"):

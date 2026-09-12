@@ -72,9 +72,9 @@ def document_at_destination(data_root: Path) -> bytes | None:
 
 
 def collect(data_root: Path, output: Path, phase: str, source: str, product: dict,
-            library: dict, scanner_directory: Path) -> dict:
+            library: dict, scanner_directory: Path, source_tree: str) -> dict:
     """Require an absent destination after cancellation, then admit the exact file created by the save case."""
-    if phase not in ("cancelled", "saved") or library["sourceSha"] != source:
+    if phase not in ("cancelled", "saved") or library["sourceSha"] != source or library["treeSha"] != source_tree:
         raise ValueError("unexpected iOS verification phase or source")
     if output.is_symlink() or output.resolve().is_relative_to(data_root.resolve()):
         raise ValueError("iOS support evidence must be outside the simulator")
@@ -92,7 +92,7 @@ def collect(data_root: Path, output: Path, phase: str, source: str, product: dic
     receipt = json.loads(read_regular(output / "cancelled.json", 4096), object_pairs_hook=unique_object)
     if receipt != cancelled or type(receipt["schemaVersion"]) is not int or receipt["destinationFileExists"] is not False:
         raise ValueError("iOS save requires its cancellation receipt and actual destination file")
-    validate_export(data, product, library)
+    validate_export(data, product, library, {"sourceSha": source, "treeSha": source_tree})
     scan_saved_document(data, scanner_directory, library)
     if document_at_destination(data_root) != data:
         raise ValueError("saved iOS document changed during independent scanning")
@@ -122,7 +122,8 @@ def main() -> int:
             raise ValueError("test simulator data directory is unavailable")
         product = json.loads(Path("release/product.generated.json").read_bytes())
         library = json.loads(args.library_identity.read_bytes())
-        record = collect(root, args.output, args.phase, source, product, library, args.scanner_directory)
+        source_tree = subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"]).decode().strip()
+        record = collect(root, args.output, args.phase, source, product, library, args.scanner_directory, source_tree)
         print(json.dumps(record))
         return 0
     except Exception:

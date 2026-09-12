@@ -14,17 +14,19 @@ from .support_exports import unique_object
 
 TEST = "CompanionMacSupportTests/testUnpairedDiagnosticsCancelThenSave()"
 TITLE = "companion-support-unpaired-macos"
-UNCOLLECTED = ["application-source", "runtime-health", "effective-role",
+UNCOLLECTED = ["runtime-health", "effective-role",
                "updates", "native-crashes", "session-diagnostics"]
 
 
-def validate_export(data: bytes, product: dict, library: dict) -> None:
+def validate_export(data: bytes, product: dict, library: dict, application_source: dict) -> None:
     """Refuse extra fields, unknown observations and claims absent from the unpaired native scenario."""
     if not data or len(data) > 16384:
         raise ValueError("Companion support byte limit")
     value = json.loads(data.decode("utf-8"), object_pairs_hook=unique_object)
     expected = {"schemaVersion": 1, "kind": "companion-support", "complete": False,
                 "application": {key: product[key] for key in ("version", "buildNumber", "channel")},
+                "applicationSource": {"producer": "application-build", "observation": "current",
+                                      "sourceSha": application_source["sourceSha"], "treeSha": application_source["treeSha"]},
                 "scanner": library, "link": {"producer": "LinkClient", "activityScope": "client-lifetime",
                 "roleFreshness": "last-known", "descriptionFreshness": "last-known", "state": "unavailable"},
                 "connections": {key: {"producer": producer, "observation": "unavailable", "activityScope": "model-lifetime"}
@@ -55,7 +57,7 @@ def scan_saved_document(data: bytes, scanner_directory: Path, library: dict) -> 
             raise ValueError("saved Companion document contains a secret finding")
 
 
-def verify_exports(attachments: Path, scanner_directory: Path, product: dict, library: dict, approved: Path) -> dict:
+def verify_exports(attachments: Path, scanner_directory: Path, product: dict, library: dict, approved: Path, application_source: dict) -> dict:
     """Publish the saved document only after strict JSON validation, a scanner canary and a zero-finding scan."""
     if approved.exists() or approved.is_symlink():
         raise ValueError("approved Companion support output must be new")
@@ -73,7 +75,7 @@ def verify_exports(attachments: Path, scanner_directory: Path, product: dict, li
             if file.is_symlink() or not file.is_file() or file.stat().st_size > 16384:
                 raise ValueError("invalid Companion attachment")
             data = file.read_bytes()
-            validate_export(data, product, library)
+            validate_export(data, product, library, application_source)
             selected.append(data)
     if len(selected) != 1:
         raise ValueError("expected one saved unpaired Companion document")
@@ -99,7 +101,8 @@ def main() -> int:
         source = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
         if library["sourceSha"] != source:
             raise ValueError("Companion scanner belongs to another candidate")
-        record = verify_exports(args.attachments, args.scanner_directory, product, library, args.approved)
+        application_source = {"sourceSha": source, "treeSha": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"]).decode().strip()}
+        record = verify_exports(args.attachments, args.scanner_directory, product, library, args.approved, application_source)
         args.output.write_text(json.dumps({"schemaVersion": 1, "status": "PASS", "sourceSha": source,
                                            "completeSupportBundle": False, "export": record}, indent=2) + "\n", encoding="utf-8")
         return 0

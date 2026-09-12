@@ -4,6 +4,10 @@
 # both shells embed CompanionRootView, which owns pairing when no identity
 # exists and the six-tab surface after it.
 name: Companion
+settings:
+  base:
+    DSH_APPLICATION_SOURCE_SHA: ""
+    DSH_APPLICATION_SOURCE_TREE: ""
 configFiles:
   Debug: Config/Product.xcconfig
   Release: Config/Product.xcconfig

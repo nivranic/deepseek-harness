@@ -178,11 +178,11 @@ jobs:
 
       - name: Build the iOS shell
         working-directory: apps/apple
-        run: xcodebuild -project Companion.xcodeproj -scheme CompanioniOS -destination 'generic/platform=iOS Simulator' build
+        run: xcodebuild "DSH_APPLICATION_SOURCE_SHA=$(git rev-parse HEAD)" "DSH_APPLICATION_SOURCE_TREE=$(git rev-parse HEAD^{tree})" -project Companion.xcodeproj -scheme CompanioniOS -destination 'generic/platform=iOS Simulator' build
 
       - name: Build the macOS shell
         working-directory: apps/apple
-        run: xcodebuild -project Companion.xcodeproj -scheme CompanionMac -destination 'platform=macOS' build
+        run: xcodebuild "DSH_APPLICATION_SOURCE_SHA=$(git rev-parse HEAD)" "DSH_APPLICATION_SOURCE_TREE=$(git rev-parse HEAD^{tree})" -project Companion.xcodeproj -scheme CompanionMac -destination 'platform=macOS' build
 
       - name: Verify Companion saved-document admission
         run: python3 -B -m unittest discover -s scripts/release -p test_companion_support_exports.py -v
@@ -195,7 +195,7 @@ jobs:
         working-directory: apps/apple
         run: |
           mkdir -p "$RUNNER_TEMP/g2-companion-mac"
-          xcodebuild -project Companion.xcodeproj -scheme CompanionMac \
+          xcodebuild "DSH_APPLICATION_SOURCE_SHA=$(git rev-parse HEAD)" "DSH_APPLICATION_SOURCE_TREE=$(git rev-parse HEAD^{tree})" -project Companion.xcodeproj -scheme CompanionMac \
             -destination 'platform=macOS' -parallel-testing-enabled NO \
             -resultBundlePath "$RUNNER_TEMP/g2-companion-mac/Support.xcresult" \
             -only-testing:CompanionMacSupportUITests test
@@ -220,7 +220,7 @@ jobs:
       # companion targets so host-only code never pollutes them.
       - name: Build the macOS Direct Host
         working-directory: apps/apple
-        run: xcodebuild -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' build
+        run: xcodebuild "DSH_APPLICATION_SOURCE_SHA=$(git rev-parse HEAD)" "DSH_APPLICATION_SOURCE_TREE=$(git rev-parse HEAD^{tree})" -project Companion.xcodeproj -scheme DirectHostMac -destination 'platform=macOS' build
 
       - name: Create a fresh iOS startup simulator
         run: |
@@ -235,7 +235,7 @@ jobs:
         working-directory: apps/apple
         run: |
           mkdir -p "$RUNNER_TEMP/g1-apple-startup"
-          xcodebuild -project Companion.xcodeproj -scheme CompanioniOS \
+          xcodebuild "DSH_APPLICATION_SOURCE_SHA=$(git rev-parse HEAD)" "DSH_APPLICATION_SOURCE_TREE=$(git rev-parse HEAD^{tree})" -project Companion.xcodeproj -scheme CompanioniOS \
             -destination "platform=iOS Simulator,id=$DSH_STARTUP_SIMULATOR" \
             -derivedDataPath "$RUNNER_TEMP/g1-apple-derived" \
             -resultBundlePath "$RUNNER_TEMP/g1-apple-startup/Startup.xcresult" \
@@ -254,7 +254,7 @@ jobs:
       - name: Save iOS diagnostics through local Files
         working-directory: apps/apple
         run: |
-          xcodebuild -project Companion.xcodeproj -scheme CompanioniOS \
+          xcodebuild "DSH_APPLICATION_SOURCE_SHA=$(git rev-parse HEAD)" "DSH_APPLICATION_SOURCE_TREE=$(git rev-parse HEAD^{tree})" -project Companion.xcodeproj -scheme CompanioniOS \
             -destination "platform=iOS Simulator,id=$DSH_STARTUP_SIMULATOR" \
             -derivedDataPath "$RUNNER_TEMP/g1-apple-derived" \
             -resultBundlePath "$RUNNER_TEMP/g1-apple-startup/Save.xcresult" \

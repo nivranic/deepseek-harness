@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { APPLE_ARCHIVE_TARGETS, appleArchiveSettings, readAppleArchiveProperties, verifyAppleArchive } from './release/apple-archive.ts'
 import { inventoryAppleArchive } from './release/apple-archive-files.ts'
+import { appleApplicationSourceSettings, verifyAppleApplicationSource } from './release/apple-product.ts'
 import { captureCiSource } from './release/ci-source.ts'
 import { readProductIdentity, staleProductIdentityFiles } from './release/product-files.ts'
 import { hashRcOutput, writeRcOutput } from './release/rc-output.ts'
@@ -52,6 +53,7 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
     '-destination', target.destination, '-derivedDataPath', join(targetRoot, 'derived'),
     'CODE_SIGNING_ALLOWED=NO', 'CODE_SIGNING_REQUIRED=NO', 'ONLY_ACTIVE_ARCH=NO',
     `ARCHS=${target.architectures.join(' ')}`,
+    ...appleApplicationSourceSettings(source),
   ]
   const settings = appleArchiveSettings(JSON.parse(await command('/usr/bin/xcodebuild', [
     ...options, '-showBuildSettings', '-json',
@@ -84,6 +86,7 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
     binaryPlatforms.push(platform)
   }
   verifyAppleArchive(identity, target, { settings, appPlist, archivePlist, architectures, binaryPlatforms })
+  verifyAppleApplicationSource(source, settings, appPlist)
   const scannerDirectory = join(targetRoot, 'scanner')
   await command('python3', ['-B', 'scripts/verify-apple-app-scanner.py', '--app', appRoot,
     '--platform', target.platform, '--stage', join(appleRoot, '.support-scanner'), '--output', scannerDirectory])
