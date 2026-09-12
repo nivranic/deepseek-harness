@@ -85,6 +85,10 @@ final class RuntimeSupervisorTests: XCTestCase {
         XCTAssertNil(observed.failure)
         XCTAssertEqual(observed.lifecycleCounts.first(where: { $0.event == .starting })?.count, 1)
         XCTAssertEqual(observed.lifecycleCounts.first(where: { $0.event == .ready })?.count, 1)
+        XCTAssertGreaterThanOrEqual(observed.carrierProbe.successes, 1)
+        XCTAssertGreaterThanOrEqual(observed.carrierProbe.attempts, observed.carrierProbe.successes)
+        XCTAssertEqual(observed.carrierProbe.failures, 0)
+        XCTAssertTrue([.checking, .reachable].contains(observed.carrierProbe.state))
         let first = runtime.activationID
         runtime.start()
         XCTAssertEqual(runtime.activationID, first)
@@ -98,6 +102,8 @@ final class RuntimeSupervisorTests: XCTestCase {
         XCTAssertEqual(kill(processes[0], 0), -1)
         await runtime.stop()
         XCTAssertEqual(runtime.status, .stopped)
+        XCTAssertEqual(runtime.supportSnapshot().carrierProbe.state, .unavailable)
+        XCTAssertGreaterThanOrEqual(runtime.supportSnapshot().carrierProbe.successes, observed.carrierProbe.successes)
         XCTAssertEqual(runtime.supportSnapshot().lifecycleCounts.first(where: { $0.event == .stopped })?.count, 3)
         XCTAssertEqual(observed.state, "ready")
         XCTAssertNil(runtime.launchURL)
@@ -122,6 +128,11 @@ final class RuntimeSupervisorTests: XCTestCase {
         try await waitUntil(runtime) { runtime.status == .failed(.healthFailed) }
         XCTAssertNil(runtime.launchURL)
         for pid in try pids(root) { XCTAssertEqual(kill(pid, 0), -1) }
+        let probe = runtime.supportSnapshot().carrierProbe
+        XCTAssertEqual(probe.state, .unavailable)
+        XCTAssertEqual(probe.successes, 0)
+        XCTAssertEqual(probe.attempts, 1)
+        XCTAssertEqual(probe.failures, 1)
     }
 
     func testStoppingDuringStartupCannotPublishALateReadyURL() async throws {
@@ -129,9 +140,14 @@ final class RuntimeSupervisorTests: XCTestCase {
         runtime.start()
         await runtime.stop()
         XCTAssertEqual(runtime.status, .stopped)
+        XCTAssertEqual(runtime.supportSnapshot().carrierProbe.state, .unavailable)
+        let stopped = runtime.supportSnapshot().carrierProbe
         XCTAssertNil(runtime.launchURL)
         try await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertEqual(runtime.status, .stopped)
+        XCTAssertEqual(runtime.supportSnapshot().carrierProbe.state, .unavailable)
+        XCTAssertEqual(runtime.supportSnapshot().carrierProbe.successes, stopped.successes)
+        XCTAssertEqual(runtime.supportSnapshot().carrierProbe.failures, stopped.failures)
     }
 
     func testUnexpectedRuntimeDeathClosesTheCarrier() async throws {

@@ -78,10 +78,11 @@ public final class RuntimeSupervisor: ObservableObject {
     private let policy: RuntimePolicy
     private var activation: Activation?
     private var supportCounts = SupportRuntimeCounts()
+    private var carrierProbe = RuntimeCarrierProbe()
 
     /// Copy current lifecycle facts without starting the runtime or reading its output, home or credentials.
     public func supportSnapshot() -> RuntimeSupportSnapshot {
-        RuntimeSupportSnapshot(status: status, counts: supportCounts)
+        RuntimeSupportSnapshot(status: status, counts: supportCounts, carrierProbe: carrierProbe.snapshot)
     }
 
     /// Invalid explicit home configuration fails on start without creating or using the default home.
@@ -95,6 +96,7 @@ public final class RuntimeSupervisor: ObservableObject {
     /// Start only when the previous activation has exited. Duplicate starts join the existing state.
     public func start() {
         guard activation == nil else { return }
+        carrierProbe.retire()
         guard let home else {
             status = .failed(.invalidConfiguration)
             return
@@ -164,6 +166,7 @@ public final class RuntimeSupervisor: ObservableObject {
         guard let run = activation else { return }
         if !run.stopping {
             run.stopping = true
+            carrierProbe.retire()
             status = .stopping
             launchURL = nil
             run.startup?.cancel()
@@ -223,6 +226,8 @@ public final class RuntimeSupervisor: ObservableObject {
         run.health = Task { [weak self, weak run] in
             guard let self, let run else { return }
             while !Task.isCancelled {
+                guard self.activation === run, !run.stopping else { return }
+                self.carrierProbe.started()
                 do {
                     let (data, response) = try await session.data(from: url)
                     guard self.activation === run, !run.stopping else { return }
@@ -231,12 +236,16 @@ public final class RuntimeSupervisor: ObservableObject {
                           String(data: data, encoding: .utf8)?.contains("__DSH_BOOT__") == true else {
                         throw RuntimeFailure.healthFailed
                     }
+                    self.carrierProbe.completed(success: true)
                     run.startup?.cancel()
                     self.launchURL = url
                     self.status = .ready
                     try await Task.sleep(nanoseconds: self.policy.healthMilliseconds * 1_000_000)
                 } catch {
-                    if !Task.isCancelled { self.fail(run, with: .healthFailed) }
+                    if !Task.isCancelled, self.activation === run, !run.stopping {
+                        self.carrierProbe.completed(success: false)
+                        self.fail(run, with: .healthFailed)
+                    }
                     return
                 }
             }
@@ -245,6 +254,7 @@ public final class RuntimeSupervisor: ObservableObject {
 
     private func finished(_ run: Activation, launched: Bool = true) {
         guard activation === run else { return }
+        carrierProbe.retire()
         run.startup?.cancel()
         run.health?.cancel()
         run.session?.invalidateAndCancel()

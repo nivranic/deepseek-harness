@@ -17,7 +17,19 @@
           "count": 1,
           "saturated": false
         }
-      ]
+      ],
+      "producer": "RuntimeSupervisor",
+      "observation": "current",
+      "carrierProbe": {
+        "producer": "RuntimeSupervisor.carrierProbe",
+        "activityScope": "supervisor-lifetime",
+        "observation": "current",
+        "state": "unavailable",
+        "attempts": 0,
+        "successes": 0,
+        "failures": 0,
+        "countsSaturated": false
+      }
     },
     "scanner": {
       "schemaVersion": 1,
@@ -35,7 +47,13 @@
       "updates",
       "native-crashes",
       "session-diagnostics"
-    ]
+    ],
+    "applicationSource": {
+      "producer": "application-build",
+      "observation": "current",
+      "sourceSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "treeSha": "ffffffffffffffffffffffffffffffffffffffff"
+    }
   },
   "ready": {
     "schemaVersion": 1,
@@ -65,7 +83,19 @@
           "count": 1,
           "saturated": false
         }
-      ]
+      ],
+      "producer": "RuntimeSupervisor",
+      "observation": "current",
+      "carrierProbe": {
+        "producer": "RuntimeSupervisor.carrierProbe",
+        "activityScope": "supervisor-lifetime",
+        "observation": "last-known",
+        "state": "reachable",
+        "attempts": 1,
+        "successes": 1,
+        "failures": 0,
+        "countsSaturated": false
+      }
     },
     "scanner": {
       "schemaVersion": 1,
@@ -83,7 +113,13 @@
       "updates",
       "native-crashes",
       "session-diagnostics"
-    ]
+    ],
+    "applicationSource": {
+      "producer": "application-build",
+      "observation": "current",
+      "sourceSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "treeSha": "ffffffffffffffffffffffffffffffffffffffff"
+    }
   },
   "failed": {
     "schemaVersion": 1,
@@ -114,7 +150,19 @@
           "count": 1,
           "saturated": false
         }
-      ]
+      ],
+      "producer": "RuntimeSupervisor",
+      "observation": "current",
+      "carrierProbe": {
+        "producer": "RuntimeSupervisor.carrierProbe",
+        "activityScope": "supervisor-lifetime",
+        "observation": "last-known",
+        "state": "failed",
+        "attempts": 1,
+        "successes": 0,
+        "failures": 1,
+        "countsSaturated": false
+      }
     },
     "scanner": {
       "schemaVersion": 1,
@@ -132,6 +180,12 @@
       "updates",
       "native-crashes",
       "session-diagnostics"
-    ]
+    ],
+    "applicationSource": {
+      "producer": "application-build",
+      "observation": "current",
+      "sourceSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "treeSha": "ffffffffffffffffffffffffffffffffffffffff"
+    }
   }
 }

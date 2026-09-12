@@ -104,11 +104,22 @@ final class DirectHostStartupTests: XCTestCase {
         let data = try Data(contentsOf: file)
         XCTAssertLessThanOrEqual(data.count, 16384)
         let value = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-        XCTAssertEqual(Set(value.keys), Set(["schemaVersion", "platform", "runtimeClass", "complete", "product", "runtime", "scanner", "uncollected"]))
+        XCTAssertEqual(Set(value.keys), Set(["schemaVersion", "platform", "runtimeClass", "complete", "product", "applicationSource", "runtime", "scanner", "uncollected"]))
         XCTAssertEqual(value["complete"] as? Bool, false)
         XCTAssertEqual(value["platform"] as? String, "macos")
         let runtime = try XCTUnwrap(value["runtime"] as? [String: Any])
-        XCTAssertEqual(Set(runtime.keys), Set(failure == nil ? ["state", "lifecycleCounts"] : ["state", "failure", "lifecycleCounts"]))
+        XCTAssertEqual(Set(runtime.keys), Set(failure == nil ? ["producer", "observation", "state", "lifecycleCounts", "carrierProbe"] :
+            ["producer", "observation", "state", "failure", "lifecycleCounts", "carrierProbe"]))
+        XCTAssertEqual(runtime["producer"] as? String, "RuntimeSupervisor")
+        XCTAssertEqual(runtime["observation"] as? String, "current")
+        let probe = try XCTUnwrap(runtime["carrierProbe"] as? [String: Any])
+        XCTAssertEqual(probe["producer"] as? String, "RuntimeSupervisor.carrierProbe")
+        if state == "ready" {
+            XCTAssertGreaterThanOrEqual(try XCTUnwrap(probe["successes"] as? Int), 1)
+            XCTAssertTrue(["checking", "reachable"].contains(try XCTUnwrap(probe["state"] as? String)))
+        } else {
+            XCTAssertEqual(probe["state"] as? String, "unavailable")
+        }
         XCTAssertEqual(runtime["state"] as? String, state)
         XCTAssertEqual(runtime["failure"] as? String, failure)
         let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")

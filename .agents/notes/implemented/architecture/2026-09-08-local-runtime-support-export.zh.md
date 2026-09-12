@@ -12,6 +12,8 @@ Status: implemented
 
 [Mac 运行时导出器](../../../../apps/apple/Sources/DirectHostRuntime/RuntimeSupportExporter.swift)获取实际管理器状态与应用级生命周期计数的值快照。重复发布健康状态不会增加转换计数。计数在无符号 32 位表示上限处饱和，并披露饱和状态。产品元数据从应用 bundle 中选择并验证；任意字典字段均不进入编码文档。
 
+[Carrier 探测投影](../../../../apps/apple/Sources/DirectHostRuntime/RuntimeCarrierProbe.swift)属于现有 RuntimeSupervisor HTTP 循环。仅在对应 activation 仍由管理器拥有时记录尝试与结果；退役清除结果，但保留生命周期计数。最近响应明确标记为 `last-known`，因为一次成功的 HTML 请求不能证明持续可用，也不能证明 provider、Gateway 或 Session 健康。导出读取不可变观测，不启动第二套探测。
+
 导出器准备一个有界 UTF-8 JSON 值，根据保留的标识核验内嵌扫描器与许可证，并在私有临时目录中扫描。默认规则、脱敏及禁用放行注释/忽略文件均显式指定。文档准入前必须先检出并脱敏合成凭据。扫描器退出状态必须与报告内容一致；最终报告缺失、畸形、过大、为链接或包含发现项时均拒绝交付。只有准确的已准入字节才能构造原生 FileDocument。成功交付前完成临时目录清理；清理失败会阻止交付。
 
 现有父管道 [Host 管理器](2026-08-31-macos-direct-host.zh.md)提供独立的固定扫描调用，只允许 canary/export 标签与有界时间。它组装所有扫描参数和路径，不暴露任意 argv 或 shell 命令。取消和超时关闭父管道并等待 helper 退出。应用保留待完成的导出任务，并在正常退出时等待。应用突然终止会在没有 Swift 回调的情况下关闭管道，使 helper 可以回收扫描器进程组。
@@ -82,7 +84,7 @@ Companion 壳向使用语言字典的 SwiftUI 导出操作提供真实[原生扫
 
 Companion 连接观测属于现有的会话、交互、注册表和推送订阅所有者。各所有者发布固定生命周期状态与有上限的计数，不保留请求地址、身份或载荷。观测令牌阻止迟到完成改写替代订阅。注册表还会在接收帧或安排重试前检查订阅代次，因为挂起的退役操作可能在被替换后重新启动。导出在异步扫描前复制四份快照；这些观测只说明订阅活动，不升级为 Host 健康或当前授权。
 
-应用与扫描库拥有独立的构建标识。Xcode 通过命令行设置接收应用提交和源码树，打包时比较解析后的值与展开后的 Info.plist。[源码解析器](../../../../apps/apple/Sources/SupportExportCore/SupportApplicationSource.swift)不从扫描库推断这些字段，因为应用代码变化时库仍可能不变。Companion 导出仅在两个字段均存在且有效时包含源码记录；原生保存字节的准入要求该记录匹配应用检出。
+应用与扫描器拥有独立的构建标识。Xcode 通过命令行设置接收应用 commit 和 tree，打包时将其与展开后的 Info.plist 比较。[源码解析器](../../../../apps/apple/Sources/SupportExportCore/SupportApplicationSource.swift)不从扫描库推导应用字段，因为应用代码变化时库可以保持不变。Mac Host 与 Companion 导出仅在两个字段均存在且有效时包含源码记录；原生保存字节准入要求该记录匹配应用 checkout。
 
 [应用检查器](../../../../scripts/verify-apple-app-scanner.py)检查最终资源字节与每个应用切片的 Go 模块图。库探针无法发现应用链接时选中了另一 framework，或打包时遗漏了许可证。Companion 归档保留原生符号供维护中的二进制漏洞检查器分析，检查结果绑定最终可执行文件摘要。iOS 检查在原生 UI 用例结束后，从同一测试模拟器定位实际安装应用。另一个 DerivedData 构建可能具有不同字节，不能标识这些用例实际执行的扫描器。
 

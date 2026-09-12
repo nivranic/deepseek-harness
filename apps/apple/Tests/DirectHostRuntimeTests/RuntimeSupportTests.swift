@@ -7,7 +7,8 @@ import XCTest
 
 @MainActor
 final class RuntimeSupportTests: XCTestCase {
-    private let info: [String: Any] = ["DSHProductVersion": "0.1.2-alpha.1", "DSHBuildNumber": "1", "DSHDistributionChannel": "dev"]
+    private let info: [String: Any] = ["DSHProductVersion": "0.1.2-alpha.1", "DSHBuildNumber": "1", "DSHDistributionChannel": "dev",
+        "DSHApplicationSourceSHA": String(repeating: "e", count: 40), "DSHApplicationSourceTree": String(repeating: "f", count: 40)]
     private var scanner: SupportScannerIdentity {
         SupportScannerIdentity(schemaVersion: 1, version: "8.30.1", archiveSha256: String(repeating: "a", count: 64),
                                originalBinarySha256: String(repeating: "b", count: 64), binarySha256: String(repeating: "b", count: 64),
@@ -24,7 +25,9 @@ final class RuntimeSupportTests: XCTestCase {
         for (name, transitions, state) in cases {
             var counts = SupportRuntimeCounts()
             transitions.forEach { counts.record($0) }
-            let snapshot = RuntimeSupportSnapshot(status: state, counts: counts)
+            var probe = RuntimeCarrierProbe()
+            if name != "stopped" { probe.started(); probe.completed(success: name == "ready") }
+            let snapshot = RuntimeSupportSnapshot(status: state, counts: counts, carrierProbe: probe.snapshot)
             var poisoned = info
             poisoned["HOME"] = "/Users/PRIVATE_PATH_CANARY"
             poisoned["credentials"] = ["token": "PRIVATE_TOKEN_CANARY"]
@@ -125,7 +128,23 @@ final class RuntimeSupportTests: XCTestCase {
                                                                        scanMilliseconds: milliseconds, shutdownMilliseconds: 100))
     }
 
-    private var stopped: RuntimeSupportSnapshot { RuntimeSupportSnapshot(status: .stopped, counts: SupportRuntimeCounts()) }
+    private var stopped: RuntimeSupportSnapshot {
+        RuntimeSupportSnapshot(status: .stopped, counts: SupportRuntimeCounts(), carrierProbe: RuntimeCarrierProbe().snapshot)
+    }
+
+    func testApplicationSourceRequiresItsOwnCompleteBuildMetadata() throws {
+        var unmarked = info
+        unmarked.removeValue(forKey: "DSHApplicationSourceSHA")
+        unmarked.removeValue(forKey: "DSHApplicationSourceTree")
+        let bytes = try encodeRuntimeSupport(info: unmarked, snapshot: stopped, scanner: scanner, maximumBytes: 16384)
+        let value = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+        XCTAssertNil(value["applicationSource"])
+        XCTAssertTrue(try XCTUnwrap(value["uncollected"] as? [String]).contains("application-source"))
+        unmarked["DSHApplicationSourceSHA"] = info["DSHApplicationSourceSHA"]
+        XCTAssertThrowsError(try encodeRuntimeSupport(info: unmarked, snapshot: stopped, scanner: scanner, maximumBytes: 16384)) {
+            XCTAssertEqual($0 as? SupportExportError, .invalidIdentity)
+        }
+    }
 
     private func assertReapedAndCleaned(_ root: URL) throws {
         let pid = try XCTUnwrap(Int32(String(contentsOf: root.appendingPathComponent("pid"), encoding: .utf8)))

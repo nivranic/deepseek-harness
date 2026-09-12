@@ -47,13 +47,15 @@ DirectHostMac 拥有 `DirectHostRuntime` 管理器与临时本地 WebView。它�
 
 Mac Host 的**导出运行时诊断…**操作会准备本地 JSON 快照，包含打包后的产品标识、管理器状态和有界生命周期计数。它排除运行时输出、会话内容、路径、连接地址和凭据。随应用打包的 Gitleaks 扫描器必须通过检测/脱敏 canary 并报告零发现，才会打开原生保存对话框。取消、超时和应用正常退出都会等待扫描 helper；应用突然退出后，父管道也会请求清理。连接、协议、角色、capability、更新、原生崩溃记录和会话诊断仍明确标为未采集。[导出决策](../../.agents/notes/implemented/architecture/2026-09-08-local-runtime-support-export.zh.md)拥有隐私与生命周期要求；Mac 候选车道验证 ready、stopped 和启动失败状态的真实保存字节。没有打包扫描器的源码壳会拒绝导出。
 
+[Carrier 探测](Sources/DirectHostRuntime/RuntimeCarrierProbe.swift)提供现有管理器拥有的 HTML 请求阶段，以及管理器生命周期内有界的尝试、成功和失败计数。成功或失败响应标记为 `last-known`；检查中和不可用观测标记为当前值。停止、失败和替换会清除已退役 activation 的结果，迟到响应不能重新发布。该探测仅说明本地 Web carrier 可达性，不代表 provider、Gateway 或 Session 健康。导出直接捕获这些值，不发起请求。
+
 `LinkClient` 镜像 TypeScript 参考客户端：`pair(payload:deviceName:)` 只接受 fresh client 自身拥有的 endpoint 与 pin，以一次性配对码换取持久化的 `LinkCredentials`（真实部署存 Keychain，预览与测试用内存实现）；`describe()` 返回 Host 描述；`call(_:args:)` 校验回显的 `rpcId`，把成功但省略 value 的响应映射为 `.null`，并带出结构化 refusal；`stream(_:payload:)` 逐帧产出 NDJSON 值，错误帧以类型化失败结束。unary 与 stream 的传输处理仅把 JSON 字符串字段 `error` 等于 `forbidden` 的 HTTP 403 映射为 `.refused(code: "forbidden", message: ...)`；消息依次取非空字符串 `message`、`reason`，最后回退到 `HTTP 403`，其他所有非 2xx 响应仍为 `.carrier`。失败的 stream 会读取该响应体以完成分类，成功的 stream 则在未预消费字节的前提下进入 NDJSON 解析。每个请求以设备密钥对 `timestamp\nmethod\npath\nsha256hex(body)` 签名；每次 TLS 握手在写出任何请求字节之前钉扎证书指纹。`InteractionViewModel` 只从每代 Host `ready.clientId` 更新回答身份，从 `waterfall.request` 读取交互字段，应用 cancel frame，并在重连后等待新的 ready frame。
 
 [本地 Link 诊断投影](Sources/SharedAppleRemoteCore/LinkDiagnostics.swift)记录有界 HTTP 与流计数、固定失败类别、最后已知配对角色和选定的已认证协议字段。读取投影不会加载凭据或发起请求。已配对应用在进入前台时刷新描述；刷新、失败或取消配对会清空 Host 值，早先查询不能覆盖较新观测。计数描述本地工作，不代表连接健康或当前授权。[共享导出核心](Sources/SupportExportCore/DocumentScanner.swift)负责完整字节准入，并等待后台打开、扫描和取消操作全部结束。
 
 Companion 的**导出诊断信息**操作在配对前后均可使用。[导出器](Sources/CompanionUI/CompanionSupportExporter.swift)将应用标识、扫描器来源、既有 Link 观测和订阅所有者快照序列化为一份文档，上限为 16 KiB，扫描期限为 10 秒。[原生适配器](Shells/SupportScannerAdapter.swift)要求内嵌标识匹配已链接扫描器的版本和规则。系统保存操作只接收准确批准字节；交付前取消会拒绝输出。取消任一 Apple 保存对话框后，应用释放已批准文档，并允许再次导出。文档保持 `complete: false`，列出缺失的健康、有效角色、更新、崩溃与会话生产者。
 
-[应用源码元数据](Sources/SupportExportCore/SupportApplicationSource.swift)来自应用展开后的 Info.plist，记录构建提交及源码树。未标注来源的本地构建仍将 `application-source` 列入 `uncollected`；来源字段不完整或格式错误时拒绝导出。原生构建及保存文档的验证器要求这两个字段匹配独立选定的应用检出。扫描库来源保持独立，不能补充缺失的应用字段。
+Mac Host 与 Companion 从各自展开后的 Info.plist 读取[应用源码元数据](Sources/SupportExportCore/SupportApplicationSource.swift)，记录构建 commit 和 tree，独立于扫描器来源。未标注的本地构建保留 `uncollected` 中的 `application-source`；部分或非法字段拒绝导出。原生构建及保存文档验证器要求两个字段匹配独立选择的应用 checkout。
 
 [订阅诊断](Sources/CompanionUI/CompanionConnectionDiagnostics.swift)区分会话跟随、交互、Workspace 注册表和推送订阅。各现有模型报告正在打开、已打开、重连中、已结束和停止状态、有上限的尝试与中断计数，以及固定失败类别。已打开的订阅不代表 Host 健康或当前授权。导出在扫描前捕获这些值；缺失的模型保持不可用，退役任务不能覆盖较新观测。
 

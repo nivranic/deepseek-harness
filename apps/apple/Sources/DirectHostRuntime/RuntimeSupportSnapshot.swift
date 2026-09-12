@@ -78,15 +78,19 @@ struct SupportRuntimeCount: Encodable {
 
 /// A value snapshot taken before scanning; it owns no runtime handles or user-identifying fields.
 public struct RuntimeSupportSnapshot: Encodable {
+    let producer = "RuntimeSupervisor"
+    let observation = "current"
     let state: String
     let failure: String?
     let lifecycleCounts: [SupportRuntimeCount]
+    let carrierProbe: RuntimeCarrierProbeSnapshot
 
-    init(status: RuntimeStatus, counts: SupportRuntimeCounts) {
+    init(status: RuntimeStatus, counts: SupportRuntimeCounts, carrierProbe: RuntimeCarrierProbeSnapshot) {
         let event = SupportRuntimeEvent(status)
         state = event.state
         failure = state == "failed" ? event.rawValue : nil
         lifecycleCounts = counts.snapshot
+        self.carrierProbe = carrierProbe
     }
 }
 
@@ -106,14 +110,25 @@ private struct RuntimeSupportBundle: Encodable {
     let runtimeClass = "full"
     let complete = false
     let product: SupportProductIdentity
+    let applicationSource: SupportApplicationSource?
     let runtime: RuntimeSupportSnapshot
     let scanner: SupportScannerIdentity
-    let uncollected = ["connection", "protocol", "role", "capabilities", "updates", "native-crashes", "session-diagnostics"]
+    let uncollected: [String]
+
+    init(product: SupportProductIdentity, applicationSource: SupportApplicationSource?, runtime: RuntimeSupportSnapshot, scanner: SupportScannerIdentity) {
+        self.product = product
+        self.applicationSource = applicationSource
+        self.runtime = runtime
+        self.scanner = scanner
+        uncollected = (applicationSource == nil ? ["application-source"] : []) +
+            ["connection", "protocol", "role", "capabilities", "updates", "native-crashes", "session-diagnostics"]
+    }
 }
 
 func encodeRuntimeSupport(info: [String: Any], snapshot: RuntimeSupportSnapshot,
                           scanner: SupportScannerIdentity, maximumBytes: Int) throws -> Data {
-    let value = RuntimeSupportBundle(product: try SupportProductIdentity(info: info), runtime: snapshot, scanner: scanner)
+    let value = RuntimeSupportBundle(product: try SupportProductIdentity(info: info),
+                                    applicationSource: try SupportApplicationSource(info: info), runtime: snapshot, scanner: scanner)
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
     var data = try encoder.encode(value)

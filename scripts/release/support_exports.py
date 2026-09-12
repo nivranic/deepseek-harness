@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -26,12 +27,12 @@ def unique_object(pairs):
     return value
 
 
-def validate_export(data: bytes, state: str, product: dict, scanner: dict) -> None:
+def validate_export(data: bytes, state: str, product: dict, scanner: dict, application_source: dict) -> None:
     """Validate the entire saved document; missing producers remain explicitly uncollected."""
     if not data or len(data) > 16384:
         raise ValueError("support export byte limit")
     value = json.loads(data.decode("utf-8"), object_pairs_hook=unique_object)
-    if not isinstance(value, dict) or set(value) != {"schemaVersion", "platform", "runtimeClass", "complete", "product", "runtime", "scanner", "uncollected"}:
+    if not isinstance(value, dict) or set(value) != {"schemaVersion", "platform", "runtimeClass", "complete", "product", "applicationSource", "runtime", "scanner", "uncollected"}:
         raise ValueError("unexpected support fields")
     if type(value["schemaVersion"]) is not int or value["schemaVersion"] != 1 or value["platform"] != "macos" \
             or value["runtimeClass"] != "full" or value["complete"] is not False:
@@ -40,11 +41,15 @@ def validate_export(data: bytes, state: str, product: dict, scanner: dict) -> No
             or type(value["product"].get("buildNumber")) is not int or value["scanner"] != scanner \
             or type(value["scanner"].get("schemaVersion")) is not int or value["uncollected"] != UNCOLLECTED:
         raise ValueError("support producer identity or completeness differs")
+    if value["applicationSource"] != {"producer": "application-build", "observation": "current", **application_source}:
+        raise ValueError("support application source differs from the checkout")
     runtime = value["runtime"]
-    keys = {"state", "lifecycleCounts", "failure"} if state == "failed" else {"state", "lifecycleCounts"}
+    keys = {"producer", "observation", "state", "lifecycleCounts", "carrierProbe"} | ({"failure"} if state == "failed" else set())
     if not isinstance(runtime, dict) or set(runtime) != keys or runtime["state"] != state \
+            or runtime["producer"] != "RuntimeSupervisor" or runtime["observation"] != "current" \
             or (state == "failed" and runtime["failure"] != "invalidConfiguration"):
         raise ValueError("support runtime state differs from the exercised application")
+    validate_carrier_probe(runtime["carrierProbe"], state)
     counts = runtime["lifecycleCounts"]
     if not isinstance(counts, list) or not counts or len(counts) > len(EVENTS):
         raise ValueError("invalid lifecycle counts")
@@ -60,7 +65,32 @@ def validate_export(data: bytes, state: str, product: dict, scanner: dict) -> No
         raise ValueError("support counts omit an observed lifecycle state")
 
 
-def verify_exports(attachments: Path, scanner_directory: Path, product: dict, approved: Path) -> list[dict]:
+def validate_carrier_probe(probe: dict, state: str) -> None:
+    """The controlled ready case requires an actual successful carrier probe, never invented provider health."""
+    keys = {"producer", "observation", "activityScope", "state", "attempts", "successes", "failures", "countsSaturated"}
+    if not isinstance(probe, dict) or set(probe) != keys or probe["producer"] != "RuntimeSupervisor.carrierProbe" \
+            or probe["activityScope"] != "supervisor-lifetime" or probe["state"] not in {"unavailable", "checking", "reachable", "failed"}:
+        raise ValueError("support carrier probe fields differ")
+    counts = [probe[key] for key in ("attempts", "successes", "failures")]
+    if any(type(value) is not int or not 0 <= value <= 4294967295 for value in counts) \
+            or type(probe["countsSaturated"]) is not bool or probe["countsSaturated"] != (4294967295 in counts):
+        raise ValueError("support carrier probe counts differ")
+    if not probe["countsSaturated"] and probe["successes"] + probe["failures"] > probe["attempts"]:
+        raise ValueError("support carrier probe has more results than attempts")
+    if probe["state"] == "checking" and not probe["countsSaturated"] \
+            and probe["attempts"] <= probe["successes"] + probe["failures"]:
+        raise ValueError("checking carrier has no pending probe")
+    freshness = "last-known" if probe["state"] in ("reachable", "failed") else "current"
+    if probe["observation"] != freshness:
+        raise ValueError("support carrier probe freshness differs")
+    if state == "ready":
+        if probe["state"] not in ("checking", "reachable") or probe["successes"] == 0 or probe["failures"] != 0:
+            raise ValueError("ready application lacks its successful carrier observation")
+    elif probe["state"] != "unavailable" or (state == "failed" and any(counts)):
+        raise ValueError("inactive application retains an active carrier observation")
+
+
+def verify_exports(attachments: Path, scanner_directory: Path, product: dict, approved: Path, application_source: dict) -> list[dict]:
     """Publish only validated and zero-finding saved bytes after all three native scenarios pass."""
     if approved.exists() or approved.is_symlink():
         raise ValueError("approved support output must be new")
@@ -87,7 +117,7 @@ def verify_exports(attachments: Path, scanner_directory: Path, product: dict, ap
             if path.is_symlink() or not path.is_file() or path.stat().st_size > 16384:
                 raise ValueError("invalid support export file")
             data = path.read_bytes()
-            validate_export(data, state, product, scanner)
+            validate_export(data, state, product, scanner, application_source)
             selected[state] = data
     if set(selected) != {"ready", "stopped", "failed"}:
         raise ValueError("native support export scenarios are incomplete")
@@ -120,7 +150,9 @@ def main() -> int:
     args.output.write_text('{"schemaVersion":1,"status":"COLLECTING"}\n', encoding="utf-8")
     try:
         product = json.loads(Path("release/product.generated.json").read_text(encoding="utf-8"))
-        records = verify_exports(args.attachments, args.scanner_directory, product, args.approved)
+        application_source = {"sourceSha": subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip(),
+                              "treeSha": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"]).decode().strip()}
+        records = verify_exports(args.attachments, args.scanner_directory, product, args.approved, application_source)
         args.output.write_text(json.dumps({"schemaVersion": 1, "status": "PASS", "completeSupportBundle": False,
                                            "exports": records}, indent=2) + "\n", encoding="utf-8")
         return 0
