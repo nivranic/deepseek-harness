@@ -39,12 +39,14 @@ final class CompanionMacSupportTests: XCTestCase {
         let data = try Data(contentsOf: file)
         XCTAssertLessThanOrEqual(data.count, 16384)
         let value = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-        XCTAssertEqual(Set(value.keys), Set(["schemaVersion", "kind", "complete", "application", "applicationSource", "scanner", "link", "connections", "uncollected"]))
+        XCTAssertEqual(Set(value.keys), Set(["schemaVersion", "kind", "complete", "application", "applicationSource", "scanner", "link", "connections", "session", "uncollected"]))
         XCTAssertEqual(value["kind"] as? String, "companion-support")
         XCTAssertEqual(value["complete"] as? Bool, false)
         let link = try XCTUnwrap(value["link"] as? [String: Any])
         XCTAssertEqual(Set(link.keys), Set(["producer", "activityScope", "roleFreshness", "descriptionFreshness", "state"]))
         XCTAssertEqual(link["state"] as? String, "unavailable")
+        XCTAssertEqual(value["session"] as? [String: String], ["producer": "RemoteSessionViewModel",
+            "observation": "unavailable", "activityScope": "retained-local-projection"])
         let connections = try XCTUnwrap(value["connections"] as? [String: [String: String]])
         XCTAssertEqual(connections, [
             "sessionFollow": ["producer": "RemoteSessionViewModel", "observation": "unavailable", "activityScope": "model-lifetime"],

@@ -18,11 +18,12 @@ public struct CompanionSupportExporter: Sendable {
     }
 
     /// The caller supplies an owner snapshot; only the complete serialized document can be admitted.
-    public func prepare(link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots) async throws -> ApprovedSupportDocument {
+    public func prepare(link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots,
+                        session: CompanionSessionDiagnostics) async throws -> ApprovedSupportDocument {
         try Task.checkCancellation()
         let document = CompanionSupportSnapshot(application: product, applicationSource: applicationSource,
                                                 scanner: identity, link: .init(snapshot: link),
-                                                connections: connections)
+                                                connections: connections, session: session)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         var data = try encoder.encode(document)
@@ -41,17 +42,20 @@ private struct CompanionSupportSnapshot: Encodable {
     let scanner: SupportLibraryIdentity
     let link: LinkSection
     let connections: CompanionConnectionSnapshots
+    let session: CompanionSessionDiagnostics
     let uncollected: [String]
 
     init(application: SupportProductIdentity, applicationSource: SupportApplicationSource?, scanner: SupportLibraryIdentity,
-         link: LinkSection, connections: CompanionConnectionSnapshots) {
+         link: LinkSection, connections: CompanionConnectionSnapshots, session: CompanionSessionDiagnostics) {
         self.application = application
         self.applicationSource = applicationSource
         self.scanner = scanner
         self.link = link
         self.connections = connections
+        self.session = session
         uncollected = (applicationSource == nil ? ["application-source"] : []) +
-            ["runtime-health", "effective-role", "updates", "native-crashes", "session-diagnostics"]
+            ["runtime-health", "effective-role", "updates", "native-crashes"] +
+            (session.observation == "unavailable" ? ["session-diagnostics"] : [])
     }
 
     struct LinkSection: Encodable {

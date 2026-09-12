@@ -33,6 +33,8 @@ def validate_export(data: bytes, product: dict, library: dict, application_sourc
                                 for key, producer in (("sessionFollow", "RemoteSessionViewModel"),
                                                       ("interactions", "InteractionViewModel"),
                                                       ("workspaces", "FilesViewModel"), ("pushes", "PushViewModel"))},
+                "session": {"producer": "RemoteSessionViewModel", "observation": "unavailable",
+                            "activityScope": "retained-local-projection"},
                 "uncollected": UNCOLLECTED}
     if value != expected or type(value["schemaVersion"]) is not int or value["complete"] is not False \
             or type(value["application"]["buildNumber"]) is not int or type(value["scanner"]["schemaVersion"]) is not int:

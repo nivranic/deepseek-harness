@@ -888,6 +888,21 @@ struct AcceptanceRunner {
             throw AcceptanceFailure("production session model did not publish the authoritative recovery cut")
         }
         let pane = sessions.planTodoGoal
+        let diagnosticsEncoder = JSONEncoder()
+        diagnosticsEncoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        let diagnostics = try diagnosticsEncoder.encode(sessions.sessionDiagnostics)
+        let retained = ["timelineRows": active.items.count, "toolCalls": sessions.toolCalls.count,
+                        "artifacts": sessions.artifacts.count, "images": sessions.images.count,
+                        "todos": pane.todos.count, "goals": pane.goals.count]
+        var counts: [String: Any] = retained.mapValues { UInt32(clamping: $0) }
+        counts["countsSaturated"] = retained.values.contains { $0 >= Int(UInt32.max) }
+        let expectedDiagnostics = try JSONSerialization.data(withJSONObject: [
+            "producer": "RemoteSessionViewModel", "activityScope": "retained-local-projection",
+            "observation": "current", "selected": true, "snapshot": counts,
+        ], options: [.sortedKeys, .withoutEscapingSlashes])
+        guard diagnostics == expectedDiagnostics else {
+            throw AcceptanceFailure("session diagnostics differ from the recovered local projection")
+        }
         return CompanionDomainState(
             cursor: active.cursor,
             items: active.items.map {

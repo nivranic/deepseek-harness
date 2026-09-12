@@ -55,11 +55,13 @@ Mac Host 的**导出运行时诊断…**操作会准备本地 JSON 快照，包�
 
 [本地 Link 诊断投影](Sources/SharedAppleRemoteCore/LinkDiagnostics.swift)记录有界 HTTP 与流计数、固定失败类别、最后已知配对角色和选定的已认证协议字段。读取投影不会加载凭据或发起请求。已配对应用在进入前台时刷新描述；刷新、失败或取消配对会清空 Host 值，早先查询不能覆盖较新观测。计数描述本地工作，不代表连接健康或当前授权。[共享导出核心](Sources/SupportExportCore/DocumentScanner.swift)负责完整字节准入，并等待后台打开、扫描和取消操作全部结束。
 
-Companion 的**导出诊断信息**操作在配对前后均可使用。[导出器](Sources/CompanionUI/CompanionSupportExporter.swift)将应用标识、扫描器来源、既有 Link 观测和订阅所有者快照序列化为一份文档，上限为 16 KiB，扫描期限为 10 秒。[原生适配器](Shells/SupportScannerAdapter.swift)要求内嵌标识匹配已链接扫描器的版本和规则。系统保存操作只接收准确批准字节；交付前取消会拒绝输出。取消任一 Apple 保存对话框后，应用释放已批准文档，并允许再次导出。文档保持 `complete: false`，列出缺失的健康、有效角色、更新、崩溃与会话生产者。
+Companion 的**导出诊断信息**操作在配对前后均可使用。[导出器](Sources/CompanionUI/CompanionSupportExporter.swift)将应用标识、扫描器来源、既有 Link 观测、订阅所有者快照和本地会话计数序列化为一份文档，上限为 16 KiB，扫描期限为 10 秒。[原生适配器](Shells/SupportScannerAdapter.swift)要求内嵌标识匹配已链接扫描器的版本和规则。系统保存操作只接收准确批准字节；交付前取消会拒绝输出。取消任一 Apple 保存对话框后，应用释放已批准文档，并允许再次导出。文档保持 `complete: false`，列出缺失的健康、有效角色、更新与崩溃生产者；会话模型不存在时，会话诊断仍标为未采集。
 
 Mac Host 与 Companion 从各自展开后的 Info.plist 读取[应用源码元数据](Sources/SupportExportCore/SupportApplicationSource.swift)，记录构建 commit 和 tree，独立于扫描器来源。未标注的本地构建保留 `uncollected` 中的 `application-source`；部分或非法字段拒绝导出。原生构建及保存文档验证器要求两个字段匹配独立选择的应用 checkout。
 
 [订阅诊断](Sources/CompanionUI/CompanionConnectionDiagnostics.swift)区分会话跟随、交互、Workspace 注册表和推送订阅。各现有模型报告正在打开、已打开、重连中、已结束和停止状态、有上限的尝试与中断计数，以及固定失败类别。已打开的订阅不代表 Host 健康或当前授权。导出在扫描前捕获这些值；缺失的模型保持不可用，退役任务不能覆盖较新观测。
+
+[会话诊断](Sources/CompanionUI/CompanionSessionDiagnostics.swift)统计选中模型本地保留的时间线行、工具调用、产物、图片引用、待办与目标。数值在无符号 32 位上限饱和，并明确披露饱和状态。模型不存在时标为不可用；模型存在但没有选择会话时不提供计数。关闭会话后，后续导出不再包含该选择，已捕获的值仍保持不可变。计数只描述本地投影：零不能证明 Host 历史为空或已接收完整快照。导出不读取标识、文本、cursor、工具参数或附件字节，也不发起请求。
 
 生成 Xcode 项目前，需要[扫描器准备 Action](../../.github/actions/apple-support-scanner/action.yml)在 `.support-scanner/` 下的输出。两个 Companion 目标链接静态 framework，并以文件夹资源打包其来源和许可证。它们禁用 Xcode 的 Debug dylib 布局，使 Debug 与 Release 的扫描器代码均保留在被检查的可执行文件中。[最终应用检查](../../scripts/verify-apple-app-scanner.py)对照准备记录与 Git 重查这些字节，比较各可执行切片的 Go 模块图，并执行维护中的二进制漏洞检查器。Debug iOS 检查在原生 UI 用例结束后读取同一模拟器中的实际安装应用。Debug 标识与 Release 归档报告绑定这些结果；包测试和库探针不能证明保存文档或设备验收。
 

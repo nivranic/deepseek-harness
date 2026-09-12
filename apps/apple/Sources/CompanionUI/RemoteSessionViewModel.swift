@@ -128,6 +128,14 @@ public final class RemoteSessionViewModel {
     private let connectionDiagnostics = CompanionConnectionDiagnostics()
     /// Current follow ownership and fixed failure categories, without session identifiers or payloads.
     public var connectionSnapshot: CompanionConnectionSnapshot { connectionDiagnostics.snapshot }
+    /// Copy local projection counts on the owning actor before export suspends; reading starts no work.
+    public var sessionDiagnostics: CompanionSessionDiagnostics {
+        guard let active else { return .unselected }
+        return CompanionSessionDiagnostics(counts: .init(timelineRows: active.items.count,
+            toolCalls: sessionFold.state.toolCalls.count, artifacts: sessionFold.state.artifacts.count,
+            images: sessionFold.state.images.count, todos: sessionFold.state.todos.count,
+            goals: sessionFold.state.goals.count))
+    }
     private var followTask: Task<Void, Never>?
     private var followTaskId = 0
     private var followTransition = 0

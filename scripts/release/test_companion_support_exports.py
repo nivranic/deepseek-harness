@@ -56,7 +56,7 @@ class CompanionSupportExportTests(unittest.TestCase):
                                  "sha256": hashlib.sha256(self.data).hexdigest(), "findings": 0})
 
     def test_private_fields_and_false_completeness_are_refused(self):
-        for section in (None, "application", "applicationSource", "scanner", "link", "connections"):
+        for section in (None, "application", "applicationSource", "scanner", "link", "connections", "session"):
             value = json.loads(self.data)
             (value if section is None else value[section])["private"] = "payload"
             with self.subTest(section=section), self.assertRaises(ValueError):
@@ -93,6 +93,15 @@ class CompanionSupportExportTests(unittest.TestCase):
                 self.verify(self.root / "approved")
             scan.assert_not_called()
             self.assertFalse((self.root / "approved").exists())
+
+    def test_unpaired_admission_refuses_invented_session_selection_and_counts(self):
+        for field, changed in (("producer", "another"), ("observation", "current"),
+                               ("activityScope", "complete-host-log"), ("selected", False),
+                               ("snapshot", {"timelineRows": 0})):
+            value = json.loads(self.data)
+            value["session"][field] = changed
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validate_export(json.dumps(value).encode(), self.product, self.library, self.application_source)
 
     def test_different_product_scanner_and_link_observations_are_refused(self):
         for section, key, new in (("application", "version", "another"), ("scanner", "sourceSha", "f" * 40),

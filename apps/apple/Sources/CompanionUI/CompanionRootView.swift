@@ -55,7 +55,8 @@ public struct CompanionRootView: View {
             CompanionSupportView(model: support) {
                 (activeClient?.supportSnapshot(), CompanionConnectionSnapshots(
                     session: sessionModel?.connectionSnapshot, interactions: interactionModel?.connectionSnapshot,
-                    workspaces: filesModel?.connectionSnapshot, pushes: pushModel?.connectionSnapshot))
+                    workspaces: filesModel?.connectionSnapshot, pushes: pushModel?.connectionSnapshot),
+                 sessionModel?.sessionDiagnostics ?? .unavailable)
             }
         }
         .task(id: paired && scenePhase == .active) {

@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 @MainActor
 struct CompanionSupportView: View {
     @ObservedObject var model: CompanionSupportModel
-    let snapshot: () -> (link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots)
+    let snapshot: () -> (link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots, session: CompanionSessionDiagnostics)
     @Environment(\.locale) private var locale
     private var copy: CompanionSupportCopy { .select(locale) }
 
@@ -16,7 +16,7 @@ struct CompanionSupportView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Button(model.isPreparing ? copy.scanning : copy.export) {
                     let value = snapshot()
-                    model.prepare(link: value.link, connections: value.connections)
+                    model.prepare(link: value.link, connections: value.connections, session: value.session)
                 }
                     .accessibilityIdentifier("companion.support.export")
                     .disabled(model.isPreparing || model.document != nil)
@@ -56,14 +56,14 @@ final class CompanionSupportModel: ObservableObject {
         self.makeExporter = makeExporter
     }
 
-    func prepare(link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots) {
+    func prepare(link: LinkDiagnosticSnapshot?, connections: CompanionConnectionSnapshots, session: CompanionSessionDiagnostics) {
         guard preparation == nil, document == nil else { return }
         failed = false
         preparation = Task { @MainActor in
             defer { preparation = nil }
             do {
                 let exporter = try makeExporter()
-                let approved = try await exporter.prepare(link: link, connections: connections)
+                let approved = try await exporter.prepare(link: link, connections: connections, session: session)
                 try Task.checkCancellation()
                 document = CompanionSupportDocument(approved: approved)
                 exporting = true

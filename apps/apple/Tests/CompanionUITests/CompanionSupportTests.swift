@@ -21,7 +21,7 @@ final class CompanionSupportTests: XCTestCase {
 
     func testUnpairedDocumentMatchesOwnedOutputAndScansAllBytesOffMainThread() async throws {
         let scanner = RecordingScanner()
-        let approved = try await exporter(scanner).prepare(link: nil, connections: .unavailable)
+        let approved = try await exporter(scanner).prepare(link: nil, connections: .unavailable, session: .unavailable)
         let expected = try Data(contentsOf: Bundle.module.url(forResource: "support-unpaired", withExtension: "json", subdirectory: "Fixtures")!)
         XCTAssertEqual(approved.data, expected)
         XCTAssertEqual(scanner.input, expected)
@@ -33,7 +33,7 @@ final class CompanionSupportTests: XCTestCase {
         let source = String(repeating: "e", count: 40), tree = String(repeating: "f", count: 40)
         let approved = try await exporter(RecordingScanner(), sourceInfo: [
             "DSHApplicationSourceSHA": source, "DSHApplicationSourceTree": tree,
-        ]).prepare(link: nil, connections: .unavailable)
+        ]).prepare(link: nil, connections: .unavailable, session: .unavailable)
         let value = try XCTUnwrap(JSONSerialization.jsonObject(with: approved.data) as? [String: Any])
         let application = try XCTUnwrap(value["applicationSource"] as? [String: String])
         XCTAssertEqual(application["sourceSha"], source)
@@ -44,7 +44,7 @@ final class CompanionSupportTests: XCTestCase {
     }
 
     func testUnstampedApplicationDoesNotBorrowTheScannerSource() async throws {
-        let approved = try await exporter(RecordingScanner(), sourceInfo: [:]).prepare(link: nil, connections: .unavailable)
+        let approved = try await exporter(RecordingScanner(), sourceInfo: [:]).prepare(link: nil, connections: .unavailable, session: .unavailable)
         let value = try XCTUnwrap(JSONSerialization.jsonObject(with: approved.data) as? [String: Any])
         XCTAssertNil(value["applicationSource"])
         XCTAssertTrue(try XCTUnwrap(value["uncollected"] as? [String]).contains("application-source"))
@@ -55,7 +55,7 @@ final class CompanionSupportTests: XCTestCase {
         let store = SupportCredentials()
         let client = try XCTUnwrap(LinkClient.restore(store: store))
         XCTAssertEqual(store.loads, 1)
-        let approved = try await exporter(RecordingScanner()).prepare(link: client.supportSnapshot(), connections: .unavailable)
+        let approved = try await exporter(RecordingScanner()).prepare(link: client.supportSnapshot(), connections: .unavailable, session: .unavailable)
         XCTAssertEqual(store.loads, 1)
         let value = try XCTUnwrap(JSONSerialization.jsonObject(with: approved.data) as? [String: Any])
         let link = try XCTUnwrap(value["link"] as? [String: Any])
@@ -75,7 +75,7 @@ final class CompanionSupportTests: XCTestCase {
     func testWholeDocumentLimitRefusesBeforeNativeOpening() async throws {
         let scanner = RecordingScanner()
         do {
-            _ = try await exporter(scanner, maximumBytes: 64).prepare(link: nil, connections: .unavailable)
+            _ = try await exporter(scanner, maximumBytes: 64).prepare(link: nil, connections: .unavailable, session: .unavailable)
             XCTFail("oversized complete document was admitted")
         } catch { XCTAssertEqual(error as? SupportExportError, .oversized) }
         XCTAssertNil(scanner.input)
@@ -107,7 +107,7 @@ final class CompanionSupportTests: XCTestCase {
                 .allSatisfy { $0.state == .stopped }
         }
         let scanner = RecordingScanner()
-        let approved = try await exporter(scanner).prepare(link: nil, connections: captured)
+        let approved = try await exporter(scanner).prepare(link: nil, connections: captured, session: .unavailable)
         let expected = try Data(contentsOf: Bundle.module.url(forResource: "support-connections", withExtension: "json", subdirectory: "Fixtures")!)
         XCTAssertEqual(approved.data, expected)
         XCTAssertEqual(scanner.input, expected)
@@ -117,11 +117,50 @@ final class CompanionSupportTests: XCTestCase {
     }
 
     @MainActor
+    func testCapturedSessionCountsReachTheScannedDocumentAfterTheModelCloses() async throws {
+        let wire = FakeWire()
+        let frames = [
+            eventEntry(1, "user/message", ["id": .string("private-message"), "role": .string("user"),
+                "content": .array([jsonObject(["type": .string("text"), "text": .string("private-prompt")]),
+                    jsonObject(["type": .string("image"), "attachment": jsonObject([
+                        "attachmentId": .string("private-image"), "mediaType": .string("image/png"),
+                        "bytes": .number(42), "width": .number(800), "height": .number(600), "name": .string("private-image.png")])])]),
+                "source": jsonObject(["kind": .string("user")])]),
+            toolCallEntry(2, "private-call", "private-tool", "private-arguments"),
+            artifactCreatedEntry(3, "private-artifact", "markdown", "private-title"),
+            eventEntry(4, "todo/write", ["todos": .array([jsonObject([
+                "content": .string("private-todo"), "status": .string("pending")])])]),
+            eventEntry(5, "goal/change", ["kind": .string("goal/change"), "version": .number(1),
+                "operation": .string("create"), "goal": jsonObject(["id": .string("private-goal"),
+                    "revision": .number(1), "objective": .string("private-objective"),
+                    "phase": .string("active"), "maxGoalRounds": .number(12)]),
+                "roundsStarted": .number(0), "createdAt": .number(1), "updatedAt": .number(1)]),
+        ]
+        await wire.stubStream("session/follow", frames: .success(frames))
+        let model = RemoteSessionViewModel(wire: wire)
+        XCTAssertEqual(model.sessionDiagnostics, .unselected)
+        await model.open(sessionId: "private-session")
+        await waitUntil { model.active?.cursor == 5 }
+        let captured = model.sessionDiagnostics
+        XCTAssertEqual(captured.snapshot, CompanionSessionDiagnostics.Counts(timelineRows: 5, toolCalls: 1, artifacts: 1, images: 1, todos: 1, goals: 1))
+        model.close()
+        XCTAssertEqual(model.sessionDiagnostics, .unselected)
+        let scanner = RecordingScanner()
+        let approved = try await exporter(scanner).prepare(link: nil, connections: .unavailable, session: captured)
+        let expected = try Data(contentsOf: Bundle.module.url(forResource: "support-session", withExtension: "json", subdirectory: "Fixtures")!)
+        XCTAssertEqual(approved.data, expected)
+        XCTAssertEqual(scanner.input, expected)
+        XCTAssertFalse(String(decoding: approved.data, as: UTF8.self).contains("private-"))
+        let calls = await wire.streamCalls
+        XCTAssertEqual(calls.count, 1)
+    }
+
+    @MainActor
     func testSaveCancellationAllowsAnotherExportAndScannerRefusalNeverOpensSave() async throws {
         let scanner = RecordingScanner()
         let producer = try exporter(scanner)
         let model = CompanionSupportModel { producer }
-        model.prepare(link: nil, connections: .unavailable)
+        model.prepare(link: nil, connections: .unavailable, session: .unavailable)
         await waitUntil { !model.isPreparing }
         XCTAssertTrue(model.exporting)
         XCTAssertEqual(model.document?.approved.data, scanner.input)
@@ -129,7 +168,7 @@ final class CompanionSupportTests: XCTestCase {
         XCTAssertFalse(model.failed)
         XCTAssertFalse(model.exporting)
         XCTAssertNil(model.document)
-        model.prepare(link: nil, connections: .unavailable)
+        model.prepare(link: nil, connections: .unavailable, session: .unavailable)
         await waitUntil { !model.isPreparing }
         XCTAssertTrue(model.exporting)
         XCTAssertEqual(model.document?.approved.data, scanner.input)
@@ -140,7 +179,7 @@ final class CompanionSupportTests: XCTestCase {
 
         let refused = try exporter(RecordingScanner(status: "secrets-detected"))
         let failure = CompanionSupportModel { refused }
-        failure.prepare(link: nil, connections: .unavailable)
+        failure.prepare(link: nil, connections: .unavailable, session: .unavailable)
         await waitUntil { !failure.isPreparing }
         XCTAssertTrue(failure.failed)
         XCTAssertFalse(failure.exporting)
@@ -154,7 +193,7 @@ final class CompanionSupportTests: XCTestCase {
         let scanner = RecordingScanner(blocked: true)
         let producer = try exporter(scanner)
         let model = CompanionSupportModel { producer }
-        model.prepare(link: nil, connections: .unavailable)
+        model.prepare(link: nil, connections: .unavailable, session: .unavailable)
         await waitUntil { scanner.running }
         model.cancel()
         await model.shutdown()
