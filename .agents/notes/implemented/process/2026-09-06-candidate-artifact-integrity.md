@@ -28,6 +28,8 @@ Syft scans packaged directories with installed-package catalogers. Its directory
 
 Retries retain source, identity and complete deliverable records while allowing refreshed evidence and invocation metadata. This implements the [product release identity](2026-09-05-product-release-identity.md) distinction between an unchanged retry and a new distribution. Every changed distribution uses the existing monotonic build-number rule. [Candidate security scans](2026-09-05-candidate-security-scans.md) retain their independent source-analysis and disclosure decisions.
 
+The [release-foundation command](../../../../docs/development/release-candidate.md#release-foundation-readiness) composes owner verification in one clean, independently selected source checkout. Checklist JSON carries requirements and role ownership, never acceptance verdicts. Live CI retains its own source and freshness checks; unsigned artifact consistency cannot establish platform execution. Missing verification adapters remain unavailable and block engineering Go. A fixed external production list cannot waive an engineering requirement, and even engineering Go does not authorize publication. Binding the observation to source, tree and checklist bytes makes its scope explicit without presenting it as a durable authorization token.
+
 ## Alternatives considered
 
 - Requiring the entire manifest to be identical treats a refreshed scan or provenance invocation as new application bytes.

@@ -102,7 +102,7 @@ describe('gate graph validation', () => {
     const ids = withPnpmEntrypoint(() => gatesForMode('hygiene').map(subject => subject.id))
 
     expect(ids).toEqual([
-      'rescope-vendor', 'knip', 'link-contracts', 'product-identity', 'rc-policy', 'workflow-security', 'required-checks', 'publint', 'constraints', 'application-entrypoints',
+      'rescope-vendor', 'knip', 'link-contracts', 'product-identity', 'rc-policy', 'release-checklist', 'workflow-security', 'required-checks', 'publint', 'constraints', 'application-entrypoints',
       'dsh-package-licenses', 'package-invariants', 'built-package-invariants', 'node-next-types',
       'optional-dependency-imports', 'client-packages', 'client-ui-i18n', 'cordis-config',
       'runtime-closure', 'vendored-links',
@@ -169,6 +169,8 @@ describe('gate graph validation', () => {
         .toBe('pnpm run verify-product-identity')
       expect(gates.find(subject => subject.id === 'rc-policy')?.displayCommand)
         .toBe('pnpm run verify-rc-policy')
+      expect(gates.find(subject => subject.id === 'release-checklist')?.displayCommand)
+        .toBe('pnpm run verify-release-checklist')
     },
   )
 

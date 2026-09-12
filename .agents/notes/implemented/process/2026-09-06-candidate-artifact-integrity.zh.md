@@ -28,6 +28,8 @@ Syft 使用针对已安装包的 cataloger 扫描打包目录。默认目录选�
 
 重试保留源码、标识和完整交付记录，同时允许刷新证据与执行元数据。这实现了[产品发布标识](2026-09-05-product-release-identity.zh.md)对不变重试和新分发的区分。分发变化时使用现有单调构建号规则。[候选安全扫描](2026-09-05-candidate-security-scans.zh.md)继续独立负责源码分析与信息披露决策。
 
+[发布基础判定命令](../../../../docs/development/release-candidate.zh.md#release-foundation-readiness)在独立选定源码的干净 checkout 中组合各所有者的验证。清单 JSON 只携带要求和角色所有权，不携带验收结论。在线 CI 保留自身的源码及新鲜度检查；未签名产物的一致性不能证明平台执行。缺失的验证适配器保持不可用并阻断工程 Go。固定的外部生产动作清单不能豁免工程要求，即使工程 Go 也不授权发布。观测绑定源码、tree 和清单字节以明确适用范围，不充当持久授权凭据。
+
 ## Alternatives considered
 
 - 要求整份清单完全相同，会把重新扫描或 provenance 执行标识更新当作新的应用字节。

@@ -12,6 +12,7 @@ The candidate verifier checks downloaded application artifacts against an indepe
 - [Artifact and evidence requirements](#artifact-and-evidence-requirements)
 - [Android production](#android-production)
 - [Trust and verification limits](#trust-and-verification-limits)
+- [Release-foundation readiness](#release-foundation-readiness)
 - [Dev Note](#dev-note)
 
 -----
@@ -68,6 +69,17 @@ The verified `android/receipt.json` binds the unsigned AAB, mapping, debug-signe
 The caller must prevent concurrent writes or renames to the artifact directory, its ancestors and referenced files through verification and later consumption. File descriptor checks and final metadata rechecks detect observed changes; portable Node filesystem APIs do not provide a sandbox against an adversarial concurrent writer. A result describes the verified bytes and becomes stale if those bytes change.
 
 Consistency does not prove inventory completeness, scanner execution, builder identity, signing, installation, startup, compatibility, or rollback. A compromised producer can create mutually consistent unsigned claims. [Source security scans](security-scanning.md), trusted workflow execution, real platform acceptance and any authenticated attestation retain their separate owners. Missing real producers cannot be replaced with test fixtures to close RC acceptance.
+
+-----
+
+<a id="release-foundation-readiness"></a>
+## Release-foundation readiness
+
+The versioned [release checklist](../../release/checklist.json) owns the release-foundation engineering requirements, definitions of done, owner roles and evidence owners. `pnpm run verify-release-checklist` validates complete coverage in the static and hygiene aggregates. Removing a requirement, changing its evidence owner, introducing a person as an owner role, or adding a stored verdict or waiver fails. This static check does not accept a candidate or cover Beta and GA readiness.
+
+Run `pnpm run verify-release-readiness --repo owner/repository --source-sha <full-sha>` from a clean checkout of that exact commit. Optional `--root <artifact-directory> --manifest <complete-manifest.json>` invokes the existing four-platform artifact verifier. The command collects fresh [candidate CI evidence](../../scripts/release/ci-collector.ts), checks the remote tree and workflow policy against the checkout, and prints JSON with the source, tree and checklist digest. Any non-PASS engineering item produces `NO_GO` and exit 1. Missing evidence or an unimplemented adapter remains `UNAVAILABLE`; transport failures remain `FAIL` without exposing remote response text. The command accepts no verdict files or adapter overrides. The caller keeps the trusted checkout and artifacts immutable during verification and later use; the result is an observation, not a reusable authorization token.
+
+Artifact consistency is recorded separately with `authenticated: false`; it cannot pass the RC requirement without authenticated platform execution. CI and checklist validation have integrated owners; the other engineering adapters remain unavailable. Production actions are a separate fixed list with `NOT_EXECUTED`, and `publicationAuthorized` is always false, including when engineering reaches `GO`. Engineering signing, store preparation and recovery requirements cannot move into that external-action list. The command does not sign, publish, submit, or roll out a release.
 
 -----
 

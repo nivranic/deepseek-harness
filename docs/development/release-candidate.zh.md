@@ -12,6 +12,7 @@
 - [产物与证据要求](#artifact-and-evidence-requirements)
 - [Android 生产](#android-production)
 - [信任与验证限制](#trust-and-verification-limits)
+- [发布基础就绪判定](#release-foundation-readiness)
 - [Dev Note](#dev-note)
 
 -----
@@ -68,6 +69,17 @@
 调用方必须在验证及后续使用期间，阻止对产物目录、祖先目录和引用文件的并发写入或重命名。文件描述符检查与最终元数据复查能够发现已观察到的变动；可移植 Node 文件系统 API 不提供针对恶意并发写入者的沙箱。结果描述的是已验证字节，字节变化后结果即过期。
 
 一致性不证明清单完整性、扫描器执行、构建者身份、签名、安装、启动、兼容性或回滚。被攻陷的生产者可以创建彼此一致的未签名声明。[源码安全扫描](security-scanning.zh.md)、可信 workflow 执行、真实平台验收和认证证明各有独立负责人。不得用测试夹具替代缺失的真实生产者来关闭 RC 验收。
+
+-----
+
+<a id="release-foundation-readiness"></a>
+## 发布基础就绪判定
+
+版本化[发布清单](../../release/checklist.json)拥有发布基础的工程要求、完成定义、负责人角色和证据所有者。`pnpm run verify-release-checklist` 在静态检查和 hygiene 聚合中验证要求完整性。删除要求、更换证据所有者、以具体人员替代角色，或加入已存储结论和豁免字段，都会失败。该静态检查不验收候选，也不覆盖 Beta 和 GA 就绪判定。
+
+在准确提交的干净 checkout 中运行 `pnpm run verify-release-readiness --repo owner/repository --source-sha <full-sha>`。可选的 `--root <artifact-directory> --manifest <complete-manifest.json>` 会调用既有四平台产物验证器。命令收取新鲜的[候选 CI 证据](../../scripts/release/ci-collector.ts)，将远端 tree 和工作流策略与 checkout 比较，并输出带源码、tree 和清单摘要的 JSON。任何非 PASS 工程项都会得到 `NO_GO` 和退出码 1。缺少证据或未实现适配器的项目保持 `UNAVAILABLE`；传输失败保持 `FAIL`，不暴露远端响应文本。命令不接受结论文件或适配器覆盖参数。调用方必须在验证和后续使用期间保持可信 checkout 与产物不变；结果是一次观测，不是可重复使用的授权凭据。
+
+产物一致性单独记录为 `authenticated: false`；缺少已认证的平台执行时，不能通过 RC 要求。CI 和清单验证已接入其所有者，其他工程适配器保持不可用。生产动作是独立固定清单，状态为 `NOT_EXECUTED`；即使工程判定为 `GO`，`publicationAuthorized` 也始终为 false。工程签名准备、商店准备和恢复要求不能移入外部动作清单。命令不会签名、发布、提交或执行 rollout。
 
 -----
 
