@@ -21,6 +21,8 @@ class Device:
         self.changed = self.fail_cleanup = False
 
     def shell(self, arguments, **_options):
+        if arguments[0] in ("cat", "run-as"):
+            raise ValueError("procfs observation unavailable")
         if arguments[0] == "dumpsys":
             return (HEADER + "\nLast Timestamp of Persistence Into Persistent Storage: 2026-09-12 00:00:00.000\n").encode()
         if arguments[0] == "pidof":
@@ -98,6 +100,7 @@ class AndroidSupportExportTests(unittest.TestCase):
                 def fail(_apk, _source, _output, progress):
                     return self.collect(progress)
                 with patch("android_support_exports.application_pid", side_effect=observations), \
+                        patch("android_support_exports.observe_memory", return_value={"observation": "unavailable"}), \
                         patch.object(self.ui, "save", side_effect=ValueError("private approval failure")), \
                         patch("android_support_exports.verify", side_effect=fail), \
                         patch("android_support_exports.sys.argv", ["collector", "--apk", "private.apk", "--source-sha", "b" * 40,
@@ -108,6 +111,8 @@ class AndroidSupportExportTests(unittest.TestCase):
                     "reason": "Android system support export was not accepted", "applicationPidComparison": expected,
                     "applicationPidPhases": dict(zip(("cancel", "savePreparation", "save"), phases)),
                     "applicationExit": {"observation": "not-observed"},
+                    "memoryObservations": {"producer": "linux-procfs", "scope": "export-checkpoints",
+                        "samples": {phase: {"observation": "unavailable"} for phase in ("beforeCancel", "afterCancel", "beforeSave", "afterAttempt")}},
                 })
 
     def test_system_query_failure_does_not_replace_the_original_save_failure(self):
@@ -165,6 +170,31 @@ class AndroidSupportExportTests(unittest.TestCase):
         self.assertEqual(self.ui.events, ["open", "cancel", "cancelled screenshot", "open", "save", "saved screenshot"])
         self.assertEqual(self.device.reads, 2)
         self.assertFalse(self.device.present)
+
+    def test_memory_checkpoints_capture_each_existing_process_observation_on_success(self):
+        progress = {}
+        samples = [{"observation": "sampled", "sequence": i} for i in range(4)]
+        with patch("android_support_exports.application_pid", side_effect=[101, 102, 103, 104]), \
+                patch("android_support_exports.observe_memory", side_effect=samples) as memory, \
+                patch("android_support_exports.self_test"), patch("android_support_exports.scan", return_value=[]):
+            self.assertEqual(self.collect(progress), self.data)
+        self.assertEqual([call.args[1] for call in memory.call_args_list], [101, 102, 103, 104])
+        self.assertEqual(progress["memoryObservations"], {"producer": "linux-procfs", "scope": "export-checkpoints",
+            "samples": dict(zip(("beforeCancel", "afterCancel", "beforeSave", "afterAttempt"), samples))})
+        self.assertFalse(self.device.present)
+
+    def test_memory_failure_retains_unreached_checkpoints_and_original_picker_error(self):
+        progress = {}
+        with patch.object(self.ui, "open_picker", side_effect=ValueError("original picker failure")), \
+                self.assertRaisesRegex(ValueError, "original picker failure"):
+            self.collect(progress)
+        samples = progress["memoryObservations"]["samples"]
+        self.assertEqual(samples["afterCancel"], {"observation": "not-reached"})
+        self.assertEqual(samples["beforeSave"], {"observation": "not-reached"})
+        for phase in ("beforeCancel", "afterAttempt"):
+            for owner in ("system", "pressure", "application"):
+                self.assertEqual(samples[phase][owner], {"observation": "unavailable"})
+        self.assertEqual(progress["stage"], "cancel-picker")
 
     def test_preexisting_destination_is_never_removed_or_overwritten(self):
         self.device.present = True

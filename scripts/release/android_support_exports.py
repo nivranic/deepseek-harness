@@ -19,6 +19,7 @@ from android_candidate_device import CandidateDevice, require_disposable_host
 from android_sbom_inventory import archive_entries, read_member, require, sha_file
 from android_support_ui import PACKAGE, SupportUi
 from android_support_process import application_exit_records, compare_pids, observe_application_exits
+from android_support_memory import observe_memory
 from release.secret_scan import install_gitleaks, scan, self_test
 from release.support_exports import unique_object
 
@@ -115,17 +116,22 @@ def collect_export(device, ui, filename, product, identity, scanner, scratch, pr
     exit_baseline = application_exit_records(device)
     started_pid = application_pid(device)
     cancelled_pid = saving_pid = None
+    memory = {phase: {"observation": "not-reached"} for phase in ("beforeCancel", "afterCancel", "beforeSave", "afterAttempt")}
+    progress["memoryObservations"] = {"producer": "linux-procfs", "scope": "export-checkpoints", "samples": memory}
+    memory["beforeCancel"] = observe_memory(device, started_pid)
     try:
         progress["stage"] = "cancel-picker"
         ui.open_picker(filename)
         progress["stage"] = "cancel"
         ui.cancel()
         cancelled_pid = application_pid(device)
+        memory["afterCancel"] = observe_memory(device, cancelled_pid)
         require(not owned_files(device, prefix), "Android cancellation created a document")
         ui.screenshot("cancelled")
         progress["stage"] = "save-picker"
         picker = ui.open_picker(filename)
         saving_pid = application_pid(device)
+        memory["beforeSave"] = observe_memory(device, saving_pid)
         progress["stage"] = "save"
         ui.save(picker)
         progress["stage"] = "saved-document"
@@ -145,6 +151,7 @@ def collect_export(device, ui, filename, product, identity, scanner, scratch, pr
         return data
     finally:
         ended_pid = application_pid(device)
+        memory["afterAttempt"] = observe_memory(device, ended_pid)
         progress["applicationPidComparison"] = compare_pids(started_pid, ended_pid)
         progress["applicationPidPhases"] = {
             "cancel": compare_pids(started_pid, cancelled_pid),
@@ -232,7 +239,8 @@ def verify(apk, source, output, progress=None):
             "scenario": "unpaired", "origin": "local-documentsui-downloads", "completeSupportBundle": False,
             "runtime": runtime, "cancelledDestinationAbsent": True, "savedDestinationRemoved": True,
             "processStopped": True, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
-            "findings": 0, "independentCanary": "PASS", "independentScanner": tool}
+            "findings": 0, "independentCanary": "PASS", "independentScanner": tool,
+            "memoryObservations": progress["memoryObservations"]}
 
 
 def main():
@@ -257,6 +265,8 @@ def main():
             record["applicationPidPhases"] = progress["applicationPidPhases"]
         if "applicationExit" in progress:
             record["applicationExit"] = progress["applicationExit"]
+        if "memoryObservations" in progress:
+            record["memoryObservations"] = progress["memoryObservations"]
     (args.output / "verification.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: record[key] for key in ("schemaVersion", "status")}))
     return 0 if record["status"] == "PASS" else 1
