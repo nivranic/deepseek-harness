@@ -209,7 +209,9 @@ jobs:
           script: >-
             python3 -B ../../scripts/release/android_runtime.py
             --api-level 36 --page-size 16384 --output app/build/outputs/android-runtime.json
-            && ./gradlew --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest
+            && python3 -B ../../scripts/release/android_support_instrumentation.py
+            --source-sha "$DSH_ANDROID_SCANNER_SOURCE"
+            --output app/build/outputs/android-instrumentation.json
             && python3 -B ../../scripts/release/android_support_exports.py
             --apk app/build/outputs/apk/debug/app-debug.apk
             --source-sha "$DSH_ANDROID_SCANNER_SOURCE"
@@ -235,6 +237,7 @@ jobs:
           path: |
             apps/android/app/build/outputs/apk/debug/
             apps/android/app/build/outputs/android-runtime.json
+            apps/android/app/build/outputs/android-instrumentation.json
             apps/android/app/build/outputs/androidTest-results/connected/
             apps/android/app/build/reports/androidTests/connected/
           if-no-files-found: error

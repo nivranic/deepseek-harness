@@ -87,6 +87,19 @@ def observe_application_exits(device, baseline, pids):
     if baseline is None or current is None or not observed:
         return {"observation": "unavailable"}
     selected = [fields for key, fields in current.items() if key not in baseline and key[1] in observed]
+    return project_exits(selected)
+
+
+def observe_new_application_exits(device, baseline):
+    """Observe a main-package history delta even when instrumentation exits before a PID can be sampled."""
+    current = application_exit_records(device)
+    if baseline is None or current is None:
+        return {"observation": "unavailable"}
+    return project_exits([fields for key, fields in current.items() if key not in baseline])
+
+
+def project_exits(selected):
+    """Retain only fixed codes and memory samples after the caller selects its observation scope."""
     if not selected:
         return {"observation": "not-observed"}
     return {"observation": "observed", "records": [

@@ -70,6 +70,8 @@ Android 系统保存验收读取 DocumentsUI 实际写入的文件，不使用�
 
 Android 失败回执只将新的系统退出记录与场景内观测到的主进程关联。[退出投影](../../../../scripts/release/android_support_process.py)将舍入后的 PSS/RSS 采样记录为近似 KiB，因为 [ApplicationExitInfo](https://developer.android.com/reference/android/app/ApplicationExitInfo#getPss()) 提供的是系统最后一次采样，可能早于进程死亡。零表示没有采样。内存解析不能清除已知退出原因，也不能发布诊断描述、进程标识或 trace 路径；这些观测不能证明峰值占用或其原因。
 
+[instrumentation 观察器](../../../../scripts/release/android_support_instrumentation.py)在既有 Gradle 命令前后采集主进程历史差分，因为启动失败可能同时阻止 PID 采样及后续保存场景。回执明确标注这个更宽的区间，不将退出归因于某个具体测试。命令退出状态仍为权威结果，源码或设备校验拒绝时不调用命令。系统查询失败只使诊断不可用，不替换测试结果。
+
 AGP 将文件形式的扫描 AAR 记录为仅含摘要的依赖。清单保留该节点及原始依赖边，不虚构 Maven 坐标。Go 模块和许可证文本继续归属于已检查的 AAR。AGP 生成的扫描器资源类可能在 R8 之后保留，却没有改名类记录；其类字节与归档归属于资源编译器的实际输出。该例外不会放行其他未映射 DEX 类。
 
 [移动扫描库](../../../../native/support-scanner/README.zh.md)使用相同的固定上游规则，在内存中执行 canary 与文档准入。独立解析器排除环境配置；隔离 Go 运行时在检测前禁用扫描器日志。Gitleaks 可能在取消后返回部分发现，因此操作在准入字节前检查 context 完成状态，并在取消返回前等待扫描结束。结果访问器复制私有已准入字节。必需的 Go CI 作业在竞争检测前强制执行普通构建，使 CodeQL 获取独立于竞争检测缓存的编译。原生绑定、打包与移动导出操作仍需各自的平台验收。

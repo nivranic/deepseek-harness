@@ -13,7 +13,7 @@ interface Step {
   if?: string
   uses?: string
   'continue-on-error'?: boolean
-  with?: { script?: string; 'api-level'?: number; target?: string; arch?: string }
+  with?: { script?: string; 'api-level'?: number; target?: string; arch?: string; path?: string }
 }
 interface Workflow { jobs: { 'gradle-test': { steps: Step[] } } }
 
@@ -32,6 +32,14 @@ it.skipIf(process.platform !== 'linux').each([
     const bin = join(root, 'bin'), cwd = join(root, 'apps/android'), scripts = join(root, 'scripts/release')
     for (const directory of [bin, cwd, scripts]) mkdirSync(directory, { recursive: true })
     writeFileSync(join(scripts, 'android_runtime.py'), readFileSync('scripts/release/android_runtime.py'))
+    writeFileSync(join(scripts, 'android_support_instrumentation.py'), [
+      'import json, subprocess, sys',
+      'from pathlib import Path',
+      'assert sys.argv[1:] == ["--source-sha", "a" * 40, "--output", "app/build/outputs/android-instrumentation.json"]',
+      'code = subprocess.run(["./gradlew", "--no-daemon", "-Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true", ":app:connectedDebugAndroidTest"]).returncode',
+      'Path(sys.argv[4]).write_text(json.dumps({"status": "PASS" if code == 0 else "FAIL"}))',
+      'sys.exit(code)',
+    ].join('\n'))
     writeFileSync(join(scripts, 'android_support_exports.py'), 'import os, sys\nfrom pathlib import Path\nassert Path("instrumentation-started").exists()\nassert sys.argv[1:] == ["--apk", "app/build/outputs/apk/debug/app-debug.apk", "--source-sha", "a" * 40, "--output", os.environ["RUNNER_TEMP"] + "/android-support-export"]\nPath("system-export-started").write_text("started")\nsys.exit(int(os.environ["DSH_TEST_EXPORT_EXIT"]))\n')
     const adb = join(bin, 'adb'), gradle = join(cwd, 'gradlew')
     writeFileSync(adb, '#!/bin/sh\n[ "$DSH_TEST_ADB_EXIT" = 0 ] || exit "$DSH_TEST_ADB_EXIT"\ncase "$*" in\n"shell getprop ro.build.version.sdk") printf "%s\\n" "$DSH_TEST_API";;\n"shell getconf PAGE_SIZE") printf "%s\\n" "$DSH_TEST_PAGES";;\n*) exit 2;;\nesac\n')
@@ -47,6 +55,12 @@ it.skipIf(process.platform !== 'linux').each([
     const runtimeAccepted = api === '36' && pages === '16384' && adbExit === 0
     expect(existsSync(join(cwd, 'instrumentation-started'))).toBe(runtimeAccepted)
     expect(existsSync(join(cwd, 'system-export-started'))).toBe(runtimeAccepted && gradleExit === 0)
+    if (runtimeAccepted) {
+      const instrumentation = JSON.parse(readFileSync(join(cwd, 'app/build/outputs/android-instrumentation.json'), 'utf8')) as { status: string }
+      expect(instrumentation.status).toBe(gradleExit === 0 ? 'PASS' : 'FAIL')
+    }
+    expect(steps.find(step => step.name === 'Upload Android app and startup evidence')?.with?.path)
+      .toContain('apps/android/app/build/outputs/android-instrumentation.json')
     const receipt = JSON.parse(readFileSync(join(cwd, 'app/build/outputs/android-runtime.json'), 'utf8')) as { status: string }
     expect(receipt.status).toBe(runtimeAccepted ? 'PASS' : 'FAIL')
   } finally { rmSync(root, { recursive: true, force: true }) }
