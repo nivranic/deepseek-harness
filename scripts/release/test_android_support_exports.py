@@ -10,6 +10,7 @@ from unittest.mock import Mock, patch
 import zipfile
 
 from android_support_exports import application_pid, collect_export, copy_installed_apk, main, scanner_identity, validate_export, verify
+from android_support_process import HEADER
 
 
 class Device:
@@ -20,6 +21,8 @@ class Device:
         self.changed = self.fail_cleanup = False
 
     def shell(self, arguments, **_options):
+        if arguments[0] == "dumpsys":
+            return (HEADER + "\nLast Timestamp of Persistence Into Persistent Storage: 2026-09-12 00:00:00.000\n").encode()
         if arguments[0] == "pidof":
             return b"12345\n"
         if arguments[0] == "find":
@@ -83,9 +86,13 @@ class AndroidSupportExportTests(unittest.TestCase):
         self.assertIsNone(application_pid(device))
 
     def test_failed_exports_report_pid_comparison_without_identifiers_or_masking_failure(self):
-        cases = (([12345, 12345], "matched"), ([12345, 23456], "changed"),
-                 ([None, 23456], "unavailable"), ([12345, None], "unavailable"))
-        for index, (observations, expected) in enumerate(cases):
+        cases = (([12345, 12345, 12345, 12345], "matched", ["matched", "matched", "matched"]),
+                 ([12345, 12345, 12345, 23456], "changed", ["matched", "matched", "changed"]),
+                 ([12345, 23456, 23456, 23456], "changed", ["changed", "matched", "matched"]),
+                 ([12345, 12345, 23456, 23456], "changed", ["matched", "changed", "matched"]),
+                 ([None, 23456, 23456, 23456], "unavailable", ["unavailable", "matched", "matched"]),
+                 ([12345, 12345, 12345, None], "unavailable", ["matched", "matched", "unavailable"]))
+        for index, (observations, expected, phases) in enumerate(cases):
             with self.subTest(expected=expected):
                 output = self.root / ("process-evidence-" + str(index))
                 def fail(_apk, _source, _output, progress):
@@ -99,7 +106,20 @@ class AndroidSupportExportTests(unittest.TestCase):
                 self.assertEqual(json.loads((output / "verification.json").read_bytes()), {
                     "schemaVersion": 1, "status": "FAIL", "stage": "save",
                     "reason": "Android system support export was not accepted", "applicationPidComparison": expected,
+                    "applicationPidPhases": dict(zip(("cancel", "savePreparation", "save"), phases)),
+                    "applicationExit": {"observation": "not-observed"},
                 })
+
+    def test_system_query_failure_does_not_replace_the_original_save_failure(self):
+        progress = {}
+        with patch("android_support_exports.application_exit_records", return_value=None), \
+                patch("android_support_process.application_exit_records", return_value=None), \
+                patch.object(self.ui, "save", side_effect=ValueError("original save failure")), \
+                self.assertRaisesRegex(ValueError, "original save failure"):
+            self.collect(progress)
+        self.assertEqual(progress["stage"], "save")
+        self.assertEqual(progress["applicationExit"], {"observation": "unavailable"})
+        self.assertFalse(self.device.present)
 
     def test_accepts_the_kotlin_model_owned_unpaired_fixture(self):
         validate_export(self.data, self.product, self.identity)

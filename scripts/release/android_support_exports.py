@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from android_candidate_device import CandidateDevice, require_disposable_host
 from android_sbom_inventory import archive_entries, read_member, require, sha_file
 from android_support_ui import PACKAGE, SupportUi
+from android_support_process import application_exit_records, compare_pids, observe_application_exits
 from release.secret_scan import install_gitleaks, scan, self_test
 from release.support_exports import unique_object
 
@@ -111,16 +112,20 @@ def collect_export(device, ui, filename, product, identity, scanner, scratch, pr
     prefix = filename.removesuffix(".json")
     path = "/sdcard/Download/" + filename
     require(not owned_files(device, prefix), "Android support destination already exists")
+    exit_baseline = application_exit_records(device)
     started_pid = application_pid(device)
+    cancelled_pid = saving_pid = None
     try:
         progress["stage"] = "cancel-picker"
         ui.open_picker(filename)
         progress["stage"] = "cancel"
         ui.cancel()
+        cancelled_pid = application_pid(device)
         require(not owned_files(device, prefix), "Android cancellation created a document")
         ui.screenshot("cancelled")
         progress["stage"] = "save-picker"
         picker = ui.open_picker(filename)
+        saving_pid = application_pid(device)
         progress["stage"] = "save"
         ui.save(picker)
         progress["stage"] = "saved-document"
@@ -140,9 +145,15 @@ def collect_export(device, ui, filename, product, identity, scanner, scratch, pr
         return data
     finally:
         ended_pid = application_pid(device)
-        # Matching numbers do not prove process continuity; the OS can reuse an exited process's pid.
-        progress["applicationPidComparison"] = ("unavailable" if started_pid is None or ended_pid is None
-                                                else "matched" if started_pid == ended_pid else "changed")
+        progress["applicationPidComparison"] = compare_pids(started_pid, ended_pid)
+        progress["applicationPidPhases"] = {
+            "cancel": compare_pids(started_pid, cancelled_pid),
+            "savePreparation": compare_pids(cancelled_pid, saving_pid),
+            "save": compare_pids(saving_pid, ended_pid),
+        }
+        if sys.exc_info()[0] is not None:
+            progress["applicationExit"] = observe_application_exits(
+                device, exit_baseline, (started_pid, cancelled_pid, saving_pid, ended_pid))
         try:
             for file in owned_files(device, prefix):
                 device.shell(["rm", "--", file])
@@ -243,6 +254,9 @@ def main():
             record["apkIdentity"] = progress["apkIdentity"]
         if "applicationPidComparison" in progress:
             record["applicationPidComparison"] = progress["applicationPidComparison"]
+            record["applicationPidPhases"] = progress["applicationPidPhases"]
+        if "applicationExit" in progress:
+            record["applicationExit"] = progress["applicationExit"]
     (args.output / "verification.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: record[key] for key in ("schemaVersion", "status")}))
     return 0 if record["status"] == "PASS" else 1
