@@ -9,8 +9,7 @@ import { collectCandidateChecks, type CiGithub } from './ci-collector.ts'
 import { readRequiredChecks } from './ci-files.ts'
 import { evaluateReleaseChecklist, parseReleaseChecklist, type GovernanceObservation } from './governance.ts'
 
-/** Checkout-relative owner of engineering DoD and production-only manual actions. */
-export const RELEASE_CHECKLIST_FILE = 'release/checklist.json'
+const RELEASE_CHECKLIST_FILE = 'release/checklist.json'
 
 /** Source-bound engineering observation; unsigned integrity and live CI retain separate verdicts. */
 export type ReleaseReadiness = ReturnType<typeof evaluateReleaseChecklist> & {
