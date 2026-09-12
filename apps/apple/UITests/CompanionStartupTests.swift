@@ -83,15 +83,13 @@ final class CompanionStartupTests: XCTestCase {
         }
         XCTAssertTrue(appeared)
         XCTAssertFalse(app.buttons["companion.support.cancel"].exists)
-        let cancel = navigation.buttons["Cancel"].firstMatch
-        if cancel.exists && cancel.isHittable {
-            cancel.tap()
-        } else {
-            // Some system pickers omit a Cancel button; dismiss their modal sheet using its navigation area.
-            let start = navigation.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05))
-            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9))
-            start.press(forDuration: 0.1, thenDragTo: end)
-        }
+        // The system exporter can move Cancel outside its navigation bar and expose it as an Other element.
+        let cancel = app.descendants(matching: .any).matching(identifier: "Cancel").firstMatch
+        let cancelReady = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND hittable == true"), object: cancel
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [cancelReady], timeout: 10), .completed)
+        cancel.tap()
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             !picker.exists && export.exists && export.isEnabled
         }, object: nil)
