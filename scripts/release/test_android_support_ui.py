@@ -69,6 +69,38 @@ class AndroidSupportUiTests(unittest.TestCase):
                 ui.open_picker(filename)
         device.shell.assert_not_called()
 
+    def test_filename_keyboard_is_dismissed_before_confirming_the_same_picker_and_exact_name(self):
+        filename = "dsh-support-" + "a" * 32 + ".json"
+        app = ET.Element("hierarchy")
+        ET.SubElement(app, "node", {"package": PACKAGE, "text": "Export diagnostics", "enabled": "true", "bounds": "[0,0][10,10]"})
+        ET.SubElement(app, "node", {"package": PACKAGE, "text": "配对到宿主"})
+        picker = ET.Element("hierarchy")
+        ET.SubElement(picker, "node", {"package": DOCUMENTS, "resource-id": "android:id/title", "class": "android.widget.EditText",
+                                      "text": "dsh-support.json", "enabled": "true", "bounds": "[10,10][20,20]"})
+        ET.SubElement(picker, "node", {"package": DOCUMENTS, "resource-id": DOCUMENTS + ":id/breadcrumb_text", "text": "Downloads"})
+        for final_package, final_name, accepted in ((DOCUMENTS, filename, True), (PACKAGE, filename, False),
+                                                    (DOCUMENTS, "different.json", False)):
+            final = ET.Element("hierarchy")
+            ET.SubElement(final, "node", {"package": final_package, "resource-id": "android:id/title", "text": final_name})
+            roots = iter((app, picker, final))
+            device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
+            def wait(predicate, label):
+                root = next(roots)
+                if root is final:
+                    self.assertEqual(device.shell.call_args.args[0], ["input", "keyevent", "KEYCODE_BACK"])
+                if not predicate(root):
+                    raise ValueError(label)
+                return root
+            with self.subTest(package=final_package, name=final_name), patch.object(ui, "wait", side_effect=wait):
+                if accepted:
+                    self.assertIs(ui.open_picker(filename), final)
+                else:
+                    with self.assertRaises(ValueError):
+                        ui.open_picker(filename)
+                self.assertEqual(ui.step, "filename-confirmation")
+                self.assertEqual([call.args[0] for call in device.shell.call_args_list][-2:],
+                                 [["input", "text", filename], ["input", "keyevent", "KEYCODE_BACK"]])
+
     def test_observation_rejects_oversized_hierarchy_and_foreign_root(self):
         device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
         for data in (b"x" * (2 * 1024 * 1024 + 1), b"<foreign/>"):

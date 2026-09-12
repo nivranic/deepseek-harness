@@ -101,6 +101,8 @@ class SupportUi:
         self.click(root, DOCUMENTS, **{"resource-id": "android:id/title", "class": "android.widget.EditText"})
         self.device.shell(["input", "keycombination", "KEYCODE_CTRL_LEFT", "KEYCODE_A"])
         self.device.shell(["input", "text", filename])
+        self.step = "filename-keyboard-dismissal"
+        self.device.shell(["input", "keyevent", "KEYCODE_BACK"])
         self.step = "filename-confirmation"
         return self.wait(lambda tree: matching(tree, DOCUMENTS, **{"resource-id": "android:id/title", "text": filename}),
                          "Owned document filename")
