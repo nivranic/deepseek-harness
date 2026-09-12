@@ -90,6 +90,8 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 
 [内存观察器](../../scripts/release/android_support_memory.py)在取消前、取消后、保存前和尝试结束后记录 procfs 计数，并在成功和失败的验证回执中保留。它报告系统总内存、可用、空闲、缓存与交换空间，内存 PSI 十秒平均值与累计停顿微秒数，以及主进程驻留、匿名、文件、共享内存和 OOM 分数调整值。进程状态在 debug 应用的 UID 下读取，前后两次内核启动时刻观测必须一致；标识仍保持私有。每次读取限时两秒，各检查点记录查询耗时。权限缺失、进程终止或数据畸形只使对应观测不可用，未到达的检查点明确标注。顺序检查点不能测量同时值或峰值，内核 RSS 统计具有近似性。这些观测属于原生验证回执，不进入导出的支持文档。
 
+[Android Kotlin 工作流](../../.github/workflows/android-kotlin.yml)为 API 36 / 16 KiB 系统保存模拟器配置 4 GiB RAM，供应用、DocumentsUI 和输入法共同使用。这是 CI 环境设置，物理设备的受支持容量需要单独验收。进程死亡仍清除导出批准结果，每份保存文档仍须通过相同的准入检查。
+
 ## 已知限制与延后工作
 
 [Android 候选生产者](../../docs/development/release-candidate.zh.md#android-production) 将 unsigned bundle 清单、从该精确 AAB 派生的 APK、release 标识与原生库对齐检查，以及一次性 API 36／16 KiB 模拟器上的真实安装、启动和卸载合并为平台回执。该回执与生产签名、四平台发布验收仍分别负责。

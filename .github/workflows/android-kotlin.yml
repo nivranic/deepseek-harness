@@ -205,6 +205,7 @@ jobs:
           target: google_apis_ps16k
           arch: x86_64
           profile: pixel_6
+          ram-size: 4096M
           working-directory: apps/android
           script: >-
             python3 -B ../../scripts/release/android_runtime.py
