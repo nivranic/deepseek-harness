@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import Mock, patch
 import zipfile
 
-from android_support_exports import collect_export, copy_installed_apk, main, scanner_identity, validate_export, verify
+from android_support_exports import application_pid, collect_export, copy_installed_apk, main, scanner_identity, validate_export, verify
 
 
 class Device:
@@ -19,7 +19,9 @@ class Device:
         self.reads = 0
         self.changed = self.fail_cleanup = False
 
-    def shell(self, arguments):
+    def shell(self, arguments, **_options):
+        if arguments[0] == "pidof":
+            return b"12345\n"
         if arguments[0] == "find":
             return (self.path + "\n").encode() if self.present else b""
         if arguments[0] == "head":
@@ -69,6 +71,35 @@ class AndroidSupportExportTests(unittest.TestCase):
 
     def collect(self, progress=None):
         return collect_export(self.device, self.ui, self.filename, self.product, self.identity, self.root / "scanner", self.root, progress)
+
+    def test_process_diagnostics_reject_missing_ambiguous_and_private_output(self):
+        device = Mock()
+        device.shell.return_value = b"12345\n"
+        self.assertEqual(application_pid(device), 12345)
+        for value in (b"", b"0\n", b"123 456\n", b"private process diagnostic", b"1" * 33):
+            device.shell.return_value = value
+            self.assertIsNone(application_pid(device))
+        device.shell.side_effect = ValueError("private device error")
+        self.assertIsNone(application_pid(device))
+
+    def test_failed_exports_report_pid_comparison_without_identifiers_or_masking_failure(self):
+        cases = (([12345, 12345], "matched"), ([12345, 23456], "changed"),
+                 ([None, 23456], "unavailable"), ([12345, None], "unavailable"))
+        for index, (observations, expected) in enumerate(cases):
+            with self.subTest(expected=expected):
+                output = self.root / ("process-evidence-" + str(index))
+                def fail(_apk, _source, _output, progress):
+                    return self.collect(progress)
+                with patch("android_support_exports.application_pid", side_effect=observations), \
+                        patch.object(self.ui, "save", side_effect=ValueError("private approval failure")), \
+                        patch("android_support_exports.verify", side_effect=fail), \
+                        patch("android_support_exports.sys.argv", ["collector", "--apk", "private.apk", "--source-sha", "b" * 40,
+                                                                   "--output", str(output)]):
+                    self.assertEqual(main(), 1)
+                self.assertEqual(json.loads((output / "verification.json").read_bytes()), {
+                    "schemaVersion": 1, "status": "FAIL", "stage": "save",
+                    "reason": "Android system support export was not accepted", "applicationPidComparison": expected,
+                })
 
     def test_accepts_the_kotlin_model_owned_unpaired_fixture(self):
         validate_export(self.data, self.product, self.identity)

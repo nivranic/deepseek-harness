@@ -93,6 +93,17 @@ def saved_bytes(device, path):
     return data
 
 
+def application_pid(device):
+    """Read a private numeric observation; unavailable diagnostics never override export failure."""
+    try:
+        value = device.shell(["pidof", PACKAGE], timeout=5, empty_exit=True)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+    if len(value) > 32 or re.fullmatch(rb"[1-9][0-9]{0,9}\s*", value) is None:
+        return None
+    return int(value)
+
+
 def collect_export(device, ui, filename, product, identity, scanner, scratch, progress=None):
     """Cancel before saving and admit final bytes only after a canary, independent scan and stable reread."""
     progress = {} if progress is None else progress
@@ -100,6 +111,7 @@ def collect_export(device, ui, filename, product, identity, scanner, scratch, pr
     prefix = filename.removesuffix(".json")
     path = "/sdcard/Download/" + filename
     require(not owned_files(device, prefix), "Android support destination already exists")
+    started_pid = application_pid(device)
     try:
         progress["stage"] = "cancel-picker"
         ui.open_picker(filename)
@@ -127,6 +139,10 @@ def collect_export(device, ui, filename, product, identity, scanner, scratch, pr
         ui.screenshot("saved")
         return data
     finally:
+        ended_pid = application_pid(device)
+        # Matching numbers do not prove process continuity; the OS can reuse an exited process's pid.
+        progress["applicationPidComparison"] = ("unavailable" if started_pid is None or ended_pid is None
+                                                else "matched" if started_pid == ended_pid else "changed")
         try:
             for file in owned_files(device, prefix):
                 device.shell(["rm", "--", file])
@@ -225,6 +241,8 @@ def main():
                   "reason": "Android system support export was not accepted"}
         if "apkIdentity" in progress:
             record["apkIdentity"] = progress["apkIdentity"]
+        if "applicationPidComparison" in progress:
+            record["applicationPidComparison"] = progress["applicationPidComparison"]
     (args.output / "verification.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: record[key] for key in ("schemaVersion", "status")}))
     return 0 if record["status"] == "PASS" else 1
