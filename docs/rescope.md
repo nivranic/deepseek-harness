@@ -41,6 +41,8 @@ Subpath exports keep their path: `@cordisjs/plugin-loader/repository` becomes `@
 
 ## Applying, verifying, and reverting
 
+Exact documentation edits own complete package names and renaming instructions, while preserving padding, descriptions, publication metadata and version policy. Missing, duplicated or mixed instructions fail verification. In the desktop composition roster and Inspector observation files, syntax-specific exemptions preserve preset and topic values; imports, exports, module declarations and module-resolution calls in those files still follow the package mapping.
+
 [`scripts/rescope-vendor.ts`](../scripts/rescope-vendor.ts) owns the mapping above and performs the rename, so no reference is renamed by hand:
 
 ```sh

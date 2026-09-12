@@ -4,14 +4,25 @@ import ai.deepseek.dsh.link.LinkArtifactFormat
 import ai.deepseek.dsh.link.LinkArtifactReadValue
 
 import ai.deepseek.dsh.link.WireValue
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 /** One session row in the list. */
 data class SessionRow(val id: String, val title: String, val updatedAt: Double?)
@@ -56,6 +67,151 @@ data class SubagentRow(
     val reason: String?,
 )
 
+/** Serializes stream replacement and keeps every active or pending job awaitable. */
+internal class StreamTransitionOwner(private val scope: CoroutineScope) {
+    private val transition = Mutex()
+    private data class Observation(val generation: Long, val snapshot: ConnectionSnapshot)
+    private val observation = AtomicReference(Observation(0, ConnectionSnapshot(ConnectionState.IDLE, 0, 0, null)))
+    private val active = AtomicReference<Job?>()
+    private val pending = ConcurrentHashMap.newKeySet<Job>()
+
+    val connectionSnapshot: ConnectionSnapshot get() = observation.get().snapshot
+
+    fun isCurrent(value: Long): Boolean = observation.get().generation == value
+
+    private fun advanceGeneration(state: ConnectionState): Long = observation.updateAndGet {
+        Observation(it.generation + 1, it.snapshot.copy(state = state, lastFailure = null))
+    }.generation
+
+    private fun update(value: Long, change: (ConnectionSnapshot) -> ConnectionSnapshot) {
+        observation.updateAndGet {
+            if (it.generation != value || it.snapshot.state == ConnectionState.STOPPING || it.snapshot.state == ConnectionState.STOPPED) it
+            else it.copy(snapshot = change(it.snapshot))
+        }
+    }
+
+    fun attempt(value: Long) = update(value) {
+        it.copy(attempts = if (it.attempts == Long.MAX_VALUE) it.attempts else it.attempts + 1)
+    }
+
+    fun received(value: Long) = update(value) { it.copy(state = ConnectionState.OPEN, lastFailure = null) }
+
+    fun interrupted(value: Long, error: Throwable?) = update(value) {
+        it.copy(state = ConnectionState.ENDED, lastFailure = error?.let { failure -> ConnectionFailure.from(failure) },
+            interruptions = if (it.interruptions == Long.MAX_VALUE) it.interruptions else it.interruptions + 1)
+    }
+
+    fun retrying(value: Long) = update(value) { it.copy(state = ConnectionState.RECONNECTING) }
+
+    private fun finished(value: Long) {
+        update(value) { it.copy(state = ConnectionState.ENDED) }
+        settleStopped()
+    }
+
+    /** A synchronous stop remains stopping while a replacement or its retired stream still owns work. */
+    private fun settleStopped() {
+        if (!transition.tryLock()) return
+        try {
+            if (active.get()?.isCompleted == false || pending.any { !it.isCompleted }) return
+            observation.updateAndGet {
+                if (it.snapshot.state == ConnectionState.STOPPING) it.copy(snapshot = it.snapshot.copy(state = ConnectionState.STOPPED)) else it
+            }
+        } finally {
+            transition.unlock()
+        }
+    }
+
+    suspend fun replace(
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        val nextGeneration = advanceGeneration(ConnectionState.OPENING)
+        withContext(NonCancellable) {
+            replaceGeneration(nextGeneration, create, publish, invalidate)
+        }
+    }
+
+    fun replaceAsync(
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        val nextGeneration = advanceGeneration(ConnectionState.OPENING)
+        val pendingJob = scope.launch(start = CoroutineStart.LAZY) {
+            withContext(NonCancellable) {
+                replaceGeneration(nextGeneration, create, publish, invalidate)
+            }
+        }
+        pending.add(pendingJob)
+        pendingJob.invokeOnCompletion { failure ->
+            pending.remove(pendingJob)
+            if (failure != null) finished(nextGeneration) else settleStopped()
+        }
+        pendingJob.start()
+    }
+
+    fun stop(invalidate: () -> Unit) {
+        advanceGeneration(ConnectionState.STOPPING)
+        active.get()?.cancel()
+        invalidate()
+        settleStopped()
+    }
+
+    suspend fun stopAndAwait(invalidate: () -> Unit) {
+        withContext(NonCancellable) {
+            stop(invalidate)
+            while (true) {
+                pending.toList().joinAll()
+                transition.withLock {
+                    active.getAndSet(null)?.cancelAndJoin()
+                    invalidate()
+                }
+                if (pending.isEmpty()) return@withContext
+            }
+        }
+        settleStopped()
+    }
+
+    private suspend fun replaceGeneration(
+        value: Long,
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        try {
+            transition.withLock {
+                active.getAndSet(null)?.cancelAndJoin()
+                if (!isCurrent(value)) return@withLock
+                val next = create(value)
+                active.set(next)
+                next.invokeOnCompletion { finished(value) }
+                if (!isCurrent(value)) {
+                    retire(next, invalidate)
+                    return@withLock
+                }
+                publish()
+                if (!isCurrent(value)) {
+                    retire(next, invalidate)
+                    return@withLock
+                }
+                if (!next.start()) {
+                    active.compareAndSet(next, null)
+                    invalidate()
+                }
+            }
+        } finally {
+            settleStopped()
+        }
+    }
+
+    private suspend fun retire(job: Job, invalidate: () -> Unit) {
+        active.compareAndSet(job, null)
+        invalidate()
+        job.cancelAndJoin()
+    }
+}
+
 /**
  * The session-slice state machine — the Kotlin mirror of the Swift
  * `RemoteSessionViewModel`: list sessions, open one, fold the follow
@@ -64,7 +220,11 @@ data class SubagentRow(
  * Every field the UI renders is a [StateFlow], so Compose recomposes on
  * each emission rather than re-reading on navigation.
  */
-class SessionModel(private val wire: WireDriving, private val scope: CoroutineScope) {
+class SessionModel(
+    private val wire: WireDriving,
+    private val scope: CoroutineScope,
+    private val reconnectDelayMillis: Long = 1_000,
+) {
     private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
     val sessions: StateFlow<List<SessionRow>> = _sessions
 
@@ -77,7 +237,8 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
     private val _sending = MutableStateFlow(false)
     val sending: StateFlow<Boolean> = _sending
 
-    private var followJob: Job? = null
+    private val followOwner = StreamTransitionOwner(scope)
+    val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
 
     /** The fold state of the open session, when one is. */
     val state: DomainState get() = _open.value?.state ?: DomainState()
@@ -154,9 +315,8 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
 
     /** Open one session: fold its follow stream from a fresh snapshot. */
     suspend fun openSession(sessionId: String) {
-        followJob?.cancel()
-        _open.value = OpenSession(sessionId, DomainState())
-        followJob = follow(
+        replaceFollow(
+            sessionId,
             mapOf(
                 "request" to WireValue.ObjectValue(
                     mapOf(
@@ -171,9 +331,8 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
 
     /** Open one subagent child's timeline read-only by durable address. */
     suspend fun openChild(parentSessionId: String, childSessionId: String, mode: String) {
-        followJob?.cancel()
-        _open.value = OpenSession(childSessionId, DomainState())
-        followJob = follow(
+        replaceFollow(
+            childSessionId,
             mapOf(
                 "request" to WireValue.ObjectValue(
                     mapOf(
@@ -191,10 +350,22 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
         )
     }
 
+    /** Request follow shutdown without suspending synchronous UI disposal. */
     fun close() {
-        followJob?.cancel()
-        followJob = null
-        _open.value = null
+        followOwner.stop { _open.value = null }
+    }
+
+    /** Close the open session after its follow stream has fully stopped. */
+    suspend fun closeAndAwait() {
+        followOwner.stopAndAwait { _open.value = null }
+    }
+
+    private suspend fun replaceFollow(sessionId: String, payload: Map<String, WireValue>) {
+        followOwner.replace(
+            create = { generation -> follow(payload, generation) },
+            publish = { _open.value = OpenSession(sessionId, DomainState()) },
+            invalidate = { _open.value = null },
+        )
     }
 
     /** Submit one user prompt in queue mode; the host promotes any inline
@@ -245,15 +416,35 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
         )
     }
 
-    private fun follow(payload: Map<String, WireValue>): Job = scope.launch {
-        wire.stream("session/follow", payload)
-            .catch { }
-            .collect { frame -> foldFrame(frame) }
+    private fun follow(payload: Map<String, WireValue>, generation: Long): Job =
+        scope.launch(start = CoroutineStart.LAZY) {
+            while (isActive && followOwner.isCurrent(generation)) {
+                followOwner.attempt(generation)
+                var received = false
+                try {
+                    wire.stream("session/follow", payload).collect { frame ->
+                        if (followOwner.isCurrent(generation)) {
+                            if (!received) { followOwner.received(generation); received = true }
+                            foldFrame(frame, generation)
+                        }
+                    }
+                    followOwner.interrupted(generation, null)
+                } catch (failure: CancellationException) {
+                    throw failure
+                } catch (failure: Exception) {
+                    followOwner.interrupted(generation, failure)
+                }
+                if (isActive && followOwner.isCurrent(generation)) {
+                    followOwner.retrying(generation)
+                    delay(reconnectDelayMillis)
+                }
+            }
     }
 
     /** A snapshot generation resets and replays its records; any other
      * frame is one live event entry folded onto the current state. */
-    private fun foldFrame(frame: WireValue) {
+    private fun foldFrame(frame: WireValue, generation: Long) {
+        if (!followOwner.isCurrent(generation)) return
         val current = _open.value ?: return
         val kind = WireShape.string(frame, "type") ?: ""
         val newState = if (kind == "snapshot") {
@@ -263,6 +454,7 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
             foldInto(current.state, JsonArray(listOf(frame.toJsonElement())))
         }
         _open.value = current.copy(state = newState)
+        if (!followOwner.isCurrent(generation)) _open.value = null
     }
 }
 
@@ -271,43 +463,100 @@ class SessionModel(private val wire: WireDriving, private val scope: CoroutineSc
  * `InteractionViewModel`: watch `$events` for approval and question
  * forwards, deduplicate by event id, answer through `$events/result`.
  */
-class InteractionModel(private val wire: WireDriving, private val scope: CoroutineScope) {
+class InteractionModel(
+    private val wire: WireDriving,
+    private val scope: CoroutineScope,
+    private val reconnectDelayMillis: Long = 1_000,
+) {
     private val _inbox = MutableStateFlow<List<PendingInteraction>>(emptyList())
     val inbox: StateFlow<List<PendingInteraction>> = _inbox
 
     private val _answering = MutableStateFlow(false)
     val answering: StateFlow<Boolean> = _answering
 
-    private var watchJob: Job? = null
+    private val _clientId = MutableStateFlow("")
+    val clientId: StateFlow<String> = _clientId
+
+    private val _lastRefusal = MutableStateFlow<String?>(null)
+    val lastRefusal: StateFlow<String?> = _lastRefusal
+
+    private val watchOwner = StreamTransitionOwner(scope)
+    val connectionSnapshot: ConnectionSnapshot get() = watchOwner.connectionSnapshot
 
     fun startWatching() {
-        watchJob?.cancel()
-        watchJob = scope.launch {
-            wire.stream("\$events")
-                .catch { }
-                .collect { frame -> collect(frame) }
+        watchOwner.replaceAsync(
+            create = { generation -> watch(generation) },
+            publish = { _clientId.value = "" },
+            invalidate = { _clientId.value = "" },
+        )
+    }
+
+    /** Request event-stream shutdown without suspending synchronous UI disposal. */
+    fun stopWatching() {
+        watchOwner.stop { _clientId.value = "" }
+    }
+
+    /** Stop watching after the event stream has fully stopped. */
+    suspend fun stopWatchingAndAwait() {
+        watchOwner.stopAndAwait { _clientId.value = "" }
+    }
+
+    private fun watch(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
+        while (isActive && watchOwner.isCurrent(generation)) {
+            _clientId.value = ""
+            watchOwner.attempt(generation)
+            var received = false
+            try {
+                wire.stream("\$events").collect { frame ->
+                    if (watchOwner.isCurrent(generation)) {
+                        if (!received) { watchOwner.received(generation); received = true }
+                        collect(frame)
+                        if (!watchOwner.isCurrent(generation)) _clientId.value = ""
+                    }
+                }
+                watchOwner.interrupted(generation, null)
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                watchOwner.interrupted(generation, failure)
+            }
+            if (isActive && watchOwner.isCurrent(generation)) {
+                watchOwner.retrying(generation)
+                delay(reconnectDelayMillis)
+            }
         }
     }
 
-    fun stopWatching() {
-        watchJob?.cancel()
-        watchJob = null
-    }
-
     fun collect(frame: WireValue) {
+        when (WireShape.string(frame, "type")) {
+            "ready" -> {
+                _clientId.value = WireShape.string(frame, "clientId") ?: ""
+                return
+            }
+            "cancel" -> {
+                val eventId = WireShape.string(frame, "eventId") ?: return
+                _inbox.update { current -> current.filterNot { it.id == eventId } }
+                return
+            }
+            "waterfall" -> Unit
+            else -> return
+        }
         val eventName = WireShape.string(frame, "event") ?: ""
         val isApproval = eventName.contains("approval")
         val isQuestion = eventName.contains("question")
         if (!isApproval && !isQuestion) return
         val id = WireShape.string(frame, "eventId") ?: return
+        val request = WireShape.objectValue(frame, "request") ?: return
         if (_inbox.value.any { it.id == id }) return
         _inbox.update { current ->
             current + PendingInteraction(
                 id = id,
                 kind = if (isApproval) PendingInteraction.Kind.APPROVAL else PendingInteraction.Kind.QUESTION,
-                sessionId = WireShape.string(frame, "sessionId") ?: "",
-                title = WireShape.string(frame, "title") ?: if (isApproval) "Approval requested" else "Question asked",
-                detail = WireShape.string(frame, "text") ?: "",
+                sessionId = WireShape.string(request, "sessionId") ?: "",
+                title = WireShape.string(request, "title")
+                    ?: WireShape.string(request, "toolName")
+                    ?: if (isApproval) "Approval requested" else "Question asked",
+                detail = WireShape.string(request, "reason") ?: WireShape.string(request, "text") ?: "",
             )
         }
     }
@@ -315,12 +564,19 @@ class InteractionModel(private val wire: WireDriving, private val scope: Corouti
     /** Answer one pending interaction; success retires the card. */
     suspend fun answer(pending: PendingInteraction, allowedOnce: Boolean) {
         _answering.value = true
+        _lastRefusal.value = null
         try {
+            val readyClientId = _clientId.value
+            if (readyClientId.isEmpty()) {
+                _lastRefusal.value = "Remote Event stream is not ready."
+                return
+            }
             wire.call(
                 "\$events/result",
                 mapOf(
+                    "clientId" to WireValue.StringValue(readyClientId),
                     "eventId" to WireValue.StringValue(pending.id),
-                    "result" to WireValue.ObjectValue(
+                    "outcome" to WireValue.ObjectValue(
                         mapOf(
                             "kind" to WireValue.StringValue("result"),
                             "value" to WireValue.StringValue(if (allowedOnce) "allowed-once" else "rejected"),
@@ -329,6 +585,8 @@ class InteractionModel(private val wire: WireDriving, private val scope: Corouti
                 ),
             )
             _inbox.update { current -> current.filterNot { it.id == pending.id } }
+        } catch (failure: Exception) {
+            _lastRefusal.value = failure.message
         } finally {
             _answering.value = false
         }
@@ -362,29 +620,41 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
     private val _openFileError = MutableStateFlow<String?>(null)
     val openFileError: StateFlow<String?> = _openFileError
 
-    private var followJob: Job? = null
+    private val followOwner = StreamTransitionOwner(scope)
+    val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
 
     fun start() {
-        followJob?.cancel()
-        followJob = scope.launch {
-            wire.stream("workspace/follow")
-                .catch { }
-                .collect { frame ->
-                    val records = WireShape.array(frame, "records") ?: return@collect
-                    val rows = records.mapNotNull { record ->
-                        val id = WireShape.string(record, "id") ?: return@mapNotNull null
-                        WorkspaceRow(id = id, title = WireShape.string(record, "title") ?: id)
-                    }
-                    _workspaces.value = rows
-                    if (_selectedWorkspace.value == null && rows.isNotEmpty()) _selectedWorkspace.value = rows[0].id
+        followOwner.replaceAsync(create = { generation -> follow(generation) }, publish = {}, invalidate = {})
+    }
+
+    private fun follow(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
+        followOwner.attempt(generation)
+        var received = false
+        try {
+            wire.stream("workspace/follow").collect { frame ->
+                if (!followOwner.isCurrent(generation)) return@collect
+                if (!received) { followOwner.received(generation); received = true }
+                val records = WireShape.array(frame, "records") ?: return@collect
+                val rows = records.mapNotNull { record ->
+                    val id = WireShape.string(record, "id") ?: return@mapNotNull null
+                    WorkspaceRow(id = id, title = WireShape.string(record, "title") ?: id)
                 }
+                _workspaces.value = rows
+                if (_selectedWorkspace.value == null && rows.isNotEmpty()) _selectedWorkspace.value = rows[0].id
+            }
+            followOwner.interrupted(generation, null)
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            followOwner.interrupted(generation, failure)
         }
     }
 
     fun stop() {
-        followJob?.cancel()
-        followJob = null
+        followOwner.stop {}
     }
+
+    suspend fun stopAndAwait() { followOwner.stopAndAwait {} }
 
     fun select(workspaceId: String) {
         _selectedWorkspace.value = workspaceId

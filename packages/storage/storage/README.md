@@ -76,6 +76,8 @@ The hub is a pure registration table with two faces, designed so backends and da
 
 ### The backend contract
 
+`kv.open(descriptor, onBackendClose?)` accepts the owner teardown for a unit. Backend close calls it once before releasing that unit, allowing the owner to drain work not yet submitted to backend I/O. The callback may close its unit but must not await backend close; unit close alone does not call it. A rejected owner callback still releases the units and medium and rejects backend close with an aggregate error.
+
 [`src/backend.ts`](src/backend.ts) is the normative contract for backend implementers, checked clause by clause by the shared conformance suite in `tests/contract.ts`. A backend owns exactly one medium and exposes optional data-shape facets; `kv` is the only facet, and opening a unit yields a versioned, globally-singleton schema handle whose single calls are atomic and durable once resolved. Unit and table names must match `UNIT_NAME_RE`; record keys are arbitrary strings that never reach file paths. The unit does not serialize concurrent writes — ordering belongs to the caller — and a stored version differing from the descriptor rejects `version-mismatch` (no migration).
 
 ### Source map

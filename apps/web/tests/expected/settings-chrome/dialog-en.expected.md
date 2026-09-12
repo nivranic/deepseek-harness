@@ -13,6 +13,9 @@
     - button "Agent presets":
       - img
       - text: Agent presets
+    - button "About":
+      - img
+      - text: About
   - button "Open configuration file"
   - button "Close":
     - img

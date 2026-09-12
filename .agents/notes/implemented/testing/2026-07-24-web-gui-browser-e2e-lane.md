@@ -20,6 +20,8 @@ A plain shared-fixture module (the [testing-policy sanctioned shape](../../../..
 
 Keyless model displacement is the disabled adapter row plus `installLlmReplay` filling the empty adapter registry on the settled root ctx in providers-catalog mode — never catch-all: with the adapter row disabled no adapter exists, so catch-all would leave `resolveModelInfo` unroutable and `compaction-basic`'s post-step pressure check would warn every step instead of being provably inert (the published 128k `contextWindow` keeps it inert for small fixtures). The direct install rather than an inserted replay plugin row is deliberate: it returns the `ReplayHandle` the teardown consumption check needs. A scenario with no fixture leaves the registry empty, so a stray stream fails loud with NO_ADAPTER.
 
+Server-side scaffold requests connect to the fixture listener at `127.0.0.1` while preserving the browser authority in the HTTP `Host` field. Remote-origin cases therefore exercise the same authentication and settings policy without depending on the operating system to resolve a synthetic `.localhost` name. Chromium still receives the remote authority for page navigation.
+
 `seedSession()` seeds cold sessions through the real persistence API — a throwaway `Context` mounting `SessionStore` + `JsonlSessionPersistence` against the host's root, `create()` + `append()`, one `utimes` backdate for deterministic sidebar order (the `semantic-checkpoint.snapshot.ts` precedent) — never raw file writes, so the seeder knows nothing of bucket hashing, filename encoding, or compression, and the host's zstd default needs no boot knob. Seeds are validated at seed time (parseable, ending in `turn/end` — an open final turn would be mutated by resume's crash repair).
 
 ### Determinism rules

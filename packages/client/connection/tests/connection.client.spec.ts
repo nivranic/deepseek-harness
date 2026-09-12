@@ -8,6 +8,109 @@ import { FakeGenerationSource } from './fake-generation.client.ts'
 const FAST = { backoffBaseMs: 10, backoffFactor: 1, backoffMaxMs: 10, generationReadyTimeoutMs: 500 }
 
 describe('connection lifecycle', () => {
+  it('captures readiness and waits for aborted source work before reporting stopped', async () => {
+    let ready: (() => void) | undefined
+    let finish: (() => void) | undefined
+    const source: ConnectionGenerationSource = (_signal, opened) => new Promise<void>((resolve) => {
+      ready = () => { opened({ home: '/private-host-home' }) }
+      finish = resolve
+    })
+    const controller = new ConnectionController(source, {}, FAST)
+    const idle = controller.diagnosticSnapshot()
+    expect(idle).toEqual({ state: 'idle', attempts: 0, interruptions: 0, countsSaturated: false })
+    controller.start()
+    const opening = controller.diagnosticSnapshot()
+    expect(opening).toEqual({ ...idle, state: 'opening', attempts: 1 })
+    try {
+      await vi.waitFor(() => { expect(ready).toBeDefined() })
+      ready!()
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('connected') })
+      controller.stop()
+      expect(controller.diagnosticSnapshot().state).toBe('stopping')
+      finish!()
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('stopped') })
+      expect(controller.diagnosticSnapshot()).toEqual({ ...opening, state: 'stopped' })
+      expect(idle.state).toBe('idle')
+      expect(opening.state).toBe('opening')
+      expect(JSON.stringify(controller.diagnosticSnapshot())).not.toContain('private')
+    } finally { controller.stop(); finish?.() }
+  })
+
+  it('cancels a retry delay when stopped and retains the settled interruption count', async () => {
+    const source = new FakeGenerationSource()
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const controller = new ConnectionController(source.source, {}, { ...FAST, backoffBaseMs: 10_000, backoffMaxMs: 10_000 })
+    controller.start()
+    try {
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('connected') })
+      source.end()
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot()).toEqual({ state: 'reconnecting', attempts: 1, interruptions: 1, countsSaturated: false }) })
+      controller.stop()
+      // A live backoff would take at least five seconds; cancellation settles it within this ordinary wait.
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('stopped') })
+      expect(controller.diagnosticSnapshot().attempts).toBe(1)
+    } finally { controller.stop(); warning.mockRestore() }
+  })
+
+  it('does not let a retired loop restart after a replacement is connected', async () => {
+    const finishes: Array<() => void> = []
+    const source: ConnectionGenerationSource = (_signal, ready) => new Promise<void>((resolve) => {
+      finishes.push(resolve)
+      ready({ home: '/private-host-home' })
+    })
+    const controller = new ConnectionController(source, {}, FAST)
+    controller.start()
+    try {
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('connected') })
+      controller.stop()
+      controller.start()
+      await vi.waitFor(() => { expect(finishes).toHaveLength(2) })
+      finishes[0]!()
+      await new Promise(resolve => setTimeout(resolve, 40))
+      expect(finishes).toHaveLength(2)
+      expect(controller.diagnosticSnapshot()).toEqual({ state: 'connected', attempts: 2, interruptions: 0, countsSaturated: false })
+      controller.stop()
+      expect(controller.diagnosticSnapshot().state).toBe('stopping')
+      finishes[1]!()
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('stopped') })
+    } finally { controller.stop(); for (const finish of finishes) finish() }
+  })
+
+  it('does not invoke a source when its owner stops before deferred startup', async () => {
+    const source = vi.fn<ConnectionGenerationSource>(() => Promise.resolve())
+    const controller = new ConnectionController(source, {}, FAST)
+    controller.start()
+    controller.stop()
+    await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('stopped') })
+    expect(source).not.toHaveBeenCalled()
+    expect(controller.diagnosticSnapshot().interruptions).toBe(0)
+  })
+
+  it('reports a readiness timeout while the aborted source is still settling', async () => {
+    let signal: AbortSignal | undefined
+    let finish: (() => void) | undefined
+    const source: ConnectionGenerationSource = received => new Promise<void>((resolve) => {
+      signal = received
+      finish = resolve
+    })
+    const controller = new ConnectionController(source, {}, { ...FAST, generationReadyTimeoutMs: 5 })
+    controller.start()
+    try {
+      await vi.waitFor(() => { expect(signal?.aborted).toBe(true) })
+      expect(controller.diagnosticSnapshot()).toEqual({ state: 'reconnecting', attempts: 1, interruptions: 0, countsSaturated: false })
+      controller.stop()
+      finish!()
+      await vi.waitFor(() => { expect(controller.diagnosticSnapshot().state).toBe('stopped') })
+    } finally { controller.stop(); finish?.() }
+  })
+
+  it('bounds lifetime counters without serializing Host facts', () => {
+    const controller = new ConnectionController(() => Promise.resolve())
+    // Advance lifetime counters to their wire limit without billions of transport operations.
+    Object.assign(controller, { generation: 0x1_0000_0000, interruptions: 0xffff_ffff })
+    expect(controller.diagnosticSnapshot()).toEqual({ state: 'stopped', attempts: 0xffff_ffff, interruptions: 0xffff_ffff, countsSaturated: true })
+  })
+
   it('announces connected with the Host facts from generation readiness', async () => {
     const source = new FakeGenerationSource()
     const homes: string[] = []

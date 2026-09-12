@@ -39,7 +39,11 @@ async function runCompanion(pairingPayload: LinkPairingPayload, sessionId: strin
 
 `pair` validates the payload's protocol version and expiry, then exchanges the one-time code for a device identity over the pinned connection. `call` throws `LinkError` with the carrier's or gateway's stable code; `openStream` ends quietly on caller abort and throws `LinkError` (`carrier-lost`) when the carrier drops mid-stream — the caller resubscribes, exactly like the browser carrier's stream restart.
 
+`openStream` decodes UTF-8 continuously before parsing NDJSON frames, preserving multibyte characters split across response data chunks.
+
 ### Keep the credentials
+
+The TLS trust anchor is the SPKI fingerprint supplied by the pairing flow. The caller must authenticate that fingerprint out of band before pairing; public CA chains and certificate hostnames do not identify a private Link Host.
 
 Persist the device id and signing key in platform secure storage (Keychain on Apple, Keystore-backed storage on Android). A lost key is recovered by pairing again; the old device record should be revoked.
 

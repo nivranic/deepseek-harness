@@ -1,3 +1,6 @@
+/** Readiness, retry ownership and payload-free observations for the browser Connection loop. */
+import type { ConnectionDiagnosticSnapshot } from '../types.ts'
+
 /** Stable Host facts delivered by one established Remote event generation. */
 export interface ConnectionHostInfo {
   /** Host account home used only to abbreviate displayed filesystem paths. */
@@ -78,8 +81,9 @@ export type ConnectionGenerationSource = (
 export class ConnectionController {
   private generation = 0
   private attempt = 0
-  private current: AbortController | null = null
-  private running = false
+  private owner: { controller: AbortController } | null = null
+  private pendingLoops = 0
+  private interruptions = 0
   private lastState: ConnectionState | null = null
   private readonly config: Required<ConnectionConfig>
 
@@ -93,16 +97,37 @@ export class ConnectionController {
 
   /** Idempotent: begin the connect/pump/reconnect loop. */
   start(): void {
-    if (this.running) return
-    this.running = true
-    void this.loop()
+    if (this.owner !== null) return
+    const owner = { controller: new AbortController() }
+    this.owner = owner
+    this.lastState = null
+    this.attempt = 0
+    this.pendingLoops++
+    void this.loop(owner).finally(() => { this.pendingLoops-- })
   }
 
   /** Stop the loop and abort the current generation source. */
   stop(): void {
-    this.running = false
-    this.current?.abort()
-    this.current = null
+    const owner = this.owner
+    this.owner = null
+    owner?.controller.abort()
+  }
+
+  /**
+   * Capture fixed generation facts without Host home, request ids, payloads or exception text.
+   * @returns a value copy; stopping persists until all retired source work has settled.
+   */
+  diagnosticSnapshot(): ConnectionDiagnosticSnapshot {
+    const owner = this.owner
+    const state = this.generation === 0 ? 'idle'
+      : owner === null ? (this.pendingLoops === 0 ? 'stopped' : 'stopping')
+        : owner.controller.signal.aborted ? 'reconnecting' : this.lastState ?? 'opening'
+    return {
+      state,
+      attempts: Math.min(this.generation, 0xffff_ffff),
+      interruptions: this.interruptions,
+      countsSaturated: this.generation >= 0xffff_ffff,
+    }
   }
 
   private backoffDelay(attempt: number): number {
@@ -111,21 +136,20 @@ export class ConnectionController {
     return cap / 2 + Math.random() * (cap / 2)
   }
 
-  /** Read through a method: stop() flips the flag across awaits, so narrowing from the loop condition must not stick. */
-  private isRunning(): boolean {
-    return this.running
+  /** A retired loop cannot resume when a replacement starts before its source settles. */
+  private isRunning(owner: object): boolean {
+    return this.owner === owner
   }
 
   /** Re-read both mutable liveness guards after a potentially reentrant sink. */
-  private isGenerationActive(controller: AbortController): boolean {
-    return this.isRunning() && !controller.signal.aborted
+  private isGenerationActive(controller: AbortController, owner: object): boolean {
+    return this.isRunning(owner) && !controller.signal.aborted
   }
 
-  private async loop(): Promise<void> {
-    while (this.running) {
+  private async loop(owner: { controller: AbortController }): Promise<void> {
+    while (this.isRunning(owner)) {
       const gen = ++this.generation
-      const ac = new AbortController()
-      this.current = ac
+      const ac = owner.controller
 
       let sourceReady = false
       let resolveReady!: (host: ConnectionHostInfo) => void
@@ -150,7 +174,7 @@ export class ConnectionController {
           resolve()
         }
         void Promise.resolve()
-          .then(() => this.source(ac.signal, reportReady))
+          .then(() => this.isRunning(owner) ? this.source(ac.signal, reportReady) : undefined)
           .then(
             () => {
               const error = new Error('connection generation ended')
@@ -178,7 +202,7 @@ export class ConnectionController {
         this.attempt = 0
         this.emitState('connected')
         // A state sink may synchronously stop this controller.
-        if (this.isGenerationActive(ac)) {
+        if (this.isGenerationActive(ac, owner)) {
           this.callSink(() => { this.sinks.onConnected?.(host) })
         }
       } catch {
@@ -187,12 +211,16 @@ export class ConnectionController {
       }
 
       await failed
-      if (!this.isRunning()) return
+      if (!this.isRunning(owner)) return
+      this.interruptions = Math.min(this.interruptions + 1, 0xffff_ffff)
       this.emitState('reconnecting')
+      if (!this.isRunning(owner)) return
       this.attempt += 1
       console.warn(`[connection] connection lost, retry #${this.attempt}`)
       const idle = new AbortController()
+      owner.controller = idle
       await sleep(this.backoffDelay(this.attempt), idle.signal)
+      owner.controller = new AbortController()
     }
   }
 

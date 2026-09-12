@@ -1,0 +1,105 @@
+name: Apple archives
+
+on:
+  pull_request:
+    paths:
+      - 'apps/apple/**'
+      - '.github/actions/apple-support-scanner/**'
+      - 'native/support-scanner/**'
+      - 'scripts/build-apple-support-scanner.py'
+      - 'scripts/verify-apple-support-scanner.py'
+      - 'scripts/stage-apple-support-scanner.py'
+      - 'scripts/verify-apple-app-scanner.py'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'release/**'
+      - 'scripts/release/**'
+      - 'scripts/produce-apple-archives.ts'
+      - 'scripts/apple-archives.spec.ts'
+      - '.github/workflows/apple-archives.yml'
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full immutable source commit
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apple-archives-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  archives:
+    name: unprovisioned Companion Release archives
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      DSH_RC_SOURCE_SHA: ${{ inputs.source_sha || github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Require immutable source
+        run: |
+          if [[ ! "$DSH_RC_SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+            echo 'source_sha must be a full lowercase Git commit SHA' >&2
+            exit 1
+          fi
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_RC_SOURCE_SHA }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies and XcodeGen
+        run: |
+          pnpm install --frozen-lockfile
+          command -v xcodegen >/dev/null || brew install xcodegen
+          pnpm run verify-product-identity
+      - name: Verify archive rejection paths
+        run: |
+          python3 -B -m unittest discover -s scripts/release -p 'test_apple_archive_plist.py' -v
+          pnpm exec vitest run scripts/release/apple-archive.spec.ts scripts/apple-archives.spec.ts
+      - uses: ./.github/actions/apple-support-scanner
+      - name: Build and verify archives
+        run: node --import tsx/esm scripts/produce-apple-archives.ts --output "$RUNNER_TEMP/apple-archives"
+      - name: Preserve verified Companion archives
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: apple-archives-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/apple-archives/archives.json
+            ${{ runner.temp }}/apple-archives/source.json
+            ${{ runner.temp }}/apple-archives/toolchain.json
+            ${{ runner.temp }}/apple-archives/*/*.zip
+            ${{ runner.temp }}/apple-archives/*/inventory.json
+            ${{ runner.temp }}/apple-archives/*/scanner/verification.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Preserve archive diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: apple-archive-diagnostics-${{ env.DSH_RC_SOURCE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/apple-archives/source.json
+            ${{ runner.temp }}/apple-archives/toolchain.json
+            ${{ runner.temp }}/apple-archives/*/build.log
+            ${{ runner.temp }}/apple-archives/*/scanner/*.stdout
+            ${{ runner.temp }}/apple-archives/*/scanner/*.stderr
+            ${{ runner.temp }}/apple-archives/*/*.xcarchive/Info.plist
+            ${{ runner.temp }}/apple-archives/*/Archive.xcresult
+          if-no-files-found: warn
+          retention-days: 7

@@ -54,6 +54,11 @@ const CHOOSER_BACKEND_PACKAGES = [
   '@deepseek-ai/dsh-client-ui-directory-picker-browse',
   '@deepseek-ai/dsh-client-ui-directory-picker-native',
 ]
+/** Shipped host overlays whose agents mount the shared preset roster. */
+const PRESET_HOST_OVERLAYS = [
+  'packages/bundle/web-app/cordis.patch.yml',
+  'packages/bundle/desktop-app/cordis.patch.yml',
+] as const
 const errors: string[] = []
 const pluginReferences: PluginReference[] = []
 
@@ -134,22 +139,28 @@ function validateClientHalvesDeclared(): string[] {
  * of each other, so a fix applied to three of four is the normal failure.
  * @returns one diagnostic per preset row that is also active on the host plane.
  */
-function validatePresetPlaneSeparation(): string[] {
+export function validatePresetPlaneSeparation(repoRoot: string = root): string[] {
   const problems: string[] = []
-  // The shipped Web surface is two bundle patch layers over an empty root.
+  // Each rostered application is the shared base plus its host overlay.
   const hostFile = 'packages/bundle/base/cordis.patch.yml'
-  const overlayFile = 'packages/bundle/web-app/cordis.patch.yml'
-  const hostRows = rowIds(hostFile)
-  const overlay = loadEntries(overlayFile)
-  const disabled = new Set<string>()
-  for (const entry of overlay) {
-    if (!isRecord(entry)) continue
-    if (entry.disabled === true && typeof entry.id === 'string') disabled.add(entry.id)
+  const hostRows = rowIds(hostFile, repoRoot)
+  const active = new Set<string>()
+  for (const overlayFile of PRESET_HOST_OVERLAYS) {
+    const disabled = new Set<string>()
+    for (const entry of loadEntries(overlayFile, repoRoot)) {
+      if (!isRecord(entry)) continue
+      if (entry.disabled === true && typeof entry.id === 'string') disabled.add(entry.id)
+    }
+    // The overlay's own inserts are host-plane too; its disables take them
+    // back out for this application only.
+    for (const id of [...hostRows, ...rowIds(overlayFile, repoRoot)]) {
+      if (!disabled.has(id)) active.add(id)
+    }
   }
-  // The overlay's own inserts are host-plane too; its disables take them back out.
-  const active = new Set([...hostRows, ...rowIds(overlayFile)].filter(id => !disabled.has(id)))
-  for (const file of globSync('packages/preset/agent-presets/presets/*/agent.cordis.yml', { cwd: root })) {
-    for (const id of rowIds(file)) {
+  const presetFiles = globSync('packages/preset/agent-presets/presets/*/agent.cordis.yml', { cwd: repoRoot })
+    .map(file => file.replaceAll('\\', '/'))
+  for (const file of presetFiles) {
+    for (const id of rowIds(file, repoRoot)) {
       if (!active.has(id)) continue
       problems.push(
         `${file}: row "${id}" is also active in the host composition; `
@@ -198,8 +209,8 @@ export function validateOverlayInsertDisjointness(repoRoot: string = root): stri
 }
 
 /** Every entry of one config file, or an empty list when it is not an entry array. */
-function loadEntries(file: string): unknown[] {
-  const document = loadCordisYaml(readFileSync(resolve(root, file), 'utf8'))
+function loadEntries(file: string, repoRoot: string = root): unknown[] {
+  const document = loadCordisYaml(readFileSync(resolve(repoRoot, file), 'utf8'))
   return isUnknownArray(document) ? document : []
 }
 
@@ -227,9 +238,10 @@ function insertIds(file: string, repoRoot: string = root): Set<string> {
  * Row ids declared anywhere in one config file, including inside group `config`
  * lists — a preset nests most of its rows in `isolate` groups.
  * @param file - repository-relative config path.
+ * @param repoRoot - repository root the path resolves against.
  * @returns the declared ids.
  */
-function rowIds(file: string): Set<string> {
+function rowIds(file: string, repoRoot: string = root): Set<string> {
   const ids = new Set<string>()
   const walk = (value: unknown): void => {
     if (isUnknownArray(value)) {
@@ -240,7 +252,7 @@ function rowIds(file: string): Set<string> {
     if (typeof value.id === 'string' && typeof value.name === 'string') ids.add(value.id)
     for (const child of Object.values(value)) walk(child)
   }
-  walk(loadEntries(file))
+  walk(loadEntries(file, repoRoot))
   return ids
 }
 

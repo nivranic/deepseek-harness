@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "kind": "sast",
+  "candidateSha": "de346d222198b1aac14dec56546dd661adf8debf",
+  "treeSha": "16ad673f7adb75289d2a5cd099a3dcd55baa71f2",
+  "action": "github/codeql-action/analyze",
+  "actionSha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+  "registrySha256": "cec22b35ba74a01150bc1e40f20abb3f31180f69ac4d56a48dac794189d8ba23",
+  "scanner": "CodeQL",
+  "language": "java-kotlin",
+  "reports": [
+    {
+      "sha256": "ad947a897afaeba435ec504b71cfecd82abaea30d096b833158bf33600d268a6",
+      "version": "2.26.4",
+      "rules": 120,
+      "structure": {
+        "driverRuleCount": 0,
+        "extensionRuleCounts": [
+          120,
+          0,
+          0
+        ],
+        "resultsPresent": true,
+        "resultCount": 7
+      }
+    }
+  ],
+  "findings": [
+    {
+      "rule": "java/android/implicit-pendingintents",
+      "locations": [
+        {
+          "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt",
+          "line": 46
+        }
+      ],
+      "classification": "unreviewed"
+    },
+    {
+      "rule": "java/static-initialization-vector",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 270
+        }
+      ],
+      "classification": "unreviewed"
+    },
+    {
+      "rule": "java/static-initialization-vector",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 278
+        }
+      ],
+      "classification": "unreviewed"
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 269
+        }
+      ],
+      "classification": "unreviewed"
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 270
+        }
+      ],
+      "classification": "unreviewed"
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 277
+        }
+      ],
+      "classification": "unreviewed"
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 278
+        }
+      ],
+      "classification": "unreviewed"
+    }
+  ],
+  "findingCount": 7,
+  "analysisComplete": false,
+  "blockingDiagnostics": [
+    {
+      "rule": "java/diagnostics/extraction-errors",
+      "level": "error",
+      "category": "unknown-extraction-errors",
+      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt"
+    }
+  ],
+  "reviewRegistrySha256": "fb81f1df9469f3f47b4e9e97043785d8da59c4c904c51548070779b800689304",
+  "unreviewedFindings": 7,
+  "reviewedFindings": 0
+}

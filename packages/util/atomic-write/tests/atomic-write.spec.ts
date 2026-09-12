@@ -4,7 +4,13 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { withFileLock, writeFileAtomic } from '../src/index.ts'
 
-const state = vi.hoisted(() => ({ failLockCreateWithEPERM: false }))
+const state = vi.hoisted(() => ({
+  failLockCreateWithEPERM: false,
+  releaseLockDuringCreateFailure: false,
+  persistentEPERM: false,
+  failLockProbe: false,
+  createFailures: 0,
+}))
 
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
@@ -12,16 +18,30 @@ vi.mock('node:fs/promises', async (importOriginal) => {
     ...actual,
     writeFile: (async (path: unknown, ...rest: never[]) => {
       if (state.failLockCreateWithEPERM && String(path).endsWith('.lock')) {
-        state.failLockCreateWithEPERM = false
+        state.failLockCreateWithEPERM = state.persistentEPERM
+        state.createFailures++
+        if (state.releaseLockDuringCreateFailure) {
+          await actual.rm(String(path))
+        }
         throw Object.assign(new Error('EPERM: injected exclusive-create failure'), { code: 'EPERM' })
       }
       return (actual.writeFile as (path: unknown, ...args: never[]) => Promise<void>)(path, ...rest)
     }) as typeof actual.writeFile,
+    lstat: ((...args: Parameters<typeof actual.lstat>) => {
+      if (state.failLockProbe && String(args[0]).endsWith('.lock')) {
+        return Promise.reject(Object.assign(new Error('probe denied'), { code: 'EACCES' }))
+      }
+      return actual.lstat(...args)
+    }) as typeof actual.lstat,
   }
 })
 
 afterEach(() => {
   state.failLockCreateWithEPERM = false
+  state.releaseLockDuringCreateFailure = false
+  state.persistentEPERM = false
+  state.failLockProbe = false
+  state.createFailures = 0
 })
 
 async function scratch(): Promise<string> {
@@ -44,9 +64,13 @@ describe('writeFileAtomic', () => {
   it('creates the file and its parents with exactly the stated mode', async () => {
     const dir = await scratch()
     const target = join(dir, 'nested', 'deep', 'doc.yaml')
-    await writeFileAtomic(target, 'a: 1\n', { mode: 0o600 })
+    await writeFileAtomic(target, 'a: 1\n', { mode: 0o600, dirMode: 0o700 })
     expect(await readFile(target, 'utf8')).toBe('a: 1\n')
-    if (process.platform !== 'win32') expect((await stat(target)).mode & 0o777).toBe(0o600)
+    if (process.platform !== 'win32') {
+      expect((await stat(target)).mode & 0o777).toBe(0o600)
+      expect((await stat(join(dir, 'nested'))).mode & 0o777).toBe(0o700)
+      expect((await stat(join(dir, 'nested', 'deep'))).mode & 0o777).toBe(0o700)
+    }
   })
 
   it('replaces existing content and narrows a wider-permission file to the stated mode', async () => {
@@ -80,6 +104,18 @@ describe('writeFileAtomic', () => {
 })
 
 describe('withFileLock', () => {
+  it('acquires after the owner removes its lock between exclusive-create failure and inspection', async () => {
+    const dir = await scratch()
+    const target = join(dir, 'document')
+    await writeFile(`${target}.lock`, 'holder\n')
+    state.failLockCreateWithEPERM = true
+    state.releaseLockDuringCreateFailure = true
+    const operation = vi.fn(async () => 'acquired')
+    await expect(withFileLock(target, operation)).resolves.toBe('acquired')
+    expect(operation).toHaveBeenCalledTimes(1)
+    await expect(lstat(`${target}.lock`)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
   it('retries EPERM only when the lock path currently exists', async () => {
     const dir = await scratch()
     const target = join(dir, 'document')
@@ -97,13 +133,25 @@ describe('withFileLock', () => {
     expect(called).toBe(true)
   })
 
-  it('preserves EPERM when no lock path exists', async () => {
+  it('preserves repeated EPERM when no lock path exists', async () => {
     const dir = await scratch()
     const operation = vi.fn(async () => {})
     state.failLockCreateWithEPERM = true
+    state.persistentEPERM = true
 
     await expect(withFileLock(join(dir, 'document'), operation)).rejects.toMatchObject({ code: 'EPERM' })
     expect(operation).not.toHaveBeenCalled()
+    expect(state.createFailures).toBe(2)
+  })
+
+  it('preserves EPERM without retrying when lock inspection is denied', async () => {
+    const dir = await scratch()
+    const operation = vi.fn(async () => {})
+    state.failLockCreateWithEPERM = true
+    state.failLockProbe = true
+    await expect(withFileLock(join(dir, 'document'), operation)).rejects.toMatchObject({ code: 'EPERM' })
+    expect(operation).not.toHaveBeenCalled()
+    expect(state.createFailures).toBe(1)
   })
 
   it('rejects an invalid parent hierarchy before running the operation', async () => {

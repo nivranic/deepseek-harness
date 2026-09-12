@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-01-relay-noise-transport.md
-2026-09-01-relay-noise-transport.md: bbd0a002bd0a46ec832cf6a15154fe4e80a3ce6a
-2026-09-01-relay-noise-transport.zh.md: c718def3937d229ebb420b0e1a6090f1e7608e8a
+2026-09-01-relay-noise-transport.md: 2fea576efa89cfc338c6065470d39dd2936af889
+2026-09-01-relay-noise-transport.zh.md: 40c17ef518fafc1aa1f44767046672eb646c2b60

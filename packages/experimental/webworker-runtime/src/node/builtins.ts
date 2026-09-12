@@ -29,6 +29,7 @@ import * as nodeEvents from './builtin_modules/implemented/events.ts'
 import * as nodeFs from './builtin_modules/implemented/fs.ts'
 import * as nodeFsPromises from './builtin_modules/implemented/fs/promises.ts'
 import * as nodeHttp from './builtin_modules/implemented/http.ts'
+import * as nodeHttps from './builtin_modules/mock/https.ts'
 import * as nodeModule from './builtin_modules/implemented/module.ts'
 import * as nodeOs from './builtin_modules/implemented/os.ts'
 import * as nodePath from './builtin_modules/implemented/path.ts'
@@ -43,6 +44,7 @@ import * as nodeZlib from './builtin_modules/implemented/zlib.ts'
 import * as nodeChildProcess from './builtin_modules/implemented/child_process.ts'
 import * as nodeNet from './builtin_modules/mock/net.ts'
 import * as nodeSqlite from './builtin_modules/mock/sqlite.ts'
+import * as nodeSea from './builtin_modules/implemented/sea.ts'
 import * as nodeVm from './builtin_modules/mock/vm.ts'
 import * as nodeWorkerThreads from './builtin_modules/mock/worker_threads.ts'
 import * as koffi from './external_packages/koffi.ts'
@@ -65,12 +67,14 @@ const BUILTINS: Record<string, StaticModuleFactory> = {
   fs: () => nodeFs,
   'fs/promises': () => nodeFsPromises,
   http: () => nodeHttp,
+  https: () => nodeHttps,
   module: () => nodeModule,
   net: () => nodeNet,
   os: () => nodeOs,
   path: () => nodePath,
   'path/posix': () => nodePath,
   perf_hooks: () => nodePerfHooks,
+  sea: () => nodeSea,
   sqlite: () => nodeSqlite,
   stream: () => nodeStream,
   'timers/promises': () => nodeTimersPromises,

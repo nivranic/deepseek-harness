@@ -9,6 +9,7 @@ import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopSettingsKey } from './locales.ts'
+import { PreferenceRowLayout } from './PreferenceRowLayout.tsx'
 import css from './CloseActionRow.module.css'
 
 /** The two states, in display order. */
@@ -45,11 +46,7 @@ export function RemoteToggleRow({ t, useRemote, field, titleKey, descriptionKey,
   const { value } = snapshot
   if (snapshot.status !== 'ready' || value === undefined) return null
   return (
-    <div className={css.row}>
-      <div className={css.rowText}>
-        <div className={css.title}>{t(titleKey)}</div>
-        <div className={css.desc}>{t(descriptionKey)}</div>
-      </div>
+    <PreferenceRowLayout title={t(titleKey)} description={t(descriptionKey)}>
       <div className={css.group} role="radiogroup" aria-label={t(titleKey)}>
         {OPTIONS.map(option => (
           <button
@@ -65,6 +62,6 @@ export function RemoteToggleRow({ t, useRemote, field, titleKey, descriptionKey,
           </button>
         ))}
       </div>
-    </div>
+    </PreferenceRowLayout>
   )
 }

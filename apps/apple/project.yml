@@ -4,6 +4,13 @@
 # both shells embed CompanionRootView, which owns pairing when no identity
 # exists and the six-tab surface after it.
 name: Companion
+settings:
+  base:
+    DSH_APPLICATION_SOURCE_SHA: ""
+    DSH_APPLICATION_SOURCE_TREE: ""
+configFiles:
+  Debug: Config/Product.xcconfig
+  Release: Config/Product.xcconfig
 options:
   bundleIdPrefix: com.deepseek-harness
   createIntermediateGroups: true
@@ -19,12 +26,24 @@ targets:
     platform: iOS
     sources:
       - Shells/iOSApp.swift
+      - Shells/SupportScannerAdapter.swift
+      - path: .support-scanner/SupportScannerResources
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: DshApple
         product: CompanionUI
+      - package: DshApple
+        product: SupportExportCore
+      - framework: .support-scanner/SupportScanner.xcframework
+        embed: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.ios
+        ENABLE_DEBUG_DYLIB: false
+        STRIP_INSTALLED_PRODUCT: false
+        COPY_PHASE_STRIP: false
+        INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Companion
         GENERATE_INFOPLIST_FILE: true
         INFOPLIST_KEY_UILaunchScreen_Generation: true
@@ -35,12 +54,24 @@ targets:
     platform: macOS
     sources:
       - Shells/macOSApp.swift
+      - Shells/SupportScannerAdapter.swift
+      - path: .support-scanner/SupportScannerResources
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: DshApple
         product: CompanionUI
+      - package: DshApple
+        product: SupportExportCore
+      - framework: .support-scanner/SupportScanner.xcframework
+        embed: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.mac
+        ENABLE_DEBUG_DYLIB: false
+        STRIP_INSTALLED_PRODUCT: false
+        COPY_PHASE_STRIP: false
+        INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Companion
         GENERATE_INFOPLIST_FILE: true
   DirectHostMac:
@@ -49,21 +80,70 @@ targets:
     sources:
       - Hosts/macOSHostApp.swift
       - Hosts/HostSurface.swift
+      - Hosts/HostCopy.swift
+    dependencies:
+      - package: DshApple
+        product: DirectHostRuntime
+      - package: DshApple
+        product: SupportExportCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.mac
+        INFOPLIST_FILE: Config/AppInfo.plist
         PRODUCT_NAME: DSH Host
+        GENERATE_INFOPLIST_FILE: true
+  DirectHostStartupUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - UITests/DirectHostStartupTests.swift
+    dependencies:
+      - target: DirectHostMac
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.host.startup-tests
+        GENERATE_INFOPLIST_FILE: true
+  CompanionMacSupportUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - UITests/CompanionMacSupportTests.swift
+    dependencies:
+      - target: CompanionMac
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.mac-support-tests
+        GENERATE_INFOPLIST_FILE: true
+  CompanionStartupUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests/CompanionStartupTests.swift
+    dependencies:
+      - target: CompanioniOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.deepseek-harness.companion.startup-tests
         GENERATE_INFOPLIST_FILE: true
 schemes:
   DirectHostMac:
     build:
       targets:
         DirectHostMac: all
+    test:
+      targets:
+        - DirectHostStartupUITests
   CompanioniOS:
     build:
       targets:
         CompanioniOS: all
+    test:
+      targets:
+        - CompanionStartupUITests
   CompanionMac:
     build:
       targets:
         CompanionMac: all
+    test:
+      targets:
+        - CompanionMacSupportUITests

@@ -17,6 +17,7 @@ interface ClientFixtureSourceCatalog {
 export interface ClientFixtureOptions {
   readonly label?: string
   readonly sourceCatalog?: ClientFixtureSourceCatalog
+  readonly holdRuntimeEnable?: boolean
 }
 
 interface FixtureResponse {
@@ -59,6 +60,7 @@ export class InspectorClientFixture {
       workerData: {
         bootstrap,
         label: options.label ?? 'Test Client',
+        holdRuntimeEnable: options.holdRuntimeEnable ?? false,
         ...(options.sourceCatalog === undefined ? {} : { sourceCatalog: options.sourceCatalog }),
       },
     })
@@ -86,6 +88,16 @@ export class InspectorClientFixture {
   /** Emit one Console event carrying a caller-provided value. */
   async log(value: InspectorJsonValue, marker: string): Promise<void> {
     await this.request({ op: 'log-value', value, marker })
+  }
+
+  /** Read how many Runtime enable frames are held at the Client transport. */
+  async heldRuntimeEnables(): Promise<number> {
+    return await this.request({ op: 'held-runtime-enables' }) as number
+  }
+
+  /** Deliver the held enable frames and stop holding subsequent requests. */
+  async releaseRuntimeEnable(): Promise<void> {
+    await this.request({ op: 'release-runtime-enable' })
   }
 
   /** Emit one Console event carrying the fixture's Context and Fiber. */

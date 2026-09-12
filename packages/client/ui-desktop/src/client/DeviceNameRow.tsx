@@ -10,6 +10,7 @@ import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopSettingsKey } from './locales.ts'
+import { PreferenceRowLayout } from './PreferenceRowLayout.tsx'
 import css from './CloseActionRow.module.css'
 
 /** Registration-side business face for the device-name preference. */
@@ -52,11 +53,7 @@ export function DeviceNameRow({ t, useRemote, titleKey, descriptionKey, placehol
     if (draft !== undefined && draft !== committed) commit(draft)
   }
   return (
-    <div className={css.row}>
-      <div className={css.rowText}>
-        <div className={css.title}>{t(titleKey)}</div>
-        <div className={css.desc}>{t(descriptionKey)}</div>
-      </div>
+    <PreferenceRowLayout title={t(titleKey)} description={t(descriptionKey)}>
       <input
         className={css.field}
         type="text"
@@ -70,6 +67,6 @@ export function DeviceNameRow({ t, useRemote, titleKey, descriptionKey, placehol
           if (event.key === 'Enter') event.currentTarget.blur()
         }}
       />
-    </div>
+    </PreferenceRowLayout>
   )
 }

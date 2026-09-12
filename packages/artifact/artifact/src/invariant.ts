@@ -3,6 +3,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
+import { isArtifactId } from './types.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-artifact'
 const STATUSES = new Set(['pending', 'ready', 'failed'])
@@ -24,7 +25,7 @@ export const inject = ['invariants']
 function validateEvent(event: SessionEvent, trace: { open: boolean }, fail: InvariantFailure): void {
   if (event.type === 'artifact/created') {
     const { id, kind, title, format } = event.data
-    if (typeof id !== 'string' || id.length === 0) fail('artifact/created id must be a non-empty string')
+    if (!isArtifactId(id)) fail('artifact/created id must satisfy the portable artifact-id grammar')
     if (typeof kind !== 'string' || kind.length === 0 || kind.trim() !== kind) {
       fail('artifact/created kind must be non-empty and already trimmed')
     }
@@ -38,7 +39,7 @@ function validateEvent(event: SessionEvent, trace: { open: boolean }, fail: Inva
   }
   if (event.type === 'artifact/status') {
     const { id, status } = event.data
-    if (typeof id !== 'string' || id.length === 0) fail('artifact/status id must be a non-empty string')
+    if (!isArtifactId(id)) fail('artifact/status id must satisfy the portable artifact-id grammar')
     if (typeof status !== 'string' || !STATUSES.has(status)) {
       fail(`artifact/status carries unknown status ${JSON.stringify(status)}`)
     }

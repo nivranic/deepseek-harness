@@ -67,15 +67,18 @@ node 半侧逐包增量扫描——没有全量重扫路径。每次 `internal/p
 
 node 半侧会在发布前快照每个客户端 bundle 及其现有 source map。它把资源分组到 `/plugins/??...&rev=...` combo URL：modules row 使用一个 bootstrap combo，其余 row 使用一个或多个 application combo；每个阶段都会在 URL 超过 3 KiB 之前分区。每个 combo map 都是 Indexed Source Map v3，并在可用时使用作者提供的 section，否则为已打包 bundle 生成 identity section。初始逐插件 revision 使用进程 nonce，所以启动时不哈希每个插件；HMR 只哈希被报告为已变化的产物。已公告响应不可变；未知组合或 revision 返回 404。
 
+包元数据沿 Loader 解析出的文件 URL 定位。对于受管可执行程序代理，定位器通过 `dsh.moduleFallback.targets` 沿匹配的 `exports` 条目找到原包；`dsh.client` 与已构建客户端字节均归原包所有。目标缺失、导出歧义与代理循环会使组合失败，不会静默移除浏览器插件。
+
 ### 启动清单注入
 
-宿主 tap 索引渲染，并向 `<head>` 注入：`window.__ModuleLoader__` queue facade、每个 application combo 的提示性 preload、阻塞 parser 的 bootstrap combo 脚本，然后才是外壳读取前的启动图。facade 的 `create()` 物化 modules bundle、把构造委托给其 `createClientModuleSystem` 导出，并让同一 facade 进入 live registration 模式。
+宿主 tap 索引渲染，并向 `<head>` 注入：`window.__ModuleLoader__` queue facade、每个 application combo 的提示性 preload、阻塞 parser 的 bootstrap combo 脚本，然后才是外壳读取前的启动图。`webServer` 注入 fiber 拥有 bundle 路由与 index 监听器：provider 在模块激活后到达时会绑定两者，provider 离开时会移除两者，替换 provider 到达时会重新创建两者。facade 的 `create()` 物化 modules bundle、把构造委托给其 `createClientModuleSystem` 导出，并让同一 facade 进入 live registration 模式。
 
 ### 源码地图
 
 | 文件 | 职责 |
 |---|---|
 | [`src/index.ts`](src/index.ts) | node 半侧：`ClientModuleRegistry`、扫描、产物快照、combo 路由、索引 tap |
+| [`src/package-manifest.ts`](src/package-manifest.ts) | 资源所属清单定位，包含打包模块代理 |
 | [`src/client/index.ts`](src/client/index.ts) | 浏览器半侧：bootstrap 导出、`ctx.modules` 登记 |
 | [`src/client/system.ts`](src/client/system.ts) | `ClientModuleSystem`：加载／物化／失效机制 |
 | [`src/client/manifest.ts`](src/client/manifest.ts) | 协议类型与启动清单解析 |

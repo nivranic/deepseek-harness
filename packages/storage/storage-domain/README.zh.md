@@ -70,6 +70,8 @@ domain.table('workspaces').update(id, (r) => ({ ...r, path: newPath }))
 
 ### 可观察行为与失败
 
+`table.put(key, value, ready)` 可在异步前置条件完成前预留写入位置。域立即观察 `ready`，在该写入的队列位置等待它，并将此等待纳入 `close()`。拒绝时不改变存储、内存或事件，后续写入仍可成功。前置条件必须独立于本域后续写入或关闭而完成，否则队列会死锁。后端关闭会调用领域 owner 回调，等待初始化和关闭完成，因此整个应用卸载时也会清空已接收写入。
+
 每次写入只在后端确认持久后 resolve，并按写入顺序各发出一次 `domain/changed` 事件。失败携带稳定的 `DomainError` 代码：`already-open`（名称已打开或仍在关闭）、`facet-unsupported`（已路由后端不提供 `kv` 分面）、`invalid-record`（已存记录或全局不符合其 schema，并指明表与键）、`missing-key`（对不存在的记录执行 `update`）与 `closed`（关闭后的任何使用）。`version-mismatch` 等后端失败会原样透传。
 
 -----

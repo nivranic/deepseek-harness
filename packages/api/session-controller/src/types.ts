@@ -406,6 +406,7 @@ export interface SessionAttachmentValue {
 /** Durable artifact read request. */
 export interface SessionArtifactRequest {
   readonly sessionId: SessionId
+  /** Portable artifact id minted by the producer and referenced by this Session. */
   readonly artifactId: string
   /** Start of the returned range — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0. */
   readonly offset?: number

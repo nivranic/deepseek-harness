@@ -14,6 +14,9 @@ import { createFixtureConnectionRpc } from './fixture.ts'
 import { createWebConnectionRpc, type RpcFetch, type RpcStreamOpen } from './rpc.ts'
 import { isLoopbackHostname } from '../loopback-hostname.ts'
 import type { ClientConnectionRpc } from '../rpc.ts'
+import type { ConnectionDiagnosticSnapshot } from '../types.ts'
+
+export type { ConnectionDiagnosticSnapshot } from '../types.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Events {
@@ -114,6 +117,11 @@ export interface ConnectionHandle {
   /** Generic logical RPC channels over the same Connection transport. */
   readonly rpc: ClientConnectionRpc
   /**
+   * Capture the latest controller's generation state and bounded counts, without transport identity.
+   * @returns a value copy; before any loop starts the observation is idle with zero counts.
+   */
+  diagnosticSnapshot(): ConnectionDiagnosticSnapshot
+  /**
    * Register the sole source defining Host generations. The source reports
    * ready only after its incremental listeners are attached.
    * @param source - long-lived generation source owned by the push carrier.
@@ -148,6 +156,7 @@ export function apply(ctx: Context): void {
   const rpc = fixtureRpc ?? createWebConnectionRpc(transport?.fetch, transport?.openStream)
   let generationSource: ConnectionGenerationSource | undefined
   let owner: ConnectionOwner | undefined
+  let lastController: ConnectionController | undefined
   let generationId = 0
   let generation: ConnectionGeneration | undefined
   const generationListeners = new Set<() => void>()
@@ -178,6 +187,8 @@ export function apply(ctx: Context): void {
       },
     },
     rpc,
+    diagnosticSnapshot: () => lastController?.diagnosticSnapshot()
+      ?? { state: 'idle', attempts: 0, interruptions: 0, countsSaturated: false },
     registerGenerationSource(source) {
       if (generationSource !== undefined) {
         throw new Error('connection: a generation source is already registered')
@@ -214,6 +225,7 @@ export function apply(ctx: Context): void {
       }, config ?? {})
       const current = { token, source, controller }
       owner = current
+      lastController = controller
       controller.start()
       return {
         stop: () => { releaseOwner(current) },

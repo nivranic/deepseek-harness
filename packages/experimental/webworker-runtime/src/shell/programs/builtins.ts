@@ -8,6 +8,7 @@ import { readVariable } from '../expand.ts'
 import { resolveIn } from '../fs-access.ts'
 import type { ShellProgram, ShellStats } from '../types.ts'
 import { parseOptions } from './options.ts'
+import { copyShellVariables } from '../variables.ts'
 
 /** Status a command reports when a signal ended it, as a shell renders `128 + SIGINT`. */
 const SIGNAL_EXIT_STATUS = 130
@@ -57,7 +58,7 @@ const exportProgram: ShellProgram = (argv, io, state) => {
 const unset: ShellProgram = (argv, _io, state) => {
   const removed = new Set(argv.slice(1))
   const without = (source: Record<string, string>): Record<string, string> =>
-    Object.fromEntries(Object.entries(source).filter(([name]) => !removed.has(name)))
+    copyShellVariables(Object.fromEntries(Object.entries(source).filter(([name]) => !removed.has(name))))
   state.environment = without(state.environment)
   state.variables = without(state.variables)
   return 0

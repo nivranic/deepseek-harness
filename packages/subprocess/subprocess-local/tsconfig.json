@@ -8,6 +8,8 @@
     "src"
   ],
   "references": [
+    { "path": "../../util/node-spawn" },
+    { "path": "../win32-process" },
     {
       "path": "../../../vendor/cosmokit"
     },

@@ -2,6 +2,7 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.NoiseCipherState
 import ai.deepseek.dsh.link.NoiseHandshake
+import ai.deepseek.dsh.link.NoiseNonceExhaustedException
 import ai.deepseek.dsh.link.decodeNoiseFrames
 import ai.deepseek.dsh.link.encodeNoiseFrame
 import kotlinx.coroutines.delay
@@ -17,6 +18,8 @@ import java.net.InetSocketAddress
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -42,10 +45,48 @@ private fun vectorObject(name: String): kotlinx.serialization.json.JsonObject {
  * implementation (apps/relay/noise.mjs) generated: every port must
  * reproduce the handshake bytes, session id, channel binding, split keys,
  * and transport frames exactly — that byte-level agreement is the
- * cross-implementation interop proof, since no CI lane runs the node
- * service itself.
+ * interop check alongside the Node service's real HTTP corpus in the
+ * repository test gate.
  */
 class NoiseVectorTest {
+    @Test
+    fun reproducesHighNonceFramesAndRetriesAfterAuthenticationFailure() {
+        val boundary = vectorObject("nonceBoundaries")
+        val key = unhex(boundary["key"]!!.jsonPrimitive.content)
+        val ad = unhex(boundary["ad"]!!.jsonPrimitive.content)
+        val payload = unhex(boundary["payload"]!!.jsonPrimitive.content)
+        for (entry in boundary["vectors"]!!.jsonArray) {
+            val vector = entry.jsonObject
+            val counter = vector["counter"]!!.jsonPrimitive.content.toULong()
+            val sender = NoiseCipherState(key).apply { this.counter = counter }
+            val receiver = NoiseCipherState(key).apply { this.counter = counter }
+            val frame = sender.encryptWithAd(ad, payload)
+            assertContentEquals(unhex(vector["frame"]!!.jsonPrimitive.content), frame)
+            assertEquals(counter + 1uL, sender.counter)
+            val tampered = frame.copyOf()
+            tampered[0] = (tampered[0].toInt() xor 1).toByte()
+            assertFailsWith<Exception> { receiver.decryptWithAd(ad, tampered) }
+            assertEquals(counter, receiver.counter)
+            assertContentEquals(payload, receiver.decryptWithAd(ad, frame))
+            assertEquals(counter + 1uL, receiver.counter)
+        }
+    }
+
+    @Test
+    fun neverWrapsAfterTheLastUsableNonce() {
+        val key = unhex(vectorObject("nonceBoundaries")["key"]!!.jsonPrimitive.content)
+        val sender = NoiseCipherState(key).apply { counter = ULong.MAX_VALUE - 1uL }
+        val receiver = NoiseCipherState(key).apply { counter = ULong.MAX_VALUE - 1uL }
+        val frame = sender.encryptWithAd(EMPTY, EMPTY)
+        assertContentEquals(EMPTY, receiver.decryptWithAd(EMPTY, frame))
+        repeat(2) {
+            assertFailsWith<NoiseNonceExhaustedException> { sender.encryptWithAd(EMPTY, EMPTY) }
+            assertFailsWith<NoiseNonceExhaustedException> { receiver.decryptWithAd(EMPTY, frame) }
+            assertEquals(ULong.MAX_VALUE, sender.counter)
+            assertEquals(ULong.MAX_VALUE, receiver.counter)
+        }
+    }
+
     private fun pinned(role: NoiseHandshake.Role): NoiseHandshake {
         val keys = vectorObject("keys")
         val prefix = if (role == NoiseHandshake.Role.INITIATOR) "initiator" else "responder"
@@ -134,6 +175,9 @@ class NoiseVectorTest {
 class RelayClientNoiseTest {
     /** A minimal responder mirroring apps/relay/server.mjs semantics. */
     private class Harness {
+        val expireNextPresence = AtomicBoolean(false)
+        val handshakes = AtomicInteger()
+        val presenceRequests = AtomicInteger()
         private val pendingHandshakes = mutableMapOf<String, NoiseHandshake>()
         private val sessions = mutableMapOf<String, Pair<NoiseCipherState, NoiseCipherState>>()
         private val devices = mutableMapOf<String, kotlinx.serialization.json.JsonObject>()
@@ -150,6 +194,7 @@ class RelayClientNoiseTest {
         fun start(): com.sun.net.httpserver.HttpServer {
             val server = com.sun.net.httpserver.HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
             server.createContext("/relay/noise/hello") { exchange ->
+                handshakes.incrementAndGet()
                 val handshake = NoiseHandshake(NoiseHandshake.Role.RESPONDER)
                 handshake.readMessage1(exchange.requestBody.readBytes())
                 val message = handshake.writeMessage2()
@@ -210,6 +255,12 @@ class RelayClientNoiseTest {
             }
             server.createContext("/relay/presence") { exchange ->
                 val opened = openSession(exchange) ?: return@createContext
+                presenceRequests.incrementAndGet()
+                if (expireNextPresence.getAndSet(false)) {
+                    sessions.remove(exchange.requestHeaders.getFirst("x-relay-session"))
+                    respond(exchange, EMPTY, status = 410)
+                    return@createContext
+                }
                 val accountId = opened.second["accountId"]!!.jsonPrimitive.content
                 val roster = devices.values
                     .filter { it["accountId"]!!.jsonPrimitive.content == accountId }
@@ -272,6 +323,45 @@ class RelayClientNoiseTest {
     }
 
     @Test
+    fun aFailedExchangeIsNotReplayedAndTheNextCallUsesFreshKeys() {
+        val harness = Harness()
+        val server = harness.start()
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            client.register(RelayDevice("acct", "phone", "android"))
+            harness.expireNextPresence.set(true)
+            assertFailsWith<IllegalStateException> { client.presence("acct") }
+            assertEquals(1, harness.handshakes.get())
+            assertEquals(1, harness.presenceRequests.get())
+            assertEquals(listOf(RelayPresence("phone", "android", false)), client.presence("acct"))
+            assertEquals(2, harness.handshakes.get())
+            assertEquals(2, harness.presenceRequests.get())
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun concurrentCallsKeepOneOrderedNoiseSession() {
+        val harness = Harness()
+        val server = harness.start()
+        val callers = java.util.concurrent.Executors.newFixedThreadPool(4)
+        try {
+            val client = RelayClient("http://127.0.0.1:${server.address.port}")
+            client.register(RelayDevice("acct", "phone", "android"))
+            val pending = (0..<20).map { callers.submit<List<RelayPresence>> { client.presence("acct") } }
+            for (call in pending) {
+                assertEquals(listOf(RelayPresence("phone", "android", false)), call.get(10, TimeUnit.SECONDS))
+            }
+            assertEquals(1, harness.handshakes.get())
+            assertEquals(20, harness.presenceRequests.get())
+        } finally {
+            callers.shutdownNow()
+            server.stop(0)
+        }
+    }
+
+    @Test
     fun handshakesRegistersPublishesPollsAndAnswersPresence() {
         val harness = Harness()
         val server = harness.start()
@@ -313,7 +403,7 @@ class RelayClientNoiseTest {
                 collected.toList(),
             )
             harness.releaseStream()
-            job.cancel()
+            withTimeout(3_000) { job.join() }
         } finally {
             server.stop(0)
         }

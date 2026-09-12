@@ -9,6 +9,12 @@
   ],
   "references": [
     {
+      "path": "../connection/tsconfig.client.json"
+    },
+    {
+      "path": "../../host/electron-ipc"
+    },
+    {
       "path": "../locale"
     },
     {

@@ -30,6 +30,8 @@ host 侧，cordis 插件装载站在 Node 的模块机制之上——require cac
 
 Web 内核保持不依赖框架，也不 import 任何动态包实体。Modules 本身是动态图 row，但 host parser 会在 Vite 主模块前送达其 factory。内核调用 `create()` 时，由 HTML 安装的 `__ModuleLoader__` facade 使用该 factory 构造模块系统。其他每个动态图 row 都归属一个 application combo 脚本；React、Cordis 与静态 UI 库的身份由外壳 seed 提供。
 
+宿主从 Loader 导入模块所属的包读取客户端元数据。可执行程序安装会提供真实 ESM 代理；代理导入内嵌模块，保留同一个 Node 模块实例，并携带 `dsh.moduleFallback.targets`，不复制客户端元数据或资源。客户端定位器沿实际解析的代理导出找到原包，并拒绝损坏或循环的映射。从原包提供资源可保持声明与 bundle 字节的对应关系，无需提取另一份依赖树。[打包 profile 运行时记录](2026-08-23-python-sdk-dsh-profile-runtime.zh.md)负责代理生成。
+
 ### 一套模块系统，一个插件治理器
 
 浏览器复刻 host 侧的分工。`dsh-client-modules`（`ClientModuleSystem`）坐上 host 侧由 Node 内部 ESM loader 占据的模块系统席位；同一份 vendored `@cordisjs/plugin-loader` 在两侧都坐治理席。二者的分界线一句话说尽：**模块系统拥有模块身份与字节——代码怎么到达、怎么登记、怎么变成导出内容；Loader 拥有插件生命周期——插件何时挂载、等待什么、如何拆除。**

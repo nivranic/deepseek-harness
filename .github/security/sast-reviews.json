@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "reviews": [
+    {
+      "language": "swift",
+      "rule": "swift/weak-password-hashing",
+      "path": "apps/apple/Sources/SharedAppleRemoteCore/LinkSigning.swift",
+      "line": 22,
+      "reason": "SHA-256 hashes exact request bodies for Ed25519 signing input and DER public keys for SPKI fingerprints. LinkClient.applyCredentials and LinkPinningDelegate remain the production callers of those protocol operations; no caller stores a password hash. The Mac support export uses a separate supportDigest function only to verify its sealed scanner executable and license bytes, without adding a LinkSigning caller. The full Apple source tree and its analysis workflow are pinned so new callers or changed source selection require renewed review. Artifact view-model tests wait for the published stream cursor before checking status and check the synchronous reset on reopen; they add no cryptographic caller or input.",
+      "materials": {
+        "apps/apple": {
+          "kind": "tree",
+          "oid": "f80054a4ce0640f0cb7820d83a23df5fa386df44"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/static-initialization-vector",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 276,
+      "reason": "Noise ChaChaPoly uses a 96-bit nonce with a four-byte zero prefix and a unique little-endian unsigned counter per traffic key. This code advances after successful AEAD operations and rejects 2^64-1 before either operation. The pinned Android callers create fresh directional handshake keys, serialize complete exchanges, retire failed sessions without replay, and use separate random stream keys. The nonce is not constant across messages; shared vectors cover high counters, exhaustion, and invalid tags.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/static-initialization-vector",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 284,
+      "reason": "Noise ChaChaPoly uses a 96-bit nonce with a four-byte zero prefix and a unique little-endian unsigned counter per traffic key. This code advances after successful AEAD operations and rejects 2^64-1 before either operation. The pinned Android callers create fresh directional handshake keys, serialize complete exchanges, retire failed sessions without replay, and use separate random stream keys. The nonce is not constant across messages; shared vectors cover high counters, exhaustion, and invalid tags.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 275,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 276,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 283,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "java-kotlin",
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+      "line": 284,
+      "reason": "The selected JCA cipher is authenticated ChaCha20-Poly1305 with a 256-bit key and 128-bit tag. ChaCha20 in SecretKeySpec is the required key algorithm label for that AEAD, not an unauthenticated stream cipher selection. The None/NoPadding transformation does not remove Poly1305 authentication. Pinned callers and shared vectors preserve the Noise_XX_25519_ChaChaPoly_SHA256 construction; algorithm or caller changes require renewed review.",
+      "materials": {
+        "apps/android": {
+          "kind": "tree",
+          "oid": "e8c76d94a428ec6c803ef59f07c958833b8c5b02"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-client/src/index.ts",
+      "line": 102,
+      "reason": "The private PinnedAgent authenticates the configured SHA-256 SPKI instead of a public CA chain. It installs the secureConnect verifier before returning the socket and destroys connections with missing, unparseable, differently sized, or mismatching certificate fingerprints. The same source routes pairing, description, unary calls and streams only through that agent. Callers must authenticate the pairing fingerprint out of band. Real TLS regressions wait for natural peer closure and observe zero application bytes for wrong pins across all four operations, with a matching-pin positive control. This review does not cover another TLS transport or a caller-supplied untrusted trust anchor.",
+      "materials": {
+        "packages/remote/link-client/src/index.ts": {
+          "kind": "blob",
+          "oid": "0c6b8286af0c09059348ee5214e61095ef81f84c"
+        },
+        "packages/remote/link-client/tests/pinning.spec.ts": {
+          "kind": "blob",
+          "oid": "c2e6f5432949cd3533a90383dab96b4b3d676d5b"
+        },
+        "packages/remote/link-access/src/tls.ts": {
+          "kind": "blob",
+          "oid": "3dc579be756b52f44da6306a0087d0b6456d0135"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "python",
+      "rule": "py/clear-text-storage-sensitive-data",
+      "path": "scripts/release/android_candidate.py",
+      "line": 86,
+      "reason": "This locally generated random password protects a two-day disposable debug keystore, never a user or production signing credential. The producer rejects persistent hosts and production signing inputs before generation. Bundletool consumes the 0600 password file inside a 0700 private temporary directory; the password is not passed on its command line or retained in diagnostics. Both private inputs are removed before APK inspection and artifact receipts, including on generation failure. The review pins the producer, tool environment, private-directory checks, Gradle invocation, cleanup/permission tests and candidate/analysis workflows; it does not permit persistent password storage.",
+      "materials": {
+        "scripts/release/android_candidate.py": {
+          "kind": "blob",
+          "oid": "66ec4a923c242d20830d4373f56332c9f67942d9"
+        },
+        "scripts/release/android_candidate_device.py": {
+          "kind": "blob",
+          "oid": "1602810cd11086d9587b7274a0800203331daef6"
+        },
+        "scripts/release/android_sbom_payload.py": {
+          "kind": "blob",
+          "oid": "63d0b2762d82f454d6dd5b5bc91d9f1d77289d10"
+        },
+        "scripts/release/android_sbom_inventory.py": {
+          "kind": "blob",
+          "oid": "5d7bd90b4caabebbcb9c73088b53ae636e5a249c"
+        },
+        "scripts/release/android-candidate.init.gradle": {
+          "kind": "blob",
+          "oid": "2b9ce0862e39d18a29faeb5ca06ab9846c1e417f"
+        },
+        "scripts/release/test_android_candidate.py": {
+          "kind": "blob",
+          "oid": "d262e4b2541914569b8c8ae26d8bdadc1c017b62"
+        },
+        "scripts/produce-android-candidate.ts": {
+          "kind": "blob",
+          "oid": "c42c856257e1695f6687a01616c6d08305579897"
+        },
+        ".github/workflows/android-candidate.yml": {
+          "kind": "blob",
+          "oid": "17059da60200c4f920f7f2acf1c76168b0c3bf21"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "apps/cli/tests/link-session-slice.e2e.ts",
+      "line": 167,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "apps/cli/tests/link-session-slice.e2e.ts",
+      "line": 277,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-access/tests/link-harness.ts",
+      "line": 361,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-access/tests/link-harness.ts",
+      "line": 406,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-access/tests/carrier.spec.ts",
+      "line": 512,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-access/tests/carrier.spec.ts",
+      "line": 558,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-access/tests/carrier.spec.ts",
+      "line": 1077,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/disabling-certificate-validation",
+      "path": "packages/remote/link-access/tests/carrier.spec.ts",
+      "line": 1148,
+      "reason": "These raw HTTPS calls exercise carrier parsing, authorization, and cancellation against temporary 127.0.0.1 listeners with generated self-signed Host certificates and fresh Ed25519 test-device keys. The package harness and shipped-composition slice both fix the loopback bind and keep durable state in their test home; every caller is contained in the pinned test source. The package manifests and production entry sources in the pinned trees do not expose these test drivers. These cases do not claim to verify server identity. Production Link clients retain the independent SPKI verifier and wrong-pin zero-request-byte regression. This review permits no TLS bypass for an external or production endpoint. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "apps/cli": {
+          "kind": "tree",
+          "oid": "158be17abd5e64f4d00bce3741c4626504dad53d"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/file-access-to-http",
+      "path": "packages/remote/link-access/tests/link-harness.ts",
+      "line": 422,
+      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "packages/remote/link-contracts": {
+          "kind": "tree",
+          "oid": "23b7e277b3d7c7b61d990d291da497a5397f24e8"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    },
+    {
+      "language": "javascript-typescript",
+      "rule": "js/file-access-to-http",
+      "path": "packages/remote/link-access/tests/carrier.spec.ts",
+      "line": 1178,
+      "reason": "These test-only HTTP sinks send the checked-in rpc-request.json and stream-request.json protocol fixtures, which contain only the fixed probe value hi and count 2, to the harness-owned 127.0.0.1 listener on an ephemeral port. The file paths are module-relative constants; no caller selects a file, URL, user home or environment-derived payload. Other callers supply synthetic test envelopes and generated temporary device credentials. The review pins every driver and caller in link-access, its package export/files rules, and the complete link-contracts fixture and generator tree. The drivers are excluded from published package files. This review permits no user-file transfer or external destination; changed fixtures, callers, bind configuration or build selection require renewed review. The diagnostic-query regressions use the same temporary loopback harness with fixed empty arguments and verify that link/diagnostics and desktopSupport/export are denied before Gateway dispatch; neither adds an external destination or file input.",
+      "materials": {
+        "packages/remote/link-access": {
+          "kind": "tree",
+          "oid": "39072523887c11b424439ec97346dcf105d12e1f"
+        },
+        "packages/remote/link-contracts": {
+          "kind": "tree",
+          "oid": "23b7e277b3d7c7b61d990d291da497a5397f24e8"
+        },
+        ".github/workflows/supply-chain.yml": {
+          "kind": "blob",
+          "oid": "a852ab7d1f4de276c189495e351c5ee2112fa118"
+        }
+      }
+    }
+  ]
+}

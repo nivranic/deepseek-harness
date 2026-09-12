@@ -2,11 +2,11 @@
  * SessionTelemetryBackend Service Definition for the DeepSeek Harness.
  *
  * This package owns the CAPTURE side of session-event reporting — which records
- * exist (the chunk projection), what they carry (the logical record), when
+ * exist (the chunk projection), what privacy-safe fields they carry, when
  * they are captured (adoption, the per-append firehose, lifecycle
  * forwarding), live versus on-demand canonical-log capture, and the HMR
  * cursor. Everything downstream of
- * {@link SessionTelemetryBackend.emit} — batching, retry, queueing, and loss policy — is the
+ * {@link SessionTelemetrySink.emit} — batching, retry, queueing, and loss policy — is the
  * reporting SDK's territory and is deliberately not modelled here. The
  * design and its trade-offs are pinned in
  * .agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.md.
@@ -23,21 +23,22 @@ declare module '@deepseek-ai/cordis' {
 
   interface Events {
     /**
-     * Transform one outbound record before it reaches the backend. This
-     * waterfall is the Service Definition's redaction extension point. It ships NO rules
-     * of its own: the
-     * innermost `next()` passes the record through unchanged, and with no
-     * listener mounted records reach the backend as captured, so exported
-     * data is exactly as clean as the rules a deployment mounts. Listeners
-     * stack by transforming `next()`'s return value; returning without
-     * `next()` replaces everything beneath. Dispatched synchronously on the
-     * capture hot path inside the coordinator's containment: a throwing
-     * listener withholds that one record (fail-closed) and never reaches the
-     * agent loop. Live capture dispatches at append time; on-demand capture
-     * dispatches while reading the canonical log. Redaction applies to the
-     * exported copy only; the canonical session log is never rewritten.
-     * @param record - the candidate record, already the coordinator's own deep
-     *   copy; listeners return a (possibly new) record and must not mutate it.
+     * Further reduce one frozen privacy-safe record before it reaches the
+     * backend. Session identities are already pseudonymous, and the
+     * coordinator has removed Session content, prompts, tool names, arguments
+     * and results, arbitrary error details, and workspace paths. Listeners
+     * stack by transforming `next()`'s return value. After the waterfall, the
+     * coordinator keeps only original attributes whose keys and values remain
+     * unchanged; additions and rewrites are discarded, while a valid severity
+     * change survives. Returning without `next()` can therefore remove fields
+     * but cannot inject data or rewrite record identity. Dispatched
+     * synchronously on the capture hot path inside containment: a throwing
+     * listener withholds that one record and never reaches the agent loop.
+     * Live capture dispatches at append time; on-demand capture dispatches
+     * while reading the canonical log. The canonical Session log is never
+     * rewritten.
+     * @param record - the frozen candidate record; listeners return a possibly
+     *   stricter copy and must not mutate it.
      * @mode waterfall
      */
     'session-telemetry/record'(record: SessionTelemetryRecord, next: () => SessionTelemetryRecord): SessionTelemetryRecord
@@ -55,35 +56,31 @@ declare module '@deepseek-ai/cordis' {
 export type SessionTelemetrySeverity = 'info' | 'warn' | 'error'
 
 /**
- * One logical record handed to a backend — the capture contract's whole outbound
- * vocabulary. Ledger records mirror session-log events one-to-one;
- * operational records (`channel: 'ops'`) carry the two signals with no log
+ * One privacy-safe logical record handed to a backend. Ledger records retain
+ * session-event timing, type, sequence, outcome, and bounded diagnostic fields;
+ * they never contain the event payload or workspace path.
+ *
+ * Operational records (`channel: 'ops'`) carry the two signals with no log
  * home (`agent-error`, `shutdown`) and deliberately omit `event.seq`-style
  * identity so they can never be mistaken for ledger rows.
  */
 export interface SessionTelemetryRecord {
   /** Ledger (session-log mirror) or ops (operational signal) channel; backends keep the two under separate instrumentation scopes. */
-  channel: 'ledger' | 'ops'
+  readonly channel: 'ledger' | 'ops'
   /** Unix epoch milliseconds — the source event's append time for ledger records, the emission time for ops records. */
-  time: number
+  readonly time: number
   /** Pre-mapped alerting severity; see {@link SessionTelemetrySeverity}. */
-  severity: SessionTelemetrySeverity
+  readonly severity: SessionTelemetrySeverity
   /**
-   * Identity attributes, deliberately minimal: ledger records carry
-   * `session.id`, `event.type`, `event.seq`, plus `session.cwd` /
-   * `session.parent_id` / `session.seed_length` when the header has them;
-   * ops records carry `telemetry.op`, `session.id`, and (for `agent-error`)
-   * `agent.id`, `turn`, `step`, `error.name`. Anything recoverable from the
-   * body is intentionally NOT duplicated here.
+   * Bounded diagnostic attributes. Ledger records carry `session.id`,
+   * `event.type`, `event.seq`, optional fork correlation, and an allowlisted
+   * set of numeric, boolean, enum, and fixed error-class fields. Ops records carry
+   * `telemetry.op`, `session.id`, and, for `agent-error`, `turn`, `step`, and
+   * `error.class`. The coordinator uses the anonymous-identity owner to
+   * pseudonymize Session ids before any reduction listener runs; no attribute
+   * contains a workspace path or free-form payload.
    */
-  attributes: Record<string, string | number>
-  /**
-   * The complete payload: a deep copy of the session event's `data` for
-   * ledger records (JSON-serializable by `Session.append`'s own
-   * validation), or the op payload for ops records. Never mutated after
-   * handoff.
-   */
-  body: unknown
+  readonly attributes: Readonly<Record<string, string | number | boolean>>
 }
 
 /**
@@ -140,38 +137,24 @@ export type SessionTelemetrySharingStatus = 'full' | 'feedback-only' | 'disabled
 
 /**
  * Loadable form of the backend contract: one implementation per context —
- * the cordis `Service` registration under the `telemetry` key throws on a
+ * the cordis `Service` registration under the `sessionTelemetry` key throws on a
  * duplicate, cordis' standard behavior. A backend composes a
  * {@link SessionTelemetryCoordinator} in its constructor to install the capture side.
  */
-export abstract class SessionTelemetryBackend extends Service implements SessionTelemetrySink {
+export abstract class SessionTelemetryBackend extends Service {
   constructor(ctx: Context) {
     super(ctx, 'sessionTelemetry')
   }
 
   /**
    * Deployment-selected session-sharing policy, disclosed for acknowledgement
-   * surfaces that report whether recorded feedback leaves the process. Every
-   * backend must disclose its policy; a consumer renders "not configured" only
-   * when no telemetry service is mounted. The seam owns this vocabulary so the
-   * disclosure is backend-independent.
+   * surfaces that report whether privacy-safe Session diagnostics are eligible
+   * for external sharing when feedback is recorded. Every backend must disclose
+   * its policy; a consumer renders "not configured" only when no telemetry
+   * service is mounted. The seam owns this vocabulary so the disclosure is
+   * backend-independent.
    */
   abstract readonly sharing: SessionTelemetrySharingStatus
-
-  /**
-   * See {@link SessionTelemetrySink.emit} — that declaration is the contract's one home.
-   * @param record - the logical record to report; owned by the backend after the call.
-   */
-  abstract emit(record: SessionTelemetryRecord): void
-
-  /** See {@link SessionTelemetrySink.flush}. */
-  flush?(): void
-
-  /**
-   * See {@link SessionTelemetrySink.shutdown}.
-   * @returns resolves when the backend's pipeline has quiesced.
-   */
-  abstract shutdown(): Promise<void>
 }
 
 export { SessionTelemetryCoordinator, type SessionTelemetryCapture } from './coordinator.ts'

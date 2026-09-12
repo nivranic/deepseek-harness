@@ -21,7 +21,7 @@ public protocol CompanionWireDriving: Actor {
 }
 
 /// The pass-through JSON value the view models exchange with the wire.
-public typealias WireValue = LinkWire.WireValue
+public typealias WireValue = LinkJsonValue
 
 /// Wire-shaped helpers shared by the view models: field access on
 /// pass-through JSON without inventing a parallel type system.
@@ -70,7 +70,7 @@ public enum WireShape {
     }
 }
 
-extension LinkWire.ResponseEnvelope.Result.Value {
+extension LinkJsonValue {
     /// JSON bytes of the pass-through value, for decoding the generated
     /// contract models straight off the wire. Nil when the value is not a
     /// JSON object root a contract payload could live in.

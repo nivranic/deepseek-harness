@@ -20,12 +20,11 @@ import {
   SessionTelemetryBackend,
   SessionTelemetryCoordinator,
   type SessionTelemetrySink,
-  type SessionTelemetryRecord,
   type SessionTelemetrySeverity,
   type SessionTelemetrySharingStatus,
 } from '@deepseek-ai/dsh-session-telemetry'
 import { APP_IDENTITY } from '@deepseek-ai/dsh-llm'
-import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
+import { getOrCreateAnonymousIdentity } from '@deepseek-ai/dsh-anonymous-user-id'
 import {
   BatchLogRecordProcessor,
   LoggerProvider,
@@ -33,7 +32,8 @@ import {
 } from '@opentelemetry/sdk-logs'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import type { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base'
-import { SeverityNumber, type AnyValue, type Logger } from '@opentelemetry/api-logs'
+import { ROOT_CONTEXT } from '@opentelemetry/api'
+import { SeverityNumber, type Logger } from '@opentelemetry/api-logs'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 
 // The package's own manifest is the single source of the instrumentation-scope
@@ -52,7 +52,6 @@ export const DEFAULT_TELEMETRY_MODE = SessionTelemetryMode.DISABLED
 
 const DISABLED_FEEDBACK_WARNING = 'session telemetry is DISABLED; nothing will be shared and this feedback remains local'
 const NON_CANONICAL_FEEDBACK_WARNING = 'session telemetry ignored a feedback event absent from the canonical session log'
-const DROP_RECORD: SessionTelemetrySink['emit'] = () => {}
 
 /** Resolve the default and reject unknown runtime values before transport setup. */
 function resolveMode(mode: SessionTelemetryMode | undefined): SessionTelemetryMode {
@@ -140,7 +139,7 @@ const SEVERITY: Record<SessionTelemetrySeverity, { severityNumber: SeverityNumbe
 
 /**
  * The backend plugin — the only entry a deployment loads. It always registers
- * the `telemetry` service (duplicate load throws). Uploading modes wire the SDK
+ * the `sessionTelemetry` service (duplicate load throws). Uploading modes wire the SDK
  * pipeline and compose {@link SessionTelemetryCoordinator}; `DISABLED` constructs no
  * SDK state and listens only to warn when recorded feedback stays local.
  */
@@ -148,8 +147,6 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   static inject = ['sessions']
   static Config = Config
 
-  private readonly directEmit: SessionTelemetrySink['emit']
-  private readonly provider: LoggerProvider | undefined
   private readonly shutdownTimeoutMillis: number
   override readonly sharing: SessionTelemetrySharingStatus
 
@@ -158,8 +155,6 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
     super(ctx)
     this.sharing = sharingStatusFor(mode)
     if (mode === SessionTelemetryMode.DISABLED) {
-      this.directEmit = DROP_RECORD
-      this.provider = undefined
       this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
       ctx.on('session/event', (_session, event) => {
         if (event.type === 'feedback/record') ctx.logger.warn(DISABLED_FEEDBACK_WARNING)
@@ -194,14 +189,17 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       throw new Error(`session-telemetry-otel: shutdownTimeoutMillis must be a positive finite number no greater than ${MAX_TIMER_DELAY_MILLIS}, got ${String(shutdownTimeoutMillis)}`)
     }
     this.shutdownTimeoutMillis = shutdownTimeoutMillis
-    this.provider = new LoggerProvider({
+    const anonymousIdentity = getOrCreateAnonymousIdentity()
+    const provider = new LoggerProvider({
       resource: resourceFromAttributes({
         'service.name': APP_IDENTITY.product,
         'service.version': APP_IDENTITY.version,
+        'os.type': process.platform,
+        'host.arch': process.arch,
         // OTel semconv's standard user attribute, carried once per export
         // batch on the Resource rather than per record: the collector
         // aggregates by Resource, and the id is process-stable anyway.
-        'user.id': getOrCreateAnonymousUserId(),
+        'user.id': anonymousIdentity.userId,
       }),
       processors: [
         new BatchLogRecordProcessor({
@@ -216,30 +214,28 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
         }),
       ],
     })
-    const ledger = this.provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel', version)
-    const ops = this.provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel/ops', version)
+    const ledger = provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel', version)
+    const ops = provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel/ops', version)
     const enqueue: SessionTelemetrySink['emit'] = (record) => {
       const logger: Logger = record.channel === 'ops' ? ops : ledger
       logger.emit({
+        // Never inherit an ambient span installed by another OTel plugin:
+        // trace ids are outside this backend's privacy inventory.
+        context: ROOT_CONTEXT,
         timestamp: record.time,
         observedTimestamp: record.time,
         ...SEVERITY[record.severity],
-        // JSON-serializable by the seam's contract (validated at Session.append),
-        // which is exactly the AnyValue subset.
-        body: record.body as AnyValue,
-        attributes: record.attributes,
+        attributes: { ...record.attributes },
       })
     }
     const backend: SessionTelemetrySink = {
       emit: enqueue,
-      shutdown: () => this.shutdown(),
+      shutdown: () => this.shutdownProvider(provider),
     }
     if (mode === SessionTelemetryMode.FULL) {
-      this.directEmit = enqueue
       new SessionTelemetryCoordinator(ctx, backend, 'live')
       return
     }
-    this.directEmit = DROP_RECORD
     const coordinator = new SessionTelemetryCoordinator(ctx, backend, 'on-demand')
     ctx.on('session/event', (session, event) => {
       if (event.type !== 'feedback/record') return
@@ -250,16 +246,6 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       }
       coordinator.captureSession(session, event.seq)
     })
-  }
-
-  /**
-   * Hand a direct service record to the SDK only in `FULL`. Direct calls are
-   * no-ops in `FEEDBACK_ONLY` and `DISABLED`; feedback replay uses a private
-   * backend capability created only for the canonical feedback listener.
-   * @param record - the logical record offered directly to the service.
-   */
-  emit(record: SessionTelemetryRecord): void {
-    this.directEmit(record)
   }
 
   // The Service Definition's optional flush() hint is deliberately NOT implemented. The
@@ -277,12 +263,11 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
    * shutdown awaits `exporter.forceFlush()` first, which can remain pending
    * when the transport never obtains a socket. The provider promise remains
    * observed after the deadline so a later rejection cannot become unhandled.
-   * `DISABLED` has no provider and resolves immediately.
-   * @returns resolves when the SDK pipeline quiesces or is disabled, or rejects at the configured deadline.
+   * @param provider - the uploading mode's initialized SDK provider.
+   * @returns resolves when the SDK pipeline quiesces, or rejects at the configured deadline.
    */
-  async shutdown(): Promise<void> {
-    if (this.provider === undefined) return
-    const providerShutdown = this.provider.shutdown()
+  private async shutdownProvider(provider: LoggerProvider): Promise<void> {
+    const providerShutdown = provider.shutdown()
     let timer: ReturnType<typeof setTimeout> | undefined
     const deadline = new Promise<never>((_resolve, reject) => {
       timer = setTimeout(() => {

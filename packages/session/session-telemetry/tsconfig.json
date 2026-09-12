@@ -21,6 +21,9 @@
       "path": "../../core/agent"
     },
     {
+      "path": "../../identity/anonymous-user-id"
+    },
+    {
       "path": "../../runtime-diagnostics/invariants"
     }
   ]

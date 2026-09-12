@@ -5,6 +5,7 @@ import SwiftUI
 /// surface — sessions, the interaction inbox, the plan/todo/goal pane, the
 /// tool trajectory, and the read-only files browser — under the selected
 /// visual style.
+@MainActor
 public struct CompanionRootView: View {
     @State private var style: CompanionStyle = .neumorphic
     @State private var paired: Bool
@@ -14,14 +15,17 @@ public struct CompanionRootView: View {
     @State private var filesModel: FilesViewModel?
     @State private var subagentsModel: SubagentsViewModel?
     @State private var pushModel: PushViewModel?
+    @State private var activeClient: LinkClient?
+    @StateObject private var support: CompanionSupportModel
+    @Environment(\.scenePhase) private var scenePhase
 
-    private let client: LinkClient?
-
-    /// - Parameter client: the paired client, or nil before the first
-    ///   pairing (the pairing view then constructs its own).
-    public init(client: LinkClient?) {
-        self.client = client
+    /// - Parameters:
+    ///   - client: the paired client, or nil before the first pairing.
+    ///   - makeSupportExporter: the shell's scanner and application-identity composition.
+    public init(client: LinkClient?, makeSupportExporter: @escaping @MainActor () throws -> CompanionSupportExporter) {
+        _activeClient = State(initialValue: client)
         _paired = State(initialValue: client?.credentials != nil)
+        _support = StateObject(wrappedValue: CompanionSupportModel(makeExporter: makeSupportExporter))
     }
 
     public var body: some View {
@@ -35,15 +39,40 @@ public struct CompanionRootView: View {
                     style: $style
                 )
             } else {
-                HostPairingView { _ in
+                HostPairingView { client in
+                    activeClient = client
+                    sessionModel = nil
+                    interactionModel = nil
+                    filesModel = nil
+                    subagentsModel = nil
+                    pushModel = nil
                     paired = true
                 }
             }
         }
         .companionTheme(style)
+        .safeAreaInset(edge: .bottom) {
+            CompanionSupportView(model: support) {
+                (activeClient?.supportSnapshot(), CompanionConnectionSnapshots(
+                    session: sessionModel?.connectionSnapshot, interactions: interactionModel?.connectionSnapshot,
+                    workspaces: filesModel?.connectionSnapshot, pushes: pushModel?.connectionSnapshot))
+            }
+        }
+        .task(id: paired && scenePhase == .active) {
+            guard paired, scenePhase == .active, let activeClient else { return }
+            do {
+                _ = try await activeClient.describe()
+            } catch {
+                // LinkClient records a fixed failure and clears metadata; the application remains usable offline.
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { support.cancel() }
+        }
+        .onDisappear { support.cancel() }
         .task(id: paired) {
-            guard paired, sessionModel == nil else { return }
-            let wire = LinkClientWireDriver(client: client ?? unpairedClient())
+            guard paired, sessionModel == nil, let activeClient else { return }
+            let wire = LinkClientWireDriver(client: activeClient)
             let sessions = RemoteSessionViewModel(wire: wire)
             let interactions = InteractionViewModel(wire: wire)
             let files = FilesViewModel(wire: wire)
@@ -59,16 +88,6 @@ public struct CompanionRootView: View {
             await pushes.startWatching()
             await files.start()
         }
-    }
-
-    /// A placeholder client for the impossible window where pairing
-    /// finished without a client handle; calls fail `unpaired` loudly.
-    private func unpairedClient() -> LinkClient {
-        LinkClient(
-            baseURL: URL(string: "https://unpaired.invalid")!,
-            pinnedFingerprint: String(repeating: "0", count: 64),
-            store: MemoryLinkCredentialsStore()
-        )
     }
 }
 

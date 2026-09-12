@@ -2,15 +2,9 @@
  * POSIX path helpers for the worker VFS: one absolute root, no drive letters,
  * no symlinks.
  *
- * **Not a `node:path` substitute.** {@link dirname}, {@link basename}, and
- * {@link parse} normalize first, because every caller here hands the result to
- * the VFS, which keys files by normalized absolute path — `dirname('/a/b/..')`
- * answers `/`, the directory that actually holds the entry. Node's three are
- * purely lexical and answer `/a/b`. A `node:path` proxy owes callers Node's
- * literal answers, so it needs its own port of Node's implementation rather than
- * a facade over this module; measured over ~200 cases, the normalizing and
- * lexical forms diverge in 45, all in these three functions. The Node-facing
- * port is pinned separately by `../../tests/node/path-diff.spec.ts`.
+ * {@link dirname}, {@link basename}, and {@link parse} normalize first:
+ * `dirname('/a/b/..')` answers `/`, the parent of the normalized VFS entry.
+ * The Node-facing path proxy owns lexical behavior separately.
  * @module @deepseek-ai/dsh-experimental-webworker-runtime/src/module-system/posix-path
  */
 
@@ -66,13 +60,19 @@ export function resolve(...segments: string[]): string {
   return normalize(path.startsWith(SEP) ? path : `${SEP}${path}`)
 }
 
+function normalizeWithoutTrailingSlash(path: string): string {
+  const normalized = normalize(path)
+  // Normalization leaves at most one trailing separator.
+  return normalized.endsWith(SEP) ? normalized.slice(0, -1) : normalized
+}
+
 /**
  * Directory part of a path, after normalization (see the module note).
  * @param path - Path to inspect.
  * @returns Parent path; `/` for root children and `.` for bare names.
  */
 export function dirname(path: string): string {
-  const normalized = normalize(path).replace(/\/+$/, '')
+  const normalized = normalizeWithoutTrailingSlash(path)
   const index = normalized.lastIndexOf(SEP)
   if (index < 0) return '.'
   if (index === 0) return SEP
@@ -86,7 +86,7 @@ export function dirname(path: string): string {
  * @returns Final segment.
  */
 export function basename(path: string, suffix?: string): string {
-  const normalized = normalize(path).replace(/\/+$/, '')
+  const normalized = normalizeWithoutTrailingSlash(path)
   const name = normalized.slice(normalized.lastIndexOf(SEP) + 1)
   if (suffix !== undefined && suffix !== name && name.endsWith(suffix)) return name.slice(0, -suffix.length)
   return name
@@ -160,11 +160,20 @@ export function pathToFileUrl(path: string): string {
 
 /**
  * Convert a `file:` URL back into a VFS path.
+ * Raw strings retain line terminators; only their final line loses query and fragment text.
+ * Percent escapes are decoded after selecting the path.
  * @param url - URL text or URL instance.
- * @returns Absolute VFS path.
+ * @returns Decoded path, or `/` when no path remains.
  */
 export function fileUrlToPath(url: string | URL): string {
   const text = typeof url === 'string' ? url : url.href
-  if (!text.startsWith('file://')) throw new Error(`webworker vfs: not a file URL: ${text}`)
-  return decodeURIComponent(text.slice('file://'.length).replace(/[?#].*$/, '')) || SEP
+  const prefix = 'file://'
+  if (!text.startsWith(prefix)) throw new Error(`webworker vfs: not a file URL: ${text}`)
+  let end = text.length
+  for (let index = text.length - 1; index >= prefix.length; index--) {
+    const character = text[index]
+    if (character === '\n' || character === '\r' || character === '\u2028' || character === '\u2029') break
+    if (character === '?' || character === '#') end = index
+  }
+  return decodeURIComponent(text.slice(prefix.length, end)) || SEP
 }

@@ -135,6 +135,18 @@ describe('Inspector source protocol', () => {
     })).toMatchObject({ t: 'client-runtime/response-acknowledged', requestId: 'request-1' })
   })
 
+  it('correlates Runtime readiness and rejects extra enable fields', () => {
+    const identity = { v: 0, sourceId: 'client-1', generation: 'g-1', sessionId: 'session-1', requestId: 'request-1' }
+    const request = { ...identity, t: 'client-runtime/request', command: { op: 'enable' } }
+    const response = { ...identity, t: 'client-runtime/response', outcome: { ok: true, result: { op: 'enable' } } }
+    expect(parseWorkerSourceFrame(request)).toEqual(request)
+    expect(parseSourceFrame(response, 4)).toEqual(response)
+    expect(() => parseWorkerSourceFrame({ ...request, command: { op: 'enable', extra: true } })).toThrow('unknown field')
+    expect(() => parseSourceFrame({
+      ...response, outcome: { ok: true, result: { op: 'enable', extra: true } },
+    }, 4)).toThrow('unknown field')
+  })
+
   it('rejects invalid RemoteObject representations', () => {
     expect(() => parseSourceFrame({
       v: 0,

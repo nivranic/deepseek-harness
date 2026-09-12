@@ -36,6 +36,8 @@ kind: "package-reference"
 
 `status` 合并载体状态与实时名称、审批开关、设备数。`createPairing` 原样转呈载体的二维码载荷，并把停止或绑定失败的载体映射为 `link-disabled`。设备行永不携带公钥；按 id 吊销返回更新后的行，未知 id 返回 `undefined`，空 id 以 `bad-request` 失败。
 
+`diagnostics` 只返回监听状态与载体公布的协议版本、运行时类别、审批开关和 capability。默认远程 Allowlist 不开放该查询。结果不包含 Host 身份、地址、指纹或错误消息，读取也不会启动监听器或访问配对记录。它是供本地支持信息采集器使用的未扫描输入，不能证明客户端连接、设备授权、应用标识、运行时健康或完整 Support Bundle。
+
 -----
 
 <a id="understand-the-implementation"></a>

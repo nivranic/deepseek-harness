@@ -242,6 +242,36 @@ Host service backing the generated `ctx.remote.workspace` namespace.
 
 Source: [`packages/api/workspace-controller/src/index.ts`](../../packages/api/workspace-controller/src/index.ts)
 
+<a id="ctxworkspacefiles--workspacefiles"></a>
+
+### `ctx.workspaceFiles` — `WorkspaceFiles`
+
+Host service backing the generated `ctx.remote.workspaceFiles` namespace. Every verb resolves the registered root canonically and confines the request under it before touching the backend; content reads are text-only with a byte cap and a UTF-16 range.
+
+```ts cordis-catalog
+/**
+ * List one directory level inside a registered Workspace.
+ * @param workspaceId - registered Workspace identity.
+ * @param path - relative directory path; absent lists the root.
+ * @param signal - caller cancellation.
+ * @returns the level's normalized relative path and its children.
+ */
+@Remote('list') async list( workspaceId: string, path: string | undefined, signal?: AbortSignal, ): Promise<WorkspaceFilesListValue>
+
+/**
+ * Read one text file inside a registered Workspace as a UTF-16 range.
+ * @param workspaceId - registered Workspace identity.
+ * @param path - relative file path.
+ * @param offset - range start in UTF-16 code units; absent starts at zero.
+ * @param limit - maximum returned code units; absent reads through the end.
+ * @param signal - caller cancellation.
+ * @returns the decoded range with its media type and total size.
+ */
+@Remote('read') async read( workspaceId: string, path: string, offset: number | undefined, limit: number | undefined, signal?: AbortSignal, ): Promise<WorkspaceFilesReadValue>
+```
+
+Source: [`packages/api/workspace-controller/src/files.ts`](../../packages/api/workspace-controller/src/files.ts)
+
 <a id="ctxworkspaceregistry--workspaceregistry"></a>
 
 ### `ctx.workspaceRegistry` — `WorkspaceRegistry`

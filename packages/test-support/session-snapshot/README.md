@@ -89,6 +89,7 @@ A scenario requiring a non-Windows host declares `posixOnly`, which skips its ru
 - **A fixture guard rejects the committed files** — orphan scenario dirs, missing files, multiple pins for one header class, duplicate sidecar content, unscrubbed JSONL headers, and malformed pinning headers all fail the suite before comparisons run.
 - **The session harvest needs raw JSONL mode** — snapshot configs set the JSONL backend's `compression: 'none'`; compressed JSONL and SQLite compositions have no snapshot-harvest path.
 - **Built mode needs current artifacts** — run `pnpm run build` before selecting `DSH_EXAMPLE_MODE=lib`; source mode remains the zero-build path.
+- **A persistence wait reaches its deadline** — the error identifies the requested record even if the first asynchronous read is still pending. The last observed assertion failure propagates unchanged; an unobserved deadline retains Vitest's failure as its cause. A read settling later cannot make the scenario pass. The [timeout diagnostic decision](../../../.agents/notes/implemented/testing/2026-09-06-snapshot-pending-read-diagnostics.md) owns this distinction.
 
 -----
 
@@ -110,6 +111,7 @@ The shared core owns manifests, workspace setup/comparison, typed identity mappi
 |---|---|
 | [`src/launcher.ts`](src/launcher.ts) | Subprocess/client launcher and shutdown ownership |
 | [`src/harness.ts`](src/harness.ts) | Scripted scenario driver and session-log harvest |
+| [`src/wait-for-snapshot-check.ts`](src/wait-for-snapshot-check.ts) | Persistence polling diagnostics when the first asynchronous check has not settled |
 | [`src/manifest.ts`](src/manifest.ts) | Closed `snapshot.yml` schema, collection, and ownership rules |
 | [`src/identity.ts`](src/identity.ts) | Typed first-seen identity tokenization across parent and child logs |
 | [`src/normalize.ts`](src/normalize.ts) | Pure normalizers and scrubbing helpers |

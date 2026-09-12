@@ -12,14 +12,14 @@ Production executables are named `deepseek-harness-sdk-runtime-<platform>-<arch>
 
 Repository builds also materialize a dev-only `runtime/node/` carrier. It runs `node runtime/node/node_modules/@deepseek-ai/dsh/lib/bin.js` on system Node 22.19 or newer. It is never selected automatically and is excluded from wheels and sdists.
 
-Both carriers execute the same `dsh` grammar and shipped profiles, including the standalone `sdk-minimal` tree and the full `web` profile with its frontend assets. The private `dsh-python-runtime-closure` manifest defines the packaged dependency closure; there is no Python-specific Node application or checked-in default `cordis.yml`.
+Both carriers execute the same `dsh` grammar and shipped profiles, including the standalone `sdk-minimal` tree and the full `web` profile with its frontend assets. The private `dsh-python-runtime-closure` manifest explicitly lists every reachable workspace application, bundle, plugin, and required peer so legacy deploy restoration preserves the complete flat package tree. `verify-runtime-closure` rejects missing transitive workspace dependencies before packaging. There is no Python-specific Node application or checked-in default `cordis.yml`.
 
 ## Python module API
 
 - `bundled_package_dir() -> Path` returns the installed module-data root and verifies its release metadata.
 - `bundled_runtime_path() -> Path` returns the current platform executable and verifies required sidecars.
 - `resolve_bundled_launch_args(mode=None) -> tuple[str, ...]` returns the executable argv by default. Explicit `mode="node"` or `DSH_RUNTIME_MODE=node` selects the repo-only Node carrier.
-- `main()` implements the installed `dsh` console command and rejects an absent or blank `DSH_HOME` before replacing the Python process.
+- `main()` implements the installed `dsh` console command and rejects an absent or blank `DSH_HOME`. POSIX replaces the Python process; Windows waits for the native child, inherits its standard streams, preserves argument boundaries, and propagates its exit status.
 
 Unsupported platforms and missing executables or sidecars raise `FileNotFoundError` with the build and installation routes. Unknown runtime modes raise `ValueError`.
 
@@ -34,3 +34,5 @@ External profile management uses `dsh plugin --profile <name> ...`. That command
 From the repository root, `pnpm exec tsx scripts/build-exe-for-python-sdk.ts` verifies the closure, builds packages, deploys a symlink-free tree, packages the selected target, and syncs the executable and sidecars into this module. `scripts/build-python-release.py` stages release-shaped wheels at the root repository version and pins `deepseek-harness-sdk` to the exact runtime version.
 
 The installed-wheel smoke creates a clean virtual environment outside the checkout, proves distribution and executable provenance, then exercises default and customized SDK profiles, external plugins, MCP, native tools, direct JSON-RPC, committed snapshots, and the real provider on trusted runs. See the [Python contributor workflow](../development.md) and [installed-wheel testing decision](../../.agents/notes/implemented/testing/2026-08-23-installed-python-wheel-black-box-ci.md).
+
+On Linux and macOS, an additional installed-wheel smoke launches `dsh --profile web --no-open --host 127.0.0.1 --port 0` in a fresh home. It checks the authenticated index, a nonempty plugin graph with a parser-loaded module bootstrap, all declared bundle bytes and Session RPC, then requires graceful SIGTERM shutdown and an empty process group. The launch token, cookies and runtime output stay in memory. This HTTP check does not exercise a browser or the DirectHostMac application.

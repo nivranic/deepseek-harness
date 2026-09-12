@@ -12,7 +12,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { Service } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { ArtifactId, type ArtifactFormat } from './types.ts'
+import { ArtifactId, parseArtifactId, type ArtifactFormat } from './types.ts'
 
 export * from './types.ts'
 
@@ -186,9 +186,14 @@ export function apply(ctx: Context): void {
       }],
     },
     async execute(args, exec) {
-      const id = ArtifactId(args.id.trim())
-      if (id.length === 0) {
+      if (args.id.trim().length === 0) {
         throw new Error('artifact_read requires a non-empty id')
+      }
+      let id: ArtifactId
+      try {
+        id = parseArtifactId(args.id)
+      } catch (error) {
+        throw new Error('artifact_read requires a portable artifact id', { cause: error })
       }
       if ((args.offset ?? 0) < 0 || (args.limit !== undefined && args.limit < 0)) {
         throw new Error('artifact_read offset and limit must be non-negative')

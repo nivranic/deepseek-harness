@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G2-SUPPLY",
+  "status": "PARTIAL",
+  "sourceHead": "24eff39f77372b2174341ec6703927e566b5a605",
+  "recordedAt": "2026-09-05T21:00:31.750240+00:00",
+  "implemented": {
+    "upstreamReferencesVerified": 24,
+    "workflowCorpus": 22,
+    "registry": "release/action-pins.json",
+    "permissionPolicy": "release/workflow-security.json",
+    "gate": "pnpm run verify-workflow-security",
+    "aggregates": [
+      "ci-static",
+      "ci-primary",
+      "hygiene",
+      "check-all"
+    ],
+    "checkoutCredentialPersistence": false,
+    "scannerWorkflow": ".github/workflows/supply-chain.yml"
+  },
+  "verification": [
+    {
+      "command": "pnpm exec vitest run scripts/workflow-security.spec.ts scripts/run-gates.spec.ts scripts/ci-workflow.spec.ts",
+      "passed": 119,
+      "skipped": 1
+    },
+    {
+      "command": "pnpm exec vitest run scripts/ci-workflow.spec.ts",
+      "passed": 33
+    },
+    {
+      "command": "pnpm exec vitest run scripts/ci-workflow.spec.ts -t \"retains a failed runtime wheel\"",
+      "passed": 1,
+      "skipped": 33
+    },
+    {
+      "command": "pnpm run verify-workflow-security",
+      "status": "PASS",
+      "workflows": 21
+    },
+    {
+      "command": "pnpm run test:docs",
+      "passed": 15
+    },
+    {
+      "command": "pnpm run doc-sync",
+      "passed": 32
+    },
+    {
+      "command": "pnpm run lint",
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "command": "pnpm run knip",
+      "status": "PASS"
+    }
+  ],
+  "inputMaterialization": "Checks ran on pre-commit worktree bytes; Linux received explicit file synchronization and retained its older Git HEAD. No clean-HEAD rerun is claimed.",
+  "pending": [
+    "Dependency review feature or verified independent dependency scanner",
+    "Accepted actual CodeQL results for every declared language",
+    "Packaged-closure SBOM",
+    "Checksum-bound RC manifest",
+    "Portable provenance and protected attestation hook",
+    "Four-platform RC artifacts"
+  ],
+  "workflowEnablementChanged": false,
+  "productionPublicationExecuted": false,
+  "initialSecretScan": {
+    "candidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "status": "PARTIAL",
+    "tool": "Gitleaks 8.30.1",
+    "archiveSha256": "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e",
+    "range": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9..906d19359588584ffe154d9abe8aea752e7b743a",
+    "exitCode": 1,
+    "findings": 4,
+    "reviewed": "All four matches are confirmed Git blob identities at the exact recorded pairing-file lines; no exception is enabled yet.",
+    "remaining": [
+      "Exact audited exception with invalid-secret rejection proof",
+      "Complete candidate tree scan",
+      "CI wiring"
+    ],
+    "log": ".artifacts/g1-resume-20260905/gitleaks-changes-906d.log",
+    "classification": ".artifacts/g1-resume-20260905/verified-gitleaks-blob-findings.json"
+  },
+  "secretScanning": {
+    "status": "PASS",
+    "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "remoteRun": 33980218202,
+    "remoteJob": 101344111125,
+    "evidence": "artifacts/verification/gate-2/acceptance/secrets-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+    "localWindowsEvidence": "artifacts/verification/gate-2/acceptance/secrets-windows-a49d64f20b.json",
+    "files": 9798,
+    "scannerNegativeFixture": "PASS",
+    "unreviewedFindings": 0,
+    "findingClasses": [
+      {
+        "kind": "tree",
+        "counts": {
+          "verified-git-blob": 46,
+          "reviewed-non-secret-line": 11
+        }
+      },
+      {
+        "kind": "changes",
+        "counts": {
+          "verified-git-blob": 4
+        }
+      }
+    ]
+  },
+  "scannerValidation": [
+    {
+      "command": "python -B -m unittest discover -s scripts/release -p test_secret_scan.py -v",
+      "status": "PASS",
+      "tests": 12,
+      "runner": "Windows Python 3.12.10"
+    },
+    {
+      "command": "PYTHONPATH=scripts python -B -m unittest discover -s scripts/release -p test_security_evidence.py -v",
+      "status": "PASS",
+      "tests": 7,
+      "runner": "Windows Python 3.12.10"
+    },
+    {
+      "command": "pnpm exec vitest run scripts/supply-chain-workflow.spec.ts scripts/workflow-security.spec.ts",
+      "status": "PASS",
+      "tests": 18,
+      "note": "The changed upload policy was subsequently rechecked by the 3-test workflow owner."
+    },
+    {
+      "command": "pnpm run test:docs; pnpm run doc-sync; pnpm run lint",
+      "status": "PASS",
+      "quick": 15,
+      "full": 32,
+      "lintWarnings": 0,
+      "lintErrors": 0,
+      "runner": "Explicitly synchronized isolated Linux source; not a clean-HEAD claim."
+    }
+  ],
+  "dependencyReview": {
+    "status": "FAIL",
+    "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "runId": 33980218202,
+    "jobId": 101344110978,
+    "reason": "Dependency review is not supported on this repository; the action requires Dependency graph to be enabled.",
+    "repository": {
+      "visibility": "public",
+      "fork": true,
+      "admin": true
+    },
+    "apiStatus": 403,
+    "settingsChanged": false,
+    "browser": "Settings require a GitHub browser login; the available browser is signed out.",
+    "followup": "Enable Dependency graph through a supported authenticated settings entry, or implement an independently verified dependency scanner. This failure is not waived.",
+    "evidence": "artifacts/verification/gate-2/acceptance/dependencies-d28a442df621173dfd9f559446f9e7a963e7dfff.json"
+  },
+  "sast": {
+    "status": "FAIL",
+    "implementationHead": "76384701598397492c03135db998db5bef69eb4a",
+    "languages": [
+      "javascript-typescript",
+      "python",
+      "java-kotlin",
+      "swift"
+    ],
+    "previous": [
+      {
+        "candidateSha": "a49d64f20bbfac0a10c0de4a91f2af0ed5f0339a",
+        "runId": 33976725210,
+        "reason": "Parser required the wrong SARIF invocation field."
+      },
+      {
+        "candidateSha": "8e46c66400b5181c43a06e1f2ac3aa9b4b87f850",
+        "runId": 33977259106,
+        "reason": "Completed Python, Java/Kotlin and JavaScript analyses were rejected for rule/result metadata; component-aware parsing and structural diagnostics await fresh execution."
+      },
+      {
+        "candidateSha": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+        "runId": 33978265065,
+        "reports": {
+          "python": {
+            "status": "PASS",
+            "path": "artifacts/verification/gate-2/acceptance/sast-python-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+            "findings": 0,
+            "reason": null
+          },
+          "javascript-typescript": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+            "findings": 91,
+            "reason": null
+          },
+          "java-kotlin": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-fe4bd57c4c0b39e23711fa910281371efeae17f4.json",
+            "findings": null,
+            "reason": "CodeQL reported incomplete analysis"
+          }
+        },
+        "reason": "Prior language verdicts retained before the d28 scan."
+      },
+      {
+        "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+        "runId": 33980218202,
+        "reports": {
+          "javascript-typescript": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 91,
+            "analysisComplete": true,
+            "rules": [
+              103
+            ],
+            "blockingDiagnostics": [],
+            "receiptSha256": "e79f594310d4f9bb87826cd6e87d7ead951261b71b41e08fcc1136e55a99ddae"
+          },
+          "python": {
+            "status": "PASS",
+            "path": "artifacts/verification/gate-2/acceptance/sast-python-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 0,
+            "analysisComplete": true,
+            "rules": [
+              50
+            ],
+            "blockingDiagnostics": [],
+            "receiptSha256": "63ef5b1bf2efdf1d06a4f5533ffd9df8d5083de99180a4788394dd4b4edb4e21"
+          },
+          "java-kotlin": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 7,
+            "analysisComplete": false,
+            "rules": [
+              120
+            ],
+            "blockingDiagnostics": [
+              {
+                "rule": "java/diagnostics/extraction-errors",
+                "level": "error"
+              }
+            ],
+            "receiptSha256": "f6942d5f53841006c29d5c4f132bd94da9f45113f9c80cf4a15ad7674802a54a"
+          },
+          "swift": {
+            "status": "FAIL",
+            "path": "artifacts/verification/gate-2/acceptance/sast-swift-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+            "findings": 1,
+            "analysisComplete": true,
+            "rules": [
+              28
+            ],
+            "blockingDiagnostics": [],
+            "receiptSha256": "56e774748fc5fdbd26987101c1fe985008633a5dd35c6b6fe8fe8fdc2a122f39"
+          }
+        },
+        "reason": "Prior candidate results retained before the de346 scan."
+      }
+    ],
+    "databaseUpload": false,
+    "sarifUpload": false,
+    "coverageLimit": "Native C/C++ and Rust are outside this four-language matrix.",
+    "actualCandidate": "de346d222198b1aac14dec56546dd661adf8debf",
+    "runId": 33985552798,
+    "reports": {
+      "javascript-typescript": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "4287aec3e4b32479108d1ff90473a23dfcb483bb57e8b8b665b3d46f18484b68",
+        "status": "FAIL",
+        "findingCount": 86,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 86,
+        "reviewedFindings": 0
+      },
+      "java-kotlin": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "2f037d7d3846ce61f2193e70a3518d56c73a1bf8f7e736b540d5405bdf651ff3",
+        "status": "FAIL",
+        "findingCount": 7,
+        "analysisComplete": false,
+        "blockingDiagnostics": [
+          {
+            "rule": "java/diagnostics/extraction-errors",
+            "level": "error",
+            "category": "unknown-extraction-errors",
+            "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt"
+          }
+        ],
+        "unreviewedFindings": 7,
+        "reviewedFindings": 0
+      },
+      "swift": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-swift-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9f5e4f20c08940e60e407d50634fd11059cdc8c8a6d741776d25f7199446fb77",
+        "status": "PASS",
+        "findingCount": 1,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 1
+      },
+      "python": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9943c5fb80a8e649ca75d7a9e9180a862fb818297dbe8148ae836f5e26d74332",
+        "status": "PASS",
+        "findingCount": 0,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 0
+      }
+    },
+    "triage": "artifacts/verification/gate-2/sast-triage-fe4bd57c4c.json",
+    "swift": {
+      "status": "PASS",
+      "findings": 1,
+      "reviewedFindings": 1,
+      "unreviewedFindings": 0,
+      "analysisComplete": true,
+      "reviewImplementation": "REMOTE_VALIDATED"
+    },
+    "next": [
+      "Validate the aligned Android compiler and notification fix on a fresh candidate.",
+      "Resolve six remaining Kotlin Noise findings and 86 JavaScript findings.",
+      "Retain and investigate the independent Windows test-process exit.",
+      "Provide actual dependency scanning; the existing Dependency graph failure is not waived."
+    ],
+    "diagnosticImplementationHead": "76384701598397492c03135db998db5bef69eb4a",
+    "diagnosticImplementationStatus": "REMOTE_VALIDATED"
+  },
+  "followupEvidence": "artifacts/verification/gate-2/security-followup-121a78470e.json",
+  "latestCandidate": {
+    "sha": "121a78470e3ee8d18515a152dc7f2a8e0f4c7573",
+    "status": "FAIL",
+    "workflowRun": 33989933318,
+    "receipts": {
+      "javascript-typescript": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "62b95a39eb653b194af986cd561c4049501d2196ed8dedc5c0aa4c9cc2d1a6b3",
+        "status": "FAIL",
+        "findingCount": 86,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 86,
+        "reviewedFindings": 0
+      },
+      "java-kotlin": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "d3c8dd3ccbed8184ef22357d9f5f672a60b8d4034e09118a4adb3caeb5841dfc",
+        "status": "FAIL",
+        "findingCount": 6,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 6,
+        "reviewedFindings": 0
+      },
+      "python": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "355568086ffa9250b79a83506d30021dc58492e58dfed1cae27bd0f7f4f0ec7c",
+        "status": "PASS",
+        "findingCount": 0,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 0
+      },
+      "secrets": {
+        "path": "artifacts/verification/gate-2/acceptance/secrets-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "ac0a0c418c9a52cc39add96eb6b3dcd56a26b203ade5413a456a3cc74b8aedfc",
+        "status": "PASS"
+      },
+      "dependencies": {
+        "path": "artifacts/verification/gate-2/acceptance/dependencies-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "43e3f879947b46e0bf7fa71bb865f234a60612e9bfe39184fdf7d2a1482976d5",
+        "status": "FAIL"
+      },
+      "swift": {
+        "status": "PENDING",
+        "jobId": 101370243530,
+        "observation": "Still compiling Apple apps at collection time. The de346 Swift SAST PASS is historical, not acceptance for this candidate."
+      }
+    },
+    "localFixesPendingCandidateValidation": "24eff39f77372b2174341ec6703927e566b5a605"
+  }
+}

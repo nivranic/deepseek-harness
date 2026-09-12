@@ -29,7 +29,7 @@ kind: "package-reference"
 
 ### mention 语法
 
-规范 mention 是 Markdown 形式的 `@[label](dsh-session:<base64url 编码的 id>)`，或裸 `dsh-session:` URI；每个 JavaScript 字符串会话 id 都能精确往返。服务会把 mention 改写为消息中可读的 `@label` 文本，并返回结构化引用。显式 Markdown mention 会拒绝格式错误的 URI；空或只含标点符号的 scheme mention 仍是普通讨论文本。
+规范 mention 是 Markdown 形式的 `@[label](dsh-session:<base64url 编码的 id>)`，或裸 `dsh-session:` URI；每个 JavaScript 字符串会话 id 都能精确往返。服务会把 mention 改写为消息中可读的 `@label` 文本，并返回结构化引用。显式 Markdown mention 会拒绝格式错误的 URI；空或只含标点符号的 scheme mention 仍是普通讨论文本。发现过程对每段输入的访问次数有界，包括未完成或嵌套的 Markdown 前缀。
 
 ### 模型能得到什么
 

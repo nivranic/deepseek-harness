@@ -48,6 +48,26 @@ Program-only SDK bindings:
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue }
 
 interface ToolArgsMap {
+  /** Create one durable artifact — a first-class output file the user keeps (a report, a design document, a patch, a generated dataset, a binary file such as an image). Give it a short `kind` tag (e.g. markdown, report, patch, json, png), a human-facing `title`, and the COMPLETE content in this call — as `content` text, or as raw bytes base64-encoded in `data`; exactly one of the two. The artifact is stored durably and journaled as a reference you can cite by id; do not use it for scratch text that belongs in your reply, and do not split one artifact across calls. */
+  artifact_create: {
+    /** Short kind tag, e.g. markdown, report, patch, json, png. */
+    kind: string;
+    /** Human-facing artifact title. */
+    title: string;
+    /** The COMPLETE artifact content as text. Exactly one of content or data. */
+    content?: string;
+    /** The COMPLETE artifact bytes, base64-encoded. Exactly one of content or data. */
+    data?: string;
+  } & Record<string, JsonValue>;
+  /** Read one artifact back by its reference id. Returns the content exactly as created, plus the kind and title when the calling session journaled the artifact. A text artifact returns its `content` (whole by default, or one UTF-16 range with offset and limit); a bytes artifact returns base64 `data` (whole by default, or one byte range). Reading does not modify the artifact. */
+  artifact_read: {
+    /** The artifact reference id an artifact_create result reported. */
+    id: string;
+    /** Range start — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0. */
+    offset?: number;
+    /** Maximum returned units of the artifact format; omitted reads through the end. */
+    limit?: number;
+  } & Record<string, JsonValue>;
   /** Execute a bash command (`bash -c`) and return its stdout/stderr. Each call runs in a fresh shell: no state (cwd, variables, functions) persists between calls — pass `workdir` instead of using `cd`. Non-zero exits are reported as `[exit code: N]`. Current harness environment facts are exposed through managed `$DSH_*` variables; inspect them when needed. Commands may run under a file sandbox; a blocked file operation is reported as `[sandbox: file access denied under <mode> mode]` — a policy denial, not a bug in the command; do not retry another way. Long output is truncated to its tail; the full output is saved to a file whose path is reported when available. Set `run_in_background: true` for long-running commands: the call returns a job id immediately; read its output with `job_output` and stop it with `job_kill`. Attempting a command the sandbox may deny is safe and expected: run it and read the marker rather than assuming the denial. When a command is denied and a wider mode would let it succeed, escalate immediately in the same turn — the one sanctioned exception to a denial: retry the exact same command once with `sandbox_permissions` (the narrowest wider mode that suffices) plus a one-sentence `justification`. Do not detour through chat to ask permission first — the approval prompt raised by that retry is how the user consents. If the session states approval prompts are disabled, there is no exception: a denial is final — do not set `sandbox_permissions`. Never escalate speculatively: ground the request in a real denial — normally the one this command just hit; escalating up front is fine only when this session already denied the same access. A rejected escalation is final for that command — stop and explain, never work around it — but it does not forbid attempting or escalating other commands later. */
   bash: {
     /** The bash command to execute. */
@@ -275,6 +295,23 @@ interface ToolArgsMap {
 }
 
 interface ToolOutputMap {
+  artifact_create: {
+    id: string;
+    kind: string;
+    title: string;
+    format: "text" | "bytes";
+    status: "ready";
+  };
+  artifact_read: {
+    id: string;
+    kind?: string;
+    title?: string;
+    format: "text" | "bytes";
+    content?: string;
+    data?: string;
+    truncated: boolean;
+    size: number;
+  };
   bash: {
     kind: "background";
     jobId: string;

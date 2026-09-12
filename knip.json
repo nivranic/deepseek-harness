@@ -5,15 +5,18 @@
   ],
   "ignoreBinaries": [
     "bwrap",
+    "gh",
     "icacls",
     "musl-gcc",
+    "plutil",
     "powershell",
     "python3",
     "robocopy",
     "sandbox-exec",
     "tar",
     "taskkill",
-    "where.exe"
+    "where.exe",
+    "xcrun"
   ],
   "ignoreWorkspaces": [
     "vendor/*",
@@ -29,6 +32,8 @@
         "scripts/**/*.mjs",
         "scripts/**/*.cjs",
         "scripts/build-desktop-release.ts",
+        "scripts/produce-android-candidate.ts",
+        "scripts/release/windows-portable-launch.ts",
         "snapshots/**/*.mjs",
         "scripts/types/client-build-environment/index.d.ts"
       ],

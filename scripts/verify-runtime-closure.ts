@@ -1,8 +1,8 @@
 /**
  * Verify that the executable deploy manifest supplies every plugin referenced
- * by a shipped agent preset and every required workspace peer in its dependency
- * graph. With auto peer installation disabled, either omission can otherwise
- * fail only when Cordis loads the packaged plugin.
+ * by a shipped agent preset and every reachable workspace dependency or required
+ * peer, including the CLI's profile bundles. Legacy deploy restoration uses this
+ * flat manifest; an omitted transitive workspace package can disappear from the executable.
  */
 import { globSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
@@ -39,7 +39,7 @@ export interface RuntimeClosureResult {
 }
 
 /**
- * Check that the runtime manifest contains every shipped-preset plugin and workspace peer.
+ * Check shipped-preset plugins, application dependencies, and required workspace peers.
  * @param root repository root containing the runtime manifest and shipped presets.
  * @param manifestPath runtime manifest path relative to {@link root}.
  * @returns the discovered preset count, reachable workspace package count, and violations.
@@ -86,6 +86,9 @@ export async function verifyRuntimeClosure(
     }
     for (const dependency of Object.keys(dependencies).sort()) {
       if (!workspace.has(dependency) || parents.has(dependency)) continue
+      if (runtimeDependencies[dependency]?.startsWith('workspace:') !== true) {
+        failures.push(`${formatChain(runtimeName, packageName, parents)} -> ${dependency} [runtime workspace dependency missing]`)
+      }
       parents.set(dependency, packageName)
       queue.push(dependency)
     }
@@ -106,7 +109,7 @@ if (import.meta.main) {
   })
   const result = await verifyRuntimeClosure(root, values.manifest)
   if (result.failures.length > 0) {
-    console.error('verify-runtime-closure: preset plugins or required workspace peers are missing from python/sdk-runtime dependencies:')
+    console.error('verify-runtime-closure: preset plugins, workspace dependencies, or required peers are missing from python/sdk-runtime dependencies:')
     for (const failure of result.failures) console.error(`  ${failure}`)
     process.exitCode = 1
   } else {
@@ -199,7 +202,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 async function loadWorkspacePackages(root: string): Promise<Map<string, WorkspacePackage>> {
-  const paths = globSync(['packages/*/*/package.json', 'vendor/*/package.json'], { cwd: root })
+  const paths = globSync(['apps/*/package.json', 'packages/*/*/package.json', 'vendor/*/package.json'], { cwd: root })
     .sort()
     .map(relative => resolve(root, relative))
   const result = new Map<string, WorkspacePackage>()

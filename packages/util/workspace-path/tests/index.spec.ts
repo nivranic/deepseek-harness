@@ -30,5 +30,18 @@ describe('Workspace path helpers', () => {
     expect(workspaceTitleOf('/work/project/')).toBe('project')
     expect(workspaceTitleOf('C:\\work\\project\\')).toBe('project')
     expect(workspaceTitleOf('/')).toBe('')
+    expect(workspaceTitleOf('')).toBe('')
+    expect(workspaceTitleOf('C:\\work\\project/\\/')).toBe('project')
+    expect(resolveWorkspacePath('/work/\\/', '\\file')).toBe('/work/file')
+    expect(abbreviateHomePath('/work\\/', '/work\\/')).toBe('~')
+  })
+
+  it('preserves long internal separator runs without repeatedly scanning them', () => {
+    const path = `/work/${'/'.repeat(200_000)}project`
+    const start = performance.now()
+    expect(workspaceTitleOf(path)).toBe('project')
+    expect(resolveWorkspacePath(path, 'file')).toBe(`${path}/file`)
+    expect(abbreviateHomePath(path, '/work')).toBe(`~${path.slice(5)}`)
+    expect(performance.now() - start).toBeLessThan(2000)
   })
 })

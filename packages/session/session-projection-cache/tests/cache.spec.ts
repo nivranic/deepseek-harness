@@ -10,7 +10,7 @@
  * only after durability.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -120,6 +120,15 @@ async function storedRows(root: string, id: Session['id']): Promise<CheckpointRe
   return (await storedRecord(root, id))?.rows
 }
 
+/** Observe automatic writes without issuing an extra checkpoint or racing durability. */
+function pendingWrites(writes: MockInstance<SessionProjectionCache['write']>, count: number): Promise<void>[] {
+  expect(writes).toHaveBeenCalledTimes(count)
+  return writes.mock.results.map((result) => {
+    if (result.type !== 'return') throw new Error('checkpoint write did not return its completion promise')
+    return result.value
+  })
+}
+
 /** Pre-seed one session's record document with a stored checkpoint record. */
 async function seedRecord(
   root: string,
@@ -132,9 +141,6 @@ async function seedRecord(
   await writeFile(path, JSON.stringify({ version: projectionCacheDomainSpec.version, record: { identity, rows } }))
 }
 
-/** Wait until queued fail-soft writes (event-listener fire-and-forget over real fs I/O) drain. */
-const settle = () => new Promise(resolve => setTimeout(resolve, 40))
-
 afterEach(async () => {
   vi.useRealTimers()
   await Promise.all(contexts.splice(0).map(ctx => ctx.fiber.dispose()))
@@ -143,34 +149,36 @@ afterEach(async () => {
 
 describe('SessionProjectionCache write policy', () => {
   it('writes a durable checkpoint at turn/end (mandatory point)', async () => {
-    const { ctx, root } = await harness()
+    const { ctx, root, cache } = await harness()
+    const writes = vi.spyOn(cache, 'write')
     const session = ctx.sessions.create(SessionId('turn-end'))
     mark(session, ['a'])
     // Creation already wrote the init cut; the mark is throttled, so the
     // stored row is still the creation-time cut (no marks folded).
-    await settle()
+    await Promise.all(pendingWrites(writes, 1))
     expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
     const end = endTurn(session)
-    await settle()
-    const rows = await storedRows(root, session.id)
-    expect(rows?.['cache-test/marks']).toEqual({ ver: 1, seq: end.seq, val: { marks: ['a'] } })
+    await Promise.all(pendingWrites(writes, 2))
+    expect((await storedRows(root, session.id))?.['cache-test/marks'])
+      .toEqual({ ver: 1, seq: end.seq, val: { marks: ['a'] } })
   })
 
   it('writes a checkpoint at session creation, capturing the seed-derived cut', async () => {
-    const { ctx, root } = await harness()
+    const { ctx, root, cache } = await harness()
+    const writes = vi.spyOn(cache, 'write')
     // A forked child seeded with its ancestor's title-like event: no
     // conversation follows, yet the creation write must capture the fold so
     // a crash or a live-held fork still lists the derived value.
     const session = ctx.sessions.create(SessionId('seeded'), {
       seed: [{ type: 'cache-test/mark', seq: 0, time: 1, data: { marks: ['seed'] } }] as SessionEvent[],
     })
-    await settle()
-    expect((await storedRows(root, session.id))?.['cache-test/marks']?.val)
-      .toEqual({ marks: ['seed'] })
+    await Promise.all(pendingWrites(writes, 1))
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['seed'] })
   })
 
   it('writes at session disposal (detach, the live-to-cold moment)', async () => {
-    const { ctx, root } = await harness()
+    const { ctx, root, cache } = await harness()
+    const writes = vi.spyOn(cache, 'write')
     // Sessions dispose with their owning fiber: create in a child plugin.
     let session: Session | undefined
     const owner = await ctx.plugin(Object.assign((inner: Context) => {
@@ -179,19 +187,101 @@ describe('SessionProjectionCache write policy', () => {
     if (session === undefined) throw new Error('session was not created')
     mark(session, ['live'])
     await owner.dispose()
-    await settle()
+    // Session disposal starts the fail-soft write; its promise owns durability.
+    await Promise.all(pendingWrites(writes, 2))
     expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['live'] })
   })
 
+  it('preserves the disposal cut when creation durability finishes later', async () => {
+    const { ctx, root, cache } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    vi.spyOn(ctx.sessions, 'flush').mockImplementationOnce(async () => {
+      entered.resolve(undefined)
+      await release.promise
+      return false
+    })
+    const writes = vi.spyOn(cache, 'write')
+    let session: Session | undefined
+    try {
+      const owner = await ctx.plugin(Object.assign((inner: Context) => {
+        session = inner.sessions.create(SessionId('held-create'))
+      }, { inject: ['sessions'] }))
+      await entered.promise
+      if (session === undefined) throw new Error('session was not created')
+      mark(session, ['live'])
+      await owner.dispose()
+      release.resolve(undefined)
+      await Promise.all(pendingWrites(writes, 2))
+      expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['live'] })
+    } finally {
+      release.resolve(undefined)
+    }
+  })
+
+  it('drains accepted checkpoints still awaiting log durability before closing the cache', async () => {
+    const { ctx, root, cache, fiber } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const flush = ctx.sessions.flush.bind(ctx.sessions)
+    vi.spyOn(ctx.sessions, 'flush').mockImplementation(async (session) => {
+      if (session.id === 'held') {
+        entered.resolve(undefined)
+        await release.promise
+      }
+      return flush(session)
+    })
+    try {
+      const held = ctx.sessions.create(SessionId('held'))
+      await entered.promise
+      const disposalStarted = Promise.withResolvers<undefined>()
+      fiber.ctx.effect(() => () => { disposalStarted.resolve(undefined) }, 'test.disposalStarted')
+      let closed = false
+      const closing = fiber.dispose().then(() => { closed = true })
+      await disposalStarted.promise
+      expect(closed).toBe(false)
+      await expect(cache.write(held)).rejects.toThrow('closed')
+      release.resolve(undefined)
+      await closing
+      expect((await storedRows(root, held.id))?.['cache-test/marks']?.seq).toBe(-1)
+    } finally {
+      release.resolve(undefined)
+    }
+  })
+
+  it('drains a checkpoint still awaiting log durability during whole-context disposal', async () => {
+    const { ctx, root } = await harness()
+    const warn = vi.spyOn(ctx.logger, 'warn')
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    vi.spyOn(ctx.sessions, 'flush').mockImplementationOnce(async () => {
+      entered.resolve(undefined)
+      await release.promise
+      return false
+    })
+    const session = ctx.sessions.create(SessionId('root-close'))
+    await entered.promise
+    try {
+      const closing = ctx.fiber.dispose()
+      release.resolve(undefined)
+      await closing
+      expect(warn).not.toHaveBeenCalled()
+      expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
+    } finally {
+      release.resolve(undefined)
+    }
+  })
+
   it('flushes when the in-turn event count reaches the configured threshold', async () => {
-    const { ctx, root } = await harness({ config: { writeEveryEvents: 3, writeIntervalMs: 60_000 } })
+    const { ctx, root, cache } = await harness({ config: { writeEveryEvents: 3, writeIntervalMs: 60_000 } })
+    const writes = vi.spyOn(cache, 'write')
     const session = ctx.sessions.create(SessionId('count'))
     mark(session, ['1'])
     mark(session, ['2'])
-    await settle()
-    expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1) // still the creation cut
+    await Promise.all(pendingWrites(writes, 1))
+    expect((await storedRows(root, session.id))?.['cache-test/marks']?.seq).toBe(-1)
     mark(session, ['3'])
-    await settle()
+    await Promise.all(pendingWrites(writes, 2))
     expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['3'] })
   })
 
@@ -253,6 +343,7 @@ describe('SessionProjectionCache write policy', () => {
     await ctx.plugin(SessionProjectionRegistry)
     ctx.sessionProjections.register(marksUnit())
     await ctx.plugin(SessionProjectionCache, { writeEveryEvents: 100, writeIntervalMs: 60_000 })
+    const writes = vi.spyOn(ctx.sessionProjectionCache, 'write')
     const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
     // A directory where the record document must land makes the atomic
     // rename fail — including the creation write, so no row ever lands.
@@ -261,14 +352,16 @@ describe('SessionProjectionCache write policy', () => {
     const session = ctx.sessions.create(SessionId('fail-soft'))
     mark(session, ['x'])
     endTurn(session)
-    await settle()
-    expect(await storedRows(root, session.id)).toBeUndefined()
+    const failed = await Promise.allSettled(pendingWrites(writes, 2))
+    expect(failed.map(result => result.status)).toEqual(['rejected', 'rejected'])
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('turn/end write for "fail-soft" failed'))
+    expect(await storedRows(root, session.id)).toBeUndefined()
     // Self-heal: once the blocker clears, the next mandatory point writes.
     await rm(recordPath(root, session.id), { recursive: true })
+    writes.mockClear()
     mark(session, ['y'])
     endTurn(session)
-    await settle()
+    await Promise.all(pendingWrites(writes, 1))
     expect((await storedRows(root, session.id))?.['cache-test/marks']?.val).toEqual({ marks: ['y'] })
   })
 })
@@ -394,7 +487,7 @@ describe('SessionProjectionCache cold-read seeding', () => {
     await seedRecord(root, 'cold-snap', {
       'cache-test/count': { ver: 1, seq: 2, val: 3 },
     }, { createdAt: 9 })
-    const { cache, ctx } = await harness({ root })
+    const { cache, ctx, fiber } = await harness({ root })
     const apply = vi.fn((_state: number, _event: SessionEvent) => 1)
     ctx.sessionProjections.register({
       key: 'cache-test/count',
@@ -415,14 +508,13 @@ describe('SessionProjectionCache cold-read seeding', () => {
     // Host-only unit: folded but not served; the refreshed row is written
     // back (fail-soft, fire-and-forget) once the write lands.
     expect(Object.keys(snapshot.values)).not.toContain('cache-test/count')
-    await settle()
-    expect((await storedRows(root, meta.id))?.['cache-test/count']?.seq).toBe(4)
     // No cached row yet: the first cold read folds from init over the full
     // log and creates the cache row (the `?? {}` seed path).
     const fresh = headerOf(SessionId('cold-fresh'), 10)
     cache.coldSnapshot(fresh, events)
     expect(apply).toHaveBeenCalledTimes(7) // 2 tail + 5 full
-    await settle()
+    await fiber.dispose()
+    expect((await storedRows(root, meta.id))?.['cache-test/count']?.seq).toBe(4)
     expect((await storedRows(root, fresh.id))?.['cache-test/count']?.seq).toBe(4)
   })
 
@@ -437,14 +529,14 @@ describe('SessionProjectionCache cold-read seeding', () => {
     await ctx.plugin(SessionStore)
     await ctx.plugin(SessionProjectionRegistry)
     ctx.sessionProjections.register(marksUnit())
-    await ctx.plugin(SessionProjectionCache, { writeEveryEvents: 100, writeIntervalMs: 60_000 })
+    const fiber = await ctx.plugin(SessionProjectionCache, { writeEveryEvents: 100, writeIntervalMs: 60_000 })
     const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
     // A directory where the record document must land makes the write-back
     // fail; the cold read itself still succeeds and never throws.
     const meta = headerOf(SessionId('cold-fail'))
     await mkdir(recordPath(root, meta.id), { recursive: true })
     expect(ctx.sessionProjectionCache.coldSnapshot(meta, [])).toBeDefined()
-    await settle()
+    await fiber.dispose()
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('cold-read write-back for "cold-fail" failed'))
   })
 })

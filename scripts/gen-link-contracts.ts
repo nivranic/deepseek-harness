@@ -31,6 +31,7 @@ const androidConformance = resolve(root, 'apps/android/core/src/test/resources/c
 
 const artifacts = generateLinkContracts()
 writeFileSync(resolve(generatedDir, 'link-contracts.manifest.json'), artifacts.manifest)
+writeFileSync(resolve(generatedDir, 'link-contracts.schema.json'), artifacts.schema)
 writeFileSync(resolve(generatedDir, 'LinkContracts.swift'), artifacts.swift)
 writeFileSync(resolve(generatedDir, 'LinkContracts.kt'), artifacts.kotlin)
 writeFileSync(resolve(appleSources, 'LinkContracts.swift'), artifacts.swift)
@@ -66,4 +67,4 @@ for (const scenario of generateLiteConformance()) {
   writeFileSync(resolve(appleLite, `${scenario.id}.json`), scenario.json)
   writeFileSync(resolve(androidLite, `${scenario.id}.json`), scenario.json)
 }
-console.log('gen-link-contracts: wrote manifest, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts (apps/apple and apps/android synced).')
+console.log('gen-link-contracts: wrote manifest, JSON Schema, Swift, Kotlin, fixture, conformance, and Lite conformance artifacts (apps/apple and apps/android synced).')

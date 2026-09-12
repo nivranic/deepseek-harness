@@ -8,10 +8,10 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { RpcId } from '@deepseek-ai/dsh-client-connection'
-import { apply, inject, internals, name, type DesktopGateway } from '../src/index.ts'
+import { apply, Config, inject, internals, name, type DesktopGateway } from '../src/index.ts'
 
 let dist: string | undefined
 const originalResolve = internals.resolveDistIndex
@@ -66,7 +66,7 @@ function fakeTypertGateway(items: unknown[] = [], failure?: { code: string; mess
     opened,
     service: {
       wireStream: {
-        open: async (endpoint: string, payload: unknown) => {
+        open: async (endpoint: string, payload: unknown, _signal: AbortSignal) => {
           opened.push({ endpoint, payload })
           if (failure !== undefined) throw new Error(failure.message)
           return (async function* () {
@@ -128,7 +128,8 @@ async function mounted(options: {
   ctx.provide('connection', connection.service as never)
   const typertGateway = fakeTypertGateway(options.streamItems, options.streamFailure)
   ctx.provide('typertGateway', typertGateway.service as never)
-  const fiber = ctx.plugin({ name, inject: [...inject], apply })
+  // Loader input is unparsed here; an omitted YAML block reaches Cordis as undefined before schema validation.
+  const fiber = ctx.plugin({ name, inject: [...inject], Config, apply }, undefined as unknown as Config)
   await fiber.await()
   const gateway = ctx.get('desktopGateway')
   if (gateway === undefined) throw new Error('desktopGateway was not provided')
@@ -138,6 +139,62 @@ async function mounted(options: {
 const url = (path: string): string => `dsh://desktop${path}`
 
 describe('electron-ipc desktop gateway', () => {
+  it('serves the desktop shell when the plugin configuration block is omitted', async () => {
+    stageDist()
+    const { gateway, dispose } = await mounted()
+    try {
+      const response = await gateway.handle(new Request(url('/')))
+      expect(response.status).toBe(200)
+      expect(await response.text()).toContain('shell</body>')
+    } finally { await dispose() }
+  })
+
+  it.each(['late-value', 'throw'] as const)('stops the gateway source after request cancellation: %s', async (settlement) => {
+    stageDist()
+    const { gateway, typertGateway, dispose } = await mounted()
+    const abort = new AbortController()
+    const closed = vi.fn()
+    vi.spyOn(typertGateway.service.wireStream, 'open').mockImplementation(async (_endpoint, _payload, signal) => (async function* () {
+      try {
+        abort.abort()
+        expect(signal.aborted).toBe(true)
+        if (settlement === 'throw') throw new Error('source cancelled')
+        yield 'last-value'
+        throw new Error('must not advance after cancellation')
+      } finally {
+        closed()
+      }
+    })())
+    const failure = vi.spyOn(typertGateway.service.wireStream, 'failure')
+    const response = await gateway.handle(new Request(url('/dsh-stream/probe/ticks'), {
+      method: 'POST', body: '{}', signal: abort.signal,
+    }))
+    expect(await response.text()).toBe(settlement === 'throw' ? '' : '{"k":"v","v":"last-value"}\n')
+    expect(closed).toHaveBeenCalledOnce()
+    expect(failure).not.toHaveBeenCalled()
+    await dispose()
+  })
+
+  it('cancels a pending gateway source when the response body is dropped', async () => {
+    stageDist()
+    const { gateway, typertGateway, dispose } = await mounted()
+    const stopped = Promise.withResolvers<undefined>()
+    vi.spyOn(typertGateway.service.wireStream, 'open').mockImplementation(async (_endpoint, _payload, signal) => (async function* () {
+      try {
+        await new Promise<never>((_resolve, reject) => {
+          signal.addEventListener('abort', () => { reject(new Error('cancelled')) }, { once: true })
+        })
+      } finally {
+        stopped.resolve(undefined)
+      }
+    })())
+    const failure = vi.spyOn(typertGateway.service.wireStream, 'failure')
+    const response = await gateway.handle(new Request(url('/dsh-stream/probe/ticks'), { method: 'POST', body: '{}' }))
+    await response.body!.cancel()
+    await stopped.promise
+    expect(failure).not.toHaveBeenCalled()
+    await dispose()
+  })
   it('serves the index with the transport bootstrap and injected boot manifest, plus dist assets', async () => {
     stageDist()
     const { gateway, dispose } = await mounted()
@@ -181,6 +238,7 @@ describe('electron-ipc desktop gateway', () => {
   })
 
   it('serves plugin combo bundles through the registry cache and 404s every miss', async () => {
+    stageDist()
     const { gateway, dispose } = await mounted({
       bundles: {
         '/plugins/@scope/plugin/client.js': 'register()',

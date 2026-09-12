@@ -93,13 +93,23 @@ export function getRandomValues<T extends ArrayBufferView<ArrayBuffer>>(target: 
 }
 
 /**
- * Random integer in `[0, max)`.
- * @param max - exclusive upper bound.
- * @returns the integer.
+ * Uniform random integer in `[0, max)` using WebCrypto rejection sampling.
+ * @param max - positive integer exclusive upper bound, less than 2 ** 48.
+ * @returns the integer; entropy-source errors propagate to the caller.
+ * @throws RangeError if max is outside the supported integer range.
  */
 export function randomInt(max: number): number {
-  const sample = globalThis.crypto.getRandomValues(new Uint32Array(1))[0] ?? 0
-  return Math.floor((sample / 2 ** 32) * max)
+  const sampleSpace = 2 ** 48
+  if (!Number.isSafeInteger(max) || max <= 0 || max >= sampleSpace) {
+    throw new RangeError('web-preview: node:crypto.randomInt max must be a positive integer less than 2 ** 48')
+  }
+  // Equal-sized residue groups require excluding the incomplete final group.
+  const limit = sampleSpace - (sampleSpace % max)
+  let sample: number
+  do {
+    sample = randomBytes(6).readUIntBE(0, 6)
+  } while (sample >= limit)
+  return sample % max
 }
 
 /** WebCrypto instance, as Node exposes it. */

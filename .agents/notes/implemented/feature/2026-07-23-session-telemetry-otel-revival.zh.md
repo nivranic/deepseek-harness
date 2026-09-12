@@ -10,10 +10,10 @@ Status: implemented
 
 ## 决策
 
-`packages/session/`（原 `telemetry/`）以 SDK 立场复活这两个经过评审的包——harness 提供能力，部署方配置上报去向并对导出内容负责：
+`packages/session/`（原 `telemetry/`）以 SDK 立场复活这两个经过评审的包：harness 拥有隐私安全的外发词汇，部署方显式选择是否发送以及发送到哪里。
 
-- **`@deepseek-ai/dsh-session-telemetry`** —— seam 本体。`SessionTelemetrySink`（`emit`/`flush?`/`shutdown`）、服务注册形态的 `SessionTelemetryBackend`、以及拥有捕获侧的 `SessionTelemetryCoordinator`：带游标回读的实时纳管与逐 append 的 firehose（投影 → `structuredClone` → 脱敏 → `emit`，零 I/O）、从权威日志进行的无缓冲按需回放、固定的每个（轮次、步骤）组合首分片投影、实时 `agent/error` 转发，以及实时 dispose（资源释放）时的 `shutdown` 记录。
-- **`session-telemetry/record` waterfall（瀑布式事件）** —— 相对分支版本的增量，也是该 seam 的脱敏扩展点。每条记录抵达任何后端前必经此处；seam 自身不带任何规则——最内层 `next()` 原样透传，部署方以监听器挂载自己的规则（通过变换 `next()` 的返回值堆叠），抛异常的规则将该记录 fail-closed 扣下。脱敏只作用于导出副本；canonical log 永不改写。
+- **`@deepseek-ai/dsh-session-telemetry`** —— seam 本体。`SessionTelemetrySink`（`emit`/`flush?`/`shutdown`）、服务注册形态的 `SessionTelemetryBackend`、以及拥有捕获侧的 `SessionTelemetryCoordinator`：带游标回读的实时纳管与逐 append 的 firehose（隐私投影 → 进一步缩减 → `emit`，零 I/O）、从权威日志进行的无缓冲按需回放、固定的每个（轮次、步骤）组合首分片投影、实时 `agent/error` 转发，以及实时 dispose（资源释放）时的 `shutdown` 记录。
+- **`session-telemetry/record` waterfall（瀑布式事件）**——该 seam 的进一步缩减扩展点。[隐私安全遥测决定](../architecture/2026-09-02-privacy-safe-session-telemetry.zh.md)在它之前放置强制的无载荷投影；最内层 `next()` 透传该安全记录，部署监听器可以进一步缩减，抛异常的规则会以 fail-closed 方式扣下记录。canonical log 永不改写。
 - **`@deepseek-ai/dsh-session-telemetry-otel`** —— 参考后端：OTel JS SDK 日志流水线（`LoggerProvider` → `BatchLogRecordProcessor` → OTLP/HTTP exporter），经 `exporter`/`processor` passthrough 原样配置。`DISABLED` 是默认值，且不构造任何传输；[反馈门控遥测决策](2026-08-05-feedback-gated-session-telemetry.zh.md)定义了需显式启用的 `FULL` 与 `FEEDBACK_ONLY` 投递模式，这两种模式要求 `exporter.url`，且不移动脱敏或后端边界。[无缓冲反馈回放](../simplification/2026-08-06-buffer-free-feedback-telemetry.zh.md)避免在内存中创建会话前缀的第二份副本。
 
 
@@ -23,9 +23,9 @@ Status: implemented
 
 **实现 runtime-telemetry RFC 的 outbox（落盘 spool、每 sink 游标、at-least-once、持久化 seam 的 `readCommitted` 方法）。** 推迟而非否决：SDK 立场使投递语义归属 reporting SDK，OTel SDK 自身的批处理流水线是诚实的默认。outbox 是纯增量层（`emit()` 约定不动）；待某个部署提出遥测必须满足的崩溃丢失要求时再复活。
 
-**不设进程内脱敏点，交给接收端 collector processor。** 否决——接收端脱敏是先把秘密发出去再擦除。waterfall 在字节离开进程前提供一个可审计、可堆叠的擦除点；分支版本（PR #222 交付的形态）完全没有脱敏点，如今每条记录都必经该脱敏点。
+**不在进程内做数据最小化，交给接收端 collector processor。** 否决，因为接收端脱敏是先把秘密发出去再擦除。协调器的强制结构投影会在任何后端或扩展看到记录前移除载荷，而 waterfall 只允许进一步缩减。
 
-**在 waterfall 最内层 `next()` 内置一套保守规则集。** 否决：作为 SDK 我们无法预知某个部署里什么模式算秘密，内置列表只覆盖已知形状却会带来「脱敏已开启」的虚假信心，且误报会破坏未提出此要求的消费方所接收的导出 body。seam 拥有机制，部署方拥有策略——最内层 `next()` 原样透传，规则以监听器挂载。
+**只依赖部署方配置的模式规则。** 否决，因为遗漏或不完整的规则会 fail-open，而且模式匹配无法安全分类任意 Session 载荷。因此 seam 拥有通用的结构化 allowlist 与载荷排除；最内层 `next()` 透传已经安全的记录，部署监听器只能继续删除字段或选择固定 severity。
 
 **映射到 OTel span（GenAI 语义约定）而非日志。** 本次复活否决：分支实现的日志映射已经过评审、形态可交付；span 模型对可 fork、可中断的会话有损，留给将来真正有 span 查询需求的消费方。
 
@@ -35,4 +35,4 @@ Status: implemented
 
 ## 后果
 
-部署方在 `cordis.yml` 加一个带 OTLP endpoint 的 Cordis 配置项，并显式选择 `FULL`，即可把会话流接入任何 OTel 兼容体系；选择 `FEEDBACK_ONLY` 则会在记录反馈时回放权威日志前缀。`DISABLED` 是[默认值](2026-08-10-telemetry-default-off.zh.md)，且不构造上报流水线；删除该配置项仍是静默退出方式，而禁用模式会保留本地反馈警告。未挂载规则的部署导出的记录与捕获时完全一致，包括文件内容与命令输出中内嵌的任何凭据。因此，跨信任边界的部署必须挂载 `session-telemetry/record` 监听器，两个 README 对此如实陈述。挂载规则后，导出的 body 可能与 canonical log 字节不同，接收端不得把遥测当作字节精确副本；日志仍是真源。崩溃持久性在上述 outbox 决定重新审议前明确不在范围内。
+部署方显式选择 `FULL` 以流式发送诊断信息，或选择 `FEEDBACK_ONLY` 以在记录反馈时回放权威日志前缀。`DISABLED` 是[默认值](2026-08-10-telemetry-default-off.zh.md)，且不构造上报流水线。协调器不发出 body 值、Session 内容或 workspace 路径；OTLP JSON 编码器可能把无内容 body 表示为 `{}`，且监听器只能进一步缩减安全 attributes。canonical log 仍是真源。崩溃持久性在上述 outbox 决定重新审议前不在范围内。

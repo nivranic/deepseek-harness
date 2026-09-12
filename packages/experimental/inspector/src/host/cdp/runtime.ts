@@ -27,6 +27,7 @@ export function rejectRuntimeBridgeCommand(command: ClientRuntimeCommand): never
     case 'release-object':
     case 'release-object-group':
       return rejectObjectBridgeOperation(`client-runtime/${command.op}`)
+    case 'enable':
     case 'evaluate':
     case 'call-function':
     case 'await-promise':

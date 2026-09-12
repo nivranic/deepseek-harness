@@ -19,13 +19,50 @@ import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
 /** Identifies one artifact across the journal and the resource channel. */
 export type ArtifactId = Branded<'ArtifactId'>
 
+/** Maximum portable artifact-id length, including the `art-` prefix. */
+const ARTIFACT_ID_MAX_LENGTH = 128
+
+/** Portable filename-safe body after the `art-` prefix. */
+const ARTIFACT_ID_BODY = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/u
+
 /**
  * Brand a string as an {@link ArtifactId}.
  * @param id - the raw artifact id string.
  * @returns the same string, branded (a compile-time cast — no runtime cost).
+ * @remarks Use {@link parseArtifactId} at model, wire, durable, and filesystem
+ * boundaries; typed same-process callers use this cast after their owner has
+ * validated or minted the id.
  */
 export function ArtifactId(id: string): ArtifactId {
   return id as ArtifactId
+}
+
+/**
+ * Whether a value is one portable artifact id. Valid ids start with `art-`,
+ * contain one through 124 ASCII letters, digits, or hyphens after it, and fit
+ * in 128 characters. The body starts and ends with a letter or digit.
+ * Excluding all other punctuation keeps the id a single filename on Windows,
+ * macOS, and Linux, including against dot segments, alternate-data-stream
+ * colons, separators, and NUL characters.
+ * @param value - candidate crossing an untyped or persistent boundary.
+ * @returns whether the candidate satisfies the portable artifact-id grammar.
+ */
+export function isArtifactId(value: unknown): value is ArtifactId {
+  if (typeof value !== 'string' || value.length > ARTIFACT_ID_MAX_LENGTH || !value.startsWith('art-')) return false
+  return ARTIFACT_ID_BODY.test(value.slice(4))
+}
+
+/**
+ * Validate and brand one artifact id crossing an untyped or persistent boundary.
+ * @param value - candidate artifact id.
+ * @returns the validated branded id.
+ * @throws when the candidate is not portable across supported filesystems.
+ */
+export function parseArtifactId(value: unknown): ArtifactId {
+  if (!isArtifactId(value)) {
+    throw new Error('artifact id must be "art-" plus 1 to 124 ASCII letters, digits, or hyphens, starting and ending with a letter or digit')
+  }
+  return value
 }
 
 /** Lifecycle of one artifact reference, in the portable three-state vocabulary. */

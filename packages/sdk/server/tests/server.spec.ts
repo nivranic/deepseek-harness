@@ -416,7 +416,7 @@ describe('HarnessSdkJsonRpcServer', () => {
         contentBlocks: [{ type: 'text', text: 'hello' }],
       })
 
-      await vi.waitFor(() => { expect(llmServer.requests).toHaveLength(1) })
+      await vi.waitFor(() => { expect(llmServer.requests).toHaveLength(1) }, { timeout: 5_000 })
       await server.shutdown()
     } finally {
       await ctx.fiber.dispose()

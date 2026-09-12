@@ -79,7 +79,7 @@ public struct HandoffArtifactRef: Equatable, Sendable {
 public enum SessionHandoff {
     /// One wire call the sender rides; production passes a curried signed
     /// `LinkClient.call`, tests a scripted closure.
-    public typealias Call = (_ method: String, _ args: [String: LinkWire.RequestEnvelope.Payload.Value]) async throws -> LinkWire.ResponseEnvelope.Result.Value
+    public typealias Call = (_ method: String, _ args: [String: LinkJsonValue]) async throws -> LinkJsonValue
 
     /// Build the snapshot wire value from one folded source state.
     /// - Parameters:
@@ -101,8 +101,8 @@ public enum SessionHandoff {
         todo: [HandoffTodoRow],
         artifactRefs: [HandoffArtifactRef],
         modelPreference: String? = nil
-    ) -> LinkWire.RequestEnvelope.Payload.Value {
-        var snapshot: [String: LinkWire.RequestEnvelope.Payload.Value] = [
+    ) -> LinkJsonValue {
+        var snapshot: [String: LinkJsonValue] = [
             "sourceSessionId": .string(sourceSessionId),
             "sourceRuntime": .string("lite"),
             "requestedCapability": .string(capability),
@@ -141,9 +141,9 @@ public enum SessionHandoff {
     ///   or the answer carries no session id.
     public static func send(
         _ call: Call,
-        snapshot: LinkWire.RequestEnvelope.Payload.Value
+        snapshot: LinkJsonValue
     ) async -> String? {
-        let value: LinkWire.ResponseEnvelope.Result.Value
+        let value: LinkJsonValue
         do {
             value = try await call("session/handoff", ["request": snapshot])
         } catch {

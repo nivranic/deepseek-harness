@@ -8,6 +8,12 @@ function isWindowsStylePath(value: string): boolean {
   return /^[A-Za-z]:[/\\]/.test(value) || value.startsWith('\\\\')
 }
 
+function trimTrailingSeparators(value: string, windows: boolean): string {
+  let end = value.length
+  while (end > 0 && (value[end - 1] === '/' || (windows && value[end - 1] === '\\'))) end--
+  return value.slice(0, end)
+}
+
 /**
  * Resolve a Workspace-relative path into the Host-facing spelling used by path operations.
  * @param cwd - Session Workspace root, when known.
@@ -17,7 +23,7 @@ function isWindowsStylePath(value: string): boolean {
 export function resolveWorkspacePath(cwd: string | undefined, path: string): string {
   if (path.startsWith('/') || isWindowsStylePath(path)) return path
   if (cwd === undefined || cwd === '') return path
-  const base = cwd.replace(/[/\\]+$/, '')
+  const base = trimTrailingSeparators(cwd, true)
   const relative = path.replace(/^[/\\]+/, '')
   return `${base}/${relative}`
 }
@@ -31,9 +37,9 @@ export function resolveWorkspacePath(cwd: string | undefined, path: string): str
 export function abbreviateHomePath(path: string, home?: string): string {
   if (home === undefined || home === '') return path
   if (isWindowsStylePath(path) || isWindowsStylePath(home)) return path
-  const root = home.replace(/\/+$/, '')
-  if (root === '' || root === '/') return path
-  if (path.replace(/\/+$/, '') === root) return '~'
+  const root = trimTrailingSeparators(home, false)
+  if (root === '') return path
+  if (trimTrailingSeparators(path, false) === root) return '~'
   if (path.startsWith(`${root}/`)) return `~${path.slice(root.length)}`
   return path
 }
@@ -45,7 +51,7 @@ export function abbreviateHomePath(path: string, home?: string): string {
  * @returns the final segment, or an empty string for a separator-only path.
  */
 export function workspaceTitleOf(path: string): string {
-  const trimmed = path.replace(/[/\\]+$/, '')
+  const trimmed = trimTrailingSeparators(path, true)
   const separator = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\'))
   return trimmed.slice(separator + 1)
 }

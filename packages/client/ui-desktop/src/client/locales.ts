@@ -12,9 +12,20 @@ export type DesktopSettingsKey =
   | 'pairNewDevice' | 'pairTitle' | 'pairDescription' | 'pairUnavailable' | 'pairManualCode'
   | 'noDevices' | 'revoke' | 'revoked' | 'observer' | 'controller' | 'administrator'
   | 'neverSeen' | 'loadFailed' | 'retry' | 'close'
+  | 'supportTitle' | 'supportDescription' | 'supportExport' | 'supportWorking'
+  | 'supportSaved' | 'supportCancelled' | 'supportBusy' | 'supportUnavailable' | 'supportRejected'
 
 /** English copy. */
 export const en: Record<DesktopSettingsKey, string> = {
+  supportTitle: 'Diagnostics',
+  supportDescription: 'Save available diagnostics to a local JSON file. Unavailable sections are listed in the file.',
+  supportExport: 'Export diagnostics',
+  supportWorking: 'Preparing diagnostics…',
+  supportSaved: 'Diagnostics saved.',
+  supportCancelled: 'Export cancelled.',
+  supportBusy: 'Another export is already in progress.',
+  supportUnavailable: 'Diagnostics export is unavailable.',
+  supportRejected: 'Could not verify or save the diagnostics. No export was completed.',
   title: 'On window close',
   description: 'What the top-right close button does: hide to the system tray, or quit the app.',
   tray: 'Minimize to tray',
@@ -54,6 +65,15 @@ export const en: Record<DesktopSettingsKey, string> = {
 
 /** Simplified Chinese copy. */
 export const zh: Record<DesktopSettingsKey, string> = {
+  supportTitle: '诊断信息',
+  supportDescription: '将可用的诊断信息保存为本地 JSON 文件。文件中会注明未能采集的部分。',
+  supportExport: '导出诊断信息',
+  supportWorking: '正在准备诊断信息…',
+  supportSaved: '诊断信息已保存。',
+  supportCancelled: '已取消导出。',
+  supportBusy: '已有一个导出操作正在进行。',
+  supportUnavailable: '诊断导出暂不可用。',
+  supportRejected: '无法验证或保存诊断信息，导出未完成。',
   title: '关闭窗口时',
   description: '点击右上角关闭按钮后的行为：缩小到系统托盘，或直接退出应用。',
   tray: '缩小到托盘',

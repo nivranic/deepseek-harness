@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-companion-ui-layer.md
-2026-08-30-companion-ui-layer.md: 28f170e7d6ddb3ea5faf00cfc470ea644788cde8
-2026-08-30-companion-ui-layer.zh.md: 844ca9fbdba52a392af9fe5701d57fec48defa9c
+2026-08-30-companion-ui-layer.md: 0a99f01f8655c3f154fa0755d9e5131d62f5020a
+2026-08-30-companion-ui-layer.zh.md: 078282ff996a20e552d42f8a5d9b7e45d921735e

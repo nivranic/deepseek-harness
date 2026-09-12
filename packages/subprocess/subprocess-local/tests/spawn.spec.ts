@@ -7,7 +7,6 @@ import {
   killGroup,
   OutputCollector,
   spawnSubprocess,
-  taskkillProcessTree,
 } from '../src/spawn.ts'
 import type { SubprocessHandle, SubprocessOutputReader } from '@deepseek-ai/dsh-subprocess'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
@@ -220,7 +219,7 @@ describe('spawnSubprocess', () => {
     setTimeout(() => { controller.abort('deadline') }, 100)
     const result = await running.done
     expect(Date.now() - start).toBeLessThan(5_000)
-    // Windows teardown terminates through taskkill, which reports no signal.
+    // Windows teardown terminates through the owned Job, which reports no signal.
     expect(result.signal).toBe(process.platform === 'win32' ? null : 'SIGTERM')
     expect(result.exitCode).toBe(process.platform === 'win32' ? 1 : null)
   })
@@ -279,7 +278,7 @@ describe('spawnSubprocess', () => {
       try {
         process.kill(helper, 'SIGKILL')
       } catch {
-        // taskkill already took the helper down on Windows.
+        // The Job already terminated the helper on Windows.
       }
       await waitGone(helper)
     }
@@ -630,54 +629,6 @@ describe('stdio dispositions', () => {
   })
 })
 
-describe('windows tree semantics (injected platform)', () => {
-  it('host-exit termination routes through taskkill immediately', async () => {
-    const killed: number[] = []
-    const running = spawnSubprocess(spec('exec sleep 60', { graceMs: 60_000 }), {
-      spillDir,
-      platform: 'win32',
-      taskkill: (pid) => {
-        killed.push(pid)
-        try {
-          process.kill(pid, 'SIGKILL')
-        } catch {
-          // Already gone — matches taskkill's tolerated not-found status.
-        }
-      },
-    })
-    running.terminateForHostExit()
-    await running.done
-    expect(killed).toEqual([running.pid])
-  })
-
-  it('terminate routes through taskkill by root pid', async () => {
-    const killed: number[] = []
-    const running = spawnSubprocess(spec('exec sleep 60', { graceMs: 100 }), {
-      spillDir,
-      platform: 'win32',
-      taskkill: (pid) => {
-        killed.push(pid)
-        // Simulate the forced tree termination taskkill performs.
-        try {
-          process.kill(pid, 'SIGKILL')
-        } catch {
-          // Already gone — matches taskkill's tolerated not-found status.
-        }
-      },
-    })
-    running.terminate()
-    const outcome = await running.done
-    expect(killed).toContain(running.pid)
-    expect(outcome.signal).toBe(process.platform === 'win32' ? null : 'SIGKILL')
-  })
-
-  it('waitForExit falls back to direct-child liveness where groups do not exist', async () => {
-    const running = spawnSubprocess(spec('true'), { spillDir, platform: 'win32', taskkill: () => {} })
-    await running.done
-    await expect(running.waitForExit()).resolves.toBe(true)
-  })
-})
-
 describe('waitForExit', () => {
   it.skipIf(process.platform === 'win32')('waits for the whole detached tree, not just the shell', async () => {
     const pidFile = join(spillDir, `tree-wait-${Date.now()}.pid`)
@@ -773,15 +724,6 @@ describe.skipIf(process.platform === 'win32')('tree-survivor escalation (termina
 })
 
 describe('coverage seams', () => {
-  it('taskkillProcessTree ignores non-positive pids and contains a missing binary', () => {
-    expect(() => { taskkillProcessTree(-1) }).not.toThrow()
-    expect(() => { taskkillProcessTree(0) }).not.toThrow()
-    // On POSIX there is no taskkill; spawnSync reports the failure in its
-    // result and the function stays silent — the same containment Windows
-    // relies on for an already-absent tree.
-    expect(() => { taskkillProcessTree(2 ** 30) }).not.toThrow()
-  })
-
   it('covers the injected POSIX group paths on any host', async () => {
     // Windows has no POSIX groups, so the tree-liveness probe, group
     // signalling, and the SIGKILL escalation timer only run here through the
@@ -946,44 +888,6 @@ describe('coverage seams', () => {
 })
 
 describe('coverage seams 2', () => {
-  it('win32 treeAlive reports alive for a live child and gone after taskkill', async () => {
-    let killedPid = 0
-    const running = spawnSubprocess(spec('sleep 60'), {
-      spillDir,
-      platform: 'win32',
-      taskkill: (pid) => {
-        killedPid = pid
-        try {
-          process.kill(pid, 'SIGKILL')
-        } catch {
-          // Already gone.
-        }
-      },
-    })
-    const aborted = new AbortController()
-    aborted.abort()
-    await expect(running.waitForExit(aborted.signal)).resolves.toBe(false) // alive branch
-    running.terminate()
-    await running.done
-    expect(killedPid).toBe(running.pid)
-    await expect(running.waitForExit()).resolves.toBe(true)
-  })
-
-  it('an inert win32 taskkill leaves the tree alive for a bounded wait to report', async () => {
-    // An inert taskkill simulates a tree that never reports exit: terminate()
-    // delivers nothing, so a bounded consumer wait must come back false.
-    const running = spawnSubprocess(spec('sleep 60'), { spillDir, platform: 'win32', taskkill: () => {} })
-    running.terminate()
-    const bound = new AbortController()
-    const timer = setTimeout(() => { bound.abort() }, 60)
-    await expect(running.waitForExit(bound.signal)).resolves.toBe(false)
-    clearTimeout(timer)
-    // Real cleanup: the injected platform spawned without detachment, so the
-    // child is a plain (group-less) POSIX process — kill it directly.
-    process.kill(running.pid, 'SIGKILL')
-    await running.done
-  })
-
   it("stderr: 'pipe' exposes the raw stream", async () => {
     const running = spawnSubprocess({
       ...spec('echo err >&2'),

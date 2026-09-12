@@ -45,11 +45,11 @@ The acknowledgement also states how the session is shared under the deployment's
 | Disclosed status | Acknowledgement sentence |
 |---|---|
 | `full` | `Session sharing is enabled.` |
-| `feedback-only` | `Session sharing is feedback-gated; recording feedback uploads the session records not yet shared.` |
+| `feedback-only` | `Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline.` |
 | `disabled` | `Session sharing is disabled.` |
 | no telemetry service | `Session sharing is not configured.` |
 
-The sentence reports the current policy only; it never claims the feedback or the session was delivered anywhere. The disclosure records nothing itself and never reaches the model.
+The sentence reports the current policy only; it never claims delivery. The default shipped policy is `disabled`; even explicit `feedback-only` uploads no feedback text or Session payload, only the [privacy inventory's diagnostic fields](../../../docs/subsystems/session-telemetry.md#privacy-inventory). The disclosure records nothing itself and never reaches the model.
 
 ### Recording feedback from your own UI
 

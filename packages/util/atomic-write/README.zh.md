@@ -81,7 +81,7 @@ await withFileLock('/home/u/.dsh/settings.yaml', async () => {
 
 `writeFileAtomic` 先以独占创建（`wx`）打开一个随机后缀的同级文件并写入内容，然后 rename 到目标上。独占打开拒绝跟随预先埋在可猜测临时路径上的符号链接；同目录兄弟文件保证 rename 落在同一文件系统上；rename 替换的是符号链接目标本身，绝不写穿到其指向的文件。
 
-`withFileLock` 以 `wx` 创建 `<filename>.lock` 同级文件。`EEXIST` 直接表示竞争；只有一次新的 `lstat` 确认锁路径存在时，`EPERM` 才表示竞争，从而兼容 Windows 的独占创建行为，又不掩盖无关的权限故障。锁记录创建者的 PID，由持有者在 `finally` 中移除；竞争按指数退避，在每次调用声明的 `waitMs` 期限（默认两秒）过后失败。
+`withFileLock` 以 `wx` 创建 `<filename>.lock` 同级文件。`EEXIST` 直接表示竞争；一次新的 `lstat` 确认锁路径存在时，`EPERM` 也表示竞争。如果检查发现路径不存在，则立即重试一次独占创建，以覆盖持有者在创建失败与检查之间释放锁的竞态。连续的无锁 `EPERM` 失败或其他检查失败仍保留权限错误。锁记录创建者的 PID，由持有者在 `finally` 中移除；竞争按指数退避，在每次调用声明的 `waitMs` 期限（默认两秒）过后失败。
 
 ### 交换为何安全
 

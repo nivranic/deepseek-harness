@@ -1,6 +1,7 @@
 /** One standard ACP session's Agent, configuration, prompt, update, and teardown lifecycle. */
 
 import type { Context } from '@deepseek-ai/cordis'
+import { isDeepStrictEqual } from 'node:util'
 import {
   RequestError,
   type McpServer,
@@ -100,6 +101,7 @@ export class AcpSession {
   readonly agent: Agent
   private readonly modelControl: AcpModelControl
   private outputTail = Promise.resolve()
+  private lastConfigOptions: SessionConfigOption[] | undefined
   private inflight: InflightPrompt | undefined
   private closing: Promise<void> | undefined
   private readonly pendingSelections = new Map<string, ModelSelection>()
@@ -194,9 +196,11 @@ export class AcpSession {
    * @param signal - optional request cancellation.
    * @returns provider-grouped model and exact-model reasoning options.
    */
-  configOptions(signal?: AbortSignal): Promise<SessionConfigOption[]> {
+  async configOptions(signal?: AbortSignal): Promise<SessionConfigOption[]> {
     this.assertActive()
-    return this.modelControl.options(signal)
+    const options = await this.modelControl.options(signal)
+    this.lastConfigOptions = options
+    return options
   }
 
   /**
@@ -206,17 +210,21 @@ export class AcpSession {
    * @param signal - optional request cancellation.
    * @returns the complete resulting option state.
    */
-  setConfig(configId: string, value: unknown, signal?: AbortSignal): Promise<SessionConfigOption[]> {
+  async setConfig(configId: string, value: unknown, signal?: AbortSignal): Promise<SessionConfigOption[]> {
     this.assertActive()
-    return this.modelControl.set(configId, value, signal)
+    const options = await this.modelControl.set(configId, value, signal)
+    this.lastConfigOptions = options
+    return options
   }
 
-  /** Resolve topology state off-chain, then serialize its notification without blocking execution updates. */
+  /** Notify changed options off-chain; directory-only events can leave the ACP state unchanged. */
   topologyChanged(): void {
     if (this.closing !== undefined) return
     void this.modelControl.options()
       .then((configOptions) => {
         if (this.closing !== undefined) return
+        if (isDeepStrictEqual(configOptions, this.lastConfigOptions)) return
+        this.lastConfigOptions = configOptions
         const previous = this.outputTail
         this.outputTail = previous
           .then(() => this.notify({

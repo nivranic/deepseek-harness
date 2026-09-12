@@ -12,9 +12,11 @@ Phase 1 的宿主侧（设置命名空间、可运行时开关的载体、`link`
 
 ui-desktop 客户端插件在 General 分区拥有整个跨设备设置块，扩展现有设置行模式：两个布尔开关与设备名编辑器经共享 settings scope 绑定 `remote` 命名空间，一个设备块通过注入的 API 调用 `link` Remote 命名空间，其四个方法把生成的 `RemoteResult` 解包为值或抛出的 Error。配对对话框把一次性载荷渲染为二维码（`uqr` 渲染器，作为 devDependency 打进客户端产物）并附可选中的手动输入码；设备列表展示角色与最近连接，经同一 API 吊销；状态行携带 LAN 端点或绑定错误。组合仍是界面门禁：宿主未挂载 link 载体处各行渲染为空，桌面 bundle 现挂载全部四行——device-trust（惰性）、link-access（开关提交前不绑定）、link-settings 与 link 控制器——组合 e2e 由此端到端证明验收：命名空间默认全关、载体未绑定、`link/status` 经网关 `/api` 链本地应答、`link/createPairing` 以 `link-disabled` 拒绝、设备列表为空；远程 Allowlist 不收录任何 `link` 端点，已配对设备完全无法触达管理面。`dsh-link-contracts` 为原生伴侣端钉住同一词汇表：一张声明式类型表、满足协议类型的 zod schema、每个被测类型一个黄金 fixture、以及产出 manifest（含 fixture 校验和）、Swift `Codable` 与 Kotlin 数据模型的纯发射器；hygiene 聚合中的 `verify-link-contracts` 在表与已提交产物发生任何漂移时失败。
 
+同一份 `dsh-link-contracts` 源图拥有认证 unary `payload.args` envelope、NDJSON 请求与 value/error frame、Remote Event 的 ready/emit/waterfall/cancel/result 变体、结构化 rejection 与 void outcome，以及 Session sequence/snapshot-cursor 恢复语义。JSON Schema、manifest、Swift、Kotlin 与多变体 fixtures 全部从这一份源图发射；manifest 记录相互独立的 protocol、contract 与 Session format 版本，以及认证路由、header、能力、兼容规则和恢复规则。Gateway 与 Link carrier 测试在真实 parser 和 dispatch seam 消费这些 fixtures，在避免 package dependency 环的同时证明 Host 字节与生成式契约一致。JSON-safe 的未知可选字段会被忽略，缺失的必填字段和跨变体保留字段会失败，取消仍是 transport abort。
+
 ## Consequences
 
-Phase 1 切片现在从设置开关一路跑到 TLS 监听器：拨动开关即绑定真实载体，其状态、配对与吊销呈现在同一设置页，由 34 项 ui-desktop 测试与扩展后的桌面组合 e2e 验证（ui-desktop 源码逐文件 100% 覆盖，顺带补上此前审计发现的覆盖欠账），以及 5 项覆盖 fixtures 与两种发射语言的契约测试。修正 ui-desktop 的依赖声明（静态客户端输入仅 dev、DSH 关系 peer+dev）后 `verify-client-packages` 在 dev 上重新变绿。延后到 Phase 2：消费生成模型的 Swift/Kotlin 伴侣应用、经载体的 SessionController 级会话 e2e、角色编辑与待配对取消列表。
+Phase 1 切片现在从设置开关一路跑到 TLS 监听器：拨动开关即绑定真实载体，其状态、配对与吊销呈现在同一设置页，由 34 项 ui-desktop 测试与扩展后的桌面组合 e2e 验证（ui-desktop 源码逐文件 100% 覆盖，顺带补上此前审计发现的覆盖欠账），以及消费生成式 fixtures 的 contract、Gateway 与 TLS-carrier suites 验证。修正 ui-desktop 的依赖声明（静态客户端输入仅 dev、DSH 关系 peer+dev）后 `verify-client-packages` 在 dev 上重新变绿。原生客户端生命周期与跨语言 Host acceptance 仍由独立门禁负责：生成式模型与字节是必要证据，但不能证明 fresh-pair ownership、pin enforcement、reconnect 或真实 Host interoperability。
 
 ## Alternatives considered
 

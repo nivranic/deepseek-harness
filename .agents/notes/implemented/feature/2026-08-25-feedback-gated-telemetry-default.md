@@ -1,4 +1,4 @@
-# Agent Note: Feedback-gated session-telemetry default
+# Agent Note: Feedback-gated session-telemetry mode
 
 Status: implemented
 
@@ -10,9 +10,9 @@ Diagnosing a `/feedback` report needs the session data the report describes. Wit
 
 ## Decision
 
-The shared dsh base resolves an unset or empty `DSH_TELEMETRY_MODE` to `FEEDBACK_ONLY` instead of `DISABLED`. Nothing is uploaded before the user records `/feedback`; each recorded feedback uploads the not-yet-shared session-log records — from the last handoff through that exact event — to the configured OTLP endpoint, a resumed session shares only its current lifecycle, and the acknowledgement's sharing disclosure states that recording feedback uploads the records not yet shared. `FULL` and `DISABLED` remain explicit `DSH_TELEMETRY_MODE` overrides, any non-empty `DSH_TELEMETRY_DISABLED` remains the authoritative pre-load hard opt-out, and the plugin's own omitted-`mode` default stays `DISABLED`: the default changes only in the shared base's config expression, where deployments already override it.
+`FEEDBACK_ONLY` is an explicit `DSH_TELEMETRY_MODE`: nothing is uploaded before the user records `/feedback`, and each recorded feedback releases the not-yet-shared privacy-safe diagnostic prefix through that exact event. A resumed session shares only its current lifecycle. The [privacy-safe telemetry decision](../architecture/2026-09-02-privacy-safe-session-telemetry.md) supersedes feedback-triggered sharing as the shipped default; the shared base and omitted plugin mode resolve to `DISABLED`, while any non-empty `DSH_TELEMETRY_DISABLED` remains the authoritative pre-load hard opt-out.
 
-This supersedes the session-backend default of the [default-off decision](2026-08-10-telemetry-default-off.md), accepting the user's explicit feedback action as the release authorization that note required a deployment setting for. That note's hard opt-out and its launcher-feed history remain current, and the [default-mount decision](2026-07-31-web-telemetry-default-mount.md) continues to own the endpoint, batching cadence, and exit-drain settings.
+The [default-mount decision](2026-07-31-web-telemetry-default-mount.md) continues to own the endpoint, batching cadence, and exit-drain settings. The feedback action is a trigger only after a deployment explicitly selects this mode; it is not sufficient transport consent by itself.
 
 ## Alternatives considered
 
@@ -24,6 +24,6 @@ This supersedes the session-backend default of the [default-off decision](2026-0
 
 ## Consequences
 
-- A fresh installation uploads the not-yet-shared session-log records to the production collector when — and only when — the user records `/feedback`; no other trigger uploads.
-- Released exports remain the raw captured copy: the shipped base mounts no `session-telemetry/record` redaction rule, so they can contain message text, tool arguments and results, and workspace paths.
-- The sharing disclosure is part of the `/feedback` acknowledgement, so the user reads it after the release has been triggered. A deployment that requires prior informed consent must override the default to `DISABLED` or add a pre-upload confirmation before this default is defensible there.
+- A fresh installation uploads nothing; an explicit `FEEDBACK_ONLY` deployment releases only prefixes ending at canonical feedback records.
+- Released records contain the mandatory privacy projection, not Session payloads or workspace paths; the feedback text itself stays local.
+- The `/feedback` acknowledgement discloses the selected policy but never claims delivery.

@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G2-VERSION",
+  "status": "PARTIAL",
+  "sourceHead": "1f67cd996b13a86b8a2a48039dd8d5e5ed44b209",
+  "recordedAt": "2026-09-05T16:37:09.535Z",
+  "identity": {
+    "schemaVersion": 1,
+    "version": "0.1.2-alpha.1",
+    "marketingVersion": "0.1.2",
+    "buildNumber": 1,
+    "channel": "dev",
+    "windowsFileVersion": "0.1.2.1",
+    "appleBuildVersion": "1.0.1"
+  },
+  "inputMaterialization": "Checks ran on the worktree bytes before their normal commit; the Linux checkout retained its older Git HEAD and received the listed changed source files. These are not claimed as clean-HEAD reruns.",
+  "implemented": [
+    "single SemVer owner",
+    "explicit build and channel metadata",
+    "deterministic native projections",
+    "static/hygiene freshness rejection",
+    "release planner integration",
+    "Android packaged metadata"
+  ],
+  "tests": [
+    {
+      "command": "pnpm exec vitest run scripts/release/product-identity.spec.ts scripts/release/families.spec.ts scripts/run-gates.spec.ts",
+      "status": "PASS",
+      "passed": 130,
+      "skipped": 1
+    },
+    {
+      "command": "pnpm exec vitest run scripts/release/apple-product.spec.ts",
+      "status": "PASS",
+      "passed": 12
+    },
+    {
+      "command": "pnpm run gen-product-identity (twice), then pnpm run verify-product-identity",
+      "status": "PASS",
+      "secondGenerationDrift": false
+    },
+    {
+      "command": "pnpm run release:dsh 0.1.2-alpha.2 --dry-run",
+      "status": "PASS",
+      "worktreeStatusChanged": false,
+      "trackedDiffChanged": false,
+      "headChanged": false
+    },
+    {
+      "command": "gradle --offline --no-daemon -p apps/android :app:assembleDebug",
+      "status": "PASS",
+      "jdk": "17.0.11",
+      "gradle": "8.14"
+    },
+    {
+      "command": "aapt dump badging and dump xmltree AndroidManifest.xml",
+      "status": "PASS",
+      "versionName": "0.1.2-alpha.1",
+      "versionCode": 1,
+      "channel": "dev"
+    },
+    {
+      "command": "pnpm run test:docs",
+      "status": "PASS",
+      "passed": 15,
+      "runner": "isolated Linux source with explicit synchronized inputs"
+    },
+    {
+      "command": "pnpm run doc-sync",
+      "status": "PASS",
+      "passed": 32,
+      "runner": "isolated Linux source with explicit synchronized inputs"
+    },
+    {
+      "command": "pnpm run lint",
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0,
+      "runner": "isolated Linux source with explicit synchronized inputs"
+    }
+  ],
+  "apk": {
+    "path": "apps/android/app/build/outputs/apk/debug/app-debug.apk",
+    "sha256": "cb22371d4e2c956c1cea18918ec6bce90e42503a540c03d3cbbd55bd78bc3933"
+  },
+  "pending": [
+    {
+      "item": "Windows executable resource version",
+      "status": "NOT_EXECUTED",
+      "owner": "G2-WIN"
+    }
+  ],
+  "manualExternalActionsExecuted": false,
+  "latestAppleArtifact": {
+    "status": "PASS",
+    "path": "artifacts/verification/gate-2/acceptance/apple-product-47e122670a40166f8c6a439a13ac859e4dc2b337.json",
+    "sha256": "7411803b075baaa459ecbce1c35ada8ea6bd890930550c467125f62cc26af9ac",
+    "candidateHead": "723335fefe9403453fa4e2868169143a8b6fd390",
+    "executionCommit": "47e122670a40166f8c6a439a13ac859e4dc2b337",
+    "tree": "72ca73eec667973fc2e4d5da9f786c27fe4e8ded",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33972351978",
+    "schemes": [
+      "CompanioniOS",
+      "CompanionMac",
+      "DirectHostMac"
+    ],
+    "configuration": "Debug"
+  },
+  "history": [
+    {
+      "candidateHead": "8f4db55f7050a4af10320d0cd8ed5db65befed36",
+      "status": "FAIL",
+      "cause": "Xcode did not embed custom DSHProductVersion from INFOPLIST_KEY settings",
+      "repairCommit": "0c45c6ef4e",
+      "repair": "Explicit shared AppInfo.plist expanded with the generated xcconfig"
+    }
+  ],
+  "previousAppleArtifact": {
+    "status": "PASS",
+    "path": "artifacts/verification/gate-2/acceptance/apple-product-ac42842c38142e13859da4981f9a820906f5ec6b.json",
+    "sha256": "874675ad9e52cda011b5b16e3165f19a941e930a5f367f830b79ae5608ca3c77",
+    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+    "tree": "08cee8e622e7a9b2be68414c8c51c156a9902bd9",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270",
+    "schemes": [
+      "CompanioniOS",
+      "CompanionMac",
+      "DirectHostMac"
+    ],
+    "configuration": "Debug"
+  }
+}

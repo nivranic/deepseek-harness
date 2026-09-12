@@ -10,13 +10,13 @@ The Windows ACL sandbox owns restricted-token, SID, DACL, grant, and workspace p
 
 ## Decision
 
-`@deepseek-ai/dsh-win32-process` owns the reusable Win32 process ABI and native resource operations currently consumed by `sandbox-windows-acl`. The package lazily loads `kernel32.dll` and `advapi32.dll`, verifies the x64 `STARTUPINFOW` and `PROCESS_INFORMATION` layouts, quotes argv for `CreateProcessAsUserW`, and exposes checked restricted-token pipe and inherited-stdio Job operations.
+`@deepseek-ai/dsh-win32-process` owns reusable Win32 process ABI and native resource operations consumed by `sandbox-windows-acl` and `subprocess-local`. It lazily loads Windows libraries and verifies module-owned anonymous x64 structures, avoiding global type-name collisions across module generations. Restricted-token launch and stdio primitives remain separate from ordinary Job assignment, membership, termination, and closure.
 
 The Windows ACL sandbox remains the only owner of restricted-token creation, SID and DACL policy, grants, writable-path decisions, temporary-directory policy, and the public sandbox child result. It extends the shared binding context with policy-specific APIs, supplies the primary token, combines pipe drains and waits, and closes the caller-owned Job at its lifecycle boundary.
 
 Every native allocation and HANDLE has one owner within each shared operation. A process operation frees its Koffi out-parameters and closes every pipe, thread, process, or Job handle it acquired before a controlled failure. Successful pipe creation returns the process plus stdout/stderr read handles to the sandbox. Inherited-stdio creation starts the target suspended, assigns it to the kill-on-close Job, and resumes it only after assignment, so target code cannot run outside the Job. Assignment failure terminates the suspended target before releasing its handles; resume failure closes the assigned Job. The sandbox retains its existing pipe-drain, direct-wait, result, and returned-Job lifecycle.
 
-The package exports only operations used by the sandbox production path. Ordinary `CreateProcessW`, exact `applicationName`, parent-stdio release, and whole-Job settlement remain absent until an ordinary process consumer needs them. The package is a library, not a Cordis service or a public Windows SDK.
+The package exports operations with production consumers. [Windows subprocess Job ownership](2026-09-07-windows-subprocess-job-ownership.md) adds ordinary Job operations while retaining this policy/resource separation. Ordinary `CreateProcessW`, exact `applicationName`, and parent-stdio release remain absent. The package is a library, not a Cordis service or a public Windows SDK.
 
 ## Verification
 

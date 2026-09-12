@@ -18,4 +18,4 @@ The Android Lite runtime could drive turns only over the scripted provider: noth
 
 ## Alternatives considered
 
-OkHttp for the transport was rejected — the core module stays pure JVM on the JDK stack (the same choice `LinkWire` made), and the app layer already owns its OkHttp decision for pinning. Parsing via generated contract models was rejected — the provider consumes a third-party wire shape the contract table does not own; a local JsonElement decode keeps that boundary explicit.
+OkHttp for the Lite provider was rejected — it keeps the JDK `HttpClient` because it does not share the private-Host pin and reconnect-owner requirements that select OkHttp for the [Android Link transport](2026-09-02-android-link-transport-and-stream-ownership.md). Parsing via generated contract models was rejected — the provider consumes a third-party wire shape the contract table does not own; a local JsonElement decode keeps that boundary explicit.

@@ -1,0 +1,267 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "gate-evidence-summary",
+  "gate": "Gate 1",
+  "title": "Contract-owned Correctness Repair",
+  "status": "PASS",
+  "closure": "CLOSED",
+  "canEnterGate2": true,
+  "candidate": {
+    "commit": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "branch": "codex/goal-mode-full-implementation",
+    "published": true,
+    "remoteCandidateCi": "PASS"
+  },
+  "recordedAt": "2026-09-05T14:25:50.994Z",
+  "userDispositionNote": "Swift/Apple 已获重新验证授权；Apple 专属环境依赖允许临时延期并推进下一阶段，执行状态仍如实保留。",
+  "taskEvidence": [
+    {
+      "taskId": "G1-RC",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/implementation-baseline.json"
+    },
+    {
+      "taskId": "G1-COMP",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-COMP.json"
+    },
+    {
+      "taskId": "G1-DOC",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-DOC.json",
+      "qualification": "Linux test:docs 15/15 与 doc-sync 32/32；原 symlink fixture 阻断已取得便携 runner 证据。"
+    },
+    {
+      "taskId": "G1-CONTRACT",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-CONTRACT.json"
+    },
+    {
+      "taskId": "G1-GEN",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-GEN.json"
+    },
+    {
+      "taskId": "G1-APPLE",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-APPLE.json"
+    },
+    {
+      "taskId": "G1-ANDROID",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-ANDROID.json",
+      "qualification": "JVM core 125/125、真实 Host 与 Kotlin 13/13、debug APK 装配及 API 34 未配对 Activity 启动通过；真机网络未验。"
+    },
+    {
+      "taskId": "G1-AUTH",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-AUTH.json"
+    },
+    {
+      "taskId": "G1-PRIV",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-PRIV.json"
+    },
+    {
+      "taskId": "G1-E2E",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-E2E.json"
+    },
+    {
+      "taskId": "G1-MULTI",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-MULTI.json"
+    },
+    {
+      "taskId": "G1-REC",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-REC.json"
+    },
+    {
+      "taskId": "G1-CI",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/G1-CI.json"
+    }
+  ],
+  "exitCriteria": [
+    {
+      "criterion": "PoC-2 = VERIFIED / E4",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json"
+    },
+    {
+      "criterion": "PoC-3 = VERIFIED / E4",
+      "status": "PASS",
+      "evidence": "Three deterministic multi-device iterations passed 9 of 9 tests."
+    },
+    {
+      "criterion": "PoC-4 = VERIFIED / E4",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json"
+    },
+    {
+      "criterion": "PoC-5 >= VERIFIED-on-simulator with real-device plan ready",
+      "status": "PASS",
+      "reason": "Android API 34 and iOS fresh-simulator first screens passed; real-device matrix remains required during Gate 3.",
+      "evidence": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
+    },
+    {
+      "criterion": "Base composition",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Gateway focused tests",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Contract generation",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Host-to-Swift",
+      "status": "PASS",
+      "evidence": "artifacts/verification/gate-1/acceptance/swift-35c1300b33a45fb85bc958c5c7b83a190f888814.json"
+    },
+    {
+      "criterion": "Host-to-Kotlin",
+      "status": "PASS",
+      "evidence": "13/13 at bb3e7ed1006739cd099a49bf6db8317abe4a64bd, whose tree equals candidate 4227f3a513."
+    },
+    {
+      "criterion": "Android wrong pin",
+      "status": "PASS",
+      "evidence": "The wrong pin was rejected before the HTTP handler observed another request."
+    },
+    {
+      "criterion": "Documentation real drift",
+      "status": "PASS",
+      "evidence": "Linux doc-sync 32/32 与 test:docs 15/15 通过。"
+    },
+    {
+      "criterion": "Telemetry sensitive payload leakage",
+      "status": "PASS",
+      "evidence": "99 focused tests and 3 Loader E2E tests passed."
+    },
+    {
+      "criterion": "Single release-candidate SHA mandatory evidence",
+      "status": "PASS",
+      "reason": "All three required workflows passed with verified candidate, merge tree and producer receipts.",
+      "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json"
+    }
+  ],
+  "candidateEvidence": {
+    "kotlinAcceptance": "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+    "kotlinAcceptanceSha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a",
+    "portableRunners": "artifacts/verification/gate-1/G1-PORTABLE-RUNNERS.json",
+    "androidApp": "artifacts/verification/gate-1/G1-ANDROID-APP.json",
+    "closureDecision": "artifacts/verification/gate-1/G1-CLOSURE-DECISION.json",
+    "appleStartup": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json"
+  },
+  "blockingItems": [],
+  "scope": {
+    "gate2Started": true,
+    "pushed": true,
+    "published": false,
+    "productionCredentialsReadOrUsed": false,
+    "productionExternalActionsExecuted": false,
+    "branchPublished": true,
+    "pullRequestCreated": true,
+    "gate2Qualification": "Independent version/channel preparation is implemented; Gate 1 closure still awaits mandatory CI."
+  },
+  "decision": {
+    "status": "PASS",
+    "closure": "CLOSED",
+    "canEnterGate2": true,
+    "acceptedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a",
+    "qualification": "Gate 1 accepts immutable candidate 906d193595 using the workflow-owned mandatory policy. Independent Windows coverage remains FAIL due to a documentation Git integration timeout; it is retained and repaired separately, not reported as PASS."
+  },
+  "previousCandidate": {
+    "commit": "abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4",
+    "branch": "codex/goal-mode-full-implementation",
+    "published": false,
+    "remoteCandidateCi": "NOT_EXECUTED"
+  },
+  "previousCandidateEvidence": {
+    "kotlinAcceptance": "artifacts/verification/gate-1/acceptance/kotlin-abe90fa1d6521b595f017ca1cf8c5cb03b3bb9b4.json",
+    "kotlinAcceptanceSha256": "6177c7684f8dfcfdb9f870a83228717ada72eba9fd5862c5663948e4c68c5425",
+    "focusedLogDirectory": ".artifacts/g1-final-abe90fa1d652-20260904-203016/",
+    "aggregateLog": ".artifacts/g1-check-ci-abe90fa1d652-20260904-210408/check-ci.log",
+    "aggregateLogSha256": "3ae86c10b6b7488a44771807147bde79837617139F223D938813A45E85E521DB"
+  },
+  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json",
+  "remoteEvidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json",
+  "completedSwiftPmEvidence": {
+    "name": "swift test",
+    "result": "PASS",
+    "candidateHead": "4227f3a51375e648163171911bda59f52eac4503",
+    "runner": "macos-latest",
+    "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33946453731"
+  },
+  "latestSwiftAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/swift-ac42842c38142e13859da4981f9a820906f5ec6b.json",
+    "sha256": "93fd65ff7c7422fdde951d73357b78b4530037fa76b4af80e3903567113d2cce",
+    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+    "tree": "08cee8e622e7a9b2be68414c8c51c156a9902bd9",
+    "parents": [
+      "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "53cd3e79ad9b5047ce7cde685ba79b989ddb22be"
+    ],
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "5e267ee134a6eef22c9a798689f81a33657d47c113886fb8f78190315b0ce231",
+      "afterRepeatedReconnectProjectionSha256": "5e267ee134a6eef22c9a798689f81a33657d47c113886fb8f78190315b0ce231",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+    }
+  },
+  "nextCandidate": {
+    "commit": "7a786c8572cea834b560308b062dd6187404697a",
+    "published": false,
+    "verification": "artifacts/verification/gate-1/G1-CI-REPAIRS.json"
+  },
+  "previousSuccessfulMandatoryCandidate": {
+    "candidate": "1be28a4d443a23f97b6214dddfb6c1597cb01c41",
+    "runId": 33966116877,
+    "attempt": 2,
+    "evidence": "artifacts/verification/gate-2/ci-evidence-1be28a4d44.json",
+    "qualification": "Mandatory aggregate passed after native-only retry; independent Windows coverage failed. Initial native worker exit remains historical, not a proven product repair."
+  },
+  "openIndependentObservations": [
+    {
+      "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+      "status": "FAIL",
+      "mandatory": false,
+      "job": 101316923755,
+      "failure": "translation-pairing-merge.spec.ts clean text fallback took 16153 ms; its suite forced 15000 ms despite the heavy lane specifying 90000 ms.",
+      "repairCommit": "7a786c8572cea834b560308b062dd6187404697a",
+      "localRepair": {
+        "status": "PASS",
+        "runner": "Windows Node 24.19.0",
+        "tests": 2,
+        "timingsMs": [
+          7274,
+          9574
+        ],
+        "log": ".artifacts/g1-resume-20260905/pairing-merge-budget.log"
+      },
+      "remoteRepair": "PENDING",
+      "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
+    }
+  ]
+}

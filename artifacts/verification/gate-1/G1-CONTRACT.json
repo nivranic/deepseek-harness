@@ -1,0 +1,83 @@
+{
+  "taskId": "G1-CONTRACT",
+  "status": "PASS",
+  "commit": "eaa9d6bad4f9929f252decd7a858f793f8568c26",
+  "startedFrom": "eaa9d6bad4f9929f252decd7a858f793f8568c26",
+  "commands": [
+    "node_modules/.bin/vitest.CMD run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/api/gateway/tests/stream-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts packages/remote/link-access/tests/protocol.spec.ts",
+    "node --max-old-space-size=4096 ./node_modules/typescript/bin/tsc -b packages/remote/link-contracts/tsconfig.json packages/remote/link-access/tsconfig.json packages/api/gateway/tsconfig.host.json --pretty false",
+    "pnpm run test:docs",
+    "git diff --check"
+  ],
+  "tests": [
+    {
+      "name": "Contract ownership red test",
+      "result": "FAIL_EXPECTED",
+      "passed": 18,
+      "failed": 1,
+      "reason": "The generated manifest did not expose contractVersion before the source graph was extended."
+    },
+    {
+      "name": "Contract, Host Remote Event, Host stream, TLS carrier, and carrier protocol suites",
+      "result": "PASS",
+      "testFiles": 5,
+      "passed": 105,
+      "failed": 0
+    },
+    {
+      "name": "Focused TypeScript project build",
+      "result": "PASS",
+      "projects": 3
+    },
+    {
+      "name": "Documentation quick aggregate",
+      "result": "PASS",
+      "passed": 15,
+      "failed": 0
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-CONTRACT.json",
+    "packages/remote/link-contracts/generated/link-contracts.manifest.json",
+    "packages/remote/link-contracts/generated/link-contracts.schema.json",
+    "packages/remote/link-contracts/generated/fixtures/"
+  ],
+  "changedFiles": [
+    "packages/remote/link-contracts/src/index.ts",
+    "packages/remote/link-contracts/src/generate.ts",
+    "packages/remote/link-contracts/tests/link-contracts.spec.ts",
+    "packages/api/gateway/src/stream-protocol.ts",
+    "packages/api/gateway/tests/remote-event-protocol.host.spec.ts",
+    "packages/remote/link-access/src/protocol.ts",
+    "packages/remote/link-access/src/index.ts",
+    "packages/remote/link-access/tests/carrier.spec.ts",
+    "packages/remote/link-contracts/README.md",
+    "packages/remote/link-contracts/README.zh.md",
+    "packages/remote/link-contracts/README.i18n.yaml",
+    "packages/remote/link-access/README.md",
+    "packages/remote/link-access/README.zh.md",
+    "packages/remote/link-access/README.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.md",
+    ".agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.zh.md",
+    ".agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.i18n.yaml"
+  ],
+  "acceptance": [
+    "One source graph owns authenticated unary payload.args envelopes, NDJSON requests and frames, Remote Event downlink and result variants, structured errors, and successful void outcomes.",
+    "The Host ready frame supplies the authoritative clientId, and generated result fixtures correlate clientId and eventId with next, result, void, or rejected outcomes.",
+    "Session records carry monotonic sequence numbers; snapshot cursor and replay semantics are machine-readable.",
+    "Link protocol, contract, and Session format versions are independent, and link/describe exposes contractVersion.",
+    "Compatibility rules record ignored unknown optional fields, preserved unknown Session event types, and rejected missing required fields.",
+    "Generated fixtures pass through the real Gateway Remote Event parser, Connection-backed unary carrier route, and NDJSON carrier route.",
+    "The Gateway keeps its local wire parser to avoid a Gateway to Contract to Controller workspace cycle; fixture consumption proves byte equivalence without creating a second owner."
+  ],
+  "knownLimitations": [
+    "This checkpoint defines and proves Host wire equivalence. Fresh-pair ownership, native Remote Event consumption, TLS pin enforcement, reconnect, and real Host-to-native acceptance remain blocking work in G1-APPLE, G1-ANDROID, and G1-E2E."
+  ],
+  "notExecuted": [],
+  "nextDependencies": [
+    "G1-GEN",
+    "G1-APPLE",
+    "G1-ANDROID",
+    "G1-AUTH"
+  ]
+}

@@ -134,7 +134,10 @@ export interface CompanionDomainState {
   readonly artifacts: readonly CompanionArtifact[]
 }
 
-/** The empty state before any record arrives. */
+/**
+ * The empty state before any record arrives.
+ * @returns a fresh companion-domain accumulator.
+ */
 export function emptyCompanionDomain(): CompanionDomainState {
   return { cursor: 0, items: [], planActive: false, todos: [], goals: [], toolCalls: [], images: [], artifacts: [] }
 }

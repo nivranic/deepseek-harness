@@ -290,6 +290,9 @@ describe('browser-renderable documents', () => {
 })
 
 describe('canOpenNativePath', () => {
+  it('consults the kernel when explicit environment markers are absent', () => {
+    expect(canOpenNativePath({ platform: 'linux', env: {} })).toBe(osRelease().toLowerCase().includes('microsoft'))
+  })
   it('always answers yes where the desktop is part of the platform', () => {
     expect(canOpenNativePath({ platform: 'darwin', env: {} })).toBe(true)
     expect(canOpenNativePath({ platform: 'win32', env: {} })).toBe(true)

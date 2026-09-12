@@ -1,0 +1,11 @@
+{
+  "type": "waterfall",
+  "event": "approval/request",
+  "eventId": "event-approval-1",
+  "agentId": "agent-1",
+  "request": {
+    "toolName": "bash",
+    "reason": "Run the requested command?",
+    "sessionId": "session-1"
+  }
+}

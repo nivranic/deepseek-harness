@@ -14,9 +14,9 @@ Python SDK 通过四个平台 wheel 包分发原生可执行文件。其打包�
 
 ### 启动范围
 
-所有受支持的 Node 应用都通过 `dsh` CLI 与一个具名 profile 启动。随附应用命令是 `dsh web`、`dsh --profile headless`、`dsh --profile sdk`、`dsh --profile sdk-minimal` 与 `dsh --profile acp`；`dsh web` 是刻意为 `--profile web` 保留的便捷别名，不是另一个应用入口。
+所有受支持的 Harness Node 应用都通过 `dsh` CLI 与一个具名 profile 启动。随附应用命令是 `dsh web`、`dsh --profile headless`、`dsh --profile sdk`、`dsh --profile sdk-minimal` 与 `dsh --profile acp`；`dsh web` 是刻意为 `--profile web` 保留的便捷别名，不是另一个应用入口。
 
-Vendor CLI、仅用于构建和测试的可执行文件、进程内直接挂载插件以及私有浏览器 WebWorker 预览都不属于应用启动清单。包应用 bin 或直接启动包入口的根 demo 都不是可接受的扩展点。
+Vendor CLI、仅用于构建和测试的可执行文件、进程内直接挂载插件以及私有浏览器 WebWorker 预览都不属于 Harness 应用启动清单。[中继会合地基](2026-08-31-relay-rendezvous-foundation.zh.md)负责单独部署的基础设施场景：其 Node 服务不挂载 Cordis 树，不拥有会话权威或业务 Gateway，也不持久化 Harness 业务状态；内存中的会合记录均为临时状态。包应用 bin 或直接启动包入口的根 demo 都不是可接受的扩展点。
 
 ### Profile 应用
 
@@ -52,17 +52,17 @@ Python 运行时 wheel 通过私有 `dsh-python-runtime-closure` 部署 manifest
 
 ### 强制校验
 
-`verify-application-entrypoints` 扫描应用／包 manifest、可执行源码和根 demo 脚本。允许清单对 `dsh` 产品 bin、排除的 vendor 范围、私有 WebWorker 构建工具和测试支持进行分类。未分类的 shebang、新包 bin 或绕过 `apps/cli/src/bin.ts` 的 demo wrapper 都会使 hygiene 与 primary／static CI 聚合失败。
+`verify-application-entrypoints` 扫描应用／包 manifest、可执行源码和根 demo 脚本。允许清单对 `dsh` 产品 bin、私有 WebWorker 构建工具、测试支持和中继部署服务进行分类；中继客户端是库模块，不携带 shebang。未分类的 shebang、新包 bin 或绕过 `apps/cli/src/bin.ts` 的 demo wrapper 都会使 hygiene 与 primary／static CI 聚合失败。
 
 ## 既有决策与取代关系
 
 本决策取代 [profile 插件组合包](2026-08-05-profile-plugin-bundles.zh.md)、[TypeScript SDK 客户端与 SDK subagent 后端](../feature/2026-07-27-typescript-sdk-and-sdk-subagent-backend.zh.md)、[移除 SDK 项目工具链](../simplification/2026-08-11-remove-sdk-project-toolchain.zh.md)和[单文件 Python SDK 运行时分发](2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md)中的应用启动与包名事实。这些 Note 对 profile 分层、客户端／协议语义、已删除的项目工具链与原生打包仍分别具有独立权威。
 
-[ACP 仅自动化协议](../simplification/2026-07-23-acp-automation-only-protocol.zh.md)继续负责 ACP 协议格式与交互范围。[仓库命名约定](2026-08-11-repository-naming-contract-and-rename-ledger.zh.md)继续负责基于角色的包名。[独立 sdk-minimal profile](2026-08-24-standalone-sdk-minimal-profile.zh.md)部分取代本 Note 的 base 优先规则与完整配置树替代方案，同时保留本 Note 对 launcher 所有权的决策。没有任何活跃 Note 被完全取代，也没有 Note 符合归档条件。
+[ACP 仅自动化协议](../simplification/2026-07-23-acp-automation-only-protocol.zh.md)继续负责 ACP 协议格式与交互范围。[仓库命名约定](2026-08-11-repository-naming-contract-and-rename-ledger.zh.md)继续负责基于角色的包名。[独立 sdk-minimal profile](2026-08-24-standalone-sdk-minimal-profile.zh.md)部分取代本 Note 的 base 优先规则与完整配置树替代方案，同时保留本 Note 对 launcher 所有权的决策。[中继会合地基](2026-08-31-relay-rendezvous-foundation.zh.md)负责其转发与权威限制；本 Note 只负责区分 Harness 应用与单独部署的基础设施。没有任何活跃 Note 被完全取代，也没有 Note 符合归档条件。
 
 ## 考虑过的替代方案
 
-**保留直启 bin，只声明推荐 profile。** 拒绝：只要受支持的可执行文件仍然绕过 profile，文档就无法让 profile 真正负责插件安装、环境加载、关闭和测试。
+**保留直启 bin，只声明推荐 profile。** 拒绝：只要受支持的 Harness 可执行文件仍然绕过 profile，文档就无法让 profile 真正负责插件安装、环境加载、关闭和测试。
 
 **保留转发兼容 bin。** 拒绝：转发可执行文件仍然形成另一个公开启动名称与兼容承诺。预发布仓库可以让调用方直接迁移到 profile。
 
@@ -86,7 +86,7 @@ Python 运行时 wheel 通过私有 `dsh-python-runtime-closure` 部署 manifest
 - 免密钥 ACP 与 SDK 快照启动真实 `dsh` profile，并钉住协议输出与持久化日志；嵌套 SDK 组合会启动第二个真实 profile 运行时。
 - 真实 API 工作流把文件并行度限制为 4，因为一个 profile e2e 文件可能拥有多个完整 `dsh` 子进程树；工作流测试会钉住该资源上限。
 - Python 套件同时测试 exe 与 node 载体；打包运行时场景、原生 macOS 可执行文件构建、两个 wheel 包以及干净 wheel 默认／MCP 冒烟测试会钉住 `deepseek-harness-sdk-runtime-*` 产物与 profile 启动。
-- `verify-application-entrypoints` 包含包 bin、可执行源码、直启包的 demo wrapper 与未分类 demo 等非法 fixture（测试前置数据）。
+- `verify-application-entrypoints` 包含包 bin、可执行源码、直启包的 demo wrapper 与未分类 demo 等非法 fixture（测试前置数据）；其仓库清单接受已分类的中继服务器、向量生成器与 self-test，同时仍把 `client.mjs` 的 shebang 视为未分类入口。
 
 ## 影响
 

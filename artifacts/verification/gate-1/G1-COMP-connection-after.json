@@ -1,0 +1,1540 @@
+{
+  "numTotalTestSuites": 30,
+  "numPassedTestSuites": 30,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 116,
+  "numPassedTests": 116,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1788287312167,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "transportError"
+          ],
+          "fullName": "transportError folds an Error to internal keeping the message, and stringifies non-Errors",
+          "status": "passed",
+          "title": "folds an Error to internal keeping the message, and stringifies non-Errors",
+          "duration": 3.3493000000000848,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resultOf"
+          ],
+          "fullName": "resultOf unwraps the result slot",
+          "status": "passed",
+          "title": "unwraps the result slot",
+          "duration": 0.49270000000001346,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314022,
+      "endTime": 1788287314026.4927,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/api-helpers.client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest holds markerless requests to the same Host fence — a plain-HTTP browser read carries no markers",
+          "status": "passed",
+          "title": "holds markerless requests to the same Host fence — a plain-HTTP browser read carries no markers",
+          "duration": 19.741100000000188,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest accepts loopback Hosts in every spelling, with and without ports, for browser requests",
+          "status": "passed",
+          "title": "accepts loopback Hosts in every spelling, with and without ports, for browser requests",
+          "duration": 0.5329000000001543,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest refuses a rebound Host: the attacker domain names the socket it did not expect",
+          "status": "passed",
+          "title": "refuses a rebound Host: the attacker domain names the socket it did not expect",
+          "duration": 0.1636999999998352,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest accepts a declared public authority: exact on host:port entries, any port on port-less entries",
+          "status": "passed",
+          "title": "accepts a declared public authority: exact on host:port entries, any port on port-less entries",
+          "duration": 0.16620000000011714,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest matches Host, Origin, and trusted entries through WHATWG normalization (case, default port)",
+          "status": "passed",
+          "title": "matches Host, Origin, and trusted entries through WHATWG normalization (case, default port)",
+          "duration": 0.22919999999999163,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest refuses cross-origin browser markers even on a loopback Host",
+          "status": "passed",
+          "title": "refuses cross-origin browser markers even on a loopback Host",
+          "duration": 0.1450999999999567,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest accepts a same-origin browser request, with or without an Origin header",
+          "status": "passed",
+          "title": "accepts a same-origin browser request, with or without an Origin header",
+          "duration": 0.16619999999988977,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest reads Fetch Headers while preserving absent browser markers",
+          "status": "passed",
+          "title": "reads Fetch Headers while preserving absent browser markers",
+          "duration": 0.736699999999928,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest assertTrustedAuthority accepts bare authorities and throws on anything more",
+          "status": "passed",
+          "title": "assertTrustedAuthority accepts bare authorities and throws on anything more",
+          "duration": 2.0039999999999054,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest never lets stray whitespace broaden an exact-port entry to every port",
+          "status": "passed",
+          "title": "never lets stray whitespace broaden an exact-port entry to every port",
+          "duration": 0.2400000000000091,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isTrustedApiRequest"
+          ],
+          "fullName": "isTrustedApiRequest refuses malformed or untrusted authorities on browser requests",
+          "status": "passed",
+          "title": "refuses malformed or untrusted authorities on browser requests",
+          "duration": 0.2617999999999938,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314063,
+      "endTime": 1788287314087.2617,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/api-request-trust.host.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "BrowserAuth"
+          ],
+          "fullName": "BrowserAuth mints one process token and a persistent authority-bound cookie",
+          "status": "passed",
+          "title": "mints one process token and a persistent authority-bound cookie",
+          "duration": 20.854900000000043,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "BrowserAuth"
+          ],
+          "fullName": "BrowserAuth accepts the cookie for index serving and gives every unauthenticated request one response",
+          "status": "passed",
+          "title": "accepts the cookie for index serving and gives every unauthenticated request one response",
+          "duration": 1.1919000000000324,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "BrowserAuth"
+          ],
+          "fullName": "BrowserAuth rejects tampering, expiry, future issuance, and a longer lifetime than configured",
+          "status": "passed",
+          "title": "rejects tampering, expiry, future issuance, and a longer lifetime than configured",
+          "duration": 2.71770000000015,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "BrowserAuth"
+          ],
+          "fullName": "BrowserAuth loads one secret per activation and replaces it after deletion on the next activation",
+          "status": "passed",
+          "title": "loads one secret per activation and replaces it after deletion on the next activation",
+          "duration": 1.061200000000099,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "BrowserAuth"
+          ],
+          "fullName": "BrowserAuth fails loud on an invalid owner record instead of replacing it",
+          "status": "passed",
+          "title": "fails loud on an invalid owner record instead of replacing it",
+          "duration": 1.738399999999956,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314116,
+      "endTime": 1788287314143.7383,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/browser-auth.host.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply treats a runtime without browser location as local",
+          "status": "passed",
+          "title": "treats a runtime without browser location as local",
+          "duration": 10.163500000000113,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply mounts ctx.connection and identifies a loopback page",
+          "status": "passed",
+          "title": "mounts ctx.connection and identifies a loopback page",
+          "duration": 2.01279999999997,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply selects the fixture RPC transport under ?fixture",
+          "status": "passed",
+          "title": "selects the fixture RPC transport under ?fixture",
+          "duration": 14.019900000000007,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply reports non-loopback page authority through the connection handle",
+          "status": "passed",
+          "title": "reports non-loopback page authority through the connection handle",
+          "duration": 1.9167999999999665,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply requires one generation source and ignores a stale source disposer",
+          "status": "passed",
+          "title": "requires one generation source and ignores a stale source disposer",
+          "duration": 68.42949999999996,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply start() hands out one loop, rejects a second consumer, and stop() aborts the generation",
+          "status": "passed",
+          "title": "start() hands out one loop, rejects a second consumer, and stop() aborts the generation",
+          "duration": 62.36259999999993,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply allows a replacement owner and ignores the previous owner handle",
+          "status": "passed",
+          "title": "allows a replacement owner and ignores the previous owner handle",
+          "duration": 125.2777000000001,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply does not announce a generation synchronously stopped by a generation subscriber",
+          "status": "passed",
+          "title": "does not announce a generation synchronously stopped by a generation subscriber",
+          "duration": 62.589300000000094,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply retracts the generation while reconnecting and publishes the next generation",
+          "status": "passed",
+          "title": "retracts the generation while reconnecting and publishes the next generation",
+          "duration": 122.75860000000011,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply does not announce reconnecting after a generation subscriber stops the loop",
+          "status": "passed",
+          "title": "does not announce reconnecting after a generation subscriber stops the loop",
+          "duration": 125.44510000000037,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply carries RPC calls without requiring secure-context randomUUID",
+          "status": "passed",
+          "title": "carries RPC calls without requiring secure-context randomUUID",
+          "duration": 19.389300000000276,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply exposes a worker-local Gateway stream through connection.rpc.open",
+          "status": "passed",
+          "title": "exposes a worker-local Gateway stream through connection.rpc.open",
+          "duration": 2.285599999999704,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply validates generic RPC transport failures, correlation, and targets",
+          "status": "passed",
+          "title": "validates generic RPC transport failures, correlation, and targets",
+          "duration": 8.596199999999953,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection client apply"
+          ],
+          "fullName": "connection client apply carries Goal Remotes over the client-only fixture state",
+          "status": "passed",
+          "title": "carries Goal Remotes over the client-only fixture state",
+          "duration": 6.410600000000159,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314232,
+      "endTime": 1788287314863.4106,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/client-apply.client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle announces connected with the Host facts from generation readiness",
+          "status": "passed",
+          "title": "announces connected with the Host facts from generation readiness",
+          "duration": 66.1722000000002,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle reconnects with a fresh generation when its source fails, and stop() ends the loop",
+          "status": "passed",
+          "title": "reconnects with a fresh generation when its source fails, and stop() ends the loop",
+          "duration": 233.68849999999998,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle isolates a connected sink exception from the generation",
+          "status": "passed",
+          "title": "isolates a connected sink exception from the generation",
+          "duration": 62.89850000000001,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle holds onConnected until the incremental source reports ready",
+          "status": "passed",
+          "title": "holds onConnected until the incremental source reports ready",
+          "duration": 157.00549999999998,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle accepts only the first readiness report from one generation",
+          "status": "passed",
+          "title": "accepts only the first readiness report from one generation",
+          "duration": 60.726900000000114,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle does not announce readiness after a stop queued from the ready callback",
+          "status": "passed",
+          "title": "does not announce readiness after a stop queued from the ready callback",
+          "duration": 61.77099999999973,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle rejects a generation whose source ends during readiness and retries",
+          "status": "passed",
+          "title": "rejects a generation whose source ends during readiness and retries",
+          "duration": 125.49279999999999,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle retries when the generation source 'ends normally' before reporting ready",
+          "status": "passed",
+          "title": "retries when the generation source 'ends normally' before reporting ready",
+          "duration": 62.48219999999992,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle retries when the generation source 'rejects with a non-Error reason' before reporting ready",
+          "status": "passed",
+          "title": "retries when the generation source 'rejects with a non-Error reason' before reporting ready",
+          "duration": 63.67489999999998,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle rejects and retries a generation whose source never reports ready",
+          "status": "passed",
+          "title": "rejects and retries a generation whose source never reports ready",
+          "duration": 107.33589999999958,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle emits deduplicated connected/reconnecting state transitions",
+          "status": "passed",
+          "title": "emits deduplicated connected/reconnecting state transitions",
+          "duration": 125.39720000000034,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle does not announce a generation stopped synchronously by its connected state sink",
+          "status": "passed",
+          "title": "does not announce a generation stopped synchronously by its connected state sink",
+          "duration": 61.0627999999997,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle deduplicates consecutive reconnecting emissions across two straight failures",
+          "status": "passed",
+          "title": "deduplicates consecutive reconnecting emissions across two straight failures",
+          "duration": 61.4704999999999,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle runs with no sinks at all",
+          "status": "passed",
+          "title": "runs with no sinks at all",
+          "duration": 63.485299999999825,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection lifecycle"
+          ],
+          "fullName": "connection lifecycle start() is idempotent",
+          "status": "passed",
+          "title": "start() is idempotent",
+          "duration": 62.91010000000006,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314058,
+      "endTime": 1788287315433.9102,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/connection.client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "Connection exact Fetch routes"
+          ],
+          "fullName": "Connection exact Fetch routes dispatches owned methods and returns 404 for unclaimed requests",
+          "status": "passed",
+          "title": "dispatches owned methods and returns 404 for unclaimed requests",
+          "duration": 46.78049999999985,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Connection exact Fetch routes"
+          ],
+          "fullName": "Connection exact Fetch routes rejects invalid and duplicate registrations",
+          "status": "passed",
+          "title": "rejects invalid and duplicate registrations",
+          "duration": 9.2967000000001,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314138,
+      "endTime": 1788287314193.2966,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/fetch-routes.host.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills serves the addressed session catalog",
+          "status": "passed",
+          "title": "serves the addressed session catalog",
+          "duration": 9.82770000000005,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills rejects a catalog request for an unknown session",
+          "status": "passed",
+          "title": "rejects a catalog request for an unknown session",
+          "duration": 3.6385999999999967,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills executes a known command line: pure admission plus a followed lifecycle pair",
+          "status": "passed",
+          "title": "executes a known command line: pure admission plus a followed lifecycle pair",
+          "duration": 6.56860000000006,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills addresses execute to the session; an unknown session errs",
+          "status": "passed",
+          "title": "addresses execute to the session; an unknown session errs",
+          "duration": 4.042700000000195,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills refuses an image-carrying execute for a non-declaring command with a logged error pair",
+          "status": "passed",
+          "title": "refuses an image-carrying execute for a non-declaring command with a logged error pair",
+          "duration": 3.5224000000000615,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills a declaring command accepts an image-carrying execute",
+          "status": "passed",
+          "title": "a declaring command accepts an image-carrying execute",
+          "duration": 3.0994000000000597,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills mirrors the producer grammar rejections for control-only declaring lines",
+          "status": "passed",
+          "title": "mirrors the producer grammar rejections for control-only declaring lines",
+          "duration": 3.0576999999998407,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills answers no execution for an unknown name even when images accompany it",
+          "status": "passed",
+          "title": "answers no execution for an unknown name even when images accompany it",
+          "duration": 3.713700000000017,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills answers no execution for unknown names and non-command lines",
+          "status": "passed",
+          "title": "answers no execution for unknown names and non-command lines",
+          "duration": 3.009700000000066,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi commands/skills"
+          ],
+          "fullName": "createFixtureApi commands/skills serves the skill catalog for the addressed session and rejects unknown sessions",
+          "status": "passed",
+          "title": "serves the skill catalog for the addressed session and rejects unknown sessions",
+          "duration": 2.843599999999924,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "fixture Connection command/skill dispatch"
+          ],
+          "fullName": "fixture Connection command/skill dispatch routes the Remote command and skill rows through one state graph",
+          "status": "passed",
+          "title": "routes the Remote command and skill rows through one state graph",
+          "duration": 2.5349999999998545,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314205,
+      "endTime": 1788287314251.535,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/fixture-commands.client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi serves the session list sorted by updatedAt desc and echoes rpcIds on every unary",
+          "status": "passed",
+          "title": "serves the session list sorted by updatedAt desc and echoes rpcIds on every unary",
+          "duration": 10.018199999999979,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi searches current message text with literal unicode61-style token phrases",
+          "status": "passed",
+          "title": "searches current message text with literal unicode61-style token phrases",
+          "duration": 24.85069999999996,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi pages history backwards on message-boundary cuts with seq-contiguous stitching",
+          "status": "passed",
+          "title": "pages history backwards on message-boundary cuts with seq-contiguous stitching",
+          "duration": 3.381900000000087,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi serves raw history entries with replayable tool-result metadata",
+          "status": "passed",
+          "title": "serves raw history entries with replayable tool-result metadata",
+          "duration": 5.189399999999978,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi serves grouped models and keeps a selection for later history and fixture requests",
+          "status": "passed",
+          "title": "serves grouped models and keeps a selection for later history and fixture requests",
+          "duration": 610.5465999999999,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi serves configured DeepSeek readiness and keeps credential values write-only",
+          "status": "passed",
+          "title": "serves configured DeepSeek readiness and keeps credential values write-only",
+          "duration": 3.619300000000294,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi emits the todo/write snapshot at the real tool boundary: between tool/call and tool/result, timestamps monotonic",
+          "status": "passed",
+          "title": "emits the todo/write snapshot at the real tool boundary: between tool/call and tool/result, timestamps monotonic",
+          "duration": 3.1107999999999265,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi create adds a session and announces it through the Host Remote event stream",
+          "status": "passed",
+          "title": "create adds a session and announces it through the Host Remote event stream",
+          "duration": 23.641200000000026,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi prompt replays a full streamed turn and cancel mid-replay freezes with (已中断)",
+          "status": "passed",
+          "title": "prompt replays a full streamed turn and cancel mid-replay freezes with (已中断)",
+          "duration": 141.33169999999973,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi steer during a replay lands a user/message inside the current turn and the replay continues",
+          "status": "passed",
+          "title": "steer during a replay lands a user/message inside the current turn and the replay continues",
+          "duration": 762.9146999999998,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi control replays projections while resident Remote Events retain ids across reconnects",
+          "status": "passed",
+          "title": "control replays projections while resident Remote Events retain ids across reconnects",
+          "duration": 5.039600000000064,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi steer with no replay in flight falls through to a fresh queued turn; non-text blocks stringify empty",
+          "status": "passed",
+          "title": "steer with no replay in flight falls through to a fresh queued turn; non-text blocks stringify empty",
+          "duration": 770.0948999999996,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi gamma interval flip emits a Remote status event and its empty follow source opens at -1",
+          "status": "passed",
+          "title": "gamma interval flip emits a Remote status event and its empty follow source opens at -1",
+          "duration": 4.521499999999833,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi answers a resident question through its Remote Event id and stops replaying it",
+          "status": "passed",
+          "title": "answers a resident question through its Remote Event id and stops replaying it",
+          "duration": 6.173700000000281,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi answers a resident approval and broadcasts cancellation to its active delivery",
+          "status": "passed",
+          "title": "answers a resident approval and broadcasts cancellation to its active delivery",
+          "duration": 3.01299999999992,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi createDirectory under the root mints /name whose listing and crumbs share the identity",
+          "status": "passed",
+          "title": "createDirectory under the root mints /name whose listing and crumbs share the identity",
+          "duration": 11.95430000000033,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi workspace/follow serves the resident baseline and create reuses on path collision",
+          "status": "passed",
+          "title": "workspace/follow serves the resident baseline and create reuses on path collision",
+          "duration": 2.608100000000377,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi workspace.create on a fresh path mints a new entity and pushes an upsert",
+          "status": "passed",
+          "title": "workspace.create on a fresh path mints a new entity and pushes an upsert",
+          "duration": 18.702299999999923,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi workspace.rename covers not-found, conflict, no-op, and the changed frame",
+          "status": "passed",
+          "title": "workspace.rename covers not-found, conflict, no-op, and the changed frame",
+          "duration": 17.3717000000006,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi session.rename covers not-found, blank title, and the accepted append + title frame",
+          "status": "passed",
+          "title": "session.rename covers not-found, blank title, and the accepted append + title frame",
+          "duration": 30.63289999999961,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi workspace.insertSessionBefore moves, appends, no-ops, and rejects invalid ids",
+          "status": "passed",
+          "title": "workspace.insertSessionBefore moves, appends, no-ops, and rejects invalid ids",
+          "duration": 3.962899999999536,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi workspace.delete removes only the Workspace row and emits the removal frame",
+          "status": "passed",
+          "title": "workspace.delete removes only the Workspace row and emits the removal frame",
+          "duration": 25.477100000000064,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi session.create({workspaceId}) lands on the account and unknown ids error",
+          "status": "passed",
+          "title": "session.create({workspaceId}) lands on the account and unknown ids error",
+          "duration": 15.050400000000081,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi supports an empty baseline, preallocated ids, independent streams, and idempotent retry",
+          "status": "passed",
+          "title": "supports an empty baseline, preallocated ids, independent streams, and idempotent retry",
+          "duration": 14.885099999999511,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi attaches an existing ungrouped Session to a matching Workspace",
+          "status": "passed",
+          "title": "attaches an existing ungrouped Session to a matching Workspace",
+          "duration": 2.8802999999998065,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi reports a conflict without an existing cwd detail for an unrecorded cwd",
+          "status": "passed",
+          "title": "reports a conflict without an existing cwd detail for an unrecorded cwd",
+          "duration": 2.2781000000004497,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi publishes an ungrouped Session when Workspace attachment fails",
+          "status": "passed",
+          "title": "publishes an ungrouped Session when Workspace attachment fails",
+          "duration": 2.6548000000002503,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi reconciles a dropped create response and can reject a prompt before acceptance",
+          "status": "passed",
+          "title": "reconciles a dropped create response and can reject a prompt before acceptance",
+          "duration": 6.911000000000058,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi timing hooks: history delay + one-shot failure, silent append, and breakStreams end open generators",
+          "status": "passed",
+          "title": "timing hooks: history delay + one-shot failure, silent append, and breakStreams end open generators",
+          "duration": 110.55420000000049,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "createFixtureApi"
+          ],
+          "fullName": "createFixtureApi paces the opt-in reasoning stress hook from an external interval",
+          "status": "passed",
+          "title": "paces the opt-in reasoning stress hook from an external interval",
+          "duration": 4.930399999999281,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "fixture Connection RPC"
+          ],
+          "fullName": "fixture Connection RPC covers the migrated Remote dispatch table",
+          "status": "passed",
+          "title": "covers the migrated Remote dispatch table",
+          "duration": 5.143799999999828,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "fixture Connection RPC"
+          ],
+          "fullName": "fixture Connection RPC folds the goal lifecycle over the Goal Remotes",
+          "status": "passed",
+          "title": "folds the goal lifecycle over the Goal Remotes",
+          "duration": 2.9091000000007625,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "fixture Connection RPC"
+          ],
+          "fullName": "fixture Connection RPC maps empty, prompt-reject, and workspace-first query scenarios",
+          "status": "passed",
+          "title": "maps empty, prompt-reject, and workspace-first query scenarios",
+          "duration": 17.4983000000002,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "fixture Connection RPC"
+          ],
+          "fullName": "fixture Connection RPC maps attach-failure and dropped-response query scenarios",
+          "status": "passed",
+          "title": "maps attach-failure and dropped-response query scenarios",
+          "duration": 3.8607999999994718,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314205,
+      "endTime": 1788287316883.8608,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/fixture.client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "Connection generation facts"
+          ],
+          "fullName": "Connection generation facts publishes ready-frame Host facts and retracts them when the loop stops",
+          "status": "passed",
+          "title": "publishes ready-frame Host facts and retracts them when the loop stops",
+          "duration": 84.13580000000002,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314230,
+      "endTime": 1788287314314.1357,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/generation.client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "HTTP bridge abort"
+          ],
+          "fullName": "HTTP bridge abort destroys a declared-oversize request instead of draining it",
+          "status": "passed",
+          "title": "destroys a declared-oversize request instead of draining it",
+          "duration": 2.9318000000000666,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "HTTP bridge abort"
+          ],
+          "fullName": "HTTP bridge abort aborts a pending native picker request when the browser disconnects",
+          "status": "passed",
+          "title": "aborts a pending native picker request when the browser disconnects",
+          "duration": 25.381500000000187,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314010,
+      "endTime": 1788287314038.3816,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/http-bridge.host.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "isLoopbackHostname"
+          ],
+          "fullName": "isLoopbackHostname accepts localhost, IPv6 loopback, and the whole IPv4 127/8 block",
+          "status": "passed",
+          "title": "accepts localhost, IPv6 loopback, and the whole IPv4 127/8 block",
+          "duration": 2.1008999999999105,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "isLoopbackHostname"
+          ],
+          "fullName": "isLoopbackHostname refuses malformed and non-loopback hostnames",
+          "status": "passed",
+          "title": "refuses malformed and non-loopback hostnames",
+          "duration": 0.5303000000001248,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314006,
+      "endTime": 1788287314008.5303,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/loopback-hostname.client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half reserves enough default carrier capacity for the 200 MiB image batch",
+          "status": "passed",
+          "title": "reserves enough default carrier capacity for the 200 MiB image batch",
+          "duration": 1.4127000000000862,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half fails loud when the carrier cap cannot hold the configured image batch",
+          "status": "passed",
+          "title": "fails loud when the carrier cap cannot hold the configured image batch",
+          "duration": 4.564300000000003,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half fails the load on a trustedHosts entry that is not a bare authority",
+          "status": "passed",
+          "title": "fails the load on a trustedHosts entry that is not a bare authority",
+          "duration": 10.766900000000078,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half registers only the HTTP route and removes it with the fiber",
+          "status": "passed",
+          "title": "registers only the HTTP route and removes it with the fiber",
+          "duration": 6.017900000000054,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half refuses an untrusted Host on any /api path before the bridge runs",
+          "status": "passed",
+          "title": "refuses an untrusted Host on any /api path before the bridge runs",
+          "duration": 4.5086999999998625,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half requires the same browser session for every method on every trusted authority",
+          "status": "passed",
+          "title": "requires the same browser session for every method on every trusted authority",
+          "duration": 14.171899999999823,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half passes loopback and declared-authority requests through to the bridge",
+          "status": "passed",
+          "title": "passes loopback and declared-authority requests through to the bridge",
+          "duration": 4.367300000000114,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half shares its configured trust and authentication policy with sibling routes",
+          "status": "passed",
+          "title": "shares its configured trust and authentication policy with sibling routes",
+          "duration": 2.4473999999997886,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half provides a disposable dedicated RPC channel",
+          "status": "passed",
+          "title": "provides a disposable dedicated RPC channel",
+          "duration": 9.671800000000076,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half provides the Connection service without a webServer and binds /api when one appears later",
+          "status": "passed",
+          "title": "provides the Connection service without a webServer and binds /api when one appears later",
+          "duration": 9.334899999999834,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half dispatches claimed /api endpoints and withdraws the claim",
+          "status": "passed",
+          "title": "dispatches claimed /api endpoints and withdraws the claim",
+          "duration": 8.132299999999987,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half"
+          ],
+          "fullName": "connection node half applies the configured trust fence and JSON envelope checks to generic channels",
+          "status": "passed",
+          "title": "applies the configured trust fence and JSON envelope checks to generic channels",
+          "duration": 12.870000000000118,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "connection node half over a real HTTP server"
+          ],
+          "fullName": "connection node half over a real HTTP server requires authentication uniformly over a real HTTP request",
+          "status": "passed",
+          "title": "requires authentication uniformly over a real HTTP request",
+          "duration": 64.98260000000005,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314166,
+      "endTime": 1788287314319.9827,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/node-half.host.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "Connection RPC schema"
+          ],
+          "fullName": "Connection RPC schema brands any validated string correlation id",
+          "status": "passed",
+          "title": "brands any validated string correlation id",
+          "duration": 2.2918999999999414,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Connection RPC schema"
+          ],
+          "fullName": "Connection RPC schema folds transport exceptions into an internal failure",
+          "status": "passed",
+          "title": "folds transport exceptions into an internal failure",
+          "duration": 1.1847999999999956,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Connection RPC schema"
+          ],
+          "fullName": "Connection RPC schema validates generic failures and both result branches",
+          "status": "passed",
+          "title": "validates generic failures and both result branches",
+          "duration": 4.566100000000006,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "Connection RPC schema"
+          ],
+          "fullName": "Connection RPC schema validates both envelope directions and valueless success",
+          "status": "passed",
+          "title": "validates both envelope directions and valueless success",
+          "duration": 3.2178999999998723,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1788287314134,
+      "endTime": 1788287314145.218,
+      "status": "passed",
+      "message": "",
+      "name": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation/packages/client/connection/tests/rpc-schema.host.spec.ts"
+    }
+  ]
+}

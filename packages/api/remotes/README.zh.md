@@ -31,6 +31,8 @@ Client 组合挂载 Commands、凭据、settings、Goal、动态 Cordis、文件
 
 本包不拥有物理传输或 Host 服务发现。它只把应用选择投影为生成的 Remote contribution 和唯一的 Host Cordis event source；API Gateway 负责 endpoint、carrier、取消与重连。Web 或未来的 TUI 只要提供同一份不依赖 React 的 `ctx.remote` 约定，均可复用其 Client face。
 
+该组合还挂载[桌面 Host 导出器](../../host/electron-ipc/README.zh.md#diagnostics-export)生成的 `desktopSupport` contribution。挂载 Client 方法并不会提供原生保存处理器，也不授予配对设备访问权限；这些决策仍由桌面组合和 Link 授权负责。
+
 -----
 
 <a id="forwarded-host-events"></a>

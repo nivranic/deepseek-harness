@@ -507,7 +507,6 @@ async function runBehavior(
       return
     case 'stall':
       openSse(response)
-      finishRecord(options, record, 'stalled')
       return
     case 'malformed_json':
       openSse(response)

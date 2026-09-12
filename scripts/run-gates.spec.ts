@@ -102,7 +102,7 @@ describe('gate graph validation', () => {
     const ids = withPnpmEntrypoint(() => gatesForMode('hygiene').map(subject => subject.id))
 
     expect(ids).toEqual([
-      'rescope-vendor', 'knip', 'publint', 'constraints', 'application-entrypoints',
+      'rescope-vendor', 'knip', 'link-contracts', 'product-identity', 'rc-policy', 'workflow-security', 'required-checks', 'publint', 'constraints', 'application-entrypoints',
       'dsh-package-licenses', 'package-invariants', 'built-package-invariants', 'node-next-types',
       'optional-dependency-imports', 'client-packages', 'client-ui-i18n', 'cordis-config',
       'runtime-closure', 'vendored-links',
@@ -151,6 +151,28 @@ describe('gate graph validation', () => {
   )
 
   it.each(['ci-primary', 'ci-static', 'check-all', 'hygiene'] as const)(
+    'requires workflow security policy in %s',
+    (mode) => {
+      const gates = withPnpmEntrypoint(() => gatesForMode(mode))
+      expect(gates.find(subject => subject.id === 'workflow-security')?.displayCommand)
+        .toBe('pnpm run verify-workflow-security')
+      expect(gates.find(subject => subject.id === 'required-checks')?.displayCommand)
+        .toBe('pnpm run verify-required-checks')
+    },
+  )
+
+  it.each(['ci-primary', 'ci-static', 'check-all', 'hygiene'] as const)(
+    'requires generated product identity consistency in %s',
+    (mode) => {
+      const gates = withPnpmEntrypoint(() => gatesForMode(mode))
+      expect(gates.find(subject => subject.id === 'product-identity')?.displayCommand)
+        .toBe('pnpm run verify-product-identity')
+      expect(gates.find(subject => subject.id === 'rc-policy')?.displayCommand)
+        .toBe('pnpm run verify-rc-policy')
+    },
+  )
+
+  it.each(['ci-primary', 'ci-static', 'check-all', 'hygiene'] as const)(
     'keeps hard-coded Client UI copy enforcement in %s',
     (mode) => {
       const ids = withPnpmEntrypoint(() => gatesForMode(mode).map(subject => subject.id))
@@ -165,6 +187,17 @@ describe('gate graph validation', () => {
       const ids = withPnpmEntrypoint(() => gatesForMode(mode).map(subject => subject.id))
 
       expect(ids).toContain('application-entrypoints')
+    },
+  )
+
+  it.each(['ci-coverage', 'ci-windows-complete'] as const)(
+    'runs the complete client catalog suite without instrumentation in %s', (mode) => {
+      const gate = withPnpmEntrypoint(() => gatesForMode(mode))
+        .find(subject => subject.id === 'coverage-exempt-heavy')
+      expect(gate?.args).toContain('scripts/gen-client-catalog.spec.ts')
+      expect(gate?.args).not.toContain('--coverage')
+      expect(gate?.env?.DSH_COVERAGE_EXEMPT_HEAVY).toBeUndefined()
+      expect(gate?.allowFailure).not.toBe(true)
     },
   )
 

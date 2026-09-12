@@ -150,16 +150,56 @@ describe('mock LLM server wire behaviors', () => {
     })
   })
 
-  it('holds a stalled stream until the client aborts and server close remains idempotent', async () => {
-    const server = await start(['stall'])
+  it('records a stalled stream only when the client aborts and server close remains idempotent', async () => {
+    const events: MockLlmServerEvent[] = []
+    const result = Promise.withResolvers<Extract<MockLlmServerEvent, { type: 'result' }>>()
+    const server = await start(['stall'], {
+      onEvent: (event) => {
+        events.push(event)
+        if (event.type === 'result') result.resolve(event)
+      },
+    })
     const controller = new AbortController()
     const response = await chat(server, { signal: controller.signal })
 
     expect(response.status).toBe(200)
-    expect(server.requests[0]).toMatchObject({ behavior: 'stall', outcome: 'stalled' })
+    expect(server.requests[0]).toMatchObject({ behavior: 'stall' })
+    expect(server.requests[0]?.outcome).toBeUndefined()
+    expect(events.filter(event => event.type === 'result')).toEqual([])
     controller.abort()
     await expect(response.text()).rejects.toThrow()
+    await result.promise
+
+    expect(server.requests[0]).toMatchObject({ behavior: 'stall', outcome: 'client_closed' })
+    expect(events.filter(event => event.type === 'result')).toEqual([
+      expect.objectContaining({ behavior: 'stall', outcome: 'client_closed' }),
+    ])
     await server.close()
+    await server.close()
+  })
+
+  it('records a stalled stream when the server force-closes its connections', async () => {
+    const events: MockLlmServerEvent[] = []
+    const result = Promise.withResolvers<Extract<MockLlmServerEvent, { type: 'result' }>>()
+    const server = await start(['stall'], {
+      onEvent: (event) => {
+        events.push(event)
+        if (event.type === 'result') result.resolve(event)
+      },
+    })
+    const response = await chat(server)
+
+    expect(response.status).toBe(200)
+    expect(server.requests[0]?.outcome).toBeUndefined()
+    const closing = server.close()
+    await expect(response.text()).rejects.toThrow()
+    await closing
+    await result.promise
+
+    expect(server.requests[0]).toMatchObject({ behavior: 'stall', outcome: 'client_closed' })
+    expect(events.filter(event => event.type === 'result')).toEqual([
+      expect.objectContaining({ behavior: 'stall', outcome: 'client_closed' }),
+    ])
     await server.close()
   })
 

@@ -28,7 +28,7 @@ The desktop surface bundle: the Electron application window for dsh, ready for i
 
 ### Design concept
 
-The bundle is a patch layer, not code: every row it inserts is an existing package's composition, and the only code this package owns is the `desktop-runtime` glue plugin. The storage stack and projection cache come from `dsh-base`; the desktop overlay's workspace and message-feedback rows consume that shared `storageDomain` service. The desktop carrier answers the renderer's privileged-scheme fetches with the shared `/api` chain, Gateway Remote streams over `/dsh-stream`, the client-plugin combo bundles, and the transport-bootstrap plus boot-manifest-injected dist; the Typert gateway row comes from the base layer and dispatches through the connection service's shared fetch handler.
+The bundle is a patch layer, not code: every row it inserts is an existing package's composition, and the only code this package owns is the `desktop-runtime` glue plugin. The storage stack and projection cache come from `dsh-base`; the desktop overlay's workspace and message-feedback rows consume that shared `storageDomain` service. The overlay disables the base's process-wide model-facing rows, including `dsh-artifact`; full presets remount them per agent, `minimal` omits the artifact tools, and `dsh-artifact-local` remains shared on the host. The desktop carrier answers the renderer's privileged-scheme fetches with the shared `/api` chain, Gateway Remote streams over `/dsh-stream`, the client-plugin combo bundles, and the transport-bootstrap plus boot-manifest-injected dist; the Typert gateway row comes from the base layer and dispatches through the connection service's shared fetch handler.
 
 ### Composition map
 
@@ -50,7 +50,7 @@ The bundle is a patch layer, not code: every row it inserts is an existing packa
 <details>
 <summary>Working context for maintainers — click to expand</summary>
 
-The desktop exe is built by `scripts/build-desktop-release.ts` from `apps/desktop`; the window title follows the live session by design.
+The desktop exe is packaged from built `apps/desktop` artifacts by [`scripts/build-desktop-exe.ts`](../../../scripts/build-desktop-exe.ts). Packaging owns a unique temporary directory outside the workspace and removes it after success or failure. Unsigned candidates embed the [application release identity](../../../docs/development/product-release-identity.md#platform-consumers) before installer collection. The window title follows the live session by design.
 
 </details>
 
