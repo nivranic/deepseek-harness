@@ -27,10 +27,14 @@ function seams(openStream: TunnelSeams['openStream']): TunnelSeams {
 describe('worker tunnel unary authentication', () => {
   it.each([401, 403])('retries a route-lane HTTP %s through the worker-local direct lane', async (status) => {
     const frames: TunnelOutboundFrame[] = []
-    const directFetch = vi.fn(async () => new Response('direct answer', {
-      status: 200,
-      headers: { 'content-type': 'text/plain' },
-    }))
+    const directFetch = vi.fn(async (request: Request) => {
+      expect(request.headers.get('__proto__')).toBe('wire-value')
+      expect(request.headers.get('constructor')).toBe('metadata')
+      return new Response('direct answer', {
+        status: 200,
+        headers: { 'content-type': 'text/plain' },
+      })
+    })
     const server = new TunnelServer({
       port: { postMessage: (frame) => { frames.push(frame) } },
       requestListener: () => Promise.resolve((_req, response) => {
@@ -48,7 +52,8 @@ describe('worker tunnel unary authentication', () => {
     })
 
     server.handleMessage({
-      t: 'req', id: status, method: 'POST', url: 'http://localhost/api/session/list', headers: {},
+      t: 'req', id: status, method: 'POST', url: 'http://localhost/api/session/list',
+      headers: JSON.parse('{"__proto__":"wire-value","Constructor":"metadata"}') as unknown,
     })
 
     await vi.waitFor(() => { expect(frames).toHaveLength(1) })
