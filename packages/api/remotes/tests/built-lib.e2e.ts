@@ -195,7 +195,7 @@ describe.skipIf(!requiredArtifacts)('Goal and desktop Remote built LIB chain', (
       const agentContext = client.extend({ builtAgentId: scopedAgent.id })
       const scopedResult = await agentContext.remote.goals.create({ objective: 'scoped goal', maxGoalRounds: 3 })
       const result = {
-        desktopSupport: (await client.remote.desktopSupport.export()).value,
+        desktopSupport: (await client.remote.desktopSupport.export(undefined)).value,
         invalidRejected,
         rootResult: rootResult.value,
         rootEdit: rootEdit.value,
