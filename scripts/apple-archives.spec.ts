@@ -62,6 +62,10 @@ describe('Apple archive file inventory', () => {
 })
 
 describe('Apple archive producer workflow', () => {
+  it.runIf(process.platform !== 'win32')('checks serialized archive members before macOS extraction', async () => {
+    await promisify(execFile)('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'scripts/release', '-p', 'test_apple_archive_zip.py', '-v'],
+      { cwd: repository })
+  })
   it.runIf(process.platform !== 'win32')('reads archive properties while retaining a non-JSON CreationDate', async () => {
     const path = join(temporary(), 'Info.plist')
     await writeFile(path, `<?xml version="1.0" encoding="UTF-8"?>

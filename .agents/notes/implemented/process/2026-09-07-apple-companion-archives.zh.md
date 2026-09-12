@@ -6,11 +6,13 @@ Status: implemented
 
 ## Problem
 
-模拟器构建成功不能标识供分发的设备可执行文件。Mac Direct Host 目标也缺少内嵌运行时，因此归档其外壳不能证明 Full 运行时候选成立。
+模拟器构建成功不能标识供分发的设备可执行文件。Direct Host 候选需要单独嵌入运行时并进行原生验收；仅归档其 Xcode 外壳不能证明 Full 运行时候选成立。
 
 ## Decision
 
 [归档 workflow](../../../../.github/workflows/apple-archives.yml) 选择精确的干净提交，并按 Release 配置归档现有 iOS 设备及通用 macOS Companion scheme。Xcode 签名被禁用，内嵌 provisioning profile 被拒绝。仓库拥有的产品标识、归档元数据、可执行文件平台加载命令与架构集合必须一致。保留的 ZIP 会被解压，其普通文件字节、Unix 权限与内部符号链接必须匹配原始归档清单。
+
+ZIP 编码排除 resource fork、扩展属性与 ACL 元数据。macOS 解包可以将 AppleDouble 成员转为文件系统元数据，使未登记成员不再出现在后续普通文件清单中。因此，[实际成员验证器](../../../../scripts/release/apple_archive_zip.py)在解包前将每个编码成员与清单比较，包括字节、权限与内部链接值。文件系统往返检查继续验证解包结果。
 
 归档报告绑定源码、生产器输入、工具链及文件摘要，但与已验证的 [RC 平台回执](2026-09-06-candidate-artifact-integrity.zh.md) 明确区分。该报告不包含启动、分发导出或 Full 运行时生产。iOS 模拟器不能替代设备归档的启动验证。这些检查扩展了[应用发布标识](2026-09-05-product-release-identity.zh.md)和 [Xcode 外壳装配](../architecture/2026-08-30-xcode-app-shells.zh.md)；这些决策仍拥有各自职责。[Direct Host 隔离决策](../architecture/2026-08-31-macos-direct-host.zh.md)仍约束其目标。
 
@@ -24,4 +26,4 @@ Python 标准库 `plistlib` 读取 XML 和二进制归档元数据，包括 JSON
 
 ## Consequences
 
-独立 workflow 可暴露归档故障，运行时监督、签名安装与完整 RC 生产器仍作为独立工作推进。其 GitHub 只读权限与构建成功后上传条件不授予分发权限。实际归档验收依赖 macOS/Xcode 执行；解析器与文件系统拒绝测试可在其他宿主运行，其中 POSIX 符号链接在 Linux 和 macOS 验证。SBOM 归属、扩展属性、签名设备启动及 Full 运行时不属于该归档清单的验证范围。
+独立 workflow 可暴露归档故障，运行时监督、签名安装与完整 RC 生产器仍作为独立工作推进。其 GitHub 只读权限与构建成功后上传条件不授予分发权限。实际归档验收依赖 macOS/Xcode 执行；解析器与文件系统拒绝测试可在其他宿主运行，其中 POSIX 符号链接在 Linux 和 macOS 验证。SBOM 归属、签名设备启动及 Full 运行时不属于该归档清单的验证范围。

@@ -94,7 +94,8 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
   const inventoryPath = join(targetRoot, 'inventory.json')
   await writeRcOutput(targetRoot, 'inventory.json', { schemaVersion: 1, sourceSha, archive: archiveName, files })
   const zipPath = join(targetRoot, `${archiveName}.zip`)
-  await command('/usr/bin/ditto', ['-c', '-k', '--keepParent', archivePath, zipPath])
+  await command('/usr/bin/ditto', ['-c', '-k', '--norsrc', '--noextattr', '--noacl', '--keepParent', archivePath, zipPath])
+  await command('python3', ['-B', 'scripts/release/apple_archive_zip.py', zipPath, inventoryPath])
   const extractedRoot = join(targetRoot, 'recheck')
   await mkdir(extractedRoot)
   await command('/usr/bin/ditto', ['-x', '-k', zipPath, extractedRoot])
@@ -108,10 +109,11 @@ for (const target of APPLE_ARCHIVE_TARGETS) {
     executable: await hashRcOutput(executable),
     scanner: { path: `${target.platform}/scanner/verification.json`, ...await hashRcOutput(join(scannerDirectory, 'verification.json')) },
   })
-  console.log(`${target.scheme}: archive identity, executable platform and ZIP round trip PASS`)
+  console.log(`${target.scheme}: archive identity, executable platform, ZIP members and round trip PASS`)
 }
 const producerPaths = ['scripts/produce-apple-archives.ts', 'scripts/release/apple-archive.ts', 'scripts/release/apple-archive-files.ts',
   'scripts/release/apple_archive_plist.py',
+  'scripts/release/apple_archive_zip.py',
   'scripts/verify-apple-app-scanner.py', 'scripts/release/apple_scanner_app.py', 'scripts/release/apple_scanner_stage.py',
   '.github/actions/apple-support-scanner/action.yml',
   'scripts/release/apple-product.ts', 'scripts/release/product-files.ts', 'scripts/release/product-identity.ts',

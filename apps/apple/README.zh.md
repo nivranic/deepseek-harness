@@ -39,6 +39,8 @@ pnpm run verify-link-contracts  # fails when the synced copies drift from the co
 
 [Apple archives workflow](../../.github/workflows/apple-archives.yml) 拥有 iOS 设备 Companion 与通用 Mac Companion 的 Release 归档验证。它选择一个干净提交，禁用 Xcode 签名，拒绝 provisioning profile，并通过 ZIP 往返检查内嵌标识、可执行文件平台、架构切片、文件字节、符号链接及 Unix 权限。归档报告保留启动未执行状态，并排除 DirectHostMac；它不是完整 RC 或 iOS 模拟器验收报告。实际归档生产需要该 workflow 的 macOS/Xcode runner，以及用于解析 plist 的 Python 3。[归档决策](../../.agents/notes/implemented/process/2026-09-07-apple-companion-archives.zh.md) 说明这些证据为何分开。
 
+归档 ZIP 不携带 resource fork、扩展属性或 ACL 元数据；文件内容、POSIX 权限与内部符号链接仍纳入清单。[ZIP 检查](../../scripts/release/apple_archive_zip.py)在 macOS 解包前拒绝额外或缺失成员、变化的字节或权限，以及被修改的链接目标。
+
 DirectHostMac 拥有 `DirectHostRuntime` 管理器与临时本地 WebView。它通过 `HostRuntimeSupervisor` 启动打包的 `dsh` 可执行程序，等待已认证的 HTTP 健康检查，并把会话与管理行为交给现有 Web UI。重新启动会等待前一 helper 退出，并保留应用 home。默认 home 为 `~/Library/Application Support/DeepSeek Harness/Host`；显式 `DSH_HOME` 必须是不含控制字符、且不是根目录的 POSIX 绝对路径。非法配置在启动前失败，不会使用默认 home。原生状态消息不包含运行时 stdout、stderr 或认证 URL。应用要求其架构的运行时可执行程序与 helper 位于 `Contents/Resources/Runtime`；缺少这些文件的源码壳会报告不可用。[直连宿主决策](../../.agents/notes/implemented/architecture/2026-08-31-macos-direct-host.zh.md) 拥有生命周期限制和验证要求。
 
 [Mac Host candidate workflow](../../.github/workflows/mac-host-candidate.yml) 在临时 macOS runner 上拥有原生 bundle 组装与应用验收。生产器从所选干净提交构建 runtime、rg、spawn-helper 和生命周期 helper，检查可执行文件架构、平台、最低系统版本与产品版本，并使用 ad-hoc 签名封装应用。它以临时 home 运行 bundle 内的 Web profile 和生产 WebView，然后用 SHA256 摘要绑定源码、工具链、文件清单与 ZIP。构建或验收失败会阻止已验证候选 artifact 的生成。Developer ID 签名、公证、完整进程所有权与完整 RC 供应链回执仍是独立要求。
