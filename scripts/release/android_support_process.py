@@ -2,6 +2,7 @@
 
 import re
 import subprocess
+from decimal import Decimal, ROUND_HALF_UP
 
 from android_support_ui import PACKAGE
 
@@ -10,6 +11,26 @@ HEADER = "ACTIVITY MANAGER PROCESS EXIT INFO (dumpsys activity exit-info)"
 REASONS = ("unknown", "exit-self", "signaled", "low-memory", "crash", "crash-native", "anr",
            "initialization-failure", "permission-change", "excessive-resource-usage", "user-requested",
            "user-stopped", "dependency-died", "other", "freezer", "package-state-change", "package-updated")
+
+
+def sampled_memory(line):
+    """Android 16 prints rounded binary units from its last PSS/RSS sample, not memory at death or peak use."""
+    fields = re.match(r"\s*importance=[0-9]{1,10} pss=(\S{1,16}) rss=(\S{1,16}) description=", line)
+    result = {}
+    for index, name in enumerate(("pss", "rss"), 1):
+        result[name] = {"observation": "unavailable"}
+        value = re.fullmatch(r"([0-9]{1,4}(?:[.,][0-9]{1,2})?)(KB|MB|GB|TB|PB)?", fields[index]) if fields else None
+        if value is None:
+            continue
+        magnitude = Decimal(value[1].replace(",", "."))
+        if magnitude == 0:
+            result[name] = {"observation": "not-sampled"}
+            continue
+        power = (None, "KB", "MB", "GB", "TB", "PB").index(value[2])
+        kib = int((magnitude * Decimal(1024) ** (power - 1)).to_integral_value(rounding=ROUND_HALF_UP))
+        if 0 < kib <= (2 ** 63 - 1) // 1024:
+            result[name] = {"observation": "last-known", "approximateKiB": kib}
+    return result
 
 
 def parse_exit_records(data):
@@ -39,13 +60,14 @@ def parse_exit_records(data):
             r" subreason=([0-9]{1,10}) \([^\r\n)]{0,100}\) status=(-?[0-9]{1,10})", lines[index + 2])
         if identity is None or fields is None or not lines[index + 3].lstrip().startswith("importance="):
             raise ValueError("Android exit observation fields differ")
+        memory = sampled_memory(lines[index + 3])
         index += 4
         if fields[1] != PACKAGE:
             continue
         key = (identity[1], int(identity[2]))
         if key in records or len(records) >= 64:
             raise ValueError("Android exit observation is ambiguous")
-        records[key] = tuple(int(fields[column]) for column in (2, 3, 4))
+        records[key] = (*tuple(int(fields[column]) for column in (2, 3, 4)), memory)
     return records
 
 
@@ -70,8 +92,8 @@ def observe_application_exits(device, baseline, pids):
     return {"observation": "observed", "records": [
         {"reason": REASONS[reason] if reason < len(REASONS) else "unrecognized",
          "subreasonCode": subreason if subreason <= 32 else "unrecognized",
-         "statusCode": status if 0 <= status <= 255 else "unrecognized"}
-        for reason, subreason, status in selected
+         "statusCode": status if 0 <= status <= 255 else "unrecognized", "memory": memory}
+        for reason, subreason, status, memory in selected
     ]}
 
 
