@@ -1,6 +1,6 @@
 - banner:
   - navigation "Session hierarchy":
-    - button "Reply with the single word" [disabled]
+    - button "Use the read tool twice" [disabled]
   - img
   - text: Standard mode
   - button "Session log":
@@ -13,13 +13,13 @@
   - img
   - img
   - text: System prompt
-- text: Reply with the single word LIGHTHOUSE and stop. {{clock}}
+- text: "Use the read tool twice in one assistant message: read a.txt and b.txt. Then reply with the single word DONE and stop. {{clock}}"
 - button "Copy":
   - img
-- button "Thought for a while":
-  - text: Thought for a while
+- button "2 tool calls":
+  - text: 2 tool calls
   - img
-- paragraph: LIGHTHOUSE
+- paragraph: DONE
 - button "Copy":
   - img
 - button "Good response":
@@ -29,10 +29,10 @@
 - button "Branch into a new conversation":
   - img
 - text: {{clock}} Ran for {{duration}} TTFT {{duration}} {{throughput}} tok/s
-- 'button "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback uploads the session records not yet shared."':
+- 'button "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline."':
   - img
   - img
-  - text: "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback uploads the session records not yet shared."
+  - text: "feedback Feedback recorded for session session-{{uuid}} Anonymous user: {{uuid}}. Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline."
 - textbox "Message or run a task... / commands, @ files or sessions"
 - button "Commands":
   - img
@@ -42,4 +42,4 @@
   - img
 - button "6% of context used"
 - button "Send message" [disabled]
-- text: 1 turns · 1 steps LLM {{duration}} TTFT avg {{duration}} · {{throughput}} tok/s Cache hit 99% Input 7.8K tok · Output 21 tok
+- text: 1 turns · 2 steps LLM {{duration}} · Tool call {{duration}} TTFT avg {{duration}} · {{throughput}} tok/s Cache hit 98% Input 15.8K tok · Output 135 tok

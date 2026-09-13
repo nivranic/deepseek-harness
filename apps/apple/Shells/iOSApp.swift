@@ -8,7 +8,8 @@ import SwiftUI
 struct CompanioniOSApp: App {
     var body: some Scene {
         WindowGroup {
-            CompanionRootView(client: LinkClient.restore(store: KeychainLinkCredentialsStore()))
+            CompanionRootView(client: LinkClient.restore(store: KeychainLinkCredentialsStore()),
+                              makeSupportExporter: companionSupportExporter)
         }
     }
 }

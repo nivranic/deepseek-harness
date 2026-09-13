@@ -54,6 +54,8 @@ The plugin injects `storageDomain`, `sessionProjections`, and `sessions`. The ge
 
 ### How checkpoints are written
 
+Each captured checkpoint reserves its storage-domain queue slot before waiting for Session log durability. Creation, turn-end, detach, and cold-read refreshes therefore retain submission order; an older live cut cannot overwrite a later detach cut after a slow flush. Domain close drains accepted writes together with their durability prerequisites.
+
 Three mandatory points always write: session creation persists the seed-derived cut, `turn/end` persists the value that listing reads want, and session disposal persists the final live cut. Between them, the configured count and interval throttles write as events accumulate. Every write atomically replaces the session's complete record through the domain write chain; a failure logs a warning and keeps the cache stale, and the next write self-heals.
 
 ### Reading cached values

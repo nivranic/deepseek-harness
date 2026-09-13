@@ -1,0 +1,1465 @@
+{
+  "schemaVersion": 1,
+  "status": "UNREVIEWED",
+  "candidateSha": "fe4bd57c4c0b39e23711fa910281371efeae17f4",
+  "runId": 33978265065,
+  "findingCount": 91,
+  "findings": [
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "line": 136
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "sha256": "6085e7cb0eff01c902436a7c390f831668fe8f64a581e498c682e9fc23647141"
+        }
+      ]
+    },
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "line": 154
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "sha256": "6085e7cb0eff01c902436a7c390f831668fe8f64a581e498c682e9fc23647141"
+        }
+      ]
+    },
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "line": 171
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "sha256": "6085e7cb0eff01c902436a7c390f831668fe8f64a581e498c682e9fc23647141"
+        }
+      ]
+    },
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-pwsh-persistent/tests/tools.spec.ts",
+          "line": 105
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/shell/tool-pwsh-persistent/tests/tools.spec.ts",
+          "sha256": "aa966db1103b554eebf9bafff6314aef16bf7c1d451165cf60b8ca0de1377837"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/client/ui-primitives/src/user-text.tsx",
+          "line": 38
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/client/ui-primitives/src/user-text.tsx",
+          "sha256": "ef0513e60a8bbdc33106b61bf96e65ef5fec36823412d3682bb1cba7984c9719"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/client/ui-primitives/src/user-text.tsx",
+          "line": 62
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/client/ui-primitives/src/user-text.tsx",
+          "sha256": "ef0513e60a8bbdc33106b61bf96e65ef5fec36823412d3682bb1cba7984c9719"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/context/session-reference/src/uri.ts",
+          "line": 71
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/context/session-reference/src/uri.ts",
+          "sha256": "9fe0e6bcdbd696d1e38a810c440e7ac2144fd9e1428ad9457d26d1fb96459c74"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/module-system/posix-path.ts",
+          "line": 75
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/module-system/posix-path.ts",
+          "sha256": "9f30ac9222b9001be76da68dee6af51a5d3f2c4a7ecc6859bfad227ed21c7e4c"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/module-system/posix-path.ts",
+          "line": 169
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/module-system/posix-path.ts",
+          "sha256": "9f30ac9222b9001be76da68dee6af51a5d3f2c4a7ecc6859bfad227ed21c7e4c"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/host/webserver/src/injections.ts",
+          "line": 107
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/host/webserver/src/injections.ts",
+          "sha256": "21589e64d307f4d0df90df394c79fbc58f45ef3918ca1bd045567f2ef94ffe3a"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/host/webserver/src/injections.ts",
+          "line": 113
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/host/webserver/src/injections.ts",
+          "sha256": "21589e64d307f4d0df90df394c79fbc58f45ef3918ca1bd045567f2ef94ffe3a"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/llm/llm-deepseek/src/files-api.ts",
+          "line": 137
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/llm/llm-deepseek/src/files-api.ts",
+          "sha256": "7541604244398bcb0f3c386286202e9060a46c707a2b22965bf1673a56052b17"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/llm/llm-deepseek/src/upload-index.ts",
+          "line": 47
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/llm/llm-deepseek/src/upload-index.ts",
+          "sha256": "0f29ea2557894cae556018a8f538ec17cdd29159e233db11f6158dcdbc685d73"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 430
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "sha256": "5c9f62666b0e309c8c37f718974a032faa85cb8dfa64a24c34ce77f4e19679aa"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 488
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "sha256": "5c9f62666b0e309c8c37f718974a032faa85cb8dfa64a24c34ce77f4e19679aa"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 499
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "sha256": "5c9f62666b0e309c8c37f718974a032faa85cb8dfa64a24c34ce77f4e19679aa"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 509
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "sha256": "5c9f62666b0e309c8c37f718974a032faa85cb8dfa64a24c34ce77f4e19679aa"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 524
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "sha256": "5c9f62666b0e309c8c37f718974a032faa85cb8dfa64a24c34ce77f4e19679aa"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 20
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "sha256": "0d7743e202efd489ef0d6675dd239ae97ff82bec4acd683166eec9a8dbade941"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 34
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "sha256": "0d7743e202efd489ef0d6675dd239ae97ff82bec4acd683166eec9a8dbade941"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 36
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "sha256": "0d7743e202efd489ef0d6675dd239ae97ff82bec4acd683166eec9a8dbade941"
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 48
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "sha256": "0d7743e202efd489ef0d6675dd239ae97ff82bec4acd683166eec9a8dbade941"
+        }
+      ]
+    },
+    {
+      "rule": "js/biased-cryptographic-random",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/node/builtin_modules/implemented/crypto.ts",
+          "line": 102
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/node/builtin_modules/implemented/crypto.ts",
+          "sha256": "147612319c192a69e7d8a67ab3448803847cd504031307667b7459fcfd782be1"
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/client-browser.e2e.ts",
+          "line": 34
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/inspector/tests/client-browser.e2e.ts",
+          "sha256": "7cb1db9a5f7db1ae3b8857099d528229c16d7b12fd776ee9e2dc20e5c018be0d"
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/debugger.e2e.ts",
+          "line": 24
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/inspector/tests/debugger.e2e.ts",
+          "sha256": "6cc0acac2201bdfee228ccfee47eee5e73ccb70d208eb0e38f9b2c6939af1f79"
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/cordis-tree.host.spec.ts",
+          "line": 44
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/inspector/tests/cordis-tree.host.spec.ts",
+          "sha256": "786d2cd257dbae0dc2d668a9f5e1c42650cfc99ef9c91edbfda8c238d43d4cb2"
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/integration.host.spec.ts",
+          "line": 26
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/inspector/tests/integration.host.spec.ts",
+          "sha256": "6ab772078dd27015594ba2ea82e34f2b716cf5b446c8a1bbea4f4ba043fa9c5a"
+        }
+      ]
+    },
+    {
+      "rule": "js/bad-code-sanitization",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "line": 205
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "sha256": "f628bc18b82101298907eba3d1728f11b5037c1ba83604aa3249277042577af3"
+        }
+      ]
+    },
+    {
+      "rule": "js/bad-code-sanitization",
+      "locations": [
+        {
+          "path": "packages/test-support/session-snapshot/tests/fixtures/fake-acp-agent.ts",
+          "line": 267
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/test-support/session-snapshot/tests/fixtures/fake-acp-agent.ts",
+          "sha256": "c9a4e0e26aa7ff2131422c850f2a7f538ad6fbe0cffbb6a4fcac0e2ce0c50414"
+        }
+      ]
+    },
+    {
+      "rule": "js/bad-code-sanitization",
+      "locations": [
+        {
+          "path": "packages/test-support/session-snapshot/tests/fixtures/fake-acp-agent.ts",
+          "line": 268
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/test-support/session-snapshot/tests/fixtures/fake-acp-agent.ts",
+          "sha256": "c9a4e0e26aa7ff2131422c850f2a7f538ad6fbe0cffbb6a4fcac0e2ce0c50414"
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/gen-doc-graphs.ts",
+          "line": 768
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/gen-doc-graphs.ts",
+          "sha256": "c64e56ceae6a72da4ef22f0194bc79955c4946eb041b5f3b40913ede8d571e0e"
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/gen-tool-catalog.ts",
+          "line": 761
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/gen-tool-catalog.ts",
+          "sha256": "286c3304e0d560a437c2d5905dd34128b499a785efddb09ea77dedae995d1df8"
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/package-graph.ts",
+          "line": 167
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/package-graph.ts",
+          "sha256": "cafefa80e1b6bc2d7db8286904406cdbfcbd692d57e98b7c68b7751416df9f17"
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/verify-public-repository-links.spec.ts",
+          "line": 9
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/verify-public-repository-links.spec.ts",
+          "sha256": "38eda4eaccd1d01a8e18cd9b13a3eced7659529ed3eb7657b122a86c8d99104d"
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-multi-character-sanitization",
+      "locations": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "line": 62
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "sha256": "5c803358a19613d18fb8b4e2e2ac4143006c8a45ab593e823f3ee296bed0b1af"
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-multi-character-sanitization",
+      "locations": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "line": 219
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "sha256": "5c803358a19613d18fb8b4e2e2ac4143006c8a45ab593e823f3ee296bed0b1af"
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-multi-character-sanitization",
+      "locations": [
+        {
+          "path": "scripts/verify-md-links.ts",
+          "line": 130
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/verify-md-links.ts",
+          "sha256": "b7dfc24b86868b8322fe24a55aecee74988e45e9574191e2ce00aeab02690e18"
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-randomness",
+      "locations": [
+        {
+          "path": "vendor/cordis/src/fiber.ts",
+          "line": 235
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "vendor/cordis/src/fiber.ts",
+          "sha256": "750555b47603f88e7ef7a05d1a8d629b355c176a1185af411aac6e3e1e2b7ba3"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "apps/cli/tests/link-session-slice.e2e.ts",
+          "line": 167
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "apps/cli/tests/link-session-slice.e2e.ts",
+          "sha256": "8d02abe717e310c7410bdaf106a58c1b87262bc490f993daf0108f71204ff888"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "apps/cli/tests/link-session-slice.e2e.ts",
+          "line": 277
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "apps/cli/tests/link-session-slice.e2e.ts",
+          "sha256": "8d02abe717e310c7410bdaf106a58c1b87262bc490f993daf0108f71204ff888"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "line": 361
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "sha256": "f862effda84659db5589808a8d0f71014e5069dbefc3425c527b0d6cec1e08d7"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "line": 406
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "sha256": "f862effda84659db5589808a8d0f71014e5069dbefc3425c527b0d6cec1e08d7"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-client/src/index.ts",
+          "line": 102
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-client/src/index.ts",
+          "sha256": "c382512548f00359111747c28ae8eb818ff264525251e80a7a55d6bdc4b82c21"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 476
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "sha256": "8d8399a8c0d19842269a94ec154fb995db2af09bb6f1dcf5deb3a20b8e35655e"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 522
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "sha256": "8d8399a8c0d19842269a94ec154fb995db2af09bb6f1dcf5deb3a20b8e35655e"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 1029
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "sha256": "8d8399a8c0d19842269a94ec154fb995db2af09bb6f1dcf5deb3a20b8e35655e"
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 1100
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "sha256": "8d8399a8c0d19842269a94ec154fb995db2af09bb6f1dcf5deb3a20b8e35655e"
+        }
+      ]
+    },
+    {
+      "rule": "js/stack-trace-exposure",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/src/index.ts",
+          "line": 874
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/src/index.ts",
+          "sha256": "7fe2e594e49f44265236ea791acd8dd15d3423144d275c854f027975f2a5c208"
+        }
+      ]
+    },
+    {
+      "rule": "js/client-side-request-forgery",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker-host.ts",
+          "line": 155
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker-host.ts",
+          "sha256": "4b1d2edc65e389441dfd17ee2d20344efba838472453547e9073955825d2d759"
+        }
+      ]
+    },
+    {
+      "rule": "js/missing-origin-check",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker.ts",
+          "line": 37
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker.ts",
+          "sha256": "b4116cea01186ad20f81e883679560ac7df9ad5a029d9d5393eb12a881968a60"
+        }
+      ]
+    },
+    {
+      "rule": "js/missing-origin-check",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker-host.ts",
+          "line": 447
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker-host.ts",
+          "sha256": "4b1d2edc65e389441dfd17ee2d20344efba838472453547e9073955825d2d759"
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "line": 78
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "sha256": "f628bc18b82101298907eba3d1728f11b5037c1ba83604aa3249277042577af3"
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "line": 507
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "sha256": "f628bc18b82101298907eba3d1728f11b5037c1ba83604aa3249277042577af3"
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/extensions/cordis-host-runner/src/sandbox.ts",
+          "line": 213
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/extensions/cordis-host-runner/src/sandbox.ts",
+          "sha256": "a7deb6432593dab5f3976eb1c3f63ff8457112048a0a03294581ab6d42baed05"
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/workflow/workflow-worker-thread/src/index.ts",
+          "line": 70
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/workflow/workflow-worker-thread/src/index.ts",
+          "sha256": "10960773dff9647ff77329df2017820fa23bcd831a6b0cd4e7ff6364873d381c"
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "vendor/schemastery/src/index.ts",
+          "line": 261
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "vendor/schemastery/src/index.ts",
+          "sha256": "cf8a4de0481969a1a6d44eac390015f3494be1ce19b84d4fcfb7e93e5072cee5"
+        }
+      ]
+    },
+    {
+      "rule": "js/remote-property-injection",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/shell/interpret.ts",
+          "line": 388
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/shell/interpret.ts",
+          "sha256": "096b2a7b0f6cfb059e0cba75176cac7bd8e0e0818458546514fbee4b113a8344"
+        }
+      ]
+    },
+    {
+      "rule": "js/remote-property-injection",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/transport/frames.ts",
+          "line": 171
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/transport/frames.ts",
+          "sha256": "ac36732c18dc084d8a69fa91739cdaac408e0e566cf8fe4c62bbef556ef0be26"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "apps/web/tests/scaffold.ts",
+          "line": 961
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "apps/web/tests/scaffold.ts",
+          "sha256": "081b74b6e5cabfd76b1abf8a70d79c02af0e667219b8737aead2408d72838a03"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "native/landlock-run/scripts/repo.mjs",
+          "line": 73
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "native/landlock-run/scripts/repo.mjs",
+          "sha256": "070ce474d4f4ca0df788cc6db005918bb55fd23f68879477e53c1193e791e7d6"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "line": 217
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "sha256": "060ab17517d15902e57db5f834f24223827e80f29ba2d05bfebd12d6fb2182d5"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "line": 220
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "sha256": "060ab17517d15902e57db5f834f24223827e80f29ba2d05bfebd12d6fb2182d5"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "line": 222
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "sha256": "060ab17517d15902e57db5f834f24223827e80f29ba2d05bfebd12d6fb2182d5"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/client/hmr/tests/node-half.client.spec.ts",
+          "line": 196
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/client/hmr/tests/node-half.client.spec.ts",
+          "sha256": "e967657239fd6f96186ac6eb4c844a5247bf897489aac615c81d57f6ad54355c"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/context/agent-instructions/tests/agent-instructions.spec.ts",
+          "line": 421
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/context/agent-instructions/tests/agent-instructions.spec.ts",
+          "sha256": "4f5d12f4dc2d4f0b7178cd3c03f134b83437e99bd31130e028846fe5f1bc1a25"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/tests/node/fs-watch-stream.spec.ts",
+          "line": 124
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/tests/node/fs-watch-stream.spec.ts",
+          "sha256": "6d52ac9b79faf5475c73fd18cb2f9538a09e3939d678458fd772c96fbfec759c"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/tests/node/fs-watch-stream.spec.ts",
+          "line": 201
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/experimental/webworker-runtime/tests/node/fs-watch-stream.spec.ts",
+          "sha256": "6d52ac9b79faf5475c73fd18cb2f9538a09e3939d678458fd772c96fbfec759c"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/fs/fs-local/tests/fsio.spec.ts",
+          "line": 332
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/fs/fs-local/tests/fsio.spec.ts",
+          "sha256": "244a4529b26f7233fd6ea1ecfd688639256015a0f62e23934f83e7e2880fe08f"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/fs/fs-local/tests/fsio.spec.ts",
+          "line": 698
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/fs/fs-local/tests/fsio.spec.ts",
+          "sha256": "244a4529b26f7233fd6ea1ecfd688639256015a0f62e23934f83e7e2880fe08f"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/src/index.ts",
+          "line": 123
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/identity/anonymous-user-id/src/index.ts",
+          "sha256": "bff1a97f362709eff621c9d2f046de493ac5d91f3ecb3953ac4c8babfb380252"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "line": 639
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "sha256": "9ebb5d716177b259eb6b929f6508581bb184bad742e6ca03c7b4f9edcafd23ef"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "line": 681
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "sha256": "9ebb5d716177b259eb6b929f6508581bb184bad742e6ca03c7b4f9edcafd23ef"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "line": 701
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "sha256": "9ebb5d716177b259eb6b929f6508581bb184bad742e6ca03c7b4f9edcafd23ef"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/sdk/client/tests/fake-runtime.ts",
+          "line": 211
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/sdk/client/tests/fake-runtime.ts",
+          "sha256": "5ddec294f5b9785169a9da27c1fd6a87d68b4f87d53b34a4068ead187c0b455f"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/session/session-persistence-jsonl/src/index.ts",
+          "line": 309
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/session/session-persistence-jsonl/src/index.ts",
+          "sha256": "91b10badcca55c13fcbf6a9fc5c28d1568a6aa17a529b10ea3d851fd2ed754ab"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/session/session-persistence-jsonl/tests/zstd.spec.ts",
+          "line": 661
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/session/session-persistence-jsonl/tests/zstd.spec.ts",
+          "sha256": "6f959bb296c6eab9d43284457847e65ecd709fc5d0bffa04a563400b53fa6c46"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/settings/settings-file/tests/local.spec.ts",
+          "line": 214
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/settings/settings-file/tests/local.spec.ts",
+          "sha256": "27faaa48a61de0df6d0decfc836c90d1b2c16831d8d20f8b3d59e9324ef94122"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/util/atomic-write/tests/atomic-write.spec.ts",
+          "line": 69
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/util/atomic-write/tests/atomic-write.spec.ts",
+          "sha256": "da6b9f82a15de1f441d83be3fe66a72841c4273a9d122f74aac1955a83b2f515"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/build-exe-for-python-sdk.ts",
+          "line": 414
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/build-exe-for-python-sdk.ts",
+          "sha256": "bf9061085f202d3afc25ff9208c53bc0facd3e6c50baaf1f28c36a678d620881"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/install-lefthook.mjs",
+          "line": 499
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/install-lefthook.mjs",
+          "sha256": "37a69330168a1ed2f5f7ed2bbad88f2ab194de644be151737d407f37de474b32"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/project-doc-site.ts",
+          "line": 387
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/project-doc-site.ts",
+          "sha256": "194055dc509b1340506b3af09d1b195b6df520e8fcb32357e2e523e27e6f38b8"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/release/ci-github.ts",
+          "line": 25
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/release/ci-github.ts",
+          "sha256": "8284024b928e178cbb93da5d6e7f920d1b07436cb223a36f794b87cbd26f96a0"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/verify-archived-agent-notes.ts",
+          "line": 110
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/verify-archived-agent-notes.ts",
+          "sha256": "d9d051c957d1ee33604265a69ed71e01dea8db865dc68de3c28e9ed8f387df4e"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/verify-public-repository-links.ts",
+          "line": 72
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/verify-public-repository-links.ts",
+          "sha256": "6bbdb5287c3acfc2a8247545f968e7cc05feb89fd72722661ad73f4399c66417"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "snapshots/sdk/sdk.snapshot.ts",
+          "line": 815
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "snapshots/sdk/sdk.snapshot.ts",
+          "sha256": "1860e14e3ff112e0801222cafe892250fa6ef2952ee222cafaf7a47c5a4a6095"
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-temporary-file",
+      "locations": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "line": 135
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "sha256": "eb762d566daaa5eca972d8b9ad4652658aefd27cfc99047e8d3c77d65aece650"
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-temporary-file",
+      "locations": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "line": 187
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "sha256": "eb762d566daaa5eca972d8b9ad4652658aefd27cfc99047e8d3c77d65aece650"
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-temporary-file",
+      "locations": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "line": 431
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "sha256": "eb762d566daaa5eca972d8b9ad4652658aefd27cfc99047e8d3c77d65aece650"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-access-to-http",
+      "locations": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "line": 389
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "sha256": "5c803358a19613d18fb8b4e2e2ac4143006c8a45ab593e823f3ee296bed0b1af"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-access-to-http",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "line": 422
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "sha256": "f862effda84659db5589808a8d0f71014e5069dbefc3425c527b0d6cec1e08d7"
+        }
+      ]
+    },
+    {
+      "rule": "js/file-access-to-http",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 1130
+        }
+      ],
+      "status": "UNREVIEWED",
+      "files": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "sha256": "8d8399a8c0d19842269a94ec154fb995db2af09bb6f1dcf5deb3a20b8e35655e"
+        }
+      ]
+    }
+  ]
+}

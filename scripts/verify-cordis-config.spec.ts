@@ -15,6 +15,7 @@ import {
   packageTestFixtureDependencyErrors,
   packageTestPluginDependencyErrors,
   validateOverlayInsertDisjointness,
+  validatePresetPlaneSeparation,
 } from './verify-cordis-config.ts'
 
 describe('verify-cordis-config metadata expressions', () => {
@@ -205,6 +206,52 @@ describe('bundle overlay insert disjointness', () => {
         'packages/bundle/desktop-app/cordis.patch.yml: insert id "storage" '
         + 'is already inserted by packages/bundle/base/cordis.patch.yml; '
         + 'target the row by id instead of inserting it again',
+      ])
+    } finally {
+      rmSync(fixture, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('shipped preset plane separation', () => {
+  it('rejects a preset row left active by the Desktop overlay', () => {
+    const fixture = mkdtempSync(join(tmpdir(), 'dsh-preset-plane-separation-'))
+    try {
+      const baseDir = join(fixture, 'packages/bundle/base')
+      const webDir = join(fixture, 'packages/bundle/web-app')
+      const desktopDir = join(fixture, 'packages/bundle/desktop-app')
+      const presetDir = join(fixture, 'packages/preset/agent-presets/presets/standard')
+      for (const directory of [baseDir, webDir, desktopDir, presetDir]) {
+        mkdirSync(directory, { recursive: true })
+      }
+      writeFileSync(join(baseDir, 'cordis.patch.yml'), [
+        '- insert:',
+        '    - id: artifact',
+        "      name: '@deepseek-ai/dsh-artifact'",
+        '    - id: command-goal',
+        "      name: '@deepseek-ai/dsh-command-goal'",
+      ].join('\n') + '\n')
+      writeFileSync(join(webDir, 'cordis.patch.yml'), [
+        '- id: artifact',
+        '  disabled: true',
+        '- id: command-goal',
+        '  disabled: true',
+      ].join('\n') + '\n')
+      writeFileSync(join(desktopDir, 'cordis.patch.yml'), [
+        '- id: artifact',
+        '  disabled: true',
+      ].join('\n') + '\n')
+      writeFileSync(join(presetDir, 'agent.cordis.yml'), [
+        '- id: artifact',
+        "  name: '@deepseek-ai/dsh-artifact'",
+        '- id: command-goal',
+        "  name: '@deepseek-ai/dsh-command-goal'",
+      ].join('\n') + '\n')
+
+      expect(validatePresetPlaneSeparation(fixture)).toEqual([
+        'packages/preset/agent-presets/presets/standard/agent.cordis.yml: '
+        + 'row "command-goal" is also active in the host composition; '
+        + 'a row belongs to exactly one plane',
       ])
     } finally {
       rmSync(fixture, { recursive: true, force: true })

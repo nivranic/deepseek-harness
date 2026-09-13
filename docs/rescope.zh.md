@@ -41,6 +41,8 @@ Cordis 框架及其基础库以源码形式 vendored 在 [`vendor/`](../vendor/R
 
 ## 施加、核验与回退
 
+文档精确改写只拥有完整包名与改名指令，保留对齐空格、说明、发布元数据和版本策略。指令缺失、重复或混合时核验失败。桌面组合的预设列表和 Inspector 观测文件按语法位置豁免预设值与主题值；这些文件中的 import、export、模块声明和模块解析调用仍按包名映射处理。
+
 上面这份映射由 [`scripts/rescope-vendor.ts`](../scripts/rescope-vendor.ts) 承载并执行改名，任何引用都不靠手改：
 
 ```sh

@@ -119,7 +119,7 @@
       name: '@deepseek-ai/dsh-attachment-local'
 
     # Artifact content bytes live in the same resource-channel style: the
-    journal keeps references and status only, this backend stores the bytes.
+    # journal keeps references and status only, this backend stores the bytes.
     - id: artifact-local
       name: '@deepseek-ai/dsh-artifact-local'
 
@@ -170,20 +170,20 @@
         writeEveryEvents: 200
         writeIntervalMs: 5000
 
-    # Session telemetry defaults to feedback-gated sharing: FEEDBACK_ONLY
-    # uploads only when the user records /feedback, releasing the session
-    # records since the last handoff through that event (a resumed session
-    # shares only its current lifecycle). DSH_TELEMETRY_MODE overrides to
-    # FULL or DISABLED; uploading mirrors session-log records onto OTLP/HTTP
-    # logs with no session-telemetry/record redaction rule, so exports are
-    # the raw captured copy. The deployment stance, env seams, and follow-ups
-    # are pinned in the feedback-gated-default Agent Note.
+    # Session telemetry defaults to DISABLED. A deployment must explicitly set
+    # DSH_TELEMETRY_MODE=FULL or FEEDBACK_ONLY before any OTLP transport is
+    # constructed. Enabled modes export the mandatory privacy projection:
+    # event timing/type/outcome, pseudonymous Session correlation, platform,
+    # version, tool error state, and fixed error class. Session content,
+    # model-produced tool names, and workspace paths never enter the backend
+    # record. The privacy inventory Agent Note owns the deployment stance and field list.
     # DSH_TELEMETRY_OTLP_URL overrides the production endpoint. A non-empty
     # DSH_TELEMETRY_DISABLED — any value, including '0'/'false' — opts the
     # process out (the launchers patch the row disabled; config cannot disable
-    # a row). Exports carry the harness home's anonymous user id ($DSH_HOME/.anonymous-user-id,
-    # random UUID; delete the file to reset the identity) as the Resource's
-    # user.id. The exporter/processor values normally bound the shutdown drain
+    # a row). Exports carry the harness home's derived anonymous user id as the
+    # Resource's user.id. $DSH_HOME/.anonymous-user-id stores the private root;
+    # deleting it rotates both the public id and Session pseudonyms. The
+    # exporter/processor values normally bound the shutdown drain
     # to ~1s against an unreachable collector: exporter.timeoutMillis is both
     # the per-attempt socket timeout and the retry deadline (1s effectively
     # disables the SDK's 5-try backoff), while maxExportBatchSize == maxQueueSize
@@ -195,7 +195,7 @@
     - id: session-telemetry-otel
       name: '@deepseek-ai/dsh-session-telemetry-otel'
       config:
-        mode: !!js process.env.DSH_TELEMETRY_MODE || 'FEEDBACK_ONLY'
+        mode: !!js process.env.DSH_TELEMETRY_MODE || 'DISABLED'
         shutdownTimeoutMillis: 3000
         exporter:
           url: !!js process.env.DSH_TELEMETRY_OTLP_URL ?? 'https://harness-telemetry.deepseeksvc.com/v1/logs'

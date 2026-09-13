@@ -1529,6 +1529,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       'client-ui-agent-preset AgentPresetRow id \'agent-preset\'',
       'client-ui-chat TranscriptViewRow id \'transcript-view\'',
       'client-ui-conversation EnterBehaviorRow id \'composer-enter\'',
+      'client-ui-desktop SupportExportRow id \'desktop-support-export\'',
       'client-ui-desktop CloseActionRow id \'desktop-close\'',
       'client-ui-desktop LaunchAtLoginRow id \'desktop-launch-at-login\'',
       'client-ui-desktop RemoteToggleRow id \'desktop-remote-access\'',

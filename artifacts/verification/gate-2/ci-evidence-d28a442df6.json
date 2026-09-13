@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+  "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+  "executionSha": "8bd4bb4fbd320059319e6305a7f02551d3d28830",
+  "status": "PASS",
+  "workflows": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "status": "PASS",
+      "reasons": [],
+      "observations": [
+        {
+          "name": "windows node 24 / coverage",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "python 3.10 / keyless SDK",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "node 24 / coverage",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "node 26",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "windows node 24 / observational",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "windows node 24 / build",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "windows node 24 / wine blocking",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "node 22.19",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "node 24 / snapshots and artifacts",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "windows node 24 / native tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "python runtime / release-shaped matrix / plan targets",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "python runtime / release-shaped matrix / deepseek_harness_sdk-0.1.2a1-py3-none-any.whl",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "python runtime / release-shaped matrix / node24-win-x64",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "python runtime / release-shaped matrix / node24-linux-arm64",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "python runtime / release-shaped matrix / node24-linux-x64",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "python runtime / release-shaped matrix / node24-macos-arm64",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "runId": 33980218297,
+      "runAttempt": 1,
+      "source": {
+        "schemaVersion": 1,
+        "workflow": ".github/workflows/ci.yml",
+        "workflowSha256": "8d1cd7bbaa5dcb92f79683d4f39667913609a40d5121147b949a91e173e2ea9e",
+        "runId": 33980218297,
+        "runAttempt": 1,
+        "event": "pull_request",
+        "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+        "checkoutSha": "8bd4bb4fbd320059319e6305a7f02551d3d28830",
+        "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+        "parents": [
+          "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+          "d28a442df621173dfd9f559446f9e7a963e7dfff"
+        ],
+        "dirty": false
+      }
+    },
+    {
+      "path": ".github/workflows/apple-swift.yml",
+      "status": "PASS",
+      "reasons": [],
+      "observations": [],
+      "runId": 33980218205,
+      "runAttempt": 1,
+      "source": {
+        "schemaVersion": 1,
+        "workflow": ".github/workflows/apple-swift.yml",
+        "workflowSha256": "fbd8ef57d33ac67daaf0bfab8281bf0ad0a83856caf6d560e4d84d77d22019a1",
+        "runId": 33980218205,
+        "runAttempt": 1,
+        "event": "pull_request",
+        "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+        "checkoutSha": "8bd4bb4fbd320059319e6305a7f02551d3d28830",
+        "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+        "parents": [
+          "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+          "d28a442df621173dfd9f559446f9e7a963e7dfff"
+        ],
+        "dirty": false
+      }
+    },
+    {
+      "path": ".github/workflows/android-kotlin.yml",
+      "status": "PASS",
+      "reasons": [],
+      "observations": [],
+      "runId": 33980218182,
+      "runAttempt": 1,
+      "source": {
+        "schemaVersion": 1,
+        "workflow": ".github/workflows/android-kotlin.yml",
+        "workflowSha256": "8b1d3a6cc9e9b70a4f4ecc6025bf4e9ba2fd2a032df6170ebb17c8a495f48664",
+        "runId": 33980218182,
+        "runAttempt": 1,
+        "event": "pull_request",
+        "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+        "checkoutSha": "8bd4bb4fbd320059319e6305a7f02551d3d28830",
+        "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+        "parents": [
+          "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+          "d28a442df621173dfd9f559446f9e7a963e7dfff"
+        ],
+        "dirty": false
+      }
+    }
+  ],
+  "repository": "nivranic/deepseek-harness",
+  "collectedAt": "2026-09-05T18:34:48.826Z",
+  "policy": {
+    "schemaVersion": 1,
+    "workflows": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "name": "CI",
+        "requiredJob": "all checks passed",
+        "sourceJob": "node 24 / static",
+        "workflowSha256": "8d1cd7bbaa5dcb92f79683d4f39667913609a40d5121147b949a91e173e2ea9e",
+        "aggregateNeeds": [
+          "node-24",
+          "node-24-coverage",
+          "node-24-consumers",
+          "node-compat",
+          "python-sdk",
+          "python-runtime",
+          "windows",
+          "windows-build",
+          "windows-native-tests"
+        ]
+      },
+      {
+        "path": ".github/workflows/apple-swift.yml",
+        "name": "Apple Swift",
+        "requiredJob": "swift test (macOS)",
+        "sourceJob": "swift test (macOS)",
+        "workflowSha256": "fbd8ef57d33ac67daaf0bfab8281bf0ad0a83856caf6d560e4d84d77d22019a1",
+        "aggregateNeeds": []
+      },
+      {
+        "path": ".github/workflows/android-kotlin.yml",
+        "name": "Android Kotlin",
+        "requiredJob": "gradle test (core)",
+        "sourceJob": "gradle test (core)",
+        "workflowSha256": "8b1d3a6cc9e9b70a4f4ecc6025bf4e9ba2fd2a032df6170ebb17c8a495f48664",
+        "aggregateNeeds": []
+      }
+    ]
+  },
+  "collection": [
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "producer": {
+        "executionAttempt": 1,
+        "originalJobId": 101343999515,
+        "copies": [
+          {
+            "jobId": 101343999515,
+            "reportedAttempt": 1
+          }
+        ],
+        "executionSha256": "155228422b014e195005d0dfb8fc0f4aa81a23009c8a10058c5288de32ade2c1"
+      },
+      "receipt": {
+        "artifact": {
+          "id": 9973530063,
+          "name": "ci-source-33980218297-1",
+          "digest": "sha256:6ed8b77fa3f31e2097dffd083064904d8aa0f15a0791b25bd0d796f55153b1c4",
+          "size": 466,
+          "runId": 33980218297,
+          "headSha": "d28a442df621173dfd9f559446f9e7a963e7dfff"
+        },
+        "sourceSha256": "8d4f6c6d591bf91678eb6622a73b5629d7416357a6d9810a8f065482d3a2e149"
+      }
+    },
+    {
+      "workflow": ".github/workflows/apple-swift.yml",
+      "producer": {
+        "executionAttempt": 1,
+        "originalJobId": 101343998912,
+        "copies": [
+          {
+            "jobId": 101343998912,
+            "reportedAttempt": 1
+          }
+        ],
+        "executionSha256": "c69e76a1e9e9f111fc477de911da659003c15c628d55c675d95df1481d9ac5b7"
+      },
+      "receipt": {
+        "artifact": {
+          "id": 9973537190,
+          "name": "ci-source-33980218205-1",
+          "digest": "sha256:caae0f8d4cbce1948b6164bf825042214943490398eb29ad0f3d58ceaac22c7a",
+          "size": 472,
+          "runId": 33980218205,
+          "headSha": "d28a442df621173dfd9f559446f9e7a963e7dfff"
+        },
+        "sourceSha256": "43200f10ddb7ba4a07f7661edcb6f8f085634de26d70c867b838539110bed097"
+      }
+    },
+    {
+      "workflow": ".github/workflows/android-kotlin.yml",
+      "producer": {
+        "executionAttempt": 1,
+        "originalJobId": 101343998922,
+        "copies": [
+          {
+            "jobId": 101343998922,
+            "reportedAttempt": 1
+          }
+        ],
+        "executionSha256": "1eecd8ed1c733f76de81e1d506fc40a3c1fa97c5b8adab59715e97f8bb4cb34a"
+      },
+      "receipt": {
+        "artifact": {
+          "id": 9973527966,
+          "name": "ci-source-33980218182-1",
+          "digest": "sha256:619de0943cefb1810d42f9d8642167e070827ac06378639fdb35c9485d78d5d5",
+          "size": 474,
+          "runId": 33980218182,
+          "headSha": "d28a442df621173dfd9f559446f9e7a963e7dfff"
+        },
+        "sourceSha256": "777b02feee19cd8fdb1c3619e2ad3d8f0f8b1f8bd0e93a582da42882853666a9"
+      }
+    }
+  ]
+}

@@ -6,6 +6,8 @@
  * The koffi bindings load lazily so
  * non-Windows processes never touch Win32 libraries; all decision logic takes
  * an injectable internals boundary so suites can pin it on any host.
+ * Native output buffers remain under Node ownership; these synchronous Win32
+ * calls retain no output pointers after returning.
  * @module dsh-subprocess-local/windows-inspector
  */
 
@@ -22,7 +24,7 @@ export interface ProcessEntry {
 
 /** Creation identity plus the process object's current wait state. */
 export interface WindowsProcessState {
-  /** GetProcessTimes creation identity used to fence PID reuse. */
+  /** GetProcessTimes creation identity as decimal high:low FILETIME words. */
   started: string
   /** Whether a zero-time process-handle wait reports the process still running. */
   active: boolean
@@ -39,17 +41,18 @@ export interface WindowsProcessInspectorInternals {
 }
 
 /**
- * Walk a process table from one root in children-first order, retaining only
- * members whose start identity is readable (unreadable members are detector
- * misses, exactly like an unreadable `/proc` entry on Linux).
+ * Walk a process table children first, excluding children older than their
+ * observed parent and branches whose parent creation identity is unreadable.
+ * Windows retains creator PIDs after exit, so PID equality alone can connect
+ * surviving children to a later process that reuses their creator's PID.
  * @param entries - the process table snapshot.
  * @param rootPid - the tree root to descend from.
- * @param started - creation-time identity resolver for one member.
- * @returns the root and its current transitive descendants, children first.
+ * @param started - decimal high:low FILETIME identity resolver for one member.
+ * @returns observed members created no earlier than their readable parents; not proof of Job membership.
  */
-/* jscpd:ignore-start -- the Windows inspector deliberately mirrors process-inspector.ts:
-   the decision logic (tree walk, identity fencing, group signalling) is the same contract over
-   Win32 primitives, per the persistent-pty note 2026-08-11-pwsh-persistent-pty. */
+/* jscpd:ignore-start -- platform inspectors share traversal, identity checks and signalling.
+   Windows additionally rejects stale creator-PID edges; the persistent-pty note
+   2026-08-11-pwsh-persistent-pty owns these platform differences. */
 export function windowsProcessTree(
   entries: ProcessEntry[],
   rootPid: number,
@@ -58,6 +61,8 @@ export function windowsProcessTree(
   const byPid = new Map(entries.map(entry => [entry.pid, entry]))
   const root = byPid.get(rootPid)
   if (root === undefined) return []
+  const rootIdentity = started(rootPid)
+  if (rootIdentity === undefined) return []
   const byParent = new Map<number, ProcessEntry[]>()
   for (const entry of entries) {
     const children = byParent.get(entry.parentPid) ?? []
@@ -66,15 +71,25 @@ export function windowsProcessTree(
   }
   const visited = new Set<number>()
   const result: ProcessIdentity[] = []
-  const visit = (entry: ProcessEntry): void => {
+  const visit = (entry: ProcessEntry, identity: string, created: bigint): void => {
     if (visited.has(entry.pid)) return
     visited.add(entry.pid)
-    for (const child of byParent.get(entry.pid) ?? []) visit(child)
-    const identity = started(entry.pid)
-    if (identity !== undefined) result.push({ pid: entry.pid, started: identity })
+    for (const child of byParent.get(entry.pid) ?? []) {
+      const childIdentity = started(child.pid)
+      if (childIdentity === undefined) continue
+      const childCreated = creationTime(childIdentity)
+      if (childCreated >= created) visit(child, childIdentity, childCreated)
+    }
+    result.push({ pid: entry.pid, started: identity })
   }
-  visit(root)
+  visit(root, rootIdentity, creationTime(rootIdentity))
   return result
+}
+
+/** Decode the two GetProcessTimes FILETIME words without losing integer precision. */
+function creationTime(identity: string): bigint {
+  const separator = identity.indexOf(':')
+  return (BigInt(identity.slice(0, separator)) << 32n) + BigInt(identity.slice(separator + 1))
 }
 
 /**
@@ -166,15 +181,15 @@ export function isInvalidHandle(value: NativePtr | null | undefined): boolean {
 /** The lazy koffi binding table: every Win32 call the Windows inspector uses. */
 interface Win32Bindings {
   createToolhelp32Snapshot(flags: number, processId: number): NativePtr
-  process32FirstW(snapshot: NativePtr, entry: NativePtr): number
-  process32NextW(snapshot: NativePtr, entry: NativePtr): number
+  process32FirstW(snapshot: NativePtr, entry: Buffer): number
+  process32NextW(snapshot: NativePtr, entry: Buffer): number
   openProcess(desiredAccess: number, inheritHandle: number, pid: number): NativePtr
   getProcessTimes(
     process: NativePtr,
-    creation: NativePtr,
-    exit: NativePtr,
-    kernel: NativePtr,
-    user: NativePtr,
+    creation: Buffer,
+    exit: Buffer,
+    kernel: Buffer,
+    user: Buffer,
   ): number
   waitForSingleObject(handle: NativePtr, milliseconds: number): number
   closeHandle(handle: NativePtr): number
@@ -182,16 +197,11 @@ interface Win32Bindings {
 
 const PVOID: ReturnType<typeof koffi.pointer> = koffi.pointer('void')
 
-/**
- * Resolve the koffi Win32 struct types once. Registration is lazy and cached
- * because koffi's type registry is global per process: test runners that
- * re-evaluate this module (a hoisted `vi.mock` re-imports the graph) must not
- * re-register the names.
- */
+/** Cache anonymous Win32 structures within this module generation without global name collisions. */
 function win32Structs(): { PROCESSENTRY32W: ReturnType<typeof koffi.struct>; FILETIME: ReturnType<typeof koffi.struct> } {
   if (cachedStructs !== undefined) return cachedStructs
   // koffi PROCESSENTRY32W layout (tlhelp32.h); the size assert pins the x64 layout.
-  const PROCESSENTRY32W = koffi.struct('PROCESSENTRY32W', {
+  const PROCESSENTRY32W = koffi.struct({
     dwSize: 'uint32',
     cntUsage: 'uint32',
     th32ProcessID: 'uint32',
@@ -204,7 +214,7 @@ function win32Structs(): { PROCESSENTRY32W: ReturnType<typeof koffi.struct>; FIL
     szExeFile: koffi.array('char16', 260),
   })
   // koffi FILETIME layout (minwinbase.h): two 32-bit halves of the 64-bit timestamp.
-  const FILETIME = koffi.struct('FILETIME', {
+  const FILETIME = koffi.struct({
     dwLowDateTime: 'uint32',
     dwHighDateTime: 'uint32',
   })
@@ -258,18 +268,6 @@ function win32Bindings(): Win32Bindings {
   return cachedBindings
 }
 
-/**
- * Allocate koffi memory as a branded {@link NativePtr}; koffi's TS types are
- * `any`, so the cast goes through `unknown` to keep the unsafe surface here.
- * @param type - the koffi type to allocate.
- * @param count - element count.
- * @returns the branded allocation pointer.
- */
-function allocNative(type: Parameters<typeof koffi.alloc>[0], count: number): NativePtr {
-  const value: unknown = koffi.alloc(type, count)
-  return value as NativePtr
-}
-
 /** Enumerate the current process table through Toolhelp32. */
 function snapshotWindowsProcesses(bindings: Win32Bindings): ProcessEntry[] {
   const { PROCESSENTRY32W } = win32Structs()
@@ -279,7 +277,7 @@ function snapshotWindowsProcesses(bindings: Win32Bindings): ProcessEntry[] {
   if (isInvalidHandle(snapshot)) return []
   const entries: ProcessEntry[] = []
   try {
-    const entry = allocNative(PROCESSENTRY32W, 1)
+    const entry = Buffer.alloc(PROCESSENTRY32W.size)
     koffi.encode(entry, 'uint32', PROCESSENTRY32W.size)
     let ok = bindings.process32FirstW(snapshot, entry)
     while (ok !== 0) {
@@ -302,10 +300,10 @@ function windowsProcessState(bindings: Win32Bindings, pid: number): WindowsProce
   const handle = bindings.openProcess(PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE, 0, pid)
   if (isInvalidHandle(handle)) return undefined
   try {
-    const creation = allocNative(FILETIME, 1)
-    const exit = allocNative(FILETIME, 1)
-    const kernel = allocNative(FILETIME, 1)
-    const user = allocNative(FILETIME, 1)
+    const creation = Buffer.alloc(FILETIME.size)
+    const exit = Buffer.alloc(FILETIME.size)
+    const kernel = Buffer.alloc(FILETIME.size)
+    const user = Buffer.alloc(FILETIME.size)
     /* v8 ignore next -- a GetProcessTimes failure after a successful open races process exit and
        cannot be staged deterministically; the absent-process path is covered and the caller
        treats undefined as a detector miss. */

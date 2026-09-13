@@ -1,6 +1,59 @@
 {
   "initial": [
     {
+      "name": "artifact_create",
+      "description": "Create one durable artifact — a first-class output file the user keeps (a report, a design document, a patch, a generated dataset, a binary file such as an image). Give it a short `kind` tag (e.g. markdown, report, patch, json, png), a human-facing `title`, and the COMPLETE content in this call — as `content` text, or as raw bytes base64-encoded in `data`; exactly one of the two. The artifact is stored durably and journaled as a reference you can cite by id; do not use it for scratch text that belongs in your reply, and do not split one artifact across calls.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Short kind tag, e.g. markdown, report, patch, json, png."
+          },
+          "title": {
+            "type": "string",
+            "description": "Human-facing artifact title."
+          },
+          "content": {
+            "type": "string",
+            "description": "The COMPLETE artifact content as text. Exactly one of content or data."
+          },
+          "data": {
+            "type": "string",
+            "description": "The COMPLETE artifact bytes, base64-encoded. Exactly one of content or data."
+          }
+        },
+        "required": [
+          "kind",
+          "title"
+        ]
+      }
+    },
+    {
+      "name": "artifact_read",
+      "description": "Read one artifact back by its reference id. Returns the content exactly as created, plus the kind and title when the calling session journaled the artifact. A text artifact returns its `content` (whole by default, or one UTF-16 range with offset and limit); a bytes artifact returns base64 `data` (whole by default, or one byte range). Reading does not modify the artifact.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The artifact reference id an artifact_create result reported."
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Range start — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum returned units of the artifact format; omitted reads through the end."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
       "name": "bash",
       "description": "Run commands in a bash shell\n* When invoking this tool, the contents of the \"command\" parameter does NOT need to be XML-escaped.\n* You don't have access to the internet via this tool.\n* You do have access to a mirror of common linux and python packages via apt and pip.\n* State is persistent across command calls and discussions with the user.\n* To inspect a particular line range of a file, e.g. lines 10-25, try 'sed -n 10,25p /path/to/the/file'.\n* Please avoid commands that may produce a very large amount of output.\n* Please run long lived commands in the background, e.g. 'sleep 10 &' or start a server in the background.",
       "parameters": {

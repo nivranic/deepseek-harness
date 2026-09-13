@@ -1,6 +1,61 @@
 {
   "contract": "dsh-link",
   "version": 1,
+  "contractVersion": 1,
+  "protocol": {
+    "linkProtocolVersion": 1,
+    "sessionFormatVersion": 0,
+    "rpc": {
+      "requestArguments": "payload.args",
+      "voidSuccess": "ok-with-omitted-value",
+      "failure": "structured-error"
+    },
+    "stream": {
+      "requestArguments": "args",
+      "frames": [
+        "value",
+        "error"
+      ],
+      "cancellation": "transport-abort"
+    },
+    "remoteEvents": {
+      "downlink": [
+        "ready",
+        "emit",
+        "waterfall",
+        "cancel"
+      ],
+      "resultOutcomes": [
+        "next",
+        "result",
+        "rejected"
+      ],
+      "clientIdentity": "ready.clientId"
+    },
+    "sequence": {
+      "event": "monotonic-seq",
+      "cursor": "highest-included-seq",
+      "replay": "ignore-seq-at-or-below-cursor"
+    },
+    "compatibility": {
+      "unknownOptionalFields": "ignore",
+      "unknownEventTypes": "preserve",
+      "missingRequiredFields": "reject"
+    },
+    "routes": {
+      "pair": "/link/pair",
+      "describe": "/link/describe",
+      "unaryPrefix": "/api/",
+      "streamPrefix": "/link/stream/",
+      "remoteEventStream": "$events",
+      "remoteEventResult": "$events/result"
+    },
+    "authenticationHeaders": {
+      "deviceId": "x-dsh-device-id",
+      "timestamp": "x-dsh-timestamp",
+      "signature": "x-dsh-signature"
+    }
+  },
   "types": [
     {
       "name": "LinkDeviceRole",
@@ -17,6 +72,429 @@
         "link-disabled",
         "bad-request"
       ]
+    },
+    {
+      "name": "LinkJsonValue",
+      "shape": "json"
+    },
+    {
+      "name": "LinkPairRequest",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "code",
+          "kind": "string"
+        },
+        {
+          "name": "deviceName",
+          "kind": "string"
+        },
+        {
+          "name": "devicePublicKey",
+          "kind": "string"
+        }
+      ],
+      "fixture": "pair-request"
+    },
+    {
+      "name": "LinkRpcPayload",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "args",
+          "kind": "json-object"
+        }
+      ]
+    },
+    {
+      "name": "LinkRpcRequestEnvelope",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "client-request"
+        },
+        {
+          "name": "rpcId",
+          "kind": "string"
+        },
+        {
+          "name": "method",
+          "kind": "string"
+        },
+        {
+          "name": "payload",
+          "kind": "object",
+          "ref": "LinkRpcPayload"
+        }
+      ],
+      "fixture": "rpc-request"
+    },
+    {
+      "name": "LinkRpcError",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "code",
+          "kind": "string"
+        },
+        {
+          "name": "message",
+          "kind": "string"
+        },
+        {
+          "name": "details",
+          "kind": "json-object"
+        }
+      ]
+    },
+    {
+      "name": "LinkRpcResult",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "ok",
+          "kind": "boolean"
+        },
+        {
+          "name": "value",
+          "kind": "json",
+          "optional": true
+        },
+        {
+          "name": "error",
+          "kind": "object",
+          "ref": "LinkRpcError",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkRpcResponseEnvelope",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "server-response"
+        },
+        {
+          "name": "rpcId",
+          "kind": "string"
+        },
+        {
+          "name": "result",
+          "kind": "object",
+          "ref": "LinkRpcResult"
+        }
+      ],
+      "fixture": "rpc-response-void",
+      "additionalFixtures": [
+        "rpc-response-value",
+        "rpc-response-error"
+      ]
+    },
+    {
+      "name": "LinkStreamRequest",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "args",
+          "kind": "json-object"
+        }
+      ],
+      "fixture": "stream-request"
+    },
+    {
+      "name": "LinkStreamFrameKind",
+      "shape": [
+        "v",
+        "e"
+      ]
+    },
+    {
+      "name": "LinkStreamFrame",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "k",
+          "kind": "enum",
+          "ref": "LinkStreamFrameKind"
+        },
+        {
+          "name": "v",
+          "kind": "json",
+          "optional": true
+        },
+        {
+          "name": "c",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "m",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "d",
+          "kind": "json-object",
+          "optional": true
+        }
+      ],
+      "fixture": "stream-error",
+      "additionalFixtures": [
+        "stream-value"
+      ]
+    },
+    {
+      "name": "LinkRemoteEventFrameKind",
+      "shape": [
+        "ready",
+        "emit",
+        "waterfall",
+        "cancel"
+      ]
+    },
+    {
+      "name": "LinkRemoteEventOutcomeKind",
+      "shape": [
+        "next",
+        "result",
+        "rejected"
+      ]
+    },
+    {
+      "name": "LinkRemoteEventHostInfo",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "home",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "name": "LinkRemoteEventReadyFrame",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "ready"
+        },
+        {
+          "name": "clientId",
+          "kind": "string"
+        },
+        {
+          "name": "host",
+          "kind": "object",
+          "ref": "LinkRemoteEventHostInfo"
+        }
+      ],
+      "fixture": "remote-event-ready"
+    },
+    {
+      "name": "LinkRemoteEventEmitFrame",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "emit"
+        },
+        {
+          "name": "event",
+          "kind": "string"
+        },
+        {
+          "name": "args",
+          "kind": "json-array"
+        }
+      ],
+      "fixture": "remote-event-emit"
+    },
+    {
+      "name": "LinkRemoteEventWaterfallFrame",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "waterfall"
+        },
+        {
+          "name": "event",
+          "kind": "string"
+        },
+        {
+          "name": "eventId",
+          "kind": "string"
+        },
+        {
+          "name": "agentId",
+          "kind": "string"
+        },
+        {
+          "name": "request",
+          "kind": "json-object"
+        }
+      ],
+      "fixture": "remote-event-waterfall"
+    },
+    {
+      "name": "LinkRemoteEventCancelFrame",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "cancel"
+        },
+        {
+          "name": "eventId",
+          "kind": "string"
+        }
+      ],
+      "fixture": "remote-event-cancel"
+    },
+    {
+      "name": "LinkRemoteEventRejection",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "message",
+          "kind": "string"
+        },
+        {
+          "name": "code",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "details",
+          "kind": "json",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkRemoteEventOutcome",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "enum",
+          "ref": "LinkRemoteEventOutcomeKind"
+        },
+        {
+          "name": "value",
+          "kind": "json",
+          "optional": true
+        },
+        {
+          "name": "error",
+          "kind": "object",
+          "ref": "LinkRemoteEventRejection",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkRemoteEventResult",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "clientId",
+          "kind": "string"
+        },
+        {
+          "name": "eventId",
+          "kind": "string"
+        },
+        {
+          "name": "outcome",
+          "kind": "object",
+          "ref": "LinkRemoteEventOutcome"
+        }
+      ],
+      "fixture": "remote-event-result-void",
+      "additionalFixtures": [
+        "remote-event-result-next",
+        "remote-event-result-value",
+        "remote-event-result-rejected"
+      ]
+    },
+    {
+      "name": "LinkSessionEventRecord",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "string"
+        },
+        {
+          "name": "seq",
+          "kind": "number"
+        },
+        {
+          "name": "time",
+          "kind": "number"
+        },
+        {
+          "name": "data",
+          "kind": "json"
+        },
+        {
+          "name": "sourceEventSeqs",
+          "kind": "number-array",
+          "optional": true
+        },
+        {
+          "name": "surfaceOp",
+          "kind": "json",
+          "optional": true
+        }
+      ],
+      "fixture": "session-event-record"
+    },
+    {
+      "name": "LinkSessionSnapshotFrame",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "snapshot"
+        },
+        {
+          "name": "header",
+          "kind": "json-object"
+        },
+        {
+          "name": "cursor",
+          "kind": "number"
+        },
+        {
+          "name": "records",
+          "kind": "json-array"
+        },
+        {
+          "name": "hasMore",
+          "kind": "boolean"
+        },
+        {
+          "name": "projections",
+          "kind": "json-object"
+        }
+      ],
+      "fixture": "session-snapshot-frame"
     },
     {
       "name": "LinkPairingPayload",
@@ -164,6 +642,10 @@
       "fields": [
         {
           "name": "linkProtocolVersion",
+          "kind": "number"
+        },
+        {
+          "name": "contractVersion",
           "kind": "number"
         },
         {
@@ -1454,6 +1936,96 @@
   ],
   "fixtures": [
     {
+      "id": "pair-request",
+      "type": "LinkPairRequest",
+      "sha256": "1c11590e64de17f41f3a9847f24a6168546d765e342596d1c53aa56441361335"
+    },
+    {
+      "id": "rpc-request",
+      "type": "LinkRpcRequestEnvelope",
+      "sha256": "b868b37f4994cb471c64b76bc5c8dbd759f15a656a0bd39252d347fd188c1297"
+    },
+    {
+      "id": "rpc-response-void",
+      "type": "LinkRpcResponseEnvelope",
+      "sha256": "8602d81f14ca81762e6e1b52e79c6c6b28cc1269789a76bced75d062d35c0b6a"
+    },
+    {
+      "id": "rpc-response-value",
+      "type": "LinkRpcResponseEnvelope",
+      "sha256": "f6150659b8e1b46a5e71fd4c8b12a9b4b2265beaf01f2a1d36853a1c42191664"
+    },
+    {
+      "id": "rpc-response-error",
+      "type": "LinkRpcResponseEnvelope",
+      "sha256": "581bdcaed532678ab6e84b9749a241ec853866e3c9e002e17dca324be027c25c"
+    },
+    {
+      "id": "stream-request",
+      "type": "LinkStreamRequest",
+      "sha256": "1194d3bdb96cba377d1c2af94fe86c38d1f0087828aafd8adbbbfc3fa9ea2cee"
+    },
+    {
+      "id": "stream-value",
+      "type": "LinkStreamFrame",
+      "sha256": "b9c7b952b3976748d62f6b9caa0639caa42e07b31c976ca7843e763a65c927ea"
+    },
+    {
+      "id": "stream-error",
+      "type": "LinkStreamFrame",
+      "sha256": "3ea111a8aa5b2b0b2e0b4a5edbce9d77314ab8b111136bf8ab98c601c3bae236"
+    },
+    {
+      "id": "remote-event-ready",
+      "type": "LinkRemoteEventReadyFrame",
+      "sha256": "eca05551bda9f88fe61c3ea26a922ad7cc69dda65cb683fbb281d384478debd7"
+    },
+    {
+      "id": "remote-event-emit",
+      "type": "LinkRemoteEventEmitFrame",
+      "sha256": "b525c705bf354c67814eef21f09e81a366ea623339a6943a7ff1509d70fb0005"
+    },
+    {
+      "id": "remote-event-waterfall",
+      "type": "LinkRemoteEventWaterfallFrame",
+      "sha256": "955bd2d21ec986376ae255b5c24199418cdc7f7767ec3be33eac29439c494265"
+    },
+    {
+      "id": "remote-event-cancel",
+      "type": "LinkRemoteEventCancelFrame",
+      "sha256": "ba1ca35872ab58cbecba95840cc2bb831680cc19dc5a4d1954ce412e6b511dcd"
+    },
+    {
+      "id": "remote-event-result-next",
+      "type": "LinkRemoteEventResult",
+      "sha256": "b585e370586f41c3aabf1f10794700af9cf523b1a4f976e0fe630979bb87cf0e"
+    },
+    {
+      "id": "remote-event-result-value",
+      "type": "LinkRemoteEventResult",
+      "sha256": "59e01398a35875fcfc5189fd77451c403cff9f94e1f03b7396e7f388e186c0b3"
+    },
+    {
+      "id": "remote-event-result-void",
+      "type": "LinkRemoteEventResult",
+      "sha256": "3173879a62edb718e1979d9602f6ee3e924bb5a86e0e4506b9a57d1af77eaecb"
+    },
+    {
+      "id": "remote-event-result-rejected",
+      "type": "LinkRemoteEventResult",
+      "sha256": "0dec0ebb357b7461b09eb8e65d177cf10733ff4e5a30675b9176262f03d5a145"
+    },
+    {
+      "id": "session-event-record",
+      "type": "LinkSessionEventRecord",
+      "sha256": "449d19f34a15f60459713052c8dbfcd34450dea260fd69d13e713f4b56837185"
+    },
+    {
+      "id": "session-snapshot-frame",
+      "type": "LinkSessionSnapshotFrame",
+      "sha256": "9c9e3e2aab6af0ade9b3bfaf59401799381bfdf022931157d94bed6513ea0a5c"
+    },
+    {
       "id": "pairing-payload",
       "type": "LinkPairingPayload",
       "sha256": "b40c26bb35d93c11c8da12ccf5cf2cf84243d22ed3d48a6177709620ded1cc4a"
@@ -1466,7 +2038,7 @@
     {
       "id": "host-description",
       "type": "LinkHostDescription",
-      "sha256": "f9f2083c273c540e623bc542b5e0f5e77ae9c534d9806f1e3272208860416480"
+      "sha256": "79ec0d4c73702ced885eaf16c3c985fae3405927586a5a2870ac88171612bf98"
     },
     {
       "id": "carrier-status",

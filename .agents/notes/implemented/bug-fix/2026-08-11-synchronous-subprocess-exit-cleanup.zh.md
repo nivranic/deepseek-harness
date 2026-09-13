@@ -16,23 +16,23 @@ Status: implemented
 
 该 listener使用本地实现私有的最终操作；公共 `SubprocessHandle`和 `SubprocessTerminalHandle`接口不包含这些操作：
 
-- 普通 handle立即向 detached POSIX进程组发送 SIGKILL，或在 Windows同步运行 `taskkill /PID <pid> /T /F`。
+- 普通 handle 向 POSIX 进程组发送 SIGKILL，或关闭 Windows Job 所有者句柄，具体见 [Windows 子进程 Job 所有权](../architecture/2026-09-07-windows-subprocess-job-ownership.zh.md)。
 - Terminal handle同步向全部已捕获及当前可观察的后代发送 SIGKILL，终止 PTY root，然后再扫描一次并终止在该边界期间变得可观察的成员。
 - 服务分别包含每个目标的失败并继续处理其余 handle。回调不会创建 Promise或 timer，不写诊断，也不改变原始退出码或错误。
 
-正常 dispose继续使用[subprocess seam](../architecture/2026-07-26-subprocess-seam.zh.md)的先终止再等待退出路径：普通进程树先接收 TERM，经过配置的宽限期后再接收 KILL，并等待每个普通或 terminal清理达到完全停稳。同步路径只请求最终终止，不发布完成结果，也不声称回调返回时 OS进程树已经消失。远程 provider继续由其 sandbox独立拥有，不继承本地 Node listener。
+正常 dispose 仍遵循[子进程 seam](../architecture/2026-07-26-subprocess-seam.zh.md) 的终止并等待路径：普通 POSIX 进程树依次接收 TERM、宽限期、KILL；普通 Windows Job 立即终止。每次清理都等待完全停稳。同步最终清理只请求终止，不宣称 OS 进程树已退出。远程提供方保留自己的沙箱所有权。
 
 | 宿主路径 | 本地 provider动作 | 完成证据 |
 | --- | --- | --- |
 | 正常 Cordis dispose | 协作式终止、有界升级，并等待普通／terminal清理 | dispose结算前，每个自有 handle均达到完全停稳 |
 | `process.exit()`、默认未捕获异常或默认未处理 rejection | 对服务当前存活集合发送同步最终信号 | 宿主退出后的外部观察 |
-| 未安装 handler 时由 `SIGTERM`、`SIGINT` 或 `SIGHUP` 默认终止；`SIGKILL`；fatal OOM；`process.abort()`；native crash；或断电 | 进程内操作无法运行 | 必须由外部 supervisor、容器或 OS 所有权负责；应用安装执行 dispose 或调用 `process.exit()` 的信号 handler 时除外 |
+| 默认未处理信号、`SIGKILL`、fatal OOM、`process.abort()` 或 native crash | 无 JavaScript 回调；Windows 关闭普通 Job 所有者句柄 | 普通 Job 成员由内核所有权终止；POSIX 进程组与终端会话需要外部所有者 |
 
 ## Verification
 
 父测试通过仓库 source launcher启动隔离的 TypeScript宿主，等待精确 root与后代进程身份可观察后，再允许宿主进入各条致命路径。直接退出、默认未捕获异常和默认未处理 rejection覆盖忽略 TERM的普通进程树；直接退出还覆盖真实 terminal root与后代。父测试断言原始宿主退出类别，并等待所有已记录进程消失；失败清理只针对已记录身份或已记录的 Windows进程树。
 
-单元证据固定同步 POSIX进程组与 Windows taskkill投递、PTY root终止前后的 terminal扫描、重复最终清理、逐目标失败包含、正常 TERM到 KILL dispose、dispose等待期间保留存活集合，以及 dispose后移除 listener。
+单元证据固定同步 POSIX 信号、Windows Job 关闭、终端身份扫描、重复最终清理、逐目标失败包含、等待正常 dispose、清理期间保留存活集合，以及 dispose 后移除 listener。
 
 ## Alternatives considered
 
@@ -48,4 +48,4 @@ Status: implemented
 
 每个有效的本地 subprocess service都会贡献一个进程全局 exit listener，并随服务 effect移除。致命退出放弃宽限、输出排空与进程内停稳证明，以换取宿主消失前发出本地可用的最强终止操作。正常 dispose的保证与成本保持不变。
 
-listener无法覆盖不执行 JavaScript的故障，也无法发现 provider首次观察前已经逃逸的 terminal后代；该独立所有权缺口仍由 Issue #1726跟踪。
+JavaScript 无法执行时 listener 不能运行；普通 Windows Job 为此提供内核所有权。POSIX 与终端清理仍需要外部所有者，可观察前就已逃逸的终端后代仍不在 listener 可达范围内。断电恢复不属于进程终止。

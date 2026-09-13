@@ -100,6 +100,9 @@ public final class PushViewModel {
     public private(set) var pushes: [CompanionPush] = []
 
     private let wire: any CompanionWireDriving
+    private let connectionDiagnostics = CompanionConnectionDiagnostics()
+    /// Current push subscription ownership; delivery to a platform notifier is a separate operation.
+    public var connectionSnapshot: CompanionConnectionSnapshot { connectionDiagnostics.snapshot }
     private let presenter: (any CompanionPushPresenting)?
     private var watchTask: Task<Void, Never>?
 
@@ -120,23 +123,31 @@ public final class PushViewModel {
     /// Open the `$events` stream and collect minimized pushes.
     public func startWatching() async {
         watchTask?.cancel()
+        let connection = connectionDiagnostics
+        let token = connection.begin(reconnecting: false)
         watchTask = Task { [weak self] in
+            defer { connection.finished(token) }
             guard let self else { return }
+            connection.attempt(token)
             do {
                 let frames = try await self.wire.stream("$events", payload: [:])
+                connection.opened(token)
                 for try await frame in frames {
+                    try Task.checkCancellation()
                     self.collect(frame)
                 }
+                connection.interrupted(token, error: nil)
             } catch is CancellationError {
                 // Deliberate stop.
             } catch {
-                // Stream loss ends the watch; nothing else can reach here.
+                connection.interrupted(token, error: error)
             }
         }
     }
 
     /// Stop watching; collected pushes stay for review.
     public func stopWatching() {
+        connectionDiagnostics.stop()
         watchTask?.cancel()
         watchTask = nil
     }

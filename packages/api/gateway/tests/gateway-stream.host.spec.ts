@@ -759,7 +759,13 @@ describe('Typert Remote streams', () => {
     const firstFrame = deliveredInvocation(first)!
     const secondFrame = deliveredInvocation(second)!
 
-    await sendEventResult(first, firstFrame, { kind: 'next' })
+    ctx.typertGateway.wireStream.delegateRemoteEventDelivery('missing-client', firstFrame.eventId)
+    expect(ctx.typertGateway.wireStream.isRemoteEventDeliveryPending('missing-client', firstFrame.eventId)).toBe(false)
+    expect(ctx.typertGateway.wireStream.isRemoteEventDeliveryPending(first.clientId, firstFrame.eventId)).toBe(true)
+    expect(ctx.typertGateway.wireStream.isRemoteEventDeliveryPending(second.clientId, secondFrame.eventId)).toBe(true)
+    ctx.typertGateway.wireStream.delegateRemoteEventDelivery(first.clientId, firstFrame.eventId)
+    expect(ctx.typertGateway.wireStream.isRemoteEventDeliveryPending(first.clientId, firstFrame.eventId)).toBe(false)
+    expect(ctx.typertGateway.wireStream.isRemoteEventDeliveryPending(second.clientId, secondFrame.eventId)).toBe(true)
     expect(pending.resolve).not.toHaveBeenCalled()
     await sendEventResult(second, secondFrame, { kind: 'next' })
     await expect(pending.outcome).resolves.toEqual({ kind: 'next' })

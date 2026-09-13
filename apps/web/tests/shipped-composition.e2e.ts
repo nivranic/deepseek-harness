@@ -4,9 +4,16 @@
 // No browser and no model call — these are composition facts, and the browser
 // scenarios in this lane cover the surface itself.
 import { readFileSync } from 'node:fs'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { createServer } from 'node:http'
+import { once } from 'node:events'
 import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, expect, it } from 'vitest'
+import type { Context } from '@deepseek-ai/cordis'
+import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
+import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
 import { canonicalPath, writableRoots } from '@deepseek-ai/dsh-sandbox'
 import { SessionId } from '@deepseek-ai/dsh-session'
@@ -19,11 +26,21 @@ import type {} from '@deepseek-ai/dsh-permission-presets'
 import type {} from '@deepseek-ai/dsh-agent-presets'
 import type {} from '@deepseek-ai/dsh-commands'
 import type {} from '@deepseek-ai/dsh-system-prompt'
+import type {} from '@deepseek-ai/dsh-session-telemetry'
 import { launchWebScaffold, type WebScaffold } from './scaffold.ts'
 
+const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
+const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
+const WEB_PATCH = join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml')
+const INSTALL_ANCHOR = join(REPO_ROOT, 'apps/cli/package.json')
 const FILE_REFERENCE_PROMPT = fileURLToPath(new URL(
   './expected/web-runtime-context/file-reference-prompt.expected.md', import.meta.url,
 ))
+const SHELL_TOOL = process.platform === 'win32' ? 'pwsh' : 'bash'
+const SHELL_COMMAND = process.platform === 'win32'
+  ? "Write-Output 'SHIPPED_BACKGROUND_OK'"
+  : 'printf SHIPPED_BACKGROUND_OK'
+const SHELL_JOB_ID = `${SHELL_TOOL}-1`
 
 /**
  * The catalog the shipped Web composition puts in front of the model, minus the
@@ -35,8 +52,10 @@ const FILE_REFERENCE_PROMPT = fileURLToPath(new URL(
  * Agent Note owns the rationale and its sources.
  */
 const EXPECTED_TOOLS = [
+  'artifact_create',
+  'artifact_read',
   'ask_user_question',
-  'bash',
+  SHELL_TOOL,
   'create_goal',
   'edit',
   'exit_plan_mode',
@@ -59,7 +78,7 @@ const EXPECTED_TOOLS = [
   'web_search',
   'workflow',
   'write',
-]
+].toSorted()
 
 /**
  * `glob` and `grep` come from `dsh-tool-fs-search`, which spawns the PACKAGED
@@ -74,6 +93,148 @@ let scaffold: WebScaffold | undefined
 afterEach(async () => {
   await scaffold?.close()
   scaffold = undefined
+})
+
+/** Boot the shipped Web layers while leaving their telemetry row untouched. */
+async function bootDefaultTelemetryComposition(harnessHome: string): Promise<Context> {
+  const profileDir = join(harnessHome, 'profiles', 'telemetry-default')
+  await healProfilesModuleFallback({ installAnchor: INSTALL_ANCHOR, home: harnessHome })
+  await mkdir(profileDir, { recursive: true })
+  const rootConfig = join(profileDir, 'cordis.yml')
+  await writeFile(rootConfig, '[]\n')
+  return await boot('dsh-test', rootConfig, [
+    ...loadOverlayPatches('shipped telemetry default e2e', BASE_PATCH),
+    ...loadOverlayPatches('shipped telemetry default e2e', WEB_PATCH),
+    { id: 'settings', config: { dshHome: harnessHome } },
+    { id: 'credentials', config: { dshHome: harnessHome } },
+    { id: 'session-persistence-jsonl', config: { root: join(harnessHome, 'sessions') } },
+    { id: 'storage-json', config: { root: join(harnessHome, 'storages') } },
+    { id: 'agent-presets', config: { default: 'standard', includeUserRoot: false } },
+    { id: 'session-title-llm', disabled: true },
+    {
+      id: 'webserver',
+      config: {
+        host: '127.0.0.1', port: 0, compression: 'gzip',
+        compressionLevel: 1, compressionThresholdBytes: 1024,
+      },
+    },
+    { id: 'web-runtime', config: { openBrowser: false, printUrl: false, surfaceContext: true } },
+    { id: 'directory-picker', disabled: true },
+    { insert: [
+      { id: 'directory-picker-browse', name: '@deepseek-ai/dsh-host-directory-picker-browse' },
+      { id: 'ui-directory-picker-browse', name: '@deepseek-ai/dsh-client-ui-directory-picker-browse' },
+    ] },
+    { id: 'llm-deepseek', disabled: true },
+  ], (ctx) => {
+    provideCmdline(ctx, { args: [], exit: () => {} })
+  })
+}
+
+it('keeps the shipped telemetry row mounted but silent when mode is unset', async () => {
+  const collector = createServer((request, response) => {
+    request.resume()
+    response.writeHead(200, { 'content-type': 'application/json' }).end('{}')
+  })
+  let requestCount = 0
+  collector.on('request', () => { requestCount += 1 })
+  const environmentKeys = [
+    'DSH_HOME',
+    'DSH_TELEMETRY_DISABLED',
+    'DSH_TELEMETRY_MODE',
+    'DSH_TELEMETRY_OTLP_URL',
+  ] as const
+  const originalEnvironment = Object.fromEntries(environmentKeys.map(key => [key, process.env[key]]))
+  let harnessHome: string | undefined
+  let ctx: Context | undefined
+  try {
+    collector.listen(0, '127.0.0.1')
+    await once(collector, 'listening')
+    const address = collector.address()
+    if (address === null || typeof address === 'string') throw new Error('telemetry collector has no port')
+    const collectorUrl = `http://127.0.0.1:${String(address.port)}/v1/logs`
+
+    harnessHome = await mkdtemp(join(tmpdir(), 'dsh-web-telemetry-default-'))
+    process.env.DSH_HOME = harnessHome
+    Reflect.deleteProperty(process.env, 'DSH_TELEMETRY_DISABLED')
+    Reflect.deleteProperty(process.env, 'DSH_TELEMETRY_MODE')
+    process.env.DSH_TELEMETRY_OTLP_URL = collectorUrl
+
+    ctx = await bootDefaultTelemetryComposition(harnessHome)
+    const telemetryEntry = [...ctx.loader.entries()]
+      .find(entry => entry.options.id === 'session-telemetry-otel')
+    expect(telemetryEntry?.options.name).toBe('@deepseek-ai/dsh-session-telemetry-otel')
+    expect(telemetryEntry?.disabled).toBe(false)
+    expect(telemetryEntry?.fiber).toBeDefined()
+    expect(telemetryEntry?.fiber?.config).toMatchObject({
+      mode: 'DISABLED',
+      exporter: { url: collectorUrl },
+    })
+    expect(ctx.sessionTelemetry.sharing).toBe('disabled')
+
+    const handle = await ctx.agents.create({
+      sessionId: SessionId('shipped-telemetry-default'),
+      meta: { cwd: harnessHome },
+    })
+    try {
+      const execution = await ctx.commands.execute(
+        handle.agent,
+        '/feedback remains local',
+        [],
+        new AbortController().signal,
+      )
+      expect(execution?.result.kind).toBe('success')
+      if (execution?.result.kind !== 'success') throw new Error('feedback command did not succeed')
+      expect(execution.result.text).toContain('Session sharing is disabled.')
+    } finally {
+      await handle.dispose()
+    }
+
+    await ctx.fiber.dispose()
+    ctx = undefined
+    expect(requestCount).toBe(0)
+  } finally {
+    const cleanupFailures: unknown[] = []
+    if (ctx !== undefined) {
+      await Promise.resolve(ctx.fiber.dispose()).catch((error: unknown) => cleanupFailures.push(error))
+    }
+    try {
+      for (const key of environmentKeys) {
+        const value = originalEnvironment[key]
+        if (value === undefined) Reflect.deleteProperty(process.env, key)
+        else process.env[key] = value
+      }
+    } catch (error) {
+      cleanupFailures.push(error)
+    }
+    if (harnessHome !== undefined) {
+      await rm(harnessHome, { recursive: true, force: true }).catch((error: unknown) => cleanupFailures.push(error))
+    }
+    try {
+      collector.closeAllConnections()
+    } catch (error) {
+      cleanupFailures.push(error)
+    }
+    if (collector.listening) {
+      await new Promise<void>((resolve, reject) => {
+        collector.close((error) => {
+          if (error === undefined) resolve()
+          else reject(error)
+        })
+      })
+        .catch((error: unknown) => cleanupFailures.push(error))
+    }
+    if (cleanupFailures.length > 0) {
+      throw new AggregateError(cleanupFailures, 'shipped telemetry default e2e cleanup failed')
+    }
+  }
+}, 120_000)
+
+it('injects the module bootstrap when the webServer provider activates later', async () => {
+  scaffold = await launchWebScaffold({ deepSeekMissingCredential: true })
+  const index = await scaffold.hostFetch('/')
+  const indexBody = await index.text()
+  expect(indexBody).toContain('window.__ModuleLoader__=')
+  expect(indexBody).toContain('globalThis["__DSH_BOOT__"] = ')
 })
 
 it('assembles the shipped Web transport, catalog, guidance, and defaults', async () => {
@@ -202,15 +363,15 @@ it('lets a preset producer reach the background-job registry', async () => {
   })
   try {
     const signal = new AbortController().signal
-    // `tool-bash` is a preset row and `tasks` is a host registry; the producer
+    // The platform shell tool is a preset row and `tasks` is a host registry; the producer
     // resolves it with `ctx.get`, so a registry hidden behind a preset realm
     // fails here — with every task control still listed in the catalog above.
     const started = await ctx.tools.execute({
       signal,
-      callId: ToolCallId('shipped-bash-background'),
-      name: 'bash',
+      callId: ToolCallId('shipped-shell-background'),
+      name: SHELL_TOOL,
       arguments: {
-        command: 'printf SHIPPED_BACKGROUND_OK',
+        command: SHELL_COMMAND,
         description: 'shipped background probe',
         run_in_background: true,
       },
@@ -218,7 +379,7 @@ it('lets a preset producer reach the background-job registry', async () => {
     })
     expect({ isError: started.isError, content: started.content }).toEqual({
       isError: false,
-      content: [{ type: 'text', text: 'started background job bash-1' }],
+      content: [{ type: 'text', text: `started background job ${SHELL_JOB_ID}` }],
     })
 
     // The controller reads what the producer started: same registry, one
@@ -232,7 +393,7 @@ it('lets a preset producer reach the background-job registry', async () => {
     })
     expect(listed.isError).toBe(false)
     expect(listed.content).toEqual([
-      { type: 'text', text: expect.stringContaining('bash-1 [bash]') as unknown as string },
+      { type: 'text', text: expect.stringContaining(`${SHELL_JOB_ID} [${SHELL_TOOL}]`) as unknown as string },
     ])
 
     // The full round trip: the output a host-plane producer wrote is collected
@@ -241,7 +402,7 @@ it('lets a preset producer reach the background-job registry', async () => {
       signal,
       callId: ToolCallId('shipped-task-output'),
       name: 'job_output',
-      arguments: { job_id: 'bash-1', wait: true },
+      arguments: { job_id: SHELL_JOB_ID, wait: true },
       agent: handle.agent,
     })
     expect(collected.isError).toBe(false)

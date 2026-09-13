@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "goVersion": "1.27.1",
+  "gomobileVersion": "v0.0.0-20260908204917-8b95e45f8d3e",
+  "androidApi": 33,
+  "androidNdkVersion": "30.0.16248370"
+}

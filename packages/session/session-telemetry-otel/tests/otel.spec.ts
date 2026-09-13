@@ -8,12 +8,26 @@
 import { afterAll, afterEach, beforeAll, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { createServer, type Server } from 'node:http'
 import { once } from 'node:events'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { gunzipSync } from 'node:zlib'
 import { Context } from '@deepseek-ai/cordis'
-import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
+import {
+  context as otelContext,
+  ROOT_CONTEXT,
+  trace,
+  TraceFlags,
+  type Context as OtelContext,
+  type ContextManager,
+} from '@opentelemetry/api'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import {
+  ANONYMOUS_USER_ID_FILE_NAME,
+  getOrCreateAnonymousIdentity,
+  getOrCreateAnonymousUserId,
+} from '@deepseek-ai/dsh-anonymous-user-id'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import { recordFeedback } from '@deepseek-ai/dsh-command-feedback'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
@@ -29,11 +43,14 @@ interface OtlpLogsRequest {
   resourceLogs: {
     resource: { attributes: { key: string; value: { stringValue?: string } }[] }
     scopeLogs: {
-      scope: { name: string }
+      scope: { name: string; version: string }
       logRecords: {
         timeUnixNano: string
         severityNumber: number
         severityText: string
+        traceId?: string
+        spanId?: string
+        flags?: number
         attributes?: { key: string; value: Record<string, unknown> }[]
         body?: unknown
       }[]
@@ -42,6 +59,44 @@ interface OtlpLogsRequest {
 }
 
 const servers: Server[] = []
+const { version: packageVersion } = createRequire(import.meta.url)('../package.json') as { version: string }
+
+/** Synchronous test manager that proves an ambient OTel Context is active at emit time. */
+class TestContextManager implements ContextManager {
+  private current = ROOT_CONTEXT
+
+  active(): OtelContext {
+    return this.current
+  }
+
+  with<A extends unknown[], F extends (...args: A) => ReturnType<F>>(
+    active: OtelContext,
+    fn: F,
+    thisArg?: ThisParameterType<F>,
+    ...args: A
+  ): ReturnType<F> {
+    const previous = this.current
+    this.current = active
+    try {
+      return fn.call(thisArg, ...args)
+    } finally {
+      this.current = previous
+    }
+  }
+
+  bind<T>(_active: OtelContext, target: T): T {
+    return target
+  }
+
+  enable(): this {
+    return this
+  }
+
+  disable(): this {
+    this.current = ROOT_CONTEXT
+    return this
+  }
+}
 
 // The backend resolves the harness home's anonymous user id at construction;
 // pin DSH_HOME to a temp dir so the suite never touches the ambient ~/.dsh.
@@ -122,15 +177,16 @@ describe('OpenTelemetrySessionBackend wire', () => {
   it('ships session records and the ops shutdown marker through the real SDK pipeline', async () => {
     const { url, captures } = await mockCollector()
     const { ctx, fiber } = await boot(url)
-    const session = ctx.sessions.create(SessionId('wire'), { meta: { cwd: '/tmp/w' } })
+    const session = ctx.sessions.create(SessionId('wire'), {
+      meta: { cwd: '/tmp/w', parentSession: SessionId('raw-parent') },
+    })
     session.append('turn/start', { turn: 1 })
     session.append('turn/end', { turn: 1, reason: { kind: 'error', error: { message: 'boom', code: 'UNKNOWN' } } })
-    ctx.sessionTelemetry.emit({
-      channel: 'ledger',
-      time: Date.now(),
-      severity: 'info',
-      attributes: { 'session.id': 'wire', 'event.type': 'manual', 'event.seq': 99 },
-      body: { direct: true },
+    ctx.emit('agent/error', {
+      agent: { id: session.id, session } as Agent,
+      turn: 1,
+      step: 1,
+      error: new TypeError('secret source path /tmp/w/private.ts'),
     })
     await fiber.dispose()
 
@@ -141,25 +197,106 @@ describe('OpenTelemetrySessionBackend wire', () => {
 
     const resource = first.body.resourceLogs[0]!.resource.attributes
     expect(resource).toContainEqual({ key: 'service.name', value: { stringValue: 'deepseek-harness' } })
+    expect(resource.some(attribute => attribute.key === 'service.version')).toBe(true)
     expect(resource).toContainEqual({ key: 'user.id', value: { stringValue: getOrCreateAnonymousUserId() } })
+    expect(resource).toContainEqual({ key: 'os.type', value: { stringValue: process.platform } })
+    expect(resource).toContainEqual({ key: 'host.arch', value: { stringValue: process.arch } })
 
     const records = allRecords(captures)
     const ledger = records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel')
     const ops = records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel/ops')
+    const scopes = captures.flatMap(capture => capture.body.resourceLogs.flatMap(resourceLog =>
+      resourceLog.scopeLogs.map(scopeLog => scopeLog.scope)))
+    expect(scopes).toContainEqual({
+      name: '@deepseek-ai/dsh-session-telemetry-otel',
+      version: packageVersion,
+    })
+    expect(scopes).toContainEqual({
+      name: '@deepseek-ai/dsh-session-telemetry-otel/ops',
+      version: packageVersion,
+    })
+    expect(records.every(({ record }) => (
+      record.body === undefined
+      || (typeof record.body === 'object' && record.body !== null && Object.keys(record.body).length === 0)
+    ))).toBe(true)
 
     const start = ledger.find(r => r.record.attributes?.some(a => a.key === 'event.type' && a.value.stringValue === 'turn/start'))
     expect(start).toBeDefined()
     expect(start?.record.severityNumber).toBe(9)
     expect(BigInt(start!.record.timeUnixNano)).toBe(BigInt(session.events[0]!.time) * 1_000_000n)
-    expect(start?.record.attributes).toContainEqual({ key: 'session.cwd', value: { stringValue: '/tmp/w' } })
+    expect(start?.record.attributes?.some(attribute => attribute.key === 'session.cwd')).toBe(false)
+    const sessionPseudonym = start?.record.attributes?.find(attribute => attribute.key === 'session.id')
+      ?.value['stringValue']
+    const identity = getOrCreateAnonymousIdentity()
+    expect(sessionPseudonym).toMatch(/^[0-9a-f]{64}$/u)
+    expect(sessionPseudonym).toBe(identity.pseudonymizeSessionId('wire'))
+    const parentPseudonym = start?.record.attributes?.find(attribute => attribute.key === 'session.parent_id')
+      ?.value['stringValue']
+    expect(parentPseudonym).toMatch(/^[0-9a-f]{64}$/u)
+    expect(parentPseudonym).toBe(identity.pseudonymizeSessionId('raw-parent'))
 
     const end = ledger.find(r => r.record.attributes?.some(a => a.key === 'event.type' && a.value.stringValue === 'turn/end'))
     expect(end?.record.severityNumber).toBe(17)
     expect(end?.record.severityText).toBe('ERROR')
-    expect(eventTypes(captures)).toContain('manual')
+    expect(eventTypes(captures)).toEqual(['turn/start', 'turn/end'])
+    const wire = JSON.stringify(captures)
+    expect(wire).not.toContain('/tmp/w')
+    expect(wire).not.toContain('boom')
+    expect(wire).not.toContain('private.ts')
+    expect(wire).not.toContain('raw-parent')
+    expect(wire).not.toContain('"wire"')
+    const persistedSeed = readFileSync(join(tempHome, ANONYMOUS_USER_ID_FILE_NAME), 'utf8')
+      .trim().slice('v1:'.length)
+    expect(wire).not.toContain(persistedSeed)
 
-    expect(ops).toHaveLength(1)
-    expect(ops[0]!.record.attributes).toContainEqual({ key: 'telemetry.op', value: { stringValue: 'shutdown' } })
+    expect(ops).toHaveLength(2)
+    const agentError = ops.find(({ record }) => record.attributes?.some(attribute =>
+      attribute.key === 'telemetry.op' && attribute.value.stringValue === 'agent-error'))
+    expect(agentError?.record.attributes).toContainEqual({ key: 'error.class', value: { stringValue: 'TypeError' } })
+    expect(agentError?.record.attributes).toContainEqual({
+      key: 'session.id', value: { stringValue: sessionPseudonym },
+    })
+    const shutdown = ops.find(({ record }) => record.attributes?.some(attribute =>
+      attribute.key === 'telemetry.op' && attribute.value.stringValue === 'shutdown'))
+    expect(shutdown).toBeDefined()
+    expect(shutdown?.record.attributes).toContainEqual({
+      key: 'session.id', value: { stringValue: sessionPseudonym },
+    })
+  })
+
+  it('does not inherit trace correlation from an ambient OTel Context', async () => {
+    const manager = new TestContextManager().enable()
+    expect(otelContext.setGlobalContextManager(manager)).toBe(true)
+    const traceId = 'a'.repeat(32)
+    const spanId = 'b'.repeat(16)
+    const ambient = trace.setSpanContext(ROOT_CONTEXT, {
+      traceId,
+      spanId,
+      traceFlags: TraceFlags.SAMPLED,
+    })
+    try {
+      const { url, captures } = await mockCollector()
+      const { ctx, fiber } = await boot(url)
+      const session = ctx.sessions.create(SessionId('ambient-trace'), { meta: {} })
+      otelContext.with(ambient, () => {
+        expect(otelContext.active()).toBe(ambient)
+        session.append('turn/start', { turn: 1 })
+      })
+      await fiber.dispose()
+
+      const records = allRecords(captures).map(({ record }) => record)
+      expect(records.length).toBeGreaterThan(0)
+      expect(records.every(record => (
+        record.traceId === undefined
+        && record.spanId === undefined
+        && record.flags === undefined
+      ))).toBe(true)
+      const wire = JSON.stringify(captures)
+      expect(wire).not.toContain(traceId)
+      expect(wire).not.toContain(spanId)
+    } finally {
+      otelContext.disable()
+    }
   })
 
   it('drains records enqueued after a timer export began: dispose during an in-flight batch', async () => {
@@ -278,16 +415,6 @@ describe('OpenTelemetrySessionBackend wire', () => {
       mode: SessionTelemetryMode.FEEDBACK_ONLY,
       exporter: { url },
     })
-    ctx.on('session-telemetry/record', (_record, next) => {
-      ctx.sessionTelemetry.emit({
-        channel: 'ledger',
-        time: Date.now(),
-        severity: 'info',
-        attributes: { 'session.id': 'feedback-only', 'event.type': 'direct-bypass', 'event.seq': 99 },
-        body: { mustStayLocal: true },
-      })
-      return next()
-    })
     const session = ctx.sessions.create(SessionId('feedback-only'), { meta: {} })
     session.append('turn/start', { turn: 1 })
     recordFeedback(session, 'first report')
@@ -300,12 +427,12 @@ describe('OpenTelemetrySessionBackend wire', () => {
       record.attributes?.flatMap(attribute =>
         attribute.key === 'event.type' ? [attribute.value.stringValue] : []) ?? [])
     expect(types).toEqual(['turn/start', 'feedback/record', 'turn/end', 'feedback/record'])
-    expect(JSON.stringify(captures)).toContain('first report')
-    expect(JSON.stringify(captures)).toContain('second report')
+    expect(JSON.stringify(captures)).not.toContain('first report')
+    expect(JSON.stringify(captures)).not.toContain('second report')
     expect(allRecords(captures).some(({ scope }) => scope.endsWith('/ops'))).toBe(false)
   })
 
-  it('ignores direct emits and non-canonical feedback in feedback-only mode', async () => {
+  it('exposes no direct emitter and ignores non-canonical feedback in feedback-only mode', async () => {
     const { url, captures } = await mockCollector()
     const ctx = new Context()
     await ctx.plugin(SessionStore)
@@ -316,13 +443,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     })
     const session = ctx.sessions.create(SessionId('no-feedback'), { meta: {} })
     session.append('turn/start', { turn: 1 })
-    ctx.sessionTelemetry.emit({
-      channel: 'ledger',
-      time: Date.now(),
-      severity: 'info',
-      attributes: { 'session.id': 'no-feedback', 'event.type': 'direct', 'event.seq': 99 },
-      body: { mustStayLocal: true },
-    })
+    expect('emit' in ctx.sessionTelemetry).toBe(false)
     ctx.emit('session/event', session, {
       type: 'feedback/record',
       seq: session.events.length,
@@ -354,14 +475,8 @@ describe('OpenTelemetrySessionBackend wire', () => {
     expect(warn).toHaveBeenCalledWith(
       'session telemetry is DISABLED; nothing will be shared and this feedback remains local',
     )
-    ctx.sessionTelemetry.emit({
-      channel: 'ledger',
-      time: 0,
-      severity: 'info',
-      attributes: {},
-      body: null,
-    })
-    await ctx.sessionTelemetry.shutdown()
+    expect('emit' in ctx.sessionTelemetry).toBe(false)
+    expect('shutdown' in ctx.sessionTelemetry).toBe(false)
     await fiber.dispose()
     recordFeedback(session, 'after disposal')
     expect(warn).toHaveBeenCalledTimes(1)

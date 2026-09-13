@@ -10,13 +10,13 @@ Windows ACL sandbox 拥有 restricted token、SID、DACL、grant 与 workspace p
 
 ## Decision
 
-`@deepseek-ai/dsh-win32-process` 拥有 `sandbox-windows-acl` 当前消费的可复用 Win32 process ABI 与 native resource 操作。该包惰性加载 `kernel32.dll` 和 `advapi32.dll`，核验 x64 `STARTUPINFOW` 与 `PROCESS_INFORMATION` 布局，为 `CreateProcessAsUserW` 引用 argv，并提供带检查的 restricted-token pipe 与 inherited-stdio Job 操作。
+`@deepseek-ai/dsh-win32-process` 拥有供 `sandbox-windows-acl` 与 `subprocess-local` 使用的可复用 Win32 进程 ABI 和原生资源操作。它延迟加载 Windows 库，并验证模块拥有的匿名 x64 结构体，避免跨模块代际的全局类型名碰撞。受限令牌启动及 stdio 原语与普通 Job 的分配、成员查询、终止和关闭保持分离。
 
 Windows ACL sandbox 继续唯一拥有 restricted-token 创建、SID 与 DACL policy、grants、可写路径裁定、临时目录 policy 和公共 sandbox child result。它通过共享 binding context 扩展 policy-specific API，提供 primary token，组合 pipe drain 与 wait，并在自己的生命周期边界关闭调用方拥有的 Job。
 
 每项 native allocation 与 HANDLE 在各个 shared operation 内只有一个 owner。process operation 会释放 Koffi out-parameter，并在受控失败前关闭它已经取得的每个 pipe、thread、process 或 Job handle。pipe 创建成功时，把 process 与 stdout/stderr read handles 返回给 sandbox。inherited-stdio 创建以 suspended 状态启动目标，把它分配给 kill-on-close Job，并只在分配后恢复，因此目标代码不会在 Job 外运行。分配失败会先终止 suspended target 再释放句柄；恢复失败会关闭已经分配的 Job。sandbox 保留既有 pipe-drain、direct-wait、result 与返回 Job 的生命周期。
 
-该包只导出 sandbox 生产路径已使用的操作。ordinary `CreateProcessW`、精确 `applicationName`、parent-stdio release 与 whole-Job settlement 在 ordinary process consumer 出现前保持缺席。该包是 library，不是 Cordis service 或公共 Windows SDK。
+本包只导出具有生产消费者的操作。[Windows 子进程 Job 所有权](2026-09-07-windows-subprocess-job-ownership.zh.md) 增加普通 Job 操作，同时保留策略与资源的分离。普通 `CreateProcessW`、精确 `applicationName` 和父进程 stdio 释放仍未提供。本包是库，不是 Cordis 服务或公共 Windows SDK。
 
 ## Verification
 

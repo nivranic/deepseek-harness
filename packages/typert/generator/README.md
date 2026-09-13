@@ -76,6 +76,7 @@ The generator is built on one separation: extraction and emission are decoupled 
 | [`src/workspace.ts`](src/workspace.ts) | `WorkspaceTypertGenerator`: discovery, generation, export and files validation |
 | [`src/tsdown-plugin.ts`](src/tsdown-plugin.ts) | tsdown plugin face: decorator lowering and artifact emission |
 | [`src/cordis-catalog.ts`](src/cordis-catalog.ts) | Catalog projection used by the generated Cordis catalogs |
+| [`src/jsdoc.ts`](src/jsdoc.ts) | Internal prose and tag parser for catalog projection |
 
 ### Analysis and faces
 

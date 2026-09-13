@@ -18,6 +18,9 @@ private const val PROTOCOL_NAME = "Noise_XX_25519_ChaChaPoly_SHA256"
 private const val KEY_BYTES = 32
 private const val TAG_BYTES = 16
 
+/** The traffic key must be retired before another message can be processed. */
+class NoiseNonceExhaustedException : IllegalStateException("Noise nonce exhausted")
+
 /**
  * Noise_XX_25519_ChaChaPoly_SHA256 over JDK-only primitives (chapters 68/69:
  * the relay's "Noise 或 TLS" transport encryption). HTTP is only the
@@ -32,19 +35,20 @@ class NoiseCipherState(key: ByteArray) {
     val keyBytes: ByteArray = key.copyOf()
 
     private val key: ByteArray = key.copyOf()
-    private var counter: Long = 0
+    /** Current transport nonce; each new traffic key starts at zero. */
+    internal var counter: ULong = 0uL
 
     /** AEAD seal at the current counter, then advance it. */
     fun encryptWithAd(ad: ByteArray, plaintext: ByteArray): ByteArray {
         val out = chachaSeal(this.key, counter, ad, plaintext)
-        counter += 1
+        counter += 1uL
         return out
     }
 
     /** AEAD open at the current counter, then advance it; a bad tag throws. */
     fun decryptWithAd(ad: ByteArray, ciphertext: ByteArray): ByteArray {
         val out = chachaOpen(this.key, counter, ad, ciphertext)
-        counter += 1
+        counter += 1uL
         return out
     }
 }
@@ -65,7 +69,7 @@ class NoiseHandshake(
     private var ck: ByteArray = PROTOCOL_NAME.toByteArray(Charsets.US_ASCII)
     private var h: ByteArray = ck.copyOf()
     private var key: ByteArray? = null
-    private var counter: Long = 0
+    private var counter: ULong = 0uL
 
     /** The transcript hash right now — the HTTP session id after message 2. */
     val transcriptHash: ByteArray get() = h.copyOf()
@@ -144,19 +148,19 @@ class NoiseHandshake(
         val (nextCk, tempKey) = hkdf2(ck, ikm)
         ck = nextCk
         key = tempKey
-        counter = 0
+        counter = 0uL
     }
 
     private fun encryptAndHash(plaintext: ByteArray): ByteArray {
         val sealed = key?.let { chachaSeal(it, counter, h, plaintext) } ?: plaintext
-        if (key != null) counter += 1
+        if (key != null) counter += 1uL
         mixHash(sealed)
         return sealed
     }
 
     private fun decryptAndHash(sealed: ByteArray): ByteArray {
         val plaintext = key?.let { chachaOpen(it, counter, h, sealed) } ?: sealed
-        if (key != null) counter += 1
+        if (key != null) counter += 1uL
         mixHash(sealed)
         return plaintext
     }
@@ -252,20 +256,22 @@ private fun hkdf2(chainingKey: ByteArray, ikm: ByteArray): Pair<ByteArray, ByteA
 }
 
 /** The 12-byte Noise ChaChaPoly nonce: 4 zero bytes then the counter little-endian. */
-private fun noiseNonce(counter: Long): ByteArray =
-    byteArrayOf(0, 0, 0, 0) + byteArrayOf(
-        (counter and 0xff).toByte(),
-        ((counter shr 8) and 0xff).toByte(),
-        ((counter shr 16) and 0xff).toByte(),
-        ((counter shr 24) and 0xff).toByte(),
-        ((counter shr 32) and 0xff).toByte(),
-        ((counter shr 40) and 0xff).toByte(),
-        ((counter shr 48) and 0xff).toByte(),
-        ((counter shr 56) and 0xff).toByte(),
+private fun noiseNonce(counter: ULong): ByteArray {
+    if (counter == ULong.MAX_VALUE) throw NoiseNonceExhaustedException()
+    return byteArrayOf(0, 0, 0, 0) + byteArrayOf(
+        (counter and 0xffuL).toByte(),
+        ((counter shr 8) and 0xffuL).toByte(),
+        ((counter shr 16) and 0xffuL).toByte(),
+        ((counter shr 24) and 0xffuL).toByte(),
+        ((counter shr 32) and 0xffuL).toByte(),
+        ((counter shr 40) and 0xffuL).toByte(),
+        ((counter shr 48) and 0xffuL).toByte(),
+        ((counter shr 56) and 0xffuL).toByte(),
     )
+}
 
 /** ChaCha20-Poly1305 seal; the output is ciphertext || tag. */
-private fun chachaSeal(key: ByteArray, counter: Long, ad: ByteArray, plaintext: ByteArray): ByteArray =
+private fun chachaSeal(key: ByteArray, counter: ULong, ad: ByteArray, plaintext: ByteArray): ByteArray =
     Cipher.getInstance("ChaCha20-Poly1305/None/NoPadding").run {
         init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, "ChaCha20"), IvParameterSpec(noiseNonce(counter)))
         updateAAD(ad)
@@ -273,7 +279,7 @@ private fun chachaSeal(key: ByteArray, counter: Long, ad: ByteArray, plaintext: 
     }
 
 /** ChaCha20-Poly1305 open over ciphertext || tag; a bad tag throws. */
-private fun chachaOpen(key: ByteArray, counter: Long, ad: ByteArray, ciphertext: ByteArray): ByteArray =
+private fun chachaOpen(key: ByteArray, counter: ULong, ad: ByteArray, ciphertext: ByteArray): ByteArray =
     Cipher.getInstance("ChaCha20-Poly1305/None/NoPadding").run {
         init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "ChaCha20"), IvParameterSpec(noiseNonce(counter)))
         updateAAD(ad)

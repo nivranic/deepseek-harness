@@ -166,7 +166,7 @@ export function parseInboundFrame(data: unknown): TunnelInboundFrame {
   if (typeof frame.headers !== 'object' || frame.headers === null) {
     throw new Error(`webworker tunnel: request ${String(id)} needs a headers object`)
   }
-  const headers: Record<string, string> = {}
+  const headers = Object.create(null) as Record<string, string>
   for (const [key, value] of Object.entries(frame.headers)) {
     if (typeof value === 'string') headers[key.toLowerCase()] = value
   }

@@ -211,7 +211,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'artifact/created': { id: ArtifactId; kind: string; title: string; format: ArtifactFormat }
 ```
 
-来源：[`packages/artifact/artifact/src/types.ts:55`](../packages/artifact/artifact/src/types.ts)
+来源：[`packages/artifact/artifact/src/types.ts:92`](../packages/artifact/artifact/src/types.ts)
 
 <a id="artifactstatus--log-only"></a>
 
@@ -226,7 +226,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'artifact/status': { id: ArtifactId; status: ArtifactStatus }
 ```
 
-来源：[`packages/artifact/artifact/src/types.ts:61`](../packages/artifact/artifact/src/types.ts)
+来源：[`packages/artifact/artifact/src/types.ts:98`](../packages/artifact/artifact/src/types.ts)
 
 ### `assistant/*`
 

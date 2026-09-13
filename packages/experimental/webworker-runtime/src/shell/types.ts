@@ -14,9 +14,9 @@
 export interface ShellState {
   /** Absolute working directory every relative path resolves against. */
   cwd: string
-  /** Exported variables — the environment a program reads. */
+  /** Exported variables in a null-prototype dictionary — the environment a program reads. */
   environment: Record<string, string>
-  /** Shell variables that were assigned but never exported. */
+  /** Shell variables that were assigned but never exported, in a null-prototype dictionary. */
   variables: Record<string, string>
   /** Exit status of the last completed command, read back as `$?`. */
   lastStatus: number

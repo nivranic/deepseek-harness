@@ -42,6 +42,8 @@ JavaScript exceptions are successful Runtime responses carrying `exceptionDetail
 
 The Client Console observer preserves the original page call and asynchronously emits one event per enabled DevTools session. Each session serializes arguments into its own `console` object group, so disconnect, Runtime disable, or `Runtime.discardConsoleEntries` can release one connection without invalidating another. Context and Fiber arguments use the same semantic reference and DOM reverse mapping as evaluation results.
 
+Runtime readiness uses the existing correlated request owner. The Worker attaches Console listeners, sends Console enable, and then requests Runtime `enable` on the same ordered source socket. The reply confirms that the Client has processed the earlier controls and initialized its session; sending the controls alone cannot establish that ordering across realms. Initial `Runtime.enable` and later synthetic-context announcements wait for the reply, with the same timeout, cancellation, and disconnect settlement as other Runtime commands. Detached tree delivery stays independent, so a reconnecting Client's tree replacement may arrive before its Runtime context is ready.
+
 The Client discovers this package's `lib/client.js` URL from the assembled web boot graph. `Debugger.enable` reads metadata through a typed source operation, and `Debugger.getScriptSource` reassembles bounded base64 chunks; the source map remains available at the advertised URL. Client-script breakpoint, step, and call-frame operations remain explicitly unsupported because page JavaScript cannot pause its own realm and continue servicing control messages. Target-wide pause and resume continue to control the Host debugger.
 
 ## Host debugging
@@ -81,6 +83,7 @@ The wrapper passes a normalized Request to the original fetch, reads request and
 - Console evaluates in the Host context and receives Host console events.
 - Console lists Host and Client contexts; Client evaluation, properties, function calls, promise awaiting, and release operations preserve RemoteObject identity without sharing objects across realms or DevTools connections.
 - Host and Client Console events use the same projector; Client arguments remain isolated by DevTools connection and Cordis arguments resolve to Elements nodes.
+- A held Client control stream prevents premature Runtime success; one Console call reaches both sessions after release. Disconnect rejects pending readiness, and a later Client remains unannounced while its detached tree is readable.
 - Sources receives Host scripts and the built Client bundle; Client source reads are chunked and active debugging fails explicitly, while a breakpoint can pause the Host, evaluate a call frame, and resume.
 - Host paused scopes and call-frame results use the same connection-local RemoteObject table as Runtime evaluation.
 - Network replays requests that predate `Network.enable` and streams later requests without loss or duplication.

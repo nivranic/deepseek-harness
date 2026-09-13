@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "kind": "nonce-uniqueness-reproduction",
+  "sourceHead": "24eff39f77372b2174341ec6703927e566b5a605",
+  "sourcePath": "apps/relay/noise.mjs",
+  "sourceSha256": "7c7ac79692646f0126e6fc145451b385dbba7ce308ca9554c7b0dff4eb4f4a70",
+  "node": "v22.22.1",
+  "initialCounter": 9007199254740992,
+  "counterAfterFirst": 9007199254740992,
+  "counterAfterSecond": 9007199254740992,
+  "identicalCiphertexts": true,
+  "method": "The public state counter is positioned directly at 2^53, then the actual encryptWithAd implementation is called twice with the same synthetic plaintext and zero-valued test key. No network or production key is involved; this is a boundary test, not an endurance run.",
+  "conclusion": "Number increment loses precision at 2^53 and repeats the counter and ciphertext. Node, Kotlin and Swift nonce bounds still require a coordinated fix."
+}

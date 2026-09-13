@@ -1,0 +1,15 @@
+{
+  "clientId": "client-generation-1",
+  "eventId": "event-question-1",
+  "outcome": {
+    "kind": "rejected",
+    "error": {
+      "name": "InteractionError",
+      "message": "The interaction is no longer pending.",
+      "code": "NOT_PENDING",
+      "details": {
+        "retryable": false
+      }
+    }
+  }
+}

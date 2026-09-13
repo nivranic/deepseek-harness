@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * The node reference consumer of the Noise-encrypted relay protocol — the
  * executable specification the Kotlin and Apple RelayClients mirror, and
@@ -7,7 +6,8 @@
  * server-assigned session id equals our own transcript hash → complete →
  * consume the encrypted ack frame. Request/response bodies are single AEAD
  * frames; the stream body is a sequence of frames decrypted as they
- * arrive.
+ * arrive. Calls serialize through response consumption. A failed exchange
+ * discards its session without replay; the next explicit call handshakes.
  */
 
 import { randomBytes } from 'node:crypto'
@@ -29,6 +29,8 @@ function takeFrames(buffer) {
 }
 
 export class RelayClient {
+  #exchangeTail = Promise.resolve()
+
   /** @param {string} baseUrl - the relay service root, e.g. http://host:8787. */
   constructor(baseUrl) {
     this.baseUrl = baseUrl
@@ -59,19 +61,42 @@ export class RelayClient {
     this.session = { id, send, recv }
   }
 
+  /** Ordered HTTP exchanges share counters; a failed exchange retires its cached keys without replay. */
+  #withSession(operation) {
+    const next = this.#exchangeTail.then(async () => {
+      await this.#ensure()
+      const session = this.session
+      try {
+        return await operation(session)
+      } catch (error) {
+        if (this.session === session) this.session = null
+        throw error
+      }
+    })
+    this.#exchangeTail = next.catch(() => { /* Queue readiness ignores the error already returned to this caller. */ })
+    return next
+  }
+
+  async #post(path, session, body, signal) {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: 'POST', headers: { 'x-relay-session': session.id }, body, signal,
+    })
+    if (!response.ok) {
+      await response.body?.cancel()
+      throw new Error(`relay ${path} failed: HTTP ${response.status}`)
+    }
+    return response
+  }
+
   /** One framed request/response round trip. */
   async #call(path, request) {
-    await this.#ensure()
-    const body = encodeFrame(this.session.send.encryptWithAd(EMPTY, Buffer.from(JSON.stringify(request))))
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      method: 'POST',
-      headers: { 'x-relay-session': this.session.id },
-      body,
+    return await this.#withSession(async session => {
+      const body = encodeFrame(session.send.encryptWithAd(EMPTY, Buffer.from(JSON.stringify(request))))
+      const response = await this.#post(path, session, body)
+      const frames = decodeFrames(Buffer.from(await response.arrayBuffer()))
+      if (frames.length !== 1) throw new Error(`relay ${path} answered ${frames.length} frames`)
+      return JSON.parse(session.recv.decryptWithAd(EMPTY, frames[0]).toString('utf8'))
     })
-    if (!response.ok) throw new Error(`relay ${path} failed: HTTP ${response.status}`)
-    const frames = decodeFrames(Buffer.from(await response.arrayBuffer()))
-    if (frames.length !== 1) throw new Error(`relay ${path} answered ${frames.length} frames`)
-    return JSON.parse(this.session.recv.decryptWithAd(EMPTY, frames[0]).toString('utf8'))
   }
 
   /**
@@ -94,15 +119,11 @@ export class RelayClient {
 
   /** Drain the device's pending envelopes in arrival order. */
   async poll(token) {
-    await this.#ensure()
-    const response = await fetch(`${this.baseUrl}/relay/poll`, {
-      method: 'POST',
-      headers: { 'x-relay-session': this.session.id },
-      body: encodeFrame(this.session.send.encryptWithAd(EMPTY, Buffer.from(JSON.stringify({ token })))),
+    return await this.#withSession(async session => {
+      const response = await this.#post('/relay/poll', session, encodeFrame(session.send.encryptWithAd(EMPTY, Buffer.from(JSON.stringify({ token })))))
+      return decodeFrames(Buffer.from(await response.arrayBuffer()))
+        .map(frame => JSON.parse(session.recv.decryptWithAd(EMPTY, frame).toString('utf8')))
     })
-    if (!response.ok) throw new Error(`relay poll failed: HTTP ${response.status}`)
-    return decodeFrames(Buffer.from(await response.arrayBuffer()))
-      .map(frame => JSON.parse(this.session.recv.decryptWithAd(EMPTY, frame).toString('utf8')))
   }
 
   /**
@@ -133,7 +154,6 @@ export class RelayClient {
   }
 
   async *#streamEvents(token, abort) {
-    await this.#ensure()
     // The stream rides its own one-time key so live pushes never share a
     // counter with HTTP responses on the session states.
     const streamKey = randomBytes(32)
@@ -143,18 +163,21 @@ export class RelayClient {
         reject(Object.assign(new Error('relay stream closed locally'), { code: 'RELAY_STREAM_CLOSED' }))
       })
     })
+    closed.catch(() => { /* Local close can precede the response head; the stream owner handles cancellation below. */ })
     try {
-      const response = await fetch(`${this.baseUrl}/relay/stream`, {
-        method: 'POST',
-        headers: { 'x-relay-session': this.session.id },
-        body: encodeFrame(this.session.send.encryptWithAd(EMPTY, Buffer.from(JSON.stringify({ token, streamKey: streamKey.toString('hex') })))),
-        signal: abort.signal,
-      })
-      if (!response.ok) throw new Error(`relay stream failed: HTTP ${response.status}`)
+      const response = await this.#withSession(session => this.#post(
+        '/relay/stream', session,
+        encodeFrame(session.send.encryptWithAd(EMPTY, Buffer.from(JSON.stringify({ token, streamKey: streamKey.toString('hex') })))),
+        abort.signal,
+      ))
       const chunks = response.body[Symbol.asyncIterator]()
       let buffer = Buffer.alloc(0)
       while (true) {
-        const { value: chunk } = await Promise.race([chunks.next(), closed])
+        const { value: chunk, done } = await Promise.race([chunks.next(), closed])
+        if (done) {
+          if (buffer.length !== 0) throw new Error('relay noise stream ended inside a frame')
+          break
+        }
         buffer = Buffer.concat([buffer, chunk])
         const { frames, rest } = takeFrames(buffer)
         buffer = rest
@@ -163,7 +186,7 @@ export class RelayClient {
         }
       }
     } catch (error) {
-      if (error?.code !== 'RELAY_STREAM_CLOSED') throw error
+      if (!abort.signal.aborted && error?.code !== 'RELAY_STREAM_CLOSED') throw error
     } finally {
       abort.abort()
     }

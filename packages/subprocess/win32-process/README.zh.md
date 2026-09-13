@@ -1,5 +1,5 @@
 ---
-description: "面向实现或排查 Windows ACL 沙箱的维护者，说明底层 Win32 进程原语。"
+description: "供普通子进程 Job 和 Windows ACL 沙箱维护者使用的共享 Win32 进程原语。"
 kind: "package-library"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-library"
 
 ## 概述
 
-供 Windows ACL 沙箱消费的底层 Win32 进程库。它唯一拥有仓库中可复用 restricted-process、stdio 与 Job Object 操作的 Koffi 绑定表；它不是 Cordis 服务，也不决定沙箱策略或公共 child 行为。维护沙箱原生进程路径或检查 handle 生命周期限制时，请阅读本页。
+供 `subprocess-local` 和 Windows ACL 沙箱使用的底层 Win32 进程库。它拥有可复用的 Koffi 绑定、受限进程创建、stdio 和 Job 操作。消费者拥有调度、目标结果、沙箱策略和公共子进程行为；本包不是 Cordis 服务。
 
 ## 目录
 
@@ -24,10 +24,11 @@ kind: "package-library"
 <a id="behavior"></a>
 ## Behavior
 
-- **唯一可复用 ABI owner** — `abi.ts` 拥有 sandbox process 路径消费的 Win32 常量与 x64 布局值。`ffi.ts` 懒加载 `kernel32.dll` 与 `advapi32.dll`，核验 `STARTUPINFOW` 和 `PROCESS_INFORMATION`，提供带类型的操作与错误格式化，并让 sandbox policy 通过同一组已加载库绑定剩余 API。
+- **单一可复用 ABI 所有者**——`abi.ts` 拥有常量和 x64 布局。`ffi.ts` 延迟加载 Windows 库，并验证模块拥有的匿名 `STARTUPINFOW` 和 `PROCESS_INFORMATION` 类型，使独立模块代际不会发生全局类型名碰撞。消费者扩展同一绑定上下文。
 - **restricted-token 创建** — `RestrictedProcessSpawnOptions` 要求 sandbox 的 primary token，并使用 `CreateProcessAsUserW`。pipe 与 inherited-stdio 路径共用命令行引用、cwd、继承环境块、返回值检查与句柄清理。
 - **管道进程原语** — `spawnPipedProcess()` 创建匿名 stdin/stdout/stderr 管道，立即关闭 stdin，并返回两个读取端；调用方负责等待进程与排空管道。任一局部失败都会关闭该操作已经拥有的句柄，并在各自 Win32 生命周期结束后释放每个 Koffi 输出槽与结构体分配。
-- **继承 stdio 的 Job 原语** — `spawnInheritedJobProcess()` 创建一个 kill-on-close Job，临时把当前 stdio 句柄设为可继承，以 suspended 状态创建 restricted child，把它分配给 Job，再恢复初始线程。目标代码不会在 Job 分配前运行；受控的分配或恢复失败会终止 suspended child，或在释放全部已拥有句柄前关闭已分配的 Job。
+- **Job 所有权原语**——`createProcessJob()` 创建不可继承的 kill-on-close Job，分配调用方拥有且尚未放行的进程，查询内核活跃成员，请求终止整个 Job，并关闭其句柄。查询、分配、终止和关闭失败仍是错误；只有成功的成员查询才证明 Job 为空。
+- **继承 stdio 的 Job 原语**——`spawnInheritedJobProcess()` 创建一个 kill-on-close Job，临时将当前 stdio 句柄标记为可继承，以挂起状态创建受限子进程，将其分配到 Job，再恢复初始线程。可控的分配或恢复失败在终止挂起子进程或关闭已分配 Job 后，释放所有拥有的句柄。
 - **显式结算归属** — `waitForProcessExit()` 等待并关闭进程句柄。`drainPipe()` 在排空期间复用一个 native count slot，释放该分配并关闭管道读取句柄。sandbox 保留既有调度、result 组合与调用方拥有的 Job 关闭行为。
 
 Windows ACL 沙箱在这些原语上增加 SID、DACL、grant、workspace 与公共 child policy。

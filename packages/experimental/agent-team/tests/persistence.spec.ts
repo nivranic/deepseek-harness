@@ -16,12 +16,14 @@ import * as SubagentSpawn from '@deepseek-ai/dsh-subagent-spawn-in-process'
 import { MockAdapter, textResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import TeamService, { foldTeam, TeamId, TeamMessageId } from '../src/index.ts'
 import type { TeamMemberSnapshot, TeamMessageSnapshot, TeamTaskSnapshot } from '../src/index.ts'
+import type { TeamMailbox } from '../src/mailbox.ts'
 import { TestSessionQuery } from './test-session-query.ts'
 
 const SIGNAL = new AbortController().signal
 const PERSISTENCE_TEST_TIMEOUT_MS = 15_000
 const roots: string[] = []
 const contexts = new Set<Context>()
+const releases: Array<() => void> = []
 
 /** Detached durable Team read: the service exposes views, so assertions fold the Lead log. */
 function durable(agent: Agent): {
@@ -46,6 +48,7 @@ async function disposeContext(ctx: Context): Promise<void> {
 }
 
 afterEach(async () => {
+  for (const release of releases.splice(0)) release()
   const failures: unknown[] = []
   for (const ctx of [...contexts].reverse()) {
     try {
@@ -61,6 +64,7 @@ afterEach(async () => {
       failures.push(error)
     }
   }
+  vi.restoreAllMocks()
   if (failures.length > 0) throw new AggregateError(failures, 'Agent Teams persistence test cleanup failed')
 })
 
@@ -147,9 +151,9 @@ function persistedChild(
 
 for (const backend of backends) {
   describe(`${backend.name} Agent Teams recovery`, () => {
-    it('reconciles a persisted child to active and a missing child to durable failed', {
+    it.each(['sender', 'recovery'] as const)('reconciles persisted and missing children while %s owns mail dispatch', {
       timeout: PERSISTENCE_TEST_TIMEOUT_MS,
-    }, async () => {
+    }, async (dispatcher) => {
       const storageRoot = mkdtempSync(join(tmpdir(), `dsh-team-${backend.name.toLowerCase()}-`))
       roots.push(storageRoot)
       const first = await stack(backend, storageRoot, [textResponse('initial child answer')])
@@ -193,6 +197,41 @@ for (const backend of backends) {
       await first.dispose()
 
       const second = await stack(backend, storageRoot, [textResponse('cold resumed answer')])
+      const recoveryReady = Promise.withResolvers<undefined>()
+      const allowRecovery = Promise.withResolvers<undefined>()
+      const queuedFlush = Promise.withResolvers<undefined>()
+      const allowQueueReturn = Promise.withResolvers<undefined>()
+      const followupStarted = Promise.withResolvers<undefined>()
+      const allowFollowup = Promise.withResolvers<undefined>()
+      releases.push(() => {
+        allowRecovery.resolve(undefined)
+        allowQueueReturn.resolve(undefined)
+        allowFollowup.resolve(undefined)
+      })
+      const mailbox = (second.ctx.agentTeams as unknown as { mailbox: TeamMailbox }).mailbox
+      const recover = mailbox.recoverFor.bind(mailbox)
+      vi.spyOn(mailbox, 'recoverFor').mockImplementation(async (agent, signal) => {
+        if (agent.id === activeRootId) {
+          recoveryReady.resolve(undefined)
+          await allowRecovery.promise
+        }
+        await recover(agent, signal)
+      })
+      const flush = second.ctx.sessions.flush.bind(second.ctx.sessions)
+      vi.spyOn(second.ctx.sessions, 'flush').mockImplementation(async (session) => {
+        const flushed = await flush(session)
+        if (session.id === activeRootId && session.events.at(-1)?.type === 'team/message/queued') {
+          queuedFlush.resolve(undefined)
+          if (dispatcher === 'recovery') await allowQueueReturn.promise
+        }
+        return flushed
+      })
+      const followup = second.ctx.subagents.followup.bind(second.ctx.subagents)
+      const followupSpy = vi.spyOn(second.ctx.subagents, 'followup').mockImplementation(async (...args) => {
+        followupStarted.resolve(undefined)
+        if (dispatcher === 'recovery') await allowFollowup.promise
+        return await followup(...args)
+      })
       const activeHandle = await second.ctx.agents.resume({
         resumeSessionId: activeRootId,
         agentOptions: { provider: 'mock', model: 'mock' },
@@ -207,16 +246,31 @@ for (const backend of backends) {
         expect(failedMember?.phase).toBe('failed')
         expect(failedMember?.error).toContain('child Session recovery failed')
       }, { timeout: 5_000 })
+      await recoveryReady.promise
 
-      const receipt = await second.ctx.agentTeams.sendMessage(activeHandle.agent, {
+      const sending = second.ctx.agentTeams.sendMessage(activeHandle.agent, {
         target: 'recoverable',
         content: [{ type: 'text', text: 'resume after reconciliation' }],
         delivery: 'wakeup',
         signal: SIGNAL,
       })
-      expect(receipt.status).toBe('accepted')
+      if (dispatcher === 'recovery') {
+        await queuedFlush.promise
+        allowRecovery.resolve(undefined)
+        await followupStarted.promise
+        allowQueueReturn.resolve(undefined)
+      }
+      const receipt = await sending
+      expect(receipt.status).toBe(dispatcher === 'recovery' ? 'queued' : 'accepted')
+      allowRecovery.resolve(undefined)
+      allowFollowup.resolve(undefined)
+      await vi.waitFor(() => { expect(durable(activeHandle.agent).pendingMessages).toEqual([]) }, { timeout: 5_000 })
       await vi.waitFor(() => { expect(second.ctx.agents.get(childId)).toBeUndefined() }, { timeout: 5_000 })
-      await vi.waitFor(() => { expect(durable(activeHandle.agent).pendingMessages).toEqual([]) })
+      expect(followupSpy).toHaveBeenCalledTimes(1)
+      const delivered = await second.ctx.sessionPersistence.inspect(childId)
+      expect(delivered.events.filter(event => event.type === 'user/message'
+        && event.data.source.kind === 'team-message'
+        && event.data.source.messageId === receipt.messageId)).toHaveLength(1)
 
       await activeHandle.dispose()
       await failedHandle.dispose()

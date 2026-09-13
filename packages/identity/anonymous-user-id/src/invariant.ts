@@ -15,7 +15,7 @@ export const name = 'anonymous-user-id-invariant'
 export const inject = ['invariants']
 
 /**
- * No runtime invariant: the API owns one private memo and one best-effort
+ * No runtime invariant: the API owns one private-root memo and one best-effort
  * file, with no independent event stream or public mutable relation for a
  * companion to compare without creating the identity as a side effect.
  */

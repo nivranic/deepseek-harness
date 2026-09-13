@@ -1,0 +1,191 @@
+{
+  "stopped": {
+    "schemaVersion": 1,
+    "platform": "macos",
+    "runtimeClass": "full",
+    "complete": false,
+    "product": {
+      "version": "0.1.2-alpha.1",
+      "buildNumber": 1,
+      "channel": "dev"
+    },
+    "runtime": {
+      "state": "stopped",
+      "lifecycleCounts": [
+        {
+          "event": "stopped",
+          "count": 1,
+          "saturated": false
+        }
+      ],
+      "producer": "RuntimeSupervisor",
+      "observation": "current",
+      "carrierProbe": {
+        "producer": "RuntimeSupervisor.carrierProbe",
+        "activityScope": "supervisor-lifetime",
+        "observation": "current",
+        "state": "unavailable",
+        "attempts": 0,
+        "successes": 0,
+        "failures": 0,
+        "countsSaturated": false
+      }
+    },
+    "scanner": {
+      "schemaVersion": 1,
+      "version": "8.30.1",
+      "archiveSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "originalBinarySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "binarySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "licenseSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "uncollected": [
+      "connection",
+      "protocol",
+      "role",
+      "capabilities",
+      "updates",
+      "native-crashes",
+      "session-diagnostics"
+    ],
+    "applicationSource": {
+      "producer": "application-build",
+      "observation": "current",
+      "sourceSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "treeSha": "ffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  "ready": {
+    "schemaVersion": 1,
+    "platform": "macos",
+    "runtimeClass": "full",
+    "complete": false,
+    "product": {
+      "version": "0.1.2-alpha.1",
+      "buildNumber": 1,
+      "channel": "dev"
+    },
+    "runtime": {
+      "state": "ready",
+      "lifecycleCounts": [
+        {
+          "event": "stopped",
+          "count": 1,
+          "saturated": false
+        },
+        {
+          "event": "starting",
+          "count": 1,
+          "saturated": false
+        },
+        {
+          "event": "ready",
+          "count": 1,
+          "saturated": false
+        }
+      ],
+      "producer": "RuntimeSupervisor",
+      "observation": "current",
+      "carrierProbe": {
+        "producer": "RuntimeSupervisor.carrierProbe",
+        "activityScope": "supervisor-lifetime",
+        "observation": "last-known",
+        "state": "reachable",
+        "attempts": 1,
+        "successes": 1,
+        "failures": 0,
+        "countsSaturated": false
+      }
+    },
+    "scanner": {
+      "schemaVersion": 1,
+      "version": "8.30.1",
+      "archiveSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "originalBinarySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "binarySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "licenseSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "uncollected": [
+      "connection",
+      "protocol",
+      "role",
+      "capabilities",
+      "updates",
+      "native-crashes",
+      "session-diagnostics"
+    ],
+    "applicationSource": {
+      "producer": "application-build",
+      "observation": "current",
+      "sourceSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "treeSha": "ffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  "failed": {
+    "schemaVersion": 1,
+    "platform": "macos",
+    "runtimeClass": "full",
+    "complete": false,
+    "product": {
+      "version": "0.1.2-alpha.1",
+      "buildNumber": 1,
+      "channel": "dev"
+    },
+    "runtime": {
+      "state": "failed",
+      "failure": "healthFailed",
+      "lifecycleCounts": [
+        {
+          "event": "stopped",
+          "count": 1,
+          "saturated": false
+        },
+        {
+          "event": "starting",
+          "count": 1,
+          "saturated": false
+        },
+        {
+          "event": "healthFailed",
+          "count": 1,
+          "saturated": false
+        }
+      ],
+      "producer": "RuntimeSupervisor",
+      "observation": "current",
+      "carrierProbe": {
+        "producer": "RuntimeSupervisor.carrierProbe",
+        "activityScope": "supervisor-lifetime",
+        "observation": "last-known",
+        "state": "failed",
+        "attempts": 1,
+        "successes": 0,
+        "failures": 1,
+        "countsSaturated": false
+      }
+    },
+    "scanner": {
+      "schemaVersion": 1,
+      "version": "8.30.1",
+      "archiveSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "originalBinarySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "binarySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "licenseSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "uncollected": [
+      "connection",
+      "protocol",
+      "role",
+      "capabilities",
+      "updates",
+      "native-crashes",
+      "session-diagnostics"
+    ],
+    "applicationSource": {
+      "producer": "application-build",
+      "observation": "current",
+      "sourceSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "treeSha": "ffffffffffffffffffffffffffffffffffffffff"
+    }
+  }
+}

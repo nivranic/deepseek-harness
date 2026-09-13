@@ -256,6 +256,47 @@ describe('session reference URI and inline mentions', () => {
     expect(() => decodeSessionReferenceUri(nonString)).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
     expect(() => decodeSessionReferenceUri('dsh-session:IiJ')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
   })
+
+  it('preserves outer mention precedence, empty labels, and bare references in incomplete markup', () => {
+    const sessionId = SessionId('source')
+    const uri = encodeSessionReferenceUri(sessionId)
+    expect(parseSessionReferenceText(`@[outer @[dsh-session:bad](${uri})`)).toEqual({
+      text: '@outer @[dsh-session:bad', references: [{ sessionId, label: 'outer @[dsh-session:bad' }],
+    })
+    expect(parseSessionReferenceText(`@[](${uri}) @[unfinished ${uri}`)).toEqual({
+      text: '@ @[unfinished @source', references: [{ sessionId, label: '' }, { sessionId, label: sessionId }],
+    })
+    expect(parseSessionReferenceText(`@[bad] @[valid](${uri})`)).toEqual({
+      text: '@[bad] @valid', references: [{ sessionId, label: 'valid' }],
+    })
+    expect(parseSessionReferenceText(`@[bad](dsh-session: ${uri})`)).toEqual({
+      text: '@[bad](dsh-session: @source)', references: [{ sessionId, label: sessionId }],
+    })
+    expect(parseSessionReferenceText('@[unfinished\\')).toEqual({ text: '@[unfinished\\', references: [] })
+    expect(() => parseSessionReferenceText('@[](dsh-session:)')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
+  })
+
+  it.each(['\n', '\r', '\u2028', '\u2029'])('keeps escaped line terminators outside Markdown labels: %j', (lineBreak) => {
+    const sessionId = SessionId('source')
+    const uri = encodeSessionReferenceUri(sessionId)
+    expect(parseSessionReferenceText(`@[broken\\${lineBreak}label](${uri})`)).toEqual({
+      text: `@[broken\\${lineBreak}label](@source)`, references: [{ sessionId, label: sessionId }],
+    })
+  })
+
+  it.each(['😀', '\ud800', '\udc00', 'x'])('unescapes one Unicode code point in a label: %j', (label) => {
+    const sessionId = SessionId('source')
+    const uri = encodeSessionReferenceUri(sessionId)
+    expect(parseSessionReferenceText(`@[\\${label}](${uri})`)).toEqual({ text: `@${label}`, references: [{ sessionId, label }] })
+  })
+
+  it('handles long unfinished label and URI prefixes without stalling prompt admission', () => {
+    const inputs = ['@['.repeat(200_000), `${'@[x](dsh-session:'.repeat(10_000)} `]
+    const start = performance.now()
+    for (const text of inputs) expect(parseSessionReferenceText(text)).toEqual({ text, references: [] })
+    // The budget leaves ample headroom for instrumentation; repeated suffix searches take tens of seconds.
+    expect(performance.now() - start).toBeLessThan(2000)
+  })
 })
 
 describe('session reference discovery and preparation', () => {

@@ -32,6 +32,8 @@ After a successful shutdown response, the Python client closes stdin and waits w
 
 The minimal blackbox uses persistent `pwsh` plus `str_replace_editor` on Windows and owns `minimal/win-x64/model-visible.json`; Linux and macOS retain persistent Bash and the shared `minimal/model-visible.json`. The advanced process/subagent snapshot and restart/durable-log snapshot remain shared across all targets. The shipped [`sdk-minimal` bundle](../../../../packages/bundle/sdk-minimal/README.md) selects the same platform shell pair for the runnable Python tutorial.
 
+The installed Windows `dsh` console command launches a waited native child with inherited standard streams and explicit argv boundaries. Windows `os.execvpe` does not provide POSIX process replacement: the packaged executable can crash under that launcher, and an ordinary child failure can be reported as success. Waiting preserves the child's output and exit status; DWORD statuses are represented as signed 32-bit values at Python's `SystemExit` boundary. POSIX retains process replacement. The installed-wheel smoke compares version, help, and invalid-option output/status with the same native executable before exercising profiles and external plugin installation.
+
 ## Existing decisions and supersession
 
 This decision partially supersedes the Windows non-goal in the [single-file runtime distribution](2026-07-10-single-file-executable-sdk-runtime-distribution.md) and extends the required target set in the [installed Python wheel blackbox decision](../testing/2026-08-23-installed-python-wheel-black-box-ci.md). Those notes remain authoritative for SEA packaging, the two Python distributions, provenance checks, key handling, and the common blackbox scenarios.

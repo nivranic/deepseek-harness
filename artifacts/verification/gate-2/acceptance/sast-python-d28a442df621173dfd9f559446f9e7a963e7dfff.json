@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "kind": "sast",
+  "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+  "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+  "action": "github/codeql-action/analyze",
+  "actionSha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+  "registrySha256": "cec22b35ba74a01150bc1e40f20abb3f31180f69ac4d56a48dac794189d8ba23",
+  "scanner": "CodeQL",
+  "language": "python",
+  "reports": [
+    {
+      "sha256": "b25794adb08c3d7ea0d7560cec8b113fb179411d8995c1a74ec45879302bafa9",
+      "version": "2.26.4",
+      "rules": 50,
+      "structure": {
+        "driverRuleCount": 0,
+        "extensionRuleCounts": [
+          50,
+          0,
+          0
+        ],
+        "resultsPresent": true,
+        "resultCount": 0
+      }
+    }
+  ],
+  "findings": [],
+  "findingCount": 0,
+  "analysisComplete": true,
+  "blockingDiagnostics": []
+}

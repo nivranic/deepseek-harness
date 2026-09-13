@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package is the artifact host face: the `ctx.artifacts` resource channel plus the model-facing `artifact_create` and `artifact_read` tools. One call authors one complete artifact — text through `content` or raw bytes through base64 `data`, exactly one of the two — and the journal records the reference, its kind, title, authoring format, and lifecycle status (`artifact/created`, `artifact/status`), while the complete content bytes go to the resource channel and never ride an event (chapter 56). The shipped `dsh` composition enables this with no setup; artifacts survive restarts and companion surfaces render the pane from the journaled references. The branded `ArtifactId`, the `ArtifactFormat` discriminant, and the two `SessionEventMap` members live here too, so contract fixtures and native folds pin the wire shapes.
+This package is the artifact host face: the `ctx.artifacts` resource channel plus the model-facing `artifact_create` and `artifact_read` tools. One call authors one complete artifact — text through `content` or raw bytes through base64 `data`, exactly one of the two — and the journal records the reference, its kind, title, authoring format, and lifecycle status (`artifact/created`, `artifact/status`), while the complete content bytes go to the resource channel and never ride an event (chapter 56). The shared base mounts the local backend and a process-wide tool row for rosterless applications. Web and desktop disable that root tool row and remount it in the `standard`, `ptc`, and `cordis` agent presets; `minimal` deliberately omits the artifact tools. Artifacts survive restarts and companion surfaces render the pane from the journaled references. The branded `ArtifactId`, the `ArtifactFormat` discriminant, and the two `SessionEventMap` members live here too, so contract fixtures and native folds pin the wire shapes.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ This package is the artifact host face: the `ctx.artifacts` resource channel plu
 <a id="use-this-package"></a>
 ## Use this package
 
-Artifacts work end to end in the default composition: the model calls `artifact_create` with a kind, a title, and the complete content — `content` text or base64 `data` bytes — and the artifact is stored and journaled without further action. When you compose your own setup, mount the tool package with a resource-channel backend:
+Artifacts work end to end in the shipped full compositions: the model calls `artifact_create` with a kind, a title, and the complete content — `content` text or base64 `data` bytes — and the artifact is stored and journaled without further action. The Web and desktop applications keep storage on the host and give each `standard`, `ptc`, or `cordis` agent its scoped tools; the `minimal` preset omits them. `artifact_read` accepts only the portable ids the producer mints: `art-` plus an ASCII letter/digit/hyphen body that starts and ends with a letter or digit, at most 128 characters in total. When you compose your own setup, mount the tool package with a resource-channel backend:
 
 ```yaml
 - name: '@deepseek-ai/dsh-artifact'
@@ -96,7 +96,7 @@ Append-only; newly visible content follows the reusable request prefix and does 
 
 #### What the model sees
 
-A read returns the artifact's header line plus its content in the journaled arm — a text artifact returns its `content` (the whole artifact by default, or one UTF-16 range with `offset` and `limit`), a bytes artifact returns base64 `data` over a byte range — with `kind` and `title` when the calling session journaled the artifact; an id this session never journaled falls to the base64 arm because the authoring format is unknowable there (`truncated` and `size` report the cut in the arm's units). The stable failures are `Error: artifact_read requires a non-empty id`, `Error: artifact_read offset and limit must be non-negative`, and `Error: artifact_read found no content stored under id "<id>"`.
+A read returns the artifact's header line plus its content in the journaled arm — a text artifact returns its `content` (the whole artifact by default, or one UTF-16 range with `offset` and `limit`), a bytes artifact returns base64 `data` over a byte range — with `kind` and `title` when the calling session journaled the artifact; an id this session never journaled falls to the base64 arm because the authoring format is unknowable there (`truncated` and `size` report the cut in the arm's units). The stable failures are `Error: artifact_read requires a non-empty id`, `Error: artifact_read requires a portable artifact id`, `Error: artifact_read offset and limit must be non-negative`, and `Error: artifact_read found no content stored under id "<id>"`.
 
 #### Token effect
 

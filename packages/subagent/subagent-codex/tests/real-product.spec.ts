@@ -498,7 +498,7 @@ describe('real @openai/codex 0.149.1 product', () => {
       ] as const
       return [
         { kind: 'advertisedFunctionCall', choices: commandCalls },
-        { kind: 'complete', text: 'bypass complete' },
+        { kind: 'completeAfterCommand', text: 'bypass complete' },
       ]
     }, 'dangerously-bypass-approvals-and-sandbox')
     const target = join(harness.workspace, sideEffect)

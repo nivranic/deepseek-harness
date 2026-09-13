@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "user-authorized-platform-deferral",
+  "status": "DEFER",
+  "temporary": true,
+  "approvedByRole": "requesting-user",
+  "recordedAt": "2026-09-05T03:19:44.330Z",
+  "authorizationSource": "推送候选、创建以 dev 为目标的 draft PR，并重新开启 Swift/Apple 验证。此外如果一定要 macos/xcode 环境，那么就先不管、进行下一步，如果有其他办法验证那么就按照你的来，不用再问我。",
+  "appliesTo": [
+    "SwiftPM Apple package tests",
+    "Real Host-to-Swift acceptance and recovery",
+    "Apple simulator and Xcode app validation"
+  ],
+  "requiredEnvironmentEvidence": [
+    "apps/apple/Package.swift declares iOS 17 and macOS 14 targets.",
+    "CompanionUI imports SwiftUI; Link signing and pinning import CryptoKit and Apple Security.",
+    ".github/workflows/apple-swift.yml uses macos-latest and xcodebuild for the iOS Simulator and macOS app shells."
+  ],
+  "executionPolicy": "尝试现有远端 macOS/Xcode workflow。只能在 Apple 环境取得的运行证据允许暂缓，不再阻断下一阶段；可用 runner 上发现的产品错误仍记录并修复。",
+  "nonAppleAlternative": "Linux/Windows 可继续验证同一生成契约、fixture 和 TypeScript/Kotlin 协议行为，但不能冒充 SwiftUI、Security、Apple TLS 或 simulator 运行证据。",
+  "evidencePolicy": "未执行项保持 NOT_EXECUTED，已执行失败保持 FAIL；不得把延期写成 PASS 或 E4。",
+  "excludes": [
+    "Non-Apple mandatory CI failures",
+    "Production signing credentials",
+    "Merge, release, notarization, or store upload"
+  ]
+}

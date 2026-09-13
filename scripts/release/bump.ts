@@ -20,6 +20,8 @@ import { join, matchesGlob } from 'node:path'
 import { parseArgs } from 'node:util'
 import { releaseFamily, type ReleaseFamily, type ReleaseMember } from './families.ts'
 import { capture, isEntry } from './process.ts'
+import { parseProductIdentity, renderProductIdentity, type ProductIdentity } from './product-identity.ts'
+import { writeProductIdentity } from './product-files.ts'
 
 /** Files npm publishes whether or not `files` lists them. */
 const ALWAYS_PUBLISHED = ['package.json', 'README*', 'LICENSE*', 'LICENCE*'] as const
@@ -277,17 +279,19 @@ function privateDshVersions(root: string): PrivateDshVersion[] {
  * @param root - repository root.
  * @param members - the family's members.
  * @param request - `major`, `minor`, `patch`, or an explicit version.
- * @returns The manifests to rewrite and the shared target version.
+ * @returns The manifests to rewrite and the validated application identity for that version.
  */
 export function planShared(
   family: ReleaseFamily,
   root: string,
   members: readonly ReleaseMember[],
   request: string,
-): { planned: PlannedVersion[]; version: string } {
+): { planned: PlannedVersion[]; version: string; identity: ProductIdentity } {
   const [first] = members
   if (first === undefined) throw new Error(`release family ${family.id} has no members`)
   const version = nextSharedVersion(first.version, request)
+  const metadata: unknown = JSON.parse(readFileSync(join(root, 'release/product.json'), 'utf8'))
+  const identity = parseProductIdentity({ version }, metadata)
   // The workspace root carries the family version too: the workspace constraint
   // requires every member's version to equal the root's.
   const planned: PlannedVersion[] = [
@@ -313,7 +317,7 @@ export function planShared(
       tag: undefined,
     })
   }
-  return { planned, version }
+  return { planned, version, identity }
 }
 
 /**
@@ -367,6 +371,7 @@ function main(): void {
 
   let planned: PlannedVersion[]
   let sharedVersion: string | undefined
+  let identity: ProductIdentity | undefined
   if (family.id === 'dsh') {
     const request = positionals[0]
     if (request === undefined) throw new Error('usage: release:dsh <major|minor|patch|x.y.z>')
@@ -376,6 +381,7 @@ function main(): void {
     const shared = planShared(family, root, members, request)
     planned = shared.planned
     sharedVersion = shared.version
+    identity = shared.identity
   } else {
     if (positionals.length > 0) throw new Error('release:vendor takes no version: each package increments its own patch')
     if (values.prerelease !== undefined && !/^[0-9A-Za-z.-]+$/.test(values.prerelease)) {
@@ -392,6 +398,7 @@ function main(): void {
   const dryRun = values['dry-run']
   if (!dryRun) {
     for (const entry of planned) writeVersion(root, entry.manifestPath, entry.from, entry.to)
+    if (identity !== undefined) writeProductIdentity(root, identity)
     capture('pnpm', ['install', '--lockfile-only'])
   }
 
@@ -404,7 +411,8 @@ function main(): void {
     console.log('release bump: dry run, nothing written')
     return
   }
-  capture('git', ['add', 'pnpm-lock.yaml', ...planned.map(entry => entry.manifestPath)])
+  const productFiles = identity === undefined ? [] : ['release/product.json', ...Object.keys(renderProductIdentity(identity))]
+  capture('git', ['add', 'pnpm-lock.yaml', ...planned.map(entry => entry.manifestPath), ...productFiles])
   capture('git', ['commit', '-m', `release(${family.id}): ${summary}`])
   console.log('release bump: committed. After this merges to master, tag it:')
   for (const tag of [...new Set(planned.map(entry => entry.tag).filter(tag => tag !== undefined))]) {

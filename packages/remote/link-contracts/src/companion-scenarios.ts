@@ -29,6 +29,35 @@ function chunks(seq: number, tag: 'chunkrow/text-chunks' | 'chunkrow/reasoning-c
   return { type: 'chunks', event: { type: tag, seq, time: 1_759_017_600_000 + seq, data } }
 }
 
+/** Assistant-message data shared by the event fixture and basic-turn scenario. */
+export const LINK_DOMAIN_ASSISTANT_MESSAGE_DATA = {
+  turn: 1,
+  step: 1,
+  message: {
+    id: MessageId('m-assist-1'),
+    role: 'assistant',
+    content: [{ type: 'text', text: '已完成：登录页液态玻璃样式落地。' }],
+    source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
+  },
+  usage: { inputTokens: 120, outputTokens: 36, totalTokens: 156 },
+} satisfies SessionEventMap['assistant/message']
+
+/** Tool-result data shared by the event fixture and tool-trajectory scenario. */
+export const LINK_DOMAIN_TOOL_RESULT_DATA = {
+  turn: 1,
+  step: 1,
+  message: {
+    id: MessageId('m-tool-1'),
+    role: 'user',
+    content: [{
+      type: 'tool-result',
+      toolCallId: ToolCallId('call-1'),
+      content: [{ type: 'text', text: '已写入 42 行。' }],
+    }],
+    source: { kind: 'tool', callId: ToolCallId('call-1') },
+  },
+} satisfies SessionEventMap['tool/result']
+
 /** The golden scenarios; ids name the emitted `conformance/<id>.json` artifacts. */
 export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
   {
@@ -43,17 +72,7 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
       }),
       event(3, 'step/start', { turn: 1, step: 1 }),
       chunks(4, 'chunkrow/text-chunks', { turn: 1, step: 1, index: 0, dt: [4, 6], texts: ['你好', '，构建'] }),
-      event(5, 'assistant/message', {
-        turn: 1,
-        step: 1,
-        message: {
-          id: MessageId('m-assist-1'),
-          role: 'assistant',
-          content: [{ type: 'text', text: '已完成：登录页液态玻璃样式落地。' }],
-          source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
-        },
-        usage: { inputTokens: 120, outputTokens: 36, totalTokens: 156 },
-      }),
+      event(5, 'assistant/message', LINK_DOMAIN_ASSISTANT_MESSAGE_DATA),
       event(6, 'step/end', { turn: 1, step: 1 }),
       event(7, 'turn/end', { turn: 1, reason: { kind: 'completed' } }),
     ],
@@ -154,20 +173,7 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
     records: [
       event(1, 'tool/call', { turn: 1, step: 1, callId: ToolCallId('call-1'), name: 'write_file', arguments: '{"path":"Login.swift"}' }),
       event(2, 'tool/call', { turn: 1, step: 1, callId: ToolCallId('call-2'), name: 'run_tests', arguments: '{}' }),
-      event(3, 'tool/result', {
-        turn: 1,
-        step: 1,
-        message: {
-          id: MessageId('m-tool-1'),
-          role: 'user',
-          content: [{
-            type: 'tool-result',
-            toolCallId: ToolCallId('call-1'),
-            content: [{ type: 'text', text: '已写入 42 行。' }],
-          }],
-          source: { kind: 'tool', callId: ToolCallId('call-1') },
-        },
-      }),
+      event(3, 'tool/result', LINK_DOMAIN_TOOL_RESULT_DATA),
       event(4, 'tool/result', {
         turn: 1,
         step: 1,

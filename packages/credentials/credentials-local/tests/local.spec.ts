@@ -446,11 +446,19 @@ describe('real hot reload', () => {
     await writeCredentials(path, 'version: 1\nrefs:\n  DSH_CRED_TEST: live\n  DSH_CRED_OTHER: extra\n')
     await vi.waitFor(async () => {
       expect(await ctx.credentials.resolve(KEY)).toEqual({ value: 'live', source: 'file' })
+      expect(await ctx.credentials.resolve(OTHER)).toEqual({ value: 'extra', source: 'file' })
     })
 
-    // Wholesale replacement: an entry deleted on disk never lingers in memory.
+    // An in-place editor can expose an empty document before its final bytes.
+    // Absence alone cannot identify the completed replacement snapshot.
+    await writeCredentials(path, '')
+    await vi.waitFor(async () => {
+      expect(await ctx.credentials.resolve(KEY)).toBeUndefined()
+      expect(await ctx.credentials.resolve(OTHER)).toBeUndefined()
+    })
     await writeCredentials(path, 'version: 1\nrefs:\n  DSH_CRED_TEST: live\n')
     await vi.waitFor(async () => {
+      expect(await ctx.credentials.resolve(KEY)).toEqual({ value: 'live', source: 'file' })
       expect(await ctx.credentials.resolve(OTHER)).toBeUndefined()
     })
 

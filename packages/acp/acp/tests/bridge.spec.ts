@@ -510,6 +510,60 @@ describe('automation-only ACP bridge', () => {
     expect(harness.adapter.requests[0]).toMatchObject({ provider: 'mock', model: 'plain' })
   })
 
+  it('omits unchanged options when the provider directory registers during session creation', async () => {
+    harness = await makeBridgeHarness()
+    await harness.client.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
+    const materialize = harness.ctx.sessionPersistence.ensureMaterialized.bind(harness.ctx.sessionPersistence)
+    vi.spyOn(harness.ctx.sessionPersistence, 'ensureMaterialized').mockImplementationOnce(async (session) => {
+      harness!.ctx.llm.registerConfigurableProviders([{
+        provider: 'inactive', displayName: 'Inactive', settingsNs: 'inactive', settingsPath: [],
+      }])
+      await materialize(session)
+    })
+
+    const created = await harness.client.newSession({ cwd: process.cwd(), mcpServers: [] })
+
+    expect(created.configOptions).not.toHaveLength(0)
+    expect(harness.updates).toEqual([])
+  })
+
+  it('omits unchanged options after selection while retaining route additions and removals', async () => {
+    harness = await makeBridgeHarness({
+      script: [textResponse('selected'), textResponse('added'), textResponse('removed')],
+    })
+    await harness.client.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
+    const created = await harness.client.newSession({ cwd: process.cwd(), mcpServers: [] })
+    await harness.client.setSessionConfigOption({
+      sessionId: created.sessionId, configId: 'reasoning_effort', value: 'low',
+    })
+    harness.replacePrimaryProviders(['mock'])
+    await harness.client.prompt({ sessionId: created.sessionId, prompt: [{ type: 'text', text: 'selection' }] })
+    expect(harness.updates.filter(update => update.sessionUpdate === 'config_option_update')).toEqual([])
+    const dispose = harness.registerCatalogProvider('other')
+    await vi.waitFor(() => {
+      expect(harness!.updates.filter(update => update.sessionUpdate === 'config_option_update')).toHaveLength(1)
+    })
+    harness.ctx.llm.registerConfigurableProviders([{
+      provider: 'inactive', displayName: 'Inactive', settingsNs: 'inactive', settingsPath: [],
+    }])
+    await harness.client.prompt({ sessionId: created.sessionId, prompt: [{ type: 'text', text: 'first' }] })
+
+    const added = harness.updates.filter(update => update.sessionUpdate === 'config_option_update')
+    expect(added).toHaveLength(1)
+    expect(added[0]?.configOptions.find(option => option.id === 'reasoning_effort')?.currentValue).toBe('low')
+    dispose()
+    await vi.waitFor(() => {
+      expect(harness!.updates.filter(update => update.sessionUpdate === 'config_option_update')).toHaveLength(2)
+    })
+    harness.replacePrimaryProviders(['mock'])
+    await harness.client.prompt({ sessionId: created.sessionId, prompt: [{ type: 'text', text: 'second' }] })
+    const removed = harness.updates.filter(update => update.sessionUpdate === 'config_option_update')
+    expect(removed).toHaveLength(2)
+    expect(removed[1]?.configOptions.find(option => option.id === 'model')).toMatchObject({
+      options: [{ group: 'mock' }],
+    })
+  })
+
   it('publishes complete config options when adapter topology changes', async () => {
     harness = await makeBridgeHarness()
     await harness.client.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })

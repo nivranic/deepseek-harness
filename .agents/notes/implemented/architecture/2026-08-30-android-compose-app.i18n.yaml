@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-android-compose-app.md
-2026-08-30-android-compose-app.md: 88f9bb8c0d7d72609cfbe56ea675bfdb29d4cd53
-2026-08-30-android-compose-app.zh.md: 1c0a2b84cbf3199e35a57171a14b023b572e1717
+2026-08-30-android-compose-app.md: 641e117cf6bee3138da92fab07cdf243ea464e65
+2026-08-30-android-compose-app.zh.md: bbb7e5961684a17d9272791ade03e3b4a46cda87

@@ -9,6 +9,7 @@ import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopSettingsKey } from './locales.ts'
+import { PreferenceRowLayout } from './PreferenceRowLayout.tsx'
 import css from './CloseActionRow.module.css'
 
 /** The two behaviors, in display order. */
@@ -40,11 +41,7 @@ export function CloseActionRow({ t, useDesktopClose, select }: CloseActionRowCom
   const { value } = snapshot
   if (snapshot.status !== 'ready' || value === undefined) return null
   return (
-    <div className={css.row}>
-      <div className={css.rowText}>
-        <div className={css.title}>{t('title')}</div>
-        <div className={css.desc}>{t('description')}</div>
-      </div>
+    <PreferenceRowLayout title={t('title')} description={t('description')}>
       <div className={css.group} role="radiogroup" aria-label={t('title')}>
         {OPTIONS.map(option => (
           <button
@@ -60,7 +57,7 @@ export function CloseActionRow({ t, useDesktopClose, select }: CloseActionRowCom
           </button>
         ))}
       </div>
-    </div>
+    </PreferenceRowLayout>
   )
 }
 

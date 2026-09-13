@@ -278,10 +278,10 @@ function reportFailure(spec: AcpRunSpec, error: unknown): void {
 function startupFailure(
   error: unknown,
   stage: Extract<AcpFailureStage, 'initialize' | 'new-session'>,
-  child: SubprocessHandle,
+  processStartFailed: boolean,
   outcome: SubprocessOutcome | undefined,
 ): AcpRunFailure {
-  if (child.pid <= 0) {
+  if (processStartFailed) {
     return new AcpRunFailure({ stage: 'process', category: 'process-start' }, error)
   }
   return new AcpRunFailure(
@@ -359,9 +359,13 @@ export async function startAcpRun(request: SubagentStartRequest, spec: AcpRunSpe
   }
   /* v8 ignore stop */
   let processOutcome: SubprocessOutcome | undefined
+  const processStart = { failed: false }
   const processDone = child.done.then((outcome) => {
     processOutcome = outcome
     return outcome
+  }, (error: unknown) => {
+    processStart.failed = true
+    throw toError(error)
   })
 
   // Spawn-level failure surfaces as `done` rejecting into the startup race; a
@@ -376,7 +380,7 @@ export async function startAcpRun(request: SubagentStartRequest, spec: AcpRunSpe
   spawnFailed.catch(() => { /* observed by the startup race; never unhandled */ })
 
   const observeProcessOutcome = async (signal?: AbortSignal): Promise<SubprocessOutcome | undefined> => {
-    if (processOutcome !== undefined || child.pid <= 0) return processOutcome
+    if (processStart.failed || processOutcome !== undefined) return processOutcome
     const timeout = AbortSignal.timeout(Math.ceil(spec.disposeGraceMs))
     const bound = signal === undefined ? timeout : AbortSignal.any([signal, timeout])
     const aborted = Promise.withResolvers<undefined>()
@@ -500,13 +504,14 @@ export async function startAcpRun(request: SubagentStartRequest, spec: AcpRunSpe
     // A child closing its protocol stream can precede whole-tree exit
     // observation. Local cancellation does not need the discarded startup
     // classification; other failures use the configured process grace.
+    const observedOutcome = cancelledBeforeCleanup || error instanceof AcpRunFailure ? undefined : await observeProcessOutcome()
     const startup = cancelledBeforeCleanup
       ? { kind: 'cancelled' } as const
       : {
         kind: 'failed',
         failure: error instanceof AcpRunFailure
           ? error
-          : startupFailure(error, startupStage, child, await observeProcessOutcome()),
+          : startupFailure(error, startupStage, processStart.failed, observedOutcome),
       } as const
     if (startup.kind === 'cancelled') {
       // Local cancellation owns the startup outcome; only cleanup failure is

@@ -1,0 +1,5 @@
+{
+  "saved": "Diagnostics saved.",
+  "cancelled": "Export cancelled.",
+  "rejected": "Could not verify or save the diagnostics. No export was completed."
+}

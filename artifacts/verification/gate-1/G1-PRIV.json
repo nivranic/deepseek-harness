@@ -1,0 +1,473 @@
+{
+  "taskId": "G1-PRIV",
+  "status": "PASS",
+  "evidenceLevel": "E4",
+  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "startedFrom": "b846614bebfd1deaad9fe4a66d8fa5eaf921d8e6",
+  "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "workingTreeState": "All product, test, workflow, and documentation inputs were committed at sourceHead; only Gate evidence JSON was modified or untracked during the current reruns.",
+  "recordedAt": "2026-09-03T15:11:17.4929275+08:00",
+  "evidenceSources": [
+    {
+      "commit": "9fc5d67c3b4801ec363f69f302812e29300f3b48",
+      "scope": "Original telemetry, identity, Artifact isolation, documentation, snapshot, and browser acceptance implementation"
+    },
+    {
+      "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "scope": "Current privacy regressions, native evidence publication, and Host-to-Kotlin E4"
+    }
+  ],
+  "commands": [
+    "pnpm exec vitest run --coverage --coverage.include='packages/identity/anonymous-user-id/src/**' packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts packages/identity/anonymous-user-id/tests/invariant.spec.ts",
+    "pnpm exec vitest run --coverage packages/session/session-telemetry/tests/redact.spec.ts packages/session/session-telemetry/tests/telemetry.spec.ts",
+    "pnpm exec vitest run packages/session/session-telemetry-otel/tests/otel.spec.ts",
+    "pnpm exec vitest run packages/feedback/command-feedback/tests/command-feedback.spec.ts",
+    "pnpm exec vitest run packages/client/modules/tests/node-half.client.spec.ts",
+    "pnpm exec vitest run packages/artifact/artifact/tests packages/artifact/artifact-local/tests packages/api/session-controller/tests/commands-artifact.host.spec.ts",
+    "pnpm exec vitest run --config vitest.e2e.config.ts packages/session/session-telemetry-otel/tests/loader-composition.e2e.ts",
+    "$env:DSH_PLAYWRIGHT_EXECUTABLE_PATH='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; $env:TZ='Asia/Shanghai'; pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/feedback-release.e2e.ts",
+    "$env:DSH_PLAYWRIGHT_EXECUTABLE_PATH='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; $env:TZ='Asia/Shanghai'; pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/feedback-command.e2e.ts",
+    "pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/shipped-composition.e2e.ts -t \"keeps the shipped telemetry row mounted but silent when mode is unset\"",
+    "pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/shipped-composition.e2e.ts",
+    "pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/desktop-composition.e2e.ts -t \"keeps agent-owned artifact and goal surfaces on the selected preset\"",
+    "pnpm exec vitest run scripts/verify-cordis-config.spec.ts",
+    "pnpm run verify-runtime-closure",
+    "pnpm run verify-translation-pairing",
+    "node --experimental-strip-types scripts/verify-translation-pairing.ts --write apps/cli/reference/README.md",
+    "node --experimental-strip-types scripts/verify-translation-pairing.ts apps/cli/reference/README.md",
+    "pnpm run verify-export-jsdoc",
+    "pnpm run verify-cordis-catalog",
+    "pnpm run verify-cordis-inspect-catalog",
+    "pnpm run verify-config-catalog",
+    "pnpm run verify-module-graph",
+    "pnpm run verify-persistence-catalog",
+    "pnpm run verify-doc-graphs",
+    "pnpm run verify-scoped-events",
+    "pnpm run verify-type-equiv",
+    "pnpm run verify-tsconfig-paths",
+    "pnpm run lint:contracts-ready",
+    "pnpm run test:docs",
+    "pnpm run doc-sync",
+    "pnpm run build",
+    "node node_modules/oxlint/bin/oxlint apps/web/tests/feedback-command.e2e.ts apps/web/tests/feedback-release.e2e.ts",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run packages/session/session-telemetry/tests/redact.spec.ts packages/session/session-telemetry/tests/telemetry.spec.ts packages/session/session-telemetry-otel/tests/otel.spec.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs E:/Mix/project/deepseek-harness/node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts packages/session/session-telemetry-otel/tests/loader-composition.e2e.ts",
+    "DSH_PLAYWRIGHT_EXECUTABLE_PATH=<installed Chrome> TZ=Asia/Shanghai node <canonical Vitest> run --config vitest.web.config.ts apps/web/tests/feedback-release.e2e.ts apps/web/tests/shipped-composition.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run scripts/ci-workflow.spec.ts --no-file-parallelism --retry=0 --reporter=verbose",
+    "Host-to-Kotlin native acceptance with Gradle 8.14 and DSH_LINK_ACCEPTANCE_RESULT=.artifacts/g1-rec-kotlin-e4-dd319c3883-r1.json",
+    "git diff --check"
+  ],
+  "tests": [
+    {
+      "name": "Current candidate telemetry and OpenTelemetry privacy regressions",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "testFiles": 3,
+      "passed": 66,
+      "failed": 0
+    },
+    {
+      "name": "Current candidate telemetry Loader composition",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "name": "Current candidate Web privacy replay and shipped composition",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "testFiles": 2,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "name": "Native acceptance evidence privacy and workflow regressions",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "passed": 32,
+      "failed": 0,
+      "observed": [
+        "PASS publication exposes an exact allowlist and omits complete projection values.",
+        "Sensitive projection mismatches emit fixed diagnostics without formatting either value.",
+        "Native candidate files are unlinked under an independent deadline on success, failure, cancellation, and timeout paths."
+      ]
+    },
+    {
+      "name": "Privacy-safe Host-to-Kotlin acceptance artifact",
+      "result": "PASS",
+      "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+      "passed": 13,
+      "failed": 0,
+      "resultSha256": "8f4eb6d7ff2090f2a2ec3508bf7e92366052d9d5647d61a39af63632dd624480",
+      "bytes": 2062,
+      "sensitivePatternMatches": 0
+    },
+    {
+      "name": "Anonymous identity coverage",
+      "result": "PASS",
+      "testFiles": 2,
+      "passed": 48,
+      "failed": 0,
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "name": "Deterministic cross-process identity rotation race",
+      "result": "PASS",
+      "processes": 2,
+      "observed": [
+        "One process paused after obtaining the shared rotation claim and before rename.",
+        "The competing process completed the same legacy-root rotation first.",
+        "Both processes returned the same derived identity and the final file contained that root."
+      ]
+    },
+    {
+      "name": "Session telemetry coverage",
+      "result": "PASS",
+      "passed": 40,
+      "failed": 0,
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "name": "OpenTelemetry transport regression",
+      "result": "PASS",
+      "passed": 26,
+      "failed": 0
+    },
+    {
+      "name": "Feedback command regression",
+      "result": "PASS",
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "name": "Client telemetry module regression",
+      "result": "PASS",
+      "passed": 44,
+      "failed": 0
+    },
+    {
+      "name": "Artifact parser, provider, tool, invariant, and Session controller regressions",
+      "result": "PASS",
+      "testFiles": 5,
+      "passed": 73,
+      "failed": 0
+    },
+    {
+      "name": "Telemetry Loader composition acceptance",
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "name": "Assembled Web privacy replay",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "observed": [
+        "The outbound OTLP body contains only the fixed privacy projection.",
+        "Prompt, reasoning, system context, tool names, arguments, results, feedback text, error details, and workspace paths remain absent.",
+        "Session identifiers are stable pseudonyms rooted in the private anonymous identity seed.",
+        "Native and JSON-escaped Windows path spellings are both rejected by the wire tripwire."
+      ]
+    },
+    {
+      "name": "Feedback command browser replay",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "name": "Shipped Web composition",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "observed": [
+        "The real base plus Web Loader composition leaves the telemetry row mounted.",
+        "An unset DSH_TELEMETRY_MODE resolves to DISABLED while the local collector URL remains configured.",
+        "A recorded feedback command followed by agent and root disposal sends zero collector requests."
+      ]
+    },
+    {
+      "name": "Desktop Artifact scope acceptance",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "name": "Cordis configuration focused regression",
+      "result": "PASS",
+      "passed": 11,
+      "failed": 0
+    },
+    {
+      "name": "Shipped runtime closure",
+      "result": "PASS",
+      "presets": 4,
+      "packages": 128
+    },
+    {
+      "name": "Bilingual translation pairing",
+      "result": "PASS",
+      "pairs": 1155
+    },
+    {
+      "name": "Corrected CLI reference bilingual pair",
+      "result": "PASS",
+      "pairs": 1
+    },
+    {
+      "name": "Documentation quick aggregate",
+      "result": "PASS",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "name": "Contract, generated catalog, graph, persistence, scoped-event, type-equivalence, and path freshness",
+      "result": "PASS"
+    },
+    {
+      "name": "Contract-ready lint",
+      "result": "PASS"
+    },
+    {
+      "name": "Official build",
+      "result": "PASS",
+      "clientArtifacts": 220
+    },
+    {
+      "name": "Documentation full aggregate",
+      "result": "HOST_ENVIRONMENT",
+      "passed": 31,
+      "failed": 1,
+      "reason": "Windows denied the test-only symlink creation in scripts/project-doc-site.spec.ts with EPERM; all repository-content gates passed."
+    },
+    {
+      "name": "Focused browser launcher Oxlint",
+      "result": "PASS"
+    },
+    {
+      "name": "Working-tree whitespace check",
+      "result": "PASS"
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-PRIV.json",
+    ".agents/notes/implemented/architecture/2026-09-02-privacy-safe-session-telemetry.md",
+    ".agents/notes/implemented/architecture/2026-09-02-privacy-safe-session-telemetry.zh.md",
+    "packages/session/session-telemetry/src/coordinator.ts",
+    "packages/session/session-telemetry-otel/src/index.ts",
+    "packages/identity/anonymous-user-id/src/index.ts",
+    "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+    "packages/identity/anonymous-user-id/tests/fixtures/rotation-race-worker.ts",
+    "packages/artifact/artifact/src/types.ts",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json",
+    "apps/cli/tests/link-native-acceptance.e2e.ts",
+    "scripts/ci-workflow.spec.ts",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md"
+  ],
+  "changedFiles": [
+    ".agents/notes/implemented/architecture/2026-08-07-shared-feedback-telemetry-user-id.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-08-07-shared-feedback-telemetry-user-id.md",
+    ".agents/notes/implemented/architecture/2026-08-07-shared-feedback-telemetry-user-id.zh.md",
+    ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.md",
+    ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.zh.md",
+    ".agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.md",
+    ".agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.zh.md",
+    ".agents/notes/implemented/architecture/2026-09-02-privacy-safe-session-telemetry.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-09-02-privacy-safe-session-telemetry.md",
+    ".agents/notes/implemented/architecture/2026-09-02-privacy-safe-session-telemetry.zh.md",
+    ".agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.md",
+    ".agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.zh.md",
+    ".agents/notes/implemented/feature/2026-07-28-feedback-command.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-07-28-feedback-command.md",
+    ".agents/notes/implemented/feature/2026-07-28-feedback-command.zh.md",
+    ".agents/notes/implemented/feature/2026-07-31-telemetry-anonymous-user-id.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-07-31-telemetry-anonymous-user-id.md",
+    ".agents/notes/implemented/feature/2026-07-31-telemetry-anonymous-user-id.zh.md",
+    ".agents/notes/implemented/feature/2026-07-31-web-telemetry-default-mount.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-07-31-web-telemetry-default-mount.md",
+    ".agents/notes/implemented/feature/2026-07-31-web-telemetry-default-mount.zh.md",
+    ".agents/notes/implemented/feature/2026-08-05-feedback-gated-session-telemetry.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-08-05-feedback-gated-session-telemetry.md",
+    ".agents/notes/implemented/feature/2026-08-05-feedback-gated-session-telemetry.zh.md",
+    ".agents/notes/implemented/feature/2026-08-07-feedback-acknowledgement-sharing-disclosure.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-08-07-feedback-acknowledgement-sharing-disclosure.md",
+    ".agents/notes/implemented/feature/2026-08-07-feedback-acknowledgement-sharing-disclosure.zh.md",
+    ".agents/notes/implemented/feature/2026-08-10-telemetry-default-off.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-08-10-telemetry-default-off.md",
+    ".agents/notes/implemented/feature/2026-08-10-telemetry-default-off.zh.md",
+    ".agents/notes/implemented/feature/2026-08-25-feedback-gated-telemetry-default.i18n.yaml",
+    ".agents/notes/implemented/feature/2026-08-25-feedback-gated-telemetry-default.md",
+    ".agents/notes/implemented/feature/2026-08-25-feedback-gated-telemetry-default.zh.md",
+    ".agents/notes/implemented/simplification/2026-08-06-buffer-free-feedback-telemetry.i18n.yaml",
+    ".agents/notes/implemented/simplification/2026-08-06-buffer-free-feedback-telemetry.md",
+    ".agents/notes/implemented/simplification/2026-08-06-buffer-free-feedback-telemetry.zh.md",
+    "apps/cli/reference/README.i18n.yaml",
+    "apps/cli/reference/README.md",
+    "apps/cli/reference/README.zh.md",
+    "apps/cli/tests/desktop-composition.e2e.ts",
+    "apps/web/tests/feedback-command.e2e.ts",
+    "apps/web/tests/feedback-release.e2e.ts",
+    "apps/web/tests/scaffold.ts",
+    "apps/web/tests/shipped-composition.e2e.ts",
+    "artifacts/verification/gate-1/G1-PRIV.json",
+    "docs/config-catalog.i18n.yaml",
+    "docs/config-catalog.md",
+    "docs/config-catalog.zh.md",
+    "docs/event-producer-consumer.i18n.yaml",
+    "docs/event-producer-consumer.md",
+    "docs/event-producer-consumer.zh.md",
+    "docs/module-graph.i18n.yaml",
+    "docs/module-graph.md",
+    "docs/module-graph.zh.md",
+    "docs/persistence-catalog.i18n.yaml",
+    "docs/persistence-catalog.md",
+    "docs/persistence-catalog.zh.md",
+    "docs/subsystems/artifact.i18n.yaml",
+    "docs/subsystems/artifact.md",
+    "docs/subsystems/artifact.zh.md",
+    "docs/subsystems/session-telemetry.i18n.yaml",
+    "docs/subsystems/session-telemetry.md",
+    "docs/subsystems/session-telemetry.zh.md",
+    "packages/api/session-controller/src/commands.ts",
+    "packages/api/session-controller/src/types.ts",
+    "packages/api/session-controller/tests/commands-artifact.host.spec.ts",
+    "packages/artifact/artifact-local/README.i18n.yaml",
+    "packages/artifact/artifact-local/README.md",
+    "packages/artifact/artifact-local/README.zh.md",
+    "packages/artifact/artifact-local/src/index.ts",
+    "packages/artifact/artifact-local/tests/artifact-local.spec.ts",
+    "packages/artifact/artifact/README.i18n.yaml",
+    "packages/artifact/artifact/README.md",
+    "packages/artifact/artifact/README.zh.md",
+    "packages/artifact/artifact/src/index.ts",
+    "packages/artifact/artifact/src/invariant.ts",
+    "packages/artifact/artifact/src/types.ts",
+    "packages/artifact/artifact/tests/artifact-tool.spec.ts",
+    "packages/artifact/artifact/tests/artifact.spec.ts",
+    "packages/artifact/artifact/tests/invariant.spec.ts",
+    "packages/bundle/base/cordis.patch.yml",
+    "packages/bundle/base/tests/base.spec.ts",
+    "packages/bundle/desktop-app/README.i18n.yaml",
+    "packages/bundle/desktop-app/README.md",
+    "packages/bundle/desktop-app/README.zh.md",
+    "packages/bundle/desktop-app/cordis.patch.yml",
+    "packages/bundle/web-app/cordis.patch.yml",
+    "packages/client/modules/README.i18n.yaml",
+    "packages/client/modules/README.md",
+    "packages/client/modules/README.zh.md",
+    "packages/client/modules/src/index.ts",
+    "packages/client/modules/tests/node-half.client.spec.ts",
+    "packages/extensions/tool-cordis/src/api-catalog.ts",
+    "packages/feedback/command-feedback/README.i18n.yaml",
+    "packages/feedback/command-feedback/README.md",
+    "packages/feedback/command-feedback/README.zh.md",
+    "packages/feedback/command-feedback/src/index.ts",
+    "packages/feedback/command-feedback/tests/command-feedback.spec.ts",
+    "packages/identity/anonymous-user-id/README.i18n.yaml",
+    "packages/identity/anonymous-user-id/README.md",
+    "packages/identity/anonymous-user-id/README.zh.md",
+    "packages/identity/anonymous-user-id/src/index.ts",
+    "packages/identity/anonymous-user-id/src/invariant.ts",
+    "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+    "packages/identity/anonymous-user-id/tests/fixtures/rotation-race-worker.ts",
+    "packages/preset/agent-presets/presets/cordis/agent.cordis.yml",
+    "packages/preset/agent-presets/presets/ptc/agent.cordis.yml",
+    "packages/preset/agent-presets/presets/standard/agent.cordis.yml",
+    "packages/preset/agent-presets/tests/shipped-root.spec.ts",
+    "packages/session/session-telemetry-otel/README.i18n.yaml",
+    "packages/session/session-telemetry-otel/README.md",
+    "packages/session/session-telemetry-otel/README.zh.md",
+    "packages/session/session-telemetry-otel/src/index.ts",
+    "packages/session/session-telemetry-otel/tests/fixtures/cordis.yml",
+    "packages/session/session-telemetry-otel/tests/fixtures/telemetry-redact-rule.ts",
+    "packages/session/session-telemetry-otel/tests/loader-composition.e2e.ts",
+    "packages/session/session-telemetry-otel/tests/otel.spec.ts",
+    "packages/session/session-telemetry/README.i18n.yaml",
+    "packages/session/session-telemetry/README.md",
+    "packages/session/session-telemetry/README.zh.md",
+    "packages/session/session-telemetry/package.json",
+    "packages/session/session-telemetry/src/coordinator.ts",
+    "packages/session/session-telemetry/src/index.ts",
+    "packages/session/session-telemetry/tests/redact.spec.ts",
+    "packages/session/session-telemetry/tests/telemetry.spec.ts",
+    "packages/session/session-telemetry/tsconfig.json",
+    "pnpm-lock.yaml",
+    "python/sdk-runtime/package.json",
+    "scripts/verify-cordis-config.spec.ts",
+    "scripts/verify-cordis-config.ts",
+    "snapshots/web/feedback-release/ack-expanded.expected.md",
+    "snapshots/web/feedback-release/ack.expected.md",
+    "snapshots/web/feedback-release/snapshot.yml",
+    "snapshots/web/fresh-round-trip/tool-schemas.expected.json",
+    "apps/cli/tests/link-native-acceptance.e2e.ts",
+    "scripts/ci-workflow.spec.ts",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.zh.md",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.i18n.yaml",
+    "artifacts/verification/gate-1/acceptance/kotlin-dd319c3883934efc224d4caf7bf09b8fea725897.json"
+  ],
+  "acceptance": [
+    "Session telemetry is disabled unless FULL or FEEDBACK_ONLY is explicitly configured; disabled mode creates no OpenTelemetry transport.",
+    "The fixed outbound event projection excludes every model-visible or user-authored body and exposes only event type, sequence, time, safe integer turn and step, and fixed severity.",
+    "Session and parent Session identifiers are HMAC pseudonyms derived before the extension waterfall from a private root seed that is never exposed through the service.",
+    "Telemetry extension inputs are frozen and an extension result may only remove fixed fields or choose a fixed severity.",
+    "OpenTelemetry logs are emitted under ROOT_CONTEXT and the public sessionTelemetry service exposes only the sharing action.",
+    "Anonymous identity persistence rejects links, verifies the opened inode, enforces POSIX owner and mode where available, caps reads at 256 bytes, and uses no-replace creation plus shared-claim rotation with an in-process fallback for unsafe initial paths.",
+    "Legacy, corrupt, oversized, and exposed-root rotations publish or adopt one complete private no-replace claim before target replacement, so competing processes and interrupted-process recovery converge on one seed.",
+    "Web replay inspects the serialized OTLP wire and rejects both native and doubly escaped Windows workspace path spellings.",
+    "ArtifactId has one portable parser enforced at model input, wire controller, durable invariant, and filesystem provider entry points.",
+    "Path separators, dot segments, NUL, Windows ADS syntax, reserved characters, and device names cannot reach Artifact get, put, remove, or artifact_read operations.",
+    "Web and Desktop omit root-scope Artifact registration; standard, ptc, and cordis mount it only inside the agent scope, while minimal omits it.",
+    "Desktop acceptance isolates DSH_HOME for the full lifecycle and restores the original process environment on every setup and teardown path.",
+    "Native acceptance validates complete projections only inside the isolated run, removes the candidate file before publication, and retains only allowlisted counts, equality, and SHA-256 digests."
+  ],
+  "knownLimitations": [
+    "The Windows host cannot create the documentation test symlink without Developer Mode or elevated symlink privilege. No product code, YAML, or documentation was changed to mask that host limitation.",
+    "The full verify-cordis-config command reads apps/cli/tests/profiles/acp/cordis.yml as a 59-byte symlink target text file in this Windows worktree. The focused eleven-test suite and preset-plane validation passed, so no shipped YAML was changed for this checkout artifact.",
+    "Playwright revision 1228 downloads failed with ECONNRESET or EAI_AGAIN. Browser acceptance used the installed Google Chrome executable and Asia/Shanghai timezone.",
+    "The Oxlint TypeScript wrapper encountered uv_os_get_passwd ENOMEM before lint startup; the repository-pinned Oxlint binary then completed the same two-file check successfully.",
+    "The complete shipped-composition run initially hit windows-acl-run CreateRestrictedToken Win32 87 inside the nested sandbox; the unchanged command passed all four tests under the repository-authorized host escalation.",
+    "Node has no cross-platform device-and-inode compare-and-replace operation. A process that can write the harness home can replace an identity directory entry between the final check and rename; rename does not follow a symlink or write its referent. Custom DSH_HOME directories must exclude untrusted writers.",
+    "The temporary worktree Vitest junction resolves a different peer graph than the repository root. The Loader E2E fails before product execution through that temporary graph but passes 3/3 through the canonical pnpm-resolved root graph without installing dependencies."
+  ],
+  "recoveryActions": [
+    {
+      "item": "Four deterministic Desktop test Sessions written before DSH_HOME isolation was fixed",
+      "result": "RECOVERED",
+      "destination": "%LOCALAPPDATA%\\Temp\\dsh-goal-mode-recovery-20260902-1620",
+      "details": "The exact four directories were verified and moved to a recoverable isolation directory. They no longer exist under the user's real .dsh directory; no unrelated Session was touched and nothing was deleted."
+    }
+  ],
+  "notExecuted": [
+    {
+      "item": "scripts/project-doc-site.spec.ts symlink case",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "Windows returned EPERM while the test constructed a temporary symlink fixture."
+    },
+    {
+      "item": "Playwright revision 1228 download",
+      "status": "NOT_EXECUTED",
+      "reason": "EXTERNAL_SERVICE",
+      "details": "The download failed with ECONNRESET or EAI_AGAIN; the browser suites passed with the already installed Chrome executable."
+    }
+  ],
+  "excludedConcurrentChanges": [],
+  "nextDependencies": [
+    "G1-E2E",
+    "G1-MULTI",
+    "G1-REC",
+    "G1-CI"
+  ]
+}

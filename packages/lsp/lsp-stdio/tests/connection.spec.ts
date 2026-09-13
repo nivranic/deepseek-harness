@@ -160,6 +160,27 @@ function connectScript(script: string, maxStderrBytes = 100_000, writer?: Connec
 }
 
 describe('LspConnection edge behavior', () => {
+  it('rejects pending requests on a stdin error before the still-running server closes', async () => {
+    const failure = new Error('protocol stdin failed')
+    let failInput: (() => void) | undefined
+    const conn = connectScript('process.stderr.write("ready"); setInterval(() => {}, 1000)', undefined,
+      (stdin, _message, done) => { failInput = () => { stdin.emit('error', failure) }; done() })
+    await waitFor(() => conn.stderrTail === 'ready')
+    const first = conn.request('initialize', {})
+    const second = conn.request('textDocument/hover', {})
+    let closed = false
+    void conn.closed.then(() => { closed = true })
+    failInput!()
+    expect(conn.failedWith(failure)).toBe(true)
+    expect(closed).toBe(false)
+    await expect(first).rejects.toBe(failure)
+    await expect(second).rejects.toBe(failure)
+    await expect(conn.request('textDocument/definition', {})).rejects.toBe(failure)
+    expect(closed).toBe(false)
+    conn.terminate()
+    await conn.closed
+  })
+
   it('fails a request when the command cannot be spawned', async () => {
     const conn = new LspConnection({
       command: '/definitely/not/a/real/binary/xyz',

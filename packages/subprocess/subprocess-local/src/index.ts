@@ -85,7 +85,8 @@ export class LocalSubprocessRuntime extends SubprocessRuntime {
     for (const handle of this.live) {
       handle.terminate()
       // Spawn-failure rejections already settled and left the live set.
-      pending.push(handle.done.catch(() => {}).then(() => handle.waitForExit()))
+      // An ownership failure must reach final Job closure even when the target is still running.
+      pending.push(handle.waitForExit().then(() => handle.done.catch(() => {})))
     }
     for (const terminal of this.terminals) {
       pending.push(terminal.terminate())
@@ -152,7 +153,9 @@ export class LocalSubprocessRuntime extends SubprocessRuntime {
     // case waitForExit resolves immediately after settlement.
     const release = (): Promise<void> =>
       handle.waitForExit().then(() => { this.live.delete(handle) })
-    handle.done.then(release, release)
+    void handle.done.then(release, release).catch(() => {
+      // Failed ownership observation keeps the handle live for disposal and host-exit cleanup.
+    })
     return handle
   }
 

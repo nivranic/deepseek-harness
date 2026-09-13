@@ -52,6 +52,7 @@ export function parseClientRuntimeResult(value: unknown): ClientRuntimeResult {
           : { exceptionDetails: parseClientRuntimeExceptionDetails(value.exceptionDetails) }),
       }
     }
+    case 'enable':
     case 'release-object':
     case 'release-object-group':
       exactKeys(value, ['op'], `${value.op} result`)

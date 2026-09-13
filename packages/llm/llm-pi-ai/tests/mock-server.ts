@@ -7,14 +7,17 @@ export interface MockServer {
   requests: unknown[]
   headers: IncomingMessage['headers'][]
   readonly closedResponses: number
-  responseClosed: Promise<void>
+  requestReceived: Promise<void>
 }
 
 const servers: Server[] = []
 
-/** Close every server opened since the last call; run from each spec's afterEach. */
+/** Close and await every test server, including intentionally held responses. */
 export async function closeMockServers(): Promise<void> {
-  await Promise.all(servers.splice(0).map(server => new Promise(resolve => server.close(resolve))))
+  await Promise.all(servers.splice(0).map(server => new Promise<void>((resolve) => {
+    server.close(() => { resolve() })
+    server.closeAllConnections()
+  })))
 }
 
 /** A minimal complete text generation in pi-ai's chat-completions shape. */
@@ -31,17 +34,17 @@ export async function mockServer(script: {
   events?: string[]
   body?: string
   delayMs?: number
+  holdOpen?: boolean
   headers?: Record<string, string>
 }[]): Promise<MockServer> {
   const paths: string[] = []
   const requests: unknown[] = []
   const headers: IncomingMessage['headers'][] = []
   let closedResponses = 0
-  const responseClosed = Promise.withResolvers<undefined>()
+  const requestReceived = Promise.withResolvers<undefined>()
   const server = createServer((request: IncomingMessage, response: ServerResponse) => {
     response.on('close', () => {
       closedResponses += 1
-      responseClosed.resolve(undefined)
     })
     let body = ''
     request.on('data', (chunk: Buffer) => { body += chunk.toString('utf8') })
@@ -49,6 +52,7 @@ export async function mockServer(script: {
       paths.push(request.url ?? '')
       requests.push(body.length === 0 ? undefined : JSON.parse(body))
       headers.push(request.headers)
+      requestReceived.resolve(undefined)
       const behavior = script.shift() ?? { status: 500, body: 'script exhausted' }
       if (behavior.status !== undefined && behavior.status !== 200) {
         response.writeHead(behavior.status, { 'content-type': 'application/json', ...behavior.headers })
@@ -59,7 +63,10 @@ export async function mockServer(script: {
       let index = 0
       const writeNext = (): void => {
         const event = behavior.events?.[index++]
-        if (event === undefined) { response.end(); return }
+        if (event === undefined) {
+          if (!behavior.holdOpen) response.end()
+          return
+        }
         response.write(`data: ${event}\n\n`)
         if (behavior.delayMs === undefined) writeNext()
         else setTimeout(writeNext, behavior.delayMs)
@@ -76,7 +83,7 @@ export async function mockServer(script: {
     paths,
     requests,
     headers,
-    responseClosed: responseClosed.promise,
+    requestReceived: requestReceived.promise,
     get closedResponses() { return closedResponses },
   }
 }

@@ -16,7 +16,8 @@ public final class NoiseCipherState {
     public let keyData: Data
 
     private let key: SymmetricKey
-    private var counter: UInt64 = 0
+    /// Current transport nonce; each new traffic key starts at zero.
+    var counter: UInt64 = 0
 
     /// - Parameter key: the raw 32-byte traffic key from the handshake split.
     init(key raw: [UInt8]) {
@@ -59,6 +60,8 @@ public enum NoiseError: Error, Equatable {
     case shortCiphertext
     /// A handshake message did not have the shape its step requires.
     case malformedHandshake
+    /// The reserved nonce was reached; the caller must retire this traffic key.
+    case nonceExhausted
 }
 
 /// The Noise_XX handshake for either role (chapters 68/69: the relay's
@@ -238,6 +241,7 @@ public func decodeNoiseFrames(_ body: [UInt8]) throws -> [[UInt8]] {
 
 /// The 12-byte Noise ChaChaPoly nonce: 4 zero bytes then the counter little-endian.
 private func noiseNonce(_ counter: UInt64) throws -> ChaChaPoly.Nonce {
+    guard counter != UInt64.max else { throw NoiseError.nonceExhausted }
     var bytes = [UInt8](repeating: 0, count: 12)
     for index in 0..<8 {
         bytes[4 + index] = UInt8((counter >> (8 * UInt64(index))) & 0xff)

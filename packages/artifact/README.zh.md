@@ -32,6 +32,7 @@ kind: "package-group"
 <a id="related-documentation"></a>
 ## 相关文档
 
+- [产物子系统](../../docs/subsystems/artifact.zh.md)——持久化内容标识、日志生命周期与 `ctx.artifacts` API。
 - [持久化目录](../../docs/persistence-catalog.zh.md)——每个日志事件的生成文档，含工件。
 - [会话事件词汇](../core/session/README.zh.md)——本族扩展的 merge-extensible `SessionEventMap`。
 - [伴侣折叠](../remote/link-contracts/README.zh.md)——把这些事件消费进工件面板的参考折叠。
@@ -39,9 +40,4 @@ kind: "package-group"
 <a id="dev-note"></a>
 ## 开发备注
 
-<details>
-<summary>维护者的工作上下文——点击展开</summary>
-
-宿主侧生产方（创建工件并记录这些事件的工具或能力）与宿主侧资源通道是延后增量；词汇先行落地，伴侣消费者与 fixture 因此钉住同一形状。
-
-</details>
+无。

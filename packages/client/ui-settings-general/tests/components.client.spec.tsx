@@ -17,7 +17,7 @@ function derivedDocumentStore(api: object) {
   const wire = api as never
   return new SettingsDocumentStore(wire, new SettingsDescribeMirror(wire))
 }
-import { en } from '../src/client/locales.ts'
+import { en, zh } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
@@ -39,10 +39,11 @@ describe('chrome content', () => {
     expect(screen.getByText('Settings')).toBeTruthy()
   })
 
-  it('TriggerContent drops the label in the rail state', () => {
-    const { container } = render(<TriggerContent {...kit} wide={false} t={t} />)
+  it.each([en, zh])('TriggerContent retains the localized button name in the rail state', (copy) => {
+    const translate: TriggerContentProps['t'] = key => (copy as Record<string, string>)[key] ?? key
+    const { container } = render(<button type="button"><TriggerContent {...kit} wide={false} t={translate} /></button>)
     expect(container.querySelector('svg')).toBeTruthy()
-    expect(screen.queryByText('Settings')).toBeNull()
+    expect(screen.getByRole('button', { name: copy.trigger })).toBeTruthy()
   })
 
   it('HeaderContent and CloseLabel render their translated text', () => {

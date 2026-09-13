@@ -33,6 +33,9 @@ int wmain()
   P(offsetof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION, BasicLimitInformation) + offsetof(JOBOBJECT_BASIC_LIMIT_INFORMATION, LimitFlags));
   P((int)JobObjectExtendedLimitInformation);
   P(JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE);
+  P(sizeof(JOBOBJECT_BASIC_ACCOUNTING_INFORMATION));
+  P(offsetof(JOBOBJECT_BASIC_ACCOUNTING_INFORMATION, ActiveProcesses));
+  P((int)JobObjectBasicAccountingInformation);
 
   static_assert(sizeof(STARTUPINFOW) == 104, "STARTUPINFOW size");
   static_assert(sizeof(PROCESS_INFORMATION) == 24, "PROCESS_INFORMATION size");
@@ -43,6 +46,9 @@ int wmain()
   static_assert(offsetof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION, BasicLimitInformation) + offsetof(JOBOBJECT_BASIC_LIMIT_INFORMATION, LimitFlags) == 16, "job LimitFlags offset");
   static_assert(JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE == 0x2000, "kill on job close flag");
   static_assert(JobObjectExtendedLimitInformation == 9, "extended limit class");
+  static_assert(sizeof(JOBOBJECT_BASIC_ACCOUNTING_INFORMATION) == 48, "job accounting size");
+  static_assert(offsetof(JOBOBJECT_BASIC_ACCOUNTING_INFORMATION, ActiveProcesses) == 40, "job active process count offset");
+  static_assert(JobObjectBasicAccountingInformation == 1, "basic accounting class");
   printf("\nstatic_asserts passed\n");
   return 0;
 }

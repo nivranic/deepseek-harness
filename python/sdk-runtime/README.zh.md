@@ -12,14 +12,14 @@ Wheel 会安装 `dsh` 控制台命令和 `deepseek_harness_runtime` Python 模�
 
 仓库构建还会物化仅限开发的 `runtime/node/` 载体。它在系统 Node 22.19 或更高版本上运行 `node runtime/node/node_modules/@deepseek-ai/dsh/lib/bin.js`。系统不会自动选择它，而且 wheel 与 sdist 均不包含它。
 
-两种载体执行相同的 `dsh` 语法与随附 profile，包括独立的 `sdk-minimal` 配置树，以及包含前端产物的完整 `web` profile。私有 `dsh-python-runtime-closure` manifest 定义打包依赖闭包；不存在 Python 专用 Node 应用或检入的默认 `cordis.yml`。
+两种载体执行相同的 `dsh` 语法与随附 profile，包括独立的 `sdk-minimal` 配置树，以及包含前端产物的完整 `web` profile。私有 `dsh-python-runtime-closure` manifest 显式列出每个可达的工作区应用、bundle、插件与必需对等依赖，使 legacy deploy 恢复保留完整的扁平包目录。`verify-runtime-closure` 在打包前拒绝缺失的传递工作区依赖。不存在 Python 专用 Node 应用或检入的默认 `cordis.yml`。
 
 ## Python 模块 API
 
 - `bundled_package_dir() -> Path` 返回已安装模块数据根目录，并校验发布元数据。
 - `bundled_runtime_path() -> Path` 返回当前平台可执行程序，并校验必需伴随文件。
 - `resolve_bundled_launch_args(mode=None) -> tuple[str, ...]` 默认返回可执行程序 argv。显式 `mode="node"` 或 `DSH_RUNTIME_MODE=node` 会选择仅限仓库使用的 Node 载体。
-- `main()` 实现已安装的 `dsh` 控制台命令，并在替换 Python 进程前拒绝缺失或空白的 `DSH_HOME`。
+- `main()` 实现已安装的 `dsh` 控制台命令，并拒绝缺失或空白的 `DSH_HOME`。POSIX 替换 Python 进程；Windows 等待原生子进程、继承标准流、保留参数分隔，并传递退出状态。
 
 不支持的平台以及缺失的可执行程序或伴随文件会抛出 `FileNotFoundError`，并指出构建与安装路径。未知运行时模式会抛出 `ValueError`。
 
@@ -34,3 +34,5 @@ Wheel 会安装 `dsh` 控制台命令和 `deepseek_harness_runtime` Python 模�
 在仓库根目录运行 `pnpm exec tsx scripts/build-exe-for-python-sdk.ts`，会校验闭包、构建包、部署无符号链接的文件树、打包所选目标，并把可执行程序及伴随文件同步到本模块。`scripts/build-python-release.py` 按仓库根版本暂存发布形态的 wheel，并将 `deepseek-harness-sdk` 固定到完全相同的运行时版本。
 
 Installed-wheel smoke 会在 checkout 外创建干净虚拟环境，证明 distribution 与可执行程序来源，然后覆盖默认及自定义 SDK profile、外部插件、MCP、原生工具、直接 JSON-RPC、检入快照，以及可信运行中的真实提供方。另见 [Python 贡献者工作流](../development.zh.md)与 [installed-wheel 测试决策](../../.agents/notes/implemented/testing/2026-08-23-installed-python-wheel-black-box-ci.zh.md)。
+
+Linux 与 macOS 另有 installed-wheel smoke，在全新 home 中启动 `dsh --profile web --no-open --host 127.0.0.1 --port 0`。它检查已认证首页、包含 parser 已加载模块 bootstrap 的非空插件图、所有声明的 bundle 字节和 Session RPC，随后要求 SIGTERM 正常关闭且进程组清空。启动 token、cookie 和运行时输出只保留在内存中。这项 HTTP 检查不操作浏览器或 DirectHostMac 应用。

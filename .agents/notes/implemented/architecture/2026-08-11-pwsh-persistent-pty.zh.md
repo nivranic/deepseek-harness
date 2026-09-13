@@ -18,6 +18,10 @@ harness 在 Windows 上没有持久 shell。持久 `bash` 栈按构造就是 POS
 
 ### `@deepseek-ai/dsh-subprocess-local` 的 Windows 基座
 
+进程树遍历在沿每条创建者 PID 关系向下查找前，比较完整的64位创建时间。Windows 在创建者退出后仍保留子进程的创建者 PID，因此存活子进程可能指向由无关新根进程复用的 PID。创建时间早于所观察父进程的子进程，以及父进程身份不可读的分支都会被排除；创建进程可能发生在同一个时钟刻度，因此相同时间戳仍保留。确定性用例覆盖旧父进程分支、不可读父进程、FILETIME 高低字进位，以及不丢失数值精度的相邻大时间戳。进程表仍只是观察；普通进程的约束由 [Windows Job](2026-09-07-windows-subprocess-job-ownership.zh.md) 拥有。
+
+原生结构不注册名称，并在每个模块实例内部缓存。Koffi 的具名类型注册表在 JavaScript 模块重载后继续存在，因此模块内缓存无法避免全局名称重复。Toolhelp32 与 GetProcessTimes 同步填充 Node 管理的缓冲区，不保留输出指针；这些调用不需要手动分配，而手动分配可能在反复轮询中泄漏。原生回归会在模块重新求值后执行检查，并要求任何手动分配的输出缓冲区都在检查返回前释放。
+
 `createProcessInspector()` 在 win32 返回 `WindowsProcessInspector` 而不是抛错。基于 koffi 的检查器通过 Toolhelp32 枚举进程表，把 GetProcessTimes 创建身份与进程句柄零时等待结合起来（同时防止 PID 复用并识别已终止的进程对象），把 **shell pid 作为伪前台进程组**（Windows 没有 POSIX 进程组；这个稳定值让 prompt-marker 就绪快路径在一个轮询间隔内结算），不报告 stdin-wait 证据（就绪与 macOS 同档），信号走 `taskkill /T` 升级（仅 SIGKILL 加 `/F`）。koffi（`^3.1.0`，`sandbox-windows-acl` 已固定的版本）仅在 win32 惰性加载。
 
 `LocalTerminalHandle` 为 win32 分支，因为 node-pty 的 `kill(signal)` 会抛错（"Signals not supported on windows"），其无参 kill 委托的 console-list agent 在没有父控制台时失败。拆卸经 taskkill 升级并以 shell 的启动身份作栅栏；由于被外部 taskkill 的 shell 可能永远不会触发 node-pty 的退出通知，句柄从 inspector 验证的消失状态结算 `done`（`settleExitIfGone`）。`signalForeground` 把 SIGINT 映射为 `\x03` Ctrl-C 输入写入（conhost 转为控制台级 CTRL_C 事件的投递方式；实测可中断运行中的命令），SIGTERM/SIGKILL 路由到 taskkill，SIGTSTP/SIGHUP 以 Windows 不可用为由拒绝。公共 `PtySignal` 集合与 seam 类型不变；映射全部留在 backend。

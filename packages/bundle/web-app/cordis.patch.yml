@@ -430,6 +430,10 @@
 - id: agent-instructions
   disabled: true
 
+# The backend stays on the host plane; only the model-facing tool row moves.
+- id: artifact
+  disabled: true
+
 - id: tool-todo
   disabled: true
 

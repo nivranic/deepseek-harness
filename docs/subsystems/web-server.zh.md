@@ -6,6 +6,14 @@
 
 源码：[`packages/host/webserver/src/index.ts`](../../packages/host/webserver/src/index.ts)
 
+## 桌面支持类型
+
+[`DesktopSupportResult`](../../packages/host/electron-ipc/src/types.ts)是封闭结果联合：`saved` 携带准确的 UTF-8 字节数、SHA-256 和 `complete:false`；`cancelled` 与 `busy` 仅携带状态；`failed` 携带固定 `DesktopSupportFailure` 类别。任何分支均不包含文档内容或目标路径。`DesktopSupportCounts` 包含插件启动以来的无符号 32 位饱和计数 `turnsStarted`、`turnsEnded`、`toolCalls` 和 `toolResults`，不含 Session id 或事件负载。
+
+[`DesktopSupportHost`](../../packages/host/electron-ipc/src/native.ts)提供内嵌扫描器目录、有界暂存产品元数据读取器、同步 profile 生命周期快照和可取消的原生保存回调。回调仅接收不可变的 `ApprovedSupportDocument`；其 `save` 操作通过原子 rename 提交。回调注册只有一个活动所有者，并返回异步 disposer，负责撤销准入、中止并等待未完成工作。[包参考](../../packages/host/electron-ipc/README.zh.md#diagnostics-export)拥有采集和失败行为。
+
+`DesktopRuntimeSnapshot` 记录 `idle`、`starting`、`ready`、`stopping`、`stopped`，或包含失败 `startup` / `shutdown` 操作的 `failed`。这些阶段描述原生 profile 生命周期，不能证明 provider 可用。采集器在等待产品元数据前复制快照。
+
 ## 路由
 
 ```ts type-equiv
@@ -76,6 +84,38 @@ handle(request: Request): Promise<Response>
 ```
 
 Source: [`packages/host/electron-ipc/src/index.ts`](../../packages/host/electron-ipc/src/index.ts)
+
+<a id="ctxdesktopsupport--desktopsupport"></a>
+
+### `ctx.desktopSupport` — `DesktopSupport`
+
+One local export at a time; unloading revokes native callbacks, aborts and joins the active operation.
+
+```ts cordis-catalog
+/**
+ * Read process-local counters without exposing retained Session objects or sequence cursors.
+ * @returns a value copy of the diagnostic counters since this plugin started.
+ */
+diagnosticCounts(): DesktopSupportCounts
+
+/**
+ * Register the application's sole native exporter with the service's lifecycle.
+ * @param host - native callbacks; a second live registration is rejected.
+ * @returns disposer that revokes new requests, aborts and joins any active export.
+ */
+registerHost(host: DesktopSupportHost): () => Promise<void>
+
+/**
+ * Export the application's current safe projection to a user-selected local file.
+ * @param connection - requesting renderer's captured generation facts; wire counts are validated and copied before asynchronous work.
+ * @returns saved-byte identity, cancellation, busy state, or a fixed refusal without paths or raw errors.
+ */
+@Remote('export') exportSupport(connection?: ConnectionDiagnosticSnapshot): Promise<DesktopSupportResult>
+```
+
+Types: [ConnectionDiagnosticSnapshot](web-client.zh.md)
+
+Source: [`packages/host/electron-ipc/src/support.ts`](../../packages/host/electron-ipc/src/support.ts)
 
 <a id="ctxwebserver--webserver"></a>
 

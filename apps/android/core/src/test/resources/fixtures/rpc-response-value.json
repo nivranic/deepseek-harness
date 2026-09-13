@@ -1,0 +1,10 @@
+{
+  "type": "server-response",
+  "rpcId": "rpc-session-list-1",
+  "result": {
+    "ok": true,
+    "value": {
+      "sessions": []
+    }
+  }
+}

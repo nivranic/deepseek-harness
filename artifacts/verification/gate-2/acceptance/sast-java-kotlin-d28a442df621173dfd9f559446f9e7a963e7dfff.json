@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "kind": "sast",
+  "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+  "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+  "action": "github/codeql-action/analyze",
+  "actionSha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+  "registrySha256": "cec22b35ba74a01150bc1e40f20abb3f31180f69ac4d56a48dac794189d8ba23",
+  "scanner": "CodeQL",
+  "language": "java-kotlin",
+  "reports": [
+    {
+      "sha256": "f120a2523944e65b5e46305f47083783c3b9dcbc292a7800cd5b3218d376532f",
+      "version": "2.26.4",
+      "rules": 120,
+      "structure": {
+        "driverRuleCount": 0,
+        "extensionRuleCounts": [
+          120,
+          0,
+          0
+        ],
+        "resultsPresent": true,
+        "resultCount": 7
+      }
+    }
+  ],
+  "findings": [
+    {
+      "rule": "java/android/implicit-pendingintents",
+      "locations": [
+        {
+          "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "rule": "java/static-initialization-vector",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 270
+        }
+      ]
+    },
+    {
+      "rule": "java/static-initialization-vector",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 278
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 269
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 270
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 277
+        }
+      ]
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "locations": [
+        {
+          "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+          "line": 278
+        }
+      ]
+    }
+  ],
+  "findingCount": 7,
+  "analysisComplete": false,
+  "blockingDiagnostics": [
+    {
+      "rule": "java/diagnostics/extraction-errors",
+      "level": "error"
+    }
+  ]
+}

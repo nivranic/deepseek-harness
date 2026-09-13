@@ -27,6 +27,39 @@ export type DeviceRole = 'observer' | 'controller' | 'administrator'
 /** Device roles this build may grant at pairing time. */
 export const PAIRABLE_ROLES: readonly DeviceRole[] = ['observer', 'controller']
 
+/** Session identity persisted as one paired-device grant. */
+export type DeviceSessionGrantId = Branded<'DeviceSessionGrantId'>
+
+/** Workspace identity persisted as one paired-device grant. */
+export type DeviceWorkspaceGrantId = Branded<'DeviceWorkspaceGrantId'>
+
+/** Resource ids one paired device may reach, or every id of that resource kind. */
+export type DeviceResourceAccess<ResourceId extends string> = 'all' | readonly ResourceId[]
+
+/** Session and Workspace grants persisted with one paired device. */
+export interface DeviceAccess {
+  readonly sessions: DeviceResourceAccess<DeviceSessionGrantId>
+  readonly workspaces: DeviceResourceAccess<DeviceWorkspaceGrantId>
+}
+
+/**
+ * Brand one validated Session identity for durable device access.
+ * @param value - non-empty Session identity accepted at the configuration or wire boundary.
+ * @returns the compile-time-distinct Session grant identity.
+ */
+export function DeviceSessionGrantId(value: string): DeviceSessionGrantId {
+  return value as DeviceSessionGrantId
+}
+
+/**
+ * Brand one validated Workspace identity for durable device access.
+ * @param value - non-empty Workspace identity accepted at the configuration or wire boundary.
+ * @returns the compile-time-distinct Workspace grant identity.
+ */
+export function DeviceWorkspaceGrantId(value: string): DeviceWorkspaceGrantId {
+  return value as DeviceWorkspaceGrantId
+}
+
 /** One durable device record in the trust store. */
 export interface PairedDevice {
   readonly deviceId: DeviceId
@@ -40,6 +73,8 @@ export interface PairedDevice {
   readonly lastSeenAt: number | undefined
   /** Epoch milliseconds of revocation; absent while the device is trusted. */
   readonly revokedAt: number | undefined
+  /** Host resources this device may reach after endpoint and role checks. */
+  readonly access: DeviceAccess
 }
 
 /** One issued, not-yet-consumed pairing code. */
@@ -102,6 +137,8 @@ interface DeviceRow {
   created_at: number
   last_seen_at: number | null
   revoked_at: number | null
+  all_sessions: number
+  all_workspaces: number
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -109,44 +146,59 @@ declare module '@deepseek-ai/cordis' {
     /** The Host's paired-device trust store. */
     deviceTrust: DeviceTrustStore
   }
+
+  interface Events {
+    /**
+     * A device's first revocation has committed. Every listener runs so active
+     * carriers can close that device even when another observer fails.
+     * @param deviceId - durable identity whose trust was just revoked.
+     * @mode parallel
+     */
+    'device-trust/revoked'(deviceId: DeviceId): Promise<void> | void
+  }
 }
 
 /**
  * The Host's device trust store: stable Host identity, one-time pairing
- * codes consumed atomically, and the device records the link carrier
- * authorizes against.
+ * codes consumed atomically, and device records with role, resource grants,
+ * timestamps, and revocation that the link carrier authorizes against.
  * @typert service deviceTrust
  */
 export class DeviceTrustStore extends Service {
   static inject = []
   static Config: z<DeviceTrustConfig> = Config
 
-  private readonly ready: Promise<DatabaseSync>
-  private closed = false
+  private readonly path: string
+  private ready: Promise<DatabaseSync> | undefined
+  private closing: Promise<void> | undefined
 
   /**
-   * Open the trust database.
+   * Register a trust database that opens when an operation first needs persisted state.
    * @param ctx - owning plugin context.
    * @param config - validated plugin configuration (schema defaults applied).
    */
   constructor(ctx: Context, config: DeviceTrustConfig) {
     super(ctx, 'deviceTrust')
-    const path = config.path ?? join(resolveDshHome(config.dshHome), 'device-trust.sqlite')
-    this.ready = openDatabase(path)
-    // Mark the rejection handled: every primitive re-awaits `ready`, so an
-    // open failure still surfaces to each caller; this guard only prevents an
-    // unhandled-rejection crash when the failure precedes the first use.
-    this.ready.catch(() => {})
+    this.path = config.path ?? join(resolveDshHome(config.dshHome), 'device-trust.sqlite')
     ctx.effect(() => async () => {
       await this.close()
     }, 'device-trust.close')
+  }
+
+  /** Open the configured database once and share its result across callers. */
+  private database(): Promise<DatabaseSync> {
+    if (this.closing !== undefined) return Promise.reject(new Error('device trust: store is closed'))
+    if (this.ready !== undefined) return this.ready
+    const ready = openDatabase(this.path)
+    this.ready = ready
+    return ready
   }
 
   /** Resolve this store's stable Host identity, creating it on first use.
    * @returns the Host identity record.
    */
   async hostIdentity(): Promise<HostIdentity> {
-    const db = await this.ready
+    const db = await this.database()
     const row = db.prepare('SELECT value FROM meta WHERE key = ?').get('host_id') as
       | { value: string }
       | undefined
@@ -164,7 +216,7 @@ export class DeviceTrustStore extends Service {
    * @returns the pending pairing to display to the device being paired.
    */
   async createPairing(ttlSeconds: number): Promise<PendingPairing> {
-    const db = await this.ready
+    const db = await this.database()
     const code = randomBytes(32).toString('base64url')
     const expiresAt = internals.now() + ttlSeconds * 1000
     db.prepare('INSERT INTO pending_pairings (code_hash, expires_at) VALUES (?, ?)')
@@ -179,6 +231,7 @@ export class DeviceTrustStore extends Service {
    * @param code - pairing code from {@link DeviceTrustStore.createPairing}.
    * @param device - user-chosen name and verified public key of the pairing device.
    * @param role - authorization role granted to the device.
+   * @param access - Session and Workspace grants fixed by the Host at pairing.
    * @returns the durable device record just created.
    * @throws {@link DeviceTrustError} when the code is unknown or expired.
    */
@@ -186,6 +239,7 @@ export class DeviceTrustStore extends Service {
     code: string,
     device: { readonly name: string; readonly publicKeySpki: string },
     role: DeviceRole,
+    access: DeviceAccess,
   ): Promise<PairedDevice> {
     if (!PAIRABLE_ROLES.includes(role)) {
       throw new Error(`device trust: role ${JSON.stringify(role)} cannot be granted at pairing`)
@@ -194,19 +248,8 @@ export class DeviceTrustStore extends Service {
       throw new Error('device trust: device name must be 1 through 200 characters')
     }
     assertUsablePublicKey(device.publicKeySpki)
-    const db = await this.ready
-    const codeHash = hashPairingCode(code)
-    const pending = db.prepare('SELECT expires_at FROM pending_pairings WHERE code_hash = ?')
-      .get(codeHash) as { expires_at: number } | undefined
-    if (pending === undefined) throw new DeviceTrustError('pairing-unknown', 'pairing code is unknown or already used')
-    const consumed = db.prepare('DELETE FROM pending_pairings WHERE code_hash = ?').run(codeHash)
-    /* v8 ignore next 3 -- synchronous single-connection calls cannot interleave; this guard contains a second writer. */
-    if (consumed.changes !== 1) {
-      throw new DeviceTrustError('pairing-unknown', 'pairing code is unknown or already used')
-    }
-    if (pending.expires_at <= internals.now()) {
-      throw new DeviceTrustError('pairing-expired', 'pairing code has expired; start a new pairing')
-    }
+    const db = await this.database()
+    const normalizedAccess = normalizeAccess(access)
     const record: PairedDevice = {
       deviceId: DeviceId(randomUUID()),
       name: device.name,
@@ -215,9 +258,32 @@ export class DeviceTrustStore extends Service {
       createdAt: internals.now(),
       lastSeenAt: undefined,
       revokedAt: undefined,
+      access: normalizedAccess,
     }
-    db.prepare('INSERT INTO devices (device_id, name, public_key_spki, role, created_at) VALUES (?, ?, ?, ?, ?)')
-      .run(record.deviceId, record.name, record.publicKeySpki, record.role, record.createdAt)
+    const codeHash = hashPairingCode(code)
+    let expired = false
+    db.exec('BEGIN IMMEDIATE')
+    try {
+      const pending = db.prepare('SELECT expires_at FROM pending_pairings WHERE code_hash = ?')
+        .get(codeHash) as { expires_at: number } | undefined
+      if (pending === undefined) {
+        throw new DeviceTrustError('pairing-unknown', 'pairing code is unknown or already used')
+      }
+      const consumed = db.prepare('DELETE FROM pending_pairings WHERE code_hash = ?').run(codeHash)
+      /* v8 ignore next 3 -- the immediate transaction excludes another writer; this guard contains store corruption. */
+      if (consumed.changes !== 1) {
+        throw new DeviceTrustError('pairing-unknown', 'pairing code is unknown or already used')
+      }
+      expired = pending.expires_at <= internals.now()
+      if (!expired) insertDevice(db, record)
+      db.exec('COMMIT')
+    } catch (error) {
+      db.exec('ROLLBACK')
+      throw error
+    }
+    if (expired) {
+      throw new DeviceTrustError('pairing-expired', 'pairing code has expired; start a new pairing')
+    }
     return record
   }
 
@@ -227,9 +293,8 @@ export class DeviceTrustStore extends Service {
    * @returns the record, or `undefined` when no such device exists.
    */
   async device(deviceId: DeviceId): Promise<PairedDevice | undefined> {
-    const db = await this.ready
-    const row = db.prepare('SELECT * FROM devices WHERE device_id = ?').get(deviceId) as DeviceRow | undefined
-    return row === undefined ? undefined : deviceOf(row)
+    const db = await this.database()
+    return readDevice(db, deviceId)
   }
 
   /**
@@ -237,9 +302,9 @@ export class DeviceTrustStore extends Service {
    * @returns every device record in the store.
    */
   async devices(): Promise<readonly PairedDevice[]> {
-    const db = await this.ready
+    const db = await this.database()
     const rows = db.prepare('SELECT * FROM devices ORDER BY created_at, device_id').all() as unknown as DeviceRow[]
-    return rows.map(deviceOf)
+    return rows.map(row => deviceOf(db, row))
   }
 
   /**
@@ -249,10 +314,27 @@ export class DeviceTrustStore extends Service {
    * @returns the device record after revocation, or `undefined` when unknown.
    */
   async revoke(deviceId: DeviceId): Promise<PairedDevice | undefined> {
-    const db = await this.ready
-    db.prepare('UPDATE devices SET revoked_at = ? WHERE device_id = ? AND revoked_at IS NULL')
+    const db = await this.database()
+    const changed = db.prepare('UPDATE devices SET revoked_at = ? WHERE device_id = ? AND revoked_at IS NULL')
       .run(internals.now(), deviceId)
-    return this.device(deviceId)
+    // A committed first revocation must notify active carriers even when
+    // assembling the return record exposes later schema or I/O damage.
+    let result: PairedDevice | undefined
+    let readFailure: { readonly error: unknown } | undefined
+    try {
+      result = readDevice(db, deviceId)
+    } catch (error: unknown) {
+      readFailure = { error }
+    }
+    if (changed.changes === 1) {
+      try {
+        await this.ctx.parallel('device-trust/revoked', deviceId)
+      } catch (error) {
+        this.ctx.logger.warn('device trust: a post-commit revocation listener failed: %o', error)
+      }
+    }
+    if (readFailure !== undefined) throw readFailure.error
+    return result
   }
 
   /**
@@ -262,18 +344,22 @@ export class DeviceTrustStore extends Service {
    * @returns resolution after the write settles.
    */
   async touch(deviceId: DeviceId): Promise<void> {
-    const db = await this.ready
+    const db = await this.database()
     db.prepare('UPDATE devices SET last_seen_at = ? WHERE device_id = ? AND revoked_at IS NULL')
       .run(internals.now(), deviceId)
   }
 
-  /** Close the database; every later primitive rejects. Idempotent.
+  /** Close the database; every later primitive rejects. Concurrent and repeated
+   * calls share the same settlement.
    * @returns resolution after the medium is released.
    */
-  async close(): Promise<void> {
-    if (this.closed) return
-    this.closed = true
-    const db = await this.ready.catch(() => undefined)
+  close(): Promise<void> {
+    this.closing ??= this.releaseDatabase()
+    return this.closing
+  }
+
+  private async releaseDatabase(): Promise<void> {
+    const db = await this.ready?.catch(() => undefined)
     if (db !== undefined) db.close()
   }
 }
@@ -286,7 +372,12 @@ function hashPairingCode(code: string): string {
   return createHash('sha256').update(code).digest('hex')
 }
 
-function deviceOf(row: DeviceRow): PairedDevice {
+function readDevice(db: DatabaseSync, deviceId: DeviceId): PairedDevice | undefined {
+  const row = db.prepare('SELECT * FROM devices WHERE device_id = ?').get(deviceId) as DeviceRow | undefined
+  return row === undefined ? undefined : deviceOf(db, row)
+}
+
+function deviceOf(db: DatabaseSync, row: DeviceRow): PairedDevice {
   return {
     deviceId: DeviceId(row.device_id),
     name: row.name,
@@ -295,7 +386,63 @@ function deviceOf(row: DeviceRow): PairedDevice {
     createdAt: row.created_at,
     lastSeenAt: row.last_seen_at ?? undefined,
     revokedAt: row.revoked_at ?? undefined,
+    access: {
+      sessions: row.all_sessions === 1
+        ? 'all'
+        : grantIds<DeviceSessionGrantId>(db, 'device_session_grants', 'session_id', row.device_id),
+      workspaces: row.all_workspaces === 1
+        ? 'all'
+        : grantIds<DeviceWorkspaceGrantId>(db, 'device_workspace_grants', 'workspace_id', row.device_id),
+    },
   }
+}
+
+function normalizeAccess(access: DeviceAccess): DeviceAccess {
+  return {
+    sessions: normalizeResourceAccess(access.sessions),
+    workspaces: normalizeResourceAccess(access.workspaces),
+  }
+}
+
+function normalizeResourceAccess<ResourceId extends string>(
+  access: DeviceResourceAccess<ResourceId>,
+): DeviceResourceAccess<ResourceId> {
+  return access === 'all' ? access : [...new Set(access)].sort()
+}
+
+function insertDevice(db: DatabaseSync, record: PairedDevice): void {
+  db.prepare(`
+    INSERT INTO devices (
+      device_id, name, public_key_spki, role, created_at, all_sessions, all_workspaces
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    record.deviceId,
+    record.name,
+    record.publicKeySpki,
+    record.role,
+    record.createdAt,
+    record.access.sessions === 'all' ? 1 : 0,
+    record.access.workspaces === 'all' ? 1 : 0,
+  )
+  if (record.access.sessions !== 'all') {
+    const insert = db.prepare('INSERT INTO device_session_grants (device_id, session_id) VALUES (?, ?)')
+    for (const sessionId of record.access.sessions) insert.run(record.deviceId, sessionId)
+  }
+  if (record.access.workspaces !== 'all') {
+    const insert = db.prepare('INSERT INTO device_workspace_grants (device_id, workspace_id) VALUES (?, ?)')
+    for (const workspaceId of record.access.workspaces) insert.run(record.deviceId, workspaceId)
+  }
+}
+
+function grantIds<ResourceId extends string>(
+  db: DatabaseSync,
+  table: 'device_session_grants' | 'device_workspace_grants',
+  column: 'session_id' | 'workspace_id',
+  deviceId: string,
+): ResourceId[] {
+  const rows = db.prepare(`SELECT ${column} AS id FROM ${table} WHERE device_id = ? ORDER BY ${column}`)
+    .all(deviceId) as unknown as Array<{ readonly id: string }>
+  return rows.map(row => row.id as ResourceId)
 }
 
 function assertUsablePublicKey(publicKeySpki: string): void {

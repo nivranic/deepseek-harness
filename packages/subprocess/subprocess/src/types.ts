@@ -159,13 +159,11 @@ export interface SubprocessCollectedOutputs {
  * A live child process rooted in its own process tree. Collected output
  * remains readable after exit; piped streams belong to the caller.
  *
- * Termination is tree-scoped everywhere: POSIX signals the detached process
- * group (falling back to the direct child when the group is gone), Windows
- * terminates the tree via `taskkill /T`, so helper processes cannot outlive
- * the handle unnoticed.
+ * Termination covers the provider-owned tree independently of the requested
+ * program's exit. The local provider uses POSIX groups or Windows Jobs.
  */
 export interface SubprocessHandle {
-  /** Process id (tree root); -1 when the spawn itself failed. */
+  /** Owned tree-root id, which may identify a bootstrap; -1 when the spawn itself failed. */
   readonly pid: number
   /** The child's stdin, present iff spawned with `stdin: 'pipe'`. */
   readonly stdin: Writable | undefined
@@ -175,7 +173,7 @@ export interface SubprocessHandle {
   readonly stderr: Readable | undefined
   /** Offset-based readers for collect-mode streams (also readable after exit). */
   readonly collected: SubprocessCollectedOutputs
-  /** Resolves at process close with exit facts; rejects only for spawn-level failures. */
+  /** Resolves with program exit facts (or bootstrap facts after cancellation); rejects launch or bootstrap failures. */
   readonly done: Promise<SubprocessOutcome>
   /**
    * Begin the SIGTERM → `graceMs` → SIGKILL escalation on the process tree

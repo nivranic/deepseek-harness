@@ -2,10 +2,11 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -82,21 +83,36 @@ class PushModel(private val wire: WireDriving, private val scope: CoroutineScope
     private val _pushes = MutableStateFlow<List<CompanionPush>>(emptyList())
     val pushes: StateFlow<List<CompanionPush>> = _pushes
 
-    private var watchJob: Job? = null
+    private val watchOwner = StreamTransitionOwner(scope)
+    val connectionSnapshot: ConnectionSnapshot get() = watchOwner.connectionSnapshot
 
     fun startWatching() {
-        watchJob?.cancel()
-        watchJob = scope.launch {
-            wire.stream("\$events")
-                .catch { }
-                .collect { frame -> collect(frame) }
+        watchOwner.replaceAsync(create = { generation -> watch(generation) }, publish = {}, invalidate = {})
+    }
+
+    private fun watch(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
+        watchOwner.attempt(generation)
+        var received = false
+        try {
+            wire.stream("\$events").collect { frame ->
+                if (watchOwner.isCurrent(generation)) {
+                    if (!received) { watchOwner.received(generation); received = true }
+                    collect(frame)
+                }
+            }
+            watchOwner.interrupted(generation, null)
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            watchOwner.interrupted(generation, failure)
         }
     }
 
     fun stopWatching() {
-        watchJob?.cancel()
-        watchJob = null
+        watchOwner.stop {}
     }
+
+    suspend fun stopWatchingAndAwait() { watchOwner.stopAndAwait {} }
 
     fun collect(frame: WireValue) {
         val push = pushFromForward(frame) ?: return

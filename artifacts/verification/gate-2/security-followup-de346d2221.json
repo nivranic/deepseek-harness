@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "security-and-ci-followup",
+  "recordedAt": "2026-09-05T20:17:55.920400+00:00",
+  "sourceHead": "e228177a22bb138dfd49fd90106a44ef0b78f067",
+  "commits": {
+    "ciTests": "985ce3133ee290483e408418cef307f56ef0faed",
+    "android": "e228177a22bb138dfd49fd90106a44ef0b78f067"
+  },
+  "inputMaterialization": "Local checks used pre-commit source bytes bound below. Linux received explicit synchronized files and retained an older Git HEAD. CodeQL used the separately described archive plus overlays, not a clean candidate checkout.",
+  "sourceSha256": {
+    "apps/android/build.gradle.kts": "4dbde6cf46860e99ced19d0dc054d4b9793ac7c1cd59e872f27c1428cd1a6b46",
+    "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt": "692c5ffd1cf19fad3c87c174381873e3c6361859534fe1f0ed3684e45e5be987",
+    "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/PushNotificationTargetTest.kt": "5e06033e28cf62cfc3616d17d56691a77ba779ebaad2ec4d7c1875802a48e518",
+    "packages/experimental/inspector/tests/integration.host.spec.ts": "c4be9df3f1d3af40ee611c0bc18a648e28c091c1a8903b92cf781fb57dfe856a",
+    "packages/session/session-projection-cache/tests/cache.spec.ts": "8d880c5b545e8d18391e74a3bf854a65d6d35e88a2150a2793978e5e2e11553c",
+    "packages/typert/generator/tests/tools-catalog.spec.ts": "e8b3c549aeabdc002fd9532078e117b08177b717dc3f62b5c77dcae39dc7ad58"
+  },
+  "remote": {
+    "candidateSha": "de346d222198b1aac14dec56546dd661adf8debf",
+    "status": "FAIL",
+    "ciEvidence": "artifacts/verification/gate-2/ci-evidence-de346d2221.json",
+    "runs": {
+      "ci": 33985552901,
+      "apple": 33985552821,
+      "android": 33985552817,
+      "supplyChain": 33985552798
+    },
+    "receipts": {
+      "javascript-typescript": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "4287aec3e4b32479108d1ff90473a23dfcb483bb57e8b8b665b3d46f18484b68",
+        "status": "FAIL",
+        "findingCount": 86,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 86,
+        "reviewedFindings": 0
+      },
+      "java-kotlin": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "2f037d7d3846ce61f2193e70a3518d56c73a1bf8f7e736b540d5405bdf651ff3",
+        "status": "FAIL",
+        "findingCount": 7,
+        "analysisComplete": false,
+        "blockingDiagnostics": [
+          {
+            "rule": "java/diagnostics/extraction-errors",
+            "level": "error",
+            "category": "unknown-extraction-errors",
+            "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt"
+          }
+        ],
+        "unreviewedFindings": 7,
+        "reviewedFindings": 0
+      },
+      "swift": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-swift-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9f5e4f20c08940e60e407d50634fd11059cdc8c8a6d741776d25f7199446fb77",
+        "status": "PASS",
+        "findingCount": 1,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 1
+      },
+      "python": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "9943c5fb80a8e649ca75d7a9e9180a862fb818297dbe8148ae836f5e26d74332",
+        "status": "PASS",
+        "findingCount": 0,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 0
+      },
+      "secrets": {
+        "path": "artifacts/verification/gate-2/acceptance/secrets-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "3b8cdcf35704ff7cfa3fcbe107f420feb91b73796f505a02b345eee8ded9cc3e",
+        "status": "PASS"
+      },
+      "dependencies": {
+        "path": "artifacts/verification/gate-2/acceptance/dependencies-de346d222198b1aac14dec56546dd661adf8debf.json",
+        "sha256": "61213e2d8e3e3510714a01ed462139b8d58374c8398ab48725ce48ad54ba213e",
+        "status": "FAIL"
+      }
+    },
+    "javascriptProgress": {
+      "before": 91,
+      "after": 86,
+      "removedFindings": 5,
+      "scope": "The prior session-reference and workspace-path linear scans removed all five findings at those owners."
+    }
+  },
+  "local": {
+    "windows": {
+      "node22FocusedTests": 29,
+      "node24FocusedTests": 29,
+      "finalCacheTests": 16,
+      "note": "The 29-test Windows runs preceded the final type-only narrowing of mock results; the final cache suite passed after narrowing."
+    },
+    "linux": {
+      "node": "22.22.1",
+      "focusedTests": 29,
+      "testDocs": "15/15",
+      "docSync": "32/32",
+      "lint": {
+        "warnings": 0,
+        "errors": 0
+      }
+    },
+    "android": {
+      "command": "gradle --no-daemon -p apps/android :core:test :app:assembleDebug :app:assembleDebugAndroidTest",
+      "gradle": "8.14",
+      "jdk": "17",
+      "kotlin": "2.2.21",
+      "agp": "8.10.1",
+      "core": {
+        "suites": 28,
+        "tests": 125,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "instrumentation": {
+        "command": "adb -s emulator-5580 shell am instrument -w com.deepseek.harness.companion.test/androidx.test.runner.AndroidJUnitRunner",
+        "api": 34,
+        "tests": 2,
+        "status": "PASS",
+        "cases": [
+          "CompanionStartupTest",
+          "PushNotificationTargetTest"
+        ],
+        "emulator": "Task-owned read-only headless emulator; old debug application replaced after signature mismatch, emulator closed and its launcher/QEMU PIDs confirmed absent."
+      },
+      "apks": {
+        "apps/android/app/build/outputs/apk/debug/app-debug.apk": "2d2b5e1582ff62ad346ea76407aab3e62efb27863edd01db06138929509c95ed",
+        "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "9b5c2155e8dc7a5ac641d2f96c6e4fb5c22e7e437a148e74896e81b96c69ef89"
+      },
+      "compileSdk": 35,
+      "targetSdk": 35
+    },
+    "workflowCoverage": {
+      "windowsNodes": [
+        "22.22.1",
+        "24.19.0"
+      ],
+      "testsPerRun": 106,
+      "suitesPerRun": 6,
+      "status": "PASS",
+      "coverage": {
+        "statements": "270/270",
+        "branches": "126/126",
+        "functions": "58/58",
+        "lines": "241/241"
+      },
+      "sources": [
+        "packages/workflow/workflow-worker-thread/src/host.ts",
+        "packages/workflow/workflow-worker-thread/src/index.ts"
+      ],
+      "command": "vitest run packages/workflow/workflow-worker-thread/tests --coverage --coverage.include=packages/workflow/workflow-worker-thread/src/host.ts --coverage.include=packages/workflow/workflow-worker-thread/src/index.ts --no-file-parallelism",
+      "remoteFailure": "Partition 1 reported an unexpected Vitest fork exit; the workflow-worker-thread main suite had no completion row. The gap is independent of the cache assertion failure. Local success does not identify the remote process-exit cause or replace the failed aggregate."
+    },
+    "codeqlExperiment": "artifacts/verification/gate-2/acceptance/kotlin-codeql-local-objecttype.json"
+  },
+  "privateLogSha256": {
+    "android-codeql-fix-build.log": "11692fb0d0a1e641e04c9cda867ea648c889e393eb709e595151fbd14b649860",
+    "android-notification-instrumentation.log": "06e969e2bee070b7ae41f1ca81b4e73a1248d642111bf71358229ec329b71b2c",
+    "ci-followup-de346-tests.log": "682ed1ff393ab77b171411a9f4ccba36fc53ec888376217bb5201cfd063ab5ea",
+    "ci-followup-de346-node24-tests.log": "d069a98a638f64678352db7f94df568520c4d3027f82d17b9766efbd6c42b93b",
+    "ci-followup-cache-final.log": "b5f27ab7b9e1f6cb45838d6a9c9560fd19e9244cebf7f245403d37cfb45aba1e",
+    "workflow-de346-coverage.log": "5900b0156d96856226be7ff56d2dc222d63142af1526d2c755e6c559a839b15c",
+    "workflow-de346-node24-coverage.log": "f18711b361c20fef219889070838b70ab56665154c9368815a3feaf69ed1ea65",
+    "ci-followup-linux-final-tests.log": "d0d4c935fd936408f35ce44970e68c0e5144d65020169b488f7db7fd64a836b9",
+    "ci-followup-linux-final-docs.log": "59962fa7e0b2876e17615fa38a5e2e7bf93d42e8fbd9913903258fddc66ff30d",
+    "ci-followup-linux-final-doc-sync.log": "e18093a32cffd3107c2d1dffb17588a6120b1cc9aa0eeee5685c7687d562b154",
+    "ci-followup-linux-final-lint.log": "f613a699e3a9e691cd8fce09931c1de60a99a2340b051d7ed00a09e60b205ca2",
+    "codeql-kotlin-objecttype.log": "86d8d128f326fd789abd12834b980c7dc939ac8caad715eaccfd85762cd1ecde",
+    "codeql-kotlin-objecttype-analysis.log": "270a7db406c00c9648aa6c4cd415b8a1de7e8c1e070f568acc38728bff71e5a7"
+  },
+  "limitations": [
+    "New candidate remote verdict remains pending.",
+    "Android instrumentation is API 34 emulation, not physical-device network acceptance.",
+    "Kotlin retains six unreviewed Noise findings; JavaScript retains 86.",
+    "Dependency graph remains unavailable; no dependency-scan waiver was applied.",
+    "Android API 36 and the rest of Gate 2-4 remain incomplete.",
+    "No merge, release, production signing or store submission occurred."
+  ]
+}

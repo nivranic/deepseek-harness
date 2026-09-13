@@ -1,0 +1,22 @@
+// Derive a universal APK from the preserved release AAB with the project's pinned bundletool.
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        project.tasks.register('buildCandidateApks', JavaExec) {
+            classpath = project.configurations.getByName('bundletool')
+            mainClass = 'com.android.tools.build.bundletool.BundleToolMain'
+            def input = { name -> Objects.requireNonNull(System.getenv('DSH_ANDROID_RC_' + name), 'Missing Android candidate input') }
+            args 'build-apks', '--bundle=' + input('BUNDLE'), '--output=' + input('APKS'),
+                '--mode=universal', '--ks=' + input('STORE'), '--ks-key-alias=androiddebugkey',
+                '--ks-pass=file:' + input('PASSWORD_FILE'), '--key-pass=file:' + input('PASSWORD_FILE'),
+                '--aapt2=' + input('AAPT2')
+            doFirst {
+                def output = new File(input('CLASSPATH_RECEIPT'))
+                if (output.exists()) throw new GradleException('Android candidate classpath receipt already exists')
+                def entries = classpath.files.collect { file ->
+                    [name: file.name, sha256: java.security.MessageDigest.getInstance('SHA-256').digest(file.bytes).encodeHex().toString()]
+                }.sort { a, b -> a.name <=> b.name ?: a.sha256 <=> b.sha256 }
+                output.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(entries)) + '\n', 'UTF-8')
+            }
+        }
+    }
+}

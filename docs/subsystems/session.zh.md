@@ -691,11 +691,26 @@ inspect( sessionId: SessionId, signal?: AbortSignal, ): Promise<{ meta: SessionH
 @Remote('prompt') prompt(request: SessionPromptRequest, signal: AbortSignal): Promise<SessionPromptValue>
 
 /**
+ * Accept one Lite handoff: create the new full Session and queue the
+ * rendered snapshot brief as its first user message.
+ * @param request - the snapshot the sending device packaged.
+ * @returns the new Session's identity.
+ */
+@Remote('handoff') handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue>
+
+/**
  * Read one image proven reachable from the addressed Session log.
  * @param request - Session and attachment identities used for authorization.
  * @returns the durable attachment reference and base64-encoded bytes.
  */
 @Remote('attachment') attachment(request: SessionAttachmentRequest): Promise<SessionAttachmentValue>
+
+/**
+ * Read one artifact proven referenced by the addressed Session log.
+ * @param request - Session and artifact identities used for authorization.
+ * @returns the journaled reference metadata and base64-encoded bytes.
+ */
+@Remote('artifact') artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue>
 
 /**
  * Mutate one still-pending queue occurrence on a live Agent.

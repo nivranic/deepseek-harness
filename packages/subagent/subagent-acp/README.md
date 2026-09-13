@@ -67,7 +67,7 @@ A successful run returns the child's final streamed assistant text as the result
 
 ### Failure and recovery
 
-A spawn, initialization, or new-session failure rejects before publication, ordinarily after the child process is reaped. If cleanup also fails, the rejection preserves ordered safe startup and teardown facts without claiming whole-tree quiescence. Non-cancellation errors expose only fixed provider, stage, and category facts; the original failure stays on the internal cause chain and in Host diagnostics. After publication, a prompt, transport, or early-process failure resolves as `error` with a safe diagnostic, while local cancellation resolves as `aborted` without failure detail.
+A spawn, initialization, or new-session failure rejects before publication, ordinarily after the child process is reaped. A rejected subprocess result identifies a process-start failure even when a bootstrap already has a PID. If cleanup also fails, the rejection preserves ordered safe startup and teardown facts without claiming whole-tree quiescence. Non-cancellation errors expose only fixed provider, stage, and category facts; the original failure stays on the internal cause chain and in Host diagnostics. After publication, a prompt, transport, or early-process failure resolves as `error` with a safe diagnostic, while local cancellation resolves as `aborted` without failure detail.
 
 ### Safe diagnostics
 

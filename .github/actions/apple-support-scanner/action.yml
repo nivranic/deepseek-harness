@@ -1,0 +1,57 @@
+name: Prepare Apple support scanner
+description: Build, exercise and stage the committed scanner before generating application targets.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      with:
+        go-version: '1.27.1'
+        cache: false
+    - name: Build and exercise the committed Apple scanner
+      shell: bash
+      run: |
+        source_sha=$(git rev-parse HEAD)
+        xcode=$(python3 -c 'import json; print(json.load(open("native/support-scanner/apple-build.json"))["xcodeVersion"])')
+        developer_dir="/Applications/Xcode_$xcode.app/Contents/Developer"
+        python3 -B scripts/build-apple-support-scanner.py \
+          --source-sha "$source_sha" --go "$(command -v go)" --developer-dir "$developer_dir" \
+          --cache "$RUNNER_TEMP/application-apple-scanner-cache" \
+          --work-dir "$RUNNER_TEMP/application-apple-scanner-work" \
+          --output "$RUNNER_TEMP/application-apple-scanner-artifact"
+        python3 -B scripts/verify-apple-support-scanner.py \
+          --directory "$RUNNER_TEMP/application-apple-scanner-artifact" \
+          --work-dir "$RUNNER_TEMP/application-apple-scanner-work" \
+          --developer-dir "$developer_dir" --go "$(command -v go)" \
+          --output "$RUNNER_TEMP/application-apple-scanner-native"
+        export GOENV=off GOWORK=off GOVCS='*:off' GOSUMDB=sum.golang.org
+        export GOCACHE="$RUNNER_TEMP/application-apple-scanner-cache/gocache"
+        export GOMODCACHE="$RUNNER_TEMP/application-apple-scanner-cache/modcache"
+        for target in macos ios-simulator; do
+          go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -mode=binary "$RUNNER_TEMP/application-apple-scanner-native/$target"
+        done
+        python3 -B scripts/stage-apple-support-scanner.py \
+          --source-sha "$source_sha" --directory "$RUNNER_TEMP/application-apple-scanner-artifact" \
+          --framework "$RUNNER_TEMP/application-apple-scanner-work/SupportScanner.xcframework" \
+          --verification "$RUNNER_TEMP/application-apple-scanner-native/verification.json" \
+          --output apps/apple/.support-scanner
+    - name: Preserve Apple application scanner inputs
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      with:
+        name: apple-app-scanner-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+        path: |
+          ${{ runner.temp }}/application-apple-scanner-artifact/
+          ${{ runner.temp }}/application-apple-scanner-native/verification.json
+        if-no-files-found: error
+        retention-days: 7
+        compression-level: 0
+    - name: Preserve Apple application scanner failure diagnostics
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      with:
+        name: apple-app-scanner-failure-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+        path: |
+          ${{ runner.temp }}/application-apple-scanner-work/*.log
+          ${{ runner.temp }}/application-apple-scanner-native/*.stdout
+          ${{ runner.temp }}/application-apple-scanner-native/*.stderr
+        if-no-files-found: warn
+        retention-days: 7

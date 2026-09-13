@@ -345,8 +345,11 @@
 - id: tool-skill
   disabled: true
 
-# The goal SERVICE, its session driver, and the `/goal` command STAY on the
-# host plane; only the model-facing tool moves (see the dsh-web-app patch).
+# The goal service and session driver stay on the host plane; presets own the
+# human command and model-facing tool (see the dsh-web-app patch).
+
+- id: command-goal
+  disabled: true
 
 - id: tool-goal
   disabled: true
@@ -395,6 +398,10 @@
   disabled: true
 
 - id: agent-instructions
+  disabled: true
+
+# The backend stays on the host plane; only the model-facing tool row moves.
+- id: artifact
   disabled: true
 
 - id: tool-todo

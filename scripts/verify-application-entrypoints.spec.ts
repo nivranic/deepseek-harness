@@ -43,7 +43,7 @@ describe('application entrypoints', () => {
     write(root, 'packages/example/app/src/bin.ts', '#!/usr/bin/env node\n')
 
     expect(applicationEntrypointViolations(root)).toEqual([
-      'packages/example/app/src/bin.ts: executable source has no application/build/test classification',
+      'packages/example/app/src/bin.ts: executable source has no application/infrastructure/build/test classification',
     ])
   })
 
@@ -52,7 +52,7 @@ describe('application entrypoints', () => {
     write(root, 'apps/example/rogue.mjs', '#!/usr/bin/env node\n')
 
     expect(applicationEntrypointViolations(root)).toEqual([
-      'apps/example/rogue.mjs: executable source has no application/build/test classification',
+      'apps/example/rogue.mjs: executable source has no application/infrastructure/build/test classification',
     ])
   })
 
@@ -61,7 +61,7 @@ describe('application entrypoints', () => {
     write(root, 'rogue.mjs', '#!/usr/bin/env node\n')
 
     expect(applicationEntrypointViolations(root)).toEqual([
-      'rogue.mjs: executable source has no application/build/test classification',
+      'rogue.mjs: executable source has no application/infrastructure/build/test classification',
     ])
   })
 
@@ -70,7 +70,7 @@ describe('application entrypoints', () => {
     write(root, 'apps/rogue/src/bin.ts', '#!/usr/bin/env node\n')
 
     expect(applicationEntrypointViolations(root)).toEqual([
-      'apps/rogue/src/bin.ts: executable source has no application/build/test classification',
+      'apps/rogue/src/bin.ts: executable source has no application/infrastructure/build/test classification',
     ])
   })
 
@@ -80,7 +80,7 @@ describe('application entrypoints', () => {
     write(root, 'packages/sdk/rogue-python-runtime/src/bin.ts', '#!/usr/bin/env node\n')
 
     expect(applicationEntrypointViolations(root)).toEqual([
-      'packages/sdk/rogue-python-runtime/src/bin.ts: executable source has no application/build/test classification',
+      'packages/sdk/rogue-python-runtime/src/bin.ts: executable source has no application/infrastructure/build/test classification',
     ])
   })
 

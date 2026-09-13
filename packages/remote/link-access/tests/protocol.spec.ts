@@ -8,14 +8,17 @@ import {
   pairingEndpoint,
   parseLinkPairRequest,
   parseLinkPairValue,
+  resolveLinkEndpointScope,
   type LinkEndpointAccess,
 } from '../src/protocol.ts'
 
 const table = new Map<string, LinkEndpointAccess>([
-  ['session/list', { endpoint: 'session/list', kind: 'unary', minRole: 'observer' }],
-  ['session/prompt', { endpoint: 'session/prompt', kind: 'unary', minRole: 'controller' }],
-  ['$events', { endpoint: '$events', kind: 'stream', minRole: 'observer' }],
-  ['$events/result', { endpoint: '$events/result', kind: 'unary', minRole: 'controller', approval: true }],
+  ['session/list', { endpoint: 'session/list', kind: 'unary', minRole: 'observer', scope: 'session-collection' }],
+  ['session/prompt', { endpoint: 'session/prompt', kind: 'unary', minRole: 'controller', scope: 'session' }],
+  ['$events', { endpoint: '$events', kind: 'stream', minRole: 'observer', scope: 'remote-events' }],
+  ['$events/result', {
+    endpoint: '$events/result', kind: 'unary', minRole: 'controller', scope: 'interaction', approval: true,
+  }],
 ])
 
 describe('link-access protocol', () => {
@@ -37,13 +40,30 @@ describe('link-access protocol', () => {
       expect(seen.has(input.endpoint)).toBe(false)
       seen.add(input.endpoint)
       expect(authorizeLinkEndpoint(
-        new Map([[input.endpoint, { ...input, minRole: input.minRole }]]),
+        new Map([[input.endpoint, {
+          ...input,
+          minRole: input.minRole,
+          scope: resolveLinkEndpointScope(input.endpoint, input.scope),
+        }]]),
         input.endpoint,
         input.kind,
         input.minRole,
         true,
       )).toBeUndefined()
     }
+  })
+
+  it('pins every product endpoint to a non-overridable resource-scope policy', () => {
+    expect(resolveLinkEndpointScope('session/list')).toBe('session-collection')
+    expect(resolveLinkEndpointScope('session/page')).toBe('session-address')
+    expect(resolveLinkEndpointScope('session/attachment')).toBe('session-resource')
+    expect(resolveLinkEndpointScope('workspace/follow')).toBe('workspace-collection')
+    expect(resolveLinkEndpointScope('workspaceFiles/read')).toBe('workspace-path')
+    expect(resolveLinkEndpointScope('$events')).toBe('remote-events')
+    expect(resolveLinkEndpointScope('$events/result')).toBe('interaction')
+    expect(() => resolveLinkEndpointScope('session/prompt', 'unscoped')).toThrow(/fixed scope/u)
+    expect(resolveLinkEndpointScope('probe/echo', 'unscoped')).toBe('unscoped')
+    expect(() => resolveLinkEndpointScope('probe/echo')).toThrow(/declare scope/u)
   })
 
   it('joins the canonical signing input deterministically', () => {

@@ -10,7 +10,9 @@
  * offline frames, and the presence endpoint answers the account's roster
  * with derived online state. In-memory by design: the relay holds no
  * session data, no workspace state, and no authority; the host keeps full
- * session authority.
+ * session authority. This separately deployed infrastructure mounts no
+ * Cordis tree, owns no Session authority or business Gateway, and persists
+ * no Harness business state.
  *
  * Every rendezvous endpoint is Noise-encrypted (noise.mjs): a client
  * completes Noise_XX over /relay/noise/hello + /relay/noise/complete, then
@@ -24,7 +26,7 @@
  */
 
 import { createServer } from 'node:http'
-import { NoiseCipherState, NoiseHandshake, decodeFrames, encodeFrame } from './noise.mjs'
+import { NoiseCipherState, NoiseHandshake, NoiseNonceExhaustedError, decodeFrames, encodeFrame } from './noise.mjs'
 
 const PORT = Number(process.env.PORT ?? 8787)
 const SESSION_IDLE_MS = 15 * 60 * 1000
@@ -52,7 +54,9 @@ const publish = (accountId, envelope) => {
     if (device.accountId !== accountId) continue
     const open = streams.get(token)
     if (open?.size) {
-      for (const writeEvent of open) writeEvent(envelope)
+      let sent = false
+      for (const writeEvent of open) sent = writeEvent(envelope) || sent
+      if (!sent) pending.get(token).push(envelope)
     } else {
       pending.get(token).push(envelope)
     }
@@ -155,10 +159,11 @@ createServer(async (req, res) => {
     } else if (url.pathname === '/relay/poll' && req.method === 'POST') {
       const session = established(req)
       const { token } = readEncryptedRequest(session, await readBody(req))
-      const queue = poll(token)
+      const queue = pending.get(token) ?? []
       session.last = Date.now()
       const body = Buffer.concat(queue.map(envelope =>
         encodeFrame(session.send.encryptWithAd(EMPTY, Buffer.from(JSON.stringify(envelope))))))
+      pending.set(token, [])
       res.writeHead(200, { 'content-type': 'application/octet-stream', 'cache-control': 'no-store' })
       res.end(body)
     } else if (url.pathname === '/relay/presence' && req.method === 'POST') {
@@ -169,6 +174,7 @@ createServer(async (req, res) => {
     } else if (url.pathname === '/relay/stream' && req.method === 'POST') {
       const session = established(req)
       const { token, streamKey } = readEncryptedRequest(session, await readBody(req))
+      if (typeof streamKey !== 'string' || !/^[a-fA-F0-9]{64}$/u.test(streamKey)) throw new Error('invalid relay stream key')
       session.last = Date.now()
       // The stream encrypts under the one-time key the request carried, not
       // the session states: HTTP responses and live stream pushes would
@@ -181,28 +187,48 @@ createServer(async (req, res) => {
         res.end()
         return
       }
-      const writer = (frame) => { res.write(frame) }
-      const writeEvent = (value) => writer(encodeFrame(stream.encryptWithAd(EMPTY, Buffer.from(JSON.stringify(value)))))
-      // Connect flushes the offline queue, then the stream pushes live.
-      for (const envelope of poll(token)) writeEvent(envelope)
-      if (!streams.has(token)) streams.set(token, new Set())
-      streams.get(token).add(writeEvent)
-      writePresence(devices.get(token).accountId, token, devices.get(token).deviceId, true)
-      res.on('close', () => {
+      res.flushHeaders()
+      let closed = false
+      const detach = () => {
+        if (closed) return
+        closed = true
         const open = streams.get(token)
-        open?.delete(writeEvent)
-        if (open?.size === 0) {
+        if (open?.delete(writeEvent) && open.size === 0) {
           streams.delete(token)
           const device = devices.get(token)
           if (device) writePresence(device.accountId, token, device.deviceId, false)
         }
-      })
+      }
+      const writeEvent = (value) => {
+        if (closed) return false
+        try {
+          res.write(encodeFrame(stream.encryptWithAd(EMPTY, Buffer.from(JSON.stringify(value)))))
+          return true
+        } catch (error) {
+          if (!(error instanceof NoiseNonceExhaustedError)) throw error
+          detach()
+          res.end()
+          return false
+        }
+      }
+      res.on('close', detach)
+      // A stream that exhausts while flushing must leave unsent envelopes queued.
+      for (const envelope of poll(token)) {
+        if (!writeEvent(envelope)) pending.get(token).push(envelope)
+      }
+      if (closed) return
+      if (!streams.has(token)) streams.set(token, new Set())
+      streams.get(token).add(writeEvent)
+      writePresence(devices.get(token).accountId, token, devices.get(token).deviceId, true)
     } else {
       json(res, 404, { error: 'not found' })
     }
   } catch (error) {
-    const status = error?.statusCode ?? 400
-    json(res, status, { error: status === 410 ? 'unknown relay session' : 'bad request' })
+    const exhausted = error instanceof NoiseNonceExhaustedError
+    if (exhausted) sessions.delete(req.headers['x-relay-session'])
+    const status = exhausted ? 410 : error?.statusCode ?? 400
+    if (res.headersSent) res.destroy()
+    else json(res, status, { error: status === 410 ? 'unknown relay session' : 'bad request' })
   }
 }).listen(PORT, () => {
   console.log(`relay rendezvous listening on :${PORT}`)

@@ -116,16 +116,17 @@ class MemoryKvUnit implements KvUnit {
  */
 export class MemoryStorageBackend implements StorageBackend {
   readonly kv: KvFacet
-  private readonly openUnits = new Set<string>()
-  private closed = false
+  private readonly openUnits = new Map<string, KvUnit>()
+  private readonly owners = new Map<string, () => Promise<void>>()
+  private closing?: Promise<void>
 
   /**
    * @param pool - Media shared across instances; a fresh private pool when omitted.
    */
   constructor(readonly pool: MemoryMediaPool = new MemoryMediaPool()) {
     this.kv = {
-      open: async (descriptor: KvUnitDescriptor): Promise<KvUnit> => {
-        if (this.closed) {
+      open: async (descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit> => {
+        if (this.closing !== undefined) {
           throw new StorageError('closed', 'memory backend is closed')
         }
         // Double-open is a caller bug per the backend contract; no dedicated
@@ -147,14 +148,27 @@ export class MemoryStorageBackend implements StorageBackend {
           medium = { tables: new Map(), global: null }
           this.pool.media.set(descriptor.name, medium)
         }
-        this.openUnits.add(descriptor.name)
-        return new MemoryKvUnit(this.pool, medium, descriptor, () => this.openUnits.delete(descriptor.name))
+        const unit = new MemoryKvUnit(this.pool, medium, descriptor, () => {
+          this.openUnits.delete(descriptor.name)
+          this.owners.delete(descriptor.name)
+        })
+        this.openUnits.set(descriptor.name, unit)
+        if (onBackendClose !== undefined) this.owners.set(descriptor.name, onBackendClose)
+        return unit
       },
     }
   }
 
-  async close(): Promise<void> {
-    this.closed = true
-    this.openUnits.clear()
+  close(): Promise<void> {
+    this.closing ??= Promise.resolve().then(async () => {
+      for (const [name, unit] of [...this.openUnits]) {
+        try {
+          await this.owners.get(name)?.()
+        } finally {
+          await unit.close()
+        }
+      }
+    })
+    return this.closing
   }
 }

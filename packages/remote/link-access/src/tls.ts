@@ -43,8 +43,9 @@ const OID_COMMON_NAME = [0x55, 0x04, 0x03]
 /**
  * Load, or generate and persist, the host's link certificate. A directory
  * holding neither or only one of the two files is regenerated whole (a torn
- * write self-heals); an existing pair is reused so paired devices keep
- * working across restarts.
+ * write self-heals). A certificate rejected by Node's X.509 parser also
+ * regenerates the pair; a valid existing pair is reused so paired devices
+ * keep working across restarts.
  * @param stateDir - directory owning the TLS files (created owner-only when missing).
  * @returns the TLS material with its pinned fingerprint.
  */
@@ -55,7 +56,11 @@ export async function ensureHostTlsMaterial(stateDir: string): Promise<HostTlsMa
     readFile(join(stateDir, CERT_FILENAME), 'utf8').catch(() => undefined),
   ])
   if (keyPem !== undefined && certPem !== undefined) {
-    return { keyPem, certPem, spkiFingerprint: spkiFingerprintOfCertificate(certPem) }
+    try {
+      return { keyPem, certPem, spkiFingerprint: spkiFingerprintOfCertificate(certPem) }
+    } catch {
+      // X.509 parsing failures discard the persisted pair so legacy malformed certificates self-heal.
+    }
   }
   const generated = generateSelfSigned()
   await writeFile(join(stateDir, KEY_FILENAME), generated.keyPem, { mode: 0o600 })
@@ -127,10 +132,21 @@ function distinguishedName(): Buffer {
 }
 
 function randomSerial(): Buffer {
-  const serial = randomBytes(8)
-  serial.writeUInt8(serial.readUInt8(0) & 0x7f, 0)
+  for (;;) {
+    const serial = canonicalPositiveSerial(randomBytes(8))
+    if (serial !== undefined) return serial
+  }
+}
+
+function canonicalPositiveSerial(serial: Buffer): Buffer | undefined {
+  const first = serial.readUInt8(0) & 0x7f
+  if (first === 0) return undefined
+  serial.writeUInt8(first, 0)
   return serial
 }
+
+/** Deterministic seams for the certificate encoding tests. */
+export const tlsInternals = { canonicalPositiveSerial }
 
 function derLength(length: number): Buffer {
   if (length < 0x80) return Buffer.from([length])

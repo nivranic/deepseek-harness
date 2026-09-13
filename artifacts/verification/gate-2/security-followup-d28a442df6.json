@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "security-and-ci-followup",
+  "recordedAt": "2026-09-05T18:52:10.801Z",
+  "sourceHead": "76384701598397492c03135db998db5bef69eb4a",
+  "commits": {
+    "linearScans": "189e43cab1815572619438b0e6ec06f5bca686df",
+    "recoveryReceipts": "709929c6f83de6e14508fdafcb5319632c41492b",
+    "sastReview": "76384701598397492c03135db998db5bef69eb4a"
+  },
+  "inputMaterialization": "Local checks used pre-commit worktree bytes; Linux received explicit synchronized files and retained an older Git HEAD. Listed source digests bind the final implementation. No new-candidate remote PASS is claimed.",
+  "sourceSha256": {
+    "packages/context/session-reference/src/uri.ts": "a7e54a668d68dc9242e029ab323e2da500adfc882e309ab10f6c7b3334e34896",
+    "packages/util/workspace-path/src/index.ts": "33b82b35c3ebfe09b8fb6e7b9c228b3726e1375bf5022294bc9589de60242848",
+    "packages/experimental/agent-team/tests/persistence.spec.ts": "4bb215bbec073e701dbceac1fc5f5ab10be205ac5557d8945855b63f19a78500",
+    "scripts/release/security_evidence.py": "8ad04d3f915d40346d34ecb0cf563db5f5b875847ddba4e013bab83e7e122459",
+    "scripts/release/sast_reviews.py": "4bcdb6863eaa8544aa0ae10f5c75650425514e306a96c41b1a2ce35ba76aaeb5",
+    "scripts/release/test_security_evidence.py": "5d3a8ff7e30b20477f64d548c4aad1320744e249a104202de706c4d2adcd8238",
+    ".github/security/sast-reviews.json": "fb81f1df9469f3f47b4e9e97043785d8da59c4c904c51548070779b800689304"
+  },
+  "local": {
+    "windows": {
+      "node": "22.22.1",
+      "focusedTests": 46,
+      "suites": 3,
+      "command": "pnpm exec vitest run packages/context/session-reference/tests/session-reference.spec.ts packages/util/workspace-path/tests/index.spec.ts packages/experimental/agent-team/tests/persistence.spec.ts --coverage --coverage.include=packages/context/session-reference/src/uri.ts --coverage.include=packages/util/workspace-path/src/index.ts --no-file-parallelism",
+      "coverage": {
+        "sources": [
+          "packages/context/session-reference/src/uri.ts",
+          "packages/util/workspace-path/src/index.ts"
+        ],
+        "statements": "102/102",
+        "branches": "89/89",
+        "functions": "15/15",
+        "lines": "81/81",
+        "percent": 100
+      },
+      "python": {
+        "version": "3.12.10",
+        "tests": 17,
+        "status": "PASS",
+        "command": "PYTHONPATH=scripts python -B -m unittest discover -s scripts/release -p test_security_evidence.py -v"
+      }
+    },
+    "linux": {
+      "node": "22.22.1",
+      "pythonTests": 17,
+      "recoveryTests": 12,
+      "testDocs": "15/15",
+      "docSync": "32/32",
+      "lint": {
+        "warnings": 0,
+        "errors": 0
+      },
+      "note": "doc-sync passed before lint-only charAt and fixture binding corrections; the subsequent lint command rebuilt Host TypeScript and passed. Python and recovery tests then passed on the final synchronized source."
+    }
+  },
+  "linearScans": {
+    "baseline": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "equivalence": {
+      "status": "PASS",
+      "cases": 25000,
+      "seed": "0x5eed",
+      "base": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+      "implementationSha256": "a7e54a668d68dc9242e029ab323e2da500adfc882e309ab10f6c7b3334e34896"
+    },
+    "benchmark": {
+      "runner": "Windows Node 22.22.1",
+      "input": "Repeated unfinished mention prefixes and internal path separators; median of three calls after warm-up.",
+      "before": {
+        "sourceSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+        "node": "v22.22.1",
+        "results": [
+          {
+            "name": "workspace-title",
+            "n": 2000,
+            "medianMs": 1.1757000000000062
+          },
+          {
+            "name": "workspace-resolve",
+            "n": 2000,
+            "medianMs": 1.14650000000006
+          },
+          {
+            "name": "session-reference",
+            "n": 2000,
+            "medianMs": 5.06269999999995
+          },
+          {
+            "name": "workspace-title",
+            "n": 4000,
+            "medianMs": 4.549800000000005
+          },
+          {
+            "name": "workspace-resolve",
+            "n": 4000,
+            "medianMs": 4.647300000000087
+          },
+          {
+            "name": "session-reference",
+            "n": 4000,
+            "medianMs": 19.919399999999996
+          },
+          {
+            "name": "workspace-title",
+            "n": 8000,
+            "medianMs": 17.002500000000055
+          },
+          {
+            "name": "workspace-resolve",
+            "n": 8000,
+            "medianMs": 17.123599999999897
+          },
+          {
+            "name": "session-reference",
+            "n": 8000,
+            "medianMs": 78.73559999999998
+          }
+        ]
+      },
+      "after": {
+        "sourceSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+        "node": "v22.22.1",
+        "results": [
+          {
+            "name": "workspace-title",
+            "n": 2000,
+            "medianMs": 0.0013999999999896318
+          },
+          {
+            "name": "workspace-resolve",
+            "n": 2000,
+            "medianMs": 0.002200000000016189
+          },
+          {
+            "name": "session-reference",
+            "n": 2000,
+            "medianMs": 0.2477000000000089
+          },
+          {
+            "name": "workspace-title",
+            "n": 4000,
+            "medianMs": 0.0021999999999593456
+          },
+          {
+            "name": "workspace-resolve",
+            "n": 4000,
+            "medianMs": 0.0008000000000265572
+          },
+          {
+            "name": "session-reference",
+            "n": 4000,
+            "medianMs": 0.21399999999999864
+          },
+          {
+            "name": "workspace-title",
+            "n": 8000,
+            "medianMs": 0.002599999999972624
+          },
+          {
+            "name": "workspace-resolve",
+            "n": 8000,
+            "medianMs": 0.0013000000000147338
+          },
+          {
+            "name": "session-reference",
+            "n": 8000,
+            "medianMs": 0.2481000000000222
+          }
+        ]
+      },
+      "afterMaterialization": "The benchmark sourceSha field is the then-current Git HEAD, while execution used dirty fixed source. Final source SHA-256 values above identify the implementation; this is not a clean d28 rerun."
+    },
+    "findingsTargeted": 5,
+    "freshCodeqlStatus": "PENDING"
+  },
+  "windowsCoverage": {
+    "candidate": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "runId": 33980218297,
+    "jobId": 101343999380,
+    "status": "FAIL",
+    "test": "JSONL Agent Teams recovery: reconciles a persisted child to active and a missing child to durable failed",
+    "observed": {
+      "expected": "accepted",
+      "received": "queued"
+    },
+    "cause": "Background mailbox recovery can own the same queued message before the sending call attempts dispatch. The immediate receipt may be queued while the existing recovery operation delivers the message.",
+    "repair": "Controlled sender-owned and recovery-owned dispatch for both JSONL and SQLite, with exact expected receipt, one followup invocation, and one durable target message identity. Product delivery logic is unchanged.",
+    "localStatus": "PASS",
+    "freshRemoteStatus": "PENDING"
+  },
+  "remote": {
+    "candidate": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "executionSha": "8bd4bb4fbd320059319e6305a7f02551d3d28830",
+    "mandatoryCollector": "PASS",
+    "ciWorkflow": "FAIL",
+    "apple": "PASS",
+    "android": "PASS",
+    "supplyChain": "FAIL",
+    "ciRun": 33980218297,
+    "appleRun": 33980218205,
+    "androidRun": 33980218182,
+    "supplyRun": 33980218202,
+    "reports": {
+      "javascript-typescript": {
+        "status": "FAIL",
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+        "findings": 91,
+        "analysisComplete": true,
+        "rules": [
+          103
+        ],
+        "blockingDiagnostics": [],
+        "receiptSha256": "e79f594310d4f9bb87826cd6e87d7ead951261b71b41e08fcc1136e55a99ddae"
+      },
+      "python": {
+        "status": "PASS",
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+        "findings": 0,
+        "analysisComplete": true,
+        "rules": [
+          50
+        ],
+        "blockingDiagnostics": [],
+        "receiptSha256": "63ef5b1bf2efdf1d06a4f5533ffd9df8d5083de99180a4788394dd4b4edb4e21"
+      },
+      "java-kotlin": {
+        "status": "FAIL",
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+        "findings": 7,
+        "analysisComplete": false,
+        "rules": [
+          120
+        ],
+        "blockingDiagnostics": [
+          {
+            "rule": "java/diagnostics/extraction-errors",
+            "level": "error"
+          }
+        ],
+        "receiptSha256": "f6942d5f53841006c29d5c4f132bd94da9f45113f9c80cf4a15ad7674802a54a"
+      },
+      "swift": {
+        "status": "FAIL",
+        "path": "artifacts/verification/gate-2/acceptance/sast-swift-d28a442df621173dfd9f559446f9e7a963e7dfff.json",
+        "findings": 1,
+        "analysisComplete": true,
+        "rules": [
+          28
+        ],
+        "blockingDiagnostics": [],
+        "receiptSha256": "56e774748fc5fdbd26987101c1fe985008633a5dd35c6b6fe8fe8fdc2a122f39"
+      }
+    }
+  },
+  "swiftReview": {
+    "kind": "offline-review-application",
+    "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+    "originalStatus": "FAIL",
+    "analyzerRerun": false,
+    "originalReceiptSha256": "56e774748fc5fdbd26987101c1fe985008633a5dd35c6b6fe8fe8fdc2a122f39",
+    "reviewRegistrySha256": "fb81f1df9469f3f47b4e9e97043785d8da59c4c904c51548070779b800689304",
+    "unreviewedFindings": 0,
+    "reviewedFindings": 1,
+    "analysisComplete": true,
+    "limitation": "This only applies the reviewed selector to a previously generated projection; the original analyzer verdict stays FAIL until a new candidate scan completes."
+  },
+  "remaining": [
+    "Fresh candidate CodeQL and Windows coverage",
+    "Kotlin extraction error file diagnosis and seven unreviewed findings",
+    "Remaining JavaScript findings require individual review or fixes",
+    "Dependency graph availability or independent dependency scanning",
+    "SBOM, provenance and platform RC engineering",
+    "Remaining Gate 2, Gate 3 and Gate 4 acceptance"
+  ],
+  "productionPublicationExecuted": false
+}

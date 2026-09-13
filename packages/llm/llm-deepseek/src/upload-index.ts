@@ -8,6 +8,7 @@ import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import { ImageVariantId } from '@deepseek-ai/dsh-attachment'
 import type { AttachmentId, ImageVariantId as ImageVariantIdType } from '@deepseek-ai/dsh-attachment'
 import { DeepSeekFileId, DeepSeekFileScope } from './file-id.ts'
+import { filesEndpoint } from './files-endpoint.ts'
 import type { DeepSeekFileId as DeepSeekFileIdType, DeepSeekFileScope as DeepSeekFileScopeType } from './file-id.ts'
 
 /** One durable remote upload mapping. Unix times are milliseconds. */
@@ -44,7 +45,7 @@ export interface UploadIndexCommit {
  */
 export function deepSeekFileScope(baseURL: string, apiKey: string): DeepSeekFileScopeType {
   const digest = createHash('sha256')
-    .update(baseURL.replace(/\/+$/u, ''))
+    .update(filesEndpoint(baseURL))
     .update('\0')
     .update(apiKey)
     .digest('hex')

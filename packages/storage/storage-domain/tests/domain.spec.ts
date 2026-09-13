@@ -71,6 +71,64 @@ describe('defineDomain', () => {
 })
 
 describe('DomainFacility.open', () => {
+  it('joins initialization during backend close, then closes the constructed domain', async () => {
+    const { ctx, backend, facility } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const open = backend.kv.open.bind(backend.kv)
+    vi.spyOn(backend.kv, 'open').mockImplementation(async (...args) => {
+      const unit = await open(...args)
+      const loadAll = unit.loadAll.bind(unit)
+      vi.spyOn(unit, 'loadAll').mockImplementation(async () => {
+        entered.resolve(undefined)
+        await release.promise
+        return loadAll()
+      })
+      return unit
+    })
+    try {
+      const opening = facility.open(spec)
+      await entered.promise
+      const closing = backend.close()
+      release.resolve(undefined)
+      const domain = await opening
+      await closing
+      expect(facility.get(spec.name)).toBeUndefined()
+      expect(() => domain.table('items').size).toThrow('closed')
+    } finally {
+      release.resolve(undefined)
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('lets backend close settle after a pending domain load fails', async () => {
+    const { ctx, backend, facility } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const failure = new Error('load failed')
+    const open = backend.kv.open.bind(backend.kv)
+    vi.spyOn(backend.kv, 'open').mockImplementation(async (...args) => {
+      const unit = await open(...args)
+      vi.spyOn(unit, 'loadAll').mockImplementation(async () => {
+        entered.resolve(undefined)
+        await release.promise
+        throw failure
+      })
+      return unit
+    })
+    try {
+      const rejected = expect(facility.open(spec)).rejects.toBe(failure)
+      await entered.promise
+      const closing = backend.close()
+      release.resolve(undefined)
+      await Promise.all([rejected, closing])
+      expect(facility.get(spec.name)).toBeUndefined()
+    } finally {
+      release.resolve(undefined)
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('opens, reads back stored records, and rejects a second open of the same name', async () => {
     const { facility } = await harness()
     const domain = await facility.open(spec)
@@ -313,6 +371,37 @@ describe('global singleton', () => {
 })
 
 describe('close and lifecycle', () => {
+  it('orders prerequisites with writes, isolates their failures, and drains them on close', async () => {
+    const pool = new MemoryMediaPool()
+    const { ctx, facility, changes } = await harness({ pool })
+    const domain = await facility.open(spec)
+    const table = domain.table('items')
+    const release = Promise.withResolvers<undefined>()
+    const failed = Promise.withResolvers<undefined>()
+    const failure = new Error('source durability failed')
+    const first = table.put('a', { label: 'first', count: 1 }, release.promise)
+    const rejected = expect(table.put('b', { label: 'refused', count: 2 }, failed.promise)).rejects.toBe(failure)
+    const last = table.put('c', { label: 'last', count: 3 })
+    try {
+      failed.reject(failure)
+      expect(table.size).toBe(0)
+      expect(changes).toEqual([])
+      const closing = domain.close()
+      await expect(table.put('late', { label: 'late', count: 4 }, Promise.reject(failure)))
+        .rejects.toMatchObject({ code: 'closed' })
+      release.resolve(undefined)
+      await Promise.all([first, rejected, last, closing])
+      expect([...pool.media.get('demo')!.tables.get('items')!.entries()]).toEqual([
+        ['a', { label: 'first', count: 1 }],
+        ['c', { label: 'last', count: 3 }],
+      ])
+      expect(changes.map(change => change.key)).toEqual(['a', 'c'])
+    } finally {
+      release.resolve(undefined)
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('close drains queued writes, then rejects reads and writes, and frees the name', async () => {
     const pool = new MemoryMediaPool()
     const { facility } = await harness({ pool })

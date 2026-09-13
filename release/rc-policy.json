@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "requiredChecks": ["identity", "startup"],
+  "platforms": [
+    { "platform": "windows", "artifacts": [{ "kind": "installer", "runtimeClass": "full" }, { "kind": "portable", "runtimeClass": "full" }] },
+    { "platform": "macos", "artifacts": [{ "kind": "archive", "runtimeClass": "full" }, { "kind": "archive", "runtimeClass": "companion" }] },
+    { "platform": "ios", "artifacts": [{ "kind": "archive", "runtimeClass": "companion" }] },
+    { "platform": "android", "artifacts": [{ "kind": "bundle", "runtimeClass": "companion" }, { "kind": "mapping", "runtimeClass": "companion" }] }
+  ]
+}

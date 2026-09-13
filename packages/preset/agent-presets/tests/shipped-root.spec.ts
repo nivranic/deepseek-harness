@@ -95,11 +95,13 @@ describe('the shipped preset root', () => {
     expect(minimal?.path.startsWith(SYSTEM_ROOT)).toBe(true)
   })
 
-  it('enables web_fetch in each tool-bearing Web app preset', async () => {
+  it('keeps the full Web app tools in full presets and out of minimal', async () => {
     for (const id of ['cordis', 'ptc', 'standard']) {
       const source = await readFile(join(SHIPPED_PRESET_ROOT, id, 'agent.cordis.yml'), 'utf8')
       const entries: unknown = yaml.load(source, { schema: entryListSchema })
       if (!Array.isArray(entries)) throw new TypeError(`${id} preset must contain a Cordis entry list`)
+      expect(entries.some((entry: unknown) =>
+        typeof entry === 'object' && entry !== null && 'id' in entry && entry.id === 'artifact'), id).toBe(true)
       const toolWeb: unknown = entries.find((entry: unknown) =>
         typeof entry === 'object' && entry !== null && 'id' in entry && entry.id === 'tool-web')
       if (typeof toolWeb !== 'object' || toolWeb === null || !('config' in toolWeb)
@@ -108,5 +110,11 @@ describe('the shipped preset root', () => {
       }
       expect(toolWeb.config.fetch, id).toBe(true)
     }
+
+    const minimalSource = await readFile(join(SHIPPED_PRESET_ROOT, 'minimal', 'agent.cordis.yml'), 'utf8')
+    const minimalEntries: unknown = yaml.load(minimalSource, { schema: entryListSchema })
+    if (!Array.isArray(minimalEntries)) throw new TypeError('minimal preset must contain a Cordis entry list')
+    expect(minimalEntries.some((entry: unknown) =>
+      typeof entry === 'object' && entry !== null && 'id' in entry && entry.id === 'artifact')).toBe(false)
   })
 })

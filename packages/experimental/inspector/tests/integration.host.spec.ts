@@ -252,20 +252,21 @@ describe('experimental Inspector real Worker', () => {
   })
 
   it('cancels Client Runtime work when the Worker deadline expires', async () => {
-    inspector = await startInspector({ port: 0, captureFetch: false, clientRuntimeTimeoutMs: 20 })
+    const runtimeTimeoutMs = 1_000
+    inspector = await startInspector({ port: 0, captureFetch: false, clientRuntimeTimeoutMs: runtimeTimeoutMs })
     client = await InspectorClientFixture.start(inspector.endpoint.client, { label: 'Timeout Client' })
     cdp = await TestCdpClient.connect(inspector.endpoint.webSocketDebuggerUrl)
-    await cdp.call('Runtime.enable')
+    expect((await cdp.call('Runtime.enable')).error).toBeUndefined()
     const contextId = await clientContext(cdp)
 
     const timedOut = await cdp.call('Runtime.evaluate', {
-      expression: 'new Promise(() => {})',
+      expression: 'globalThis.inspectorDeadlineStarted = true; new Promise(() => {})',
       contextId,
       awaitPromise: true,
     })
-    expect(timedOut.error?.message).toContain('timed out after 20ms')
+    expect(timedOut.error?.message).toContain(`timed out after ${String(runtimeTimeoutMs)}ms`)
     expect((await cdp.call('Runtime.evaluate', {
-      expression: '42',
+      expression: 'globalThis.inspectorDeadlineStarted === true ? 42 : -1',
       contextId,
       returnByValue: true,
     })).result?.result).toMatchObject({ type: 'number', value: 42 })
@@ -364,10 +365,27 @@ describe('experimental Inspector real Worker', () => {
 
   it('forwards Client Console objects through isolated realm sessions', async () => {
     inspector = await startInspector({ port: 0, captureFetch: false })
-    client = await InspectorClientFixture.start(inspector.endpoint.client, { label: 'Console Client' })
+    client = await InspectorClientFixture.start(inspector.endpoint.client, { label: 'Console Client', holdRuntimeEnable: true })
     cdp = await TestCdpClient.connect(inspector.endpoint.webSocketDebuggerUrl)
     secondCdp = await TestCdpClient.connect(inspector.endpoint.webSocketDebuggerUrl)
-    await Promise.all([cdp.call('Runtime.enable'), secondCdp.call('Runtime.enable')])
+    await vi.waitFor(async () => {
+      const response = await cdp!.call('DSHInspector.getSources')
+      expect(recordArray(response.result?.sources).some(source => source.kind === 'client')).toBe(true)
+    })
+    const replies: CdpMessage[] = []
+    const enable = Promise.all([cdp, secondCdp].map(async (connection) => {
+      const reply = await connection.call('Runtime.enable')
+      replies.push(reply)
+      return reply
+    }))
+    await vi.waitFor(async () => { expect(await client!.heldRuntimeEnables()).toBe(2) })
+    await Promise.all([cdp.call('DSHInspector.getSources'), secondCdp.call('DSHInspector.getSources')])
+    try {
+      expect(replies).toEqual([])
+    } finally {
+      await client.releaseRuntimeEnable()
+      expect((await enable).every(reply => reply.error === undefined)).toBe(true)
+    }
     const firstContext = await clientContext(cdp)
     const secondContext = await clientContext(secondCdp)
     const value = { owner: 'client-console' }
@@ -398,6 +416,42 @@ describe('experimental Inspector real Worker', () => {
     expect((await cdp.call('Runtime.discardConsoleEntries')).error).toBeUndefined()
     expect((await cdp.call('Runtime.getProperties', { objectId: firstObjectId })).error).toBeDefined()
     expect((await secondCdp.call('Runtime.getProperties', { objectId: secondObjectId })).error).toBeUndefined()
+  })
+
+  it('rejects Runtime enable when its Client disconnects before readiness', async () => {
+    inspector = await startInspector({ port: 0, captureFetch: false })
+    client = await InspectorClientFixture.start(inspector.endpoint.client, { holdRuntimeEnable: true })
+    cdp = await TestCdpClient.connect(inspector.endpoint.webSocketDebuggerUrl)
+    await vi.waitFor(async () => {
+      const response = await cdp!.call('DSHInspector.getSources')
+      expect(recordArray(response.result?.sources).some(source => source.kind === 'client')).toBe(true)
+    })
+    const enable = cdp.call('Runtime.enable')
+    await vi.waitFor(async () => { expect(await client!.heldRuntimeEnables()).toBe(1) })
+    await client.close()
+    client = undefined
+    expect((await enable).error?.message).toContain('Client execution context closed')
+    expect(cdp.events.filter(event => event.method === 'Runtime.executionContextCreated')
+      .some(event => asRecord(event.params?.context).name === 'Client — Test Client')).toBe(false)
+    expect((await cdp.call('Runtime.enable')).error).toBeUndefined()
+  })
+
+  it('announces a later Client context only after its Runtime is ready', async () => {
+    inspector = await startInspector({ port: 0, captureFetch: false })
+    cdp = await TestCdpClient.connect(inspector.endpoint.webSocketDebuggerUrl)
+    expect((await cdp.call('Runtime.enable')).error).toBeUndefined()
+    client = await InspectorClientFixture.start(inspector.endpoint.client, { holdRuntimeEnable: true })
+    await vi.waitFor(async () => { expect(await client!.heldRuntimeEnables()).toBe(1) })
+    await vi.waitFor(async () => {
+      const response = await cdp!.call('DSHInspector.getCordisTree')
+      expect(recordArray(asRecord(response.result?.tree).clients)).toHaveLength(1)
+    })
+    expect(cdp.events.filter(event => event.method === 'Runtime.executionContextCreated')
+      .some(event => asRecord(event.params?.context).name === 'Client — Test Client')).toBe(false)
+    await client.releaseRuntimeEnable()
+    const context = await clientContext(cdp)
+    await client.log({ owner: 'late-client' }, 'late-client-console')
+    await vi.waitFor(() => { expect(consoleEvent(cdp!, context, 'late-client-console')).toBeDefined() })
   })
 
   it('projects a chunked Client bundle as read-only Debugger source', async () => {

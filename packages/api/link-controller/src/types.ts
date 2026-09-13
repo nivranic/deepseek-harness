@@ -6,6 +6,11 @@
  * @module @deepseek-ai/dsh-api-link-controller/types
  */
 
+import type { LinkDiagnosticsSnapshot } from '@deepseek-ai/dsh-link-access/protocol'
+
+/** Identity-free listener and advertised protocol observations from the mounted carrier. */
+export type LinkDiagnosticsValue = LinkDiagnosticsSnapshot
+
 /** The QR payload a host issues for one pairing, re-used on the wire unchanged. */
 export type LinkPairingValue = {
   readonly v: 1

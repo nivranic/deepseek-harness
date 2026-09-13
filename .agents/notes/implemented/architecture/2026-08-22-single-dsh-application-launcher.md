@@ -14,9 +14,9 @@ The Python SDK distributes a native executable through four platform wheels. Its
 
 ### Launch scope
 
-Every supported Node application starts through the `dsh` CLI and one named profile. The shipped application commands are `dsh web`, `dsh --profile headless`, `dsh --profile sdk`, `dsh --profile sdk-minimal`, and `dsh --profile acp`; `dsh web` is the deliberate convenience alias for `--profile web`, not another application entry.
+Every supported Harness Node application starts through the `dsh` CLI and one named profile. The shipped application commands are `dsh web`, `dsh --profile headless`, `dsh --profile sdk`, `dsh --profile sdk-minimal`, and `dsh --profile acp`; `dsh web` is the deliberate convenience alias for `--profile web`, not another application entry.
 
-Vendor CLIs, build-only and test-only executables, direct in-process plugin mounting, and the private browser WebWorker preview are outside the application-launch inventory. A package app bin or root demo that launches a package entry is not an accepted extension point.
+Vendor CLIs, build-only and test-only executables, direct in-process plugin mounting, and the private browser WebWorker preview are outside the Harness application-launch inventory. The [Relay rendezvous foundation](2026-08-31-relay-rendezvous-foundation.md) owns the separately deployed infrastructure case: its Node service mounts no Cordis tree, owns no Session authority or business Gateway, and persists no Harness business state; its in-memory rendezvous records are ephemeral. A package app bin or root demo that launches a package entry is not an accepted extension point.
 
 ### Profile applications
 
@@ -52,17 +52,17 @@ The executable family is `deepseek-harness-sdk-runtime-<platform>-<arch>`. The S
 
 ### Enforcement
 
-`verify-application-entrypoints` scans application/package manifests, executable sources, and root demo scripts. The allowlist classifies the `dsh` product bin, vendor-excluded scope, the private WebWorker build tool, and test support. An unclassified shebang, a new package bin, or a demo wrapper that bypasses `apps/cli/src/bin.ts` fails hygiene and the primary/static CI aggregates.
+`verify-application-entrypoints` scans application/package manifests, executable sources, and root demo scripts. The allowlist classifies the `dsh` product bin, the private WebWorker build tool, test support, and the Relay deployment service; the Relay client is a library module and carries no shebang. An unclassified shebang, a new package bin, or a demo wrapper that bypasses `apps/cli/src/bin.ts` fails hygiene and the primary/static CI aggregates.
 
 ## Existing decisions and supersession
 
 This decision supersedes the application-launch and package-name facts in [profile plugin bundles](2026-08-05-profile-plugin-bundles.md), [TypeScript SDK client and subagent backend](../feature/2026-07-27-typescript-sdk-and-sdk-subagent-backend.md), [remove the SDK project toolchain](../simplification/2026-08-11-remove-sdk-project-toolchain.md), and [single-file Python SDK runtime distribution](2026-07-10-single-file-executable-sdk-runtime-distribution.md). Those notes retain independent authority for profile layering, client/wire semantics, deleted project tooling, and native packaging.
 
-The [ACP automation-only protocol](../simplification/2026-07-23-acp-automation-only-protocol.md) remains authoritative for ACP wire and interaction scope. The [repository naming contract](2026-08-11-repository-naming-contract-and-rename-ledger.md) remains authoritative for role-based package names. The [standalone sdk-minimal profile](2026-08-24-standalone-sdk-minimal-profile.md) partially supersedes this note's base-first rule and complete-tree alternative while retaining this note's launcher ownership. No active note is fully superseded or eligible for archival.
+The [ACP automation-only protocol](../simplification/2026-07-23-acp-automation-only-protocol.md) remains authoritative for ACP wire and interaction scope. The [repository naming contract](2026-08-11-repository-naming-contract-and-rename-ledger.md) remains authoritative for role-based package names. The [standalone sdk-minimal profile](2026-08-24-standalone-sdk-minimal-profile.md) partially supersedes this note's base-first rule and complete-tree alternative while retaining this note's launcher ownership. The [Relay rendezvous foundation](2026-08-31-relay-rendezvous-foundation.md) owns its forwarding and authority limits; this note owns the distinction between Harness applications and separately deployed infrastructure. No active note is fully superseded or eligible for archival.
 
 ## Alternatives considered
 
-**Keep direct bins and state that profiles are preferred.** Rejected: documentation cannot make profiles own plugin installation, environment loading, shutdown, and tests while a supported executable bypasses them.
+**Keep direct bins and state that profiles are preferred.** Rejected: documentation cannot make profiles own plugin installation, environment loading, shutdown, and tests while a supported Harness executable bypasses them.
 
 **Keep forwarding compatibility bins.** Rejected: a forwarding executable remains another public launch name and compatibility promise. The pre-release repository can move callers directly to profiles.
 
@@ -86,7 +86,7 @@ The [ACP automation-only protocol](../simplification/2026-07-23-acp-automation-o
 - Keyless ACP and SDK snapshots boot real `dsh` profiles and pin protocol output plus persisted logs; the nested SDK composition boots a second real profile runtime.
 - The real-API workflow caps file parallelism at four because one profile e2e file can own several complete `dsh` subprocess trees; workflow tests pin that resource bound.
 - The Python suite exercises exe and node carriers; packaged-runtime scenarios, native macOS executable construction, both wheels, and clean-wheel default/MCP smokes pin the `deepseek-harness-sdk-runtime-*` artifacts and profile launch.
-- `verify-application-entrypoints` includes invalid fixtures for package bins, executable sources, package-launching demo wrappers, and unclassified demos.
+- `verify-application-entrypoints` includes invalid fixtures for package bins, executable sources, package-launching demo wrappers, and unclassified demos; its repository inventory accepts the classified Relay server, vector generator, and self-test while a `client.mjs` shebang remains unclassified.
 
 ## Consequences
 

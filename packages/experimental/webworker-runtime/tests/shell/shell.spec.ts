@@ -35,6 +35,24 @@ beforeEach(() => {
   vfs.writeFileSync(`${WORKSPACE}/src/b.ts`, 'export const b = 2\n')
 })
 
+describe('variable names', () => {
+  it('does not expand inherited object members as unset shell variables', async () => {
+    expect(await run('echo "${constructor}:${toString}:${__proto__}"')).toEqual({ exitCode: 0, stdout: '::\n', stderr: '' })
+  })
+
+  it('keeps prefixed assignments local and exported prototype names readable', async () => {
+    expect(await run('__proto__=prefix printenv __proto__; echo "${__proto__}:unset"; export constructor=exported; printenv constructor'))
+      .toEqual({ exitCode: 0, stdout: 'prefix\n:unset\nexported\n', stderr: '' })
+  })
+
+  it('preserves prototype-named assignments, subshell copies and explicit exports', async () => {
+    const command = '__proto__=local; constructor=private; echo "$__proto__:$constructor"; '
+      + '(echo "$__proto__:$constructor"); echo "$(echo $constructor)"; export __proto__; printenv __proto__; '
+      + 'env | grep "^constructor=" || echo not-exported; unset __proto__; echo "${__proto__}:cleared"'
+    expect(await run(command)).toEqual({ exitCode: 0, stdout: 'local:private\nlocal:private\nprivate\nlocal\nnot-exported\n:cleared\n', stderr: '' })
+  })
+})
+
 describe('command execution', () => {
   it('runs a program and reports its output and status', async () => {
     expect(await run('echo hi')).toEqual({ exitCode: 0, stdout: 'hi\n', stderr: '' })

@@ -32,6 +32,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import ts from 'typescript'
 
 const root = resolve(import.meta.dirname, '..')
 
@@ -167,7 +168,7 @@ const POSTCONDITIONS: readonly PostCondition[] = [
  * PRE-rename text because these run before the generic pass, so no `find` may
  * quote a neighbouring line the generic pass would rewrite.
  */
-const EXACT_EDITS: readonly ExactEdit[] = [
+export const EXACT_EDITS: readonly ExactEdit[] = [
   {
     id: 'cordis-walk-merge-head',
     file: 'scripts/cordis-walk.ts',
@@ -252,18 +253,18 @@ const EXACT_EDITS: readonly ExactEdit[] = [
     expect: 1,
   },
   {
-    // A plain fence listing the bundle's mounted tree: a bare token, no quotes.
+    // The trailing space bounds the bare package token without pinning tree padding or its description.
     id: 'agent-spine-demo-mounted-tree',
     file: 'packages/examples/agent-spine-demo/README.md',
-    find: '@cordisjs/plugin-timer            timer service',
-    replace: '@deepseek-ai/cordis-plugin-timer  timer service',
+    find: '@cordisjs/plugin-timer ',
+    replace: '@deepseek-ai/cordis-plugin-timer ',
     expect: 1,
   },
   {
     id: 'agent-spine-demo-mounted-tree-zh',
     file: 'packages/examples/agent-spine-demo/README.zh.md',
-    find: '@cordisjs/plugin-timer            timer service',
-    replace: '@deepseek-ai/cordis-plugin-timer  timer service',
+    find: '@cordisjs/plugin-timer ',
+    replace: '@deepseek-ai/cordis-plugin-timer ',
     expect: 1,
   },
   {
@@ -302,34 +303,33 @@ const VENDORED_LIBRARY = /^@deepseek-ai\\/(cosmokit|schemastery)(\\/|$)/
     expect: 1,
   },
   {
-    // The step-1 file tree told the reader to keep the upstream name, one
-    // paragraph above the invariant that says to rescope it.
+    // Only the name instruction belongs to the codemod; publication flags belong to the cookbook.
     id: 'vendoring-cookbook-tree-comment',
     file: 'docs/cookbook/adding-a-vendored-package.md',
-    find: '  package.json     # from upstream; set "private": true, keep name/exports/type',
-    replace: '  package.json     # from upstream; set "private": true, rescope the name, keep exports/type',
+    find: 'keep name/exports/type',
+    replace: 'rescope the name, keep exports/type',
     expect: 1,
   },
   {
     id: 'vendoring-cookbook-tree-comment-zh',
     file: 'docs/cookbook/adding-a-vendored-package.zh.md',
-    find: '  package.json     # from upstream; set "private": true, keep name/exports/type',
-    replace: '  package.json     # from upstream; set "private": true, rescope the name, keep exports/type',
+    find: 'keep name/exports/type',
+    replace: 'rescope the name, keep exports/type',
     expect: 1,
   },
   {
-    // The checklist told the next vendoring to keep upstream's name.
+    // Manifest version policy is independent of the package-name mapping.
     id: 'vendoring-cookbook-name-invariant',
     file: 'docs/cookbook/adding-a-vendored-package.md',
-    find: "keep upstream's `name`/`version`/`exports`/`type`",
-    replace: "rescope the `name` ([mapping](../rescope.md)) while keeping upstream's `version`/`exports`/`type`",
+    find: "keep upstream's `name`/`exports`/`type`",
+    replace: "rescope the `name` ([mapping](../rescope.md)) while keeping upstream's `exports`/`type`",
     expect: 1,
   },
   {
     id: 'vendoring-cookbook-name-invariant-zh',
     file: 'docs/cookbook/adding-a-vendored-package.zh.md',
-    find: '保留上游的 `name`/`version`/`exports`/`type`',
-    replace: '改写 `name` 的 scope（[映射](../rescope.zh.md)），保留上游的 `version`/`exports`/`type`',
+    find: '保留上游的 `name`/`exports`/`type`',
+    replace: '改写 `name` 的 scope（[映射](../rescope.zh.md)），保留上游的 `exports`/`type`',
     expect: 1,
   },
   {
@@ -454,7 +454,7 @@ const VENDORED_LIBRARY = /^@deepseek-ai\\/(cosmokit|schemastery)(\\/|$)/
 
 /** Files the rescope must never rewrite. */
 function excluded(file: string): boolean {
-  if (file === 'scripts/rescope-vendor.ts') return true // the mapping itself
+  if (file === 'scripts/rescope-vendor.ts' || file === 'scripts/rescope-vendor.spec.ts') return true // mapping and refusal fixtures
   if (file.startsWith('.agents/notes/')) return true // notes record what was true when written
   // Recorded model payloads quote documentation verbatim, so they must mirror the
   // sources on disk — including the notes this rescope leaves alone.
@@ -499,6 +499,33 @@ function skipped(file: string, pattern: Pattern): boolean {
   return GENERIC_SKIPS.some(skip => skip.file === file && skip.upstream.includes(pattern.upstream))
 }
 
+/** Literal positions owned by the shipped preset roster or Inspector observation protocol. */
+function productValues(text: string, file: string): ReadonlyMap<number, number> {
+  const preset = file === 'apps/cli/tests/desktop-composition.e2e.ts'
+  const inspector = [
+    'packages/experimental/inspector/src/shared/bridge/messages/cordis.ts',
+    'packages/experimental/inspector/tests/cordis-query.host.spec.ts',
+    'packages/experimental/inspector/tests/cordis-tree.host.spec.ts',
+    'packages/experimental/inspector/tests/plugin.client.spec.ts',
+  ].includes(file)
+  const positions = new Map<number, number>()
+  if (!preset && !inspector) return positions
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true)
+  const visit = (node: ts.Node): void => {
+    if (ts.isStringLiteral(node)) {
+      const parent = node.parent
+      if (preset && node.text === 'cordis' && ts.isArrayLiteralExpression(parent)
+        || inspector && node.text === 'cordis/tree' && (
+          ts.isPropertyAssignment(parent) && ts.isIdentifier(parent.name) && parent.name.text === 'topic'
+          || ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name) && parent.name.text === 'CORDIS_TREE_TOPIC'
+        )) positions.set(node.getStart(source), node.end)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(source)
+  return positions
+}
+
 function rewriteLine(line: string, file: string, all: readonly Pattern[]): string {
   let out = line
   for (const pattern of all) {
@@ -525,7 +552,11 @@ function rewrite(text: string, file: string, all: readonly Pattern[]): { text: s
   const prose = markdown && file.startsWith('docs/')
   let insideFence = false
   let lines = 0
+  let offset = 0
+  const preserved = productValues(text, file)
   const out = text.split('\n').map((line) => {
+    const start = offset
+    offset += line.length + 1
     if (markdown) {
       if (/^\s*```/.test(line)) {
         insideFence = !insideFence
@@ -533,11 +564,29 @@ function rewrite(text: string, file: string, all: readonly Pattern[]): { text: s
       }
       if (!insideFence && !prose) return line
     }
-    const next = rewriteLine(line, file, all)
+    let next = ''
+    let cursor = 0
+    for (const [from, to] of preserved) {
+      if (from < start || from >= offset) continue
+      next += rewriteLine(line.slice(cursor, from - start), file, all) + line.slice(from - start, to - start)
+      cursor = to - start
+    }
+    next += rewriteLine(line.slice(cursor), file, all)
     if (next !== line) lines += 1
     return next
   })
   return { text: out.join('\n'), lines }
+}
+
+/**
+ * Rewrite eligible package references, preserving the named product literals in their syntax positions.
+ * @param text - complete file contents.
+ * @param file - repository-relative path with forward slashes.
+ * @param reverse - whether to restore upstream names.
+ * @returns rewritten contents and number of changed lines.
+ */
+export function rewritePackageReferences(text: string, file: string, reverse = false): { text: string; lines: number } {
+  return rewrite(text, file, patterns(reverse))
 }
 
 function classify(file: string): string {

@@ -16,6 +16,10 @@ Reads and writes share ONE coherent state: every read (`cachedSnapshot`) is a sy
 
 ## Consequences
 
+The cache passes a captured record and its log-durability promise to `KvTable.put` before awaiting either. The domain's queue therefore owns both prerequisite completion and durable publication. A slow creation flush cannot enqueue an old cut behind a later detach write, and domain close includes work still waiting for log durability. Failed prerequisites leave memory and the medium untouched; the queue observes rejection immediately and allows later writes to proceed. One domain still has one write chain, so a pending prerequisite holds later writes to that domain.
+
+Each domain registers an `onBackendClose` owner callback when opening its unit. JSON and SQLite backends join that callback before releasing the unit, so owner queues remain drainable even when whole-tree disposal has already removed consumers from the Cordis registry. Service withdrawal alone cannot establish this ordering. Failed initialization releases the callback wait; failed owner teardown still releases the medium and rejects backend close. The SDK text-turn recording checks the final projection record after the real process closes; package tests hold log durability across detach and whole-context disposal.
+
 - Per-session write isolation: each throttled write replaces only that session's small document, removing the global write amplification. The domain write chain serializes writes, so a newer cut never lands before an older one; domain close drains in-flight writes.
 - Listing is a synchronous in-memory read; a session without a record document simply lacks the projection column.
 - ACP, headless, SDK, and Web sessions publish cache rows for later consumers. The log-leading durability barrier may flush a covered prefix at the cache cadence and split otherwise coalesced physical JSONL runs; recorded profile snapshots re-pack the logical event stream so cache timing does not define fixture layout.

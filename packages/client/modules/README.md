@@ -67,15 +67,18 @@ The node half scans incrementally per package — no full-rescan path. Every `in
 
 The node half snapshots each client bundle and available source map before publication. It groups resources into `/plugins/??...&rev=...` combo URLs, with one bootstrap combo for the modules row and one or more application combos for the other rows; each phase is partitioned before a URL exceeds 3 KiB. Every combo map is Indexed Source Map v3 and uses an authored section when available or an identity section for the packaged bundle. Initial per-plugin revisions use process nonces, so startup does not hash every plugin; HMR hashes only an artifact reported as changed. Advertised responses are immutable, and an unknown combination or revision returns 404.
 
+Package metadata follows the Loader's resolved file URL. For a managed executable proxy, the locator follows the matching `exports` entry through `dsh.moduleFallback.targets` to the original package; that package owns `dsh.client` and the built client bytes. Missing targets, ambiguous exports and proxy cycles fail composition instead of silently removing browser plugins.
+
 ### Boot manifest injection
 
-The host taps the index render and injects, into `<head>`: the `window.__ModuleLoader__` queue facade, advisory preloads for every application combo, the parser-blocking bootstrap combo scripts, then the boot graph before the shell reads it. The facade's `create()` materializes the modules bundle, delegates construction to its `createClientModuleSystem` export, and leaves the same facade in live-registration mode.
+The host taps the index render and injects, into `<head>`: the `window.__ModuleLoader__` queue facade, advisory preloads for every application combo, the parser-blocking bootstrap combo scripts, then the boot graph before the shell reads it. The `webServer` injection fiber owns the bundle route and index listener: it binds them when the provider arrives after module activation, removes them with that provider, and recreates them for a replacement. The facade's `create()` materializes the modules bundle, delegates construction to its `createClientModuleSystem` export, and leaves the same facade in live-registration mode.
 
 ### Source map
 
 | File | Role |
 |---|---|
 | [`src/index.ts`](src/index.ts) | Node half: `ClientModuleRegistry`, scan, artifact snapshots, combo routes, index tap |
+| [`src/package-manifest.ts`](src/package-manifest.ts) | Resource-owning manifest discovery, including packaged module proxies |
 | [`src/client/index.ts`](src/client/index.ts) | Browser half: bootstrap export, `ctx.modules` enrollment |
 | [`src/client/system.ts`](src/client/system.ts) | `ClientModuleSystem`: load/materialize/invalidate machinery |
 | [`src/client/manifest.ts`](src/client/manifest.ts) | Wire types and boot-manifest parsing |

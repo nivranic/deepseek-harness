@@ -1,0 +1,3 @@
+- button "设置":
+  - img
+  - text: 设置

@@ -1,0 +1,265 @@
+{
+  "taskId": "G1-APPLE",
+  "status": "PASS",
+  "evidenceLevel": "E4",
+  "commit": "dd319c3883934efc224d4caf7bf09b8fea725897",
+  "sourceHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+  "startedFrom": "a874fa4df0bb332e71d27ceae2b4c6567593caf4",
+  "workingTreeState": "Apple product, test, workflow, and documentation inputs were committed and clean at sourceHead before these evidence records were updated.",
+  "recordedAt": "2026-09-05T09:08:16.297Z",
+  "evidenceBoundary": "SwiftPM, real Host 13/13 with recovery, three Xcode builds, and installed iOS simulator first screen passed on the same PR merge tree.",
+  "toolchain": {
+    "local": {
+      "swiftToolsVersionDeclared": "5.9",
+      "swift": "NOT_AVAILABLE",
+      "xcodebuild": "NOT_AVAILABLE",
+      "host": "Microsoft Windows NT 10.0.26200.0"
+    },
+    "remote": {
+      "runner": "macos-latest",
+      "swiftPm": "AVAILABLE_AND_TESTED",
+      "xcode": "AVAILABLE_AND_TESTED"
+    }
+  },
+  "commands": [
+    "git show --stat --oneline --decorate --no-renames e3bf0842 -- . ':(exclude)vendor/**'",
+    "git show --format=fuller --no-ext-diff --unified=50 e3bf0842 -- apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift apps/apple/README.md apps/apple/README.zh.md .agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md .agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.zh.md",
+    "Get-Command swift -ErrorAction SilentlyContinue",
+    "Get-Command xcodebuild -ErrorAction SilentlyContinue",
+    "Get-Content artifacts/verification/gate-1/G1-APPLE.json -Raw | ConvertFrom-Json",
+    "git diff --check"
+  ],
+  "sourceAudit": {
+    "result": "CONFIRMED_AT_SOURCE",
+    "evidenceLevel": "E2",
+    "commit": "e3bf0842eb68d739bb8fc0c345203b0d38dd0165",
+    "compiled": false,
+    "executed": false,
+    "observations": [
+      "Unary status handling maps only HTTP 403 with a JSON string error equal to forbidden to LinkClientError.refused; all other non-2xx responses remain LinkClientError.carrier.",
+      "The refusal message selects the first nonempty string from message and reason, then falls back to HTTP 403.",
+      "Stream status handling reads the response body only for non-2xx responses and returns before iterating successful response bytes.",
+      "Committed XCTest source covers message precedence and fallback, the exact 403 discriminator, non-403 and wrong-type controls, error-body reading, and successful-stream non-consumption."
+    ]
+  },
+  "priorEvidence": {
+    "sourceHead": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+    "relationshipToSourceHead": "ANCESTOR",
+    "commands": [
+      "pnpm run verify-link-contracts",
+      "pnpm exec vitest run packages/remote/link-contracts/tests/link-contracts.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/remote/link-access/tests/carrier.spec.ts"
+    ],
+    "results": [
+      "Generated Link contract freshness passed with zero stale artifacts.",
+      "The three TypeScript contract, Host Remote Event, and TLS carrier suites passed 87 tests with zero failures."
+    ],
+    "qualification": "These retained results cover generated-contract and TypeScript Host/carrier behavior. They do not compile or execute the Swift changes at e3bf0842."
+  },
+  "tests": [
+    {
+      "name": "Generated Link contract freshness",
+      "result": "PASS",
+      "evidenceSourceCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+      "stale": 0,
+      "qualification": "No generated Link contract source or artifact changed between this evidence commit and sourceHead."
+    },
+    {
+      "name": "Contract, Host Remote Event, and TLS carrier suites",
+      "result": "PASS",
+      "evidenceSourceCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+      "testFiles": 3,
+      "passed": 87,
+      "failed": 0,
+      "qualification": "This is retained non-Swift evidence and does not validate compilation or runtime behavior of the e3bf0842 Swift changes."
+    },
+    {
+      "name": "swift test",
+      "result": "PASS",
+      "candidateHead": "4227f3a51375e648163171911bda59f52eac4503",
+      "runner": "macos-latest",
+      "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33946453731"
+    },
+    {
+      "name": "Real Host-to-Swift acceptance",
+      "result": "FAIL",
+      "candidateHead": "4227f3a51375e648163171911bda59f52eac4503",
+      "runner": "macos-latest",
+      "failure": "pairing returned credentials for a different host",
+      "repairCommit": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+      "repairValidation": "Live-name TLS carrier regression passed locally; remote rerun pending",
+      "url": "https://github.com/nivranic/deepseek-harness/actions/runs/33946453731"
+    },
+    {
+      "name": "SwiftPM, real Host acceptance and Xcode shells",
+      "result": "PASS",
+      "candidateHead": "6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+      "evidence": "https://github.com/nivranic/deepseek-harness/actions/runs/33949181004"
+    },
+    {
+      "name": "SwiftPM, real Host recovery, three Xcode shells and installed first screen",
+      "result": "PASS",
+      "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+      "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+      "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330"
+    },
+    {
+      "name": "SwiftPM, real Host recovery, three Xcode builds, embedded product identity and installed first screen",
+      "result": "PASS",
+      "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+      "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+      "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270"
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-APPLE.json",
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
+    "apps/apple/Tests/LinkNativeAcceptance/",
+    "packages/remote/link-contracts/acceptance/corpus.v1.json",
+    ".github/workflows/apple-swift.yml",
+    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md",
+    ".agents/notes/implemented/testing/2026-09-02-real-host-native-link-acceptance.md"
+  ],
+  "logs": [],
+  "changedFiles": [
+    "apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift",
+    "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
+    "apps/apple/README.md",
+    "apps/apple/README.zh.md",
+    "apps/apple/README.i18n.yaml",
+    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md",
+    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.zh.md",
+    ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.i18n.yaml",
+    "artifacts/verification/gate-1/G1-APPLE.json"
+  ],
+  "implemented": [
+    "In candidate dd319c3883934efc224d4caf7bf09b8fea725897, the Swift source preserves the canonical carrier authorization refusal code for unary and stream requests while retaining carrier classification for every response without the exact discriminator.",
+    "In candidate dd319c3883934efc224d4caf7bf09b8fea725897, non-2xx stream classification can inspect the error body without consuming any successful NDJSON response byte.",
+    "Fresh pairing transfers endpoint, pin, credential, clientId, and transport ownership to the replacement Link client before the UI uses it.",
+    "The client consumes the generated unary, stream, ready, request, outcome, cancel, result, and structured error models; void RPC success does not require a value field.",
+    "Reconnect clears stale generation identity and accepts only the next authoritative ready and snapshot state.",
+    "The Swift native driver consumes the same 13-step pair-through-revoke corpus as the TypeScript and Kotlin drivers.",
+    "The Apple workflow boots the shipped base plus desktop Host composition and publishes native evidence on a Swift-capable runner."
+  ],
+  "acceptance": [
+    "Source inspection of candidate dd319c3883934efc224d4caf7bf09b8fea725897 confirms the corrected unary and stream refusal classification and the matching XCTest definitions.",
+    "Generated Swift models, the shared corpus, the real Host harness, and the Swift driver are present.",
+    "Source, test-definition, and workflow inspection cannot substitute for Swift compilation, SwiftPM execution, or a real Host-to-Swift run."
+  ],
+  "knownLimitations": [
+    "Simulator unpaired startup only; App-to-Host pairing, real-device networks, Release signing and installation remain separate acceptance."
+  ],
+  "notExecuted": [],
+  "nextDependencies": [
+    "G1-E2E",
+    "G1-REC",
+    "G1-CI"
+  ],
+  "latestRemoteEvidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json",
+  "historicalLocalAudit": {
+    "sourceHead": "dd319c3883934efc224d4caf7bf09b8fea725897",
+    "toolchain": {
+      "swiftToolsVersionDeclared": "5.9",
+      "swift": "NOT_AVAILABLE",
+      "xcodebuild": "NOT_AVAILABLE",
+      "host": "Microsoft Windows NT 10.0.26200.0"
+    },
+    "tests": [
+      {
+        "name": "Generated Link contract freshness",
+        "result": "PASS",
+        "evidenceSourceCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+        "stale": 0,
+        "qualification": "No generated Link contract source or artifact changed between this evidence commit and sourceHead."
+      },
+      {
+        "name": "Contract, Host Remote Event, and TLS carrier suites",
+        "result": "PASS",
+        "evidenceSourceCommit": "b3d3a9165803f5e416e0c1cb65a3956b3a6c16a3",
+        "testFiles": 3,
+        "passed": 87,
+        "failed": 0,
+        "qualification": "This is retained non-Swift evidence and does not validate compilation or runtime behavior of the e3bf0842 Swift changes."
+      },
+      {
+        "name": "Apple SwiftPM tests, including LinkHTTPStatusTests",
+        "result": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      },
+      {
+        "name": "Real Host-to-Swift acceptance",
+        "result": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "cause": "SWIFT_TOOLCHAIN_UNAVAILABLE"
+      }
+    ],
+    "knownLimitations": [
+      "Windows has no Swift toolchain or Xcode. No Swift build, SwiftPM test, or real Host-to-Swift result is claimed.",
+      "The corrected native source is present in candidate dd319c3883934efc224d4caf7bf09b8fea725897, but a Swift-capable runner must compile it, execute SwiftPM tests, and complete real Host-to-Swift acceptance before the Apple lane can exceed E2."
+    ],
+    "notExecuted": [
+      {
+        "item": "swift test",
+        "status": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "details": "Get-Command swift and Get-Command xcodebuild found no executable on the Windows host; the committed XCTest definitions in candidate dd319c3883934efc224d4caf7bf09b8fea725897 were not compiled or executed."
+      },
+      {
+        "item": "Real Host-to-Swift acceptance",
+        "status": "NOT_EXECUTED",
+        "reason": "HOST_ENVIRONMENT",
+        "details": "The harness and Swift driver exist, but this host cannot execute the Swift-owned native lane for dd319c3883934efc224d4caf7bf09b8fea725897."
+      }
+    ]
+  },
+  "latestRemoteSwiftAcceptance": {
+    "path": "artifacts/verification/gate-1/acceptance/swift-ac42842c38142e13859da4981f9a820906f5ec6b.json",
+    "sha256": "93fd65ff7c7422fdde951d73357b78b4530037fa76b4af80e3903567113d2cce",
+    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+    "tree": "08cee8e622e7a9b2be68414c8c51c156a9902bd9",
+    "parents": [
+      "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+      "53cd3e79ad9b5047ce7cde685ba79b989ddb22be"
+    ],
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270",
+    "steps": 13,
+    "recovery": {
+      "preFaultSeq": 81,
+      "recoverySnapshotCursor": 92,
+      "repeatedSnapshotCursor": 92,
+      "offlineSeqCount": 11,
+      "recoverySnapshotHasMore": false,
+      "followReplacementCount": 2,
+      "eventReplacementCount": 2,
+      "projectionItemCount": 77,
+      "projectionPlanActive": false,
+      "projectionTodoCount": 0,
+      "projectionGoalCount": 0,
+      "projectionToolCallCount": 0,
+      "projectionImageCount": 0,
+      "projectionArtifactCount": 0,
+      "projectionEqualAfterRepeatedReconnect": true,
+      "beforeRepeatedReconnectProjectionSha256": "5e267ee134a6eef22c9a798689f81a33657d47c113886fb8f78190315b0ce231",
+      "afterRepeatedReconnectProjectionSha256": "5e267ee134a6eef22c9a798689f81a33657d47c113886fb8f78190315b0ce231",
+      "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+    }
+  },
+  "latestStartupEvidence": "artifacts/verification/gate-1/G1-APPLE-STARTUP.json",
+  "latestAppleProductIdentity": {
+    "status": "PASS",
+    "path": "artifacts/verification/gate-2/acceptance/apple-product-ac42842c38142e13859da4981f9a820906f5ec6b.json",
+    "sha256": "874675ad9e52cda011b5b16e3165f19a941e930a5f367f830b79ae5608ca3c77",
+    "candidateHead": "53cd3e79ad9b5047ce7cde685ba79b989ddb22be",
+    "executionCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+    "tree": "08cee8e622e7a9b2be68414c8c51c156a9902bd9",
+    "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33955520270",
+    "schemes": [
+      "CompanioniOS",
+      "CompanionMac",
+      "DirectHostMac"
+    ],
+    "configuration": "Debug"
+  }
+}

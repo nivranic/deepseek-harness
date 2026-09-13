@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "sourceSha": "ac42842c38142e13859da4981f9a820906f5ec6b",
+  "identity": {
+    "schemaVersion": 1,
+    "version": "0.1.2-alpha.1",
+    "marketingVersion": "0.1.2",
+    "buildNumber": 1,
+    "channel": "dev",
+    "windowsFileVersion": "0.1.2.1",
+    "appleBuildVersion": "1.0.1"
+  },
+  "configuration": "Debug",
+  "schemes": [
+    "CompanioniOS",
+    "CompanionMac",
+    "DirectHostMac"
+  ]
+}

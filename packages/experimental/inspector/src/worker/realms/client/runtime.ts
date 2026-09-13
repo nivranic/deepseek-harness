@@ -30,8 +30,8 @@ export class ClientRuntimeBackend implements RuntimeBackend {
     private readonly scriptIds: ClientScriptIdentity,
   ) {}
 
-  enable(): Promise<void> {
-    return Promise.resolve()
+  async enable(): Promise<void> {
+    expectResult(await this.request({ op: 'enable' }), 'enable')
   }
 
   disable(): Promise<void> {

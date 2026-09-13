@@ -100,14 +100,16 @@ export interface RemoteEventResult {
  */
 export function parseRemoteEventResult(value: unknown): RemoteEventResult {
   if (!isRecord(value)
-    || !exactKeys(value, ['clientId', 'eventId', 'outcome'])
+    || !isRemoteJsonValue(value)
     || !isRemoteEventClientId(value.clientId)
     || !isRemoteEventId(value.eventId)
     || !isRecord(value.outcome)) {
     throw new Error('api gateway: invalid Remote event result')
   }
   const outcome = value.outcome
-  if (outcome.kind === 'next' && exactKeys(outcome, ['kind'])) {
+  if (outcome.kind === 'next'
+    && !Object.hasOwn(outcome, 'value')
+    && !Object.hasOwn(outcome, 'error')) {
     return {
       clientId: value.clientId,
       eventId: value.eventId,
@@ -115,7 +117,7 @@ export function parseRemoteEventResult(value: unknown): RemoteEventResult {
     }
   }
   if (outcome.kind === 'result'
-    && (exactKeys(outcome, ['kind']) || exactKeys(outcome, ['kind', 'value']))
+    && !Object.hasOwn(outcome, 'error')
     && (!Object.hasOwn(outcome, 'value') || isRemoteJsonValue(outcome.value))) {
     return {
       clientId: value.clientId,
@@ -126,7 +128,8 @@ export function parseRemoteEventResult(value: unknown): RemoteEventResult {
     }
   }
   if (outcome.kind === 'rejected'
-    && exactKeys(outcome, ['kind', 'error'])) {
+    && !Object.hasOwn(outcome, 'value')
+    && Object.hasOwn(outcome, 'error')) {
     return {
       clientId: value.clientId,
       eventId: value.eventId,
@@ -346,12 +349,10 @@ function validId(value: unknown): value is string {
 
 function parseRemoteEventRejection(value: unknown): RemoteEventRejection {
   if (!isRecord(value)
-    || !hasOnlyKeys(value, ['name', 'message'], ['code', 'details'])
     || typeof value.name !== 'string'
     || value.name.length === 0
     || typeof value.message !== 'string'
-    || (Object.hasOwn(value, 'code') && typeof value.code !== 'string')
-    || (Object.hasOwn(value, 'details') && !isRemoteJsonValue(value.details))) {
+    || (Object.hasOwn(value, 'code') && typeof value.code !== 'string')) {
     throw new Error('api gateway: invalid Remote event rejection')
   }
   return {
@@ -360,16 +361,6 @@ function parseRemoteEventRejection(value: unknown): RemoteEventRejection {
     ...(typeof value.code === 'string' ? { code: value.code } : {}),
     ...(Object.hasOwn(value, 'details') ? { details: value.details } : {}),
   }
-}
-
-function hasOnlyKeys(
-  value: Record<string, unknown>,
-  required: readonly string[],
-  optional: readonly string[],
-): boolean {
-  const keys = Reflect.ownKeys(value)
-  return required.every(key => Object.hasOwn(value, key))
-    && keys.every(key => typeof key === 'string' && (required.includes(key) || optional.includes(key)))
 }
 
 function stringProperty(value: object | undefined, key: string): string | undefined {

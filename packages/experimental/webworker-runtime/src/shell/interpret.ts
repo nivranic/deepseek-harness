@@ -16,6 +16,7 @@ import { expandArgument, isGlobPattern } from './expand.ts'
 import type { ExpansionContext } from './expand.ts'
 import { describeFailure, hostFileSystem, resolveIn } from './fs-access.ts'
 import { standardPrograms } from './programs/index.ts'
+import { copyShellVariables } from './variables.ts'
 import type { ShellFileSystem, ShellIo, ShellProgram, ShellRunOutcome, ShellState } from './types.ts'
 
 /** Status a command line reports once the caller's abort signal has fired. */
@@ -123,8 +124,8 @@ function startRun(options: ShellRunOptions): {
   return {
     state: {
       cwd: options.cwd,
-      environment: { ...options.env },
-      variables: {},
+      environment: copyShellVariables(options.env),
+      variables: copyShellVariables(),
       lastStatus: 0,
       exitRequested: undefined,
       signal: options.signal,
@@ -229,7 +230,7 @@ class Interpreter {
         return 0
       case 'subshell': {
         // A subshell sees a copy: its `cd` and its assignments die with it.
-        const nested = { ...state, environment: { ...state.environment }, variables: { ...state.variables } }
+        const nested = { ...state, environment: copyShellVariables(state.environment), variables: copyShellVariables(state.variables) }
         return await this.redirected(command.args, state, io, async inner => await this.line(command.subshell, nested, inner))
       }
       case 'group':
@@ -250,7 +251,7 @@ class Interpreter {
       }
       argv.push(...await expandArgument(argument, this.context(state)))
     }
-    const prefix: Record<string, string> = {}
+    const prefix = copyShellVariables()
     for (const env of command.envs) prefix[env.name] = await this.assignedValue(env.args[0], state)
 
     if (argv.length === 0) {
@@ -261,7 +262,7 @@ class Interpreter {
     // which also means it cannot change the caller's directory.
     const scope = Object.keys(prefix).length === 0
       ? state
-      : { ...state, environment: { ...state.environment, ...prefix } }
+      : { ...state, environment: copyShellVariables(state.environment, prefix) }
 
     const name = argv[0] as string
     const program = this.programs.get(name)
@@ -364,7 +365,7 @@ class Interpreter {
           throw new Error(`command substitution nested deeper than ${String(MAX_SUBSTITUTION_DEPTH)} levels`)
         }
         const captured = buffer()
-        const nested = { ...state, environment: { ...state.environment }, variables: { ...state.variables } }
+        const nested = { ...state, environment: copyShellVariables(state.environment), variables: copyShellVariables(state.variables) }
         const inner = new Interpreter(this.programs, this.fs, this.signal, this.depth + 1)
         await inner.line(shell, nested, { stdin: '', out: captured.write, err: () => {} })
         return captured.text().replace(/\n+$/, '')

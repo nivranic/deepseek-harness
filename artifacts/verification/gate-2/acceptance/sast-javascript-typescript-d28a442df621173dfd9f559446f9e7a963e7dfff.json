@@ -1,0 +1,853 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "kind": "sast",
+  "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+  "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+  "action": "github/codeql-action/analyze",
+  "actionSha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+  "registrySha256": "cec22b35ba74a01150bc1e40f20abb3f31180f69ac4d56a48dac794189d8ba23",
+  "scanner": "CodeQL",
+  "language": "javascript-typescript",
+  "reports": [
+    {
+      "sha256": "39c547b1509ebadfafd7f013c06b7dd8193d4c08a77e4ce3072ace74cbc1b803",
+      "version": "2.26.4",
+      "rules": 103,
+      "structure": {
+        "driverRuleCount": 0,
+        "extensionRuleCounts": [
+          103,
+          0,
+          0
+        ],
+        "resultsPresent": true,
+        "resultCount": 91
+      }
+    }
+  ],
+  "findings": [
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "line": 136
+        }
+      ]
+    },
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "line": 154
+        }
+      ]
+    },
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-bash-persistent/tests/tools.spec.ts",
+          "line": 171
+        }
+      ]
+    },
+    {
+      "rule": "js/redos",
+      "locations": [
+        {
+          "path": "packages/shell/tool-pwsh-persistent/tests/tools.spec.ts",
+          "line": 105
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/client/ui-primitives/src/user-text.tsx",
+          "line": 38
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/client/ui-primitives/src/user-text.tsx",
+          "line": 62
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/context/session-reference/src/uri.ts",
+          "line": 71
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/module-system/posix-path.ts",
+          "line": 75
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/module-system/posix-path.ts",
+          "line": 169
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/host/webserver/src/injections.ts",
+          "line": 107
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/host/webserver/src/injections.ts",
+          "line": 113
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/llm/llm-deepseek/src/files-api.ts",
+          "line": 137
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/llm/llm-deepseek/src/upload-index.ts",
+          "line": 47
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 430
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 488
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 499
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 509
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/typert/generator/src/cordis-catalog.ts",
+          "line": 524
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "rule": "js/polynomial-redos",
+      "locations": [
+        {
+          "path": "packages/util/workspace-path/src/index.ts",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "rule": "js/biased-cryptographic-random",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/node/builtin_modules/implemented/crypto.ts",
+          "line": 102
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/client-browser.e2e.ts",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/debugger.e2e.ts",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/cordis-tree.host.spec.ts",
+          "line": 44
+        }
+      ]
+    },
+    {
+      "rule": "js/unvalidated-dynamic-method-call",
+      "locations": [
+        {
+          "path": "packages/experimental/inspector/tests/integration.host.spec.ts",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "rule": "js/bad-code-sanitization",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "line": 205
+        }
+      ]
+    },
+    {
+      "rule": "js/bad-code-sanitization",
+      "locations": [
+        {
+          "path": "packages/test-support/session-snapshot/tests/fixtures/fake-acp-agent.ts",
+          "line": 267
+        }
+      ]
+    },
+    {
+      "rule": "js/bad-code-sanitization",
+      "locations": [
+        {
+          "path": "packages/test-support/session-snapshot/tests/fixtures/fake-acp-agent.ts",
+          "line": 268
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/gen-doc-graphs.ts",
+          "line": 768
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/gen-tool-catalog.ts",
+          "line": 761
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/package-graph.ts",
+          "line": 167
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-sanitization",
+      "locations": [
+        {
+          "path": "scripts/verify-public-repository-links.spec.ts",
+          "line": 9
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-multi-character-sanitization",
+      "locations": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "line": 62
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-multi-character-sanitization",
+      "locations": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "line": 219
+        }
+      ]
+    },
+    {
+      "rule": "js/incomplete-multi-character-sanitization",
+      "locations": [
+        {
+          "path": "scripts/verify-md-links.ts",
+          "line": 130
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-randomness",
+      "locations": [
+        {
+          "path": "vendor/cordis/src/fiber.ts",
+          "line": 235
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "apps/cli/tests/link-session-slice.e2e.ts",
+          "line": 167
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "apps/cli/tests/link-session-slice.e2e.ts",
+          "line": 277
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "line": 361
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "line": 406
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-client/src/index.ts",
+          "line": 102
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 476
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 522
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 1029
+        }
+      ]
+    },
+    {
+      "rule": "js/disabling-certificate-validation",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 1100
+        }
+      ]
+    },
+    {
+      "rule": "js/stack-trace-exposure",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/src/index.ts",
+          "line": 874
+        }
+      ]
+    },
+    {
+      "rule": "js/client-side-request-forgery",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker-host.ts",
+          "line": 155
+        }
+      ]
+    },
+    {
+      "rule": "js/missing-origin-check",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker.ts",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "rule": "js/missing-origin-check",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/worker-host.ts",
+          "line": 447
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "line": 78
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/compile/transform.ts",
+          "line": 507
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/extensions/cordis-host-runner/src/sandbox.ts",
+          "line": 213
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "packages/workflow/workflow-worker-thread/src/index.ts",
+          "line": 70
+        }
+      ]
+    },
+    {
+      "rule": "js/unsafe-code-construction",
+      "locations": [
+        {
+          "path": "vendor/schemastery/src/index.ts",
+          "line": 261
+        }
+      ]
+    },
+    {
+      "rule": "js/remote-property-injection",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/shell/interpret.ts",
+          "line": 388
+        }
+      ]
+    },
+    {
+      "rule": "js/remote-property-injection",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/src/transport/frames.ts",
+          "line": 171
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "apps/web/tests/scaffold.ts",
+          "line": 961
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "native/landlock-run/scripts/repo.mjs",
+          "line": 73
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "line": 217
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "line": 220
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/boot/app-boot/src/profile.ts",
+          "line": 222
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/client/hmr/tests/node-half.client.spec.ts",
+          "line": 196
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/context/agent-instructions/tests/agent-instructions.spec.ts",
+          "line": 421
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/tests/node/fs-watch-stream.spec.ts",
+          "line": 124
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/experimental/webworker-runtime/tests/node/fs-watch-stream.spec.ts",
+          "line": 201
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/fs/fs-local/tests/fsio.spec.ts",
+          "line": 332
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/fs/fs-local/tests/fsio.spec.ts",
+          "line": 698
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/src/index.ts",
+          "line": 123
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "line": 639
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "line": 681
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/identity/anonymous-user-id/tests/anonymous-user-id.spec.ts",
+          "line": 701
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/sdk/client/tests/fake-runtime.ts",
+          "line": 211
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/session/session-persistence-jsonl/src/index.ts",
+          "line": 309
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/session/session-persistence-jsonl/tests/zstd.spec.ts",
+          "line": 661
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/settings/settings-file/tests/local.spec.ts",
+          "line": 214
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "packages/util/atomic-write/tests/atomic-write.spec.ts",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/build-exe-for-python-sdk.ts",
+          "line": 414
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/install-lefthook.mjs",
+          "line": 499
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/project-doc-site.ts",
+          "line": 387
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/release/ci-github.ts",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/verify-archived-agent-notes.ts",
+          "line": 110
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "scripts/verify-public-repository-links.ts",
+          "line": 72
+        }
+      ]
+    },
+    {
+      "rule": "js/file-system-race",
+      "locations": [
+        {
+          "path": "snapshots/sdk/sdk.snapshot.ts",
+          "line": 815
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-temporary-file",
+      "locations": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "line": 135
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-temporary-file",
+      "locations": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "line": 187
+        }
+      ]
+    },
+    {
+      "rule": "js/insecure-temporary-file",
+      "locations": [
+        {
+          "path": "scripts/build-desktop-exe.ts",
+          "line": 431
+        }
+      ]
+    },
+    {
+      "rule": "js/file-access-to-http",
+      "locations": [
+        {
+          "path": ".github/issue-management/policy.mjs",
+          "line": 389
+        }
+      ]
+    },
+    {
+      "rule": "js/file-access-to-http",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/link-harness.ts",
+          "line": 422
+        }
+      ]
+    },
+    {
+      "rule": "js/file-access-to-http",
+      "locations": [
+        {
+          "path": "packages/remote/link-access/tests/carrier.spec.ts",
+          "line": 1130
+        }
+      ]
+    }
+  ],
+  "findingCount": 91,
+  "analysisComplete": true,
+  "blockingDiagnostics": []
+}

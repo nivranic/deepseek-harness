@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G2-CI",
+  "status": "PARTIAL",
+  "sourceHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+  "recordedAt": "2026-09-05T16:37:09.535Z",
+  "aggregate": {
+    "workflow": ".github/workflows/ci.yml",
+    "job": "all-checks-passed",
+    "name": "all checks passed",
+    "needs": [
+      "node-24",
+      "node-24-coverage",
+      "node-24-consumers",
+      "node-compat",
+      "python-sdk",
+      "python-runtime",
+      "windows",
+      "windows-build",
+      "windows-native-tests"
+    ]
+  },
+  "independentNativeRequirements": [
+    "Android Kotlin / gradle test (core)",
+    "Apple Swift / swift test (macOS)"
+  ],
+  "branchProtection": {
+    "branch": "dev",
+    "status": "NOT_CONFIGURED",
+    "httpStatus": 404,
+    "response": "Branch not protected",
+    "readOnly": true
+  },
+  "latestCompletedCandidate": "723335fefe9403453fa4e2868169143a8b6fd390",
+  "pending": [
+    "Four-platform unsigned RC workflow and manifest",
+    "Independent Windows documentation Git integration budget repair verdict"
+  ],
+  "manualExternalActionsExecuted": false,
+  "requiredCheckProjection": "release/required-checks.generated.json",
+  "sourceReceipts": {
+    "status": "IMPLEMENTED_AND_VERIFIED_ON_GITHUB",
+    "onlineCollector": "scripts/collect-ci-evidence.ts",
+    "producerArtifact": "ci-source-<runId>-<original-execution-attempt>",
+    "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json",
+    "rejectionEvidence": "artifacts/verification/gate-2/ci-evidence-a5afb18597.json",
+    "verification": {
+      "focusedTests": 61,
+      "knip": "PASS",
+      "docQuick": "15/15 PASS",
+      "docSync": "32/32 PASS",
+      "lint": "PASS"
+    },
+    "limits": [
+      "Unsigned source receipts are not authenticated provenance",
+      "ZIP digest is GitHub-reported; only source.json is independently hashed",
+      "Branch protection is not modified"
+    ],
+    "acceptedCandidate": "906d19359588584ffe154d9abe8aea752e7b743a"
+  },
+  "latestOnlineEvidence": {
+    "status": "PASS",
+    "path": "artifacts/verification/gate-2/ci-evidence-723335fefe.json",
+    "candidateSha": "723335fefe9403453fa4e2868169143a8b6fd390",
+    "executionSha": "47e122670a40166f8c6a439a13ac859e4dc2b337",
+    "includesIndependentWindowsCoverage": true
+  }
+}

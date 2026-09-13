@@ -9,11 +9,14 @@ import { describe, expect, it, vi } from 'vitest'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
+import type { DesktopSupportResult } from '@deepseek-ai/dsh-host-electron-ipc/types'
+import type { ConnectionDiagnosticSnapshot } from '@deepseek-ai/dsh-client-connection/client'
 import { apply as settingsApply, inject as settingsInject } from '@deepseek-ai/dsh-client-ui-settings/client'
 import { apply, inject } from '../src/client/index.ts'
 import type {
   CloseActionRowInjected, DeviceNameRowInjected, LaunchAtLoginRowInjected,
   RemoteDevicesRowInjected, RemoteToggleRowInjected,
+  SupportExportRowInjected,
 } from '../src/client/index.ts'
 import { DesktopSettingsSchema, DESKTOP_SETTINGS_NAMESPACE } from '../src/desktop-settings.ts'
 import { REMOTE_SETTINGS_NAMESPACE } from '../src/remote-settings.ts'
@@ -50,6 +53,11 @@ function remoteView(enabled: boolean, revision: number) {
 async function bench() {
   const ctx = new Context()
   const mutate = vi.fn()
+  const diagnosticSnapshot = vi.fn((): ConnectionDiagnosticSnapshot => ({ state: 'connected', attempts: 1, interruptions: 0, countsSaturated: false }))
+  const exportSupport = vi.fn(async (): Promise<
+    | { ok: true; value: DesktopSupportResult }
+    | { ok: false; error: { code: 'internal'; message: string } }
+  > => ({ ok: true, value: { status: 'cancelled' } }))
   const link = {
     status: vi.fn((): Promise<
       | { ok: true; value: { listening: boolean; endpoint: string; hostName: string; allowRemoteApproval: boolean; deviceCount: number } }
@@ -74,7 +82,7 @@ async function bench() {
   const locale = new LocaleRuntime(ctx)
   locale.setLocale('zh')
   ctx.provide('locale', locale)
-  ctx.provide('connection', { isLoopback: true } as never)
+  ctx.provide('connection', { isLoopback: true, diagnosticSnapshot } as never)
   new TestRemote(ctx, {
     settings: {
       describe: () => Promise.resolve({
@@ -89,6 +97,7 @@ async function bench() {
       },
     },
     link,
+    desktopSupport: { export: exportSupport },
   })
   ctx.get('slots')!.register({
     name: 'root',
@@ -96,14 +105,14 @@ async function bench() {
   } as never, () => null)
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   await ctx.plugin({ inject: [...inject], apply }).await()
-  return { ctx, locale, mutate, link }
+  return { ctx, locale, mutate, link, exportSupport, diagnosticSnapshot }
 }
 
 /** Every row's inject face, as the renderer would materialize them. */
 async function rowFaces() {
-  const { ctx, locale, mutate, link } = await bench()
+  const { ctx, locale, mutate, link, exportSupport, diagnosticSnapshot } = await bench()
   const entries = (ctx.get('slots')!).entries('settings.general.item')
-  expect(entries).toHaveLength(6)
+  expect(entries).toHaveLength(7)
   const byId = (id: string) => entries.find(candidate => candidate.options.id === id)!
   expect(byId('desktop-close').options.order).toBe(10)
   expect(byId('desktop-launch-at-login').options.order).toBe(11)
@@ -117,10 +126,28 @@ async function rowFaces() {
   const approvalFace = (byId('desktop-remote-approval').inject as unknown as () => RemoteToggleRowInjected)()
   const deviceNameFace = (byId('desktop-remote-device-name').inject as unknown as () => DeviceNameRowInjected)()
   const devicesFace = (byId('desktop-remote-devices').inject as unknown as () => RemoteDevicesRowInjected)()
-  return { ctx, locale, mutate, link, closeFace, launchFace, accessFace, approvalFace, deviceNameFace, devicesFace }
+  const supportFace = (byId('desktop-support-export').inject as unknown as () => SupportExportRowInjected)()
+  return { ctx, locale, mutate, link, exportSupport, diagnosticSnapshot, supportFace,
+    closeFace, launchFace, accessFace, approvalFace, deviceNameFace, devicesFace }
 }
 
 describe('ui-desktop apply', () => {
+  it('calls the registered desktop Remote from the diagnostics action', async () => {
+    const { supportFace, exportSupport, diagnosticSnapshot } = await rowFaces()
+    await expect(supportFace.exportSupport()).resolves.toEqual({ status: 'cancelled' })
+    expect(exportSupport).toHaveBeenCalledOnce()
+    expect(exportSupport).toHaveBeenLastCalledWith({ state: 'connected', attempts: 1, interruptions: 0, countsSaturated: false })
+    const reconnecting = { state: 'reconnecting' as const, attempts: 2, interruptions: 1, countsSaturated: false }
+    diagnosticSnapshot.mockReturnValueOnce(reconnecting)
+    await supportFace.exportSupport()
+    expect(exportSupport).toHaveBeenLastCalledWith(reconnecting)
+  })
+  it('maps a failed diagnostics RPC to unavailable without returning private details', async () => {
+    const { supportFace, exportSupport } = await rowFaces()
+    exportSupport.mockResolvedValueOnce({ ok: false, error: { code: 'internal', message: 'private native detail' } })
+    await expect(supportFace.exportSupport()).resolves.toEqual({ status: 'failed', reason: 'unavailable' })
+    expect(exportSupport).toHaveBeenCalledOnce()
+  })
   it('registers the zh dictionaries under its own namespace', async () => {
     const { locale } = await rowFaces()
     expect(locale.bind('settings.desktop')('title')).toBe('关闭窗口时')

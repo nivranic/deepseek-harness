@@ -45,11 +45,11 @@ kind: "package-reference"
 | 披露的状态 | 确认文本中的句子 |
 |---|---|
 | `full` | `Session sharing is enabled.` |
-| `feedback-only` | `Session sharing is feedback-gated; recording feedback uploads the session records not yet shared.` |
+| `feedback-only` | `Session sharing is feedback-gated; recording feedback makes the privacy-safe diagnostics not yet shared eligible for the configured telemetry pipeline.` |
 | `disabled` | `Session sharing is disabled.` |
 | 无遥测服务 | `Session sharing is not configured.` |
 
-句子只报告当前策略，绝不声称反馈或会话已投递到任何地方。披露本身不记录任何内容，也绝不会到达模型。
+句子只报告当前策略，绝不声称投递。随附默认策略是 `disabled`；即使显式选择 `feedback-only`，也不会上传反馈文本或 Session 载荷，只上传[隐私清单中的诊断字段](../../../docs/subsystems/session-telemetry.zh.md#privacy-inventory)。披露本身不记录任何内容，也绝不会到达模型。
 
 ### 从自己的 UI 记录反馈
 
