@@ -17,9 +17,11 @@ class ConnectionSnapshotNativeTest {
             val captured = model.supportSnapshot()
             val idle = ConnectionSnapshot(ConnectionState.IDLE, 0, 0, null)
             assertEquals(ConnectionSnapshots(idle, idle, idle, idle), captured.connections)
+            assertEquals(SessionDiagnostics.Unselected, captured.session)
             store.clear()
             val stopped = idle.copy(state = ConnectionState.STOPPED)
             assertEquals(ConnectionSnapshots(stopped, stopped, stopped, stopped), model.supportSnapshot().connections)
+            assertEquals(SessionDiagnostics.Unselected, model.supportSnapshot().session)
             assertEquals(ConnectionSnapshots(idle, idle, idle, idle), captured.connections)
             assertSame(wire, CompanionRuntime.wire)
         }

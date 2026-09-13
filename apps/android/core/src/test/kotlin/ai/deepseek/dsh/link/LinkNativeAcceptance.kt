@@ -5,6 +5,7 @@ import ai.deepseek.dsh.companion.InteractionModel
 import ai.deepseek.dsh.companion.LinkWireDriving
 import ai.deepseek.dsh.companion.PendingInteraction
 import ai.deepseek.dsh.companion.SessionModel
+import ai.deepseek.dsh.companion.SessionDiagnostics
 import ai.deepseek.dsh.companion.SwitchableWireDriving
 import ai.deepseek.dsh.companion.WireDriving
 import ai.deepseek.dsh.companion.WireShape
@@ -585,6 +586,9 @@ private class AcceptanceRun(
                 state.cursor == recoverySnapshot.cursor
                     && state.items.any { item -> item.seq > preFaultSeq && item.kind == "turn/end" }
             }.toJson().jsonObject
+            val beforeSessionDiagnostics = sessionModel.sessionDiagnostics
+            accept(beforeSessionDiagnostics is SessionDiagnostics.Selected && beforeSessionDiagnostics.counts.timelineRows > 0,
+                "recovered session diagnostics omitted the selected local projection")
 
             wire.armNextStreamAttempts(setOf("session/follow", "\$events"))
             val repeatedMark = wire.mark()
@@ -631,6 +635,8 @@ private class AcceptanceRun(
                 afterRepeatedReconnect == beforeRepeatedReconnect,
                 "same-cut reconnect changed the companion DomainState projection",
             )
+            accept(sessionModel.sessionDiagnostics == beforeSessionDiagnostics,
+                "same-cut reconnect changed retained session diagnostic counts")
 
             val followReplacementCount = wire.streamCount("session/follow") - previousFollowCount
             val eventReplacementCount = wire.streamCount("\$events") - previousEventCount

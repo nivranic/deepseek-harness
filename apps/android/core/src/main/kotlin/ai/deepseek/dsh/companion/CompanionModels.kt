@@ -243,6 +243,11 @@ class SessionModel(
     /** The fold state of the open session, when one is. */
     val state: DomainState get() = _open.value?.state ?: DomainState()
 
+    /** Capture one current projection without reading payloads, cached bytes or starting requests. */
+    val sessionDiagnostics: SessionDiagnostics
+        get() = _open.value?.let { SessionDiagnostics.Selected(SessionProjectionCounts.capture(it.state)) }
+            ?: SessionDiagnostics.Unselected
+
     /** Decoded artifact content by reference id (filled by readArtifact). */
     private val _artifactBytes = mutableMapOf<String, ByteArray>()
 

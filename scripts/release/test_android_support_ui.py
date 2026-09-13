@@ -9,9 +9,31 @@ from unittest.mock import Mock, patch
 from xml.etree import ElementTree as ET
 
 from android_support_ui import DOCUMENTS, PACKAGE, SupportUi, matching, point
+from android_candidate_device import DeviceCommandError
 
 
 class AndroidSupportUiTests(unittest.TestCase):
+    def test_failed_hierarchy_queries_capture_outcome_before_cleanup_without_retaining_device_text(self):
+        for query, command_count in (("remove-observation", 1), ("dump-hierarchy", 2), ("read-hierarchy", 3)):
+            with self.subTest(query=query), tempfile.TemporaryDirectory() as directory:
+                device = Mock(); ui = SupportUi(device, Path(directory), "a" * 32)
+                with patch("android_candidate_device.time.monotonic", return_value=2):
+                    failure = DeviceCommandError("fixed query", "timeout", 1, 0.9)
+                device.shell.side_effect = ([b"", ui.path.encode()] + [failure])[-command_count:]
+                with self.assertRaises(DeviceCommandError):
+                    ui.observe()
+                failure.observation["outcome"] = "later mutation"
+                device.shell.side_effect = None
+                ui.close()
+                ui.record_failure()
+                record = json.loads((Path(directory) / "ui-failure.json").read_bytes())
+                self.assertEqual(record["query"], query)
+                self.assertEqual(record["observationAttempts"], 1)
+                self.assertEqual(record["commandFailure"], {"outcome": "timeout", "exitCode": None,
+                                                           "elapsedMilliseconds": 1000, "timeoutMilliseconds": 900})
+                self.assertNotIn(ui.path, json.dumps(record))
+                self.assertEqual(record["screenshot"], "not-captured")
+
     def test_rejects_ambiguous_disabled_and_nonvisible_controls(self):
         for attributes in ({"bounds": "[0,0][0,0]", "enabled": "true"}, {"bounds": "bad", "enabled": "true"},
                            {"bounds": "[0,0][20,40]", "enabled": "false"}):
@@ -68,6 +90,39 @@ class AndroidSupportUiTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 ui.open_picker(filename)
         device.shell.assert_not_called()
+
+    def test_waits_for_filename_and_downloads_in_the_same_fresh_picker_observation(self):
+        filename = "dsh-support-" + "a" * 32 + ".json"
+        app = ET.fromstring('<hierarchy><node package="' + PACKAGE + '" text="Export diagnostics" enabled="true" bounds="[0,0][10,10]"/>'
+                            '<node package="' + PACKAGE + '" text="配对到宿主"/></hierarchy>')
+        field = '<node package="' + DOCUMENTS + '" resource-id="android:id/title" class="android.widget.EditText" enabled="true" bounds="[10,10][20,20]"/>'
+        breadcrumb = '<node package="' + DOCUMENTS + '" resource-id="' + DOCUMENTS + ':id/breadcrumb_text" text="Downloads"/>'
+        filename_only = ET.fromstring('<hierarchy>' + field + '</hierarchy>')
+        location_only = ET.fromstring('<hierarchy>' + breadcrumb + '</hierarchy>')
+        ready = ET.fromstring('<hierarchy>' + field + breadcrumb + '</hierarchy>')
+        confirmed = ET.fromstring('<hierarchy><node package="' + DOCUMENTS + '" resource-id="android:id/title" text="' + filename + '"/></hierarchy>')
+        device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
+        observations = iter((app, filename_only, location_only, ready, confirmed))
+        def observe(_timeout):
+            root = next(observations)
+            if root in (filename_only, location_only, ready):
+                self.assertEqual(device.shell.call_count, 1, "only the export action may be clicked before complete picker readiness")
+            return root
+        with patch.object(ui, "observe", side_effect=observe), patch("android_support_ui.time.sleep"):
+            self.assertIs(ui.open_picker(filename), confirmed)
+        self.assertEqual(ui.step, "filename-confirmation")
+
+    def test_incomplete_picker_location_cannot_admit_filename_entry(self):
+        filename = "dsh-support-" + "a" * 32 + ".json"
+        app = ET.fromstring('<hierarchy><node package="' + PACKAGE + '" text="Export diagnostics" enabled="true" bounds="[0,0][10,10]"/>'
+                            '<node package="' + PACKAGE + '" text="配对到宿主"/></hierarchy>')
+        wrong = ET.fromstring('<hierarchy><node package="' + DOCUMENTS + '" resource-id="android:id/title" class="android.widget.EditText"/>'
+                              '<node package="' + DOCUMENTS + '" resource-id="' + DOCUMENTS + ':id/breadcrumb_text" text="Foreign location"/></hierarchy>')
+        device = Mock(); ui = SupportUi(device, Path("unused"), "a" * 32)
+        with patch.object(ui, "observe", side_effect=[app, wrong, ValueError("fixture deadline")]), \
+                patch("android_support_ui.time.sleep"), self.assertRaises(ValueError):
+            ui.open_picker(filename)
+        self.assertEqual(device.shell.call_count, 1)
 
     def test_filename_keyboard_is_dismissed_before_confirming_the_same_picker_and_exact_name(self):
         filename = "dsh-support-" + "a" * 32 + ".json"

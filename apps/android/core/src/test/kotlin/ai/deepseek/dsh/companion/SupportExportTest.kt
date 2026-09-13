@@ -35,7 +35,7 @@ class SupportExportTest {
         LinkCapabilities(LinkSessionCapabilities(true, true, true, true, true), LinkWorkspaceCapabilities(true), LinkInteractionCapabilities(false, true)))
     private val link = LinkDiagnosticSnapshot(LinkRequestSnapshot(false, 2, 5, 3), LinkDeviceRole.CONTROLLER,
         LinkDescriptionState.AVAILABLE, null, protocol)
-    private val snapshot = SupportLocalSnapshot(true, link, ConnectionSnapshots.unavailable)
+    private val snapshot = SupportLocalSnapshot(true, link, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable)
     private val policy = SupportExportPolicy(1024 * 1024, 10_000)
 
     @Test fun projectsLocalFactsWithoutClaimingHealthOrAuthorization() {
@@ -51,10 +51,12 @@ class SupportExportTest {
         assertEquals("\"last-known\"", value["protocol"]!!.jsonObject["observation"].toString())
         assertFalse(bytes.decodeToString().contains("hostId"))
         assertTrue(bytes.last() == 10.toByte())
-        val absent = Json.parseToJsonElement(encodeSupportDocument(product, SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable), identity, policy.maximumBytes).decodeToString()).jsonObject
+        val absent = Json.parseToJsonElement(encodeSupportDocument(product, SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable), identity, policy.maximumBytes).decodeToString()).jsonObject
         assertEquals("\"unavailable\"", absent["transport"]!!.jsonObject["observation"].toString())
         assertEquals("\"unavailable\"", absent["role"]!!.jsonObject["observation"].toString())
         assertEquals("\"unavailable\"", absent["capabilities"]!!.jsonObject["observation"].toString())
+        assertEquals(SessionDiagnostics.Unavailable.toJson(), absent["session"])
+        assertTrue(absent["uncollected"].toString().contains("session-diagnostics"))
     }
 
     @Test fun failedDescriptionDoesNotRetainCapabilityOrProtocolValues() {
@@ -116,7 +118,7 @@ class SupportExportTest {
         val files = FilesModel(wire, backgroundScope)
         val pushes = PushModel(wire, backgroundScope)
         val captured = snapshot.copy(identityRestored = false, link = null, connections = ConnectionSnapshots(session.connectionSnapshot,
-            interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot))
+            interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot), session = session.sessionDiagnostics)
         session.closeAndAwait(); interactions.stopWatchingAndAwait(); files.stopAndAwait(); pushes.stopWatchingAndAwait()
         assertEquals(ConnectionState.STOPPED, session.connectionSnapshot.state)
         val exporter = SupportDocumentExporter(scanner({ SupportScanResult("approved", it, supportSha256(it)) }), policy)
@@ -131,6 +133,8 @@ class SupportExportTest {
             assertEquals(Json.parseToJsonElement("""{"producer":"$owner","observation":"current","activityScope":"model-lifetime","snapshot":{"state":"idle","attempts":0,"interruptions":0,"countsSaturated":false}}"""), connections[key])
         }
         assertFalse(value["uncollected"].toString().contains("connection"))
+        assertEquals(SessionDiagnostics.Unselected.toJson(), value["session"])
+        assertFalse(value["uncollected"].toString().contains("session-diagnostics"))
         assertEquals("false", value["complete"].toString())
     }
 

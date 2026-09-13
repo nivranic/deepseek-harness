@@ -30,7 +30,7 @@ class SupportExportRecreationTest {
         val scanner = AndroidSupportScanner(InstrumentationRegistry.getInstrumentation().targetContext)
         SupportDocumentExporter(scanner, SupportExportPolicy(1024 * 1024, 10_000)).prepare(
             SupportProductIdentity("0.1.2-alpha.1", 1, "dev"),
-            SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable),
+            SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable),
         )
     }
 

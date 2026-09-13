@@ -47,7 +47,7 @@ class SupportExportNativeTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val scanner = AndroidSupportScanner(context)
         val document = SupportDocumentExporter(scanner, policy).prepare(
-            SupportProductIdentity("0.1.2-alpha.1", 1, "dev"), SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable),
+            SupportProductIdentity("0.1.2-alpha.1", 1, "dev"), SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable),
         )
         assertTrue(document.copyBytes().decodeToString().contains("\"restored\":false"))
         val copy = document.copyBytes(); copy[0] = 0

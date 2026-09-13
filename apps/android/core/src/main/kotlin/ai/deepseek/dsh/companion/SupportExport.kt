@@ -61,6 +61,7 @@ data class SupportLocalSnapshot(
     val identityRestored: Boolean,
     val link: LinkDiagnosticSnapshot?,
     val connections: ConnectionSnapshots,
+    val session: SessionDiagnostics,
 )
 
 data class SupportScannerIdentity(val version: String, val rulesDigest: String, val sourceSha: String, val nativeSha256: String)
@@ -161,6 +162,7 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
             }
         })
         put("connections", snapshot.connections.toJson())
+        put("session", snapshot.session.toJson())
         put("role", buildJsonObject {
             put("producer", "LinkCredentials")
             val role = snapshot.link?.lastKnownRole
@@ -199,7 +201,8 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
             put("sourceSha", scanner.sourceSha); put("nativeSha256", scanner.nativeSha256)
         })
         put("uncollected", buildJsonArray {
-            listOf("runtime-health", "updates", "native-crashes", "session-diagnostics").forEach { add(it) }
+            listOf("runtime-health", "updates", "native-crashes").forEach { add(it) }
+            if (snapshot.session == SessionDiagnostics.Unavailable) add("session-diagnostics")
         })
     }
     val bytes = (Json.encodeToString(kotlinx.serialization.json.JsonObject.serializer(), value) + "\n").toByteArray(Charsets.UTF_8)

@@ -23,7 +23,7 @@ from android_support_memory import observe_memory
 from release.secret_scan import install_gitleaks, scan, self_test
 from release.support_exports import unique_object
 
-UNCOLLECTED = ["runtime-health", "updates", "native-crashes", "session-diagnostics"]
+UNCOLLECTED = ["runtime-health", "updates", "native-crashes"]
 
 
 def read_json(data):
@@ -45,6 +45,8 @@ def validate_export(data, product, scanner):
                         for name, owner in (("sessionFollow", "SessionModel"), ("interactions", "InteractionModel"),
                                             ("workspaces", "FilesModel"), ("pushes", "PushModel"))},
         "role": {"producer": "LinkCredentials", "observation": "unavailable"},
+        "session": {"producer": "SessionModel", "activityScope": "retained-local-projection",
+                    "observation": "current", "selected": False},
         "protocol": {"producer": "LinkClient.describe", "observation": "unavailable", "queryState": "unavailable"},
         "capabilities": {"producer": "LinkClient.describe", "observation": "unavailable"},
         "scanner": scanner, "uncollected": UNCOLLECTED,

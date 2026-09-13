@@ -12,6 +12,17 @@ from android_sbom_inventory import InventoryError, require, sha_file
 from android_sbom_payload import tool_environment
 
 
+class DeviceCommandError(InventoryError):
+    """Fixed command outcomes exclude argv, stdout, stderr, paths and exception messages."""
+    def __init__(self, label, outcome, started, timeout, exit_code=None):
+        super().__init__(label + ' failed')
+        self.observation = {
+            'outcome': outcome, 'exitCode': exit_code,
+            'elapsedMilliseconds': max(0, round((time.monotonic() - started) * 1000)),
+            'timeoutMilliseconds': max(0, round(timeout * 1000)),
+        }
+
+
 def require_disposable_host(platform: str, environment: dict) -> None:
     """Require the producer's disposable hosted Linux context before interacting with any device."""
     require(platform == 'linux' and environment.get('GITHUB_ACTIONS') == 'true'
@@ -37,14 +48,20 @@ class CandidateDevice:
     def command(self, arguments: list[str], label: str, timeout: float = 30, empty_exit: bool = False) -> bytes:
         """Run a selected adb command without a host shell or untrusted diagnostics in errors."""
         selector = ['-s', self.serial] if self.serial is not None else []
+        started = time.monotonic()
         try:
             result = subprocess.run([str(self.adb), *selector, *arguments], capture_output=True,
                                     timeout=timeout, env=tool_environment())
-        except (OSError, subprocess.SubprocessError):
-            raise InventoryError(label + ' failed') from None
+        except subprocess.TimeoutExpired:
+            raise DeviceCommandError(label, 'timeout', started, timeout) from None
+        except OSError:
+            raise DeviceCommandError(label, 'launch-failed', started, timeout) from None
+        except subprocess.SubprocessError:
+            raise DeviceCommandError(label, 'subprocess-failed', started, timeout) from None
         accepted = result.returncode == 0 or (empty_exit and result.returncode == 1
                                                and not result.stdout.strip() and not result.stderr.strip())
-        require(accepted, label + ' failed')
+        if not accepted:
+            raise DeviceCommandError(label, 'nonzero-exit', started, timeout, result.returncode)
         return result.stdout
 
     def shell(self, arguments: list[str], timeout: float = 30, empty_exit: bool = False) -> bytes:

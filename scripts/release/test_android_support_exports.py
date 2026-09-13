@@ -129,8 +129,20 @@ class AndroidSupportExportTests(unittest.TestCase):
     def test_accepts_the_kotlin_model_owned_unpaired_fixture(self):
         validate_export(self.data, self.product, self.identity)
 
+    def test_rejects_missing_selected_or_payload_bearing_session_observations(self):
+        cases = [None, {"observation": "unavailable"}, {"selected": True},
+                 {"selected": 0}, {"snapshot": {"timelineRows": 0}}, {"sessionId": "private-session"}]
+        for change in cases:
+            value = json.loads(self.data)
+            if change is None:
+                del value["session"]
+            else:
+                value["session"].update(change)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_export(json.dumps(value).encode(), self.product, self.identity)
+
     def test_rejects_private_fields_at_every_section(self):
-        for section in (None, "product", "localIdentity", "transport", "connections", "role", "protocol", "capabilities", "scanner"):
+        for section in (None, "product", "localIdentity", "transport", "connections", "session", "role", "protocol", "capabilities", "scanner"):
             value = json.loads(self.data)
             (value if section is None else value[section])["private"] = "payload"
             with self.subTest(section=section), self.assertRaises(ValueError):

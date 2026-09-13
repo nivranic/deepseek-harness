@@ -1,12 +1,14 @@
 """Exercise release-device admission, byte identity, and cleanup through a controlled adb process."""
 import shlex
+import json
+import sys
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from android_candidate_device import CandidateDevice, pairing_visible, require_disposable_host
+from android_candidate_device import CandidateDevice, DeviceCommandError, pairing_visible, require_disposable_host
 from android_sbom_inventory import InventoryError
 
 PACKAGE = 'com.deepseek.harness.companion'
@@ -145,6 +147,44 @@ class AndroidCandidateDeviceTests(unittest.TestCase):
         self.assertTrue(pairing_visible(UI, PACKAGE))
         self.assertFalse(pairing_visible(UI.replace(PACKAGE.encode(), b'another.package'), PACKAGE))
         self.assertFalse(pairing_visible(UI.replace(b'[10,10][200,70]', b'[0,0][0,0]'), PACKAGE))
+
+
+class DeviceCommandObservationTests(unittest.TestCase):
+    def device(self):
+        device = CandidateDevice.__new__(CandidateDevice)
+        device.adb, device.serial = Path(sys.executable), None
+        return device
+
+    def test_real_nonzero_process_preserves_only_exit_status_and_timing(self):
+        with self.assertRaises(DeviceCommandError) as caught:
+            self.device().command(['-c', 'import sys; print("private-output"); sys.stderr.write("private-error"); sys.exit(7)'], 'owned probe', 5)
+        error = caught.exception
+        self.assertEqual(error.observation['outcome'], 'nonzero-exit')
+        self.assertEqual(error.observation['exitCode'], 7)
+        self.assertEqual(error.observation['timeoutMilliseconds'], 5000)
+        self.assertGreaterEqual(error.observation['elapsedMilliseconds'], 0)
+        self.assertNotIn('private', str(error) + json.dumps(error.observation))
+        self.assertEqual(self.device().command(['-c', 'raise SystemExit(1)'], 'empty probe', empty_exit=True), b'')
+
+    def test_real_timed_out_process_is_joined_without_exposing_its_output(self):
+        with self.assertRaises(DeviceCommandError) as caught:
+            self.device().command(['-c', 'import time; print("private-output", flush=True); time.sleep(10)'], 'owned probe', 0.1)
+        observation = caught.exception.observation
+        self.assertEqual(observation['outcome'], 'timeout')
+        self.assertIsNone(observation['exitCode'])
+        self.assertEqual(observation['timeoutMilliseconds'], 100)
+        self.assertGreaterEqual(observation['elapsedMilliseconds'], 100)
+        self.assertNotIn('private', str(caught.exception) + json.dumps(observation))
+
+    def test_launch_and_subprocess_failures_remain_distinct_from_nonzero_exit(self):
+        for failure, category in ((OSError('private-launch-path'), 'launch-failed'),
+                                  (subprocess.SubprocessError('private-internal-error'), 'subprocess-failed')):
+            with self.subTest(category=category), patch('android_candidate_device.subprocess.run', side_effect=failure), \
+                    self.assertRaises(DeviceCommandError) as caught:
+                self.device().command([], 'owned probe')
+            self.assertEqual(caught.exception.observation['outcome'], category)
+            self.assertIsNone(caught.exception.observation['exitCode'])
+            self.assertNotIn('private', str(caught.exception) + json.dumps(caught.exception.observation))
 
 
 if __name__ == '__main__':

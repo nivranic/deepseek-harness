@@ -6,6 +6,7 @@ import time
 from xml.etree import ElementTree as ET
 
 from android_sbom_inventory import require
+from android_candidate_device import DeviceCommandError
 
 PACKAGE = "com.deepseek.harness.companion"
 DOCUMENTS = "com.google.android.documentsui"
@@ -36,18 +37,29 @@ class SupportUi:
         self.query = "not-started"
         self.expected_filename = None
         self.controls = None
+        self.observation_attempts = 0
+        self.command_failure = None
+
+    def observation_command(self, arguments, deadline):
+        """Retain only a failed observation command's fixed outcome before later cleanup runs."""
+        try:
+            return self.device.shell(arguments, max(0.1, deadline - time.monotonic()))
+        except DeviceCommandError as failure:
+            self.command_failure = dict(failure.observation)
+            raise
 
     def observe(self, timeout=30):
         """Read a fresh hierarchy; a dump without a published target is a pending UI observation."""
         deadline = time.monotonic() + timeout
+        self.observation_attempts += 1
         self.query = "remove-observation"
-        self.device.shell(["rm", "-f", self.path], max(0.1, deadline - time.monotonic()))
+        self.observation_command(["rm", "-f", self.path], deadline)
         self.query = "dump-hierarchy"
-        dumped = self.device.shell(["uiautomator", "dump", self.path], max(0.1, deadline - time.monotonic()))
+        dumped = self.observation_command(["uiautomator", "dump", self.path], deadline)
         if self.path.encode("utf-8") not in dumped:
             return None
         self.query = "read-hierarchy"
-        data = self.device.shell(["cat", self.path], max(0.1, deadline - time.monotonic()))
+        data = self.observation_command(["cat", self.path], deadline)
         self.query = "parse-hierarchy"
         require(0 < len(data) <= 2 * 1024 * 1024, "Android support hierarchy exceeds its byte limit")
         root = ET.fromstring(data)
@@ -92,11 +104,9 @@ class SupportUi:
                          and matching(tree, PACKAGE, text="配对到宿主"), "Unpaired export action")
         self.click(root, PACKAGE, text="Export diagnostics")
         self.step = "local-picker"
-        root = self.wait(lambda tree: matching(tree, DOCUMENTS, **{"resource-id": "android:id/title", "class": "android.widget.EditText"}),
+        root = self.wait(lambda tree: matching(tree, DOCUMENTS, **{"resource-id": "android:id/title", "class": "android.widget.EditText"})
+                         and matching(tree, DOCUMENTS, **{"resource-id": DOCUMENTS + ":id/breadcrumb_text", "text": "Downloads"}),
                          "Local document picker")
-        self.step = "local-location"
-        require(matching(root, DOCUMENTS, **{"resource-id": DOCUMENTS + ":id/breadcrumb_text", "text": "Downloads"}),
-                "Android support picker must select local Downloads")
         self.step = "filename-entry"
         self.click(root, DOCUMENTS, **{"resource-id": "android:id/title", "class": "android.widget.EditText"})
         self.device.shell(["input", "keycombination", "KEYCODE_CTRL_LEFT", "KEYCODE_A"])
@@ -138,7 +148,8 @@ class SupportUi:
     def record_failure(self):
         """Retain fixed control observations and a screenshot after observing the Companion or system picker."""
         record = {"schemaVersion": 1, "step": self.step, "query": self.query,
-                  "observation": "last-successful-hierarchy", "controls": self.controls, "screenshot": "not-captured"}
+                  "observation": "last-successful-hierarchy", "controls": self.controls, "screenshot": "not-captured",
+                  "observationAttempts": self.observation_attempts, "commandFailure": self.command_failure}
         if self.controls and any(self.controls[key] for key in ("companionVisible", "googleDocumentsVisible", "aospDocumentsVisible")):
             try:
                 self.screenshot("failed")
