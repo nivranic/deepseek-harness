@@ -20,10 +20,43 @@ from android_sbom_inventory import archive_entries, read_member, require, sha_fi
 from android_support_ui import PACKAGE, SupportUi
 from android_support_process import application_exit_records, compare_pids, observe_application_exits
 from android_support_memory import observe_memory
+from android_support_crash import exercise_build_crash
 from release.secret_scan import install_gitleaks, scan, self_test
 from release.support_exports import unique_object
 
-UNCOLLECTED = ["runtime-health", "updates", "native-crashes"]
+UNCOLLECTED = ["runtime-health", "updates"]
+EXIT_REASONS = ("unknown", "exit-self", "signaled", "low-memory", "java-crash", "native-crash", "anr",
+                "initialization-failure", "permission-change", "excessive-resource-usage", "user-requested",
+                "user-stopped", "dependency-died", "other", "freezer", "package-state-change", "package-updated", "unrecognized")
+
+
+def validate_exit_history(value, source):
+    """Admit bounded, build-attributed reason counts without inferring lifetime completeness from a ring buffer."""
+    keys = {"producer", "scope", "historyComplete", "observation", "markerRegistration", "sourceSha", "recordLimit",
+            "additionalRecordObserved", "records", "matchingBuildRecords", "otherBuildRecords", "unmarkedRecords", "matchingBuildReasons"}
+    require(isinstance(value, dict) and set(value) == keys, "Android exit history fields differ")
+    require(value["producer"] == "ActivityManager.getHistoricalProcessExitReasons" and value["scope"] == "system-retained-package-history"
+            and value["historyComplete"] is False and value["observation"] == "last-known"
+            and value["markerRegistration"] == "registered" and value["sourceSha"] == source,
+            "Android exit history producer or build attribution differs")
+    require(type(value["recordLimit"]) is int and value["recordLimit"] == 32
+            and type(value["additionalRecordObserved"]) is bool, "Android exit history window differs")
+    for key in ("records", "matchingBuildRecords", "otherBuildRecords", "unmarkedRecords"):
+        require(type(value[key]) is int and 0 <= value[key] <= value["recordLimit"], "Android exit count is invalid")
+    reasons = value["matchingBuildReasons"]
+    require(isinstance(reasons, list) and len(reasons) <= len(EXIT_REASONS), "Android exit reasons are invalid")
+    indexes = []
+    count = 0
+    for row in reasons:
+        require(isinstance(row, dict) and set(row) == {"reason", "count"} and row["reason"] in EXIT_REASONS
+                and type(row["count"]) is int and 0 < row["count"] <= value["recordLimit"], "Android exit reason count differs")
+        indexes.append(EXIT_REASONS.index(row["reason"]))
+        count += row["count"]
+    require(indexes == sorted(set(indexes)) and count == value["matchingBuildRecords"]
+            and value["records"] == count + value["otherBuildRecords"] + value["unmarkedRecords"]
+            and (not value["additionalRecordObserved"] or value["records"] == value["recordLimit"]),
+            "Android exit history totals differ")
+    return value
 
 
 def read_json(data):
@@ -47,6 +80,7 @@ def validate_export(data, product, scanner):
         "role": {"producer": "LinkCredentials", "observation": "unavailable"},
         "session": {"producer": "SessionModel", "activityScope": "retained-local-projection",
                     "observation": "current", "selected": False},
+        "nativeExits": validate_exit_history(value.get("nativeExits"), scanner["sourceSha"]),
         "protocol": {"producer": "LinkClient.describe", "observation": "unavailable", "queryState": "unavailable"},
         "capabilities": {"producer": "LinkClient.describe", "observation": "unavailable"},
         "scanner": scanner, "uncollected": UNCOLLECTED,
@@ -219,7 +253,15 @@ def verify(apk, source, output, progress=None):
             device.shell(["am", "force-stop", PACKAGE])
             launched = device.shell(["am", "start", "-W", "-n", PACKAGE + "/ai.deepseek.dsh.companion.MainActivity"])
             require(re.search(rb"(?m)^Status: ok\r?$", launched), "Android support Activity launch failed")
+            progress["stage"] = "controlled-crash"
+            progress["controlledCrash"] = exercise_build_crash(device)
+            progress["stage"] = "application-relaunch"
+            launched = device.shell(["am", "start", "-W", "-n", PACKAGE + "/ai.deepseek.dsh.companion.MainActivity"])
+            require(re.search(rb"(?m)^Status: ok\r?$", launched), "Android support Activity relaunch failed")
             data = collect_export(device, ui, "dsh-support-" + nonce + ".json", product, identity, scanner, scratch, progress)
+            progress["stage"] = "crash-export-correlation"
+            require(any(row["reason"] == "native-crash" and row["count"] > 0 for row in read_json(data)["nativeExits"]["matchingBuildReasons"]),
+                    "Saved Android support document omits its build-matched controlled crash")
         except Exception:
             ui.record_failure()
             raise
@@ -242,7 +284,7 @@ def verify(apk, source, output, progress=None):
             "runtime": runtime, "cancelledDestinationAbsent": True, "savedDestinationRemoved": True,
             "processStopped": True, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
             "findings": 0, "independentCanary": "PASS", "independentScanner": tool,
-            "memoryObservations": progress["memoryObservations"]}
+            "memoryObservations": progress["memoryObservations"], "controlledCrash": progress["controlledCrash"]}
 
 
 def main():
@@ -269,6 +311,8 @@ def main():
             record["applicationExit"] = progress["applicationExit"]
         if "memoryObservations" in progress:
             record["memoryObservations"] = progress["memoryObservations"]
+        if "controlledCrash" in progress:
+            record["controlledCrash"] = progress["controlledCrash"]
     (args.output / "verification.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: record[key] for key in ("schemaVersion", "status")}))
     return 0 if record["status"] == "PASS" else 1

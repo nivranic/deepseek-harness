@@ -35,7 +35,7 @@ class SupportExportTest {
         LinkCapabilities(LinkSessionCapabilities(true, true, true, true, true), LinkWorkspaceCapabilities(true), LinkInteractionCapabilities(false, true)))
     private val link = LinkDiagnosticSnapshot(LinkRequestSnapshot(false, 2, 5, 3), LinkDeviceRole.CONTROLLER,
         LinkDescriptionState.AVAILABLE, null, protocol)
-    private val snapshot = SupportLocalSnapshot(true, link, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable)
+    private val snapshot = SupportLocalSnapshot(true, link, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable, ProcessExitDiagnostics.Unavailable)
     private val policy = SupportExportPolicy(1024 * 1024, 10_000)
 
     @Test fun projectsLocalFactsWithoutClaimingHealthOrAuthorization() {
@@ -51,7 +51,7 @@ class SupportExportTest {
         assertEquals("\"last-known\"", value["protocol"]!!.jsonObject["observation"].toString())
         assertFalse(bytes.decodeToString().contains("hostId"))
         assertTrue(bytes.last() == 10.toByte())
-        val absent = Json.parseToJsonElement(encodeSupportDocument(product, SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable), identity, policy.maximumBytes).decodeToString()).jsonObject
+        val absent = Json.parseToJsonElement(encodeSupportDocument(product, SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable, ProcessExitDiagnostics.Unavailable), identity, policy.maximumBytes).decodeToString()).jsonObject
         assertEquals("\"unavailable\"", absent["transport"]!!.jsonObject["observation"].toString())
         assertEquals("\"unavailable\"", absent["role"]!!.jsonObject["observation"].toString())
         assertEquals("\"unavailable\"", absent["capabilities"]!!.jsonObject["observation"].toString())
@@ -117,8 +117,12 @@ class SupportExportTest {
         val interactions = InteractionModel(wire, backgroundScope)
         val files = FilesModel(wire, backgroundScope)
         val pushes = PushModel(wire, backgroundScope)
+        val exits = ProcessExitHistory(product, identity.sourceSha, 32, object : ProcessExitAccess {
+            override fun register(summary: ByteArray) {}
+            override fun read(maximumRecords: Int): List<ProcessExitRecord> = emptyList()
+        }).capture()
         val captured = snapshot.copy(identityRestored = false, link = null, connections = ConnectionSnapshots(session.connectionSnapshot,
-            interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot), session = session.sessionDiagnostics)
+            interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot), session = session.sessionDiagnostics, nativeExits = exits)
         session.closeAndAwait(); interactions.stopWatchingAndAwait(); files.stopAndAwait(); pushes.stopWatchingAndAwait()
         assertEquals(ConnectionState.STOPPED, session.connectionSnapshot.state)
         val exporter = SupportDocumentExporter(scanner({ SupportScanResult("approved", it, supportSha256(it)) }), policy)
@@ -135,7 +139,26 @@ class SupportExportTest {
         assertFalse(value["uncollected"].toString().contains("connection"))
         assertEquals(SessionDiagnostics.Unselected.toJson(), value["session"])
         assertFalse(value["uncollected"].toString().contains("session-diagnostics"))
+        assertFalse(value["uncollected"].toString().contains("native-crashes"))
         assertEquals("false", value["complete"].toString())
+    }
+
+    @Test fun nativeHistoryIsImmutableDuringScanningAndFailedCollectionStaysExplicit() = runBlocking {
+        val exits = ProcessExitHistory(product, identity.sourceSha, 32, object : ProcessExitAccess {
+            override fun register(summary: ByteArray) {}
+            override fun read(maximumRecords: Int) = listOf(ProcessExitRecord(
+                ProcessExitBuildMarker(product, identity.sourceSha).copyBytes(), ProcessExitReason.ANR))
+        }).capture()
+        val exporter = SupportDocumentExporter(scanner({ SupportScanResult("approved", it, supportSha256(it)) }), policy)
+        val captured = snapshot.copy(nativeExits = exits)
+        val admitted = Json.parseToJsonElement(exporter.prepare(product, captured).copyBytes().decodeToString()).jsonObject
+        assertEquals(exits.toJson(), admitted["nativeExits"])
+        assertFalse(admitted["uncollected"].toString().contains("native-crashes"))
+        val failed = captured.copy(nativeExits = ProcessExitDiagnostics.Failed(ExitMarkerRegistration.REGISTERED, ExitHistoryFailure.QUERY_FAILED))
+        val document = Json.parseToJsonElement(exporter.prepare(product, failed).copyBytes().decodeToString()).jsonObject
+        assertEquals(failed.nativeExits.toJson(), document["nativeExits"])
+        assertTrue(document["uncollected"].toString().contains("native-crashes"))
+        assertEquals(exits.toJson(), admitted["nativeExits"])
     }
 
     @Test fun refusesFindingsUnknownResultsAndMismatchedAdmissionBytes() = runBlocking {

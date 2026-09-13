@@ -3,7 +3,6 @@ package ai.deepseek.dsh.companion
 import android.content.Context
 import android.content.ContentResolver
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -66,6 +65,7 @@ private class AndroidSupportDestination(private val resolver: ContentResolver, p
 @Composable
 fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
     val context = LocalContext.current
+    val application = context.applicationContext as CompanionApplication
     val copy = SupportExportCopy.forLocale(context.resources.configuration.locales[0])
     val scope = rememberCoroutineScope()
     val exporter = remember(context) { SupportDocumentExporter(AndroidSupportScanner(context), SupportExportPolicy(1024 * 1024, 10_000)) }
@@ -101,13 +101,8 @@ fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
                 stage = SupportExportStage.SCANNING
                 try {
                     val snapshot = readSnapshot()
-                    val product = withContext(Dispatchers.IO) {
-                        val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0))
-                        val application = context.packageManager.getApplicationInfo(context.packageName, PackageManager.ApplicationInfoFlags.of(PackageManager.GET_META_DATA.toLong()))
-                        SupportProductIdentity(info.versionName.orEmpty(), info.longVersionCode,
-                            application.metaData?.getString("ai.deepseek.dsh.distributionChannel").orEmpty())
-                    }
-                    val document = exporter.prepare(product, snapshot)
+                    val exits = withContext(Dispatchers.IO) { application.exitHistory.capture() }
+                    val document = exporter.prepare(application.supportProduct, snapshot.copy(nativeExits = exits))
                     currentCoroutineContext().ensureActive()
                     owner.approve(document)
                     destination.launch("dsh-support.json")

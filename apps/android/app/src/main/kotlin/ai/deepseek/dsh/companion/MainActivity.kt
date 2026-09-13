@@ -116,6 +116,7 @@ class CompanionViewModel : ViewModel() {
         ConnectionSnapshots(session.connectionSnapshot, interactions.connectionSnapshot,
             files.connectionSnapshot, pushes.connectionSnapshot),
         session.sessionDiagnostics,
+        ProcessExitDiagnostics.Unavailable,
     )
 
     override fun onCleared() {

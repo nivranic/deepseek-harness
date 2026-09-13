@@ -74,11 +74,13 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 <a id="local-support-export"></a>
 ## 本地诊断导出
 
-诊断导出操作在配对前即可使用，位于系统安全绘制区域内，并调用 Android 本地文档选择器。[导出器](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportExport.kt)序列化已安装应用标识、本地身份恢复状态、当前 Link 请求所有权、四份模型所有的连接快照、本地会话投影计数、最后已知配对角色，以及经过认证的 Host 协议和 capability 观测。这些观测不能证明 Host 健康或当前授权。尚未接入的运行时健康、更新和崩溃生产者列在 `uncollected` 中，文档声明 `complete: false`。
+诊断导出操作在配对前即可使用，位于系统安全绘制区域内，并调用 Android 本地文档选择器。[导出器](core/src/main/kotlin/ai/deepseek/dsh/companion/SupportExport.kt)序列化已安装应用标识、本地身份恢复状态、当前 Link 请求所有权、四份模型所有的连接快照、本地会话投影计数、按构建归属的进程退出历史、最后已知配对角色，以及经过认证的 Host 协议和 capability 观测。这些观测不能证明 Host 健康或当前授权。尚未接入的运行时健康和更新生产者列在 `uncollected` 中，文档声明 `complete: false`。
 
 [连接诊断](core/src/main/kotlin/ai/deepseek/dsh/companion/ConnectionDiagnostics.kt)报告 `idle`、`opening`、`open`、`reconnecting`、`ended`、`stopping` 或 `stopped`、模型生命周期内的尝试和中断计数，以及固定失败类别。`open` 要求收到已解码帧，仅启动惰性 Flow 不足以成立。会话和交互流会重试；工作区和推送流丢失后保持 ended。应用在配对前已拥有四个模型，因此未配对导出记录当前 idle 所有者。没有模型的调用方显式报告 unavailable。导出在扫描前捕获不可变快照，不包含流地址、身份、载荷或异常原文。
 
 [会话诊断](core/src/main/kotlin/ai/deepseek/dsh/companion/SessionDiagnostics.kt)从同一份已选择的 `SessionModel` 投影复制六种集合大小：时间线行、工具调用、artifact、图片、todo 和 goal。JVM 集合大小上限为 2147483647，任一计数到达该上限时，`countsSaturated` 明确标识。模型缺失时不提供选择状态或计数，并在 `uncollected` 中保留 `session-diagnostics`；存在但未选择会话的模型记录 `selected: false`。关闭或替换会话会移除旧选择，已捕获计数保持不可变。操作不读取 cursor、标识、文本、参数或缓存字节，也不发请求。这些本地计数不能证明 Host 完整历史。
+
+[进程退出历史](core/src/main/kotlin/ai/deepseek/dsh/companion/ProcessExitHistory.kt)只为匹配已安装 version、build、channel 和 source SHA 的记录统计固定原因。[Application](app/src/main/kotlin/ai/deepseek/dsh/companion/CompanionApplication.kt)在 Activity 启动前向 Android 进程摘要槽登记 36 字节构建标记，并独占该槽；标记不包含设备或用户身份。显式导出在 IO dispatcher 查询系统，按[配置的记录上限](app/src/main/res/values/support.xml)多读一项以披露截断。其他构建和未标记记录单独计数，不归属其退出原因；Android 的包历史可能包含绑定外部服务的记录。系统环形缓冲区不是完整生命周期历史，零记录不能证明没有崩溃。标记登记失败与历史查询失败分别记录；未提供或失败的采集在 `uncollected` 中保留 `native-crashes`。快照不保留原生数组、时间戳、进程名、堆栈、描述或路径。导出取消会等待阻塞系统查询返回，并且不能批准其结果。
 
 已配对身份进入前台时会独立刷新 Host 描述，导出不触发刷新。[Link 诊断](core/src/main/kotlin/ai/deepseek/dsh/link/LinkDiagnostics.kt)只保留固定字段、查询状态和失败类别，不保留 Host 名称、标识符、地址或错误原文。新查询和客户端退役使先前请求的完成失效。失败或取消会清空描述值；成功描述和已存配对角色标为 `last-known`。读取导出快照既不加载凭据，也不发送请求。
 
@@ -91,6 +93,8 @@ App 使用 `Color(token.toLong())` 转换 core 的 32 位 ARGB token；Compose �
 [原生系统导出检查](../../scripts/release/android_support_exports.py)仅在临时托管模拟器运行。导出验证使用 `DSH_ANDROID_SCANNER_SOURCE`，即扫描库构建时的实际 checkout SHA，PR 合并检出也使用该值。工作流保留 instrumentation 安装及其绑定 APK 的扫描器身份，直到系统保存检查结束，随后 runner 销毁模拟器。它先取消本地 DocumentsUI 目标，再保存到该目标，读取 Downloads 中的实际文件，并要求未配对字段完全匹配、扫描器身份绑定 APK、真实独立 canary 通过、扫描零发现且扫描后字节不变。失败回执记录固定的验证阶段、控制项存在性观测和应用的固定导出失败类别，不包含路径、UI 文本或异常文本。失败场景分别比较取消、保存准备及保存期间的应用进程编号，仅保留 `matched`、`changed` 或 `unavailable`；编号相同本身不能证明进程持续存在。[系统退出观测](../../scripts/release/android_support_process.py)将 Android 16 新记录的退出与场景内观测到的主进程编号匹配，排除既有记录和其他进程。回执保留固定原因名称、有界的状态码和子原因码，以及以近似 KiB 表示的系统最后一次 PSS/RSS 采样。这些是经过舍入的历史值，不代表退出时内存或峰值；零表示未采样，畸形内存字段保持 unavailable，不清除已观测的退出原因。未发现记录不能证明进程仍然存活。每次进程查询限时五秒，不替换导出结果；受控模拟器截图作为独立诊断附件保留。instrumentation 用例与系统保存观测仍是两份独立证据；该场景不能证明已配对 Host 行为或完整 Support 覆盖。 文件名输入后先收起软键盘，再用新的 hierarchy 确认同一 DocumentsUI 中的准确文件名；选择器取消或名称变化会拒绝继续。驱动仅在本次 UI dump 报告其私有目标路径后读取新 hierarchy；界面过渡期间缺树时在原截止时间内等待，设备命令错误和畸形 XML 仍立即失败。 APK 定位、拉取和字节一致性分别记录失败阶段；已完成的摘要标识候选与已安装字节，不保留安装路径。
 
 选择器在同一个既有期限内等待文件名输入框和 Downloads 路径同时出现在同一份层级中；其他路径不会进入文件名输入。层级命令失败时单独记录 timeout、nonzero-exit、launch-failed 或 subprocess-failed 类别、配置的超时和实际毫秒耗时，以及层级观测尝试次数。UI 在清理前复制该观测；成功退出但未发布层级的命令仍受原观测期限限制。记录不包含命令参数、输出、设备路径或异常原文。
+
+[受控崩溃验收](../../scripts/release/android_support_crash.py)通过调试 APK 自身的 UID 发送信号，并要求一次性 runner、唯一候选主进程、新产生的 Android 原生崩溃记录，以及已安装原生测试对该条记录的当前构建标记断言。随后实际保存的文档必须包含匹配构建的原生崩溃计数，并通过既有独立 secret scan。PID 和时间戳关联键仅供驱动内部使用，回执只保留固定结果。这次主动崩溃与意外内存压力或进程失败分别记录。
 
 [内存观察器](../../scripts/release/android_support_memory.py)在取消前、取消后、保存前和尝试结束后记录 procfs 计数，并在成功和失败的验证回执中保留。它报告系统总内存、可用、空闲、缓存与交换空间，内存 PSI 十秒平均值与累计停顿微秒数，以及主进程驻留、匿名、文件、共享内存和 OOM 分数调整值。进程状态在 debug 应用的 UID 下读取，前后两次内核启动时刻观测必须一致；标识仍保持私有。每次读取限时两秒，各检查点记录查询耗时。权限缺失、进程终止或数据畸形只使对应观测不可用，未到达的检查点明确标注。顺序检查点不能测量同时值或峰值，内核 RSS 统计具有近似性。这些观测属于原生验证回执，不进入导出的支持文档。
 

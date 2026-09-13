@@ -68,7 +68,9 @@ Android 前台刷新把经过认证的 Host 描述投影为固定协议和 capab
 
 Android 系统保存验收读取 DocumentsUI 实际写入的文件，不使用导出器返回值替代。UI 操作开始前，instrumentation 扫描器身份已绑定已安装 APK 的摘要，因此保存文档不能自行提供期望规则身份。新的随机标识命名本地目标，取消必须保持目标不存在。准入检查固定的未配对模型观测，使用独立获取的固定版本 CLI 扫描全部保存字节，并在保留输出前重读目标。清理只删除该场景的文件并停止对应应用。[采集器](../../../../scripts/release/android_support_exports.py)拒绝持久主机、物理设备和不唯一的模拟器选择；受控进程测试不能替代实际系统保存证据。 准入结果由 Activity ViewModel 持有，因为系统选择器位于前台时 Compose 局部内存可能被替换。仅不可变的准入字节跨配置重建保留；最终销毁会清除它们，进程恢复不能从保存状态恢复准入结果。每个选择器结果仅消费一次准入结果。应用区分准入结果缺失与目标交付失败，避免将系统选择器返回后的失败误判为扫描拒绝。失败回执仅投影应用拥有的准确类别，仍排除原生错误和目标路径。
 
-DocumentsUI 的文件名控件可能早于路径发布，因此选择器就绪要求两个控件在同一期限内出现在同一份新层级中。Android 层级查询失败时保留命令结果类别、配置超时、实际耗时及观测尝试次数，因为仅凭屏幕缺失无法区分进程超时、非零退出或启动失败。UI 所有者在清理执行其他命令前复制固定观测。参数、stdout、stderr、设备路径和异常原文仍被排除；诊断不改变既有期限、命令成功条件或文档准入。
+DocumentsUI 的文件名控件可能早于路径发布，因此选择器就绪要求两个控件在同一期限内出现在同一份新层级中。Android 保留的退出缓冲区可以跨应用更新存续，也可能包含外部服务进程，因此仅凭包归属不能把崩溃归到当前构建。[进程历史所有者](../../../../apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/ProcessExitHistory.kt)使用带格式版本的标记，只包含经过验证的产品标识和 source SHA 的 SHA-256 摘要。它在 Activity 启动前通过 [setProcessStateSummary](https://developer.android.com/reference/android/app/ActivityManager#setProcessStateSummary(byte%5B%5D)) 登记一次，独占进程摘要槽，并且不用于恢复 UI。只有匹配记录进入当前构建的原因计数，其他构建与未标记记录单独计数。有限保留窗口的查询，包括空结果，不能证明完整生命周期历史或当前健康。登记和查询结果分别保留，诊断失败不替代应用启动结果，也不掩盖明确的采集失败。
+
+Android 层级查询失败时保留命令结果类别、配置超时、实际耗时及观测尝试次数，因为仅凭屏幕缺失无法区分进程超时、非零退出或启动失败。UI 所有者在清理执行其他命令前复制固定观测。参数、stdout、stderr、设备路径和异常原文仍被排除；诊断不改变既有期限、命令成功条件或文档准入。
 
 Android 失败回执只将新的系统退出记录与场景内观测到的主进程关联。[退出投影](../../../../scripts/release/android_support_process.py)将舍入后的 PSS/RSS 采样记录为近似 KiB，因为 [ApplicationExitInfo](https://developer.android.com/reference/android/app/ApplicationExitInfo#getPss()) 提供的是系统最后一次采样，可能早于进程死亡。零表示没有采样。内存解析不能清除已知退出原因，也不能发布诊断描述、进程标识或 trace 路径；这些观测不能证明峰值占用或其原因。
 

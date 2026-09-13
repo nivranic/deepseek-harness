@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import Mock, patch
 import zipfile
 
-from android_support_exports import application_pid, collect_export, copy_installed_apk, main, scanner_identity, validate_export, verify
+from android_support_exports import application_pid, collect_export, copy_installed_apk, main, scanner_identity, validate_export, verify, validate_exit_history
 from android_support_process import HEADER
 
 
@@ -76,6 +76,32 @@ class AndroidSupportExportTests(unittest.TestCase):
 
     def collect(self, progress=None):
         return collect_export(self.device, self.ui, self.filename, self.product, self.identity, self.root / "scanner", self.root, progress)
+
+    def test_build_matched_crash_counts_and_bounded_history_are_admitted(self):
+        value = json.loads(self.data)
+        history = value["nativeExits"]
+        history.update({"records": 3, "matchingBuildRecords": 1, "otherBuildRecords": 1, "unmarkedRecords": 1,
+                        "matchingBuildReasons": [{"reason": "java-crash", "count": 1}]})
+        validate_export(json.dumps(value).encode(), self.product, self.identity)
+        history.update({"records": 32, "unmarkedRecords": 30, "additionalRecordObserved": True})
+        validate_export(json.dumps(value).encode(), self.product, self.identity)
+
+    def test_history_rejects_foreign_builds_false_completeness_and_invalid_totals(self):
+        original = json.loads(self.data)["nativeExits"]
+        for key, invalid in (("sourceSha", "d" * 40), ("markerRegistration", "failed"), ("historyComplete", True),
+                             ("observation", "current"), ("recordLimit", 0), ("recordLimit", True),
+                             ("records", True), ("records", 33), ("records", 1), ("unmarkedRecords", -1),
+                             ("additionalRecordObserved", True), ("matchingBuildReasons", [{"reason": "private", "count": 1}]),
+                             ("matchingBuildReasons", [{"reason": "java-crash", "count": True}]),
+                             ("matchingBuildReasons", [{"reason": "anr", "count": 1}, {"reason": "anr", "count": 1}])):
+            with self.subTest(key=key, invalid=invalid):
+                changed = copy.deepcopy(original)
+                changed[key] = invalid
+                with self.assertRaises(ValueError):
+                    validate_exit_history(changed, self.identity["sourceSha"])
+        for changed in ({**original, "description": "private"}, {k: v for k, v in original.items() if k != "historyComplete"}):
+            with self.assertRaises(ValueError):
+                validate_exit_history(changed, self.identity["sourceSha"])
 
     def test_process_diagnostics_reject_missing_ambiguous_and_private_output(self):
         device = Mock()

@@ -62,6 +62,7 @@ data class SupportLocalSnapshot(
     val link: LinkDiagnosticSnapshot?,
     val connections: ConnectionSnapshots,
     val session: SessionDiagnostics,
+    val nativeExits: ProcessExitDiagnostics,
 )
 
 data class SupportScannerIdentity(val version: String, val rulesDigest: String, val sourceSha: String, val nativeSha256: String)
@@ -163,6 +164,7 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
         })
         put("connections", snapshot.connections.toJson())
         put("session", snapshot.session.toJson())
+        put("nativeExits", snapshot.nativeExits.toJson())
         put("role", buildJsonObject {
             put("producer", "LinkCredentials")
             val role = snapshot.link?.lastKnownRole
@@ -201,7 +203,8 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
             put("sourceSha", scanner.sourceSha); put("nativeSha256", scanner.nativeSha256)
         })
         put("uncollected", buildJsonArray {
-            listOf("runtime-health", "updates", "native-crashes").forEach { add(it) }
+            listOf("runtime-health", "updates").forEach { add(it) }
+            if (snapshot.nativeExits !is ProcessExitDiagnostics.Collected) add("native-crashes")
             if (snapshot.session == SessionDiagnostics.Unavailable) add("session-diagnostics")
         })
     }
