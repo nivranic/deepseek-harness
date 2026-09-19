@@ -47,7 +47,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        run: swift test
+        # -v prints the frontend invocation and stderr of any failing task;
+        # swift test has failed emit-module without diagnostics on this lane.
+        run: |
+          swift --version
+          swift build -v --build-tests
+          swift test
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
