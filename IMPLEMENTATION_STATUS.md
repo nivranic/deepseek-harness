@@ -18,9 +18,15 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## Android core 与 app 迁入契约构建
+
+[当前来源记录](artifacts/upstream-first/android-migration-source.json)把历史 companion 的 core 领域（Lite 折叠、Link/Noise 栈、handoff、支持导出、诊断）与 Compose 外壳原样迁入 apps/android：settings 组合 :contract/:core/:app，根声明 AGP 8.10.1 + Kotlin 2.2.21（apply false），product-version.properties 原样迁移。:core 37 个 JVM 测试类全绿；:app 配置通过；:app:assembleDebug 由 verifyScannerResources 门禁——支持扫描器 AAR（Go+NDK 链）未建，外壳编译证据未声明，模拟器 lane 待门禁解除。
+
+迁入模块尚未消费 :contract，Gateway 失败分类接线随 Gateway 接线增量落地。Session writer 保持 V3。
+
 ## Interaction 回复权限的 Host 权威执行
 
-[当前来源记录](artifacts/upstream-first/interaction-permission-source.json)在 Gateway 回复边界落地 §15 requiredPermission 的 Host 权威执行：无对应权限的 Remote 客户端回复以 403 gateway/permission-denied 拒绝，PendingInteraction 不结算、Remote event 投递不消费，底层 Tool 不产生副作用；approval 与 question 两方向均有正反向 fixture 测试（Gateway 套件 431 项全绿）。部署级开关 interactionReplyPermissions 默认双授权，Device Trust 角色化落地后按角色替代。
+[历史来源记录](artifacts/upstream-first/interaction-permission-source.json)在 Gateway 回复边界落地 §15 requiredPermission 的 Host 权威执行：无对应权限的 Remote 客户端回复以 403 gateway/permission-denied 拒绝，PendingInteraction 不结算、Remote event 投递不消费，底层 Tool 不产生副作用；approval 与 question 两方向均有正反向 fixture 测试（Gateway 套件 431 项全绿）。部署级开关 interactionReplyPermissions 默认双授权，Device Trust 角色化落地后按角色替代。
 
 apps/apple/contract/Package.swift 的 Swift 5.9 尾随逗号修复随本来源记录提交；swift-contract CI lane 待重调度回收首跑结果。原生外壳、模拟器/真机、多版本行为仍未完成；Session writer 保持 V3。
 

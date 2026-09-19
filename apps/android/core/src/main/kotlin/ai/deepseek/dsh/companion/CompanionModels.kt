@@ -1,0 +1,844 @@
+package ai.deepseek.dsh.companion
+
+import ai.deepseek.dsh.link.LinkArtifactFormat
+import ai.deepseek.dsh.link.LinkArtifactReadValue
+
+import ai.deepseek.dsh.link.WireValue
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonArray
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
+
+/** One session row in the list. */
+data class SessionRow(val id: String, val title: String, val updatedAt: Double?)
+
+/** The open session: its id and the folded domain state. */
+data class OpenSession(val sessionId: String, val state: DomainState)
+
+/** One forwarded interaction awaiting an answer. */
+data class PendingInteraction(
+    val id: String,
+    val kind: Kind,
+    val sessionId: String,
+    val title: String,
+    val detail: String,
+) {
+    enum class Kind { APPROVAL, QUESTION }
+}
+
+/** One workspace row from the registry follow. */
+data class WorkspaceRow(val id: String, val title: String)
+
+/** One workspace directory entry. */
+data class FileEntry(val name: String, val isDirectory: Boolean, val size: Double?)
+
+/** One text file open in the viewer: the decoded range so far, in UTF-16
+ * units — the unit every read range speaks. */
+data class OpenTextFile(
+    val path: String,
+    val mediaType: String,
+    val text: String,
+    val loadedUnits: Int,
+    val totalUnits: Int,
+    val hasMore: Boolean,
+)
+
+/** One subagent child row. */
+data class SubagentRow(
+    val id: String,
+    val mode: String?,
+    val label: String?,
+    val activity: String?,
+    val reason: String?,
+)
+
+/** Serializes stream replacement and keeps every active or pending job awaitable. */
+internal class StreamTransitionOwner(private val scope: CoroutineScope) {
+    private val transition = Mutex()
+    private data class Observation(val generation: Long, val snapshot: ConnectionSnapshot)
+    private val observation = AtomicReference(Observation(0, ConnectionSnapshot(ConnectionState.IDLE, 0, 0, null)))
+    private val active = AtomicReference<Job?>()
+    private val pending = ConcurrentHashMap.newKeySet<Job>()
+
+    val connectionSnapshot: ConnectionSnapshot get() = observation.get().snapshot
+
+    fun isCurrent(value: Long): Boolean = observation.get().generation == value
+
+    private fun advanceGeneration(state: ConnectionState): Long = observation.updateAndGet {
+        Observation(it.generation + 1, it.snapshot.copy(state = state, lastFailure = null))
+    }.generation
+
+    private fun update(value: Long, change: (ConnectionSnapshot) -> ConnectionSnapshot) {
+        observation.updateAndGet {
+            if (it.generation != value || it.snapshot.state == ConnectionState.STOPPING || it.snapshot.state == ConnectionState.STOPPED) it
+            else it.copy(snapshot = change(it.snapshot))
+        }
+    }
+
+    fun attempt(value: Long) = update(value) {
+        it.copy(attempts = if (it.attempts == Long.MAX_VALUE) it.attempts else it.attempts + 1)
+    }
+
+    fun received(value: Long) = update(value) { it.copy(state = ConnectionState.OPEN, lastFailure = null) }
+
+    fun interrupted(value: Long, error: Throwable?) = update(value) {
+        it.copy(state = ConnectionState.ENDED, lastFailure = error?.let { failure -> ConnectionFailure.from(failure) },
+            interruptions = if (it.interruptions == Long.MAX_VALUE) it.interruptions else it.interruptions + 1)
+    }
+
+    fun retrying(value: Long) = update(value) { it.copy(state = ConnectionState.RECONNECTING) }
+
+    private fun finished(value: Long) {
+        update(value) { it.copy(state = ConnectionState.ENDED) }
+        settleStopped()
+    }
+
+    /** A synchronous stop remains stopping while a replacement or its retired stream still owns work. */
+    private fun settleStopped() {
+        if (!transition.tryLock()) return
+        try {
+            if (active.get()?.isCompleted == false || pending.any { !it.isCompleted }) return
+            observation.updateAndGet {
+                if (it.snapshot.state == ConnectionState.STOPPING) it.copy(snapshot = it.snapshot.copy(state = ConnectionState.STOPPED)) else it
+            }
+        } finally {
+            transition.unlock()
+        }
+    }
+
+    suspend fun replace(
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        val nextGeneration = advanceGeneration(ConnectionState.OPENING)
+        withContext(NonCancellable) {
+            replaceGeneration(nextGeneration, create, publish, invalidate)
+        }
+    }
+
+    fun replaceAsync(
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        val nextGeneration = advanceGeneration(ConnectionState.OPENING)
+        val pendingJob = scope.launch(start = CoroutineStart.LAZY) {
+            withContext(NonCancellable) {
+                replaceGeneration(nextGeneration, create, publish, invalidate)
+            }
+        }
+        pending.add(pendingJob)
+        pendingJob.invokeOnCompletion { failure ->
+            pending.remove(pendingJob)
+            if (failure != null) finished(nextGeneration) else settleStopped()
+        }
+        pendingJob.start()
+    }
+
+    fun stop(invalidate: () -> Unit) {
+        advanceGeneration(ConnectionState.STOPPING)
+        active.get()?.cancel()
+        invalidate()
+        settleStopped()
+    }
+
+    suspend fun stopAndAwait(invalidate: () -> Unit) {
+        withContext(NonCancellable) {
+            stop(invalidate)
+            while (true) {
+                pending.toList().joinAll()
+                transition.withLock {
+                    active.getAndSet(null)?.cancelAndJoin()
+                    invalidate()
+                }
+                if (pending.isEmpty()) return@withContext
+            }
+        }
+        settleStopped()
+    }
+
+    private suspend fun replaceGeneration(
+        value: Long,
+        create: (Long) -> Job,
+        publish: () -> Unit,
+        invalidate: () -> Unit,
+    ) {
+        try {
+            transition.withLock {
+                active.getAndSet(null)?.cancelAndJoin()
+                if (!isCurrent(value)) return@withLock
+                val next = create(value)
+                active.set(next)
+                next.invokeOnCompletion { finished(value) }
+                if (!isCurrent(value)) {
+                    retire(next, invalidate)
+                    return@withLock
+                }
+                publish()
+                if (!isCurrent(value)) {
+                    retire(next, invalidate)
+                    return@withLock
+                }
+                if (!next.start()) {
+                    active.compareAndSet(next, null)
+                    invalidate()
+                }
+            }
+        } finally {
+            settleStopped()
+        }
+    }
+
+    private suspend fun retire(job: Job, invalidate: () -> Unit) {
+        active.compareAndSet(job, null)
+        invalidate()
+        job.cancelAndJoin()
+    }
+}
+
+/**
+ * The session-slice state machine — the Kotlin mirror of the Swift
+ * `RemoteSessionViewModel`: list sessions, open one, fold the follow
+ * stream's snapshot and live events through the conformance-tested fold,
+ * send prompts, cancel, and expose the plan/todo/goal and tool projections.
+ * Every field the UI renders is a [StateFlow], so Compose recomposes on
+ * each emission rather than re-reading on navigation.
+ */
+class SessionModel(
+    private val wire: WireDriving,
+    private val scope: CoroutineScope,
+    private val reconnectDelayMillis: Long = 1_000,
+) {
+    private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
+    val sessions: StateFlow<List<SessionRow>> = _sessions
+
+    private val _listState = MutableStateFlow("idle")
+    val listState: StateFlow<String> = _listState
+
+    private val _open = MutableStateFlow<OpenSession?>(null)
+    val open: StateFlow<OpenSession?> = _open
+
+    private val _sending = MutableStateFlow(false)
+    val sending: StateFlow<Boolean> = _sending
+
+    private val followOwner = StreamTransitionOwner(scope)
+    val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
+
+    /** The fold state of the open session, when one is. */
+    val state: DomainState get() = _open.value?.state ?: DomainState()
+
+    /** Capture one current projection without reading payloads, cached bytes or starting requests. */
+    val sessionDiagnostics: SessionDiagnostics
+        get() = _open.value?.let { SessionDiagnostics.Selected(SessionProjectionCounts.capture(it.state)) }
+            ?: SessionDiagnostics.Unselected
+
+    /** Decoded artifact content by reference id (filled by readArtifact). */
+    private val _artifactBytes = mutableMapOf<String, ByteArray>()
+
+    /** The decoded artifact content cache; companion panes render from it. */
+    val artifactBytes: Map<String, ByteArray> get() = _artifactBytes
+
+    /**
+     * Read one artifact the open session references over `session/artifact`
+     * and cache its decoded bytes (unbounded reads only — a paged read
+     * returns its range without caching); null when no session is open, the
+     * call fails, or the payload cannot be read.
+     * @param artifactId the reference identity from an artifact/created row.
+     * @param offset range start — UTF-16 code units for text artifacts, bytes
+     *   for bytes artifacts; null starts at zero.
+     * @param limit maximum returned units of the artifact format; null reads
+     *   through the end.
+     * @return the read value (id, kind, title, format, base64 data, truncated, size).
+     */
+    suspend fun readArtifact(artifactId: String, offset: Int? = null, limit: Int? = null): LinkArtifactReadValue? {
+        val sessionId = _open.value?.sessionId ?: return null
+        val fields = buildMap {
+            put("sessionId", WireValue.StringValue(sessionId))
+            put("artifactId", WireValue.StringValue(artifactId))
+            offset?.let { put("offset", WireValue.NumberValue(it.toDouble())) }
+            limit?.let { put("limit", WireValue.NumberValue(it.toDouble())) }
+        }
+        val value = try {
+            wire.call("session/artifact", mapOf("request" to WireValue.ObjectValue(fields)))
+        } catch (_: Exception) {
+            return null
+        }
+        val id = WireShape.string(value, "id") ?: return null
+        val kind = WireShape.string(value, "kind") ?: return null
+        val title = WireShape.string(value, "title") ?: return null
+        val format = WireShape.string(value, "format")
+            ?.let { raw -> LinkArtifactFormat.values().firstOrNull { it.wire == raw } } ?: return null
+        val data = WireShape.string(value, "data") ?: return null
+        val truncated = WireShape.boolean(value, "truncated") ?: return null
+        val size = WireShape.number(value, "size") ?: return null
+        if (limit == null) _artifactBytes[id] = java.util.Base64.getDecoder().decode(data)
+        return LinkArtifactReadValue(
+            id = id,
+            kind = kind,
+            title = title,
+            format = format,
+            data = data,
+            truncated = truncated,
+            size = size,
+        )
+    }
+
+    /** Load the session list through `session/list`. */
+    suspend fun loadSessions() {
+        _listState.value = "loading"
+        try {
+            val value = wire.call("session/list", mapOf("_request" to WireValue.ObjectValue(emptyMap())))
+            _sessions.value = (WireShape.array(value, "items") ?: emptyList()).mapNotNull { row ->
+                val id = WireShape.string(row, "sessionId") ?: return@mapNotNull null
+                SessionRow(
+                    id = id,
+                    title = WireShape.string(row, "title") ?: "未命名会话",
+                    updatedAt = WireShape.number(row, "updatedAt"),
+                )
+            }
+            _listState.value = "ready"
+        } catch (failure: Exception) {
+            _listState.value = "failed:${failure.message}"
+        }
+    }
+
+    /** Open one session: fold its follow stream from a fresh snapshot. */
+    suspend fun openSession(sessionId: String) {
+        replaceFollow(
+            sessionId,
+            mapOf(
+                "request" to WireValue.ObjectValue(
+                    mapOf(
+                        "address" to WireValue.ObjectValue(
+                            mapOf("kind" to WireValue.StringValue("session"), "sessionId" to WireValue.StringValue(sessionId)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    /** Open one subagent child's timeline read-only by durable address. */
+    suspend fun openChild(parentSessionId: String, childSessionId: String, mode: String) {
+        replaceFollow(
+            childSessionId,
+            mapOf(
+                "request" to WireValue.ObjectValue(
+                    mapOf(
+                        "address" to WireValue.ObjectValue(
+                            mapOf(
+                                "kind" to WireValue.StringValue("subagent"),
+                                "parentSessionId" to WireValue.StringValue(parentSessionId),
+                                "childSessionId" to WireValue.StringValue(childSessionId),
+                                "mode" to WireValue.StringValue(mode),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    /** Request follow shutdown without suspending synchronous UI disposal. */
+    fun close() {
+        followOwner.stop { _open.value = null }
+    }
+
+    /** Close the open session after its follow stream has fully stopped. */
+    suspend fun closeAndAwait() {
+        followOwner.stopAndAwait { _open.value = null }
+    }
+
+    private suspend fun replaceFollow(sessionId: String, payload: Map<String, WireValue>) {
+        followOwner.replace(
+            create = { generation -> follow(payload, generation) },
+            publish = { _open.value = OpenSession(sessionId, DomainState()) },
+            invalidate = { _open.value = null },
+        )
+    }
+
+    /** Submit one user prompt in queue mode; the host promotes any inline
+     * image bytes to durable references during admission. */
+    suspend fun send(text: String, images: List<Pair<String, String>> = emptyList()) {
+        val session = _open.value ?: return
+        if (text.isEmpty() && images.isEmpty()) return
+        _sending.value = true
+        try {
+            val content = buildList {
+                add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("text"), "text" to WireValue.StringValue(text))))
+                for ((base64, mediaType) in images) {
+                    add(
+                        WireValue.ObjectValue(
+                            mapOf(
+                                "type" to WireValue.StringValue("image"),
+                                "mediaType" to WireValue.StringValue(mediaType),
+                                "data" to WireValue.StringValue(base64),
+                            ),
+                        ),
+                    )
+                }
+            }
+            wire.call(
+                "session/prompt",
+                mapOf(
+                    "request" to WireValue.ObjectValue(
+                        mapOf(
+                            "requestId" to WireValue.StringValue("companion-${java.util.UUID.randomUUID()}"),
+                            "sessionId" to WireValue.StringValue(session.sessionId),
+                            "mode" to WireValue.StringValue("queue"),
+                            "content" to WireValue.ArrayValue(content),
+                        ),
+                    ),
+                ),
+            )
+        } finally {
+            _sending.value = false
+        }
+    }
+
+    /** Cancel the open session's in-flight work. */
+    suspend fun cancelActive() {
+        val session = _open.value ?: return
+        wire.call(
+            "session/cancel",
+            mapOf("request" to WireValue.ObjectValue(mapOf("sessionId" to WireValue.StringValue(session.sessionId)))),
+        )
+    }
+
+    private fun follow(payload: Map<String, WireValue>, generation: Long): Job =
+        scope.launch(start = CoroutineStart.LAZY) {
+            while (isActive && followOwner.isCurrent(generation)) {
+                followOwner.attempt(generation)
+                var received = false
+                try {
+                    wire.stream("session/follow", payload).collect { frame ->
+                        if (followOwner.isCurrent(generation)) {
+                            if (!received) { followOwner.received(generation); received = true }
+                            foldFrame(frame, generation)
+                        }
+                    }
+                    followOwner.interrupted(generation, null)
+                } catch (failure: CancellationException) {
+                    throw failure
+                } catch (failure: Exception) {
+                    followOwner.interrupted(generation, failure)
+                }
+                if (isActive && followOwner.isCurrent(generation)) {
+                    followOwner.retrying(generation)
+                    delay(reconnectDelayMillis)
+                }
+            }
+    }
+
+    /** A snapshot generation resets and replays its records; any other
+     * frame is one live event entry folded onto the current state. */
+    private fun foldFrame(frame: WireValue, generation: Long) {
+        if (!followOwner.isCurrent(generation)) return
+        val current = _open.value ?: return
+        val kind = WireShape.string(frame, "type") ?: ""
+        val newState = if (kind == "snapshot") {
+            val records = WireShape.array(frame, "records") ?: emptyList()
+            foldDomain(JsonArray(records.map { it.toJsonElement() }))
+        } else {
+            foldInto(current.state, JsonArray(listOf(frame.toJsonElement())))
+        }
+        _open.value = current.copy(state = newState)
+        if (!followOwner.isCurrent(generation)) _open.value = null
+    }
+}
+
+/**
+ * The interaction inbox — the Kotlin mirror of the Swift
+ * `InteractionViewModel`: watch `$events` for approval and question
+ * forwards, deduplicate by event id, answer through `$events/result`.
+ */
+class InteractionModel(
+    private val wire: WireDriving,
+    private val scope: CoroutineScope,
+    private val reconnectDelayMillis: Long = 1_000,
+) {
+    private val _inbox = MutableStateFlow<List<PendingInteraction>>(emptyList())
+    val inbox: StateFlow<List<PendingInteraction>> = _inbox
+
+    private val _answering = MutableStateFlow(false)
+    val answering: StateFlow<Boolean> = _answering
+
+    private val _clientId = MutableStateFlow("")
+    val clientId: StateFlow<String> = _clientId
+
+    private val _lastRefusal = MutableStateFlow<String?>(null)
+    val lastRefusal: StateFlow<String?> = _lastRefusal
+
+    private val watchOwner = StreamTransitionOwner(scope)
+    val connectionSnapshot: ConnectionSnapshot get() = watchOwner.connectionSnapshot
+
+    fun startWatching() {
+        watchOwner.replaceAsync(
+            create = { generation -> watch(generation) },
+            publish = { _clientId.value = "" },
+            invalidate = { _clientId.value = "" },
+        )
+    }
+
+    /** Request event-stream shutdown without suspending synchronous UI disposal. */
+    fun stopWatching() {
+        watchOwner.stop { _clientId.value = "" }
+    }
+
+    /** Stop watching after the event stream has fully stopped. */
+    suspend fun stopWatchingAndAwait() {
+        watchOwner.stopAndAwait { _clientId.value = "" }
+    }
+
+    private fun watch(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
+        while (isActive && watchOwner.isCurrent(generation)) {
+            _clientId.value = ""
+            watchOwner.attempt(generation)
+            var received = false
+            try {
+                wire.stream("\$events").collect { frame ->
+                    if (watchOwner.isCurrent(generation)) {
+                        if (!received) { watchOwner.received(generation); received = true }
+                        collect(frame)
+                        if (!watchOwner.isCurrent(generation)) _clientId.value = ""
+                    }
+                }
+                watchOwner.interrupted(generation, null)
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                watchOwner.interrupted(generation, failure)
+            }
+            if (isActive && watchOwner.isCurrent(generation)) {
+                watchOwner.retrying(generation)
+                delay(reconnectDelayMillis)
+            }
+        }
+    }
+
+    fun collect(frame: WireValue) {
+        when (WireShape.string(frame, "type")) {
+            "ready" -> {
+                _clientId.value = WireShape.string(frame, "clientId") ?: ""
+                return
+            }
+            "cancel" -> {
+                val eventId = WireShape.string(frame, "eventId") ?: return
+                _inbox.update { current -> current.filterNot { it.id == eventId } }
+                return
+            }
+            "waterfall" -> Unit
+            else -> return
+        }
+        val eventName = WireShape.string(frame, "event") ?: ""
+        val isApproval = eventName == "approval/request"
+        val isQuestion = eventName == "user-questions/request"
+        if (!isApproval && !isQuestion) return
+        val id = WireShape.string(frame, "eventId")?.takeIf { it.isNotEmpty() } ?: return
+        val agentId = WireShape.string(frame, "agentId")?.takeIf { it.isNotEmpty() } ?: return
+        val request = WireShape.objectValue(frame, "request") ?: return
+        if (_inbox.value.any { it.id == id }) return
+        _inbox.update { current ->
+            current + PendingInteraction(
+                id = id,
+                kind = if (isApproval) PendingInteraction.Kind.APPROVAL else PendingInteraction.Kind.QUESTION,
+                sessionId = agentId,
+                title = WireShape.string(request, "title")
+                    ?: WireShape.string(request, "toolName")
+                    ?: if (isApproval) "Approval requested" else "Question asked",
+                detail = WireShape.string(request, "reason") ?: WireShape.string(request, "text") ?: "",
+            )
+        }
+    }
+
+    /** Answer one pending interaction; success retires the card. */
+    suspend fun answer(pending: PendingInteraction, allowedOnce: Boolean) {
+        _answering.value = true
+        _lastRefusal.value = null
+        try {
+            val readyClientId = _clientId.value
+            if (readyClientId.isEmpty()) {
+                _lastRefusal.value = "Remote Event stream is not ready."
+                return
+            }
+            wire.call(
+                "\$events/result",
+                mapOf(
+                    "clientId" to WireValue.StringValue(readyClientId),
+                    "eventId" to WireValue.StringValue(pending.id),
+                    "outcome" to WireValue.ObjectValue(
+                        mapOf(
+                            "kind" to WireValue.StringValue("result"),
+                            "value" to WireValue.StringValue(if (allowedOnce) "allowed-once" else "rejected"),
+                        ),
+                    ),
+                ),
+            )
+            _inbox.update { current -> current.filterNot { it.id == pending.id } }
+        } catch (failure: Exception) {
+            _lastRefusal.value = failure.message
+        } finally {
+            _answering.value = false
+        }
+    }
+}
+
+/**
+ * The files browser — the Kotlin mirror of the Swift `FilesViewModel`:
+ * follow the workspace registry for the picker, browse one workspace's
+ * tree through `workspaceFiles/list`.
+ */
+class FilesModel(private val wire: WireDriving, private val scope: CoroutineScope) {
+    private val _workspaces = MutableStateFlow<List<WorkspaceRow>>(emptyList())
+    val workspaces: StateFlow<List<WorkspaceRow>> = _workspaces
+
+    private val _selectedWorkspace = MutableStateFlow<String?>(null)
+    val selectedWorkspace: StateFlow<String?> = _selectedWorkspace
+
+    private val _directory = MutableStateFlow<List<String>>(emptyList())
+    val directory: StateFlow<List<String>> = _directory
+
+    private val _entries = MutableStateFlow<List<FileEntry>>(emptyList())
+    val entries: StateFlow<List<FileEntry>> = _entries
+
+    private val _listState = MutableStateFlow("idle")
+    val listState: StateFlow<String> = _listState
+
+    private val _openFile = MutableStateFlow<OpenTextFile?>(null)
+    val openFile: StateFlow<OpenTextFile?> = _openFile
+
+    private val _openFileError = MutableStateFlow<String?>(null)
+    val openFileError: StateFlow<String?> = _openFileError
+
+    private val followOwner = StreamTransitionOwner(scope)
+    val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
+
+    fun start() {
+        followOwner.replaceAsync(create = { generation -> follow(generation) }, publish = {}, invalidate = {})
+    }
+
+    private fun follow(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
+        followOwner.attempt(generation)
+        var received = false
+        try {
+            wire.stream("workspace/follow").collect { frame ->
+                if (!followOwner.isCurrent(generation)) return@collect
+                if (!received) { followOwner.received(generation); received = true }
+                val records = WireShape.array(frame, "records") ?: return@collect
+                val rows = records.mapNotNull { record ->
+                    val id = WireShape.string(record, "id") ?: return@mapNotNull null
+                    WorkspaceRow(id = id, title = WireShape.string(record, "title") ?: id)
+                }
+                _workspaces.value = rows
+                if (_selectedWorkspace.value == null && rows.isNotEmpty()) _selectedWorkspace.value = rows[0].id
+            }
+            followOwner.interrupted(generation, null)
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            followOwner.interrupted(generation, failure)
+        }
+    }
+
+    fun stop() {
+        followOwner.stop {}
+    }
+
+    suspend fun stopAndAwait() { followOwner.stopAndAwait {} }
+
+    fun select(workspaceId: String) {
+        _selectedWorkspace.value = workspaceId
+        _directory.value = emptyList()
+    }
+
+    /** List one directory level of the selected workspace. */
+    suspend fun list() {
+        val workspaceId = _selectedWorkspace.value ?: return
+        _listState.value = "loading"
+        try {
+            val args = buildMap {
+                put("workspaceId", WireValue.StringValue(workspaceId))
+                if (_directory.value.isNotEmpty()) {
+                    put("path", WireValue.StringValue(_directory.value.joinToString("/")))
+                }
+            }
+            val value = wire.call("workspaceFiles/list", args)
+            _entries.value = (WireShape.array(value, "entries") ?: emptyList()).mapNotNull { entry ->
+                val name = WireShape.string(entry, "name") ?: return@mapNotNull null
+                FileEntry(
+                    name = name,
+                    isDirectory = WireShape.string(entry, "type") == "directory",
+                    size = WireShape.number(entry, "size"),
+                )
+            }
+            _listState.value = "ready"
+        } catch (failure: Exception) {
+            _listState.value = "failed:${failure.message}"
+        }
+    }
+
+    fun openEntry(name: String) {
+        _entries.value.firstOrNull { it.name == name }?.takeIf { it.isDirectory } ?: return
+        _directory.update { it + name }
+    }
+
+    /** Read one file as text, paging in UTF-16 units. A `file-too-large`
+     * refusal means the host wants a bounded page: retry from the start
+     * with one full page. */
+    suspend fun readFile(name: String) {
+        val workspaceId = _selectedWorkspace.value ?: return
+        val path = (_directory.value + name).joinToString("/")
+        _openFileError.value = null
+        try {
+            val first = readPage(workspaceId, path, offset = null, limit = null)
+            applyReadValue(first, path)
+        } catch (failure: ai.deepseek.dsh.link.LinkClientException.Refused) {
+            if (failure.code != "file-too-large") {
+                _openFileError.value = readFailureText(failure)
+                return
+            }
+            try {
+                val page = readPage(workspaceId, path, offset = 0, limit = PAGE_UNITS)
+                applyReadValue(page, path)
+            } catch (inner: ai.deepseek.dsh.link.LinkClientException.Refused) {
+                _openFileError.value = readFailureText(inner)
+            }
+        }
+    }
+
+    /** Fetch the next page after the loaded prefix. */
+    suspend fun loadMore() {
+        val file = _openFile.value ?: return
+        if (!file.hasMore) return
+        val workspaceId = _selectedWorkspace.value ?: return
+        try {
+            val page = readPage(workspaceId, file.path, offset = file.loadedUnits, limit = PAGE_UNITS)
+            _openFile.value = file.copy(
+                text = file.text + page.content,
+                loadedUnits = file.loadedUnits + page.content.length,
+                hasMore = page.truncated,
+            )
+        } catch (failure: ai.deepseek.dsh.link.LinkClientException.Refused) {
+            _openFileError.value = readFailureText(failure)
+        }
+    }
+
+    fun closeFile() {
+        _openFile.value = null
+        _openFileError.value = null
+    }
+
+    private suspend fun readPage(workspaceId: String, path: String, offset: Int?, limit: Int?): ReadPage {
+        val args = buildMap {
+            put("workspaceId", WireValue.StringValue(workspaceId))
+            put("path", WireValue.StringValue(path))
+            if (offset != null) put("offset", WireValue.NumberValue(offset.toDouble()))
+            if (limit != null) put("limit", WireValue.NumberValue(limit.toDouble()))
+        }
+        val value = wire.call("workspaceFiles/read", args)
+        val entries = (value as? WireValue.ObjectValue)?.entries ?: emptyMap()
+        return ReadPage(
+            content = (entries["content"] as? WireValue.StringValue)?.value ?: "",
+            truncated = (entries["truncated"] as? WireValue.BoolValue)?.value ?: false,
+            size = (entries["size"] as? WireValue.NumberValue)?.value?.toInt() ?: 0,
+            mediaType = (entries["mediaType"] as? WireValue.StringValue)?.value ?: "text/plain",
+        )
+    }
+
+    private fun applyReadValue(page: ReadPage, path: String) {
+        _openFile.value = OpenTextFile(
+            path = path,
+            mediaType = page.mediaType,
+            text = page.content,
+            loadedUnits = page.content.length,
+            totalUnits = page.size,
+            hasMore = page.truncated,
+        )
+    }
+
+    private fun readFailureText(failure: ai.deepseek.dsh.link.LinkClientException.Refused): String = when (failure.code) {
+        "file-binary" -> "二进制文件，无法文本预览"
+        "file-not-found" -> "未找到该文件"
+        "path-outside-root" -> "路径越出工作区根"
+        "not-a-regular-file" -> "不是常规文件"
+        else -> "读取失败：${failure.code}"
+    }
+
+    private data class ReadPage(val content: String, val truncated: Boolean, val size: Int, val mediaType: String)
+
+    private companion object {
+        /** One page: 65536 UTF-16 units, the Swift viewer's page size. */
+        const val PAGE_UNITS = 65536
+    }
+
+    fun goUp() {
+        _directory.update { if (it.isNotEmpty()) it.dropLast(1) else it }
+    }
+}
+
+/**
+ * The subagent surface — the Kotlin mirror of the Swift
+ * `SubagentsViewModel`: list one parent's direct children, open a child's
+ * timeline read-only.
+ */
+class SubagentsModel(private val wire: WireDriving, private val scope: CoroutineScope) {
+    private val _rows = MutableStateFlow<List<SubagentRow>>(emptyList())
+    val rows: StateFlow<List<SubagentRow>> = _rows
+
+    private val _listState = MutableStateFlow("idle")
+    val listState: StateFlow<String> = _listState
+
+    /** The open child timeline, when one is. */
+    private val _childTimeline = MutableStateFlow<SessionModel?>(null)
+    val childTimeline: StateFlow<SessionModel?> = _childTimeline
+
+    suspend fun load(parentSessionId: String) {
+        _listState.value = "loading"
+        try {
+            val value = wire.call("subagents/list", mapOf("parentSessionId" to WireValue.StringValue(parentSessionId)))
+            _rows.value = (WireShape.array(value, "entries") ?: emptyList()).mapNotNull { entry ->
+                val id = WireShape.string(entry, "id") ?: return@mapNotNull null
+                SubagentRow(
+                    id = id,
+                    mode = WireShape.string(entry, "mode"),
+                    label = WireShape.string(entry, "label"),
+                    activity = WireShape.string(entry, "activity"),
+                    reason = WireShape.string(entry, "reason"),
+                )
+            }
+            _listState.value = "ready"
+        } catch (failure: Exception) {
+            _listState.value = "failed:${failure.message}"
+        }
+    }
+
+    /** Open one child's read-only timeline; a diagnostic row has no mode
+     * and no timeline to open. */
+    suspend fun openChild(parentSessionId: String, row: SubagentRow) {
+        val mode = row.mode ?: return
+        val child = SessionModel(wire, scope)
+        _childTimeline.value = child
+        child.openChild(parentSessionId = parentSessionId, childSessionId = row.id, mode = mode)
+    }
+
+    fun closeChild() {
+        _childTimeline.value?.close()
+        _childTimeline.value = null
+    }
+}

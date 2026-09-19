@@ -1,0 +1,7 @@
+{
+  "type": "ready",
+  "clientId": "client-generation-1",
+  "host": {
+    "home": "/Users/example"
+  }
+}

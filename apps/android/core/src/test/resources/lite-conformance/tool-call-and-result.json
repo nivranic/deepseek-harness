@@ -1,0 +1,84 @@
+{
+  "covers": [
+    "Tool Call",
+    "Tool Result"
+  ],
+  "events": [
+    {
+      "type": "prompt/accepted",
+      "requestId": "r3",
+      "content": "搜索契约文档"
+    },
+    {
+      "type": "tool/call",
+      "id": "c1",
+      "name": "web_search",
+      "arguments": "{\"query\":\"lite spec\"}"
+    },
+    {
+      "type": "tool/result",
+      "id": "c1",
+      "ok": true,
+      "text": "找到 3 篇。"
+    },
+    {
+      "type": "tool/call",
+      "id": "c2",
+      "name": "url_fetch",
+      "arguments": "{\"url\":\"https://example.invalid/a\"}"
+    },
+    {
+      "type": "tool/result",
+      "id": "c2",
+      "ok": false,
+      "text": "DNS 解析失败"
+    },
+    {
+      "type": "message/completed",
+      "text": "搜索完成，一篇无法抓取。"
+    },
+    {
+      "type": "turn/completed"
+    }
+  ],
+  "expected": {
+    "conversation": [
+      {
+        "role": "user",
+        "text": "搜索契约文档"
+      },
+      {
+        "role": "assistant",
+        "text": "搜索完成，一篇无法抓取。"
+      }
+    ],
+    "streaming": {
+      "active": false,
+      "partialText": "",
+      "partialReasoning": ""
+    },
+    "interrupted": false,
+    "toolCalls": [
+      {
+        "id": "c1",
+        "name": "web_search",
+        "arguments": "{\"query\":\"lite spec\"}",
+        "phase": "completed",
+        "resultText": "找到 3 篇。"
+      },
+      {
+        "id": "c2",
+        "name": "url_fetch",
+        "arguments": "{\"url\":\"https://example.invalid/a\"}",
+        "phase": "failed",
+        "resultText": "DNS 解析失败"
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "artifacts": [],
+    "lastTurnEnd": "completed",
+    "errors": [],
+    "pendingHandoff": null
+  }
+}

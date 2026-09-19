@@ -1,0 +1,15 @@
+{
+  "kind": "goal/change",
+  "version": 1,
+  "operation": "create",
+  "goal": {
+    "id": "goal-1",
+    "revision": 1,
+    "objective": "发布 0.2 伴侣版",
+    "phase": "active",
+    "maxGoalRounds": 12
+  },
+  "roundsStarted": 0,
+  "createdAt": 1759017600000,
+  "updatedAt": 1759017600000
+}

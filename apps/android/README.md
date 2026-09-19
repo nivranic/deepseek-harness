@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-The downstream thin Android companion for DeepSeek Harness. The device is a Remote Companion first: it never runs the agent runtime and holds no second session truth. This project starts with the contract module that consumes the shared Remote failure vocabulary; the native shell migrates onto it incrementally from the historical Android application source.
+The downstream thin Android companion for DeepSeek Harness. The device is a Remote Companion first: it never runs the agent runtime and holds no second session truth. This project starts with the contract module that consumes the shared Remote failure vocabulary; the `core` domain module and the `app` shell have now migrated onto this build from the historical Android application source.
 
 ## Use this project
 
@@ -13,7 +13,9 @@ The `contract` module is a Kotlin JVM library that mirrors the candidate's Remot
 
 The schema is copied into the test run straight from the protocol package, so the Kotlin column always validates the current candidate bytes. The classification projection regenerates with `node scripts/gen-remote-failure-classes-json.mjs` (after `pnpm run build:lib`); committed output is verified by the test, and drift fails the build.
 
-Run the contract tests with the Gradle wrapper from this directory (`gradlew.bat :contract:test` on Windows, `./gradlew :contract:test` elsewhere); the first run downloads the Gradle distribution and dependencies.
+The `core` module is the migrated pure-JVM domain: the Lite fold (loop, chat, stores, tool registry), the Link pairing/wire stack (Noise, signing, pinning, diagnostics), Handoff snapshots, support export, and push/relay clients. Its 37 test classes run on the JVM with `gradlew :core:test` — no Android SDK needed. The `app` module carries the Compose surface (chat screen, notifications, Keystore cipher, support scanner glue); building it requires the support-scanner AAR chain described under Known Limitations.
+
+Run the tests with the Gradle wrapper from this directory (`gradlew.bat :contract:test :core:test` on Windows, `./gradlew :contract:test :core:test` elsewhere); the first run downloads the Gradle distribution and dependencies.
 
 ## Understand the implementation
 
@@ -23,11 +25,14 @@ Run the contract tests with the Gradle wrapper from this directory (`gradlew.bat
 | `contract/src/main/kotlin/ai/deepseek/dsh/contract/RemoteFailureClasses.kt` | The classified-code mirror; unlisted codes resolve to `UNKNOWN` |
 | `contract/src/test/kotlin/ai/deepseek/dsh/contract/EnvelopeSchemaTest.kt` | Schema validation of real payloads plus mirror-drift and vocabulary-subset checks |
 | `contract/src/test/resources/generated/` | The committed projection of the TypeScript authority |
+| `core/src/main/kotlin/ai/deepseek/dsh/companion/` | Migrated domain: Lite fold, transport classification, diagnostics, support export |
+| `core/src/main/kotlin/ai/deepseek/dsh/link/` | Migrated Link stack: Noise channels, signing, pinning, request snapshots |
+| `app/src/main/kotlin/ai/deepseek/dsh/companion/` | Migrated Compose shell: MainActivity, chat screen, notifications, Keystore cipher |
 
 ## Model Experience
 
-None. The contract module runs in JVM tests only; no model-facing surface exists yet.
+The contract and core modules run in JVM tests only; the migrated app shell has no model-facing surface wired on this build yet.
 
 ## Known Limitations and Deferred Work
 
-The native shell (UI, Keystore, notifications, share, deep links) has not migrated yet; this project deliberately rebuilds on the shared contract instead of copying the historical `apps/android` tree. No emulator or physical-device qualification is claimed, no artifact is published, and the Swift column remains future work. Running the wrapper requires network access to download Gradle on a clean machine.
+`:app:assembleDebug` is gated on `verifyScannerResources`: the support-scanner AAR must be built from `native/support-scanner` (Go + Android NDK via `scripts/build-mobile-support-scanner.py`) and passed through `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` with its receipt; this host has neither Go nor an NDK, so the shell's compile evidence is not claimed. No emulator or physical-device qualification is claimed, no artifact is published, and the contract-consumption seam for Gateway failures in the shell lands with the Gateway wiring. Running the wrapper requires network access to download Gradle on a clean machine.

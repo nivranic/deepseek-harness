@@ -1,0 +1,8 @@
+{
+  "kind": "child",
+  "id": "sa-1",
+  "activity": "running",
+  "hasChildren": false,
+  "mode": "continuable",
+  "label": "检索合约文档"
+}

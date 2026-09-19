@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Android core and app module migration onto the contract build; scanner-gated shell compilation, emulator and device qualification remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-migration-source.json",
+    "sha256": "f9783a410561d8dd91db99ca2dfe93c169930c340b57c05f16ec423cc13ee68d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "523f5eca5cd6f05dc74f172f3d62a0fb9454ea7fb3ecabbb6fc718d7abad79e5"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-migration-binding.json",
+    "sha256": "37407b2a520c08956de2e5bec1723777e9dccedb970403c77b80dfc3c68d4f4d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-migration-reports.mjs",
+      "sha256": "768c679bde7120a3f72fad6fe613675d5c8c23ae1e859a51ca55bb4b4cdf3f19"
+    },
+    {
+      "path": ".artifacts/capture-android-migration-validation.mjs",
+      "sha256": "704aa8accee200d9ee3d8ba420e7c56ed3ae468494e522a6bcbb672b1136eb88"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "bf30e6464603f6d01aef15b8abf9749cf48cfb1100ace3358a39a9a43cdb5bbb"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "bd1cd60083fe6b3fbda089a5e2c61c1a45bd604857b446974944b141d8e00450"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-migration-binding.log",
+      "sha256": "dea0890da5f660c57e33b42d72b704924c7bf01ddcea1b6f12a478c7a2a29677"
+    },
+    {
+      "path": ".artifacts/android-migration-audit-tests.log",
+      "sha256": "2855f42a62b46fd9825ffa5491b901451c42fa49f37261690bbd8428586f50e5"
+    },
+    {
+      "path": ".artifacts/android-migration-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-migration-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-migration-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

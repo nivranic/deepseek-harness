@@ -3697,9 +3697,10 @@
       "owner": "受限 Lite profile 与工具目录",
       "candidateEvidence": [
         "docs/plans/2026-09-14-upstream-first.zh.md",
-        "CUSTOM_CAPABILITY_INVENTORY.json"
+        "CUSTOM_CAPABILITY_INVENTORY.json",
+        "artifacts/upstream-first/android-migration-source.json"
       ],
-      "remaining": "依赖前序 Contract 与 Native；Lite 范围、工具权限和 Prompt composition 待实施，Full Mobile Host 保持实验范围。",
+      "remaining": "历史 Lite 领域（loop、tool registry、stores、chat 折叠）与 Compose 外壳已从 android-application-source 原样迁入 apps/android（:core 37 个 JVM 测试类全绿，:app 配置通过 AGP 8.10.1，assembleDebug 由支持扫描器 AAR 门禁——Go+NDK 链未建，外壳编译证据未声明）。Lite 的 runtimeMode/capabilities/工具权限声明、Prompt composition 与 Gateway 契约消费接线仍待实施，Full Mobile Host 保持实验范围。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

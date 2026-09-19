@@ -1,0 +1,51 @@
+{
+  "covers": [
+    "Handoff Request"
+  ],
+  "events": [
+    {
+      "type": "prompt/accepted",
+      "requestId": "r7",
+      "content": "跑完整测试套件"
+    },
+    {
+      "type": "tool/call",
+      "id": "c3",
+      "name": "run_tests",
+      "arguments": "{}"
+    },
+    {
+      "type": "handoff/requested",
+      "capability": "requiresFullRuntime"
+    }
+  ],
+  "expected": {
+    "conversation": [
+      {
+        "role": "user",
+        "text": "跑完整测试套件"
+      }
+    ],
+    "streaming": {
+      "active": false,
+      "partialText": "",
+      "partialReasoning": ""
+    },
+    "interrupted": false,
+    "toolCalls": [
+      {
+        "id": "c3",
+        "name": "run_tests",
+        "arguments": "{}",
+        "phase": "running",
+        "resultText": ""
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "artifacts": [],
+    "lastTurnEnd": null,
+    "errors": [],
+    "pendingHandoff": "requiresFullRuntime"
+  }
+}

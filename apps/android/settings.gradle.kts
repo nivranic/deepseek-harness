@@ -1,5 +1,14 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+
 dependencyResolutionManagement {
     repositories {
+        google()
         mavenCentral()
     }
 }
@@ -7,3 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "dsh-android"
 
 include("contract")
+include("core")
+include("app")

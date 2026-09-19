@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-19-android-core-app-migration.md
+2026-09-19-android-core-app-migration.md: f76ec4b01cd5d8b18b5a8c64630079b2de054dc0
+2026-09-19-android-core-app-migration.zh.md: 295aec4179fd180b73d160740f813596914b6bf9

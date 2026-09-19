@@ -1,0 +1,9 @@
+{
+  "type": "emit",
+  "event": "workspace/changed",
+  "args": [
+    {
+      "workspaceId": "workspace-1"
+    }
+  ]
+}
