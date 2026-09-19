@@ -4,44 +4,23 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "7bf9b03a3f319dd35a92cf1449c43666191ab80e2954f84d309881cbc2da84fb"
+      "path": "artifacts/upstream-first/android-contract-binding.json",
+      "sha256": "a48f73499017e607f809a4da0f9f8ad5c127ab2a9f5b6849caf17bd79f6af303"
     },
     {
-      "path": "UPSTREAM_BASELINE.md",
-      "sha256": "bae11b408a7cf817c82f5bcb92aae0328ae73924d3cd16d6937658647a2abb3e"
-    },
-    {
-      "path": "UPSTREAM_DELTA.json",
-      "sha256": "f28d5355ef0137910b58baadfe7481ade5d4b9b03c4c70619deca582f3ede3a2"
-    },
-    {
-      "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "67db99a081250795b32483db2c74117ed2b700c11280be534d8c02252968890f"
-    },
-    {
-      "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "8d651bf7e679a1437923efe14ab199034202e36e3650e50ec90dfb48978d5499"
+      "path": "artifacts/upstream-first/android-contract-source.json",
+      "sha256": "6d8ac3810cdae9b48374b01e48766e1927455bf17eb24df427afb1c0d7fa0966"
     },
     {
       "path": "artifacts/upstream-first/verify-audit.mjs",
-      "sha256": "ac969da7f19ec19b96df5b6d698984a97d4ad68e7a09a7468f9edc092943916d"
+      "sha256": "5ef61c0e549d5cf56a93b6d34b894cc775a24c53f0c6c25a79faad78fab9bbee"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "0362585d3538658c8556c764bb6c07651a008ab6cab0e4f65a4a3ff710f669c3"
+      "sha256": "56cb2d29cef9150a38c9a483215a94d6e46b20f49e9377830ff788ecf1a4774b"
     }
   ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "scripts/gen-remote-failure-classes-json.mjs",
-      "sha256": "e17c2610f56ca7cfcab8d88f51595d5611819dab19594ce697327a1a8a696421"
-    },
-    {
-      "path": "website/.vitepress/config.ts.timestamp-1789602215578-0bbf2d70fe4bf.mjs",
-      "sha256": "1b8ea967d1ec81c06546a6ecf5965d4cb0570182efb9dbf8c8a17c71030c858e"
-    }
-  ],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -8993,11 +8972,11 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "0362585d3538658c8556c764bb6c07651a008ab6cab0e4f65a4a3ff710f669c3"
+        "sha256": "56cb2d29cef9150a38c9a483215a94d6e46b20f49e9377830ff788ecf1a4774b"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
-        "sha256": "ac969da7f19ec19b96df5b6d698984a97d4ad68e7a09a7468f9edc092943916d"
+        "sha256": "5ef61c0e549d5cf56a93b6d34b894cc775a24c53f0c6c25a79faad78fab9bbee"
       },
       {
         "path": ".artifacts/check-phase2-review-binding.mjs",

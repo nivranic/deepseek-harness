@@ -16,7 +16,7 @@ const sourceSha = baseline.upstream.sha;
 const desktopContextRecordPath = 'artifacts/upstream-first/desktop-context-source.json';
 const digest = path => createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex');
 const androidContractPath = 'artifacts/upstream-first/android-contract-source.json';
-assert.equal(digest(androidContractPath), '0c88657c90bcd7a7cd3fe31f9f72dbde8ea2e44dd20996a48b1c37e40f6272e7', 'Android contract source record changed');
+assert.equal(digest(androidContractPath), '6d8ac3810cdae9b48374b01e48766e1927455bf17eb24df427afb1c0d7fa0966', 'Android contract source record changed');
 const androidContract = JSON.parse(readFileSync(resolve(root, androidContractPath), 'utf8'));
 assert.equal(androidContract.baseSha, sourceSha);
 for (const field of ['sourceFiles', 'builtFiles', 'logs', 'helpers', 'historicalRecords', 'screenshots', 'observations', 'comparisons']) {

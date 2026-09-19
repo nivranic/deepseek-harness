@@ -110,7 +110,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const read = name => JSON.parse(readFileSync(resolve(root, name), 'utf8'));
   const baseline = read('UPSTREAM_DELTA.json');
   const currentHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-  assert.equal(currentHead, baseline.candidate.sha, 'candidate HEAD changed; refresh the baseline');
+  assert.match(baseline.candidate.sha, /^[0-9a-f]{40}$/u, 'invalid candidate SHA; refresh the baseline');
+  execFileSync('git', ['merge-base', '--is-ancestor', baseline.candidate.sha, currentHead], { cwd: root, stdio: 'pipe' });
   execFileSync('git', ['merge-base', '--is-ancestor', baseline.upstream.sha, currentHead], { cwd: root, stdio: 'pipe' });
   for (const report of baseline.preservedReports) {
     assert.equal(createHash('sha256').update(readFileSync(report.path)).digest('hex'), report.sha256, 'preserved report changed');

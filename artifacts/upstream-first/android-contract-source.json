@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
-  "capturedAt": "2026-09-19T11:01:16.967Z",
+  "capturedAt": "2026-09-19T11:10:34.987Z",
   "scope": "Kotlin JVM consumption of the formal Remote failure envelope schema and failure classification in a fresh apps/android contract module; local Gradle evidence only, native shell not migrated",
   "sourceFiles": [
     {
@@ -730,7 +730,7 @@
     },
     {
       "path": "artifacts/upstream-first/verify-audit.mjs",
-      "sha256": "ac969da7f19ec19b96df5b6d698984a97d4ad68e7a09a7468f9edc092943916d"
+      "sha256": "5ef61c0e549d5cf56a93b6d34b894cc775a24c53f0c6c25a79faad78fab9bbee"
     },
     {
       "path": "docs/capability-seams.i18n.yaml",

@@ -15,15 +15,15 @@
   },
   "sourceRecord": {
     "path": "artifacts/upstream-first/android-contract-source.json",
-    "sha256": "0c88657c90bcd7a7cd3fe31f9f72dbde8ea2e44dd20996a48b1c37e40f6272e7"
+    "sha256": "6d8ac3810cdae9b48374b01e48766e1927455bf17eb24df427afb1c0d7fa0966"
   },
   "generator": {
     "path": "artifacts/upstream-first/write-reports.mjs",
-    "sha256": "0362585d3538658c8556c764bb6c07651a008ab6cab0e4f65a4a3ff710f669c3"
+    "sha256": "56cb2d29cef9150a38c9a483215a94d6e46b20f49e9377830ff788ecf1a4774b"
   },
   "binding": {
     "path": "artifacts/upstream-first/android-contract-binding.json",
-    "sha256": "609baf08ddf1c005027e6051866f24897354d18257f5ea1bb31df88c4c9f49ec"
+    "sha256": "a48f73499017e607f809a4da0f9f8ad5c127ab2a9f5b6849caf17bd79f6af303"
   },
   "helpers": [
     {
@@ -42,7 +42,7 @@
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "e97e21676a64ebcb11a6a4e65dd8d44a6e072b67ebfeb409927aeb0b7801a587"
+      "sha256": "7ed2a8cfc225c71301192e8c7ca3c57b9c7c256543200ba9cdf10eb28d3336e5"
     }
   ],
   "checks": [
@@ -52,7 +52,7 @@
     },
     {
       "path": ".artifacts/android-contract-audit-tests.log",
-      "sha256": "057f6caf2e1c6ed4fd85c10e37dfbe1d705bc1123f0febbe0a35631f68c565b0"
+      "sha256": "ede6296a4a4e36fff328ca6727c5bec4c915e356a37dde31ce5420b2e0d18d01"
     },
     {
       "path": ".artifacts/android-contract-gate0.log",
