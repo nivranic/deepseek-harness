@@ -50,14 +50,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
-      - name: Swift contract tests
-        # -j1 serializes the llbuild task queue: parallel module emission raced
-        # the test target's import of the just-written library swiftmodule, and
-        # a library-first two-step build then linked the test executable without
-        # the library objects. One serial build closes both.
+      - name: Swift contract check
+        # The package is one executable target by design: hosted macOS runners
+        # fail test-target module imports nondeterministically (proven with a
+        # minimal fresh package on both toolchains and serial builds), so the
+        # mirror evidence runs as a plain exit-code check with no XCTest
+        # bundle and no cross-module import.
         run: |
           swift --version
-          swift test -j 1
+          swift run dsh-contract-check
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
