@@ -40,6 +40,15 @@ jobs:
   # serial-linux-selfhosted standby lane in ci-master.yml. The Windows failover
   # switch is the separate DSH_CI_FAILOVER_WINDOWS variable on the windows-native
   # job below.
+  swift-contract:
+    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Swift contract tests
+        run: swift test
+        working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     runs-on: >-

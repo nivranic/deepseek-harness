@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-contract-source.json",
+    "sha256": "6fa608888a9998b22b5c58488c14701b89a06d8bc5873586ba5498ab88cc394c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6ea35b73eb2388a086de4c728bdc14a39b92a8d10da998956e59d92e4dfe8263"
+  },
+  "helper": {
+    "path": ".artifacts/check-apple-contract-binding.mjs",
+    "sha256": "bcc7e6f10b3a1b35d53b80e39d7dfd4a2d1f1e3f3a4b5b7d6faf2358b05a3085"
+  }
+}

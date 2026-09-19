@@ -18,9 +18,17 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## Swift 契约列与 macOS CI lane
+
+[当前来源记录](artifacts/upstream-first/apple-contract-source.json)在 apps/apple/contract 建立 Swift 包：RemoteFailureClass 枚举与 28 码镜像消费与 Kotlin/TS 同一权威，测试资源由生成脚本从协议包刷新。Swift 侧只固定结构证据——镜像等值、分类 ⊆ schema 已声明码、不透明未知分支排除全部 84 已知码、未分类词解析 unknown；payload 校验仍由 Ajv 与 networknt 列持有，未用脆弱的 Swift 校验器复实现。
+
+ci.yml 新增 swift-contract 作业（macos-14，pull_request/workflow_dispatch 条件下运行 swift test）；本机 Windows 无法运行 swift，该检查在来源记录中如实标记 PENDING_CI，待调度的 macOS lane 回报后由下一来源记录接续。gen-remote-failure-classes-json.mjs 同时刷新 Apple 测试资源，漂移由测试拒绝。
+
+原生外壳、模拟器/真机、多版本行为仍未完成；Session writer 保持 V3。
+
 ## 失败分类的扩展与首批 UI 采纳
 
-[当前来源记录](artifacts/upstream-first/failure-classes-adoption-source.json)把共享分类扩展为 9 类 28 码：新增 invalid-input（调用方输入非法，原样重试不可能成功）并纳入 attachment/title/preset/workspace 路径校验码，unavailable 族补充 not-regular-file 与 not-directory。session/steer-unavailable 有意保持未分类——静默跳过消费者具有类检查会不当放大的 owner 语义。
+[历史来源记录](artifacts/upstream-first/failure-classes-adoption-source.json)把共享分类扩展为 9 类 28 码：新增 invalid-input（调用方输入非法，原样重试不可能成功）并纳入 attachment/title/preset/workspace 路径校验码，unavailable 族补充 not-regular-file 与 not-directory。session/steer-unavailable 有意保持未分类——静默跳过消费者具有类检查会不当放大的 owner 语义。
 
 ui-workspace 的会话重命名冲突分支与 ui-deliverables 的呈现文件缺失映射改为消费 classifyRemoteFailure/classifyRemoteFailureCode，对既有码行为不变、同类码按同一语义路由；Kotlin 镜像枚举与映射同步并经 28 码投影等值测试验证。定向 451 项通过（ui-deliverables 的 1 项 symlink 失败为已知 Windows EPERM 环境类，非回归，由 CI 仲裁）；限定 lint、doc-sync 36/36、§45 追踪测试通过。
 

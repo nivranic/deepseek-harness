@@ -4,56 +4,20 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/RemoteFailureClass.kt",
-      "sha256": "780cd43f6906c31d276626d611907327e5122be52c9777a11a62eeb784863dcc"
-    },
-    {
-      "path": "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/RemoteFailureClasses.kt",
-      "sha256": "b60559c40f3433bc6a2fd56d2962fafbffcdc92542465bb59fae97fcc72b5079"
-    },
-    {
-      "path": "apps/android/contract/src/test/resources/generated/remote-failure-classes.json",
-      "sha256": "6b2b9f524bd1df701f6d8d17e65bbbefb23d48df54a8b31642ec6a23943b1d90"
-    },
-    {
-      "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "77b1ff7d839ae826671cdd485bce17225d57309f008a8f2538258a3d23395749"
+      "path": ".github/workflows/ci.yml",
+      "sha256": "80dc1262f9c53e2d253c9639fe7693ba49b9f18ab218ca44477ab85d25189d53"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "983e2312a7e333e87945a0d14325d5d3c341c891ccdbff98f825b53b8d3dc348"
+      "sha256": "c85ee11973603e2901136bce3348da1a9f5018b5158ed6ee2c69f8cb310fcd07"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "f9890fa94d3f6caeb6d0f6fc849880fd699161c2d5cc97edd01f377a9290d919"
+      "sha256": "6ea35b73eb2388a086de4c728bdc14a39b92a8d10da998956e59d92e4dfe8263"
     },
     {
-      "path": "packages/client/ui-deliverables/src/present-open.ts",
-      "sha256": "2e553de54cc4c743c59c579d0205911e5aedf6fc9b03a241e9df49cac90fb2a7"
-    },
-    {
-      "path": "packages/client/ui-workspace/src/client/rows/WorkspaceBrowser.tsx",
-      "sha256": "fe21a9fdaa48595010033a55841567269288e1bb62c4f889a5718eae45a6f9a4"
-    },
-    {
-      "path": "packages/typert/protocol/README.i18n.yaml",
-      "sha256": "c42482b7df64810d187b70fd584907797f4135faee0f0d057b9b2aed2b9c2afc"
-    },
-    {
-      "path": "packages/typert/protocol/README.md",
-      "sha256": "d974d0dcd1b402da81457e9667a2568c944cf36791f3fbaf0ad54e69d99f92fd"
-    },
-    {
-      "path": "packages/typert/protocol/README.zh.md",
-      "sha256": "d7bc0379e9107cfb982b7bac2eabce0cec006785473af618f6f6c055e94a4125"
-    },
-    {
-      "path": "packages/typert/protocol/src/failure-classes.ts",
-      "sha256": "e11592c0c3deb2926cecc2cc5ef6aee68be91c7e60af358bd68358ddc9cacf33"
-    },
-    {
-      "path": "packages/typert/protocol/tests/failure-classes.spec.ts",
-      "sha256": "d8b1107bc88b833958018e2f25d809bd921fe1de22fd10de4e86417db3dcb1da"
+      "path": "scripts/gen-remote-failure-classes-json.mjs",
+      "sha256": "2aa0452bee1ceebb19eb2a39d69a423a3834f05bdfc77e25fb033dd526287fff"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5394,6 +5358,24 @@
     },
     {
       "status": "PASS",
+      "command": "Swift package sources mirror 28 classified codes; resources equal the generator projection and the sealed schema (85 branches)",
+      "log": ".artifacts/apple-contract-doc-quick.log",
+      "sourceRecord": "artifacts/upstream-first/apple-contract-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 45 Swift-column update",
+      "log": ".artifacts/apple-contract-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/apple-contract-source.json"
+    },
+    {
+      "status": "IN_PROGRESS",
+      "command": "swift test on the macOS CI lane (dispatched; awaiting first run): mirror equality, vocabulary subset, opaque unknown branch, unclassified resolution",
+      "workflow": "ci.yml swift-contract job on macos-14",
+      "sourceRecord": "artifacts/upstream-first/apple-contract-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -5897,7 +5879,85 @@
     "installerQualified": false,
     "otherPlatformsQualified": false
   },
+  "appleContract": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/apple-contract-source.json",
+    "scope": "Swift contract package mirroring the failure classification with macOS CI lane; classification and schema-structure evidence only, no payload validator",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": "CI",
+    "swiftPayloadValidation": false,
+    "limitations": [
+      "The Swift evidence is structural: mirror equality, vocabulary subset, and schema-branch shape. Swift does not reimplement draft-2020-12 payload validation; the Ajv and networknt columns own that evidence.",
+      "swift test executes only on macOS; local Windows hosts cannot run it, so the check is PENDING_CI until the dispatched macos-14 lane reports.",
+      "No native shell, simulator, device, store packaging, or multi-version behavior is claimed; Session writer stays V3.",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "failureClassesAdoption": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/apple-contract-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/failure-classes-adoption-source.json",
     "scope": "Failure-classification vocabulary extension (invalid-input, unavailable additions) with first UI-surface adoption and Kotlin mirror sync; presentation semantics only",
@@ -8629,7 +8689,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/failure-classes-adoption-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/apple-contract-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -9112,7 +9172,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "f9890fa94d3f6caeb6d0f6fc849880fd699161c2d5cc97edd01f377a9290d919"
+        "sha256": "6ea35b73eb2388a086de4c728bdc14a39b92a8d10da998956e59d92e4dfe8263"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
