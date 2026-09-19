@@ -57,7 +57,7 @@ jobs:
         # the library objects. One serial build closes both.
         run: |
           swift --version
-          swift test -j1
+          swift test -j 1
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
