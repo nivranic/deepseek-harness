@@ -18,9 +18,15 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## Swift 契约列 CI 证据回收
+
+[当前来源记录](artifacts/upstream-first/swift-ci-recovery-source.json)把 swift-contract lane 的 PENDING_CI 落实为已执行的全绿证据：XCTest 包在托管 macOS runner 上无法稳定构建（macos-14 镜像对任何导入同级 Swift 模块的 SPM 测试目标非确定性失败，最小全新包在两套工具链与串行构建下复现；二十轮探针定界），改为单一可执行目标 dsh-contract-check 以退出码断言同样四项证据（镜像等值 28 码、已分类码均被 schema 声明、未分类解析 unknown、不透明分支排除全部 84 已知码），夹具移至 contract/fixtures/ 由生成脚本刷新。macos-15 lane（Swift 6.1.2，CI run 35450241173 job 105916046840）四项 PASS 全绿，日志随来源记录归档。
+
+镜像不再是可导入的库模块；未来 Swift 外壳消费生成 JSON 投影或在自身模块内重建镜像。Session writer 保持 V3。
+
 ## Android core 与 app 迁入契约构建
 
-[当前来源记录](artifacts/upstream-first/android-migration-source.json)把历史 companion 的 core 领域（Lite 折叠、Link/Noise 栈、handoff、支持导出、诊断）与 Compose 外壳原样迁入 apps/android：settings 组合 :contract/:core/:app，根声明 AGP 8.10.1 + Kotlin 2.2.21（apply false），product-version.properties 原样迁移。:core 37 个 JVM 测试类全绿；:app 配置通过；:app:assembleDebug 由 verifyScannerResources 门禁——支持扫描器 AAR（Go+NDK 链）未建，外壳编译证据未声明，模拟器 lane 待门禁解除。
+[历史来源记录](artifacts/upstream-first/android-migration-source.json)把历史 companion 的 core 领域（Lite 折叠、Link/Noise 栈、handoff、支持导出、诊断）与 Compose 外壳原样迁入 apps/android：settings 组合 :contract/:core/:app，根声明 AGP 8.10.1 + Kotlin 2.2.21（apply false），product-version.properties 原样迁移。:core 37 个 JVM 测试类全绿；:app 配置通过；:app:assembleDebug 由 verifyScannerResources 门禁——支持扫描器 AAR（Go+NDK 链）未建，外壳编译证据未声明，模拟器 lane 待门禁解除。
 
 迁入模块尚未消费 :contract，Gateway 失败分类接线随 Gateway 接线增量落地。Session writer 保持 V3。
 
