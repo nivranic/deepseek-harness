@@ -42,28 +42,18 @@ jobs:
   # job below.
   swift-contract:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    runs-on: macos-14
+    # The macos-14 image (deprecation scheduled 2026-11) fails swift test for
+    # ANY test target importing a sibling module — proven with a minimal fresh
+    # package on both installed toolchains ("could not build Objective-C
+    # module"), while library-only builds pass. macos-15 carries the lane.
+    runs-on: macos-15
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # Rounds ten and eleven proved test-target module imports fail under
-        # the 16.2 binary invocation even for a minimal fresh package, while
-        # library-only builds pass everywhere. The default PATH toolchain has
-        # not run the current manifest (v13 floor, excluded fixtures); if the
-        # minimal package passes there, the lane stays on the default.
         run: |
           swift --version
-          set -o pipefail
-          swift build --build-tests 2>&1 | tail -5 || {
-            echo '--- probe: minimal package with a test target on the default toolchain ---'
-            mkdir -p /tmp/mini3/Sources/Mini /tmp/mini3/Tests/MiniTests
-            cp Sources/DSHContract/*.swift /tmp/mini3/Sources/Mini/
-            printf 'import XCTest\n@testable import Mini\nfinal class MiniTests: XCTestCase {\n  func testMirror() { XCTAssertEqual(RemoteFailureClasses.classify("future/x"), RemoteFailureClass.unknown) }\n}\n' > /tmp/mini3/Tests/MiniTests/MiniTests.swift
-            printf '// swift-tools-version:5.9\nimport PackageDescription\nlet package = Package(name: "Mini", targets: [.target(name: "Mini"), .testTarget(name: "MiniTests")])\n' > /tmp/mini3/Package.swift
-            (cd /tmp/mini3 && swift test 2>&1 | tail -5; echo "mini3-exit=$?")
-            exit 1
-          }
+          swift build --build-tests
           swift test
         working-directory: apps/apple/contract
   node-24:
