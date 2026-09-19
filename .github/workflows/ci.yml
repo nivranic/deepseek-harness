@@ -51,15 +51,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # The test target's module emission races the library swiftmodule on
-        # the hosted runners (round 13 passed module emission, round 14 lost
-        # the same race on identical sources). Building the library target to
-        # completion first closes the window before the test module is planned.
+        # -j1 serializes the llbuild task queue: parallel module emission raced
+        # the test target's import of the just-written library swiftmodule, and
+        # a library-first two-step build then linked the test executable without
+        # the library objects. One serial build closes both.
         run: |
           swift --version
-          swift build --target DSHContract
-          swift build --build-tests
-          swift test
+          swift test -j1
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
