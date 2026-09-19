@@ -9,7 +9,7 @@ final class EnvelopeContractTests: XCTestCase {
     /// test target deliberately declares no resources, so SPM's resource-bundle
     /// accessor cannot reorder module emission on this toolchain.
     private struct Resources {
-        private static let directory = URL(fileURLWithPath: #filePath, isDirectory: false)
+        static let directory = URL(fileURLWithPath: #filePath, isDirectory: false)
             .deletingLastPathComponent()
             .appendingPathComponent("Resources", isDirectory: true)
         static let projection: [String: String] = {
