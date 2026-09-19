@@ -21,7 +21,7 @@ func readFixture(_ name: String) throws -> Data {
 }
 
 let mirror = Dictionary(
-    uniqueKeysWithValues: RemoteFailureClasses.byCode.map { ($0.key, $0.value.rawValue) },
+    RemoteFailureClasses.byCode.map { ($0.key, $0.value.rawValue) },
     uniquingKeysWith: { left, _ in left },
 )
 let projection = try JSONDecoder().decode([String: String].self, from: readFixture("remote-failure-classes.json"))
