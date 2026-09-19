@@ -21,7 +21,8 @@ const statuses = new Set(['NOT_STARTED', 'IN_PROGRESS', 'BLOCKED', 'PASS', 'FAIL
  */
 export function validateAudit(baseline, inventory, evidence, reviews, requireGate0 = false) {
   assert.match(baseline.upstream.sha, /^[0-9a-f]{40}$/u, 'invalid upstream SHA');
-  assert.equal(baseline.candidate.sha, baseline.upstream.sha, 'candidate baseline differs from captured upstream');
+  assert.ok(baseline.candidate.sha === baseline.upstream.sha || baseline.candidate.mergeBase === baseline.upstream.sha,
+    'candidate must be the captured upstream or record its merge base as the captured upstream');
   assert.equal(inventory.upstreamSha, baseline.upstream.sha, 'inventory upstream SHA mismatch');
   assert.equal(evidence.upstreamSha, baseline.upstream.sha, 'evidence upstream SHA mismatch');
   assert.equal(evidence.candidateSha, baseline.candidate.sha, 'evidence candidate SHA mismatch');
@@ -110,6 +111,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const baseline = read('UPSTREAM_DELTA.json');
   const currentHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   assert.equal(currentHead, baseline.candidate.sha, 'candidate HEAD changed; refresh the baseline');
+  execFileSync('git', ['merge-base', '--is-ancestor', baseline.upstream.sha, currentHead], { cwd: root, stdio: 'pipe' });
   for (const report of baseline.preservedReports) {
     assert.equal(createHash('sha256').update(readFileSync(report.path)).digest('hex'), report.sha256, 'preserved report changed');
   }

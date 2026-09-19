@@ -4822,9 +4822,10 @@
         "artifacts/upstream-first/readonly-schema-source.json",
         "artifacts/upstream-first/remote-validation-details-source.json",
         "artifacts/upstream-first/remote-error-envelope-schema-source.json",
-        "artifacts/upstream-first/remote-failure-classes-source.json"
+        "artifacts/upstream-first/remote-failure-classes-source.json",
+        "artifacts/upstream-first/android-contract-source.json"
       ],
-      "remaining": "84 个错误声明保持完整；校验诊断收敛为 code/message/path。正式 Remote 错误信封 JSON Schema（draft 2020-12）已生成并随协议包导出，未知码以 not-enum 排除全部已知码；本地 Ajv 消费与打包 tarball 验证五类真实 HTTP payload，元组详情被显式拒绝。词汇表 owner 现提供封闭 RemoteFailureClass 客户端分类（21 个一致语义码，未收录码保持 unknown 不透明呈现），网关 client 连接阶段判定已接入，分类与清单的一致性由 doc-sync 门禁机器校验。Swift/Kotlin 与已发布 Client 的消费、多版本 N/N-1/N-2 行为、UI 文案统一接入及设备矩阵仍未完成。",
+      "remaining": "84 个错误声明保持完整；校验诊断收敛为 code/message/path。正式 Remote 错误信封 JSON Schema（draft 2020-12）已生成并随协议包导出，未知码以 not-enum 排除全部已知码；本地 Ajv 消费与打包 tarball 验证五类真实 HTTP payload，元组详情被显式拒绝。词汇表 owner 提供封闭 RemoteFailureClass 客户端分类（21 个一致语义码），网关 client 连接阶段判定已接入，分类与清单一致性由 doc-sync 门禁机器校验。Kotlin 列已在 apps/android contract 模块落地：8 项 JVM 测试用 networknt 2020-12 校验器消费当前 schema、验证 5 个真实 HTTP payload、拒绝非法已知码详情，并证明 Kotlin 分类镜像与 TypeScript 权威投影一致。Swift 列、已发布 Client、多版本 N/N-1/N-2 行为、UI 文案统一接入及设备矩阵仍未完成。",
       "evidenceLimit": "当前代码的结构化转发、受控未知 Remote envelope 和 Windows/Chrome 本地化恢复已核验；正式信封 schema 目前只有本地 Node 生成与 tarball 消费证据，不等于实际新旧应用互通、完整未知码语义、Swift/Kotlin 消费或原生设备验收。"
     },
     {

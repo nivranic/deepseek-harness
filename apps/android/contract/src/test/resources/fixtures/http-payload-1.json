@@ -1,0 +1,16 @@
+{
+  "code": "gateway/bad-request",
+  "message": "invalid payload for credentials.describe",
+  "details": {
+    "issues": [
+      {
+        "code": "invalid_format",
+        "message": "Invalid string: must match pattern /^[A-Za-z_][A-Za-z0-9_]*$/",
+        "path": [
+          "refs",
+          0
+        ]
+      }
+    ]
+  }
+}

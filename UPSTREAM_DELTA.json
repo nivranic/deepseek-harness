@@ -15,7 +15,8 @@
   "candidate": {
     "path": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first",
     "branch": "agents/upstream-first",
-    "sha": "c291e7961a515f6d7af9304e7fd1d257929aef26"
+    "sha": "a80e0216bcc4f5b61f61286f050bd7a4611e0953",
+    "mergeBase": "c291e7961a515f6d7af9304e7fd1d257929aef26"
   },
   "preservedReports": [
     {
@@ -223326,7 +223327,7 @@
       "path": "E:/Mix/project/deepseek-harness/.worktrees/upstream-first",
       "branch": "refs/heads/agents/upstream-first",
       "detached": false,
-      "head": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+      "head": "a80e0216bcc4f5b61f61286f050bd7a4611e0953",
       "mergeBase": "c291e7961a515f6d7af9304e7fd1d257929aef26",
       "ahead": 0,
       "behind": 0,

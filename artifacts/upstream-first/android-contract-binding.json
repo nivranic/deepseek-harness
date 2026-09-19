@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-contract-source.json",
+    "sha256": "0c88657c90bcd7a7cd3fe31f9f72dbde8ea2e44dd20996a48b1c37e40f6272e7"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0362585d3538658c8556c764bb6c07651a008ab6cab0e4f65a4a3ff710f669c3"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-contract-binding.mjs",
+    "sha256": "1b9409faaa13f1c00ebfa1627d52e8d75aa3370383e53a06a4590ddfed4f040f"
+  }
+}

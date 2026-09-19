@@ -1,0 +1,23 @@
+{
+  "gateway/authentication-required": "authentication",
+  "gateway/permission-denied": "permission",
+  "subagent/unauthorized": "permission",
+  "gateway/host-not-ready": "host-state",
+  "gateway/protocol-unsupported": "compatibility",
+  "host/protocol-unsupported": "compatibility",
+  "host/capability-unavailable": "compatibility",
+  "host/description-invalid": "carrier-invalid",
+  "gateway/preparation-unavailable": "carrier-invalid",
+  "gateway/stream-invalid": "carrier-invalid",
+  "gateway/transport-interrupted": "transport",
+  "gateway/connection-unavailable": "transport",
+  "revision-conflict": "conflict",
+  "session/revision-conflict": "conflict",
+  "session/not-found": "unavailable",
+  "session/queue-item-not-found": "unavailable",
+  "subagent/not-found": "unavailable",
+  "agent-preset/not-found": "unavailable",
+  "workspace/not-found": "unavailable",
+  "workspace-file/not-found": "unavailable",
+  "presented-file/not-found": "unavailable"
+}

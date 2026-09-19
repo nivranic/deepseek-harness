@@ -27,7 +27,7 @@ ahead/behind 相对于官方 HEAD；dirty 列为 tracked status 记录数 / untr
 | detached | `74f683dd2a73b325eeb3cb0a16a7e36b142099fe` | 422/2285 | 0/0 |
 | agents/session-storage-migration | `16482eec880f40bb472c9328acf5a8819bc988f9` | 430/2285 | 0/0 |
 | agents/settings-storage-migration | `5144db97e5dbca6966053b7ad53baeff2ccfcd1c` | 429/2285 | 0/0 |
-| agents/upstream-first | `c291e7961a515f6d7af9304e7fd1d257929aef26` | 0/0 | 0/1 |
+| agents/upstream-first | `a80e0216bcc4f5b61f61286f050bd7a4611e0953` | 0/0 | 0/1 |
 | agents/windows-application-source | `faef020b9afedfafc025d459f1f672650f8f3945` | 424/2285 | 0/0 |
 
 共同历史基线：`cd5ef8148158c3a752a658978873241fdf8e2bbc`。dev 独有 157 个提交；旧 Goal 主工作树独有 413 个提交；Session 迁移来源独有 430 个提交。三者均落后官方 2285 个提交。

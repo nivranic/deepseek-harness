@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Kotlin JVM consumption of the formal envelope schema and failure classification in apps/android; native shell and multi-version qualification remain unproven; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-contract-source.json",
+    "sha256": "0c88657c90bcd7a7cd3fe31f9f72dbde8ea2e44dd20996a48b1c37e40f6272e7"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0362585d3538658c8556c764bb6c07651a008ab6cab0e4f65a4a3ff710f669c3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-contract-binding.json",
+    "sha256": "609baf08ddf1c005027e6051866f24897354d18257f5ea1bb31df88c4c9f49ec"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-contract-reports.mjs",
+      "sha256": "47f41ad2d5e992f0f4ed262963d62afc3dff9431324cf6e09810a1341effc501"
+    },
+    {
+      "path": ".artifacts/capture-android-contract-validation.mjs",
+      "sha256": "11bf99955f0ff145bfbb3663175ab67883b2240487ab29d8e6ecf67c02219636"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7bf9b03a3f319dd35a92cf1449c43666191ab80e2954f84d309881cbc2da84fb"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e97e21676a64ebcb11a6a4e65dd8d44a6e072b67ebfeb409927aeb0b7801a587"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-contract-binding.log",
+      "sha256": "c9faa3f08bacd034306e01fa1bc5b17af9fa20afb379484faf9bfea9a27f143b"
+    },
+    {
+      "path": ".artifacts/android-contract-audit-tests.log",
+      "sha256": "057f6caf2e1c6ed4fd85c10e37dfbe1d705bc1123f0febbe0a35631f68c565b0"
+    },
+    {
+      "path": ".artifacts/android-contract-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-contract-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-contract-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

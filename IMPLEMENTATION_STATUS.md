@@ -18,9 +18,17 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## Kotlin 契约列与 apps/android 起步
+
+[当前来源记录](artifacts/upstream-first/android-contract-source.json)在 apps/android 建立全新 Gradle 工程（Gradle 8.14、Kotlin 2.2.21），首个 contract 模块以 Kotlin JVM 库镜像候选 Remote 失败契约：RemoteFailureClass 枚举与 RemoteFailureClasses.classify 镜像 TypeScript 权威，未收录码解析为 UNKNOWN 不透明呈现；schema 在测试期直接从协议包复制，分类投影由 scripts/gen-remote-failure-classes-json.mjs 生成并提交，漂移由测试拒绝。
+
+8 项 JUnit 测试（networknt 2020-12 校验器）验证 schema 结构（84 已知分支 + 1 不透明未知分支）、5 个真实录制 HTTP payload、未知未来码保持不透明、非法已知码详情被拒、缺 message 被拒、Kotlin 镜像与 TypeScript 投影一致、分类只引用已声明码。双语文档与配对、doc-quick 17/17、doc-sync 36/36 通过。
+
+CI 通道同步解锁：候选分支的 ci.yml 增加 workflow_dispatch 并放宽 job 事件条件（因候选基于 upstream 基线与 origin/master 冲突、PR merge ref 无法创建），已通过 API 调度在分支 ref 上运行九作业 lane。Kotlin 证据仅为本地 JVM 测试，非安装应用、模拟器或真机资格；原生外壳尚未迁入，Swift 列与多版本行为仍未完成。
+
 ## Remote 失败码的共享 Client 分类
 
-[当前来源记录](artifacts/upstream-first/remote-failure-classes-source.json)在词汇表 owner @deepseek-ai/dsh-typert-protocol 中建立封闭 RemoteFailureClass 分类：authentication、permission、host-state、compatibility、carrier-invalid、transport、conflict、unavailable、unknown。classifyRemoteFailureCode/classifyRemoteFailure 把码映射到这些呈现语义；映射只收录已有跨 Client 一致含义的 21 个码，可合并扩展词汇表的其余码（包括所有未来码）有意解析为 unknown，按不透明诊断呈现，不推断恢复动作或权限。
+[历史来源记录](artifacts/upstream-first/remote-failure-classes-source.json)在词汇表 owner @deepseek-ai/dsh-typert-protocol 中建立封闭 RemoteFailureClass 分类：authentication、permission、host-state、compatibility、carrier-invalid、transport、conflict、unavailable、unknown。classifyRemoteFailureCode/classifyRemoteFailure 把码映射到这些呈现语义；映射只收录已有跨 Client 一致含义的 21 个码，可合并扩展词汇表的其余码（包括所有未来码）有意解析为 unknown，按不透明诊断呈现，不推断恢复动作或权限。
 
 网关 client 的 classifyFailure 改为消费该分类：compatibility 投影为 incompatible、carrier-invalid 投影为 fatal，其余类别保持默认重连行为；对原有已分类码的可观察行为不变，133 项网关 client 测试原样通过。scripts/verify-remote-error-model.ts 新增 verifyRemoteFailureClassification，analyzeRemoteErrorWorkspace 在 doc-sync 的 verify-remote-error-envelope 门禁内执行它，分类引用未声明码即失败，分类因此无法脱离清单漂移。
 

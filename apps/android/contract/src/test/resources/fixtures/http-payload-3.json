@@ -1,0 +1,15 @@
+{
+  "code": "gateway/bad-request",
+  "message": "invalid payload for subagent.list",
+  "details": {
+    "issues": [
+      {
+        "code": "too_small",
+        "message": "Too small: expected string to have >=1 characters",
+        "path": [
+          "parentSessionId"
+        ]
+      }
+    ]
+  }
+}
