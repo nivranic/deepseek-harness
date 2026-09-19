@@ -5,7 +5,7 @@ import type {} from '@deepseek-ai/dsh-api-workspace-files'
 import type {} from '@deepseek-ai/dsh-fs'
 import type {} from '@deepseek-ai/dsh-sandbox-policy'
 import type {} from '@deepseek-ai/dsh-session-query'
-import { remoteErrorOf, Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import { classifyRemoteFailureCode, remoteErrorOf, Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { SessionSeq } from '@deepseek-ai/dsh-session'
 import { PRESENTED_FILE_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { isPresentedData, isPresentedFile } from './presented.ts'
@@ -102,8 +102,7 @@ export class PresentedFiles extends TypertRemoteService {
       signal.throwIfAborted()
       const remote = remoteErrorOf(error)
       if (remote?.code.startsWith('presented-file/')) throw error
-      const missing = remote?.code === 'session/not-found' || remote?.code === 'workspace-file/not-found'
-        || remote?.code === 'workspace-file/not-regular-file' || error instanceof Error && 'code' in error
+      const missing = remote !== undefined && classifyRemoteFailureCode(remote.code) === 'unavailable' || error instanceof Error && 'code' in error
         && (error.code === 'SESSION_QUERY_SESSION_NOT_FOUND' || error.code === 'SESSION_QUERY_EVENT_NOT_FOUND'
           || error.code === 'ENOENT' || error.code === 'ENOTDIR')
       throw new RemoteError(missing ? 'presented-file/not-found' : 'presented-file/action-failed', 'Presented file unavailable.', {})

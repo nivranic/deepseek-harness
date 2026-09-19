@@ -34,6 +34,13 @@ object RemoteFailureClasses {
         "workspace/not-found" to RemoteFailureClass.UNAVAILABLE,
         "workspace-file/not-found" to RemoteFailureClass.UNAVAILABLE,
         "presented-file/not-found" to RemoteFailureClass.UNAVAILABLE,
+        "workspace-file/not-regular-file" to RemoteFailureClass.UNAVAILABLE,
+        "workspace-file/not-directory" to RemoteFailureClass.UNAVAILABLE,
+        "session/attachment-invalid" to RemoteFailureClass.INVALID_INPUT,
+        "subagent/attachment-invalid" to RemoteFailureClass.INVALID_INPUT,
+        "session/title-invalid" to RemoteFailureClass.INVALID_INPUT,
+        "agent-preset/invalid" to RemoteFailureClass.INVALID_INPUT,
+        "workspace/invalid-path" to RemoteFailureClass.INVALID_INPUT,
     )
 
     /**

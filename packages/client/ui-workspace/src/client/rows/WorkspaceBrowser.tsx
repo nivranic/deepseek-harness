@@ -11,7 +11,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
+import { classifyRemoteFailure } from '@deepseek-ai/dsh-typert-protocol'
 import {
   Button, IconCloseFill14, IconPersonalizationOutline16,
   IconProjectAddOutline16, IconSearchOutline16, Menu, Modal, Tooltip,
@@ -1102,7 +1102,7 @@ export function WorkspaceBrowser({
     }).catch((reason: unknown) => {
       if (currentHost.current !== host) return
       setSessionRenaming(false)
-      setSessionRenameError(remoteErrorOf(reason)?.code === 'session/revision-conflict'
+      setSessionRenameError(classifyRemoteFailure(reason) === 'conflict'
         ? t('rename.session.conflict')
         : reason instanceof Error ? reason.message : String(reason))
     })

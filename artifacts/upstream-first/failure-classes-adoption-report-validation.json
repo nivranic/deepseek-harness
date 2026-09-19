@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Classification vocabulary extension with first UI adoption and Kotlin mirror sync; remaining surfaces, N-2 tier, Swift column and multi-version qualification remain unproven; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/failure-classes-adoption-source.json",
+    "sha256": "9b2571e44ce64110a5ae79f70b9d27d8ad46e41508f35be02fd09b68aa9afb9c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f9890fa94d3f6caeb6d0f6fc849880fd699161c2d5cc97edd01f377a9290d919"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/failure-classes-adoption-binding.json",
+    "sha256": "bb1d1c9171d6c1360736333f902caec18da7f96e1105027c246e2654742377b5"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-failure-classes-adoption-reports.mjs",
+      "sha256": "b52a28ad8a239700f9b3f131550d24886ff4401ccc249f5a6f76d19939622527"
+    },
+    {
+      "path": ".artifacts/capture-failure-classes-adoption-validation.mjs",
+      "sha256": "6574fd12ba19fcd99520672e2b3c1346ac473b0c694d1a2b5ea91dd69325249a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "714f926aef8e7039c37aa56948f87b5cbd6e8d6bc04bfee78ceb053913f36eb5"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "2ad1f4215168511777554c56e85959584e174fcd1fc30e069db7c587fd292252"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/failure-classes-adoption-binding.log",
+      "sha256": "38aece2be79bbe70c7b23f2b77c0676c0b1f9f6863c7d6ebad0779b26ea959aa"
+    },
+    {
+      "path": ".artifacts/failure-classes-adoption-audit-tests.log",
+      "sha256": "9c25320f0a020dce82c520d195f46b2a45edb7f3a91dd57dee763b5c5e381e4c"
+    },
+    {
+      "path": ".artifacts/failure-classes-adoption-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/failure-classes-adoption-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/failure-classes-adoption-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

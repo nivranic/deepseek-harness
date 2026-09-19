@@ -18,9 +18,17 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## 失败分类的扩展与首批 UI 采纳
+
+[当前来源记录](artifacts/upstream-first/failure-classes-adoption-source.json)把共享分类扩展为 9 类 28 码：新增 invalid-input（调用方输入非法，原样重试不可能成功）并纳入 attachment/title/preset/workspace 路径校验码，unavailable 族补充 not-regular-file 与 not-directory。session/steer-unavailable 有意保持未分类——静默跳过消费者具有类检查会不当放大的 owner 语义。
+
+ui-workspace 的会话重命名冲突分支与 ui-deliverables 的呈现文件缺失映射改为消费 classifyRemoteFailure/classifyRemoteFailureCode，对既有码行为不变、同类码按同一语义路由；Kotlin 镜像枚举与映射同步并经 28 码投影等值测试验证。定向 451 项通过（ui-deliverables 的 1 项 symlink 失败为已知 Windows EPERM 环境类，非回归，由 CI 仲裁）；限定 lint、doc-sync 36/36、§45 追踪测试通过。
+
+其余 client 表面、N-2 诊断层级、Swift 列与多版本行为仍未完成；分类仍不授予能力、权限、重试或版本准入，Session writer 保持 V3。
+
 ## Kotlin 契约列与 apps/android 起步
 
-[当前来源记录](artifacts/upstream-first/android-contract-source.json)在 apps/android 建立全新 Gradle 工程（Gradle 8.14、Kotlin 2.2.21），首个 contract 模块以 Kotlin JVM 库镜像候选 Remote 失败契约：RemoteFailureClass 枚举与 RemoteFailureClasses.classify 镜像 TypeScript 权威，未收录码解析为 UNKNOWN 不透明呈现；schema 在测试期直接从协议包复制，分类投影由 scripts/gen-remote-failure-classes-json.mjs 生成并提交，漂移由测试拒绝。
+[历史来源记录](artifacts/upstream-first/android-contract-source.json)在 apps/android 建立全新 Gradle 工程（Gradle 8.14、Kotlin 2.2.21），首个 contract 模块以 Kotlin JVM 库镜像候选 Remote 失败契约：RemoteFailureClass 枚举与 RemoteFailureClasses.classify 镜像 TypeScript 权威，未收录码解析为 UNKNOWN 不透明呈现；schema 在测试期直接从协议包复制，分类投影由 scripts/gen-remote-failure-classes-json.mjs 生成并提交，漂移由测试拒绝。
 
 8 项 JUnit 测试（networknt 2020-12 校验器）验证 schema 结构（84 已知分支 + 1 不透明未知分支）、5 个真实录制 HTTP payload、未知未来码保持不透明、非法已知码详情被拒、缺 message 被拒、Kotlin 镜像与 TypeScript 投影一致、分类只引用已声明码。双语文档与配对、doc-quick 17/17、doc-sync 36/36 通过。
 

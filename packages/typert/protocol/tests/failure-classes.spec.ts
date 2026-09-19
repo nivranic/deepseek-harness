@@ -20,6 +20,11 @@ describe('classifyRemoteFailureCode', () => {
     expect(classifyRemoteFailureCode('session/not-found')).toBe('unavailable')
     expect(classifyRemoteFailureCode('workspace-file/not-found')).toBe('unavailable')
     expect(classifyRemoteFailureCode('presented-file/not-found')).toBe('unavailable')
+    expect(classifyRemoteFailureCode('workspace-file/not-regular-file')).toBe('unavailable')
+    expect(classifyRemoteFailureCode('session/queue-item-not-found')).toBe('unavailable')
+    expect(classifyRemoteFailureCode('session/attachment-invalid')).toBe('invalid-input')
+    expect(classifyRemoteFailureCode('subagent/attachment-invalid')).toBe('invalid-input')
+    expect(classifyRemoteFailureCode('workspace/invalid-path')).toBe('invalid-input')
   })
 
   it('keeps merge-extensible vocabulary codes opaque instead of guessing', () => {

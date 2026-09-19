@@ -24,6 +24,8 @@ export type RemoteFailureClass =
   | 'conflict'
   /** The addressed target does not exist (anymore) on the Host. */
   | 'unavailable'
+  /** The caller's input is invalid; the unchanged request cannot succeed. */
+  | 'invalid-input'
   /** Opaque diagnostic: an unclassified code that must stay presentable unchanged. */
   | 'unknown'
 
@@ -54,7 +56,14 @@ export const REMOTE_FAILURE_CLASSES: Readonly<Record<string, RemoteFailureClass>
   'agent-preset/not-found': 'unavailable',
   'workspace/not-found': 'unavailable',
   'workspace-file/not-found': 'unavailable',
+  'workspace-file/not-regular-file': 'unavailable',
+  'workspace-file/not-directory': 'unavailable',
   'presented-file/not-found': 'unavailable',
+  'session/attachment-invalid': 'invalid-input',
+  'subagent/attachment-invalid': 'invalid-input',
+  'session/title-invalid': 'invalid-input',
+  'agent-preset/invalid': 'invalid-input',
+  'workspace/invalid-path': 'invalid-input',
 }
 
 /**

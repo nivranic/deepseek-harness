@@ -32,6 +32,9 @@ enum class RemoteFailureClass(val WIRE: String) {
     /** The addressed target does not exist (anymore) on the Host. */
     UNAVAILABLE("unavailable"),
 
+    /** The caller's input is invalid; the unchanged request cannot succeed. */
+    INVALID_INPUT("invalid-input"),
+
     /** Opaque diagnostic; present code, message and details unchanged. */
     UNKNOWN("unknown"),
 }

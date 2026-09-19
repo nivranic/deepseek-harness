@@ -70,7 +70,7 @@ throw new RemoteError('goal/not-found', `goal "${id}" does not exist`, { goalId:
 
 [Remote 失败 JSON Schema](remote-errors.schema.json)验证 `code`、`message` 与对象 `details`。已知码选择生成的详情 schema；未知码保留不透明的对象诊断，非法的已知码不能使用该兜底分支。输入验证接受扩展字段，不修改原始诊断。通过 `pnpm run gen-remote-error-envelope` 重新生成；`doc-sync` 中的 `verify-remote-error-envelope` 校验独立清单、解析后的详情根、跨面一致性和产物新鲜度。参见[生成器 API](../generator/README.zh.md#analyzing-a-workspace-statically)。当前转换器省略元组元素数量约束，因此元组详情会使生成失败。消费方需要支持 `not` 的完整 draft-2020-12 验证器；Zod 的 JSON Schema 反向转换不支持该关键字。
 
-`classifyRemoteFailureCode(code)`——对已捕获的值使用 `classifyRemoteFailure(error)`——把错误码映射到全部 Client 共享的封闭 `RemoteFailureClass` 呈现语义：`authentication`、`permission`、`host-state`、`compatibility`、`carrier-invalid`、`transport`、`conflict`、`unavailable` 与 `unknown`。分类只收录已有跨 Client 一致含义的码；可合并扩展的词汇表有意把其余的码（包括所有未来码）留在 `unknown`，按不透明诊断呈现，不推断恢复动作或权限。仓库 `verify-remote-error-envelope` 门禁拒绝引用未声明码的分类。
+`classifyRemoteFailureCode(code)`——对已捕获的值使用 `classifyRemoteFailure(error)`——把错误码映射到全部 Client 共享的封闭 `RemoteFailureClass` 呈现语义：`authentication`、`permission`、`host-state`、`compatibility`、`carrier-invalid`、`transport`、`conflict`、`unavailable`、`invalid-input` 与 `unknown`。分类只收录已有跨 Client 一致含义的码；可合并扩展的词汇表有意把其余的码（包括所有未来码）留在 `unknown`，按不透明诊断呈现，不推断恢复动作或权限。仓库 `verify-remote-error-envelope` 门禁拒绝引用未声明码的分类。
 
 `gateway/bad-request` 可携带 `RemoteValidationIssue` 条目，字段为 `code`、`message` 与 `path`（字符串键或数字索引）。拥有方通过 `remoteValidationIssues` 从验证器结果复制这些字段；symbol 路径键转为诊断字符串。验证器专用元数据和输入值被省略。诊断文字仍由拥有方提供，此辅助函数不对消息脱敏。
 
