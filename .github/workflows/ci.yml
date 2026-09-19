@@ -51,8 +51,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
+        # The test target's module emission races the library swiftmodule on
+        # the hosted runners (round 13 passed module emission, round 14 lost
+        # the same race on identical sources). Building the library target to
+        # completion first closes the window before the test module is planned.
         run: |
           swift --version
+          swift build --target DSHContract
           swift build --build-tests
           swift test
         working-directory: apps/apple/contract
