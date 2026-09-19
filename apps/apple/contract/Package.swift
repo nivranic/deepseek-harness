@@ -6,6 +6,6 @@ let package = Package(
     platforms: [.macOS(.v13)],
     targets: [
         .target(name: "DSHContract"),
-        .testTarget(name: "DSHContractTests", resources: [.copy("Resources/")]),
+        .testTarget(name: "DSHContractTests", resources: [.copy("Resources")]),
     ]
 )

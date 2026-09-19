@@ -47,13 +47,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # Xcode 15.4's Swift 5.10 emits no diagnostics when the DSHContract
-        # emit-module frontend dies on this image; 16.2 is also installed and
-        # builds the same swift-5-language-mode package.
+        # Xcode 15.4 and 16.2 both fail the DSHContract emit-module frontend
+        # with exit 1 and zero diagnostics; 16.2 also shows the test module
+        # losing the race for the library swiftmodule. The probe dumps build
+        # products and the response file when the build fails again.
         run: |
           swift --version
           DEVELOPER_DIR=/Applications/Xcode_16.2.app swift --version
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build -v --build-tests
+          set -o pipefail
+          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build -v --build-tests 2>&1 | tee build.log || {
+            echo '--- probe: build products ---'
+            find .build -name '*.swiftmodule' -o -name 'module.modulemap' -o -name '*Swift.h' | head -30
+            echo '--- probe: DSHContract sources response file ---'
+            cat .build/arm64-apple-macosx/debug/DSHContract.build/sources 2>/dev/null || true
+            exit 1
+          }
           DEVELOPER_DIR=/Applications/Xcode_16.2.app swift test
         working-directory: apps/apple/contract
   node-24:
