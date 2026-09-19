@@ -47,19 +47,22 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # Xcode 15.4 and 16.2 both fail the DSHContract emit-module frontend
-        # with exit 1 and zero diagnostics; 16.2 also shows the test module
-        # losing the race for the library swiftmodule. The probe dumps build
-        # products and the response file when the build fails again.
+        # The DSHContract emit-module frontend exits 1 with zero output under
+        # both installed toolchains; the standalone probes rerun module
+        # emission outside llbuild to surface the real diagnostic.
         run: |
           swift --version
           DEVELOPER_DIR=/Applications/Xcode_16.2.app swift --version
           set -o pipefail
           DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build -v --build-tests 2>&1 | tee build.log || {
+            echo '--- probe: standalone emit-module ---'
+            DEVELOPER_DIR=/Applications/Xcode_16.2.app swiftc -module-name DSHContract -emit-module -enable-testing -swift-version 5 -Onone Sources/DSHContract/RemoteFailureClass.swift Sources/DSHContract/RemoteFailureClasses.swift -o /tmp/DSH.swiftmodule 2>&1; echo "standalone-exit=$?"
+            echo '--- probe: RemoteFailureClass alone ---'
+            DEVELOPER_DIR=/Applications/Xcode_16.2.app swiftc -module-name DSHContract -emit-module -enable-testing -swift-version 5 -Onone Sources/DSHContract/RemoteFailureClass.swift -o /tmp/DSH1.swiftmodule 2>&1; echo "class-exit=$?"
+            echo '--- probe: RemoteFailureClasses alone ---'
+            DEVELOPER_DIR=/Applications/Xcode_16.2.app swiftc -module-name DSHContract -emit-module -enable-testing -swift-version 5 -Onone Sources/DSHContract/RemoteFailureClasses.swift -o /tmp/DSH2.swiftmodule 2>&1; echo "classes-exit=$?"
             echo '--- probe: build products ---'
-            find .build -name '*.swiftmodule' -o -name 'module.modulemap' -o -name '*Swift.h' | head -30
-            echo '--- probe: DSHContract sources response file ---'
-            cat .build/arm64-apple-macosx/debug/DSHContract.build/sources 2>/dev/null || true
+            find .build -name '*.swiftmodule' -o -name 'module.modulemap' -o -name '*Swift.h' | grep -v ModuleCache | head -30
             exit 1
           }
           DEVELOPER_DIR=/Applications/Xcode_16.2.app swift test
