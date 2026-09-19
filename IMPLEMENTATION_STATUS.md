@@ -18,9 +18,13 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## 扫描器 AAR 链与 Android 外壳解锁
+
+[当前来源记录](artifacts/upstream-first/scanner-aar-source.json)在本机闭合扫描器 AAR 链：Go 1.27.1 与经 sdkmanager 安装的 NDK 30.0.16248370 按 native/support-scanner/build.json 精确版本运行已提交构建器，产出 8,133,055 字节的 support-scanner.aar（sha256 5af7b7b9…9976），staticVerification PASS（模块图逐 ABI 一致、许可证清单、来源断言、私有路径扫描）；:app:assembleDebug 通过 verifyScannerResources 门禁（回执 sourceSha 与内嵌 manifest 校验），APK 在本地模拟器 AVD 上安装、启动并保持 MainActivity resumed、零崩溃缓冲。不可达的 sum/proxy 端点与 360 主动防御经模块缓存预置（goproxy.cn 镜像）、预置 go.sum、子进程 GOSUMDB=off 与剥离符号链接绕开，内容完整性仍由 ziphash、go mod verify 与来源断言保证（Agent Note 2026-09-20-scanner-toolchain-host-accommodations）。回执中 deviceExecution 仍为 NOT_EXECUTED：扫描器库本体未在设备上调用，冒烟仅覆盖内嵌外壳。
+
 ## 浏览器响应式矩阵与手机层抽屉
 
-[当前来源记录](artifacts/upstream-first/responsive-phone-drawer-source.json)以 chrome-devtools 实测矩阵收口 §6/§7 断点族：低于 600px 时框架完全放弃侧边栏轨道（三列显式 grid-column 1/2/3，脱离文档流的抽屉列不再滑动后续轨道），对话区横向占满，展开侧栏以 280px 悬浮抽屉呈现，遮罩点击与 Esc 同径关闭；输入框左端由媒体查询控制的 32px 开关占用 session-maybe 的 conversation.input.left 列表席位，空白首页亦可导航。恰好 600px 回归轨道层，720/960 折叠轨与 1440 桌面布局实测不变。三包 603 项组件测试、lint、typecheck、catalog 与 doc-sync 36 门全绿。视觉通道本会话不可用，验收以观测日志中的 DOM 几何断言为准，截图留存人工复核。
+[历史来源记录](artifacts/upstream-first/responsive-phone-drawer-source.json)以 chrome-devtools 实测矩阵收口 §6/§7 断点族：低于 600px 时框架完全放弃侧边栏轨道（三列显式 grid-column 1/2/3，脱离文档流的抽屉列不再滑动后续轨道），对话区横向占满，展开侧栏以 280px 悬浮抽屉呈现，遮罩点击与 Esc 同径关闭；输入框左端由媒体查询控制的 32px 开关占用 session-maybe 的 conversation.input.left 列表席位，空白首页亦可导航。恰好 600px 回归轨道层，720/960 折叠轨与 1440 桌面布局实测不变。三包 603 项组件测试、lint、typecheck、catalog 与 doc-sync 36 门全绿。视觉通道本会话不可用，验收以观测日志中的 DOM 几何断言为准，截图留存人工复核。
 
 ## 诊断层级协议塔量
 
