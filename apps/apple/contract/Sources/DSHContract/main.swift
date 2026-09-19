@@ -14,6 +14,7 @@ func checkFailure(_ message: String) -> Never {
 let fixtures = URL(fileURLWithPath: #filePath, isDirectory: false)
     .deletingLastPathComponent()
     .deletingLastPathComponent()
+    .deletingLastPathComponent()
     .appendingPathComponent("fixtures", isDirectory: true)
 
 func readFixture(_ name: String) throws -> Data {
