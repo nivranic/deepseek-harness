@@ -47,13 +47,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # --disable-sandbox: SwiftPM's seatbelt sandbox kills swift-frontend
-        # children with exit 1 and no diagnostics on this runner image; the
-        # sandbox only guards manifest plugins, which this package does not use.
+        # Xcode 15.4's Swift 5.10 emits no diagnostics when the DSHContract
+        # emit-module frontend dies on this image; 16.2 is also installed and
+        # builds the same swift-5-language-mode package.
         run: |
           swift --version
-          swift build --build-tests --disable-sandbox
-          swift test --disable-sandbox
+          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift --version
+          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build -v --build-tests
+          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift test
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
