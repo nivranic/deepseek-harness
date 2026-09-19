@@ -47,16 +47,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # The test target declares no resources on purpose: SPM's resource-bundle
-        # accessor reordered module emission on this image and the test module
-        # raced the library swiftmodule ("no such module 'DSHContract'"). The
-        # tests read fixtures from the source tree via #filePath instead.
+        # Invoke the 16.2 toolchain's swift binary directly: DEVELOPER_DIR only
+        # retargets compilation, so the 5.10 driver on PATH kept planning the
+        # old module layout while the 6.0.3 compiler wrote Modules/ — the test
+        # target then never found the library module.
         run: |
-          swift --version
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift --version
-          set -o pipefail
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build --build-tests 2>&1 | tail -5
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift test
+          /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/swift --version
+          /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/swift build --build-tests
+          /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/swift test
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
