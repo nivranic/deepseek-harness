@@ -52,9 +52,10 @@ jobs:
         # old module layout while the 6.0.3 compiler wrote Modules/ — the test
         # target then never found the library module.
         run: |
-          /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/swift --version
-          /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/swift build --build-tests
-          /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/swift test
+          SWIFT=/Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift
+          "$SWIFT" --version
+          "$SWIFT" build --build-tests
+          "$SWIFT" test
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
