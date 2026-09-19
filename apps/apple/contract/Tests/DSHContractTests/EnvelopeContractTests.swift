@@ -5,13 +5,19 @@ import XCTest
 /// classification mirror equals the generated projection of the TypeScript
 /// authority and references only codes the published envelope schema declares.
 final class EnvelopeContractTests: XCTestCase {
+    /// Resources resolve from the source tree rather than a bundle copy: the
+    /// test target deliberately declares no resources, so SPM's resource-bundle
+    /// accessor cannot reorder module emission on this toolchain.
     private struct Resources {
+        private static let directory = URL(fileURLWithPath: #filePath, isDirectory: false)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Resources", isDirectory: true)
         static let projection: [String: String] = {
-            let url = Bundle.module.url(forResource: "Resources/remote-failure-classes", withExtension: "json")!
+            let url = directory.appendingPathComponent("remote-failure-classes.json")
             return try! JSONDecoder().decode([String: String].self, from: Data(contentsOf: url))
         }()
         static func schemaKnownCodes() throws -> Set<String> {
-            let url = Bundle.module.url(forResource: "Resources/remote-errors", withExtension: "json")!
+            let url = directory.appendingPathComponent("remote-errors.json")
             let object = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
             let branches = object["anyOf"] as! [[String: Any]]
             let known = branches.dropLast().map { branch in
@@ -41,7 +47,7 @@ final class EnvelopeContractTests: XCTestCase {
     }
 
     func testSchemaDeclaresAnOpaqueUnknownBranch() throws {
-        let url = Bundle.module.url(forResource: "Resources/remote-errors", withExtension: "json")!
+        let url = Resources.directory.appendingPathComponent("remote-errors.json")
         let object = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
         let branches = object["anyOf"] as! [[String: Any]]
         let unknown = branches.last!

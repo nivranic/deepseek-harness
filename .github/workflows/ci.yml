@@ -47,29 +47,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # The DSHContract emit-module frontend exits 1 with zero output under
-        # both installed toolchains; the standalone probes rerun module
-        # emission outside llbuild to surface the real diagnostic.
+        # The test target declares no resources on purpose: SPM's resource-bundle
+        # accessor reordered module emission on this image and the test module
+        # raced the library swiftmodule ("no such module 'DSHContract'"). The
+        # tests read fixtures from the source tree via #filePath instead.
         run: |
           swift --version
           DEVELOPER_DIR=/Applications/Xcode_16.2.app swift --version
           set -o pipefail
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build -v --build-tests 2>&1 | tee build.log || {
-            echo '--- probe: standalone emit-module ---'
-            DEVELOPER_DIR=/Applications/Xcode_16.2.app swiftc -module-name DSHContract -emit-module -enable-testing -swift-version 5 -Onone Sources/DSHContract/RemoteFailureClass.swift Sources/DSHContract/RemoteFailureClasses.swift -o /tmp/DSH.swiftmodule 2>&1; echo "standalone-exit=$?"
-            echo '--- probe: objc header emission standalone ---'
-            DEVELOPER_DIR=/Applications/Xcode_16.2.app swiftc -module-name DSHContract -emit-module -enable-testing -swift-version 5 -Onone -emit-objc-header -emit-objc-header-path /tmp/DSH.h Sources/DSHContract/RemoteFailureClass.swift Sources/DSHContract/RemoteFailureClasses.swift -o /tmp/DSHoh.swiftmodule 2>&1; echo "objcheader-exit=$?"
-            echo '--- probe: minimal package, same sources ---'
-            mkdir -p /tmp/mini/Sources/Mini && cp Sources/DSHContract/*.swift /tmp/mini/Sources/Mini/
-            printf '// swift-tools-version:5.9\nimport PackageDescription\nlet package = Package(name: "Mini", targets: [.target(name: "Mini")])\n' > /tmp/mini/Package.swift
-            (cd /tmp/mini && DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build 2>&1 | tail -3; echo "mini-exit=$?")
-            echo '--- probe: library-only build (test target removed) ---'
-            rm -rf /tmp/libonly && mkdir -p /tmp/libonly && cp -r Sources Package.swift /tmp/libonly/ && sed -i '' '/DSHContractTests/d' /tmp/libonly/Package.swift
-            (cd /tmp/libonly && DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build 2>&1 | tail -3; echo "libonly-exit=$?")
-            echo '--- probe: build products ---'
-            find .build -name '*.swiftmodule' -o -name 'module.modulemap' -o -name '*Swift.h' | grep -v ModuleCache | head -30
-            exit 1
-          }
+          DEVELOPER_DIR=/Applications/Xcode_16.2.app swift build --build-tests 2>&1 | tail -5
           DEVELOPER_DIR=/Applications/Xcode_16.2.app swift test
         working-directory: apps/apple/contract
   node-24:
