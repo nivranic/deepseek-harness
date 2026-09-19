@@ -5,11 +5,43 @@
   "candidateTrackedChanges": [
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "c1ae6155ee73328f9d3856a5eae00d9d3ea566bb1fc4582784b59f44d224fe6e"
+      "sha256": "06c8ebbc8742e1eab243b9d337d713a9cc383607b8b8c49c3aed9ab9321c9fa7"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "d80c9341a5236d4402d9365fb201bb091fc413fe7e57f95f80b37b53bb4a299b"
+      "sha256": "7ae9bc6d6a3045ff76315f418d4563eca52c660d96286bd743e5f4f6ba3a870f"
+    },
+    {
+      "path": "packages/api/gateway/README.i18n.yaml",
+      "sha256": "1cc26512977733cb6f633f95643428d01b0d4f2eeec267ce9f1823a81727d8b7"
+    },
+    {
+      "path": "packages/api/gateway/README.md",
+      "sha256": "9d899880bdb3a98528977bbc7bddeb78d0fd684a0f179c81b904c69f18717f4a"
+    },
+    {
+      "path": "packages/api/gateway/README.zh.md",
+      "sha256": "2d732ec984611edf1b018e2741fbea023e5b4e8e3aaf21d134cf836766b795fe"
+    },
+    {
+      "path": "packages/api/gateway/src/index.ts",
+      "sha256": "a1af5b3d2b67eaae3009820e79261f43abd0a719c3ce6283c46ba7549e0f79ea"
+    },
+    {
+      "path": "packages/api/gateway/src/protocol.ts",
+      "sha256": "60a31d5646b1b4e32ff75837bbac8d244cec848a56b43ad25af29589f96c8f72"
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+      "sha256": "d0464416b885b12dd435592b627a3168697648c6d914e7dae4111a14aecbe20c"
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
+      "sha256": "2a1eecc3cc9ebe0f0422d8cd68b46cebe58a44bb14b9f5612f60aa7378ae9946"
+    },
+    {
+      "path": "packages/api/gateway/tests/protocol.host.spec.ts",
+      "sha256": "a36fbdb57aac76e0e0062dfafb2061ff3fdd40ad9884cb9da19f9eb30f416b5b"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5446,6 +5478,30 @@
     },
     {
       "status": "PASS",
+      "command": "Gateway suite covering tier decode, RPC admission, and stream admission (11 files, 432 tests)",
+      "log": ".artifacts/diagnostics-only-tier-tests.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/diagnostics-only-tier-lint.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates after the bilingual Gateway README tier paragraph and Agent Note",
+      "log": ".artifacts/diagnostics-only-tier-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 14 matrix evidence",
+      "log": ".artifacts/diagnostics-only-tier-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -5949,7 +6005,104 @@
     "installerQualified": false,
     "otherPlatformsQualified": false
   },
+  "diagnosticsOnlyTier": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json",
+    "scope": "Specification section 14 diagnostics-only tier: an explicit apiProtocolVersion 0 rides the frozen protocol-1 codec and is admitted for the read-only Host discovery endpoints only; business RPC, streams and event-result settlement reject with the shared compatibility failure so N-2 Clients present ordinary upgrade guidance",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "limitations": [
+      "The tier is enforced Host-side with in-process fixtures; no real version-0 Client or published older build was exercised, and multi-version interoperability remains a matrix gap.",
+      "The admitted diagnostics surface is the Host discovery namespace; a dedicated health/diagnostics endpoint family arrives with section 41 work.",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Continue the responsive browser matrix and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell; real multi-generation interoperability of the tier still needs a versioned Host matrix",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "swiftCiRecovery": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/diagnostics-only-tier-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/swift-ci-recovery-source.json",
     "scope": "Recovery of the swift-contract macOS CI evidence: the XCTest bundle is replaced by the dsh-contract-check self-check executable on the macos-15 lane, settling the previously PENDING_CI check with an executed green run",
@@ -9023,7 +9176,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/swift-ci-recovery-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -9506,7 +9659,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "d80c9341a5236d4402d9365fb201bb091fc413fe7e57f95f80b37b53bb4a299b"
+        "sha256": "7ae9bc6d6a3045ff76315f418d4563eca52c660d96286bd743e5f4f6ba3a870f"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

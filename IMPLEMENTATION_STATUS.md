@@ -18,9 +18,15 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## 诊断层级协议塔量
+
+[当前来源记录](artifacts/upstream-first/diagnostics-only-tier-source.json)把 §14 兼容矩阵的 N-2 行落为网关权威语义：显式 apiProtocolVersion 0 声明诊断层级，请求沿用冻结协议 1 编解码，仅对只读 Host 发现端点（host/describe、host/negotiate）准入；业务 RPC、流与事件结果结算以同一 compatibility 失败（gateway/protocol-unsupported，相同 endpoint 与 supportedApiProtocolVersions 详情）拒绝，Client 呈现常规 incompatible 升级指引。Unknown 版本拒绝语义保持不变。host/negotiate 仍只接受正整数报价，诊断层 Client 无法协商进完整编解码器。Gateway 套件 432/432（解码、RPC 准入、流准入三向），失败码与详情结构未动，信封 schema 与 Kotlin/Swift 镜像保持一致。真实多版本互通矩阵仍是缺口。
+
+Session writer 保持 V3。
+
 ## Swift 契约列 CI 证据回收
 
-[当前来源记录](artifacts/upstream-first/swift-ci-recovery-source.json)把 swift-contract lane 的 PENDING_CI 落实为已执行的全绿证据：XCTest 包在托管 macOS runner 上无法稳定构建（macos-14 镜像对任何导入同级 Swift 模块的 SPM 测试目标非确定性失败，最小全新包在两套工具链与串行构建下复现；二十轮探针定界），改为单一可执行目标 dsh-contract-check 以退出码断言同样四项证据（镜像等值 28 码、已分类码均被 schema 声明、未分类解析 unknown、不透明分支排除全部 84 已知码），夹具移至 contract/fixtures/ 由生成脚本刷新。macos-15 lane（Swift 6.1.2，CI run 35450241173 job 105916046840）四项 PASS 全绿，日志随来源记录归档。
+[历史来源记录](artifacts/upstream-first/swift-ci-recovery-source.json)把 swift-contract lane 的 PENDING_CI 落实为已执行的全绿证据：XCTest 包在托管 macOS runner 上无法稳定构建（macos-14 镜像对任何导入同级 Swift 模块的 SPM 测试目标非确定性失败，最小全新包在两套工具链与串行构建下复现；二十轮探针定界），改为单一可执行目标 dsh-contract-check 以退出码断言同样四项证据（镜像等值 28 码、已分类码均被 schema 声明、未分类解析 unknown、不透明分支排除全部 84 已知码），夹具移至 contract/fixtures/ 由生成脚本刷新。macos-15 lane（Swift 6.1.2，CI run 35450241173 job 105916046840）四项 PASS 全绿，日志随来源记录归档。
 
 镜像不再是可导入的库模块；未来 Swift 外壳消费生成 JSON 投影或在自身模块内重建镜像。Session writer 保持 V3。
 

@@ -451,6 +451,12 @@ describe('Typert Remote streams', () => {
             { apiProtocolVersion: version, args: {} }, new AbortController().signal))
             .rejects.toMatchObject({ code: 'gateway/protocol-unsupported' })
         }
+        await expect(ctx.typertGateway.wireStream.open(endpoint,
+          { apiProtocolVersion: 0, args: {} }, new AbortController().signal))
+          .rejects.toMatchObject({ code: 'gateway/protocol-unsupported', message: 'Remote request API protocol is limited to diagnostics on this Host; update the application before reconnecting' })
+        await expect(ctx.typertGateway.wireStream.open(endpoint,
+          { apiProtocolVersion: 3, args: {} }, new AbortController().signal))
+          .rejects.toMatchObject({ code: 'gateway/protocol-unsupported', message: 'Remote request API protocol is unsupported; update the application' })
       }
       expect(service.signals).toEqual([])
       expect(randomUuid).toHaveBeenCalledTimes(allocateClientId)

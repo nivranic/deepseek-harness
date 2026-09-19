@@ -1142,7 +1142,17 @@ describe('TypertGatewayService', () => {
               code: 'gateway/protocol-unsupported', details: { endpoint, supportedApiProtocolVersions: [2, 1] },
             } })
         }
+        await expect(handler(endpoint, { apiProtocolVersion: 0, args: { value: 'denied' } }, signal))
+          .resolves.toMatchObject({ ok: false, error: {
+            message: 'Remote request API protocol is limited to diagnostics on this Host; update the application before reconnecting',
+          } })
+        await expect(handler(endpoint, { apiProtocolVersion: 3, args: { value: 'denied' } }, signal))
+          .resolves.toMatchObject({ ok: false, error: {
+            message: 'Remote request API protocol is unsupported; update the application',
+          } })
       }
+      await expect(handler('host/describe', { apiProtocolVersion: 0, args: {} }, signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/invocation-unavailable' } })
       expect(rawGoalService(ctx).calls).toEqual([])
       for (const payload of [{ args: { value: 'accepted' } },
         { apiProtocolVersion: 1, args: { value: 'accepted' } },

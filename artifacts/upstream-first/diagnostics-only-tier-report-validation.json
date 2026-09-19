@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Host-enforced diagnostics-only protocol tier; real multi-generation interoperability, device and multi-version qualification remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diagnostics-only-tier-source.json",
+    "sha256": "c24c1af3e0075034e5d57e8c535d3bf18ffc93e75d70b7ba76643d2188f4a4aa"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7ae9bc6d6a3045ff76315f418d4563eca52c660d96286bd743e5f4f6ba3a870f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/diagnostics-only-tier-binding.json",
+    "sha256": "2f9a4d456a1060198993506f7ac58a287ad68b07cab1b59c6ed8df966073b69b"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-diagnostics-only-tier-reports.mjs",
+      "sha256": "2956c80208139c75f4731bdabfdd7ae884633179def8423ce52f3a381cfc9578"
+    },
+    {
+      "path": ".artifacts/capture-diagnostics-only-tier-validation.mjs",
+      "sha256": "cdef46ef6a6385a43406400b7f7ccb2ba8ae26eed0f64a995dac6fe5903f7d60"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "abe69b25f65928d6b852950a6b72ca0a109df5b53e96d4e555c566c21fa884de"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5e384005a7abf8e892dc0fa29f09f8d8e401f72666b1b4f5c8b122e49096d429"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/diagnostics-only-tier-binding.log",
+      "sha256": "881a2f4ff07d2389bdc6a05b32cbaf349c586752880166bbb01a4245706aa2be"
+    },
+    {
+      "path": ".artifacts/diagnostics-only-tier-audit-tests.log",
+      "sha256": "fdbd89b3fabd1d468e70606d4d5b6af026b29e3aa8845d7e94482a6d9ef080b4"
+    },
+    {
+      "path": ".artifacts/diagnostics-only-tier-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/diagnostics-only-tier-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/diagnostics-only-tier-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

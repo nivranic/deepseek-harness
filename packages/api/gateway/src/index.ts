@@ -12,7 +12,7 @@ import { Deque } from '@deepseek-ai/dsh-deque'
 import type { WebUpgradeRoute } from '@deepseek-ai/dsh-host-webserver'
 import { deadline, timeoutOf, MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import z from '@deepseek-ai/schemastery'
-import { decodeRemoteRequest, type RemoteProtocolVersion } from './protocol.ts'
+import { DIAGNOSTICS_ONLY_ENDPOINTS, decodeRemoteRequest, type RemoteProtocolVersion, SUPPORTED_REMOTE_PROTOCOL_VERSIONS } from './protocol.ts'
 export type { TypertGatewayFaultDetails } from './remote-error-codes.ts'
 import {
   RemoteError,
@@ -428,6 +428,19 @@ export class TypertGatewayService extends Service implements TypertGateway {
     )
   }
 
+  /**
+   * Reject a business request from the diagnostics-only tier with the shared
+   * compatibility failure so Clients present the same upgrade guidance as an
+   * unknown version.
+   * @param endpoint - endpoint the degraded tier attempted beyond Host discovery.
+   * @returns compatibility failure naming the endpoint and full-tier versions.
+   */
+  private diagnosticsOnlyRejection(endpoint: string): RemoteError {
+    return new RemoteError('gateway/protocol-unsupported', 'Remote request API protocol is limited to diagnostics on this Host; update the application before reconnecting', {
+      endpoint, supportedApiProtocolVersions: [...SUPPORTED_REMOTE_PROTOCOL_VERSIONS],
+    })
+  }
+
   private async dispatchRpc(
     endpoint: string,
     payload: unknown,
@@ -438,6 +451,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       const decoded = decodeRemoteRequest(endpoint, payload)
       payload = decoded.payload
       version = decoded.version
+      if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) return rpcFailure(this.diagnosticsOnlyRejection(endpoint))
     } catch (error) {
       return rpcFailure(error)
     }
@@ -463,6 +477,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     signal: AbortSignal,
   ): Promise<AsyncIterable<unknown>> {
     const decoded = decodeRemoteRequest(endpoint, payload)
+    if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) throw this.diagnosticsOnlyRejection(endpoint)
     payload = decoded.payload
     if (endpoint === REMOTE_EVENT_STREAM_ENDPOINT) {
       return this.openRemoteEvents(payload, signal, decoded.version)

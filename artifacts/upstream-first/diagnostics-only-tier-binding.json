@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diagnostics-only-tier-source.json",
+    "sha256": "c24c1af3e0075034e5d57e8c535d3bf18ffc93e75d70b7ba76643d2188f4a4aa"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7ae9bc6d6a3045ff76315f418d4563eca52c660d96286bd743e5f4f6ba3a870f"
+  },
+  "helper": {
+    "path": ".artifacts/check-diagnostics-only-tier-binding.mjs",
+    "sha256": "1bc5cba5992e45708f91372662461a8c36af56d3e95600368aefbda1e383bab1"
+  }
+}

@@ -42,6 +42,8 @@ Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source
 
 Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显式 `apiProtocolVersion` 1 或 2。共享 `/protocol` 入口按已选版本编码；版本 1 省略元数据以支持旧 Host。未知或格式错误的显式版本在业务调用、流打开或事件结果结算前返回 `gateway/protocol-unsupported`。端点参数仍严格校验。请求元数据不授予权限。应用准备回调必须返回明确选择的编解码器，由准入代际及其事件回复持有；独立组合显式解析为协议 1。
 
+显式 `apiProtocolVersion` 0 声明落后两代的诊断层级：请求沿用冻结的协议 1 编解码，且只对只读 Host 发现端点（`host/describe`、`host/negotiate`）准入。其余所有端点——业务 RPC、流与事件结果结算——以携带相同兼容性详情的 `gateway/protocol-unsupported` 拒绝，Client 因此呈现常规升级指引。该层级是固定协议不变量而非配置项；`host/negotiate` 仍要求正整数报价，诊断层 Client 无法把自己协商进完整编解码器。
+
 初始应用调用可在 `connecting` 期间等待，直到发现与事件首帧允许准入。`reconnecting`、`offline` 或失败状态期间发起的调用在载体发送前失败。重连不会重新提交被拒绝的操作；调用者必须在 `ready` 后显式发起新请求。
 
 建立 generation 时，Host 或 Gateway 协议不受支持、发现阶段缺少必需能力会发布 `incompatible`；Host 发现信息无效或 preparation owner 被撤回会发布 `fatal`。两者均暂停 Connection 的自动尝试。任一状态生效期间，业务调用在发送前失败；手动重连会重新执行发现后才允许调用。普通业务操作失败不改变 Connection 状态。

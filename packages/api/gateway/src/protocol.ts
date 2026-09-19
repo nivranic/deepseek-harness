@@ -15,11 +15,27 @@ export const API_PROTOCOL_VERSION = 2
 /** Discovery representation accepted by frozen protocol-1 Clients. */
 export const LEGACY_DISCOVERY_PROTOCOL_VERSION = 1
 
+/** Degraded announcement for Clients two generations behind; Host discovery endpoints only. */
+export const DIAGNOSTICS_ONLY_PROTOCOL_VERSION = 0
+
 /** Request codecs implemented by Gateway; discovery determines which a peer accepts. */
 export const SUPPORTED_REMOTE_PROTOCOL_VERSIONS = [2, 1] as const
 
+/** Read-only Host discovery endpoints admitted on the diagnostics-only tier; all other endpoints reject. */
+export const DIAGNOSTICS_ONLY_ENDPOINTS: ReadonlySet<string> = new Set(['host/describe', 'host/negotiate'])
+
 /** Explicitly selected request codec; an unversioned request uses version 1. */
 export type RemoteProtocolVersion = typeof SUPPORTED_REMOTE_PROTOCOL_VERSIONS[number]
+
+/** One decoded carrier request: the wire codec plus whether the degraded tier was announced. */
+export interface DecodedRemoteRequest {
+  /** Codec for this request; the diagnostics-only tier rides the frozen legacy codec. */
+  readonly version: RemoteProtocolVersion
+  /** Endpoint argument envelope after supported metadata handling. */
+  readonly payload: unknown
+  /** True when the announcement named the diagnostics-only version instead of a negotiated codec. */
+  readonly diagnosticsOnly: boolean
+}
 
 /**
  * Encode named arguments with a previously resolved peer protocol.
@@ -43,26 +59,32 @@ export function decodeRemotePayload(endpoint: string, payload: unknown): unknown
 }
 
 /**
- * Decode arguments and retain the selected codec for versioned stream output.
+ * Decode arguments, the selected codec, and the degraded tier marker.
  * @param endpoint - endpoint included in protocol failures.
  * @param payload - untrusted carrier payload; absent metadata selects protocol 1.
  * @returns validated protocol selection and the endpoint argument envelope.
+ * @throws RemoteError when explicit metadata names neither a negotiated codec
+ *   nor the diagnostics-only version.
  */
-export function decodeRemoteRequest(
-  endpoint: string,
-  payload: unknown,
-): { readonly version: RemoteProtocolVersion; readonly payload: unknown } {
+export function decodeRemoteRequest(endpoint: string, payload: unknown): DecodedRemoteRequest {
   if (typeof payload !== 'object' || payload === null || !Object.hasOwn(payload, 'apiProtocolVersion')) {
-    return { version: 1, payload }
+    return { version: 1, payload, diagnosticsOnly: false }
   }
   const version: unknown = Reflect.get(payload, 'apiProtocolVersion')
-  if (version !== 1 && version !== 2) {
+  let codec: RemoteProtocolVersion
+  let diagnosticsOnly = false
+  if (version === DIAGNOSTICS_ONLY_PROTOCOL_VERSION) {
+    codec = LEGACY_DISCOVERY_PROTOCOL_VERSION
+    diagnosticsOnly = true
+  } else if (version === 1 || version === 2) {
+    codec = version
+  } else {
     throw new RemoteError('gateway/protocol-unsupported', 'Remote request API protocol is unsupported; update the application', {
       endpoint, supportedApiProtocolVersions: [...SUPPORTED_REMOTE_PROTOCOL_VERSIONS],
     })
   }
   const prototype: unknown = Object.getPrototypeOf(payload)
-  if (prototype !== Object.prototype && prototype !== null) return { version, payload }
-  if (Reflect.ownKeys(payload).length !== 2 || !Object.hasOwn(payload, 'args')) return { version, payload }
-  return { version, payload: { args: Reflect.get(payload, 'args') as unknown } }
+  if (prototype !== Object.prototype && prototype !== null) return { version: codec, payload, diagnosticsOnly }
+  if (Reflect.ownKeys(payload).length !== 2 || !Object.hasOwn(payload, 'args')) return { version: codec, payload, diagnosticsOnly }
+  return { version: codec, payload: { args: Reflect.get(payload, 'args') as unknown }, diagnosticsOnly }
 }

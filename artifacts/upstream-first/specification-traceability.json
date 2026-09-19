@@ -2260,9 +2260,10 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
+        "artifacts/upstream-first/diagnostics-only-tier-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "remaining": "发现、独立能力与部分协议已有证据。§14 兼容矩阵已在网关逐行落实：N/N 全量（协议 2）、N/N-1 双向协商（协议 1 遗留编解码）、N-2 经显式 apiProtocolVersion 0 获只读 Host 发现端点（host/describe、host/negotiate）的诊断层级准入，业务端点以相同 compatibility 失败拒绝；Unknown 仍拒绝并给升级指引（packages/api/gateway/src/protocol.ts，套件 432/432）。仍缺多版本真实互通矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
