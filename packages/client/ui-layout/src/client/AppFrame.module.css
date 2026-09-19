@@ -22,7 +22,11 @@
   }
 }
 
+/* Column placement is explicit: the phone tier lifts the sidebar out of flow
+   (see [data-sidebar-overlay] below), and an out-of-flow child holds no track —
+   auto-placement would slide the centre into the sidebar's zero track. */
 .sidebarCol {
+  grid-column: 1;
   min-width: 0;
   overflow: hidden;
   background: var(--dsw-specific-sidebar-fill);
@@ -30,6 +34,7 @@
 }
 
 .centerCol {
+  grid-column: 2;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -82,6 +87,7 @@
  * where it is. The occupant draws its own left border.
  */
 .rightbarCol {
+  grid-column: 3;
   position: relative;
   min-width: 0;
   overflow: visible;
@@ -96,4 +102,44 @@
 
 .overlayLayer > * {
   pointer-events: auto;
+}
+
+/*
+ * Phone tier (specification §7, frame narrower than SIDEBAR_OVERLAY_MAX): the
+ * sidebar never occupies a grid track. Closed, it renders nothing — the frame
+ * keeps the rail hidden and the conversation spans the full width; open, it
+ * floats over the centre at the drawer width behind the shell overlay layer,
+ * with the scrim (below it) as the pointer dismissal surface.
+ */
+.frame[data-sidebar-overlay] .sidebarCol {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 15;
+  width: 280px; /* SIDEBAR_OVERLAY_WIDTH */
+  box-shadow: var(--ds-shadow-overlay, 0 12px 32px rgba(0, 0, 0, 0.24));
+  transform: translateX(0);
+  transition: transform var(--ds-transition-duration-slow) var(--ds-ease-in-out);
+}
+
+.frame[data-sidebar-overlay]:not([data-sidebar-open]) .sidebarCol {
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform var(--ds-transition-duration-slow) var(--ds-ease-in-out),
+    visibility 0s linear var(--ds-transition-duration-slow);
+}
+
+.drawerScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  background: var(--dsw-alias-scrim, rgba(15, 18, 25, 0.44));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame[data-sidebar-overlay] .sidebarCol,
+  .frame[data-sidebar-overlay]:not([data-sidebar-open]) .sidebarCol {
+    transition: none;
+  }
 }

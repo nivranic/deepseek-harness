@@ -532,9 +532,10 @@ export const InputBar = memo(function InputBar({
               {accessSelect}
               {sessionId === undefined ? null : renderSlot('conversation.input.plan', { locked })}
             </div>
-            {input === undefined || sessionId === undefined
-              ? null
-              : renderSlot('conversation.input.left', {})}
+            {/* The left seat is session-maybe and renders unconditionally,
+                like attachments: the phone-tier drawer opener must stay
+                reachable on the no-workspace hero too. */}
+            {renderSlot('conversation.input.left', {})}
           </div>
           <div className={css.trailing}>
             {input === undefined || sessionId === undefined

@@ -4,47 +4,100 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "06c8ebbc8742e1eab243b9d337d713a9cc383607b8b8c49c3aed9ab9321c9fa7"
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b360f21551cf3c9aae7e96295a85e3632a2f8d4f93b07bc1dd03ddfe9ba3bac0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c464d12d0fe4cffa1eb19c64b84467c4ba247951ca76d491d182ffe5baf1d780"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "7ae9bc6d6a3045ff76315f418d4563eca52c660d96286bd743e5f4f6ba3a870f"
+      "sha256": "4ad22483329373ed66377d36eadb6bdaad1ddd7cf748504ec48d1524b785a524"
     },
     {
-      "path": "packages/api/gateway/README.i18n.yaml",
-      "sha256": "1cc26512977733cb6f633f95643428d01b0d4f2eeec267ce9f1823a81727d8b7"
+      "path": "packages/client/ui-conversation/README.i18n.yaml",
+      "sha256": "70c60da7449cc9808ad3f128a3abcbaac1449b9df921723e602aa656d5e0c1d2"
     },
     {
-      "path": "packages/api/gateway/README.md",
-      "sha256": "9d899880bdb3a98528977bbc7bddeb78d0fd684a0f179c81b904c69f18717f4a"
+      "path": "packages/client/ui-conversation/README.md",
+      "sha256": "9ee354edb913844cd278f62a642d30c0190d72b57cd2827a59f879537a4cd990"
     },
     {
-      "path": "packages/api/gateway/README.zh.md",
-      "sha256": "2d732ec984611edf1b018e2741fbea023e5b4e8e3aaf21d134cf836766b795fe"
+      "path": "packages/client/ui-conversation/README.zh.md",
+      "sha256": "54f2b72db53f67b2c2b22beafd0d7ed45c3de21a5848342f2b4d84628663fd48"
     },
     {
-      "path": "packages/api/gateway/src/index.ts",
-      "sha256": "a1af5b3d2b67eaae3009820e79261f43abd0a719c3ce6283c46ba7549e0f79ea"
+      "path": "packages/client/ui-conversation/src/client/apply.ts",
+      "sha256": "034bd226c2dabc65496b4b9c2e3d182d65eaa7f61e277f804bc82c4522f1f71b"
     },
     {
-      "path": "packages/api/gateway/src/protocol.ts",
-      "sha256": "60a31d5646b1b4e32ff75837bbac8d244cec848a56b43ad25af29589f96c8f72"
+      "path": "packages/client/ui-conversation/src/client/contract/slots.ts",
+      "sha256": "18930e7f4a2ba7ffb62e001ba93c03fe5ff6d97846b215c1dc946c7113ee46b9"
     },
     {
-      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-      "sha256": "d0464416b885b12dd435592b627a3168697648c6d914e7dae4111a14aecbe20c"
+      "path": "packages/client/ui-conversation/src/client/skeleton/InputBar.tsx",
+      "sha256": "0a8c669c05261daa5fa20680f8857aa7297b4a66de6506ff8635fb86c757cd2f"
     },
     {
-      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
-      "sha256": "2a1eecc3cc9ebe0f0422d8cd68b46cebe58a44bb14b9f5612f60aa7378ae9946"
+      "path": "packages/client/ui-layout/README.i18n.yaml",
+      "sha256": "9c389a3803d2b89c8a6c21fe51a2bdfb258b5d5dc34dc896d4008c356b635dc1"
     },
     {
-      "path": "packages/api/gateway/tests/protocol.host.spec.ts",
-      "sha256": "a36fbdb57aac76e0e0062dfafb2061ff3fdd40ad9884cb9da19f9eb30f416b5b"
+      "path": "packages/client/ui-layout/README.md",
+      "sha256": "a38ca5a021dd27b65680e7c2e1753f70c2cbb239db21daa4fa633545ed0d9284"
+    },
+    {
+      "path": "packages/client/ui-layout/README.zh.md",
+      "sha256": "51725e0d3a333b48575a58c561d5ff0b5661efe64d528d511c34a6f57bb3a368"
+    },
+    {
+      "path": "packages/client/ui-layout/src/client/AppFrame.module.css",
+      "sha256": "2ac4895e431655d7de35cc35e202694fbf15946146c3d35bc762e22535feab81"
+    },
+    {
+      "path": "packages/client/ui-layout/src/client/AppFrame.tsx",
+      "sha256": "520fdecb74a343109c0e3bedd0d60a9aaf279761c58b2f352d0008c323691430"
+    },
+    {
+      "path": "packages/client/ui-layout/src/client/columns.ts",
+      "sha256": "1611d508cc32c17559df4861dcc73b2d10617c537f84e0b4be8b48b02e2be3d0"
+    },
+    {
+      "path": "packages/client/ui-layout/tests/app-frame.client.spec.tsx",
+      "sha256": "6240a4e1a56566285acf2ed95ef5ae2aa967e947cb5bffa892c552023b9f1546"
+    },
+    {
+      "path": "packages/client/ui-sidebar/README.i18n.yaml",
+      "sha256": "fba832b4b3ed0e891e4ff495c8e9ac81aae5ed30e7e10dc59b9b538034d04290"
+    },
+    {
+      "path": "packages/client/ui-sidebar/README.md",
+      "sha256": "2dae1aa6121307ddb7e1e1de308fa9ae0f7953b2ea333b2a9dd683fdf7fb90b0"
+    },
+    {
+      "path": "packages/client/ui-sidebar/README.zh.md",
+      "sha256": "5b66378c516e8fe45f8e9c62f77e4a9d36ecf98094d2e8600453072ea4499bb4"
+    },
+    {
+      "path": "packages/client/ui-sidebar/src/client/index.ts",
+      "sha256": "7a3102f8b4a7ba51017d550720f7bafc1e53d9ece80d72b0c4965edd83cae80f"
+    },
+    {
+      "path": "packages/client/ui-sidebar/tsconfig.json",
+      "sha256": "8b709c03a8cc41bed7a373d7f65227b6dae8ed389ec6f720dccaee8c0c3cd046"
+    },
+    {
+      "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
+      "sha256": "ea0d6ddb4ee88410e9a25b91a500f4e0c1f2e262764210cdd0a915639f79e55c"
     }
   ],
-  "candidateUntrackedSourceChanges": [],
+  "candidateUntrackedSourceChanges": [
+    {
+      "path": "packages/client/ui-sidebar/src/client/PhoneDrawerButton.tsx",
+      "sha256": "bdc66caf34826408e75b39547e95f503fe5b88c0a72e952434ae708551a565f9"
+    }
+  ],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -5502,6 +5555,48 @@
     },
     {
       "status": "PASS",
+      "command": "Live chrome-devtools matrix over the shipped web UI: four tiers at 375/720/960/1440 plus the 599/600 boundary, drawer open/scrim/Escape interactions, DOM geometry assertions (sidebar track 0, center full width, no overflowX)",
+      "log": ".artifacts/responsive-matrix/observation-log.md",
+      "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "ui-layout, ui-sidebar, and ui-conversation suites (47 files, 603 tests)",
+      "log": ".artifacts/responsive-phone-drawer-tests.log",
+      "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/responsive-phone-drawer-lint.log",
+      "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "TypeScript build (tsc -b client programs)",
+      "log": ".artifacts/responsive-phone-drawer-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Client slot catalog freshness after the conversation.input.left scope widening",
+      "log": ".artifacts/responsive-phone-drawer-catalog.log",
+      "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates after the bilingual ui-layout, ui-sidebar, and ui-conversation README updates and the Agent Note",
+      "log": ".artifacts/responsive-phone-drawer-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 6/7 matrix evidence",
+      "log": ".artifacts/responsive-phone-drawer-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6005,7 +6100,110 @@
     "installerQualified": false,
     "otherPlatformsQualified": false
   },
+  "responsivePhoneDrawer": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json",
+    "scope": "Specification sections 6 and 7 responsive matrix: below 600px the frame drops the sidebar track entirely, the conversation spans the full width, and the expanded sidebar floats as a 280px overlay drawer behind a scrim closed by scrim click or Escape; a phone-media-query drawer opener occupies the session-maybe conversation.input.left list so navigation stays reachable from the no-Session blank hero; the compact and collapsible rails and the desktop layout are unchanged",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "limitations": [
+      "The live matrix ran keyless against the blank-hero state of the shipped web UI; an active conversation transcript was not scrolled or exercised in the matrix, and no API-key session existed.",
+      "Vision-channel acceptance of the PNG artifacts was not available in this session (the visual subagent channel could not spawn and this host converts image reads to CDN URLs); acceptance rests on the measured DOM geometry recorded in the observation log, with the screenshots retained for human review.",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Install Go and the Android NDK via sdkmanager, run scripts/build-mobile-support-scanner.py to produce support-scanner.aar and unlock :app:assembleDebug and the emulator lane; then continue wiring the migrated Android shell onto the new contract",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "diagnosticsOnlyTier": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/responsive-phone-drawer-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json",
     "scope": "Specification section 14 diagnostics-only tier: an explicit apiProtocolVersion 0 rides the frozen protocol-1 codec and is admitted for the read-only Host discovery endpoints only; business RPC, streams and event-result settlement reject with the shared compatibility failure so N-2 Clients present ordinary upgrade guidance",
@@ -9176,7 +9374,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/diagnostics-only-tier-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/responsive-phone-drawer-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -9659,7 +9857,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "7ae9bc6d6a3045ff76315f418d4563eca52c660d96286bd743e5f4f6ba3a870f"
+        "sha256": "4ad22483329373ed66377d36eadb6bdaad1ddd7cf748504ec48d1524b785a524"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

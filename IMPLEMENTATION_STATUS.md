@@ -18,9 +18,13 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## 浏览器响应式矩阵与手机层抽屉
+
+[当前来源记录](artifacts/upstream-first/responsive-phone-drawer-source.json)以 chrome-devtools 实测矩阵收口 §6/§7 断点族：低于 600px 时框架完全放弃侧边栏轨道（三列显式 grid-column 1/2/3，脱离文档流的抽屉列不再滑动后续轨道），对话区横向占满，展开侧栏以 280px 悬浮抽屉呈现，遮罩点击与 Esc 同径关闭；输入框左端由媒体查询控制的 32px 开关占用 session-maybe 的 conversation.input.left 列表席位，空白首页亦可导航。恰好 600px 回归轨道层，720/960 折叠轨与 1440 桌面布局实测不变。三包 603 项组件测试、lint、typecheck、catalog 与 doc-sync 36 门全绿。视觉通道本会话不可用，验收以观测日志中的 DOM 几何断言为准，截图留存人工复核。
+
 ## 诊断层级协议塔量
 
-[当前来源记录](artifacts/upstream-first/diagnostics-only-tier-source.json)把 §14 兼容矩阵的 N-2 行落为网关权威语义：显式 apiProtocolVersion 0 声明诊断层级，请求沿用冻结协议 1 编解码，仅对只读 Host 发现端点（host/describe、host/negotiate）准入；业务 RPC、流与事件结果结算以同一 compatibility 失败（gateway/protocol-unsupported，相同 endpoint 与 supportedApiProtocolVersions 详情）拒绝，Client 呈现常规 incompatible 升级指引。Unknown 版本拒绝语义保持不变。host/negotiate 仍只接受正整数报价，诊断层 Client 无法协商进完整编解码器。Gateway 套件 432/432（解码、RPC 准入、流准入三向），失败码与详情结构未动，信封 schema 与 Kotlin/Swift 镜像保持一致。真实多版本互通矩阵仍是缺口。
+[历史来源记录](artifacts/upstream-first/diagnostics-only-tier-source.json)把 §14 兼容矩阵的 N-2 行落为网关权威语义：显式 apiProtocolVersion 0 声明诊断层级，请求沿用冻结协议 1 编解码，仅对只读 Host 发现端点（host/describe、host/negotiate）准入；业务 RPC、流与事件结果结算以同一 compatibility 失败（gateway/protocol-unsupported，相同 endpoint 与 supportedApiProtocolVersions 详情）拒绝，Client 呈现常规 incompatible 升级指引。Unknown 版本拒绝语义保持不变。host/negotiate 仍只接受正整数报价，诊断层 Client 无法协商进完整编解码器。Gateway 套件 432/432（解码、RPC 准入、流准入三向），失败码与详情结构未动，信封 schema 与 Kotlin/Swift 镜像保持一致。真实多版本互通矩阵仍是缺口。
 
 Session writer 保持 V3。
 

@@ -275,8 +275,10 @@ describe('AppFrame normal width concessions', () => {
     expect(frame.querySelector('[data-side="rightbar"]')).toBeNull()
     expect(instance.getSnapshot().layoutInfo).toMatchObject({ rightbarShown: true, rightbar: 864 })
     act(() => { instance.actions.closeRightbar() })
+    // 455px is the phone tier (specification section 7): the rail gives way
+    // to the zero-track overlay drawer.
     resize(455)
-    expect(tracks(frame)).toEqual([56, 0])
+    expect(tracks(frame)).toEqual([0, 0])
     resize(1920)
     expect(tracks(frame)).toEqual([420, 0])
   })
@@ -588,5 +590,53 @@ describe('AppFrame frame measurement lifecycle', () => {
     act(() => { observer.fire(); flushFrames() })
     expect(instance.getSnapshot().layoutInfo.viewportWidth).toBe(1920)
     expect(animationFrames.size).toBe(0)
+  })
+})
+
+describe('AppFrame phone tier (specification section 7)', () => {
+  it('drops the rail and keeps the conversation full-width below 600px', () => {
+    frameWidth = 375
+    const { frame, sidebarOwner } = mountFrame()
+    expect(tracks(frame)).toEqual([0, 0])
+    expect(frame.getAttribute('data-sidebar-overlay')).toBe('true')
+    expect(frame.getAttribute('data-sidebar-open')).toBeNull()
+    expect(frame.querySelector('[data-sidebar-scrim]')).toBeNull()
+    expect(frame.querySelector('[data-side="sidebar"]')).toBeNull()
+    expect(sidebarOwner()).toEqual({ collapsed: true, width: 280 })
+  })
+
+  it('opens the drawer over the centre behind a scrim and closes by scrim click', () => {
+    frameWidth = 375
+    const { frame, instance, sidebarOwner } = mountFrame()
+    act(() => { instance.actions.toggleSidebar() })
+    expect(tracks(frame)).toEqual([0, 0])
+    expect(frame.getAttribute('data-sidebar-open')).toBe('true')
+    expect(sidebarOwner()).toEqual({ collapsed: false, width: 280 })
+    const scrim = frame.querySelector<HTMLElement>('[data-sidebar-scrim]')
+    expect(scrim).not.toBeNull()
+    act(() => { scrim!.click() })
+    expect(frame.getAttribute('data-sidebar-open')).toBeNull()
+    expect(frame.querySelector('[data-sidebar-scrim]')).toBeNull()
+    expect(instance.getSnapshot().layoutInfo.narrowExpanded).toBe(false)
+  })
+
+  it('closes an open drawer on Escape', () => {
+    frameWidth = 375
+    const { frame, instance } = mountFrame()
+    act(() => { instance.actions.toggleSidebar() })
+    expect(frame.getAttribute('data-sidebar-open')).toBe('true')
+    act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })) })
+    expect(frame.getAttribute('data-sidebar-open')).toBeNull()
+  })
+
+  it('returns to the tracked rail behaviour when the frame grows past the phone tier', () => {
+    frameWidth = 375
+    const { frame, instance } = mountFrame()
+    act(() => { instance.actions.toggleSidebar() })
+    expect(frame.getAttribute('data-sidebar-overlay')).toBe('true')
+    resize(800)
+    expect(frame.getAttribute('data-sidebar-overlay')).toBeNull()
+    expect(tracks(frame)).toEqual([280, 0])
+    expect(frame.querySelector('[data-side="sidebar"]')).not.toBeNull()
   })
 })

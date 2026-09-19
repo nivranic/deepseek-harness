@@ -36,6 +36,9 @@
       "path": "../ui-layout"
     },
     {
+      "path": "../ui-conversation"
+    },
+    {
       "path": "../locale"
     }
   ]

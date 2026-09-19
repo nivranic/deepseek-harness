@@ -168,8 +168,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
     'conversation.input.overlay': { kind: 'list'; scope: 'session' }
     /** Ambient entries below the composer card. */
     'conversation.composer.dock': { kind: 'list'; scope: 'session' }
-    /** Compact controls at the left of the composer tool row. */
-    'conversation.input.left': { kind: 'list'; scope: 'session' }
+    /** Compact controls at the left of the composer tool row, including the no-Session blank draft (the phone-tier drawer opener). */
+    'conversation.input.left': { kind: 'list'; scope: 'session-maybe' }
     /** Compact controls before the composer submit action. */
     'conversation.input.right': { kind: 'list'; scope: 'session' }
     /** Resident composer body, including the no-Session inert state. */

@@ -1,0 +1,30 @@
+/* Hidden except on the phone tier (specification §7, < 600px frame): the
+   media query matches the window while the frame keys off its own measured
+   width; in a plain browser shell the two coincide. */
+.button {
+  display: none;
+}
+
+@media (max-width: 599.5px) {
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ds-radius-sm, 8px);
+    background: transparent;
+    color: var(--dsw-alias-fg-secondary);
+    cursor: pointer;
+  }
+
+  .button:hover {
+    background: var(--dsw-alias-fill-hover);
+  }
+}
+
+.icon {
+  display: block;
+}

@@ -19,7 +19,7 @@ import type { ReactNode } from 'react'
 import type {
   PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore,
 } from '@deepseek-ai/dsh-client-ui-slots'
-import { computeColumns, RIGHTBAR_DEFAULT_RATIO, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT } from './columns.ts'
+import { computeColumns, RIGHTBAR_DEFAULT_RATIO, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT, SIDEBAR_OVERLAY_MAX, SIDEBAR_OVERLAY_WIDTH } from './columns.ts'
 import { DocumentTitle } from './DocumentTitle.tsx'
 import type { createLayoutStore } from './stores.ts'
 import css from './AppFrame.module.css'
@@ -157,16 +157,32 @@ export function AppFrame({
     }
   }, [actions])
 
-  const narrow = viewport < SIDEBAR_AUTO_COLLAPSE
-  const sidebarCollapsed = narrow ? !layoutInfo.narrowExpanded : layoutInfo.sidebar === 0
-  const sidebarPreference = sidebarCollapsed
-    ? 0
-    : layoutInfo.sidebar === 0 ? SIDEBAR_DEFAULT : layoutInfo.sidebar
+  const overlayTier = viewport > 0 && viewport < SIDEBAR_OVERLAY_MAX
+  const narrow = !overlayTier && viewport < SIDEBAR_AUTO_COLLAPSE
+  const sidebarCollapsed = narrow || overlayTier ? !layoutInfo.narrowExpanded : layoutInfo.sidebar === 0
+  const sidebarPreference = overlayTier
+    ? SIDEBAR_OVERLAY_WIDTH
+    : sidebarCollapsed
+      ? 0
+      : layoutInfo.sidebar === 0 ? SIDEBAR_DEFAULT : layoutInfo.sidebar
   const rightbarPreference = layoutInfo.rightbar ?? viewport * RIGHTBAR_DEFAULT_RATIO
   // Opening on a narrow frame collapses the left sidebar. Eligibility must
   // include that space before the occupant's first shown report arrives.
-  const normal = computeColumns(viewport, !layoutInfo.rightbarShown && narrow ? 0 : sidebarPreference, rightbarPreference)
-  const cols = computeColumns(viewport, sidebarPreference, layoutInfo.rightbarTrack ? rightbarPreference : 0)
+  const trackedSidebar = overlayTier ? 0 : sidebarPreference
+  const normal = computeColumns(viewport, !layoutInfo.rightbarShown && narrow ? 0 : trackedSidebar, rightbarPreference)
+  const cols = computeColumns(viewport, trackedSidebar, layoutInfo.rightbarTrack ? rightbarPreference : 0)
+  const drawerOpen = overlayTier && layoutInfo.narrowExpanded
+
+  // Keyboard dismissal of the phone-tier drawer: the scrim handles pointer
+  // dismissal, and both route through the same toggle so states cannot diverge.
+  useEffect(() => {
+    if (!drawerOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') actions.toggleSidebar()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('keydown', onKey) }
+  }, [drawerOpen, actions])
   const colsRef = useRef(cols)
   colsRef.current = cols
   const rightbarWidth = useRef(normal.rightbar)
@@ -192,8 +208,8 @@ export function AppFrame({
   const productTitle = process.env.DSH_CLIENT_TITLE ?? t('brand.localBuild')
   const sidebar = useMemo(() => renderSlot('sidebar', {
     collapsed: sidebarCollapsed,
-    width: cols.sidebar,
-  }), [renderSlot, sidebarCollapsed, cols.sidebar])
+    width: overlayTier ? SIDEBAR_OVERLAY_WIDTH : cols.sidebar,
+  }), [renderSlot, sidebarCollapsed, cols.sidebar, overlayTier])
   const main = useMemo(() => (
     <MainPanel usePanelInfo={usePanelInfo} renderSlot={renderSlot} />
   ), [usePanelInfo, renderSlot])
@@ -204,10 +220,14 @@ export function AppFrame({
       ref={frameRef}
       className={css.frame}
       style={{
+        // The phone tier never reserves a sidebar track: computeColumns maps a
+        // zero preference to the 56px rail, which the drawer replaces.
         gridTemplateColumns:
-          `${cols.sidebar}px minmax(0, 1fr) ${cols.rightbar}px`,
+          `${overlayTier ? 0 : cols.sidebar}px minmax(0, 1fr) ${cols.rightbar}px`,
       }}
       data-sidebar-collapsed={sidebarCollapsed || undefined}
+      data-sidebar-overlay={overlayTier || undefined}
+      data-sidebar-open={drawerOpen || undefined}
       data-rightbar-collapsed={cols.rightbar === 0 || undefined}
       data-rightbar-fullscreen={layoutInfo.rightbarFullscreen || undefined}
       data-rightbar-instant={layoutInfo.rightbarInstant || undefined}
@@ -230,8 +250,20 @@ export function AppFrame({
       <div className={css.overlayLayer} data-shell-overlay>
         {overlays}
       </div>
-      {/* The collapsed rail is fixed-width: no resize handle while closed. */}
-      {!sidebarCollapsed && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
+      {/* Phone-tier drawer (§7): the scrim replaces the grid track as the
+          dismissal surface; Escape follows the same action so keyboard and
+          pointer dismissal cannot diverge. */}
+      {drawerOpen && (
+        <div
+          className={css.drawerScrim}
+          data-sidebar-scrim
+          aria-hidden="true"
+          onClick={() => { actions.toggleSidebar() }}
+        />
+      )}
+      {/* The collapsed rail is fixed-width: no resize handle while closed. The
+          overlay drawer is not resizable either. */}
+      {!sidebarCollapsed && !overlayTier && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
       {layoutInfo.rightbarShown && !layoutInfo.rightbarFullscreen && normal.rightbar > 0 && (
         <DragHandle side="rightbar" left={viewport - normal.rightbar} onStart={onRightbarStart} onDrag={onRightbarDrag} onEnd={onDragEnd} />
       )}

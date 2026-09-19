@@ -348,7 +348,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
     children: {
       'conversation.input.attachments': { kind: 'single', scope: 'session-maybe' },
       'conversation.input.overlay': { kind: 'list', scope: 'session' },
-      'conversation.input.left': { kind: 'list', scope: 'session' },
+      'conversation.input.left': { kind: 'list', scope: 'session-maybe' },
       'conversation.input.plan': { kind: 'single', scope: 'session' },
       'conversation.input.right': { kind: 'list', scope: 'session' },
       'conversation.input.model': { kind: 'single', scope: 'session' },
