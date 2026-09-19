@@ -11,11 +11,41 @@ function bench() {
     ok: true, value: { writable: true, hasDocument: true, namespaces: [] },
   })
   const ctx = new Context()
+  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   const remote = new TestRemote(ctx, { settings: { describe: describeCall } })
+  remote.$host = { home: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }
   return { ctx, describeCall, remote, fiber: ctx.plugin({ inject: [...inject], apply }) }
 }
 
 describe('settings domain base plugin', () => {
+  it('withdraws the shared document immediately on generation loss and unsubscribes at disposal', async () => {
+    const ctx = new Context()
+    const listeners = new Set<() => void>()
+    ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
+    } } })
+    const describe = vi.fn(async () => ({ ok: true as const, value: { writable: true, hasDocument: true, namespaces: [] } }))
+    const remote = new TestRemote(ctx, { settings: { describe } })
+    remote.$host = { home: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }
+    const fiber = ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+    const mirror = ctx.settingsScope.describe()
+    await mirror.ensure()
+    expect(mirror.getSnapshot()).toMatchObject({ status: 'ready', view: { writable: true } })
+    remote.$host = { home: undefined, isLoopback: true }
+    for (const listener of listeners) listener()
+    expect(mirror.getSnapshot()).toEqual({ status: 'loading', view: undefined, error: null })
+    expect(describe).toHaveBeenCalledOnce()
+    remote.$host = { home: undefined, isLoopback: true, capabilities: ['settings.read.v1'] }
+    for (const listener of listeners) listener()
+    await mirror.ensure()
+    expect(mirror.getSnapshot()).toMatchObject({ status: 'ready', view: { writable: false } })
+    expect(describe).toHaveBeenCalledTimes(2)
+    await fiber.dispose()
+    expect(listeners.size).toBe(0)
+  })
+
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
   })

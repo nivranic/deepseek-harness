@@ -686,7 +686,7 @@ The backends that consume this contract are on [persistence.md](persistence.md).
 
 `ModelCatalog` is the Host-generation model directory returned by `session/modelCatalog`: it carries the deployment default, routable provider ids, successful provider groups, and isolated provider failures. It is not derived from one Session and remains separate from Session projections.
 
-`SessionOpenWorkspacePathRequest` carries an absolute or workspace-resolved `path`; optional `action: "reveal"` selects file-manager navigation instead of default-application opening. `SessionOpenWorkspacePathValue` confirms that the Host accepted the native handoff. A Session-aware Client resolves relative paths against its current Session cwd when known; the controller hands the path to the opener unchanged and reports invalid requests, cancellation, and opener failures through the Session Remote error vocabulary.
+`SessionOpenWorkspacePathRequest` carries a path authorized and resolved by a Host service; optional `action: "reveal"` selects file-manager navigation. `SessionOpenWorkspacePathValue` acknowledges the native handoff. These types serve Host-local calls, not the Session Remote namespace. Client native actions use recorded file coordinates through the [declared-file service](../../packages/client/ui-deliverables/README.md), which owns Session authorization and filesystem-to-Host path validation.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -755,25 +755,19 @@ inspect( sessionId: SessionId, signal?: AbortSignal, ): Promise<SessionInspectio
 @Remote('modelCatalog') modelCatalog(): Promise<ModelCatalog>
 
 /**
- * Report whether this deployment can hand a Session workspace path to a native desktop.
- * @returns true when the matching open operation is available.
- */
-@Remote canOpenWorkspacePath(): boolean
-
-/**
- * Describe the serving desktop for authenticated file-action routes.
+ * Describe the serving desktop for Host-owned declared-file actions.
  * @returns Host name, configured availability, and platform-specific file-manager behavior.
  */
 workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 'explorer' | 'directory' | null }
 
 /**
- * Open one path prepared by a Session-aware caller on the Host desktop.
- * @param request - path after best-effort Session workspace resolution.
+ * Open one authorized path prepared by a Host caller; this method is not a Remote operation.
+ * @param request - Host filesystem path authorized and resolved by the caller.
  * @param signal - caller lifetime; abort terminates the native command.
  * @returns confirmation after the native opener accepts the path.
- * @throws RemoteError when the request is invalid, cancelled, or the opener fails.
+ * @throws The abort reason before dispatch; RemoteError for invalid paths, in-flight cancellation, or opener failures.
  */
-@Remote('openWorkspacePath') async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>
+async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>
 
 /**
  * Rename one Session after explicitly resuming it.
@@ -781,6 +775,13 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
  * @returns the accepted title and durable event sequence.
  */
 @Remote('rename') rename(request: SessionRenameRequest): Promise<SessionRenameValue>
+
+/**
+ * Rename against the title event revision captured before editing.
+ * @param request - Session, proposed title and expected title revision.
+ * @returns the normalized title and durable event sequence; conflicts preserve the current title.
+ */
+@Remote('renameAt') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>
 
 /**
  * Fork one cold-readable completed-turn prefix into a new Session.
@@ -817,6 +818,13 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
  * @returns acknowledgement that cancellation was requested.
  */
 @Remote('cancel') cancel(request: SessionCancelRequest): SessionCancelValue
+
+/**
+ * Cancel only the observed open turn; stale or null targets leave later work intact.
+ * @param request - Session identity and the observed turn/start sequence, or null.
+ * @returns acknowledgement that cancellation was requested or the target is already inactive.
+ */
+@Remote('cancelTurn') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue
 
 /**
  * Read one cold-safe, message-aligned Session history page.

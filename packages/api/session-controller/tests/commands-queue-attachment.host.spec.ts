@@ -13,6 +13,7 @@ import { subagentIdentityProjectionDefinition } from '@deepseek-ai/dsh-subagent/
 import { describe, expect, it, vi } from 'vitest'
 import { ApiSessionAgentController } from '../src/agent.ts'
 import { SessionCommandController } from '../src/commands.ts'
+import { installActiveTurnProjection } from '../src/active-turn-projection.ts'
 import { createInboxStub } from '@deepseek-ai/dsh-agent-loop-testkit'
 import { installSessionReadTestServices, testSessionPersistence } from './test-remote.ts'
 
@@ -113,6 +114,50 @@ async function expectFailure(operation: Promise<unknown>, code: string): Promise
 }
 
 describe('Session queue commands', () => {
+  it('cancels only the observed open turn and preserves later work on retries', async () => {
+    const { ctx, controller, agent, cancel } = await commandHarness()
+    const projection = ctx.plugin({ name: 'active-turn-fixture', apply: installActiveTurnProjection })
+    await projection
+    expect(ctx.sessionProjections.stateOf(agent.session, 'activeTurnStart')).toBeNull()
+    const first = agent.session.append('turn/start', { turn: 1 })
+    expect(ctx.sessionProjections.stateOf(agent.session, 'activeTurnStart')).toBe(first.seq)
+    const request = { sessionId: agent.id, turnStartSeq: first.seq }
+    expect(controller.cancelTurn(request)).toEqual({ accepted: true })
+    expect(cancel).toHaveBeenCalledTimes(1)
+    expect(cancel).toHaveBeenLastCalledWith({ kind: 'user' }, { keepInbox: true })
+    agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    expect(ctx.sessionProjections.stateOf(agent.session, 'activeTurnStart')).toBeNull()
+    expect(controller.cancelTurn(request)).toEqual({ accepted: true })
+    const second = agent.session.append('turn/start', { turn: 2 })
+    expect(controller.cancelTurn(request)).toEqual({ accepted: true })
+    expect(controller.cancelTurn({ sessionId: agent.id, turnStartSeq: null })).toEqual({ accepted: true })
+    expect(cancel).toHaveBeenCalledTimes(1)
+    expect(controller.cancelTurn({ sessionId: agent.id, turnStartSeq: second.seq })).toEqual({ accepted: true })
+    expect(cancel).toHaveBeenCalledTimes(2)
+    await projection.dispose()
+    expect(ctx.sessionProjections.stateOf(agent.session, 'activeTurnStart')).toBeUndefined()
+    expect(() => controller.cancelTurn(request)).toThrow(expect.objectContaining({ code: 'gateway/internal' }))
+    await ctx.fiber.dispose()
+  })
+
+  it.each([-1, -0, 1.5, Number.MAX_SAFE_INTEGER + 1, NaN, Infinity])('rejects an invalid cancel target %s', async (turnStartSeq) => {
+    const { ctx, controller, agent, cancel } = await commandHarness()
+    expect(() => controller.cancelTurn({ sessionId: agent.id, turnStartSeq }))
+      .toThrow(expect.objectContaining({ code: 'gateway/bad-request' }))
+    expect(cancel).not.toHaveBeenCalled()
+    await ctx.fiber.dispose()
+  })
+
+  it('does not relax live-Agent or subagent ownership checks for stale cancel targets', async () => {
+    const { ctx, controller, agent, cancel } = await commandHarness('continuable')
+    expect(() => controller.cancelTurn({ sessionId: SessionId('missing'), turnStartSeq: null }))
+      .toThrow(expect.objectContaining({ code: 'session/not-found' }))
+    expect(() => controller.cancelTurn({ sessionId: agent.id, turnStartSeq: null }))
+      .toThrow(expect.objectContaining({ code: 'session/agent-busy' }))
+    expect(cancel).not.toHaveBeenCalled()
+    await ctx.fiber.dispose()
+  })
+
   it('edits, removes, steers, and rejects stale queue occurrences', async () => {
     const { ctx, controller, agent, inbox, steer, cancel } = await commandHarness()
     const queued = createUserMessage({ content: [{ type: 'text', text: 'queued' }], source: { kind: 'user' } })

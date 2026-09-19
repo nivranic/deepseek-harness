@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { z } from 'zod'
 import { FaceModelEmitter, TypertEmitError } from '../src/emitter.ts'
 import type {
   FaceModel,
@@ -30,7 +31,7 @@ const ZOD_NODE_SUPPORT = {
   function: 'unsupported',
   constructor: 'unsupported',
   'indexed-access': 'unsupported',
-  operator: 'unsupported',
+  operator: 'partial',
   conditional: 'unsupported',
   infer: 'unsupported',
   mapped: 'unsupported',
@@ -39,7 +40,7 @@ const ZOD_NODE_SUPPORT = {
   'import-type': 'unsupported',
   predicate: 'unsupported',
   this: 'unsupported',
-} as const satisfies Record<TypeNodeModel['kind'], 'supported' | 'unsupported'>
+} as const satisfies Record<TypeNodeModel['kind'], 'supported' | 'partial' | 'unsupported'>
 
 interface SchemaCase {
   readonly name: string
@@ -210,6 +211,30 @@ const supportedCases: readonly SchemaCase[] = [
     rejected: [['one', 2]],
   },
   {
+    name: 'readonly array operator',
+    nodes: [
+      { id: 'root', kind: 'operator', operator: 'readonly', type: 'array' },
+      { id: 'array', kind: 'array', element: 'element' },
+      keyword('element', 'number'),
+    ],
+    accepted: [[], [1, 2]],
+    rejected: [null, ['1'], [1, null]],
+  },
+  {
+    name: 'readonly tuple operator',
+    nodes: [
+      { id: 'root', kind: 'operator', operator: 'readonly', type: 'tuple' },
+      { id: 'tuple', kind: 'tuple', elements: [
+        { type: 'string', optional: false, rest: false },
+        { type: 'number', optional: true, rest: false },
+      ] },
+      keyword('string', 'string'),
+      keyword('number', 'number'),
+    ],
+    accepted: [['ready'], ['ready', 2]],
+    rejected: [[], [1], ['ready', '2'], ['ready', 2, 3]],
+  },
+  {
     name: 'tuple with optional and rest elements',
     nodes: [
       {
@@ -285,7 +310,10 @@ const unsupportedNodeCases: readonly { readonly kind: TypeNodeModel['kind']; rea
   { kind: 'function', nodes: [{ id: 'root', kind: 'function', signature: signature('child') }, keyword('child', 'string')] },
   { kind: 'constructor', nodes: [{ id: 'root', kind: 'constructor', abstract: false, signature: signature('child') }, keyword('child', 'string')] },
   { kind: 'indexed-access', nodes: [{ id: 'root', kind: 'indexed-access', object: 'child', index: 'child' }, keyword('child', 'string')] },
-  { kind: 'operator', nodes: [{ id: 'root', kind: 'operator', operator: 'keyof', type: 'child' }, keyword('child', 'string')] },
+  ...(['keyof', 'unique'] as const).map(operator => ({
+    kind: 'operator' as const,
+    nodes: [{ id: 'root', kind: 'operator' as const, operator, type: 'child' }, keyword('child', 'symbol')],
+  })),
   {
     kind: 'conditional',
     nodes: [{ id: 'root', kind: 'conditional', check: 'child', extends: 'child', whenTrue: 'child', whenFalse: 'child' }, keyword('child', 'string')],
@@ -321,6 +349,9 @@ describe('SchemaEmitter supported projection matrix', () => {
     const schema = await loadSchema(emit(nodes))
     for (const value of accepted) expect(schema.safeParse(value).success).toBe(true)
     for (const value of rejected) expect(schema.safeParse(value).success).toBe(false)
+    if (nodes[0]?.kind === 'operator' && nodes[0].operator === 'readonly') {
+      for (const value of accepted) expect(Object.isFrozen(schema.parse(value))).toBe(true)
+    }
   })
 
   it('supports recursive declarations and inherited object shapes', async () => {
@@ -536,7 +567,7 @@ describe('SchemaEmitter supported projection matrix', () => {
 
   it('classifies every TypeNode kind and executes every supported kind', () => {
     const expected = Object.entries(ZOD_NODE_SUPPORT)
-      .filter(([, support]) => support === 'supported')
+      .filter(([, support]) => support !== 'unsupported')
       .map(([kind]) => kind)
       .sort()
     expect(distinct(supportedCases.map(candidate => candidate.nodes[0]?.kind ?? 'missing'))).toEqual(expected)
@@ -548,6 +579,15 @@ describe('SchemaEmitter unsupported projection matrix', () => {
     expect(() => emit(nodes)).toThrow(new TypertEmitError(
       `typert Zod emitter: root: type node ${kind} has no Zod projection`,
     ))
+  })
+
+  it('rejects unsupported elements inside readonly containers', () => {
+    expect(() => emit([
+      { id: 'root', kind: 'operator', operator: 'readonly', type: 'array' },
+      { id: 'array', kind: 'array', element: 'callable' },
+      { id: 'callable', kind: 'function', signature: signature('string') },
+      keyword('string', 'string'),
+    ])).toThrow('type node function has no Zod projection')
   })
 
   it.each([
@@ -787,7 +827,7 @@ describe('SchemaEmitter unsupported projection matrix', () => {
 
   it('classifies and rejects every unsupported TypeNode kind', () => {
     const expected = Object.entries(ZOD_NODE_SUPPORT)
-      .filter(([, support]) => support === 'unsupported')
+      .filter(([, support]) => support !== 'supported')
       .map(([kind]) => kind)
       .sort()
     expect(distinct(unsupportedNodeCases.map(candidate => candidate.kind))).toEqual(expected)
@@ -958,13 +998,13 @@ function schemaFace(
   }
 }
 
-async function loadSchema(source: string): Promise<{ safeParse(value: unknown): { success: boolean } }> {
+async function loadSchema(source: string): Promise<z.ZodType> {
   const root = mkdtempSync(join(import.meta.dirname, '.generated-schema-'))
   temporaryRoots.push(root)
   const path = join(root, 'schema.mjs')
   writeFileSync(path, source)
   const generated = await import(`${pathToFileURL(path).href}?test=${Date.now()}-${String(temporaryRoots.length)}`) as {
-    Root: { safeParse(value: unknown): { success: boolean } }
+    Root: z.ZodType
   }
   return generated.Root
 }

@@ -18,6 +18,7 @@ export interface ConnectionGeneration {
 }
 
 const MANUAL_RECONNECT = new Error('connection: manual reconnect requested')
+const AUTHENTICATION_EXPIRED = new Error('connection: Host rejected browser authentication')
 const NETWORK_STATE_CHANGED = new Error('connection: browser network state changed')
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
@@ -39,21 +40,35 @@ function waitForAbort(signal: AbortSignal): Promise<void> {
   })
 }
 
-/** Connection lifecycle state published after the first attempt has an outcome. */
+/** Observable Connection readiness, recovery and failure states. */
 export type ConnectionState =
-  | 'connected'
-  | 'disconnected'
+  | 'ready'
+  | 'offline'
   | 'connecting'
+  | 'authenticating'
+  | 'reconnecting'
+  | 'host-not-ready'
+  | 'auth-expired'
+  | 'incompatible'
+  | 'fatal'
 
 /** Connection-generation callbacks owned by API Gateway. */
 export interface ConnectionSinks {
   /** After the generation source reports ready, first connect included. */
   onConnected?: (host: ConnectionHostInfo) => void
-  /** State transitions after the initial attempt has an outcome. Equivalent states are deduplicated. */
+  /** Readiness delays, establishment and recovery transitions. Equivalent states are deduplicated. */
   onStateChange?: (state: ConnectionState) => void
   /** Start one fresh physical-carrier attempt before each logical retry. */
   onReconnectRequested?: () => void
+  /** Classify a generation failure that requires intervention; undefined keeps automatic retry. */
+  classifyFailure?: (error: unknown) => 'incompatible' | 'fatal' | undefined
 }
+
+/**
+ * Report the active handshake operation before generation readiness.
+ * @param phase - credential verification or remaining connection establishment.
+ */
+export type ConnectionGenerationProgress = (phase: 'authenticating' | 'connecting') => void
 
 /**
  * One long-lived source defining a Connection generation. The source must
@@ -62,11 +77,13 @@ export interface ConnectionSinks {
  * delivery, release its resources, and settle before a replacement can start.
  * @param signal - cancellation for the current generation.
  * @param ready - one-shot report that incremental delivery is attached.
+ * @param progress - report handshake progress; obsolete or ready generations ignore it.
  * @returns a promise settling only when this generation ends or fails.
  */
 export type ConnectionGenerationSource = (
   signal: AbortSignal,
   ready: (host: ConnectionHostInfo) => void,
+  progress: ConnectionGenerationProgress,
 ) => Promise<void>
 
 /**
@@ -114,7 +131,7 @@ export class ConnectionController {
     if (!this.running) return
     this.attempt = 0
     this.immediateRetry = true
-    this.emitState('connecting')
+    this.emitState('reconnecting')
     if (!this.isRunning()) return
     this.current?.abort(MANUAL_RECONNECT)
     this.retryDelay?.abort(MANUAL_RECONNECT)
@@ -130,10 +147,23 @@ export class ConnectionController {
     this.attempt = 0
     this.immediateRetry = false
     if (!this.running) return
-    this.emitState(available ? 'connecting' : 'disconnected')
+    this.emitState(available ? 'reconnecting' : 'offline')
     if (!this.isRunning()) return
     this.current?.abort(NETWORK_STATE_CHANGED)
     this.retryDelay?.abort(NETWORK_STATE_CHANGED)
+  }
+
+  /**
+   * Capture the active generation for one outgoing HTTP request.
+   * @returns a reporter that invalidates only that generation after HTTP 401; obsolete requests are ignored.
+   */
+  captureAuthenticationFailure(): () => void {
+    const current = this.current
+    return () => {
+      if (current === null || current !== this.current || !this.isGenerationActive(current)) return
+      current.abort(AUTHENTICATION_EXPIRED)
+      this.emitState('auth-expired')
+    }
   }
 
   private backoffCap(attempt: number): number {
@@ -167,12 +197,18 @@ export class ConnectionController {
       if (!this.networkAvailable && !this.immediateRetry) {
         const retryDelay = new AbortController()
         this.retryDelay = retryDelay
-        this.emitState('disconnected')
+        this.emitState('offline')
         await waitForAbort(retryDelay.signal)
         if (this.retryDelay === retryDelay) this.retryDelay = null
         if (!this.isRunning()) return
         retry = true
         continue
+      }
+
+      if (!retry) {
+        this.emitState('connecting')
+        if (!this.isRunning()) return
+        if (this.isRetryInterrupted(false)) { retry = true; continue }
       }
 
       let manualAttempt = false
@@ -182,7 +218,7 @@ export class ConnectionController {
         if (immediate) this.attempt = 0
         manualAttempt = immediate
         const attempt = ++this.attempt
-        this.emitState('connecting')
+        this.emitState('reconnecting')
         if (!this.isRunning()) return
         if (this.isRetryInterrupted(immediate)) continue
         if (!immediate) {
@@ -202,6 +238,7 @@ export class ConnectionController {
       const ac = new AbortController()
       this.current = ac
 
+      let failure: unknown
       let sourceReady = false
       let resolveReady!: (host: ConnectionHostInfo) => void
       let rejectReady!: (error: Error) => void
@@ -218,6 +255,10 @@ export class ConnectionController {
         sourceReady = true
         resolveReady(host)
       }
+      const reportProgress: ConnectionGenerationProgress = (phase) => {
+        if (sourceReady || gen !== this.generation || !this.isGenerationActive(ac) || this.lastState === 'host-not-ready') return
+        this.emitState(phase === 'connecting' && retry ? 'reconnecting' : phase)
+      }
 
       const failed = new Promise<void>((resolve) => {
         const settle = (): void => {
@@ -225,7 +266,9 @@ export class ConnectionController {
           resolve()
         }
         void Promise.resolve()
-          .then(() => this.source(ac.signal, reportReady))
+          .then(() => {
+            if (this.isGenerationActive(ac)) return this.source(ac.signal, reportReady, reportProgress)
+          })
           .then(
             () => {
               const error = new Error('connection generation ended')
@@ -234,11 +277,12 @@ export class ConnectionController {
               settle()
             },
             (error: unknown) => {
-              const failure = error instanceof Error
+              failure = ac.signal.aborted ? undefined : error
+              const sourceError = error instanceof Error
                 ? error
                 : new Error('connection generation failed', { cause: error })
-              if (!sourceReady) rejectReady(failure)
-              rejectSourceLost(failure)
+              if (!sourceReady) rejectReady(sourceError)
+              rejectSourceLost(sourceError)
               settle()
             },
           )
@@ -246,12 +290,14 @@ export class ConnectionController {
 
       try {
         const host = await Promise.race([
-          waitForReady(ready, this.config, ac.signal),
+          waitForReady(ready, this.config, ac.signal, () => {
+            if (gen === this.generation && this.isGenerationActive(ac)) this.emitState('host-not-ready')
+          }),
           sourceLost,
         ])
         if (ac.signal.aborted) throw new Error('generation aborted during readiness handshake')
         this.attempt = 0
-        this.emitState('connected')
+        this.emitState('ready')
         // A state sink may synchronously stop this controller.
         if (this.isGenerationActive(ac)) {
           this.callSink(() => { this.sinks.onConnected?.(host) })
@@ -262,6 +308,21 @@ export class ConnectionController {
 
       await failed
       if (!this.isRunning()) return
+      const authenticationExpired = ac.signal.reason === AUTHENTICATION_EXPIRED
+      if (!this.immediateRetry && this.networkAvailable && (authenticationExpired || failure !== undefined)) {
+        let blocked: 'auth-expired' | 'incompatible' | 'fatal' | undefined
+        if (authenticationExpired) blocked = 'auth-expired'
+        else this.callSink(() => { blocked = this.sinks.classifyFailure?.(failure) })
+        if (!this.isRunning()) return
+        if (blocked !== undefined && !this.isRetryInterrupted(false)) {
+          const retryDelay = new AbortController()
+          this.retryDelay = retryDelay
+          this.emitState(blocked)
+          await waitForAbort(retryDelay.signal)
+          if (this.retryDelay === retryDelay) this.retryDelay = null
+          if (!this.isRunning()) return
+        }
+      }
       if (manualAttempt) this.attempt = 0
       retry = true
     }
@@ -289,15 +350,18 @@ function waitForReady<T>(
   ready: Promise<T>,
   config: Required<ConnectionRecoveryConfig>,
   signal: AbortSignal,
+  slow: () => void,
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     let settled = false
     const warning = setTimeout(() => {
       console.warn(`[connection] generation is still not ready after ${String(config.generationReadyWarnMs)}ms`)
+      slow()
     }, config.generationReadyWarnMs)
     const timeout = setTimeout(() => {
       const error = new Error(`connection generation was not ready within ${String(config.generationReadyTimeoutMs)}ms`)
       console.warn(`[connection] ${error.message}; cancelling generation`)
+      slow()
       finish({ error })
     }, config.generationReadyTimeoutMs)
     const aborted = (): void => {

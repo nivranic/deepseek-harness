@@ -62,6 +62,7 @@ export function createElectronBuilderConfig(
       'lib/*.js',
       'lib/*.cjs',
       'renderer/**/*',
+      'resources/tray-icon.png',
       'package.json',
     ],
     extraResources: [

@@ -1,0 +1,157 @@
+{
+  "scope": "Native junction API step tracing through existing same-byte runtime launchers; no policy changes",
+  "runtimeSha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181",
+  "outside": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-junction-launch-6bmuuse2",
+  "cases": [
+    {
+      "launcher": "direct-python",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.14099999999962165,
+      "terminationExitCode": null,
+      "steps": [
+        {
+          "step": "directories-created",
+          "pid": 36576,
+          "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-junction-steps-f85x1qtf"
+        },
+        {
+          "step": "before-open",
+          "pid": 36576
+        },
+        {
+          "step": "opened",
+          "pid": 36576
+        },
+        {
+          "step": "before-set-reparse",
+          "pid": 36576,
+          "bytes": 300
+        },
+        {
+          "step": "set-reparse-result",
+          "pid": 36576,
+          "success": true,
+          "winerror": 0
+        },
+        {
+          "step": "before-close",
+          "pid": 36576
+        },
+        {
+          "step": "closed",
+          "pid": 36576,
+          "success": true,
+          "winerror": 0
+        },
+        {
+          "step": "before-readlink",
+          "pid": 36576
+        },
+        {
+          "step": "readlink",
+          "pid": 36576,
+          "target": "\\\\?\\C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-junction-steps-f85x1qtf\\target"
+        }
+      ],
+      "log": ".artifacts/junction-steps-direct-python.log"
+    },
+    {
+      "launcher": "repository-runtime",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.4530000000013388,
+      "terminationExitCode": null,
+      "steps": [
+        {
+          "step": "directories-created",
+          "pid": 39048,
+          "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-junction-steps-ah7h5fdq"
+        },
+        {
+          "step": "before-open",
+          "pid": 39048
+        },
+        {
+          "step": "opened",
+          "pid": 39048
+        },
+        {
+          "step": "before-set-reparse",
+          "pid": 39048,
+          "bytes": 300
+        },
+        {
+          "step": "set-reparse-result",
+          "pid": 39048,
+          "success": true,
+          "winerror": 0
+        },
+        {
+          "step": "before-close",
+          "pid": 39048
+        },
+        {
+          "step": "closed",
+          "pid": 39048,
+          "success": true,
+          "winerror": 0
+        },
+        {
+          "step": "before-readlink",
+          "pid": 39048
+        },
+        {
+          "step": "readlink",
+          "pid": 39048,
+          "target": "\\\\?\\C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-junction-steps-ah7h5fdq\\target"
+        }
+      ],
+      "log": ".artifacts/junction-steps-repository-runtime.log"
+    },
+    {
+      "launcher": "installed-runtime",
+      "exitCode": 1,
+      "timedOut": true,
+      "elapsedSeconds": 31.96900000000096,
+      "terminationExitCode": 128,
+      "steps": [
+        {
+          "step": "directories-created",
+          "pid": 51688,
+          "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-junction-steps-96enbkcy"
+        },
+        {
+          "step": "before-open",
+          "pid": 51688
+        },
+        {
+          "step": "opened",
+          "pid": 51688
+        },
+        {
+          "step": "before-set-reparse",
+          "pid": 51688,
+          "bytes": 300
+        },
+        {
+          "step": "set-reparse-result",
+          "pid": 51688,
+          "success": false,
+          "winerror": 5
+        },
+        {
+          "step": "before-close",
+          "pid": 51688
+        },
+        {
+          "step": "closed",
+          "pid": 51688,
+          "success": true,
+          "winerror": 0
+        }
+      ],
+      "log": ".artifacts/junction-steps-installed-runtime.log"
+    }
+  ]
+}

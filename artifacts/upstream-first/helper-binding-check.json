@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/helper-fixes-source.json",
+      "status": "PASS",
+      "rejected": "Helper fixes source record changed"
+    },
+    {
+      "path": "packages/util/atomic-write/src/index.ts",
+      "status": "PASS",
+      "rejected": "Helper fixes sourceFiles changed after validation"
+    },
+    {
+      "path": "packages/util/workspace-path/lib/index.js",
+      "status": "PASS",
+      "rejected": "Helper fixes artifacts changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/helper-built-smoke.json",
+      "status": "PASS",
+      "rejected": "Helper fixes receipts changed after validation"
+    }
+  ]
+}

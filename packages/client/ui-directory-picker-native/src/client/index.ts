@@ -17,7 +17,7 @@ import { NativeDirectoryFlow } from './flow.ts'
 
 
 /** Required services (cordis fiber inject): the slot registry and workspace UI service. */
-export const inject = ['slots', 'uiWorkspace']
+export const inject = ['slots', 'uiWorkspace', 'remote']
 
 /**
  * Client plugin body: register the renderless native flow into both
@@ -26,17 +26,35 @@ export const inject = ['slots', 'uiWorkspace']
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  const injected = (): NativeFlowInjected => ({ pick: () => ctx.uiWorkspace.pickDirectory() })
-  // Both declaration lifetimes must be live before the pair installs; the
-  // generator makes the two registrations one transactional effect. The
-  // outer/inner nesting order is arbitrary; neither hole has precedence.
   ctx.slots.inject('conversation.hero.workspace.directoryFlow', () =>
-    ctx.slots.inject('sidebar.workspaces.directoryFlow', function* () {
-      yield ctx.slots.register({
-        name: 'conversation.hero.workspace.directoryFlow', inject: injected,
-      }, NativeDirectoryFlow)
-      yield ctx.slots.register({
-        name: 'sidebar.workspaces.directoryFlow', inject: injected,
-      }, NativeDirectoryFlow)
+    ctx.slots.inject('sidebar.workspaces.directoryFlow', () => {
+      let currentHost: typeof ctx.remote.$host | undefined
+      let remove: (() => void) | undefined
+      const refresh = (): void => {
+        const host = ctx.remote.$host
+        if (host === currentHost) return
+        currentHost = host
+        remove?.()
+        remove = undefined
+        if (host.capabilities?.includes('directory-picker.native.v1') !== true) return
+        const lifetime = new AbortController()
+        const operations = ctx.uiWorkspace.captureDirectoryOperations(lifetime.signal)
+        const injected = (): NativeFlowInjected => ({
+          pick: operations.pickDirectory,
+        })
+        const dispose = ctx.effect(function* () {
+          yield () => { lifetime.abort() }
+          yield ctx.slots.register({
+            name: 'conversation.hero.workspace.directoryFlow', inject: injected,
+          }, NativeDirectoryFlow)
+          yield ctx.slots.register({
+            name: 'sidebar.workspaces.directoryFlow', inject: injected,
+          }, NativeDirectoryFlow)
+        }, 'directory-picker-native: admitted Host entries')
+        remove = () => { lifetime.abort(); void dispose() }
+      }
+      refresh()
+      const stop = ctx.on('connection/reset', refresh)
+      return () => { stop(); remove?.() }
     }))
 }

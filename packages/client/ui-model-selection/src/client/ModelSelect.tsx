@@ -22,7 +22,7 @@ import {
   IconCheckOutline16, IconChevronDownOutline14, IconChevronRightOutline14,
   IconDataOutline16, IconWarningOutline16, Toast,
 } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
+import type { InjectFace, PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ModelSelectInjected } from './slots.ts'
 import css from './ModelSelect.module.css'
 
@@ -47,7 +47,7 @@ const MEASURE_STYLE: CSSProperties = { visibility: 'hidden', left: 0, top: 0 }
  */
 export function ModelSelect(
   { locked, available, directory, load, select, t }:
-  ModelSelectInjected & { locked: boolean } & PropsLocale<'model'>,
+  Omit<ModelSelectInjected, 'hooks'> & { locked: boolean } & PropsLocale<'model'>,
 ) {
   const state = useSyncExternalStore(
     fn => directory.subscribe(fn),
@@ -415,4 +415,16 @@ export function ModelSelect(
       )}
     </div>
   )
+}
+
+
+/**
+ * Render the model seat only while its Host capability is admitted.
+ * @param props - renderer-bound capability hook and model-selection props.
+ * @returns the selector, or no entry while discovery or capability is unavailable.
+ */
+export function ModelSelectEntry({ useModelCapability, ...props }:
+  InjectFace<ModelSelectInjected> & { locked: boolean } & PropsLocale<'model'>) {
+  const supported = useModelCapability(value => value)
+  return supported ? <ModelSelect {...props} /> : null
 }

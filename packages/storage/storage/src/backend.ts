@@ -19,9 +19,10 @@ export interface StorageBackend {
   readonly kv?: KvFacet
 
   /**
-   * Drain in-flight writes across all open units and release the medium.
+   * Stop and drain registered unit owners, close their units, and release the medium.
    * Idempotent; concurrent and repeated calls resolve once teardown finishes.
    * @returns resolution after the medium is released.
+   * @throws AggregateError containing cleanup failures after every owner and unit settles.
    */
   close(): Promise<void>
 }
@@ -37,9 +38,13 @@ export interface KvFacet {
    * with `malformed-medium`. Opening the same unit name twice without closing
    * is a caller bug and rejects.
    * @param descriptor - Static identity and shape of the unit to open.
+   * @param onBackendClose - Optional owner teardown invoked before backend-driven
+   *   unit close. It must stop accepting work and drain its queue, including work
+   *   not yet submitted to the unit. It may close the unit, but must not await
+   *   backend close. Closing the unit independently withdraws this callback.
    * @returns the opened unit.
    */
-  open(descriptor: KvUnitDescriptor): Promise<KvUnit>
+  open(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit>
 }
 
 /** Static identity and shape of one KV unit, projected from its owner's spec. */

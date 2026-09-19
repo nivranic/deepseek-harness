@@ -209,7 +209,7 @@ describe('connection node half', () => {
   it('requires the same browser session for every method on every trusted authority', async () => {
     const { routes, connection, dispose } = await mounted({ trustedHosts: ['harness.example'] })
     const methods = [
-      'session/openWorkspacePath',
+      'presentedFiles/open',
       'llm/discoverModels', 'skills/list', 'settings/openAgentPresetDirectory',
     ]
     for (const method of methods) {
@@ -470,6 +470,13 @@ describe('connection node half', () => {
         rpcId,
         result: { ok: false, error: { code: 'gateway/bad-request' } },
       })
+      const envelope = JSON.parse(String(response.state.body)) as {
+        result: { error: { details: { issues: Record<string, unknown>[] } } }
+      }
+      expect(envelope.result.error.details.issues.length).toBeGreaterThan(0)
+      for (const issue of envelope.result.error.details.issues) {
+        expect(Object.keys(issue).sort()).toEqual(['code', 'message', 'path'])
+      }
     }
 
     const failed = fakeResponse()
@@ -535,7 +542,7 @@ describe('connection node half over a real HTTP server', () => {
     try {
       const methods = [
         'settings/openSettingsDocument',
-        'session/openWorkspacePath',
+        'presentedFiles/open',
         'llm/discoverModels', 'skills/list',
         'settings/openAgentPresetDirectory',
         'llm/listProviders', 'session/modelCatalog',

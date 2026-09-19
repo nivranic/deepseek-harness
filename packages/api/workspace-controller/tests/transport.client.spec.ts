@@ -4,8 +4,8 @@
  * roster's own Connection and is answered by endpoint name.
  */
 
-import { describe, expect, onTestFinished, vi } from 'vitest'
-import { RemoteStreamCarrierError, type ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
+import { describe, expect, it as unit, onTestFinished, vi } from 'vitest'
+import { RemoteStream, RemoteStreamCarrierError, type ClientRemote, type RemoteStreamOptions } from '@deepseek-ai/dsh-api-gateway/client'
 import { SessionId } from '@deepseek-ai/dsh-session/types'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { frames, openStream, type RemoteMock, type StreamScript } from '@deepseek-ai/dsh-remote-mock'
@@ -43,6 +43,7 @@ async function pluginClient(mock: RemoteMock, start: () => Promise<TestClient>, 
 async function gatewayClient(mock: RemoteMock, start: () => Promise<TestClient>): Promise<{ remote: ClientRemote; client: TestClient }> {
   mock.load(workspaceWorld)
   const client = await start()
+  await vi.waitFor(() => { expect(client.ctx.remote.$host.capabilities).toContain('workspace.follow.v1') })
   return { remote: client.ctx.remote, client }
 }
 
@@ -144,6 +145,41 @@ describe('Workspace Controller Client apply', () => {
 })
 
 describe('Workspace state stream', () => {
+  unit('opens no follow while unsupported and opens once when support arrives', async () => {
+    let capabilities: string[] = []
+    const listeners = new Set<() => void>()
+    const source = { generation: {
+      getSnapshot: () => ({ id: 1, host: { home: '/fixture', capabilities } }),
+      subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } },
+    } }
+    const follow = vi.fn(async function* (signal: AbortSignal) {
+      yield baseline('restored')
+      await new Promise<void>((resolve) => {
+        if (signal.aborted) resolve()
+        else signal.addEventListener('abort', () => { resolve() }, { once: true })
+      })
+    })
+    const remote = {
+      $stream: <Item>(options: RemoteStreamOptions<Item>) => new RemoteStream(source, options),
+      workspace: { follow },
+    } as unknown as ClientRemote
+    const replaceBaseline = vi.fn()
+    const failed = vi.fn()
+    const stream = createWorkspaceStateStream(remote, { accept: accepts({ replaceBaseline }), failed })
+    stream.start()
+    try {
+      await vi.waitFor(() => { expect(listeners.size).toBe(1) })
+      expect(follow).not.toHaveBeenCalled()
+      capabilities = ['workspace.follow.v1']
+      for (const listener of [...listeners]) listener()
+      await vi.waitFor(() => { expect(replaceBaseline).toHaveBeenCalledWith(baseline('restored').value) })
+      expect(follow).toHaveBeenCalledOnce()
+      expect(failed).not.toHaveBeenCalled()
+    } finally {
+      await stream.dispose()
+    }
+    expect(listeners.size).toBe(0)
+  })
   it('delivers one baseline followed by increments', async ({ mock, start }) => {
     const { remote } = await gatewayClient(mock, start)
     const opening = baseline('one')
@@ -308,7 +344,7 @@ describe('Workspace state stream', () => {
 describe('WorkspaceController', () => {
   it('publishes the model source and exposes successful Workspace commands', async ({ mock, start }) => {
     const { remote, client } = await gatewayClient(mock, start)
-    const model = new ClientWorkspaceModel(remote.workspace)
+    const model = new ClientWorkspaceModel(remote.workspace, () => remote.$host)
     model.replaceBaseline({ items: [workspace('one')], archivedSessionIds: [] })
     const controller = new WorkspaceController(client.ctx, model)
 
@@ -333,7 +369,7 @@ describe('WorkspaceController', () => {
 
   it('maps generated business failures to the command facade errors', async ({ mock, start }) => {
     const { remote, client } = await gatewayClient(mock, start)
-    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace))
+    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace, () => remote.$host))
     const missingWorkspace = new RemoteError('workspace/not-found', 'gone', { workspaceId: wid('missing') })
     const missingSession = new RemoteError('session/not-found', 'missing session', { sessionId: sid('session') })
 
@@ -360,7 +396,7 @@ describe('WorkspaceController', () => {
 
   it('receives a carrier throw as the client\'s gateway/internal fold, never as a rejection', async ({ mock, start }) => {
     const { remote, client } = await gatewayClient(mock, start)
-    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace))
+    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace, () => remote.$host))
 
     mock.remote.workspace.create.mockImplementation(() => Promise.reject(new Error('create wire down')))
     const create = controller.create({ path: '/work/created' })

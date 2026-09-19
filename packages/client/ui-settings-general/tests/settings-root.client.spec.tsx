@@ -36,7 +36,7 @@ const useSessionPendingInteraction: SettingsRootComponentProps['useSessionPendin
 function mount({
   wide = true,
   dictionary = en,
-  connectionState = 'connected',
+  connectionState = 'ready',
   onboardingActive = true,
   rows = [
     { id: 'general', order: 0, label: 'General' },
@@ -151,21 +151,21 @@ describe('SettingsRoot trigger', () => {
   it('shows outage, retry progress, and a two-second recovery confirmation', () => {
     vi.useFakeTimers()
     const mounted = mount()
-    expect(screen.queryByRole('button', { name: 'Disconnected, reconnect now' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Offline, reconnect now' })).toBeNull()
 
-    mounted.setConnectionState('disconnected')
-    const indicator = screen.getByRole('button', { name: 'Disconnected, reconnect now' })
-    expect(indicator.textContent).toContain('Disconnected')
-    expect(indicator.hasAttribute('title')).toBe(false)
+    mounted.setConnectionState('offline')
+    const indicator = screen.getByRole('button', { name: 'Offline, reconnect now' })
+    expect(indicator.textContent).toContain('Offline')
+    expect(indicator.getAttribute('title')).toBe('Offline, reconnect now')
     expect(indicator.querySelector('svg')).toBeTruthy()
     fireEvent.click(indicator)
     expect(mounted.reconnect).toHaveBeenCalledOnce()
 
-    mounted.setConnectionState('connecting')
+    mounted.setConnectionState('reconnecting')
     expect(screen.getByRole('button', { name: 'Reconnecting automatically, reconnect now' }).textContent)
       .toContain('Reconnecting...')
 
-    mounted.setConnectionState('connected')
+    mounted.setConnectionState('ready')
     expect(screen.getByRole('status', { name: 'Connected' })).toBeTruthy()
     act(() => { vi.advanceTimersByTime(1_999) })
     expect(screen.getByRole('status', { name: 'Connected' })).toBeTruthy()
@@ -173,9 +173,43 @@ describe('SettingsRoot trigger', () => {
     expect(screen.queryByRole('status')).toBeNull()
   })
 
-  it('keeps the reconnect indicator out of the collapsed rail', () => {
-    mount({ wide: false, connectionState: 'disconnected' })
-    expect(screen.queryByRole('button', { name: 'Disconnected, reconnect now' })).toBeNull()
+  it.each([
+    ['auth-expired', 'Not authenticated', 'Open this Host using its current launch link to authenticate, then reconnect'],
+    ['incompatible', 'Update required', 'Host and Client are incompatible. Update the application, then reconnect'],
+    ['fatal', 'Host data unavailable', 'Host data is invalid or unavailable. Automatic retries are paused; check Host, then reconnect'],
+  ] as const)('shows %s recovery instructions even in the collapsed rail', (state, label, action) => {
+    const mounted = mount({ wide: false, connectionState: state })
+    const control = screen.getByRole('button', { name: action })
+    expect(control.textContent).toContain(label)
+    expect(control.getAttribute('title')).toBe(action)
+    fireEvent.click(control)
+    expect(mounted.reconnect).toHaveBeenCalledOnce()
+  })
+
+  it('shows delayed Host readiness with an accessible manual retry in the collapsed rail', () => {
+    const mounted = mount({ wide: false, connectionState: 'host-not-ready' })
+    const action = 'Host readiness is delayed. Waiting and retrying automatically; reconnect now'
+    const control = screen.getByRole('button', { name: action })
+    expect(control.textContent).toContain('Waiting for Host...')
+    expect(control.getAttribute('title')).toBe(action)
+    fireEvent.click(control)
+    expect(mounted.reconnect).toHaveBeenCalledOnce()
+    mounted.setConnectionState('ready')
+    expect(screen.queryByRole('button', { name: action })).toBeNull()
+  })
+
+  it.each([
+    ['connecting', 'Connecting to Host, reconnect now', 'Connecting...'],
+    ['authenticating', 'Checking authentication with Host, reconnect now', 'Authenticating...'],
+    ['reconnecting', 'Reconnecting automatically, reconnect now', 'Reconnecting...'],
+    ['offline', 'Offline, reconnect now', 'Offline'],
+  ] as const)('exposes the %s action in the collapsed rail', (state, label, text) => {
+    const mounted = mount({ wide: false, connectionState: state })
+    const button = screen.getByRole('button', { name: label })
+    expect(button.textContent).toContain(text)
+    expect(button.getAttribute('title')).toBe(label)
+    fireEvent.click(button)
+    expect(mounted.reconnect).toHaveBeenCalledOnce()
   })
 })
 

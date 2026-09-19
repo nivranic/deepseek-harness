@@ -8,6 +8,7 @@
 
 import { Context } from '@deepseek-ai/cordis'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import { LLM_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { deepFreeze } from '@deepseek-ai/dsh-util-values'
 import type {
   GenerateOptions,
@@ -339,7 +340,7 @@ export class LlmRuntime extends TypertRemoteService {
   >()
 
   constructor(ctx: Context) {
-    super(ctx, 'llm')
+    super(ctx, 'llm', { capabilities: LLM_REMOTE_CAPABILITIES })
   }
 
   /** Notify topology observers without letting one broken listener veto the commit. */

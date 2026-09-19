@@ -4,6 +4,8 @@ English | [中文](typert.zh.md)
 
 Types shared by generated Remote artifacts, the Host Gateway, and consumer API assemblies. The [Typert Gateway Agent Note](../../.agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.md) owns the architecture and transport decisions; this page records the literal public contracts from [`dsh-typert-protocol`](../../packages/typert/protocol/src/types.ts) and [`dsh-api-gateway`](../../packages/api/gateway/src/types.ts).
 
+Validation failures use the exported `RemoteValidationIssue` type: `code` and `message` are strings, and `path` is a readonly array of string keys and numeric indices. `RemoteErrorDetailsMap['gateway/bad-request'].issues` is optional; absence means the owner supplied no codec diagnostics. The [protocol helper](../../packages/typert/protocol/README.md) owns conversion from validation-library output.
+
 ## Lookup and Context declarations
 
 Business-object packages extend two empty maps through declaration merging. A lookup associates one Host object type with its wire identity; a Context declaration associates one scoped Context kind with its wire identity. Generated descriptors name these keys, while runtime providers supply the live resolution behavior.
@@ -139,6 +141,8 @@ interface TypertRemoteNamespaceMap {}
 
 ## Host Gateway
 
+The internal protocol-2 ready frame's optional `pendingInteractionIds` lists the pending interactions queued for its Client generation. [Gateway answer retention](../../packages/api/gateway/README.md#client-service-clientremote-ctx-key-remote) requires this snapshot and the application preparation’s branded `RemoteInteractionReplyScope` to restrict retries to pending work on the same discovered Host. A missing scope disables retention; the scope is Client-local and is not a wire field or an authorization decision.
+
 Connection decodes its carrier envelope before calling `ctx.typertGateway`. The request carries exact named wire fields and the carrier's cancellation signal separately; infrastructure and boundary failures ride `TypertGatewayError`, whose `gateway/*` codes are ordinary `RemoteError` codes, so the RPC adapter passes every structurally identified `RemoteError` through with its code and details intact and folds only unrecognized exceptions into `gateway/internal`.
 
 ```ts type-equiv
@@ -182,6 +186,15 @@ type TypertGatewayErrorCode =
 interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
+
+  /**
+   * Read explicit capability ids from active Remote bindings whose required
+   * methods are available. Withdrawn strict definitions are not advertised.
+   * This describes operations, not a caller's authorization to invoke them.
+   * @returns unique capability ids in lexical order.
+   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+   */
+  capabilities(): readonly string[]
   /**
    * Register the application-selected forwarded-event source.
    * @param source - stream factory installed by the Remote assembly.
@@ -205,6 +218,61 @@ interface TypertGateway {
    * @returns a cancellation-aware iterable over the business results.
    */
   stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
+}
+```
+
+<a id="host-discovery"></a>
+## Host discovery
+
+[Host description](../../packages/api/host-description/README.md) returns these facts through the existing authenticated Remote. Live bindings declare capabilities explicitly; they are not caller permissions, and the three version fields have independent owners.
+
+```ts type-equiv
+/** One explicitly versioned business operation set advertised by its live Remote owner. */
+interface TypertRemoteCapability {
+  /** Semantic capability id ending in `.v` and a positive integer, such as `session.follow.v1`. */
+  readonly id: string
+  /** Nonempty set of exported method names required by this capability in the binding's namespace. */
+  readonly methods: readonly string[]
+}
+```
+
+```ts type-equiv
+/** Persistent identity of one Harness home; not an authentication credential. */
+type HostId = Branded<'HostId'>
+```
+
+```ts type-equiv
+/** Physical carriers provided by the Host composition. */
+type HostTransport = 'http' | 'websocket' | 'desktop-pipe'
+```
+
+```ts type-equiv
+/** Authenticated discovery result for the currently running Host. */
+interface HostDescriptor {
+  /** Stable across launches sharing the same configured identity file. */
+  readonly hostId: HostId
+  /** Operator-configured label; never used to resolve Host identity. */
+  readonly displayName: string
+  /** Installed Harness package release, independent of protocol generations. */
+  readonly productVersion: string
+  /** Selected response generation; describe uses the protocol-1 discovery representation. */
+  readonly apiProtocolVersion: number
+  /** Offered request codecs; absent on Hosts without negotiation. */
+  readonly supportedApiProtocolVersions?: readonly number[]
+  /** Session writer generation; Clients do not parse the corresponding disk format. */
+  readonly sessionFormatVersion: number
+  /** Host Node.js platform value. */
+  readonly platform: string
+  /** Host Node.js architecture value. */
+  readonly arch: string
+  /** This implementation runs the full Harness; Lite is a separate runtime. */
+  readonly runtimeMode: 'full'
+  /** Explicit versioned operation sets supported by live Remote owners, sorted by id. */
+  readonly capabilities: readonly string[]
+  /** Carriers configured by the application that hosts this service. */
+  readonly transports: readonly HostTransport[]
+  /** Host UTC clock at description time, in milliseconds since the Unix epoch. */
+  readonly serverTime: number
 }
 ```
 
@@ -241,6 +309,30 @@ interface TypertClientRemote extends TypertRemoteNamespaceMap {
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxhostdescription--hostdescriptiongateway"></a>
+
+### `ctx.hostDescription` — `HostDescriptionGateway`
+
+Read-only Remote namespace for Host facts and explicitly declared capabilities.
+
+```ts cordis-catalog
+/**
+ * Read current Host facts without changing Session or Workspace state.
+ * Capability presence does not grant permission to invoke its operations.
+ * @returns installed versions, stable identity, and current operation availability.
+ */
+@Remote('describe') describe(): HostDescriptor
+
+/**
+ * Select the highest shared request codec without changing identity or granting permissions.
+ * @param supportedApiProtocolVersions - nonempty, distinct positive integer Client offers.
+ * @returns Host facts expressed in the selected API generation.
+ */
+@Remote('negotiate') negotiate(supportedApiProtocolVersions: readonly number[]): HostDescriptor
+```
+
+Source: [`packages/api/host-description/src/index.ts`](../../packages/api/host-description/src/index.ts)
 
 <a id="ctxtypert--typertregistry"></a>
 
@@ -322,6 +414,13 @@ Resolve strict generated definitions or conservative SRC markers against current
  * @returns disposer removing this source and cancelling its active streams.
  */
 registerRemoteEvents( source: TypertRemoteEventSource, host: RemoteEventHostInfo, ): () => Promise<void>
+
+/**
+ * Read the explicit operation sets of live Remote owners without invoking them.
+ * @returns sorted capability ids whose required method definitions are available.
+ * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+ */
+capabilities(): readonly string[]
 
 /**
  * Invoke one live Remote method through strict generated reflection or SRC markers.

@@ -56,6 +56,18 @@ export interface CordisRunCardFace extends CordisCardFace {
 
 /** Frame-wide panel state and lifecycle verbs. */
 export interface CordisPanelFace {
+  /** Whether this registration still belongs to the current Connection. */
+  current(): boolean
+  /** Model approval requires activation, Client source and request settlement. */
+  canApprove: boolean
+  /** Refusal only requires request settlement. */
+  canDecline: boolean
+  /** Whether the selected Package's Host/Client run sequence is supported. */
+  canRun(hasClientHalf: boolean): boolean
+  /** Whether an active Host run can be stopped. */
+  canStop: boolean
+  /** Whether a Host definition can be removed. */
+  canRemove: boolean
   hooks: {
     inventory: CordisInventory
     activeRuns: HostObservable<ReadonlyMap<CordisDynamicPluginId, CordisRunActivity>>

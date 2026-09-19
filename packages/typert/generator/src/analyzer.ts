@@ -26,6 +26,9 @@ import type {
   PackageModel,
   ParameterModel,
   RemoteBoundaryModel,
+  RemoteErrorFaceModel,
+  RemoteErrorModel,
+  RemoteErrorWorkspaceModel,
   RemoteTypeImportModel,
   SchemaModel,
   ServiceModel,
@@ -314,11 +317,29 @@ export class WorkspaceAnalyzer {
    * @returns the independent face models and their explicit cross-face links.
    */
   analyze(): WorkspaceModel {
+    return this.analyzeWith(analyzer => analyzer.analyze())
+  }
+
+  /**
+   * Extract owned Remote error declarations even when no service or schema uses them.
+   * Host and Client remain separate programs. Details retain authored references and
+   * a checker-resolved JSON projection; non-JSON details fail analysis.
+   * @returns the error declarations, type graphs and explicit cross-face links.
+   */
+  analyzeRemoteErrors(): RemoteErrorWorkspaceModel {
+    return this.analyzeWith(analyzer => analyzer.analyzeRemoteErrors())
+  }
+
+  private analyzeWith<Face>(project: (analyzer: FaceAnalyzer) => Face): {
+    readonly faces: readonly Face[]
+    readonly crossFaceLinks: readonly CrossFaceLink[]
+  } {
+    this.crossFaceLinks.clear()
     this.registrations = this.loadRegistrations()
     const selected = this.options.packages === undefined
       ? undefined
       : new Set(this.options.packages)
-    const faces: FaceModel[] = []
+    const faces: Face[] = []
     try {
       for (const face of this.options.faces) {
         const registrations = this.registrations.filter(registration =>
@@ -338,7 +359,7 @@ export class WorkspaceAnalyzer {
         }
         const host = this.caches.programHost(face, options)
         const program = ts.createProgram({ rootNames, options, host })
-        faces.push(new FaceAnalyzer({
+        faces.push(project(new FaceAnalyzer({
           root: this.options.root,
           face,
           program,
@@ -348,7 +369,7 @@ export class WorkspaceAnalyzer {
           mode: this.options.mode,
           queueEdit: (edit) => { this.queueEdit(edit) },
           crossFaceLinks: this.crossFaceLinks,
-        }).analyze())
+        })))
       }
     } catch (error) {
       if (!(error instanceof SourceEditQueued) || this.options.mode !== 'write' || this.queuedEdit === undefined) throw error
@@ -356,11 +377,11 @@ export class WorkspaceAnalyzer {
 
     if (this.queuedEdit !== undefined) {
       this.applyEdit(this.queuedEdit)
-      return new WorkspaceAnalyzer({ ...this.options, caches: this.caches, mode: 'write' }).analyze()
+      return new WorkspaceAnalyzer({ ...this.options, caches: this.caches, mode: 'write' }).analyzeWith(project)
     }
 
     if (this.options.mode === 'write') {
-      return new WorkspaceAnalyzer({ ...this.options, caches: this.caches, mode: 'check' }).analyze()
+      return new WorkspaceAnalyzer({ ...this.options, caches: this.caches, mode: 'check' }).analyzeWith(project)
     }
 
     return {
@@ -738,6 +759,59 @@ class FaceAnalyzer {
       invocations: this.face === 'host'
         ? this.collectInvocations(registration, reachable).sort((left, right) => left.id.localeCompare(right.id))
         : [],
+    }
+  }
+
+  analyzeRemoteErrors(): RemoteErrorFaceModel {
+    for (const registration of this.registrations) {
+      this.exportsByPackage.set(registration.name, this.collectExports(registration))
+    }
+    const errors = new Map<string, RemoteErrorModel>()
+    for (const registration of this.registrations) {
+      for (const file of registration.config.parsed.fileNames) {
+        if (!isWithin(realPath(file), join(registration.root, 'src'))) continue
+        const source = this.sourceFiles.get(realPath(file))
+        if (source === undefined) continue
+        const declarations: ts.InterfaceDeclaration[] = []
+        for (const statement of source.statements) {
+          if (registration.name === '@deepseek-ai/dsh-typert-protocol'
+            && ts.isInterfaceDeclaration(statement) && statement.name.text === 'RemoteErrorDetailsMap'
+            && hasModifier(statement, ts.SyntaxKind.ExportKeyword)) declarations.push(statement)
+          if (!ts.isModuleDeclaration(statement) || !ts.isStringLiteral(statement.name)
+            || statement.name.text !== '@deepseek-ai/dsh-typert-protocol'
+            || statement.body === undefined || !ts.isModuleBlock(statement.body)) continue
+          for (const nested of statement.body.statements) {
+            if (ts.isInterfaceDeclaration(nested) && nested.name.text === 'RemoteErrorDetailsMap') declarations.push(nested)
+          }
+        }
+        for (const declaration of declarations) {
+          if (declaration.heritageClauses?.length || declaration.typeParameters?.length) {
+            this.fail(declaration, 'RemoteErrorDetailsMap must declare its codes directly')
+          }
+          for (const member of declaration.members) {
+            if (!ts.isPropertySignature(member) || !ts.isStringLiteral(member.name)
+              || member.name.text.trim().length === 0 || member.questionToken !== undefined || member.type === undefined) {
+              this.fail(member, 'Remote error codes require required string-literal properties with details types')
+            }
+            const code = member.name.text
+            const prior = errors.get(code)
+            if (prior !== undefined) this.fail(member, `Remote error ${code} is already declared in ${prior.location.file}`)
+            const documentation = documentationOf(member)
+            if (!documentation.description?.trim()) this.fail(member, `Remote error ${code} needs a JSDoc description`)
+            errors.set(code, { ...documentation, description: documentation.description, code, package: registration.name,
+              location: this.location(member), details: this.convertType(member.type),
+              codecDetails: this.resolvedRemoteCodecType(member.type, this.checker.getTypeFromTypeNode(member.type), 'reject') })
+          }
+        }
+      }
+    }
+    return {
+      face: this.face,
+      errors: [...errors.values()].sort((left, right) => left.code.localeCompare(right.code)),
+      graph: {
+        declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
+        nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
+      },
     }
   }
 
@@ -1290,10 +1364,13 @@ class FaceAnalyzer {
         this.fail(options, 'bindTypertRemote() options must be an object literal')
       }
       for (const propertyOption of options.properties) {
-        if (!ts.isPropertyAssignment(propertyOption)
-          || memberName(propertyOption.name) !== 'namespace') {
-          this.fail(propertyOption, 'bindTypertRemote() only supports a namespace option')
+        if (!ts.isPropertyAssignment(propertyOption)) {
+          this.fail(propertyOption, 'bindTypertRemote() options must be property assignments')
         }
+        const key = memberName(propertyOption.name)
+        // Capability declarations belong to the live binding, not generated invocation codecs.
+        if (key === 'capabilities') continue
+        if (key !== 'namespace') this.fail(propertyOption, 'bindTypertRemote() only supports namespace and capabilities options')
         const value = stringLiteralValue(propertyOption.initializer)
         if (value === undefined) this.fail(propertyOption.initializer, 'Gateway namespace must be a string literal')
         namespace = value

@@ -16,6 +16,8 @@ export interface DocumentPreviewDefinition {
   readonly title: () => string
   /** Content delivery mode supplied by the document owner. */
   readonly loading: DocumentLoadMode
+  /** Additional Host operation sets beyond metadata and the loading mode. */
+  readonly requiredCapabilities?: readonly string[]
   /** Whether the implementation consumes the document's wrap preference. */
   readonly wrap?: boolean
 }

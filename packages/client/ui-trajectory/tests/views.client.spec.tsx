@@ -234,6 +234,7 @@ function standaloneProps(
     useInput: bindSnapshotSelector(input),
     inputActions,
     useProjection,
+    historyAvailable: true,
     viewRequest: null,
     openView: () => {},
     completeViewRequest: () => {},
@@ -308,10 +309,11 @@ function tabsOf(slots: SlotRegistry): ViewTab[] {
     .map(e => ({ id: e.options.id!, label: resolveSlotLabel(e.options.label) ?? e.options.id! }))
 }
 
-type ConvViewOwner = Pick<ConvViewProps, 'viewRequest' | 'openView' | 'completeViewRequest'>
+type ConvViewOwner = Pick<ConvViewProps, 'historyAvailable' | 'viewRequest' | 'openView' | 'completeViewRequest'>
 
 function isConvViewOwner(owner: object): owner is ConvViewOwner {
-  return 'viewRequest' in owner
+  return 'historyAvailable' in owner && typeof owner.historyAvailable === 'boolean'
+    && 'viewRequest' in owner
     && 'openView' in owner && typeof owner.openView === 'function'
     && 'completeViewRequest' in owner && typeof owner.completeViewRequest === 'function'
 }
@@ -404,6 +406,8 @@ function mount(fixture: Awaited<ReturnType<typeof bench>>) {
         t={tConversation}
       />
       <ConversationSession
+        useHistoryAvailable={selector => selector(true)}
+        t={tConversation}
         {...standardProps}
         SessionProvider={({ children }) => children}
         useStore={bindSnapshotSelector(conversation)}
@@ -1274,6 +1278,19 @@ describe('timeline projection', () => {
 })
 
 describe('TrajectoryView state', () => {
+  it('withholds remote pagination while follow is unavailable and restores it', () => {
+    const state = createSnapshotStore({ ...sessionSnapshot(NODES), hasMore: true })
+    const loadOlder = vi.fn(() => Promise.resolve(false))
+    const props = { ...standaloneProps(NODES), ...standaloneHistory(historySnapshot(NODES)),
+      ...standaloneDuration(), useSession: bindSnapshotSelector(state), loadOlder }
+    const view = render(<TrajectoryView {...props} historyAvailable={false} />)
+    expect(screen.queryByRole('button', { name: '加载更早的历史' })).toBeNull()
+    expect(loadOlder).not.toHaveBeenCalled()
+    view.rerender(<TrajectoryView {...props} historyAvailable />)
+    fireEvent.click(screen.getAllByRole('button', { name: '加载更早的历史' }).at(-1)!)
+    expect(loadOlder).toHaveBeenCalledOnce()
+  })
+
   it('reveals resident history one bounded page at a time', async () => {
     const nodes: LegacyConversationSlice['nodes'] = Array.from({ length: 5_000 }, (_, index) => ({
       kind: 'user' as const,
@@ -1290,6 +1307,7 @@ describe('TrajectoryView state', () => {
         {...standaloneHistory(historySnapshot(nodes))}
         {...standaloneDuration()}
         useTrajectory={bindSnapshotSelector(trajectory)}
+        historyAvailable={false}
         loadOlder={loadOlder}
       />,
     )
@@ -1400,7 +1418,7 @@ describe('TrajectoryView state', () => {
       kind: 'assistant' as const,
       seq: 3,
       time: 3,
-      turn: 1,
+      turn: 2,
       step: 1,
       blocks: [{ kind: 'tool-call' as const, callId: 'hidden-root', name: 'bash', argsRaw: '{}' }],
     }, 'hidden-root'],
@@ -1415,15 +1433,18 @@ describe('TrajectoryView state', () => {
       isError: false,
       subCalls: [{
         callId: 'hidden-child', parentCallId: 'hidden-root', name: 'bash', argsRaw: '{}',
-        turn: 1, step: 1, time: 3, subCalls: [],
+        turn: 2, step: 1, time: 3, subCalls: [],
       }],
     }, 'hidden-child'],
   ])('reveals a hidden resident %s call for cross-view inspection', (_kind, target, focus) => {
     const nodes: LegacyConversationSlice['nodes'] = [
       { kind: 'user', seq: 1, time: 1, content: [], source: null },
       {
-        kind: 'tool-result', seq: 2, time: 2, callId: 'unrelated', call: null, callTime: null,
-        content: [], isError: false, subCalls: [],
+        kind: 'tool-result', seq: 2, time: 2, callId: 'hidden-root', call: null, callTime: null,
+        content: [], isError: false, subCalls: [{
+          callId: 'hidden-child', parentCallId: 'hidden-root', name: 'bash', argsRaw: '{}',
+          turn: 1, step: 1, time: 2, subCalls: [],
+        }],
       },
       target,
       ...Array.from({ length: 50 }, (_, index) => ({
@@ -1435,17 +1456,27 @@ describe('TrajectoryView state', () => {
       })),
     ]
     const completeViewRequest = vi.fn()
+    const data = { get: () => undefined, source: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }
+    const eventLocations: TrajectorySnapshot['eventLocations'] = new Map([1, 2].map((turn) => {
+      const step = { turn, step: 1, start: undefined, end: undefined, status: 'unknown' as const, data }
+      return [turn + 1, { kind: 'step' as const, step,
+        turn: { turn, start: undefined, end: undefined, status: 'unknown' as const, steps: [step], data },
+      }]
+    }))
     render(
       <TrajectoryView
         {...standaloneProps([])}
-        {...standaloneHistory(historySnapshot(nodes))}
+        {...standaloneHistory(historySnapshot(nodes, { eventLocations }))}
         {...standaloneDuration()}
-        viewRequest={{ view: 'trajectory', focus }}
+        viewRequest={{ view: 'trajectory', focus: JSON.stringify([2, 1, focus]) }}
         completeViewRequest={completeViewRequest}
       />,
     )
 
     expect(completeViewRequest).toHaveBeenCalledOnce()
+    expect(screen.getByRole('complementary').textContent).toContain(
+      `${tZh('turn.label', { turn: 2 })} · ${tZh('group.step', { step: 1 })}`,
+    )
   })
 
   it('persists the duration preference through the runtime snapshot-store seam', () => {

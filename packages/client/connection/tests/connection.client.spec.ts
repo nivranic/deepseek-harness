@@ -8,6 +8,176 @@ import { FakeGenerationSource } from './fake-generation.client.ts'
 const FAST = { backoffBaseMs: 10, backoffFactor: 2, backoffMaxMs: 80, generationReadyTimeoutMs: 500 }
 
 describe('connection lifecycle', () => {
+  it('reports authentication for each attempt and ignores progress after readiness or replacement', async () => {
+    vi.useFakeTimers()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const attempts: { ready: Parameters<ConnectionGenerationSource>[1]; progress: Parameters<ConnectionGenerationSource>[2] }[] = []
+    const states: ConnectionState[] = []
+    const source: ConnectionGenerationSource = (signal, ready, progress) => {
+      attempts.push({ ready, progress })
+      progress('authenticating')
+      return new Promise((resolve) => { signal.addEventListener('abort', () => { resolve() }, { once: true }) })
+    }
+    const controller = new ConnectionController(source, { onStateChange: state => states.push(state) }, {
+      ...FAST, generationReadyWarnMs: 20,
+    })
+    controller.start()
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      expect(states).toEqual(['connecting', 'authenticating'])
+      attempts[0]!.progress('connecting')
+      attempts[0]!.ready({ home: '/h' })
+      await vi.advanceTimersByTimeAsync(0)
+      attempts[0]!.progress('authenticating')
+      expect(states.at(-1)).toBe('ready')
+      controller.reconnect()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(states.slice(-2)).toEqual(['reconnecting', 'authenticating'])
+      attempts[0]!.progress('connecting')
+      expect(states.at(-1)).toBe('authenticating')
+      attempts[1]!.progress('connecting')
+      expect(states.at(-1)).toBe('reconnecting')
+      await vi.advanceTimersByTimeAsync(20)
+      expect(states.at(-1)).toBe('host-not-ready')
+      attempts[1]!.progress('authenticating')
+      attempts[1]!.progress('connecting')
+      expect(states.at(-1)).toBe('host-not-ready')
+      controller.stop()
+      attempts[1]!.progress('authenticating')
+      await vi.advanceTimersByTimeAsync(0)
+      expect(states.at(-1)).toBe('host-not-ready')
+      expect(vi.getTimerCount()).toBe(0)
+    } finally {
+      controller.stop()
+      await vi.advanceTimersByTimeAsync(0)
+      warn.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
+  it.each(['stop', 'reconnect', 'offline'] as const)('honors synchronous %s from authentication progress', async (action) => {
+    vi.useFakeTimers()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    let handled = false
+    const source = vi.fn<ConnectionGenerationSource>((signal, ready, progress) => {
+      progress('authenticating')
+      ready({ home: '/h' })
+      if (signal.aborted) return Promise.resolve()
+      return new Promise((resolve) => { signal.addEventListener('abort', () => { resolve() }, { once: true }) })
+    })
+    const states: ConnectionState[] = []
+    const controller = new ConnectionController(source, { onStateChange: (state) => {
+      states.push(state)
+      if (state !== 'authenticating' || handled) return
+      handled = true
+      if (action === 'offline') controller.setNetworkAvailable(false)
+      else controller[action]()
+    } }, FAST)
+    controller.start()
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      expect(source).toHaveBeenCalledTimes(action === 'reconnect' ? 2 : 1)
+      expect(states.at(-1)).toBe(action === 'reconnect' ? 'ready' : action === 'offline' ? 'offline' : 'authenticating')
+      expect(states.filter(state => state === 'ready')).toHaveLength(action === 'reconnect' ? 1 : 0)
+    } finally {
+      controller.stop()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(vi.getTimerCount()).toBe(0)
+      warn.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
+  it.each(['stop', 'reconnect', 'offline'] as const)('handles %s from the initial connecting callback before acquiring a source', async (action) => {
+    vi.useFakeTimers()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const source = new FakeGenerationSource()
+    const calls = vi.fn(source.source)
+    const states: ConnectionState[] = []
+    const controller = new ConnectionController(calls, {
+      onStateChange: (state) => {
+        states.push(state)
+        if (state !== 'connecting') return
+        if (action === 'offline') controller.setNetworkAvailable(false)
+        else controller[action]()
+      },
+    }, FAST)
+    controller.start()
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      expect(calls).toHaveBeenCalledTimes(action === 'reconnect' ? 1 : 0)
+      expect(states).toEqual(action === 'stop' ? ['connecting']
+        : action === 'offline' ? ['connecting', 'offline'] : ['connecting', 'reconnecting', 'ready'])
+      expect(vi.getTimerCount()).toBe(0)
+    } finally {
+      controller.stop()
+      await vi.advanceTimersByTimeAsync(0)
+      warn.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
+
+  it.each(['incompatible', 'fatal'] as const)('suspends %s failures until explicit retry', async (blocked) => {
+    vi.useFakeTimers()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const source = new FakeGenerationSource()
+    source.holdReady = true
+    const states: ConnectionState[] = []
+    const classify = vi.fn(() => blocked)
+    const controller = new ConnectionController(source.source, {
+      classifyFailure: classify, onStateChange: state => states.push(state),
+    }, FAST)
+    controller.start()
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      const failure = new Error('discovery refused')
+      source.fail(failure)
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(states).toEqual(['connecting', blocked])
+      expect(classify).toHaveBeenCalledExactlyOnceWith(failure)
+      expect(source.activeCount).toBe(0)
+      expect(vi.getTimerCount()).toBe(0)
+      source.holdReady = false
+      controller.reconnect()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(states).toEqual(['connecting', blocked, 'reconnecting', 'ready'])
+      expect(source.activeCount).toBe(1)
+    } finally {
+      controller.stop()
+      await vi.advanceTimersByTimeAsync(0)
+      warn.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
+  it.each(['stop', 'reconnect', 'offline'] as const)('honors synchronous %s from a terminal state listener', async (action) => {
+    vi.useFakeTimers()
+    const source = new FakeGenerationSource()
+    source.holdReady = true
+    const controller = new ConnectionController(source.source, {
+      classifyFailure: () => 'fatal',
+      onStateChange: (state) => {
+        if (state !== 'fatal') return
+        source.holdReady = false
+        if (action === 'offline') controller.setNetworkAvailable(false)
+        else controller[action]()
+      },
+    }, FAST)
+    controller.start()
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      source.fail(new Error('invalid discovery'))
+      await vi.advanceTimersByTimeAsync(0)
+      expect(source.activeCount).toBe(action === 'reconnect' ? 1 : 0)
+      expect(vi.getTimerCount()).toBe(0)
+    } finally {
+      controller.stop()
+      await vi.advanceTimersByTimeAsync(0)
+      vi.useRealTimers()
+    }
+  })
+
   it('announces connected with the Host facts from generation readiness', async () => {
     const source = new FakeGenerationSource()
     const homes: string[] = []
@@ -66,7 +236,7 @@ describe('connection lifecycle', () => {
     try {
       await vi.advanceTimersByTimeAsync(0)
       expect(calls).toBe(1)
-      expect(states).toEqual(['connecting'])
+      expect(states).toEqual(['connecting', 'reconnecting'])
 
       for (const [attempt, delay] of [250, 500, 1_000, 2_000, 4_000, 5_000].entries()) {
         await vi.advanceTimersByTimeAsync(delay)
@@ -76,13 +246,13 @@ describe('connection lifecycle', () => {
       expect(reconnectRequested).toHaveBeenCalledTimes(6)
       expect(warnSpy).toHaveBeenCalledTimes(6)
       expect(warnSpy).toHaveBeenLastCalledWith('[connection] connection lost, retry #6')
-      expect(states).toEqual(['connecting'])
+      expect(states).toEqual(['connecting', 'reconnecting'])
       await vi.advanceTimersByTimeAsync(60_000)
       expect(calls).toBe(19)
       available = true
       await vi.advanceTimersByTimeAsync(5_000)
       expect(calls).toBe(20)
-      expect(states).toEqual(['connecting', 'connected'])
+      expect(states).toEqual(['connecting', 'reconnecting', 'ready'])
       expect(reconnectRequested).toHaveBeenCalledTimes(19)
     } finally {
       controller.stop()
@@ -113,7 +283,7 @@ describe('connection lifecycle', () => {
     try {
       await vi.advanceTimersByTimeAsync(5)
       expect(calls).toBe(2)
-      expect(states).toEqual(['connecting'])
+      expect(states).toEqual(['connecting', 'reconnecting'])
       await vi.advanceTimersByTimeAsync(1_000)
       expect(calls).toBe(202)
     } finally {
@@ -179,18 +349,18 @@ describe('connection lifecycle', () => {
     try {
       await vi.advanceTimersByTimeAsync(0)
       expect(calls).toBe(1)
-      expect(states).toEqual(['connected'])
+      expect(states).toEqual(['connecting', 'ready'])
 
       controller.setNetworkAvailable(false)
       controller.setNetworkAvailable(false)
-      expect(states.at(-1)).toBe('disconnected')
+      expect(states.at(-1)).toBe('offline')
       await vi.advanceTimersByTimeAsync(60_000)
       expect(calls).toBe(1)
       expect(active).toBe(0)
 
       controller.setNetworkAvailable(true)
       controller.setNetworkAvailable(true)
-      expect(states.at(-1)).toBe('connecting')
+      expect(states.at(-1)).toBe('reconnecting')
       await vi.advanceTimersByTimeAsync(125)
       controller.setNetworkAvailable(false)
       await vi.advanceTimersByTimeAsync(60_000)
@@ -204,12 +374,13 @@ describe('connection lifecycle', () => {
       expect(active).toBe(1)
       expect(maxActive).toBe(1)
       expect(states).toEqual([
-        'connected',
-        'disconnected',
         'connecting',
-        'disconnected',
-        'connecting',
-        'connected',
+        'ready',
+        'offline',
+        'reconnecting',
+        'offline',
+        'reconnecting',
+        'ready',
       ])
       expect(warnSpy).toHaveBeenCalledOnce()
       expect(warnSpy).toHaveBeenCalledWith('[connection] connection lost, retry #1')
@@ -247,14 +418,14 @@ describe('connection lifecycle', () => {
     controller.start()
     try {
       await vi.advanceTimersByTimeAsync(0)
-      expect(states).toEqual(['disconnected'])
+      expect(states).toEqual(['offline'])
       expect(calls).toBe(0)
 
       controller.reconnect()
-      expect(states.at(-1)).toBe('connecting')
+      expect(states.at(-1)).toBe('reconnecting')
       await vi.advanceTimersByTimeAsync(0)
       expect(calls).toBe(1)
-      expect(states.at(-1)).toBe('disconnected')
+      expect(states.at(-1)).toBe('offline')
       await vi.advanceTimersByTimeAsync(60_000)
       expect(calls).toBe(1)
     } finally {
@@ -275,7 +446,7 @@ describe('connection lifecycle', () => {
       return Promise.reject(new Error('offline'))
     }, {
       onStateChange: (state) => {
-        if (state !== 'connecting' || !restart) return
+        if (state !== 'reconnecting' || !restart) return
         restart = false
         controller.reconnect()
       },
@@ -303,12 +474,12 @@ describe('connection lifecycle', () => {
   it.each([
     {
       label: 'manual reconnect',
-      stopState: 'connecting' as const,
+      stopState: 'reconnecting' as const,
       interrupt: (controller: ConnectionController) => { controller.reconnect() },
     },
     {
       label: 'browser going offline',
-      stopState: 'disconnected' as const,
+      stopState: 'offline' as const,
       interrupt: (controller: ConnectionController) => { controller.setNetworkAvailable(false) },
     },
   ])('honors a synchronous stop from the $label state sink', async ({ stopState, interrupt }) => {
@@ -361,7 +532,7 @@ describe('connection lifecycle', () => {
       return Promise.reject(new Error('offline'))
     }, {
       onStateChange: (state) => {
-        if (state === 'connecting') controller.stop()
+        if (state === 'reconnecting') controller.stop()
       },
     })
     controller.start()
@@ -398,12 +569,12 @@ describe('connection lifecycle', () => {
     try {
       await vi.advanceTimersByTimeAsync(20)
       expect(calls).toBe(3)
-      expect(states.at(-1)).toBe('connecting')
+      expect(states.at(-1)).toBe('reconnecting')
 
       controller.reconnect()
       await vi.advanceTimersByTimeAsync(0)
       expect(calls).toBe(4)
-      expect(states.at(-1)).toBe('connecting')
+      expect(states.at(-1)).toBe('reconnecting')
       expect(reconnectRequested).toHaveBeenCalledTimes(3)
       expect(warnSpy.mock.calls.map(([message]) => String(message))).toEqual([
         '[connection] connection lost, retry #1',
@@ -551,7 +722,7 @@ describe('connection lifecycle', () => {
       source.holdReady = false
       source.end()
       await vi.waitFor(() => { expect(connected).toBe(1) })
-      expect(states).toEqual(['connecting', 'connected'])
+      expect(states).toEqual(['connecting', 'reconnecting', 'ready'])
     } finally {
       controller.stop()
       warnSpy.mockRestore()
@@ -588,15 +759,48 @@ describe('connection lifecycle', () => {
     }
   })
 
+  it.each(['stop', 'reconnect', 'offline'] as const)('honors %s requested from the Host-not-ready listener', async (action) => {
+    vi.useFakeTimers()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const source = new FakeGenerationSource()
+    source.holdReady = true
+    const states: ConnectionState[] = []
+    const controller = new ConnectionController(source.source, {
+      onStateChange: (state) => {
+        states.push(state)
+        if (state !== 'host-not-ready') return
+        source.holdReady = false
+        if (action === 'offline') controller.setNetworkAvailable(false)
+        else controller[action]()
+      },
+    }, { ...FAST, generationReadyWarnMs: 20, generationReadyTimeoutMs: 100 })
+    controller.start()
+    try {
+      await vi.advanceTimersByTimeAsync(20)
+      expect(states).toEqual(action === 'stop' ? ['connecting', 'host-not-ready']
+        : action === 'offline' ? ['connecting', 'host-not-ready', 'offline'] : ['connecting', 'host-not-ready', 'reconnecting', 'ready'])
+      expect(source.activeCount).toBe(action === 'reconnect' ? 1 : 0)
+      await vi.advanceTimersByTimeAsync(1_000)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(states.at(-1)).toBe(action === 'stop' ? 'host-not-ready' : action === 'offline' ? 'offline' : 'ready')
+    } finally {
+      controller.stop()
+      await vi.advanceTimersByTimeAsync(0)
+      warn.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
   it('accepts a slow Host after the warning and clears both readiness timers', async () => {
     vi.useFakeTimers()
     const source = new FakeGenerationSource()
     source.holdReady = true
+    const states: ConnectionState[] = []
     let connected = 0
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const controller = new ConnectionController(
       source.source,
-      { onConnected: () => { connected++ } },
+      { onConnected: () => { connected++ }, onStateChange: state => states.push(state) },
       { ...FAST, generationReadyWarnMs: 20, generationReadyTimeoutMs: 100 },
     )
     controller.start()
@@ -605,11 +809,13 @@ describe('connection lifecycle', () => {
       expect(source.activeCount).toBe(1)
       await vi.advanceTimersByTimeAsync(20)
       expect(connected).toBe(0)
+      expect(states).toEqual(['connecting', 'host-not-ready'])
       expect(source.activeCount).toBe(1)
       expect(warnSpy).toHaveBeenCalledWith('[connection] generation is still not ready after 20ms')
       source.releaseReady()
       await vi.advanceTimersByTimeAsync(100)
       expect(connected).toBe(1)
+      expect(states).toEqual(['connecting', 'host-not-ready', 'ready'])
       expect(source.activeCount).toBe(1)
       expect(vi.getTimerCount()).toBe(0)
       expect(warnSpy).toHaveBeenCalledTimes(1)
@@ -662,7 +868,7 @@ describe('connection lifecycle', () => {
       report[1]!({ home: '/fresh' })
       await vi.advanceTimersByTimeAsync(0)
       expect(connected).toHaveBeenCalledExactlyOnceWith({ home: '/fresh' })
-      expect(states).toEqual(['connecting', 'connected'])
+      expect(states).toEqual(['connecting', 'host-not-ready', 'reconnecting', 'ready'])
       expect(vi.getTimerCount()).toBe(0)
     } finally {
       controller.stop()
@@ -717,10 +923,10 @@ describe('connection lifecycle', () => {
     controller.start()
     try {
       await vi.waitFor(() => { expect(connected).toBe(1) })
-      expect(states).toEqual(['connected'])
+      expect(states).toEqual(['connecting', 'ready'])
       source.fail(new Error('torn'))
       await vi.waitFor(() => { expect(connected).toBe(2) })
-      expect(states).toEqual(['connected', 'connecting', 'connected'])
+      expect(states).toEqual(['connecting', 'ready', 'reconnecting', 'ready'])
     } finally {
       controller.stop()
       warnSpy.mockRestore()
@@ -735,12 +941,12 @@ describe('connection lifecycle', () => {
       onConnected: () => { connected++ },
       onStateChange: (state) => {
         states.push(state)
-        if (state === 'connected') controller.stop()
+        if (state === 'ready') controller.stop()
       },
     }, FAST)
 
     controller.start()
-    await vi.waitFor(() => { expect(states).toEqual(['connected']) })
+    await vi.waitFor(() => { expect(states).toEqual(['connecting', 'ready']) })
     await vi.waitFor(() => { expect(source.activeCount).toBe(0) })
     expect(connected).toBe(0)
   })
@@ -766,7 +972,7 @@ describe('connection lifecycle', () => {
     try {
       await vi.waitFor(() => { expect(sourceCalls).toBe(3) })
       await vi.waitFor(() => { expect(connected).toBe(1) })
-      expect(states).toEqual(['connecting', 'connected'])
+      expect(states).toEqual(['connecting', 'reconnecting', 'ready'])
     } finally {
       controller.stop()
       warnSpy.mockRestore()

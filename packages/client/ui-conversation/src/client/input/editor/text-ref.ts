@@ -13,6 +13,8 @@ export type SerializedTextRefNode = SerializedTextNode
 
 /** One matched plain-text reference as a styled, fully editable text node. */
 export class TextRefNode extends TextNode {
+  /** Transient preview eligibility, excluded from serialized text. */
+  __openable = false
   /** Lexical node registry type tag. */
   static override getType(): string {
     return 'composer-text-ref'
@@ -24,7 +26,9 @@ export class TextRefNode extends TextNode {
    * @returns a copy carrying the same NodeKey.
    */
   static override clone(node: TextRefNode): TextRefNode {
-    return new TextRefNode(node.__text, node.__key)
+    const clone = new TextRefNode(node.__text, node.__key)
+    clone.__openable = node.__openable
+    return clone
   }
 
   /**
@@ -52,10 +56,33 @@ export class TextRefNode extends TextNode {
   /** Style the span the base TextNode mounts. */
   override createDOM(config: EditorConfig): HTMLElement {
     const el = super.createDOM(config)
-    el.className = clsx(el.className, css.reference, css.textRef, this.getTextContent().startsWith('/') && css.openable)
+    el.className = clsx(el.className, css.reference, css.textRef, this.__openable && css.openable)
     el.setAttribute('spellcheck', 'false')
     el.setAttribute('data-composer-text-ref', '')
+    el.toggleAttribute('data-reference-openable', this.__openable)
     return el
+  }
+
+  /**
+   * Set transient preview eligibility without changing serialized text.
+   * @param openable - current eligibility; unchanged values do not dirty the node.
+   */
+  setOpenable(openable: boolean): void {
+    if (this.getLatest().__openable !== openable) this.getWritable().__openable = openable
+  }
+
+  /**
+   * Update preview styling while preserving the base text node’s formatting.
+   * @param previous - last committed text node.
+   * @param element - existing editable span.
+   * @param config - editor text-format configuration.
+   * @returns whether the base text implementation requires a replacement element.
+   */
+  override updateDOM(previous: this, element: HTMLElement, config: EditorConfig): boolean {
+    const replace = super.updateDOM(previous, element, config)
+    element.classList.toggle(clsx(css.openable), this.__openable)
+    element.toggleAttribute('data-reference-openable', this.__openable)
+    return replace
   }
 
   /** Entity nodes never merge with plain siblings (the transform owns their bounds). */

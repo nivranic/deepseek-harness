@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "rejectedUnregisteredAdapter": true,
+  "exitCode": 1,
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "--config",
+    "vitest.snapshot.config.ts",
+    "scripts/session-snapshot-corpus.corpus.ts",
+    "-t",
+    "reserves the snapshot test suffix"
+  ],
+  "log": ".artifacts/checkpoint-corpus-control.log"
+}

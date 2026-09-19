@@ -1,0 +1,14 @@
+{
+  "observations": [
+    { "stage": "absent", "hostRows": 0, "localRows": 1, "runs": 0 },
+    { "stage": "catalog-only", "hostRows": 0, "localRows": 1, "runs": 0 },
+    { "stage": "ready", "hostRows": 1, "localRows": 1, "runs": 0 },
+    { "stage": "withdrawn-after-execution", "hostRows": 0, "localRows": 1, "runs": 1 },
+    { "stage": "restored-without-replay", "hostRows": 1, "localRows": 1, "runs": 1 }
+  ],
+  "retainedDraft": true,
+  "executionRequests": 1,
+  "handlerRuns": 1,
+  "discoveryControlled": true,
+  "replyDeliveryControlled": true
+}

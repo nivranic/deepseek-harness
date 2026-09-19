@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 const root = resolve(import.meta.dirname, '..')
 const script = resolve(root, 'scripts/build-exe-for-python-sdk.ts')
 const temporaryDirectories: string[] = []
+const displayedNode = process.execPath.includes(' ') ? JSON.stringify(process.execPath) : process.execPath
 
 afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) {
@@ -23,6 +24,23 @@ function run(env: NodeJS.ProcessEnv, ...args: string[]) {
 }
 
 describe('Python runtime executable builder CLI', () => {
+  it('disables pnpm automatic installation before invoking build commands', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-builder-pnpm-'))
+    temporaryDirectories.push(directory)
+    const pnpm = join(directory, 'pnpm.cjs')
+    writeFileSync(pnpm, [
+      'console.log(JSON.stringify({verify:process.env.pnpm_config_verify_deps_before_run}))',
+      'process.exit(47)',
+    ].join('\n'))
+    const result = run({ npm_execpath: pnpm, pnpm_config_verify_deps_before_run: 'install' }, '--targets=node24-win-x64')
+    expect(result.signal).toBeNull()
+    expect(result.error).toBeUndefined()
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain('{"verify":"false"}')
+    expect(result.stderr).toContain('runtime dependency closure failed (exit code 47)')
+    expect(result.stdout).not.toContain('build-exe-for-python-sdk: deploy:')
+  })
+
   it('keeps the single-file dispatcher on the Python packaging surface', () => {
     const bootstrapPath = resolve(root, 'python/sdk-runtime/runtime-bootstrap.mjs')
     const bootstrap = readFileSync(bootstrapPath, 'utf8')
@@ -58,14 +76,14 @@ describe('Python runtime executable builder CLI', () => {
     )
 
     expect(result.status).toBe(0)
-    expect(result.stdout).toContain(`${process.execPath} C:\\tools\\pnpm.cjs run verify-runtime-closure`)
-    expect(result.stdout).toContain(`${process.execPath} C:\\tools\\pnpm.cjs --filter dsh-python-runtime-closure deploy`)
+    expect(result.stdout).toContain(`${displayedNode} C:\\tools\\pnpm.cjs run verify-runtime-closure`)
+    expect(result.stdout).toContain(`${displayedNode} C:\\tools\\pnpm.cjs --filter dsh-python-runtime-closure deploy`)
     const deploy = result.stdout.split('\n').find(line => line.includes(' --filter dsh-python-runtime-closure deploy'))
     expect(deploy).toContain('--prod --config.allow-unused-patches=true')
     expect(result.stdout.split('--config.allow-unused-patches=true')).toHaveLength(2)
     expect(result.stdout).not.toContain(resolve(root, 'python/sdk-runtime/runtime-bootstrap.mjs'))
     expect(result.stdout).toContain('"bin":"runtime-bootstrap.mjs"')
-    expect(result.stdout).toContain(`${process.execPath} C:\\tools\\pnpm.cjs exec pkg`)
+    expect(result.stdout).toContain(`${displayedNode} C:\\tools\\pnpm.cjs exec pkg`)
     expect(result.stdout).not.toMatch(/pnpm\.cmd/i)
   })
 
@@ -86,7 +104,8 @@ describe('Python runtime executable builder CLI', () => {
     )
 
     expect(result.status).toBe(0)
-    expect(result.stdout).toContain(`${process.execPath} ${entrypoint} run verify-runtime-closure`)
+    const displayedEntry = entrypoint.includes(' ') ? JSON.stringify(entrypoint) : entrypoint
+    expect(result.stdout).toContain(`${displayedNode} ${displayedEntry} run verify-runtime-closure`)
     expect(result.stdout).not.toMatch(/pnpm\.cmd/i)
   })
 
@@ -119,7 +138,9 @@ describe('Python runtime executable builder CLI', () => {
 
 function isolatedPnpmEnvironment(overrides: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const environment = Object.fromEntries(
-    Object.entries(process.env).filter(([key]) => !['npm_execpath', 'pnpm_home'].includes(key.toLowerCase())),
+    Object.entries(process.env).filter(([key]) => ![
+      'npm_execpath', 'pnpm_home', 'pnpm_config_verify_deps_before_run',
+    ].includes(key.toLowerCase())),
   )
   return { ...environment, ...overrides }
 }

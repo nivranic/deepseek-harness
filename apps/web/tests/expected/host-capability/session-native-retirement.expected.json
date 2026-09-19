@@ -1,0 +1,20 @@
+[
+  {
+    "method": "canOpenWorkspacePath",
+    "anonymous": 401,
+    "authenticated": 404,
+    "directGateway": "gateway/invocation-unavailable"
+  },
+  {
+    "method": "openWorkspacePath",
+    "anonymous": 401,
+    "authenticated": 404,
+    "directGateway": "gateway/invocation-unavailable"
+  },
+  {
+    "method": "workspaceDesktop",
+    "anonymous": 401,
+    "authenticated": 404,
+    "directGateway": "gateway/invocation-unavailable"
+  }
+]

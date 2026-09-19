@@ -32,6 +32,15 @@ export type ModelDiscoveryOutcome =
 
 /** The Host operations the Models page and its cards invoke. */
 export interface ModelsOperations {
+  /** API support captured with this operation set's Host generation. */
+  readonly supports: {
+    readonly credentialsRead: boolean
+    readonly credentialsWrite: boolean
+    readonly discovery: boolean
+    readonly settingsWrite: boolean
+  }
+  /** @returns a new operation set bound to the currently admitted Host. */
+  capture(): ModelsOperations
   /**
    * Read one credential reference's state.
    * @param ref - credential reference name.
@@ -77,30 +86,52 @@ export interface ModelsOperations {
  * Bind the page's Host operations to the plugin's own Remote namespaces.
  * @param ctx - the page plugin's context, which declares `remote.credentials`,
  * `remote.llm`, and `remote.settings` in its own `inject`.
+ * @param unavailable - locale-owned message for a replaced or unsupported Host operation.
  * @returns the callbacks the section and its cards are injected with.
  */
-export function createModelsOperations(ctx: ClientContext): ModelsOperations {
+export function createModelsOperations(ctx: ClientContext, unavailable: () => string): ModelsOperations {
+  const host = ctx.remote.$host
+  const has = (capability: string): boolean => host.capabilities?.includes(capability) === true
+  const current = (): boolean => ctx.remote.$host === host
+  const credentialInfo = (info: CredentialInfo | undefined): CredentialInfo | undefined => info === undefined
+    ? undefined : { ...info, writable: info.writable && has('credentials.write.v1') }
   return {
+    supports: {
+      credentialsRead: has('credentials.describe.v1'),
+      credentialsWrite: has('credentials.describe.v1') && has('credentials.write.v1'),
+      discovery: has('llm.discover-models.v1'),
+      settingsWrite: has('settings.read.v1') && has('settings.write.v1'),
+    },
+    capture: () => createModelsOperations(ctx, unavailable),
     describeCredential: async (ref) => {
+      if (!current() || !has('credentials.describe.v1')) return undefined
       const response = await ctx.remote.credentials.describe([ref])
-      return response.ok ? response.value[ref] : undefined
+      return current() && response.ok ? credentialInfo(response.value[ref]) : undefined
     },
     storeCredential: async (ref, value) => {
+      if (!current() || !has('credentials.write.v1') || !has('credentials.describe.v1')) return unavailable()
       const response = await ctx.remote.credentials.set(ref, value)
+      if (!current()) return unavailable()
       return response.ok ? undefined : response.error.message
     },
     removeCredential: async (ref) => {
+      if (!current() || !has('credentials.write.v1') || !has('credentials.describe.v1')) return unavailable()
       const response = await ctx.remote.credentials.unset(ref)
+      if (!current()) return unavailable()
       return response.ok ? undefined : response.error.message
     },
     writeSettings: async (ns, ops, expectedRevision) => {
+      if (!current() || !has('settings.read.v1') || !has('settings.write.v1')) return { kind: 'refused', message: unavailable() }
       const response = await ctx.remote.settings.mutate(ns, ops, expectedRevision)
+      if (!current()) return { kind: 'refused', message: unavailable() }
       if (response.ok) return { kind: 'written', view: response.value }
       const { code, message } = response.error
       return code === 'settings/conflict' ? { kind: 'conflict', message } : { kind: 'refused', message }
     },
     discoverModels: async (settingsNs, request) => {
+      if (!current() || !has('llm.discover-models.v1')) return { kind: 'refused', message: unavailable() }
       const response = await ctx.remote.llm.discoverModels(settingsNs, request)
+      if (!current()) return { kind: 'refused', message: unavailable() }
       return response.ok
         ? { kind: 'found', models: response.value }
         : { kind: 'refused', message: response.error.message }

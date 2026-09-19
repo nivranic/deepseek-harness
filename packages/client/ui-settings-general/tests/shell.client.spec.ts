@@ -36,10 +36,10 @@ const CHILD_NAMES = Object.keys(CHILD_SPECS) as Array<keyof typeof CHILD_SPECS>
 
 /**
  * Section ids the web-app roster registers, in nav order: this package, then
- * ui-settings-models, ui-settings-plugins, and ui-agent-preset. A plugin adding
- * a section changes this list.
+ * ui-settings-models and ui-settings-plugins. The fixture Host does not
+ * advertise an Agent Preset catalog.
  */
-const PRODUCT_SECTIONS: readonly string[] = ['general', 'models', 'plugins', 'agent-presets']
+const PRODUCT_SECTIONS: readonly string[] = ['general', 'models', 'plugins']
 /** Onboarding steps the web-app roster registers, in coordinator order; both come from ui-settings-models. */
 const PRODUCT_ONBOARDING: readonly { id: string; order: number }[] = [
   { id: 'welcome-notice', order: -100 },
@@ -85,10 +85,10 @@ describe('ui-settings-general shell', () => {
     const c = await start()
     const injected = injectedOf(c)
     expect(injected.hooks.connectionState).toBe(c.connection.state)
-    expect(injected.hooks.connectionState.getSnapshot()).toBe('connected')
+    expect(injected.hooks.connectionState.getSnapshot()).toBe('ready')
     injected.reconnect()
     await c.mock.streams.opened('$events', 2)
-    await vi.waitFor(() => { expect(c.connection.state.getSnapshot()).toBe('connected') })
+    await vi.waitFor(() => { expect(c.connection.state.getSnapshot()).toBe('ready') })
   })
 
   it('projects onboarding entries into stable coordinator order', async ({ start }) => {

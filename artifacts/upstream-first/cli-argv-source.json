@@ -1,0 +1,771 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-14T23:06:54.514230+00:00",
+  "scope": "Literal Windows CLI argv and matching rebuilt runtime/wheels; installed plugin integration remains failed",
+  "sourceFiles": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.i18n.yaml",
+      "sha256": "d9b3b700b0fd276043120dc436fe1b0edfcd6dd8889b8f2eb4d8834142aeca60",
+      "bytes": 604
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md",
+      "sha256": "6df910de0db75e54ef90272265fce738e4731dc7d307f9a11dc68d7b337f4242",
+      "bytes": 23051
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md",
+      "sha256": "4012a14d29adc454bf7203926001573c5b470a79eb9b1e9d6708b45a171b7a5c",
+      "bytes": 21647
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.i18n.yaml",
+      "sha256": "20d4af696e069e0bb4abac4ec0b5d9d7ec25bb4eba79104adfc16ed23dc5ed4e",
+      "bytes": 544
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.md",
+      "sha256": "cc03242b1c3cdc3916ccdf5f5e60f55f98bb5296440ed26464b60ed5d4e4d3dd",
+      "bytes": 25486
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.zh.md",
+      "sha256": "33a8d5b475f69f99f7bfab4e0fcab43f743c65ab5e1cea0d1b143415f193b623",
+      "bytes": 23114
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.i18n.yaml",
+      "sha256": "a7c505e40e09ef6883d28589ec4059c077dcd0f582bb1bca955129a42015523d",
+      "bytes": 529
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.md",
+      "sha256": "2a76dd254f82812ba2127eb2018baca74782b573e3ac41bcaabb783fd0704d41",
+      "bytes": 8444
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.zh.md",
+      "sha256": "559338078833b987a62bfdc3fdf2ed214b78d798b692262f7932f29e06bddae4",
+      "bytes": 8075
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.i18n.yaml",
+      "sha256": "36894d490d444ab197efea5f4a3774bc706cb4a7c7e86ff48bb5f602e16f96c6",
+      "bytes": 538
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.md",
+      "sha256": "99d4517696356591c0618b553aa54e7b40a1ea942980b0c9b2dfafb28352a508",
+      "bytes": 4466
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.zh.md",
+      "sha256": "a7e86e81665c925bd934f69b032e1323120400ea9cf9ab4e55c0e9054fd0dadc",
+      "bytes": 3923
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.i18n.yaml",
+      "sha256": "72b7fcc8810ca978820f58a3e4b7cecba0ea1bfdb83039f182c708e730f8bad0",
+      "bytes": 538
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.md",
+      "sha256": "7ea050cc5a6941189bc10625c8439dc0f2256636e2c44d8a677911b2946bdf68",
+      "bytes": 3949
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.zh.md",
+      "sha256": "d39c90fdba037f85e65754bb55744d59f0d561057572a25a164a5126a6400e9c",
+      "bytes": 3276
+    },
+    {
+      "path": "apps/cli/README.i18n.yaml",
+      "sha256": "8a2e65b8729fab610e08353f683fb32cd293639b0e21c7861e4f45a094e85801",
+      "bytes": 418
+    },
+    {
+      "path": "apps/cli/README.md",
+      "sha256": "464ce0fd816ca42953effa38c418ed105f2730eb4b9a939637968fd5c66451e5",
+      "bytes": 4877
+    },
+    {
+      "path": "apps/cli/README.zh.md",
+      "sha256": "ac5e1efb49ffde98b2f39db96296ff4183737ef2476d9e3d871cbf687a76d44d",
+      "bytes": 5075
+    },
+    {
+      "path": "apps/cli/package.json",
+      "sha256": "1e3c242270ab7f0e28c28b3642e322796b722da2b07bda565318b82a6c02dce1",
+      "bytes": 6777
+    },
+    {
+      "path": "apps/cli/src/plugin.ts",
+      "sha256": "1f73972c870b1132f9e99e29395566e5b0e0633124c786eb2ec5f875c3d5aab4",
+      "bytes": 7326
+    },
+    {
+      "path": "apps/cli/tests/plugin-windows.spec.ts",
+      "sha256": "34bd8897eae1728813c279322ae0fae36af42b89a24b278b3dde3a8cc9af6b45",
+      "bytes": 2062
+    },
+    {
+      "path": "apps/cli/tests/plugin.spec.ts",
+      "sha256": "8b11684a414445de3d6db491141e8c98aa7c99fae69d7d4a7a7d5f42c3c8a526",
+      "bytes": 2269
+    },
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "766b05ad81b5016abca3a3fe6ead063124759166a0d7d85ff57938bf5597d323",
+      "bytes": 422
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "c89b727add1e0c4d51a3dd31205ced6eb3b7b1a5b249aad6cb469039fcb3563a",
+      "bytes": 28422
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "3b8f98613156e1f71de9cf296ae649503979f4487ca2e4bdacb9cf3834c13aad",
+      "bytes": 25612
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.mjs",
+      "sha256": "3242149b816114129b53d41701136c96199b8cbe12df39d8c189bebd9bf99507",
+      "bytes": 5574
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "bd09d67c08f2c66516124ebcc71e1a71a36325be44255310098e0fdcbba18f56",
+      "bytes": 2087
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9",
+      "bytes": 1112
+    },
+    {
+      "path": "apps/desktop/src/legacy-settings.ts",
+      "sha256": "da6a6f1838ef4893a30ee077fa1d3130698e973211ea03c15035a7cb2d31b06e",
+      "bytes": 4745
+    },
+    {
+      "path": "apps/desktop/src/locale.ts",
+      "sha256": "8ccc7d096eb392fe354c7cfa13d239fb1c1925f478a3ead177b8726d14fd9519",
+      "bytes": 9723
+    },
+    {
+      "path": "apps/desktop/src/login-item.ts",
+      "sha256": "ffc2f8a7acacfc56ca2e015188c42aa41b3e745b9244f49a4b5b472b9712788c",
+      "bytes": 2526
+    },
+    {
+      "path": "apps/desktop/src/main.ts",
+      "sha256": "5c0b64c5099cc9f7464c16c23b36f567ee1fcd14329da525a85557e5c971182c",
+      "bytes": 27325
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "sha256": "ce599da150c30f10a59039097829c38b9abc420da9f8ea608b1bf98c11fc3c09",
+      "bytes": 3840
+    },
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99",
+      "bytes": 2740
+    },
+    {
+      "path": "apps/desktop/tests/expected/legacy-settings-import-preview-zh.json",
+      "sha256": "8ed7557519708b68d1bfb921a0f3db3d2fff238fcdb8913ab6a6a30a738a22b8",
+      "bytes": 415
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-darwin-zh.json",
+      "sha256": "076e552a58b91ee55c78234b2cc71061a477cb55e141f62a7051dfa7c323da3a",
+      "bytes": 647
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-development-en.json",
+      "sha256": "cbf393d7e3c544ac1ef213dde491be94407eef0814e9da3bdb389de6a117f2b4",
+      "bytes": 369
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-win32-zh.json",
+      "sha256": "365cacda8ee17ba884cac8fbd39cffe895e17e7bd7a3310c232702abf312b124",
+      "bytes": 638
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-tray-en.json",
+      "sha256": "65c4f0c0d0c49de85b40541eec05b39629396818d3ea7628368c0a57938764f1",
+      "bytes": 111
+    },
+    {
+      "path": "apps/desktop/tests/legacy-settings.spec.ts",
+      "sha256": "894c3c8acc27f51422b6bbfa03b88e493d69c54e2124a6d7e5d33a5db3b4c537",
+      "bytes": 6044
+    },
+    {
+      "path": "apps/desktop/tests/login-item.spec.ts",
+      "sha256": "8fbdbb0afc543731e2215a8303013930ff4dfb37b5d16780abd2c54e64af59ed",
+      "bytes": 2814
+    },
+    {
+      "path": "apps/desktop/tests/main-startup.spec.ts",
+      "sha256": "8a66b7af9a32bc711025dc7b881bab60a0d36de43a88e77b6a8341f3c84dbcff",
+      "bytes": 27450
+    },
+    {
+      "path": "apps/desktop/tests/shell-behavior.spec.ts",
+      "sha256": "3d0fda2f2447dbf1906c4e2eca1a0e70ce9f8f19eeca09f49403b7c3ac1ae35e",
+      "bytes": 3977
+    },
+    {
+      "path": "apps/desktop/tests/shell-preferences.spec.ts",
+      "sha256": "5d8dfd7c5ccd391a03ee7f4d764f1851b60709c8015e7f897d5e7f98ca545d98",
+      "bytes": 3617
+    },
+    {
+      "path": "apps/desktop/tsconfig.json",
+      "sha256": "a9c6d65de293fd2a4880678a6add6c31237a82fb29cf01a732965a61ab7445ce",
+      "bytes": 266
+    },
+    {
+      "path": "packages/boot/app-boot/README.i18n.yaml",
+      "sha256": "94b02e93b59bba265fbe5859c3e1e5854e219d93c81d433346dd16a87a05d297",
+      "bytes": 432
+    },
+    {
+      "path": "packages/boot/app-boot/README.md",
+      "sha256": "1214b4bb58339542c43288d0f0ac22f0f5d4bb40a92e399645877d20ff094e08",
+      "bytes": 14820
+    },
+    {
+      "path": "packages/boot/app-boot/README.zh.md",
+      "sha256": "72961d51ba8cf29191d602f5cf7f9f17acaf44a40aafeef2ede3f2eb572083ad",
+      "bytes": 13967
+    },
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "29a4224ab083e7c6378d6b67f9c0dc65c1642a1ac84efab8d9f07eb736241922",
+      "bytes": 39156
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile-init.spec.ts",
+      "sha256": "6028b7b99a3374679af29ba7a006a72ef20b728888cd050fad867b2675070339",
+      "bytes": 1945
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile.spec.ts",
+      "sha256": "40905aa6ec8f8c0fe9904ed88dac0d1556a5fa3a68f9cdf53eb30339f15b001a",
+      "bytes": 50619
+    },
+    {
+      "path": "packages/client/modules/README.i18n.yaml",
+      "sha256": "c3e923b43a70a072f07409e30d37eb4cbb3ab2dcf3e89afa5857cefbb374e525",
+      "bytes": 433
+    },
+    {
+      "path": "packages/client/modules/README.md",
+      "sha256": "c7a0687209bf131b30bae71073f76210fcb51fcf92389fb9b5d4d8cf4daf126c",
+      "bytes": 10433
+    },
+    {
+      "path": "packages/client/modules/README.zh.md",
+      "sha256": "a836f800234d55c358d8d644ca201771877ca4a352f22c56e7f0b0e5625b61d6",
+      "bytes": 9719
+    },
+    {
+      "path": "packages/client/modules/src/index.ts",
+      "sha256": "c5f2c2b4b43f97da9506e6c7aed6f102a3bb4113ae25a692df2ef4e83b2008c9",
+      "bytes": 41343
+    },
+    {
+      "path": "packages/client/modules/src/package-manifest.ts",
+      "sha256": "0886bdfd080ae14fb3177883edbea4dd90b59d769406ddeba9d9b14df0a293db",
+      "bytes": 3637
+    },
+    {
+      "path": "packages/client/modules/tests/node-half.client.spec.ts",
+      "sha256": "6eb8bd2e05fe128aee5aa2f10e3ec0fc1b565243440c0c8dac76799d840267fe",
+      "bytes": 39779
+    },
+    {
+      "path": "packages/client/modules/tests/package-manifest.spec.ts",
+      "sha256": "73801ac05764d23cd6c68cdf214b269e3bf0a4a3c7eb0ec9804256f643df9874",
+      "bytes": 4341
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "0e058857095e2f3194f4fa95bec3704bd9fbe71821d3325bdc1e5b819bf44211",
+      "bytes": 868873
+    },
+    {
+      "path": "python/development.i18n.yaml",
+      "sha256": "d427cc3d3c494f18971cde441727407ae5b8c62473bddf79595ae0e190176235",
+      "bytes": 431
+    },
+    {
+      "path": "python/development.md",
+      "sha256": "2d89c8056bb1dceaba12fb146d51aa77eb2f0af8c0f75773b01f510b311b30e0",
+      "bytes": 8280
+    },
+    {
+      "path": "python/development.zh.md",
+      "sha256": "5d47c42a5b6e98dfb8d2b5ea75c86067e07898f3edb9abf33d897d3303b86257",
+      "bytes": 7969
+    },
+    {
+      "path": "python/sdk-runtime/README.i18n.yaml",
+      "sha256": "e8a93ed0815227b8740118de1197bcf4656dab6a8a7288440dbc06e8def79787",
+      "bytes": 428
+    },
+    {
+      "path": "python/sdk-runtime/README.md",
+      "sha256": "ed36bca11923993ec77b8b979a9e7fe3a37658c95114fe42c3b592eaaf3579a2",
+      "bytes": 4958
+    },
+    {
+      "path": "python/sdk-runtime/README.zh.md",
+      "sha256": "07cd1659c19cab272809b63b9f97f1e767d07fa4260587fa7b58ead4b704d3a3",
+      "bytes": 4689
+    },
+    {
+      "path": "python/sdk-runtime/package.json",
+      "sha256": "8137cf69d4ae99fd37344e35cc4d567fb1527aadc7b12342dd0c8f1a6cfad681",
+      "bytes": 8174
+    },
+    {
+      "path": "python/sdk-runtime/src/deepseek_harness_runtime/__init__.py",
+      "sha256": "e838ea61e3c7d4bb99f82dffe25b469d3a0b64486d88850e06254242b094655f",
+      "bytes": 7546
+    },
+    {
+      "path": "python/sdk/tests/test_runtime_resolution.py",
+      "sha256": "627ed1f78b21d9a04b0b7e32850f5b737556378b027891972f89c0bd73a33838",
+      "bytes": 9150
+    },
+    {
+      "path": "python/sdk/tests/test_smoke_model.py",
+      "sha256": "dbf1fe7c00ab1bf835239526964a31df62530ea23f2856683cf2ec32a097bde2",
+      "bytes": 20988
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.spec.ts",
+      "sha256": "679a3c1a890bdf59a7748dbde1badc29b13e4664ce35eaba1f89aa45cfef7cdd",
+      "bytes": 6513
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.ts",
+      "sha256": "fc3e1e7ddad2714699d461316dceaea9322bf3a5bb47bad3cb2ba2d5236dab96",
+      "bytes": 26200
+    },
+    {
+      "path": "scripts/project-doc-site.spec.ts",
+      "sha256": "df38d9e41fc5f712ba0fe34ac4b12c1bb268f75d229fa26d4e51b88cc9010b9e",
+      "bytes": 36097
+    },
+    {
+      "path": "scripts/smoke-python-runtime.py",
+      "sha256": "0e5abd64e8a7d3172dde23e08765e803524ee308082e18c24f5c8ec5cf4bf422",
+      "bytes": 105157
+    },
+    {
+      "path": "scripts/verify-runtime-closure.spec.ts",
+      "sha256": "3cdc64d89470298773c21a0f3867f0ceee40fcdae3182345431f3cebfcf183df",
+      "bytes": 7641
+    },
+    {
+      "path": "scripts/verify-runtime-closure.ts",
+      "sha256": "f47f7fceb33a60b507f39285ca35552af7d8ab8e009789809bf94423ab4c5448",
+      "bytes": 9214
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64.exe",
+      "sha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181",
+      "bytes": 241331712
+    },
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64-rg.exe",
+      "sha256": "f9dde63498b3193f098355dbec97af99dc4f6b8fa0df5ed04114a03012c042cb",
+      "bytes": 5429760
+    },
+    {
+      "path": ".artifacts/python-wheels-argv/deepseek_harness_runtime_bin-0.1.5rc2-py3-none-win_amd64.whl",
+      "sha256": "fc611bbf9f4a85323e1ae11f3b4c610c484f554120b6d1952e482fdf398607f1",
+      "bytes": 72424832
+    },
+    {
+      "path": ".artifacts/python-wheels-argv/deepseek_harness_sdk-0.1.5rc2-py3-none-any.whl",
+      "sha256": "5f0d186098799a25f41dc9e653afeda5dabcf9d9a041c321bb458139adee7a54",
+      "bytes": 13694
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/packaged-argv-web-smoke.json",
+      "sha256": "f65780181d344191891206e2ea2e87619611a7dd8c2894176245044ddae2ad1c",
+      "bytes": 2452
+    },
+    {
+      "path": "artifacts/upstream-first/packaged-argv-web-settings.png",
+      "sha256": "81f76b8a30f5f10b14275f130be901a7ffc6e5597c8767a68489ee2500b9f582",
+      "bytes": 58337
+    },
+    {
+      "path": "artifacts/upstream-first/installed-wheel-literal-argv.json",
+      "sha256": "ada289a84f963d5b82036958e340980f167dc929e7bf413391bafbe838322a79",
+      "bytes": 1369
+    },
+    {
+      "path": "artifacts/upstream-first/installed-wheel-argv-temp-smoke.json",
+      "sha256": "fabf13d05b376191cd55cca8dcc1c31e44fd212ccf2949ddd54a03ed222df757",
+      "bytes": 3261
+    },
+    {
+      "path": "artifacts/upstream-first/installed-wheel-argv-normal-smoke.json",
+      "sha256": "6ce77a4910c095d0c79fd0bb33d8558ffb2d776abea976376539c62cf00e5a35",
+      "bytes": 1088
+    },
+    {
+      "path": "artifacts/upstream-first/plugin-argv-probe.json",
+      "sha256": "4ad68797f0a0edc1e6c99220acf55925a0b3e07b9d234ebdcd9abc57279f13c2",
+      "bytes": 993
+    },
+    {
+      "path": "artifacts/upstream-first/plugin-argv-global-probe.json",
+      "sha256": "fcd61485f08bd2ac31b820631c01e5cc89e64f2c73554f2a9e93904b169b6c98",
+      "bytes": 993
+    },
+    {
+      "path": "artifacts/upstream-first/link-process-security.json",
+      "sha256": "ab6efc908aec76742db02baceae26dad78f47220e32d69486ce46f5b0f5ae5f2",
+      "bytes": 1130
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/qualify-wheel-argv.py",
+      "sha256": "8c74ece86131c378a6e67d2c49d10000eb07202b0bd72a269ba9f229b5f3909e",
+      "bytes": 4858
+    },
+    {
+      "path": ".artifacts/qualify-installed-argv.py",
+      "sha256": "51182e6c2f3d399258c1f3b21cf37bd92208888f44fcb957e5138fccb6012a63",
+      "bytes": 3029
+    },
+    {
+      "path": ".artifacts/smoke-packaged-argv.py",
+      "sha256": "571db5b53c014425d65aced8d7632d063a72d6c0552bbef1f866c8435ebc47aa",
+      "bytes": 8311
+    },
+    {
+      "path": ".artifacts/probe-plugin-argv.mjs",
+      "sha256": "239d98c176feb2e218dcfdcba556cfef83d27f23988e123551ebd937b2a162be",
+      "bytes": 1942
+    },
+    {
+      "path": ".artifacts/read-process-security.py",
+      "sha256": "48cc9566bbf5a798c7b91df9f986ec1e9fb127ea59ef74667b960674bb9d00ed",
+      "bytes": 1919
+    },
+    {
+      "path": ".artifacts/probe-link-security.mjs",
+      "sha256": "3b4efc496be4a53b7a68ea820ebd53ad31240ba38d82dccfdeaf06e5b223b9dd",
+      "bytes": 717
+    },
+    {
+      "path": ".artifacts/compare-link-security.py",
+      "sha256": "cba87518b468d20791ce4c9dad6163b775e2b1d5a77d7ee80ac7d7caf7f89144",
+      "bytes": 1534
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/installed-wheel-argv-normal-sdk-profile-plugin.log",
+      "sha256": "a62cabafe0d0edc0a0656b96f362a5f236c947ce888bdd1a4f9c975f2726a07d",
+      "bytes": 3119
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-direct.log",
+      "sha256": "7b99d92ee794fd38a296593df5a59f345b67aa578365b99ac05d7fcdbba3f309",
+      "bytes": 37
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-runner.log",
+      "sha256": "28f3e7408f22fe4e4aa8258d13f0ee46f6af82fabb0d60934e98f7b28e18899f",
+      "bytes": 37
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-custom.log",
+      "sha256": "8cd89965fcb89b54805e5368249a5c56ff547c13dc116c56931d163eaebe6e30",
+      "bytes": 41
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-default.log",
+      "sha256": "97dddf0eb4afee5a47763f4d1850ad9356fcf5125e60c179ebfc88314cdf71da",
+      "bytes": 42
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-fs-search.log",
+      "sha256": "08113acf1fd7dda285bdc58869c7eaf9768528d51b5fad49c5fc945c5aa8ae9e",
+      "bytes": 44
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-mcp.log",
+      "sha256": "b1428395a0f0654a8500c3a64ea26e0a8f095b68510639750235d0a7062b6a26",
+      "bytes": 38
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-minimal-in-history.log",
+      "sha256": "f6ebc623e3a20ae72b5c5c814019126bb0a67409064fb862adafc402d9874c11",
+      "bytes": 53
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-minimal.log",
+      "sha256": "99a7b4d8bffbc385a101c077af0cb16b8d4b661ec60bc4e34b06a7b8b478fbb0",
+      "bytes": 42
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-profile-plugin.log",
+      "sha256": "cadeb22ead23658f10fe7232d6c5685856218cd0113efcbdc74eb82915cd6e94",
+      "bytes": 3021
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-restart.log",
+      "sha256": "7442de8a3e46ebf94a4405b3efbed1bf05b9fec1db02c1c4399f16ee5ef7753a",
+      "bytes": 42
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-snapshot.log",
+      "sha256": "9c2e07244f7a2b2c41f6e02c7053df3639be8ea959f4e7e695d121d2cc0ce37a",
+      "bytes": 43
+    },
+    {
+      "path": ".artifacts/installed-wheel-argv-temp-sdk-spawn-node.log",
+      "sha256": "ee043c855baf59e5414945f8db9e01c907f59114cc5df747f1b8e5b8eb581298",
+      "bytes": 45
+    },
+    {
+      "path": ".artifacts/packaged-argv-web.log",
+      "sha256": "0c569a7b13ff8a0d97f2face599044aa590633d80e30937a5404a25efd6e407e",
+      "bytes": 2530
+    },
+    {
+      "path": ".artifacts/plugin-argv-before.log",
+      "sha256": "25f5122e0ce15ecbfc7d673ebb5ebffb263f0c2825b3a407d06da8bfbff3ac37",
+      "bytes": 2705
+    },
+    {
+      "path": ".artifacts/plugin-argv-doc-quick.log",
+      "sha256": "d13a7c9bb22d5948f5a38fb8b708c3bb939a213bec6bf0a6c967bb3c3db216ac",
+      "bytes": 1555
+    },
+    {
+      "path": ".artifacts/plugin-argv-doc-sync.log",
+      "sha256": "355841619213cb47c9980ed98cf38b537a538c1e1d96e5debf5bfdcdb1757a79",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/plugin-argv-frozen-install.log",
+      "sha256": "51905c706ae236e22e1fe013adb3930604eee7eea61e2f042d047ef36f31c8af",
+      "bytes": 3391
+    },
+    {
+      "path": ".artifacts/plugin-argv-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/plugin-argv-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/plugin-argv-pairing.log",
+      "sha256": "a747183dd478329f5dca749acfe559a5cd91be5d4f40caa033e4a0a2780a97b9",
+      "bytes": 426
+    },
+    {
+      "path": ".artifacts/plugin-argv-post-build-install.log",
+      "sha256": "42219cb52a1c5efe6e213eabdd910f2e90d532538a3a89a1077929838bcb2d51",
+      "bytes": 3319
+    },
+    {
+      "path": ".artifacts/plugin-argv-python-tests.log",
+      "sha256": "f1bde31121af3ca0f168f63374e4d37e36c95ec74f6de42f85c7cd14790c291e",
+      "bytes": 101
+    },
+    {
+      "path": ".artifacts/plugin-argv-source-launch-host.log",
+      "sha256": "a97aee6b50daf0f00add1213f66c795f9a28f4a276d1bc6d94765fc7e7b89f29",
+      "bytes": 939
+    },
+    {
+      "path": ".artifacts/plugin-argv-tests-final.log",
+      "sha256": "dad598e91a21d3d18506118ebb2ad7515349a1400b2ba53242f8da26de01bab0",
+      "bytes": 3953
+    },
+    {
+      "path": ".artifacts/runtime-build-argv.log",
+      "sha256": "894ab5252b2b72c3d049c070c7ea5563249c6139d5504d17b554a9bf5380da5d",
+      "bytes": 576935
+    },
+    {
+      "path": ".artifacts/wheel-build-argv-runtime.log",
+      "sha256": "b7aefab71bed526a8e2638658c966510f441c2934fb5afcdb890d34a02169497",
+      "bytes": 280
+    },
+    {
+      "path": ".artifacts/wheel-build-argv-sdk.log",
+      "sha256": "a74837b3b27c55652cbc888a79ec21e7c77a37f2655e531d72bdaccab60160f4",
+      "bytes": 252
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/windows-wheel-source.json",
+      "sha256": "afdc79b23b06b5d06f19ae37fc0c91216d5074229fcb6a2ca46701f304c148db",
+      "bytes": 26701
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-import-source.json",
+      "sha256": "2b419f3857b95925aa200f2d32aac3e34e9c6afb79c73f80611686a1a4fba21b",
+      "bytes": 27618
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-import-smoke.json",
+      "sha256": "1e5b9f7838371c03476e3870b307d8c8ca02fd82812cf3deca84f073cf2aab6c",
+      "bytes": 3274
+    },
+    {
+      "path": "artifacts/upstream-first/packaged-runtime-source.json",
+      "sha256": "de2a2166993d5f68ecf0e692838f2979f8fd2d3e5411fe34256493955799e9fb",
+      "bytes": 15349
+    },
+    {
+      "path": "artifacts/upstream-first/recovery-final-source.json",
+      "sha256": "99f01f0c5b0b1095f85dcf7d82191387908ea7b5f040e6f868ef1ecc54da2ecf",
+      "bytes": 12803
+    }
+  ],
+  "checks": [
+    {
+      "id": "cli-literal-argv-before",
+      "status": "FAIL",
+      "tests": 2,
+      "command": "node node_modules/vitest/vitest.mjs run apps/cli/tests/plugin-windows.spec.ts",
+      "log": ".artifacts/plugin-argv-before.log",
+      "detail": "Both real Windows shims split spaces and interpreted ampersands before the fix."
+    },
+    {
+      "id": "cli-literal-argv-regressions",
+      "status": "PASS",
+      "tests": 8,
+      "command": "node node_modules/vitest/vitest.mjs run apps/cli/tests/plugin.spec.ts apps/cli/tests/plugin-windows.spec.ts",
+      "log": ".artifacts/plugin-argv-tests-final.log",
+      "detail": "Eight CLI cases passed in the ten-case run; the source-launch case failed before reaching product code with sandbox uv_os_get_passwd ENOMEM."
+    },
+    {
+      "id": "cli-source-launch-host",
+      "status": "PASS",
+      "tests": 2,
+      "command": "node node_modules/vitest/vitest.mjs run apps/cli/tests/source-launch.compat.spec.ts",
+      "log": ".artifacts/plugin-argv-source-launch-host.log"
+    },
+    {
+      "id": "cli-argv-python-smoke",
+      "status": "PASS",
+      "tests": 47,
+      "command": ".artifacts/python-tests/Scripts/python.exe -m pytest python/sdk/tests/test_smoke_model.py",
+      "log": ".artifacts/plugin-argv-python-tests.log",
+      "detail": "Source SDK/runtime on PYTHONPATH. The official installed-wheel fixture now uses a path containing spaces, Chinese and ampersand."
+    },
+    {
+      "id": "cli-argv-frozen-install",
+      "status": "PASS",
+      "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+      "log": ".artifacts/plugin-argv-frozen-install.log",
+      "detail": "Only the already locked execa 10.0.0 importer moves from CLI devDependencies to dependencies; registry resolutions unchanged."
+    },
+    {
+      "id": "cli-argv-runtime-build",
+      "status": "PASS",
+      "command": "node --import tsx/esm scripts/build-exe-for-python-sdk.ts --targets=node24-win-x64",
+      "log": ".artifacts/runtime-build-argv.log",
+      "detail": "Full source build and official Windows SEA packaging, with repository pnpm entry and pre-command install disabled."
+    },
+    {
+      "id": "cli-argv-wheel-sdk",
+      "status": "PASS",
+      "command": "python scripts/build-python-release.py --package sdk --output-dir .artifacts/python-wheels-argv",
+      "log": ".artifacts/wheel-build-argv-sdk.log"
+    },
+    {
+      "id": "cli-argv-wheel-runtime",
+      "status": "PASS",
+      "command": "python scripts/build-python-release.py --package runtime --platform win-x64 --runtime-exe dist-exe/deepseek-harness-sdk-runtime-win-x64.exe --output-dir .artifacts/python-wheels-argv",
+      "log": ".artifacts/wheel-build-argv-runtime.log"
+    },
+    {
+      "id": "cli-argv-packaged-web",
+      "status": "PASS",
+      "command": "python .artifacts/smoke-packaged-argv.py",
+      "receipt": "artifacts/upstream-first/packaged-argv-web-smoke.json"
+    },
+    {
+      "id": "cli-argv-installed-entry",
+      "status": "PASS",
+      "tests": 2,
+      "command": "python .artifacts/qualify-installed-argv.py",
+      "receipt": "artifacts/upstream-first/installed-wheel-literal-argv.json",
+      "detail": "Installed wheel public dsh.exe, both ordinary/global and node_modules/.bin shims; complete literal argv and no command-marker side effect. Fixture pnpm only."
+    },
+    {
+      "id": "cli-argv-installed-temp",
+      "status": "FAIL",
+      "passed": 11,
+      "failed": 1,
+      "command": "DSH_WHEEL_LOCATION=temp python .artifacts/qualify-wheel-argv.py",
+      "receipt": "artifacts/upstream-first/installed-wheel-argv-temp-smoke.json"
+    },
+    {
+      "id": "cli-argv-installed-normal",
+      "status": "FAIL",
+      "passed": 0,
+      "failed": 1,
+      "command": "DSH_WHEEL_LOCATION=normal python .artifacts/qualify-wheel-argv.py",
+      "receipt": "artifacts/upstream-first/installed-wheel-argv-normal-smoke.json",
+      "detail": "Only sdk-profile-plugin rerun outside Temp. The task output directory resolves to E:/DevTools/codex/visualizations; the same junction refusal remains."
+    },
+    {
+      "id": "cli-argv-doc-quick",
+      "status": "PASS",
+      "passed": 16,
+      "failed": 0,
+      "command": "pnpm run test:docs",
+      "log": ".artifacts/plugin-argv-doc-quick.log"
+    },
+    {
+      "id": "cli-argv-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/plugin-argv-doc-sync.log"
+    },
+    {
+      "id": "cli-argv-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/plugin-argv-full-lint.log"
+    }
+  ],
+  "limitations": [
+    "Installed-wheel integration remains 11/12 in Temp and 0/1 for the plugin-only non-Temp comparison",
+    "Same inspected integrity/elevation/restriction/AppContainer/job flags do not prove complete token or ACL equivalence; junction cause remains unconfirmed",
+    "pnpm 11.7.0 and private stores are explicit test prerequisites; no claim about every pnpm version",
+    "No real model, native OS signal, signed Desktop installer, OS login registration or other-platform qualification"
+  ]
+}

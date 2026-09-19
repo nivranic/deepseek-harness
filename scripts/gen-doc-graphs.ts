@@ -237,6 +237,22 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Associates generated Remote descriptors with live Cordis services, resolves registered identities, and exposes unary calls through the shared Connection RPC carrier.',
   },
   {
+    key: 'hostDescription',
+    pkg: 'api-host-description',
+    title: 'Host discovery',
+    mode: 'core',
+    consumers: ['api-remotes'],
+    note: 'Reports persistent Host identity, independent version fields, and explicit capabilities from live Remote bindings through the existing authenticated API.',
+  },
+  {
+    key: 'presentedFiles',
+    pkg: 'client-ui-deliverables',
+    title: 'Native delivery actions',
+    mode: 'core',
+    consumers: ['api-remotes'],
+    note: 'Exposes desktop metadata and native actions for persisted delivery declarations, retaining Session filesystem validation and configured native policy.',
+  },
+  {
     key: 'sessionPersistence',
     pkg: 'session-persistence',
     title: 'Durable session persistence seam',

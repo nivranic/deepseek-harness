@@ -673,7 +673,7 @@ describe('Session control projection frames', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
     const abort = new AbortController()
     const stream = proxy.control(abort.signal)
-    const collected = collect(stream, 5, abort)
+    const collected = collect(stream, 6, abort)
 
     const now = vi.spyOn(Date, 'now').mockReturnValue(100)
     seedMessages(session, 1)
@@ -685,6 +685,9 @@ describe('Session control projection frames', () => {
     now.mockRestore()
 
     const frames = await collected
+    expect(frames.filter(frame => frame.type === 'projection' && frame.key === 'activeTurnStart')).toEqual([
+      { type: 'projection', sessionId: session.id, key: 'activeTurnStart', value: 1, seq: 1 },
+    ])
     const pushes = frames.filter(
       (f): f is Extract<SessionControlFrame, { type: 'projection' }> =>
         f.type === 'projection' && f.key === 'test/last-user',

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-scope-source.json",
+    "sha256": "8f53b9440690d522f0e6b7ad0d854075c1dbd0834febfb660262e33524b6cb4c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7801e856be4bb1b97d9666df19bfd96d55b73dfb3c1ebc92ada3cd433b80c3e6"
+  },
+  "helper": {
+    "path": ".artifacts/check-tool-scope-binding.mjs",
+    "sha256": "c5b3d59a681a89dfc4a8ed0929780bdbe0b3f7ac2333423b0570b6e3121259e1"
+  }
+}

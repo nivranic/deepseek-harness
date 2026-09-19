@@ -38,12 +38,14 @@ kind: "package-reference"
 | 条目类型 | 行 |
 |---|---|
 | `directory` | 切换展开与折叠；该层在首次打开时拉取，折叠期间保留。 |
-| `file` | 经 `useTabInfo().tab.actions.openResource` 打开 `dsh-resource://file/session/<sessionId>/<encoded path relative to the root>`，地址由 `@deepseek-ai/dsh-util-workspace-path` 的 `fileAddressFor` 从条目的绝对路径与树的根生成，落在该 tab 自己的 pane 里。 |
+| `file` | 当前准入的查看器认领地址时， 经 `useTabInfo().tab.actions.openResource` 打开 `dsh-resource://file/session/<sessionId>/<encoded path relative to the root>`，地址由 `@deepseek-ai/dsh-util-workspace-path` 的 `fileAddressFor` 从条目的绝对路径与树的根生成，落在该 tab 自己的 pane 里。 |
 | `other` | 灰显且不可点击，从而完整呈现目录内容。 |
 
 被端点条目上限截断的层以一条标记收尾；空层如实说明；失败的层按错误码各显示一行（`workspace-file/not-found`、`outside-workspace`、`not-directory`），其他情况显示传输层自己的消息。重新读取丢弃所有已列出的层并只对展开中的层重新请求；折叠的层在下次打开时重新拉取。没有工作目录的会话只显示一行说明，而不是树。
 
 状态保存在类型自己的存储里，按 tab id 分桶：`root`、`levels`（每个绝对路径的 loading / ready / failed）与 `expanded`。owner 的 `signal` 终结一个桶：中止时忘掉该 tab，其后才结算的列表什么也不写。
+
+只有已准入 Host 声明 `workspace-files.list.v1` 时才注册类型、引导入口和正文。替代 Host 拥有新的目录树 store；注册取消会在新入口出现前淘汰在途列表读取和保留回调。没有当前可用资源查看器的文件仍显示名称，但不提供打开动作。查看器可用性通过既有 tab 注册表观察，也包括无需重连的渲染器注册变化。
 
 <a id="model-experience"></a>
 ## 模型体验

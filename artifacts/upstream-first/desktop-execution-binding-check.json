@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/desktop-execution-source.json",
+      "status": "PASS",
+      "rejected": "Desktop execution source record changed"
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-execution-smoke.json",
+      "status": "PASS",
+      "rejected": "Desktop execution receipts changed after validation: artifacts\\/upstream-first\\/desktop-execution-smoke.json"
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-execution-model-request.json",
+      "status": "PASS",
+      "rejected": "Desktop execution receipts changed after validation: artifacts\\/upstream-first\\/desktop-execution-model-request.json"
+    }
+  ]
+}

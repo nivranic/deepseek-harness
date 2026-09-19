@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 /** Chat inject factories exercised over independently mounted Conversation and Chat plugins. */
 import { describe, expect, it, vi } from 'vitest'
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type { ISession } from '@deepseek-ai/dsh-api-session-controller/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
@@ -52,11 +53,17 @@ async function bench() {
   const layout = { closeRightbar: vi.fn(), openRightbar: vi.fn() }
   runtime.ctx.provide('layout', layout as never)
   const sidebarRight = { openResource: vi.fn<(address: string) => void>() }
+  const viewerListeners = new Set<() => void>()
+  const candidates = vi.fn((): object[] => [{}])
+  runtime.ctx.provide('sidebarRightTabs', {
+    candidates,
+    subscribe: (listener: () => void) => { viewerListeners.add(listener); return () => { viewerListeners.delete(listener) } },
+  } as never)
   runtime.ctx.provide('sidebarRight', sidebarRight as never)
-  const openWorkspacePath = vi.fn<ClientRemote['session']['openWorkspacePath']>(
-    () => Promise.resolve({ ok: true, value: { opened: true } }),
+  const nativeOpen = vi.fn<ClientRemote['presentedFiles']['open']>(
+    () => Promise.resolve({ ok: true, value: { completed: true } }),
   )
-  new TestRemote(runtime.ctx, { session: { openWorkspacePath } })
+  new TestRemote(runtime.ctx, { session: {}, presentedFiles: { open: nativeOpen } })
   runtime.ctx.provide('uiWorkspace', {
     openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
       beforeOpen(ROOT)
@@ -89,10 +96,41 @@ async function bench() {
     ) => ChatViewInjected)(id, instance.actions)
     return { instance, injected }
   }
-  return { runtime, layout, openWorkspacePath, sidebarRight, session, chatViewApi }
+  return { runtime, layout, nativeOpen, sidebarRight, session, chatViewApi, candidates, viewerListeners }
 }
 
 describe('Chat inject API', () => {
+  it('withdraws retained file actions and shares viewer subscriptions until the last reader leaves', async () => {
+    const b = await bench()
+    const { injected } = b.chatViewApi(ROOT)
+    const availability = injected.hooks.referenceAvailability
+    const first = vi.fn()
+    const second = vi.fn()
+    const stopFirst = availability.subscribe(first)
+    const stopSecond = availability.subscribe(second)
+    expect(b.viewerListeners.size).toBe(1)
+    const before = availability.getSnapshot()
+    expect(before.canOpenFile('note.md')).toBe(true)
+    b.candidates.mockReturnValue([])
+    for (const listener of b.viewerListeners) listener()
+    expect(first).toHaveBeenCalledOnce()
+    expect(second).toHaveBeenCalledOnce()
+    expect(availability.getSnapshot()).not.toBe(before)
+    expect(before.canOpenFile('note.md')).toBe(false)
+    await injected.openFile('note.md')
+    expect(b.sidebarRight.openResource).not.toHaveBeenCalled()
+    stopFirst()
+    expect(b.viewerListeners.size).toBe(1)
+    stopSecond()
+    expect(b.viewerListeners.size).toBe(0)
+    const stopAgain = availability.subscribe(first)
+    b.candidates.mockReturnValue([{}])
+    for (const listener of b.viewerListeners) listener()
+    expect(availability.getSnapshot().canOpenFile('note.md')).toBe(true)
+    stopAgain()
+    await b.runtime.dispose()
+  })
+
   it('loads older history and forks through the Session Controller', async () => {
     const b = await bench()
     const { injected } = b.chatViewApi(ROOT)
@@ -125,7 +163,7 @@ describe('Chat inject API', () => {
     // Files stay in the product: a relative path is handed to the Sidebar as an
     // address under this session's scope, not to a desktop opener.
     expect(b.sidebarRight.openResource).toHaveBeenCalledWith('dsh-resource://file/session/root-1/src/a.ts')
-    expect(b.openWorkspacePath).not.toHaveBeenCalled()
+    expect(b.nativeOpen).not.toHaveBeenCalled()
 
     // An absolute path inside the session's workspace is the same session-relative address.
     await injected.openFile('/proj/src/a.ts')
@@ -146,14 +184,23 @@ describe('Chat inject API', () => {
     const { injected } = b.chatViewApi(ROOT)
     injected.openSkill('review')
     const openReference = vi.fn(() => true)
-    const sessionOf = vi.fn(() => ({ openReference }))
+    const canOpenReference = vi.fn(() => true)
+    const referenceAvailability = createSnapshotStore({ canOpenReference })
+    const sessionOf = vi.fn(() => ({ openReference, canOpenReference, referenceAvailability }))
+    const stop = injected.hooks.referenceAvailability.subscribe(() => {})
     b.runtime.ctx.provide('inputTriggers', { sessionOf } as never)
+    await vi.waitFor(() => { expect(injected.hooks.referenceAvailability.getSnapshot().canOpenSkill('review')).toBe(true) })
     injected.openSkill('review')
     expect(sessionOf).toHaveBeenCalledWith(b.runtime.sessions.scope(ROOT))
     expect(openReference).toHaveBeenCalledWith('skill', { ref: '/review' })
     vi.spyOn(b.runtime.sessions, 'scope').mockReturnValueOnce(undefined)
     injected.openSkill('review')
     expect(openReference).toHaveBeenCalledTimes(1)
+    canOpenReference.mockReturnValue(false)
+    referenceAvailability.set({ canOpenReference })
+    injected.openSkill('review')
+    expect(openReference).toHaveBeenCalledTimes(1)
+    stop()
     await b.runtime.dispose()
   })
 

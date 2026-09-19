@@ -32,6 +32,12 @@ export type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: Remot
 
 码是 `<语义域>/<理由>` 形式的字符串：`session/not-found`、`gateway/cancelled`、`workspace/invalid-path`、`agent-preset/locked`。前缀与 wire namespace 同风格，读者从码本身就能看出它属于谁，跨域转述时也不再需要一个别扭的无前缀名。
 
+只有载体识别到真实 HTTP 响应后才分类状态失败。Connection 拥有跨 bundle 的 `ConnectionHttpError` 标记和数值状态，不依赖 Typert。Gateway 将 401/403/503/其他状态映射为 `gateway/authentication-required`、`gateway/permission-denied`、`gateway/host-not-ready` 和 `gateway/transport-interrupted`，在共享错误表中统一声明 `{ endpoint, httpStatus }`。消息文字和无标记异常不能证明 HTTP 状态。这保留消费方唯一的 `RemoteError` 词汇，同时使通用 Connection 不依赖应用代码。
+
+传输丢失在 Connection 派发请求或读取正文的位置分类，早于 JSON 解析。跨 bundle 的传输标记让 Gateway 区分传输丢失与序列化、解码缺陷，无需猜测异常文本。逻辑流载体重试耗尽同样使用 `gateway/transport-interrupted`，并携带流 owner 名称；只有响应实际提供状态时才存在 HTTP 状态。调用方取消和 Host 业务错误保留既有语义。
+
+验证失败携带协议拥有的 `RemoteValidationIssue` 字段，而不是验证器专用对象图。共享辅助函数复制 code、message 和 path，省略无关元数据，并将 symbol 键转为诊断字符串。跨语言消费方由此获得有限的数据结构，无需依赖 Zod issue 变体，也不会意外序列化附带的输入。消息保留拥有方提供的文字；这不是通用的秘密脱敏机制。通用 Connection 保持依赖方向，在自己的 envelope 解析处复制相同的诊断字段。
+
 ## Code ownership
 
 一个码只有一个声明处，落点由「谁生产它」和「声明对谁可达」共同决定——声明合并只在增补文件进入当前 program 时生效，所以正家必须是每个生产者都能看见的包：
@@ -43,11 +49,25 @@ export type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: Remot
 
 共享的是校验逻辑，不是码。`session/invalid-time-zone` 与 `subagent/invalid-time-zone` 是两个域各自声明、各自抛出的两个码，两个端点共用 `@deepseek-ai/dsh-util-time` 的 `canonicalClientTimeZone()` 做规范化；client 对这个码没有分支语义，拆码的成本是零，而合成一个码就会重新制造可达性问题。
 
+## 发布的已知码词汇
+
+协议包发布从源声明派生的[有限已知码 schema](../../../../packages/typert/protocol/remote-error-codes.schema.json)，不另外手工维护码表。每个声明的错误码都有唯一拥有方，并通过 JSDoc 说明它表示的失败。仓库生成器拒绝重复归属、缺少语义说明及无法枚举成员的声明；文档门禁拒绝与这些声明不一致的输出。
+
+该 schema 是特定构建的错误码字符串识别产物。源位置与 TypeScript details 注解保留诊断上下文，但不验证详情 payload。它既不替换可扩展源码表，也不把新版 Host 或插件的未知码变成已知语义。消费方保留未知诊断，不得由码属于 schema 推断权限、自动重试或能力支持。原生语言消费与兼容仍需独立验收。
+
+随包携带的失败 envelope schema 使用互斥的已知码分支，以及明确排除所有已知码的未知码分支。非法的已知详情不能作为不透明数据通过兜底。输入投影接受未声明对象字段，为不修改数据的验证消费方保留诊断扩展。生成门禁比较独立编译面的共有码 schema，并在转换器省略元组元素数量约束时拒绝该投影。Schema 接受不授予能力、权限或重试策略；协议版本准入仍独立执行。
+
 ## Discrimination by code
 
 判别一律读 `code`，从不用 `instanceof`。Client 与 Host 是两个独立打包的 program，worker 传输还会把页面侧再分一次包，因此同一个类会存在多份副本，跨副本的原型链身份不成立。机制层用 protocol 的 `remoteErrorOf(value)` 读结构标记加一个字符串 `code`，Gateway client face 另外导出 `isRemoteFailure(error)` 供消费方在 catch 里判别；两者都只看这两个字段、不看类——连 `instanceof Error` 都不要求，因为另一个 realm 抛出的 Error 同样通不过它。
 
 业务代码通常连这两个函数都不需要：`RemoteResult` 的 `ok: false` 分支已经是类型化的 `RemoteFailure`，`if (result.error.code === 'session/not-found')` 就把 `details` 窄化到该码的形状，无需 cast。需要向上抛的站点直接 `throw result.error`——它是真 `Error`，栈与 `message` 都成立。
+
+共享 Client 服务把失败的 `RemoteResult` 转为回调拒绝时，传播同一个失败实例。把消息包装成普通 `Error` 会破坏 code/details 判别及因果链；操作上下文由呈现入口负责。较新 Host 的未知错误码保持为不透明的诊断数据，可进入带显式重试的本地化通用失败状态。保留这些信息不会授予能力，也不代表此 Client 理解其语义。
+
+内部交互结果 RPC 与普通调用遵循相同的失败重建规则。若把拒绝缩减为消息，Connection 分类器就看不到 `gateway/protocol-unsupported`，从而反复协商而不是进入升级状态。`interaction-closed` 仍表示本地投递已结束；其他 Host 错误在事件代次关闭过程中保留错误码和详情。这不会保留被拒绝的回答用于自动重发。
+
+无效流数据表示验证失败，不表示 socket 已断开。Gateway 仅将 wire 解析器的失败封装为 `gateway/stream-invalid`，保留本地原因和流标识。逻辑流监督器不重试此错误；事件代次所有者将其分类为 `fatal`，要求显式重连。因此无效帧不会驱动反复自动协商，物理载体失败仍保留既有重试策略。
 
 client 面不构造 `RemoteError`：唯一例外是 Gateway 的 client face 本身，它在 `invoke()` 里按 wire 数据重建实例、在流边界把载体 throw 折进同一词汇。测试替身要构造失败值时从 `@deepseek-ai/dsh-client-test-runtime` 取 `RemoteError`，而不是让 client 包值引入 protocol。断言用 `toMatchObject` 判 code（必要时加 details 字段）：`RemoteError` 是 `Error`，own key 集合与旧字面量不同，`toEqual` 会失败。
 

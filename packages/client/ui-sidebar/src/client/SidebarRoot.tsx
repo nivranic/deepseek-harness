@@ -92,11 +92,14 @@ export function SidebarRoot({
   toggleSidebar,
   selectPanel,
   usePanels,
+  useSessionManagement,
   usePanelInfo,
   t,
   renderSlot,
 }: SidebarRootComponentProps) {
   const panels = usePanels(snapshot => snapshot)
+  const canManageSessions = useSessionManagement(value => value)
+  const Brand = canManageSessions ? 'button' : 'div'
   // Wide content stays mounted while the collapse animates (fading via
   // .collapsed .wide), unmounts at settle, and remounts right away on expand.
   const [settled, setSettled] = useState(collapsed)
@@ -181,13 +184,13 @@ export function SidebarRoot({
         {/* Expanded, the brand doubles as a New Session shortcut; the
             collapsed rail's logo is the expand toggle below instead. */}
         {wide && (
-          <button
-            type="button"
+          <Brand
+            type={canManageSessions ? 'button' : undefined}
             className={clsx(css.brand, css.wide)}
-            aria-label={t('session.new.label')}
-            onClick={() => { startSession() }}
+            aria-label={canManageSessions ? t('session.new.label') : undefined}
+            onClick={canManageSessions ? () => { startSession() } : undefined}
           >
-            <span className={css.brandIdentity} aria-hidden="true">
+            <span className={css.brandIdentity} aria-hidden={canManageSessions ? true : undefined}>
               <span className={css.brandMark}>
                 {renderSlot('sidebar.brand.mark', { size: 24 }, { fallback: <FishLogo size={24} /> })}
               </span>
@@ -204,7 +207,7 @@ export function SidebarRoot({
                 })}
               </span>
             </span>
-          </button>
+          </Brand>
         )}
         {/* Rail resting state is the whale mark; hovering swaps in the panel
             icon (the expand affordance, figma sidebar-hover flow). */}
@@ -227,7 +230,7 @@ export function SidebarRoot({
       </div>
 
       {/* Expanded, the button carries its own label — tooltip only on the rail. */}
-      <Tooltip label={t('session.new.label')} delayMs={500} disabled={wide}>
+      {canManageSessions && <Tooltip label={t('session.new.label')} delayMs={500} disabled={wide}>
         <button
           type="button"
           className={css.newSession}
@@ -237,7 +240,7 @@ export function SidebarRoot({
           <IconNewChatOutline16 size={wide ? 14 : 18} />
           {wide && <span className={clsx(css.newSessionLabel, css.wide)}>{t('session.new')}</span>}
         </button>
-      </Tooltip>
+      </Tooltip>}
 
       {panels.length > 0 && (
         <nav className={css.panelList} aria-label={t('panels.label')}>

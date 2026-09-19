@@ -48,6 +48,22 @@ afterEach(() => {
 })
 
 describe('Remote model generation', { timeout: 60_000 }, () => {
+  it('preserves invocation codecs when a live binding declares versioned capabilities', () => {
+    const root = copyFixture()
+    editFile(root, 'packages/remote/src/index.ts', source => source.replace(
+      "super(undefined, 'goals')",
+      "super(undefined, 'goals', { capabilities: [{ id: 'goal.create.v1', methods: ['create'] }] })",
+    ))
+    const artifacts = new WorkspaceTypertGenerator(root).generate()
+    expect(artifacts).toHaveLength(1)
+    expect(artifacts[0]?.dts).toBe(new WorkspaceTypertGenerator(fixtureRoot).generate()[0]?.dts)
+    expect(remotePackage(root).invocations.map(({ namespace, method }) => ({ namespace, method }))).toEqual([
+      { namespace: 'goals', method: 'create' },
+      { namespace: 'goals', method: 'rename' },
+      { namespace: 'goals', method: 'watch' },
+    ])
+  })
+
   it('discovers a Remote-only package and emits strict direct and Context descriptors', async () => {
     const generator = new WorkspaceTypertGenerator(fixtureRoot)
 
@@ -407,6 +423,11 @@ export interface ClientMarker {
   })
 
   it.each([
+    {
+      name: 'unknown Gateway binding option',
+      edit: (source: string) => source.replace("super(undefined, 'goals')", "super(undefined, 'goals', { capability: 'goal.create.v1' })"),
+      message: 'only supports namespace and capabilities options',
+    },
     {
       name: 'missing binding',
       edit: (source: string) => source.replace(

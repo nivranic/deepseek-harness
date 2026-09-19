@@ -43,7 +43,11 @@ Definition 不持有跨 Session 的可变业务数据。每个 Session 的 Conte
 
 #### `kind`、业务 ID 与 Context key
 
-`match()` 返回的 `id` 只要求在当前 Definition 内稳定。Tool 的 ID 可以是 call ID，Assistant 的 ID 可以是 `turn:step`，Inbox 的 ID 可以是 splice Event seq。
+`match()` 返回的 `id` 在 Definition 声明的身份范围内稳定，默认范围是整个 Session。`identityScope: 'step'` 声明所有匹配事件均属于某个模型 Step；引擎使用持久化 Turn、Step 坐标限定原始 id。Tool Definition 使用这一范围，因为 provider call id（包括 assembler fallback）可能在不同模型请求中重复。Assistant ID 仍可使用 `turn:step`，Inbox ID 仍可使用 splice Event seq。
+
+Step 范围的身份使用日志中的执行范围，不查找最近未完成的 Context。显式事件坐标和外围边界确定完整历史的位置。缺少位置的历史前缀只能在下一次开启边界之前使用后续 Step 坐标；否则已认领的 Match 保持待定，直到更多历史提供锚点。不会使用临时 id 发布 Node。这样即使分页从 root call 之后开始，也能保留嵌套 PTC 归属，无需添加 Session 字段或重写 provider id。Chat 和 Trajectory 均显式启用此范围；同一 Step 内重复 start 仍会失败。
+
+Trajectory 将每个 Tool contribution 的 Step Location 传入账本。结果与开始时间索引、已显示调用集合、调用时的 schema 和记录身份使用相同的执行坐标。嵌套调用继承 root 的坐标。缺少 Step 的结果保持未配对状态，以自身事件序号区分；仅凭重复 provider id 不能将它关联到 Assistant 记录。 跨视图 Inspect 在不透明的 focus 值中编码相同的 Turn、Step 和原始 call id。Chat Seat 为嵌套回调提供 root 的 Location；Trajectory 在对应执行已驻留时解析，否则保留待定请求。检查器的源内容块和所属消息链接只在选中的 Step 内跳转。
 
 Assembler 使用 `conversationContextKey(kind, id)` 组合无碰撞 key；不同 Definition 即使返回相同 `id` 也不会共享 Context。最终 view Node 必须沿用这个 engine-owned key，不能把 `seq` 或渲染位置当 identity。
 
@@ -361,6 +365,8 @@ SessionEventLike window
 Runtime tests 固定 Definition 生命周期注册、exact-ID append、update-before-start 收集与 start 后正序 replay、prepend identity、Reader window-gap 修复、传递依赖、Location closure、Step→Turn data phase order、Location data replacement、publication cadence、非法撤回、首次订阅 activation、单调 active target 和 per-target Builder。
 
 Conversation tests 覆盖全部内建 Chat Definition、Assistant Step data、Turn Tail 与 Deliverables Turn data、Chat 排序和结构共享、selector isolation、Assistant/Tool running-to-settled identity、nested Code Dispatch、steering、Compaction、Retry、interruption、load-older anchoring 和 slot dispatch。Trajectory tests 则覆盖它独立注册的 Message、Assistant、Tool、Compaction、Request-header 与 boundary Definition，以及继续保留的 stage-oriented view model。
+
+[重复 id 录制场景](../../../../apps/web/tests/tool-reused-id.snapshot.ts)通过 `dsh --profile web` 回放 authored Session，并隔离 home 与技能根目录。两次写入在不同 Step 共享一个 provider id：默认策略拒绝第一次写入，获批提权后第二次写入完成。完整持久化日志比对与独立最终工作区预期共同验证工具副作用；浏览器断言区分两条结果记录及其 Inspect 目标。模型记录派生自现有权限策略场景，不修改其历史版本。
 
 Slot type/runtime tests 固定父注册必须提供声明的 common inject、`hookContext` 类型、不同 Node context 的 Hook 隔离、factory/Hook identity 稳定，以及无关 Session publication 不重渲染业务 renderer。原 entry-owned Observable Hook 测试继续固定未使用 contextual factory 的路径。
 

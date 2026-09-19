@@ -36,6 +36,7 @@ import { SubagentError } from './error.ts'
 import { SubagentInbox } from './inbox.ts'
 import type { SubagentDelivery } from './inbox.ts'
 import type { ActivationObserver, ActivationTerminal } from './lifecycle.ts'
+import type { SubagentInterruptAuthority } from './types.ts'
 
 /**
  * One residency epoch for a reconstructed continuable child Agent. It directly
@@ -220,12 +221,12 @@ export class ContinuableActivationRegistry {
   /**
    * Pre-register `childId` in a continuation-managed parent's owned set so the
    * parent cannot settle while a caller is still establishing or resuming that
-   * child. Returns a releaser for the failure path; it removes only a hold
+   * child. The releaser removes only a hold
    * this call added, and leaves ownership in place once a live Activation for
    * the child exists.
    * @param parent - the live direct parent the operation is admitted under.
    * @param childId - the durable child the operation addresses.
-   * @returns the failure-path releaser; a no-op when nothing was added.
+   * @returns a releaser for calls that leave no live child; a no-op when nothing was added.
    */
   holdOwnership(parent: Agent, childId: SessionId): () => void {
     const parentActivation = this.resident.get(parent.id)
@@ -256,9 +257,7 @@ export class ContinuableActivationRegistry {
    */
   interrupt(
     targetSessionId: SessionId,
-    authority:
-      | { readonly kind: 'user'; readonly parentSessionId: SessionId }
-      | { readonly kind: 'ancestor'; readonly agent: Agent },
+    authority: SubagentInterruptAuthority,
   ): void {
     if (authority.kind === 'ancestor') {
       const caller = authority.agent
@@ -293,6 +292,12 @@ export class ContinuableActivationRegistry {
     // Disposal already stopped the target with a whole-Activation teardown;
     // a second cancel would be a redundant signal on a closing handle.
     if (activation.inbox.closing !== undefined) return
+    if (authority.kind === 'user' && authority.turnStartSeq !== undefined) {
+      const timing = this.ctx.get('sessionProjections')?.stateOf(activation.handle.agent.session, 'subagentTiming')
+      if (timing === undefined) throw new SubagentError('subagent turn projection is unavailable', 'CONTINUATION_UNAVAILABLE')
+      if (timing.active === undefined || !activation.handle.agent.session.isOwnSeq(timing.active.startSeq)
+        || authority.turnStartSeq !== timing.active.startSeq) return
+    }
     activation.handle.agent.cancel(
       authority.kind === 'user' ? { kind: 'user' } : { kind: 'parent' },
       { keepInbox: true },

@@ -1,5 +1,6 @@
 /** Session Remote owner: cold reads, explicit Agent commands, and live control state. */
 
+import { SESSION_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { hostname } from 'node:os'
 import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
@@ -22,6 +23,7 @@ import { SessionFileReferences } from './file-references.ts'
 import { ApiSessionList } from './list.ts'
 import { buildModelCatalog } from './catalog.ts'
 import { installModelSelectionProjection } from './model-selection-projection.ts'
+import { installActiveTurnProjection } from './active-turn-projection.ts'
 import { SessionSkillCatalog } from './skill-catalog.ts'
 import { SessionMediaReferences } from './media-references.ts'
 import type {
@@ -29,6 +31,7 @@ import type {
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
+  SessionCancelTurnRequest,
   SessionCancelValue,
   SessionControlFrame,
   SessionCreateRequest,
@@ -46,6 +49,7 @@ import type {
   SessionPromptRequest,
   SessionPromptValue,
   SessionRenameRequest,
+  SessionRenameAtRequest,
   SessionRenameValue,
   SessionSearchRequest,
   SessionSearchValue,
@@ -118,8 +122,12 @@ export class SessionController extends TypertRemoteService {
    * @param internals - host integrations replaceable by direct unit tests.
    */
   constructor(ctx: Context, config: Config, internals: SessionControllerInternals = {}) {
-    super(ctx, 'sessionController', { namespace: 'session' })
+    super(ctx, 'sessionController', {
+      namespace: 'session',
+      capabilities: SESSION_REMOTE_CAPABILITIES,
+    })
     installModelSelectionProjection(ctx)
+    installActiveTurnProjection(ctx)
     this.agents = new ApiSessionAgentController(ctx)
     this.commands = new SessionCommandController(ctx, this.agents, process.cwd())
     ctx.effect(() => ctx.fileUploads.registerAgentResolver(async (sessionId) => {
@@ -266,16 +274,7 @@ export class SessionController extends TypertRemoteService {
   }
 
   /**
-   * Report whether this deployment can hand a Session workspace path to a native desktop.
-   * @returns true when the matching open operation is available.
-   */
-  @Remote
-  canOpenWorkspacePath(): boolean {
-    return this.canOpenPath()
-  }
-
-  /**
-   * Describe the serving desktop for authenticated file-action routes.
+   * Describe the serving desktop for Host-owned declared-file actions.
    * @returns Host name, configured availability, and platform-specific file-manager behavior.
    */
   workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 'explorer' | 'directory' | null } {
@@ -284,13 +283,12 @@ export class SessionController extends TypertRemoteService {
   }
 
   /**
-   * Open one path prepared by a Session-aware caller on the Host desktop.
-   * @param request - path after best-effort Session workspace resolution.
+   * Open one authorized path prepared by a Host caller; this method is not a Remote operation.
+   * @param request - Host filesystem path authorized and resolved by the caller.
    * @param signal - caller lifetime; abort terminates the native command.
    * @returns confirmation after the native opener accepts the path.
-   * @throws RemoteError when the request is invalid, cancelled, or the opener fails.
+   * @throws The abort reason before dispatch; RemoteError for invalid paths, in-flight cancellation, or opener failures.
    */
-  @Remote('openWorkspacePath')
   async openWorkspacePath(
     request: SessionOpenWorkspacePathRequest,
     signal: AbortSignal,
@@ -325,6 +323,16 @@ export class SessionController extends TypertRemoteService {
   @Remote('rename')
   rename(request: SessionRenameRequest): Promise<SessionRenameValue> {
     return this.commands.rename(request)
+  }
+
+  /**
+   * Rename against the title event revision captured before editing.
+   * @param request - Session, proposed title and expected title revision.
+   * @returns the normalized title and durable event sequence; conflicts preserve the current title.
+   */
+  @Remote('renameAt')
+  renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue> {
+    return this.commands.renameAt(request)
   }
 
   /**
@@ -377,6 +385,16 @@ export class SessionController extends TypertRemoteService {
   @Remote('cancel')
   cancel(request: SessionCancelRequest): SessionCancelValue {
     return this.commands.cancel(request)
+  }
+
+  /**
+   * Cancel only the observed open turn; stale or null targets leave later work intact.
+   * @param request - Session identity and the observed turn/start sequence, or null.
+   * @returns acknowledgement that cancellation was requested or the target is already inactive.
+   */
+  @Remote('cancelTurn')
+  cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue {
+    return this.commands.cancelTurn(request)
   }
 
   /**

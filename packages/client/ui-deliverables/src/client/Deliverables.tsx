@@ -8,7 +8,7 @@ import type { PresentedOpenController } from './present-open.ts'
 import { ProducedFiles } from './ProducedFiles.tsx'
 import { presentedForClosing, selectProducedFiles, type PresentedPath } from './turn-deliverables.ts'
 import type { NS } from './locales.ts'
-import { presentedFileUrl } from '../presented.ts'
+import { presentedFileKey } from '../presented.ts'
 import { PresentedFileCard } from './PresentedFileCard.tsx'
 import css from './Deliverables.module.css'
 
@@ -42,7 +42,7 @@ export function selectDeliverables(owner: TurnTailOwnerProps): DeliverablesMatch
  * @param props - matched files, workspace opener, and localized copy.
  * @returns the closing turn's file rows.
  */
-export function Deliverables({ matched, openFile, t, sessionId, useSessions, openPresented, usePresentedOpen, usePresentedHost, reloadPresentedHost }: Pick<TurnTailOwnerProps, 'openFile'> & {
+export function Deliverables({ matched, openFile, canOpenFile, t, sessionId, useSessions, openPresented, usePresentedOpen, usePresentedHost, reloadPresentedHost }: Pick<TurnTailOwnerProps, 'openFile' | 'canOpenFile'> & {
   matched: DeliverablesMatch
 } & PropsLocale<typeof NS> & Pick<SessionStandardProps, 'sessionId'> & Pick<GlobalStandardProps, 'useSessions'> & InjectFace<DeliverablesInjected>) {
   const [expanded, setExpanded] = useState(false)
@@ -57,7 +57,7 @@ export function Deliverables({ matched, openFile, t, sessionId, useSessions, ope
     if (matched.presented.length > 0 && host === null) void reloadPresentedHost()
   }, [matched.presented.length, host, reloadPresentedHost])
   return <>
-    {matched.produced.length > 0 && <ProducedFiles matched={matched.produced} openFile={openFile} t={t} />}
+    {matched.produced.length > 0 && <ProducedFiles matched={matched.produced} openFile={openFile} canOpenFile={canOpenFile} t={t} />}
     {matched.presented.length > 0 && <div
       className={css.root}
       data-after-produced-files={matched.produced.length > 0 || undefined}
@@ -66,12 +66,13 @@ export function Deliverables({ matched, openFile, t, sessionId, useSessions, ope
         <span>{t('presented.hostError')}</span>
         <Button size="sm" onClick={() => { void reloadPresentedHost() }}>{t('presented.retry')}</Button>
       </div>}
-      {host !== null && host !== 'error' && !host.available && <span className={css.hostStatus}>{t('presented.unavailable')}</span>}
+      {host !== null && typeof host !== 'string' && !host.available && <span className={css.hostStatus}>{t('presented.unavailable')}</span>}
       <div className={css.presented} data-presented-files-row data-single={matched.presented.length === 1 ? true : undefined}>
         {presented.map(file => <PresentedFileCard key={`${file.seq}:${file.index}`} file={file} cwd={cwd}
-          phase={states[presentedFileUrl(sessionId, file.seq, file.index)]}
-          host={host === 'error' ? null : host} t={t}
-          onPreview={() => { openFile(file.path) }}
+          phase={states[presentedFileKey(sessionId, file.seq, file.index)]}
+          host={typeof host === 'string' ? null : host} t={t}
+          canPreview={canOpenFile(file.path)}
+          onPreview={() => { if (canOpenFile(file.path)) openFile(file.path) }}
           onAction={(action) => { void openPresented(sessionId, file.seq, file.index, action) }} />)}
       </div>
       {collapsible && <button type="button" className={css.toggle}

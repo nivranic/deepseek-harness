@@ -38,6 +38,7 @@ function fakeRoster(
 ): ClientContext {
   return {
     remote: {
+      $host: { capabilities: ['agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1', 'settings.write.v1', 'settings.agent-preset-directory.v1'] },
       ...options.settings === undefined ? {} : { settings: options.settings },
       agentPresets: {
         list: () => {
@@ -141,7 +142,7 @@ describe('the agent-preset roster store', () => {
     expect(controller.store.getSnapshot().error).toBeNull()
   })
 
-  it('treats an unavailable optional namespace as an empty roster', async () => {
+  it('preserves an advertised catalog failure instead of disguising it as absence', async () => {
     const controller = derivedController(fakeRoster([], {
       failList: 'no active Remote method exports this endpoint',
       failListCode: 'gateway/invocation-unavailable',
@@ -149,7 +150,7 @@ describe('the agent-preset roster store', () => {
 
     await controller.load()
 
-    expect(controller.store.getSnapshot()).toMatchObject({ status: 'unavailable', error: null, options: [] })
+    expect(controller.store.getSnapshot()).toMatchObject({ status: 'error', error: 'no active Remote method exports this endpoint', options: [] })
   })
 
   it('writeDefaultPreset writes only the default field, into the agent-presets namespace', async () => {
@@ -223,6 +224,7 @@ describe('the new-session chip controller', () => {
   ): AgentPresetSeatController {
     const ctx = {
       remote: {
+        $host: { capabilities: ['agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1', 'settings.write.v1', 'settings.agent-preset-directory.v1'] },
         agentPresets: {
           list: options.list ?? (() => {
             return Promise.resolve(options.failList === undefined
@@ -326,7 +328,7 @@ describe('the new-session chip controller', () => {
     expect(controller.store.getSnapshot().current).toBe('')
   })
 
-  it('opens on nothing when the optional namespace is unavailable', async () => {
+  it('reports a declared catalog that fails to serve its list', async () => {
     const controller = chip([], undefined, {
       failList: 'no active Remote method exports this endpoint',
       failListCode: 'gateway/invocation-unavailable',
@@ -334,7 +336,7 @@ describe('the new-session chip controller', () => {
 
     await controller.load()
 
-    expect(controller.store.getSnapshot()).toMatchObject({ current: '', error: null, options: [] })
+    expect(controller.store.getSnapshot()).toMatchObject({ current: '', error: 'no active Remote method exports this endpoint', options: [] })
   })
 
   it('stages a pick made before any session exists', async () => {

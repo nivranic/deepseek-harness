@@ -123,7 +123,11 @@ export type SidebarRootInjected = {
   /** Select the global panel addressed by a sidebar row. */
   selectPanel: (id: MainPanelId) => void
   /** Private reactive sources bound to framework selector hooks. */
-  hooks: { panels: ObservableSnapshot<readonly SidebarPanelMetadata[]> }
+  hooks: {
+    panels: ObservableSnapshot<readonly SidebarPanelMetadata[]>
+    /** Whether the admitted Host supports Session creation and management. */
+    sessionManagement: ObservableSnapshot<boolean>
+  }
 }
 
 /**

@@ -6,7 +6,7 @@ import { SettingsDocumentStore } from '../src/client/settings-document-store.ts'
 
 /** Store over a real mirror derived from the same scripted context. */
 function derivedDocumentStore(remote: object) {
-  const ctx = { remote } as never
+  const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1'] }, ...remote } } as never
   return new SettingsDocumentStore(ctx, new SettingsDescribeMirror(ctx))
 }
 
@@ -81,7 +81,7 @@ describe('SettingsDocumentStore', () => {
     // A first read that failed leaves the action unavailable with the miss
     // recorded; the mirror's next refresh (a commit or reconnect) recovers it.
     const ctx = {
-      remote: {
+      remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1'] },
         settings: {
           describe: vi.fn()
             .mockRejectedValueOnce(new Error('offline'))
@@ -97,4 +97,46 @@ describe('SettingsDocumentStore', () => {
     await mirror.load()
     expect(caught.store.getSnapshot()).toMatchObject({ status: 'ready', error: null })
   })
+})
+
+it('requires current document-opening support even for a retained action', async () => {
+  const remote = {
+    $host: { capabilities: ['settings.read.v1', 'settings.document-open.v1'] },
+    settings: { describe: vi.fn(async () => response(true)), openSettingsDocument: vi.fn(async () => opened()) },
+  }
+  const ctx = { remote } as never
+  const mirror = new SettingsDescribeMirror(ctx)
+  const controller = new SettingsDocumentStore(ctx, mirror)
+  await controller.load()
+  remote.$host = { capabilities: ['settings.read.v1'] }
+  await controller.open()
+  expect(remote.settings.openSettingsDocument).not.toHaveBeenCalled()
+  await mirror.load()
+  expect(controller.store.getSnapshot().status).toBe('unavailable')
+  remote.$host = { capabilities: ['settings.read.v1', 'settings.document-open.v1'] }
+  await controller.open()
+  expect(remote.settings.openSettingsDocument).not.toHaveBeenCalled()
+  await mirror.load()
+  await controller.open()
+  expect(remote.settings.openSettingsDocument).toHaveBeenCalledOnce()
+  controller.dispose()
+})
+
+it('ignores an old native-open failure after a new Host document becomes available', async () => {
+  const pending = Promise.withResolvers<RemoteResult<{ opened: true }>>()
+  const remote = {
+    $host: { capabilities: ['settings.read.v1', 'settings.document-open.v1'] },
+    settings: { describe: vi.fn(async () => response(true)), openSettingsDocument: vi.fn(() => pending.promise) },
+  }
+  const ctx = { remote } as never
+  const mirror = new SettingsDescribeMirror(ctx)
+  const controller = new SettingsDocumentStore(ctx, mirror)
+  await controller.load()
+  const opening = controller.open()
+  remote.$host = { capabilities: ['settings.read.v1', 'settings.document-open.v1'] }
+  await mirror.load()
+  pending.resolve({ ok: false, error: new RemoteError('gateway/internal', 'old opener failed', {}) })
+  await opening
+  expect(controller.store.getSnapshot()).toMatchObject({ status: 'ready', opening: false, error: null })
+  controller.dispose()
 })

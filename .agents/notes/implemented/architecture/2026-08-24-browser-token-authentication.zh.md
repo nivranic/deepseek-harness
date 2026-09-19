@@ -22,9 +22,17 @@ HMAC 密钥是 `ctx.credentials` 中位于 `client-connection/browser-session` �
 
 随附 CLI 继续拒绝 `--host 0.0.0.0`。认证不代表支持网络部署、TLS、转发 header 解释或代理配置。
 
+浏览器 HTTP 调用者为每个请求捕获既有 Connection generation。HTTP 401 发布 `auth-expired`、撤回 generation 就绪状态并暂停自动恢复；Host 有意返回统一响应，因此该状态涵盖凭据缺失、无效和过期。已取消请求或旧 generation 的响应不能使替换 generation 失效。HTTP 403 仍表示信任拒绝，不表示设备撤销。Settings 提供使用当前启动链接后重连的本地化说明，不回显凭据，也不重新提交被拒绝的 Prompt。Gateway 独立拥有已完成交互回答的重试。[发现失败决策](../bug-fix/2026-09-17-terminal-host-discovery.zh.md)继续拥有协议不兼容与畸形发现信息的处理。
+
+Host 发现通过 generation source 在 `host/describe` 检查访问权限前报告 `authenticating`，随后恢复连接建立。首次与重试认证使用同一个 Connection 控制器和取消信号。Gateway 在进度变化前记录是否允许初始准入等待，避免认证状态把重连期间的写操作变成排队任务。旧进度及就绪后的回调不能改变活动阶段。该状态描述访问检查，不是新增登录或设备授权操作。
+
+响应侧先检查取消，再分类 HTTP 状态。调用者取消或代际替换后到达的响应不能成为新的认证失败。活动 401 自身使代际失效时，Gateway 为该操作保留 `gateway/authentication-required`，不改记为取消；调用者或贡献项取消仍优先。[Remote 失败决策](2026-08-28-ctx-remote-failure-vocabulary.zh.md)拥有 HTTP 到错误码的映射，生命周期重试与回答保留规则不变。
+
 ## 验证
 
 单元覆盖 Connection 重载时保留进程令牌、每次激活只加载一次密钥、无需读取凭据提供方的同步校验、cookie 属性、HMAC 与 payload 校验、authority 与有效期校验、记录删除在下一次激活时生效、无效持久记录，以及用有效 cookie 清理过时令牌 URL。Host 传输套件固定通用 RPC、Typert Remote HTTP、精确 Fetch 路由和 WebSocket upgrade 路径上一致的 401/403 行为。frontend 真实组合测试经 Loader 启动 credentials、Connection、webserver 与静态服务，证明读取 index 前完成令牌交换，同时静态资产仍公开。打包 worker 测试证明 cookie 编码可移植，并覆盖认证与信任拒绝后的 worker 本地重试。真实 CLI 测试在临时 `DSH_HOME` 上用同一端口两次启动 `dsh web`，证明伪造 `Host: localhost` 仍未认证，以交换所得 cookie 调用 `settings/describe`，观测新的进程令牌，并在重启后复用旧 cookie。
+
+Client 测试覆盖就绪前与活动 generation 中的 401、不自动重试、显式恢复，以及 generation 替换或调用者取消后忽略迟到 401。Web profile 录制场景在发现、Prompt 或 Question 回答投递期间移除浏览器 Cookie。重新认证并显式重连后，被拒绝的 Prompt 需要重新提交，待处理回答则按既有规则重试。已被接受或由独立认证的 Client 完成的交互不再重发旧回答，完整 Session 与未修改的 fixture 一致。独立进程测试在恢复暂停期间通过另一个已认证 Client 取消 Approval 和 Question，验证没有审批副作用，并在新回合期间拒绝旧答案。移除 Cookie 验证共用的 401 路径，不代表自然过期或设备撤销。
 
 ## 曾考虑的替代方案
 

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Windows source dsh web with interrupted fallback junction and an isolated home",
+  "realModelTested": false,
+  "installedWheelTested": false,
+  "helperSourceSha": "16482eec880f40bb472c9328acf5a8819bc988f9",
+  "lifecycle": "Shipped web profile plus a test-only file marker emitting SIGTERM, as in the upstream Windows built-bin fixture",
+  "isolatedRoot": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-upstream-packaged-8nhstmyd",
+  "residue": "Empty directory at the dsh-owned installation fallback",
+  "pid": 55728,
+  "recovery": {
+    "linkCreated": true,
+    "targetMatches": true
+  },
+  "http": {
+    "authentication": "PASS",
+    "frontend": "PASS",
+    "scriptCount": 2,
+    "pluginCount": 53,
+    "batchCount": 2,
+    "sessionRpc": "PASS"
+  },
+  "browser": {
+    "status": "PASS",
+    "firstRunNoticeDismissed": true,
+    "providerConfigurationDeferred": true,
+    "pageErrors": [],
+    "bootEntries": 53,
+    "settingsOpened": true,
+    "darkTheme": true,
+    "buttonsAfterSettings": [
+      "DSH Local Build0.1.5-rc.2-c291e79-dirty",
+      "",
+      "New Session",
+      "",
+      "",
+      "",
+      "Settings",
+      "General",
+      "Models",
+      "Plugins",
+      "Agent presets",
+      "Open configuration file",
+      "Close",
+      "Workspace Write",
+      "English",
+      "Light",
+      "Dark",
+      "System",
+      "",
+      "",
+      "Compact",
+      "Queue",
+      "Choose workspace",
+      "Standard mode",
+      "",
+      ""
+    ],
+    "headingsAfterSettings": [],
+    "dialogsAfterSettings": [
+      {
+        "label": null,
+        "labelledby": ":r0:",
+        "text": "Settings\nGeneral\nModels\nPlugins\nAgent presets\nOpen configuration file\nClose\nPermission\nChoose the default permission mode for new sessions\nWorkspace Write\nLanguage\nEnglish\nAppearance\nLight\nDark\nSystem\nFont size\nOnly affects conversation content\n14\npx\nConversation display\nControls process content in completed turns\nCompact\nSend behavior while busy\nWhat Enter and the Send button do while the agent is running; Cmd/Ctrl+Enter uses the other behavior\nQueue"
+      }
+    ],
+    "lightTheme": true,
+    "settingsClosed": true
+  },
+  "stage": "select-dark",
+  "screenshot": {
+    "path": "artifacts/upstream-first/profile-recovery-settings.png",
+    "sha256": "fe4ec7a44fc8332d3ccd83468dfd9d8cb6af83a990e1ac0c442fe868e72ff0bd"
+  },
+  "shutdown": {
+    "exitCode": 0,
+    "forced": false,
+    "disposed": true
+  },
+  "diagnostics": []
+}

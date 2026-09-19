@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "candidateSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "candidateTrackedChanges": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.i18n.yaml",
+      "sha256": "2b319f6331073ddd1920af4e0e9157140c7ff35450620212c47a06b4972f70c6"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.md",
+      "sha256": "90fcf9339ea5259a599cdcfcdb4af5ee8902658ab5ca628a033767b3619f5170"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.zh.md",
+      "sha256": "5df265626567ade527e002b877a8c727af5b70f25b7d80a931d6a97a0652dd06"
+    },
+    {
+      "path": "packages/boot/app-boot/README.i18n.yaml",
+      "sha256": "bf404af9f3f864a42668c6679987c15167f4e4d3079507c4e88f7f97a970540b"
+    },
+    {
+      "path": "packages/boot/app-boot/README.md",
+      "sha256": "744ec6d3cac90151c0ff48586bdf1fb1dfacca3afaf1c430924f960de5fab363"
+    },
+    {
+      "path": "packages/boot/app-boot/README.zh.md",
+      "sha256": "6b183e32f0fc56a32c3a75234f54c024c393134c76fe3b57351a220038628d66"
+    },
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "68720a076c4b48cb682fb835710c1c15d446cfaefdd5b64e0ca6f3017b1d6b88"
+    },
+    {
+      "path": "scripts/project-doc-site.spec.ts",
+      "sha256": "df38d9e41fc5f712ba0fe34ac4b12c1bb268f75d229fa26d4e51b88cc9010b9e"
+    }
+  ],
+  "candidateUntrackedSourceChanges": [
+    {
+      "path": "artifacts/upstream-first/collect-baseline.mjs",
+      "sha256": "62c7c448d34984479ca806d614d6c94506f975976634d7129bbb3900072e6fdc"
+    },
+    {
+      "path": "artifacts/upstream-first/probe-settings.ts",
+      "sha256": "913b60a8bb742ce60c33be8a99476cb8ad624b812d96b3a2c88de070466eda37"
+    },
+    {
+      "path": "artifacts/upstream-first/verify-audit.mjs",
+      "sha256": "bcb085b9bdec601af0afc783075734abc6a8cb5c983cdf5e4d08ad035629a06b"
+    },
+    {
+      "path": "artifacts/upstream-first/verify-audit.test.mjs",
+      "sha256": "00b92cc4302750ed6e525413fc2bae99e533e0f9a54ac055c4f3550f4c94ef38"
+    },
+    {
+      "path": "artifacts/upstream-first/write-reports.mjs",
+      "sha256": "2af4b5988e1bcaf9ee646b46a672789f7a99057d49a1caf702e9936c7f25d389"
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile-init.spec.ts",
+      "sha256": "6028b7b99a3374679af29ba7a006a72ef20b728888cd050fad867b2675070339"
+    }
+  ],
+  "validationStatus": "PASS",
+  "validationScope": "report SHA, path coverage and state consistency only",
+  "gate0": "PASS",
+  "completeRc": false,
+  "phase0": "PASS",
+  "phase1": "PASS",
+  "checks": [
+    {
+      "id": "settings-json-provider-probe",
+      "status": "PASS",
+      "command": "node --import tsx/esm artifacts/upstream-first/probe-settings.ts",
+      "detail": "Actual upstream provider; generated JSON fixtures only. See artifacts/upstream-first/settings-probe.json."
+    },
+    {
+      "id": "profile-initialization-regression",
+      "status": "PASS",
+      "tests": 44,
+      "command": "pnpm exec vitest run packages/boot/app-boot/tests/profile-init.spec.ts packages/boot/app-boot/tests/profile.spec.ts",
+      "detail": "The three no-clobber regressions failed before the fix. The focused regression and existing profile tests passed afterward."
+    },
+    {
+      "id": "profile-initialization-lint",
+      "status": "PASS",
+      "command": "pnpm exec oxlint packages/boot/app-boot/src/profile.ts packages/boot/app-boot/tests/profile-init.spec.ts"
+    },
+    {
+      "id": "profile-initialization-types",
+      "status": "PASS",
+      "command": "pnpm exec tsc -b packages/boot/app-boot/tsconfig.json --pretty false"
+    },
+    {
+      "id": "desktop-source-build",
+      "status": "PASS",
+      "command": "pnpm run dev:desktop",
+      "detail": "The supported launcher completed native Host addon, Host/Client TypeScript and bundles, Web frontend, and Desktop Shell builds. It then failed fetching Electron; application execution is not qualified by this build result."
+    },
+    {
+      "id": "desktop-initial-launch",
+      "status": "FAIL",
+      "command": "pnpm run dev:desktop",
+      "detail": "Electron 44.0.0 archive fetch failed before application launch; a subsequent full download stalled. Retrying official bytes with HTTP ranges and package checksums."
+    },
+    {
+      "id": "doc-sync-profile-initial",
+      "status": "FAIL",
+      "passed": 31,
+      "failed": 3,
+      "command": "pnpm run doc-sync",
+      "detail": "CRLF introduced by the edit script caused README and Agent Note formatting failures. Affected files restored to LF and bilingual pairs re-recorded."
+    },
+    {
+      "id": "doc-sync-profile-final",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "detail": "Complete aggregate passed after profile fix, bilingual changes, and Gate 0 completion."
+    },
+    {
+      "id": "desktop-development-smoke",
+      "status": "PASS",
+      "command": "pnpm run start:desktop",
+      "detail": "Electron 44.0.0 archive verified against package checksums. Real dsh-app UI settings/theme smoke, separate Node Host, inspector-only listeners and clean window shutdown passed. See artifacts/upstream-first/desktop-smoke.json; not packaged application acceptance."
+    },
+    {
+      "id": "official-fetch",
+      "status": "PASS",
+      "detail": "git fetch --no-tags https://github.com/deepseek-ai/deepseek-harness.git master"
+    },
+    {
+      "id": "isolated-source",
+      "status": "PASS",
+      "detail": "agents/upstream-first HEAD equals upstream SHA; old branches retained"
+    },
+    {
+      "id": "locked-install",
+      "status": "PASS",
+      "detail": "pnpm install --frozen-lockfile --ignore-scripts; install only, native lifecycle scripts not run"
+    },
+    {
+      "id": "desktop-foundation",
+      "status": "PASS",
+      "files": 4,
+      "tests": 18,
+      "command": "pnpm exec vitest run apps/desktop/tests/host-protocol.spec.ts apps/desktop/tests/backend-controller.spec.ts apps/desktop/tests/single-instance.spec.ts apps/desktop/tests/update-coordinator.spec.ts"
+    },
+    {
+      "id": "gateway-connection-trust",
+      "status": "PASS",
+      "files": 5,
+      "tests": 128,
+      "command": "pnpm exec vitest run packages/api/gateway/tests/gateway.host.spec.ts packages/api/gateway/tests/remote-event-protocol.host.spec.ts packages/client/connection/tests/connection.client.spec.ts packages/client/connection/tests/generation.client.spec.ts packages/client/connection/tests/api-request-trust.host.spec.ts"
+    },
+    {
+      "id": "audit-validation",
+      "status": "PASS",
+      "tests": 11,
+      "command": "node --test artifacts/upstream-first/verify-audit.test.mjs",
+      "detail": "Rejects SHA mismatch, missing paths, unknown classifications, incomplete Gate 0 and audit-only RC claims."
+    },
+    {
+      "id": "doc-quick-initial",
+      "status": "FAIL",
+      "passed": 15,
+      "failed": 1,
+      "command": "pnpm run test:docs",
+      "detail": "Initial bilingual fragment mismatch fixed; every quick leaf subsequently passed inside doc-sync."
+    },
+    {
+      "id": "doc-sync-initial",
+      "status": "FAIL",
+      "passed": 33,
+      "failed": 1,
+      "command": "pnpm run doc-sync",
+      "detail": "Windows EPERM creating a file symlink in scripts/project-doc-site.spec.ts:160; host escalation was already used. Typecheck, site build and pairing passed."
+    },
+    {
+      "id": "lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "detail": "Host compilation was supplied by the passing doc-typecheck prerequisite; no repeated build."
+    },
+    {
+      "id": "windows-doc-fixture",
+      "status": "PASS",
+      "tests": 69,
+      "command": "pnpm exec vitest run scripts/project-doc-site.spec.ts scripts/verify-doc-site-fragments.spec.ts",
+      "detail": "Uncommitted test-only correction; exact tracked file bytes listed in candidateTrackedChanges. Windows junction and realpath assertions replace the unavailable file-symlink creation."
+    },
+    {
+      "id": "windows-doc-fixture-lint",
+      "status": "PASS",
+      "command": "pnpm exec oxlint scripts/project-doc-site.spec.ts"
+    },
+    {
+      "id": "doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "detail": "Full aggregate passed after the local Windows fixture correction; source delta is recorded separately from the upstream HEAD."
+    }
+  ],
+  "blockers": [
+    {
+      "id": "patch-review",
+      "status": "PASS",
+      "detail": "Source dispositions complete; implementation equivalence, migration and platform execution remain separate."
+    },
+    {
+      "id": "session-format-divergence",
+      "status": "BLOCKED",
+      "detail": "Legacy SQLite generations and upstream released JSONL format 3 require a reviewed conversion design before data migration."
+    },
+    {
+      "id": "settings-format-policy",
+      "status": "IN_PROGRESS",
+      "detail": "Generated JSON fixtures with formatVersion 1 and 2 load and retain metadata through the actual upstream provider. Upstream does not validate that metadata; version refusal and recovery policy remain to be designed. No user data or YAML fixtures tested."
+    }
+  ]
+}

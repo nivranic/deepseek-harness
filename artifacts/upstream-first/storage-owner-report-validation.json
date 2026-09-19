@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "observedAt": "2026-09-15T20:23:31.051Z",
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/storage-owner-source.json",
+    "sha256": "aab7510e9a4a57c0f3209b42d196c11225f141c26de799ae812530b320870993"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/storage-owner-binding.json",
+    "sha256": "3ff4565def323ccf33291ee63cfbd6b3e6cd6a4d3e4f5a67fa6ba19afddf001e"
+  },
+  "logs": [
+    {
+      "path": ".artifacts/storage-owner-audit-tests.log",
+      "sha256": "25280e1edc770703089a65be31daaab8f2aa683e0a318bee06cbc4716e89c602"
+    },
+    {
+      "path": ".artifacts/storage-owner-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/storage-owner-report-doc-sync.log",
+      "sha256": "1ab5989d0a0fe9e6d394f1d809d93f7673882189c32c8fdc27e5b279ed960b5f"
+    },
+    {
+      "path": ".artifacts/storage-owner-report-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "checks": [
+    {
+      "status": "PASS",
+      "command": "node .artifacts/check-storage-owner-binding.mjs",
+      "tests": 6,
+      "receipt": "artifacts/upstream-first/storage-owner-binding.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/verify-audit.test.mjs",
+      "tests": 13,
+      "log": ".artifacts/storage-owner-audit-tests.log"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/storage-owner-gate0.log"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync",
+      "passed": 34,
+      "failed": 0,
+      "log": ".artifacts/storage-owner-report-doc-sync.log"
+    },
+    {
+      "status": "PASS",
+      "command": "git diff --check",
+      "log": ".artifacts/storage-owner-report-diff.log"
+    }
+  ]
+}

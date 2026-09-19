@@ -5,6 +5,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { GOAL_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { z as zod } from 'zod'
@@ -248,7 +249,7 @@ export class GoalService extends TypertRemoteService {
   private readonly runtimeStates = new WeakMap<Session, GoalRuntimeState>()
 
   constructor(ctx: Context, config: Config = {}) {
-    super(ctx, 'goals')
+    super(ctx, 'goals', { capabilities: GOAL_REMOTE_CAPABILITIES })
     this.resolved = {
       defaultMaxGoalRounds: resolveMaxGoalRounds(config.defaultMaxGoalRounds ?? 256),
     }

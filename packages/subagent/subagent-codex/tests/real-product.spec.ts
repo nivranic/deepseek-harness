@@ -471,18 +471,23 @@ describe('real @openai/codex 0.153.4 product', () => {
     }
   }, 60_000)
 
-  it('executes an explicitly selected dangerous bypass write in the isolated workspace', async () => {
+  it.for([false, true])('executes an explicitly selected dangerous bypass write in the isolated workspace (yielded: %s)', { timeout: 60_000 }, async (yielded, { task, signal }) => {
     const sideEffect = 'bypass-side-effect'
     const { harness, fixture } = await realHarness((workspace): readonly ResponsesBehavior[] => {
       const target = join(workspace, sideEffect)
+      const release = join(workspace, 'release-command')
+      const wait = !yielded ? '' : process.platform === 'win32'
+        ? `while (-not (Test-Path -LiteralPath '${release.replaceAll("'", "''")}')) { Start-Sleep -Milliseconds 20 }; `
+        : `while [ ! -f ${JSON.stringify(release)} ]; do sleep 0.02; done; `
       const command = process.platform === 'win32'
-        ? `powershell.exe -NoLogo -NoProfile -NonInteractive -Command "Set-Content -LiteralPath '${target.replaceAll("'", "''")}' -Value 'bypass' -NoNewline"`
-        : `printf bypass > ${JSON.stringify(target)}`
+        ? `powershell.exe -NoLogo -NoProfile -NonInteractive -Command "${wait}Set-Content -LiteralPath '${target.replaceAll("'", "''")}' -Value 'bypass' -NoNewline"`
+        : `${wait}printf bypass > ${JSON.stringify(target)}`
       const commandCalls = [
         {
           name: 'exec_command',
           arguments: {
             cmd: command,
+            ...(yielded ? { yield_time_ms: 1 } : {}),
           },
         },
         {
@@ -493,16 +498,24 @@ describe('real @openai/codex 0.153.4 product', () => {
         },
       ] as const
       return [
-        { kind: 'advertisedFunctionCall', choices: commandCalls },
-        { kind: 'complete', text: 'bypass complete' },
+        { kind: 'advertisedFunctionCall', choices: yielded ? commandCalls.slice(0, 1) : commandCalls },
+        { kind: 'completeAfterCommand', text: 'bypass complete' },
       ]
     }, 'dangerously-bypass-approvals-and-sandbox')
     const target = join(harness.workspace, sideEffect)
     const run = await harness.ctx.subagents.start('codex', {
       prompt: [{ type: 'text', text: 'Create the fixture side effect.' }],
       parent: harness.parent,
-      signal: new AbortController().signal,
+      signal,
     })
+    if (yielded) {
+      await vi.waitFor(() => {
+        signal.throwIfAborted()
+        expect(fixture.requests.length).toBeGreaterThanOrEqual(3)
+      }, { timeout: task.timeout })
+      expect(existsSync(target)).toBe(false)
+      writeFileSync(join(harness.workspace, 'release-command'), '')
+    }
     await expect(run.result).resolves.toEqual({
       output: [{ type: 'text', text: 'bypass complete' }],
       stopReason: 'completed',
@@ -511,7 +524,7 @@ describe('real @openai/codex 0.153.4 product', () => {
     expect(readFileSync(target, 'utf8').trim()).toBe('bypass')
     await run.dispose()
     await expectQuiescent(harness.handles)
-  }, 60_000)
+  })
 
   it('settles cancellation locally and leaves the real app-server tree quiescent', async () => {
     const { harness, fixture } = await realHarness([{ kind: 'hold' }])

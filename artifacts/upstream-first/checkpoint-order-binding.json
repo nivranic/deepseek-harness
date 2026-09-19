@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/checkpoint-order-source.json",
+      "status": "PASS",
+      "rejected": "Checkpoint order source record changed"
+    },
+    {
+      "path": "packages/session/session-projection-cache/src/index.ts",
+      "status": "PASS",
+      "rejected": "Checkpoint order sourceFiles changed after validation"
+    },
+    {
+      "path": "snapshots/web/checkpoint-order/session.v3.jsonl",
+      "status": "PASS",
+      "rejected": "Checkpoint order sourceFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/checkpoint-order-controls.json",
+      "status": "PASS",
+      "rejected": "Checkpoint order receipts changed after validation"
+    }
+  ]
+}

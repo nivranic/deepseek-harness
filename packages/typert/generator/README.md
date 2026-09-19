@@ -43,9 +43,16 @@ files:
 
 After the build, `lib/typert.host.js` and `lib/typert.host.d.ts` exist and the [loader](../loader/README.md) registers the contribution in Loader compositions. The generated declaration file exposes `TYPERT` as `unknown`, so contributing packages never depend on the runtime registry. The generator fails the build when a declaration is missing, points at the wrong file, or publishes Remote artifacts without Remote methods; unsupported Zod projections fail with a `TypertEmitError` naming the construct instead of flattening or weakening the source type.
 
+Binding options accept `namespace` and runtime-owned `capabilities`. Capability declarations do not alter generated invocation codecs or Client method signatures; unknown option names still reject analysis. See [Host discovery](../../api/host-description/README.md).
+
+<a id="analyzing-a-workspace-statically"></a>
 ### Analyzing a workspace statically
 
 Static consumers call `WorkspaceAnalyzer` directly against the workspace's `tsconfig.host.json` and `tsconfig.client.json` aggregates, select a face and package subset, and read the resulting `FaceModel` and type graph without emitting or loading runtime artifacts. `analyzeInBatches()` processes a large package selection through bounded compiler programs with the same model shape, and `discoverPackages()` finds contributing packages without building a type-checker program.
+
+`analyzeRemoteErrors()` extracts the base Remote error map and each selected package's augmentations directly from its compiler face, including declarations unused by service or schema roots. It returns `RemoteErrorWorkspaceModel` with owner, code, source location, semantic prose and an authored details node and a checker-resolved JSON details node for each error. Host and Client graphs remain separate, and references retain their existing public type links. Duplicate codes within a face, missing descriptions, non-enumerable declarations and non-JSON details fail analysis. Codec roots reuse the strict Remote type projection to resolve cross-face brands and computed types without merging compiler faces. The ordinary `analyze()` result is unchanged. These graphs are inputs to later emission, not executable codecs or JSON Schema.
+
+`emitRemoteErrorSchemas(face)` emits an ESM module whose `REMOTE_ERROR_DETAILS` export is a Map of error codes to Zod details validators. The consuming build provides Zod. The repository `verify-remote-error-envelope` gate includes the independent inventory and details-root checks, compares shared codes across faces, and checks the packaged JSON Schema in `doc-sync`. Normal TypeScript checks own project diagnostics; schema validation does not prove native-client compatibility.
 
 ### Running generation inside a tsdown build
 
@@ -84,6 +91,8 @@ Host and Client are independent TypeScript programs. Direct project references e
 ### Emission and publication contract
 
 `FaceModelEmitter` emits executable JavaScript containing supported Zod schemas and the `TYPERT` contribution, plus a declaration file whose schemas are typed `z.ZodType<SourceType>` through the package's public export; unsupported Zod projections fail. The Host face with Remote methods additionally emits `typert.remote-client.*` projections of Host Remote contracts for the Client. `WorkspaceTypertGenerator` validates each contributor's `package.json`: `./typert` and `./client/typert` (and `./remote` when Remote methods exist) must point at the exact generated files, and the `files` list must include them.
+
+The `readonly` array and tuple operator uses Zod readonly schemas, which validate element types and freeze the parsed container. `keyof` and `unique` operators still fail emission; readonly does not make an unsupported element type projectable.
 
 ### Catalog projection
 

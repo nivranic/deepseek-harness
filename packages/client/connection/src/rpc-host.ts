@@ -1,5 +1,6 @@
 /** Host registry and HTTP adapter for generic Connection RPC channels. */
 
+import type { z } from 'zod'
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
 import {
@@ -253,13 +254,15 @@ function rpcFetchHandler(
   }
 }
 
-function invalidEnvelopeResponse(body: unknown, issues: readonly object[]): Response {
+function invalidEnvelopeResponse(body: unknown, issues: readonly z.core.$ZodIssue[]): Response {
   const rawId = (body as { rpcId?: unknown } | null)?.rpcId
   const rpcId = typeof rawId === 'string' ? RpcId(rawId) : INVALID_REQUEST_RPC_ID
   return errorResponse(rpcId, {
     code: 'gateway/bad-request',
     message: 'invalid client-request message',
-    details: { issues },
+    details: { issues: issues.map(({ code, message, path }) => ({
+      code, message, path: path.map(key => typeof key === 'symbol' ? String(key) : key),
+    })) },
   })
 }
 

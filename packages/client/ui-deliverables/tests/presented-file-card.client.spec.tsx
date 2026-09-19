@@ -10,11 +10,38 @@ afterEach(cleanup)
 const props = () => ({
   cwd: undefined,
   file: { path: 'out/report.pdf', description: 'Final report', seq: 4, index: 1 },
-  host: { name: 'remote-desktop', available: true, fileManager: 'finder' as const },
+  host: { name: 'remote-desktop', available: true, fileManager: 'finder' as const, actions: ['open', 'reveal'] as const },
   phase: undefined,
+  canPreview: true,
   onPreview: vi.fn(),
   onAction: vi.fn(),
   t: makeTranslate(en),
+})
+
+it('does not suggest an unavailable preview after native path refusal', () => {
+  const p = props()
+  const view = render(<PresentedFileCard {...p} canPreview={false} phase="nativeUnavailable" />)
+  expect(view.getByRole('status').textContent).toBe('This file has no available Host path.')
+  view.rerender(<PresentedFileCard {...p} canPreview={false} phase="nativeUnavailable" t={makeTranslate(zh)} />)
+  expect(view.getByRole('status').textContent).toBe('此文件没有可用的主机路径')
+})
+
+it('withdraws both preview controls while retaining native actions and file metadata', () => {
+  const p = props()
+  const view = render(<PresentedFileCard {...p} canPreview={false} />)
+  expect(view.queryByRole('button', { name: 'Preview out/report.pdf in sidebar' })).toBeNull()
+  expect(view.queryByRole('button', { name: 'Open out/report.pdf in sidebar' })).toBeNull()
+  expect(view.getByText('report.pdf')).toBeTruthy()
+  expect(view.getByText('Final report')).toBeTruthy()
+  const menu = view.getByRole('button', { name: 'More file actions for out/report.pdf' })
+  fireEvent.click(menu)
+  fireEvent.click(view.getByRole('menuitem', { name: 'Open in default app' }))
+  expect(p.onAction).toHaveBeenCalledWith('open')
+  expect(p.onPreview).not.toHaveBeenCalled()
+  expect(document.activeElement).toBe(menu)
+  view.rerender(<PresentedFileCard {...p} />)
+  fireEvent.click(view.getByRole('button', { name: 'Open out/report.pdf in sidebar' }))
+  expect(p.onPreview).toHaveBeenCalledOnce()
 })
 
 it.each([
@@ -55,13 +82,29 @@ it.each(['opening', 'revealing'] as const)('keeps sidebar previews available whi
   expect(p.onAction).not.toHaveBeenCalled()
 })
 
-it('keeps the native menu disabled until a desktop is available', () => {
+it('withdraws the native menu until a supported desktop action is available', () => {
   const p = props()
   const view = render(<PresentedFileCard {...p} host={null} />)
-  expect((view.getByRole('button', { name: 'More file actions for out/report.pdf' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(view.queryByRole('button', { name: 'More file actions for out/report.pdf' })).toBeNull()
   expect((view.getByRole('button', { name: 'Open out/report.pdf in sidebar' }) as HTMLButtonElement).disabled).toBe(false)
   view.rerender(<PresentedFileCard {...p} host={{ ...p.host, available: false, fileManager: null }} />)
-  expect((view.getByRole('button', { name: 'More file actions for out/report.pdf' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(view.queryByRole('button', { name: 'More file actions for out/report.pdf' })).toBeNull()
+  view.rerender(<PresentedFileCard {...p} host={{ ...p.host, actions: [] }} />)
+  expect(view.queryByRole('button', { name: 'More file actions for out/report.pdf' })).toBeNull()
+})
+
+it('updates individual menu actions and closes an open menu when both are withdrawn', () => {
+  const p = props()
+  const view = render(<PresentedFileCard {...p} host={{ ...p.host, actions: ['open'] }} />)
+  fireEvent.click(view.getByRole('button', { name: 'More file actions for out/report.pdf' }))
+  expect(view.getByRole('menuitem', { name: 'Open in default app' })).toBeTruthy()
+  expect(view.queryByRole('menuitem', { name: 'Show in Finder' })).toBeNull()
+  view.rerender(<PresentedFileCard {...p} host={{ ...p.host, actions: ['reveal'] }} />)
+  expect(view.queryByRole('menuitem', { name: 'Open in default app' })).toBeNull()
+  expect(view.getByRole('menuitem', { name: 'Show in Finder' })).toBeTruthy()
+  view.rerender(<PresentedFileCard {...p} host={{ ...p.host, actions: [] }} />)
+  expect(view.queryByRole('menu')).toBeNull()
+  expect(p.onAction).not.toHaveBeenCalled()
 })
 
 it('opens the right sidebar from either the card or its primary button', () => {

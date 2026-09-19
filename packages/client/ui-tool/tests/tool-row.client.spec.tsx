@@ -309,10 +309,31 @@ describe('ToolRow', () => {
     expect(row.getAttribute('aria-expanded')).toBe('false')
   })
 
+  it('withdraws path buttons without losing result expansion and rejects retained preview handlers', () => {
+    const canOpenFile = vi.fn(() => true)
+    const open = vi.fn()
+    const props = { ...rowProps, variant: 'read' as const, title: 'Read', summary: 'note.md', filePath: 'note.md', canOpenFile, onOpenFile: open }
+    const view = render(<ToolRow {...props} />)
+    const button = view.getByRole('button', { name: 'note.md' })
+    canOpenFile.mockReturnValue(false)
+    fireEvent.click(button)
+    expect(open).not.toHaveBeenCalled()
+    view.rerender(<ToolRow {...props} />)
+    expect(view.queryByRole('button', { name: 'note.md' })).toBeNull()
+    expect(view.getByText('note.md')).toBeTruthy()
+    fireEvent.click(view.getByRole('button', { name: /Read/ }))
+    expect(view.getByRole('button', { name: /Read/ }).getAttribute('aria-expanded')).toBe('true')
+    canOpenFile.mockReturnValue(true)
+    view.rerender(<ToolRow {...props} />)
+    fireEvent.click(view.getByRole('button', { name: 'note.md' }))
+    expect(open).toHaveBeenCalledWith('note.md')
+    expect(view.getByRole('button', { name: /Read/ }).getAttribute('aria-expanded')).toBe('true')
+  })
+
   it('file rows expand from the row while the path link opens without toggling', () => {
     const open = vi.fn()
     const view = render(
-      <ToolRow {...rowProps} variant="read" title="Read" summary="src/a.ts" filePath="src/a.ts" onOpenFile={open} />,
+      <ToolRow {...rowProps} variant="read" title="Read" summary="src/a.ts" filePath="src/a.ts" canOpenFile={() => true} onOpenFile={open} />,
     )
     const row = view.getByRole('button', { name: /Read/ })
     // Path click opens the file and leaves the row collapsed.
@@ -338,7 +359,7 @@ describe('ToolRow', () => {
 
   it('non-file rows do not open anything when the summary is clicked', () => {
     const open = vi.fn()
-    const view = render(<ToolRow {...rowProps} onOpenFile={open} />)
+    const view = render(<ToolRow {...rowProps} canOpenFile={() => true} onOpenFile={open} />)
     fireEvent.click(view.getByText('List files'))
     expect(open).not.toHaveBeenCalled()
   })
@@ -379,7 +400,7 @@ describe('ToolRow', () => {
       <ToolRow
         {...rowProps}
         variant="write" title="Write" state="error" errorSummary="cannot overwrite"
-        filePath="src/a.ts" onOpenFile={open}
+        filePath="src/a.ts" canOpenFile={() => true} onOpenFile={open}
       />,
     )
     fireEvent.click(view.getByText('cannot overwrite'))
@@ -430,7 +451,7 @@ describe('ToolRow', () => {
 describe('GenericToolCard', () => {
   const props = (toolName: string, block: RunningToolCall | ToolResultNode): GenericToolCardProps => ({
     loadImage: vi.fn(() => Promise.reject(new Error('not used'))),
-    callId: 'c1', toolName, block, openFile: vi.fn(), t,
+    callId: 'c1', toolName, block, openFile: vi.fn(), canOpenFile: () => true, t,
   })
 
   it('renders the classified variant row from the frozen slice', () => {

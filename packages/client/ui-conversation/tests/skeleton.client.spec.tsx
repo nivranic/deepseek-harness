@@ -114,6 +114,8 @@ function mount(
   options: {
     /** When true, mimic overlay:true chain siblings (hidden fallback + takeover). */
     overlayTakeover?: boolean
+    historyAvailable?: boolean
+    sessionManagement?: boolean
     /** The session list summary's `blank` flag — independent of the snapshot's. */
     summaryBlank?: boolean
     /** Drop the session's summary row entirely (a session the list has not caught up with). */
@@ -218,6 +220,8 @@ function mount(
     if (key === 'conversation.session') {
       return (
         <ConversationSession
+          useHistoryAvailable={selector => selector(options.historyAvailable ?? true)}
+          t={t}
           sessionId={SID}
           SessionProvider={({ children }) => children}
           useSession={useSession}
@@ -247,6 +251,10 @@ function mount(
       const bar = owner as ComposerBarOwnerProps
       return (
         <InputBar
+          controlAvailable
+          interruptAvailable
+          fileUploadAvailable
+          currentAuthority={() => true}
           sessionId={SID}
           SessionProvider={({ children }) => children}
           useResource={useResource}
@@ -308,6 +316,7 @@ function mount(
     useResource,
     useWorkspaces: bindSnapshotSelector(workspaces),
     useProjection: (() => undefined),
+    useSessionManagement: select => select(options.sessionManagement ?? true),
     useComposerBlock: select => select(options.composerBlock),
     useInput,
     inputActions,
@@ -325,6 +334,42 @@ function mount(
 }
 
 describe('Hero chrome', () => {
+  it('closes workspace selection when management is withdrawn and keeps it closed on restoration', () => {
+    const options = { sessionManagement: true }
+    const b = mount(sessionSnapshotOf({ blank: true, openState: 'open' }), undefined, undefined, options)
+    fireEvent.click(b.view.getByRole('button', { name: '选择工作区' }))
+    expect(b.pickerOwner()).toMatchObject({ open: true })
+    options.sessionManagement = false
+    b.rerender()
+    expect(b.view.queryByRole('button', { name: '选择工作区' })).toBeNull()
+    expect(b.pickerOwner()).toMatchObject({ open: false })
+    const owner = b.pickerOwner() as { onPick(id: WorkspaceId): void }
+    act(() => { owner.onPick(wid('other')) })
+    expect(b.retargetWorkspace).not.toHaveBeenCalled()
+    expect(b.store.store.getSnapshot().draft).toBe('ordinary draft')
+    options.sessionManagement = true
+    b.rerender()
+    expect(b.view.getByRole('button', { name: '选择工作区' })).toBeTruthy()
+    expect(b.pickerOwner()).toMatchObject({ open: false })
+  })
+
+  it('shows unavailable history for a blank Session without mounting a View', () => {
+    const b = mount(sessionSnapshotOf({ blank: true, openState: 'open' }), undefined, undefined, { historyAvailable: false })
+    expect(b.view.getByRole('status').textContent).toBe(zh['session.historyUnavailable'])
+    expect(b.slotCalls).not.toContain('conversation.view')
+  })
+
+  it('shows unavailable history without dropping the draft and removes the notice on restoration', () => {
+    const options = { historyAvailable: false }
+    const b = mount(sessionSnapshotOf({ blank: false, openState: 'loading' }), undefined, undefined, options)
+    expect(b.view.getByRole('status').textContent).toBe(zh['session.historyUnavailable'])
+    expect(b.store.store.getSnapshot().draft).toBe('ordinary draft')
+    options.historyAvailable = true
+    b.rerender()
+    expect(b.view.queryByText(zh['session.historyUnavailable'])).toBeNull()
+    expect(b.store.store.getSnapshot().draft).toBe('ordinary draft')
+  })
+
   it('renders the English preview badge through the hero locale seat', () => {
     const renderSlot = vi.fn<HeroShellProps['renderSlot']>(() => null)
     const view = render(<HeroShell t={makeTranslate(en, commonEn)} renderSlot={renderSlot} />)
@@ -510,6 +555,15 @@ describe('ConversationRoot resident composer', () => {
     const b = mount(failed, undefined, undefined, { summaryBlank: true })
     expect(b.view.container.querySelector('[data-phase]')?.getAttribute('data-phase')).toBe('active')
     expect(b.view.queryByText('探索未至之境')).toBeNull()
+  })
+
+  it('keeps a resident child composer visible without a parent catalog hint', () => {
+    const b = mount(sessionSnapshotOf({ running: true, subagent: {
+      address: { parentSessionId: sid('root'), childSessionId: SID, mode: 'continuable' },
+    } }))
+    const root = b.view.container.querySelector('[data-phase]')
+    expect(root?.getAttribute('data-phase')).not.toBe('settling')
+    expect(b.view.getByRole('button', { name: '停止生成' })).toBeDefined()
   })
 
   it('settling phase: a summary that does not prove the session blank hides the composer while it opens', () => {

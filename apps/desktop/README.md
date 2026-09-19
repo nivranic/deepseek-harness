@@ -4,6 +4,8 @@ English | [中文](README.zh.md)
 
 The desktop application is an Electron shell around the dsh Web UI. It opens no listening port: a bundled upstream Node.js child boots the installed dsh project, versioned framed byte pipes carry Fetch requests and streaming responses without an outer Base64 envelope, Node IPC carries lifecycle control, and `dsh-app://` serves the matching client assets.
 
+Shared [Host discovery](../../packages/api/host-description/README.md) reports persistent Host identity and current Remote capabilities. Desktop uses the same identity file and configures only `desktop-pipe`; the description does not claim a Web listener.
+
 ## Key technical decisions
 
 | Decision | Why | Direct consequence |
@@ -27,6 +29,8 @@ The local startup page exposes startup status and available recovery actions; th
 
 Electron chooses typed English or Chinese shell copy from its application locale and falls back to English. Menus, native dialogs, the startup page, and the plugin-management renderer use the same locale payload; the repository Client UI i18n gate checks these desktop sources.
 
+The local Host adds a model-facing Desktop orientation after reusable tool guidance and before the working-directory suffix. It identifies the application window and the machine hosting the Session without implying access to the screen or placing every tool on that machine. Normal preset personas retain the section; a complete persona suppresses it. Prompt-service reload restores the registration, and Host-context disposal removes it. The [Desktop context decision](../../.agents/notes/implemented/architecture/2026-09-15-desktop-model-context.md) owns the rationale.
+
 ### Runtime and plugin activation
 
 The signed `resources/dsh/desktop-runtime.json` binds the shell version, bundled Node version, platform, architecture, shared package versions, and final file inventory. Startup reads the metadata and checks shared package records. Release schema, shell version, target compatibility, and file integrity are verified during packaging. Core packages are never copied into profile storage or installed by pnpm at first launch.
@@ -42,6 +46,17 @@ The loading page does not depend on the Host. Errors offer restart and reinstall
 Reset deletes every entry in `$DSH_HOME/profiles/desktop` except the held transaction lock, then initializes the built-in profile. It removes Desktop configuration and installed third-party packages without a backup. Shared tasks, settings, and the Harness-home `.env` are untouched. Shell resource and preload failures use a self-contained document with the available recovery actions and diagnostics; its controls do not require preload.
 
 Package transactions hold `$DSH_HOME/profiles/desktop/lock` exclusively through pnpm process exit. Reset preserves the directory and its lock until initialization and Host startup finish. Shared links use directory symlinks on macOS/Linux and junctions on Windows; cleanup removes links without deleting their targets. Canonical filesystem paths identify shared packages, so Windows path casing alone does not trigger profile activation. Native builds follow the profile’s reviewed `allowBuilds` list; installing a new build-requiring package without approval in that list fails the transaction.
+
+<a id="tray-and-login-startup"></a>
+## Tray and login startup
+
+The application menu offers **Hide to Tray When Closing Window** on Windows and the equivalent menu-bar option on macOS. It is off by default. Enabling it keeps the Host running when the main window closes; the tray restores the window or quits the application. A second launch also restores the existing window. Disabling it reveals the window before removing the tray. If tray creation fails, closing keeps the platform's ordinary behavior. Explicit Quit always stops the Host.
+
+**Launch at Login** is available only in packaged Windows and macOS applications. The operating system owns its enabled state; the application reads that state and registers a change only after a user selects the menu item. macOS approval requirements or OS refusal are reported without claiming activation. Login launches hide only when a usable tray can restore the window. Development launches cannot register login startup.
+
+The Shell owns `$DSH_HOME/desktop/preferences.json`, containing `schemaVersion: 1` and `closeToTray`. It serializes atomic replacements and waits for admitted writes on exit. Missing files select the default; malformed or unsupported documents fail startup without rewriting the file. Host settings and application-renderer IPC do not own these preferences. [The Shell preference decision](../../.agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.md) records ownership and verification limits.
+
+**Import Legacy Desktop Settings…** reads a selected JSON/YAML file up to 1 MiB. It accepts an unversioned document or `formatVersion: 1` with a `desktop` section; omitted `closeAction` and `launchAtLogin` fields use the legacy defaults, `tray` and `false`. The preview shows the current and imported close behavior plus the old login preference. Confirmation imports only close behavior; review **Launch at Login** separately. The source stays unchanged, and a changed source, unsupported input, or failed tray/persistence operation preserves the current preference. Cancel is the default. Use the close-behavior menu to undo an import.
 
 ## Develop
 
@@ -181,6 +196,8 @@ pnpm run prepare:desktop
 This diagnostic command is an alternative stopping point, not the first half of a two-command build. A later `package:desktop*` command repeats the official build and preparation so it cannot consume stale dsh packages, runtime files, or dsh content.
 
 Every package command builds the repository, packs the first-party production closures rooted at dsh and the private Desktop Host, and prepares target-specific Node and pnpm executables. `prepare:dsh` installs the production graph once at build time, copies materialized packages into `extraResources/dsh`, removes package-manager metadata, and writes `desktop-runtime.json` with shared package versions and final file hashes. On macOS it signs and verifies native files before inventory generation; electron-builder excludes this already-signed tree from nested re-signing. Resource mappings explicitly include `dsh/node_modules`, which the default root-directory filter omits; the copied inventory is checked before signing and again after signing. Signed installer, notarization, installed upgrade, and target-specific native-module qualification require the release environment.
+
+Before packaging, the bundled Node verifies native module execution, Session write exclusion and release, and the matching frontend through a real Host with an external plugin. The [native smoke decision](../../.agents/notes/implemented/bug-fix/2026-09-16-desktop-native-runtime-smoke.md) defines the checked operations.
 
 An unpacked artifact contains Electron, the materialized dsh production tree, upstream Node.js and pnpm, and the shell application. Installer size and filesystem size differ; release qualification measures both, plus the profile’s plugin storage and first-launch latency. The runtime trades more application files for eliminating core package installation on the user’s machine.
 

@@ -11,6 +11,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
+import { remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
 import {
   Button, IconCloseFill14, IconPersonalizationOutline16,
   IconProjectAddOutline16, IconSearchOutline16, Menu, Modal, Tooltip,
@@ -237,6 +238,10 @@ type SessionTreeProps = Pick<
   'useSessions' | 'useSessionPendingInteraction' | 'startSession' | 'open' | 'forkSession'
   | 'insertWorkspaceBefore' | 'insertSessionBefore' | 't' | 'usePanelInfo'
 > & {
+  /** Session creation, rename, and fork supported by the admitted Host. */
+  canManageSessions: boolean
+  canManageWorkspaces: boolean
+  canOrganizeSessions: boolean
   /** Host account home for POSIX hover-path abbreviation. */
   home?: string | undefined
   workspaces: readonly WorkspaceView[]
@@ -275,7 +280,7 @@ type SessionTreeProps = Pick<
 /** The scrolling session tree; unmounting drops the sessions subscription and expand-all state. */
 function SessionTree({
   useSessions, useSessionPendingInteraction, startSession, open, forkSession, workspaces, archivedSessionIds,
-  workspaceReady, usePanelInfo,
+  workspaceReady, usePanelInfo, canManageSessions, canManageWorkspaces, canOrganizeSessions,
   onRenameRequest, onDeleteRequest, onSessionRename, onSessionArchive,
   insertWorkspaceBefore, insertSessionBefore, orderBy,
   groupExpansion, setGroupExpanded,
@@ -295,6 +300,10 @@ function SessionTree({
   const sessionDropCommitted = useRef(false)
   const [workspaceDrag, setWorkspaceDrag] = useState<WorkspaceDragState | null>(null)
   const workspaceDropCommitted = useRef(false)
+  useEffect(() => {
+    if (!canManageWorkspaces) setWorkspaceDrag(null)
+    if (!canOrganizeSessions) setDrag(null)
+  }, [canManageWorkspaces, canOrganizeSessions])
   const previousOrderBy = useRef(orderBy)
   const nativeDragActive = drag !== null || workspaceDrag !== null
   useNativeDragAcceptance(nativeDragActive)
@@ -373,6 +382,7 @@ function SessionTree({
   }, [groups, revealGroup, revealSessionId])
   const now = Date.now()
   const commitSessionDrag = (activeDrag: DragState, over: NonNullable<DragState['over']>): void => {
+    if (activeDrag.accountKey !== UNGROUPED_KEY && !canOrganizeSessions) return
     if (sessionDropCommitted.current) return
     sessionDropCommitted.current = true
     setDrag(null)
@@ -429,6 +439,7 @@ function SessionTree({
     activeDrag: WorkspaceDragState,
     over: NonNullable<WorkspaceDragState['over']>,
   ): void => {
+    if (!canManageWorkspaces) return
     if (workspaceDropCommitted.current) return
     workspaceDropCommitted.current = true
     setWorkspaceDrag(null)
@@ -467,7 +478,7 @@ function SessionTree({
           const workspaceMarker = workspaceId !== undefined && workspaceDrag?.over?.id === workspaceId
             ? workspaceDrag.over.half
             : null
-          const workspaceDragProps = workspaceId === undefined ? undefined : {
+          const workspaceDragProps = workspaceId === undefined || !canManageWorkspaces ? undefined : {
             start: () => {
               workspaceDropCommitted.current = false
               setWorkspaceDrag({ workspaceId, over: null })
@@ -529,14 +540,14 @@ function SessionTree({
                   }
                   setGroupExpanded(group.key, !group.expanded)
                 }}
-                onCreate={() => {
+                onCreate={!canManageSessions ? undefined : () => {
                   if (group.workspaceId !== undefined) {
                     setGroupExpanded(group.key, true)
                     startSession(group.workspaceId)
                   }
                 }}
                 drag={workspaceDragProps}
-                actions={group.workspaceId === undefined
+                actions={group.workspaceId === undefined || !canManageWorkspaces
                   ? undefined
                   : {
                     rename: () => {
@@ -585,13 +596,13 @@ function SessionTree({
                     currentId={current}
                     now={now}
                     onOpen={open}
-                    onRename={onSessionRename}
-                    onFork={forkSession}
-                    onArchive={onSessionArchive}
+                    onRename={canManageSessions ? onSessionRename : undefined}
+                    onFork={canManageSessions ? forkSession : undefined}
+                    onArchive={canOrganizeSessions ? onSessionArchive : undefined}
                     onReveal={node.id === revealSessionId && group.key === revealGroup
                       ? () => { onSessionRevealed(node.id) }
                       : undefined}
-                    drag={dragProps}
+                    drag={group.workspaceId !== undefined && !canOrganizeSessions ? undefined : dragProps}
                     t={t}
                   />
                 )
@@ -620,7 +631,7 @@ function SessionTree({
 /** The flat "In one list" body: every session is one draggable top-level row. */
 function FlatList({
   useSessions, useSessionPendingInteraction, open, forkSession, onSessionRename, onSessionArchive,
-  archivedSessionIds, usePanelInfo,
+  archivedSessionIds, usePanelInfo, canManageSessions, canOrganizeSessions,
   orderBy, sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder,
   revealSessionId, onSessionRevealed, t,
 }: Pick<
@@ -633,6 +644,8 @@ function FlatList({
   | 'onSessionArchive'
   | 'archivedSessionIds'
   | 'usePanelInfo'
+  | 'canManageSessions'
+  | 'canOrganizeSessions'
   | 'orderBy'
   | 'sessionOrderByAccount'
   | 'sessionUpdatedAtByAccount'
@@ -712,9 +725,9 @@ function FlatList({
               currentId={panelActive ? undefined : list.current}
               now={now}
               onOpen={open}
-              onRename={onSessionRename}
-              onFork={forkSession}
-              onArchive={onSessionArchive}
+              onRename={canManageSessions ? onSessionRename : undefined}
+              onFork={canManageSessions ? forkSession : undefined}
+              onArchive={canOrganizeSessions ? onSessionArchive : undefined}
               onReveal={node.id === revealSessionId
                 ? () => { onSessionRevealed(node.id) }
                 : undefined}
@@ -847,7 +860,7 @@ export function WorkspaceBrowser({
   actions,
   startSession,
   open,
-  renameSession,
+  prepareSessionRename,
   forkSession,
   renameWorkspace,
   deleteWorkspace,
@@ -862,7 +875,14 @@ export function WorkspaceBrowser({
   renderSlot,
   t,
 }: WorkspaceBrowserProps) {
-  const home = useHostInfo(info => info.home)
+  const host = useHostInfo(info => info)
+  const currentHost = useRef(host)
+  currentHost.current = host
+  const home = host.home
+  const canManageSessions = host.capabilities?.includes('session.manage.v1') === true
+  const canSearchContent = host.capabilities?.includes('session.search.v1') === true
+  const canManageWorkspaces = host.capabilities?.includes('workspace.manage.v1') === true
+  const canOrganizeSessions = host.capabilities?.includes('workspace.sessions.v1') === true
   const workspaces = useWorkspaces(state => state.items)
   const workspacePhase = useWorkspaces(state => state.phase)
   const workspaceStreamState = useWorkspaces(state => state.state)
@@ -902,13 +922,13 @@ export function WorkspaceBrowser({
     }
   }, [actions.setSessionOrder, currentBlankAccount, currentBlankSessionId, sessionOrderByAccount])
   useEffect(() => {
-    if (workspacePhase !== 'ready') return
+    if (workspacePhase !== 'ready' || workspaceStreamState === 'unavailable') return
     actions.retainAccountKeys([
       UNGROUPED_KEY,
       FLAT_SESSION_ORDER_KEY,
       ...workspaces.map(workspace => workspace.workspaceId as string),
     ])
-  }, [actions.retainAccountKeys, workspacePhase, workspaces])
+  }, [actions.retainAccountKeys, workspacePhase, workspaceStreamState, workspaces])
   // The query outlives the tree and the input (both wide-only) so collapsing
   // does not silently drop an in-progress filter.
   const [query, setQuery] = useState('')
@@ -921,6 +941,7 @@ export function WorkspaceBrowser({
     items: [],
     hasMore: false,
   })
+  const searchHost = useRef(host)
   const searchRoot = useRef<HTMLDivElement | null>(null)
   const searchInput = useRef<HTMLInputElement | null>(null)
   // Section-header ＋ opens the picker menu (same popover in wide and rail
@@ -978,8 +999,13 @@ export function WorkspaceBrowser({
   }, [normalizedQuery, wide, searchExpanded, searchOnExpand])
 
   useEffect(() => {
+    searchHost.current = host
     if (normalizedQuery === '') {
       setRemoteSearch({ query: '', status: 'idle', items: [], hasMore: false })
+      return
+    }
+    if (!canSearchContent) {
+      setRemoteSearch({ query: normalizedQuery, status: 'error', items: [], hasMore: false })
       return
     }
     const controller = new AbortController()
@@ -991,7 +1017,7 @@ export function WorkspaceBrowser({
     })
     const timer = window.setTimeout(() => {
       searchSessions(normalizedQuery, controller.signal).then((result) => {
-        if (controller.signal.aborted) return
+        if (controller.signal.aborted || currentHost.current !== host) return
         setRemoteSearch({
           query: normalizedQuery,
           status: 'ready',
@@ -999,7 +1025,7 @@ export function WorkspaceBrowser({
           hasMore: result.hasMore,
         })
       }).catch(() => {
-        if (controller.signal.aborted) return
+        if (controller.signal.aborted || currentHost.current !== host) return
         setRemoteSearch({
           query: normalizedQuery,
           status: 'error',
@@ -1012,7 +1038,7 @@ export function WorkspaceBrowser({
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [normalizedQuery, searchSessions])
+  }, [normalizedQuery, searchSessions, host, canSearchContent])
 
   // Rename dialog (browser-owned so it outlives row unmounts during collapse).
   const [renameTarget, setRenameTarget] = useState<{ workspaceId: WorkspaceId; currentTitle: string } | null>(null)
@@ -1022,7 +1048,7 @@ export function WorkspaceBrowser({
   const renameTrimmed = renameDraft.trim()
   const renameDuplicate = renameTarget !== null && renameTrimmed !== '' && renameTrimmed !== renameTarget.currentTitle
     && workspaces.some(w => w.title === renameTrimmed)
-  const renameBlocked = renaming || renameTrimmed === ''
+  const renameBlocked = !canManageWorkspaces || renaming || renameTrimmed === ''
     || renameTarget === null || renameTrimmed === renameTarget.currentTitle || renameDuplicate
   const closeRename = () => {
     if (renaming) return
@@ -1030,13 +1056,15 @@ export function WorkspaceBrowser({
     setRenameError(null)
   }
   const confirmRename = () => {
-    if (renameBlocked) return
+    if (renameBlocked || currentHost.current !== host) return
     setRenaming(true)
     setRenameError(null)
     renameWorkspace(renameTarget.workspaceId, renameTrimmed).then(() => {
+      if (currentHost.current !== host) return
       setRenaming(false)
       setRenameTarget(null)
     }).catch((reason: unknown) => {
+      if (currentHost.current !== host) return
       setRenaming(false)
       setRenameError(reason instanceof Error ? reason.message : String(reason))
     })
@@ -1046,31 +1074,41 @@ export function WorkspaceBrowser({
   // sessions have no client-side name-conflict rule — the host normalizes).
   // Unlike workspace rename, an unchanged title is NOT blocked: confirming
   // the current automatic title is the gesture that pins it.
-  const [sessionRenameTarget, setSessionRenameTarget] = useState<{ sessionId: SessionNode['id']; currentTitle: string } | null>(null)
+  const [sessionRenameTarget, setSessionRenameTarget] = useState<{ submit: (title: string) => Promise<void> } | null>(null)
   const [sessionRenameDraft, setSessionRenameDraft] = useState('')
   const [sessionRenaming, setSessionRenaming] = useState(false)
   const [sessionRenameError, setSessionRenameError] = useState<string | null>(null)
   const sessionRenameTrimmed = sessionRenameDraft.trim()
-  const sessionRenameBlocked = sessionRenaming || sessionRenameTrimmed === '' || sessionRenameTarget === null
+  const sessionRenameBlocked = !canManageSessions || sessionRenaming || sessionRenameTrimmed === '' || sessionRenameTarget === null
+  useEffect(() => {
+    if (!canManageSessions) {
+      setSessionRenameTarget(null)
+      setSessionRenameError(null)
+    }
+  }, [canManageSessions])
   const closeSessionRename = () => {
     if (sessionRenaming) return
     setSessionRenameTarget(null)
     setSessionRenameError(null)
   }
   const confirmSessionRename = () => {
-    if (sessionRenameBlocked) return
+    if (sessionRenameBlocked || currentHost.current !== host) return
     setSessionRenaming(true)
     setSessionRenameError(null)
-    renameSession(sessionRenameTarget.sessionId, sessionRenameTrimmed).then(() => {
+    sessionRenameTarget.submit(sessionRenameTrimmed).then(() => {
+      if (currentHost.current !== host) return
       setSessionRenaming(false)
       setSessionRenameTarget(null)
     }).catch((reason: unknown) => {
+      if (currentHost.current !== host) return
       setSessionRenaming(false)
-      setSessionRenameError(reason instanceof Error ? reason.message : String(reason))
+      setSessionRenameError(remoteErrorOf(reason)?.code === 'session/revision-conflict'
+        ? t('rename.session.conflict')
+        : reason instanceof Error ? reason.message : String(reason))
     })
   }
   const onSessionRename = (sessionId: SessionNode['id'], currentTitle: string) => {
-    setSessionRenameTarget({ sessionId, currentTitle })
+    setSessionRenameTarget({ submit: prepareSessionRename(sessionId) })
     setSessionRenameDraft(currentTitle)
     setSessionRenameError(null)
   }
@@ -1080,6 +1118,7 @@ export function WorkspaceBrowser({
   // archive-set echo lands. Failures are non-fatal console diagnostics, the
   // same posture as reorder rejections.
   const onSessionArchive = (sessionId: SessionNode['id']) => {
+    if (!canOrganizeSessions || currentHost.current !== host) return
     archiveSession(sessionId).catch((reason: unknown) => {
       console.warn('session archive rejected:', reason)
     })
@@ -1103,18 +1142,35 @@ export function WorkspaceBrowser({
     setDeleteTarget(null)
     setDeleteError(null)
   }
+  useEffect(() => {
+    setWsPickerOpen(false)
+    setRenameTarget(null)
+    setRenameDraft('')
+    setRenaming(false)
+    setRenameError(null)
+    setDeleteTarget(null)
+    setDeleteCommittedId(null)
+    setDeleting(false)
+    setDeleteError(null)
+    setSessionRenameTarget(null)
+    setSessionRenameDraft('')
+    setSessionRenaming(false)
+    setSessionRenameError(null)
+  }, [host])
   const confirmDelete = () => {
     /* v8 ignore next -- the Modal is absent without a target and its button is disabled while deleting. */
-    if (deleting || deleteTarget === null) return
+    if (!canManageWorkspaces || currentHost.current !== host || deleting || deleteTarget === null) return
     setDeleting(true)
     setDeleteCommittedId(null)
     setDeleteError(null)
     deleteWorkspace(deleteTarget.workspaceId).then(() => {
+      if (currentHost.current !== host) return
       // Keep the confirmation pending until this component has rendered the
       // committed list projection without the deleted id. Closing earlier
       // exposes one stale React frame to the next Create Workspace gesture.
       setDeleteCommittedId(deleteTarget.workspaceId)
     }).catch((reason: unknown) => {
+      if (currentHost.current !== host) return
       setDeleting(false)
       setDeleteError(reason instanceof Error ? reason.message : String(reason))
     })
@@ -1222,6 +1278,7 @@ export function WorkspaceBrowser({
           useWorkspaces={useWorkspaces}
           createWorkspace={createWorkspace}
           useDirectoryFlow={useDirectoryFlow}
+          useHostInfo={useHostInfo}
           renderDirectoryFlow={owner => renderSlot('sidebar.workspaces.directoryFlow', owner)}
           addOnly
           side="right"
@@ -1264,7 +1321,9 @@ export function WorkspaceBrowser({
               workspaces={workspaces}
               archivedSessionIds={archivedSessionIds}
               query={normalizedQuery}
-              remote={remoteSearch}
+              remote={searchHost.current === host && canSearchContent
+                ? remoteSearch
+                : { query: normalizedQuery, status: canSearchContent ? 'loading' : 'error', items: [], hasMore: false }}
               resultLimit={searchResultLimit}
               t={t}
             />
@@ -1272,6 +1331,8 @@ export function WorkspaceBrowser({
           : groupBy === 'flat'
             ? (
               <FlatList
+                canManageSessions={canManageSessions}
+                canOrganizeSessions={canOrganizeSessions}
                 usePanelInfo={usePanelInfo}
                 useSessions={useSessions} useSessionPendingInteraction={useSessionPendingInteraction}
                 open={open} forkSession={forkSession}
@@ -1289,6 +1350,9 @@ export function WorkspaceBrowser({
             )
             : (
               <SessionTree
+                canManageWorkspaces={canManageWorkspaces}
+                canManageSessions={canManageSessions}
+                canOrganizeSessions={canOrganizeSessions}
                 usePanelInfo={usePanelInfo}
                 useSessions={useSessions}
                 useSessionPendingInteraction={useSessionPendingInteraction}
@@ -1314,11 +1378,13 @@ export function WorkspaceBrowser({
                 home={home}
                 t={t}
                 onRenameRequest={(workspaceId, currentTitle) => {
+                  if (!canManageWorkspaces || currentHost.current !== host) return
                   setRenameTarget({ workspaceId, currentTitle })
                   setRenameDraft(currentTitle)
                   setRenameError(null)
                 }}
                 onDeleteRequest={(workspaceId, title) => {
+                  if (!canManageWorkspaces || currentHost.current !== host) return
                   setDeleteTarget({ workspaceId, title })
                   setDeleteError(null)
                 }}
@@ -1327,7 +1393,7 @@ export function WorkspaceBrowser({
       </div>
 
       <Modal
-        open={renameTarget !== null}
+        open={canManageWorkspaces && renameTarget !== null}
         onClose={closeRename}
         closeLabel={t('close')}
         title={t('rename.workspace.title')}
@@ -1362,7 +1428,7 @@ export function WorkspaceBrowser({
       </Modal>
 
       <Modal
-        open={sessionRenameTarget !== null}
+        open={canManageSessions && sessionRenameTarget !== null}
         onClose={closeSessionRename}
         closeLabel={t('close')}
         title={t('rename.session.title')}
@@ -1393,7 +1459,7 @@ export function WorkspaceBrowser({
         {sessionRenameError !== null && <div className={css.renameError} role="alert">{sessionRenameError}</div>}
       </Modal>
       <Modal
-        open={deleteTarget !== null}
+        open={canManageWorkspaces && deleteTarget !== null}
         onClose={closeDelete}
         closeLabel={t('close')}
         title={t('delete.workspace')}

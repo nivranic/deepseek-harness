@@ -27,6 +27,8 @@ kind: "package-reference"
 
 当客户端或设置页需要展示宿主当前组合了什么——哪些插件已加载、已启用、是否存活，以及每个 agent preset 会给会话什么——时调用 `pluginInventory/list`。Remote 是唯一入口：该服务仅供 Remote 使用，刻意不声明同进程 Cordis `Context` 合并。
 
+本服务为 `list` 声明 `plugin.inventory.v1`。Client 必须先发现该能力再读取；该能力不授予 Loader 或预设变更权限。可选取消信号会在检查前及等待预设发现完成后拒绝请求，已取消的读取不会返回清单。
+
 ### 快照包含什么
 
 每一行是一个非组 Loader 条目：其条目 id、精确模块标识、有效启用状态（含被禁用的祖先组）与当前根 Fiber 阶段。`pending` 表示条目等待加载，`loading` 表示正在读取，`active` 表示正在运行，`failed` 表示其 fiber 被拒绝，`unloading` 表示正在拆除；`null` 表示完全不存在存活的根 Fiber。结构性的 group 行会被跳过。

@@ -38,12 +38,14 @@ The root is the session's working directory, read from `useSessions().byId[sessi
 | Entry type | Row |
 |---|---|
 | `directory` | Toggles; the level is fetched the first time it opens and kept while collapsed. |
-| `file` | Opens `dsh-resource://file/session/<sessionId>/<encoded path relative to the root>`, built by `fileAddressFor` from `@deepseek-ai/dsh-util-workspace-path` from the entry's absolute path and the tree's root, through `useTabInfo().tab.actions.openResource`, landing in the tab's own pane. |
+| `file` | When an admitted viewer claims the address, opens `dsh-resource://file/session/<sessionId>/<encoded path relative to the root>`, built by `fileAddressFor` from `@deepseek-ai/dsh-util-workspace-path` from the entry's absolute path and the tree's root, through `useTabInfo().tab.actions.openResource`, landing in the tab's own pane. |
 | `other` | Shown greyed and not clickable, so the directory is reported whole. |
 
 A level cut by the endpoint's entry cap ends with a marker; an empty level says so; a level that failed shows one line per code — `workspace-file/not-found`, `outside-workspace`, `not-directory` — and the transport's own message otherwise. Reload drops every listed level and asks again for the expanded ones; collapsed levels are fetched again when they next open. A session without a working directory shows a single line instead of a tree.
 
 State lives in the type's own store, bucketed by tab id: `root`, `levels` (loading / ready / failed per absolute path), and `expanded`. The owner's `signal` ends a bucket: on abort the tab is forgotten and a listing that settles afterwards writes nothing.
+
+The type, guide entry and body register only for an admitted Host advertising `workspace-files.list.v1`. A replacement Host owns a fresh tree store; registration cancellation retires in-flight listings and retained callbacks before new entries appear. Files without a currently admitted resource viewer remain visible as names without an open action. Viewer availability is observed through the existing tab registry, including renderer registrations that change without a reconnect.
 
 <a id="model-experience"></a>
 ## Model Experience

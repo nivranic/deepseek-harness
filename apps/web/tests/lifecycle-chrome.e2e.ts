@@ -56,7 +56,8 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
       ? {}
       : { replayFixture: FIXTURE, replayOverride: REPLAY_OVERRIDE, paceMs: REPLAY_PACE_MS })
     scaffold.ctx.on('session/event', (_session, event: SessionEvent) => { sessionEvents.push(event) })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
@@ -268,6 +269,7 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
       await expect.poll(() => page.getByRole('tooltip').count()).toBe(0)
       // Golden of the hero's stable waiting state (captured before any send;
       // the conversation-region goldens belong to the other scenarios).
+      await page.getByRole('status', { name: 'Connected', exact: true }).waitFor({ state: 'hidden' })
       const snapshot = await captureStableAria(page, '[class*="frame"]', scaffold.workspaceCwd)
       await compareOrRefreshGolden(HERO_EXPECTED, snapshot, MODE)
     }
@@ -402,11 +404,18 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
     const recoveryPage = await newEnglishPage(browser)
     const recoveryTripwire = watchConsole(recoveryPage)
     const sockets: WebSocketRoute[] = []
+    const listening = new Set<WebSocketRoute>()
     let rejectConnections = false
     let holdConnections = false
     await recoveryPage.routeWebSocket('**/api/remote.mux', (route) => {
       sockets.push(route)
-      if (rejectConnections || holdConnections) return
+      if (rejectConnections || holdConnections) {
+        route.onMessage((message) => {
+          const frame = JSON.parse(String(message)) as { type?: string; endpoint?: string }
+          if (frame.type === 'open' && frame.endpoint === '$events') listening.add(route)
+        })
+        return
+      }
       route.connectToServer()
     })
     onTestFailed(() => saveFailureShot(recoveryPage, 'web-e2e-connection-recovery'))
@@ -419,7 +428,7 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
       await recoveryPage.context().setOffline(true)
       await expect.poll(() => recoveryPage.evaluate(() => navigator.onLine)).toBe(false)
       const offline = recoveryPage.getByRole('button', {
-        name: 'Disconnected, reconnect now', exact: true,
+        name: 'Offline, reconnect now', exact: true,
       })
       await offline.waitFor({ timeout: 2_000 })
       await recoveryPage.clock.fastForward(60_000)
@@ -450,6 +459,7 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
       for (let count = 2; count <= 9; count++) {
         await recoveryPage.clock.fastForward(10_000)
         await expect.poll(() => sockets.length).toBe(count)
+        await expect.poll(() => listening.has(sockets.at(-1)!)).toBe(true)
         if (count === 2) {
           await recoveryPage.clock.fastForward(1_000)
           expect(sockets).toHaveLength(count)
@@ -483,7 +493,7 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
       expect(style.background).toBe(style.referenceBackground)
       expect(style.color).toBe(style.referenceColor)
       expect(await indicator.locator('svg').count()).toBe(1)
-      expect(await indicator.getAttribute('title')).toBeNull()
+      expect(await indicator.getAttribute('title')).toBe('Reconnecting automatically, reconnect now')
       rejectConnections = false
       await recoveryPage.clock.fastForward(10_000)
       await expect.poll(() => sockets.length).toBe(10)
@@ -513,7 +523,6 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
       const recovered = recoveryPage.getByRole('status')
       await recovered.waitFor({ timeout: 10_000 })
       expect(await recovered.innerText()).toBe('Connected')
-      expect(await connectionIndicatorGeometry(recovered)).toEqual(connectingGeometry)
       expect(await connectionIndicatorTextAlignment(recovered)).toBe('left')
       await recoveryPage.clock.fastForward(2_000)
       await recovered.waitFor({ state: 'detached', timeout: 5_000 })

@@ -2,6 +2,8 @@
 
 import {
   RpcId,
+  ConnectionHttpError,
+  ConnectionTransportError,
   type ClientRequest,
   type RpcId as RpcIdType,
 } from '../rpc.ts'
@@ -26,9 +28,14 @@ export type RpcStreamOpen = (
  * Create the browser-backed generic RPC caller.
  * @param doFetch - transport override; defaults to the page's global fetch.
  * @param openStream - optional worker-local Gateway stream carrier.
+ * @param captureAuthenticationFailure - capture a generation-scoped HTTP 401 reporter before dispatch.
  * @returns caller that owns request correlation and response-envelope validation.
  */
-export function createWebConnectionRpc(doFetch?: RpcFetch, openStream?: RpcStreamOpen): ClientConnectionRpc {
+export function createWebConnectionRpc(
+  doFetch?: RpcFetch,
+  openStream?: RpcStreamOpen,
+  captureAuthenticationFailure?: () => (() => void) | undefined,
+): ClientConnectionRpc {
   const send: RpcFetch = doFetch ?? ((input, init) => globalThis.fetch(input, init))
   return {
     async call(channel, endpoint, payload, signal) {
@@ -40,19 +47,36 @@ export function createWebConnectionRpc(doFetch?: RpcFetch, openStream?: RpcStrea
         method: endpoint,
         payload,
       }
-      const response = await send(
-        new URL(`${channel}/${endpoint}`, resolveBase()),
-        {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(message),
-          ...signal === undefined ? {} : { signal },
-        },
-      )
-      if (!response.ok) {
-        throw new Error(`transport failure for ${channel}/${endpoint}: HTTP ${response.status}`)
+      const reportAuthenticationFailure = captureAuthenticationFailure?.()
+      signal?.throwIfAborted()
+      const url = new URL(`${channel}/${endpoint}`, resolveBase())
+      const init: RequestInit = {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(message),
+        ...signal === undefined ? {} : { signal },
       }
-      const full = parseConnectionResponse(await response.json())
+      let response: Response
+      try {
+        response = await send(url, init)
+      } catch (cause) {
+        signal?.throwIfAborted()
+        throw new ConnectionTransportError(`transport interrupted for ${channel}/${endpoint}`, { cause })
+      }
+      signal?.throwIfAborted()
+      if (!response.ok) {
+        if (response.status === 401 && signal?.aborted !== true) reportAuthenticationFailure?.()
+        throw new ConnectionHttpError(response.status, `transport failure for ${channel}/${endpoint}: HTTP ${response.status}`)
+      }
+      let text: string
+      try {
+        text = await response.text()
+      } catch (cause) {
+        signal?.throwIfAborted()
+        throw new ConnectionTransportError(`response interrupted for ${channel}/${endpoint}`, { cause })
+      }
+      signal?.throwIfAborted()
+      const full = parseConnectionResponse(JSON.parse(text) as unknown)
       if (full.rpcId !== rpcId) {
         throw new Error(`rpcId mismatch for ${endpoint}: sent ${rpcId}, got ${full.rpcId}`)
       }

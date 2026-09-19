@@ -5,7 +5,7 @@ import type { ISession } from '@deepseek-ai/dsh-api-session-controller/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import {
-  SlotTestRuntime, stubSettingsScope, usePinnedBrowserLanguages,
+  TestRemote, SlotTestRuntime, stubSettingsScope, usePinnedBrowserLanguages,
 } from '@deepseek-ai/dsh-client-test-runtime'
 import type { SessionBehaviorOverrides } from '@deepseek-ai/dsh-client-test-runtime'
 import {
@@ -34,6 +34,9 @@ function sessionFakeFor() {
 
 async function bench() {
   const runtime = await SlotTestRuntime.create()
+  runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  const remote = new TestRemote(runtime.ctx)
+  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1', 'file-upload.stage.v1'] }
   const rootUpload = vi.fn(() => Promise.resolve({
     ok: true as const,
     value: {

@@ -29,6 +29,7 @@
  * @module @deepseek-ai/dsh-subagent
  */
 
+import { SUBAGENT_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-attachment'
 import { scopeTarget } from '@deepseek-ai/dsh-scope'
@@ -45,6 +46,7 @@ import {
 import type {
   SubagentCatalog,
   SubagentInterruptReceipt,
+  SubagentInterruptTurnRequest,
   SubagentPromptReceipt,
   SubagentPromptRequest,
   SubagentPromptRequestId,
@@ -75,6 +77,7 @@ import type { SubagentDescendantListEntry, SubagentListEntry } from './list-chil
 import { snapshotSubagentDescriptor } from './descriptor.ts'
 import { subagentIdentityProjectionDefinition, subagentTimingProjectionDefinition } from './projection.ts'
 import { establishCatalogChild, subagentCatalogProjectionDefinition } from './catalog.ts'
+import { subagentPromptReceiptsProjectionDefinition } from './prompt-receipts.ts'
 import { deliverSubagentPrompt } from './internal.ts'
 
 export type {} from './catalog.ts'
@@ -196,7 +199,7 @@ export class SubagentRuntime extends TypertRemoteService {
   private readonly emitLifecycle: LifecycleEmitter
 
   constructor(ctx: Context) {
-    super(ctx, 'subagents')
+    super(ctx, 'subagents', { capabilities: SUBAGENT_REMOTE_CAPABILITIES })
     this.emitLifecycle = createLifecycleEmitter(this.ctx, parent => scopeTarget(this, parent))
     ctx.inject(['agents'], (childCtx: Context) => {
       const manager = new SubagentContinuationManager(childCtx, {
@@ -213,6 +216,7 @@ export class SubagentRuntime extends TypertRemoteService {
       projectionCtx.sessionProjections.register(subagentCatalogProjectionDefinition)
       projectionCtx.sessionProjections.register(subagentTimingProjectionDefinition)
       projectionCtx.sessionProjections.register(subagentIdentityProjectionDefinition)
+      projectionCtx.sessionProjections.register(subagentPromptReceiptsProjectionDefinition)
     })
   }
 
@@ -403,7 +407,7 @@ export class SubagentRuntime extends TypertRemoteService {
    * before delivery, and the child's model must accept image input.
    * @param request - durable address, delivery, minted identity, content, and optional browser zone.
    * @param signal - carrier cancellation, owning the call until inbox acceptance.
-   * @returns the accepted message's inbox identity.
+   * @returns the original accepted message's inbox identity for this child's requestId, including retries.
    * @throws {RemoteError} `gateway/bad-request`, `subagent/attachment-invalid`,
    *   `subagent/invalid-time-zone`, `subagent/parent-unavailable`,
    *   `subagent/not-resumable`, `subagent/unauthorized`,
@@ -483,8 +487,24 @@ export class SubagentRuntime extends TypertRemoteService {
     mode: 'continuable',
   ): SubagentInterruptReceipt {
     validateControlRequest('subagent.interrupt', { childSessionId, parentSessionId, mode })
+    return this.interruptAsUser(childSessionId, parentSessionId)
+  }
+
+  /**
+   * Stop an observed child turn under durable parent-address authority, including while the parent is offline.
+   * @param request - child address and the observed turn/start sequence, or null for an idle child.
+   * @returns acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.
+   * @throws {RemoteError} invalid input, foreign live-child authority or unavailable turn projection.
+   */
+  @Remote('interruptTurnByParent')
+  interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt {
+    validateControlRequest('subagent.interrupt-turn', request)
+    return this.interruptAsUser(request.childSessionId, request.parentSessionId, request.turnStartSeq)
+  }
+
+  private interruptAsUser(childSessionId: SessionId, parentSessionId: SessionId, turnStartSeq?: number | null): SubagentInterruptReceipt {
     try {
-      this.interrupt(childSessionId, { kind: 'user', parentSessionId })
+      this.interrupt(childSessionId, { kind: 'user', parentSessionId, ...(turnStartSeq === undefined ? {} : { turnStartSeq }) })
     } catch (error: unknown) {
       if (error instanceof SubagentError && error.code === 'UNAUTHORIZED') {
         throw new RemoteError(
@@ -493,6 +513,9 @@ export class SubagentRuntime extends TypertRemoteService {
           { childSessionId },
           { cause: error },
         )
+      }
+      if (error instanceof SubagentError && error.code === 'CONTINUATION_UNAVAILABLE') {
+        throw new RemoteError('subagent/delivery-unavailable', 'subagent turn projection is unavailable', { childSessionId }, { cause: error })
       }
       throw new RemoteError('gateway/internal', 'subagent interrupt failed', {}, { cause: error })
     }

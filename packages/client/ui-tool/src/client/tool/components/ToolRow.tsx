@@ -78,7 +78,9 @@ export interface ToolRowProps {
   filePath?: string | undefined
   /** 1-based line the call was about; absent = open the file at its beginning. */
   filePathLine?: number | undefined
-  /** Open the path (already cwd-resolved), landing on `filePathLine` when given. */
+  /** Side-effect-free eligibility query for the current file viewer. */
+  canOpenFile?: ((path: string) => boolean) | undefined
+  /** Open the authored path, landing on `filePathLine` when given. */
   onOpenFile?: ((path: string, options?: OpenFileOptions) => void) | undefined
   /**
    * Jump to this call in the trajectory view: a hover-revealed Inspect pill
@@ -132,6 +134,7 @@ export function ToolRow({
   filePath,
   filePathLine,
   onOpenFile,
+  canOpenFile,
   inspect,
 }: ToolRowProps) {
   const [expanded, setExpanded] = useState(false)
@@ -172,13 +175,14 @@ export function ToolRow({
     return `+${added} -${removed}`
   }, [diffBody])
   const suffix = failureLine === null ? summarySuffix ?? diffStat : null
-  const fileLink = filePath !== undefined && onOpenFile !== undefined && failureLine === null
+  const fileLink = filePath !== undefined && onOpenFile !== undefined
+    && canOpenFile?.(filePath) === true && failureLine === null
   const toggleExpand = () => {
     setExpanded(v => !v)
   }
   const openFile = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
-    if (filePath === undefined || onOpenFile === undefined) return
+    if (filePath === undefined || onOpenFile === undefined || canOpenFile?.(filePath) !== true) return
     if (filePathLine === undefined) onOpenFile(filePath)
     else onOpenFile(filePath, { line: filePathLine })
   }

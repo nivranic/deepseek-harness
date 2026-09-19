@@ -27,6 +27,8 @@ The Web GUI goal surface shows both the durable goal state and its current proce
 
 Mount this plugin alongside `ui-conversation` and the goal domain package; the strip then appears as the second card in the composer-context stack (after Todo, before Queue) whenever the session has a goal. An armed active goal offers pause; an active-but-disarmed or paused goal offers resume; edit rewrites the objective; clear removes the goal and suppresses the strip until the projection catches up.
 
+The strip requires `goal.read.v1`; each action also requires its own Goal operation capability. Missing read support suppresses live reads and hides the strip. Connection withdrawal clears process-local activation immediately. Replacement discards the Goal editor and pending-action state, while the message composer draft remains unchanged. Retained callbacks and late replies cannot mutate or close the replacement editor; accepted Host edits remain durable and are not automatically replayed.
+
 ### The command-input bubble
 
 Each durable `/goal` run projects as a right-aligned user-style bubble labeled `Command input` (or `指令输入`), rendered before the generic command result row; the leading `/goal` token renders as a command reference chip in the code face through ui-primitives `projectUserText`, and the objective stays plain body text. It carries no timestamp, copy, or branch actions, and reloading reconstructs it from the run.
@@ -43,7 +45,7 @@ A rejected mutation surfaces the Remote error inline on the strip; loading, abse
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-The durable goal arrives through `useProjection('goal')` (seeded by the history tail page and updated by `session/projection` frames). The inject face carries a registrant-private activation hook source plus the four mutation verbs. That source starts only while the framework hook observes it, reads `ctx.remote.goals.get`, subscribes to `goal/activation-changed`, and refreshes on running-state or connection resets. Live-event epochs invalidate in-flight reads, so a stale HTTP result cannot overwrite a newer activation edge; running refreshes retain the last known activation until the read resolves. The strip owns no domain store or cross-plugin cache. Each mutation reads the CAS ref from the session's current projected value at call time, and the RPC's compare-and-set is the staleness guard. The strip single-flights mutations synchronously because a pending render cannot fence same-frame clicks. The command-input projection is a separate Conversation Definition that builds a `command-input` Chat Node before the generic command result Node; it never creates `user/message` or a model turn.
+The durable goal arrives through `useProjection('goal')`. Registrant-private hooks supply process-local activation and current-connection action authority. Activation reads run only with read support while observed; generation loss clears their authority, and event, projection and read epochs reject superseded replies. Running-state refreshes retain the last activation within the same generation. Supported actions capture the admitted Host snapshot and read the projected CAS ref when invoked. Replacement changes the GoalBar key, so an old pending action cannot hide the replacement goal or edit form. The strip single-flights same-frame mutation gestures; a rejected transport request becomes a retryable local error. The command-input projection remains a separate Conversation Definition and creates neither `user/message` nor a model turn.
 
 </details>
 

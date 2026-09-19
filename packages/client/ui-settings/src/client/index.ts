@@ -3,7 +3,7 @@
  * settings-namespace scope service every preference row binds its durable
  * section through, and owns the one `settings.describe` reader in the browser:
  * the describe mirror, whose invalidation subscriptions
- * (`settings/document-updated`, `connection/reset`) live here so every derived
+ * (`settings/document-updated`, Connection generation) live here so every derived
  * surface refreshes from a single wire read. It depends on no `ui-*`
  * presentation package, so any feature that owns a preference can reach it:
  * the settings SHELL — the `sidebar.settings` occupant, its navigation, and
@@ -12,8 +12,8 @@
  * Export discipline: packages/client/AGENTS.md.
  */
 import type { Context } from '@deepseek-ai/cordis'
-// Type-only: the ctx.remote merge, the fixed Host facts, and the carrier's
-// `connection/reset` lifecycle event, all through the assembly package.
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+// Type-only: the ctx.remote merge and admitted Host facts.
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 // Type-only pair supplying `$on` and its key face without dragging a build
 // artifact into the Host graph (rationale beside the same pair in
@@ -40,7 +40,7 @@ export type {
  * Required services: the Remote namespace the mirror reads through and the
  * forwarded settings invalidation it refreshes on.
  */
-export const inject = ['remote', 'remote.settings']
+export const inject = ['remote', 'remote.settings', 'connection']
 
 /**
  * Provide the settings-namespace scope service over one shared describe
@@ -52,6 +52,7 @@ export const inject = ['remote', 'remote.settings']
  * @param ctx - client root context.
  */
 export function apply(ctx: Context): void {
+  const connection = ctx.get('connection') as ConnectionHandle
   const schema = new SettingsSchemaService(ctx)
   // Resolved once here, where `remote` is declared in this plugin's own
   // `inject`; the binder hands the same answer to every scope it binds.
@@ -60,12 +61,9 @@ export function apply(ctx: Context): void {
   ctx.effect(() => {
     const disposers = [
       ctx.remote.$on('settings/document-updated', () => { void mirror.load() }),
-      ctx.on('connection/reset', () => { void mirror.load() }),
+      connection.generation.subscribe(() => { void mirror.load() }),
     ]
-    // The first connection also emits connection/reset, so startup normally
-    // costs two reads (budgeted in startup-rpc-budget.e2e.ts). The in-flight
-    // fold does not merge them into one; it guarantees at most one pending
-    // read at a time and that no invalidation arriving mid-read is lost.
+    // Discovery publishes Settings support with the first admitted connection.
     void mirror.ensure()
     return () => { for (const dispose of disposers) dispose() }
   }, 'ui-settings: describe mirror invalidations')

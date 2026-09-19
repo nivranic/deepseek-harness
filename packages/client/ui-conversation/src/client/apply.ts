@@ -14,16 +14,18 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { UiConversation } from './conversation/assembly.ts'
 import type { ViewTab } from './contract/views.ts'
 import type {
-  ComposerBarInjected, ConversationInjected, ConversationSessionHeaderInjected,
+  ComposerCapabilityInjected, ConversationInjected, ConversationSessionHeaderInjected,
   ConversationSessionInjected, DraftFileUploads,
 } from './contract/slots.ts'
 import type { InputNotice } from './contract/input.ts'
 import { createConversationStore, readConversationViewPreference } from './stores.ts'
-import { ConversationController, UnsupportedImageMediaTypeError } from './service.ts'
+import { ConversationController, FileUploadUnavailableError, UnsupportedImageMediaTypeError } from './service.ts'
 import type { IConversation } from './service.ts'
 import { ComposerBlockRegistry } from './input/blocks.ts'
 import type { ComposerBlock } from './contract/composer-blocks.ts'
 import { InputHub } from './input/hub.ts'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import { createComposerControlSource } from './input/control-capabilities.ts'
 import { ComposerSubmissionPolicy } from './input/submission-policy.ts'
 import { queueDockEntry } from './queue/QueueDock.tsx'
 import { EnterBehaviorRow } from './settings/EnterBehaviorRow.tsx'
@@ -31,7 +33,7 @@ import type { EnterBehaviorRowInjected } from './settings/EnterBehaviorRow.tsx'
 import { ConversationRoot } from './skeleton/ConversationRoot.tsx'
 import { ConversationPanel } from './skeleton/ConversationPanel.tsx'
 import { ConversationSession, ConversationSessionHeader } from './skeleton/ConversationSession.tsx'
-import { InputBar } from './skeleton/InputBar.tsx'
+import { ControlAwareInputBar } from './skeleton/InputBar.tsx'
 import { todoDockEntry } from './skeleton/TodoPanel.tsx'
 import { resolveActiveView } from './view-selection.ts'
 import { en, NS, zh, type ConversationKey } from './locales.ts'
@@ -46,7 +48,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 /** Services required by the Conversation plugin. */
 export const inject = [
-  'slots', 'sessions', 'fileUpload', 'uiSession', 'uiWorkspace', 'locale', 'settingsScope',
+  'slots', 'sessions', 'remote', 'fileUpload', 'uiSession', 'uiWorkspace', 'locale', 'settingsScope', 'connection',
 ]
 
 /** Conversation runtime configuration. */
@@ -129,6 +131,28 @@ function concreteConversation(ctx: Context): ConversationController {
 export function apply(ctx: Context, config: Config = Config({})): void {
   const sessions = ctx.sessions
   const slots = ctx.slots
+  const sessionManagement = {
+    getSnapshot: () => ctx.remote.$host.capabilities?.includes('session.manage.v1') === true,
+    subscribe: (listener: () => void) => ctx.on('connection/reset', listener),
+  }
+  const historyAvailable = {
+    getSnapshot: () => ctx.remote.$host.capabilities?.includes('session.follow.v1') === true,
+    subscribe: (listener: () => void) => ctx.on('connection/reset', listener),
+  }
+  const connection = ctx.get('connection') as ConnectionHandle
+  let disposed = false
+  ctx.effect(() => () => { disposed = true }, 'conversation: control lifetime')
+  const controlCapability = (id: SessionId | undefined) => createComposerControlSource({
+    host: () => ctx.remote.$host,
+    address: () => id === undefined ? undefined : sessions.subagentAddress(id),
+    alive: () => !disposed,
+    subscribe: (listener) => {
+      const generation = connection.generation.subscribe(listener)
+      const target = sessions.list.subscribe(listener)
+      return () => { generation(); target() }
+    },
+    ...(id === undefined ? {} : { cancel: () => scopedConversation(sessions, id).cancel() }),
+  })
   // Schemastery's field default is materialized before Cordis calls apply.
   const maxConcurrentFileUploads = config.maxConcurrentFileUploads as number
   const workspaceNavigation = ctx.get('uiWorkspace') as unknown as WorkspaceNavigation
@@ -213,7 +237,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
     const commands = scope.get('commandUi') as FileCommandRegistry
     scope.effect(() => commands.register({
       name: 'file',
-      label: () => t('input.file'),
+      label: () => t(ctx.remote.$host.capabilities?.includes('file-upload.stage.v1') === true ? 'input.file' : 'input.image'),
       icon: IconPaperclipOutline16,
       available: session => inputHub.canPickFiles(session.sessionId),
       ui: { kind: 'action', run: (session) => { inputHub.pickFiles(session.sessionId) } },
@@ -254,6 +278,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
     },
     inject: (sessionId: SessionId | undefined): ConversationInjected => ({
       hooks: {
+        sessionManagement,
         composerBlock: sessionId === undefined ? ABSENT_BLOCK : composerBlocks.storeFor(sessionId),
       },
       selectWorkspace: workspaceId => workspaceNavigation.openWorkspace(workspaceId, (nextId) => {
@@ -282,12 +307,13 @@ export function apply(ctx: Context, config: Config = Config({})): void {
 
   const registerConversationSession = () => slots.register({
     name: 'conversation.session',
+    locale: NS,
     children: {
       'conversation.view': { kind: 'list', scope: 'session' },
     },
     store: conversationStore,
     inject: (sessionId: SessionId, actions: BoundActions<typeof conversationStore>): ConversationSessionInjected => ({
-      hooks: { conversationViews },
+      hooks: { conversationViews, historyAvailable },
       bindDraftMirror: write => inputHub.shell(sessionId).bindMirror(write),
       openView: (view, focus) => {
         activateView(sessionId, view)
@@ -328,7 +354,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
       'conversation.input.model': { kind: 'single', scope: 'session' },
       'conversation.composer.dock': { kind: 'list', scope: 'session' },
     },
-    inject: (sessionId: SessionId | undefined): ComposerBarInjected => {
+    inject: (sessionId: SessionId | undefined): ComposerCapabilityInjected => {
       if (sessionId === undefined) {
         return {
           keyboard: undefined,
@@ -340,6 +366,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
           stop: undefined,
           command: undefined,
           hooks: {
+            controlCapability: controlCapability(undefined),
             busyEnter: submissionPolicy.busyEnter,
             fileUploads: ABSENT_FILE_UPLOADS,
             notices: ABSENT_NOTICES,
@@ -363,6 +390,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
             return null
           } catch (error: unknown) {
             if (error instanceof UnsupportedImageMediaTypeError) return t('image.unsupportedType')
+            if (error instanceof FileUploadUnavailableError) return t('file.uploadUnavailable')
             return error instanceof Error ? error.message : String(error)
           }
         },
@@ -398,6 +426,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
           return result.ok && result.value.matched
         },
         hooks: {
+          controlCapability: controlCapability(sessionId),
           busyEnter: submissionPolicy.busyEnter,
           fileUploads: conversation.fileUploads,
           notices: shell.notices,
@@ -406,7 +435,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
         },
       }
     },
-  }, InputBar)
+  }, ControlAwareInputBar)
 
   slots.inject('main', function* () {
     yield slots.register({
@@ -424,6 +453,11 @@ export function apply(ctx: Context, config: Config = Config({})): void {
     input: inputHub,
     blocks: composerBlocks,
     maxConcurrentFileUploads,
+  })
+  ctx.inject(['conversation'], (scope) => {
+    scope.effect(() => connection.generation.subscribe(() => {
+      concreteConversation(scope).withdrawFileUploads(t('file.connectionChanged'))
+    }), 'conversation: upload withdrawal')
   })
   ctx.plugin(todoDockEntry)
   ctx.plugin(queueDockEntry)

@@ -167,6 +167,14 @@ export interface InputTriggerSource {
   readonly showGroupTitle?: boolean
   candidates(session: ClientSessionContext, req: CandidateRequest): Promise<readonly InputTriggerCandidate[]>
   /**
+   * Observe changes that invalidate candidates and headers independently of the draft.
+   * The controller cancels old queries, clears visible rows, and retries warmup.
+   * @param session - stable session projection.
+   * @param listener - invalidation callback, called after source state changes.
+   * @returns subscription disposer.
+   */
+  subscribeCandidates?(session: ClientSessionContext, listener: () => void): () => void
+  /**
    * Synchronous breadcrumb rendered above this source's group, re-polled on
    * every hit. Implementing IS the participation claim; `undefined` means
    * this request needs no header. A crumb pick routes back through
@@ -200,8 +208,8 @@ export interface InputTriggerSource {
   ): Promise<PickOutcome>
   /**
    * Scope-birth prewarm hook (fire-and-forget): the per-session controller
-   * calls it once when the session scope comes alive so sources can fetch
-   * their backing data before the first interaction.
+   * calls it at scope birth and after candidate invalidation so sources can
+   * fetch their backing data before the next interaction. Calls must deduplicate.
    */
   warm?(session: ClientSessionContext): void
   /**
@@ -223,10 +231,24 @@ export interface InputTriggerSource {
    */
   subscribeLexicon?(session: ClientSessionContext, listener: () => void): () => void
   /**
+   * Read current preview eligibility without fetching or changing the draft.
+   * @param session - session owning the reference.
+   * @param reference - source-owned id and optional glyph.
+   * @returns true only when the source can preview this reference now.
+   */
+  canOpenReference?(session: ClientSessionContext, reference: Pick<ReferenceInsert, 'ref' | 'appearance'>): boolean
+  /**
+   * Observe eligibility changes independent from lexicon names.
+   * @param session - session owning the reference.
+   * @param listener - re-polls current eligibility.
+   * @returns subscription disposer.
+   */
+  subscribeReferenceAvailability?(session: ClientSessionContext, listener: () => void): () => void
+  /**
    * Open a reference preview without changing or submitting the draft.
    * @param session - session owning the composer.
    * @param reference - source-owned id and optional chip glyph; text references retain their trigger.
-   * @returns whether this source accepted the preview, possibly awaiting its catalog; false leaves the editor gesture unchanged.
+   * @returns whether this source accepted the currently eligible preview; false leaves the editor gesture unchanged.
    */
   openReference?(session: ClientSessionContext, reference: Pick<ReferenceInsert, 'ref' | 'appearance'>): boolean
   /** Reference codec; required for sources producing insert outcomes. */

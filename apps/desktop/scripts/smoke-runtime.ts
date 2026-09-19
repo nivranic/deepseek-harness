@@ -1,6 +1,6 @@
 /** Boot the materialized target runtime without access to a user's Harness profile. */
 
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DesktopHostProcess } from '../src/host-process.ts'
@@ -23,16 +23,28 @@ export async function smokeDesktopRuntime(root: string, node: string, runtime: D
     const pluginName = 'desktop-runtime-smoke-plugin'
     const plugin = join(profile, 'node_modules', pluginName)
     mkdirSync(plugin, { recursive: true })
-    const cordis = runtime.sharedPackages.find(entry => entry.name === '@deepseek-ai/cordis')
-    if (cordis === undefined) throw new Error('desktop runtime: missing shared Cordis package')
+    const peerDependencies = Object.fromEntries([
+      '@deepseek-ai/cordis', '@deepseek-ai/dsh-session',
+      '@deepseek-ai/dsh-session-persistence', '@deepseek-ai/dsh-session-persistence-jsonl',
+    ].map((name) => {
+      const entry = runtime.sharedPackages.find(candidate => candidate.name === name)
+      if (entry === undefined) throw new Error(`desktop runtime: missing shared package ${name}`)
+      return [name, entry.version]
+    }))
     writeFileSync(join(plugin, 'package.json'), JSON.stringify({
       name: pluginName, version: '1.0.0', type: 'module', exports: './index.js',
-      peerDependencies: { '@deepseek-ai/cordis': cordis.version }, dsh: { bundle: { patch: './bundle.yml' } },
+      peerDependencies, dsh: { bundle: { patch: './bundle.yml' } },
     }))
+    copyFileSync(new URL('../tests/fixtures/runtime-session-lease.mjs', import.meta.url), join(plugin, 'session-lease.mjs'))
+    const leaseMarker = join(home, 'session-lease-verified')
     writeFileSync(join(plugin, 'index.js'), `
 import { Context } from '@deepseek-ai/cordis'
-export function apply(ctx) {
+import { writeFile } from 'node:fs/promises'
+import { verifySessionLease } from './session-lease.mjs'
+export async function apply(ctx) {
   if (!(ctx instanceof Context)) throw new Error('desktop runtime: external plugin loaded another Cordis instance')
+  await verifySessionLease(${JSON.stringify(join(home, 'session-lease'))})
+  await writeFile(${JSON.stringify(leaseMarker)}, 'verified\\n', { flag: 'wx' })
 }
 `)
     writeFileSync(join(plugin, 'bundle.yml'), '- insert:\n    - id: desktop-runtime-smoke-plugin\n      name: desktop-runtime-smoke-plugin\n')
@@ -51,6 +63,8 @@ export function apply(ctx) {
     if (response.status !== 200 || !(await response.text()).includes('<html')) {
       throw new Error('desktop runtime: packaged frontend smoke failed')
     }
+    if (readFileSync(leaseMarker, 'utf8') !== 'verified\n') throw new Error('desktop runtime: Session lease smoke did not complete')
+    console.log(JSON.stringify({ sessionLease: true, frontend: true, externalPlugin: true, node: runtime.release.nodeVersion }))
   } finally {
     await host.stop()
     rmSync(home, { recursive: true, force: true })

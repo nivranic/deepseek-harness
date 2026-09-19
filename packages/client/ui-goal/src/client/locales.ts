@@ -14,6 +14,8 @@ export const zh = {
   'action.resume': '恢复目标',
   'action.edit': '编辑目标',
   'action.clear': '清除目标',
+  'error.connectionChanged': '连接已变更，请重新选择目标操作',
+  'error.requestFailed': '目标操作请求失败，请重试',
 } satisfies Record<string, string>
 
 /** The goal namespace key union. */
@@ -33,4 +35,6 @@ export const en = {
   'action.resume': 'Resume goal',
   'action.edit': 'Edit goal',
   'action.clear': 'Clear goal',
+  'error.connectionChanged': 'The connection changed. Select the goal action again.',
+  'error.requestFailed': 'The goal request failed. Retry the action.',
 } satisfies Record<GoalKey, string>

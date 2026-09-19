@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "cases": 30,
+  "artifact": "packages/host/webserver/lib/index.js",
+  "artifactSha256": "f446525224cf61d078dc92898a15972f9bdf2e65960c813cc1f38ab136d4e3ca",
+  "source": "packages/host/webserver/src/injections.ts",
+  "sourceSha256": "a343ff40c10c24a80314b4bdb124525c7370904d1b773176864afe6bb50e5082",
+  "scope": "Built public renderIndexInjections export under plain Node; no application or browser launch",
+  "packagedExeOrWheelTested": false
+}

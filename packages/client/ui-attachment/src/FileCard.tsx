@@ -28,7 +28,7 @@ export function FileCard({
   progress?: number
   labels: FileCardLabels
   onRemove: () => void
-  onRetry: () => void
+  onRetry?: () => void
 }) {
   const extension = fileExtension(name).toUpperCase().slice(0, 8)
   const meta = state === 'uploading'
@@ -36,10 +36,11 @@ export function FileCard({
     : state === 'error'
       ? labels.failed
       : [extension, fileSizeText(bytes)].filter(part => part !== '').join(' ')
-  const retryable = state === 'error'
+  const failed = state === 'error'
+  const retryable = failed && onRetry !== undefined
   return (
     <div
-      className={`${css.card}${retryable ? ` ${css.failed}` : ''}`}
+      className={`${css.card}${failed ? ` ${css.failed}` : ''}`}
       title={name}
     >
       <span className={css.icon} aria-hidden>
@@ -57,12 +58,12 @@ export function FileCard({
         : (
           <span className={css.body} aria-label={labels.label}>
             <span className={css.name}>{name}</span>
-            <span className={css.meta}>{meta}</span>
+            <span className={`${css.meta}${failed ? ` ${css.metaFailed}` : ''}`}>{meta}</span>
           </span>
         )}
       <button
         type="button"
-        className={retryable ? `${css.remove} ${css.removeFailed}` : css.remove}
+        className={failed ? `${css.remove} ${css.removeFailed}` : css.remove}
         aria-label={labels.remove}
         onClick={onRemove}
       >

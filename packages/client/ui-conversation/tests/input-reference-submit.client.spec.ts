@@ -84,6 +84,8 @@ describe('reference submission', () => {
     const inputTriggers = {
       serializeReference,
       track: vi.fn(),
+      canOpenReference: () => false,
+      referenceAvailability: { getSnapshot: () => ({ canOpenReference: () => false }), subscribe: () => () => {} },
       lexicon: { getSnapshot: () => new Map(), subscribe: () => () => {} },
     } as unknown as InputTriggerController
     const shell = new SessionInputShell({
@@ -130,6 +132,8 @@ describe('reference submission', () => {
     const inputTriggers = {
       serializeReference: () => Promise.reject(new Error('reference codec unavailable')),
       track: vi.fn(),
+      canOpenReference: () => false,
+      referenceAvailability: { getSnapshot: () => ({ canOpenReference: () => false }), subscribe: () => () => {} },
       lexicon: { getSnapshot: () => new Map(), subscribe: () => () => {} },
     } as unknown as InputTriggerController
     const shell = new SessionInputShell({
@@ -270,7 +274,10 @@ describe('submit transaction hardening', () => {
     const lexicon = { getSnapshot: () => new Map(), subscribe: () => () => {} }
     const shell = new SessionInputShell({
       actx: {} as Context,
-      inputTriggers: () => ({ track, lexicon } as unknown as InputTriggerController),
+      inputTriggers: () => ({
+        track, lexicon, canOpenReference: () => false,
+        referenceAvailability: { getSnapshot: () => ({ canOpenReference: () => false }), subscribe: () => () => {} },
+      } as unknown as InputTriggerController),
       defaultSink: vi.fn(),
       commandAttachments,
     })

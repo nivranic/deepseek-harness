@@ -1,0 +1,770 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-14T22:22:40.683738+00:00",
+  "scope": "Explicit legacy Desktop close-behavior import in the official Shell; OS login stays authoritative",
+  "legacySourceSha": "16482eec880f40bb472c9328acf5a8819bc988f9",
+  "legacySourcePaths": [
+    "packages/client/ui-desktop/src/desktop-settings.ts",
+    "packages/settings/settings-file/src/document.ts",
+    "apps/desktop/src/main.ts"
+  ],
+  "sourceFiles": [
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "766b05ad81b5016abca3a3fe6ead063124759166a0d7d85ff57938bf5597d323",
+      "bytes": 422
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "c89b727add1e0c4d51a3dd31205ced6eb3b7b1a5b249aad6cb469039fcb3563a",
+      "bytes": 28422
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "3b8f98613156e1f71de9cf296ae649503979f4487ca2e4bdacb9cf3834c13aad",
+      "bytes": 25612
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.d.mts",
+      "sha256": "2f7a4553a5977fdda0e00e75d4143e7970332425ad7f24fb99a24d64b1bea950",
+      "bytes": 1525
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.mjs",
+      "sha256": "3242149b816114129b53d41701136c96199b8cbe12df39d8c189bebd9bf99507",
+      "bytes": 5574
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "bd09d67c08f2c66516124ebcc71e1a71a36325be44255310098e0fdcbba18f56",
+      "bytes": 2087
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.css",
+      "sha256": "c1ab4b6d85866488b9dc0a3d567ba0384cc811422cdfdfcb39315e041f979704",
+      "bytes": 1363
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.html",
+      "sha256": "329aeafcaa09fa8dfbd4b1a9e6f8ccb7df66177f8f7023e1f52d64ad61dfd2d7",
+      "bytes": 1497
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.js",
+      "sha256": "62decc7d611270f6288139262856d89227a48fc2a4b59cf37470120db8c90040",
+      "bytes": 5077
+    },
+    {
+      "path": "apps/desktop/renderer/startup.css",
+      "sha256": "83d221d4686dc05edcc2d1bc9b8807b62ae2525c5202f3b95bf60362f70d958d",
+      "bytes": 1525
+    },
+    {
+      "path": "apps/desktop/renderer/startup.html",
+      "sha256": "0076664202606a62340eb49d23729096911547e2591d7ab4a1925cfff73cb9da",
+      "bytes": 995
+    },
+    {
+      "path": "apps/desktop/renderer/startup.js",
+      "sha256": "783a335de0401584b4149c9f19e78f8280db169e39dd08e1c4d243c0bbe172eb",
+      "bytes": 2618
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9",
+      "bytes": 1112
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-auto-update-environment.d.mts",
+      "sha256": "721ca79a2a356544b48266cf14ecb40cdc21cf03c3603e1b34fa713e47942e53",
+      "bytes": 3118
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-auto-update-environment.mjs",
+      "sha256": "88795d74c7800568d4c5bf5e471d349028a4ceace72a0baa772800cd8b2dfdf0",
+      "bytes": 6743
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-build-paths.d.mts",
+      "sha256": "daabf7b1782903d4481b0e155634b033e61641fcc3d8a5e04b3c71ce75dd45c2",
+      "bytes": 1794
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-build-paths.mjs",
+      "sha256": "19bddcde95884056e5414737d2e62de7c6ecd5aab2317c8dcbe8778e83ec3118",
+      "bytes": 3150
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-release-environment.d.mts",
+      "sha256": "3716f3a7a778b3f04c5fd1f1cd279dc7bbb4f5898f56622da197b35dc2d5ce5f",
+      "bytes": 2237
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-release-environment.mjs",
+      "sha256": "3ca5688bbded6799eb08cf09f04323f94ff6e93bdaeb11db88b8ccd78a47d5be",
+      "bytes": 4495
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-upload-plan.ts",
+      "sha256": "bf4552f139e593fcf4f92f83a1825598c9556f08d1144b04913aec9a54c905c6",
+      "bytes": 9902
+    },
+    {
+      "path": "apps/desktop/scripts/dev.ts",
+      "sha256": "809489f422d44cd3dea295eaf33db250050ee5eb2dc8ba51c2fc39d44ed551c6",
+      "bytes": 4973
+    },
+    {
+      "path": "apps/desktop/scripts/development-project.ts",
+      "sha256": "3cc00a3ae9d5ca8136b4999fb129484b8b43a1421af8f02e98f0ea273909f4dc",
+      "bytes": 4692
+    },
+    {
+      "path": "apps/desktop/scripts/installer.nsh",
+      "sha256": "1c498b75887b34fb6b7022b3e1bd13c5204b4102e78ee49d3beba43157bd4558",
+      "bytes": 314
+    },
+    {
+      "path": "apps/desktop/scripts/macos-runtime.ts",
+      "sha256": "dba86ca53f2768f89e412c39c35d94672037296bd8b6ba401a5d86ce1297227d",
+      "bytes": 2098
+    },
+    {
+      "path": "apps/desktop/scripts/notarize-macos-disk-images.d.mts",
+      "sha256": "ebb6a94a21e95f65d90e967d09cc6f888484088635f4793a9db79b85e1044f2f",
+      "bytes": 929
+    },
+    {
+      "path": "apps/desktop/scripts/notarize-macos-disk-images.mjs",
+      "sha256": "6c48005ac53a0e10d055df192359e7a3073a09951a5305c3e0df081d0faa4c7c",
+      "bytes": 1363
+    },
+    {
+      "path": "apps/desktop/scripts/package-macos.ts",
+      "sha256": "bc68d9f426a7894885ae25a2559b0d8968dd914c04863a84a6b8ba5af123ddb8",
+      "bytes": 5532
+    },
+    {
+      "path": "apps/desktop/scripts/package-target.ts",
+      "sha256": "5a4d70bb6b1c83c29da1e465865c457a9dc98d1b8527a28f05f444c4f87e33d4",
+      "bytes": 13206
+    },
+    {
+      "path": "apps/desktop/scripts/prepare-dsh.ts",
+      "sha256": "fc63a297b59b686116d884f275db664076c0a875a68922db67925f6c2341864b",
+      "bytes": 7528
+    },
+    {
+      "path": "apps/desktop/scripts/prepare-package-set.ts",
+      "sha256": "5be1e643ae70bea41615430c1a291168ffc66377dc181e86e622f7d58dc9f955",
+      "bytes": 7204
+    },
+    {
+      "path": "apps/desktop/scripts/prepare-runtime.ts",
+      "sha256": "ef153c754b630772023b0745d0b04c97f12b995d1654bedd76eb9c890f530fb3",
+      "bytes": 5606
+    },
+    {
+      "path": "apps/desktop/scripts/runtime-file-policy.ts",
+      "sha256": "1fbfa0742c61720b002d397404b2b8bd9c3de047c37caf154b6efd2e031a995f",
+      "bytes": 2218
+    },
+    {
+      "path": "apps/desktop/scripts/smoke-runtime.ts",
+      "sha256": "8f20c7005500cede07e8064f0d9c5a937aff4f1ca24297b5198e5c3585eff6cb",
+      "bytes": 3110
+    },
+    {
+      "path": "apps/desktop/scripts/smoke-windows.ps1",
+      "sha256": "ce70dfbf63eee7ce9e4f3be369c0739a753ab1227b8ff084e342593d9c52cd9c",
+      "bytes": 3410
+    },
+    {
+      "path": "apps/desktop/scripts/upload-target.ts",
+      "sha256": "867f2c24bf2be30c6a1d6b5e214c8f60fef078f8fad019aa81d5ddea04e384d3",
+      "bytes": 2887
+    },
+    {
+      "path": "apps/desktop/scripts/verify-macos-signature.d.mts",
+      "sha256": "022d742da841a64d3dd77289c8421ddc0acb4d5e1b3b16ba39fa8c22adf5986e",
+      "bytes": 2903
+    },
+    {
+      "path": "apps/desktop/scripts/verify-macos-signature.mjs",
+      "sha256": "98903e0738edfcbcb9bb9a99ae4b00b68a4a6684001f19671c7c8f7253906a81",
+      "bytes": 8968
+    },
+    {
+      "path": "apps/desktop/scripts/windows-sign.cmd",
+      "sha256": "c7a32d3e9b0d836637e5fa1da1232a37d239b705f2717fe64754522bd0a2ec77",
+      "bytes": 995
+    },
+    {
+      "path": "apps/desktop/scripts/windows-sign.d.mts",
+      "sha256": "1736e8ae3f53f1449c4fe32e12b010148354b1f2241cbced7a4d4be3003ce6f0",
+      "bytes": 2674
+    },
+    {
+      "path": "apps/desktop/scripts/windows-sign.mjs",
+      "sha256": "035fdef185d0bfe995adcbfacd0ace936cc0d823d2d5bb288943731fc19ba93b",
+      "bytes": 11050
+    },
+    {
+      "path": "apps/desktop/src/backend-controller.ts",
+      "sha256": "a102b7253ff2b785d67051e0a59e16c712cf83b8c00be5722930da6407d96bf0",
+      "bytes": 6235
+    },
+    {
+      "path": "apps/desktop/src/core-package-set.ts",
+      "sha256": "554f786f2b8dfe5f12a517fcd263c08f4a89d0b3833ebcabdda743ed1ac96a2c",
+      "bytes": 7957
+    },
+    {
+      "path": "apps/desktop/src/host-process.ts",
+      "sha256": "724f9a0db679ab3964d7d6bacc55caf0d84a4ffb0077eb5835642575b8df3ad5",
+      "bytes": 16691
+    },
+    {
+      "path": "apps/desktop/src/host-protocol.ts",
+      "sha256": "ef608222e30a4976d3d93e9f0e7fcc004161b346fa8b0cd005a370dc44824065",
+      "bytes": 8055
+    },
+    {
+      "path": "apps/desktop/src/ipc.ts",
+      "sha256": "bc6405286b5de9f098b908cb4761b6b4166dd12ce1db8ac5ff94e72a10b06e44",
+      "bytes": 2466
+    },
+    {
+      "path": "apps/desktop/src/legacy-settings.ts",
+      "sha256": "da6a6f1838ef4893a30ee077fa1d3130698e973211ea03c15035a7cb2d31b06e",
+      "bytes": 4745
+    },
+    {
+      "path": "apps/desktop/src/locale.ts",
+      "sha256": "8ccc7d096eb392fe354c7cfa13d239fb1c1925f478a3ead177b8726d14fd9519",
+      "bytes": 9723
+    },
+    {
+      "path": "apps/desktop/src/login-item.ts",
+      "sha256": "ffc2f8a7acacfc56ca2e015188c42aa41b3e745b9244f49a4b5b472b9712788c",
+      "bytes": 2526
+    },
+    {
+      "path": "apps/desktop/src/main.ts",
+      "sha256": "5c0b64c5099cc9f7464c16c23b36f567ee1fcd14329da525a85557e5c971182c",
+      "bytes": 27325
+    },
+    {
+      "path": "apps/desktop/src/owned-directory.ts",
+      "sha256": "3184bb6bc1c751a68092f7c12050ac3d673a87d53b6fc4d252c6f33c700200d4",
+      "bytes": 1080
+    },
+    {
+      "path": "apps/desktop/src/paths.ts",
+      "sha256": "817506a51c9c46c217768e3d06c3f33a44346250437a02813e7e8418c7b54a9e",
+      "bytes": 1229
+    },
+    {
+      "path": "apps/desktop/src/preload-app.ts",
+      "sha256": "e029a5460b329846a51d740529f747942a5c909f699265aedc672b93189a9b93",
+      "bytes": 1299
+    },
+    {
+      "path": "apps/desktop/src/preload.ts",
+      "sha256": "b5e90bcd1a0af670e03c71b3b3cd0d09389cd32d254a1535a2d215ba839b2af6",
+      "bytes": 2154
+    },
+    {
+      "path": "apps/desktop/src/profile-packages.ts",
+      "sha256": "b52fc201a8e6eb6aa8d7d186810392c5e30c048dacd12c3722dfc405cab754c9",
+      "bytes": 11442
+    },
+    {
+      "path": "apps/desktop/src/project-manager.ts",
+      "sha256": "ba5da1f39879460879bc210c3d6d40bc4c591973e872a6d3857e1276a393ca46",
+      "bytes": 26559
+    },
+    {
+      "path": "apps/desktop/src/release.ts",
+      "sha256": "ab4c40200893effa8e3ea0840c43630ba10403242f90ecccba49ae9a11c82140",
+      "bytes": 1454
+    },
+    {
+      "path": "apps/desktop/src/runtime-tree.ts",
+      "sha256": "03db695634899c421086f39aacfa2ef9a26412d97f81f71e9679e06dd6b81601",
+      "bytes": 10481
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "sha256": "ce599da150c30f10a59039097829c38b9abc420da9f8ea608b1bf98c11fc3c09",
+      "bytes": 3840
+    },
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99",
+      "bytes": 2740
+    },
+    {
+      "path": "apps/desktop/src/single-instance.ts",
+      "sha256": "dc6a6e263a6fdedc3f1cfacb97eb6f60dd5b04ad5d3b02daae4640f2e30a5150",
+      "bytes": 929
+    },
+    {
+      "path": "apps/desktop/src/startup-document.ts",
+      "sha256": "9e5d458e22855b86c52c782a6a7069f4e38ad67d3eb586808218fde0235eae19",
+      "bytes": 1825
+    },
+    {
+      "path": "apps/desktop/src/startup-error.ts",
+      "sha256": "ba75b42f56dd8352eecd7ad94841cb32142cebcdab864c8e4c04452788a47378",
+      "bytes": 544
+    },
+    {
+      "path": "apps/desktop/src/update-coordinator.ts",
+      "sha256": "a8acaa00a5c1780a57419ff5db38f46bcc62a7cacdd32655944c4f0fc3acfb0e",
+      "bytes": 3699
+    },
+    {
+      "path": "apps/desktop/tests/backend-controller.spec.ts",
+      "sha256": "9ac4e18bc93977741cbbc4760af71de9dfe60d68d39ed57d29c2fad61c96a0fa",
+      "bytes": 6770
+    },
+    {
+      "path": "apps/desktop/tests/core-package-set.spec.ts",
+      "sha256": "b232f76e59a54d1d988ad9f8b2608cd96c50d3ca508e17ad685b109f0e5492ca",
+      "bytes": 4244
+    },
+    {
+      "path": "apps/desktop/tests/desktop-auto-update-environment.spec.ts",
+      "sha256": "04095e12953f6697339eff7e94b7f3698130f52f52cae83cef71b9e41ea952c9",
+      "bytes": 4125
+    },
+    {
+      "path": "apps/desktop/tests/desktop-build-paths.spec.ts",
+      "sha256": "8883312479f72f49c0d7b4d4245e3e88b8ef788d201fc58b497bf693fd2b3d65",
+      "bytes": 1853
+    },
+    {
+      "path": "apps/desktop/tests/desktop-upload-plan.spec.ts",
+      "sha256": "dc5164d388d3f636c9922ae52e1a5c00441f47fc26d6583cbc237bb63e00ceba",
+      "bytes": 7549
+    },
+    {
+      "path": "apps/desktop/tests/development-project.spec.ts",
+      "sha256": "a210a99d9ac9be7a9d96bbc4c9bdcb0f6f5a4a39ef990476f534bd96e000ac06",
+      "bytes": 4062
+    },
+    {
+      "path": "apps/desktop/tests/expected/legacy-settings-import-preview-zh.json",
+      "sha256": "8ed7557519708b68d1bfb921a0f3db3d2fff238fcdb8913ab6a6a30a738a22b8",
+      "bytes": 415
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-darwin-zh.json",
+      "sha256": "076e552a58b91ee55c78234b2cc71061a477cb55e141f62a7051dfa7c323da3a",
+      "bytes": 647
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-development-en.json",
+      "sha256": "cbf393d7e3c544ac1ef213dde491be94407eef0814e9da3bdb389de6a117f2b4",
+      "bytes": 369
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-win32-zh.json",
+      "sha256": "365cacda8ee17ba884cac8fbd39cffe895e17e7bd7a3310c232702abf312b124",
+      "bytes": 638
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-tray-en.json",
+      "sha256": "65c4f0c0d0c49de85b40541eec05b39629396818d3ea7628368c0a57938764f1",
+      "bytes": 111
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-en-profile.txt",
+      "sha256": "98156cf79fdc0e589485f54dd68267eb6db1842a68bdebfd0f6bec923226cbd5",
+      "bytes": 502
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-en-restart.txt",
+      "sha256": "e647c5fdd5a3c44f2fb30442d04728091f199abd347153c43185a0926bdd6132",
+      "bytes": 269
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-zh-CN-profile.txt",
+      "sha256": "b44c0d43a5284e7551447094584992d8ea8f501fc1ca6002e05da1b9bbc87a0d",
+      "bytes": 472
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-zh-CN-restart.txt",
+      "sha256": "252def988ddc435c1a5d57aaf5b333426c365d58bf1c44c8f135e3144480ec97",
+      "bytes": 247
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/installer-cleanup-smoke.nsi",
+      "sha256": "f33333bd817f33cc56ac69c04202c50377d49ed79c58cc949da30b84c2b6cf10",
+      "bytes": 1869
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/installer-write-failure-smoke.nsi",
+      "sha256": "c96b2c3bab76c4a20306937d9953da114258677794281606a87a35a70e4ad5fe",
+      "bytes": 1732
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/owned-directory-smoke.mjs",
+      "sha256": "40bd5976a4263932bdeaf35b57db930cfb44d45f1fce843edd27cf03cb913f7d",
+      "bytes": 1509
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/runtime-payload-smoke.mjs",
+      "sha256": "750985366088a5586e4fe8253c3bc0cd7c42761252c38d814f6aac5cd07c17dc",
+      "bytes": 5579
+    },
+    {
+      "path": "apps/desktop/tests/host-process.spec.ts",
+      "sha256": "12d8c3266ced584c92d4558f2d58bfee5800dcf846dd6c686707b62fb3cd0b75",
+      "bytes": 10761
+    },
+    {
+      "path": "apps/desktop/tests/host-protocol.spec.ts",
+      "sha256": "ce36dcae0f14c86138258fa759b26921c6eef0d3f557b3f4835dfa64d06d43aa",
+      "bytes": 3471
+    },
+    {
+      "path": "apps/desktop/tests/legacy-settings.spec.ts",
+      "sha256": "894c3c8acc27f51422b6bbfa03b88e493d69c54e2124a6d7e5d33a5db3b4c537",
+      "bytes": 6044
+    },
+    {
+      "path": "apps/desktop/tests/locale.spec.ts",
+      "sha256": "04ef28c76ee7f5b51261cfff8ef51442704eba9b679cf5f69a6155fb7cadd02c",
+      "bytes": 1126
+    },
+    {
+      "path": "apps/desktop/tests/login-item.spec.ts",
+      "sha256": "8fbdbb0afc543731e2215a8303013930ff4dfb37b5d16780abd2c54e64af59ed",
+      "bytes": 2814
+    },
+    {
+      "path": "apps/desktop/tests/macos-notarized-application.spec.ts",
+      "sha256": "99b9ef170644b328298d39a16121588794f440d3ed723b991f6987cf3a0aefa0",
+      "bytes": 2028
+    },
+    {
+      "path": "apps/desktop/tests/macos-runtime.spec.ts",
+      "sha256": "dad896184d93a49f951a4a8f7192edaed65f8781efbd3bf19827f4b22d16db43",
+      "bytes": 2391
+    },
+    {
+      "path": "apps/desktop/tests/macos-signature.spec.ts",
+      "sha256": "5f14c1fc0afa5f00fe1321ecea8aadae57fca2e84bf6b6742d06fe811eba5d40",
+      "bytes": 11362
+    },
+    {
+      "path": "apps/desktop/tests/macos-signing-walk.spec.ts",
+      "sha256": "0ebda0f8b58341e059e3b62d1c8ec7ce9330f9fe485a15d55067ab7b8a18fea9",
+      "bytes": 2040
+    },
+    {
+      "path": "apps/desktop/tests/main-startup.spec.ts",
+      "sha256": "8a66b7af9a32bc711025dc7b881bab60a0d36de43a88e77b6a8341f3c84dbcff",
+      "bytes": 27450
+    },
+    {
+      "path": "apps/desktop/tests/owned-directory.spec.ts",
+      "sha256": "6820dcbc0a101ae66d802f506e478052254ddda72e955464dba078b8756b0791",
+      "bytes": 2308
+    },
+    {
+      "path": "apps/desktop/tests/package-macos.spec.ts",
+      "sha256": "b313d97dd9cdfec044c3ba75cb7ce68ac61fc08e107fb8f101f121159334408a",
+      "bytes": 8267
+    },
+    {
+      "path": "apps/desktop/tests/package-target.spec.ts",
+      "sha256": "3ea010a7723f020fb40d0c8d7c9a61829e077f7cb5b863a88e2d9ccb9472d10a",
+      "bytes": 6098
+    },
+    {
+      "path": "apps/desktop/tests/plugin-manager.spec.ts",
+      "sha256": "99fa03db9a036f9e7a5fb657b094e2e4732860ac77339e1c785b24244073eb8e",
+      "bytes": 2185
+    },
+    {
+      "path": "apps/desktop/tests/plugin-pnpm.spec.ts",
+      "sha256": "9aceef4f4df6903fac6f504be785867a107f370dc3bec13055272202af133d14",
+      "bytes": 4865
+    },
+    {
+      "path": "apps/desktop/tests/preload-app.spec.ts",
+      "sha256": "9fbb3f702bf538de96b4654f4c1d47c91a10906cda37486ebdbb4cdfd833f1c3",
+      "bytes": 1866
+    },
+    {
+      "path": "apps/desktop/tests/prepare-package-set.spec.ts",
+      "sha256": "5d1f16fdf1592807fac8c296e35098ddbe629f58edb9ccb44b2ee5b9ad5a22fa",
+      "bytes": 3194
+    },
+    {
+      "path": "apps/desktop/tests/profile-packages.spec.ts",
+      "sha256": "56501d3a7e38d92d7d1fb9353c6a21406d8e9d884284e3788bcf8d2f09016e0a",
+      "bytes": 4993
+    },
+    {
+      "path": "apps/desktop/tests/project-manager.spec.ts",
+      "sha256": "25f0aff1e7bd6eee5a4f207c5b66d27bd26267c015cf0dd17de2476e85814e7e",
+      "bytes": 22739
+    },
+    {
+      "path": "apps/desktop/tests/runtime-file-policy.spec.ts",
+      "sha256": "ac6817b9cd9e9003ec677b69c64855d89e2efa4003758219c602bb59284fdcde",
+      "bytes": 4851
+    },
+    {
+      "path": "apps/desktop/tests/runtime-fixture.ts",
+      "sha256": "47526b95e61b7b58f9873600ef054280c64bb63d94efc9a277dbeb0eac823ccd",
+      "bytes": 2191
+    },
+    {
+      "path": "apps/desktop/tests/runtime-tree-read-failure.spec.ts",
+      "sha256": "e549181a73d2e3a7dfe20a499ecbb12688ee5d64eed36ad6e78221f5655fb024",
+      "bytes": 2093
+    },
+    {
+      "path": "apps/desktop/tests/runtime-tree.spec.ts",
+      "sha256": "8cc134f27fac216843a409c026aeaefd102d2541b03987ff9353e75aff222e1e",
+      "bytes": 6088
+    },
+    {
+      "path": "apps/desktop/tests/shell-behavior.spec.ts",
+      "sha256": "3d0fda2f2447dbf1906c4e2eca1a0e70ce9f8f19eeca09f49403b7c3ac1ae35e",
+      "bytes": 3977
+    },
+    {
+      "path": "apps/desktop/tests/shell-preferences.spec.ts",
+      "sha256": "5d8dfd7c5ccd391a03ee7f4d764f1851b60709c8015e7f897d5e7f98ca545d98",
+      "bytes": 3617
+    },
+    {
+      "path": "apps/desktop/tests/single-instance.spec.ts",
+      "sha256": "763eb83b7e2c5082ab1ee31c2a21916f636a3921de0d7fad6485de9a849bd97b",
+      "bytes": 1159
+    },
+    {
+      "path": "apps/desktop/tests/startup-renderer.spec.ts",
+      "sha256": "b9d6526251907f9a4b95bad5807deb5c7127d79a9969a132eda3340ac45f113b",
+      "bytes": 9447
+    },
+    {
+      "path": "apps/desktop/tests/update-coordinator.spec.ts",
+      "sha256": "89b3765e1c24ade007d168604dad27841af54a70597c92a24946292c37904c2b",
+      "bytes": 3857
+    },
+    {
+      "path": "apps/desktop/tests/windows-sign.spec.ts",
+      "sha256": "320604b1a506dc847ddee84592bdb90ff7082260086266feb00e867a7e166d9d",
+      "bytes": 8524
+    },
+    {
+      "path": "apps/desktop/tsconfig.json",
+      "sha256": "a9c6d65de293fd2a4880678a6add6c31237a82fb29cf01a732965a61ab7445ce",
+      "bytes": 266
+    },
+    {
+      "path": "apps/desktop/tsdown.config.ts",
+      "sha256": "608301e280d32488912bce4434e62bd49cbf81af0fa2fd2311d998f1929e38b4",
+      "bytes": 712
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.md",
+      "sha256": "99d4517696356591c0618b553aa54e7b40a1ea942980b0c9b2dfafb28352a508",
+      "bytes": 4466
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.zh.md",
+      "sha256": "a7e86e81665c925bd934f69b032e1323120400ea9cf9ab4e55c0e9054fd0dadc",
+      "bytes": 3923
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.i18n.yaml",
+      "sha256": "36894d490d444ab197efea5f4a3774bc706cb4a7c7e86ff48bb5f602e16f96c6",
+      "bytes": 538
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "apps/desktop/lib/main.js",
+      "sha256": "bacd4b038cc07692382679821bd50a16ff1c65ef7a8187a5695dc01084d2af2a",
+      "bytes": 205653
+    },
+    {
+      "path": "apps/desktop/lib/preload.cjs",
+      "sha256": "596c0ba3b325ef17202118b5e272162bc8419359f9aa14a6e38793c480e0e1fe",
+      "bytes": 2538
+    },
+    {
+      "path": "apps/desktop/lib/preload-app.cjs",
+      "sha256": "87788b6e3f75279de7c4931a9ffe063740df2002db600d2ea1dffb0fda765777",
+      "bytes": 1905
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/desktop-import-smoke.json",
+      "sha256": "1e5b9f7838371c03476e3870b307d8c8ca02fd82812cf3deca84f073cf2aab6c",
+      "bytes": 3274
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-import-native-preview.json",
+      "sha256": "67f617e16c1a46d8d641bfab629819ed821d9a497ab5407875045adb93389adf",
+      "bytes": 253
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-import-preview.png",
+      "sha256": "95a6d9ad374e68aa110ac9948e2ba9d968e876d4337044b16bf11af5b333a1dc",
+      "bytes": 26756
+    },
+    {
+      "path": ".artifacts/desktop-import-fixture.yaml",
+      "sha256": "9bbfff102d98cceb1a40d5b568edf33a2c1e6adcb3435892ac6715612df2b8ec",
+      "bytes": 107
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/desktop-import-smoke.mjs",
+      "sha256": "89b895b73ad4f9f63be8dffbdf87a8fd1b51c9d8f4dabbee65f653173ea4eeb0",
+      "bytes": 5358
+    },
+    {
+      "path": ".artifacts/import-native-ui.ps1",
+      "sha256": "6e9f0fe9921253fcbaf412df682f6a146369251d5b685eb2a28534952e82d753",
+      "bytes": 2002
+    },
+    {
+      "path": ".artifacts/capture-import-preview.ps1",
+      "sha256": "a5abafe4ef3e6a3269592dab3daf26935285f3b7ef53cf9464ae6cf3e57b856b",
+      "bytes": 1835
+    },
+    {
+      "path": ".artifacts/desktop-inspector.mjs",
+      "sha256": "a287133d0bce112776788fb7527cf7c132eda3bb35538c25ae499588df53ebd8",
+      "bytes": 2194
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/desktop-import-final-tests.log",
+      "sha256": "d851a11c051704998ab3f31ec22191f4f0d060d8f8aade7cbe4806b8ac41f00e",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/desktop-import-main-final.log",
+      "sha256": "55818a51a141fcd0cf84b357c91950cb44f0614a955ce5234e4473b8d2b5535d",
+      "bytes": 966
+    },
+    {
+      "path": ".artifacts/desktop-import-build.log",
+      "sha256": "58fc5598f1851985d2b6f15eaba85fa00144857e69280270f98d4729a0d0047e",
+      "bytes": 1790
+    },
+    {
+      "path": ".artifacts/desktop-import-doc-quick.log",
+      "sha256": "398e54bd008e72caffffc2d122082e9e8e77a1e948e2748bc590a876a5a475a0",
+      "bytes": 1555
+    },
+    {
+      "path": ".artifacts/desktop-import-doc-sync.log",
+      "sha256": "7154103901a44c7bc77a1007d734a115adbe9d174e1c9f8ffa8f7ffecdc09877",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/desktop-import-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/desktop-import-start.log",
+      "sha256": "c6b91707462a2db1eec1c7239d4cd37d578a65ba222c803ded8ef3f9f9ea5b3d",
+      "bytes": 5799
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/windows-wheel-source.json",
+      "sha256": "afdc79b23b06b5d06f19ae37fc0c91216d5074229fcb6a2ca46701f304c148db",
+      "bytes": 26701
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-tray-source.json",
+      "sha256": "64b3b62e0d8c3605a2c4c11518b7546feeff048cd42f8a3a7fa7cebba30432c0",
+      "bytes": 17333
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-tray-smoke.json",
+      "sha256": "631a89c199ac4dce9e896acc93abcd1f9dcd7ac545713f7414e18b4f7d7a9a0b",
+      "bytes": 21577
+    }
+  ],
+  "checks": [
+    {
+      "id": "desktop-import-tests",
+      "status": "PASS",
+      "tests": 73,
+      "files": 6,
+      "command": "node node_modules/vitest/vitest.mjs run apps/desktop/tests/legacy-settings.spec.ts apps/desktop/tests/main-startup.spec.ts apps/desktop/tests/shell-preferences.spec.ts apps/desktop/tests/shell-behavior.spec.ts apps/desktop/tests/login-item.spec.ts apps/desktop/tests/locale.spec.ts",
+      "log": ".artifacts/desktop-import-final-tests.log",
+      "detail": "Before the final duplicate-click assertion and English menu snapshot; the changed main spec was then rerun separately."
+    },
+    {
+      "id": "desktop-import-main-final",
+      "status": "PASS",
+      "tests": 25,
+      "command": "node node_modules/vitest/vitest.mjs run apps/desktop/tests/main-startup.spec.ts --update",
+      "log": ".artifacts/desktop-import-main-final.log",
+      "detail": "Includes duplicate-import admission, cancellation, source changes, no OS login calls, and reviewed owner-local native UI snapshots."
+    },
+    {
+      "id": "desktop-import-build",
+      "status": "PASS",
+      "command": "pnpm --filter @deepseek-ai/dsh-desktop run build",
+      "log": ".artifacts/desktop-import-build.log",
+      "detail": "Desktop TypeScript and production Shell/preload bundles; existing js-yaml is bundled. Host and Web binaries unchanged."
+    },
+    {
+      "id": "desktop-import-native",
+      "status": "PASS",
+      "command": "pnpm run start:desktop; native MenuItem and Windows UI Automation fixture workflow",
+      "receipt": "artifacts/upstream-first/desktop-import-smoke.json",
+      "detail": "Actual native file selection and preview/confirm/cancel; source digest retained, close preference persisted, tray hide/restore and undo verified, Shell/Host exited. No historical user file or OS login write."
+    },
+    {
+      "id": "desktop-import-doc-quick",
+      "status": "PASS",
+      "passed": 16,
+      "failed": 0,
+      "command": "pnpm run test:docs",
+      "log": ".artifacts/desktop-import-doc-quick.log"
+    },
+    {
+      "id": "desktop-import-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/desktop-import-doc-sync.log"
+    },
+    {
+      "id": "desktop-import-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/desktop-import-full-lint.log"
+    }
+  ],
+  "limitations": [
+    "Windows development app and generated fixtures only; no real-user migration",
+    "No packaged OS login, installer, macOS execution or real model",
+    "Windows installed-wheel plugin installation still fails; runtime sources and artifacts were not changed by this Shell-only work",
+    "Renderer reports a control-stream network error during shutdown; both owned processes exit normally"
+  ]
+}

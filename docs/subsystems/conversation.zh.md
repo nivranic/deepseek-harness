@@ -28,6 +28,8 @@ shell 拥有 View 选择，并在 binding 创建、被选为 current 或 View ro
 
 ## 可回放 event family
 
+业务 id 仅在单个模型 Step 内唯一的 Definition 声明 `identityScope: 'step'`。Assembler 使用持久化 Turn/Step 执行范围限定 id；对于缺少位置的分页前缀，只在下一次开启边界之前使用后续坐标。已认领但位置未知的事件保持待定，不发布临时 Node。默认身份范围仍是整个 Session，matcher 仍只读取自身事件。[身份决策](../../.agents/notes/implemented/architecture/2026-08-09-client-conversation-node-assembly.zh.md)说明分页方面的理由。
+
 编写 Definition 前先选定稳定的业务 id。构成同一个 Node 的每条事件都必须携带该 id，或只凭自身 payload 独立推导出该 id；Client 绝不能把 update 猜测为属于“最近一个未完成”的 Context。
 
 以一个 review job 为例，事件约定可以是：

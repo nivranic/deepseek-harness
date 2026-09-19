@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Child Prompt request identity recognition across concurrency and recovery; complete phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/subagent-prompt-idempotency-source.json",
+    "sha256": "304345ce238e9a0d6de3052cc4038d88dd0fdca482fa542d7779cb7af143f0dc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6cc586b55311b078484a40d1ddb409f1c42038e8e872a30b2e7be4154998385f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/subagent-prompt-idempotency-binding.json",
+    "sha256": "03a337d66cf63cbb7dd2437767cb209c9c7668a66ec17228d265c2cff2995356"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-subagent-prompt-idempotency-reports.mjs",
+      "sha256": "4c326bfd0f99773c4e550f05a40945a1f3b03267e3af379edbbc45ebd57f3004"
+    },
+    {
+      "path": ".artifacts/capture-subagent-prompt-idempotency-validation.mjs",
+      "sha256": "fd8428e7f484fe7b63addb9e766ecc7ba585c3b02d217b13c41aaf126e22b3ed"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "5f9d51d19b9f68c100f1c8aac3c3f528744ca81d2c4eff0ebb31d16fbbe2c562"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c7666ba8969755d08f216a5b2dbaf88dfa9f2bf70aaa52a8b158c7c6744952f4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/subagent-prompt-idempotency-binding.log",
+      "sha256": "529304ddf0a3d87c3d000f0dfedf798f00a584b3eab57df45fde282a53fd5b5f"
+    },
+    {
+      "path": ".artifacts/subagent-prompt-idempotency-audit-tests.log",
+      "sha256": "b2e04c27a1a9d3e2ab7ed736e857ff0ecb337b74d273107df41899050d6c7bbb"
+    },
+    {
+      "path": ".artifacts/subagent-prompt-idempotency-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/subagent-prompt-idempotency-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/subagent-prompt-idempotency-report-generation.log",
+      "sha256": "fee38423682f6d1f2e0a50aabd65d5aa82ca06f4423805940cb852603041bf6a"
+    }
+  ]
+}

@@ -26,6 +26,8 @@ The first-generation client loader (`createClientLoader`) hand-wrote both layers
 
 ### Package membership and module requests
 
+The active Loader-resolved host module identifies its resource-owning package. A managed executable proxy records the original module URL for each exported subpath; Client Modules follows that exact export to the original manifest instead of copying `dsh.client` and relative resource paths into the proxy. Malformed maps, ambiguous matches, missing owners, and cycles fail composition. The [profile decision](2026-08-05-profile-plugin-bundles.md) owns proxy creation and installation lookup.
+
 The [client shell layering note](2026-08-15-client-shells-and-dynamic-packages.md) defines the current static and dynamic package sets and the import rules between them. The loading machinery treats every `dsh.client` package as a host-graph row with one ordinary `lib/client.js` factory bundle. Its declaration carries Cordis `inject` edges, synchronous module-table `external` requests, and the optional `immediately` prefetch mark; the composing app owns only the mounted roster.
 
 The web kernel remains framework-free and imports no dynamic package value. Modules is itself a dynamic row, but the host parser delivers its factory before the Vite main module. The HTML-installed `__ModuleLoader__` facade uses that factory to construct the module system when the kernel calls `create()`. Every other dynamic row belongs to an application combo script; static React, Cordis, and UI library identities come from the shell seed.
@@ -67,6 +69,8 @@ Why is the roster yml rows and not a scan? Because which plugins compose into a 
 3. Graph order governs synchronous factory availability; Cordis activation remains independent and proceeds through service waiting.
 4. `settled` = every entry created + `loader.await()` quiescent + an all-ACTIVE sweep. The sweep lists each import-failed, FAILED, or PENDING fiber with its missing services. It exists because cordis inject waits have no timeout — the sweep is the fail-loud floor.
 5. The framework-free loading page projects real fiber states via `internal/status`. After the sweep, the kernel calls `ctx.uiRenderer.mount(container)` and replaces the page with the real UI in one pass.
+
+The optional Web route always registers in a child plugin that injects `webServer`. Service availability alone does not authorize a property read in the parent plugin's context. The child owns route disposal and replacement while the parent retains its graph, so either service load order works and Shell carriers do not depend on a Web server.
 
 ### Hot reload: one driver plugin, self-watched bundles
 

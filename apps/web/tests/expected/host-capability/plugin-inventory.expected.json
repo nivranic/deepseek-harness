@@ -1,0 +1,16 @@
+{
+  "noUnsupportedRead": true,
+  "cancelledReads": 1,
+  "reads": 3,
+  "equalSupportRemounts": true,
+  "oldResponseSuppressed": true,
+  "replacementSearchPreserved": true,
+  "replacementExpansionPreserved": true,
+  "withdrawalRemovesTab": true,
+  "restorationClearsHostPageState": true,
+  "composerDraftRetained": true,
+  "realLoaderRows": true,
+  "discoveryControlled": true,
+  "readDeliveryControlled": true,
+  "modelRequests": 0
+}

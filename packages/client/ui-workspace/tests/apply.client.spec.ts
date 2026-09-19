@@ -11,6 +11,7 @@ import { apply as hostApply } from '../src/index.ts'
 
 async function bench() {
   const ctx = new Context()
+  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
   await ctx.plugin(SlotRegistry).await()
   const create = vi.fn(async (input: { name: string } | { path: string }) => ({
     workspaceId: 'ws-new' as never,
@@ -28,7 +29,7 @@ async function bench() {
     value: { items: [{ sessionId: 'session' as never, snippet: 'match' }], hasMore: false },
   }))
   const renameSession = vi.fn(async (title: string) => ({ ok: true, value: { title, seq: 1 } }))
-  const binding = vi.fn(() => ({ session: { rename: renameSession } }))
+  const binding = vi.fn(() => ({ session: { prepareRename: () => renameSession } }))
   const fork = vi.fn(async () => 'forked' as never)
   const subscribe = () => () => {}
   ctx.provide('workspaces', {
@@ -63,7 +64,8 @@ async function bench() {
   } as never)
   const pickDirectory = vi.fn(() => Promise.resolve({ ok: true as const, value: '/projects/picked' }))
   const directoryPicker = { pick: pickDirectory }
-  Object.assign(new TestRemote(ctx), { directoryPicker })
+  const remote = Object.assign(new TestRemote(ctx), { directoryPicker })
+  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
   ctx.provide('remote.directoryPicker', directoryPicker as never)
   const locale = new LocaleRuntime(ctx)
   // These specs assert the shipped Chinese copy. There is no jsdom `window`
@@ -72,7 +74,7 @@ async function bench() {
   locale.setLocale('zh')
   ctx.provide('locale', locale)
   return {
-    ctx, slots: ctx.get('slots') as SlotRegistry, locale, create, rename,
+    ctx, slots: ctx.get('slots') as SlotRegistry, locale, create, rename, remote,
     insertSessionBefore, open, clear, selectPanel, search, renameSession, binding, fork, pickDirectory,
   }
 }
@@ -86,13 +88,61 @@ function declare(slots: SlotRegistry, ...names: HoleName[]): () => void {
 }
 
 describe('ui-workspace apply', () => {
+  it('withdraws retained registry operations independently from session organization', async () => {
+    const b = await bench()
+    const remove = vi.spyOn(b.ctx.workspaces, 'delete')
+    const reorder = vi.spyOn(b.ctx.workspaces, 'insertBefore')
+    const archive = vi.spyOn(b.ctx.workspaces, 'archiveSession')
+    declare(b.slots, 'sidebar.workspaces')
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const browser = (b.slots.entries('sidebar.workspaces')[0]!.inject as () => WorkspaceBrowserInjected)()
+    b.remote.$host = { ...b.remote.$host, capabilities: ['workspace.follow.v1', 'workspace.sessions.v1'] }
+    for (const operation of [
+      () => browser.createWorkspace({ path: '/blocked' }),
+      () => browser.renameWorkspace('ws' as never, 'blocked'),
+      () => browser.deleteWorkspace('ws' as never),
+      () => browser.insertWorkspaceBefore('ws' as never),
+    ]) await expect(operation()).rejects.toMatchObject({ code: 'host/capability-unavailable', details: { capability: 'workspace.manage.v1' } })
+    expect(b.create).not.toHaveBeenCalled()
+    expect(b.rename).not.toHaveBeenCalled()
+    expect(remove).not.toHaveBeenCalled()
+    expect(reorder).not.toHaveBeenCalled()
+    await browser.archiveSession('s' as never)
+    await browser.insertSessionBefore('ws' as never, 's' as never)
+    expect(archive).toHaveBeenCalledOnce()
+    expect(b.insertSessionBefore).toHaveBeenCalledOnce()
+    b.remote.$host = { ...b.remote.$host, capabilities: ['workspace.manage.v1', 'session.manage.v1'] }
+    await expect(browser.archiveSession('s' as never)).rejects.toMatchObject({ code: 'host/capability-unavailable', details: { capability: 'workspace.sessions.v1' } })
+    await expect(browser.insertSessionBefore('ws' as never, 's' as never)).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    await browser.createWorkspace({ path: '/restored' })
+    expect(b.create).toHaveBeenCalledOnce()
+  })
+  it('blocks retained create and fork callbacks after capability withdrawal', async () => {
+    const b = await bench()
+    declare(b.slots, 'sidebar.workspaces')
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const start = vi.spyOn(b.ctx.uiWorkspace, 'startSession').mockImplementation(() => undefined)
+    const fork = vi.spyOn(b.ctx.uiWorkspace, 'forkSession').mockResolvedValue(undefined)
+    const browser = (b.slots.entries('sidebar.workspaces')[0]!.inject as () => WorkspaceBrowserInjected)()
+    b.remote.$host = { home: undefined, isLoopback: true, capabilities: [] }
+    browser.startSession()
+    browser.forkSession('session' as never)
+    expect(start).not.toHaveBeenCalled()
+    expect(fork).not.toHaveBeenCalled()
+    b.remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+    browser.startSession()
+    browser.forkSession('session' as never)
+    expect(start).toHaveBeenCalledOnce()
+    expect(fork).toHaveBeenCalledOnce()
+  })
+
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
   })
 
   it('declares the services it drives', () => {
     expect(inject).toEqual([
-      'slots', 'sessions', 'workspaces', 'locale', 'remote', 'remote.directoryPicker', 'layout',
+      'slots', 'sessions', 'workspaces', 'locale', 'remote', 'remote.directoryPicker', 'layout', 'connection',
     ])
   })
 
@@ -135,7 +185,7 @@ describe('ui-workspace apply', () => {
     })
     expect(b.search).toHaveBeenCalledWith('match', signal)
     expect(browser.searchResultLimit).toBe(20)
-    await browser.renameSession('session' as never, 'renamed session')
+    await browser.prepareSessionRename('session' as never)('renamed session')
     expect(b.binding).toHaveBeenCalledWith('session')
     expect(b.renameSession).toHaveBeenCalledWith('renamed session')
     browser.forkSession('session' as never)

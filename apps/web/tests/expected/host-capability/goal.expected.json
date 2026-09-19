@@ -1,0 +1,16 @@
+{
+  "observations": [
+    { "stage": "absent", "bar": 0, "edit": 0, "resume": 0, "clear": 0 },
+    { "stage": "read-only", "bar": 1, "edit": 0, "resume": 0, "clear": 0 },
+    { "stage": "edit-only", "bar": 1, "edit": 1, "resume": 0, "clear": 0 },
+    { "stage": "restored", "bar": 1, "edit": 1, "resume": 1, "clear": 1 }
+  ],
+  "cancelledEdits": 1,
+  "changes": ["create", "edit"],
+  "retainedComposerDraft": true,
+  "retainedReplacementEditor": true,
+  "noMutationReplay": true,
+  "discoveryControlled": true,
+  "editReplyDeliveryControlled": true,
+  "goalInitiallySeededAndDisarmed": true
+}

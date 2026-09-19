@@ -78,6 +78,14 @@ async function nextFrame(
 }
 
 describe('WorkspaceController commands', () => {
+  it('advertises follow, registry management and session organization independently', async () => {
+    const { controller } = await harness()
+    expect(controller.typertRemote.capabilities).toEqual([
+      { id: 'workspace.follow.v1', methods: ['follow'] },
+      { id: 'workspace.manage.v1', methods: ['create', 'rename', 'delete', 'insertBefore'] },
+      { id: 'workspace.sessions.v1', methods: ['archiveSession', 'insertSessionBefore'] },
+    ])
+  })
   it('serializes concurrent path adoption and preserves an existing title', async () => {
     const { controller, root } = await harness()
     const path = stageDir(root, 'alpha')

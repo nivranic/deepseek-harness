@@ -18,6 +18,12 @@ The Host Connection plugin validates `recovery` in its configuration and injects
 
 The Settings indicator labels active recovery **Reconnecting** and keeps **Reconnect now** available. This decision supersedes the terminal retry policy in [Web connection recovery control](../../archived/feature/2026-08-28-web-connection-recovery-control.md). That note still owns manual recovery, browser offline suspension, the single-scheduler rule, and indicator presentation. A fresh `$events` ready frame alone establishes connectivity; domain streams retain their own baseline and cursor recovery.
 
+[Terminal Host discovery failures](2026-09-17-terminal-host-discovery.md) defines intervention states that suspend this automatic schedule; ordinary carrier failures retain continuous recovery.
+
+The readiness warning publishes `host-not-ready` while the current attempt remains pending; the hard deadline also publishes it when configured before the warning. Settings displays waiting and retry guidance rather than diagnosing why the ready frame is delayed. A successful frame clears the delay, while stop, manual reconnect or offline transitions cancel its timers. The state callback may reenter those lifecycle operations without allowing a cancelled source to publish readiness.
+
+The lifecycle publishes `connecting` before acquiring the first source, `reconnecting` for every replacement attempt, `offline` for browser network suspension and `ready` only after the opening frame. First-handshake observation does not reject initial application calls; recovery states do reject new calls before dispatch. Early stop or replacement from a state listener cannot acquire an obsolete source. Settings distinguishes these phases and retains accessible compact controls when the sidebar is collapsed.
+
 ## Alternatives considered
 
 **Only reject the readiness wait.** The Controller still waits for source settlement before retrying. The deadline must cancel the source as well, otherwise the same pending work blocks recovery.
@@ -33,5 +39,7 @@ The Settings indicator labels active recovery **Reconnecting** and keeps **Recon
 Long outages retain one retry schedule and produce bounded-rate connection traffic until recovery, explicit stop, or browser offline suspension. A permanently invalid credential still requires user action; connection retries do not refresh credentials or replay unary mutations. Immediate readiness continues to reset backoff, and browser offline remains authoritative for suspension; stable-connection reset windows and local-transport exceptions are separate policy changes.
 
 ## Testing
+
+Recorded Question cases hold the first ready frame through the warning or hard deadline, then verify same-generation recovery or automatic physical replacement before comparing the unchanged complete Session fixture.
 
 Controller tests cover recovery beyond the former final tier, fixed-cap retries, slow readiness, deadline cancellation, delayed cleanup, late ready callbacks, and manual reconnect or stop during a handshake. Host and Client tests cover timing propagation, invalid input, and injection disposal. Gateway tests use the real Controller and event pump with scripted WebSockets to verify both stalled opening phases, physical replacement, and one recovery reset. The recorded-session Web lifecycle scenario covers automatic recovery past the former stop point, manual replacement of a stalled handshake, and localized recovery presentation.

@@ -88,6 +88,11 @@ export class SessionTitleInvalidError extends Error {
   override readonly name = 'SessionTitleInvalidError'
 }
 
+/** The title changed after an editor captured its durable revision. */
+export class SessionTitleRevisionConflictError extends Error {
+  override readonly name = 'SessionTitleRevisionConflictError'
+}
+
 /** Automatic generation cadence owned by a registered provider. */
 export type SessionTitleAutomaticMode = 'first-prompt' | 'all-prompts'
 
@@ -259,6 +264,8 @@ function collectSessionTitleMessages(
 
 const titleViewSchema: ZodType<string | null> = zod.string().min(1).nullable()
 
+const titleRevisionSchema = zod.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable()
+
 /** Latest logged title text and its client view. */
 export const titleProjectionDefinition = {
   key: 'title',
@@ -336,6 +343,14 @@ export class SessionTitleService extends Service {
     }, 'sessionTitle lifecycle')
 
     ctx.sessionProjections.register(titleProjectionDefinition)
+    ctx.sessionProjections.register({
+      key: 'titleRevision',
+      stateVersion: 1,
+      stateSchema: titleRevisionSchema,
+      init: () => null,
+      apply: (state, event) => event.type === 'session/title' ? event.seq : state,
+      wire: { viewSchema: titleRevisionSchema, view: state => state },
+    })
 
     ctx.sessionProjections.register<'titleInput', TitleInputState>({
       key: 'titleInput',
@@ -394,11 +409,13 @@ export class SessionTitleService extends Service {
    * {@link SessionTitleService.refresh} remains the deliberate unpin).
    * @param session - exact live session to rename.
    * @param title - raw user input; normalized before acceptance.
-   * @returns the accepted title snapshot.
+   * @param expectedRevision - captured title event seq, or null before any title; omitted for unconditional acceptance.
+   * @returns the accepted snapshot; an identical user-pinned conditional rename returns the existing event without appending.
    * @throws {SessionTitleInvalidError} when the title normalizes to empty.
+   * @throws {SessionTitleRevisionConflictError} when a conditional rename would replace a changed title.
    * @throws {Error} when the session is not live or the service is disposed.
    */
-  rename(session: Session, title: string): SessionTitleSnapshot {
+  rename(session: Session, title: string, expectedRevision?: SessionSeq | null): SessionTitleSnapshot {
     this.assertServiceActive()
     if (this.ctx.sessions.get(session.id) !== session) {
       throw new Error(`session "${session.id}" is not live in this store`)
@@ -406,6 +423,13 @@ export class SessionTitleService extends Service {
     const normalized = normalizeSessionTitle(title, this.config.maxTitleBytes)
     if (normalized.length === 0) {
       throw new SessionTitleInvalidError('session title must contain visible characters')
+    }
+    if (expectedRevision !== undefined) {
+      const current = this.get(session)
+      if (current?.source.kind === 'user' && current.title === normalized) return current
+      if ((current?.eventSeq ?? null) !== expectedRevision) {
+        throw new SessionTitleRevisionConflictError('Session title changed after editing began')
+      }
     }
     const state = this.stateFor(session)
     this.supersede(state, 'user rename superseded automatic title generation')

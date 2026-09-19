@@ -28,9 +28,11 @@ import { textFace } from './face.ts'
 import { createReadPage } from './rpc.ts'
 import { createTextStore } from './store.ts'
 import { en, zh } from './locales.ts'
-import { DocumentPreviewRegistry } from './document/registry.ts'
+import { admittedDocumentPreviews } from './document/admission.ts'
+import { parseFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
+import { DocumentPreviewRegistry, matchingDocumentPreviews } from './document/registry.ts'
 import { documentTabInfoFactory } from './document/contract.ts'
-import { apply as registerText } from './text/index.ts'
+import { apply as registerText, PLAIN_BODY_ID } from './text/index.ts'
 import { apply as registerMarkdown } from './markdown/index.ts'
 import { apply as registerHtml } from './html/index.ts'
 import { apply as registerImage } from './image/index.ts'
@@ -86,29 +88,63 @@ export function apply(ctx: ClientContext): void {
   const previews = new DocumentPreviewRegistry()
   const disposePreviews = ctx.reflect.provide('documentPreviews', previews)
   ctx.effect(() => disposePreviews)
-  ctx.effect(() => ctx.sidebarRightTabs.register(textDefinition()), 'ui-sidebar-documentpreview: text type')
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-sidebar-documentpreview: dictionaries')
 
-  const store = createTextStore()
-  const face = textFace(
-    createReadPage(ctx.remote),
-    (file, signal) => ctx.remote.workspaceFiles.readAll(file.sessionId, file.path, signal),
-  )
-  const source = { getSnapshot: previews.getSnapshot, subscribe: previews.subscribe }
-  ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
-    {
-      name: 'sidebar.right.pane.tab', key: TEXTPREVIEW_ID, locale: NS, store,
-      children: {
-        'sidebar.right.tab.document': { kind: 'keyed', scope: 'session', inject: { hooks: { tabInfo: documentTabInfoFactory } } },
-      },
-      inject: (sessionId, actions): TextPreviewInjected => ({ ...face(sessionId, actions), hooks: { documentPreviews: source } }),
-    },
-    TextPreview,
-  )), 'ui-sidebar-documentpreview: text body')
-  ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register(
-    { name: 'sidebar.right.pane.tab.title', key: TEXTPREVIEW_ID },
-    TextTitle,
-  )), 'ui-sidebar-documentpreview: text title')
+  ctx.effect(() => {
+    let host: typeof ctx.remote.$host | undefined
+    let remove: (() => void) | undefined
+    const refresh = (): void => {
+      const next = ctx.remote.$host
+      if (next === host) return
+      host = next
+      remove?.()
+      remove = undefined
+      if (next.capabilities?.includes('workspace-files.stat.v1') !== true
+        || !next.capabilities.includes('workspace-files.read-text.v1') && !next.capabilities.includes('workspace-files.read-all.v1')) return
+      const capabilities = next.capabilities
+      const lifetime = new AbortController()
+      const dispose = ctx.effect(function* () {
+        yield () => { lifetime.abort() }
+        const store = createTextStore()
+        const face = textFace(
+          createReadPage(ctx.remote),
+          (file, signal) => ctx.remote.workspaceFiles.readAll(file.sessionId, file.path, signal),
+          lifetime.signal,
+        )
+        const source = admittedDocumentPreviews(previews, capabilities)
+        yield ctx.sidebarRightTabs.register({
+          ...textDefinition(),
+          subscribeAvailability: listener => source.subscribe(listener),
+          canOpen(address) {
+            if (lifetime.signal.aborted || ctx.remote.$host !== next) return false
+            const file = parseFileAddress(address)
+            if (file?.scope !== 'session') return false
+            const definitions = source.getSnapshot()
+            return definitions.some(item => item.id === PLAIN_BODY_ID) || matchingDocumentPreviews(definitions, file.path).length > 0
+          },
+        })
+        yield ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
+          {
+            name: 'sidebar.right.pane.tab', key: TEXTPREVIEW_ID, locale: NS, store,
+            children: {
+              'sidebar.right.tab.document': { kind: 'keyed', scope: 'session', inject: { hooks: { tabInfo: documentTabInfoFactory } } },
+            },
+            inject: (sessionId, actions): TextPreviewInjected => ({ ...face(sessionId, actions), hooks: { documentPreviews: source } }),
+          },
+          TextPreview,
+        ))
+        yield ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register(
+          { name: 'sidebar.right.pane.tab.title', key: TEXTPREVIEW_ID },
+          TextTitle,
+        ))
+
+      }, 'ui-sidebar-documentpreview: admitted Host entries')
+      remove = () => { lifetime.abort(); void dispose() }
+    }
+    refresh()
+    const stop = ctx.on('connection/reset', refresh)
+    return () => { stop(); remove?.() }
+  }, 'ui-sidebar-documentpreview: Host lifecycle')
   registerText(ctx)
   registerMarkdown(ctx)
   registerHtml(ctx)

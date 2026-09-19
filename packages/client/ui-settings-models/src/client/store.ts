@@ -90,7 +90,9 @@ export interface ProviderRow {
 
 /** Page snapshot. */
 export interface ModelsSettingsState {
-  status: 'idle' | 'loading' | 'ready' | 'error'
+  status: 'idle' | 'loading' | 'ready' | 'error' | 'unavailable'
+  /** Changes when the Host identity snapshot is replaced; editors discard their previous drafts. */
+  connectionGeneration: number
   /** Whole-load failure text; row-level write failures stay in the editor. */
   error: string | null
   /** Credential enrichment failure; provider/settings rows remain usable. */
@@ -151,11 +153,12 @@ function apiKeyEnvOf(
 export class ModelsSettingsStore {
   /** The snapshot the section renders from (uSES-safe store). */
   readonly store: SnapshotStore<ModelsSettingsState> = createSnapshotStore<ModelsSettingsState>({
-    status: 'idle', error: null, credentialError: null, writable: false, rows: [], namespaces: new Map(),
+    status: 'idle', connectionGeneration: 0, error: null, credentialError: null, writable: false, rows: [], namespaces: new Map(),
   })
 
   /** Latest load wins; an older response never overwrites a newer one. */
   private generation = 0
+  private host: ClientContext['remote']['$host'] | undefined
 
   /**
    * @param ctx - the page plugin's context, whose `remote.llm` and
@@ -179,12 +182,23 @@ export class ModelsSettingsStore {
    */
   async load(): Promise<void> {
     const generation = ++this.generation
+    const host = this.ctx.remote.$host
+    if (host !== this.host) {
+      this.host = host
+      this.store.set({ status: 'loading', connectionGeneration: this.store.getSnapshot().connectionGeneration + 1,
+        error: null, credentialError: null, writable: false, rows: [], namespaces: new Map() })
+    }
+    if (host.capabilities?.includes('llm.providers.v1') !== true || !host.capabilities.includes('settings.read.v1')) {
+      this.store.update((s) => { s.status = host.capabilities === undefined ? 'loading' : 'unavailable' })
+      return
+    }
     this.store.update((s) => { s.status = 'loading'; s.error = null })
     const [registered, declared] = await Promise.all([
       this.ctx.remote.llm.listProviders(),
       this.ctx.remote.llm.listConfigurableProviders(),
       this.describeFace.ensure(),
     ])
+    if (generation !== this.generation || host !== this.ctx.remote.$host) return
     if (!registered.ok) { this.failLoad(generation, registered.error.message); return }
     if (!declared.ok) { this.failLoad(generation, declared.error.message); return }
     const mirrored = this.describeFace.getSnapshot()
@@ -215,15 +229,16 @@ export class ModelsSettingsStore {
     const refs = [...new Set(rows.map(row => row.apiKeyEnv ?? deriveKeyRef(row.entry.provider)))]
     let credentials: Record<string, CredentialInfo> = {}
     let credentialError: string | null = null
-    if (refs.length > 0) {
+    if (refs.length > 0 && host.capabilities.includes('credentials.describe.v1')) {
       const response = await this.ctx.remote.credentials.describe(refs)
       // Credential state is an enrichment for the Models page: a failure
       // degrades the badge instead of failing the load. The onboarding
       // projection below retains the failure distinction.
-      if (response.ok) credentials = response.value
+      if (response.ok) credentials = Object.fromEntries(Object.entries(response.value).map(([ref, info]) =>
+        [ref, { ...info, writable: info.writable && host.capabilities?.includes('credentials.write.v1') === true }]))
       else credentialError = response.error.message
     }
-    if (generation !== this.generation) return
+    if (generation !== this.generation || host !== this.ctx.remote.$host) return
     this.store.update((s) => {
       s.status = 'ready'
       s.error = null
@@ -298,7 +313,7 @@ export function onboardingReadiness(state: ModelsSettingsState): OnboardingReadi
   if ((state.status === 'idle' || state.status === 'loading') && state.rows.length === 0) {
     return { kind: 'loading' }
   }
-  if (state.status === 'error') {
+  if (state.status === 'error' || state.status === 'unavailable') {
     return {
       kind: 'unavailable',
       reason: 'load-failed',

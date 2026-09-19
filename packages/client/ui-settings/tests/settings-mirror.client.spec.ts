@@ -18,7 +18,7 @@ function rejected<T>(message: string): Answer<T> {
 
 /** The providing plugin's context, scripted down to the one method the mirror calls. */
 function ctxWith(describeCall: unknown) {
-  return { remote: { settings: { describe: describeCall } } } as never
+  return { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1'] }, settings: { describe: describeCall } } } as never
 }
 
 function view(ns: string, revision = 0): SettingsNamespaceView {

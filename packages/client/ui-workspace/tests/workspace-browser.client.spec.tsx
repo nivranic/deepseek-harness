@@ -73,6 +73,13 @@ function dragData(): Pick<DataTransfer, 'effectAllowed' | 'dropEffect' | 'setDat
   return { effectAllowed: 'uninitialized', dropEffect: 'none', setData: vi.fn() }
 }
 
+const HOST_FACTS_0 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_1 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_2 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_3 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_4 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_5 = { home: '/home/u', isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+
 function mount(overrides: Partial<WorkspaceBrowserProps> = {}) {
   const store = createWorkspaceViewStore().create()
   const props: WorkspaceBrowserProps = {
@@ -88,7 +95,7 @@ function mount(overrides: Partial<WorkspaceBrowserProps> = {}) {
     open: vi.fn(),
     searchSessions: vi.fn(async () => ({ items: [], hasMore: false })),
     searchResultLimit: 20,
-    renameSession: vi.fn(async () => {}),
+    prepareSessionRename: vi.fn(() => vi.fn(async () => {})),
     forkSession: vi.fn(),
     renameWorkspace: vi.fn(async () => {}),
     deleteWorkspace: vi.fn(async () => {}),
@@ -97,7 +104,7 @@ function mount(overrides: Partial<WorkspaceBrowserProps> = {}) {
     insertSessionBefore: vi.fn(async () => {}),
     createWorkspace: vi.fn(async () => workspace('created', [])),
     useDirectoryFlow: bindSnapshotSelector({ getSnapshot: () => true, subscribe: () => () => {} }),
-    useHostInfo: selector => selector({ home: undefined, isLoopback: true }),
+    useHostInfo: selector => selector(HOST_FACTS_0),
     renderSlot: ((_name: string, owner: { open: boolean }) => (owner.open ? <div data-testid="directory-flow" /> : null)) as never,
     t,
     ...overrides,
@@ -112,7 +119,82 @@ function rerender(b: ReturnType<typeof mount>, overrides: Partial<WorkspaceBrows
   b.view.rerender(<WorkspaceBrowser {...b.props} />)
 }
 
+it('keeps read-only Workspace navigation while withdrawing registry and archive controls', () => {
+  const b = mount({
+    useSessions: hook(sessionState([summary('kept', 1)])),
+    useWorkspaces: hook(workspaceState([workspace('alpha', ['kept'])])),
+  })
+  fireEvent.click(screen.getByText('alpha'))
+  const readOnly = { ...HOST_FACTS_0, capabilities: ['workspace.follow.v1'] }
+  rerender(b, { useHostInfo: hook(readOnly) })
+  expect(screen.queryByRole('button', { name: '工作区“alpha”的操作' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '会话“kept”的操作' })).toBeNull()
+  expect(screen.getByText('alpha').closest('[role="treeitem"]')?.getAttribute('draggable')).not.toBe('true')
+  expect(screen.getByText('kept').closest('[role="treeitem"]')?.getAttribute('draggable')).not.toBe('true')
+  fireEvent.click(screen.getByText('kept'))
+  expect(b.props.open).toHaveBeenCalledWith(sid('kept'))
+  const sessionManage = { ...readOnly, capabilities: ['workspace.follow.v1', 'session.manage.v1'] }
+  rerender(b, { useHostInfo: hook(sessionManage) })
+  fireEvent.click(screen.getByRole('button', { name: '会话“kept”的操作' }))
+  expect(screen.queryByRole('menuitem', { name: '归档会话' })).toBeNull()
+  expect(screen.getByRole('menuitem', { name: '重命名' })).toBeTruthy()
+  rerender(b, { useHostInfo: hook(HOST_FACTS_0) })
+  expect(screen.getByRole('button', { name: '工作区“alpha”的操作' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '会话“kept”的操作' }))
+  expect(screen.getByRole('menuitem', { name: '归档会话' })).toBeTruthy()
+})
+
+it('preserves saved Workspace view preferences while follow is unavailable', () => {
+  const b = mount({ useWorkspaces: hook(workspaceState([workspace('saved', [])])) })
+  act(() => { b.store.actions.setGroupExpanded('saved', true) })
+  rerender(b, { useWorkspaces: hook({ ...workspaceState([]), state: 'unavailable' }) })
+  expect(b.store.getSnapshot().groupExpansion.saved).toBe(true)
+})
+
 describe('WorkspaceBrowser', () => {
+  it.each(['workspace', 'flat'] as const)('withdraws management from an open menu and restores it in %s view', (mode) => {
+    const b = mount({
+      useSessions: hook(sessionState([summary('kept-s', 1)])),
+      useWorkspaces: hook(workspaceState([workspace('alpha', ['kept-s'])])),
+    })
+    if (mode === 'flat') act(() => { b.store.actions.setGroupBy('flat') })
+    else fireEvent.click(screen.getByText('alpha'))
+    fireEvent.click(screen.getByRole('button', { name: '会话“kept-s”的操作' }))
+    expect(screen.getByRole('menuitem', { name: '分叉会话' })).toBeTruthy()
+    rerender(b, { useHostInfo: selector => selector(HOST_FACTS_1) })
+    expect(screen.queryByRole('menuitem', { name: '分叉会话' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '在“alpha”中新建会话' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '会话“kept-s”的操作' }))
+    expect(screen.queryByRole('menuitem', { name: '重命名' })).toBeNull()
+    expect(screen.queryByRole('menuitem', { name: '分叉会话' })).toBeNull()
+    fireEvent.click(screen.getByRole('menuitem', { name: '归档会话' }))
+    expect(b.props.archiveSession).toHaveBeenCalledWith(sid('kept-s'))
+    rerender(b, {
+      useHostInfo: selector => selector(HOST_FACTS_2),
+    })
+    fireEvent.click(screen.getByRole('button', { name: '会话“kept-s”的操作' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: '分叉会话' }))
+    expect(b.props.forkSession).toHaveBeenCalledWith(sid('kept-s'))
+  })
+
+  it('dismisses a rename dialog on capability loss without reopening it after recovery', () => {
+    const b = mount({
+      useSessions: hook(sessionState([summary('kept-s', 1)])),
+      useWorkspaces: hook(workspaceState([workspace('alpha', ['kept-s'])])),
+    })
+    fireEvent.click(screen.getByText('alpha'))
+    fireEvent.click(screen.getByRole('button', { name: '会话“kept-s”的操作' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: '重命名' }))
+    expect(screen.getByRole('dialog', { name: '重命名会话' })).toBeTruthy()
+    rerender(b, { useHostInfo: selector => selector(HOST_FACTS_3) })
+    expect(screen.queryByRole('dialog', { name: '重命名会话' })).toBeNull()
+    expect(vi.mocked(b.props.prepareSessionRename).mock.results[0]!.value).not.toHaveBeenCalled()
+    rerender(b, {
+      useHostInfo: selector => selector(HOST_FACTS_4),
+    })
+    expect(screen.queryByRole('dialog', { name: '重命名会话' })).toBeNull()
+  })
+
   it('moves focus into Workspace controls without selecting a Session while a main panel is active', () => {
     const panelInfo = { activePanelId: 'panel-a' as MainPanelId }
     const b = mount({
@@ -146,7 +228,7 @@ describe('WorkspaceBrowser', () => {
           path: '/home/u/Documents/project',
           title: 'Project',
         }])),
-        useHostInfo: selector => selector({ home: '/home/u', isLoopback: true }),
+        useHostInfo: selector => selector(HOST_FACTS_5),
       })
       fireEvent.pointerEnter(screen.getByRole('treeitem').parentElement as HTMLElement)
       act(() => { vi.advanceTimersByTime(500) })
@@ -928,6 +1010,83 @@ describe('WorkspaceBrowser', () => {
       expect(screen.getByText('Needle title')).toBeTruthy()
       expect(screen.getByText('内容搜索暂不可用，仅显示名称匹配。')).toBeTruthy()
       expect(screen.queryByText('无匹配会话')).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps title matches without dispatching content search when its capability is absent', async () => {
+    vi.useFakeTimers()
+    try {
+      const searchSessions = vi.fn(async () => ({ items: [], hasMore: false }))
+      const unavailable = { ...HOST_FACTS_0, capabilities: ['session.manage.v1'] }
+      mount({
+        useHostInfo: hook(unavailable), searchSessions,
+        useSessions: hook(sessionState([summary('local', 1, { displayTitle: 'Needle title' })])),
+      })
+      fireEvent.change(screen.getByPlaceholderText('搜索会话…'), { target: { value: 'needle' } })
+      await act(async () => { await vi.advanceTimersByTimeAsync(500) })
+      expect(searchSessions).not.toHaveBeenCalled()
+      expect(screen.getByText('Needle title')).toBeTruthy()
+      expect(screen.getByText('内容搜索暂不可用，仅显示名称匹配。')).toBeTruthy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it.each(['resolve', 'reject'] as const)('withdraws a search generation and ignores its late %s', async (settlement) => {
+    vi.useFakeTimers()
+    try {
+      const pending = Promise.withResolvers<{ items: { sessionId: SessionId; snippet: string }[]; hasMore: boolean }>()
+      const searchSessions = vi.fn((_query: string, _signal: AbortSignal) => pending.promise)
+      const b = mount({
+        searchSessions,
+        useSessions: hook(sessionState([summary('old-hit', 1, { displayTitle: 'Old result' })])),
+      })
+      const input = screen.getByPlaceholderText<HTMLInputElement>('搜索会话…')
+      fireEvent.change(input, { target: { value: 'needle' } })
+      await act(async () => { await vi.advanceTimersByTimeAsync(250) })
+      const signal = searchSessions.mock.calls[0]![1]
+      rerender(b, { useHostInfo: hook({ home: undefined, isLoopback: true }) })
+      expect(signal.aborted).toBe(true)
+      await act(async () => {
+        if (settlement === 'resolve') pending.resolve({ items: [{ sessionId: sid('old-hit'), snippet: 'needle stale' }], hasMore: false })
+        else pending.reject(new Error('late failure'))
+        await vi.advanceTimersByTimeAsync(500)
+      })
+      expect(searchSessions).toHaveBeenCalledOnce()
+      expect(screen.queryByText('Old result')).toBeNull()
+      expect(input.value).toBe('needle')
+      expect(screen.getByText('内容搜索暂不可用，仅显示名称匹配。')).toBeTruthy()
+
+      searchSessions.mockImplementation(async () => ({ items: [{ sessionId: sid('old-hit'), snippet: 'needle current' }], hasMore: false }))
+      rerender(b, { useHostInfo: hook({ ...HOST_FACTS_0 }) })
+      await act(async () => { await vi.advanceTimersByTimeAsync(250) })
+      expect(searchSessions).toHaveBeenCalledTimes(2)
+      expect(screen.getByText('Old result')).toBeTruthy()
+      expect(screen.queryByText('内容搜索暂不可用，仅显示名称匹配。')).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('clears completed content hits when an equally capable Host replaces the generation', async () => {
+    vi.useFakeTimers()
+    try {
+      const pending = Promise.withResolvers<{ items: { sessionId: SessionId; snippet: string }[]; hasMore: boolean }>()
+      const searchSessions = vi.fn(async () => ({ items: [{ sessionId: sid('old-hit'), snippet: 'needle' }], hasMore: false }))
+      const b = mount({ searchSessions, useSessions: hook(sessionState([summary('old-hit', 1, { displayTitle: 'Old result' })])) })
+      fireEvent.change(screen.getByPlaceholderText('搜索会话…'), { target: { value: 'needle' } })
+      await act(async () => { await vi.advanceTimersByTimeAsync(250) })
+      expect(screen.getByText('Old result')).toBeTruthy()
+      searchSessions.mockImplementation(() => pending.promise)
+      rerender(b, { useHostInfo: hook({ ...HOST_FACTS_0 }) })
+      expect(screen.queryByText('Old result')).toBeNull()
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250)
+        pending.resolve({ items: [], hasMore: false })
+      })
+      expect(searchSessions).toHaveBeenCalledTimes(2)
     } finally {
       vi.useRealTimers()
     }

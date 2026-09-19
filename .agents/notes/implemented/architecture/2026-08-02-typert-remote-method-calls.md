@@ -529,3 +529,5 @@ Remote endpoints use Connection's `trusted-host` authority. Loopback is accepted
 Cancellation-aware Remote signatures receive Connection's request `AbortSignal`, so an HTTP disconnect or Client-side abort reaches ongoing business work without entering the JSON protocol. Cancellation remains cooperative: methods without the reserved final parameter continue running, and a method that receives the signal must pass it to its own cancellable operations or observe it directly.
 
 Lookup configuration currently operates at key granularity, so every `agent` or `session` parameter uses the same cold-resume policy. A specific Remote that requires live-only semantics must wait for an explicit per-parameter or per-endpoint policy; the business implementation cannot be left to guess whether the object was just resumed.
+
+Explicit live capability availability is defined by the [Host discovery decision](2026-09-16-host-description-and-capabilities.md).

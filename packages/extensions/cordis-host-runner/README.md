@@ -27,6 +27,8 @@ English | [中文](README.zh.md)
 
 Mount this plugin in any composition that should support dynamic packages — it powers the model's `cordis_*` tools, and packages with a browser half additionally need the client runner plus the UI package composed on the client side. The common path is explicit: load this package, optionally set `vmTimeoutMs`, and let the tools and the browser do the rest.
 
+The Remote contribution declares independent `dynamic-cordis.*.v1` capabilities for inventory, Host activation, Client source, model-request resolution, user-run settlement, Stop, Undefine, inspect manifest and response, render and guard reports, and invocation. Client admission checks the exact operation declaration before dispatch. These declarations preserve Session ownership, exact activation checks and human approval; they do not authorize execution or make a mutation safe to replay.
+
 ### Minimal configuration
 
 ```yaml

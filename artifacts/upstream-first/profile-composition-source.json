@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T16:16:25.798Z",
+  "scope": "Source-only shipped CLI/Desktop composition and Host/preset validation through the existing Cordis gate; no runtime or vendor changes",
+  "sourceFiles": [
+    {
+      "path": "scripts/verify-cordis-config.ts",
+      "sha256": "4f6a62ce0368131e47d71b2a7e0dfa19cf780fbde0a29f40ff57f3cb9544ff2a",
+      "bytes": 22687
+    },
+    {
+      "path": "scripts/verify-profile-compositions.ts",
+      "sha256": "200ffe53886d9e7e364389158f54ded5778e61c600324fc5a649ee1cf15887ea",
+      "bytes": 7150
+    },
+    {
+      "path": "scripts/verify-cordis-config.spec.ts",
+      "sha256": "4f74fcc5b78e367741a90746b2908536b3c0399b0526cbba5d3ce987e3ae688a",
+      "bytes": 16167
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-shipped-profile-composition-check.md",
+      "sha256": "40ac23eda3cfd6b6964d38d35f3235984b52baf14d0580e33e3d9abe7a300206",
+      "bytes": 3549
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-shipped-profile-composition-check.zh.md",
+      "sha256": "acd8e52011c194b29b8927d187fe750fe59bd8a4058c2bd65e468cb389691d45",
+      "bytes": 3139
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-shipped-profile-composition-check.i18n.yaml",
+      "sha256": "45625647a20e10cda9bd915724c0cab0e764a6591454fdfc79089ff376c198b1",
+      "bytes": 557
+    }
+  ],
+  "consumerSources": [
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "29a4224ab083e7c6378d6b67f9c0dc65c1642a1ac84efab8d9f07eb736241922",
+      "bytes": 39156
+    },
+    {
+      "path": "packages/boot/app-boot/src/index.ts",
+      "sha256": "5f4779b84959013b23d78047be708048d89513f865dc52cb5f94b14fe3ecbb31",
+      "bytes": 41020
+    },
+    {
+      "path": "apps/desktop/src/project-manager.ts",
+      "sha256": "ba5da1f39879460879bc210c3d6d40bc4c591973e872a6d3857e1276a393ca46",
+      "bytes": 26559
+    },
+    {
+      "path": "apps/desktop-host/src/index.ts",
+      "sha256": "e0f20d4ab6335ced1db26aa62f95ba685502012eafcd44fcf20bd035fbab5208",
+      "bytes": 23146
+    },
+    {
+      "path": "apps/desktop-host/config/desktop.cordis.patch.yml",
+      "sha256": "28b57c998d65fa7f028a2db097e0f19ac79c8f5525ccfa7cc6ad8b886442f852",
+      "bytes": 611
+    },
+    {
+      "path": "vendor/include/src/index.ts",
+      "sha256": "a852fd54499b8766c9d7480baab8f09e9297b520ba5fdc8ad57a11d43aa6260d",
+      "bytes": 12642
+    },
+    {
+      "path": "vendor/loader/src/config/group.ts",
+      "sha256": "a3079629f907745ddc1e0f2520b66d57711053b4d3715ee8b5983954a6908168",
+      "bytes": 4184
+    },
+    {
+      "path": "vendor/loader/src/config/tree.ts",
+      "sha256": "5be2d9c3f2581f6c714380216f6ffd8171a0cbe0405adbaf13c9563ffae0ada9",
+      "bytes": 5508
+    },
+    {
+      "path": "scripts/cordis-yaml.ts",
+      "sha256": "b94b1388d2da9b46ccdd8424a2ca4fd2323ffdb2f092e0d84dcf4479130c0e67",
+      "bytes": 1827
+    },
+    {
+      "path": "scripts/run-gates.ts",
+      "sha256": "79d1564a04f7b84a72c0f39e19732c8bb0d269100e6af9b5548e1990227a5b90",
+      "bytes": 66493
+    },
+    {
+      "path": "package.json",
+      "sha256": "766b5a990aca5d203457c11937f543256725d4a11487a85df5976c2e55a8e967",
+      "bytes": 14072
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/profile-composition-entry-before.json",
+      "sha256": "86d492f8a90c3b9ea875b5120fd710b9e83dc2c14ec7b5f7749393b495c84a54",
+      "bytes": 314
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-entry-after.json",
+      "sha256": "cd9c26fea45ceb4565faf4883f3599417b263d82aaac9591b8cf71355cea104d",
+      "bytes": 314
+    },
+    {
+      "path": "artifacts/upstream-first/preset-plane-entry-before.json",
+      "sha256": "c8b2b250791c9f057e19efad852102cc95ff3be48fe67fbc09f7766adfc52cf1",
+      "bytes": 338
+    },
+    {
+      "path": "artifacts/upstream-first/preset-plane-entry-after.json",
+      "sha256": "0eba0da6e6192c3d6f546acd83510dba66f38269999f4e19c77be9d81282f2e1",
+      "bytes": 338
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-entry-valid.json",
+      "sha256": "1e3e278db6a6fa03ffb613dff6cd05116ce192bf4863f4434039f95f9d96717d",
+      "bytes": 341
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-entry-after-reviewed.json",
+      "sha256": "91a6bfaba98d463a040e517272b16c9bc40b5e343f0796ec930c2d067bb17244",
+      "bytes": 664
+    },
+    {
+      "path": "artifacts/upstream-first/preset-plane-entry-after-reviewed.json",
+      "sha256": "76803fa222e646f0dc1bd8be33c00edf32995cd388ca559a29215d2bb5e1c868",
+      "bytes": 661
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-entry-valid-reviewed.json",
+      "sha256": "643a066195930acc75110dfdb348b8403d7d129dda27fccaa6828f4aa698a5f0",
+      "bytes": 664
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/profile-composition-entry-probe.mjs",
+      "sha256": "dee3e040b091ff25d527050c1ad3e41fdf59fdb9e8264fb586ff22bf8a327723",
+      "bytes": 3356
+    },
+    {
+      "path": ".artifacts/capture-profile-composition.mjs",
+      "sha256": "6af91bf5b3359f931766a4c8b483e09337e18173e7eb22165d9b12e94481d539",
+      "bytes": 5814
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/profile-composition-baseline-gate.log",
+      "sha256": "0253d0099626c07ab4bdd3dd36c548fd54a50ac4469d2b6d87b47d06c6f596d1",
+      "bytes": 240
+    },
+    {
+      "path": ".artifacts/profile-composition-entry-before.log",
+      "sha256": "7f8cccc70a30d8f66c3f20b6f0eed8b250d97cf12c4d4dbfb16e868f7ebd8a3c",
+      "bytes": 47
+    },
+    {
+      "path": ".artifacts/profile-composition-entry-after.log",
+      "sha256": "2167492a7cbfeae742fe331502b8062ff8d4dae183063314ad91e04709a5ea8c",
+      "bytes": 140
+    },
+    {
+      "path": ".artifacts/preset-plane-entry-before.log",
+      "sha256": "7f8cccc70a30d8f66c3f20b6f0eed8b250d97cf12c4d4dbfb16e868f7ebd8a3c",
+      "bytes": 47
+    },
+    {
+      "path": ".artifacts/preset-plane-entry-after.log",
+      "sha256": "34c4beca7823458f278fdfc987b4b6d24f22f546edbbde9a57c8f333d9d3e26f",
+      "bytes": 603
+    },
+    {
+      "path": ".artifacts/profile-composition-entry-valid.log",
+      "sha256": "7f8cccc70a30d8f66c3f20b6f0eed8b250d97cf12c4d4dbfb16e868f7ebd8a3c",
+      "bytes": 47
+    },
+    {
+      "path": ".artifacts/profile-composition-entry-after-reviewed.log",
+      "sha256": "2167492a7cbfeae742fe331502b8062ff8d4dae183063314ad91e04709a5ea8c",
+      "bytes": 140
+    },
+    {
+      "path": ".artifacts/preset-plane-entry-after-reviewed.log",
+      "sha256": "34c4beca7823458f278fdfc987b4b6d24f22f546edbbde9a57c8f333d9d3e26f",
+      "bytes": 603
+    },
+    {
+      "path": ".artifacts/profile-composition-entry-valid-reviewed.log",
+      "sha256": "7f8cccc70a30d8f66c3f20b6f0eed8b250d97cf12c4d4dbfb16e868f7ebd8a3c",
+      "bytes": 47
+    },
+    {
+      "path": ".artifacts/profile-composition-tests.log",
+      "sha256": "d7d6275e2ad89291d04e9493cdfc4a79de68c60e03eba1b0129ebdde0a788fac",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/profile-composition-tests-final.log",
+      "sha256": "013334eb555a43951aff39c35d0a71766f61b22eb879f931d76813bd8b0805dd",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/profile-composition-tests-reviewed.log",
+      "sha256": "d30ba7205c747f2a42a4fc0d704e68e02ccbb3dd9fb47fe19b86a8bfb40519bd",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/profile-composition-focused-lint.log",
+      "sha256": "e560322c2433ec37eb0aa7ed2916b00076c9474d0e0ea53f5fce8dfd81ab3d50",
+      "bytes": 1124
+    },
+    {
+      "path": ".artifacts/profile-composition-focused-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/profile-composition-pairing.log",
+      "sha256": "5c457dd3694e0644f30863bd131b8d9f37dbcb65bfac5894a8bc9ec3227723c6",
+      "bytes": 353
+    },
+    {
+      "path": ".artifacts/profile-composition-doc-sync.log",
+      "sha256": "07438aca7a215898a37872c92ff43c922a7adeb134b113aa68be341e7b82d735",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/profile-composition-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/profile-composition-unmodified-checkout-final.log",
+      "sha256": "0253d0099626c07ab4bdd3dd36c548fd54a50ac4469d2b6d87b47d06c6f596d1",
+      "bytes": 240
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/fixture-observation-source.json",
+      "sha256": "5fe3c169b2b06aac89cb7370d7e0bd7cabe8f07a1e774d067db27e134b51c25c",
+      "bytes": 9216
+    },
+    {
+      "path": "artifacts/upstream-first/picker-source.json",
+      "sha256": "aae67546f7a02662ab38f492a3e102c328b347e5a2f12dd8650e315ebbbc826e",
+      "bytes": 13012
+    }
+  ],
+  "checkoutLimitation": {
+    "status": "FAIL",
+    "file": {
+      "path": "apps/cli/tests/profiles/acp/cordis.yml",
+      "sha256": "e66c4cb7a6f5869ab070c7784114815b12e8366ed2a401d969312892aa39a3be",
+      "bytes": 59
+    },
+    "gitMode": "120000",
+    "actualSymbolicLink": false,
+    "target": {
+      "path": "snapshots/acp/escalation-approved/cordis.yml",
+      "sha256": "c4508abc382e57718e138affbbabd100bbcd556b92aece4e27cea4412da30675",
+      "bytes": 3123
+    },
+    "detail": "Windows checkout contains the Git link target text. The unmodified final Cordis gate rejects it. The probe materializes only this verified in-repository target and restores its exact original bytes; this is fixture validation, not a repaired checkout."
+  },
+  "checks": [
+    {
+      "id": "profile-composition-source-tests",
+      "status": "PASS",
+      "tests": 34,
+      "command": "pnpm exec vitest run scripts/verify-cordis-config.spec.ts",
+      "log": ".artifacts/profile-composition-tests-reviewed.log"
+    },
+    {
+      "id": "profile-composition-real-gate-controls",
+      "status": "PASS",
+      "rejected": 2,
+      "validConfigs": 155,
+      "detail": "Final source hashes are recorded in reviewed receipts. The command rejects duplicate headless-runner and Desktop re-enabling command-goal; the valid fixture passes. The earlier before controls are historical diagnostic evidence."
+    },
+    {
+      "id": "profile-composition-unmodified-checkout",
+      "status": "FAIL",
+      "command": "pnpm run verify-cordis-config",
+      "log": ".artifacts/profile-composition-unmodified-checkout-final.log",
+      "detail": "ACP Git symlink is materialized as text on this Windows checkout."
+    },
+    {
+      "id": "profile-composition-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/profile-composition-doc-sync.log"
+    },
+    {
+      "id": "profile-composition-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/profile-composition-full-lint.log"
+    }
+  ],
+  "exclusions": [
+    "No product startup, installation, real-model, external CLI or cross-platform qualification",
+    "No user-installed profile validation and no execution of plugin expressions",
+    "No changes to Loader semantics, profile data, system symlink policy, permissions or historical receipts"
+  ]
+}

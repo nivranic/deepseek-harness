@@ -22,6 +22,8 @@ import { apply as applyLocale, inject as localeInject } from '@deepseek-ai/dsh-c
 import type { ChatFileMentions, TurnTailOwnerProps } from '@deepseek-ai/dsh-client-ui-chat/client'
 import { makeTranslate, stubSettingsScope } from '@deepseek-ai/dsh-client-test-runtime'
 import { Deliverables, selectDeliverables, type DeliverablesInjected } from '../src/client/Deliverables.tsx'
+import { nativeFileRemote } from './native-file-fixture.client.ts'
+import { presentedFileKey } from '../src/presented.ts'
 import { PresentedOpenController } from '../src/client/present-open.ts'
 import { ProducedFiles } from '../src/client/ProducedFiles.tsx'
 import {
@@ -33,8 +35,8 @@ import { en, zh } from '../src/client/locales.ts'
 import { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { SessionEvent } from '@deepseek-ai/dsh-session/types'
 
-function openProps(controller = new PresentedOpenController()) {
-  controller.host.set({ name: 'desktop', available: true, fileManager: 'finder' })
+function openProps(controller = new PresentedOpenController(nativeFileRemote().remote)) {
+  controller.host.set({ name: 'desktop', available: true, fileManager: 'finder', actions: ['open', 'reveal'] })
   const sessions: SessionListState = { ids: [], byId: {}, current: undefined, phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined }
   return {
     useSessions: <T,>(select: (state: SessionListState) => T): T => select(sessions),
@@ -98,7 +100,7 @@ function tailOwner(
   openFile: (path: string) => void = () => {},
   turn = 1,
 ): TurnTailOwnerProps {
-  return { seq, openFile, turn: turnLocation(turn, data) }
+  return { seq, openFile, canOpenFile: () => true, turn: turnLocation(turn, data) }
 }
 
 interface TimelineSnapshot {
@@ -425,13 +427,31 @@ describe('produced-file Turn data', () => {
 })
 
 describe('ProducedFiles row', () => {
+  it('keeps unavailable files visible and refuses retained handlers before the next render', () => {
+    const canOpenFile = vi.fn(() => true)
+    const openFile = vi.fn()
+    const props = { matched: ['note.md'], openFile, canOpenFile, t: makeTranslate(en) }
+    const view = render(<ProducedFiles {...props} />)
+    const button = view.getByRole('button')
+    canOpenFile.mockReturnValue(false)
+    fireEvent.click(button)
+    expect(openFile).not.toHaveBeenCalled()
+    view.rerender(<ProducedFiles {...props} />)
+    expect(view.queryByRole('button')).toBeNull()
+    expect(view.getByText('note.md')).toBeTruthy()
+    canOpenFile.mockReturnValue(true)
+    view.rerender(<ProducedFiles {...props} />)
+    fireEvent.click(view.getByRole('button'))
+    expect(openFile).toHaveBeenCalledWith('note.md')
+  })
+
   const t = makeTranslate(zh)
 
   it('renders the bounded chips and opens the file it was clicked for', () => {
     const paths = ['deep/a.html', 'b.css', 'c.ts', 'd.ts', 'e.ts', 'f.ts', 'g.ts', 'h.ts']
     const openFile = vi.fn<(path: string) => void>()
 
-    const view = render(<ProducedFiles matched={paths} openFile={openFile} t={t} />)
+    const view = render(<ProducedFiles canOpenFile={() => true} matched={paths} openFile={openFile} t={t} />)
     expect(view.getByText('本轮文件改动')).toBeTruthy()
     const row = view.container.querySelector('[data-produced-files-row]')
     if (!(row instanceof HTMLElement)) throw new Error('produced row missing')
@@ -448,7 +468,7 @@ describe('ProducedFiles row', () => {
   })
 
   it('renders a remainder counter after every chip but the last when every file fits', () => {
-    const view = render(<ProducedFiles matched={['a.md', 'b.md', 'c.md']} openFile={() => {}} t={t} />)
+    const view = render(<ProducedFiles canOpenFile={() => true} matched={['a.md', 'b.md', 'c.md']} openFile={() => {}} t={t} />)
     const row = view.container.querySelector('[data-produced-files-row]')
     if (!(row instanceof HTMLElement)) throw new Error('produced row missing')
     expect(within(row).getAllByRole('button')).toHaveLength(3)
@@ -459,7 +479,7 @@ describe('ProducedFiles row', () => {
   it('offers no folder action, because a directory has no preview to open', () => {
     const openFile = vi.fn<(path: string) => void>()
     const overflowing = ['a.md', 'b.md', 'c.md', 'd.md', 'e.md', 'f.md', 'g.md']
-    const view = render(<ProducedFiles matched={overflowing} openFile={openFile} t={t} />)
+    const view = render(<ProducedFiles canOpenFile={() => true} matched={overflowing} openFile={openFile} t={t} />)
     expect(view.queryByRole('button', { name: '在文件夹中显示' })).toBeNull()
     // Nothing in the row reaches the local machine any more.
     expect(openFile).not.toHaveBeenCalled()
@@ -467,7 +487,7 @@ describe('ProducedFiles row', () => {
 
   it('uses singular English copy when exactly one file is hidden', () => {
     const view = render(
-      <ProducedFiles
+      <ProducedFiles canOpenFile={() => true}
         matched={['a.md', 'b.md', 'c.md', 'd.md', 'e.md', 'f.md', 'g.md']}
         openFile={() => {}}
         t={makeTranslate(en)}
@@ -480,6 +500,20 @@ describe('ProducedFiles row', () => {
 })
 
 describe('producedFileMentions resolver', () => {
+  it('withdraws prose links and rejects resolved callbacks after the viewer disappears', () => {
+    const canOpenFile = vi.fn(() => true)
+    const openFile = vi.fn()
+    const resolver = producedFileMentions(['out/note.md'], openFile, canOpenFile, path => path)
+    const retained = resolver.resolve('note.md')!
+    canOpenFile.mockReturnValue(false)
+    expect(resolver.resolve('note.md')).toBeUndefined()
+    retained.open()
+    expect(openFile).not.toHaveBeenCalled()
+    canOpenFile.mockReturnValue(true)
+    resolver.resolve('note.md')!.open()
+    expect(openFile).toHaveBeenCalledWith('out/note.md')
+  })
+
   const label = (path: string) => `打开 ${path}`
 
   it('resolves exact paths and unique basenames; ambiguity and unknowns stay unresolved', () => {
@@ -487,6 +521,7 @@ describe('producedFileMentions resolver', () => {
     const resolver = producedFileMentions(
       ['out/index.html', 'a/style.css', 'b/style.css'],
       (path) => { opened.push(path) },
+      () => true,
       label,
     )
     // Unique basename resolves to its full path; the full path rides title.
@@ -518,14 +553,19 @@ describe('plugin registration', () => {
       children: { 'conversation.chat.turnTail': { kind: 'chain', scope: 'session' }, 'tool.call.toolview': { kind: 'keyed', scope: 'session' } },
     } as never, () => null)
     // ui-theme's Appearance row binds a durable scope through these two.
-    const session = {
-      canOpenWorkspacePath: () => Promise.resolve({ ok: true as const, value: true }),
+    const session = {}
+    const native = nativeFileRemote()
+    const listeners = new Set<() => void>()
+    const replaceHost = () => {
+      native.remote.$host = { ...native.remote.$host }
+      for (const listener of [...listeners]) listener()
     }
-    ctx.provide('remote', {
-      $on: () => () => {},
-      $host: { home: undefined, isLoopback: false },
-      session,
-    } as never)
+    ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
+    } } })
+    ctx.provide('remote', Object.assign(native.remote, { $on: () => () => {}, session }))
+    ctx.provide('remote.presentedFiles', native.remote.presentedFiles)
     ctx.provide('remote.session', session as never)
     ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
     await ctx.plugin({ inject: localeInject, apply: applyLocale }).await()
@@ -550,8 +590,6 @@ describe('plugin registration', () => {
     expect(mentions?.resolve('report.html')?.label).toBe('Open site/report.html in sidebar')
     mentions?.resolve('report.html')?.open()
     expect(opened).toEqual(['site/report.html'])
-    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
-    vi.stubGlobal('fetch', fetcher)
     const preview = vi.fn<(path: string) => void>()
     for (const produced of [[], [{ path: 'out/report.docx', seq: 1 }]]) {
       const delivered = tailOwner({ produced, presented: [{ path: 'out/report.docx', seq: 2, index: 0 }] }, 3, preview)
@@ -563,24 +601,27 @@ describe('plugin registration', () => {
       }
     }
     expect(preview.mock.calls).toEqual(Array.from({ length: 4 }, () => ['out/report.docx']))
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(native.open).not.toHaveBeenCalled()
+    expect(native.desktop).not.toHaveBeenCalled()
     const face = entry!.inject!(SessionId('child-session') as never) as unknown as DeliverablesInjected
-    fetcher.mockResolvedValueOnce(Response.json({ name: 'desktop', available: true, fileManager: 'finder' }))
     await face.reloadPresentedHost()
     expect(face.hooks.presentedHost.getSnapshot()).toMatchObject({ name: 'desktop' })
-    ctx.emit('connection/reset')
+    replaceHost()
     expect(face.hooks.presentedHost.getSnapshot()).toBeNull()
     await face.openPresented(SessionId('child-session'), 2, 0)
-    expect(face.hooks.presentedOpen.getSnapshot()['/api/present.open?sessionId=child-session&seq=2&index=0']).toBe('opened')
+    expect(native.open).not.toHaveBeenCalled()
+    await face.reloadPresentedHost()
+    await face.openPresented(SessionId('child-session'), 2, 0)
+    expect(face.hooks.presentedOpen.getSnapshot()[presentedFileKey(SessionId('child-session'), 2, 0)]).toBe('opened')
     // A turn that produced nothing yields no vocabulary at all.
     expect(service?.forClosing(tailOwner(undefined, 2), SessionId('viewed-session'))).toBeUndefined()
 
-    fetcher.mockResolvedValueOnce(Response.json({ name: 'last-host', available: true, fileManager: 'finder' }))
+    native.desktop.mockResolvedValueOnce({ ok: true, value: { name: 'last-host', available: true, fileManager: 'finder' } })
     await face.reloadPresentedHost()
     await fiber.dispose()
     const reset = vi.fn()
     const unsubscribe = face.hooks.presentedHost.subscribe(reset)
-    ctx.emit('connection/reset')
+    replaceHost()
     expect(reset).not.toHaveBeenCalled()
     unsubscribe()
     expect(ctx.slots.entries('conversation.chat.turnTail')).toHaveLength(0)
@@ -619,7 +660,7 @@ describe('presented files', () => {
     const matched = selectDeliverables(owner)!
     const props = openProps()
     props.openPresented.mockResolvedValue(undefined)
-    const view = render(<Deliverables {...props} matched={matched} openFile={owner.openFile} sessionId={SessionId('child-session')} t={makeTranslate(en)} />)
+    const view = render(<Deliverables canOpenFile={() => true} {...props} matched={matched} openFile={owner.openFile} sessionId={SessionId('child-session')} t={makeTranslate(en)} />)
     expect(view.container.querySelectorAll('[data-presented-file]')).toHaveLength(4)
     const expand = view.getByRole('button', { name: 'Show all 8 delivered files' })
     expect(expand.getAttribute('aria-expanded')).toBe('false')
@@ -657,13 +698,13 @@ it.each([{}, { turn: '1', callId: 'bad', files: [] },
   ])
   const owner = tailOwner(deliverablesOf(value), 5)
   const matched = selectDeliverables(owner)!
-  const view = render(<Deliverables {...openProps()} matched={matched} openFile={owner.openFile} sessionId={SessionId('session')} t={makeTranslate(en)} />)
+  const view = render(<Deliverables canOpenFile={() => true} {...openProps()} matched={matched} openFile={owner.openFile} sessionId={SessionId('session')} t={makeTranslate(en)} />)
   expect(view.getByText('Files changed')).toBeTruthy()
   expect(view.queryByText('Deliverables')).toBeNull()
 })
 
 it('shows descriptions and falls back to file metadata without hiding extensionless deliveries', () => {
-  const view = render(<Deliverables {...openProps()} matched={{ produced: [], presented: [
+  const view = render(<Deliverables canOpenFile={() => true} {...openProps()} matched={{ produced: [], presented: [
     { path: 'out/report.txt', description: 'Quarterly summary', seq: 2, index: 0 },
     { path: 'LICENSE', seq: 2, index: 1 },
   ] }} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
@@ -676,7 +717,7 @@ it('shows descriptions and falls back to file metadata without hiding extensionl
 it('marks delivery cards that directly follow the produced-files row', () => {
   const shared = { ...openProps(), openFile: () => {}, sessionId: SessionId('session'), t: makeTranslate(en) }
   const presented = [{ path: 'report.txt', seq: 2, index: 0 }]
-  const view = render(<Deliverables {...shared} matched={{ produced: ['source.ts'], presented }} />)
+  const view = render(<Deliverables canOpenFile={() => true} {...shared} matched={{ produced: ['source.ts'], presented }} />)
   expect(view.getByText('Files changed')).toBeTruthy()
   expect(view.container.querySelector('[data-presented-files-row]')?.parentElement
     ?.getAttribute('data-after-produced-files')).toBe('true')
@@ -684,7 +725,7 @@ it('marks delivery cards that directly follow the produced-files row', () => {
 
 it('distinguishes PDF, Word, Markdown, and code files with compact decorative card icons', () => {
   const paths = ['report.pdf', 'report.docx', 'README.md', 'index.tsx']
-  const view = render(<Deliverables {...openProps()} matched={{ produced: [], presented:
+  const view = render(<Deliverables canOpenFile={() => true} {...openProps()} matched={{ produced: [], presented:
     paths.map((path, index) => ({ path, seq: 2, index })),
   }} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
   const icons = [...view.container.querySelectorAll('[data-presented-file]')].map((card) => {
@@ -697,7 +738,7 @@ it('distinguishes PDF, Word, Markdown, and code files with compact decorative ca
 })
 
 it('lets one delivered file span the complete row without an expansion control', () => {
-  const view = render(<Deliverables {...openProps()} matched={{ produced: [], presented: [
+  const view = render(<Deliverables canOpenFile={() => true} {...openProps()} matched={{ produced: [], presented: [
     { path: 'report.pdf', seq: 2, index: 0 },
   ] }} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
   expect(view.container.querySelector('[data-presented-files-row]')?.getAttribute('data-single')).toBe('true')
@@ -706,10 +747,10 @@ it('lets one delivered file span the complete row without an expansion control',
 
 
 it.each(['opening', 'opened', 'error'] as const)('shows the %s state and permits retries after failure', (phase) => {
-  const controller = new PresentedOpenController()
-  controller.state.set({ '/api/present.open?sessionId=session&seq=2&index=0': phase })
+  const controller = new PresentedOpenController(nativeFileRemote().remote)
+  controller.state.set({ [presentedFileKey(SessionId('session'), 2, 0)]: phase })
   const props = openProps(controller)
-  const view = render(<Deliverables {...props} matched={{ produced: [], presented: [
+  const view = render(<Deliverables canOpenFile={() => true} {...props} matched={{ produced: [], presented: [
     { path: 'report.txt', seq: 2, index: 0 },
   ] }} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
   expect(view.getByText(en[`presented.${phase}`])).toBeTruthy()
@@ -718,28 +759,28 @@ it.each(['opening', 'opened', 'error'] as const)('shows the %s state and permits
 
 
 it('explains a missing desktop and retries failed Host metadata', () => {
-  const controller = new PresentedOpenController()
+  const controller = new PresentedOpenController(nativeFileRemote().remote)
   const props = openProps(controller)
   const matched = { produced: [], presented: [{ path: 'file.txt', seq: 2, index: 0 }] }
   controller.host.set('error')
-  const view = render(<Deliverables {...props} matched={matched} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
+  const view = render(<Deliverables canOpenFile={() => true} {...props} matched={matched} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
   props.reloadPresentedHost.mockResolvedValue(undefined)
   fireEvent.click(view.getByRole('button', { name: 'Retry' }))
   expect(props.reloadPresentedHost).toHaveBeenCalledOnce()
-  controller.host.set({ name: 'server', available: false, fileManager: null })
-  view.rerender(<Deliverables {...props} matched={matched} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
+  controller.host.set({ name: 'server', available: false, fileManager: null, actions: ['open', 'reveal'] })
+  view.rerender(<Deliverables canOpenFile={() => true} {...props} matched={matched} openFile={() => {}} sessionId={SessionId('session')} t={makeTranslate(en)} />)
   expect(view.getByText(en['presented.unavailable'])).toBeTruthy()
 })
 
 
 it('loads desktop information only when delivery cards appear', () => {
-  const controller = new PresentedOpenController()
+  const controller = new PresentedOpenController(nativeFileRemote().remote)
   const props = openProps(controller)
   controller.host.set(null)
   props.reloadPresentedHost.mockResolvedValue(undefined)
   const shared = { ...props, openFile: () => {}, sessionId: SessionId('session'), t: makeTranslate(en) }
-  const view = render(<Deliverables {...shared} matched={{ produced: ['source.ts'], presented: [] }} />)
+  const view = render(<Deliverables canOpenFile={() => true} {...shared} matched={{ produced: ['source.ts'], presented: [] }} />)
   expect(props.reloadPresentedHost).not.toHaveBeenCalled()
-  view.rerender(<Deliverables {...shared} matched={{ produced: [], presented: [{ path: 'report.txt', seq: 2, index: 0 }] }} />)
+  view.rerender(<Deliverables canOpenFile={() => true} {...shared} matched={{ produced: [], presented: [{ path: 'report.txt', seq: 2, index: 0 }] }} />)
   expect(props.reloadPresentedHost).toHaveBeenCalledOnce()
 })

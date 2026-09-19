@@ -67,6 +67,7 @@ export interface TrajectorySnapshot {
   readonly eventNodes: readonly ConversationNode[]
   readonly eventLocations: ReadonlyMap<number, ConversationLocation>
   readonly requests: readonly RequestView[]
+  /** Schemas keyed by the JSON tuple [turn, step, provider call id], including nested calls. */
   readonly callSchemas: ReadonlyMap<string, ConversationPromptSnapshot['tools'][number]>
   readonly partial: PartialAssistant | null
   readonly runningCalls: readonly RunningToolCall[]

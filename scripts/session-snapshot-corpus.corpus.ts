@@ -23,9 +23,12 @@ const repoRoot = resolve(import.meta.dirname, '..')
 const corpusRoot = join(repoRoot, 'snapshots')
 const profiles = ['acp', 'sdk', 'session', 'web'] as const
 const snapshotAdapters = [
+  'apps/web/tests/checkpoint-order.snapshot.ts',
   'apps/web/tests/message-feedback-protocol.snapshot.ts',
   'apps/web/tests/minimal-preset.snapshot.ts',
   'apps/web/tests/preset-migration.snapshot.ts',
+  'apps/web/tests/question-retry.snapshot.ts',
+  'apps/web/tests/tool-reused-id.snapshot.ts',
   'snapshots/acp/acp.snapshot.ts',
   'snapshots/sdk/sdk.snapshot.ts',
   'snapshots/session/headless.snapshot.ts',
@@ -84,7 +87,7 @@ async function snapshotNamedTests(): Promise<string[]> {
   const visit = async (directory: string, relativeDir: string): Promise<void> => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        if (['dist', 'lib', 'node_modules'].includes(entry.name)) continue
+        if (['dist', 'lib', 'node_modules', '.pytest_cache'].includes(entry.name)) continue
         await visit(join(directory, entry.name), join(relativeDir, entry.name))
       } else if (entry.isFile() && /\.snapshot\.tsx?$/u.test(entry.name)) {
         files.push(join(relativeDir, entry.name).split(/[/\\]/u).join('/'))

@@ -522,6 +522,9 @@ def test_snapshot_generation_filename_must_match_header(tmp_path: Path) -> None:
 @pytest.mark.parametrize("returncode", [1, -1073741819, 3221225477])
 def test_profile_plugin_failure_reports_native_exit_status(monkeypatch: pytest.MonkeyPatch, returncode: int) -> None:
     def failed_install(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+        command = args[0]
+        assert isinstance(command, list)
+        assert "plugin with spaces & unicode-插件" in command[-1]
         return subprocess.CompletedProcess(args=[], returncode=returncode, stdout="", stderr="")
 
     monkeypatch.setattr(subprocess, "run", failed_install)
@@ -531,3 +534,19 @@ def test_profile_plugin_failure_reports_native_exit_status(monkeypatch: pytest.M
     assert f"returncode={returncode}" in message
     assert f"0x{returncode & 0xffffffff:08x}" in message
     assert "stdout='' stderr=''" in message
+
+
+def test_session_log_reads_utf8_with_a_legacy_default_encoding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    message = "中文–session"
+    header = {"type": "session", "version": 3, "cwd": str(tmp_path)}
+    (tmp_path / "session.v3.jsonl").write_text(
+        json.dumps(header, ensure_ascii=False) + "\n" + json.dumps({"text": message}, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    read_text = Path.read_text
+
+    def read_with_legacy_default(path: Path, encoding: str | None = None, errors: str | None = None) -> str:
+        return read_text(path, encoding=encoding or "cp1252", errors=errors)
+
+    monkeypatch.setattr(Path, "read_text", read_with_legacy_default)
+    SMOKE["assert_session_log"](tmp_path, tmp_path, message)

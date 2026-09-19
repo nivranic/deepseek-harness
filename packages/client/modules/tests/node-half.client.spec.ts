@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
-import { Context, type Fiber } from '@deepseek-ai/cordis'
+import { Context, FiberState, type Fiber } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderIndexInjections, type WebServer, type WebRoute } from '@deepseek-ai/dsh-host-webserver'
 import * as modulesClient from '../src/client/index.ts'
@@ -24,8 +24,14 @@ const BOOTSTRAP_URL = comboUrl([MODULES_ID], 'boot')
 const APPLICATION_URL = comboUrl([UI_RENDERER_ID], 'app')
 
 let root: string | undefined
+const contexts: Context[] = []
 
-afterEach(() => {
+afterEach(async () => {
+  for (const context of contexts.splice(0)) {
+    // Direct service fixtures must join the suite's asynchronous invariant startup before disposal.
+    await context.plugin(() => {})
+    await context.fiber.dispose()
+  }
   if (root !== undefined) rmSync(root, { recursive: true, force: true })
   root = undefined
 })
@@ -65,8 +71,9 @@ function constructWithRoute(
     entryBaseUrl?: string
     internal?: NonNullable<Context['loader']['internal']>
   } = {},
-): { context: Context; service: ClientModuleRegistry; route: WebRoute } {
+): { context: Context; service: ClientModuleRegistry; route: Promise<WebRoute> } {
   const ctx = new Context()
+  contexts.push(ctx)
   ctx.baseUrl = options.contextBaseUrl ?? pathToFileURL(root!).href + '/'
   ctx.provide('loader', {
     internal: options.internal,
@@ -81,18 +88,17 @@ function constructWithRoute(
       }
     },
   })
-  let route: WebRoute | undefined
+  const { promise: route, resolve: publishRoute } = Promise.withResolvers<WebRoute>()
   const webServer: Pick<WebServer, 'port' | 'register' | 'tapIndex'> = {
     port: 0,
     register: (candidate) => {
-      if (candidate.path === '/plugins') route = candidate
+      if (candidate.path === '/plugins') publishRoute(candidate)
       return () => {}
     },
     tapIndex: () => () => {},
   }
   ctx.provide('webServer', webServer as WebServer)
   const service = new ClientModuleRegistry(ctx)
-  if (route === undefined) throw new Error('client bundle route was not registered')
   return { context: ctx, service, route }
 }
 
@@ -101,8 +107,49 @@ function construct(packageNames: string[]): ClientModuleRegistry {
   return constructWithRoute(packageNames).service
 }
 
+it.each(['before', 'after'])('tracks a Web carrier loaded %s the modules plugin', async (order) => {
+  const packageName = '@fixture/carrier'
+  writeBuiltPackage(packageName, {})
+  const ctx = new Context()
+  ctx.baseUrl = pathToFileURL(root!).href + '/'
+  const routes = new Set<WebRoute>()
+  ctx.provide('loader', {
+    *entries() {
+      yield { options: { name: packageName }, fiber: {}, disabled: false,
+        parent: { tree: { ctx: { baseUrl: ctx.baseUrl } } } }
+    },
+  })
+  const provideWeb = (webCtx: Context): void => {
+    webCtx.provide('webServer', {
+      register(route: WebRoute) {
+        routes.add(route)
+        return () => { routes.delete(route) }
+      },
+    } as WebServer)
+  }
+  try {
+    let provider = order === 'before' ? await ctx.plugin(provideWeb) : undefined
+    const fiber = await ctx.plugin(ClientModuleRegistry)
+    expect(fiber.state).toBe(FiberState.ACTIVE)
+    const revision = ctx.get('clientModules')?.graph().rev
+    expect(revision).toBeDefined()
+    provider ??= await ctx.plugin(provideWeb)
+    await expect.poll(() => routes.size).toBe(1)
+    expect([...routes][0]?.path).toBe('/plugins')
+
+    await provider.dispose()
+    await expect.poll(() => routes.size).toBe(0)
+    await ctx.plugin(provideWeb)
+    await expect.poll(() => routes.size).toBe(1)
+    expect(ctx.get('clientModules')?.graph().rev).toBe(revision)
+  } finally {
+    await ctx.fiber.dispose()
+  }
+  expect(routes.size).toBe(0)
+})
+
 /** Invoke the registered plugin route and capture status, headers, and bytes. */
-async function routeRequest(route: WebRoute, url: string, method = 'GET'): Promise<{
+async function routeRequest(route: Promise<WebRoute>, url: string, method = 'GET'): Promise<{
   status: number
   headers: Record<string, string> | undefined
   body: Buffer
@@ -121,7 +168,7 @@ async function routeRequest(route: WebRoute, url: string, method = 'GET'): Promi
       return response
     },
   } as unknown as ServerResponse
-  await route.handler({ method, url } as IncomingMessage, response)
+  await (await route).handler({ method, url } as IncomingMessage, response)
   return { status, headers, body }
 }
 
@@ -284,6 +331,39 @@ describe('client bundle activation', () => {
 
     expect(service.clientPath(packageName)).toBe(clientPath)
     expect(service.graph().entries.map(entry => entry.id)).toEqual([packageName])
+  })
+
+  it('serves original client bytes when the Loader resolves a managed executable proxy', async () => {
+    const packageName = '@fixture/packaged-client'
+    const clientPath = writePackage(packageName)
+    const hostPath = join(dirname(clientPath), 'index.js')
+    mkdirSync(dirname(clientPath), { recursive: true })
+    writeFileSync(hostPath, 'export const apply = () => {}\n')
+    writeFileSync(clientPath, 'module.exports = { originalClient: true }\n')
+    const proxyRoot = join(root!, 'profile', 'node_modules', ...packageName.split('/'))
+    mkdirSync(proxyRoot, { recursive: true })
+    writeFileSync(join(proxyRoot, 'package.json'), JSON.stringify({
+      name: packageName,
+      type: 'module',
+      exports: { '.': './entry-0.js', './client': './entry-1.js' },
+      dsh: { moduleFallback: { targets: {
+        '.': pathToFileURL(hostPath).href,
+        './client': pathToFileURL(clientPath).href,
+      } } },
+    }))
+    const proxyUrl = pathToFileURL(join(proxyRoot, 'entry-0.js')).href
+    writeFileSync(join(proxyRoot, 'entry-0.js'), `export * from ${JSON.stringify(pathToFileURL(hostPath).href)}\n`)
+    const { context, service, route } = constructWithRoute([proxyUrl])
+    try {
+      expect(service.clientPath(packageName)).toBe(clientPath)
+      expect(service.graph().entries.map(entry => entry.id)).toEqual([packageName])
+      const response = await routeRequest(route, service.graph().batches[0]!.url)
+      expect(response.status).toBe(200)
+      expect(response.body.toString()).toContain('originalClient: true')
+      expect(response.body.toString()).not.toContain('export * from')
+    } finally {
+      await context.fiber.dispose()
+    }
   })
 
   it.each(['relative', 'absolute'] as const)(

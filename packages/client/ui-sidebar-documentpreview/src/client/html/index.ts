@@ -16,7 +16,7 @@ export const HTML_BODY_ID = '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/
  * @returns metadata for complete HTML documents.
  */
 export function htmlBodyDefinition(title: () => string): DocumentPreviewDefinition {
-  return { id: HTML_BODY_ID, extensions: ['html', 'htm'], priority: 'builtin', title, loading: 'bytes-complete', wrap: false }
+  return { id: HTML_BODY_ID, extensions: ['html', 'htm'], priority: 'builtin', title, loading: 'bytes-complete', wrap: false, requiredCapabilities: ['workspace-files.read-related.v1'] }
 }
 
 /**
@@ -27,15 +27,28 @@ export function apply(ctx: Context): void {
   const t = ctx.locale.bind('documentHtml')
   ctx.effect(() => ctx.locale.register('documentHtml', { zh, en }))
   ctx.effect(() => ctx.documentPreviews.register(htmlBodyDefinition(() => t('title'))))
-  ctx.effect(() => ctx.slots.inject('sidebar.right.tab.document', () => ctx.slots.register(
-    {
+  ctx.effect(() => ctx.slots.inject('sidebar.right.tab.document', () => {
+    const host = ctx.remote.$host
+    const lifetime = new AbortController()
+    const cancelled = () => ({
+      ok: false as const,
+      error: Object.assign(new Error('HTML reader belongs to a replaced or disposed owner'), {
+        name: 'RemoteError', isDSHRemoteError: true as const, code: 'gateway/cancelled' as const, details: {},
+      }),
+    })
+    const dispose = ctx.slots.register({
       name: 'sidebar.right.tab.document', key: HTML_BODY_ID, locale: 'documentHtml',
       inject: (): Pick<HtmlBodyProps, 'readRelated'> => ({
         readRelated: (address, relativePath, signal) => {
           const file = hostFileOf(address)
+          signal = AbortSignal.any([signal, lifetime.signal])
+          const retired = (): boolean => signal.aborted || ctx.remote.$host !== host
+          if (retired()) return Promise.resolve(cancelled())
           return ctx.remote.workspaceFiles.readRelated(file.sessionId, file.path, relativePath, signal)
+            .then(result => retired() ? cancelled() : result)
         },
       }),
-    }, HtmlBody,
-  )))
+    }, HtmlBody)
+    return () => { lifetime.abort(); dispose() }
+  }))
 }

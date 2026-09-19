@@ -110,6 +110,50 @@ describe('client bundle purity gate', () => {
     expect(() => resolveId('@deepseek-ai/dsh-spill-policy/notice/internal')).toThrow(/purity/)
   })
 
+  it('admits the Host protocol constant without permitting Host runtime imports', () => {
+    expect(resolveId('@deepseek-ai/dsh-api-gateway/protocol')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-api-host-description/protocol')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-api-host-description')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-api-host-description/protocol/internal')).toThrow(/purity/)
+  })
+
+  it('admits only the preset capability wire leaf and keeps its Host and Client implementations external', () => {
+    expect(resolveId('@deepseek-ai/dsh-agent-presets/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-agent-presets')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-agent-presets/capabilities/internal')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-client-ui-agent-preset/client')).toThrow(/purity/)
+  })
+
+  it('admits the Commands capability declaration without its Host implementation or nested entries', () => {
+    expect(resolveId('@deepseek-ai/dsh-commands/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-commands')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-commands/capabilities/internal')).toThrow(/purity/)
+  })
+
+  it('admits the Goal capability declaration without its Host implementation or nested entries', () => {
+    expect(resolveId('@deepseek-ai/dsh-goal/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-goal')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-goal/capabilities/internal')).toThrow(/purity/)
+  })
+
+  it.each(['message-feedback', 'command-feedback', 'client-file-upload', 'host-plugin-inventory', 'cordis-host-runner'])('admits only the %s capability declaration', (owner) => {
+    expect(resolveId('@deepseek-ai/dsh-' + owner + '/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-' + owner)).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-' + owner + '/capabilities/internal')).toThrow(/purity/)
+  })
+
+  it('admits only the Subagent capability declaration', () => {
+    expect(resolveId('@deepseek-ai/dsh-subagent/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-subagent')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-subagent/capabilities/internal')).toThrow(/purity/)
+  })
+
+  it('admits the Settings capability wire leaf without its implementation', () => {
+    expect(resolveId('@deepseek-ai/dsh-api-settings-controller/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-api-settings-controller')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-api-settings-controller/capabilities/internal')).toThrow(/purity/)
+  })
+
   it('lets exact generated Remote contributions inline without admitting their package implementation', () => {
     expect(resolveId('@deepseek-ai/dsh-goal/remote')).toBeNull()
     expect(() => resolveId('@deepseek-ai/dsh-goal')).toThrow(/purity/)
@@ -117,9 +161,23 @@ describe('client bundle purity gate', () => {
     expect(() => resolveId('@deepseek-ai/dsh-goal/remote/nested')).toThrow(/purity/)
   })
 
+  it('admits only the Workspace capability leaf', () => {
+    expect(resolveId('@deepseek-ai/dsh-api-workspace-controller/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-api-workspace-controller')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-api-workspace-controller/capabilities/internal')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-client-ui-workspace/client')).toThrow(/purity/)
+  })
+
   it('throws on any other @deepseek-ai leak', () => {
     expect(() => resolveId('@deepseek-ai/dsh-agent')).toThrow(/purity/)
     expect(() => resolveId('@deepseek-ai/dsh-client-web')).toThrow(/purity/)
+  })
+
+  it('admits only the Workspace Files capability leaf', () => {
+    expect(resolveId('@deepseek-ai/dsh-api-workspace-files/capabilities')).toBeNull()
+    expect(() => resolveId('@deepseek-ai/dsh-api-workspace-files')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-api-workspace-files/client')).toThrow(/purity/)
+    expect(() => resolveId('@deepseek-ai/dsh-api-workspace-files/capabilities/internal')).toThrow(/purity/)
   })
 
   it('throws on cross-plugin value imports — bare plugin names and /client subpaths alike', () => {

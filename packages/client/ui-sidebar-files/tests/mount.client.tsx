@@ -93,8 +93,11 @@ function harness(cwd: string | null) {
  * Mount the body.
  * @param cwd - the session's working directory as `useSessions` reports it; `null` for a session without one.
  */
-export function mountBody(cwd: string | null = ROOT): Mounted {
+export function mountBody(cwd: string | null = ROOT, canOpenFile = (_address: string) => true): Mounted {
   const { shared, ...hands } = harness(cwd)
-  const view = render(<FilesBody {...shared as unknown as FilesBodyProps} />)
+  const props = {
+    ...shared, canOpenFile, useFileOpeners: (selector: (value: readonly never[]) => unknown) => selector([]),
+  }
+  const view = render(<FilesBody {...props as unknown as FilesBodyProps} />)
   return { ...hands, view }
 }

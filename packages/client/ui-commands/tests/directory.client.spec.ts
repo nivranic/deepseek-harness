@@ -6,6 +6,7 @@
  * gate, and the per-key ensureReady strong-wait policy.
  */
 import { describe, expect, it } from 'vitest'
+import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
 import type { SessionId } from '@deepseek-ai/dsh-api-remotes/client'
 import { CommandDefinitionId } from '@deepseek-ai/dsh-commands/brand'
 import type { CommandDescriptor } from '../src/client/directory.ts'
@@ -297,8 +298,9 @@ describe('ensureReady (per key)', () => {
   it('rejects when the awaited pull fails (no silent downgrade)', async () => {
     const { dir, pull } = bench()
     const wait = dir.ensureReady(S1, signal())
-    pull(S1, 0).reject(new Error('warmup boom'))
-    await expect(wait).rejects.toThrow('command directory warmup failed: warmup boom')
+    const failure = new RemoteError('host/capability-unavailable', 'warmup boom', { capability: 'command.catalog.v1' })
+    pull(S1, 0).reject(failure)
+    await expect(wait).rejects.toBe(failure)
   })
 
   it('retries from failed state with a fresh pull', async () => {

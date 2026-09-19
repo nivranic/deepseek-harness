@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Independent Commands capabilities and generation-owned Client discovery and execution; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/commands-capability-source.json",
+    "sha256": "782c73e6cea508bac10094618ddd8cb4af2746245486ab1e44bbd09c16f03fc0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "23b3018c4bde252d2599756d94f58b2283636dfe5d9f41e39c75a51133d7a9f8"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/commands-capability-binding.json",
+    "sha256": "d9e726b6773ba726c25d7e69bae9ee800d160ad3a85aa6f47b28be0ae9b0ec8d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-commands-capability-reports.mjs",
+      "sha256": "450e1200a284f94f5d71308bab78036e85f91ca457445413fa2f4b53b107fd21"
+    },
+    {
+      "path": ".artifacts/capture-commands-capability-validation.mjs",
+      "sha256": "9979f73fc20bb1181e851762561d2dc33ed90e4e3e372fcf550bfa2f5b8bc3ab"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b6072ab277a41592477873117e5cb78e4104aae3dac2c045ca885bd0d605d241"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "9eaf4840c82aa4351f16d937cd18020eeb2c3b07cd28fc487fdb3df1ffc4a0e6"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/commands-capability-binding.log",
+      "sha256": "d967a16b416d02f7b1209f9dd46c1435899844818fa3abd88374dc4dc28d9cd1"
+    },
+    {
+      "path": ".artifacts/commands-capability-audit-tests.log",
+      "sha256": "25121d522359b085e3f2cefcb22a9cfc757ddc63ba515f99e81e5d8ccac19e58"
+    },
+    {
+      "path": ".artifacts/commands-capability-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/commands-capability-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/commands-capability-report-generation.log",
+      "sha256": "17570862ef034967fa4d2c6f007829654317cdea3f40d9fc9defa426cf0efb75"
+    }
+  ]
+}

@@ -26,7 +26,7 @@ import { IconDataOutline16 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ModelDirectoryState } from './directory.ts'
 import { ModelDirectoryResolver } from './service.ts'
 import type { ModelSelectInjected } from './slots.ts'
-import { ModelSelect } from './ModelSelect.tsx'
+import { ModelSelectEntry } from './ModelSelect.tsx'
 import { en, zh, type ModelKey } from './locales.ts'
 
 export { ModelDirectory } from './directory.ts'
@@ -146,18 +146,18 @@ export function apply(ctx: ClientContext): void {
       label: () => t('command.label'),
       description: () => t('command.description'),
       icon: IconDataOutline16,
-      available: session => sessions.subagentAddress(session.sessionId) === undefined,
+      available: session => models.available && sessions.subagentAddress(session.sessionId) === undefined,
       ui: {
         kind: 'popupSelect',
         options: async (session) => {
-          if (sessions.subagentAddress(session.sessionId) !== undefined) {
-            throw new Error('model selection is unavailable for addressed subagent sessions')
+          if (!models.available || sessions.subagentAddress(session.sessionId) !== undefined) {
+            throw new Error('model selection is unavailable for addressed subagent sessions or unsupported Hosts')
           }
           return optionsOf(await models.directoryFor(session.sessionId).load(), t)
         },
         onSelect: async (option, session) => {
-          if (sessions.subagentAddress(session.sessionId) !== undefined) {
-            throw new Error('model selection is unavailable for addressed subagent sessions')
+          if (!models.available || sessions.subagentAddress(session.sessionId) !== undefined) {
+            throw new Error('model selection is unavailable for addressed subagent sessions or unsupported Hosts')
           }
           const directory = models.directoryFor(session.sessionId)
           const selection = selectionOf(directory.store.getSnapshot(), option.id)
@@ -174,6 +174,10 @@ export function apply(ctx: ClientContext): void {
   ctx.inject(['slots', 'modelDirectories'], (scope: ClientContext) => {
     const models = scope.modelDirectories
     const sessions = scope.sessions
+    const modelCapability = {
+      getSnapshot: () => models.available,
+      subscribe: (listener: () => void) => scope.on('connection/reset', listener),
+    }
     scope.slots.inject('conversation.input.model', () => scope.slots.register({
       name: 'conversation.input.model',
       locale: NS,
@@ -182,15 +186,16 @@ export function apply(ctx: ClientContext): void {
         const available = sessions.subagentAddress(sessionId) === undefined
         return {
           available,
+          hooks: { modelCapability },
           directory: directory.store,
           load: () => {
-            if (available) directory.load().catch(() => { /* surfaced on the store */ })
+            if (available && models.available) directory.load().catch(() => { /* surfaced on the store */ })
           },
-          select: (selection: ModelSelection) => available
+          select: (selection: ModelSelection) => available && models.available
             ? directory.select(selection).then(() => true, () => false)
             : Promise.resolve(false),
         }
       },
-    }, ModelSelect))
+    }, ModelSelectEntry))
   })
 }

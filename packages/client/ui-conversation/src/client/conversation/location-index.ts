@@ -178,6 +178,7 @@ function sameLocation(left: ConversationLocation | undefined, right: Conversatio
 export class ConversationLocationIndex {
   private coordinates = new Map<number, Coordinates>()
   private locations = new Map<number, ConversationLocation>()
+  private readonly stepHints = new Map<number, { turn: number; step: number }>()
   private seqsByTurn = new Map<number, Set<number>>()
   private timeline: ConversationTimelineSnapshot = { turnOrder: [], turns: new Map() }
   private readonly turnDataStores = new Map<number, MutableLocationDataStore>()
@@ -258,6 +259,47 @@ export class ConversationLocationIndex {
    */
   locationOf(event: SessionEventLike): ConversationLocation {
     return this.locations.get(event.seq) ?? SESSION_LOCATION
+  }
+
+  /**
+   * Resolve an event declared to occur inside one Step, including a paged prefix.
+   * A following coordinate may locate the prefix only before the next opening boundary.
+   * @param event - indexed event whose Definition declares Step-local identity.
+   * @returns its enclosing Step, or undefined until more history supplies an anchor.
+   */
+  stepLocationOf(event: SessionEventLike): Extract<ConversationLocation, { kind: 'step' }> | undefined {
+    const direct = this.locationOf(event)
+    if (direct.kind === 'step') return direct
+    const hint = this.stepHints.get(event.seq)
+    const turn = hint === undefined ? undefined : this.timeline.turns.get(hint.turn)
+    const step = turn?.steps.find(candidate => candidate.step === hint?.step)
+    return turn === undefined || step === undefined ? undefined : { kind: 'step', turn, step }
+  }
+
+  /**
+   * Identify explicit anchors for deferred Step-scoped matches.
+   * @param event - newly appended event.
+   * @returns whether its payload can resolve an earlier Step-scoped history prefix.
+   */
+  hasStepCoordinates(event: SessionEventLike): boolean {
+    const coordinates = payloadCoordinates(event)
+    return coordinates.turn !== undefined && coordinates.step !== undefined
+  }
+
+  private rebuildStepHints(entries: readonly SessionEventLikeEntry[]): void {
+    this.stepHints.clear()
+    let anchor: { turn: number; step: number } | undefined
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const { event } = entries[index] as SessionEventLikeEntry
+      if (event.type === 'turn/start' || event.type === 'turn/end' || payloadCoordinates(event).session === true) {
+        anchor = undefined
+        continue
+      }
+      const location = this.locationOf(event)
+      if (location.kind === 'step') anchor = { turn: location.turn.turn, step: location.step.step }
+      else if (anchor !== undefined) this.stepHints.set(event.seq, anchor)
+      if (event.type === 'step/start') anchor = undefined
+    }
   }
 
   /**
@@ -399,6 +441,7 @@ export class ConversationLocationIndex {
     }
     this.currentTurn = currentTurn
     this.currentStep = currentStep
+    this.rebuildStepHints(entries)
 
     const changed = new Set<number>()
     for (const { event } of entries) {

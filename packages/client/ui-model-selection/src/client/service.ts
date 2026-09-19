@@ -48,8 +48,8 @@ export class ModelDirectoryResolver extends Service {
   constructor(ctx: Context, config: { blockReason: () => string }) {
     super(ctx, 'modelDirectories')
     this.blockReason = config.blockReason
-    this.catalog = new ModelCatalogDirectory(ctx)
-    void this.catalog.load().catch(() => { /* selectors expose the shared error */ })
+    this.catalog = new ModelCatalogDirectory(ctx, () => this.available)
+    if (this.available) void this.catalog.load().catch(() => { /* selectors expose the shared error */ })
     ctx.on('connection/reset', () => {
       this.catalog.resetGeneration()
       for (const directory of this.live.directories.values()) directory.resetConnected()
@@ -57,6 +57,11 @@ export class ModelDirectoryResolver extends Service {
     ctx.remote.$on('llm/adapters-updated', () => { this.catalog.refresh() })
     ctx.remote.$on('settings/document-updated', () => { this.catalog.refresh() })
     ctx.remote.$on('credentials/reference-updated', () => { this.catalog.refresh() })
+  }
+
+  /** Whether the current admitted Host explicitly supports catalog reads and model selection. */
+  get available(): boolean {
+    return this.ctx.remote.$host.descriptor?.capabilities.includes('model.select.v1') === true
   }
 
   /**
@@ -77,7 +82,7 @@ export class ModelDirectoryResolver extends Service {
     const directory = new ModelDirectory(
       this.ctx.remote.session,
       sessionId,
-      () => sessions.subagentAddress(sessionId) === undefined,
+      () => this.available && sessions.subagentAddress(sessionId) === undefined,
       this.catalog,
       binding.session.projections.faceOf('modelSelection'),
     )

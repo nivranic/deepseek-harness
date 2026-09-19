@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Complete Windows upload replay with unchanged fixtures/shared normalizer and exact home-path realization; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/upload-home-replay-source.json",
+    "sha256": "727eeaf072aeae3771c6b5f418946322c6e9d665ca66cb80419973341c6a24ba"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "99b1e5367748a1036d0292584e5b64e51cfe85d0336310852ab458b95417f6d8"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/upload-home-replay-binding.json",
+    "sha256": "4936e1eb5d448116693a5f60aa76fd23cb1307274658c49266040ed58526a3f4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-upload-home-replay-reports.mjs",
+      "sha256": "d30751182af5677c7f4a57b1706fbf23dccc1c99641a1e6dc10898d572856e63"
+    },
+    {
+      "path": ".artifacts/capture-upload-home-replay-validation.mjs",
+      "sha256": "9d1e0b1a28a7011fb3a1be57953dd10d5eadfea1ef3ec905cc2dddd3a2794107"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "d4b609fe288d7863a09ffa94a149efe55acb44b19ad2e0554d9769fef393cd37"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ab7266feb1ed63b7344ee13a30fb47b57a1275f4021a30f8f65070902bf4b4d4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/upload-home-replay-binding.log",
+      "sha256": "f7a4b17296d5f2f62e47e3ca880199ed26811d3474a74d578d11efea1f58b55b"
+    },
+    {
+      "path": ".artifacts/upload-home-replay-audit-tests.log",
+      "sha256": "80dc7f3f0b104975d124c0226a0dfaedf6167109903d32cf069bb24efa1659b5"
+    },
+    {
+      "path": ".artifacts/upload-home-replay-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/upload-home-replay-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/upload-home-replay-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

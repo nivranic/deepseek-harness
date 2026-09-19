@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "observedAt": "2026-09-15T18:58:48.708Z",
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/desktop-package-source.json",
+    "sha256": "add7c3e5142f62e9d5524c485b1e951fabb25b4bad01442378a4a42aced5032d"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/desktop-package-binding.json",
+    "sha256": "d866683fcec6cace2fcb1ab936f4c886b46c3e3bf6caef420c890e6ae96d55fc"
+  },
+  "logs": [
+    {
+      "path": ".artifacts/desktop-package-audit-tests.log",
+      "sha256": "f2dd867faa44eeb21ed6eba491df26c61c967c5112047d867b1b2507eded59d6"
+    },
+    {
+      "path": ".artifacts/desktop-package-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/desktop-package-report-doc-quick-sandbox.log",
+      "sha256": "7a3ecb5cc8d488d99b2470e042df3a31af9d8d9d05d367d88ba0beeb4a03b5ec"
+    },
+    {
+      "path": ".artifacts/desktop-package-report-doc-quick.log",
+      "sha256": "d6a86f9318d269f742f9278d1d7941afab01a6a41321a84bd83668537ab6e4dc"
+    },
+    {
+      "path": ".artifacts/desktop-package-report-doc-sync.log",
+      "sha256": "70c28ab3355e598b24172f39e0b04a445d9a50cce7d18f48ee54b39ee81959f0"
+    }
+  ],
+  "checks": [
+    {
+      "status": "PASS",
+      "command": "node .artifacts/check-desktop-package-binding.mjs",
+      "tests": 8,
+      "receipt": "artifacts/upstream-first/desktop-package-binding.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/verify-audit.test.mjs",
+      "tests": 13,
+      "log": ".artifacts/desktop-package-audit-tests.log"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/desktop-package-gate0.log"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs",
+      "passed": 16,
+      "failed": 0,
+      "log": ".artifacts/desktop-package-report-doc-quick.log"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync",
+      "passed": 34,
+      "failed": 0,
+      "log": ".artifacts/desktop-package-report-doc-sync.log"
+    }
+  ],
+  "sandboxFailure": "test:docs could not start because tsx userInfo failed with uv_os_get_passwd ENOMEM; same check passed on host"
+}

@@ -49,6 +49,8 @@ export class FeedbackDialogController {
   /** Bumped by every open, dismiss, and dispose so a late settlement can tell its draft is gone. */
   private generation = 0
   private toastSeq = 0
+  private contextGeneration = 0
+  private disposed = false
 
   /**
    * @param submit - records one submission; the owner routes it by target.
@@ -60,6 +62,7 @@ export class FeedbackDialogController {
    * @param target - what the submission records against.
    */
   open(target: FeedbackDialogTarget): void {
+    if (this.disposed) return
     this.generation += 1
     this.state.set({ ...CLOSED, target, toast: this.state.getSnapshot().toast })
   }
@@ -90,12 +93,14 @@ export class FeedbackDialogController {
     const s = this.state.getSnapshot()
     if (s.target === null || s.submitting) return
     const generation = this.generation
+    const contextGeneration = this.contextGeneration
     this.state.set({ ...s, submitting: true, failure: null })
     const text = s.text.trim()
     const result = await this.submit(s.target, {
       ...(text.length === 0 ? {} : { text }),
       ...(s.category === null ? {} : { category: s.category }),
-    })
+    }).catch((): MessageFeedbackActionResult => ({ ok: false, error: { code: 'request-failed', message: 'Feedback request failed' } }))
+    if (contextGeneration !== this.contextGeneration) return
     if (result.ok) {
       // The remark is recorded whichever draft is on screen now, so the toast
       // always shows; only the draft that produced it closes.
@@ -128,9 +133,16 @@ export class FeedbackDialogController {
     if (s.toast === seq) this.state.set({ ...s, toast: 0 })
   }
 
-  /** Scope-teardown disposer: drop the draft and the toast, orphan in-flight work. */
-  dispose(): void {
+  /** Withdraw Host-owned drafts and notifications, ignoring their late settlements. */
+  reset(): void {
+    this.contextGeneration += 1
     this.generation += 1
     this.state.set({ ...CLOSED, toast: 0 })
+  }
+
+  /** Scope-teardown disposer: drop the draft and the toast, orphan in-flight work. */
+  dispose(): void {
+    this.disposed = true
+    this.reset()
   }
 }

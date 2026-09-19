@@ -5,6 +5,8 @@ import { bytesToBase64 } from '@deepseek-ai/dsh-util-crypto'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { RemoteHostFacts } from '@deepseek-ai/dsh-api-gateway/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import { FILE_UPLOAD_PATH } from '../protocol.ts'
 import type {
   ClientFileUploadHooks, EncodedFileUploadRequest, FileUploadFetch, FileUploadValue,
@@ -25,7 +27,8 @@ interface FileUploadResponse {
 }
 
 interface FileUploadRemoteContext extends Context {
-  readonly remote: {
+  readonly remote: Context['remote'] & {
+    readonly $host: RemoteHostFacts
     readonly fileUploads: {
       upload(
         sessionId: SessionId,
@@ -162,6 +165,7 @@ interface FileUploadTransport {
 export class FileUploadRuntime extends Service implements FileUploadService {
   readonly available: boolean
   private readonly transport: FileUploadTransport
+  private readonly lifetime = { controller: new AbortController(), disposed: false }
 
   /** @param ctx - providing Client context. */
   constructor(ctx: Context) {
@@ -169,6 +173,15 @@ export class FileUploadRuntime extends Service implements FileUploadService {
     const hook = (globalThis as ClientFileUploadGlobal).__DSH_FILE_UPLOAD__
     this.available = hook !== undefined || !isFixturePage()
     this.transport = hook === undefined ? workerTransport() : customTransport(hook.fetch)
+    const connection = ctx.get('connection') as ConnectionHandle
+    ctx.effect(() => connection.generation.subscribe(() => {
+      this.lifetime.controller.abort()
+      this.lifetime.controller = new AbortController()
+    }), 'file-upload: connection lifetime')
+    ctx.effect(() => () => {
+      this.lifetime.disposed = true
+      this.lifetime.controller.abort()
+    }, 'file-upload: disposal')
   }
 
   /**
@@ -178,7 +191,10 @@ export class FileUploadRuntime extends Service implements FileUploadService {
    */
   post(request: FileUploadRequest): Promise<FileUploadResponse> {
     if (!this.available) return Promise.reject(new Error('background upload is unavailable in fixture mode'))
-    return this.transport.post(request)
+    return this.withConnection((signal, current) => this.transport.post({
+      ...request, signal,
+      onProgress: (progress) => { if (current()) request.onProgress?.(progress) },
+    }), request.signal)
   }
 
   /**
@@ -197,33 +213,68 @@ export class FileUploadRuntime extends Service implements FileUploadService {
     signal?: AbortSignal,
     onProgress?: (progress: { readonly loaded: number; readonly total?: number }) => void,
   ): Promise<RemoteResult<FileUploadValue>> {
-    if (!(data instanceof Uint8Array) && this.available) {
-      const query = new URLSearchParams({ sessionId })
-      if (name !== undefined) query.set('name', name)
-      const response = await this.post({
-        path: `${FILE_UPLOAD_PATH}?${query.toString()}`,
-        body: data,
-        headers: { 'content-type': 'application/octet-stream' },
-        ...(signal === undefined ? {} : { signal }),
-        ...(onProgress === undefined ? {} : { onProgress }),
-      })
-      if (response.status !== 200) {
-        throw new Error(`file upload transport failed with HTTP ${String(response.status)}`)
+    return this.withConnection(async (activeSignal, current) => {
+      if (!(data instanceof Uint8Array) && this.available) {
+        const query = new URLSearchParams({ sessionId })
+        if (name !== undefined) query.set('name', name)
+        const response = await this.transport.post({
+          path: `${FILE_UPLOAD_PATH}?${query.toString()}`,
+          body: data,
+          headers: { 'content-type': 'application/octet-stream' },
+          signal: activeSignal,
+          onProgress: (progress) => { if (current()) onProgress?.(progress) },
+        })
+        if (response.status !== 200) {
+          throw new Error(`file upload transport failed with HTTP ${String(response.status)}`)
+        }
+        return parseFileUploadResult(response.body)
       }
-      return parseFileUploadResult(response.body)
+      if (!(data instanceof Uint8Array) && !(data instanceof Blob)) {
+        throw new Error('stream file upload requires a background carrier')
+      }
+      const bytes = data instanceof Uint8Array ? data : new Uint8Array(await data.arrayBuffer())
+      activeSignal.throwIfAborted()
+      if (!current()) throw this.connectionChanged()
+      return (this.ctx as FileUploadRemoteContext).remote.fileUploads.upload(
+        sessionId,
+        {
+          data: bytesToBase64(bytes),
+          ...(name === undefined ? {} : { name }),
+        },
+        activeSignal,
+      )
+    }, signal)
+  }
+
+  private connectionChanged(): RemoteError<'gateway/connection-unavailable'> {
+    return new RemoteError('gateway/connection-unavailable', 'File upload connection changed', { endpoint: 'fileUploads/upload' })
+  }
+
+  /** One connection lifetime covers byte encoding, transport, progress and receipt admission. */
+  private async withConnection<T>(
+    operation: (signal: AbortSignal, current: () => boolean) => Promise<T>,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    if (this.lifetime.disposed) throw this.connectionChanged()
+    const remote = (this.ctx as FileUploadRemoteContext).remote
+    const host = remote.$host
+    if (host.capabilities?.includes('file-upload.stage.v1') !== true) {
+      throw new RemoteError('host/capability-unavailable', 'Host does not support file staging', { capability: 'file-upload.stage.v1' })
     }
-    if (!(data instanceof Uint8Array) && !(data instanceof Blob)) {
-      throw new Error('stream file upload requires a background carrier')
+    const generationSignal = this.lifetime.controller.signal
+    const activeSignal = signal === undefined ? generationSignal : AbortSignal.any([signal, generationSignal])
+    const sameConnection = (): boolean => !this.lifetime.disposed && remote.$host === host
+    const current = (): boolean => !activeSignal.aborted && sameConnection()
+    activeSignal.throwIfAborted()
+    try {
+      const result = await operation(activeSignal, current)
+      activeSignal.throwIfAborted()
+      if (!current()) throw this.connectionChanged()
+      return result
+    } catch (error) {
+      if (generationSignal.aborted || !sameConnection()) throw this.connectionChanged()
+      throw error
     }
-    const bytes = data instanceof Uint8Array ? data : new Uint8Array(await data.arrayBuffer())
-    return (this.ctx as FileUploadRemoteContext).remote.fileUploads.upload(
-      sessionId,
-      {
-        data: bytesToBase64(bytes),
-        ...(name === undefined ? {} : { name }),
-      },
-      signal,
-    )
   }
 }
 

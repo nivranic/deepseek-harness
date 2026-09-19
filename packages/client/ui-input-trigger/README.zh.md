@@ -20,6 +20,10 @@ kind: "package-reference"
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
 
+来源可实现 `subscribeCandidates`，独立于名称词表通知发现结果失效。通知会取消旧查询并立即清空菜单候选和面包屑，随后重试去重预热，并在来源观察者处理完成后刷新已打开的菜单。程序化入口保持单一来源，销毁时释放订阅并取消排队刷新。
+
+延迟刷新使用既有菜单代次和最新触发范围。重新识别同一查询不会取消替代请求；更换查询或关闭菜单会取代排队中的工作。
+
 -----
 
 <a id="use-this-package"></a>
@@ -31,7 +35,7 @@ kind: "package-reference"
 
 菜单打开期间 composer 表面保持焦点：行在 mousedown 时完成 pick，高亮由 `aria-activedescendant` 承载，指针落在菜单与所在 composer 卡片之外即关闭菜单。空格与回车裁决按注册序轮询可选的 `matchSpace`／`matchEnter` 钩子；第一个非 undefined 的应答胜出，source 也可以拒绝它无法整体消费的提交。Tab 会作用于高亮补全项：声明 `drill: true` 的候选项以 `action: 'drill'` 进入 `onPick`，普通候选项则以 `action: 'pick'` 完成选定；没有高亮项时 Tab 原样放行，原生焦点遍历不受影响。可下钻行尾的 chevron 向指针用户提供同一个动词。实现可选 `header` 钩子的 source 还会在其分组上方发布面包屑：流水线在每次命中时用实时查询、以及该查询由下钻还是由键入产生这一事实重新询问它，点击面包屑经 `onPick` 以 `action: 'drill'` 回到该 source。
 
-来源可以实现 `openReference(session, reference)`，打开草稿引用而不提交。来源可以先接受预览请求，再异步加载目录。标签按来源名称路由；可编辑文本按来源当前的词表路由。返回 `false`、来源缺失或控制器已释放时，保留编辑器原有的手势处理。
+来源通过 `canOpenReference(session, reference)` 配合 `openReference` 提供预览，并可用 `subscribeReferenceAvailability` 发布查看器变化。可用性查询同步执行且不发起请求。控制器通过 `referenceAvailability` 发布来源、词表和查看器变化，打开前再次检查可用性。标签按来源名称路由，可编辑文本按当前词表路由。来源不可用或已释放时，保留编辑器原有的手势处理。
 
 -----
 

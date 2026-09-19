@@ -1109,6 +1109,25 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'hostDescription',
+    summary: 'Read-only Remote namespace for Host facts and explicitly declared capabilities.',
+    description: 'Read-only Remote namespace for Host facts and explicitly declared capabilities.',
+    methods: [
+      {
+        signature: '@Remote(\'describe\') describe(): HostDescriptor',
+        description: 'Read current Host facts without changing Session or Workspace state. Capability presence does not grant permission to invoke its operations.',
+        parameters: [],
+        returns: 'installed versions, stable identity, and current operation availability.',
+      },
+      {
+        signature: '@Remote(\'negotiate\') negotiate(supportedApiProtocolVersions: readonly number[]): HostDescriptor',
+        description: 'Select the highest shared request codec without changing identity or granting permissions.',
+        parameters: [{ name: 'supportedApiProtocolVersions', description: 'nonempty, distinct positive integer Client offers.' }],
+        returns: 'Host facts expressed in the selected API generation.',
+      },
+    ],
+  },
+  {
     key: 'inspector',
     summary: 'Shared Host/Client service façade over the realm\'s source publisher.',
     description: 'Shared Host/Client service façade over the realm\'s source publisher.',
@@ -1399,6 +1418,31 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'presentedFiles',
+    summary: 'Authenticated native actions for persisted file declarations; never activates an Agent.',
+    description: 'Authenticated native actions for persisted file declarations; never activates an Agent.',
+    methods: [
+      {
+        signature: '@Remote(\'desktop\') desktop(signal: AbortSignal): PresentedHost',
+        description: 'Describe the serving desktop without opening a file or activating an Agent.',
+        parameters: [{ name: 'signal', description: 'caller cancellation.' }],
+        returns: 'serving desktop metadata; API support does not grant native execution permission.',
+      },
+      {
+        signature: '@Remote(\'open\') open(request: PresentedFileRequest, signal: AbortSignal): Promise<PresentedFileActionValue>',
+        description: 'Open the current source file in its default native application.',
+        parameters: [{ name: 'request', description: 'persisted declaration coordinates in the viewed Session.' }, { name: 'signal', description: 'caller cancellation; disposal also cancels and awaits native work.' }],
+        returns: 'confirmation after the native command accepts the verified path.',
+      },
+      {
+        signature: '@Remote(\'reveal\') reveal(request: PresentedFileRequest, signal: AbortSignal): Promise<PresentedFileActionValue>',
+        description: 'Reveal the current source in the Host file manager.',
+        parameters: [{ name: 'request', description: 'persisted declaration coordinates in the viewed Session.' }, { name: 'signal', description: 'caller cancellation; disposal also cancels and awaits native work.' }],
+        returns: 'confirmation after the native command accepts the verified path.',
+      },
+    ],
+  },
+  {
     key: 'sandbox',
     summary: 'Abstract process-sandbox service.',
     description: 'Abstract process-sandbox service. confine must return enforcing argv or fail closed at wrap or runner-execution time; silent unconfined passthrough is forbidden. Functional probes arbitrate multi-runner chains and may be skipped for a sole candidate, whose own refusal remains the fail-closed end.',
@@ -1488,29 +1532,29 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'provider-grouped models, the deployment default, and isolated provider failures.',
       },
       {
-        signature: '@Remote canOpenWorkspacePath(): boolean',
-        description: 'Report whether this deployment can hand a Session workspace path to a native desktop.',
-        parameters: [],
-        returns: 'true when the matching open operation is available.',
-      },
-      {
         signature: 'workspaceDesktop(): { name: string; available: boolean; fileManager: \'finder\' | \'explorer\' | \'directory\' | null }',
-        description: 'Describe the serving desktop for authenticated file-action routes.',
+        description: 'Describe the serving desktop for Host-owned declared-file actions.',
         parameters: [],
         returns: 'Host name, configured availability, and platform-specific file-manager behavior.',
       },
       {
-        signature: '@Remote(\'openWorkspacePath\') async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>',
-        description: 'Open one path prepared by a Session-aware caller on the Host desktop.',
-        parameters: [{ name: 'request', description: 'path after best-effort Session workspace resolution.' }, { name: 'signal', description: 'caller lifetime; abort terminates the native command.' }],
+        signature: 'async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>',
+        description: 'Open one authorized path prepared by a Host caller; this method is not a Remote operation.',
+        parameters: [{ name: 'request', description: 'Host filesystem path authorized and resolved by the caller.' }, { name: 'signal', description: 'caller lifetime; abort terminates the native command.' }],
         returns: 'confirmation after the native opener accepts the path.',
-        throws: ['RemoteError when the request is invalid, cancelled, or the opener fails.'],
+        throws: ['The abort reason before dispatch; RemoteError for invalid paths, in-flight cancellation, or opener failures.'],
       },
       {
         signature: '@Remote(\'rename\') rename(request: SessionRenameRequest): Promise<SessionRenameValue>',
         description: 'Rename one Session after explicitly resuming it.',
         parameters: [{ name: 'request', description: 'Session identity and proposed title.' }],
         returns: 'the accepted title and durable event sequence.',
+      },
+      {
+        signature: '@Remote(\'renameAt\') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>',
+        description: 'Rename against the title event revision captured before editing.',
+        parameters: [{ name: 'request', description: 'Session, proposed title and expected title revision.' }],
+        returns: 'the normalized title and durable event sequence; conflicts preserve the current title.',
       },
       {
         signature: '@Remote(\'fork\') fork(request: SessionForkRequest): Promise<SessionForkValue>',
@@ -1541,6 +1585,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Cancel one active Agent turn without dropping its pending inbox.',
         parameters: [{ name: 'request', description: 'Session whose active Agent turn is cancelled.' }],
         returns: 'acknowledgement that cancellation was requested.',
+      },
+      {
+        signature: '@Remote(\'cancelTurn\') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue',
+        description: 'Cancel only the observed open turn; stale or null targets leave later work intact.',
+        parameters: [{ name: 'request', description: 'Session identity and the observed turn/start sequence, or null.' }],
+        returns: 'acknowledgement that cancellation was requested or the target is already inactive.',
       },
       {
         signature: '@Remote(\'page\') page(request: SessionPageRequest, signal: AbortSignal): Promise<SessionPage>',
@@ -1653,7 +1703,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async write(session: Session): Promise<void>',
-        description: 'Durably checkpoint one live session NOW (all mandatory points call this; tests and carriers may too). The registry cut is snapshotted at this boundary (states are live references), then the session\'s record is replaced on the domain\'s write chain. NOT fail-soft — callers on the fail-soft paths contain it.',
+        description: 'Durably checkpoint one live session NOW (all mandatory points call this; tests and carriers may too). The registry supplies detached values; the complete lifecycle identity is captured before the record enters the domain\'s write chain. Its log durability wait holds the same queue slot. NOT fail-soft — callers on the fail-soft paths contain it.',
         parameters: [{ name: 'session', description: 'the live session to checkpoint.' }],
         returns: 'resolution after durability and event emission.',
       },
@@ -1977,11 +2027,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'latest title snapshot, or `undefined` before eligible input.',
       },
       {
-        signature: 'rename(session: Session, title: string): SessionTitleSnapshot',
+        signature: 'rename(session: Session, title: string, expectedRevision?: SessionSeq | null): SessionTitleSnapshot',
         description: 'Accept an explicit user title. Appends a `session/title` event with the `user` source, which pins the title: in-flight automatic generation is superseded and later user messages schedule none (an explicit SessionTitleService.refresh remains the deliberate unpin).',
-        parameters: [{ name: 'session', description: 'exact live session to rename.' }, { name: 'title', description: 'raw user input; normalized before acceptance.' }],
-        returns: 'the accepted title snapshot.',
-        throws: ['{SessionTitleInvalidError} when the title normalizes to empty.', '{Error} when the session is not live or the service is disposed.'],
+        parameters: [{ name: 'session', description: 'exact live session to rename.' }, { name: 'title', description: 'raw user input; normalized before acceptance.' }, { name: 'expectedRevision', description: 'captured title event seq, or null before any title; omitted for unconditional acceptance.' }],
+        returns: 'the accepted snapshot; an identical user-pinned conditional rename returns the existing event without appending.',
+        throws: ['{SessionTitleInvalidError} when the title normalizes to empty.', '{SessionTitleRevisionConflictError} when a conditional rename would replace a changed title.', '{Error} when the session is not live or the service is disposed.'],
       },
       {
         signature: 'async refresh(session: Session, signal?: AbortSignal): Promise<SessionTitleSnapshot | undefined>',
@@ -2245,7 +2295,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     methods: [
       {
         signature: 'async open<S extends DomainSpec>(spec: S): Promise<Domain<S>>',
-        description: 'Open one declared domain. Steps, each failing the whole call: reject a name that is already open (`already-open`); resolve the backend route (`backend-not-found` passes through from the hub); require its `kv` facet (`facet-unsupported`); open the unit projected from the spec (backend `version-mismatch`/`malformed-medium` pass through); load and validate every stored record against the spec\'s zod schemas (`invalid-record` with the offending table and key — unless the spec declares `invalidRecords: \'backup-and-skip\'` and the unit can move documents aside, in which case the failing record is backed up, logged, and skipped); construct the domain.\n\nLifecycle: the CALLER owns the returned handle and closes it via `Domain.close()` (typically as its own `ctx.effect` disposer) — the facility does not tie the domain to any consumer fiber. Domains still open when the facility unmounts are closed by the plugin disposer.',
+        description: 'Open one declared domain. Steps, each failing the whole call: reject a name that is already open (`already-open`); resolve the backend route (`backend-not-found` passes through from the hub); require its `kv` facet (`facet-unsupported`); open the unit projected from the spec (backend `version-mismatch`/`malformed-medium` pass through); load and validate every stored record against the spec\'s zod schemas (`invalid-record` with the offending table and key — unless the spec declares `invalidRecords: \'backup-and-skip\'` and the unit can move documents aside, in which case the failing record is backed up, logged, and skipped); construct the domain.\n\nLifecycle: the CALLER owns the returned handle and closes it via `Domain.close()` (typically as its own `ctx.effect` disposer) — the facility does not tie the domain to any consumer fiber. Domains still open when the facility or backend closes are drained before their units close. Closing joins pending initialization; an otherwise valid open rejects with `closed` instead of returning a handle after that request.',
         parameters: [{ name: 'spec', description: 'The domain declaration, typically from `defineDomain`.' }],
         returns: 'the opened domain handle, typed by the spec.',
       },
@@ -2256,10 +2306,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the open domain runtime, or `undefined` when not open.',
       },
       {
-        signature: 'async closeAll(): Promise<void>',
-        description: 'Close every domain still open on this facility. The unmount path for consumers that never called `Domain.close()` themselves; closing is idempotent, so double-closing an already-closed domain is harmless.',
+        signature: 'closeAll(): Promise<void>',
+        description: 'Stop new opens and close every initialized or still-opening domain. Pending initialization rejects instead of publishing a handle after close. Concurrent and repeated calls share one terminal teardown.',
         parameters: [],
-        returns: 'resolution after every unit is released.',
+        returns: 'resolution after every owner and unit settles.',
+        throws: ['AggregateError containing domain teardown failures after all owners settle.'],
       },
     ],
   },
@@ -2340,7 +2391,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: '@Remote(\'prompt\') async prompt(request: SubagentPromptRequest, signal: AbortSignal): Promise<SubagentPromptReceipt>',
         description: 'Deliver one browser-authored message to a continuable child through the exact live direct parent, retaining the caller-minted request identity and validated browser zone on the accepted message. Success identifies the message the child\'s inbox accepted; later execution is independent of this call. Queue delivery targets a later turn; steer delivery targets the nearest step and retains the Agent loop\'s best-effort fallback semantics. Image parts are admitted and persisted through the attachment store before delivery, and the child\'s model must accept image input.',
         parameters: [{ name: 'request', description: 'durable address, delivery, minted identity, content, and optional browser zone.' }, { name: 'signal', description: 'carrier cancellation, owning the call until inbox acceptance.' }],
-        returns: 'the accepted message\'s inbox identity.',
+        returns: 'the original accepted message\'s inbox identity for this child\'s requestId, including retries.',
         throws: ['{RemoteError} `gateway/bad-request`, `subagent/attachment-invalid`, `subagent/invalid-time-zone`, `subagent/parent-unavailable`, `subagent/not-resumable`, `subagent/unauthorized`, `subagent/delivery-unavailable`, `gateway/cancelled`, or `gateway/internal`.'],
       },
       {
@@ -2349,6 +2400,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'childSessionId', description: 'durable child session id to interrupt.' }, { name: 'parentSessionId', description: 'durable direct parent whose authority is claimed.' }, { name: 'mode', description: 'required continuable-address discriminator.' }],
         returns: 'acknowledgement that the cancel signal was admitted, not that the target is quiescent.',
         throws: ['{RemoteError} `gateway/bad-request` for an empty id, `subagent/unauthorized` when the address does not own the live target, otherwise `gateway/internal`.'],
+      },
+      {
+        signature: '@Remote(\'interruptTurnByParent\') interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt',
+        description: 'Stop an observed child turn under durable parent-address authority, including while the parent is offline.',
+        parameters: [{ name: 'request', description: 'child address and the observed turn/start sequence, or null for an idle child.' }],
+        returns: 'acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.',
+        throws: ['{RemoteError} invalid input, foreign live-child authority or unavailable turn projection.'],
       },
       {
         signature: 'registerProvider(provider: SubagentProvider): () => void',
@@ -2725,6 +2783,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Register the sole application-selected forwarded-event source.',
         parameters: [{ name: 'source', description: 'stream factory installed by the Remote assembly.' }, { name: 'host', description: 'stable Host facts included in each Client generation\'s opening frame.' }],
         returns: 'disposer removing this source and cancelling its active streams.',
+      },
+      {
+        signature: 'capabilities(): readonly string[]',
+        description: 'Read the explicit operation sets of live Remote owners without invoking them.',
+        parameters: [],
+        returns: 'sorted capability ids whose required method definitions are available.',
+        throws: ['for duplicate ids, invalid method declarations, or inconsistent bindings.'],
       },
       {
         signature: 'async invoke(request: InvokeRemoteRequest): Promise<unknown>',
@@ -4347,6 +4412,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface GrantRecord {\n    readonly kind: \'grant\';\n    readonly payload: unknown;\n}',
   },
   {
+    name: 'HostDescriptor',
+    declaration: 'export interface HostDescriptor {\n    readonly hostId: HostId;\n    readonly displayName: string;\n    readonly productVersion: string;\n    readonly apiProtocolVersion: number;\n    readonly supportedApiProtocolVersions?: readonly number[];\n    readonly sessionFormatVersion: number;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: \'full\';\n    readonly capabilities: readonly string[];\n    readonly transports: readonly HostTransport[];\n    readonly serverTime: number;\n}',
+  },
+  {
+    name: 'HostId',
+    declaration: 'export type HostId = Branded<\'HostId\'>;',
+  },
+  {
+    name: 'HostTransport',
+    declaration: 'export type HostTransport = \'http\' | \'websocket\' | \'desktop-pipe\';',
+  },
+  {
     name: 'ImageAttachmentLimits',
     declaration: 'export interface ImageAttachmentLimits {\n    maxImageBytes: number;\n    maxImagesPerMessage: number;\n    maxMessageImageBytes: number;\n    maxImagePixels: number;\n    maxImageDimension: number;\n    mediaTypes: readonly ImageMediaType[];\n}',
   },
@@ -4484,11 +4561,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'KvFacet',
-    declaration: 'export interface KvFacet {\n    open(descriptor: KvUnitDescriptor): Promise<KvUnit>;\n}',
+    declaration: 'export interface KvFacet {\n    open(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit>;\n}',
   },
   {
     name: 'KvTable',
-    declaration: 'export interface KvTable<K extends string, V> {\n    get(key: K): V | undefined;\n    entries(): IterableIterator<[\n        K,\n        V\n    ]>;\n    keys(): IterableIterator<K>;\n    readonly size: number;\n    put(key: K, value: V): Promise<void>;\n    delete(key: K): Promise<boolean>;\n    update(key: K, fn: (current: V) => V): Promise<V>;\n}',
+    declaration: 'export interface KvTable<K extends string, V> {\n    get(key: K): V | undefined;\n    entries(): IterableIterator<[\n        K,\n        V\n    ]>;\n    keys(): IterableIterator<K>;\n    readonly size: number;\n    put(key: K, value: V, beforeWrite?: () => Promise<void>): Promise<void>;\n    delete(key: K): Promise<boolean>;\n    update(key: K, fn: (current: V) => V): Promise<V>;\n}',
   },
   {
     name: 'KvUnit',
@@ -4783,6 +4860,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type PrepareSessionOptions = (CreateSessionOptions & {\n    readonly eventState?: undefined;\n}) | RestoredSessionOptions;',
   },
   {
+    name: 'PresentedFileActionValue',
+    declaration: 'export interface PresentedFileActionValue {\n    readonly completed: true;\n}',
+  },
+  {
+    name: 'PresentedFileRequest',
+    declaration: 'export interface PresentedFileRequest {\n    readonly sessionId: SessionId;\n    readonly seq: number;\n    readonly index: number;\n}',
+  },
+  {
+    name: 'PresentedHost',
+    declaration: 'export interface PresentedHost {\n    name: string;\n    available: boolean;\n    fileManager: \'finder\' | \'explorer\' | \'directory\' | null;\n}',
+  },
+  {
     name: 'PresetOption',
     declaration: 'export interface PresetOption {\n    value: string;\n    name: string;\n    description?: string;\n}',
   },
@@ -4892,11 +4981,27 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteErrorDetailsMap',
-    declaration: 'export interface RemoteErrorDetailsMap {\n    \'gateway/bad-request\': {\n        readonly issues?: readonly object[];\n    };\n    \'gateway/cancelled\': {};\n    \'gateway/internal\': {};\n}',
+    declaration: 'export interface RemoteErrorDetailsMap {\n    \'gateway/bad-request\': {\n        readonly issues?: readonly RemoteValidationIssue[];\n    };\n    \'gateway/cancelled\': {};\n    \'gateway/internal\': {};\n}',
   },
   {
     name: 'RemoteEventHostInfo',
     declaration: 'export interface RemoteEventHostInfo {\n    readonly home: string;\n}',
+  },
+  {
+    name: 'RemoteInteractionOrigin',
+    declaration: 'export type RemoteInteractionOrigin = {\n    readonly sessionId: RemoteInteractionSessionId;\n} & RemoteInteractionPolicy;',
+  },
+  {
+    name: 'RemoteInteractionPolicy',
+    declaration: 'export type RemoteInteractionPolicy = ({\n    readonly type: \'approval\';\n    readonly requiredPermission: \'approval.respond\';\n} | {\n    readonly type: \'question\';\n    readonly requiredPermission: \'question.respond\';\n});',
+  },
+  {
+    name: 'RemoteInteractionSessionId',
+    declaration: 'export type RemoteInteractionSessionId = Branded<\'RemoteInteractionSessionId\'>;',
+  },
+  {
+    name: 'RemoteValidationIssue',
+    declaration: 'export interface RemoteValidationIssue {\n    readonly code: string;\n    readonly message: string;\n    readonly path: readonly (string | number)[];\n}',
   },
   {
     name: 'ReplayEnvelope',
@@ -5077,6 +5182,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionCancelRequest',
     declaration: 'export interface SessionCancelRequest {\n    readonly sessionId: SessionId;\n}',
+  },
+  {
+    name: 'SessionCancelTurnRequest',
+    declaration: 'export interface SessionCancelTurnRequest {\n    readonly sessionId: SessionId;\n    readonly turnStartSeq: number | null;\n}',
   },
   {
     name: 'SessionCancelValue',
@@ -5369,6 +5478,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionReferenceMentionCandidate',
     declaration: 'export interface SessionReferenceMentionCandidate extends SessionReferenceCandidate {\n    mention: string;\n}',
+  },
+  {
+    name: 'SessionRenameAtRequest',
+    declaration: 'export interface SessionRenameAtRequest extends SessionRenameRequest {\n    readonly expectedRevision: number | null;\n}',
   },
   {
     name: 'SessionRenameRequest',
@@ -5728,11 +5841,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentInterruptAuthority',
-    declaration: 'export type SubagentInterruptAuthority = {\n    readonly kind: \'user\';\n    readonly parentSessionId: SessionId;\n} | {\n    readonly kind: \'ancestor\';\n    readonly agent: Agent;\n};',
+    declaration: 'export type SubagentInterruptAuthority = {\n    readonly kind: \'user\';\n    readonly parentSessionId: SessionId;\n    readonly turnStartSeq?: number | null;\n} | {\n    readonly kind: \'ancestor\';\n    readonly agent: Agent;\n};',
   },
   {
     name: 'SubagentInterruptReceipt',
     declaration: 'export interface SubagentInterruptReceipt {\n    readonly accepted: true;\n}',
+  },
+  {
+    name: 'SubagentInterruptTurnRequest',
+    declaration: 'export interface SubagentInterruptTurnRequest {\n    readonly parentSessionId: SessionId;\n    readonly childSessionId: SessionId;\n    readonly mode: \'continuable\';\n    readonly turnStartSeq: number | null;\n}',
   },
   {
     name: 'SubagentListEntry',
@@ -5776,7 +5893,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentRuntime',
-    declaration: 'export class SubagentRuntime extends TypertRemoteService {\n    constructor(ctx: Context);\n    async startContinuable(spec: ContinuableStartSpec): Promise<ContinuableStart>;\n    async sendMessage(sender: Agent, targetId: SessionId, content: ContentBlock[], options: SubagentSendMessageOptions): Promise<MessageId>;\n    interrupt(targetSessionId: SessionId, authority: SubagentInterruptAuthority): void;\n    async drainContinuableDescendants(parents: readonly Agent[]): Promise<void>;\n    async drainContinuableChildren(parent: Agent, childIds: readonly SessionId[]): Promise<void>;\n    listChildren(parentSessionId: SessionId, signal?: AbortSignal): Promise<SubagentListEntry[]>;\n    listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<SubagentDescendantListEntry[]>;\n    @Remote(\'list\')\n    async remoteExportList(parentSessionId: SessionId, signal: AbortSignal): Promise<SubagentCatalog>;\n    @Remote(\'prompt\')\n    async prompt(request: SubagentPromptRequest, signal: AbortSignal): Promise<SubagentPromptReceipt>;\n    @Remote(\'interruptByParent\')\n    interruptByParent(childSessionId: SessionId, parentSessionId: SessionId, mode: \'continuable\'): SubagentInterruptReceipt;\n    registerProvider(provider: SubagentProvider): () => void;\n    getProvider(name: string): SubagentProvider | undefined;\n    list(): string[];\n    async start(name: string, request: SubagentStartRequest): Promise<SubagentRun>;\n}',
+    declaration: 'export class SubagentRuntime extends TypertRemoteService {\n    constructor(ctx: Context);\n    async startContinuable(spec: ContinuableStartSpec): Promise<ContinuableStart>;\n    async sendMessage(sender: Agent, targetId: SessionId, content: ContentBlock[], options: SubagentSendMessageOptions): Promise<MessageId>;\n    interrupt(targetSessionId: SessionId, authority: SubagentInterruptAuthority): void;\n    async drainContinuableDescendants(parents: readonly Agent[]): Promise<void>;\n    async drainContinuableChildren(parent: Agent, childIds: readonly SessionId[]): Promise<void>;\n    listChildren(parentSessionId: SessionId, signal?: AbortSignal): Promise<SubagentListEntry[]>;\n    listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<SubagentDescendantListEntry[]>;\n    @Remote(\'list\')\n    async remoteExportList(parentSessionId: SessionId, signal: AbortSignal): Promise<SubagentCatalog>;\n    @Remote(\'prompt\')\n    async prompt(request: SubagentPromptRequest, signal: AbortSignal): Promise<SubagentPromptReceipt>;\n    @Remote(\'interruptByParent\')\n    interruptByParent(childSessionId: SessionId, parentSessionId: SessionId, mode: \'continuable\'): SubagentInterruptReceipt;\n    @Remote(\'interruptTurnByParent\')\n    interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt;\n    registerProvider(provider: SubagentProvider): () => void;\n    getProvider(name: string): SubagentProvider | undefined;\n    list(): string[];\n    async start(name: string, re /* …truncated — full shape in source */',
   },
   {
     name: 'SubagentSendMessageOptions',
@@ -6172,7 +6289,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TypertGatewayBinding',
-    declaration: 'export interface TypertGatewayBinding<Service extends object = object> {\n    readonly service: Service;\n    readonly serviceKey: string;\n    readonly namespace: string;\n}',
+    declaration: 'export interface TypertGatewayBinding<Service extends object = object> {\n    readonly service: Service;\n    readonly serviceKey: string;\n    readonly namespace: string;\n    readonly capabilities?: readonly TypertRemoteCapability[];\n}',
   },
   {
     name: 'TypertGatewayWireStream',
@@ -6199,6 +6316,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface TypertPackageRecord {\n    readonly package: string;\n    readonly face: TypertFace;\n    readonly key: string;\n    readonly model: TypertPackageModel;\n}',
   },
   {
+    name: 'TypertRemoteCapability',
+    declaration: 'export interface TypertRemoteCapability {\n    readonly id: string;\n    readonly methods: readonly string[];\n}',
+  },
+  {
     name: 'TypertRemoteEventContext',
     declaration: 'export interface TypertRemoteEventContext {\n    readonly value: Context;\n    readonly subject: object;\n    readonly agentId: string;\n}',
   },
@@ -6212,7 +6333,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TypertRemoteEventInvocation',
-    declaration: 'export interface TypertRemoteEventInvocation {\n    readonly event: string;\n    readonly request: object;\n    readonly context: TypertRemoteEventContext;\n    readonly resolve: (outcome: TypertRemoteEventOutcome) => void;\n    readonly reject: (reason: unknown) => void;\n}',
+    declaration: 'export interface TypertRemoteEventInvocation {\n    readonly event: string;\n    readonly request: object;\n    readonly context: TypertRemoteEventContext;\n    readonly interaction?: RemoteInteractionOrigin;\n    readonly resolve: (outcome: TypertRemoteEventOutcome) => void;\n    readonly reject: (reason: unknown) => void;\n}',
   },
   {
     name: 'TypertRemoteEventOutcome',

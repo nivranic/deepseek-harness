@@ -61,6 +61,8 @@ export interface WebSearchCardState extends CardShell {
   apiKey: CardFieldState
   /** Whether the Host reports a credential configured for the referenced key. */
   apiKeyConfigured: boolean
+  /** Whether this Host supports the credential metadata and write operations used by the field. */
+  apiKeySupported: boolean
   /** Whether the credentials domain accepts a write for it; false disables the control. */
   apiKeyWritable: boolean
 }
@@ -77,7 +79,11 @@ export interface WebSearchCardFace extends CardActions {
 export class WebSearchCardController {
   private readonly form: CardForm<WebSearchSettings>
   private readonly store: SnapshotStore<WebSearchCardState>
-  private credential: CredentialState = { ref: '', configured: false, writable: true }
+  private credential: CredentialState = { ref: '', configured: false, writable: false }
+  private readonly host: ClientContext['remote']['$host']
+  private readonly stopScope: () => void
+  private readGeneration = 0
+  private disposed = false
 
   /**
    * @param scope - the bound settings scope for the `web-search-deepseek` namespace.
@@ -88,13 +94,14 @@ export class WebSearchCardController {
     private readonly scope: SettingsScope<WebSearchSettings>,
     private readonly ctx: ClientContext,
   ) {
+    this.host = ctx.remote.$host
     this.form = new CardForm(
       scope,
       [textField('baseURL'), numberField('maxUses')],
       [{ field: API_KEY_FIELD, write: text => this.writeKey(text) }],
     )
     this.store = this.form.bind(() => this.projection())
-    scope.subscribe(() => { void this.readCredential() })
+    this.stopScope = scope.subscribe(() => { void this.readCredential() })
     void this.readCredential()
   }
 
@@ -105,6 +112,7 @@ export class WebSearchCardController {
       maxUses: this.form.field('maxUses'),
       apiKey: this.form.field(API_KEY_FIELD),
       apiKeyConfigured: this.credential.configured,
+      apiKeySupported: this.supportsWrite(),
       apiKeyWritable: this.credential.writable,
     }
   }
@@ -114,26 +122,31 @@ export class WebSearchCardController {
    *
    * The answer is stored with the reference it describes: `apiKeyEnv` can
    * change between the request and its response, and two reads can settle out
-   * of order, so a response is published only while it still answers for the
-   * reference in force.
+   * of order, so only the latest response from the bound Host can publish
+   * while it still answers for the reference in force.
    */
   private async readCredential(): Promise<void> {
+    const generation = ++this.readGeneration
+    if (!this.canRead()) {
+      this.credential = { ref: '', configured: false, writable: false }
+      this.store.set(this.projection())
+      return
+    }
     const ref = refOf(this.scope.getSnapshot())
     if (ref !== this.credential.ref) {
       // A new reference knows nothing yet; keeping the old answer would claim
       // the key is configured under a name nobody has checked.
-      this.credential = { ref, configured: false, writable: true }
+      this.credential = { ref, configured: false, writable: false }
+      this.form.reset()
       this.store.set(this.projection())
     }
     const response = await this.ctx.remote.credentials.describe([ref])
-    if (!response.ok || ref !== refOf(this.scope.getSnapshot())) return
+    if (!response.ok || generation !== this.readGeneration || !this.canRead() || ref !== refOf(this.scope.getSnapshot())) return
     const view = response.value[ref]
     const next: CredentialState = {
       ref,
       configured: view?.configured ?? false,
-      // An unknown reference is treated as writable: the control stays usable
-      // and the Host is what refuses, rather than the card guessing a refusal.
-      writable: view?.writable ?? true,
+      writable: this.supportsWrite() && view?.writable === true,
     }
     if (next.configured === this.credential.configured && next.writable === this.credential.writable) return
     this.credential = next
@@ -158,7 +171,44 @@ export class WebSearchCardController {
    * @returns the card's snapshot and its form actions.
    */
   inject(): WebSearchCardFace {
-    return { hooks: { webSearchCard: this.store }, ...this.form.actions() }
+    const actions = this.form.actions()
+    return {
+      hooks: { webSearchCard: this.store },
+      edit: (field, text) => {
+        if (!this.current() || this.scope.getSnapshot().status !== 'ready') return
+        if (field === API_KEY_FIELD ? !this.credential.writable : !this.scope.getSnapshot().writable) return
+        actions.edit(field, text)
+      },
+      resetField: (field) => {
+        if (this.current() && this.scope.getSnapshot().writable) actions.resetField(field)
+      },
+      save: () => { if (this.current()) actions.save() },
+      discard: () => { if (this.current()) actions.discard() },
+    }
+  }
+
+  /** Release observers and discard drafts; retained callbacks cannot act on another Host. */
+  dispose(): void {
+    if (this.disposed) return
+    this.disposed = true
+    this.readGeneration += 1
+    this.stopScope()
+    this.credential = { ref: '', configured: false, writable: false }
+    this.form.dispose()
+  }
+
+  private current(): boolean {
+    return !this.disposed && this.host === this.ctx.remote.$host
+  }
+
+  private canRead(): boolean {
+    return this.current() && this.scope.getSnapshot().status === 'ready'
+      && this.host.capabilities?.includes('settings.read.v1') === true
+      && this.host.capabilities.includes('credentials.describe.v1')
+  }
+
+  private supportsWrite(): boolean {
+    return this.canRead() && this.host.capabilities?.includes('credentials.write.v1') === true
   }
 
   /**
@@ -167,11 +217,13 @@ export class WebSearchCardController {
    * @returns whether the Host reports a configured credential afterwards.
    */
   private async writeKey(value: string): Promise<boolean> {
-    // Refusals surface through the re-read below: the Host is the only
-    // authority on whether the key now exists.
-    await this.ctx.remote.credentials.set(refOf(this.scope.getSnapshot()), value)
+    if (!this.supportsWrite() || !this.credential.writable) return false
+    const ref = refOf(this.scope.getSnapshot())
+    if (this.credential.ref !== ref) return false
+    const response = await this.ctx.remote.credentials.set(ref, value)
+    if (!response.ok || !this.canRead() || ref !== refOf(this.scope.getSnapshot())) return false
     await this.readCredential()
-    return this.credential.configured
+    return this.canRead() && ref === this.credential.ref && this.credential.configured
   }
 }
 

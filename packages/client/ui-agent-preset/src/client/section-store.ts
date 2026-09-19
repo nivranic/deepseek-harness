@@ -18,7 +18,7 @@ import type { Context as ClientContext } from '@deepseek-ai/cordis'
 // Type-only: pulls the ctx.remote merge into this program.
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
-import { beginRosterRead, writeDefaultPreset, writeModeSelectionEnabled } from './settings-store.ts'
+import { hasHostCapability, beginRosterRead, writeDefaultPreset, writeModeSelectionEnabled } from './settings-store.ts'
 
 /** Ids a preset directory may be named, mirroring the host's own rule. */
 const PRESET_ID = /^[a-z0-9][a-z0-9-]*$/
@@ -145,6 +145,7 @@ export class AgentPresetSectionController {
   /** The one roster load whose completion current callers await. */
   private loadFlight: Promise<void> | undefined
   private reloadRequested = false
+  private host: ClientContext['remote']['$host'] | undefined
 
   constructor(
     private readonly ctx: ClientContext,
@@ -168,6 +169,7 @@ export class AgentPresetSectionController {
     await this.load()
     if (this.store.getSnapshot().status === 'error') await this.load()
     const state = this.store.getSnapshot()
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')) return
     if (state.status !== 'ready' || state.showPicker !== showPicker) return undefined
     return state.rows.find(row => row.isDefault)?.id
   }
@@ -184,25 +186,29 @@ export class AgentPresetSectionController {
     showPicker: boolean,
     syncBlankSession?: (id: string) => Promise<string | undefined>,
   ): Promise<void> {
+    if (!hasHostCapability(this.ctx, 'settings.write.v1')) return
     const state = this.store.getSnapshot()
     if (state.status !== 'ready' || state.policySaving || state.showPicker === showPicker) return
+    const host = this.ctx.remote.$host
     this.set({ policySaving: true, error: null })
     try {
       const failure = await writeModeSelectionEnabled(this.ctx, showPicker)
+      if (this.ctx.remote.$host !== host) return
       if (failure !== undefined) {
         await this.load()
         this.set({ error: failure })
         return
       }
       const effectiveDefault = await this.confirmEffectiveDefault(showPicker)
-      if (effectiveDefault === undefined) return
+      if (effectiveDefault === undefined || this.ctx.remote.$host !== host) return
       const syncFailure = await syncBlankSession?.(effectiveDefault)
       if (syncFailure !== undefined) this.set({ error: syncFailure })
     } catch (error: unknown) {
+      if (this.ctx.remote.$host !== host) return
       await this.load()
       this.set({ error: errorMessage(error) })
     } finally {
-      this.set({ policySaving: false })
+      if (this.ctx.remote.$host === host) this.set({ policySaving: false })
     }
   }
 
@@ -219,6 +225,16 @@ export class AgentPresetSectionController {
    * @returns once the snapshot reflects the host.
    */
   async load(): Promise<void> {
+    const host = this.ctx.remote.$host
+    if (this.host !== host) {
+      this.host = host
+      this.store.set(INITIAL)
+    }
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')) {
+      this.store.set({ ...INITIAL, status: 'unavailable' })
+    } else if (!hasHostCapability(this.ctx, 'agent-preset.manage.v1')) {
+      this.set({ copy: null, pendingDelete: null })
+    }
     this.reloadRequested = true
     this.loadFlight ??= this.drainLoads()
     await this.loadFlight
@@ -238,16 +254,19 @@ export class AgentPresetSectionController {
   /** Perform the section's one owned roster read. */
   private async loadOnce(): Promise<void> {
     this.reloadRequested = false
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')) return
+    const host = this.ctx.remote.$host
     // Whether a preset's directory can be opened is the Host's opener
     // capability rather than a roster property, so the page joins the two.
     // Both reads start together; one missing capability does not hide the roster.
-    const opener = this.ctx.remote.settings.canOpenAgentPresetDirectory()
+    const opener = hasHostCapability(this.ctx, 'settings.agent-preset-directory.v1')
+      ? this.ctx.remote.settings.canOpenAgentPresetDirectory() : undefined
     const roster = await beginRosterRead(this.ctx, this.store)
     // A refused describe leaves the reveal-the-path path, which needs no opener.
     const described = await opener
-    if (roster === undefined) return
+    if (roster === undefined || this.ctx.remote.$host !== host) return
     const { presets, authorable, modeSelectionEnabled: showPicker } = roster
-    const hasDocument = described.ok && described.value
+    const hasDocument = described?.ok === true && described.value
     if (presets.length === 0) {
       // Nothing to manage leaves nothing to keep a dialog open over.
       this.set({
@@ -277,8 +296,11 @@ export class AgentPresetSectionController {
    * @returns once the composition loaded or the failure is on the page.
    */
   async view(id: string): Promise<void> {
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')) return
+    const host = this.ctx.remote.$host
     this.set({ error: null })
     const result = await this.ctx.remote.agentPresets.read(id)
+    if (this.ctx.remote.$host !== host) return
     if (!result.ok) {
       this.set({ error: result.error.message })
       return
@@ -297,6 +319,8 @@ export class AgentPresetSectionController {
    * @param from - the preset the copy will start from.
    */
   beginCopy(from: string): void {
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'agent-preset.manage.v1')) return
     const row = this.store.getSnapshot().rows.find(candidate => candidate.id === from)
     this.set({
       error: null,
@@ -332,6 +356,8 @@ export class AgentPresetSectionController {
    * @returns once the copy settled and the page reflects it.
    */
   async confirmCopy(): Promise<void> {
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'agent-preset.manage.v1')) return
     const draft = this.store.getSnapshot().copy
     if (draft === null || draft.saving) return
     if (draftBlocker(draft, this.store.getSnapshot().rows) !== undefined) return
@@ -341,14 +367,17 @@ export class AgentPresetSectionController {
     // checks arity against the declaration and rejects a short call. An
     // empty display name goes as `undefined` — absent rather than empty, so
     // the host falls back to the id instead of labelling the row with ''.
+    const host = this.ctx.remote.$host
     const result = await this.ctx.remote.agentPresets.copy(
       draft.from, draft.id, name === '' ? undefined : name)
+    if (this.ctx.remote.$host !== host) return
     if (!result.ok) {
       this.patchCopy({ saving: false, error: result.error.message })
       return
     }
     this.set({ copy: null })
     await this.load()
+    if (this.ctx.remote.$host !== host) return
     this.rosterChanged()
     // A preset is its files from here on (the dialog collected nothing
     // else), so landing in them is the completion, not a follow-up.
@@ -362,7 +391,11 @@ export class AgentPresetSectionController {
    * @returns once the host answered and the page reflects it.
    */
   async openLocation(id: string): Promise<void> {
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'settings.agent-preset-directory.v1')) return
+    const host = this.ctx.remote.$host
     const result = await this.ctx.remote.settings.openAgentPresetDirectory(id)
+    if (this.ctx.remote.$host !== host) return
     if (!result.ok) {
       this.set({ error: result.error.message })
       return
@@ -377,6 +410,8 @@ export class AgentPresetSectionController {
    * @param id - the preset to delete, or null to dismiss the confirmation.
    */
   confirmDelete(id: string | null): void {
+    if (id !== null && (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'agent-preset.manage.v1'))) return
     if (this.store.getSnapshot().deleting) return
     this.set({ pendingDelete: id })
   }
@@ -389,16 +424,21 @@ export class AgentPresetSectionController {
    * @returns once the delete settled and the page reflects it.
    */
   async remove(): Promise<void> {
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'agent-preset.manage.v1')) return
     const { pendingDelete, deleting } = this.store.getSnapshot()
     if (pendingDelete === null || deleting) return
     this.set({ deleting: true, error: null })
+    const host = this.ctx.remote.$host
     const result = await this.ctx.remote.agentPresets.deletePreset(pendingDelete)
+    if (this.ctx.remote.$host !== host) return
     if (!result.ok) {
       this.set({ deleting: false, pendingDelete: null, error: result.error.message })
       return
     }
     this.set({ deleting: false, pendingDelete: null })
     await this.load()
+    if (this.ctx.remote.$host !== host) return
     this.rosterChanged()
   }
 
@@ -414,24 +454,29 @@ export class AgentPresetSectionController {
     syncBlankSession?: (id: string) => Promise<string | undefined>,
   ): Promise<void> {
     const state = this.store.getSnapshot()
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')) return
+    if (!hasHostCapability(this.ctx, 'settings.write.v1')) return
     if (!state.showPicker || state.policySaving) return
+    const host = this.ctx.remote.$host
     this.set({ policySaving: true, error: null })
     try {
       const failure = await writeDefaultPreset(this.ctx, id)
+      if (this.ctx.remote.$host !== host) return
       if (failure !== undefined) {
         this.set({ error: failure })
         return
       }
       const effectiveDefault = await this.confirmEffectiveDefault(true)
-      if (effectiveDefault === undefined) return
+      if (effectiveDefault === undefined || this.ctx.remote.$host !== host) return
       const syncFailure = await syncBlankSession?.(effectiveDefault)
       if (syncFailure !== undefined) this.set({ error: syncFailure })
     } catch (error: unknown) {
+      if (this.ctx.remote.$host !== host) return
       this.set({
         error: errorMessage(error),
       })
     } finally {
-      this.set({ policySaving: false })
+      if (this.ctx.remote.$host === host) this.set({ policySaving: false })
     }
   }
 }

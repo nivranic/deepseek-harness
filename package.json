@@ -181,7 +181,12 @@
     "demo:inspector": "node --import tsx/esm apps/cli/src/bin.ts web --patch ./packages/experimental/inspector/cordis.source.patch.yml",
     "mock:llm": "node --import tsx packages/test-support/llm-mock-server/src/bin.ts",
     "dev:web": "tsx scripts/dev-web.ts --poll",
-    "postinstall": "node scripts/install-lefthook.mjs"
+    "postinstall": "node scripts/install-lefthook.mjs",
+    "gen-remote-error-codes": "tsx scripts/gen-remote-error-codes.ts",
+    "verify-remote-error-codes": "tsx scripts/gen-remote-error-codes.ts --check",
+    "verify-remote-error-model": "tsx scripts/verify-remote-error-model.ts",
+    "gen-remote-error-envelope": "tsx scripts/gen-remote-error-envelope.ts",
+    "verify-remote-error-envelope": "tsx scripts/gen-remote-error-envelope.ts --check"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-agent": "workspace:^",
@@ -198,6 +203,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "@yao-pkg/pkg": "6.21.0",
     "@yarnpkg/cli-dist": "4.17.1",
+    "ajv": "8.20.0",
     "eslint-plugin-sonarjs": "^4.1.0",
     "execa": "^10.0.0",
     "fast-check": "^4.8.0",
@@ -220,6 +226,7 @@
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "zod": "4.4.3"
   }
 }

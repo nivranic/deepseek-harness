@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Terminal discovery states and localized manual recovery; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/connection-failure-source.json",
+    "sha256": "208bd5b9648924a5a73dc24569344c93a4b49059c8b75a68473578671a752e32"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ec4867b3f8066cddb6fe152c65ae32bffcf361e38c3b98c62df23da94e81a553"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/connection-failure-binding.json",
+    "sha256": "65b92d00f09831fc7070283e2d08cdf73bc2e737398377b9dfdc4d4d8084169c"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-connection-failure-reports.mjs",
+      "sha256": "078122b7b7fd4b324e251f9229cc49c9561030a88c84ecc53b196bba90b8a0f0"
+    },
+    {
+      "path": ".artifacts/capture-connection-failure-validation.mjs",
+      "sha256": "830718d3d2d7e35746ae8db0ded06958e07189786bf70a9769a2a6542b4654e9"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c649bbd4a77c80c9e9e59f0bd34f188276515f4814f2cd2992b4efa853c3a5ba"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5ed8bd9c934974b433d75f0f3ec99d7c045f90dc7ad26749b2439d124f4b44d9"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/connection-failure-binding.log",
+      "sha256": "c32a11db53c5e7f72757cfecc1f5373f8332e7e182cef5d883960cd9ab51845c"
+    },
+    {
+      "path": ".artifacts/connection-failure-audit-tests.log",
+      "sha256": "06db74348b4ae45f1770bf6df4d905e3393422c905aaba6521bc916c274131d1"
+    },
+    {
+      "path": ".artifacts/connection-failure-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/connection-failure-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/connection-failure-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

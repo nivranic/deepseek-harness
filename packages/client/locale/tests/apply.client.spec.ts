@@ -18,6 +18,7 @@ const SLOT = 'settings.general.item'
 
 async function bench() {
   const ctx = new Context()
+  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry).await()
   let preference: string | undefined
   let revision = 0
@@ -39,6 +40,7 @@ async function bench() {
     return { ok: true as const, value: namespace() }
   })
   const events = new TestRemote(ctx, { settings: { describe, mutate } })
+  events.$host = { home: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   return {
     ctx, slots: ctx.get('slots') as SlotRegistry, describe, mutate, events,

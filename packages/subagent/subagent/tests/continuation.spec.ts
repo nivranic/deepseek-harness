@@ -1045,6 +1045,121 @@ describe('direct-child Queue residency routing', () => {
 })
 
 describe('continuable human steering delivery', () => {
+  it.each(['queue', 'steer'] as const)('accepts concurrent human %s retries once', async (delivery) => {
+    const release = Promise.withResolvers<undefined>()
+    const adapter = new GatedAdapter([
+      { chunks: textResponse('first'), gate: release.promise },
+      { chunks: textResponse('accepted') },
+      { chunks: textResponse('duplicate must not run') },
+    ])
+    const { ctx, parent } = await setupWith(adapter)
+    parkParent(ctx, parent)
+    const started = await ctx.subagents.startContinuable(startSpec(parent))
+    await vi.waitFor(() => { expect(adapter.requests).toHaveLength(1) })
+    try {
+      const receipts = await Promise.all([
+        humanPrompt(ctx, parent, started.childId, 'one human request', delivery),
+        humanPrompt(ctx, parent, started.childId, 'one human request', delivery),
+      ])
+      expect(receipts[1]).toEqual(receipts[0])
+      const child = ctx.agents.get(started.childId)!
+      const pending = delivery === 'queue' ? child.inbox.nextTurn : child.inbox.nextStep
+      expect(pending.filter(item => item.id === receipts[0].messageId)).toHaveLength(1)
+    } finally {
+      release.resolve(undefined)
+      await waitNoActivation(ctx, started.childId)
+    }
+    const stored = await loadStoredSession(ctx.sessionPersistence, started.childId)
+    expect(userTexts(stored.events).filter(text => text === 'one human request')).toHaveLength(1)
+  })
+
+  it.each(['queue', 'steer'] as const)('acknowledges a settled human %s retry without resuming the child', async (delivery) => {
+    const { ctx, parent, adapter } = await setup([
+      textResponse('first'), textResponse('accepted'), textResponse('duplicate must not run'),
+    ])
+    parkParent(ctx, parent)
+    const started = await ctx.subagents.startContinuable(startSpec(parent))
+    await waitNoActivation(ctx, started.childId)
+    const first = await humanPrompt(ctx, parent, started.childId, 'settled human request', delivery)
+    await waitNoActivation(ctx, started.childId)
+    const before = await loadStoredSession(ctx.sessionPersistence, started.childId)
+    const calls = adapter.requests.length
+    try {
+      expect(await humanPrompt(ctx, parent, started.childId, 'settled human request', delivery)).toEqual(first)
+      expect(ctx.agents.get(started.childId)).toBeUndefined()
+      expect(adapter.requests).toHaveLength(calls)
+    } finally {
+      await waitNoActivation(ctx, started.childId)
+    }
+    expect((await loadStoredSession(ctx.sessionPersistence, started.childId)).events).toEqual(before.events)
+  })
+
+  it('keeps removed requests acknowledged and still checks parent authority and cancellation', async () => {
+    const release = Promise.withResolvers<undefined>()
+    const adapter = new GatedAdapter([{ chunks: textResponse('first'), gate: release.promise }])
+    const { ctx, parent } = await setupWith(adapter)
+    parkParent(ctx, parent)
+    const started = await ctx.subagents.startContinuable(startSpec(parent))
+    await vi.waitFor(() => { expect(adapter.requests).toHaveLength(1) })
+    const request = {
+      requestId: 'removed-human' as SubagentPromptRequestId,
+      parentSessionId: parent.id, childSessionId: started.childId,
+      mode: 'continuable' as const, delivery: 'queue' as const, content: message('removed request'),
+    }
+    const first = await ctx.subagents.prompt(request, testSignal)
+    try {
+      const child = ctx.agents.get(started.childId)!
+      expect(child.inbox.remove(first.messageId)).toBe(true)
+      expect(await ctx.subagents.prompt({ ...request, content: message('replacement content') }, testSignal)).toEqual(first)
+      expect(child.inbox.nextTurn).toHaveLength(0)
+      const readState = ctx.sessionProjections.stateOf.bind(ctx.sessionProjections)
+      const projection = vi.spyOn(ctx.sessionProjections, 'stateOf').mockImplementation(
+        (session, key) => key === 'subagentPromptReceipts' ? undefined : readState(session, key),
+      )
+      try {
+        await expect(ctx.subagents.prompt(request, testSignal)).rejects.toMatchObject({ code: 'subagent/delivery-unavailable' })
+        expect(child.inbox.nextTurn).toHaveLength(0)
+      } finally { projection.mockRestore() }
+      const stranger = await ctx.agentLoop.create(SessionId('prompt-stranger'), { provider: 'mock', model: 'mock' })
+      await expect(ctx.subagents.prompt({ ...request, parentSessionId: stranger.id }, testSignal))
+        .rejects.toMatchObject({ code: 'subagent/unauthorized' })
+      const aborted = AbortSignal.abort(new Error('cancelled retry'))
+      await expect(ctx.subagents.prompt(request, aborted)).rejects.toMatchObject({ code: 'gateway/cancelled' })
+    } finally {
+      release.resolve(undefined)
+      await waitNoActivation(ctx, started.childId)
+    }
+    const before = await loadStoredSession(ctx.sessionPersistence, started.childId)
+    expect(await ctx.subagents.prompt(request, testSignal)).toEqual(first)
+    expect(ctx.agents.get(started.childId)).toBeUndefined()
+    expect((await loadStoredSession(ctx.sessionPersistence, started.childId)).events).toEqual(before.events)
+  })
+
+  it('recovers accepted request identity in a fresh runtime without starting the child', async () => {
+    const { ctx, parent, root } = await setup([textResponse('first'), textResponse('accepted')])
+    parkParent(ctx, parent)
+    const started = await ctx.subagents.startContinuable(startSpec(parent))
+    await waitNoActivation(ctx, started.childId)
+    const first = await humanPrompt(ctx, parent, started.childId, 'restart request', 'queue')
+    await waitNoActivation(ctx, started.childId)
+    await ctx.fiber.dispose()
+    const fresh = new Context()
+    try {
+      await mountAgentLoopTestDependencies(fresh)
+      await fresh.plugin(JsonlSessionPersistence, { root: root! })
+      await fresh.plugin(AgentLoop, { agents: [] })
+      await fresh.plugin(TestSessionQuery)
+      await fresh.plugin(SubagentRuntime)
+      const restoredParent = (await fresh.agents.resume({ resumeSessionId: parent.id, agentOptions: {} })).agent
+      const before = await loadStoredSession(fresh.sessionPersistence, started.childId)
+      expect(await humanPrompt(fresh, restoredParent, started.childId, 'restart request', 'queue')).toEqual(first)
+      expect(fresh.agents.get(started.childId)).toBeUndefined()
+      expect((await loadStoredSession(fresh.sessionPersistence, started.childId)).events).toEqual(before.events)
+    } finally {
+      await fresh.fiber.dispose()
+    }
+  })
+
   it('places resident steering in nextStep with its durable identity and source', async () => {
     const release = Promise.withResolvers<undefined>()
     const adapter = new GatedAdapter([
@@ -3378,6 +3493,58 @@ describe('SubagentRuntime.interrupt', () => {
       .filter(event => event.type === 'turn/end')
       .map(event => (event).data.reason.kind)
     expect(turnEnds).toEqual(['aborted', 'completed', 'completed', 'completed'])
+  })
+
+  it('keeps a retried parent interrupt bound to its observed turn across parked work', async () => {
+    const firstGate = Promise.withResolvers<undefined>()
+    const secondGate = Promise.withResolvers<undefined>()
+    const adapter = new GatedAdapter([
+      { chunks: textResponse('first'), gate: firstGate.promise },
+      { chunks: textResponse('second'), gate: secondGate.promise },
+      { chunks: textResponse('third') },
+    ])
+    const { ctx, parent } = await setupWith(adapter)
+    parkParent(ctx, parent)
+    const started = await ctx.subagents.startContinuable(startSpec(parent))
+    await vi.waitFor(() => { expect(adapter.requests).toHaveLength(1) })
+    const child = ctx.agents.get(started.childId)!
+    const cancel = vi.spyOn(child, 'cancel')
+    const target = ctx.sessionProjections.stateOf(child.session, 'subagentTiming')!.active!.startSeq
+    const request = { childSessionId: child.id, parentSessionId: parent.id, mode: 'continuable' as const, turnStartSeq: target }
+    try {
+      await queuePrompt(ctx, parent, child.id, message('parked target test'))
+      expect(ctx.subagents.interruptTurnByParent(request)).toEqual({ accepted: true })
+      expect(cancel).toHaveBeenCalledTimes(1)
+      firstGate.resolve(undefined)
+      await child.whenIdle()
+      await passSettlementCheck(ctx, child.id)
+      expect(ctx.subagents.interruptTurnByParent(request)).toEqual({ accepted: true })
+      expect(child.inbox.nextTurn).toHaveLength(1)
+      await queuePrompt(ctx, parent, child.id, message('wake target test'))
+      await vi.waitFor(() => { expect(adapter.requests).toHaveLength(2) })
+      const next = ctx.sessionProjections.stateOf(child.session, 'subagentTiming')!.active!.startSeq
+      expect(next).not.toBe(target)
+      expect(ctx.subagents.interruptTurnByParent(request)).toEqual({ accepted: true })
+      expect(ctx.subagents.interruptTurnByParent({ ...request, turnStartSeq: null })).toEqual({ accepted: true })
+      expect(cancel).toHaveBeenCalledTimes(1)
+      expect(() => ctx.subagents.interruptTurnByParent({ ...request, parentSessionId: SessionId('foreign'), turnStartSeq: null }))
+        .toThrow(expect.objectContaining({ code: 'subagent/unauthorized' }))
+      const readState = ctx.sessionProjections.stateOf.bind(ctx.sessionProjections)
+      const projection = vi.spyOn(ctx.sessionProjections, 'stateOf').mockImplementation(
+        (session, key) => key === 'subagentTiming' ? undefined : readState(session, key),
+      )
+      try {
+        expect(() => ctx.subagents.interruptTurnByParent({ ...request, turnStartSeq: next }))
+          .toThrow(expect.objectContaining({ code: 'subagent/delivery-unavailable' }))
+      } finally { projection.mockRestore() }
+      expect(cancel).toHaveBeenCalledTimes(1)
+      expect(ctx.subagents.interruptTurnByParent({ ...request, turnStartSeq: next })).toEqual({ accepted: true })
+      expect(cancel).toHaveBeenCalledTimes(2)
+    } finally {
+      firstGate.resolve(undefined)
+      secondGate.resolve(undefined)
+      await drainManager(ctx)
+    }
   })
 
   it('interrupts only the target while its resident descendant keeps running', async () => {

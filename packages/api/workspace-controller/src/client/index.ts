@@ -42,7 +42,7 @@ export const inject = ['remote', 'remote.workspace']
  * @param ctx - Client root Context.
  */
 export function apply(ctx: Context): void {
-  const model = new ClientWorkspaceModel(ctx.remote.workspace)
+  const model = new ClientWorkspaceModel(ctx.remote.workspace, () => ctx.remote.$host)
   new WorkspaceController(ctx, model)
   const control = createWorkspaceStateStream(ctx.remote, {
     accept: model,
@@ -50,6 +50,9 @@ export function apply(ctx: Context): void {
     failed: (error) => { model.handleStreamFailure(error) },
   })
   control.start()
+  ctx.effect(() => ctx.on('connection/reset', () => {
+    model.synchronizeHost()
+  }), 'workspace-controller.client.generation')
   ctx.effect(
     () => async () => { await control.dispose() },
     'workspace-controller.client.control',
@@ -78,6 +81,7 @@ export function createWorkspaceStateStream(
 ): WorkspaceStateStream {
   const stream = remote.$stream<WorkspaceFollowFrame>({
     name: 'Workspace state stream',
+    available: host => host.capabilities?.includes('workspace.follow.v1') === true,
     open: signal => remote.workspace.follow(signal),
     ended: accepted => accepted
       ? new RemoteStreamCarrierError('Workspace state stream ended without a terminal result')

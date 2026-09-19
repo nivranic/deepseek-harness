@@ -10,6 +10,8 @@ Sources: [`packages/subagent/subagent/src/types.ts`](../../packages/subagent/sub
 
 The `subagentCatalog` projection exposes `SubagentCatalogEntry[]` in parent event order through Session observations and client snapshots. Each entry contains the child id, creation time, mode, and mode-dependent label; fork-inherited catalog facts are excluded. [The subagent package](../../packages/subagent/subagent/README.md) owns catalog creation and persistence semantics.
 
+`subagentPromptReceipts` is a Host-only projection of accepted browser request identities and their original message ids. It folds the child-owned suffix of existing inbox and user-message events, persists through the projection checkpoint mechanism and has no wire view. [Prompt retry semantics](../../packages/subagent/subagent/README.md) remain owned by the subagent package.
+
 ## Two kinds of capability, discovered two ways
 
 A provider advertises its **start-time** features on a static descriptor the service checks BEFORE a one-shot run exists; a request that needs one the provider lacks is rejected loud (`SubagentError('UNSUPPORTED_CAPABILITY')`), never accepted-then-ignored. Those flags describe only the one-shot [`start()`](#the-provider-contract-subagentprovider) path, where the provider composes the child. **Continuable** children are composed by the continuation manager itself, so they are gated by one optional method whose presence IS the capability, with TS narrowing as the discovery mechanism: [`SubagentProvider.prepareContinuable`](#the-provider-contract-subagentprovider).
@@ -155,6 +157,8 @@ Live queue occurrence mutation remains in the Session domain. `session.updateQue
 
 `SubagentRuntime.interrupt(targetSessionId, authority)` is the one public stop: it authorizes synchronously, issues `Agent.cancel(cause, { keepInbox: true })` on the live target, and returns without awaiting quiescence. The Activation, its unclaimed pending inbox work, and published descendants are untouched; work already claimed into the interrupted turn is not requeued. Once the interrupted driver is idle, a waking send resumes the parked FIFO queue. An absent target — unknown, one-shot, or already settled — and a manager-less composition are accepted no-ops. For a live target, a mismatched parent address or caller outside its live ancestry rejects with `UNAUTHORIZED`; stale ancestor objects and self-targeting ancestor requests reject before target lookup.
 
+`SubagentInterruptTurnRequest` carries `parentSessionId`, `childSessionId`, `mode: 'continuable'` and the observed `turnStartSeq` or null. `subagents.interruptTurnByParent` checks that target against `subagentTiming.active.startSeq`; missing active sequence data cannot authorize a Client fallback on a Host advertising `subagent.interrupt-turn.v1`. The [interrupt decision](../../.agents/notes/implemented/feature/2026-08-06-continuable-subagent-interrupt.md) owns authorization, no-op outcomes and legacy behavior.
+
 ```ts type-equiv
 /**
  * Authority under which one interrupt request is admitted. `user` carries the
@@ -162,7 +166,12 @@ Live queue occurrence mutation remains in the Session domain. `session.updateQue
  * the exact live Agent object whose recorded lineage must contain the caller.
  */
 type SubagentInterruptAuthority =
-  | { readonly kind: 'user'; readonly parentSessionId: SessionId }
+  | {
+    readonly kind: 'user'
+    readonly parentSessionId: SessionId
+    /** Omission keeps current-turn interruption; null or a stale sequence cannot cancel later work. */
+    readonly turnStartSeq?: number | null
+  }
   | { readonly kind: 'ancestor'; readonly agent: Agent }
 ```
 
@@ -622,7 +631,7 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  * before delivery, and the child's model must accept image input.
  * @param request - durable address, delivery, minted identity, content, and optional browser zone.
  * @param signal - carrier cancellation, owning the call until inbox acceptance.
- * @returns the accepted message's inbox identity.
+ * @returns the original accepted message's inbox identity for this child's requestId, including retries.
  * @throws {RemoteError} `gateway/bad-request`, `subagent/attachment-invalid`,
  *   `subagent/invalid-time-zone`, `subagent/parent-unavailable`,
  *   `subagent/not-resumable`, `subagent/unauthorized`,
@@ -645,6 +654,14 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  *   otherwise `gateway/internal`.
  */
 @Remote('interruptByParent') interruptByParent( childSessionId: SessionId, parentSessionId: SessionId, mode: 'continuable', ): SubagentInterruptReceipt
+
+/**
+ * Stop an observed child turn under durable parent-address authority, including while the parent is offline.
+ * @param request - child address and the observed turn/start sequence, or null for an idle child.
+ * @returns acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.
+ * @throws {RemoteError} invalid input, foreign live-child authority or unavailable turn projection.
+ */
+@Remote('interruptTurnByParent') interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt
 
 /**
  * Register a provider under its name. Registration is effect-scoped and HMR

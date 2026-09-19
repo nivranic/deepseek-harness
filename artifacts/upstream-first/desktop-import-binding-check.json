@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/desktop-import-source.json",
+      "status": "PASS",
+      "rejected": "(Desktop import source record changed|historicalRecords changed after validation: artifacts\\/upstream-first\\/desktop-import-source.json)"
+    },
+    {
+      "path": "apps/desktop/src/legacy-settings.ts",
+      "status": "PASS",
+      "rejected": "sourceFiles changed after validation: apps\\/desktop\\/src\\/legacy-settings.ts"
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-import-smoke.json",
+      "status": "PASS",
+      "rejected": "(?:receipts|historicalRecords) changed after validation: artifacts\\/upstream-first\\/desktop-import-smoke.json"
+    }
+  ]
+}

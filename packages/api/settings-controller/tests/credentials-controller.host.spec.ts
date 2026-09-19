@@ -44,6 +44,10 @@ describe('the credentials Remote namespace a configuration surface calls', () =>
     const binding = controller.typertRemote
     expect(binding.serviceKey).toBe('credentialsController')
     expect(binding.namespace).toBe('credentials')
+    expect(binding.capabilities).toEqual([
+      { id: 'credentials.describe.v1', methods: ['describe'] },
+      { id: 'credentials.write.v1', methods: ['set', 'unset'] },
+    ])
     expect(remoteMethods(controller)).toEqual([
       { method: 'describe', invocation: { kind: 'direct' } },
       { method: 'set', invocation: { kind: 'direct' } },
@@ -87,6 +91,14 @@ describe('the credentials Remote namespace a configuration surface calls', () =>
     ]) {
       const failure = await call().catch((error: unknown) => error)
       expect(remoteErrorOf(failure)).toMatchObject({ code: 'gateway/bad-request' })
+      const remote = remoteErrorOf(failure)
+      if (remote?.code !== 'gateway/bad-request') throw new Error('expected validation refusal')
+      expect(remote.details.issues?.length).toBeGreaterThan(0)
+      for (const issue of remote.details.issues ?? []) {
+        expect(Object.keys(issue).sort()).toEqual(['code', 'message', 'path'])
+        expect(issue.code).toBe('invalid_format')
+        expect(['ref', 'refs']).toContain(issue.path[0])
+      }
     }
   })
 

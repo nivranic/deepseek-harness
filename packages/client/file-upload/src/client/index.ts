@@ -15,7 +15,7 @@ declare module '@deepseek-ai/cordis' {
 }
 
 /** The upload service uses the generated Remote fallback. */
-export const inject = ['remote']
+export const inject = ['remote', 'connection']
 
 /**
  * Provide the browser background-upload service.

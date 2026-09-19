@@ -19,7 +19,7 @@ Both carriers execute the same `dsh` grammar and shipped profiles, including the
 - `bundled_package_dir() -> Path` returns the installed module-data root and verifies its release metadata.
 - `bundled_runtime_path() -> Path` returns the current platform executable and verifies required sidecars.
 - `resolve_bundled_launch_args(mode=None) -> tuple[str, ...]` returns the executable argv by default. Explicit `mode="node"` or `DSH_RUNTIME_MODE=node` selects the repo-only Node carrier.
-- `main()` implements the installed `dsh` console command and rejects an absent or blank `DSH_HOME`. On Windows it waits for the bundled process with inherited standard streams and forwards its exit status; on POSIX it replaces the Python process.
+- `main()` implements the installed `dsh` console command and rejects an absent or blank `DSH_HOME`. On Windows it waits for the bundled process with inherited standard streams and forwards its complete 32-bit exit status, including codes with the high bit set; on POSIX it replaces the Python process.
 
 Unsupported platforms and missing executables or sidecars raise `FileNotFoundError` with the build and installation routes. Unknown runtime modes raise `ValueError`.
 
@@ -30,6 +30,8 @@ Unsupported platforms and missing executables or sidecars raise `FileNotFoundErr
 External profile management uses `dsh plugin --profile <name> ...`. That command requires `pnpm` on `PATH`; ordinary SDK/profile execution does not.
 
 ## Build and distribution
+
+The closure check traverses application, package, vendor, and native workspace manifests, including the published `dsh` CLI. Every reachable required workspace peer must be an explicit runtime dependency; disabling automatic peer installation cannot remove those obligations. Build commands use installed tools and disable pnpm's automatic pre-command installation, so production deploy state cannot remove the packaging tool.
 
 Production deployment permits unused workspace patches for packages outside the runtime closure; patches for included packages must still apply successfully. This exception is confined to the deploy command; repository installation still rejects unused patches.
 

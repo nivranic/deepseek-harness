@@ -43,6 +43,7 @@ describe('goal activation source', () => {
         activationListener = listener
         return () => { activationListener = undefined }
       },
+      canRead: () => true,
       subscribeReset: () => () => {},
     })
     const dispose = source.subscribe(() => {})
@@ -66,6 +67,7 @@ describe('goal activation source', () => {
       session,
       getGoal,
       subscribeActivation: () => () => {},
+      canRead: () => true,
       subscribeReset: () => () => {},
     })
     const dispose = source.subscribe(() => {})
@@ -109,6 +111,7 @@ describe('goal activation source', () => {
         emitActivation = listener
         return () => { emitActivation = undefined }
       },
+      canRead: () => true,
       subscribeReset: (listener) => {
         emitReset = listener
         return () => { emitReset = undefined }
@@ -151,6 +154,7 @@ describe('goal activation source', () => {
         error: new RemoteError('gateway/internal', 'no', {}),
       }),
       subscribeActivation: () => () => {},
+      canRead: () => true,
       subscribeReset: () => () => {},
     })
     const dispose = source.subscribe(() => {})
@@ -169,6 +173,7 @@ describe('goal activation source', () => {
       session: emptySession,
       getGoal: () => Promise.resolve({ ok: true, value: undefined }),
       subscribeActivation: () => () => {},
+      canRead: () => true,
       subscribeReset: () => () => {},
     })
     const emptyDispose = emptySource.subscribe(() => {})
@@ -182,6 +187,7 @@ describe('goal activation source', () => {
       session,
       getGoal: () => Promise.resolve({ ok: true, value: goalView('armed') }),
       subscribeActivation: () => () => {},
+      canRead: () => true,
       subscribeReset: () => () => {},
     })
     const dispose = source.subscribe(() => {})
@@ -196,4 +202,52 @@ describe('goal activation source', () => {
     disposeObserver()
     dispose()
   })
+})
+
+it('withdraws activation without unsupported probes and rejects late reads or activation events', async () => {
+  let readable = true
+  let reset!: () => void
+  let event!: (goal: GoalActivationChanged['goal']) => void
+  const old = Promise.withResolvers<RemoteResult<GoalView | undefined>>()
+  const getGoal = vi.fn().mockImplementationOnce(() => old.promise)
+    .mockResolvedValue({ ok: true, value: goalView('disarmed') })
+  const source = createGoalActivationSource({
+    projection: createSnapshotStore<GoalProjection | null | undefined>(projection()),
+    session: createSnapshotStore({ running: false }),
+    canRead: () => readable,
+    getGoal,
+    subscribeReset: (listener) => { reset = listener; return () => {} },
+    subscribeActivation: (listener) => { event = listener; return () => {} },
+  })
+  const dispose = source.subscribe(() => {})
+  event({ id: GOAL_ID, revision: 1, activation: 'armed' })
+  expect(source.getSnapshot().activation).toBe('armed')
+  readable = false
+  reset()
+  expect(source.getSnapshot().activation).toBeUndefined()
+  expect(getGoal).toHaveBeenCalledTimes(1)
+  event({ id: GOAL_ID, revision: 1, activation: 'armed' })
+  old.resolve({ ok: true, value: goalView('armed') })
+  await Promise.resolve()
+  expect(source.getSnapshot().activation).toBeUndefined()
+  readable = true
+  reset()
+  await Promise.resolve()
+  expect(source.getSnapshot().activation).toBe('disarmed')
+  expect(getGoal).toHaveBeenCalledTimes(2)
+  dispose()
+})
+
+it('contains a rejected transport read without publishing activation', async () => {
+  const source = createGoalActivationSource({
+    projection: createSnapshotStore<GoalProjection | null | undefined>(projection()),
+    session: createSnapshotStore({ running: false }),
+    canRead: () => true,
+    getGoal: () => Promise.reject(new Error('transport rejected')),
+    subscribeReset: () => () => {}, subscribeActivation: () => () => {},
+  })
+  const dispose = source.subscribe(() => {})
+  await Promise.resolve()
+  expect(source.getSnapshot().activation).toBeUndefined()
+  dispose()
 })

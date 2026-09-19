@@ -29,6 +29,8 @@ Mount this plugin alongside `ui-workspace` and the host backend [`dsh-host-direc
 
 ### When to choose it
 
+The flow occupies its slots only while the admitted Host advertises `directory-picker.native.v1`. Unknown discovery or missing support leaves no native picking entry. Host snapshot replacement releases both registrations and their operation lifetime, cancelling a pending native request; restoration does not reuse an old result.
+
 Choose this surface when the browser runs on the same machine as the Host, so an OS dialog can open there. Choose the [`-browse`](../ui-directory-picker-browse/README.md) surface when the browser is remote or in-process and no local chooser exists. The two surfaces fill the same slots, so switching is a composition change, not a code change.
 
 -----
@@ -39,7 +41,7 @@ Choose this surface when the browser runs on the same machine as the Host, so an
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-Both slot registrations install as one transactional effect through nested `ctx.slots.inject()` calls, because either declaring entry may activate later or replace its declaration. The occupant arms once per rising `open` edge, so re-renders never launch a second chooser; settlements ride a ref so the answer reaches the owner's latest handlers. An unmount (HMR replacing the occupant) discards the settlement wholesale: the wire carries no per-request abort, so the host-side chooser survives until answered and its answer lands nowhere. The node half is an empty `apply` that keeps the plugin on the host roster.
+Both slot registrations install as one transactional effect through nested `ctx.slots.inject()` calls, because either declaring entry may activate later or replace its declaration. The occupant arms once per rising `open` edge, so re-renders never launch a second chooser; settlements reach the owner's current handlers only while that instance is alive. Registration disposal aborts its captured operation lifetime. The node half is an empty `apply` that keeps the plugin on the host roster.
 
 </details>
 

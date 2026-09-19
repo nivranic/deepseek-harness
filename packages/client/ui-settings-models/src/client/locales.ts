@@ -2,9 +2,11 @@
 
 /** English strings (the key-set source of truth for this pair). */
 export const en = {
+  hostChanged: 'This connection no longer supports the operation. Reopen the editor to continue.',
   nav: 'Models',
   title: 'Models',
   intro: 'Enter your API keys to use models from the following providers.',
+  configurationIntro: 'Configure the providers and models available on this Host.',
   edit: 'Edit',
   editProvider: 'Edit {provider}',
   remove: 'Delete',
@@ -109,6 +111,8 @@ export type ModelsKey = keyof typeof en
 
 /** Chinese strings (same keys as {@link en}). */
 export const zh: { [Key in keyof typeof en]: string } = {
+  hostChanged: '当前连接已不支持此操作。请重新打开编辑器后继续。',
+  configurationIntro: '配置当前 Host 上可用的提供方和模型。',
   nav: '模型',
   title: '模型',
   intro: '填入各提供方的 API 密钥即可使用其模型。',

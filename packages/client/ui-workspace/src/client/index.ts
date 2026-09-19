@@ -9,7 +9,9 @@
  * packages/client/AGENTS.md.
  */
 import type { Context } from '@deepseek-ai/cordis'
+import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import type { RemoteHostFacts } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { IWorkspaces, WorkspaceSnapshot } from '@deepseek-ai/dsh-api-workspace-controller/client'
 import type { HostObservable, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
@@ -61,7 +63,7 @@ const NS = 'workspace'
  * declaration through `slots.inject()` instead of assuming order.
  */
 export const inject = [
-  'slots', 'sessions', 'workspaces', 'locale', 'remote', 'remote.directoryPicker', 'layout',
+  'slots', 'sessions', 'workspaces', 'locale', 'remote', 'remote.directoryPicker', 'layout', 'connection',
 ]
 
 /**
@@ -71,6 +73,11 @@ export const inject = [
  * @param ctx - client root context.
  */
 export function apply(ctx: Context): void {
+  const connection = ctx.get('connection') as ConnectionHandle
+  const has = (capability: string): boolean => ctx.remote.$host.capabilities?.includes(capability) === true
+  const requireWorkspace = (capability: string): void => {
+    if (!has(capability)) throw new RemoteError('host/capability-unavailable', 'Host does not support this Workspace operation', { capability })
+  }
   const sessions = ctx.get('sessions') as ISessions
   const workspaces = ctx.get('workspaces') as IWorkspaces
   const uiWorkspace = new UiWorkspaceService(
@@ -80,20 +87,24 @@ export function apply(ctx: Context): void {
 
   const searchSessions: WorkspaceBrowserInjected['searchSessions'] = async (query, signal) => {
     const result = await sessions.search(query, signal)
-    if (!result.ok) throw new Error(result.error.message)
+    if (!result.ok) throw result.error
     return result.value
   }
 
   // Stable per-surface occupancy sources (the renderer's hook cache keys by
   // source identity): true while the surface's directory-flow hole is filled.
   const flowSource = (hole: 'sidebar.workspaces.directoryFlow' | 'conversation.hero.workspace.directoryFlow'): HostObservable<boolean> => ({
-    getSnapshot: () => ctx.slots.entries(hole).length > 0,
-    subscribe: listener => ctx.slots.subscribe(hole, listener),
+    getSnapshot: () => has('workspace.manage.v1') && ctx.slots.entries(hole).length > 0,
+    subscribe: (listener) => {
+      const offSlot = ctx.slots.subscribe(hole, listener)
+      const offHost = connection.generation.subscribe(listener)
+      return () => { offSlot(); offHost() }
+    },
   })
   const browserFlowSource = flowSource('sidebar.workspaces.directoryFlow')
   const hostInfo: HostObservable<RemoteHostFacts> = {
     getSnapshot: () => ctx.remote.$host,
-    subscribe: listener => ctx.on('connection/reset', listener),
+    subscribe: listener => connection.generation.subscribe(listener),
   }
   const pickerFlowSource = flowSource('conversation.hero.workspace.directoryFlow')
   const openSession: WorkspaceBrowserInjected['open'] = (sessionId) => {
@@ -102,39 +113,45 @@ export function apply(ctx: Context): void {
   const browserInjected = (): WorkspaceBrowserInjected => ({
     // Explicit group actions keep their target; unscoped New Session inherits
     // the current Session Workspace before the recent-Workspace fallback.
-    startSession: (workspaceId) => { uiWorkspace.startSession(workspaceId) },
+    startSession: (workspaceId) => {
+      if (ctx.remote.$host.capabilities?.includes('session.manage.v1') === true) uiWorkspace.startSession(workspaceId)
+    },
     open: openSession,
     searchSessions,
     searchResultLimit: sessions.searchResultLimit,
-    renameSession: async (sessionId, title) => {
-      // Row → session-face hop: rename is a per-session verb (ISession), not
-      // a list-service verb; the binding resolves any listed session.
+    prepareSessionRename: (sessionId) => {
       const session = sessions.binding(sessionId)?.session
       if (session === undefined) throw new Error(`unknown session "${sessionId}"`)
-      const result = await session.rename(title)
-      if (!result.ok) throw new Error(result.error.message)
+      const submit = session.prepareRename()
+      return async (title) => {
+        const result = await submit(title)
+        if (!result.ok) throw result.error
+      }
     },
     forkSession: (sessionId) => {
+      if (ctx.remote.$host.capabilities?.includes('session.manage.v1') !== true) return
       uiWorkspace.forkSession(sessionId)
         .catch(() => {
           // Fork or child-rename failure keeps the current selection.
         })
     },
-    renameWorkspace: async (workspaceId, title) => { await workspaces.rename(workspaceId, title) },
-    deleteWorkspace: async (workspaceId) => { await workspaces.delete(workspaceId) },
+    renameWorkspace: async (workspaceId, title) => { requireWorkspace('workspace.manage.v1'); await workspaces.rename(workspaceId, title) },
+    deleteWorkspace: async (workspaceId) => { requireWorkspace('workspace.manage.v1'); await workspaces.delete(workspaceId) },
     insertWorkspaceBefore: async (workspaceId, beforeWorkspaceId) => {
+      requireWorkspace('workspace.manage.v1')
       await workspaces.insertBefore(workspaceId, beforeWorkspaceId)
     },
     archiveSession: async (sessionId) => { await uiWorkspace.archiveSession(sessionId) },
     insertSessionBefore: async (workspaceId, sessionId, beforeSessionId) => {
+      requireWorkspace('workspace.sessions.v1')
       await workspaces.insertSessionBefore(workspaceId, sessionId, beforeSessionId)
     },
-    createWorkspace: input => workspaces.create(input),
+    createWorkspace: async (input) => { requireWorkspace('workspace.manage.v1'); return workspaces.create(input) },
     hooks: { directoryFlow: browserFlowSource, hostInfo },
   })
   const pickerInjected = (): WorkspacePickerInjected => ({
-    createWorkspace: input => workspaces.create(input),
-    hooks: { directoryFlow: pickerFlowSource },
+    createWorkspace: async (input) => { requireWorkspace('workspace.manage.v1'); return workspaces.create(input) },
+    hooks: { directoryFlow: pickerFlowSource, hostInfo },
   })
   // Each registration declares its directory-flow child in the same call;
   // slot injection follows both the owner and declaration HMR lifetimes.

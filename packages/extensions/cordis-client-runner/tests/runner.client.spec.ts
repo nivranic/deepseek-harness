@@ -514,3 +514,47 @@ describe('render failures', () => {
     expect(bench.runner.renderFailures.getSnapshot().size).toBe(1)
   })
 })
+
+it('withdraws queued loads before module registration and permits an explicit replacement load', async () => {
+  const b = await boot()
+  const old = b.runner.load(half())
+  const reset = b.runner.reset()
+  expect(b.runner.getSnapshot()).toEqual([])
+  await expect(old).resolves.toMatchObject({ ok: false, cause: 'activate' })
+  await reset
+  expect(b.created).toEqual([])
+  await expect(b.runner.load(half({ pluginRunId: runId(2) }))).resolves.toMatchObject({ ok: true, pluginRunId: runId(2) })
+  await b.runner.dispose()
+  await expect(b.runner.load(half())).resolves.toMatchObject({ ok: false, cause: 'activate' })
+  expect(b.created).toHaveLength(1)
+})
+
+it('removes a live activation and its contributions when the connection is withdrawn', async () => {
+  const b = await boot()
+  await b.runner.load(half())
+  const reset = b.runner.reset()
+  expect(b.runner.getSnapshot()).toEqual([])
+  expect(b.runner.isLoaded(PLUGIN)).toBe(false)
+  await reset
+  expect(b.removed).toEqual(['entry-1'])
+  expect(b.runner.renderFailures.getSnapshot().size).toBe(0)
+  await b.runner.dispose()
+})
+
+it('cleans up an activation that settles after withdrawal before admitting a replacement load', async () => {
+  const b = await boot()
+  const gate = Promise.withResolvers<undefined>()
+  Reflect.set(globalThis, '__dynamicActivationGate', gate.promise)
+  const old = b.runner.load(half({ code: 'return { async apply() { await globalThis.__dynamicActivationGate } }' }))
+  await vi.waitFor(() => { expect(b.created).toHaveLength(1) })
+  const reset = b.runner.reset()
+  const next = b.runner.load(half({ pluginRunId: runId(2) }))
+  gate.resolve(undefined)
+  await expect(old).resolves.toMatchObject({ ok: false, cause: 'activate' })
+  await reset
+  await expect(next).resolves.toMatchObject({ ok: true, pluginRunId: runId(2) })
+  expect(b.removed).toEqual(['entry-1'])
+  expect(b.runner.getSnapshot()[0]?.pluginRunId).toBe(runId(2))
+  await b.runner.dispose()
+  Reflect.deleteProperty(globalThis, '__dynamicActivationGate')
+})

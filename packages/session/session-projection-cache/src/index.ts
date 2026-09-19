@@ -236,28 +236,26 @@ export class SessionProjectionCache extends Service {
 
   /**
    * Durably checkpoint one live session NOW (all mandatory points call
-   * this; tests and carriers may too). The registry cut is snapshotted at
-   * this boundary (states are live references), then the session's record is
-   * replaced on the domain's write chain. NOT fail-soft — callers on the
-   * fail-soft paths contain it.
+   * this; tests and carriers may too). The registry supplies detached values;
+   * the complete lifecycle identity is captured before the record enters the
+   * domain's write chain. Its log durability wait holds the same queue slot.
+   * NOT fail-soft — callers on the fail-soft paths contain it.
    * @param session - the live session to checkpoint.
    * @returns resolution after durability and event emission.
    */
   async write(session: Session): Promise<void> {
     const rows = this.ctx.sessionProjections.checkpoint(session)
     this.markClean(session)
-    // Durability barrier: the checkpoint cut was taken above, so flushing
-    // AFTER it guarantees every event inside the cut is durably logged
-    // before the cache row lands — a crash can leave the cache behind the
-    // log (longer tail replay) but never ahead of it (phantom values folded
-    // from events no stored log contains). At detach the store entry is
-    // already gone; persistence's own retirement drain covers that path and
-    // any residual overreach is caught by the cold read's anchored floor.
-    if (this.ctx.sessions.get(session.id) === session) await this.ctx.sessions.flush(session)
+    const sessions = this.ctx.sessions
+    // Capture order includes the log durability wait. Detached Sessions rely
+    // on persistence's retirement drain and cold reads' anchored floor check.
     await this.put(
       session.id,
       identityOf(session.header, session.inheritedEventCount),
       rows,
+      async () => {
+        if (sessions.get(session.id) === session) await sessions.flush(session)
+      },
     )
   }
 
@@ -376,12 +374,17 @@ export class SessionProjectionCache extends Service {
   }
 
   /** Replace one session's stored record with its log identity and a detached snapshot of `rows`. */
-  private async put(id: SessionId, identity: CheckpointIdentity, rows: ProjectionCheckpoint): Promise<void> {
+  private async put(
+    id: SessionId,
+    identity: CheckpointIdentity,
+    rows: ProjectionCheckpoint,
+    beforeWrite?: () => Promise<void>,
+  ): Promise<void> {
     const detached = snapshotJsonValue(rows)
     if (detached === undefined) {
       throw new TypeError('projection checkpoint is not losslessly JSON-serializable (a unit state violates the plain-JSON contract)')
     }
-    await this.requireTable().put(id, { identity, rows: detached as CheckpointRecord['rows'] })
+    await this.requireTable().put(id, { identity, rows: detached as CheckpointRecord['rows'] }, beforeWrite)
   }
 
   private requireTable(): KvTable<SessionId, CheckpointRecord> {

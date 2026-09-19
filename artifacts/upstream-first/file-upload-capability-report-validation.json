@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for File staging capability and generation-owned uploads; complete persisted Windows replay remains unresolved; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/file-upload-capability-source.json",
+    "sha256": "eb27600f131627d7e08c665347b284018acbb958255b76d3f897f78546971740"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1807124a4fa7b4e92b8b7c394cc4565e563a092e7773c99cd121ff3a6f10585e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/file-upload-capability-binding.json",
+    "sha256": "fbe227e5270f27d59880ca06efc5acd9f86994c5675928ae9d88a053b5659539"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-file-upload-capability-reports.mjs",
+      "sha256": "fb087baa0883334765615c748252a4f83134ef3bf4a8ff4d47b9bbcdc929684a"
+    },
+    {
+      "path": ".artifacts/capture-file-upload-capability-validation.mjs",
+      "sha256": "f680aeb012745b3a8fba4c92da4710d9bf8b1e036ee0637655aad777432fe02f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "768e831d006b9e277a5c3bd7ea07d7e1bd1a069d244c687f594ea40117c37be2"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "30ffb975a255cfc7a3fee0ed06fd5c2728e589d0362eca24167a61e2ea674c3a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/file-upload-capability-binding.log",
+      "sha256": "80aa7cf0960c959605eef5742fdff00f80f5bfdddb1409cdd967e75a5864c86f"
+    },
+    {
+      "path": ".artifacts/file-upload-capability-audit-tests.log",
+      "sha256": "c2749f2e235fb33e6f299cfb785c8b5bddc883d659a8763204212268b2e336c7"
+    },
+    {
+      "path": ".artifacts/file-upload-capability-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/file-upload-capability-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/file-upload-capability-report-generation.log",
+      "sha256": "9251a94fe62748fc0aeed87501ba54eaa5a6708b0004244a1772011f50fbafcc"
+    }
+  ]
+}

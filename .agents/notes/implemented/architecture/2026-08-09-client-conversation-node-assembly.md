@@ -43,7 +43,11 @@ A Definition holds no mutable business data across Sessions. Each Session's Asse
 
 #### `kind`, business ID, and Context key
 
-The `id` returned by `match()` only needs to be stable within its Definition. A Tool ID can be a call ID, an Assistant ID can be `turn:step`, and an Inbox ID can be the splice Event seq.
+The `id` returned by `match()` is stable within its Definition's declared identity scope. The default scope is the Session. `identityScope: 'step'` asserts that every matched event belongs to one model Step; the engine qualifies the raw id with the durable Turn and Step coordinates. Tool Definitions use this scope because provider call ids, including assembler fallbacks, can repeat across model requests. Assistant IDs can remain `turn:step`, and Inbox IDs can remain splice Event seqs.
+
+Step-scoped identity uses recorded execution enclosure, not the latest unfinished Context. Explicit event coordinates and enclosing boundaries locate complete history. An unlocated prefix may use a following Step coordinate only before the next opening boundary; otherwise its claimed Matches remain pending until more history supplies an anchor. No Node is published with a provisional id. This preserves nested PTC ownership when a page begins after its root call, without adding Session fields or rewriting provider ids. Both Chat and Trajectory opt in; duplicate starts within one Step still fail.
+
+Trajectory carries each Tool contribution's Step Location into its ledger. Result and start-time indexes, emitted-call membership, call-time schemas, and record identities use the same execution coordinates. Nested calls inherit their root's coordinates. A result without a Step stays unpaired, identified by its own event sequence; a repeated provider id alone cannot join it to an Assistant record. Cross-view Inspect encodes the same Turn, Step, and raw call id in its opaque focus value. The Chat Seat supplies its root Location to nested callbacks; Trajectory resolves that occurrence when resident and keeps unresolved requests pending. Inspector source-block and parent-message links stay inside the selected Step.
 
 The Assembler uses `conversationContextKey(kind, id)` to make a collision-free key. Definitions that return the same `id` still do not share a Context. The final view Node must retain this engine-owned key and cannot use `seq` or render position as identity.
 
@@ -361,6 +365,8 @@ SessionEventLike window
 Runtime tests pin Definition lifecycle registration, exact-ID append, update-before-start collection followed by forward replay after start, prepend identity, Reader window-gap repair, transitive dependencies, Location closure, Step→Turn data phase order, Location data replacement, publication cadence, illegal withdrawal, first-subscription activation, monotonic active targets, and per-target Builders.
 
 Conversation tests cover every built-in Chat Definition, Assistant Step data, Turn Tail and Deliverables Turn data, Chat ordering and structural sharing, selector isolation, Assistant and Tool running-to-settled identity, nested Code Dispatch, steering, Compaction, Retry, interruption, load-older anchoring, and slot dispatch. Trajectory tests cover its independently registered Message, Assistant, Tool, Compaction, Request-header, and boundary Definitions together with the preserved stage-oriented view model.
+
+The [recorded same-id scenario](../../../../apps/web/tests/tool-reused-id.snapshot.ts) replays an authored Session through `dsh --profile web` with isolated home and skill roots. Two writes share one provider id in different Steps: the standing policy denies the first and an approved escalation completes the second. Full persisted-log comparison and an independent final-workspace oracle protect the tool effects; browser assertions distinguish both result rows and Inspect targets. The model transcript is derived from the existing permission-policy recording without changing its historical generations.
 
 Slot type/runtime tests pin required parent-provided common inject, the `hookContext` type, Hook isolation across Node contexts, stable factory/Hook identity, and the absence of business-renderer rerenders for unrelated Session publications. Existing entry-owned Observable Hook tests continue to pin the path that does not use a contextual factory.
 

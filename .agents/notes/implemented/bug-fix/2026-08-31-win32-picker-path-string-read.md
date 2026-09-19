@@ -10,7 +10,7 @@ The Win32 picker needs to decode a NUL-terminated UTF-16 string allocated by `IS
 
 ## Decision
 
-`readUtf16` stores the native address in a pointer-width buffer and passes it to generic `koffi.decode(buffer, 'str16')`. Generic decoding expects a pointer variable, not the string address directly. The slice follows `koffi.sizeof('void *')`; Koffi 3 represents native addresses as BigInt. The allocation must remain valid and NUL-terminated during decoding. Successful conversion leaves the original address available for `CoTaskMemFree`; if decoding throws, the string is not freed.
+`readUtf16` stores the native address in a pointer-width buffer and passes it to generic `koffi.decode(buffer, 'str16')`. Generic decoding expects a pointer variable, not the string address directly. The slice follows `koffi.sizeof('void *')`; Koffi 3 represents native addresses as BigInt. The allocation must remain valid and NUL-terminated during decoding. A `finally` frees the original address with `CoTaskMemFree` on both conversion outcomes, before the shell item and dialog are released and the COM apartment is uninitialized.
 
 ## Alternatives considered
 
@@ -22,4 +22,4 @@ The Win32 picker needs to decode a NUL-terminated UTF-16 string allocated by `IS
 
 ## Consequences
 
-Real-Koffi tests exercise the production result-path conversion over live UTF-16 buffers, including U+5F00, surrogate pairs, NUL termination and strings exceeding 32 KiB. Separate four- and eight-byte BigInt cases verify pointer preservation and release of the original address. Test-owned buffers stay live through the synchronous read; pointer bytes are checked before native dereferencing. The earlier scanning decision remains in the [archived note](../../archived/bug-fix/2026-08-23-win32-utf16-nul-truncation.md).
+Real-Koffi tests exercise the production result-path conversion over live UTF-16 buffers, including U+5F00, surrogate pairs, NUL termination and strings exceeding 32 KiB. Separate four- and eight-byte BigInt cases verify pointer preservation and release of the original address; an injected conversion failure verifies string release and owner cleanup while preserving the failure. Test-owned buffers stay live through the synchronous read; pointer bytes are checked before native dereferencing. The earlier scanning decision remains in the [archived note](../../archived/bug-fix/2026-08-23-win32-utf16-nul-truncation.md).

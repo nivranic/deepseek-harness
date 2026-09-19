@@ -42,6 +42,7 @@ export {
 export type {
   ConnectionRecoveryConfig,
   ConnectionGeneration,
+  ConnectionGenerationProgress,
   ConnectionGenerationSource,
   ConnectionHostInfo,
   ConnectionSinks,
@@ -51,6 +52,7 @@ export type {
   ClientConnectionRpc, ConnectionRpcFailure, ConnectionRpcResult,
 } from '../rpc.ts'
 export type { RpcFetch } from './rpc.ts'
+export type { ConnectionHttpError, ConnectionTransportError } from '../rpc.ts'
 
 /** Observable identity and Host facts for the active connection generation. */
 export interface ConnectionGenerationState {
@@ -62,7 +64,7 @@ export interface ConnectionGenerationState {
 
 /** Observable recovery lifecycle of the owned Connection loop. */
 export interface ConnectionStateSource {
-  /** Current state, or undefined before the first connection outcome. */
+  /** Current state, or undefined before the loop starts and after it stops. */
   getSnapshot(): ConnectionState | undefined
   /** Subscribe to state changes. */
   subscribe(listener: () => void): () => void
@@ -191,9 +193,11 @@ export function apply(ctx: Context): void {
   const fixtureRpc = fixture ? createFixtureConnectionRpc() : undefined
   const transport = (globalThis as ClientTransportGlobal).__DSH_TRANSPORT__
   const recovery = resolveConnectionConfig((globalThis as ClientTransportGlobal).__DSH_CONNECTION_RECOVERY__)
-  const rpc = fixtureRpc ?? transport?.rpc ?? createWebConnectionRpc(transport?.fetch, transport?.openStream)
   let generationSource: ConnectionGenerationSource | undefined
   let owner: ConnectionOwner | undefined
+  const rpc = fixtureRpc ?? transport?.rpc ?? createWebConnectionRpc(
+    transport?.fetch, transport?.openStream, () => owner?.controller.captureAuthenticationFailure(),
+  )
   let generationId = 0
   let generation: ConnectionGeneration | undefined
   let state: ConnectionState | undefined
@@ -276,7 +280,7 @@ export function apply(ctx: Context): void {
           sinks.onConnected?.(host)
         },
         onStateChange: (state) => {
-          if (state !== 'connected') {
+          if (state !== 'ready') {
             publishGeneration(undefined)
           }
           if (!ownsGeneration()) return

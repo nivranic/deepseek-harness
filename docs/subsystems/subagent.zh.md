@@ -10,6 +10,8 @@ Service Definition：[dsh-subagent](../../packages/subagent/subagent)（`ctx.sub
 
 `subagentCatalog` projection 通过 Session 观察和客户端快照暴露按父会话事件排序的 `SubagentCatalogEntry[]`。每个条目包含子级 id、创建时间、模式和依模式确定的标签；fork 继承的目录事实不在其中。[subagent 包](../../packages/subagent/subagent/README.zh.md) 定义目录创建和持久化语义。
 
+`subagentPromptReceipts` 是仅属于 Host 的投影，记录已接受的浏览器请求身份及原消息 id。它折叠既有 inbox 与用户消息事件中属于子级自身的部分，通过投影 checkpoint 机制持久化，不提供 wire 视图。[Prompt 重试语义](../../packages/subagent/subagent/README.zh.md)由 subagent 包拥有。
+
 ## 两类能力，两种发现方式
 
 提供方通过一个静态描述符公布其**启动时**功能，服务会在单次 run 存在之前即行检查；如果请求依赖提供方不具备的功能，会被明确拒绝（`SubagentError('UNSUPPORTED_CAPABILITY')`），绝不会被接受后静默忽略。这些 flag 仅描述单次 [`start()`](#the-provider-contract-subagentprovider) 路径，即由提供方组合子 agent 的路径。**可继续**子 agent 由继续执行管理器自行组合，因此它们由唯一一个可选方法把关，方法存在即为能力，并以 TypeScript 的类型收窄作为发现机制：[`SubagentProvider.prepareContinuable`](#the-provider-contract-subagentprovider)。
@@ -155,6 +157,8 @@ Agent 收件箱是唯一队列。每条 Agent 消息都使用 `Agent.steer()`：
 
 `SubagentRuntime.interrupt(targetSessionId, authority)` 是唯一的公开停止操作：它同步完成鉴权，对在线目标发出 `Agent.cancel(cause, { keepInbox: true })`，然后不等待完全停稳即返回。Activation、其尚未领取的待处理 inbox 工作与已发布的后代均不受影响；已被领取进入中断轮次的工作不会重新入队。被中断的 driver 进入 idle 后，一次唤醒发送会恢复被暂停的 FIFO 队列。不存在的目标——未知、一次性或已结算——以及未绑定管理器的组合是被接受的 no-op。对在线目标，错误的 parent 地址或不在其在线祖先链中的调用方会以 `UNAUTHORIZED` 拒绝；陈旧的 ancestor 对象和指向自身的 ancestor 请求会在查找目标前拒绝。
 
+`SubagentInterruptTurnRequest` 携带 `parentSessionId`、`childSessionId`、`mode: 'continuable'` 及已观察的 `turnStartSeq` 或 null。`subagents.interruptTurnByParent` 将目标与 `subagentTiming.active.startSeq` 比较；对于声明 `subagent.interrupt-turn.v1` 的 Host，缺少活动轮次序号不能授权 Client 回退。[中断决策](../../.agents/notes/implemented/feature/2026-08-06-continuable-subagent-interrupt.zh.md)拥有权限、no-op 结果和旧行为。
+
 ```ts type-equiv
 /**
  * Authority under which one interrupt request is admitted. `user` carries the
@@ -162,7 +166,12 @@ Agent 收件箱是唯一队列。每条 Agent 消息都使用 `Agent.steer()`：
  * the exact live Agent object whose recorded lineage must contain the caller.
  */
 type SubagentInterruptAuthority =
-  | { readonly kind: 'user'; readonly parentSessionId: SessionId }
+  | {
+    readonly kind: 'user'
+    readonly parentSessionId: SessionId
+    /** Omission keeps current-turn interruption; null or a stale sequence cannot cancel later work. */
+    readonly turnStartSeq?: number | null
+  }
   | { readonly kind: 'ancestor'; readonly agent: Agent }
 ```
 
@@ -626,7 +635,7 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  * before delivery, and the child's model must accept image input.
  * @param request - durable address, delivery, minted identity, content, and optional browser zone.
  * @param signal - carrier cancellation, owning the call until inbox acceptance.
- * @returns the accepted message's inbox identity.
+ * @returns the original accepted message's inbox identity for this child's requestId, including retries.
  * @throws {RemoteError} `gateway/bad-request`, `subagent/attachment-invalid`,
  *   `subagent/invalid-time-zone`, `subagent/parent-unavailable`,
  *   `subagent/not-resumable`, `subagent/unauthorized`,
@@ -649,6 +658,14 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  *   otherwise `gateway/internal`.
  */
 @Remote('interruptByParent') interruptByParent( childSessionId: SessionId, parentSessionId: SessionId, mode: 'continuable', ): SubagentInterruptReceipt
+
+/**
+ * Stop an observed child turn under durable parent-address authority, including while the parent is offline.
+ * @param request - child address and the observed turn/start sequence, or null for an idle child.
+ * @returns acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.
+ * @throws {RemoteError} invalid input, foreign live-child authority or unavailable turn projection.
+ */
+@Remote('interruptTurnByParent') interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt
 
 /**
  * Register a provider under its name. Registration is effect-scoped and HMR

@@ -5,7 +5,7 @@ import { $createParagraphNode, $createTextNode, $getRoot, createEditor } from 'l
 import { registerPlainText } from '@lexical/plain-text'
 import { ReferenceChipNode } from '../src/client/input/editor/chip-node.tsx'
 import { TextRefNode } from '../src/client/input/editor/text-ref.ts'
-import { registerReferenceActivation } from '../src/client/input/editor/reference-activation.ts'
+import { registerReferenceActivation, refreshReferenceAvailability } from '../src/client/input/editor/reference-activation.ts'
 
 const cleanups: Array<() => void> = []
 afterEach(() => { for (const cleanup of cleanups.splice(0).reverse()) cleanup() })
@@ -19,7 +19,8 @@ function bench() {
   cleanups.push(() => { editor.setRootElement(null); root.remove() })
   cleanups.push(registerPlainText(editor))
   const open = vi.fn(() => true)
-  const off = registerReferenceActivation(editor, open)
+  const canOpen = vi.fn(() => true)
+  const off = registerReferenceActivation(editor, open, canOpen)
   cleanups.push(off)
   let chip!: ReferenceChipNode
   let text!: TextRefNode
@@ -32,10 +33,34 @@ function bench() {
     const target = editor.getElementByKey(key)!
     target.dispatchEvent(new MouseEvent('click', { bubbles: true, detail }))
   }
-  return { editor, root, chip, text, open, click, off }
+  return { editor, root, chip, text, open, click, off, canOpen }
 }
 
 describe('reference activation', () => {
+  it('withdraws and restores preview styling without serializing eligibility or changing selection', async () => {
+    const { editor, chip, text, open, click, canOpen } = bench()
+    editor.update(() => { text.select(2, 2) }, { discrete: true })
+    const before = editor.getEditorState().toJSON()
+    expect(editor.getElementByKey(text.getKey())!.hasAttribute('data-reference-openable')).toBe(true)
+    canOpen.mockReturnValue(false)
+    // A retained DOM handler must refuse even before its next render.
+    click(chip.getKey())
+    click(text.getKey())
+    expect(open).not.toHaveBeenCalled()
+    refreshReferenceAvailability(editor)
+    await Promise.resolve()
+    expect(editor.getElementByKey(text.getKey())!.hasAttribute('data-reference-openable')).toBe(false)
+    expect(editor.getEditorState().toJSON()).toEqual(before)
+    editor.getEditorState().read(() => { expect(chip.getLatest().__openable).toBe(false) })
+    canOpen.mockReturnValue(true)
+    refreshReferenceAvailability(editor)
+    await Promise.resolve()
+    expect(editor.getElementByKey(text.getKey())!.hasAttribute('data-reference-openable')).toBe(true)
+    expect(editor.getEditorState().toJSON()).toEqual(before)
+    click(text.getKey())
+    expect(open).toHaveBeenCalledOnce()
+  })
+
   it('opens chip and editable skill references without changing draft content', () => {
     const { editor, chip, text, open, click, off } = bench()
     click(chip.getKey())

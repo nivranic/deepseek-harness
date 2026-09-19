@@ -26,14 +26,16 @@ export class ModelCatalogDirectory {
   /**
    * @param ctx - the providing plugin's context, whose `remote.session`
    * namespace carries the Host-generation catalog.
+   * @param available - whether the admitted Host advertises model selection.
    */
-  constructor(private readonly ctx: ClientContext) {}
+  constructor(private readonly ctx: ClientContext, private readonly available: () => boolean) {}
 
   /**
    * Return the current generation's catalog, sharing its one in-flight load.
    * @returns the loaded global catalog.
    */
   load(): Promise<ModelCatalog> {
+    if (!this.available()) return Promise.reject(new Error('Host does not advertise model.select.v1'))
     const state = this.store.getSnapshot()
     if (state.status === 'ready' && state.value !== null) return Promise.resolve(state.value)
     if (this.inflight !== undefined) return this.inflight
@@ -44,7 +46,7 @@ export class ModelCatalogDirectory {
     })
     const operation = this.ctx.remote.session.modelCatalog().then((response) => {
       if (!response.ok) {
-        throw new Error(`${response.error.code}: ${response.error.message}`)
+        throw response.error
       }
       if (generation === this.generation) {
         this.store.set({ value: response.value, status: 'ready', error: null })
@@ -79,12 +81,12 @@ export class ModelCatalogDirectory {
   /** Invalidate and reload the catalog after a Host-side model input changes. */
   refresh(): void {
     this.invalidate()
-    void this.load().catch(() => { /* the selector exposes the shared error */ })
+    if (this.available()) void this.load().catch(() => { /* the selector exposes the shared error */ })
   }
 
   /** Clear Host-specific values and load the replacement Host generation. */
   resetGeneration(): void {
     this.invalidate(true)
-    void this.load().catch(() => { /* the selector exposes the shared error */ })
+    if (this.available()) void this.load().catch(() => { /* the selector exposes the shared error */ })
   }
 }

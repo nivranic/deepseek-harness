@@ -32,7 +32,7 @@ describe('TestClient (jsdom)', () => {
   it('boots the whole web-app roster, connects, mounts, and disposes with nothing unmatched', async () => {
     const mock = RemoteMock.create().load(remoteDefaultResponses)
     const client = await TestClient.start({ roster: webApp }, mock, { mount: true })
-    expect(client.connection.state.getSnapshot()).toBe('connected')
+    expect(client.connection.state.getSnapshot()).toBe('ready')
     expect(mock.log.streams('$events')).toHaveLength(1)
     const container = client.container!
     expect(document.body.contains(container)).toBe(true)
@@ -76,7 +76,7 @@ describe('TestClient (jsdom)', () => {
     expect(mockB.log.calls('session/rename')).toHaveLength(1)
     // A rebuilt connection row reads its own mock even after another client installed the transport last.
     await a.reload('@deepseek-ai/dsh-client-connection')
-    await vi.waitFor(() => { expect(a.connection.state.getSnapshot()).toBe('connected') })
+    await vi.waitFor(() => { expect(a.connection.state.getSnapshot()).toBe('ready') })
     await expect(rename(a)).resolves.toEqual({ ok: true, value: { title: 'a', seq: 1 } })
     expect(mockA.log.calls('session/rename')).toHaveLength(2)
     expect(mockB.log.calls('session/rename')).toHaveLength(1)
@@ -92,7 +92,7 @@ describe('TestClient (jsdom)', () => {
     const client = await started({ roster: API_ROSTER })
     expect(client.container).toBeUndefined()
     expect(client.ctx.remote.session).toBeDefined()
-    expect(client.connection.state.getSnapshot()).toBe('connected')
+    expect(client.connection.state.getSnapshot()).toBe('ready')
   })
 
   it('refuses to mount a roster that provides no uiRenderer instead of returning an empty container', async () => {
@@ -161,17 +161,16 @@ describe('TestClient (jsdom)', () => {
     })
     const client = await TestClient.start({ roster: API_ROSTER }, mock)
     onTestFinished(() => client.dispose())
-    expect(client.connection.state.getSnapshot()).toBe('connected')
+    expect(client.connection.state.getSnapshot()).toBe('ready')
     expect(mock.log.streams('$events')).toHaveLength(2)
   })
 
   it('reports the log when the connection never becomes ready', async () => {
-    // No fixtures: workspace-controller's follow has no rule, so the proxy dispatches it as a unary call the mock
-    // logs as unmatched, while $events never sends ready.
+    // A pending opening frame must not admit a Workspace baseline call.
     const roster = webApp.closure(['@deepseek-ai/dsh-api-workspace-controller'])
     const mock = RemoteMock.create().stream('$events', openStream([]))
     await expect(TestClient.start({ roster }, mock, { connectTimeoutMs: 300 }))
-      .rejects.toThrow(/connection state is \S+ after 300ms; unmatched: \[unary workspace\/follow\]; streams: \[.*\$events \(open\).*\]/)
+      .rejects.toThrow(/connection state is connecting after 300ms; unmatched: \[\]; streams: \[.*\$events \(open\).*\]/)
     expect(globals.__DSH_TRANSPORT__).toBeUndefined()
     expect(globals.EventSource).toBeUndefined()
   })

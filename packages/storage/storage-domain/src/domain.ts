@@ -67,9 +67,12 @@ export interface KvTable<K extends string, V> {
    * Insert or overwrite one record durably.
    * @param key - Record key.
    * @param value - The full new record (no partial merge).
+   * @param beforeWrite - Optional durability prerequisite invoked in this write's
+   *   queue slot before backend I/O. Rejection leaves the record unchanged and
+   *   emits no event. It must not wait for another write or close on this domain.
    * @returns resolution after durability and event emission.
    */
-  put(key: K, value: V): Promise<void>
+  put(key: K, value: V, beforeWrite?: () => Promise<void>): Promise<void>
 
   /**
    * Delete one record durably.
@@ -304,8 +307,9 @@ class KvTableImpl<K extends string, V> implements KvTable<K, V> {
     return this.records.size
   }
 
-  put(key: K, value: V): Promise<void> {
+  put(key: K, value: V, beforeWrite?: () => Promise<void>): Promise<void> {
     return this.host.enqueue(async () => {
+      await beforeWrite?.()
       await this.host.unit.putRecord(this.tableName, key, value)
       this.records.set(key, value)
       this.emitPut(key, value)

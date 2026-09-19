@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { describe, expect, it } from 'vitest'
 import {
   abbreviateHomePath, fileAddressFor, isAbsoluteWorkspacePath, parseFileAddress, pathPartsOf, relativizeToCwd,
@@ -65,6 +66,29 @@ describe('Workspace path helpers', () => {
     expect(workspaceTitleOf('/work/project/')).toBe('project')
     expect(workspaceTitleOf('C:\\work\\project\\')).toBe('project')
     expect(workspaceTitleOf('/')).toBe('')
+    expect(workspaceTitleOf('')).toBe('')
+    expect(workspaceTitleOf('C:\\work\\project/\\/')).toBe('project')
+    expect(resolveWorkspacePath('/work/\\/', '\\file')).toBe('/work/file')
+    expect(abbreviateHomePath('/work\\/', '/work\\/')).toBe('~')
+  })
+
+  it('handles long internal separator runs within a bounded child lifetime', () => {
+    // The child deadline can interrupt synchronous regex backtracking.
+    const module = new URL('../src/index.ts', import.meta.url).href
+    const program = `
+      import assert from 'node:assert/strict';
+      import * as paths from ${JSON.stringify(module)};
+      const path = '/work/' + '/'.repeat(200_000) + 'project';
+      assert.equal(paths.workspaceTitleOf(path), 'project');
+      assert.equal(paths.resolveWorkspacePath(path, 'file'), path + '/file');
+      assert.equal(paths.abbreviateHomePath(path, path), '~');
+      assert.deepEqual(paths.pathPartsOf(path), { directory: path.slice(0, -7), name: 'project' });
+      assert.equal(paths.relativizeToCwd(path + '/file', path), 'file');
+      assert.equal(paths.fileAddressFor('s', path, path + '/file'), 'dsh-resource://file/session/s/file');
+    `
+    execFileSync(process.execPath, ['--import', 'tsx/esm', '--input-type=module', '--eval', program], {
+      timeout: 5_000, stdio: 'pipe',
+    })
   })
 
   it('splits a path for display after the last separator of either kind, keeping the separator with the directories', () => {

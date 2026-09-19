@@ -167,13 +167,14 @@ export function ConversationSessionHeader({
  */
 export function ConversationSession({
   useSession, useConversation, useConversationViews, useInput, inputActions, useStore, actions,
-  renderSlot, bindDraftMirror, openView,
+  renderSlot, bindDraftMirror, openView, useHistoryAvailable, t,
 }: ConversationSessionProps) {
   const tabs = useConversationViews(value => value)
   const selectedId = useStore(s => s.view)
   const active = resolveActiveView(tabs, selectedId)
   const session = useSession(s => s)
   const conversation = useConversation(s => s)
+  const historyAvailable = useHistoryAvailable(value => value)
   const inputState = useInput(s => s)
   const storedDraft = useStore(s => s.draft)
   const viewRequest = useStore(s => s.viewRequest ?? null)
@@ -186,10 +187,13 @@ export function ConversationSession({
     // the machine mirror, not this seed effect.
   }, [inputActions])
 
-  if (session.blank && conversationPhase(session, conversation) === 'blank') return null
+  const blank = session.blank && conversationPhase(session, conversation) === 'blank'
+  if (historyAvailable && blank) return null
   return (
     <div className={css.viewArea}>
-      {active !== undefined && renderSlot('conversation.view', {
+      {!historyAvailable && <div role="status" className={css.historyUnavailable}>{t('session.historyUnavailable')}</div>}
+      {!blank && active !== undefined && renderSlot('conversation.view', {
+        historyAvailable,
         viewRequest,
         openView,
         completeViewRequest: actions.completeViewRequest,

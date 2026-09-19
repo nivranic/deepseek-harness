@@ -235,6 +235,7 @@ export { basename } from '../presented.ts'
  * one supplied path has that basename. Ambiguous and unknown tokens stay inert.
  * @param paths - The turn's produced or delivered paths, already deduplicated.
  * @param openFile - The chat view's file opener.
+ * @param canOpenFile - Current viewer eligibility without requesting contents.
  * @param label - Localizes the accessible open-label for a resolved path.
  * @returns The resolver MarkdownText consumes; the full path rides `title`,
  * the same disambiguator the row's chips carry.
@@ -242,13 +243,14 @@ export { basename } from '../presented.ts'
 export function producedFileMentions(
   paths: readonly string[],
   openFile: (path: string) => void,
+  canOpenFile: (path: string) => boolean,
   label: (path: string) => string,
 ): MarkdownFileMentions {
   return {
     resolve(value) {
       const path = paths.includes(value) ? value : onlyPathWithBasename(paths, value)
-      if (path === undefined) return undefined
-      return { open: () => { openFile(path) }, label: label(path), title: path }
+      if (path === undefined || !canOpenFile(path)) return undefined
+      return { open: () => { if (canOpenFile(path)) openFile(path) }, label: label(path), title: path }
     },
   }
 }

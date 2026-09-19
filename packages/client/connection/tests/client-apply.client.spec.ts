@@ -89,7 +89,7 @@ describe('connection client apply', () => {
     try {
       await vi.advanceTimersByTimeAsync(20)
       expect(signals[0]?.aborted).toBe(true)
-      expect(handle.state.getSnapshot()).toBe('connecting')
+      expect(handle.state.getSnapshot()).toBe('reconnecting')
       await vi.advanceTimersByTimeAsync(10)
       expect(signals).toHaveLength(2)
     } finally {
@@ -191,20 +191,24 @@ describe('connection client apply', () => {
     errorSpy.mockRestore()
   })
 
-  it('does not notify state subscribers when a pre-ready loop stops', async () => {
+  it('publishes initial connecting and clears it when a pre-ready loop stops', async () => {
     ;(globalThis as Win).location = { hostname: 'localhost', search: '?fixture' }
     const handle = await mount()
-    handle.registerGenerationSource(signal => new Promise<void>((resolve) => {
+    const source = vi.fn((signal: AbortSignal) => new Promise<void>((resolve) => {
       signal.addEventListener('abort', () => { resolve() }, { once: true })
     }))
-    const listener = vi.fn()
+    handle.registerGenerationSource(source)
+    const states: Array<ConnectionState | undefined> = []
+    const listener = () => { states.push(handle.state.getSnapshot()) }
     const unsubscribe = handle.state.subscribe(listener)
     const loop = handle.start({})
 
     loop.stop()
+    await Promise.resolve()
+    expect(source).not.toHaveBeenCalled()
 
     expect(handle.state.getSnapshot()).toBeUndefined()
-    expect(listener).not.toHaveBeenCalled()
+    expect(states).toEqual(['connecting', undefined])
     unsubscribe()
   })
 
@@ -264,7 +268,7 @@ describe('connection client apply', () => {
     installGeneration(handle)
     const loop = handle.start({})
     try {
-      await vi.waitFor(() => { expect(handle.state.getSnapshot()).toBe('connected') })
+      await vi.waitFor(() => { expect(handle.state.getSnapshot()).toBe('ready') })
     } finally {
       loop.stop()
     }
@@ -295,22 +299,22 @@ describe('connection client apply', () => {
     })
     try {
       await vi.advanceTimersByTimeAsync(0)
-      expect(handle.state.getSnapshot()).toBe('connected')
+      expect(handle.state.getSnapshot()).toBe('ready')
       expect(calls).toBe(1)
 
       browser.setOnline(false)
-      expect(handle.state.getSnapshot()).toBe('disconnected')
+      expect(handle.state.getSnapshot()).toBe('offline')
       await vi.advanceTimersByTimeAsync(10_000)
       expect(calls).toBe(1)
 
       browser.setOnline(true)
-      expect(handle.state.getSnapshot()).toBe('connecting')
+      expect(handle.state.getSnapshot()).toBe('reconnecting')
       await vi.advanceTimersByTimeAsync(49)
       expect(calls).toBe(1)
       await vi.advanceTimersByTimeAsync(1)
       expect(calls).toBe(2)
-      expect(handle.state.getSnapshot()).toBe('connected')
-      expect(states).toEqual(['connected', 'disconnected', 'connecting', 'connected'])
+      expect(handle.state.getSnapshot()).toBe('ready')
+      expect(states).toEqual(['connecting', 'ready', 'offline', 'reconnecting', 'ready'])
     } finally {
       unsubscribe()
       loop.stop()
@@ -355,7 +359,7 @@ describe('connection client apply', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const loop = handle.start({
       onStateChange: (state) => {
-        if (state === 'connecting') {
+        if (state === 'reconnecting') {
           reconnectSnapshots.push(handle.generation.getSnapshot()?.host.home)
         }
       },
@@ -393,15 +397,16 @@ describe('connection client apply', () => {
       generationReadyTimeoutMs: 500,
     })
     try {
-      await vi.waitFor(() => { expect(handle.state.getSnapshot()).toBe('connected') })
+      await vi.waitFor(() => { expect(handle.state.getSnapshot()).toBe('ready') })
       const connected = handle.state.getSnapshot()
       expect(handle.state.getSnapshot()).toBe(connected)
       generation.end()
       await vi.waitFor(() => {
         expect(snapshots).toEqual([
-          'connected',
           'connecting',
-          'connected',
+          'ready',
+          'reconnecting',
+          'ready',
         ])
       })
       expect(errorSpy).toHaveBeenCalledWith('[connection] state listener threw:', expect.any(Error))
@@ -439,7 +444,7 @@ describe('connection client apply', () => {
 
       await vi.waitFor(() => { expect(stoppedOnRetraction).toBe(true) })
       expect(handle.generation.getSnapshot()).toBeUndefined()
-      expect(states).toEqual(['connected'])
+      expect(states).toEqual(['connecting', 'ready'])
     } finally {
       stopGeneration()
       loop.stop()
@@ -534,6 +539,89 @@ describe('connection client apply', () => {
       .toThrow('worker-local streams require the /api channel')
     expect(() => open('/api/path', 'session/follow', {}, abort.signal))
       .toThrow('invalid RPC target')
+  })
+
+  it.each(['discovery', 'ready'] as const)('suspends authentication rejected during %s without replaying the request', async (phase) => {
+    vi.useFakeTimers()
+    const fetch = vi.fn().mockResolvedValue(new Response('unauthorized', { status: 401 }))
+    vi.stubGlobal('fetch', fetch)
+    const handle = await mount()
+    let attempts = 0
+    let restored = false
+    handle.registerGenerationSource(async (signal, ready) => {
+      attempts++
+      if (phase === 'discovery' && !restored) await handle.rpc.call('/api', 'host/describe', {}, signal)
+      ready({ home: '/h' })
+      await new Promise<void>((resolve) => { signal.addEventListener('abort', () => { resolve() }, { once: true }) })
+    })
+    const loop = handle.start({})
+    try {
+      await vi.advanceTimersByTimeAsync(0)
+      if (phase === 'ready') {
+        expect(handle.generation.getSnapshot()).toBeDefined()
+        await expect(handle.rpc.call('/api', 'session/prompt', {})).rejects.toThrow('HTTP 401')
+      }
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(handle.state.getSnapshot()).toBe('auth-expired')
+      expect(handle.generation.getSnapshot()).toBeUndefined()
+      expect(attempts).toBe(1)
+      expect(fetch).toHaveBeenCalledOnce()
+      expect(vi.getTimerCount()).toBe(0)
+      restored = true
+      handle.reconnect()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(handle.state.getSnapshot()).toBe('ready')
+      expect(attempts).toBe(2)
+      expect(fetch).toHaveBeenCalledOnce()
+    } finally { loop.stop() }
+  })
+
+  it.each(['replaced', 'caller-aborted'] as const)('ignores a delayed 401 for a %s request', async (reason) => {
+    const response = Promise.withResolvers<Response>()
+    vi.stubGlobal('fetch', vi.fn().mockReturnValue(response.promise))
+    const handle = await mount()
+    installGeneration(handle)
+    const loop = handle.start({})
+    try {
+      await vi.waitFor(() => { expect(handle.generation.getSnapshot()).toBeDefined() })
+      const first = handle.generation.getSnapshot()!.id
+      const caller = new AbortController()
+      const request = handle.rpc.call('/api', 'session/prompt', {}, reason === 'replaced' ? undefined : caller.signal)
+      if (reason === 'replaced') {
+        handle.reconnect()
+        await vi.waitFor(() => { expect(handle.generation.getSnapshot()?.id).toBe(first + 1) })
+      } else caller.abort()
+      response.resolve(new Response('unauthorized', { status: 401 }))
+      if (reason === 'caller-aborted') await expect(request).rejects.toBe(caller.signal.reason)
+      else await expect(request).rejects.toThrow('HTTP 401')
+      expect(handle.state.getSnapshot()).toBe('ready')
+      expect(handle.generation.getSnapshot()?.id).toBe(reason === 'replaced' ? first + 1 : first)
+    } finally { response.resolve(new Response('unauthorized', { status: 401 })); loop.stop() }
+  })
+
+  it.each([403, 503])('does not infer authentication expiry from HTTP %s', async (status) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('rejected', { status })))
+    const handle = await mount()
+    installGeneration(handle)
+    const loop = handle.start({})
+    try {
+      await vi.waitFor(() => { expect(handle.state.getSnapshot()).toBe('ready') })
+      await expect(handle.rpc.call('/api', 'session/prompt', {})).rejects.toMatchObject({
+        isDSHConnectionHttpError: true, status,
+      })
+      expect(handle.state.getSnapshot()).toBe('ready')
+      expect(handle.generation.getSnapshot()).toBeDefined()
+    } finally { loop.stop() }
+  })
+
+  it('does not dispatch an already cancelled HTTP request', async () => {
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    const handle = await mount()
+    const caller = new AbortController()
+    caller.abort(new Error('cancelled before dispatch'))
+    await expect(handle.rpc.call('/api', 'session/prompt', {}, caller.signal)).rejects.toBe(caller.signal.reason)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('validates generic RPC transport failures, correlation, and targets', async () => {

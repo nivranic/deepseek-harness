@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Question preset metadata readiness and connection-state gap; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/preset-reload-source.json",
+    "sha256": "4ad4737d1ee5dfb19b87b8300828e07149aba50447847734b90e0a814d0305c1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f24ff6a93e3a05263d87f2977034b1a2ca8d57dec923d197c0611df381e945be"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/preset-reload-binding.json",
+    "sha256": "7d05cc468a606109ceeea6f32d8204850f29bbc47e47fc9fe0a5c43b52e68c25"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-preset-reload-reports.mjs",
+      "sha256": "43458d97c93509e83fb4ec1f994b09c4793d9f1354467d04b301da49caa3edf2"
+    },
+    {
+      "path": ".artifacts/capture-preset-reload-validation.mjs",
+      "sha256": "3f6fd32eaaae0e87cf566d586b32ac175a049de0802fe7d61e8418a3e2339a4c"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4212af38e9610a4247f6c4cbea8bb74b7c6c5521260e4cf3e45a3edcadb32f89"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "10ec4a1346f988ea1e6548d144a2a5103e974b06e0deb8331e4932cf0a117add"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/preset-reload-binding.log",
+      "sha256": "c4f008b98e21f0f759dc6d3df55480557fb7239d1858eae396af79070f66d943"
+    },
+    {
+      "path": ".artifacts/preset-reload-audit-tests.log",
+      "sha256": "430d2da76a123798ae47fabacd77e3437503293ac2870861734fd9f48fd3ce3f"
+    },
+    {
+      "path": ".artifacts/preset-reload-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/preset-reload-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/preset-reload-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

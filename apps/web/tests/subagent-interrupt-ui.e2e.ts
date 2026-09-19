@@ -1,7 +1,7 @@
 // Web e2e scenario: the composer's independent Stop interrupts a running
 // continuable child. The child holds its model turn open through a replay
 // hang entry; the browser proves Send and Stop coexist, the parent-offline
-// disabled-Send-with-Stop composer, the subagents/interruptByParent
+// disabled-Send-with-Stop composer, the subagents/interruptTurnByParent
 // (never session.cancel) transport, the parked follow-up, and the FIFO resume
 // on a waking send.
 //
@@ -19,6 +19,7 @@ import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import type { SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
+import { SESSION_FORMAT_VERSION } from '@deepseek-ai/dsh-session'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { SubagentPromptRequestId } from '@deepseek-ai/dsh-subagent'
 import {
@@ -91,6 +92,7 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
   let rearmedReadyFile: string
   let parent: Agent
   let childId: SessionId
+  let firstStopBody: string
   let tripwire: ReturnType<typeof watchConsole>
   const apiCalls: string[] = []
 
@@ -108,12 +110,12 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
       textCompletion(WAKING_ANSWER),
     ]))
     await writeFile(
-      join(sidecarRoot, 'session.jsonl'),
-      '{"type":"session","version":0,"id":"primary","createdAt":0}\n',
+      join(sidecarRoot, `session.v${SESSION_FORMAT_VERSION}.jsonl`),
+      JSON.stringify({ type: 'session', version: SESSION_FORMAT_VERSION, id: 'primary', createdAt: 0, isSeeded: false, delegationDepth: 0 }) + '\n',
     )
     // The parent's one prompted turn replays this recorded single text-only
     // call (binding is positional, not lineage-aware).
-    const parentTurnPath = join(sidecarRoot, 'parent-turn.jsonl')
+    const parentTurnPath = join(sidecarRoot, `parent-turn.v${SESSION_FORMAT_VERSION}.jsonl`)
     const base = await readFile(BASE_FIXTURE, 'utf8')
     const [header, ...events] = base.trimEnd().split('\n')
     if (header === undefined) throw new Error('base replay fixture has no header')
@@ -125,11 +127,12 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
       '',
     ].join('\n'))
     scaffold = await launchWebScaffold({
-      replayFixture: join(sidecarRoot, 'session.jsonl'),
+      replayFixture: join(sidecarRoot, `session.v${SESSION_FORMAT_VERSION}.jsonl`),
       replayOverride: join(sidecarRoot, 'replay.override.json'),
       replayChildFixtures: [parentTurnPath],
     })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     page.on('request', (request) => {
       const path = new URL(request.url()).pathname
@@ -236,9 +239,13 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
 
       const aborted = waitForAbortedTurn(scaffold, childId)
       const interruptResponse = page.waitForResponse(response =>
-        new URL(response.url()).pathname === '/api/subagents/interruptByParent')
+        new URL(response.url()).pathname === '/api/subagents/interruptTurnByParent')
       await stop.click()
-      expect(((await (await interruptResponse).json()) as {
+      const acceptedResponse = await interruptResponse
+      const body = acceptedResponse.request().postData()
+      if (body === null) throw new Error('addressed Stop request has no body')
+      firstStopBody = body
+      expect(((await acceptedResponse.json()) as {
         result: { ok: boolean; value?: { accepted: boolean } }
       }).result).toMatchObject({ ok: true, value: { accepted: true } })
       expect(apiCalls.filter(path => path === '/api/session/cancel')).toEqual([])
@@ -257,12 +264,21 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
       }, new AbortController().signal)
       await waitFor(() => existsSync(rearmedReadyFile), 'the re-armed child turn to open')
       expect(scaffold.ctx.agents.get(childId)?.status).toBe('running')
+      const rearmedChild = scaffold.ctx.agents.get(childId)!
+      const currentTarget = scaffold.ctx.sessionProjections.stateOf(rearmedChild.session, 'subagentTiming')!.active!.startSeq
+      const repeated = await scaffold.hostFetch('/api/subagents/interruptTurnByParent', {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: firstStopBody,
+      })
+      expect(repeated.ok).toBe(true)
+      expect((await repeated.json() as { result: unknown }).result).toEqual({ ok: true, value: { accepted: true } })
+      expect(scaffold.ctx.agents.get(childId)?.status).toBe('running')
+      expect(scaffold.ctx.sessionProjections.stateOf(rearmedChild.session, 'subagentTiming')!.active!.startSeq).toBe(currentTarget)
     } finally {
       await page.unrouteAll({ behavior: 'wait' })
     }
   }, 60_000)
 
-  it('interrupts through subagents/interruptByParent, parks the follow-up, and resumes it FIFO', async () => {
+  it('interrupts the observed child turn, parks the follow-up, and resumes it FIFO', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-subagent-interrupt-flow'))
     // Reselect the child with the truthful catalog: parent available again.
     await page.getByRole('navigation', { name: 'Session hierarchy' })
@@ -305,7 +321,7 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
     const stop = page.getByRole('button', { name: 'Stop generating' })
     expect(await stop.count()).toBe(1)
     const interruptResponse = page.waitForResponse(response =>
-      new URL(response.url()).pathname === '/api/subagents/interruptByParent')
+      new URL(response.url()).pathname === '/api/subagents/interruptTurnByParent')
     await stop.click()
     expect(((await (await interruptResponse).json()) as {
       result: { ok: boolean; value?: { accepted: boolean } }

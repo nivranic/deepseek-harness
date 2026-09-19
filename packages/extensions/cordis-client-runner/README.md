@@ -27,6 +27,10 @@ English | [中文](README.zh.md)
 
 Mount this plugin in a web client whose composition also mounts the host runner — the host half runs in the process, this browser half in the page. When a dynamic package that has a browser half is run, the open pages receive a run request; this package carries out the load on this page, and the UI package (`ui-cordis`) renders the panel and cards a person uses to answer it. Host-only packages need no browser half and therefore no page: the host runs them itself.
 
+Request-resolution support alone permits receiving and declining approval requests, including pending requests reconstructed from inventory. Approval and automatic activation still require the complete model-run operation set; unsupported activation never starts while a request remains available for refusal.
+
+A two-half user run requires Host activation, Client-source and user-settlement support before starting; model-driven activation requires request-resolution support instead. Connection withdrawal clears approvals and local failures, invalidates in-flight orchestration and queued loads, and unloads page-owned activations. Old results cannot continue the sequence or clear replacement attempts; retained `host.call` closures cannot reach a replacement connection. Inspect withdrawal cancels active queries and queued manifests while retaining local provider registrations; restoration publishes a fresh supported manifest without waiting behind an old stalled publication.
+
 ### What the page does
 
 A browser half is written in plain JavaScript — no JSX, no TypeScript, no module imports — and runs as an async function. It receives a fixed set of names — `React`, `console`, `styles`, and `host` — while browser globals like `fetch` and `setTimeout` are unavailable. The plugin it returns can use the lifecycle verbs and only the services it declared in its own `inject`. Calling `host.call(method, args)` from the loaded half reaches its own host half. A crash that happens while React renders the loaded half is reported to the host with the slot, whether the crash removed the entry, and a message written for the author.

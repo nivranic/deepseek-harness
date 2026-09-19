@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.md
+2026-09-14-upstream-first-convergence.md: 55f069df251a5fc95a55abda34eacaba21888442
+2026-09-14-upstream-first-convergence.zh.md: 02429fd182e999e77ba3570434143a1539077f9c

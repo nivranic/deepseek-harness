@@ -3836,6 +3836,13 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       const callSignal = signal ?? new AbortController().signal
       const request = args.request
       switch (endpoint) {
+        case 'host/describe': return Promise.resolve({ ok: true, value: {
+          hostId: '4bf2b376-39e8-4a02-8d94-daf34f8ed6fb', displayName: 'UI fixture',
+          productVersion: '0.0.0-fixture', apiProtocolVersion: 1, sessionFormatVersion: SESSION_FORMAT_VERSION,
+          platform: 'fixture', arch: 'fixture', runtimeMode: 'full',
+          capabilities: ['host.describe.v1', 'dynamic-cordis.inventory.v1', 'dynamic-cordis.run.v1', 'dynamic-cordis.client-code.v1', 'dynamic-cordis.resolve-run.v1', 'dynamic-cordis.settle-run.v1', 'dynamic-cordis.stop.v1', 'dynamic-cordis.undefine.v1', 'dynamic-cordis.inspect-manifest.v1', 'dynamic-cordis.inspect-resolve.v1', 'dynamic-cordis.report-render.v1', 'dynamic-cordis.report-guard.v1', 'dynamic-cordis.invoke.v1', 'plugin.inventory.v1', 'file-upload.stage.v1', 'feedback.message.read.v1', 'feedback.message.put.v1', 'feedback.message.delete.v1', 'feedback.session.record.v1', 'subagent.catalog.v1', 'subagent.prompt.v1', 'subagent.interrupt.v1', 'command.catalog.v1', 'command.execute.v1', 'goal.read.v1', 'goal.create.v1', 'goal.edit.v1', 'goal.pause.v1', 'goal.resume.v1', 'goal.complete.v1', 'goal.clear.v1', 'model.select.v1', 'session.control.v1', 'session.follow.v1', 'session.manage.v1', 'session.search.v1', 'session.attachment.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'],
+          transports: ['http', 'websocket'], serverTime: Date.now(),
+        } })
         case 'commands/list': return Promise.resolve(commandRemotes.list(sessionId))
         case 'commands/execute': return Promise.resolve(commandRemotes.execute(sessionId, args.line as string, args.images ?? []))
         case 'fileReferences/list': return Promise.resolve(referenceRemotes.files(sessionId, args.query ?? ''))
@@ -3896,9 +3903,6 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
             ],
           })
         }
-        case 'session/openWorkspacePath': {
-          return sessionOk({ opened: true as const })
-        }
         case 'workspaceFiles/read': {
           return Promise.resolve(workspaceFileRemotes.read(args.path ?? '', args.range ?? {}))
         }
@@ -3908,7 +3912,6 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         case 'workspaceFiles/list': {
           return Promise.resolve(workspaceFileRemotes.list(args.path ?? ''))
         }
-        case 'session/canOpenWorkspacePath': return Promise.resolve({ ok: true, value: true })
         case 'session/modelCatalog': return Promise.resolve({
           ok: true,
           value: {

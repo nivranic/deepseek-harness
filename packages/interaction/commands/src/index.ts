@@ -15,6 +15,7 @@ import { SessionSeq } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent, SessionEventMap } from '@deepseek-ai/dsh-session'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { CommandId } from './brand.ts'
+import { COMMAND_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type { CommandDefinitionId } from './brand.ts'
 import type {
   CommandDescriptor,
@@ -274,7 +275,7 @@ export class CommandRuntime extends TypertRemoteService {
   private readonly fileReceipts: { resolver: CommandFileReceiptResolver | undefined } = { resolver: undefined }
 
   constructor(ctx: Context) {
-    super(ctx, 'commands')
+    super(ctx, 'commands', { capabilities: COMMAND_REMOTE_CAPABILITIES })
   }
 
   /**

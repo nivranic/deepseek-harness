@@ -78,7 +78,9 @@ describe('HistoricalImageCache', () => {
       } as const
 
       expect(cache.seed(sessionId, attachment, 'blob:seeded')).toBe(true)
-      await expect(cache.resolve(sessionId, attachment)).rejects.toThrow('attachment-invalid: missing')
+      await expect(cache.resolve(sessionId, attachment)).rejects.toMatchObject({
+        isDSHRemoteError: true, code: 'session/attachment-invalid', details: { reason: 'missing' },
+      })
       expect(cache.peek(sessionId, attachment)).toBeUndefined()
       expect(revoked).toHaveBeenCalledWith('blob:seeded')
       await runtime.dispose()

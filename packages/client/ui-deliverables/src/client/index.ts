@@ -9,7 +9,7 @@
  */
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
-import type {} from '@deepseek-ai/dsh-client-connection/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { ChatFileMentions } from '@deepseek-ai/dsh-client-ui-chat/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
@@ -33,16 +33,17 @@ export { ProducedFiles, type ProducedFilesProps } from './ProducedFiles.tsx'
 export { producedForClosing } from './turn-deliverables.ts'
 
 /** Required services for the tail-slot registration and its dictionaries. */
-export const inject = ['slots', 'locale', 'uiConversation', 'remote', 'remote.session']
+export const inject = ['slots', 'locale', 'uiConversation', 'remote', 'remote.session', 'remote.presentedFiles', 'connection']
 
 /**
  * Client plugin body: register the dictionaries and the turn-tail entry.
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  const opener = new PresentedOpenController()
+  const opener = new PresentedOpenController(ctx.remote)
+  const connection = ctx.get('connection') as ConnectionHandle
   ctx.effect(() => () => opener.dispose())
-  ctx.on('connection/reset', () => { opener.resetHost() })
+  ctx.effect(() => connection.generation.subscribe(() => { opener.resetHost() }), 'ui-deliverables: Host generation')
   ctx.uiConversation.events.register(deliverablesDefinition)
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-deliverables: dictionaries')
   ctx.slots.inject(
@@ -69,7 +70,7 @@ export function apply(ctx: ClientContext): void {
       const paths = selectProducedFiles(owner)
       const presented = presentedForClosing(owner)
       if (paths === null && presented.length === 0) return undefined
-      return producedFileMentions([...new Set([...paths ?? [], ...presented.map(file => file.path)])], owner.openFile,
+      return producedFileMentions([...new Set([...paths ?? [], ...presented.map(file => file.path)])], owner.openFile, owner.canOpenFile,
         path => t('presented.previewButton', { name: path }))
     },
   }

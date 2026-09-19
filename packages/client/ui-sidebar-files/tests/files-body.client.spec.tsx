@@ -37,6 +37,15 @@ function names(root: HTMLElement): string[] {
 }
 
 describe('FilesBody', () => {
+  it('shows filenames without an open action when no admitted viewer claims them', async () => {
+    const h = mountBody(ROOT, () => false)
+    await act(() => h.script.settle({ ok: true, value: ROOT_LEVEL }))
+    expect(h.view.container.querySelectorAll('[data-files-entry="file"] button')).toHaveLength(0)
+    expect(h.view.container.querySelectorAll('[data-files-entry="file"] [aria-disabled="true"]')).toHaveLength(2)
+    expect(h.view.container.querySelectorAll('[data-files-entry="directory"] button')).toHaveLength(1)
+    expect(h.tabActions.openResource).not.toHaveBeenCalled()
+  })
+
   it('says so when the session has no workspace directory, and asks for nothing', () => {
     const { view, script } = mountBody(null)
     expect(view.container.querySelector('[data-files-state="no-workspace"]')?.textContent).toBe(zh.noWorkspace)

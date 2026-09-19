@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Agent Preset capability admission and generation-bound transient state; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/preset-capabilities-source.json",
+    "sha256": "743e20d408715aab935b27fff77b1874e52a93cc22871325b7ca56d2a6862276"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4b54389b3e36f56e7c2a8499c304ea398ee11d71c449aba112aa63fa10bd5fd8"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/preset-capabilities-binding.json",
+    "sha256": "3b13ea0b9120bcf3e6be054ef9c439b02d791da3c464d2e5aa6638b93633d66b"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-preset-capabilities-reports.mjs",
+      "sha256": "342299fb2f1d582fff642ca8e621f13646b4a5435c3126d000391710f108a0d3"
+    },
+    {
+      "path": ".artifacts/capture-preset-capabilities-validation.mjs",
+      "sha256": "3873549bab7af3cff0bb3d95ab92b9dc550d398196b9943e5b945b201885fdb2"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "9bf7a6e07f1d222ed0156623f710acad6e01f04b7b9fa4dc69516827fcac513a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0a61b3f40928e5ea06ab2974447f216ea1f521921ddc3e77dd16a8f59dda9c76"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/preset-capabilities-binding.log",
+      "sha256": "deefcae22be657e6e67b284b5f12faa9925c2932ef2732e1ac11c262f99d1c1c"
+    },
+    {
+      "path": ".artifacts/preset-capabilities-audit-tests.log",
+      "sha256": "0f01014561d470821a2fbb8feebb8f54899bfc59326c3252057fe0901e022712"
+    },
+    {
+      "path": ".artifacts/preset-capabilities-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/preset-capabilities-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/preset-capabilities-report-generation.log",
+      "sha256": "3107843805c981ff8a63506c3acaab1ed00a9870c1860c411cb4b81804bcbafe"
+    }
+  ]
+}

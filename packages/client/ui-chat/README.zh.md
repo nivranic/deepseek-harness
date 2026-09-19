@@ -15,6 +15,7 @@ kind: "package-reference"
 ## 目录
 
 - [引用预览](#reference-previews)
+- [工具历史](#tool-history)
 - [系统提示词行](#system-prompt-row)
 - [轮次 token 用量](#turn-token-usage)
 - [已完成轮次的页脚](#completed-turn-footer)
@@ -29,7 +30,12 @@ kind: "package-reference"
 <a id="reference-previews"></a>
 ## 引用预览
 
-已发送的文件引用及消息日志确认调用的 skill 可在右侧栏打开预览。文件路径使用当前查看的 Session；skill 名称由该 Session 当前的输入触发源解析。两者悬停或聚焦时均使用正文文件链接的虚线下划线。会话、目录和命令标签仍只作为引用展示。
+已发送的文件引用及日志确认调用的 skill，只有在当前查看器接受文件地址时才提供右侧栏预览；skill 还要求目录已缓存提供方路径。文件路径使用当前查看的 Session，skill 可用性跟随该 Session 的可选输入触发源。查看器或目录变化会把按钮替换为标签，不改写历史；保留的操作回调再次检查当前可用性。同一查询传给工具行与收尾轮次的所有者，使结果卡和正文链接随查看器可用性更新。可用预览在悬停或聚焦时使用正文文件链接的虚线下划线。会话、目录和命令标签仍只作为引用展示。
+
+<a id="tool-history"></a>
+## 工具历史
+
+Tool 节点使用日志中的 Turn、Step 与 call id 共同确定身份。后续模型请求复用 provider id 时，仍分别保留 root 结果和嵌套 PTC 树，包括先加载结果、随后补齐调用起点的历史。Inspect 在 Trajectory 中打开这次执行；嵌套调用的 Inspect 保留 root 的 Turn 和 Step。
 
 <a id="system-prompt-row"></a>
 ## 系统提示词行
@@ -59,6 +65,8 @@ kind: "package-reference"
 
 <a id="scroll-ownership"></a>
 ## 滚动归属
+
+Conversation owner 提供 `historyAvailable`。为 false 时，Chat 保留已加载行，但隐藏历史加载提示、远端分页和未加载轮次的导航；已加载轮次仍可导航。
 
 Chat 会在历史前插与 renderer 重新挂载时恢复语义锚点。没有读者移动的贴底滚动事件会立即更新跟随归属，避免后续布局变化使其底部位置失效。读者移动即使位于跟随阈值内，也保持待处理直到采样周期或 `scrollend`，防止布局增长抵消小幅滚动操作。读者跟随底部时，`ResizeObserver` 追随新的底部，并且无需读取行几何就选中最后一个已加载轮次；读者离开底部后，高度变化会保持顶部位置，再由阅读线几何选择活跃轮次。轮次导航预览位于 Markdown 代码块粘性头栏上方，而导航外框始终处于 composer 上方的 transcript 区域内。
 

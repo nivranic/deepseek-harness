@@ -1,163 +1,179 @@
-/** Delivery gestures share pending state, report failures, and cancel with the plugin. */
-import { afterEach, expect, it, vi } from 'vitest'
+/** Current Host admission, cancellation and native action status through generated Remote calls. */
+import { expect, it } from 'vitest'
 import { SessionId } from '@deepseek-ai/dsh-session/types'
+import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
 import { PresentedOpenController } from '../src/client/present-open.ts'
-
-afterEach(() => { vi.unstubAllGlobals() })
+import { presentedFileKey } from '../src/presented.ts'
+import { nativeFileRemote } from './native-file-fixture.client.ts'
 
 const id = SessionId('fork')
-const url = '/api/present.open?sessionId=fork&seq=2&index=1'
+const key = presentedFileKey(id, 2, 1)
 
-it('coalesces concurrent card and mention gestures, then allows another open', async () => {
-  const reply = Promise.withResolvers<Response>()
-  const fetcher = vi.fn().mockReturnValue(reply.promise)
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
-  const first = controller.open(id, 2, 1)
+it('makes no speculative metadata or action requests before capability discovery', async () => {
+  const api = nativeFileRemote([])
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
   await controller.open(id, 2, 1)
-  expect(fetcher).toHaveBeenCalledTimes(1)
-  expect(fetcher).toHaveBeenCalledWith(url, { method: 'POST', signal: expect.any(AbortSignal) as AbortSignal })
-  expect(controller.state.getSnapshot()[url]).toBe('opening')
-  reply.resolve(new Response(null, { status: 204 }))
-  await first
-  expect(controller.state.getSnapshot()[url]).toBe('opened')
-  await controller.open(id, 2, 1)
-  expect(fetcher).toHaveBeenCalledTimes(2)
-  await controller.dispose()
-})
-
-it.each(['http', 'network'])('publishes retryable %s failures', async (failure) => {
-  const fetcher = vi.fn()
-  if (failure === 'http') fetcher.mockResolvedValueOnce(new Response(null, { status: 500 }))
-  else fetcher.mockRejectedValueOnce(new Error('offline'))
-  fetcher.mockResolvedValue(new Response(null, { status: 204 }))
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
-  await controller.open(id, 2, 1)
-  expect(controller.state.getSnapshot()[url]).toBe('error')
-  await controller.open(id, 2, 1)
-  expect(controller.state.getSnapshot()[url]).toBe('opened')
-  await controller.dispose()
-})
-
-it('awaits cancellation and prevents late state publication or new requests after disposal', async () => {
-  const aborted = Promise.withResolvers<undefined>()
-  const release = Promise.withResolvers<Response>()
-  const fetcher = vi.fn((_url: string, { signal }: RequestInit) => {
-    signal!.addEventListener('abort', () => { aborted.resolve(undefined) }, { once: true })
-    return release.promise
-  })
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
-  const open = controller.open(id, 2, 1)
-  const state = controller.state.getSnapshot()
-  let disposed = false
-  const disposal = controller.dispose().then(() => { disposed = true })
-  await aborted.promise
-  expect(disposed).toBe(false)
-  release.resolve(new Response(null, { status: 204 }))
-  await Promise.all([open, disposal])
-  expect(controller.state.getSnapshot()).toBe(state)
-  await controller.open(id, 2, 1)
-  expect(fetcher).toHaveBeenCalledOnce()
-})
-
-
-it('shares pending state across open and reveal and retries the selected action', async () => {
-  const reply = Promise.withResolvers<Response>()
-  const fetcher = vi.fn().mockReturnValueOnce(reply.promise).mockResolvedValue(new Response(null, { status: 204 }))
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
-  const revealing = controller.open(id, 2, 1, 'reveal')
-  await controller.open(id, 2, 1)
-  expect(controller.state.getSnapshot()[url]).toBe('revealing')
-  expect(fetcher).toHaveBeenCalledOnce()
-  expect(fetcher.mock.calls[0]?.[0]).toBe(`${url}&action=reveal`)
-  reply.resolve(new Response(null, { status: 500 }))
-  await revealing
-  expect(controller.state.getSnapshot()[url]).toBe('revealError')
   await controller.open(id, 2, 1, 'reveal')
-  expect(controller.state.getSnapshot()[url]).toBe('revealed')
+  expect(controller.host.getSnapshot()).toBe('unsupported')
+  expect(api.desktop).not.toHaveBeenCalled()
+  expect(api.open).not.toHaveBeenCalled()
+  expect(api.reveal).not.toHaveBeenCalled()
+  api.remote.$host = { ...api.remote.$host, capabilities: ['presented-file.desktop.v1', 'presented-file.open.v1'] }
+  controller.resetHost()
+  await controller.loadHost()
+  expect(controller.host.getSnapshot()).toMatchObject({ actions: ['open'] })
   await controller.dispose()
 })
 
-it.each([null, {}, { name: 'host', available: 'yes', fileManager: 'finder' },
-  { name: 'host', available: true, fileManager: 'unknown' }, 'invalid json', 'http', 'network',
-])('makes invalid Host metadata retryable: %j', async (value) => {
-  const host = { name: 'linux-host', available: true, fileManager: 'directory' }
-  const fetcher = vi.fn()
-  if (value === 'network') fetcher.mockRejectedValueOnce(new Error('offline'))
-  else if (value === 'http') fetcher.mockResolvedValueOnce(new Response(null, { status: 500 }))
-  else if (value === 'invalid json') fetcher.mockResolvedValueOnce(new Response('bad JSON'))
-  else fetcher.mockResolvedValueOnce(Response.json(value))
-  fetcher.mockResolvedValueOnce(Response.json(host))
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
+it.each([{ actions: [] }, { actions: ['open'] }, { actions: ['reveal'] }, { actions: ['open', 'reveal'] }] as const)('admits native actions independently: %j', async ({ actions }) => {
+  const api = nativeFileRemote(['presented-file.desktop.v1', ...actions.map(action => 'presented-file.' + action + '.v1')])
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
+  expect(controller.host.getSnapshot()).toMatchObject({ actions })
+  await controller.open(id, 2, 1)
+  await controller.open(id, 2, 1, 'reveal')
+  expect(api.open).toHaveBeenCalledTimes(actions.some(action => action === 'open') ? 1 : 0)
+  expect(api.reveal).toHaveBeenCalledTimes(actions.some(action => action === 'reveal') ? 1 : 0)
+  await controller.dispose()
+})
+
+it('coalesces pending gestures for the same coordinates and allows a fresh later gesture', async () => {
+  const api = nativeFileRemote()
+  const reply = Promise.withResolvers<Awaited<ReturnType<typeof api.open>>>()
+  api.open.mockReturnValueOnce(reply.promise)
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
+  const pending = controller.open(id, 2, 1)
+  await controller.open(id, 2, 1, 'reveal')
+  expect(api.open).toHaveBeenCalledOnce()
+  expect(api.reveal).not.toHaveBeenCalled()
+  expect(api.open.mock.calls[0]?.[0]).toEqual({ sessionId: id, seq: 2, index: 1 })
+  expect(controller.state.getSnapshot()[key]).toBe('opening')
+  reply.resolve({ ok: true, value: { completed: true } })
+  await pending
+  expect(controller.state.getSnapshot()[key]).toBe('opened')
+  await controller.open(id, 2, 1)
+  expect(api.open).toHaveBeenCalledTimes(2)
+  await controller.dispose()
+})
+
+it.each(['remote', 'transport'] as const)('reports retryable %s failures', async (failure) => {
+  const api = nativeFileRemote()
+  if (failure === 'remote') api.open.mockResolvedValueOnce({ ok: false, error: new RemoteError('presented-file/action-failed', 'unavailable', {}) })
+  else api.open.mockRejectedValueOnce(new Error('offline'))
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
+  await controller.open(id, 2, 1)
+  expect(controller.state.getSnapshot()[key]).toBe('error')
+  await controller.open(id, 2, 1)
+  expect(controller.state.getSnapshot()[key]).toBe('opened')
+  await controller.dispose()
+})
+
+it.each(['open', 'reveal'] as const)('keeps a verified-path refusal distinguishable for %s', async (action) => {
+  const api = nativeFileRemote()
+  api[action].mockResolvedValueOnce({ ok: false, error: new RemoteError('presented-file/path-unavailable', 'unavailable', {}) })
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
+  await controller.open(id, 2, 1, action)
+  expect(controller.state.getSnapshot()[key]).toBe('nativeUnavailable')
+  await controller.dispose()
+})
+
+it('blocks retained callbacks when capability or metadata generation is withdrawn', async () => {
+  const api = nativeFileRemote()
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
+  api.remote.$host = { ...api.remote.$host, capabilities: [] }
+  await controller.open(id, 2, 1)
+  expect(api.open).not.toHaveBeenCalled()
+  controller.resetHost()
+  expect(controller.host.getSnapshot()).toBe('unsupported')
+  expect(controller.state.getSnapshot()).toEqual({})
+  await controller.dispose()
+})
+
+it('respects native policy even when every operation is advertised', async () => {
+  const api = nativeFileRemote()
+  api.desktop.mockResolvedValue({ ok: true, value: { name: 'headless', available: false, fileManager: null } })
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
+  await controller.open(id, 2, 1)
+  await controller.open(id, 2, 1, 'reveal')
+  expect(api.open).not.toHaveBeenCalled()
+  expect(api.reveal).not.toHaveBeenCalled()
+  await controller.dispose()
+})
+
+it('retries failed metadata reads', async () => {
+  const api = nativeFileRemote()
+  api.desktop.mockRejectedValueOnce(new Error('offline'))
+  const controller = new PresentedOpenController(api.remote)
   await controller.loadHost()
   expect(controller.host.getSnapshot()).toBe('error')
   await controller.loadHost()
-  expect(controller.host.getSnapshot()).toEqual(host)
+  expect(controller.host.getSnapshot()).toMatchObject({ name: 'desktop' })
   await controller.dispose()
   await controller.loadHost()
-  expect(fetcher).toHaveBeenCalledTimes(2)
+  expect(api.desktop).toHaveBeenCalledTimes(2)
 })
 
-it('coalesces metadata reads and suppresses their publication after disposal', async () => {
-  const reply = Promise.withResolvers<Response>()
-  const fetcher = vi.fn().mockReturnValue(reply.promise)
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
+it('cancels old metadata and coalesces the replacement read without accepting late results', async () => {
+  const api = nativeFileRemote()
+  const old = Promise.withResolvers<Awaited<ReturnType<typeof api.desktop>>>()
+  const next = Promise.withResolvers<Awaited<ReturnType<typeof api.desktop>>>()
+  api.desktop.mockReturnValueOnce(old.promise).mockReturnValue(next.promise)
+  const controller = new PresentedOpenController(api.remote)
   const first = controller.loadHost()
+  api.remote.$host = { ...api.remote.$host }
+  controller.resetHost()
+  expect(api.desktop.mock.calls[0]?.[0]?.aborted).toBe(true)
   const second = controller.loadHost()
-  expect(fetcher).toHaveBeenCalledOnce()
-  const disposal = controller.dispose()
-  expect((fetcher.mock.calls[0]?.[1] as RequestInit).signal?.aborted).toBe(true)
-  reply.resolve(Response.json({ name: 'host', available: false, fileManager: null }))
-  await Promise.all([first, second, disposal])
+  old.resolve({ ok: true, value: { name: 'old', available: true, fileManager: 'finder' } })
+  await first
   expect(controller.host.getSnapshot()).toBeNull()
+  expect(api.desktop).toHaveBeenCalledTimes(2)
+  next.resolve({ ok: true, value: { name: 'current', available: true, fileManager: 'explorer' } })
+  await second
+  expect(controller.host.getSnapshot()).toMatchObject({ name: 'current' })
+  await controller.dispose()
 })
 
-
-it('invalidates cached desktop metadata without eagerly fetching an unused Host', async () => {
-  const fetcher = vi.fn().mockResolvedValue(Response.json({ name: 'old', available: false, fileManager: null }))
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
+it('cancels a pending action on replacement without replaying or publishing its old acknowledgement', async () => {
+  const api = nativeFileRemote()
+  const reply = Promise.withResolvers<Awaited<ReturnType<typeof api.open>>>()
+  api.open.mockReturnValueOnce(reply.promise)
+  const controller = new PresentedOpenController(api.remote)
   await controller.loadHost()
+  const pending = controller.open(id, 2, 1)
+  api.remote.$host = { ...api.remote.$host }
   controller.resetHost()
-  expect(controller.host.getSnapshot()).toBeNull()
-  expect(fetcher).toHaveBeenCalledOnce()
-  fetcher.mockResolvedValue(Response.json({ name: 'new', available: true, fileManager: 'finder' }))
+  expect(api.open.mock.calls[0]?.[1]?.aborted).toBe(true)
+  reply.resolve({ ok: true, value: { completed: true } })
+  await pending
+  expect(controller.state.getSnapshot()).toEqual({})
   await controller.loadHost()
-  expect(controller.host.getSnapshot()).toMatchObject({ name: 'new', available: true })
+  expect(api.open).toHaveBeenCalledOnce()
+  await controller.open(id, 2, 1)
+  expect(api.open).toHaveBeenCalledTimes(2)
   await controller.dispose()
 })
 
-it('discards a replaced Host response and keeps the new metadata request coalesced', async () => {
-  const oldReply = Promise.withResolvers<Response>()
-  const newReply = Promise.withResolvers<Response>()
-  const fetcher = vi.fn().mockReturnValueOnce(oldReply.promise).mockReturnValue(newReply.promise)
-  vi.stubGlobal('fetch', fetcher)
-  const controller = new PresentedOpenController()
-  const oldLoad = controller.loadHost()
-  controller.resetHost()
-  expect((fetcher.mock.calls[0]?.[1] as RequestInit).signal?.aborted).toBe(true)
-  const newLoad = controller.loadHost()
-  oldReply.resolve(Response.json({ name: 'old', available: false, fileManager: null }))
-  await oldLoad
-  expect(controller.host.getSnapshot()).toBeNull()
-  const coalesced = controller.loadHost()
-  expect(fetcher).toHaveBeenCalledTimes(2)
-  newReply.resolve(Response.json({ name: 'new', available: true, fileManager: 'finder' }))
-  await Promise.all([newLoad, coalesced])
-  expect(controller.host.getSnapshot()).toMatchObject({ name: 'new' })
-  await controller.dispose()
-})
-
-
-it.each(['open', 'reveal'] as const)('reports an unavailable Host path for %s while retaining the declaration', async (action) => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 422 })))
-  const controller = new PresentedOpenController()
-  await controller.open(id, 2, 1, action)
-  expect(controller.state.getSnapshot()[url]).toBe('nativeUnavailable')
-  await controller.dispose()
+it('awaits outstanding actions on disposal and rejects later gestures', async () => {
+  const api = nativeFileRemote()
+  const reply = Promise.withResolvers<Awaited<ReturnType<typeof api.open>>>()
+  api.open.mockReturnValueOnce(reply.promise)
+  const controller = new PresentedOpenController(api.remote)
+  await controller.loadHost()
+  const pending = controller.open(id, 2, 1)
+  let disposed = false
+  const disposal = controller.dispose().then(() => { disposed = true })
+  expect(api.open.mock.calls[0]?.[1]?.aborted).toBe(true)
+  expect(disposed).toBe(false)
+  reply.resolve({ ok: true, value: { completed: true } })
+  await Promise.all([pending, disposal])
+  expect(controller.state.getSnapshot()[key]).toBe('opening')
+  await controller.open(id, 2, 1)
+  expect(api.open).toHaveBeenCalledOnce()
 })

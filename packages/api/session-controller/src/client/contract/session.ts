@@ -111,12 +111,18 @@ export interface ISession {
    */
   cancel(): Promise<RemoteResult<{ accepted: true }>>
   /**
-   * Rename this session (explicit user title; pins it against automatic
+   * Unconditionally rename this session (explicit user title; pins it against automatic
    * regeneration).
    * @param title - raw title text (the host normalizes acceptance).
    * @returns the normalized accepted title and its event seq, or the business error.
    */
   rename(title: string): Promise<RemoteResult<{ title: string; seq: SessionSeq }>>
+  /**
+   * Capture the title revision before editing. Reusing the callback retains that
+   * baseline on retries; legacy Hosts accept unconditional renames.
+   * @returns a title submitter; missing revision data fails without a Remote call.
+   */
+  prepareRename(): (title: string) => Promise<RemoteResult<{ title: string; seq: SessionSeq }>>
   /**
    * Extend the history window backwards (older messages pagination).
    * @returns completion; failures land in snapshot.openState/loadingOlder.

@@ -17,13 +17,16 @@ async function bench() {
   const ctx = new Context()
   await ctx.plugin(SlotRegistry).await()
   const pickDirectory = vi.fn(async (): Promise<string | null> => '/tmp/picked')
-  ctx.provide('uiWorkspace', { pickDirectory } as never)
+  const captureDirectoryOperations = vi.fn((_signal?: AbortSignal) => ({ pickDirectory }))
+  ctx.provide('uiWorkspace', { pickDirectory, captureDirectoryOperations } as never)
+  const remote = { $host: { home: undefined, isLoopback: true, capabilities: ['directory-picker.native.v1'] } }
+  ctx.provide('remote', remote as never)
   const slots = ctx.get('slots') as SlotRegistry
   const declare = () => slots.register({
     name: 'root',
     children: Object.fromEntries(HOLES.map(name => [name, { kind: 'single', scope: 'root' }])),
   } as never, () => null)
-  return { ctx, slots, pickDirectory, declare }
+  return { ctx, slots, pickDirectory, captureDirectoryOperations, remote, declare }
 }
 
 function owner(overrides: Partial<DirectoryFlowOwnerProps> = {}): DirectoryFlowOwnerProps {
@@ -35,8 +38,31 @@ function owner(overrides: Partial<DirectoryFlowOwnerProps> = {}): DirectoryFlowO
 }
 
 describe('directory-picker-native client half', () => {
+  it('registers only with native support and retires old operation lifetimes on replacement', async () => {
+    const b = await bench()
+    b.declare()
+    b.remote.$host = { ...b.remote.$host, capabilities: ['directory-picker.browse.v1'] }
+    const fiber = b.ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+    for (const hole of HOLES) expect(b.slots.entries(hole)).toHaveLength(0)
+    expect(b.captureDirectoryOperations).not.toHaveBeenCalled()
+    b.remote.$host = { ...b.remote.$host, capabilities: ['directory-picker.native.v1'] }
+    b.ctx.emit('connection/reset')
+    await vi.waitFor(() => { expect(b.slots.entries(HOLES[0])).toHaveLength(1) })
+    const old = b.slots.entries(HOLES[0])[0]
+    const lifetime = b.captureDirectoryOperations.mock.calls[0]![0]!
+    b.remote.$host = { ...b.remote.$host }
+    b.ctx.emit('connection/reset')
+    await vi.waitFor(() => { expect(b.slots.entries(HOLES[0])[0]).not.toBe(old) })
+    expect(lifetime.aborted).toBe(true)
+    b.remote.$host = { ...b.remote.$host, capabilities: [] }
+    b.ctx.emit('connection/reset')
+    await vi.waitFor(() => { for (const hole of HOLES) expect(b.slots.entries(hole)).toHaveLength(0) })
+    expect(b.pickDirectory).not.toHaveBeenCalled()
+    await fiber.dispose()
+  })
   it('declares the services it drives', () => {
-    expect(inject).toEqual(['slots', 'uiWorkspace'])
+    expect(inject).toEqual(['slots', 'uiWorkspace', 'remote'])
   })
 
   it('fills both directory-flow holes for declarations before or after apply, and leaves with its fiber', async () => {

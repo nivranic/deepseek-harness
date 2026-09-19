@@ -187,6 +187,31 @@ export interface WorkspaceModel {
   readonly crossFaceLinks: readonly CrossFaceLink[]
 }
 
+/** One owner-authored Remote failure and its details type on a compiler face. */
+export interface RemoteErrorModel extends DocumentationModel {
+  readonly code: string
+  readonly description: string
+  readonly package: string
+  readonly location: SourceLocation
+  /** Authored details type, retaining public references for documentation. */
+  readonly details: TypeNodeId
+  /** Checker-resolved JSON type used to emit validators within this face. */
+  readonly codecDetails: TypeNodeId
+}
+
+/** Error declarations and their authored type graph, independent of service roots. */
+export interface RemoteErrorFaceModel {
+  readonly face: TypertFace
+  readonly errors: readonly RemoteErrorModel[]
+  readonly graph: TypeGraph
+}
+
+/** Independently extracted Host and Client error declarations with public type links. */
+export interface RemoteErrorWorkspaceModel {
+  readonly faces: readonly RemoteErrorFaceModel[]
+  readonly crossFaceLinks: readonly CrossFaceLink[]
+}
+
 /** One top-level authored type declaration indexed without making it a graph root. */
 export interface SourceDeclarationModel {
   readonly face: TypertFace

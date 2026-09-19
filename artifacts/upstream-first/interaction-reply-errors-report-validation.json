@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Structured interaction reply refusal and explicit protocol recovery; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-reply-errors-source.json",
+    "sha256": "bb47dac721709b2e67766259988e15a27b0e2526f89c89f48c92aae423e871b4"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "109b1189a29282b0862a11d68523552f425bfb8191646040a5cf3a8248c1b0dc"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/interaction-reply-errors-binding.json",
+    "sha256": "b3b6985e24541aa1fd2450e7788f713607ca61dc1d93a2e67d2298e403d11ee1"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-interaction-reply-errors-reports.mjs",
+      "sha256": "93516542157f6cab0e9fff4c3fdb7d7968bdb06439795376087154c8fc9dbb85"
+    },
+    {
+      "path": ".artifacts/capture-interaction-reply-errors-validation.mjs",
+      "sha256": "74c92561d4d9cbcd1e4e7cf3704dbe4e7dcbc3480c9b2e52bd7c18ba7a839a55"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "381ab56369bb858c4b2de4781a962d1c9a99534f24cc28dafc14c35c572bfb84"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f17e18a866923db2d227517f3583094c34c610164602a185f48440f4665fe519"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-reply-errors-binding.log",
+      "sha256": "fa9f5ea2346d27a8dc5b2a0e3da76b83346ad83ad8950de33290726fd85ba8fe"
+    },
+    {
+      "path": ".artifacts/interaction-reply-errors-audit-tests.log",
+      "sha256": "438fab44a9d2d9de9d659837b7f6af9202fc1bc7168ef7078f6640b4d121d731"
+    },
+    {
+      "path": ".artifacts/interaction-reply-errors-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/interaction-reply-errors-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/interaction-reply-errors-report-generation.log",
+      "sha256": "fee38423682f6d1f2e0a50aabd65d5aa82ca06f4423805940cb852603041bf6a"
+    }
+  ]
+}

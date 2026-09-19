@@ -1,0 +1,12 @@
+{
+  "locale": "zh-CN",
+  "kind": "json",
+  "label": "Host 数据不可用",
+  "action": "Host 数据无效或不可用，自动重试已暂停；请检查 Host 后点击重连",
+  "automaticReconnects": 0,
+  "manualReconnects": 1,
+  "replacementSockets": 1,
+  "draftPreserved": true,
+  "prompts": 0,
+  "browserClockAdvanceMs": 60000
+}

@@ -43,6 +43,13 @@ interface PendingMatch {
   readonly match: ConversationMatch
 }
 
+interface DeferredMatch {
+  readonly definition: ConversationNodeDefinition
+  readonly id: string
+  readonly role: ConversationMatch['role']
+  readonly input: SessionEventLikeEntry
+}
+
 interface ViewState {
   readonly target: string
   readonly definition: ConversationViewDefinition
@@ -162,6 +169,7 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
   private readonly contextsBySeq = new Map<number, Set<InternalContext>>()
   private readonly contextsByTarget = new Map<string, Set<InternalContext>>()
   private readonly inputs = new Map<number, SessionEventLikeEntry>()
+  private readonly deferredMatches = new Map<string, DeferredMatch>()
   private readonly locationIndex = new ConversationLocationIndex()
   private readonly dirty = new Set<InternalContext>()
   private readonly dirtyByTarget = new Map<string, Set<InternalContext>>()
@@ -196,6 +204,7 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
     this.contextsBySeq.clear()
     this.contextsByTarget.clear()
     this.inputs.clear()
+    this.deferredMatches.clear()
     this.dirty.clear()
     this.dirtyByTarget.clear()
     this.revised.clear()
@@ -236,6 +245,12 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
     } else {
       this.locationIndex.appendNonBoundary(event)
     }
+    if (this.deferredMatches.size > 0 && this.locationIndex.hasStepCoordinates(event)) {
+      const changed = this.locationIndex.rebuild(this.sortedInputs())
+      this.replayContexts(this.refreshMatchLocations(changed))
+      publication = maximumPublication(publication, this.resolveDeferredMatches())
+      this.timelineDirty = true
+    }
     publication = maximumPublication(publication, this.matchInput(record))
     if (this.replayRevisedDependents()) publication = 'immediate'
     this.revised.clear()
@@ -258,6 +273,9 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
       && candidate.event.data.attemptId === attemptId
     ))
     const retiredSeqs = new Set(retired.map(candidate => candidate.event.seq))
+    for (const [key, deferred] of this.deferredMatches) {
+      if (retiredSeqs.has(deferred.input.event.seq)) this.deferredMatches.delete(key)
+    }
     const affected = new Set<InternalContext>()
     for (const seq of retiredSeqs) {
       this.inputs.delete(seq)
@@ -306,6 +324,7 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
     for (const entry of fresh) {
       publication = maximumPublication(publication, this.collectInput(entry, pending))
     }
+    publication = maximumPublication(publication, this.resolveDeferredMatches(pending))
     this.applyPendingMatches(pending, affected)
     this.replayContexts(affected)
     if ((this.revised.size > 0 || previousHasMore !== hasMore) && this.replayDependencies()) {
@@ -434,19 +453,52 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
     input: SessionEventLikeEntry,
     pending: Map<string, PendingMatch[]>,
   ): ConversationPublication {
-    return this.dispatchInput(input, (definition, id, role) => {
-      const key = conversationContextKey(definition.kind, id)
-      const match = conversationMatch(
-        key,
-        input,
-        role,
-        this.locationIndex.locationOf(input.event),
-      )
-      const matches = pending.get(key) ?? []
-      matches.push({ definition, id, match })
-      pending.set(key, matches)
-      return definition.publication?.(match) ?? 'immediate'
-    })
+    return this.dispatchInput(input, (definition, id, role) => this.collectMatch(definition, id, role, input, pending))
+  }
+
+  private collectMatch(
+    definition: ConversationNodeDefinition,
+    id: string,
+    role: ConversationMatch['role'],
+    input: SessionEventLikeEntry,
+    pending: Map<string, PendingMatch[]>,
+  ): ConversationPublication {
+    const key = conversationContextKey(definition.kind, id)
+    const match = conversationMatch(key, input, role, this.matchLocation(definition, input.event))
+    const matches = pending.get(key) ?? []
+    matches.push({ definition, id, match })
+    pending.set(key, matches)
+    return definition.publication?.(match) ?? 'immediate'
+  }
+
+  private matchLocation(definition: ConversationNodeDefinition, event: ConversationMatch['event']): ConversationMatch['location'] {
+    if (definition.identityScope === 'step') {
+      const location = this.locationIndex.stepLocationOf(event)
+      if (location === undefined) throw new Error('Step-scoped Conversation Match has no execution enclosure')
+      return location
+    }
+    return this.locationIndex.locationOf(event)
+  }
+
+  private scopedId(definition: ConversationNodeDefinition, id: string, event: ConversationMatch['event']): string | undefined {
+    if (definition.identityScope !== 'step') return id
+    const location = this.locationIndex.stepLocationOf(event)
+    return location === undefined ? undefined : JSON.stringify([location.turn.turn, location.step.step, id])
+  }
+
+  private resolveDeferredMatches(pending?: Map<string, PendingMatch[]>): ConversationPublication {
+    let publication: ConversationPublication = 'none'
+    for (const [key, deferred] of [...this.deferredMatches].sort((left, right) => left[1].input.event.seq - right[1].input.event.seq)) {
+      const { definition, id, role, input } = deferred
+      const scopedId = this.scopedId(definition, id, input.event)
+      if (scopedId === undefined) continue
+      this.deferredMatches.delete(key)
+      const accepted = pending === undefined
+        ? this.acceptMatch(definition, scopedId, role, input)
+        : this.collectMatch(definition, scopedId, role, input, pending)
+      publication = maximumPublication(publication, accepted)
+    }
+    return publication
   }
 
   private dispatchInput(
@@ -460,18 +512,27 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
     const event = input.event
     const matchedTargets = new Set<string>()
     let publication: ConversationPublication = 'none'
+    const route = (definition: ConversationNodeDefinition, id: string, role: ConversationMatch['role']): ConversationPublication => {
+      if (input.type === 'transient' && role === 'start') {
+        throw new Error(`conversation Context ${conversationContextKey(definition.kind, id)} received a transient start Match`)
+      }
+      const scopedId = this.scopedId(definition, id, event)
+      if (scopedId !== undefined) return accept(definition, scopedId, role)
+      this.deferredMatches.set(conversationContextKey(definition.kind, String(event.seq)), { definition, id, role, input })
+      return 'none'
+    }
     for (const definition of this.eventDefinitions.entries()) {
       const result = definition.match(event)
       if (result === null) continue
       if (definition.target !== undefined) matchedTargets.add(definition.target)
-      publication = maximumPublication(publication, accept(definition, result.id, result.role))
+      publication = maximumPublication(publication, route(definition, result.id, result.role))
     }
     const fallback = this.eventDefinitions.fallbackEntry()
     const target = fallback?.target
     if (fallback !== undefined && target !== undefined && !matchedTargets.has(target)) {
       const result = fallback.match(event)
       if (result !== null) {
-        publication = maximumPublication(publication, accept(fallback, result.id, result.role))
+        publication = maximumPublication(publication, route(fallback, result.id, result.role))
       }
     }
     return publication
@@ -517,7 +578,7 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
       key,
       input,
       role,
-      this.locationIndex.locationOf(input.event),
+      this.matchLocation(definition, input.event),
     )
     const previous = context.matches.at(-1)
     if (previous !== undefined && previous.event.seq >= input.event.seq) {
@@ -796,16 +857,16 @@ export class ConversationNodeAssembler implements ConversationViewSnapshotStore 
     for (const context of affected) {
       let start = context.start
       const matches = context.matches.map((match): ConversationMatch => {
-        if (!changedSeqs.has(match.event.seq)) return match
+        if (!changedSeqs.has(match.event.seq) && context.definition.identityScope !== 'step') return match
         if (match.role === 'start') {
           const refreshed: ConversationStartMatch = {
             ...match,
-            location: this.locationIndex.locationOf(match.event),
+            location: this.matchLocation(context.definition, match.event),
           }
           if (match === start) start = refreshed
           return refreshed
         }
-        return { ...match, location: this.locationIndex.locationOf(match.event) }
+        return { ...match, location: this.matchLocation(context.definition, match.event) }
       })
       context.matches = matches
       context.start = start

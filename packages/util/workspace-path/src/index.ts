@@ -9,6 +9,13 @@ function isWindowsStylePath(value: string): boolean {
   return /^[A-Za-z]:[/\\]/.test(value) || value.startsWith('\\\\')
 }
 
+/** Trim only the suffix; unanchored regex matching rescans long internal separator runs. */
+function trimTrailingSeparators(value: string, backslash: boolean): string {
+  let end = value.length
+  while (end > 0 && (value[end - 1] === '/' || (backslash && value[end - 1] === '\\'))) end--
+  return value.slice(0, end)
+}
+
 /**
  * Whether a path is absolute in either spelling the Host accepts: POSIX (`/a/b`) or Windows drive or UNC.
  * @param path - the path to classify.
@@ -28,7 +35,7 @@ export function resolveWorkspacePath(cwd: string | undefined, path: string): str
   if (isAbsoluteWorkspacePath(path)) return path
   if (cwd === undefined || cwd === '') return path
   const separator = isWindowsStylePath(cwd) && cwd.includes('\\') ? '\\' : '/'
-  const base = cwd.replace(/[/\\]+$/, '')
+  const base = trimTrailingSeparators(cwd, true)
   const relative = path.replace(/^[/\\]+/, '')
   return `${base}${separator}${relative}`
 }
@@ -42,9 +49,9 @@ export function resolveWorkspacePath(cwd: string | undefined, path: string): str
 export function abbreviateHomePath(path: string, home?: string): string {
   if (home === undefined || home === '') return path
   if (isWindowsStylePath(path) || isWindowsStylePath(home)) return path
-  const root = home.replace(/\/+$/, '')
-  if (root === '' || root === '/') return path
-  if (path.replace(/\/+$/, '') === root) return '~'
+  const root = trimTrailingSeparators(home, false)
+  if (root === '') return path
+  if (trimTrailingSeparators(path, false) === root) return '~'
   if (path.startsWith(`${root}/`)) return `~${path.slice(root.length)}`
   return path
 }
@@ -56,7 +63,7 @@ export function abbreviateHomePath(path: string, home?: string): string {
  * @returns the final segment, or an empty string for a separator-only path.
  */
 export function workspaceTitleOf(path: string): string {
-  const trimmed = path.replace(/[/\\]+$/, '')
+  const trimmed = trimTrailingSeparators(path, true)
   const separator = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\'))
   return trimmed.slice(separator + 1)
 }
@@ -71,7 +78,7 @@ export function workspaceTitleOf(path: string): string {
  * @returns the directory prefix (possibly empty) and the final segment.
  */
 export function pathPartsOf(path: string): { readonly directory: string; readonly name: string } {
-  const trimmed = path.replace(/[/\\]+$/, '')
+  const trimmed = trimTrailingSeparators(path, true)
   if (trimmed === '') return { directory: '', name: path }
   const cut = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\')) + 1
   return { directory: trimmed.slice(0, cut), name: trimmed.slice(cut) }
@@ -92,7 +99,7 @@ export * from './file-address.ts'
 export function fileAddressFor(sessionId: string, cwd: string | undefined, path: string): string {
   const normalized = path.replace(/\\/g, '/')
   if (!isAbsoluteWorkspacePath(normalized)) return sessionFileAddress(sessionId, normalized)
-  const root = cwd === undefined ? '' : cwd.replace(/\\/g, '/').replace(/\/+$/, '')
+  const root = cwd === undefined ? '' : trimTrailingSeparators(cwd.replace(/\\/g, '/'), false)
   if (root !== '' && normalized === root) return sessionFileAddress(sessionId, '')
   if (root !== '' && normalized.startsWith(`${root}/`)) return sessionFileAddress(sessionId, normalized.slice(root.length + 1))
   return sessionFileAddress(sessionId, normalized)
@@ -106,7 +113,7 @@ export function fileAddressFor(sessionId: string, cwd: string | undefined, path:
  */
 export function relativizeToCwd(text: string, cwd: string | undefined): string {
   if (cwd === undefined || cwd === '') return text
-  const root = cwd.replace(/[/\\]+$/, '')
+  const root = trimTrailingSeparators(cwd, true)
   if (text.startsWith(`${root}/`) || text.startsWith(`${root}\\`)) return text.slice(root.length + 1)
   return text
 }

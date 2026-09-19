@@ -75,7 +75,7 @@ function mount(
       mutate,
     },
   }
-  const ctx = { remote: api } as never
+  const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1'] }, ...api } } as never
   const mirror = new SettingsDescribeMirror(ctx)
   const scope = new SettingsScopeController<WelcomeSection>(
     ctx,

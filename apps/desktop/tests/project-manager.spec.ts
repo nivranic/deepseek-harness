@@ -70,6 +70,16 @@ afterEach(async () => {
 })
 
 describe('desktop external plugin profile', () => {
+  it('keeps native build permission scoped to shipped install scripts', async () => {
+    const { manager } = setup()
+    await manager.applyRelease()
+    const workspace = readFileSync(join(manager.paths.profile, 'pnpm-workspace.yaml'), 'utf8')
+    expect(workspace).toContain('node-pty: true')
+    expect(workspace).toContain('koffi: true')
+    expect(workspace).toContain('"@deepseek-ai/dsh-subprocess-local": true')
+    expect(workspace).not.toMatch(/^\s*fs-ext:/mu)
+  })
+
   it('reuses plugin files without scanning manifests and can disable or reset them', async () => {
     const { manager } = setup()
     await manager.applyRelease()

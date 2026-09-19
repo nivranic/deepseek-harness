@@ -115,7 +115,7 @@ export class HistoricalImageCache {
     if (binding === undefined) return Promise.reject(new Error(`ui-conversation: unknown session "${entry.sessionId}"`))
     return binding.session.readAttachment(attachment.attachmentId)
       .then((result) => {
-        if (!result.ok) throw new Error(`${result.error.code}: ${result.error.message}`)
+        if (!result.ok) throw result.error
         this.assertLive(key, entry)
         let url: string
         if (typeof URL.createObjectURL !== 'function') {

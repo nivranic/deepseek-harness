@@ -27,6 +27,8 @@ kind: "package-reference"
 
 在注入 `fileUpload` 的消费方之前挂载本包，再调用 `ctx.fileUpload.upload(sessionId, body, name, signal, onProgress)`。Session 标识同时用于寻址原始路由和生成的 Remote 兜底；调用方不组装这两种请求。
 
+文件暂存要求当前 Host 声明 `file-upload.stage.v1`。Client 在读取字节或启动任一载体前捕获连接；连接替换或服务卸载会取消活动工作，拒绝迟到的回执与进度。能力支持不授予权限，不撤销已完成的 Host 上传，也不使重试具备幂等性。消费方决定是否保留浏览器持有的草稿供用户显式重试。
+
 ```yaml
 - id: file-upload
   name: '@deepseek-ai/dsh-client-file-upload'

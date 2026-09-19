@@ -33,12 +33,14 @@ beforeEach(() => { localStorage.clear() })
 /** Runtime with the locale face installed (the browser entry declares `locale:` — zh default backs the t seat). */
 async function createRuntime(): Promise<SlotTestRuntime> {
   const runtime = await SlotTestRuntime.create()
+  runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
   runtime.ctx.provide('layout', { selectPanel: vi.fn() })
   runtime.releaseWorkspaceSource()
   // The rename flow never picks a directory; the namespace only has to be there
   // for ui-workspace's inject to settle.
   const directoryPicker = {}
-  Object.assign(new TestRemote(runtime.ctx), { directoryPicker })
+  const remote = Object.assign(new TestRemote(runtime.ctx), { directoryPicker })
+  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
   runtime.ctx.provide('remote.directoryPicker', directoryPicker as never)
   const locale = new LocaleRuntime(runtime.ctx)
   runtime.ctx.provide('locale', locale)
@@ -61,7 +63,7 @@ describe('session rename through the assembled browser', () => {
     await runtime.sessions.add({
       id: SID,
       summary: { title: '旧标题', displayTitle: '旧标题', cwd: '/w/alpha' },
-      session: { rename },
+      session: { prepareRename: () => rename },
     })
     await runtime.workspaces.update((draft) => {
       draft.items = [{
@@ -100,15 +102,18 @@ describe('session rename through the assembled browser', () => {
     await runtime.dispose()
   })
 
-  it('a rejected rename keeps the dialog open with the error surfaced', async () => {
+  it.each([
+    [new RemoteError('gateway/internal', 'title write failed', {}), 'title write failed'],
+    [new RemoteError('session/revision-conflict', 'Host conflict text', { sessionId: SID }), '标题已被其他操作修改。请复制草稿，关闭并重新打开重命名后再保存。'],
+  ])('keeps a rejected rename open with its localized error: %s', async (error, message) => {
     const runtime = await createRuntime()
     const rename = vi.fn<ISession['rename']>(async () => ({
-      ok: false, error: new RemoteError('gateway/internal', 'title write failed', {}),
+      ok: false, error,
     }))
     await runtime.sessions.add({
       id: SID,
       summary: { title: '旧标题', displayTitle: '旧标题', cwd: '/w/alpha' },
-      session: { rename },
+      session: { prepareRename: () => rename },
     })
     await runtime.workspaces.update((draft) => {
       draft.items = [{
@@ -134,7 +139,8 @@ describe('session rename through the assembled browser', () => {
     // Failure: the injected hop rethrows the business error; the dialog
     // stays open with the alert and the row keeps its title.
     const alert = await view.findByRole('alert')
-    expect(alert.textContent).toContain('title write failed')
+    expect(alert.textContent).toContain(message)
+    expect((view.getByLabelText('会话名称') as HTMLInputElement).value).toBe('新名')
     expect(view.getByLabelText('会话名称')).toBeTruthy()
     expect(view.getByText('旧标题')).toBeTruthy()
     await runtime.dispose()

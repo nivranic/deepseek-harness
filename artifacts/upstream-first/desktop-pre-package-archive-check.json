@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "apps/desktop/lib/main.js",
+      "status": "PASS",
+      "expectedExit": 0
+    },
+    {
+      "path": ".artifacts/desktop-pre-package/apps/desktop/lib/main.js",
+      "status": "PASS",
+      "expectedExit": 1
+    },
+    {
+      "path": ".artifacts/desktop-pre-package/archive.json",
+      "status": "PASS",
+      "expectedExit": 1
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "status": "PASS",
+      "expectedExit": 1
+    }
+  ]
+}

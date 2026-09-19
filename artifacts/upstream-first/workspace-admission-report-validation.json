@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/workspace-admission-source.json",
+    "sha256": "f66a33de759439b5595a47b8d1e612d1d69a59d403c8dfd072fa0ea940e3bb93"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f1137630dfa9112949f0e261ed8ff8d5a47621e71f21754c33ac04dd7b33586b"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "1d21979f39e5147e2587fddceb1ae0893253987ef8d681f8971623be5cf930f2"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "cf6dda4998dab4f57b772d6cb73ad533be5f8278a6d02c60c80bb7d08c35f60c"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/workspace-admission-binding.log",
+      "sha256": "8e1706bd74f27392d136a832da5b1ffe3e6d50e2643872eadee1e44b2bc1523a"
+    },
+    {
+      "path": ".artifacts/workspace-admission-audit-tests.log",
+      "sha256": "4dc33866643ed2a8b0b21884f86c857063f4c2c0956230a0d88ea8fda67657a9"
+    },
+    {
+      "path": ".artifacts/workspace-admission-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/workspace-admission-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -171,3 +171,5 @@ for await (const chunk of ctx.llm.stream({
 - `llm/adapters-updated` 事件按设计不携带载荷；消费方重新读取注册表，而不是在事件中接收新拓扑。
 
 </details>
+
+Host 发现分别声明 `llm.providers.v1`（已注册与可配置提供方目录）和 `llm.discover-models.v1`（端点模型发现）。纯 `./capabilities` 模块向 Client 准入逻辑共享这些方法集合。支持 API 不代表已挂载适配器或发现处理器，也不代表端点可达或凭据有权访问。

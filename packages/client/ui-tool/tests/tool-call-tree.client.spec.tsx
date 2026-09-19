@@ -45,7 +45,7 @@ function props(
       data: { root: block },
     },
     selectedCallId,
-    openFile: vi.fn(),
+    openFile: vi.fn(), canOpenFile: () => true,
     inspectCall: vi.fn(),
     forkAt: vi.fn(),
     loadImage: vi.fn(() => Promise.reject(new Error('not used'))),
@@ -56,6 +56,22 @@ function props(
 }
 
 describe('ToolCallTree', () => {
+  it('propagates changing viewer eligibility to nested fallback paths', () => {
+    const child = { ...root('child', { name: 'read', argsRaw: '{"path":"child.md"}' }), parentCallId: 'parent' }
+    const block = { ...root('parent', { name: 'write', argsRaw: '{"file_path":"parent.md","content":"x"}' }), subCalls: [child] }
+    const initial = props(block)
+    const view = render(<ToolCallTree {...initial} />)
+    expect(view.getByRole('button', { name: 'parent.md' })).toBeTruthy()
+    expect(view.getByRole('button', { name: 'child.md' })).toBeTruthy()
+    view.rerender(<ToolCallTree {...initial} canOpenFile={() => false} />)
+    expect(view.queryByRole('button', { name: 'parent.md' })).toBeNull()
+    expect(view.queryByRole('button', { name: 'child.md' })).toBeNull()
+    expect(view.getByText('parent.md')).toBeTruthy()
+    expect(view.getByText('child.md')).toBeTruthy()
+    view.rerender(<ToolCallTree {...initial} />)
+    expect(view.getByRole('button', { name: 'child.md' })).toBeTruthy()
+  })
+
   it('owns the root marker and the generic fallback for a window-truncated call', () => {
     const block = root('w1', null)
     const view = render(<ToolCallTree {...props(block, 'w1')} />)

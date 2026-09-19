@@ -25,6 +25,8 @@ The Web GUI lets users switch the model and reasoning effort for an existing ses
 <a id="use-this-package"></a>
 ## Use this package
 
+Catalog and selection rejections preserve the original `RemoteError`, including failures arriving after generation invalidation. Stale outcomes still cannot update the current directory.
+
 Mount this plugin alongside `ui-conversation` and the commands package; the composer then shows the model seat next to the pending indicator, and `/model` opens the same directory as a popup. Both surfaces show the host-reported current selection when the exact provider/model pair remains in the advertised groups; a missing catalog row leaves the routable selection intact while the trigger prompts `Select model`.
 
 ### Model and effort
@@ -43,7 +45,7 @@ When the Host reports that no adapter serves the session's route, this plugin ra
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-Two entries over ONE per-session directory owned by `ModelDirectoryResolver` (`ctx.modelDirectories`): the `/model` popupSelect contribution (registered through `ctx.commandUi`) and the composer's named `conversation.input.model` seat both load the session's advisory directory through `session.models` and submit through `session.selectModel` via the same `ModelDirectory` instance, so a switch made in either entry is what the other shows next. Directory loads and selections share a generation counter so an older response never overwrites a newer one; a connection reset drops every resident projection and repulls the Host-restored selection before display. Directories are per-session, resolved lazily, and disposed with the session scope; addressed subagent sessions expose neither entry. Every resident directory refetches directly on forwarded `llm/adapters-updated` and `settings/document-updated` owner events.
+Both entries share `ModelDirectoryResolver` and one Host-generation `session.modelCatalog` read. They combine this catalog with the Session projection and submit through `session.selectModel`. The admitted Host must advertise `model.select.v1`; before discovery or without that capability, both entries remain hidden and catalog reads and retained selection callbacks refuse dispatch. The composer seat subscribes through the renderer's injected capability hook. Connection replacement clears the catalog, invalidates pending selections, and removes obsolete routing blocks. Addressed subagent sessions remain unavailable. Forwarded model, settings, and credential changes refresh the shared catalog only while the capability is present.
 
 </details>
 

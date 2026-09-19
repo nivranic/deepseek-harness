@@ -20,7 +20,7 @@ import { BrowseDirectoryFlow } from './flow.ts'
 const LOCALE_NS = 'directory-browser'
 
 /** Required services (cordis fiber inject): the slot registry, workspace UI service, and locale. */
-export const inject = ['slots', 'uiWorkspace', 'locale']
+export const inject = ['slots', 'uiWorkspace', 'remote', 'locale']
 
 /**
  * Client plugin body: register the dialog's dictionaries and the browse flow
@@ -75,21 +75,38 @@ export function apply(ctx: ClientContext): void {
     return () => { for (const dispose of disposers) dispose() }
   }, 'directory-picker-browse: dialog dictionaries')
 
-  const injected = (): BrowseFlowInjected => ({
-    listDirectory: (path, signal) => ctx.uiWorkspace.listDirectory(path, signal),
-    createDirectory: (path, name) => ctx.uiWorkspace.createDirectory(path, name),
-    t: ctx.locale.bind(LOCALE_NS),
-  })
-  // Both declaration lifetimes must be live before the pair installs; the
-  // generator makes the two registrations one transactional effect. The
-  // outer/inner nesting order is arbitrary; neither hole has precedence.
   ctx.slots.inject('conversation.hero.workspace.directoryFlow', () =>
-    ctx.slots.inject('sidebar.workspaces.directoryFlow', function* () {
-      yield ctx.slots.register({
-        name: 'conversation.hero.workspace.directoryFlow', inject: injected,
-      }, BrowseDirectoryFlow)
-      yield ctx.slots.register({
-        name: 'sidebar.workspaces.directoryFlow', inject: injected,
-      }, BrowseDirectoryFlow)
+    ctx.slots.inject('sidebar.workspaces.directoryFlow', () => {
+      let currentHost: typeof ctx.remote.$host | undefined
+      let remove: (() => void) | undefined
+      const refresh = (): void => {
+        const host = ctx.remote.$host
+        if (host === currentHost) return
+        currentHost = host
+        remove?.()
+        remove = undefined
+        if (host.capabilities?.includes('directory-picker.browse.v1') !== true) return
+        const lifetime = new AbortController()
+        const operations = ctx.uiWorkspace.captureDirectoryOperations(lifetime.signal)
+        const injected = (): BrowseFlowInjected => ({
+          listDirectory: operations.listDirectory,
+          createDirectory: operations.createDirectory,
+          canCreateDirectory: host.capabilities?.includes('directory-picker.create.v1') === true,
+          t: ctx.locale.bind(LOCALE_NS),
+        })
+        const dispose = ctx.effect(function* () {
+          yield () => { lifetime.abort() }
+          yield ctx.slots.register({
+            name: 'conversation.hero.workspace.directoryFlow', inject: injected,
+          }, BrowseDirectoryFlow)
+          yield ctx.slots.register({
+            name: 'sidebar.workspaces.directoryFlow', inject: injected,
+          }, BrowseDirectoryFlow)
+        }, 'directory-picker-browse: admitted Host entries')
+        remove = () => { lifetime.abort(); void dispose() }
+      }
+      refresh()
+      const stop = ctx.on('connection/reset', refresh)
+      return () => { stop(); remove?.() }
     }))
 }

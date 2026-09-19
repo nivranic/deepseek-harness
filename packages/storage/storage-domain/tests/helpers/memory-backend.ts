@@ -15,8 +15,8 @@
  * @module
  */
 
-import { StorageError } from '@deepseek-ai/dsh-storage'
-import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@deepseek-ai/dsh-storage'
+import { closeOwnedKvUnits, StorageError } from '@deepseek-ai/dsh-storage'
+import type { KvFacet, KvUnit, KvUnitDescriptor, OwnedKvUnit, StorageBackend } from '@deepseek-ai/dsh-storage'
 
 /** One unit's medium: tables of records plus the global slot (`null` = never written). */
 export interface MemoryMedium {
@@ -116,16 +116,16 @@ class MemoryKvUnit implements KvUnit {
  */
 export class MemoryStorageBackend implements StorageBackend {
   readonly kv: KvFacet
-  private readonly openUnits = new Set<string>()
-  private closed = false
+  private readonly openUnits = new Map<string, OwnedKvUnit>()
+  private closing: Promise<void> | undefined
 
   /**
    * @param pool - Media shared across instances; a fresh private pool when omitted.
    */
   constructor(readonly pool: MemoryMediaPool = new MemoryMediaPool()) {
     this.kv = {
-      open: async (descriptor: KvUnitDescriptor): Promise<KvUnit> => {
-        if (this.closed) {
+      open: async (descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit> => {
+        if (this.closing !== undefined) {
           throw new StorageError('closed', 'memory backend is closed')
         }
         // Double-open is a caller bug per the backend contract; no dedicated
@@ -147,14 +147,15 @@ export class MemoryStorageBackend implements StorageBackend {
           medium = { tables: new Map(), global: null }
           this.pool.media.set(descriptor.name, medium)
         }
-        this.openUnits.add(descriptor.name)
-        return new MemoryKvUnit(this.pool, medium, descriptor, () => this.openUnits.delete(descriptor.name))
+        const unit = new MemoryKvUnit(this.pool, medium, descriptor, () => this.openUnits.delete(descriptor.name))
+        this.openUnits.set(descriptor.name, { unit, onBackendClose })
+        return unit
       },
     }
   }
 
-  async close(): Promise<void> {
-    this.closed = true
-    this.openUnits.clear()
+  close(): Promise<void> {
+    this.closing ??= closeOwnedKvUnits(this.openUnits.values())
+    return this.closing
   }
 }

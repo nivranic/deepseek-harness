@@ -14,9 +14,8 @@
  * goes, so the file is read only up to the first character past the page and
  * never held whole in memory; the NUL scan runs on the page itself.
  *
- * This is NOT modelled on `session.openWorkspacePath`. That endpoint hands a
- * path to the local opener and leaves the effect on the machine; this one sends
- * file content across the wire, which is a different level of exposure.
+ * Native desktop actions belong to the declared-file service. This service
+ * sends file content across the wire and enforces the preview read policy.
  */
 
 import { posix, win32 } from 'node:path'
@@ -29,6 +28,7 @@ import type {} from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { Remote, RemoteError, TypertRemoteService, type TypertLookup } from '@deepseek-ai/dsh-typert-protocol'
+import { WORKSPACE_FILES_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { WorkspaceChangeFeed } from './changes.ts'
 import type {
   WorkspaceByteRange,
@@ -196,7 +196,7 @@ export class WorkspaceFiles extends TypertRemoteService {
    * @param config - deployment caps on one page or one listing.
    */
   constructor(ctx: Context, private readonly config: Config) {
-    super(ctx, 'workspaceFiles')
+    super(ctx, 'workspaceFiles', { capabilities: WORKSPACE_FILES_REMOTE_CAPABILITIES })
     this.feed = new WorkspaceChangeFeed(ctx)
     ctx.inject(['sessions', 'typert'], (scope) => {
       scope.typert.lookups.register('workspaceFileScope', {

@@ -59,12 +59,13 @@ const LAYOUT_CHILDREN = {
  */
 async function bench(nodes: ToolResultNode[]) {
   const runtime = await SlotTestRuntime.create()
-  const openWorkspacePath = vi.fn(async () => ({ ok: true, value: { opened: true } }))
-  new TestRemote(runtime.ctx, { session: { openWorkspacePath } })
+  const nativeOpen = vi.fn(async () => ({ ok: true, value: { completed: true } }))
+  new TestRemote(runtime.ctx, { session: {}, presentedFiles: { open: nativeOpen } })
   runtime.ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
   const layout = { openDetails: vi.fn(), closeDetails: vi.fn() }
   runtime.ctx.provide('layout', layout)
   const sidebarRight = { openResource: vi.fn<(address: string) => void>() }
+  runtime.ctx.provide('sidebarRightTabs', { candidates: () => [{}], subscribe: () => () => {} } as never)
   runtime.ctx.provide('sidebarRight', sidebarRight as never)
   runtime.ctx.provide('uiWorkspace', {
     openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
@@ -89,7 +90,7 @@ async function bench(nodes: ToolResultNode[]) {
   await runtime.mount({ inject: [...injectConversation], apply: applyConversation })
   await runtime.mount({ inject: [...injectChat], apply: applyChat })
   await runtime.mount({ inject: [...injectTool], apply: applyTool })
-  return { runtime, slots: runtime.slots, layout, openWorkspacePath, sidebarRight }
+  return { runtime, slots: runtime.slots, layout, nativeOpen, sidebarRight }
 }
 
 describe('keyed toolview hole through the real machinery', () => {
@@ -140,7 +141,7 @@ describe('keyed toolview hole through the real machinery', () => {
       expect(b.sidebarRight.openResource).toHaveBeenCalledWith('dsh-resource://file/session/s1/src/a.ts')
     })
     // Nothing on this path reaches the local machine any more.
-    expect(b.openWorkspacePath).not.toHaveBeenCalled()
+    expect(b.nativeOpen).not.toHaveBeenCalled()
     await b.runtime.dispose()
   })
 
@@ -149,7 +150,7 @@ describe('keyed toolview hole through the real machinery', () => {
     const view = b.runtime.renderRoot()
     view.getByText('Build').click()
     expect(b.sidebarRight.openResource).not.toHaveBeenCalled()
-    expect(b.openWorkspacePath).not.toHaveBeenCalled()
+    expect(b.nativeOpen).not.toHaveBeenCalled()
     await b.runtime.dispose()
   })
 
@@ -209,12 +210,11 @@ describe('registrant declaration injection', () => {
   it('runs a registrant before ui-tool and waits on the actual toolview declaration', async () => {
     const runtime = await SlotTestRuntime.create()
     new TestRemote(runtime.ctx, {
-      session: {
-        openWorkspacePath: vi.fn(async () => ({ ok: true, value: { opened: true } })),
-      },
+      session: {},
     })
     runtime.ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
     runtime.ctx.provide('layout', { openDetails: vi.fn(), closeDetails: vi.fn() })
+    runtime.ctx.provide('sidebarRightTabs', { candidates: () => [{}], subscribe: () => () => {} } as never)
     runtime.ctx.provide('sidebarRight', { openResource: vi.fn() } as never)
     runtime.ctx.provide('uiWorkspace', {
       openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {

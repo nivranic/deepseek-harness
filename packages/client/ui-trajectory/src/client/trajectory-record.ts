@@ -80,6 +80,8 @@ export interface TrajectoryCellProps extends HTMLAttributes<HTMLDivElement> {
   resultPreviewMarkdown?: string
   /** Tool call id used to link message source blocks to tool records. */
   callId?: string
+  /** Enclosing model execution for a root or nested Tool record. */
+  callLocation?: { readonly turn: number; readonly step: number }
   /** Tool-only result failure state. */
   isError?: boolean
   /** Own duration in seconds, or `null` when no duration is known. */
@@ -107,8 +109,11 @@ export interface TrajectoryCellProps extends HTMLAttributes<HTMLDivElement> {
  */
 export function trajectoryRecordId(cell: TrajectoryCellProps): string {
   if (cell.recordId !== undefined) return cell.recordId
-  if (cell.callId !== undefined) return `${cell.kind}\u0000call\u0000${cell.callId}`
+  if (cell.callId !== undefined && cell.callLocation !== undefined) {
+    return JSON.stringify([cell.kind, cell.callLocation.turn, cell.callLocation.step, cell.callId])
+  }
   if (cell.sourceSeq !== undefined) return `${cell.kind}\u0000seq\u0000${cell.sourceSeq}`
+  if (cell.callId !== undefined) return `${cell.kind}\u0000call\u0000${cell.callId}`
   return `${cell.kind}\u0000index\u0000${cell.index}`
 }
 

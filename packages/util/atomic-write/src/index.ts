@@ -92,17 +92,18 @@ export async function writeFileAtomic(filename: string, content: string, options
   }
 }
 
-/** Whether an exclusive create found an existing lock. */
-async function isLockContention(error: unknown, lockPath: string): Promise<boolean> {
+/** Classify a held lock or a release during inspection without hiding permission errors. */
+async function lockContention(error: unknown, lockPath: string): Promise<'present' | 'missing' | false> {
   const code = (error as NodeJS.ErrnoException | null)?.code
-  if (code === 'EEXIST') return true
+  if (code === 'EEXIST') return 'present'
   if (code !== 'EPERM') return false
   try {
     await lstat(lockPath)
-    return true
-  } catch {
-    // Keep the original EPERM authoritative when lock existence is unproven.
-    return false
+    return 'present'
+  } catch (probeError) {
+    // The holder can unlink between failed create and inspection. Other
+    // inspection failures leave the original permission error authoritative.
+    return (probeError as NodeJS.ErrnoException | null)?.code === 'ENOENT' ? 'missing' : false
   }
 }
 
@@ -143,9 +144,11 @@ export interface FileLockOptions {
  * lock is a `wx`-created sibling (`<filename>.lock`); paired with the
  * rename-based commit of {@link writeFileAtomic}, readers stay lock-free and
  * only writers contend. `EEXIST` is contention directly; an `EPERM` is
- * contention only when a fresh `lstat` confirms the lock path exists, covering
- * Windows exclusive-create behavior without hiding an unrelated permission
- * failure. Contention backs off exponentially and fails with a timed-out error
+ * contention when a fresh `lstat` confirms the lock path exists. If inspection
+ * reports `ENOENT`, one immediate exclusive-create retry covers a holder's
+ * release between failure and inspection; consecutive unconfirmed `EPERM`
+ * failures still reject. Other inspection failures preserve the create error.
+ * Contention backs off exponentially and fails with a timed-out error
  * after the deadline. The contender never removes an existing lock because
  * file age cannot prove that its owner stopped; orphan recovery is an operator
  * action. The parent directory must exist.
@@ -162,12 +165,19 @@ export async function withFileLock<T>(
   const lockPath = `${filename}.lock`
   const deadline = Date.now() + (options?.waitMs ?? DEFAULT_LOCK_WAIT_MS)
   let delay = LOCK_RETRY_INITIAL_MS
+  let retriedMissingLock = false
   for (;;) {
     try {
       await writeFile(lockPath, `${process.pid}\n`, { mode: 0o600, flag: 'wx' })
       break
     } catch (error) {
-      if (!await isLockContention(error, lockPath)) throw error
+      const contention = await lockContention(error, lockPath)
+      if (contention === 'missing' && !retriedMissingLock) {
+        retriedMissingLock = true
+        continue
+      }
+      if (contention !== 'present') throw error
+      retriedMissingLock = false
     }
     if (Date.now() >= deadline) {
       throw new Error(`atomic-write: timed out waiting for the writer lock at ${lockPath}`)

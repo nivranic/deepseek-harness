@@ -19,6 +19,10 @@
 
 运行命令时所在的目录将作为默认 workspace 根目录。`web`、`headless`、`sdk`、`sdk-minimal` 和 `acp` profile 在首次使用时会从随附模板自动初始化。使用 `--from-default-profile` 可以基于这些模板之一，在尚未使用的非内置名称处创建其他 profile；通过 `dsh plugin` 则可以初始化一个以 base 为基础的 profile。`desktop` 名称保留给 Electron 持有的 profile，因此 CLI（命令行界面）会拒绝针对它的启动、配置 dump 和插件管理请求。
 
+每个 profile 都拥有独立的单包 pnpm workspace。插件命令会在当前调用中允许修改该 workspace 根目录的依赖。
+
+调用时仍需按 shell 规则为路径和元字符加引号。`dsh` 收到参数后，会在经过 Windows pnpm shim 时保留空格、Unicode、引号、空值和字面元字符。相对路径 spec 从调用目录解析，即使 pnpm 实际在 profile 中运行也不改变其指向。
+
 ## 应用参数
 
 启动器只解析自身的 flag，并将其后的所有内容交给已启动的 profile；注入该 profile 的任意应用插件都可以解析这份共享的不可变快照（[`dsh-cmdline`](../../packages/boot/cmdline/README.zh.md)）。启动器无法识别的第一个 token 标志着应用参数的开始：

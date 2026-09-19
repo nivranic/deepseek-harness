@@ -40,6 +40,7 @@ import {
 import { assertSubagentMaxDepth } from './depth.ts'
 import { foldSubagentDescriptor, snapshotSubagentDescriptor } from './descriptor.ts'
 import { establishCatalogChild } from './catalog.ts'
+import { findPromptReceipt, promptRequestId, subagentPromptReceiptsProjectionDefinition } from './prompt-receipts.ts'
 import { SubagentError } from './error.ts'
 import { isAdjacentAgentSendMessageTool } from './internal.ts'
 import type { ActivationObserver } from './lifecycle.ts'
@@ -280,9 +281,8 @@ export class SubagentContinuationManager {
     const releaseHold = this.activations.holdOwnership(parent, childId)
     try {
       return await this.deliverFollowup(parent, childId, content, options)
-    } catch (error: unknown) {
+    } finally {
       releaseHold()
-      throw error
     }
   }
 
@@ -302,6 +302,16 @@ export class SubagentContinuationManager {
          * observe the transaction inside the same critical section that opened it. */
         if (disposal !== undefined) {
           return disposal.then(() => undefined, () => undefined)
+        }
+        options.signal.throwIfAborted()
+        this.activations.assertAdmitting(parent)
+        this.activations.authorizeLineage(parent, childId, activation.handle.agent.session.header.parentSession)
+        const requestId = promptRequestId(options.source)
+        if (requestId !== undefined) {
+          const receipts = this.ctx.get('sessionProjections')?.stateOf(activation.handle.agent.session, 'subagentPromptReceipts')
+          if (receipts === undefined) throw new SubagentError('subagent prompt receipt projection is unavailable', 'CONTINUATION_UNAVAILABLE')
+          const accepted = findPromptReceipt(receipts, requestId)
+          if (accepted !== undefined) return accepted
         }
         if (contentHasImage(content)) {
           await this.assertImageCapable(activation.handle.agent, options.signal)
@@ -428,6 +438,14 @@ export class SubagentContinuationManager {
         `subagent "${childId}" has no supported continuation state and cannot be resumed; choose a different target`,
         'NOT_RESUMABLE',
       )
+    }
+    options.signal.throwIfAborted()
+    const requestId = promptRequestId(options.source)
+    if (requestId !== undefined) {
+      const definition = subagentPromptReceiptsProjectionDefinition
+      const receipts = source.events.reduce(definition.apply, definition.init(source.header, source.inheritedEventCount))
+      const accepted = findPromptReceipt(receipts, requestId)
+      if (accepted !== undefined) return accepted
     }
     let activation: Activation
     try {

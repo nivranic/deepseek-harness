@@ -66,7 +66,7 @@ expect(view.getByRole('alert')).toHaveTextContent('goal/not-found')
 
 ### 整体档
 
-上面的 slot 档把一个功能挂在替身上。整体档起真实装配：`TestClient.start(plan, mock, options)` 把 `{ rpc: mock.rpc }` 装到 `globalThis.__DSH_TRANSPORT__`，进程内 import 每个 roster 行的 `/client` 模块（或取计划里的 `provide` 替换），用 `graphFromRoster` 合成启动图并把已加载模块交给生产模块系统，经生产 `bootClient` 启动，按需挂载 `uiRenderer`，再等 `ctx.connection.state === 'connected'`。它藏在深 import 后面，slot 档测试永不加载它：
+上面的 slot 档把一个功能挂在替身上。整体档起真实装配：`TestClient.start(plan, mock, options)` 把 `{ rpc: mock.rpc }` 装到 `globalThis.__DSH_TRANSPORT__`，进程内 import 每个 roster 行的 `/client` 模块（或取计划里的 `provide` 替换），用 `graphFromRoster` 合成启动图并把已加载模块交给生产模块系统，经生产 `bootClient` 启动，按需挂载 `uiRenderer`，再等 `ctx.connection.state === 'ready'`。它藏在深 import 后面，slot 档测试永不加载它：
 
 ```text
 // @vitest-environment jsdom
@@ -185,3 +185,11 @@ test('registers into the sidebar', async ({ remote, start }) => {
 无。
 
 </details>
+
+装配 fixture 默认明确声明 Session 跟随、控制，Workspace 跟随、管理、Session 组织，以及 Settings 读取、写入、文档打开支持，也可通过可选能力列表模拟缺失。独立 `TestRemote` 上下文在测试按能力工作的消费者时，仍要求用例明确提供 Host 能力。命名空间代理不依据方法是否存在推断能力承诺。
+
+默认 fixture 还为组合消费者测试声明原生选择、目录浏览与目录创建。真实 Host 只声明后端实际服务的操作；能力测试显式选择较小的操作集。
+
+默认装配还明确声明 LLM 提供方目录、模型发现与凭据元数据、写入支持。能力测试可覆盖此列表验证缺失场景，不根据假方法是否存在推断支持。
+
+默认组装显式声明全部 Workspace Files 操作集。协商子集测试覆盖该列表；命名空间中存在方法不构成能力承诺。

@@ -4,6 +4,8 @@
 
 桌面应用是包裹 dsh Web UI 的 Electron 壳。它不打开监听端口：内置的上游 Node.js 子进程启动已安装的 dsh 项目，带版本的分帧字节管道在没有外层 Base64 信封的情况下承载 Fetch 请求与流式响应，Node IPC 承载生命周期控制，`dsh-app://` 则提供与后端版本匹配的客户端资源。
 
+共享的 [Host 发现](../../packages/api/host-description/README.zh.md)报告持久 Host 身份与当前 Remote 能力。Desktop 使用同一身份文件，并将载体配置为仅 `desktop-pipe`；描述结果不宣称存在 Web 监听器。
+
 ## 关键技术决策
 
 | 决策 | 原因 | 直接结果 |
@@ -27,6 +29,8 @@ Electron 拥有 `$DSH_HOME/profiles/desktop`。其 `dependencies` 只包含已�
 
 Electron 根据应用 locale 选择类型化的英文或中文桌面壳文案，并以英文作为 fallback。菜单、原生对话框、启动页与插件管理渲染进程使用同一 locale 数据；仓库的 Client UI i18n gate 会检查这些桌面源文件。
 
+本地 Host 在可复用的工具指导之后、工作目录后缀之前添加模型可见的 Desktop 场景说明。它标识应用窗口和托管 Session 的机器，不表示能够读取屏幕，也不表示所有工具都在该机器上执行。普通 preset persona 保留此节，完整 persona 则抑制它。提示词服务重载会恢复注册，Host Context 销毁会移除注册。[Desktop 上下文决策](../../.agents/notes/implemented/architecture/2026-09-15-desktop-model-context.zh.md)记录其理由。
+
 ### 运行时与插件激活
 
 签名资源中的 `resources/dsh/desktop-runtime.json` 绑定 shell 版本、内置 Node 版本、平台、架构、共享包版本和最终文件清单。启动读取元数据，并检查共享包记录。发布 schema、shell 版本、目标兼容性和文件完整性在打包时验证。首次启动不会把核心包复制到 profile 存储或通过 pnpm 安装核心包。
@@ -42,6 +46,17 @@ Electron 根据应用 locale 选择类型化的英文或中文桌面壳文案，
 重置删除 `$DSH_HOME/profiles/desktop` 中除所持事务锁外的所有条目，然后初始化内置 profile。它删除 Desktop 配置和已安装第三方包，不保留备份。共享任务、设置和 Harness-home `.env` 保持不变。壳资源和 preload 失败时使用独立文档显示可用恢复操作和诊断；其控件不依赖 preload。
 
 包事务独占持有 `$DSH_HOME/profiles/desktop/lock`，直到 pnpm 进程退出。重置保留目录及其锁，直到初始化和 Host 启动完成。共享链接在 macOS/Linux 使用目录软链接，在 Windows 使用 junction；清理只移除链接，不删除其目标。共享包使用文件系统的规范路径识别，因此 Windows 路径大小写变化不会单独触发 profile 激活。原生构建遵循 profile 中经过审查的 `allowBuilds` 列表；新安装的包如果需要构建但未在列表中获准，事务会失败。
+
+<a id="tray-and-login-startup"></a>
+## 托盘与登录启动
+
+Windows 应用菜单提供**关闭窗口时隐藏到托盘**，macOS 提供对应的菜单栏选项，默认关闭。启用后，关闭主窗口会保持 Host 运行；托盘可恢复窗口或退出应用。再次启动应用也会恢复原窗口。禁用该选项会先显示窗口，再移除托盘。如果托盘创建失败，关闭窗口仍遵循平台的普通行为。显式退出始终停止 Host。
+
+**登录系统时启动**仅在 Windows 和 macOS 打包应用中可用。操作系统拥有其启用状态；应用读取该状态，仅在用户选择菜单项后修改注册。macOS 审批要求或系统拒绝会显示错误，不会宣称已启用。登录启动只有在托盘可恢复窗口时才隐藏窗口。开发模式不能注册登录启动。
+
+Shell 拥有 `$DSH_HOME/desktop/preferences.json`，其中包含 `schemaVersion: 1` 和 `closeToTray`。它串行执行原子替换，退出时等待已接受的写入。文件缺失时使用默认值；文档格式错误或版本不受支持时启动失败，文件不会被重写。Host 设置和应用渲染进程 IPC 不拥有这些偏好。[Shell 偏好决策](../../.agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.zh.md) 记录了归属和验证限制。
+
+**导入旧版桌面设置…**读取手动选择且不超过 1 MiB 的 JSON/YAML 文件。它接受包含 `desktop` 节的无版本文档或 `formatVersion: 1`；省略的 `closeAction` 和 `launchAtLogin` 使用旧版默认值 `tray` 和 `false`。预览显示当前与待导入的关闭行为及旧登录偏好。确认后仅导入关闭行为，请单独检查**登录系统时启动**。原文件保持不变；源文件变化、输入不受支持或托盘/持久化失败时保留当前偏好。默认选择取消，可通过关闭行为菜单撤销导入。
 
 ## 开发
 
@@ -181,6 +196,8 @@ pnpm run prepare:desktop
 这条诊断命令是另一种停止位置，并非两条命令构建流程的前半段。之后执行 `package:desktop*` 时仍会重新完成正式构建与准备，避免使用陈旧的 dsh 包、运行时文件或 dsh 内容。
 
 每条打包命令都会构建仓库，打包以 dsh 和私有 Desktop Host 为根的第一方生产依赖闭包，并准备目标专用的 Node 与 pnpm 可执行文件。`prepare:dsh` 在构建时安装一次生产依赖图，把物化包复制到 `extraResources/dsh`，移除包管理器元数据，并生成包含共享包版本和最终文件哈希的 `desktop-runtime.json`。在 macOS 上，它先签名并验证原生文件，再生成清单；electron-builder 不对已签名的此目录重复进行嵌套签名。资源映射明确包含默认根目录过滤器会忽略的 `dsh/node_modules`；复制后的清单在签名前及签名后分别验证。签名安装包、公证、已安装应用升级和各目标原生模块的验收需要发布环境。
+
+打包前，内置 Node 会通过带有外部插件的真实 Host，验证原生模块执行、Session 写入互斥与释放，以及匹配的前端。[原生 smoke 决策](../../.agents/notes/implemented/bug-fix/2026-09-16-desktop-native-runtime-smoke.zh.md)定义了被检查的操作。
 
 未压缩产物包含 Electron、物化后的 dsh 生产依赖树、上游 Node.js 与 pnpm，以及壳应用。安装包大小与文件系统占用不同；发布验收需要测量两者，以及 profile 插件存储和首次启动耗时。此布局用更多应用内文件换取消除用户机器上的核心包安装过程。
 

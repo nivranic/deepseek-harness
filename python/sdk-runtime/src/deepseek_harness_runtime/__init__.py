@@ -157,7 +157,7 @@ def _node_launch_args() -> tuple[str, str]:
 
 
 def main() -> None:
-    """Launch the CLI with explicit DSH_HOME; wait on Windows, replace the process on POSIX."""
+    """Launch with explicit DSH_HOME; preserve Windows DWORD status or replace the process on POSIX."""
     if not os.environ.get("DSH_HOME", "").strip():
         print(
             "dsh: the Python runtime command requires an explicit DSH_HOME; "
@@ -168,7 +168,9 @@ def main() -> None:
     argv = (*resolve_bundled_launch_args(), *sys.argv[1:])
     if sys.platform == "win32":
         # Windows CRT exec does not replace the process; wait and preserve the runtime status.
-        raise SystemExit(subprocess.run(argv, env=os.environ).returncode)
+        code = subprocess.run(argv, env=os.environ).returncode
+        # SystemExit converts through a signed C long; retain the child's 32-bit exit pattern.
+        raise SystemExit(code if code < 0x80000000 else code - 0x100000000)
     os.execvpe(argv[0], argv, os.environ)
 
 

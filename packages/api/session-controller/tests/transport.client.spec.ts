@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import {
   RemoteStream,
   RemoteStreamCarrierError,
@@ -34,7 +35,7 @@ type SessionTransportRemote = Pick<SessionRemote, 'control' | 'follow' | 'page'>
 const ADDRESS: SessionAddress = { kind: 'session', sessionId: 'session-1' as never }
 const AVAILABLE_CONNECTION = {
   generation: {
-    getSnapshot: () => ({ id: 1, host: { home: '/home/fixture' } }),
+    getSnapshot: () => ({ id: 1, host: { home: '/home/fixture', capabilities: ['session.control.v1', 'session.follow.v1'] } }),
     subscribe: () => () => {},
   },
 }
@@ -73,17 +74,22 @@ function assistantFrame(frame: SessionAssistantStreamFrame): SessionFollowFrame 
   return { type: 'assistant-stream', frame }
 }
 
-function sessionClient(remote: SessionTransportRemote): SessionRemotes {
+function sessionClient(
+  remote: SessionTransportRemote,
+  connection: Pick<ConnectionHandle, 'generation'> = AVAILABLE_CONNECTION,
+): SessionRemotes {
   return {
+    $host: { home: undefined, isLoopback: true },
     session: remote as SessionRemote,
     $stream: <Item>(options: RemoteStreamOptions<Item>) => (
-      new RemoteStream(AVAILABLE_CONNECTION, options)
+      new RemoteStream(connection, options)
     ),
     commands: { execute: () => Promise.reject(new Error('stream tests never run commands')) },
     subagents: {
       list: () => Promise.reject(new Error('stream tests never read the subagent catalog')),
       prompt: () => Promise.reject(new Error('stream tests never prompt a subagent')),
       interruptByParent: () => Promise.reject(new Error('stream tests never interrupt a subagent')),
+      interruptTurnByParent: () => Promise.reject(new Error('stream tests never interrupt a subagent')),
     },
   }
 }
@@ -713,5 +719,100 @@ describe('Session Client stream adapters', () => {
     })
     expect(failed).not.toHaveBeenCalled()
     await after.dispose()
+  })
+})
+
+
+describe('Session follow capability availability', () => {
+  function hostConnection(capabilities: string[] = []) {
+    let current = { id: 1, host: { home: '/home/fixture', capabilities } }
+    const listeners = new Set<() => void>()
+    return {
+      generation: {
+        getSnapshot: () => current,
+        subscribe: (listener: () => void) => {
+          listeners.add(listener)
+          return () => { listeners.delete(listener) }
+        },
+      },
+      listeners,
+      advertise(next: string[]) {
+        current = { id: current.id + 1, host: { home: '/home/fixture', capabilities: next } }
+        for (const listener of listeners) listener()
+      },
+    }
+  }
+
+  it('waits without follow or page calls and opens after follow becomes available', async () => {
+    const connection = hostConnection(['session.control.v1'])
+    const remote = new ScriptedSessionRemote([{ frames: [snapshot(0, [entry(0)])], hold: true }], [])
+    const publish = vi.fn()
+    const failed = vi.fn()
+    const stream = new SessionEventStream(sessionClient(remote, connection), ADDRESS, { publish, failed })
+    const opening = stream.open({})
+    try {
+      await vi.waitFor(() => { expect(connection.listeners.size).toBe(1) })
+      expect(remote.followRequests).toEqual([])
+      expect(remote.pageRequests).toEqual([])
+      expect(publish).not.toHaveBeenCalled()
+      connection.advertise(['session.follow.v1'])
+      await opening
+      expect(remote.followRequests).toHaveLength(1)
+      expect(publish).toHaveBeenCalledOnce()
+      expect(failed).not.toHaveBeenCalled()
+      expect(connection.listeners.size).toBe(0)
+    } finally {
+      await stream.dispose()
+    }
+  })
+
+  it('disposes an unavailable opening and releases its generation observer', async () => {
+    const connection = hostConnection()
+    const remote = new ScriptedSessionRemote([], [])
+    const stream = new SessionEventStream(sessionClient(remote, connection), ADDRESS, {
+      publish: vi.fn(), failed: vi.fn(),
+    })
+    const opening = expect(stream.open({})).rejects.toThrow('ended before its opening cursor')
+    await vi.waitFor(() => { expect(connection.listeners.size).toBe(1) })
+    await stream.dispose()
+    await opening
+    expect(connection.listeners.size).toBe(0)
+    connection.advertise(['session.follow.v1'])
+    expect(remote.followRequests).toEqual([])
+  })
+
+  it('retains the published window during capability absence and catches up on restoration', async () => {
+    const connection = hostConnection(['session.follow.v1'])
+    const disconnected = Promise.withResolvers<undefined>()
+    const remote = new ScriptedSessionRemote([
+      { frames: [snapshot(0, [entry(0)])], waitAfterFrames: disconnected.promise,
+        terminal: new RemoteStreamCarrierError('carrier disconnected') },
+      { frames: [snapshot(1, [entry(0), entry(1)])], hold: true },
+    ], [])
+    const changes: SessionJournalChange[] = []
+    const failed = vi.fn()
+    const stream = new SessionEventStream(sessionClient(remote, connection), ADDRESS, {
+      publish: (change) => { changes.push(change) }, failed,
+    })
+    try {
+      await stream.open({})
+      const original = changes[0]
+      connection.advertise(['session.control.v1'])
+      disconnected.resolve(undefined)
+      await vi.waitFor(() => { expect(connection.listeners.size).toBe(1) })
+      expect(changes).toEqual([original])
+      expect(remote.followRequests).toHaveLength(1)
+      expect(remote.pageRequests).toEqual([])
+      expect(failed).not.toHaveBeenCalled()
+      connection.advertise(['session.follow.v1'])
+      await vi.waitFor(() => { expect(changes).toHaveLength(2) })
+      expect(changes[1]).toMatchObject({ type: 'replace', entries: [entry(0), entry(1)] })
+      expect(remote.followRequests).toHaveLength(2)
+      expect(failed).not.toHaveBeenCalled()
+      expect(connection.listeners.size).toBe(0)
+    } finally {
+      disconnected.resolve(undefined)
+      await stream.dispose()
+    }
   })
 })

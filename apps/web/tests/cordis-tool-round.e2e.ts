@@ -20,8 +20,9 @@ import {
 } from './scaffold.ts'
 import { connectFreshWorkspace, expandOwningTurnProcess, newEnglishPage, saveFailureShot } from './support.ts'
 
-const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/cordis-tool-round/session.v3.jsonl', import.meta.url))
-const UI_EXPECTED = fileURLToPath(new URL('../../../snapshots/web/cordis-tool-round/ui.expected.md', import.meta.url))
+const SCENARIO = process.platform === 'win32' ? 'cordis-tool-round-windows' : 'cordis-tool-round'
+const FIXTURE = fileURLToPath(new URL(`../../../snapshots/web/${SCENARIO}/session.v3.jsonl`, import.meta.url))
+const UI_EXPECTED = fileURLToPath(new URL(`../../../snapshots/web/${SCENARIO}/ui.expected.md`, import.meta.url))
 const MODE = webSnapshotMode()
 const CORDIS_TOOLS = ['cordis_inspect_self', 'cordis_define', 'cordis_run', 'cordis_stop'] as const
 const PACKAGE_CODE = 'return { name: "snapshot-noop", apply(ctx) {} }'
@@ -82,7 +83,8 @@ describe('web e2e: Cordis tools use their owned cards', () => {
     scaffold.ctx.sessionProjections.onChanged((_session, key, value, seq) => {
       if (key === 'modelSelection') modelChanges.push(`${String(seq)}:${JSON.stringify(value)}`)
     })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     page.on('websocket', (socket) => {
       socket.on('framereceived', (frame) => {

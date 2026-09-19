@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "scope": "Official unsigned Windows Desktop from packaged resources with isolated data; no installer or OS login registration",
+  "observedAt": "2026-09-15T18:43:34.268Z",
+  "exeSha256": "0f9aa369b704e08ba66f5f8d3443504f9fc83c29dd6ff453d6eac22afa676709",
+  "interaction": "CDP mouse events in actual packaged renderer; actual Electron native MenuItem callbacks, BrowserWindow.close and second process",
+  "osLoginRegistrationWritten": false,
+  "realModelTested": false,
+  "installerExecuted": false,
+  "actions": [
+    "浅色",
+    "深色",
+    "关闭"
+  ],
+  "screenshots": [
+    "artifacts/upstream-first/desktop-packaged-settings-light.png",
+    "artifacts/upstream-first/desktop-packaged-settings-dark.png"
+  ],
+  "limitations": [
+    "Unsigned unpacked application; installer not executed",
+    "No update, OS login, real model, macOS or full visual matrix",
+    "Native tray object/menu callbacks observed; no physical tray mouse input",
+    "Launcher hides initial window; app activate callback restores visibility"
+  ],
+  "initial": {
+    "pid": 53928,
+    "packaged": true,
+    "resources": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources",
+    "appPath": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources\\app.asar",
+    "versions": {
+      "electron": "44.0.0",
+      "node": "24.18.1"
+    },
+    "windows": [
+      {
+        "id": 1,
+        "url": "dsh-app://app/index.html",
+        "visible": true
+      }
+    ],
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "enabled": true,
+        "checked": false
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动",
+        "enabled": true,
+        "checked": false
+      }
+    ]
+  },
+  "client": {
+    "url": "dsh-app://app/index.html",
+    "text": "新会话\n工作区\n暂无会话\n设置\n探索未至之境\n预览版\n选择工作区\n标准模式\n选择一个工作区开始",
+    "entries": 51,
+    "scheme": "dark",
+    "bridge": [
+      "protocolVersion"
+    ],
+    "styles": 107
+  },
+  "children": [
+    {
+      "pid": 55076,
+      "executable": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources\\runtime\\node\\node.exe",
+      "connected": true,
+      "exitCode": null,
+      "args": [
+        "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources\\runtime\\node\\node.exe",
+        "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources\\dsh\\node_modules\\@deepseek-ai\\dsh-desktop-host\\lib\\index.js",
+        "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources\\dsh",
+        "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-desktop-packaged-host-K4RKCJ\\home\\profiles\\desktop"
+      ]
+    }
+  ],
+  "hostPid": 55076,
+  "traysEnabled": [
+    {
+      "destroyed": false,
+      "bounds": {
+        "x": 1236,
+        "y": 1019,
+        "width": 32,
+        "height": 49
+      }
+    }
+  ],
+  "hidden": {
+    "pid": 53928,
+    "packaged": true,
+    "resources": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources",
+    "appPath": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources\\app.asar",
+    "versions": {
+      "electron": "44.0.0",
+      "node": "24.18.1"
+    },
+    "windows": [
+      {
+        "id": 1,
+        "url": "dsh-app://app/index.html",
+        "visible": false
+      }
+    ],
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "enabled": true,
+        "checked": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动",
+        "enabled": true,
+        "checked": false
+      }
+    ]
+  },
+  "secondInstanceExit": {
+    "code": 0,
+    "signal": null
+  },
+  "restored": {
+    "pid": 53928,
+    "packaged": true,
+    "resources": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources",
+    "appPath": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\resources\\app.asar",
+    "versions": {
+      "electron": "44.0.0",
+      "node": "24.18.1"
+    },
+    "windows": [
+      {
+        "id": 1,
+        "url": "dsh-app://app/index.html",
+        "visible": true
+      }
+    ],
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "enabled": true,
+        "checked": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动",
+        "enabled": true,
+        "checked": false
+      }
+    ]
+  },
+  "traysDisabled": [
+    {
+      "destroyed": true,
+      "bounds": null
+    }
+  ],
+  "preferences": {
+    "schemaVersion": 1,
+    "closeToTray": false
+  },
+  "error": "Observed state did not settle"
+}

@@ -690,7 +690,7 @@ interface TurnEndReasonMap {
 
 `ModelCatalog` 是 `session/modelCatalog` 返回的 Host generation 模型目录：它携带部署默认值、可路由 provider id、成功的 provider 分组与相互隔离的 provider 失败。它不由某个 Session 派生，因此与 Session projection 分开保存。
 
-`SessionOpenWorkspacePathRequest` 携带绝对路径或已按 workspace 解析的 `path`。`SessionOpenWorkspacePathValue` 确认 Host 已接受原生交接。Session-aware Client 会在已知当前 Session cwd 时据此解析相对路径；controller 将路径原样交给打开器，并通过 Session Remote 错误词汇表报告无效请求、取消与打开器失败。 可选的 `action: "reveal"` 选择文件管理器导航；省略时使用默认应用打开。
+`SessionOpenWorkspacePathRequest` 携带由 Host 服务授权并解析的路径；可选的 `action: "reveal"` 选择文件管理器导航。`SessionOpenWorkspacePathValue` 确认原生交接。这些类型用于 Host 本地调用，不属于 Session Remote 命名空间。Client 原生操作通过[声明文件服务](../../packages/client/ui-deliverables/README.zh.md)传递日志中的文件坐标，由该服务负责 Session 授权和文件系统到 Host 的路径验证。
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -759,25 +759,19 @@ inspect( sessionId: SessionId, signal?: AbortSignal, ): Promise<SessionInspectio
 @Remote('modelCatalog') modelCatalog(): Promise<ModelCatalog>
 
 /**
- * Report whether this deployment can hand a Session workspace path to a native desktop.
- * @returns true when the matching open operation is available.
- */
-@Remote canOpenWorkspacePath(): boolean
-
-/**
- * Describe the serving desktop for authenticated file-action routes.
+ * Describe the serving desktop for Host-owned declared-file actions.
  * @returns Host name, configured availability, and platform-specific file-manager behavior.
  */
 workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 'explorer' | 'directory' | null }
 
 /**
- * Open one path prepared by a Session-aware caller on the Host desktop.
- * @param request - path after best-effort Session workspace resolution.
+ * Open one authorized path prepared by a Host caller; this method is not a Remote operation.
+ * @param request - Host filesystem path authorized and resolved by the caller.
  * @param signal - caller lifetime; abort terminates the native command.
  * @returns confirmation after the native opener accepts the path.
- * @throws RemoteError when the request is invalid, cancelled, or the opener fails.
+ * @throws The abort reason before dispatch; RemoteError for invalid paths, in-flight cancellation, or opener failures.
  */
-@Remote('openWorkspacePath') async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>
+async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>
 
 /**
  * Rename one Session after explicitly resuming it.
@@ -785,6 +779,13 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
  * @returns the accepted title and durable event sequence.
  */
 @Remote('rename') rename(request: SessionRenameRequest): Promise<SessionRenameValue>
+
+/**
+ * Rename against the title event revision captured before editing.
+ * @param request - Session, proposed title and expected title revision.
+ * @returns the normalized title and durable event sequence; conflicts preserve the current title.
+ */
+@Remote('renameAt') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>
 
 /**
  * Fork one cold-readable completed-turn prefix into a new Session.
@@ -821,6 +822,13 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
  * @returns acknowledgement that cancellation was requested.
  */
 @Remote('cancel') cancel(request: SessionCancelRequest): SessionCancelValue
+
+/**
+ * Cancel only the observed open turn; stale or null targets leave later work intact.
+ * @param request - Session identity and the observed turn/start sequence, or null.
+ * @returns acknowledgement that cancellation was requested or the target is already inactive.
+ */
+@Remote('cancelTurn') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue
 
 /**
  * Read one cold-safe, message-aligned Session history page.

@@ -13,7 +13,7 @@ import { describe, expect, it, onTestFinished } from 'vitest'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
-import { TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
+import { RemoteError, TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
 import { remoteDefaultResponses } from '@deepseek-ai/dsh-client-test-runtime/src/assembly/remote-default-responses.ts'
 import { RemoteMock } from '@deepseek-ai/dsh-remote-mock'
 import { apply as settingsApply, inject as settingsInject } from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -38,6 +38,7 @@ const SELECT: PermissionSelect = {
 
 async function bench() {
   const ctx = new Context()
+  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry)
   const locale = new LocaleRuntime(ctx)
   locale.setLocale('en')
@@ -73,7 +74,7 @@ async function bench() {
       commands.push(line)
       return Promise.resolve(commandResult.ok
         ? { ok: true as const, value: { matched: commandResult.matched ?? true } }
-        : { ok: false as const, error: { code: 'gateway/internal', message: 'boom' } })
+        : { ok: false as const, error: new RemoteError('gateway/internal', 'boom', {}) })
     },
   })
   ctx.provide('sessions', {
@@ -167,7 +168,9 @@ describe('ui-permission browser plugin', () => {
     await b.popup().onSelect({ id: 'danger-full-access', label: 'danger-full-access' }, proj)
     expect(b.commands).toEqual(['/permission danger-full-access'])
     b.setResult({ ok: false })
-    await expect(b.popup().onSelect({ id: 'read-only', label: 'read-only' }, proj)).rejects.toThrow(/permission switch failed/)
+    await expect(b.popup().onSelect({ id: 'read-only', label: 'read-only' }, proj)).rejects.toMatchObject({
+      isDSHRemoteError: true, code: 'gateway/internal', message: 'boom',
+    })
     b.setResult({ ok: true, matched: false })
     await expect(b.popup().onSelect({ id: 'read-only', label: 'read-only' }, proj)).rejects.toThrow(/no \/permission command/)
     // An unmaterialized session throws before any submit.

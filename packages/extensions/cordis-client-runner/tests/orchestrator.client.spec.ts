@@ -457,3 +457,50 @@ describe('startUserRun', () => {
       .toEqual({ packageId: PACKAGE, reason: 'host-half-failed', ok: false, message: 'vm exploded' })
   })
 })
+
+it.each(['host', 'code', 'load'] as const)('withdraws a pending %s step without continuing or settling on a new connection', async (stage) => {
+  const host = Promise.withResolvers<DynamicCordisHostHalfResult>()
+  const code = Promise.withResolvers<DynamicCordisClientSource>()
+  const loaded = Promise.withResolvers<DynamicCordisLoadResult>()
+  const b = boot({
+    ...(stage === 'host' ? { hostHalf: () => host.promise } : {}),
+    ...(stage === 'code' ? { clientCode: () => code.promise } : {}),
+    ...(stage === 'load' ? { loaded: () => loaded.promise } : {}),
+  })
+  const pending = b.orchestrator.startUserRun(DUAL)
+  await vi.waitFor(() => {
+    if (stage === 'code') expect(b.host.getClientCode).toHaveBeenCalledOnce()
+    if (stage === 'load') expect(b.load).toHaveBeenCalledOnce()
+    expect(b.orchestrator.activeRuns.getSnapshot().size).toBe(1)
+  })
+  b.orchestrator.reset()
+  expect(b.orchestrator.activeRuns.getSnapshot().size).toBe(0)
+  host.resolve(HOST_OK)
+  code.resolve({ code: 'return {}', name: 'old', pluginId: PLUGIN, packageId: PACKAGE, pluginRunId: RUN })
+  loaded.resolve({ ok: true, pluginRunId: RUN })
+  await pending
+  expect(b.host.settleUserRun).not.toHaveBeenCalled()
+  expect(b.host.resolveRequestRun).not.toHaveBeenCalled()
+  if (stage === 'host') expect(b.host.getClientCode).not.toHaveBeenCalled()
+  if (stage !== 'load') expect(b.load).not.toHaveBeenCalled()
+  expect(b.orchestrator.lastRunError.getSnapshot().size).toBe(0)
+})
+
+it('keeps a replacement attempt owned while the old same-Plugin attempt settles', async () => {
+  const old = Promise.withResolvers<DynamicCordisHostHalfResult>()
+  const next = Promise.withResolvers<DynamicCordisHostHalfResult>()
+  let calls = 0
+  const b = boot({ hostHalf: () => ++calls === 1 ? old.promise : next.promise })
+  const before = b.orchestrator.startUserRun(HOST_ONLY)
+  b.orchestrator.reset()
+  const after = b.orchestrator.startUserRun(HOST_ONLY)
+  old.resolve({ ok: false, message: 'old failure' })
+  await before
+  expect(b.orchestrator.activeRuns.getSnapshot().get(PLUGIN)?.phase).toBe('orchestrating')
+  expect(b.orchestrator.lastRunError.getSnapshot().size).toBe(0)
+  expect(b.orchestrator.startUserRun(HOST_ONLY)).toBe(after)
+  expect(b.host.runHostHalf).toHaveBeenCalledTimes(2)
+  next.resolve(HOST_OK)
+  await after
+  expect(b.orchestrator.activeRuns.getSnapshot().size).toBe(0)
+})

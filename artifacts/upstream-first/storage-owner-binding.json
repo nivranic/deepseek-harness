@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/storage-owner-source.json",
+      "status": "PASS",
+      "rejected": "Storage owner source record changed"
+    },
+    {
+      "path": "packages/storage/storage/src/backend.ts",
+      "status": "PASS",
+      "rejected": "Storage owner sourceFiles changed after validation"
+    },
+    {
+      "path": "packages/session/session-projection-cache/src/index.ts",
+      "status": "PASS",
+      "rejected": "Storage owner unchangedSources changed after validation"
+    },
+    {
+      "path": "packages/storage/storage-domain/lib/index.js",
+      "status": "PASS",
+      "rejected": "Storage owner builtFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/storage-owner-publish-control.json",
+      "status": "PASS",
+      "rejected": "Storage owner receipts changed after validation"
+    },
+    {
+      "path": ".artifacts/storage-owner-before/packages/storage/storage/src/backend.ts",
+      "status": "PASS",
+      "rejected": "Storage owner saved input changed"
+    }
+  ]
+}

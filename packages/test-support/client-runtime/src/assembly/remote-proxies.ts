@@ -52,12 +52,14 @@ function injectNames(inject: ClientPluginModule['inject']): readonly string[] {
  * Plugin providing the namespace proxies; `TestClient.start` mounts it before the Loader rows.
  * @param namespaces - namespaces to provide.
  * @param mock - the spec's mock, asked for each endpoint's mode.
+ * @param capabilities - operation sets advertised by this test Host.
  * @returns the plugin.
  */
-export function remoteProxiesPlugin(namespaces: readonly string[], mock: RemoteMock): ClientPluginModule {
+export function remoteProxiesPlugin(namespaces: readonly string[], mock: RemoteMock, capabilities: readonly string[] = ['dynamic-cordis.inventory.v1', 'dynamic-cordis.run.v1', 'dynamic-cordis.client-code.v1', 'dynamic-cordis.resolve-run.v1', 'dynamic-cordis.settle-run.v1', 'dynamic-cordis.stop.v1', 'dynamic-cordis.undefine.v1', 'dynamic-cordis.inspect-manifest.v1', 'dynamic-cordis.inspect-resolve.v1', 'dynamic-cordis.report-render.v1', 'dynamic-cordis.report-guard.v1', 'dynamic-cordis.invoke.v1', 'plugin.inventory.v1', 'file-upload.stage.v1', 'feedback.message.read.v1', 'feedback.message.put.v1', 'feedback.message.delete.v1', 'feedback.session.record.v1', 'subagent.catalog.v1', 'subagent.prompt.v1', 'subagent.interrupt.v1', 'session.control.v1', 'session.follow.v1', 'settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1', 'directory-picker.native.v1', 'directory-picker.browse.v1', 'directory-picker.create.v1', 'workspace-files.stat.v1', 'workspace-files.list.v1', 'workspace-files.read-text.v1', 'workspace-files.read-bytes.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1', 'workspace-files.changes.v1']): ClientPluginModule {
   return {
-    inject: ['connection'],
+    inject: ['connection', 'remote'],
     apply(ctx: Context) {
+      ctx.effect(() => ctx.remote.$prepare(() => Promise.resolve({ apiProtocolVersion: 1, capabilities })))
       const connection = ctx.get('connection') as ConnectionHandle
       for (const namespace of namespaces) ctx.provide(`${PREFIX}${namespace}`, namespaceProxy(namespace, connection, mock))
     },

@@ -23,6 +23,7 @@ export class SettingsDocumentStore {
     status: 'idle', opening: false, error: null,
   })
 
+  private host: ClientContext['remote']['$host'] | undefined
   private following: (() => void) | undefined
 
   /**
@@ -56,19 +57,22 @@ export class SettingsDocumentStore {
    */
   async open(): Promise<void> {
     const current = this.store.getSnapshot()
-    if (current.status !== 'ready' || current.opening) return
+    if (this.host !== this.ctx.remote.$host || current.status !== 'ready' || current.opening
+      || this.ctx.remote.$host.capabilities?.includes('settings.document-open.v1') !== true) return
+    const host = this.ctx.remote.$host
     this.store.update((state) => {
       state.opening = true
       state.error = null
     })
     try {
       const result = await this.ctx.remote.settings.openSettingsDocument()
+      if (this.ctx.remote.$host !== host) return
       if (!result.ok) {
         const { message } = result.error
         this.store.update((state) => { state.error = message })
       }
     } finally {
-      this.store.update((state) => { state.opening = false })
+      if (this.ctx.remote.$host === host) this.store.update((state) => { state.opening = false })
     }
   }
 
@@ -80,15 +84,10 @@ export class SettingsDocumentStore {
 
   private derive(): void {
     const mirrored = this.describeFace.getSnapshot()
-    if (mirrored.view === undefined) {
-      // A held failure with no answer means the document cannot be located;
-      // without one the read is still in flight and loading stands.
-      if (mirrored.error !== null) {
-        this.store.update((state) => {
-          state.status = 'unavailable'
-          state.error = mirrored.error
-        })
-      }
+    this.host = this.ctx.remote.$host
+    if (mirrored.status === 'unavailable' || mirrored.view === undefined
+      || this.ctx.remote.$host.capabilities?.includes('settings.document-open.v1') !== true) {
+      this.store.set({ status: mirrored.status === 'loading' ? 'loading' : 'unavailable', opening: false, error: mirrored.error })
       return
     }
     const { hasDocument } = mirrored.view

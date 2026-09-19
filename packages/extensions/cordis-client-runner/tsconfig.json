@@ -28,6 +28,12 @@
     },
     {
       "path": "../../client/ui-theme"
+    },
+    {
+      "path": "../../client/connection/tsconfig.client.json"
+    },
+    {
+      "path": "../../typert/protocol"
     }
   ]
 }

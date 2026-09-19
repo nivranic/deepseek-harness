@@ -16,6 +16,8 @@ export type ConnectionIndicatorState =
  * @param props.recoveredLabel - localized recovery confirmation.
  * @param props.reconnectActionLabel - accessible label for the outage action.
  * @param props.restartActionLabel - accessible label for replacing an active attempt.
+ * @param props.compact - render only the status icon in a narrow rail.
+ * @param props.detail - localized recovery instructions shown as a tooltip.
  * @param props.onReconnect - request an immediate reconnect attempt.
  * @returns the indicator, or null when no connection feedback is active.
  */
@@ -28,6 +30,8 @@ export function ConnectionIndicator({
   reconnectActionLabel,
   restartActionLabel,
   onReconnect,
+  detail,
+  compact = false,
 }: {
   state: ConnectionIndicatorState | undefined
   disconnectedLabel: string
@@ -36,6 +40,8 @@ export function ConnectionIndicator({
   recoveredLabel: string
   reconnectActionLabel: string
   restartActionLabel: string
+  compact?: boolean
+  detail?: string | undefined
   onReconnect: () => void
 }) {
   if (state === undefined) return null
@@ -51,7 +57,7 @@ export function ConnectionIndicator({
   )
   if (state === 'recovered') {
     return (
-      <div className={`${css.indicator} ${css.success}`} role="status" aria-label={recoveredLabel}>
+      <div className={`${css.indicator} ${css.success} ${compact ? css.compact : ''}`} role="status" aria-label={recoveredLabel}>
         <span className={css.icon} aria-hidden="true"><IconCheckOutline16 size={14} /></span>
         <span className={css.label}>
           {sizeLabels}
@@ -65,10 +71,11 @@ export function ConnectionIndicator({
   return (
     <button
       type="button"
-      className={`${css.indicator} ${css.warning}`}
+      className={`${css.indicator} ${css.warning} ${compact ? css.compact : ''}`}
       data-phase={state}
       aria-label={connecting ? restartActionLabel : reconnectActionLabel}
       onClick={onReconnect}
+      title={detail}
     >
       <span className={css.icon} aria-hidden="true"><IconWarningOutline16 size={14} /></span>
       <span className={css.label}>

@@ -15,6 +15,7 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import { TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
+import type { HostDescriptor } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ModelSelection, ModelSelectionProjection } from '@deepseek-ai/dsh-api-session-controller/types'
 import type { CommandContribution, PopupSelectSpec, SelectOption } from '@deepseek-ai/dsh-client-ui-commands/client'
 import type { ModelSelectInjected } from '../src/client/slots.ts'
@@ -22,6 +23,15 @@ import { apply, inject } from '../src/client/index.ts'
 import { zh } from '../src/client/locales.ts'
 
 const sid = (k: string): SessionId => k as SessionId
+
+function hostDescriptor(supported: boolean): HostDescriptor {
+  return {
+    hostId: 'fixture-host' as HostDescriptor['hostId'], displayName: 'Fixture Host',
+    productVersion: '0.1.5-rc.2', apiProtocolVersion: 2, sessionFormatVersion: 3,
+    platform: 'win32', arch: 'x64', runtimeMode: 'full',
+    capabilities: supported ? ['model.select.v1'] : [], transports: ['http'], serverTime: 1,
+  }
+}
 
 const GROUPS = [{
   id: 'deepseek-official',
@@ -65,7 +75,7 @@ const GROUPS = [{
 }]
 
 /** Boot the plugin over fake faces + a stateful fake host (current moves on selectModel). */
-async function bench(locale: 'zh' | 'en' = 'zh') {
+async function bench(locale: 'zh' | 'en' = 'zh', supported = true) {
   const ctx = new Context()
   let defaultSelection: ModelSelection = { provider: 'deepseek-official', model: 'deepseek-v4-flash' }
   let selected = defaultSelection
@@ -101,6 +111,7 @@ async function bench(locale: 'zh' | 'en' = 'zh') {
     },
   }
   const remote = Object.assign(new TestRemote(ctx), { session: sessionRemote })
+  remote.$host = { home: undefined, isLoopback: true, descriptor: hostDescriptor(supported) }
   ctx.reflect.provide('remote.session', sessionRemote)
   const blocks = new Map<SessionId, { reason: string } | undefined>()
   ctx.provide('conversation', {
@@ -165,6 +176,10 @@ async function bench(locale: 'zh' | 'en' = 'zh') {
   }
   return {
     ctx, fiber, mint, calls, remote,
+    setSupported(value: boolean) {
+      remote.$host = { home: undefined, isLoopback: true, descriptor: hostDescriptor(value) }
+      ctx.emit('connection/reset')
+    },
     contribution: () => contribution!,
     popup: (): PopupSelectSpec => {
       const ui = contribution!.ui
@@ -420,4 +435,50 @@ describe('ui-model-selection dual entry', () => {
     await Promise.resolve()
     expect(b.calls).toEqual({ models: 2, select: 0 })
   })
+})
+
+
+it('does not load or submit model operations when Host capability is absent', async () => {
+  const b = await bench('en', false)
+  try {
+    b.mint('s1')
+    const face = b.seat().inject!(sid('s1'))
+    expect(face.hooks.modelCapability.getSnapshot()).toBe(false)
+    expect(b.contribution().available(projection('s1'))).toBe(false)
+    face.load()
+    expect(await face.select({ provider: 'fixture', model: 'absent' })).toBe(false)
+    await expect(b.popup().options(projection('s1'), new AbortController().signal)).rejects.toThrow(/unsupported Hosts/)
+    await expect(b.ctx.modelDirectories.directoryFor(sid('s1')).select({ provider: 'fixture', model: 'absent' }))
+      .rejects.toThrow(/unsupported Hosts/)
+    expect(b.calls).toEqual({ models: 0, select: 0 })
+    b.setSupported(true)
+    await b.ctx.modelDirectories.directoryFor(sid('s1')).load()
+    expect(face.hooks.modelCapability.getSnapshot()).toBe(true)
+    expect(b.contribution().available(projection('s1'))).toBe(true)
+    expect(b.calls.models).toBe(1)
+  } finally {
+    await b.ctx.fiber.dispose()
+  }
+})
+
+it('clears obsolete catalog and composer blocks and refuses retained callbacks on capability loss', async () => {
+  const b = await bench()
+  try {
+    b.mint('s1')
+    const face = b.seat().inject!(sid('s1'))
+    b.setRoutable(false)
+    b.remote.emit('settings/document-updated', ['llm-deepseek', 1])
+    await b.ctx.modelDirectories.directoryFor(sid('s1')).load()
+    expect(b.blockOf('s1')).toBeDefined()
+    const before = { ...b.calls }
+    b.setSupported(false)
+    expect(face.hooks.modelCapability.getSnapshot()).toBe(false)
+    expect(face.directory.getSnapshot()).toMatchObject({ groups: [], current: null, routable: null, status: 'idle' })
+    expect(b.blockOf('s1')).toBeUndefined()
+    face.load()
+    expect(await face.select({ provider: 'fixture', model: 'stale' })).toBe(false)
+    expect(b.calls).toEqual(before)
+  } finally {
+    await b.ctx.fiber.dispose()
+  }
 })

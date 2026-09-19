@@ -13,11 +13,13 @@ export interface GoalActivationDeps {
   readonly projection: HostObservable<GoalProjection | null | undefined>
   /** Session snapshot; running flips trigger a fresh authoritative read. */
   readonly session: HostObservable<{ readonly running: boolean }>
+  /** Whether this generation advertises Goal reads. */
+  readonly canRead: () => boolean
   /** Read the current live goal at call time. */
   readonly getGoal: () => Promise<RemoteResult<GoalView | undefined>>
   /** Subscribe to activation edges after the transport delivers them. */
   readonly subscribeActivation: (listener: (goal: GoalActivationChanged['goal']) => void) => () => void
-  /** Refresh after a connection-generation reset. */
+  /** Withdraw authority on generation loss and refresh on establishment. */
   readonly subscribeReset: (listener: () => void) => () => void
 }
 
@@ -55,13 +57,13 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
   }
 
   const startRead = (ref: GoalRef | undefined): void => {
-    if (ref === undefined) return
+    if (ref === undefined || !deps.canRead()) return
     const read = ++readEpoch
     const startedAtEvent = eventEpoch
     const startedAtProjection = projectionEpoch
     void deps.getGoal().then((result) => {
       if (read !== readEpoch || startedAtEvent !== eventEpoch || startedAtProjection !== projectionEpoch) return
-      if (!result.ok) return
+      if (!deps.canRead() || !result.ok) return
       const goal = result.value
       /* v8 ignore next 4 -- projection drive is the authoritative clear edge; an active projection with no live goal is transient. */
       if (goal === undefined) {
@@ -69,6 +71,8 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
         return
       }
       publish({ id: goal.id, revision: goal.revision, activation: goal.activation })
+    }, () => {
+      // A rejected transport read supplies no newer activation; withdrawal clears old authority.
     })
   }
 
@@ -89,6 +93,7 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
   const onActivation = (goal: GoalActivationChanged['goal']): void => {
     eventEpoch++
     readEpoch++
+    if (!deps.canRead()) return
     publish(goal === undefined
       ? {}
       : { id: goal.id, revision: goal.revision, activation: goal.activation })
@@ -104,7 +109,9 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
   const onReset = (): void => {
     eventEpoch++
     projectionEpoch++
-    startRead(activeRef(deps.projection.getSnapshot()))
+    readEpoch++
+    publish({})
+    refreshProjection()
   }
 
   const start = (): void => {
@@ -115,13 +122,14 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
       deps.subscribeReset(onReset),
     ]
     running = deps.session.getSnapshot().running
-    refreshProjection()
+    onReset()
   }
 
   const stop = (): void => {
     for (const dispose of disposers) dispose()
     disposers = []
     readEpoch++
+    snapshot = {}
   }
 
   return {

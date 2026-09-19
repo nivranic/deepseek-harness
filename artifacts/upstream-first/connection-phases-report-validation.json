@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Explicit Connection phases and browser recovery; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/connection-phases-source.json",
+    "sha256": "68c2b82793bb48f62073d56d9fdeaafca6dfcc53e72fcf4d7f08449e43bac855"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "413249ab2d2816d44411a0c50404953f9b5f5248a392dc1102e0d8bd8c05d0fc"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/connection-phases-binding.json",
+    "sha256": "84630639f1ebf211d56c048b97cb08ab8e1c3de4e96b1b35986dd540f81da7e2"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-connection-phases-reports.mjs",
+      "sha256": "d94011f3194eecb3357bdaa9aa4d24736665bed2eae6be6f846c3a9b516581e1"
+    },
+    {
+      "path": ".artifacts/capture-connection-phases-validation.mjs",
+      "sha256": "c7f18fe67a319d7af29013f070719f34c1c3f9f832ad388e5240dc8c510d6a95"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7c48514134adb851e9065799fde06f2dfff2a20441aa951c82968bf918fd368b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0411fb37e03bfbd3dc540b4aaec12ed44fed4e04f51f5a3620612236e6522f3b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/connection-phases-binding.log",
+      "sha256": "7577f105052595855dd5c734f5af726a5df7211eeda03ac93257a17426a1f88d"
+    },
+    {
+      "path": ".artifacts/connection-phases-audit-tests.log",
+      "sha256": "86f23cd903e4ac5b0331595716322589f11c3c1d98cbfb313e688207ed994363"
+    },
+    {
+      "path": ".artifacts/connection-phases-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/connection-phases-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/connection-phases-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

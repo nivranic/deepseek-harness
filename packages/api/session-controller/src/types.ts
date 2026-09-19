@@ -20,6 +20,8 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
     imageLimits: null
     /** Durable model selection already used by a request and still pending for a later request. */
     modelSelection: ModelSelectionProjectionState
+    /** Sequence of the currently open turn/start, or null after turn/end. */
+    activeTurnStart: number | null
   }
   interface SessionProjectionMap {
     /** Persisted facts used to summarize a Session without activating it. */
@@ -28,6 +30,8 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
     imageLimits: ImageAttachmentLimits
     /** Durable model selection already used and selected for the next request. */
     modelSelection: ModelSelectionProjection
+    /** Target for cancellation that cannot affect a later turn. */
+    activeTurnStart: number | null
   }
 }
 
@@ -185,29 +189,44 @@ export const SESSION_SEARCH_SNIPPET_MAX_CODE_POINTS = 240
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface RemoteErrorDetailsMap {
+    /** The requested provider or model cannot be selected for the Session. */
     'session/model-unavailable': { readonly provider: string; readonly model: string }
+    /** The requested working directory conflicts with the existing Session directory. */
     'session/conflict': {
       readonly sessionId: SessionId
       readonly requestedCwd: string
       readonly existingCwd?: string
     }
+    /** The Agent rejected Prompt admission; reason retains the refusal diagnostic. */
     'session/agent-busy': { readonly reason: string }
+    /** The supplied client time zone is not a supported UTC or IANA zone. */
     'session/invalid-time-zone': { readonly value: string }
+    /** The Session exists but could not be attached to the requested Workspace. */
     'session/workspace-attach-failed': { readonly sessionId: SessionId; readonly workspaceId: string }
+    /** The requested preset conflicts with the Session preset. */
     'agent-preset/conflict': {
       readonly sessionId: SessionId
       readonly requestedPreset: string
       readonly existingPreset?: string
     }
+    /** A Prompt attachment or model image capability failed admission. */
     'session/attachment-invalid': { readonly reason: string }
+    /** The addressed Prompt is no longer present in the pending queue. */
     'session/queue-item-not-found': { readonly itemId: MessageId }
+    /** The current turn can no longer accept steering from the addressed Prompt. */
     'session/steer-unavailable': { readonly itemId: MessageId }
+    /** The requested title fails Session title validation. */
     'session/title-invalid': { readonly sessionId: SessionId }
+    /** The observed Session title revision is stale; the requested rename is not applied. */
+    'session/revision-conflict': { readonly sessionId: SessionId }
+    /** The requested Session range has no completed turn from which to fork. */
     'session/fork-unavailable': { readonly sessionId: SessionId }
+    /** The requested child is unavailable under the addressed parent Session. */
     'subagent/not-found': {
       readonly parentSessionId: SessionId
       readonly childSessionId: SessionId
     }
+    /** The child catalog entry cannot be read because it is corrupt, unsupported or unavailable. */
     'subagent/catalog-diagnostic': {
       readonly parentSessionId: SessionId
       readonly childSessionId: SessionId
@@ -291,6 +310,12 @@ export interface SessionRenameRequest {
   readonly title: string
 }
 
+/** Conditional rename using the title event revision captured before editing. */
+export interface SessionRenameAtRequest extends SessionRenameRequest {
+  /** Durable title event seq, or null when no title has been accepted. */
+  readonly expectedRevision: number | null
+}
+
 /** Normalized title and the durable event position that committed it. */
 export interface SessionRenameValue {
   readonly title: string
@@ -353,16 +378,22 @@ export interface SessionCancelRequest {
   readonly sessionId: SessionId
 }
 
+/** Cancel the observed turn only; null records that the Client observed no open turn. */
+export interface SessionCancelTurnRequest {
+  readonly sessionId: SessionId
+  readonly turnStartSeq: number | null
+}
+
 /** Receipt after cancellation is admitted to the live Agent. */
 export interface SessionCancelValue {
   readonly accepted: true
 }
 
-/** Request to open one path prepared by a Session-aware caller on the Host desktop. */
+/** Host-local request for a path authorized and resolved by the calling service. */
 export interface SessionOpenWorkspacePathRequest {
   /** File-manager navigation when requested; omission uses the default application. */
   readonly action?: 'reveal'
-  /** Path after best-effort Session workspace resolution, in Host filesystem syntax. */
+  /** Authorized path in Host filesystem syntax. */
   readonly path: string
 }
 

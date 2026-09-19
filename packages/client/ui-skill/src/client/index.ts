@@ -19,7 +19,7 @@
  * snapshot locally, so one session costs one RPC. The scope-birth warm hook
  * prewarms the session's key; a preset switch drops that one key (the
  * catalog is the preset's, and a blank session may switch after the warm);
- * connection/reset clears everything — the host
+ * Connection generation replacement clears everything — the host
  * catalog may differ across generations. A shared in-flight fetch
  * deliberately outlives any single menu interaction: closing the menu must
  * not kill the prewarm other consumers will hit, so it carries its own
@@ -32,7 +32,8 @@
 // Type-only: the carrier types, the forwarded Host-event face and the ctx.remote merge.
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-import type { SkillEntry } from '@deepseek-ai/dsh-api-remotes/client'
+import type { SkillEntry, SKILL_CATALOG_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { InputTriggerServiceContract, InputTriggerSource } from '@deepseek-ai/dsh-client-ui-input-trigger/client'
@@ -61,7 +62,7 @@ interface CatalogFetch {
 }
 
 /** Required services: reference source faces plus the tool-row and locale registries. */
-export const inject = ['inputTriggers', 'sessions', 'slots', 'locale', 'remote', 'remote.skills', 'sidebarRight']
+export const inject = ['inputTriggers', 'sessions', 'slots', 'locale', 'remote', 'remote.skills', 'sidebarRight', 'sidebarRightTabs', 'connection']
 
 /**
  * Client plugin body: register the '/' source, dictionaries, and keyed tool row.
@@ -74,8 +75,13 @@ export function apply(ctx: ClientContext): void {
     SkillRow,
   ))
 
-  const skills = ctx.remote.skills
+  const remote = ctx.remote
+  const skills = remote.skills
   const sessions = ctx.sessions
+  const connection = ctx.get('connection') as ConnectionHandle
+  const capability: typeof SKILL_CATALOG_REMOTE_CAPABILITIES[number]['id'] = 'skill.catalog.v1'
+  let disposed = false
+  const supported = (): boolean => !disposed && remote.$host.capabilities?.includes(capability) === true
   // Session-keyed catalog cache; single-flight per key. Plugin-closure state:
   // the fiber effect below is its teardown boundary.
   const fetches = new Map<SessionId, CatalogFetch>()
@@ -99,10 +105,12 @@ export function apply(ctx: ClientContext): void {
     const existing = fetches.get(sessionId)
     if (existing !== undefined) return existing
     const abort = new AbortController()
+    const host = ctx.remote.$host
     const promise = (async () => {
       const result = await skills.list({ sessionId }, abort.signal)
       abort.signal.throwIfAborted()
-      if (!result.ok) throw new Error(`skills/list failed: ${result.error.code}: ${result.error.message}`)
+      if (ctx.remote.$host !== host) return []
+      if (!result.ok) throw result.error
       return result.value.skills
     })()
     const entry: CatalogFetch = { promise, abort }
@@ -110,6 +118,7 @@ export function apply(ctx: ClientContext): void {
     promise.then(
       // Settled snapshot backs the synchronous lexicon reads.
       (skills) => {
+        if (fetches.get(sessionId) !== entry || abort.signal.aborted || ctx.remote.$host !== host) return
         entry.settled = skills
         notifyLexicon(sessionId)
       },
@@ -141,11 +150,14 @@ export function apply(ctx: ClientContext): void {
     trigger: '/',
     name: 'skill',
     order: 2,
+    subscribeCandidates: (_session, listener) => connection.generation.subscribe(listener),
     async candidates(session, { query, signal }) {
-      if (sessions.subagentAddress(session.sessionId) !== undefined) return []
-      const skills = await fetchCatalog(session.sessionId).promise
+      const cancelled = (): boolean => signal.aborted
+      if (!supported() || cancelled() || sessions.subagentAddress(session.sessionId) !== undefined) return []
+      const entry = fetchCatalog(session.sessionId)
+      const skills = await entry.promise
       // Superseded keystroke: the shared fetch stays warm, this caller yields.
-      if (signal.aborted) return []
+      if (cancelled() || entry.abort.signal.aborted || fetches.get(session.sessionId) !== entry) return []
       // The same ranking as the command group of this menu: case-insensitive
       // ordered subsequence, prefix hits first.
       return rankByName(skills, query)
@@ -159,10 +171,11 @@ export function apply(ctx: ClientContext): void {
     warm(session) {
       // Fire-and-forget scope-birth prewarm; the shared fetch reports
       // through candidates.
-      if (sessions.subagentAddress(session.sessionId) !== undefined) return
+      if (!supported() || sessions.subagentAddress(session.sessionId) !== undefined) return
       fetchCatalog(session.sessionId).promise.catch(() => {})
     },
     lexicon(session) {
+      if (!supported()) return undefined
       return fetches.get(session.sessionId)?.settled?.map(skill => skill.name)
     },
     subscribeLexicon(session, listener) {
@@ -175,26 +188,25 @@ export function apply(ctx: ClientContext): void {
         if (listeners.size === 0) lexiconListeners.delete(key)
       }
     },
-    openReference(session, { ref }) {
+    canOpenReference(session, { ref }) {
+      if (!supported()) return false
       if (sessions.subagentAddress(session.sessionId) !== undefined) return false
+      const path = fetches.get(session.sessionId)?.settled?.find(skill => '/' + skill.name === ref)?.path
+      if (path === undefined) return false
       const cwd = sessions.list.getSnapshot().byId[session.sessionId]?.cwd
-      const open = (catalog: readonly SkillEntry[]): boolean => {
-        const path = catalog.find(skill => `/${skill.name}` === ref)?.path
-        if (path === undefined) return false
-        ctx.sidebarRight.openResource(fileAddressFor(session.sessionId, cwd, path))
-        return true
-      }
-      const settled = fetches.get(session.sessionId)?.settled
-      if (settled !== undefined) return open(settled)
-      const entry = fetchCatalog(session.sessionId)
-      void entry.promise.then((catalog) => {
-        if (!entry.abort.signal.aborted) open(catalog)
-      }).catch((error: unknown) => {
-        if (!entry.abort.signal.aborted) console.error('[ui-skill] reference preview failed:', error)
-      })
+      return ctx.sidebarRightTabs.candidates(fileAddressFor(session.sessionId, cwd, path)).length > 0
+    },
+    subscribeReferenceAvailability: (_session, listener) => ctx.sidebarRightTabs.subscribe(listener),
+    openReference(session, reference) {
+      if (source.canOpenReference?.(session, reference) !== true) return false
+      const path = fetches.get(session.sessionId)?.settled?.find(skill => '/' + skill.name === reference.ref)?.path
+      if (path === undefined) return false
+      const cwd = sessions.list.getSnapshot().byId[session.sessionId]?.cwd
+      ctx.sidebarRight.openResource(fileAddressFor(session.sessionId, cwd, path))
       return true
     },
     onPick({ candidate }) {
+      if (!supported()) return undefined
       // Plain-text-reference decision (web-input-machine note): the pick
       // lands plain text and the prompt ships the same
       // literal. Determinism lives host-side — the host's
@@ -209,10 +221,11 @@ export function apply(ctx: ClientContext): void {
   // A preset decides which skill providers an agent reads, so a switched
   // session's cached catalog belongs to the composition it no longer runs.
   ctx.remote.$on('agent-preset/selected', invalidate)
-  ctx.on('connection/reset', clearAll)
+  ctx.effect(() => connection.generation.subscribe(clearAll), 'ui-skill: Host catalog generation')
   ctx.effect(() => {
     const unregister = inputTriggers.registerSource(source)
     return () => {
+      disposed = true
       unregister()
       clearAll()
     }

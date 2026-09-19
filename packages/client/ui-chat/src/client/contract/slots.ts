@@ -9,8 +9,8 @@ import type {
   InjectFace, KeyedSnapshotSelectorHook, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore,
   SlotHookFactory, SnapshotSelectorHook,
 } from '@deepseek-ai/dsh-client-ui-slots'
-import type { SnapshotStore } from '@deepseek-ai/dsh-client-store'
-import type { MarkdownFileMentions } from '@deepseek-ai/dsh-client-ui-primitives'
+import type { ObservableSnapshot, SnapshotStore } from '@deepseek-ai/dsh-client-store'
+import type { MarkdownFileMentions, UserTextReferences } from '@deepseek-ai/dsh-client-ui-primitives'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type { createChatStore } from '../stores.ts'
 import type { ToolCallId } from './store.ts'
@@ -41,6 +41,8 @@ export interface TurnTailOwnerProps {
   turn: TurnLocation
   seq: number
   openFile: (path: string) => void
+  /** Current viewer eligibility; reading it does not request file contents. */
+  canOpenFile: (path: string) => boolean
 }
 
 /** Owner currency of finalized-assistant actions. */
@@ -76,8 +78,11 @@ export interface ChatNodeTurnDataInjected {
   hooks: { turnData: SlotHookFactory<'conversation.chat.node', UseChatNodeTurnData> }
 }
 
+/** Current reference preview queries; availability changes replace the containing snapshot. */
+export type ChatReferenceAvailability = Pick<UserTextReferences, 'canOpenFile' | 'canOpenSkill'>
+
 /** Stable owner currency delivered to a keyed Chat renderer. */
-export interface ChatNodeOwnerProps {
+export interface ChatNodeOwnerProps extends ChatReferenceAvailability {
   cwd?: string | undefined
   /** Open the current source file of a skill referenced by a sent message. */
   openSkill: (name: string) => void
@@ -131,6 +136,8 @@ export interface ChatScrollPosition {
 /** Business callbacks injected into the Chat view. */
 export interface ChatViewInjected {
   hooks: {
+    /** Current viewers and cached skill paths, independent of message history. */
+    referenceAvailability: ObservableSnapshot<ChatReferenceAvailability>
     /** Persisted completed-Turn transcript presentation. */
     transcriptView: SnapshotStore<TranscriptViewMode>
   }

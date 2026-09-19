@@ -25,7 +25,11 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-Compose this package in a web client that also mounts the browser runner and the host runner, and it adds the panel, the tool cards, and the `@` completion. A person then has everything needed to run the lifecycle: approve or decline a model's run request, run, stop, or remove any definition, and watch a package's live state change on the same rows.
+Compose this package with the browser runner, Host runner and Connection service to display live definition status and recorded tool cards.
+
+Inventory support admits the panel and `@pluginId` completion. Controls require their own advertised operation: Host-only Run needs activation; two-half Run also needs Client source and user settlement; Approve needs activation, Client source and request resolution. Decline only needs request resolution. Stop and Remove remain independent. Read-only inventory offers no mutation controls.
+
+Every connection generation replaces the panel and completion source, even when support is unchanged. Withdrawal clears inventory and panel state; old reads, controls and completion picks cannot affect the replacement. A late Stop or Remove acknowledgement cannot refresh or retire replacement rows, publish an error or close its panel. Restored inventory can reconstruct pending approvals, but reconnect does not replay a mutation or reload a Client activation. Recorded tool cards remain available independently of inventory support.
 
 ### What the panel shows
 

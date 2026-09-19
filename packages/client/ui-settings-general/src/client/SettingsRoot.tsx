@@ -151,11 +151,11 @@ export function SettingsRoot(props: SettingsRootComponentProps) {
   useLayoutEffect(() => {
     const previous = previousConnectionState.current
     previousConnectionState.current = connectionState
-    if (connectionState !== 'connected') {
+    if (connectionState !== 'ready') {
       setShowRecovery(false)
       return
     }
-    if (previous !== 'disconnected' && previous !== 'connecting') return
+    if (previous === undefined || previous === 'ready') return
     setShowRecovery(true)
     const timeout = window.setTimeout(() => { setShowRecovery(false) }, RECOVERY_CONFIRMATION_MS)
     return () => { window.clearTimeout(timeout) }
@@ -168,10 +168,19 @@ export function SettingsRoot(props: SettingsRootComponentProps) {
     })
   }, [])
 
+  const hostNotReady = connectionState === 'host-not-ready'
+  const blocked = connectionState === 'incompatible' || connectionState === 'fatal' || connectionState === 'auth-expired'
+  const failureLabel = connectionState === 'auth-expired' ? t('connection.authExpired')
+    : connectionState === 'incompatible' ? t('connection.incompatible') : t('connection.fatal')
+  const failureAction = connectionState === 'auth-expired' ? t('connection.authenticateAction')
+    : connectionState === 'incompatible' ? t('connection.updateAction') : t('connection.repairAction')
+  const progressAction = hostNotReady ? t('connection.waitAction')
+    : connectionState === 'authenticating' ? t('connection.authenticatingAction')
+      : connectionState === 'connecting' ? t('connection.startAction') : t('connection.restart')
   let connectionIndicator: ConnectionIndicatorState | undefined
-  if (connectionState === 'disconnected') {
+  if (connectionState === 'offline' || blocked) {
     connectionIndicator = 'disconnected'
-  } else if (connectionState === 'connecting') {
+  } else if (connectionState === 'connecting' || connectionState === 'reconnecting' || connectionState === 'authenticating' || hostNotReady) {
     connectionIndicator = 'connecting'
   } else if (showRecovery) {
     connectionIndicator = 'recovered'
@@ -192,14 +201,19 @@ export function SettingsRoot(props: SettingsRootComponentProps) {
           {renderSlot('settings.trigger', { wide })}
         </button>
         <ConnectionIndicator
-          state={wide ? connectionIndicator : undefined}
-          disconnectedLabel={t('connection.error')}
+          state={connectionIndicator}
+          disconnectedLabel={blocked ? failureLabel : t('connection.offline')}
           reconnectLabel={t('connection.retry')}
-          connectingLabel={t('connection.connecting')}
+          connectingLabel={hostNotReady ? t('connection.hostNotReady')
+            : connectionState === 'authenticating' ? t('connection.authenticating')
+              : connectionState === 'connecting' ? t('connection.connecting') : t('connection.reconnecting')}
           recoveredLabel={t('connection.connected')}
-          reconnectActionLabel={t('connection.reconnect')}
-          restartActionLabel={t('connection.restart')}
+          reconnectActionLabel={blocked ? failureAction : t('connection.reconnect')}
+          restartActionLabel={progressAction}
           onReconnect={reconnect}
+          compact={!wide}
+          detail={blocked ? failureAction : connectionIndicator === 'connecting' ? progressAction
+            : connectionState === 'offline' ? t('connection.reconnect') : undefined}
         />
       </div>
       {open && (

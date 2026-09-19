@@ -11,7 +11,7 @@
  */
 import { Context, Service } from '@deepseek-ai/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach } from 'vitest'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { UiConversation } from '@deepseek-ai/dsh-client-ui-conversation/client'
@@ -19,9 +19,9 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { GoalActivation, GoalId, GoalProjection, GoalView } from '@deepseek-ai/dsh-goal/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { makeTranslate, RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
-import type { RemoteFailure } from '@deepseek-ai/dsh-api-remotes/client'
+import type { RemoteFailure, RemoteHostFacts } from '@deepseek-ai/dsh-api-remotes/client'
 import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts'
-import type { GoalActivationSnapshot, GoalBarActions, GoalBarInjected } from '../src/client/slots.ts'
+import type { GoalAccessSnapshot, GoalActionResult, GoalActivationSnapshot, GoalBarActions, GoalBarInjected } from '../src/client/slots.ts'
 import { apply, inject } from '../src/client/index.ts'
 import { GoalDock } from '../src/client/GoalBar.tsx'
 import { zh } from '../src/client/locales.ts'
@@ -47,11 +47,16 @@ function makeProjection(revision = 3): GoalProjection {
   }
 }
 
+function goalAccessHook(actions: GoalBarActions) {
+  return (select: (value: GoalAccessSnapshot) => unknown) => select({ generation: 1, readable: true, actions })
+}
+
 /** Boot the plugin over fake faces; Goal Remote methods record arguments and answer per the script. */
 async function bench(options: {
   projection?: GoalProjection | null | undefined
   activation?: GoalActivation
   failWith?: RemoteFailure
+  capabilities?: readonly string[]
 } = {}) {
   const ctx = new Context()
   const calls: { method: string; args: unknown[] }[] = []
@@ -98,6 +103,9 @@ async function bench(options: {
   })
   let activeGoals: ReturnType<typeof goals> | undefined = goals('goals')
   class RemoteService extends Service {
+    $host: RemoteHostFacts = { home: undefined, isLoopback: true, capabilities: options.capabilities ?? [
+      'goal.read.v1', 'goal.edit.v1', 'goal.pause.v1', 'goal.resume.v1', 'goal.clear.v1',
+    ] }
     readonly activationListeners = new Set<(event: {
       sessionId: SessionId
       goal?: { id: string; revision: number; activation: GoalActivation }
@@ -125,6 +133,15 @@ async function bench(options: {
     }
   }
   const remote = new RemoteService(ctx)
+  const generationListeners = new Set<() => void>()
+  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+    generationListeners.add(listener)
+    return () => { generationListeners.delete(listener) }
+  } } })
+  const reconnect = (capabilities: readonly string[]) => {
+    remote.$host = { ...remote.$host, capabilities }
+    for (const listener of generationListeners) listener()
+  }
   ctx.provide('remote.goals', {
     get get() { return activeGoals?.get },
     get edit() { return activeGoals?.edit },
@@ -143,6 +160,7 @@ async function bench(options: {
   const fiber = ctx.plugin({ inject: [...inject], apply })
   return {
     ctx,
+    reconnect,
     fiber,
     calls,
     emitActivation: remote.emitActivation.bind(remote),
@@ -177,14 +195,14 @@ describe('ui-goal browser plugin', () => {
   it('verbs read the CAS ref from the current projected value at call time', async () => {
     const b = await bench({ projection: makeProjection(5) })
     await b.fiber.await()
-    const verbs = b.entry()!.inject!(sid('s1'))
+    const verbs = b.entry()!.inject!(sid('s1')).hooks.goalAccess.getSnapshot().actions
     // The strip forwards the Remote value verbatim; `answered` is the fake's
     // reply, unrelated to the CAS ref the call carries.
     const answered = { id: 'g-1', revision: 3 }
-    expect(await verbs.onEdit('New objective')).toEqual({ ok: true, value: { ref: answered } })
-    expect(await verbs.onPause()).toEqual({ ok: true, value: { ref: answered } })
-    expect(await verbs.onResume()).toEqual({ ok: true, value: { ref: answered } })
-    expect(await verbs.onClear()).toEqual({ ok: true, value: answered })
+    expect(await verbs.onEdit!('New objective')).toEqual({ ok: true, value: { ref: answered } })
+    expect(await verbs.onPause!()).toEqual({ ok: true, value: { ref: answered } })
+    expect(await verbs.onResume!()).toEqual({ ok: true, value: { ref: answered } })
+    expect(await verbs.onClear!()).toEqual({ ok: true, value: answered })
     expect(b.calls.map(c => c.method)).toEqual(['goals/edit', 'goals/pause', 'goals/resume', 'goals/clear'])
     const ref = { id: 'g-1', revision: 5 }
     expect(b.calls[0]?.args).toEqual(['s1', ref, { objective: 'New objective' }])
@@ -196,10 +214,10 @@ describe('ui-goal browser plugin', () => {
   it('verbs read a remounted Remote namespace at action time', async () => {
     const b = await bench({ projection: makeProjection() })
     await b.fiber.await()
-    const verbs = b.entry()!.inject!(sid('s1'))
+    const verbs = b.entry()!.inject!(sid('s1')).hooks.goalAccess.getSnapshot().actions
     b.remountGoals()
 
-    expect(await verbs.onPause()).toEqual({ ok: true, value: { ref: { id: 'g-1', revision: 3 } } })
+    expect(await verbs.onPause!()).toEqual({ ok: true, value: { ref: { id: 'g-1', revision: 3 } } })
     expect(b.calls).toMatchObject([{ method: 'remounted-goals/pause' }])
   })
 
@@ -226,15 +244,13 @@ describe('ui-goal browser plugin', () => {
   it('rejects every verb once the Remote namespace is gone', async () => {
     const b = await bench({ projection: makeProjection() })
     await b.fiber.await()
-    const verbs = b.entry()!.inject!(sid('s1'))
+    const verbs = b.entry()!.inject!(sid('s1')).hooks.goalAccess.getSnapshot().actions
     b.unmountGoals()
 
-    // A missing namespace is an assembly fault, not a call outcome: this plugin
-    // declares remote.goals in `inject`, so cordis disposes the dock entry along
-    // with the namespace. Only a React closure that outlived that disposal can
-    // reach these verbs, so no consumer-side guard renders it as an error.
-    for (const verb of [() => verbs.onEdit('x'), () => verbs.onPause(), () => verbs.onResume(), () => verbs.onClear()]) {
-      await expect(verb()).rejects.toThrow(TypeError)
+    // A transport implementation can reject instead of returning a Remote result;
+    // the action contains that rejection so the strip can offer an explicit retry.
+    for (const verb of [() => verbs.onEdit!('x'), () => verbs.onPause!(), () => verbs.onResume!(), () => verbs.onClear!()]) {
+      await expect(verb()).resolves.toMatchObject({ ok: false, error: { code: 'goal-request-failed' } })
     }
     expect(b.calls).toHaveLength(0)
   })
@@ -243,8 +259,8 @@ describe('ui-goal browser plugin', () => {
     for (const projection of [null, undefined]) {
       const b = await bench({ projection })
       await b.fiber.await()
-      const verbs = b.entry()!.inject!(sid('s1'))
-      for (const result of [await verbs.onEdit('x'), await verbs.onPause(), await verbs.onResume(), await verbs.onClear()]) {
+      const verbs = b.entry()!.inject!(sid('s1')).hooks.goalAccess.getSnapshot().actions
+      for (const result of [await verbs.onEdit!('x'), await verbs.onPause!(), await verbs.onResume!(), await verbs.onClear!()]) {
         expect(result).toEqual({ ok: false, error: { code: 'no-current-goal', message: 'no current goal to mutate' } })
       }
       expect(b.calls).toHaveLength(0)
@@ -257,8 +273,8 @@ describe('ui-goal browser plugin', () => {
       failWith: new RemoteError('gateway/internal', 'stale revision', {}),
     })
     await b.fiber.await()
-    const verbs = b.entry()!.inject!(sid('s1'))
-    expect(await verbs.onEdit('x')).toMatchObject({ ok: false, error: { code: 'gateway/internal', message: 'stale revision' } })
+    const verbs = b.entry()!.inject!(sid('s1')).hooks.goalAccess.getSnapshot().actions
+    expect(await verbs.onEdit!('x')).toMatchObject({ ok: false, error: { code: 'gateway/internal', message: 'stale revision' } })
   })
 
   it('drops the dock entry when the plugin fiber unloads (HMR safety)', async () => {
@@ -289,7 +305,7 @@ describe('GoalDock adapter', () => {
     }
     const t = makeTranslate(zh, commonZh)
     const dockProps = (up: () => GoalProjection | null | undefined) =>
-      ({ useProjection: up, useGoalActivation, ...actions, t }) as unknown as Parameters<typeof GoalDock>[0]
+      ({ useProjection: up, useGoalActivation, useGoalAccess: goalAccessHook(actions), t }) as unknown as Parameters<typeof GoalDock>[0]
     const shown = render(<GoalDock {...dockProps(useProjection)} />)
     expect(shown.getByText('Ship it')).toBeTruthy()
     cleanup()
@@ -315,7 +331,8 @@ describe('GoalDock adapter', () => {
       onClear: () => Promise.resolve({ ok: true, value: undefined }),
     }
     const t = makeTranslate(zh, commonZh)
-    const props = { useProjection, useGoalActivation, ...actions, t } as unknown as Parameters<typeof GoalDock>[0]
+    const props = { useProjection, useGoalActivation,
+      useGoalAccess: goalAccessHook(actions), t } as unknown as Parameters<typeof GoalDock>[0]
     const rendered = render(<GoalDock {...props} />)
     expect(rendered.getByText('未运行的目标')).toBeTruthy()
     expect(screen.getByRole('button', { name: '恢复目标' })).toBeTruthy()
@@ -327,4 +344,30 @@ describe('ui-goal node half', () => {
   it('the node apply is an inert loader seat', () => {
     expect(() => { nodeApply() }).not.toThrow()
   })
+})
+
+it.each(['success', 'failure'] as const)('ignores an old GoalBar %s after an equally capable connection replacement', async (outcome) => {
+  const pending = Promise.withResolvers<GoalActionResult>()
+  let access: GoalAccessSnapshot = { generation: 1, readable: true, actions: { onClear: () => pending.promise } }
+  const props = {
+    useProjection: () => makeProjection(),
+    useGoalActivation: (select: (value: GoalActivationSnapshot) => unknown) => select({}),
+    useGoalAccess: (select: (value: GoalAccessSnapshot) => unknown) => select(access),
+    t: makeTranslate(zh, commonZh),
+  } as unknown as Parameters<typeof GoalDock>[0]
+  const view = render(<GoalDock {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '清除目标' }))
+  access = { generation: 2, readable: true, actions: {
+    onEdit: () => Promise.resolve({ ok: true, value: undefined }),
+  } }
+  view.rerender(<GoalDock {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '编辑目标' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '目标内容' }), { target: { value: 'new Host draft' } })
+  await act(async () => {
+    pending.resolve(outcome === 'success' ? { ok: true, value: undefined } : {
+      ok: false, error: { code: 'no-current-goal', message: 'old failure' },
+    })
+  })
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(screen.getByRole('textbox', { name: '目标内容' })).toHaveProperty('value', 'new Host draft')
 })

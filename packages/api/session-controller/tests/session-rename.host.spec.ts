@@ -124,3 +124,61 @@ describe('sessions.rename', () => {
     }
   })
 })
+
+
+describe('sessions.renameAt', () => {
+  it('accepts one competing editor and rejects stale retries without changing the log', async () => {
+    const ctx = await composed()
+    try {
+      const source = liveAgent(ctx, 'rename-competing', 0)
+      const api = remote(ctx)
+      const first = await api.renameAt({ sessionId: source.id, title: 'Initial', expectedRevision: null })
+      expect(first.ok).toBe(true)
+      if (!first.ok) return
+      const results = await Promise.all(['First editor', 'Second editor'].map(title =>
+        api.renameAt({ sessionId: source.id, title, expectedRevision: first.value.seq })))
+      expect(results.filter(result => result.ok)).toHaveLength(1)
+      expect(results.find(result => !result.ok)).toMatchObject({ ok: false, error: { code: 'session/revision-conflict' } })
+      const before = source.snapshotEvents()
+      expect(await api.renameAt({ sessionId: source.id, title: 'Initial', expectedRevision: null }))
+        .toMatchObject({ ok: false, error: { code: 'session/revision-conflict' } })
+      expect(source.snapshotEvents()).toEqual(before)
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('normalizes duplicate acceptance with the configured byte limit and preserves the original seq', async () => {
+    const ctx = await composed()
+    try {
+      const source = liveAgent(ctx, 'rename-duplicate', 0)
+      const api = remote(ctx)
+      const first = await api.renameAt({ sessionId: source.id, title: '  '+ '名'.repeat(30), expectedRevision: null })
+      expect(first).toMatchObject({ ok: true, value: { title: '名'.repeat(13) } })
+      expect(await api.renameAt({ sessionId: source.id, title: '名'.repeat(40), expectedRevision: null })).toEqual(first)
+      expect(source.snapshotEvents().filter(event => event.type === 'session/title')).toHaveLength(1)
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('pins an identical automatic title only against its current revision', async () => {
+    const ctx = await composed()
+    try {
+      const source = liveAgent(ctx, 'rename-pin-revision', 1)
+      const automatic = (await ctx.sessionTitle.refresh(source))!
+      const api = remote(ctx)
+      expect(await api.renameAt({ sessionId: source.id, title: automatic.title, expectedRevision: null }))
+        .toMatchObject({ ok: false, error: { code: 'session/revision-conflict' } })
+      const accepted = await api.renameAt({ sessionId: source.id, title: automatic.title, expectedRevision: automatic.eventSeq })
+      expect(accepted.ok).toBe(true)
+      expect(ctx.sessionTitle.get(source)?.source.kind).toBe('user')
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it.each([undefined, -1, 1.5, Number.MAX_SAFE_INTEGER + 1, '1'])('rejects invalid expected revision %s before mutation', async (expectedRevision) => {
+    const ctx = await composed()
+    try {
+      const source = liveAgent(ctx, 'rename-invalid-revision', 0)
+      expect(await remote(ctx).renameAt({ sessionId: source.id, title: 'Title', expectedRevision: expectedRevision as number }))
+        .toMatchObject({ ok: false, error: { code: 'gateway/bad-request' } })
+      expect(ctx.sessionTitle.get(source)).toBeUndefined()
+    } finally { await ctx.fiber.dispose() }
+  })
+})

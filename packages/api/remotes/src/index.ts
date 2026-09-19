@@ -8,6 +8,8 @@ import type {
   TypertRemoteEventInvocation,
   TypertRemoteEventOutcome,
   TypertRemoteEventSource,
+  RemoteInteractionOrigin,
+  RemoteInteractionSessionId,
 } from '@deepseek-ai/dsh-api-gateway'
 import { Deque } from '@deepseek-ai/dsh-deque'
 import { carrierKeyOf } from '@deepseek-ai/dsh-scope'
@@ -47,7 +49,8 @@ export function apply(ctx: Context): void {
 function remoteEventSource(ctx: Context): TypertRemoteEventSource {
   return (signal) => {
     const queue = new RemoteEventQueue()
-    const disposers = API_REMOTE_FORWARDED_EVENTS.map(({ event, mode }) => {
+    const disposers = API_REMOTE_FORWARDED_EVENTS.map((entry) => {
+      const { event, mode } = entry
       if (mode === 'emit') {
         return ctx.on(event as never, ((...args: unknown[]) => {
           queue.push({ event, args: assertJsonArgs(event, args) })
@@ -70,6 +73,9 @@ function remoteEventSource(ctx: Context): TypertRemoteEventSource {
           request,
           { value: agent.ctx, subject: agent, agentId: agent.id },
           next,
+          'interaction' in entry ? {
+            ...entry.interaction, sessionId: String(agent.session.id) as RemoteInteractionSessionId,
+          } : undefined,
         )
       }) as never)
     })
@@ -137,12 +143,14 @@ function forwardWaterfall(
   request: object,
   context: TypertRemoteEventInvocation['context'],
   next: () => unknown,
+  interaction?: RemoteInteractionOrigin,
 ): Promise<unknown> {
   const settled = Promise.withResolvers<unknown>()
   const dispatch: TypertRemoteEventInvocation = {
     event,
     request,
     context,
+    ...(interaction === undefined ? {} : { interaction }),
     resolve: (outcome: TypertRemoteEventOutcome) => {
       if (outcome.kind === 'result') {
         settled.resolve(outcome.value)

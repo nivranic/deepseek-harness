@@ -29,6 +29,36 @@ export type ConnectionRpcResult<T> =
 /** Historical short name for a generic Connection result. */
 export type RpcResult<T> = ConnectionRpcResult<T>
 
+/** An HTTP carrier rejected a request before a Connection response envelope was available. */
+export class ConnectionHttpError extends Error {
+  /** Cross-bundle marker; consumers do not rely on instanceof. */
+  readonly isDSHConnectionHttpError: true = true
+
+  /**
+   * @param status - HTTP response status supplied by the carrier.
+   * @param message - diagnostic identifying the failed operation without credentials.
+   */
+  constructor(readonly status: number, message: string) {
+    super(message)
+    this.name = 'ConnectionHttpError'
+  }
+}
+
+/** A dispatched request or response body failed before a complete RPC envelope arrived. */
+export class ConnectionTransportError extends Error {
+  /** Cross-bundle marker; consumers do not rely on instanceof. */
+  readonly isDSHConnectionTransportError: true = true
+
+  /**
+   * @param message - operation diagnostic without credentials or transport-provided text.
+   * @param options - causal transport exception retained only in-process.
+   */
+  constructor(message: string, options: ErrorOptions) {
+    super(message, options)
+    this.name = 'ConnectionTransportError'
+  }
+}
+
 /**
  * Convert a rejected transport operation into a generic failure result.
  * @param error - rejected transport value.

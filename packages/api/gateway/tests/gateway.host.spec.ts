@@ -15,6 +15,7 @@ import {
   type TypertContext,
   type TypertLookup,
   type TypertLookupProvider,
+  type TypertRemoteCapability,
 } from '@deepseek-ai/dsh-typert-protocol'
 import TypertRegistry, { type TypertContribution } from '@deepseek-ai/dsh-typert-registry'
 import TypertGatewayService, { TypertGatewayError } from '@deepseek-ai/dsh-api-gateway'
@@ -50,14 +51,15 @@ const emptyModel: TypertContribution['model'] = {
 }
 
 class GoalService extends Service {
-  readonly typertRemote = bindTypertRemote(this, 'goals')
+  readonly typertRemote
   readonly calls: string[] = []
   lastSignal: AbortSignal | undefined
   nextResult: unknown = undefined
   businessError: Error | undefined
 
-  constructor(ctx: Context) {
+  constructor(ctx: Context, capabilities?: readonly TypertRemoteCapability[]) {
     super(ctx, 'goals')
+    this.typertRemote = bindTypertRemote(this, 'goals', capabilities === undefined ? {} : { capabilities })
   }
 
   @Remote
@@ -391,6 +393,65 @@ class InheritedMethodBase extends Service {
 class InheritedMethodService extends InheritedMethodBase {}
 
 describe('TypertGatewayService', () => {
+  it('advertises only declared method sets and withdraws them with the Service', async () => {
+    const ctx = await setupGateway()
+    try {
+      const owner = ctx.plugin(GoalService, [
+        { id: 'fixture.echo.v1', methods: ['passthrough'] },
+        { id: 'fixture.edit.v1', methods: ['passthrough', 'maybe'] },
+      ])
+      await owner
+      expect(ctx.typertGateway.capabilities()).toEqual(['fixture.echo.v1', 'fixture.edit.v1'])
+      await expect(ctx.typertGateway.invoke({ namespace: 'goals', method: 'passthrough', args: { value: 'actual result' } }))
+        .resolves.toBe('actual result')
+      await owner.dispose()
+      expect(ctx.typertGateway.capabilities()).toEqual([])
+      await ctx.plugin(GoalService)
+      expect(ctx.typertGateway.capabilities()).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('withdraws a capability when a required strict definition is removed, without SRC fallback', async () => {
+    const ctx = await setupGateway()
+    try {
+      await ctx.plugin(GoalService, [{ id: 'fixture.echo.v1', methods: ['passthrough', 'maybe'] }])
+      const withdraw = registerStrict(ctx, [passthroughDescriptor(), maybeDescriptor()])
+      expect(ctx.typertGateway.capabilities()).toEqual(['fixture.echo.v1'])
+      await withdraw()
+      expect(ctx.typertGateway.capabilities()).toEqual([])
+      const restore = registerStrict(ctx, [passthroughDescriptor(), maybeDescriptor()])
+      expect(ctx.typertGateway.capabilities()).toEqual(['fixture.echo.v1'])
+      await restore()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('rejects an owner declaration for a method it does not export', async () => {
+    const ctx = await setupGateway()
+    try {
+      await ctx.plugin(GoalService, [{ id: 'fixture.missing.v1', methods: ['notExported'] }])
+      expect(() => ctx.typertGateway.capabilities()).toThrow(/requires unexported method/u)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('rejects duplicate capability ids instead of merging unrelated declarations', async () => {
+    const ctx = await setupGateway()
+    try {
+      await ctx.plugin(GoalService, [
+        { id: 'fixture.echo.v1', methods: ['passthrough'] },
+        { id: 'fixture.echo.v1', methods: ['maybe'] },
+      ])
+      expect(() => ctx.typertGateway.capabilities()).toThrow(/duplicate Remote capability/u)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('invokes a strict direct method with schema decoding and a live lookup', async () => {
     const { ctx, service } = await setup()
     const agent = { id: 'agent-1' }
@@ -1065,6 +1126,37 @@ describe('TypertGatewayService', () => {
     expect(connection.handler).toBeUndefined()
   })
 
+  it('rejects unsupported protocols before unary methods or event-result handling', async () => {
+    const ctx = new Context()
+    try {
+      await ctx.plugin(TypertRegistry)
+      await ctx.plugin(FakeConnectionService)
+      await ctx.plugin(TypertGatewayService)
+      await ctx.plugin(GoalService)
+      const handler = rawConnection(ctx).handler!
+      const signal = new AbortController().signal
+      for (const endpoint of ['goals/passthrough', '$events/result']) {
+        for (const version of [0, 3, -1, 1.5, '2', null, {}, []]) {
+          await expect(handler(endpoint, { apiProtocolVersion: version, args: { value: 'denied' } }, signal))
+            .resolves.toMatchObject({ ok: false, error: {
+              code: 'gateway/protocol-unsupported', details: { endpoint, supportedApiProtocolVersions: [2, 1] },
+            } })
+        }
+      }
+      expect(rawGoalService(ctx).calls).toEqual([])
+      for (const payload of [{ args: { value: 'accepted' } },
+        { apiProtocolVersion: 1, args: { value: 'accepted' } },
+        { apiProtocolVersion: 2, args: { value: 'accepted' } }]) {
+        await expect(handler('goals/passthrough', payload, signal)).resolves.toEqual({ ok: true, value: 'accepted' })
+      }
+      await expect(handler('goals/passthrough', { apiProtocolVersion: 2, args: { value: 'denied' }, extra: true }, signal))
+        .resolves.toMatchObject({ ok: false })
+      expect(rawGoalService(ctx).calls).toEqual(['passthrough', 'passthrough', 'passthrough'])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('claims and validates in-process Remote event results for the active Client generation', async () => {
     const ctx = new Context()
     await ctx.plugin(TypertRegistry)
@@ -1079,9 +1171,9 @@ describe('TypertGatewayService', () => {
       args: { clientId: 'missing-client', eventId: 'missing', outcome: { kind: 'next' } },
     }
     const inactive = await handler('$events/result', result, new AbortController().signal)
-    expect(inactive).toMatchObject({ ok: false, error: { code: 'gateway/internal' } })
+    expect(inactive).toMatchObject({ ok: false, error: { code: 'interaction-closed', details: { eventId: 'missing' } } })
     if (inactive.ok) throw new Error('inactive Remote event result unexpectedly succeeded')
-    expect(inactive.error.message).toContain('identifies no active event stream')
+    expect(inactive.error.message).toBe('Interaction delivery is no longer active')
 
     const unregister = ctx.typertGateway.registerRemoteEvents(signal => (async function* () {
       await new Promise<void>((resolve) => {
@@ -1107,10 +1199,11 @@ describe('TypertGatewayService', () => {
       expect(invalid.error.message).toContain('requires exactly one plain-object args field')
     }
     await expect(handler('$events/result', {
+      apiProtocolVersion: 2,
       args: { clientId, eventId: 'missing', outcome: { kind: 'next' } },
-    }, carrier.signal)).resolves.toEqual({
-      ok: true,
-      value: undefined,
+    }, carrier.signal)).resolves.toMatchObject({
+      ok: false,
+      error: { code: 'interaction-closed', details: { eventId: 'missing' } },
     })
 
     await events.return(undefined)
@@ -1172,7 +1265,7 @@ describe('TypertGatewayService', () => {
     await unrelatedFiber.dispose()
   })
 
-  it('dispatches claimed invocations through /api and leaves unclaimed endpoints to its fallback', async () => {
+  it.each([1, 2] as const)('dispatches protocol %s invocations through /api and leaves unclaimed endpoints to its fallback', async (version) => {
     const ctx = new Context().extend({ fixtureScope: 'http-caller' })
     const routes: WebRoute[] = []
     provideBrowserCredentials(ctx)
@@ -1199,7 +1292,7 @@ describe('TypertGatewayService', () => {
           type: 'client-request',
           rpcId: 'rpc-http',
           method: 'goals/create',
-          payload: { args: { agentId: 'agent-1', request: { title: '  ship  ' } } },
+          payload: { ...(version === 1 ? {} : { apiProtocolVersion: version }), args: { agentId: 'agent-1', request: { title: '  ship  ' } } },
         }),
       })
       expect(response.status).toBe(200)
@@ -1211,6 +1304,17 @@ describe('TypertGatewayService', () => {
           value: { agentId: 'agent-1', title: 'ship', scope: 'http-caller' },
         },
       })
+
+      const unsupported = await fetch(`${server.origin}/api/goals/create`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie },
+        body: JSON.stringify({ type: 'client-request', rpcId: 'rpc-unsupported', method: 'goals/create',
+          payload: { apiProtocolVersion: 99, args: { agentId: 'agent-1', request: { title: 'denied' } } } }),
+      })
+      await expect(unsupported.json()).resolves.toMatchObject({ result: {
+        ok: false, error: { code: 'gateway/protocol-unsupported' },
+      } })
+      expect(rawGoalService(ctx).calls).toEqual(['create'])
 
       const invalid = await fetch(`${server.origin}/api/goals/create`, {
         method: 'POST',

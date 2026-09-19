@@ -18,6 +18,9 @@ import { zh } from '../src/client/locales.ts'
 const useResource = (() => ({ status: 'none' as const, value: undefined, failure: undefined, reload: () => {} })) as GlobalStandardProps['useResource']
 const usePanelInfo: GlobalStandardProps['usePanelInfo'] = selector => selector({ activePanelId: null })
 
+const HOST_FACTS = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1', 'workspace.manage.v1'] }
+const useHostInfo: WorkspacePickerProps['useHostInfo'] = selector => selector(HOST_FACTS)
+
 afterEach(cleanup)
 
 // The seat's key domain is workspace ∪ common; the stub mirrors the real
@@ -88,6 +91,7 @@ function mount(
   items: readonly WorkspaceView[] = [workspace('alpha', 'Alpha')],
   createWorkspace = vi.fn(),
   occupancy = occupancySource(),
+  hostHook: WorkspacePickerProps['useHostInfo'] = useHostInfo,
 ) {
   const onPick = vi.fn()
   const onClose = vi.fn()
@@ -104,6 +108,7 @@ function mount(
       onPick={onPick}
       onClose={onClose}
       createWorkspace={createWorkspace}
+      useHostInfo={hostHook}
       useDirectoryFlow={occupancy.useDirectoryFlow}
       renderSlot={renderSlot}
       t={t}
@@ -123,6 +128,29 @@ function chooseAdd(): void {
 }
 
 describe('WorkspacePicker', () => {
+  it.each(['success', 'failure'] as const)('discards a pending adoption %s from a replaced Host', async (outcome) => {
+    let host = HOST_FACTS
+    let resolve!: (value: WorkspaceView) => void
+    let reject!: (error: Error) => void
+    const createWorkspace = vi.fn(() => new Promise<WorkspaceView>((accept, fail) => { resolve = accept; reject = fail }))
+    const b = mount([workspace('alpha')], createWorkspace, occupancySource(), selector => selector(host))
+    chooseAdd()
+    const oldOwner = b.probe.owner!
+    act(() => { oldOwner.onPicked('/old') })
+    host = { ...HOST_FACTS }
+    b.rerenderItems([workspace('alpha')])
+    chooseAdd()
+    act(() => { oldOwner.onCancel(); oldOwner.onError('old error'); oldOwner.onPicked('/stale') })
+    expect(screen.getByTestId('directory-flow').getAttribute('data-busy')).toBe('false')
+    await act(async () => {
+      if (outcome === 'success') resolve(workspace('old-created'))
+      else reject(new Error('old failure'))
+    })
+    expect(b.onPick).not.toHaveBeenCalled()
+    expect(createWorkspace).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByTestId('directory-flow')).toBeTruthy()
+  })
   it('lists same-title Workspaces separately and forwards the selected id', () => {
     const b = mount([workspace('alpha', 'Shared'), workspace('beta', 'Shared')])
     const entries = screen.getAllByRole('menuitem', { name: 'Shared' })
@@ -223,6 +251,7 @@ describe('WorkspacePicker', () => {
         useSessionPendingInteraction={hook(noPendingInteraction)}
         usePanelInfo={usePanelInfo} useResource={useResource}
         onPick={vi.fn()} onClose={vi.fn()} createWorkspace={vi.fn()}
+        useHostInfo={useHostInfo}
         useDirectoryFlow={occupancySource().useDirectoryFlow} renderSlot={renderSlot} t={t}
       />,
     )
@@ -240,6 +269,7 @@ describe('WorkspacePicker', () => {
         useSessionPendingInteraction={hook(noPendingInteraction)}
         usePanelInfo={usePanelInfo} useResource={useResource}
         onPick={vi.fn()} onClose={vi.fn()} createWorkspace={vi.fn()}
+        useHostInfo={useHostInfo}
         useDirectoryFlow={occupancySource().useDirectoryFlow} renderSlot={renderSlot} t={t}
       />,
     )

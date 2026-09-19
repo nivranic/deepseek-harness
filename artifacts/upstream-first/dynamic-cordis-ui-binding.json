@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/dynamic-cordis-ui-source.json",
+    "sha256": "b41313ade4557d0609112df25fd72a4d9a43a518235fb2ffd53b5e8043897653"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c4cc1a1e58ce39ed6ab489b7458eb50d53408832bc50ad45dc76275cbdf2c9a7"
+  },
+  "helper": {
+    "path": ".artifacts/check-dynamic-cordis-ui-binding.mjs",
+    "sha256": "44a6480008230702128930523f92194da20cda84310768582831c91776ef7e88"
+  }
+}

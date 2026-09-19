@@ -357,8 +357,10 @@ describe('healProfilesModuleFallback', () => {
       const entry = join(home, 'profiles', 'node_modules', 'dsh-app')
       mkdirSync(join(entry, '..'), { recursive: true })
       if (kind === 'directory') mkdirSync(entry)
-      else writeFileSync(entry, '')
+      const contentPath = kind === 'directory' ? join(entry, 'user-file') : entry
+      writeFileSync(contentPath, 'preserve')
       await expect(healProfilesModuleFallback({ installAnchor: anchor, home })).rejects.toThrow('is not a symlink')
+      expect(readFileSync(contentPath, 'utf8')).toBe('preserve')
     }
   })
 
@@ -603,6 +605,36 @@ describe('healProfilesModuleFallback', () => {
     expect(readlinkSync(join(fallback, 'dsh-app'))).toContain('app')
   })
 
+  it('repairs an empty installation fallback left by interrupted junction creation', async () => {
+    const anchor = stageInstallation({ 'bundle-a': {} })
+    const home = tmp()
+    const link = join(home, 'profiles', 'node_modules', 'bundle-a')
+    mkdirSync(link, { recursive: true })
+
+    await healProfilesModuleFallback({ installAnchor: anchor, home })
+
+    expect(lstatSync(link).isSymbolicLink()).toBe(true)
+    expect(realpathSync(link)).toBe(realpathSync(join(anchor, '..', 'node_modules', 'bundle-a')))
+  })
+
+  it('repairs an empty owned bundle link while preserving an empty pnpm entry', async () => {
+    const installAnchor = stageInstallation({})
+    const bundleAnchor = stageInstallation({ fallback: {} }, 'selected-bundle')
+    const home = tmp()
+    const profile = stageProfile(home, 'custom', bundleAnchor)
+    const ownedLink = join(profile.dir, '.dsh-module-fallback', 'node_modules', 'fallback')
+    const profileLink = join(profile.dir, 'node_modules', 'fallback')
+    mkdirSync(ownedLink, { recursive: true })
+    mkdirSync(profileLink, { recursive: true })
+
+    await healProfilesModuleFallback({ installAnchor, profile, home })
+
+    expect(lstatSync(ownedLink).isSymbolicLink()).toBe(true)
+    expect(realpathSync(ownedLink)).toBe(realpathSync(join(bundleAnchor, '..', 'node_modules', 'fallback')))
+    expect(lstatSync(profileLink).isSymbolicLink()).toBe(false)
+    expect(lstatSync(profileLink).isDirectory()).toBe(true)
+  })
+
   it('retains current links while repairing a missing sibling', async () => {
     const anchor = stageInstallation({ 'bundle-a': { patch: '[]\n' } })
     const home = tmp()
@@ -794,6 +826,57 @@ describe('healProfilesModuleFallback', () => {
       expect(proxyManifest.dsh.moduleFallback.targets['.']).toContain('/app/node_modules/linked-esm/index.js')
     } finally {
       delete (process as NodeJS.Process & { pkg?: unknown }).pkg
+    }
+  })
+
+  it.each([false, true])('keeps parent dependency resolution only for ordinary Node (packaged=%s)', async (packaged) => {
+    const anchor = stageInstallation({})
+    const appManifest = JSON.parse(readFileSync(anchor, 'utf8')) as { dependencies: Record<string, string> }
+    appManifest.dependencies['outside-installation'] = '0.0.0'
+    writeFileSync(anchor, JSON.stringify(appManifest))
+    const outside = join(anchor, '..', '..', 'node_modules', 'outside-installation')
+    mkdirSync(outside, { recursive: true })
+    writeFileSync(join(outside, 'package.json'), JSON.stringify({
+      name: 'outside-installation', version: '0.0.0', main: './index.js', type: 'module',
+    }))
+    writeFileSync(join(outside, 'index.js'), 'export const buildMachineOnly = true\n')
+    const previous = Object.getOwnPropertyDescriptor(process, 'pkg')
+    if (packaged) Object.defineProperty(process, 'pkg', { configurable: true, value: {} })
+    else delete (process as NodeJS.Process & { pkg?: unknown }).pkg
+    try {
+      const home = tmp()
+      await healProfilesModuleFallback({ installAnchor: anchor, home })
+      const fallback = join(home, 'profiles', 'node_modules')
+      expect(existsSync(join(fallback, 'dsh-app', 'package.json'))).toBe(true)
+      expect(existsSync(join(fallback, 'outside-installation'))).toBe(!packaged)
+    } finally {
+      if (previous === undefined) delete (process as NodeJS.Process & { pkg?: unknown }).pkg
+      else Object.defineProperty(process, 'pkg', previous)
+    }
+  })
+
+  it('includes deployed sibling dependencies of a packaged scoped application', async () => {
+    const deployed = tmp()
+    const modules = join(deployed, 'node_modules')
+    const appDirectory = join(modules, '@fixture', 'app')
+    const sibling = join(modules, 'sibling')
+    for (const directory of [appDirectory, sibling]) mkdirSync(directory, { recursive: true })
+    const anchor = join(appDirectory, 'package.json')
+    writeFileSync(anchor, JSON.stringify({
+      name: '@fixture/app', version: '0.0.0', main: './index.js', dependencies: { sibling: '0.0.0' },
+    }))
+    writeFileSync(join(sibling, 'package.json'), JSON.stringify({ name: 'sibling', version: '0.0.0', main: './index.js' }))
+    for (const directory of [appDirectory, sibling]) writeFileSync(join(directory, 'index.js'), 'exports.available = true\n')
+    const previous = Object.getOwnPropertyDescriptor(process, 'pkg')
+    Object.defineProperty(process, 'pkg', { configurable: true, value: {} })
+    try {
+      const home = tmp()
+      await healProfilesModuleFallback({ installAnchor: anchor, home })
+      const proxy = join(home, 'profiles', 'node_modules', 'sibling')
+      expect(readFileSync(join(proxy, 'package.json'), 'utf8')).toContain('/node_modules/sibling/index.js')
+    } finally {
+      if (previous === undefined) delete (process as NodeJS.Process & { pkg?: unknown }).pkg
+      else Object.defineProperty(process, 'pkg', previous)
     }
   })
 

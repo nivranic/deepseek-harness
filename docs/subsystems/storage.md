@@ -36,15 +36,18 @@ interface StorageBackend {
   readonly kv?: KvFacet
 
   /**
-   * Drain in-flight writes across all open units and release the medium.
+   * Stop and drain registered unit owners, close their units, and release the medium.
    * Idempotent; concurrent and repeated calls resolve once teardown finishes.
    * @returns resolution after the medium is released.
+   * @throws AggregateError containing cleanup failures after every owner and unit settles.
    */
   close(): Promise<void>
 }
 ```
 
-A backend owns one medium (a file-tree root, a database file) and exposes optional operation groups; `kv` is the only shipped group. `KvFacet.open(descriptor)` opens one named unit — `KvUnitDescriptor` carries the name, current format version, optional compatible record versions, table names, and whether a global singleton slot exists — and returns a `KvUnit` with `loadAll`, `putRecord`, `deleteRecord`, `setGlobal`, and `close`. Unit and table names must match `UNIT_NAME_RE` (safe as a file name and as a SQL identifier segment); record keys are arbitrary strings that never reach file paths. A unit does not serialize concurrent writes — ordering belongs to the caller — but each single call is atomic on the medium and durable once resolved. A `single` medium stamped with a different version rejects `version-mismatch`; a `per-record` document stamped outside the accepted set reads as absent. A medium that cannot be parsed as the unit rejects `malformed-medium`. [`backend.ts`](../../packages/storage/storage/src/backend.ts) is the normative clause-by-clause contract, and the shared conformance suite in [`tests/contract.ts`](../../packages/storage/storage/tests/contract.ts) checks every clause against each backend. The [json backend](../../packages/storage/storage-json/README.md) republishes one whole human-readable file per unit atomically; the [sqlite backend](../../packages/storage/storage-sqlite/README.md) stores one document per row in one database for frequently updated data.
+A backend owns one medium (a file-tree root, a database file) and exposes optional operation groups; `kv` is the only shipped group. `KvFacet.open(descriptor, onBackendClose?)` opens one named unit — `KvUnitDescriptor` carries the name, current format version, optional compatible record versions, table names, and whether a global singleton slot exists — and returns a `KvUnit` with `loadAll`, `putRecord`, `deleteRecord`, `setGlobal`, and `close`. Unit and table names must match `UNIT_NAME_RE` (safe as a file name and as a SQL identifier segment); record keys are arbitrary strings that never reach file paths. A unit does not serialize concurrent writes — ordering belongs to the caller — but each single call is atomic on the medium and durable once resolved. A `single` medium stamped with a different version rejects `version-mismatch`; a `per-record` document stamped outside the accepted set reads as absent. A medium that cannot be parsed as the unit rejects `malformed-medium`. [`backend.ts`](../../packages/storage/storage/src/backend.ts) is the normative clause-by-clause contract, and the shared conformance suite in [`tests/contract.ts`](../../packages/storage/storage/tests/contract.ts) checks every clause against each backend. The [json backend](../../packages/storage/storage-json/README.md) republishes one whole human-readable file per unit atomically; the [sqlite backend](../../packages/storage/storage-sqlite/README.md) stores one document per row in one database for frequently updated data.
+
+An owner callback stops new work and drains accepted operations before backend-driven unit close. Closing a unit independently withdraws its callback. Backend close joins every owner and unit, releases the medium, and aggregates cleanup failures; callbacks must not await backend close. The [domain facility](../../packages/storage/storage-domain/README.md) registers this callback and joins initialization so closing cannot publish a late domain handle.
 
 ## Declaring a domain
 
@@ -123,7 +126,7 @@ interface Domain<S extends DomainSpec> {
 }
 ```
 
-Reads are synchronous from authoritative in-memory state: `KvTable` exposes `get`/`entries`/`keys`/`size` (snapshot iterators that stay stable while queued writes land), and the global handle's `get()` serves the spec's `initial` until the first `set` materializes the slot on the medium. Every write — `put`, `delete`, `update`, `global.set` — queues on one per-domain chain and reaches backend durability first, then mutates memory, then emits `domain/changed`; a rejected backend write leaves memory untouched, so reads never diverge from the medium. `update(key, fn)` is an atomic read-modify-write at its chain slot (a missing key rejects `missing-key`); `delete` of an absent key resolves `false` with no write and no event. Returned records are the stored objects themselves, not copies — replace via `put`/`update`, never mutate in place.
+Reads are synchronous from authoritative in-memory state: `KvTable` exposes `get`/`entries`/`keys`/`size` (snapshot iterators that stay stable while queued writes land), and the global handle's `get()` serves the spec's `initial` until the first `set` materializes the slot on the medium. Every write — `put`, `delete`, `update`, `global.set` — queues on one per-domain chain and reaches backend durability first, then mutates memory, then emits `domain/changed`; a rejected backend write leaves memory untouched, so reads never diverge from the medium. `update(key, fn)` is an atomic read-modify-write at its chain slot (a missing key rejects `missing-key`); `delete` of an absent key resolves `false` with no write and no event. Returned records are the stored objects themselves, not copies — replace via `put`/`update`, never mutate in place. An optional `put` prerequisite runs in that same queue position; its rejection skips the write, and close waits for it. See the [domain API](../../packages/storage/storage-domain/README.md).
 
 ## The domain facility: `ctx.storageDomain`
 
@@ -208,7 +211,9 @@ The mounted domain facility. Opens declared domains over routed backends; one fa
  * Lifecycle: the CALLER owns the returned handle and closes it via
  * `Domain.close()` (typically as its own `ctx.effect` disposer) — the
  * facility does not tie the domain to any consumer fiber. Domains still
- * open when the facility unmounts are closed by the plugin disposer.
+ * open when the facility or backend closes are drained before their units
+ * close. Closing joins pending initialization; an otherwise valid open
+ * rejects with `closed` instead of returning a handle after that request.
  * @param spec - The domain declaration, typically from `defineDomain`.
  * @returns the opened domain handle, typed by the spec.
  */
@@ -224,12 +229,13 @@ async open<S extends DomainSpec>(spec: S): Promise<Domain<S>>
 get(name: string): DomainImpl | undefined
 
 /**
- * Close every domain still open on this facility. The unmount path for
- * consumers that never called `Domain.close()` themselves; closing is
- * idempotent, so double-closing an already-closed domain is harmless.
- * @returns resolution after every unit is released.
+ * Stop new opens and close every initialized or still-opening domain.
+ * Pending initialization rejects instead of publishing a handle after close.
+ * Concurrent and repeated calls share one terminal teardown.
+ * @returns resolution after every owner and unit settles.
+ * @throws AggregateError containing domain teardown failures after all owners settle.
  */
-async closeAll(): Promise<void>
+closeAll(): Promise<void>
 ```
 
 Source: [`packages/storage/storage-domain/src/index.ts`](../../packages/storage/storage-domain/src/index.ts)

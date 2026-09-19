@@ -20,8 +20,8 @@ import type {
   TypertRemoteNamespace,
 } from '@deepseek-ai/dsh-typert-protocol'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
-import type { ClientRemote } from '../src/client/index.ts'
-import { apply, inject, RemoteStream } from '../src/client/index.ts'
+import type { ClientRemote, RemotePreparationFacts, RemoteInteractionReplyScope } from '../src/client/index.ts'
+import { apply, inject, RemoteStream, carrierFailure } from '../src/client/index.ts'
 import {
   RemoteStreamCarrierError,
   RemoteStreamMuxClient,
@@ -319,8 +319,10 @@ async function benchFiber(
   const start = vi.fn<ConnectionHandle['start']>(() => ({ stop: () => {} }))
   ctx.provide('connection', {
     rpc,
+    state: { getSnapshot: () => 'connecting', subscribe: () => () => undefined },
     registerGenerationSource: generation.register,
     start,
+    reconnect: () => {},
   } as unknown as ConnectionHandle)
   const client = ctx.plugin({ inject, apply })
   await client
@@ -362,7 +364,7 @@ class GenerationHarness {
     let reportReady!: () => void
     const ready = new Promise<void>((resolve) => { reportReady = resolve })
     const done = Promise.resolve()
-      .then(() => source(controller.signal, reportReady))
+      .then(() => source(controller.signal, reportReady, () => undefined))
       .finally(() => {
         if (this.active === controller) this.active = undefined
       })
@@ -380,7 +382,7 @@ class GenerationHarness {
     const controller = new AbortController()
     let reportReady!: () => void
     const ready = new Promise<void>((resolve) => { reportReady = resolve })
-    const done = Promise.resolve().then(() => this.source?.(controller.signal, reportReady))
+    const done = Promise.resolve().then(() => this.source?.(controller.signal, reportReady, () => undefined))
       .then(() => undefined)
     void done.catch(() => undefined)
     return {
@@ -442,6 +444,7 @@ interface EventStreamConnection {
 }
 
 class RemoteEventCarrier {
+  pendingInteractionIds: unknown = undefined
   readonly calls: {
     readonly channel: string
     readonly endpoint: string
@@ -487,7 +490,9 @@ class RemoteEventCarrier {
     const abort = (): void => { connection.wake?.() }
     signal.addEventListener('abort', abort, { once: true })
     try {
-      yield { type: 'ready', clientId, host: { home: '/home/fixture' } }
+      yield { type: 'ready', clientId, host: { home: '/home/fixture' },
+        ...(this.pendingInteractionIds === undefined ? {} : { pendingInteractionIds: this.pendingInteractionIds }),
+      }
       while (!signal.aborted) {
         while (connection.items.length > 0) {
           const item = connection.items.shift() as EventStreamItem
@@ -509,23 +514,32 @@ class RemoteEventCarrier {
 async function eventBench(
   call: ConnectionHandle['rpc']['call'] = vi.fn<ConnectionHandle['rpc']['call']>()
     .mockResolvedValue({ ok: true, value: undefined }),
+  version: 1 | 2 = 1,
+  pendingInteractionIds?: unknown,
+  prepareFacts: () => RemotePreparationFacts = () => ({
+    apiProtocolVersion: version,
+    interactionReplyScope: 'fixture-host' as RemoteInteractionReplyScope,
+  }),
 ): Promise<{
   readonly ctx: Context
   readonly client: Fiber
   readonly carrier: RemoteEventCarrier
   readonly generation: GenerationHarness
   readonly run: GenerationRun
+  readonly start: ReturnType<typeof vi.fn<ConnectionHandle['start']>>
   readonly call: ConnectionHandle['rpc']['call']
 }> {
   const carrier = new RemoteEventCarrier()
-  const { ctx, client, generation } = await benchFiber(
+  carrier.pendingInteractionIds = pendingInteractionIds
+  const { ctx, client, generation, start } = await benchFiber(
     call,
     'in-process',
     carrier.open,
   )
+  if (version === 2) ctx.remote.$prepare(() => Promise.resolve(prepareFacts()))
   const run = generation.start()
   await run.ready
-  return { ctx, client, carrier, generation, run, call }
+  return { ctx, client, carrier, generation, run, call, start }
 }
 
 function approvalFrame(eventId: string, agentId: string, prompt: string): object {
@@ -539,6 +553,15 @@ function approvalFrame(eventId: string, agentId: string, prompt: string): object
 }
 
 describe('Client Remote transport readiness', () => {
+  it('recognizes cross-bundle HTTP failures without class identity or message inference', () => {
+    const error = { isDSHConnectionHttpError: true, status: 403, message: 'Host refused the request' }
+    expect(carrierFailure('fixture/call', error)).toMatchObject({ ok: false, error: {
+      code: 'gateway/permission-denied', message: error.message, details: { endpoint: 'fixture/call', httpStatus: 403 },
+    } })
+    expect(carrierFailure('fixture/call', new Error('HTTP 401'))).toMatchObject({ ok: false, error: { code: 'gateway/internal' } })
+    expect(carrierFailure('fixture/call', undefined)).toMatchObject({ ok: false, error: { code: 'gateway/internal' } })
+  })
+
   it('creates logical stream supervisors against the installed Connection', async () => {
     const { ctx, client } = await benchFiber(vi.fn<ConnectionHandle['rpc']['call']>())
     const stream = ctx.remote.$stream({
@@ -638,7 +661,7 @@ describe('Client Remote transport readiness', () => {
           value: { type: 'ready', clientId: 'recovered-client', host: { home: '/recovered' } },
         })
         await vi.advanceTimersByTimeAsync(0)
-        expect(connection.state.getSnapshot()).toBe('connected')
+        expect(connection.state.getSnapshot()).toBe('ready')
         expect(connection.generation.getSnapshot()?.host.home).toBe('/recovered')
         expect(reset).toHaveBeenCalledOnce()
         expect(vi.getTimerCount()).toBe(0)
@@ -1364,8 +1387,8 @@ describe('Client Typert API', () => {
     await disposeReplacement()
   })
 
-  it('delivers an RPC failure in the error branch with the Host error verbatim', async () => {
-    const rpcError = { code: 'gateway/internal' as const, message: 'host failed', details: {} }
+  it.each(['gateway/internal', 'future/operation-unavailable'])('delivers Host failure %s without narrowing its code or details', async (code) => {
+    const rpcError = { code, message: 'host failed', details: { reason: 'Host-owned refusal' } }
     const ctx = await bench(vi.fn<ConnectionHandle['rpc']['call']>().mockResolvedValue({ ok: false, error: rpcError }))
     await ctx.remote.$mount({ package: '@fixture/probe', descriptors: [directDescriptor()] })
 
@@ -1373,6 +1396,7 @@ describe('Client Typert API', () => {
     expect(outcome.ok).toBe(false)
     if (outcome.ok) throw new Error('expected the Client API invocation to report a failure')
     expect(outcome.error).toMatchObject(rpcError)
+    expect(outcome.error.isDSHRemoteError).toBe(true)
   })
 
   it('folds a transport throw into the error branch', async () => {
@@ -1635,16 +1659,23 @@ describe('Client Typert API', () => {
     await client.dispose()
   })
 
-  it('fails the Connection generation when a result RPC is rejected', async () => {
+  it.each([
+    { code: 'gateway/internal', details: {} },
+    { code: 'gateway/protocol-unsupported', details: { endpoint: '$events/result', supportedApiProtocolVersions: [2, 1] } },
+    { code: 'revision-conflict', details: { eventId: 'event-result-rejected', expectedRevision: 1, receivedRevision: 2 } },
+    { code: 'future/reply-refused', details: { reason: 'maintenance' } },
+  ])('preserves rejected result code $code at the Connection generation', async (failure) => {
     const call = vi.fn<ConnectionHandle['rpc']['call']>().mockResolvedValue({
       ok: false,
-      error: { code: 'gateway/internal', message: 'fixture result rejected', details: {} },
+      error: { ...failure, message: 'fixture result rejected' },
     })
     const { client, carrier, run } = await eventBench(call)
 
     carrier.emit(approvalFrame('event-result-rejected', 'agent-missing', 'respond'))
 
-    await expect(run.done).rejects.toThrow('fixture result rejected')
+    await expect(run.done).rejects.toMatchObject({
+      isDSHRemoteError: true, ...failure, message: 'fixture result rejected',
+    })
     await client.dispose()
   })
 
@@ -1881,6 +1912,21 @@ describe('Client Typert API', () => {
     await client.dispose()
   })
 
+  it('keeps the admitted generation alive when another Client already closed an interaction', async () => {
+    const call = vi.fn<ConnectionHandle['rpc']['call']>()
+      .mockResolvedValueOnce({ ok: false, error: { code: 'interaction-closed', message: 'already answered', details: { eventId: 'event-closed' } } })
+      .mockResolvedValue({ ok: true, value: undefined })
+    const { client, carrier, run } = await eventBench(call)
+    const settled = vi.fn()
+    void run.done.then(settled, settled)
+    carrier.emit(approvalFrame('event-closed', 'agent-missing', 'respond'))
+    await vi.waitFor(() => { expect(call).toHaveBeenCalledOnce() })
+    carrier.emit(approvalFrame('event-next', 'agent-missing', 'respond again'))
+    await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(2) })
+    expect(settled).not.toHaveBeenCalled()
+    await client.dispose()
+  })
+
   it('normalizes a non-Error result transport failure', async () => {
     const call = vi.fn<ConnectionHandle['rpc']['call']>().mockRejectedValue('fixture transport failure')
     const { client, carrier, run } = await eventBench(call)
@@ -2016,14 +2062,17 @@ describe('Client Typert API', () => {
     const open: NonNullable<ConnectionHandle['rpc']['open']> = () => (async function *() {
       yield opening
     })()
-    const { client, generation } = await benchFiber(
+    const { client, generation, start } = await benchFiber(
       vi.fn<ConnectionHandle['rpc']['call']>(),
       'in-process',
       open,
     )
     const run = generation.start()
     try {
-      await expect(run.done).rejects.toThrow('forwarded Remote event stream did not begin with ready')
+      const failure: unknown = await run.done.catch((error: unknown) => error)
+      expect(failure).toMatchObject({ code: 'gateway/stream-invalid', details: { stream: '$events' },
+        message: 'client api: forwarded Remote event stream did not begin with ready', cause: expect.any(TypeError) as unknown })
+      expect(start.mock.calls[0]?.[0].classifyFailure?.(failure)).toBe('fatal')
     } finally {
       await client.dispose()
     }
@@ -2095,15 +2144,239 @@ describe('Client Typert API', () => {
     { type: 'cancel', eventId: '' },
     { type: 'cancel', eventId: 'event-1', extra: true },
   ])('rejects malformed forwarded-event frame %# and stops that stream', async (frame) => {
-    const { ctx, client, carrier, run } = await eventBench()
+    const { ctx, client, carrier, run, start } = await eventBench()
     const seen: string[] = []
     ctx.remote.$on('fixture/changed', (namespace) => { seen.push(namespace) })
     carrier.emit(frame)
-    await expect(run.done).rejects.toThrow('client api: invalid forwarded Remote event frame')
+    const failure: unknown = await run.done.catch((error: unknown) => error)
+    expect(failure).toMatchObject({ code: 'gateway/stream-invalid', details: { stream: '$events' },
+      message: 'client api: invalid forwarded Remote event frame', cause: expect.any(TypeError) as unknown })
+    expect(start.mock.calls[0]?.[0].classifyFailure?.(failure)).toBe('fatal')
     carrier.emit({ type: 'emit', event: 'fixture/changed', args: ['too late'] })
     await Promise.resolve()
     expect(carrier.calls).toHaveLength(1)
     expect(seen).toEqual([])
+    await client.dispose()
+  })
+
+  it.each(['result', 'rejected'] as const)('retries a retained %s after repeated transport loss without reopening its listener', async (kind) => {
+    const call = vi.fn<ConnectionHandle['rpc']['call']>()
+      .mockRejectedValueOnce(new Error('lost first answer'))
+      .mockRejectedValueOnce(new Error('lost second answer'))
+      .mockResolvedValue({ ok: true, value: undefined })
+    const { ctx, client, carrier, run, generation } = await eventBench(call, 2, [])
+    const target = ctx.extend()
+    ctx.typert.contexts.registerClient('agent', {
+      identity: candidate => candidate === target ? agentId('agent-retained') : undefined,
+      resolve: id => id === 'agent-retained' ? target : undefined,
+    })
+    const failure = Object.assign(new Error('declined'), { details: { reason: 'original' } })
+    const listener = vi.fn(async () => kind === 'result' ? 'allowed' as const : Promise.reject(failure))
+    target.remote.$on('fixture/approval', listener)
+    const frame = { ...approvalFrame('event-retained', 'agent-retained', 'respond'), interaction: {
+      requestId: 'event-retained', sessionId: 'session-1', type: 'approval',
+      requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1,
+    } }
+    carrier.emit(frame)
+    await expect(run.done).rejects.toThrow('lost first answer')
+    failure.details.reason = 'mutated after completion'
+    carrier.pendingInteractionIds = ['event-retained']
+    const second = generation.start()
+    await second.ready
+    carrier.emit(frame)
+    await expect(second.done).rejects.toThrow('lost second answer')
+    const third = generation.start()
+    await third.ready
+    carrier.emit(frame)
+    await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(3) })
+    expect(listener).toHaveBeenCalledTimes(1)
+    const payloads = call.mock.calls.map(args => args[2] as { args: Record<string, unknown> })
+    expect(payloads.map(payload => payload.args.clientId)).toEqual(['event-client-1', 'event-client-2', 'event-client-3'])
+    expect(payloads.map(payload => payload.args.outcome)).toEqual(Array(3).fill(payloads[0]!.args.outcome))
+    if (kind === 'rejected') {
+      expect(payloads[2]!.args.outcome).toMatchObject({ error: { details: { reason: 'original' } } })
+    }
+    // Acknowledgement clears the retained answer even if a later Host violates id uniqueness.
+    third.abort()
+    await third.done
+    const fourth = generation.start()
+    await fourth.ready
+    carrier.emit(frame)
+    await vi.waitFor(() => { expect(listener).toHaveBeenCalledTimes(2) })
+    await client.dispose()
+  })
+
+  it.each(['different Host', 'missing Host identity'] as const)
+  ('requires another human answer after %s even when the pending id and revision match', async (change) => {
+    let scope: RemoteInteractionReplyScope | undefined = 'host-a' as RemoteInteractionReplyScope
+    const call = vi.fn<ConnectionHandle['rpc']['call']>()
+      .mockRejectedValueOnce(new Error('old reply lost'))
+      .mockResolvedValue({ ok: true, value: undefined })
+    const b = await eventBench(call, 2, [], () => ({
+      apiProtocolVersion: 2,
+      ...(scope === undefined ? {} : { interactionReplyScope: scope }),
+    }))
+    try {
+      const target = b.ctx.extend()
+      b.ctx.typert.contexts.registerClient('agent', {
+        identity: candidate => candidate === target ? agentId('agent-retained') : undefined,
+        resolve: id => id === 'agent-retained' ? target : undefined,
+      })
+      const listener = vi.fn<() => Promise<FixtureApprovalOutcome>>()
+        .mockResolvedValueOnce('allowed').mockResolvedValue('unavailable')
+      target.remote.$on('fixture/approval', listener)
+      const frame = { ...approvalFrame('same-id', 'agent-retained', 'respond'), interaction: {
+        requestId: 'same-id', sessionId: 'session-1', type: 'approval',
+        requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1,
+      } }
+      b.carrier.emit(frame)
+      await expect(b.run.done).rejects.toThrow('old reply lost')
+      scope = change === 'different Host' ? 'host-b' as RemoteInteractionReplyScope : undefined
+      b.carrier.pendingInteractionIds = ['same-id']
+      const replacement = b.generation.start()
+      await replacement.ready
+      b.carrier.emit(frame)
+      await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(2) })
+      expect(listener).toHaveBeenCalledTimes(2)
+      expect(call.mock.calls[1]?.[2]).toMatchObject({ args: { outcome: { kind: 'result', value: 'unavailable' } } })
+    } finally { await b.client.dispose() }
+  })
+
+  it.each(['success', 'closed result'] as const)('does not let an old %s erase a replacement Host answer', async (acknowledgement) => {
+    let scope = 'host-a' as RemoteInteractionReplyScope
+    const old = Promise.withResolvers<Awaited<ReturnType<ConnectionHandle['rpc']['call']>>>()
+    const call = vi.fn<ConnectionHandle['rpc']['call']>()
+      .mockImplementationOnce(() => old.promise)
+      .mockRejectedValueOnce(new Error('replacement reply lost'))
+      .mockResolvedValue({ ok: true, value: undefined })
+    const b = await eventBench(call, 2, [], () => ({ apiProtocolVersion: 2, interactionReplyScope: scope }))
+    let overlap: GenerationRun | undefined
+    try {
+      const target = b.ctx.extend()
+      b.ctx.typert.contexts.registerClient('agent', {
+        identity: candidate => candidate === target ? agentId('agent-retained') : undefined,
+        resolve: id => id === 'agent-retained' ? target : undefined,
+      })
+      const listener = vi.fn<() => Promise<FixtureApprovalOutcome>>()
+        .mockResolvedValueOnce('allowed').mockResolvedValue('unavailable')
+      target.remote.$on('fixture/approval', listener)
+      const frame = { ...approvalFrame('same-id', 'agent-retained', 'respond'), interaction: {
+        requestId: 'same-id', sessionId: 'session-1', type: 'approval',
+        requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1,
+      } }
+      b.carrier.emit(frame)
+      await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(1) })
+      b.run.abort()
+      scope = 'host-b' as RemoteInteractionReplyScope
+      const replacementFrame = frame
+      b.carrier.pendingInteractionIds = ['same-id']
+      overlap = b.generation.startOverlapping()
+      await overlap.ready
+      b.carrier.emit(replacementFrame)
+      await expect(overlap.done).rejects.toThrow('replacement reply lost')
+      old.resolve(acknowledgement === 'success' ? { ok: true, value: undefined } : {
+        ok: false, error: { code: 'interaction-closed', message: 'old delivery closed', details: { eventId: 'same-id' } },
+      })
+      await b.run.done
+      const retry = b.generation.start()
+      await retry.ready
+      b.carrier.emit(replacementFrame)
+      await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(3) })
+      expect(listener).toHaveBeenCalledTimes(2)
+      expect(call.mock.calls[2]?.[2]).toMatchObject({ args: {
+        interactionRevision: replacementFrame.interaction.revision,
+        outcome: { kind: 'result', value: 'unavailable' },
+      } })
+    } finally {
+      old.resolve({ ok: true, value: undefined })
+      overlap?.abort()
+      b.run.abort()
+      await b.client.dispose()
+    }
+  })
+
+  it.each(['closed', 'missing-snapshot', 'cancelled', 'business-error'] as const)
+  ('does not reuse an answer after %s', async (reason) => {
+    const call = vi.fn<ConnectionHandle['rpc']['call']>()
+    if (reason === 'business-error') call.mockResolvedValueOnce({ ok: false,
+      error: { code: 'revision-conflict', message: 'invalid revision', details: {} } })
+    else call.mockRejectedValueOnce(new Error('answer lost'))
+    call.mockResolvedValue({ ok: true, value: undefined })
+    const { ctx, client, carrier, run, generation } = await eventBench(call, 2, [])
+    const target = ctx.extend()
+    ctx.typert.contexts.registerClient('agent', {
+      identity: candidate => candidate === target ? agentId('agent-retained') : undefined,
+      resolve: id => id === 'agent-retained' ? target : undefined,
+    })
+    const listener = vi.fn(async () => 'allowed' as const)
+    target.remote.$on('fixture/approval', listener)
+    const frame = { ...approvalFrame('event-retained', 'agent-retained', 'respond'), interaction: {
+      requestId: 'event-retained', sessionId: 'session-1', type: 'question',
+      requiredPermission: 'question.respond', createdAt: 100, status: 'pending', revision: 1,
+    } }
+    carrier.emit(frame)
+    await expect(run.done).rejects.toThrow(reason === 'business-error' ? 'invalid revision' : 'answer lost')
+    carrier.pendingInteractionIds = reason === 'closed' ? [] : reason === 'missing-snapshot' ? undefined : ['event-retained']
+    const second = generation.start()
+    await second.ready
+    if (reason === 'cancelled') carrier.emit({ type: 'cancel', eventId: 'event-retained' })
+    carrier.emit(frame)
+    await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(2) })
+    expect(listener).toHaveBeenCalledTimes(2)
+    await client.dispose()
+  })
+
+  it.each([null, 'event-1', [''], [1], ['event-1', 'event-1']])
+  ('rejects malformed pending interaction snapshots %#', async (ids) => {
+    const carrier = new RemoteEventCarrier()
+    carrier.pendingInteractionIds = ids
+    const { ctx, client, generation } = await benchFiber(vi.fn(), 'in-process', carrier.open)
+    ctx.remote.$prepare(() => Promise.resolve({ apiProtocolVersion: 2 }))
+    await expect(generation.start().done).rejects.toThrow('invalid pending interaction snapshot')
+    await client.dispose()
+  })
+
+  it.each(['result', 'rejected'] as const)('echoes the delivered revision on a listener %s without changing its request', async (kind) => {
+    const { ctx, client, carrier, call } = await eventBench(undefined, 2)
+    const target = ctx.extend()
+    ctx.typert.contexts.registerClient('agent', {
+      identity: candidate => candidate === target ? agentId('agent-revision') : undefined,
+      resolve: id => id === 'agent-revision' ? target : undefined,
+    })
+    const listener = vi.fn(async (_request: unknown) => kind === 'result' ? 'allowed' as const : Promise.reject(new Error('declined')))
+    target.remote.$on('fixture/approval', listener)
+    carrier.emit({ ...approvalFrame('event-revision', 'agent-revision', 'respond'), interaction: {
+      requestId: 'event-revision', sessionId: 'session-1', type: 'approval',
+      requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1,
+    } })
+    await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(1) })
+    expect(vi.mocked(call).mock.calls[0]?.[2]).toMatchObject({ apiProtocolVersion: 2,
+      args: { interactionRevision: 1, outcome: { kind } },
+    })
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(listener.mock.calls[0]?.[0]).not.toHaveProperty('interaction')
+    expect(listener.mock.calls[0]?.[0]).not.toHaveProperty('interactionRevision')
+    await client.dispose()
+  })
+
+  it.each([1, 2] as const)('admits interaction metadata only on protocol %s', async (version) => {
+    const { client, carrier, run, call } = await eventBench(undefined, version)
+    const interaction = { requestId: 'event-record', sessionId: 'session-1', type: 'approval',
+      requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1 }
+    carrier.emit({ ...approvalFrame('event-record', 'agent-missing', 'respond'), interaction })
+    if (version === 1) {
+      await expect(run.done).rejects.toThrow('invalid forwarded Remote event frame')
+      expect(call).not.toHaveBeenCalled()
+    } else {
+      await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(1) })
+      expect(call).toHaveBeenCalledWith('/api', '$events/result', {
+        apiProtocolVersion: 2,
+        args: { clientId: 'event-client-1', eventId: 'event-record', interactionRevision: 1, outcome: { kind: 'next' } },
+      }, expect.any(AbortSignal))
+      carrier.emit({ type: 'cancel', eventId: 'event-record', interaction: { ...interaction, status: 'resolved', revision: 2 } })
+      carrier.emit({ type: 'cancel', eventId: 'event-record', interaction: { ...interaction, status: ['resolved'], revision: 2 } })
+      await expect(run.done).rejects.toThrow('invalid interaction record')
+    }
     await client.dispose()
   })
 
@@ -2532,7 +2805,8 @@ describe('Remote stream client carrier lifecycle', () => {
     })
   })
 
-  it('fails active streams on an invalid frame and ignores later frames', async () => {
+  it.each([new Uint8Array([1, 2, 3]), 'not json', JSON.stringify({ type: 'unknown', streamId: 'unknown' })])
+  ('fails active streams on an invalid frame %# and ignores later frames', async (invalidFrame) => {
     await withFakeWebSocket('https://harness.example', async () => {
       const client = new RemoteStreamMuxClient()
       client.start()
@@ -2542,12 +2816,13 @@ describe('Remote stream client carrier lifecycle', () => {
       const socket = FakeWebSocket.sockets[0]!
       const { streamId } = JSON.parse(socket.sent[0]!) as { streamId: string }
       FakeWebSocket.dispatchClose = false
-      socket.receiveRaw(new Uint8Array([1, 2, 3]))
+      socket.receiveRaw(invalidFrame)
       socket.receive({ type: 'item', streamId, value: 'too late' })
       socket.drop()
 
       await expect(pending).rejects.toMatchObject({
-        name: 'RemoteStreamCarrierError', message: 'api gateway: invalid Remote stream frame',
+        code: 'gateway/stream-invalid', details: { stream: '/api/remote.mux' },
+        message: 'api gateway: invalid Remote stream frame', cause: expect.any(Error) as unknown,
       })
       expect(socket.closedWith).toContainEqual({ code: 4002, reason: 'invalid Remote stream frame' })
       await client.close()

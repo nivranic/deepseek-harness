@@ -58,6 +58,8 @@ export interface RemoteStreamFactory {
 export interface RemoteJournalStreamOptions<Page, Entry, Cursor, Notification = never> {
   /** Diagnostic stream name used in protocol failures. */
   readonly name: string
+  /** Wait without following until an admitted Host satisfies this domain predicate. */
+  readonly available?: RemoteStreamOptions<unknown>['available']
   /** Cursor representing a journal with no entries. */
   readonly emptyCursor: Cursor
   /** Read the ordered entries carried by a page. */
@@ -114,6 +116,7 @@ export abstract class RemoteJournalStream<
   ) {
     this.stream = remote.$stream<RemoteJournalFrame<Entry, Cursor, Page, Notification>>({
       name: options.name,
+      ...(options.available === undefined ? {} : { available: options.available }),
       open: signal => this.follow(this.initialRequest, signal),
       ended: accepted => accepted
         ? new RemoteStreamCarrierError(`${options.name} ended without a terminal result`)

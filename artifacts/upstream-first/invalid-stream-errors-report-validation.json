@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Invalid stream classification and localized explicit recovery; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/invalid-stream-errors-source.json",
+    "sha256": "ba8ba493b434d5cf8b98812f0c18759315c7862728e22625a2202aad46a11eb0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1948f327be5e78c69d0620eff5b7e345aa7a6bfe89b5d7480941cc39e027d69b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/invalid-stream-errors-binding.json",
+    "sha256": "707b2ce876b47ef70bc838d20bae9d126ffd6bc9fc2f463df6a36e2384a5cc15"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-invalid-stream-errors-reports.mjs",
+      "sha256": "6539a82d018d8d224259985036eaec1a7589f7a07398bfae21aa2e663aaf67fc"
+    },
+    {
+      "path": ".artifacts/capture-invalid-stream-errors-validation.mjs",
+      "sha256": "5ae67cda4dfd7e3dfa3506e7fcc856b62608c2d123363d8b543a0bb807437525"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "bdb8400d3bdca8b0b42a503082d272f0a26410fe56c2d8308611d547ee2699b3"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "78347c05b892737b20328be7d30b40ce630042b1322fac20a45f283afa08b4dd"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/invalid-stream-errors-binding.log",
+      "sha256": "b8c8416cac74fc3ff3f64f054d4d98d75af58a8a1f7dd70b3f5c347e47887c4f"
+    },
+    {
+      "path": ".artifacts/invalid-stream-errors-audit-tests.log",
+      "sha256": "d9bce43708886f445095cd74d8f907f2781b22d22737a519cf6cd660ade082c9"
+    },
+    {
+      "path": ".artifacts/invalid-stream-errors-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/invalid-stream-errors-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/invalid-stream-errors-report-generation.log",
+      "sha256": "fee38423682f6d1f2e0a50aabd65d5aa82ca06f4423805940cb852603041bf6a"
+    }
+  ]
+}

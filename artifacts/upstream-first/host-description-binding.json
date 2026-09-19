@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/host-description-source.json",
+      "status": "PASS",
+      "rejected": "Host description source record changed"
+    },
+    {
+      "path": "packages/api/host-description/src/index.ts",
+      "status": "PASS",
+      "rejected": "Host description sourceFiles changed after validation"
+    },
+    {
+      "path": "packages/api/gateway/src/index.ts",
+      "status": "PASS",
+      "rejected": "Host description sourceFiles changed after validation"
+    },
+    {
+      "path": "packages/api/host-description/lib/index.js",
+      "status": "PASS",
+      "rejected": "Host description builtFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/host-description-controls.json",
+      "status": "PASS",
+      "rejected": "Host description receipts changed after validation"
+    }
+  ]
+}

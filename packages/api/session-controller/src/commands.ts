@@ -17,7 +17,7 @@ import type { MessageSource } from '@deepseek-ai/dsh-llm'
 import { SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, SessionHeader, SessionId, UserMessage } from '@deepseek-ai/dsh-session'
 import { SessionQueryError, type SessionObservation } from '@deepseek-ai/dsh-session-query'
-import { SessionTitleInvalidError } from '@deepseek-ai/dsh-session-title'
+import { SessionTitleInvalidError, SessionTitleRevisionConflictError } from '@deepseek-ai/dsh-session-title'
 import { canonicalClientTimeZone } from '@deepseek-ai/dsh-util-time'
 import { assertNever } from '@deepseek-ai/dsh-util-values'
 import { RemoteError, remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
@@ -36,6 +36,7 @@ import type {
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
+  SessionCancelTurnRequest,
   SessionCancelValue,
   SessionCreateRequest,
   SessionCreateValue,
@@ -44,6 +45,7 @@ import type {
   SessionPromptRequest,
   SessionPromptValue,
   SessionRenameRequest,
+  SessionRenameAtRequest,
   SessionRenameValue,
   SessionSelectModelRequest,
   SessionSelectModelValue,
@@ -174,15 +176,37 @@ export class SessionCommandController {
    * @returns the accepted title and durable event sequence.
    */
   async rename(request: SessionRenameRequest): Promise<SessionRenameValue> {
+    return this.renameTitle(request)
+  }
+
+  /**
+   * Accept a title only against its captured revision, or return the already pinned identical title.
+   * @param request - Session, title and durable editing baseline.
+   * @returns the accepted title and its original durable event sequence.
+   */
+  async renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue> {
+    let revision: SessionSeq | null
+    try {
+      revision = request.expectedRevision === null ? null : SessionSeq(request.expectedRevision)
+    } catch {
+      throw new RemoteError('gateway/bad-request', 'expectedRevision must be null or a non-negative safe integer', {})
+    }
+    return this.renameTitle(request, revision)
+  }
+
+  private async renameTitle(request: SessionRenameRequest, expectedRevision?: SessionSeq | null): Promise<SessionRenameValue> {
     const agent = await this.resolveAgent(request.sessionId)
     const titles = this.ctx.get('sessionTitle')
     if (titles === undefined) {
       throw new RemoteError('gateway/internal', 'renaming is unavailable: this deployment mounts no session-title service', {})
     }
     try {
-      const accepted = titles.rename(agent.session, request.title)
+      const accepted = titles.rename(agent.session, request.title, expectedRevision)
       return { title: accepted.title, seq: accepted.eventSeq }
     } catch (error) {
+      if (error instanceof SessionTitleRevisionConflictError) {
+        throw new RemoteError('session/revision-conflict', error.message, { sessionId: request.sessionId })
+      }
       if (error instanceof SessionTitleInvalidError) {
         throw new RemoteError('session/title-invalid', error.message, { sessionId: request.sessionId })
       }
@@ -297,7 +321,7 @@ export class SessionCommandController {
   /**
    * Reject empty content, then admit one prompt after Agent and attachment validation.
    * @param request - Session identity, prompt content, source metadata, and delivery mode.
-   * @returns acknowledgement that the Agent accepted the prompt.
+   * @returns acknowledgement of the first inbox insertion for this request identity, including retries.
    */
   async prompt(request: SessionPromptRequest): Promise<SessionPromptValue> {
     if (!hasPromptContent(request.content)) {
@@ -334,6 +358,7 @@ export class SessionCommandController {
     }
     const hasImage = request.content.some(part => part.type === 'image')
     const admit = async (): Promise<SessionPromptValue> => {
+      if (hasPromptRequest(agent, request.requestId)) return { accepted: true }
       try {
         if (hasImage) {
           const current = this.agents.selectionFor(agent).current
@@ -359,6 +384,9 @@ export class SessionCommandController {
             { sessionId: agent.id },
           )
         }
+        // Admission can await storage while another call inserts this request.
+        // No await separates this final check from the durable inbox insertion.
+        if (hasPromptRequest(agent, request.requestId)) return { accepted: true }
         using binding = this.ctx.fileUploads.bindPrompt(agent, admission.receiptIds, request.requestId)
         if (request.mode === 'steer') agent.steer(message)
         else agent.followup(message)
@@ -495,19 +523,42 @@ export class SessionCommandController {
    * @returns acknowledgement that cancellation was requested.
    */
   cancel(request: SessionCancelRequest): SessionCancelValue {
-    const agent = this.ctx.agents.get(request.sessionId)
+    const agent = this.cancellableAgent(request.sessionId)
+    agent.cancel({ kind: 'user' }, { keepInbox: true })
+    return { accepted: true }
+  }
+
+  /**
+   * Cancel the addressed turn without arming cancellation for later work.
+   * @param request - Session and observed turn/start sequence, or null for no observed turn.
+   * @returns acceptance whether the target is cancelled or already inactive.
+   */
+  cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue {
+    if (request.turnStartSeq !== null) {
+      try { SessionSeq(request.turnStartSeq) } catch {
+        throw new RemoteError('gateway/bad-request', 'turnStartSeq must be null or a non-negative safe integer', {})
+      }
+    }
+    const agent = this.cancellableAgent(request.sessionId)
+    const active = this.ctx.sessionProjections.stateOf(agent.session, 'activeTurnStart')
+    if (active === undefined) throw new RemoteError('gateway/internal', 'active turn projection is unavailable', {})
+    if (active !== null && active === request.turnStartSeq) agent.cancel({ kind: 'user' }, { keepInbox: true })
+    return { accepted: true }
+  }
+
+  private cancellableAgent(sessionId: SessionId): Agent {
+    const agent = this.ctx.agents.get(sessionId)
     if (agent === undefined) {
       throw new RemoteError(
         'session/not-found',
-        `session "${request.sessionId}" not found (not attached)`,
-        { sessionId: request.sessionId },
+        `session "${sessionId}" not found (not attached)`,
+        { sessionId },
       )
     }
     if (hasApiSessionSubagentOwner(this.ctx, agent.session, agent)) {
-      throw apiSessionSubagentOwnershipError(request.sessionId)
+      throw apiSessionSubagentOwnershipError(sessionId)
     }
-    agent.cancel({ kind: 'user' }, { keepInbox: true })
-    return { accepted: true }
+    return agent
   }
 
   private async resolveAgent(sessionId: SessionId): Promise<Agent> {
@@ -590,9 +641,8 @@ function hasPromptRequest(agent: Agent, requestId: SessionRequestId): boolean {
   if (agent.inbox.nextTurn.some(matches) || agent.inbox.nextStep.some(matches)) return true
   // oxlint-disable-next-line typescript/no-deprecated -- Existing Session history read; migration deferred.
   return agent.session.snapshotEvents().some((event) => {
-    if (event.type !== 'user/message') return false
-    const source = event.data.source
-    return source.kind === 'user' && 'rpcId' in source && source.rpcId === requestId
+    if (event.type === 'user/message') return matches(event.data)
+    return event.type === 'agent/inbox/spliced' && event.data.inserted.some(matches)
   })
 }
 function imageBlockIn(

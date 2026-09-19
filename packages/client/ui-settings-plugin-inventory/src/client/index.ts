@@ -1,6 +1,8 @@
 /** Read-only Host plugin inventory registered into Web Settings. */
 
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import { createElement } from 'react'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
@@ -9,7 +11,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-agent-preset/client'
 // Inline-safe shared fold: shipped ids map to dictionary keys in one home.
 import { presetDisplayText } from '@deepseek-ai/dsh-agent-presets/display'
-import { PluginInventorySettingsTab, type PluginInventorySettingsTabInjected } from './PluginInventorySettingsTab.tsx'
+import { PluginInventorySettingsTab, type PluginInventorySettingsTabInjected, type PluginInventorySettingsTabProps } from './PluginInventorySettingsTab.tsx'
 import { en, zh, type PluginInventoryLocaleKey } from './locales.ts'
 
 export type { PluginInventorySettingsTabInjected, PluginInventorySettingsTabProps } from './PluginInventorySettingsTab.tsx'
@@ -26,33 +28,55 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const NS = 'settings.pluginInventory'
 
 /** Services required by the Settings registration and generated Remote face. */
-export const inject = ['slots', 'locale', 'remote', 'remote.pluginInventory']
+export const inject = ['slots', 'locale', 'remote', 'remote.pluginInventory', 'connection']
 
 /** Contribute the lazy inventory tab to the Plugins settings section. */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-settings-plugin-inventory: dictionaries')
 
   const t = ctx.locale.bind(NS)
-  const list: PluginInventorySettingsTabInjected['list'] = async () => {
-    const result = await ctx.remote.pluginInventory.list()
-    if (!result.ok) {
-      throw new Error(`pluginInventory.list failed: ${result.error.code}: ${result.error.message}`)
-    }
-    return result.value
-  }
   // Resolved per call over ui-agent-preset's dictionaries, so a language
   // switch re-resolves shipped names; user-authored metadata passes through.
   const agentPresetCopy = ctx.locale.bind('settings.agentPreset')
   const presetName: PluginInventorySettingsTabInjected['presetName'] = preset =>
     presetDisplayText(preset, agentPresetCopy).name
-  const injected = (): PluginInventorySettingsTabInjected => ({ list, presetName })
-
-  ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
-    name: 'settings.plugins.tab',
-    id: 'all',
-    order: 10,
-    label: () => t('tab'),
-    locale: NS,
-    inject: injected,
-  }, PluginInventorySettingsTab))
+  const connection = ctx.get('connection') as ConnectionHandle
+  ctx.slots.inject('settings.plugins.tab', () => {
+    let remove: (() => void) | undefined
+    const refresh = (): void => {
+      remove?.()
+      remove = undefined
+      const host = ctx.remote.$host
+      if (host.capabilities?.includes('plugin.inventory.v1') !== true) return
+      const controller = new AbortController()
+      const current = (): boolean => !controller.signal.aborted && ctx.remote.$host === host
+      const changed = (): Error => new Error('pluginInventory.list: connection changed')
+      const list: PluginInventorySettingsTabInjected['list'] = async () => {
+        if (!current()) throw changed()
+        try {
+          const result = await ctx.remote.pluginInventory.list(controller.signal)
+          if (!current()) throw changed()
+          if (!result.ok) throw result.error
+          return result.value
+        } catch (error) {
+          if (!current()) throw changed()
+          throw error
+        }
+      }
+      // A new component identity discards the previous Host's search, expansion and menu state.
+      const InventoryForConnection = (props: PluginInventorySettingsTabProps) => createElement(PluginInventorySettingsTab, props)
+      const unregister = ctx.slots.register({
+        name: 'settings.plugins.tab',
+        id: 'all',
+        order: 10,
+        label: () => t('tab'),
+        locale: NS,
+        inject: (): PluginInventorySettingsTabInjected => ({ list, presetName }),
+      }, InventoryForConnection)
+      remove = () => { controller.abort(); unregister() }
+    }
+    refresh()
+    const stop = connection.generation.subscribe(refresh)
+    return () => { stop(); remove?.() }
+  })
 }

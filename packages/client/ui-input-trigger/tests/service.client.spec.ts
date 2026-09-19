@@ -68,6 +68,91 @@ const claimOf = (token: string): CommandClaim =>
 /** One microtask hop: lets settled candidate promises flow into the store. */
 const tick = () => Promise.resolve()
 
+describe('candidate invalidation', () => {
+  it.each(['same', 'changed', 'closed'] as const)('handles a %s trigger update before deferred candidate refresh', async (update) => {
+    let invalidate = () => {}
+    const source = deferredSource('/', 'command', {
+      subscribeCandidates: (_session, listener) => { invalidate = listener; return () => {} },
+    })
+    const { controller } = controllerBench([source.source])
+    controller.track('/a', 2, { tier: 'plain' }, 1)
+    source.pending[0]!.resolve([{ name: 'old' }])
+    await tick()
+    invalidate()
+    if (update === 'closed') controller.dismiss()
+    else controller.track(update === 'same' ? '/a' : '/b', 2, { tier: 'plain' }, 2)
+    await tick()
+    expect(source.pending).toHaveLength(update === 'closed' ? 1 : 2)
+    if (update !== 'closed') {
+      source.pending[1]!.resolve([{ name: 'current' }])
+      await tick()
+      expect(controller.menu.getSnapshot().groups[0]).toMatchObject({ status: 'ready', items: [{ name: 'current' }] })
+    } else expect(controller.menu.getSnapshot().open).toBe(false)
+    controller.dispose()
+  })
+
+  it('clears rows and headers immediately, aborts old work, and retains launcher filtering', async () => {
+    let invalidate = () => {}
+    let lexiconChanged = () => {}
+    let header = true
+    const off = vi.fn()
+    const source = deferredSource('@', 'reference', {
+      header: () => header ? [{ label: 'root', value: 'root' }] : undefined,
+      lexicon: () => [],
+      subscribeLexicon: (_session, listener) => { lexiconChanged = listener; return () => {} },
+      subscribeCandidates: (_session, listener) => { invalidate = listener; return off },
+    })
+    const other = deferredSource('@', 'other')
+    const { controller } = controllerBench([source.source, other.source])
+    controller.toggleSource('reference', {
+      trigger: '@', query: '', quoted: false, position: 'inline', span: { start: 0, end: 0, draftRev: 1 },
+    })
+    source.pending[0]!.resolve([{ name: 'old' }])
+    await tick()
+    controller.refreshOpenMenu()
+    header = false
+    invalidate()
+    expect(source.pending[1]!.signal.aborted).toBe(true)
+    expect(controller.menu.getSnapshot().groups[0]?.items).toEqual([])
+    expect(controller.headers.getSnapshot().size).toBe(0)
+    source.pending[1]!.resolve([{ name: 'late' }])
+    await tick()
+    expect(source.warm).toHaveBeenCalledTimes(2)
+    expect(other.pending).toHaveLength(0)
+    expect(controller.launcher.getSnapshot()).toBe('reference')
+    source.pending[2]!.resolve([{ name: 'current' }])
+    await tick()
+    expect(controller.menu.getSnapshot().groups[0]?.items).toEqual([{ name: 'current' }])
+    lexiconChanged()
+    await tick()
+    expect(other.pending).toHaveLength(0)
+    controller.dispose()
+    invalidate()
+    await tick()
+    expect(off).toHaveBeenCalledOnce()
+    expect(source.warm).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries warmup with a closed menu and cancels queued refresh on source removal', async () => {
+    let invalidate = () => {}
+    const off = vi.fn()
+    const source = deferredSource('/', 'skill', {
+      subscribeCandidates: (_session, listener) => { invalidate = listener; return off },
+    })
+    const { controller, sources } = controllerBench([source.source])
+    invalidate()
+    await tick()
+    expect(source.warm).toHaveBeenCalledTimes(2)
+    expect(controller.menu.getSnapshot().open).toBe(false)
+    invalidate()
+    sources.length = 0
+    controller.sourceRemoved(source.source)
+    await tick()
+    expect(off).toHaveBeenCalledOnce()
+    expect(source.warm).toHaveBeenCalledTimes(2)
+  })
+})
+
 /** Direct controller bench: real scope tag + live roster array. */
 function controllerBench(sources: InputTriggerSource[] = [], key = 'a') {
   const root = new Context()
@@ -1165,10 +1250,49 @@ describe('adjudicate', () => {
 })
 
 describe('reference activation', () => {
+  it('publishes viewer and roster changes while queries and retained openers remain side-effect-free when unavailable', () => {
+    let notify: () => void = () => {}
+    const stop = vi.fn()
+    const available = vi.fn(() => false)
+    const openReference = vi.fn(() => true)
+    const candidates = vi.fn(() => Promise.resolve([]))
+    const { source, warm } = deferredSource('/', 'skill', {
+      lexicon: () => ['review'], candidates, canOpenReference: available, openReference,
+      subscribeReferenceAvailability: (_session, listener) => { notify = listener; return stop },
+    })
+    const { controller, sources } = controllerBench([source])
+    warm.mockClear()
+    const listener = vi.fn()
+    controller.referenceAvailability.subscribe(listener)
+    const original = controller.referenceAvailability.getSnapshot()
+    expect(original.canOpenReference('skill', { ref: '/review' })).toBe(false)
+    expect(controller.openReference('skill', { ref: '/review' })).toBe(false)
+    expect(warm).not.toHaveBeenCalled()
+    expect(candidates).not.toHaveBeenCalled()
+    expect(openReference).not.toHaveBeenCalled()
+    available.mockReturnValue(true)
+    notify()
+    expect(listener).toHaveBeenCalledOnce()
+    expect(controller.referenceAvailability.getSnapshot()).not.toBe(original)
+    expect(controller.canOpenReference(undefined, { ref: '/review' })).toBe(true)
+    sources.splice(0)
+    controller.sourceRemoved(source)
+    expect(stop).toHaveBeenCalledOnce()
+    expect(original.canOpenReference('skill', { ref: '/review' })).toBe(false)
+    expect(controller.openReference('skill', { ref: '/review' })).toBe(false)
+    sources.push(source)
+    controller.sourceAdded(source)
+    expect(controller.canOpenReference('skill', { ref: '/review' })).toBe(true)
+    controller.dispose()
+    expect(stop).toHaveBeenCalledTimes(2)
+    expect(original.canOpenReference('skill', { ref: '/review' })).toBe(false)
+    expect(controller.openReference('skill', { ref: '/review' })).toBe(false)
+  })
+
   it('routes chips by owner and text by the live lexicon without picking or serializing', () => {
     const openReference = vi.fn(() => true)
     const lexicon = vi.fn(() => ['review'])
-    const skill = deferredSource('/', 'skill', { lexicon, openReference }).source
+    const skill = deferredSource('/', 'skill', { lexicon, openReference, canOpenReference: () => true }).source
     const inert = deferredSource('/', 'inert', { lexicon }).source
     const { controller, sources } = controllerBench([inert, skill])
     expect(controller.openReference(undefined, { ref: '/unknown' })).toBe(false)

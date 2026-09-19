@@ -7,6 +7,7 @@ import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { apply, inject } from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type { SidebarRootInjected } from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
+import { TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
 import { apply as hostApply } from '../src/index.ts'
 
 const owners = new Set<Fiber>()
@@ -30,6 +31,8 @@ async function bench(declare = true) {
   await owner.await()
   if (ctx === undefined) throw new Error('the sidebar fixture owner did not activate')
   await ctx.plugin(SlotRegistry).await()
+  const remote = new TestRemote(ctx)
+  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
   const layout = { toggleSidebar: vi.fn(), selectPanel: vi.fn() }
   const uiWorkspace = { startSession: vi.fn() }
   ctx.provide('layout', layout)
@@ -45,16 +48,38 @@ async function bench(declare = true) {
       SidebarFrame,
     )
   }
-  return { ctx, slots, layout, uiWorkspace }
+  return { ctx, slots, layout, uiWorkspace, remote }
 }
 
 describe('ui-sidebar apply', () => {
+  it('observes capability replacement and blocks retained creation callbacks', async () => {
+    const b = await bench()
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const injected = (b.slots.entries('sidebar')[0]!.inject as () => SidebarRootInjected)()
+    const changed = vi.fn()
+    const dispose = injected.hooks.sessionManagement.subscribe(changed)
+    expect(injected.hooks.sessionManagement.getSnapshot()).toBe(true)
+    b.remote.$host = { home: undefined, isLoopback: true, capabilities: [] }
+    b.ctx.emit('connection/reset')
+    expect(changed).toHaveBeenCalledOnce()
+    expect(injected.hooks.sessionManagement.getSnapshot()).toBe(false)
+    injected.startSession()
+    expect(b.uiWorkspace.startSession).not.toHaveBeenCalled()
+    b.remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
+    b.ctx.emit('connection/reset')
+    injected.startSession()
+    expect(b.uiWorkspace.startSession).toHaveBeenCalledOnce()
+    dispose()
+    b.ctx.emit('connection/reset')
+    expect(changed).toHaveBeenCalledTimes(2)
+  })
+
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
   })
 
   it('declares only the services it uses', () => {
-    expect(inject).toEqual(['slots', 'layout', 'uiWorkspace', 'locale'])
+    expect(inject).toEqual(['slots', 'layout', 'uiWorkspace', 'locale', 'remote'])
   })
 
   it('registers the shell and declares its child seats', async () => {

@@ -136,8 +136,8 @@ function harness(options: {
     },
   }
   // The page plugin's context, scripted down to the namespaces it reaches.
-  const ctx = { remote: face } as never
-  const operations = createModelsOperations(ctx)
+  const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1'] }, ...face } } as never
+  const operations = createModelsOperations(ctx, () => 'Host operation unavailable')
   const controller = new ModelsSettingsStore(ctx, settingsSchema, new SettingsDescribeMirror(ctx))
   const openSection = vi.fn()
   const complete = vi.fn()

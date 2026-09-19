@@ -7,7 +7,7 @@ import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import type { ISession } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
 import {
-  RemoteError, SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope,
+  RemoteError, TestRemote, SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope,
 } from '@deepseek-ai/dsh-client-test-runtime'
 import { InputHub } from '../src/client/input/hub.ts'
 import { apply, inject, type EmptyWorkspaceOwnerProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
@@ -61,6 +61,9 @@ function WorkspaceProbe({ open }: EmptyWorkspaceOwnerProps) {
 
 async function bench(opts?: { blank?: boolean }) {
   const runtime = await SlotTestRuntime.create()
+  runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  const remote = new TestRemote(runtime.ctx)
+  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
   runtime.ctx.provide('uiWorkspace', {
     openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
       beforeOpen(SID)
@@ -89,6 +92,9 @@ async function bench(opts?: { blank?: boolean }) {
 describe('resident composer', () => {
   it('renders the locked view state while no session exists at all', async () => {
     const runtime = await SlotTestRuntime.create()
+    runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    const remote = new TestRemote(runtime.ctx)
+    remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
       openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
         beforeOpen(SID)
@@ -122,6 +128,9 @@ describe('resident composer', () => {
 
   it('keeps the complete Hero tree mounted when the first Workspace session appears', async () => {
     const runtime = await SlotTestRuntime.create()
+    runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    const remote = new TestRemote(runtime.ctx)
+    remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
       openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
         beforeOpen(SID)
@@ -193,6 +202,9 @@ describe('resident composer', () => {
 describe('prompt rejection through the assembled composer', () => {
   it('renders the promptError alert strip and keeps the draft in the machine', async () => {
     const runtime = await SlotTestRuntime.create()
+    runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    const remote = new TestRemote(runtime.ctx)
+    remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
       openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
         beforeOpen(SID)

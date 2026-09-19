@@ -31,7 +31,7 @@ export function createReadHtmlRelative(readRelated: ReadHtmlRelated, address: st
     combined.throwIfAborted()
     const result = await readRelated(address, path, combined)
     combined.throwIfAborted()
-    if (!result.ok) throw new Error(result.error.message)
+    if (!result.ok) throw result.error
     return documentFileBytes(result.value)
   }
 }

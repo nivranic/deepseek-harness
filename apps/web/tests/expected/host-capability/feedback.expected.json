@@ -1,0 +1,15 @@
+{
+  "noUnsupportedProbes": true,
+  "readOnlyHasNoMutationButtons": true,
+  "unsentDialogWithdrawn": true,
+  "composerDraftRetained": true,
+  "replacementFeedbackDraftRetained": true,
+  "oldAcknowledgementSuppressed": true,
+  "cancelledPuts": 1,
+  "events": ["feedback/message-put", "feedback/message-delete", "feedback/record"],
+  "mutations": ["/api/messageFeedback/put", "/api/messageFeedback/delete", "/api/sessionFeedback/record"],
+  "noMutationReplay": true,
+  "modelRequests": 0,
+  "discoveryControlled": true,
+  "putReplyControlled": true
+}

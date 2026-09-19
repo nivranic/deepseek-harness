@@ -44,6 +44,8 @@ Create with `ifVersion: null`; edit or delete with the returned version. Stale m
 
 Targets must be non-empty assistant messages produced by append-origin events. User messages, empty assistant placeholders, and replacement-origin messages return `target-not-found`. Feedback survives restart; a fork starts without owned feedback even when its inherited prefix contains parent feedback.
 
+Host discovery declares `feedback.message.read.v1`, `feedback.message.put.v1` and `feedback.message.delete.v1` independently. Client Gateway admission requires the corresponding capability before dispatch. Support does not replace Session ownership, target validation or item-version checks; the existing durability and no-op guarantees still apply.
+
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 

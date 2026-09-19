@@ -27,7 +27,7 @@ export interface SettingsScopeSnapshot<T> {
   user: unknown
   /** Namespace revision fencing the next write; undefined before the first Host view. */
   revision: number | undefined
-  /** Whether the Host document accepts writes; memory mode never does. */
+  /** Whether the current provider and admitted Host support writes; memory mode never does. */
   writable: boolean
   /** `host` syncs with the Host document; `memory` keeps a remote browser process-local. */
   mode: 'host' | 'memory'
@@ -61,7 +61,10 @@ export interface SettingsScope<T> {
    */
   subscribe(listener: () => void): () => void
   /**
-   * Queue one atomic namespace mutation. All operations share one revision
+   * Queue one atomic namespace mutation only after this generation exposes the
+   * namespace and advertises Settings read/write support. Earlier gestures are
+   * skipped, not replayed after loading. Generation replacement drops queued
+   * writes and ignores old results. All operations share one revision
    * fence, Host validation, persistence decision, and recovery read. Supplying
    * `expectedRevision` preserves an earlier read as the fence instead of using
    * the latest queued or mirrored revision.

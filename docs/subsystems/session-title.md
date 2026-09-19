@@ -8,6 +8,8 @@ Sources: [`packages/session/session-title/src/index.ts`](../../packages/session/
 
 ## Durable title state
 
+The `titleRevision` projection is the latest durable `session/title` event seq, or null before any title. It is a conditional-edit baseline, not the projection snapshot's global `asOfSeq`.
+
 `SessionTitleProviderId` is recorded for provider-produced revisions. `SessionTitleEventData` lists the exact human-message seqs used for the title, while `SessionTitleSnapshot` adds the durable event envelope facts returned by `ctx.sessionTitle.get()` and `foldSessionTitle()`. The `title` projection keeps its version-1 state and client view as only the title string or `null`, so existing persisted cache rows remain readable.
 
 ```ts type-equiv
@@ -174,11 +176,13 @@ get(session: Session): SessionTitleSnapshot | undefined
  * {@link SessionTitleService.refresh} remains the deliberate unpin).
  * @param session - exact live session to rename.
  * @param title - raw user input; normalized before acceptance.
- * @returns the accepted title snapshot.
+ * @param expectedRevision - captured title event seq, or null before any title; omitted for unconditional acceptance.
+ * @returns the accepted snapshot; an identical user-pinned conditional rename returns the existing event without appending.
  * @throws {SessionTitleInvalidError} when the title normalizes to empty.
+ * @throws {SessionTitleRevisionConflictError} when a conditional rename would replace a changed title.
  * @throws {Error} when the session is not live or the service is disposed.
  */
-rename(session: Session, title: string): SessionTitleSnapshot
+rename(session: Session, title: string, expectedRevision?: SessionSeq | null): SessionTitleSnapshot
 
 /**
  * Explicitly retry the registered provider, or materialize the built-in
@@ -198,7 +202,7 @@ async refresh(session: Session, signal?: AbortSignal): Promise<SessionTitleSnaps
 register(provider: SessionTitleProvider): () => Promise<void>
 ```
 
-Types: [Session](session.md)
+Types: [Session](session.md) · [SessionSeq](session.md)
 
 Source: [`packages/session/session-title/src/index.ts`](../../packages/session/session-title/src/index.ts)
 <!-- END GENERATED cordis-surface -->

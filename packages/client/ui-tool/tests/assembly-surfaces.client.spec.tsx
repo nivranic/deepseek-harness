@@ -72,12 +72,11 @@ const LAYOUT_CHILDREN = {
 async function bench(nodes: ToolResultNode[]) {
   const runtime = await SlotTestRuntime.create()
   new TestRemote(runtime.ctx, {
-    session: {
-      openWorkspacePath: vi.fn(async () => ({ ok: true, value: { opened: true } })),
-    },
+    session: {},
   })
   runtime.ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
   runtime.ctx.provide('layout', { openDetails: vi.fn(), closeDetails: vi.fn() })
+  runtime.ctx.provide('sidebarRightTabs', { candidates: () => [{}], subscribe: () => () => {} } as never)
   runtime.ctx.provide('sidebarRight', { openResource: vi.fn() } as never)
   runtime.ctx.provide('uiWorkspace', {
     openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {

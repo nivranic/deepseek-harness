@@ -8,8 +8,8 @@
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { DatabaseSync } from 'node:sqlite'
-import { StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@deepseek-ai/dsh-storage'
-import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@deepseek-ai/dsh-storage'
+import { closeOwnedKvUnits, StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@deepseek-ai/dsh-storage'
+import type { KvFacet, KvUnit, KvUnitDescriptor, OwnedKvUnit, StorageBackend } from '@deepseek-ai/dsh-storage'
 import { openDatabase, recordTableName, type JournalMode } from './schema.ts'
 import { SqliteKvUnit } from './unit.ts'
 
@@ -54,11 +54,11 @@ export const Config: z<Config> = z.object({
  */
 export class SqliteStorageBackend implements StorageBackend {
   /** The key-value facet; the only shape this backend serves. */
-  readonly kv: KvFacet = { open: descriptor => this.openUnit(descriptor) }
+  readonly kv: KvFacet = { open: (descriptor, onBackendClose) => this.openUnit(descriptor, onBackendClose) }
 
   private readonly ready: Promise<DatabaseSync>
   /** Open (or still-opening) units by name; presence is the double-open guard. */
-  private readonly units = new Map<string, Promise<SqliteKvUnit>>()
+  private readonly units = new Map<string, Promise<OwnedKvUnit>>()
   private closing: Promise<void> | undefined
 
   /**
@@ -72,7 +72,7 @@ export class SqliteStorageBackend implements StorageBackend {
     this.ready.catch(() => {})
   }
 
-  private openUnit(descriptor: KvUnitDescriptor): Promise<KvUnit> {
+  private openUnit(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit> {
     if (this.closing !== undefined) {
       return Promise.reject(new StorageError('closed', 'sqlite storage backend is closed'))
     }
@@ -89,24 +89,26 @@ export class SqliteStorageBackend implements StorageBackend {
     }
     // Reserve the name synchronously so a concurrent second open of the same
     // name rejects instead of racing past the guard during the awaits below.
-    const pending = this.materializeUnit(descriptor)
+    const pending = this.materializeUnit(descriptor, onBackendClose)
     this.units.set(descriptor.name, pending)
     pending.catch(() => this.units.delete(descriptor.name))
-    return pending
+    return pending.then(opened => opened.unit)
   }
 
-  private async materializeUnit(descriptor: KvUnitDescriptor): Promise<SqliteKvUnit> {
+  private async materializeUnit(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<OwnedKvUnit> {
     const db = await this.ready
     const row = db.prepare('SELECT version FROM units WHERE name = ?').get(descriptor.name) as
       | { version: number }
       | undefined
-    if (row === undefined) {
-      db.prepare('INSERT INTO units (name, version) VALUES (?, ?)').run(descriptor.name, descriptor.version)
-    } else if (row.version !== descriptor.version) {
+    if (row !== undefined && row.version !== descriptor.version) {
       throw new StorageError(
         'version-mismatch',
         `kv unit '${descriptor.name}' is stamped version ${row.version} on the medium, incompatible with descriptor version ${descriptor.version}`,
       )
+    }
+    if (this.closing !== undefined) throw new StorageError('closed', 'sqlite storage backend is closed')
+    if (row === undefined) {
+      db.prepare('INSERT INTO units (name, version) VALUES (?, ?)').run(descriptor.name, descriptor.version)
     }
     for (const table of descriptor.tables) {
       // Both segments passed UNIT_NAME_RE, so the identifier is safe in DDL.
@@ -117,9 +119,10 @@ export class SqliteStorageBackend implements StorageBackend {
         ) STRICT
       `)
     }
-    return new SqliteKvUnit(db, descriptor, () => {
+    const unit = new SqliteKvUnit(db, descriptor, () => {
       this.units.delete(descriptor.name)
     })
+    return { unit, onBackendClose }
   }
 
   /**
@@ -141,11 +144,8 @@ export class SqliteStorageBackend implements StorageBackend {
       // every unit call, so there is nothing left to release here.
       return
     }
-    for (const pending of [...this.units.values()]) {
-      const unit = await pending.catch(() => undefined)
-      await unit?.close()
-    }
-    db.close()
+    const opened = await Promise.allSettled(this.units.values())
+    await closeOwnedKvUnits(opened.flatMap(result => result.status === 'fulfilled' ? [result.value] : []), () => { db.close() })
   }
 }
 

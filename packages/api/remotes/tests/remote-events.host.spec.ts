@@ -173,7 +173,7 @@ describe('Remote event Host source', () => {
     const abort = new AbortController()
     const iterator = sourceOf(gateway)(abort.signal)[Symbol.asyncIterator]()
     const agentCtx = ctx.extend()
-    const agent = { id: 'agent-1', ctx: agentCtx }
+    const agent = { id: 'agent-1', ctx: agentCtx, session: { id: 'session-1' } }
     const target = scopeTarget(ctx, agent)
     const request = { questions: [], agent }
 
@@ -197,9 +197,19 @@ describe('Remote event Host source', () => {
       event: 'user-questions/request',
       request,
       context: { value: agentCtx, subject: agent, agentId: 'agent-1' },
+      interaction: { sessionId: 'session-1', type: 'question', requiredPermission: 'question.respond' },
     })
     claimedDispatch.resolve({ kind: 'result', value: 'client answer' })
     await expect(claimed).resolves.toBe('client answer')
+
+    const approval = waterfallRaw(ctx, target, 'approval/request', [{ agent, toolName: 'fixture' }],
+      () => Promise.resolve('host fallback'))
+    const approvalDispatch = invocationOf((await iterator.next()).value)
+    expect(approvalDispatch.interaction).toEqual({
+      sessionId: 'session-1', type: 'approval', requiredPermission: 'approval.respond',
+    })
+    approvalDispatch.resolve({ kind: 'result', value: 'allowed-once' })
+    await expect(approval).resolves.toBe('allowed-once')
 
     const delegated = waterfallRaw(
       ctx,
@@ -238,7 +248,7 @@ describe('Remote event Host source', () => {
     const abort = new AbortController()
     const iterator = sourceOf(gateway)(abort.signal)[Symbol.asyncIterator]()
     const delivery = iterator.next()
-    const agent = { id: 'agent-1', ctx: ctx.extend() }
+    const agent = { id: 'agent-1', ctx: ctx.extend(), session: { id: 'session-1' } }
     const reason = new Error('forwarded event source removed')
     const pending = waterfallRaw(
       ctx,

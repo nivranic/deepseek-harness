@@ -48,6 +48,8 @@ function mountBar(shell: SessionInputShell, over?: { running?: boolean; disabled
     removed: over?.disabled ?? false,
   })
   const props: InputBarProps = {
+    controlAvailable: true,
+    interruptAvailable: true, fileUploadAvailable: true, currentAuthority: () => true,
     usePanelInfo: selector => selector({ activePanelId: null }),
     sessionId: SID,
     SessionProvider: ({ children }) => children,

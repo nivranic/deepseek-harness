@@ -28,6 +28,12 @@ function SidebarFrame({ renderSlot }: FrameProps) {
 /** The assembled sidebar over one Workspace inside the POSIX home the Host reports. */
 async function bench() {
   const runtime = await SlotTestRuntime.create()
+  const listeners = new Set<() => void>()
+  runtime.ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+    listeners.add(listener)
+    return () => { listeners.delete(listener) }
+  } } })
+  const notifyGeneration = () => { for (const listener of listeners) listener() }
   runtime.ctx.provide('layout', { selectPanel: vi.fn() })
   runtime.releaseWorkspaceSource()
   const directoryPicker = {}
@@ -48,7 +54,7 @@ async function bench() {
     SidebarFrame as never,
   )
   await runtime.mount({ inject: [...inject], apply })
-  return { runtime, remote }
+  return { runtime, remote, notifyGeneration }
 }
 
 /** Open the Workspace row's hover card, which is where the home abbreviation shows. */
@@ -69,7 +75,7 @@ describe('Host home in the assembled browsing region', () => {
   it('abbreviates the path once a home learned after first render reaches the rows', async () => {
     // First render precedes the ready frame: the shell mounts while the carrier
     // is still handshaking, so the Host reports no home yet.
-    const { runtime, remote } = await bench()
+    const { runtime, remote, notifyGeneration } = await bench()
     remote.$host = { home: undefined, isLoopback: true }
     runtime.renderRoot()
     vi.useFakeTimers()
@@ -78,10 +84,8 @@ describe('Host home in the assembled browsing region', () => {
       expect(screen.getByText('/home/u/Documents/project')).toBeTruthy()
       closeHoverCard()
 
-      // The ready frame lands: `$host.home` now answers, and the generation is
-      // announced through the reset every consumer already listens to.
       remote.$host = { home: '/home/u', isLoopback: true }
-      act(() => { runtime.ctx.emit('connection/reset') })
+      act(() => { notifyGeneration() })
       openHoverCard()
 
       expect(screen.getByText('~/Documents/project')).toBeTruthy()

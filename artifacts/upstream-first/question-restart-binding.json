@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/question-restart-source.json",
+    "sha256": "acd3c4335091893045fadad6fe9c4ec1b9f180721b3c93e5526a2ebce11d153b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f1b6f1283834676923d5670fa9d339d1fe98abea9e337977c3d941d78f2a307a"
+  },
+  "helper": {
+    "path": ".artifacts/check-question-restart-binding.mjs",
+    "sha256": "972b238e984b5af4c7087ca44fbc8f3fdd694464bee76df31c5577c76ac44897"
+  }
+}

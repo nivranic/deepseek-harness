@@ -25,6 +25,14 @@ This package lets users browse grouped or flat Session lists, choose a Workspace
 <a id="use-this-package"></a>
 ## Use this package
 
+Session-search callbacks propagate the original `RemoteError` so callers can inspect its code and details independently of displayed text.
+
+Workspace selection, including blank-Session reuse, requires `session.manage.v1` before claiming navigation. Creation and fork recheck it before selecting their result or moving a draft; capability withdrawal leaves completed Host mutations intact. Automatic startup selection waits for support and resumes from Connection updates without duplicating a pending attempt. Direct selection of an existing Session remains available.
+
+Workspace-row Session creation and Session rename/fork require `session.manage.v1` in grouped and flat views. Workspace registration, rename, deletion and registry drag require `workspace.manage.v1`; archive and Workspace Session drag independently require `workspace.sessions.v1`. Missing operation sets remove their controls while existing Session navigation stays available; retained callbacks recheck support. Ungrouped and flat sorting remain local. A row with no available actions has no menu.
+
+Host snapshot replacement closes management dialogs and directory flows, clears their drafts and busy state, and ignores old callbacks and pending results. Restoration does not reopen these interactions. An unavailable follow projection does not prune saved Workspace view preferences. Requests already dispatched to the Host are not cancelled or rolled back by these UI checks.
+
 Use the sidebar to browse Workspaces and their Sessions, reorder them, and start new ones; use the picker in the Session Intent hero to choose a Workspace for a new session. An open Workspace shows five non-blank Sessions by default and keeps the selected blank **New Session** as one provisional extra row until its first prompt. **Show more** reveals the hidden remainder; closing and reopening the Workspace restores this folded projection.
 
 ### Reordering and view options
@@ -33,9 +41,13 @@ View options combine grouping with one browser-persisted Session order per accou
 
 ### Search
 
+Content search requires `session.search.v1`; capability absence leaves local title and Workspace matches available with the search warning. Connection generation withdrawal aborts the pending query and removes content results. A newly admitted capable generation repeats the current read without changing the query, selected Session, or composer draft. Late responses from a replaced generation cannot restore results.
+
 Collapsed search is one header action beside the view and add actions: activating it expands the field across the header. A non-blank query replaces either browsing mode with one flat result list — case-insensitive title and Workspace substring matches appear immediately, while a 250 ms debounced Host request adds ranked current-conversation content matches and snippets. Each new query aborts the preceding request; a failed content search leaves metadata matches visible with a warning. The list is capped at 20. Choosing a result clears and collapses search, opens the Session, and scrolls its row into view in the configured browsing mode; grouped browsing also expands its Workspace and the full Session list when required.
 
 ### Managing sessions
+
+The Session rename dialog captures its title revision when opened. A conflicting save retains the draft and shows localized instructions to reopen against the current title. Repeated saves keep the original revision; they never silently adopt a competing editor's version. Hosts without conditional rename retain their legacy behavior.
 
 The Session row's Rename action opens a dialog prefilled with the row's display title; confirming an unchanged title is deliberately allowed — it pins the current automatic title against regeneration. Archive commits without a confirmation dialog and the row disappears from every grouping surface when the archive-set echo lands. Fork forks at the source's last completed turn, increments the inherited persisted title on the client, and then opens the child. Workspace Delete opens a confirmation that states the retention boundary; success removes the group while its Sessions remain under Ungrouped.
 
@@ -62,6 +74,8 @@ The value is intentionally best effort for cold Sessions. An identity-matching u
 The package is one composition: both target slots are declared by other plugins, so `apply` uses `slots.inject()` to register for each declaration lifetime and re-register after a declaring slot is restored.
 
 ### The directory-flow hole
+
+`captureDirectoryOperations(signal?)` binds directory callbacks to the admitted Host and the owning registration lifetime. Each operation checks its exact capability before dispatch and rejects a late result after replacement or disposal with `gateway/cancelled`. Disposal aborts listing and native-picker requests; directory creation already dispatched to the Host is not rolled back. Picker occupants use these captured callbacks so a retained interaction cannot start on another Host.
 
 Each registration declares a **directory-flow child hole** (`single` kind: `conversation.hero.workspace.directoryFlow` / `sidebar.workspaces.directoryFlow`) that the composed picker package's client half fills with its picking interaction — the `-native` backend's renderless OS-chooser driver, an in-app browsing dialog under a `-browse` composition. The flat **Add workspace...** action renders only while the surface's hole is occupied; an empty hole means the composition has no picking affordance. This package owns the trigger and the adoption: the occupant reports one picked path per open through the hole's owner conversation (`open`/`busy`/`onPicked`/`onCancel`/`onError`), and the owner adopts it through the object layer, selecting the committed Workspace only after its list projection has refreshed.
 

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-replay-source.json",
+    "sha256": "0239b5a431acee44ffe5db01bd24bf248142cce1dbe39e641a27e52d0f71c9b0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8cf778f29ffee864e0ce1aa622be01510d8e37b430f177aff7bc8d40aea9d736"
+  },
+  "helper": {
+    "path": ".artifacts/check-tool-replay-binding.mjs",
+    "sha256": "0d7105c4c5ba12616ccb39709d1190bdd7e8d9cc6310632c94c3f1570ed28b92"
+  }
+}

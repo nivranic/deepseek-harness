@@ -98,12 +98,12 @@ export class ModelDirectory {
         : { reasoningEffort: selection.reasoningEffort },
     })
     if (this.disposed || generation !== this.generation) {
-      if (!result.ok) throw new Error(`${result.error.code}: ${result.error.message}`)
+      if (!result.ok) throw result.error
       return
     }
     if (!result.ok) {
       this.store.update((s) => { s.status = 'error'; s.error = `${result.error.code}: ${result.error.message}` })
-      throw new Error(`session.selectModel failed: ${result.error.code}: ${result.error.message}`)
+      throw result.error
     }
     this.store.update((s) => { s.status = 'ready'; s.error = null })
     this.syncInputs()
@@ -131,12 +131,17 @@ export class ModelDirectory {
 
   private assertAvailable(): void {
     if (!this.available()) {
-      throw new Error('model selection is unavailable for addressed subagent sessions')
+      throw new Error('model selection is unavailable for addressed subagent sessions or unsupported Hosts')
     }
   }
 
   private syncInputs(): void {
     if (this.disposed) return
+    if (!this.available()) {
+      this.resolved = false
+      this.store.set({ current: null, routable: null, groups: [], failures: [], status: 'idle', error: null })
+      return
+    }
     const catalog = this.catalog.store.getSnapshot()
     const projected = modelSelectionProjection(this.projected.getSnapshot())
     if (catalog.status !== 'ready' || catalog.value === null || projected === undefined) {

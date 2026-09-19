@@ -15,7 +15,7 @@ describe('TestClient (node environment)', () => {
     const mock = RemoteMock.create().load(remoteDefaultResponses)
     const client = await TestClient.start({ roster: API_ROSTER }, mock)
     onTestFinished(() => client.dispose())
-    expect(client.connection.state.getSnapshot()).toBe('connected')
+    expect(client.connection.state.getSnapshot()).toBe('ready')
     await client.flush()
   }, 60_000)
 
@@ -46,7 +46,7 @@ describe('TestClient (node environment)', () => {
     const mock = RemoteMock.create().load(remoteDefaultResponses)
     const client = await TestClient.start({ roster: API_ROSTER }, mock)
     onTestFinished(() => client.dispose())
-    expect(client.connection.state.getSnapshot()).toBe('connected')
+    expect(client.connection.state.getSnapshot()).toBe('ready')
   })
 
   it('refuses a provide entry for the api-remotes row, whose services are the proxies', async () => {

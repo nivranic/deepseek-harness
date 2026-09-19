@@ -124,9 +124,10 @@ describe('ChangeFeed — one Host stream per session', () => {
     await settle()
     expect(settled).toBe(true)
     expect(remote.disposed).toHaveLength(2)
+    expect(remote.opened).toHaveLength(1)
     follow(S1, '/w/c.txt')
-    await settle()
-    expect(remote.opened).toHaveLength(3)
+    await remote.waitForChanges(1)
+    expect(remote.opened).toHaveLength(2)
   })
 
   it('treats a dispose that rejects as settled, so the next stream still opens', async () => {

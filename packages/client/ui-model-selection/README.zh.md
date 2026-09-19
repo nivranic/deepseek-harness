@@ -25,6 +25,8 @@ Web GUI 允许用户通过 `/model` 弹窗或 composer 模型控件切换既有�
 <a id="use-this-package"></a>
 ## 使用本包
 
+目录和选择请求被拒绝时保留原始 `RemoteError`，包括代次失效后到达的失败。过时结果仍不能更新当前目录。
+
 与 `ui-conversation` 及命令包一起挂载本插件；composer 随即在待处理指示器旁显示模型位，`/model` 则以弹窗打开同一份目录。当确切提供方／模型对仍在已公布分组中时，两个界面都显示 Host 报告的当前选择；目录行缺席时，可路由的选择保持不变，触发器提示 `Select model`。
 
 ### 模型与推理强度
@@ -43,7 +45,7 @@ Web GUI 允许用户通过 `/model` 弹窗或 composer 模型控件切换既有�
 <details>
 <summary>实现细节——点击展开</summary>
 
-两个入口共用一份由 `ModelDirectoryResolver`（`ctx.modelDirectories`）持有的会话级目录：`/model` popupSelect 贡献项（经 `ctx.commandUi` 注册）与 composer 的具名 `conversation.input.model` 位都经 `session.models` 加载会话的建议目录、经 `session.selectModel` 通过同一个 `ModelDirectory` 实例提交，因此任一入口所做的切换正是另一个入口接下来显示的。目录加载与选择共享一个代次计数器，旧响应不会覆盖新结果；连接重置丢弃所有常驻投影，并在显示前重新拉取 Host 恢复的选择。目录按会话惰性解析，随会话作用域一并 dispose（资源释放）；已寻址 subagent 会话不公开任一入口。每份常驻目录都会直接在转发的 `llm/adapters-updated` 与 `settings/document-updated` owner 事件上重拉。
+两个入口共享 `ModelDirectoryResolver` 与每个 Host 代际的一次 `session.modelCatalog` 读取，将目录与 Session 投影组合，并通过 `session.selectModel` 提交。准入 Host 必须公布 `model.select.v1`；发现前或缺少该能力时，两处入口均隐藏，目录读取与保留的选择回调拒绝分发。输入栏入口通过 renderer 注入的能力 hook 订阅。连接替换清除目录，使等待中的选择失效，并移除过时的路由阻塞。寻址子 agent 会话仍不可用。模型、设置与凭据变化事件仅在能力存在时刷新共享目录。
 
 </details>
 

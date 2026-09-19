@@ -176,7 +176,7 @@ export function TextPreview({
   if (state === undefined || selected === undefined) {
     return (
       <div className={css.status} data-textpreview-state="loading">
-        {meta.status === 'none'
+        {meta.status === 'none' || selected === undefined
           ? <p className={css.statusLine}>{t('resourceUnavailable')}</p>
           : <LoadingIndicator className={css.statusLine} label={t('loading')} />}
       </div>

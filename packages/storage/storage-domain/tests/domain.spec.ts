@@ -354,6 +354,201 @@ describe('global singleton', () => {
 })
 
 describe('close and lifecycle', () => {
+  it.each(['facility', 'backend'] as const)('reports initialization cleanup failure to the concurrent %s close', async (closer) => {
+    const { backend, facility } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const loadError = new Error('load failed during teardown')
+    const closeError = new Error('initialization cleanup failed')
+    const open = backend.kv.open.bind(backend.kv)
+    vi.spyOn(backend.kv, 'open').mockImplementation(async (descriptor, onBackendClose) => {
+      const unit = await open(descriptor, onBackendClose)
+      vi.spyOn(unit, 'loadAll').mockImplementation(async () => {
+        entered.resolve(undefined)
+        await release.promise
+        throw loadError
+      })
+      const close = unit.close.bind(unit)
+      vi.spyOn(unit, 'close').mockImplementation(async () => { await close(); throw closeError })
+      return unit
+    })
+    const opening = expect(facility.open(spec)).rejects.toMatchObject({ errors: [loadError, closeError] })
+    await entered.promise
+    const closing = closer === 'facility' ? facility.closeAll() : backend.close()
+    const failure = expect(closing).rejects.toMatchObject({
+      errors: [{ errors: [closeError] }, ...(closer === 'backend' ? [closeError] : [])],
+    })
+    release.resolve(undefined)
+    await Promise.all([opening, failure])
+    expect(facility.get(spec.name)).toBeUndefined()
+  })
+
+  it('joins every facility owner before reporting a failed unit close', async () => {
+    const { backend, facility } = await harness()
+    const failure = new Error('first unit close failed')
+    const open = backend.kv.open.bind(backend.kv)
+    vi.spyOn(backend.kv, 'open').mockImplementation(async (descriptor, onBackendClose) => {
+      const unit = await open(descriptor, onBackendClose)
+      if (descriptor.name === spec.name) {
+        const close = unit.close.bind(unit)
+        vi.spyOn(unit, 'close').mockImplementation(async () => { await close(); throw failure })
+      }
+      return unit
+    })
+    await facility.open(spec)
+    const second = await facility.open({ ...spec, name: 'second' })
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const pending = second.table('items').put('accepted', { label: 'drained', count: 1 }, async () => {
+      entered.resolve(undefined)
+      await release.promise
+    })
+    await entered.promise
+    const closing = facility.closeAll()
+    let settled = false
+    const checked = expect(closing).rejects.toMatchObject({ errors: [failure] }).then(() => { settled = true })
+    try {
+      expect(facility.closeAll()).toBe(closing)
+      await expect(facility.open(bareSpec)).rejects.toMatchObject({ code: 'closed' })
+      expect(settled).toBe(false)
+    } finally {
+      release.resolve(undefined)
+      await Promise.all([pending, checked])
+    }
+    expect(facility.get('second')).toBeUndefined()
+    expect(backend.pool.media.get('second')?.tables.get('items')?.get('accepted')).toEqual({ label: 'drained', count: 1 })
+  })
+
+  it.each(['facility', 'backend'] as const)('joins initialization and refuses a handle when the %s closes during load', async (closer) => {
+    const { backend, facility } = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const open = backend.kv.open.bind(backend.kv)
+    vi.spyOn(backend.kv, 'open').mockImplementation(async (descriptor, onBackendClose) => {
+      const unit = await open(descriptor, onBackendClose)
+      const load = unit.loadAll.bind(unit)
+      vi.spyOn(unit, 'loadAll').mockImplementation(async () => {
+        entered.resolve(undefined)
+        await release.promise
+        return load()
+      })
+      return unit
+    })
+    const opening = facility.open(spec)
+    const outcome = opening.then(() => ({ published: true }), (error: unknown) => ({ error }))
+    await entered.promise
+    const closing = closer === 'facility' ? facility.closeAll() : backend.close()
+    try {
+      await expect(facility.open(bareSpec)).rejects.toMatchObject({ code: 'closed' })
+    } finally {
+      release.resolve(undefined)
+      await closing
+    }
+    expect(await outcome).toMatchObject({ error: { code: 'closed' } })
+    expect(facility.get(spec.name)).toBeUndefined()
+    await facility.closeAll()
+  })
+
+  it('stops new writes and drains the domain queue before backend close', async () => {
+    const pool = new MemoryMediaPool()
+    const { backend, facility, changes } = await harness({ pool })
+    const domain = await facility.open(spec)
+    const table = domain.table('items')
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const pending = table.put('late', { label: 'durable', count: 1 }, async () => {
+      entered.resolve(undefined)
+      await release.promise
+    })
+    await entered.promise
+    const closing = backend.close()
+    try {
+      await expect(table.put('refused', { label: 'closed', count: 2 })).rejects.toMatchObject({ code: 'closed' })
+      expect(changes).toEqual([])
+    } finally {
+      release.resolve(undefined)
+      await Promise.all([pending, closing])
+    }
+    expect(pool.media.get(spec.name)?.tables.get('items')?.get('late')).toEqual({ label: 'durable', count: 1 })
+    expect(facility.get(spec.name)).toBeUndefined()
+    expect(() => table.get('late')).toThrow(/closed/u)
+  })
+
+  it('preserves initialization and unit cleanup failures together', async () => {
+    const { backend, facility } = await harness()
+    const loadError = new Error('load failed')
+    const closeError = new Error('close failed')
+    const open = backend.kv.open.bind(backend.kv)
+    vi.spyOn(backend.kv, 'open').mockImplementation(async (descriptor, onBackendClose) => {
+      const unit = await open(descriptor, onBackendClose)
+      vi.spyOn(unit, 'loadAll').mockRejectedValue(loadError)
+      const close = unit.close.bind(unit)
+      vi.spyOn(unit, 'close').mockImplementation(async () => { await close(); throw closeError })
+      return unit
+    })
+    await expect(facility.open(spec)).rejects.toMatchObject({ errors: [loadError, closeError] })
+    expect(facility.get(spec.name)).toBeUndefined()
+    await facility.closeAll()
+  })
+
+  it('drains a queued durability prerequisite and later writes before close', async () => {
+    const pool = new MemoryMediaPool()
+    const { facility, changes } = await harness({ pool })
+    const domain = await facility.open(spec)
+    const table = domain.table('items')
+    const entered = Promise.withResolvers<undefined>()
+    const ready = Promise.withResolvers<undefined>()
+    const first = table.put('a', { label: 'first', count: 1 }, async () => {
+      entered.resolve(undefined)
+      await ready.promise
+    })
+    await entered.promise
+    const later = table.put('a', { label: 'latest', count: 2 })
+    const closing = domain.close()
+    try {
+      expect(changes).toEqual([])
+      expect(table.get('a')).toBeUndefined()
+      await expect(table.put('rejected', { label: 'closed', count: 3 })).rejects.toMatchObject({ code: 'closed' })
+    } finally {
+      ready.resolve(undefined)
+      await Promise.all([first, later, closing])
+    }
+    expect(changes.map(change => change.operation === 'put' ? change.value : undefined)).toEqual([
+      { label: 'first', count: 1 }, { label: 'latest', count: 2 },
+    ])
+    const reopened = await facility.open(spec)
+    expect(reopened.table('items').get('a')).toEqual({ label: 'latest', count: 2 })
+    await reopened.close()
+  })
+
+  it.each(['throw', 'reject'] as const)('skips a failed %s prerequisite without poisoning later writes', async (failure) => {
+    const { facility, changes } = await harness()
+    const domain = await facility.open(spec)
+    const table = domain.table('items')
+    const error = new Error('log durability failed')
+    const beforeWrite = (): Promise<void> => {
+      if (failure === 'throw') throw error
+      return Promise.reject(error)
+    }
+    await expect(table.put('lost', { label: 'lost', count: 1 }, beforeWrite)).rejects.toBe(error)
+    expect(table.get('lost')).toBeUndefined()
+    expect(changes).toEqual([])
+    await table.put('kept', { label: 'kept', count: 2 })
+    expect(table.get('kept')).toEqual({ label: 'kept', count: 2 })
+    expect(changes).toHaveLength(1)
+    await domain.close()
+  })
+
+  it('does not invoke a prerequisite when the domain has already closed', async () => {
+    const { facility } = await harness()
+    const domain = await facility.open(spec)
+    const table = domain.table('items')
+    await domain.close()
+    const beforeWrite = vi.fn(async () => {})
+    await expect(table.put('a', { label: 'unused', count: 1 }, beforeWrite)).rejects.toMatchObject({ code: 'closed' })
+    expect(beforeWrite).not.toHaveBeenCalled()
+  })
+
   it('close drains queued writes, then rejects reads and writes, and frees the name', async () => {
     const pool = new MemoryMediaPool()
     const { facility } = await harness({ pool })

@@ -74,8 +74,10 @@ export type DirectoryFlowSlotName =
  */
 export type DirectoryPickingInjected = {
   hooks: {
-    /** True while this surface's directory-flow hole is occupied. */
+    /** True while this surface has a directory flow and the Host supports Workspace creation. */
     directoryFlow: HostObservable<boolean>
+    /** Current Host identity; replacing it discards directory interactions. */
+    hostInfo: HostObservable<RemoteHostFacts>
   }
 }
 
@@ -115,8 +117,8 @@ export type WorkspaceBrowserInjected = {
   ) => Promise<{ items: readonly SessionSearchResultItem[]; hasMore: boolean }>
   /** Maximum number of merged rows rendered for one search. */
   searchResultLimit: number
-  /** Rename a Session (explicit user title; resolves on host acceptance). */
-  renameSession: (sessionId: SessionId, title: string) => Promise<void>
+  /** Capture a Session title's editing baseline; the returned submitter retains it across retries. */
+  prepareSessionRename: (sessionId: SessionId) => (title: string) => Promise<void>
   /** Fork a Session at its last completed turn and open the child. */
   forkSession: (sessionId: SessionId) => void
   /** Rename a Host Workspace (rejects on name conflict; resolves on durability). */

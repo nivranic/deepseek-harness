@@ -77,6 +77,142 @@ function supervisor<Item>(
 }
 
 describe('RemoteStream', () => {
+  it('re-admits after a connection replacement interrupts the domain opener', async () => {
+    let current = GENERATION
+    let opened = 0
+    const connection = { generation: {
+      getSnapshot: () => current,
+      subscribe: () => () => {},
+    } }
+    const stream = new RemoteStream(connection, {
+      name: 'admission replacement',
+      open: signal => ({ async *[Symbol.asyncIterator]() {
+        opened++
+        if (opened === 1) {
+          current = { ...GENERATION, id: 2 }
+          throw new RemoteError('gateway/connection-unavailable', 'generation ended before admission', { endpoint: 'remote/prepare' })
+        }
+        yield 'restored'
+        if (!signal.aborted) await new Promise<void>((resolve) => {
+          signal.addEventListener('abort', () => { resolve() }, { once: true })
+        })
+      } }),
+      ended: () => new Error('unexpected end'),
+    })
+    try {
+      await expect(stream[Symbol.asyncIterator]().next()).resolves.toMatchObject({ value: { value: 'restored' } })
+      expect(opened).toBe(2)
+    } finally { await stream.dispose() }
+  })
+
+  it('does not exhaust one connection retry budget across distinct admitted Hosts', async () => {
+    let current = GENERATION
+    let opened = 0
+    const connection = { generation: {
+      getSnapshot: () => current,
+      subscribe: () => () => {},
+    } }
+    const stream = new RemoteStream(connection, {
+      name: 'successive replacements',
+      open: signal => ({ async *[Symbol.asyncIterator]() {
+        opened++
+        if (opened < 3) {
+          current = { ...GENERATION, id: opened + 1 }
+          throw new RemoteStreamCarrierError('previous connection ended before baseline')
+        }
+        yield 'restored'
+        if (!signal.aborted) await new Promise<void>((resolve) => {
+          signal.addEventListener('abort', () => { resolve() }, { once: true })
+        })
+      } }),
+      ended: () => new Error('unexpected end'),
+    })
+    try {
+      await expect(stream[Symbol.asyncIterator]().next()).resolves.toMatchObject({ value: { value: 'restored' } })
+      expect(opened).toBe(3)
+    } finally { await stream.dispose() }
+  })
+  it('waits for an admitted Host before any domain opener, including without a capability predicate', async () => {
+    const source = hostSource(false)
+    const opened = vi.fn()
+    const stream = new RemoteStream(source.connection, {
+      name: 'startup fixture', open: scripted([{ values: ['ready'], hold: true }], opened),
+      ended: () => new Error('unexpected end'),
+    })
+    const pending = stream[Symbol.asyncIterator]().next()
+    await Promise.resolve()
+    expect(opened).not.toHaveBeenCalled()
+    source.publish(true)
+    await expect(pending).resolves.toMatchObject({ value: { value: 'ready', generation: 1 } })
+    await stream.dispose()
+    expect(opened).toHaveBeenCalledOnce()
+  })
+
+  it('disposes before the first admitted Host without opening a domain stream', async () => {
+    const source = hostSource(false)
+    const opened = vi.fn()
+    const stream = new RemoteStream(source.connection, {
+      name: 'startup fixture', open: scripted<string>([], opened), ended: () => new Error('unexpected end'),
+    })
+    const pending = stream[Symbol.asyncIterator]().next()
+    await stream.dispose()
+    await expect(pending).resolves.toMatchObject({ done: true })
+    source.publish(true)
+    expect(opened).not.toHaveBeenCalled()
+  })
+
+  it('waits for capability restoration before opening and releases its observer', async () => {
+    let capabilities: readonly string[] = []
+    const listeners = new Set<() => void>()
+    const opened = vi.fn()
+    const stream = new RemoteStream({ generation: {
+      getSnapshot: () => ({ id: 1, host: { home: '/home/fixture', capabilities } }),
+      subscribe: (listener) => {
+        listeners.add(listener)
+        return () => { listeners.delete(listener) }
+      },
+    } }, {
+      name: 'capability fixture',
+      available: host => host.capabilities?.includes('session.control.v1') === true,
+      open: scripted([{ values: ['ready'], hold: true }], opened),
+      ended: () => new Error('unexpected end'),
+    })
+    const iterator = stream[Symbol.asyncIterator]()
+    try {
+      const pending = iterator.next()
+      await vi.waitFor(() => { expect(listeners.size).toBe(1) })
+      expect(opened).not.toHaveBeenCalled()
+      capabilities = ['session.control.v1']
+      for (const listener of listeners) listener()
+      await expect(pending).resolves.toMatchObject({ value: { value: 'ready' } })
+      expect(opened).toHaveBeenCalledTimes(1)
+      expect(listeners.size).toBe(0)
+    } finally {
+      await stream.dispose()
+    }
+  })
+
+  it('disposes a stream waiting for an unavailable capability without opening it', async () => {
+    const listeners = new Set<() => void>()
+    const opened = vi.fn()
+    const stream = new RemoteStream({ generation: {
+      getSnapshot: () => GENERATION,
+      subscribe: (listener) => {
+        listeners.add(listener)
+        return () => { listeners.delete(listener) }
+      },
+    } }, {
+      name: 'unavailable fixture', available: () => false,
+      open: scripted<string>([], opened), ended: () => new Error('unexpected end'),
+    })
+    const pending = stream[Symbol.asyncIterator]().next()
+    await vi.waitFor(() => { expect(listeners.size).toBe(1) })
+    await stream.dispose()
+    await expect(pending).resolves.toMatchObject({ done: true })
+    expect(listeners.size).toBe(0)
+    expect(opened).not.toHaveBeenCalled()
+  })
+
   it('annotates replacement generations and resets retry state after acceptance', async () => {
     const source = hostSource(true)
     const stream = supervisor(source.connection, [
@@ -109,9 +245,9 @@ describe('RemoteStream', () => {
 
     await expect(stream[Symbol.asyncIterator]().next()).rejects.toMatchObject({
       isDSHRemoteError: true,
-      code: 'gateway/internal',
+      code: 'gateway/transport-interrupted',
       message: 'isolated retry failed',
-      details: {},
+      details: { stream: 'fixture stream' },
       cause: repeated,
     })
     expect(carrierFailed).toHaveBeenNthCalledWith(1, first)
@@ -144,12 +280,13 @@ describe('RemoteStream', () => {
   })
 
   it('waits for a replacement Host generation after observing unavailability', async () => {
-    let available = false
+    let available = true
+    let current = GENERATION
     let listener: (() => void) | undefined
     const subscribed = Promise.withResolvers<undefined>()
     const connection = {
       generation: {
-        getSnapshot: () => available ? GENERATION : undefined,
+        getSnapshot: () => available ? current : undefined,
         subscribe: (value: () => void) => {
           listener = value
           subscribed.resolve(undefined)
@@ -163,7 +300,7 @@ describe('RemoteStream', () => {
       open: scripted([
         { terminal: new RemoteStreamCarrierError('offline') },
         { values: ['ready'], hold: true },
-      ], () => { opened++ }),
+      ], () => { opened++; if (opened === 1) available = false }),
       ended: () => new Error('ended'),
     })
     const pending = stream[Symbol.asyncIterator]().next()
@@ -172,6 +309,7 @@ describe('RemoteStream', () => {
 
     listener?.()
     expect(opened).toBe(1)
+    current = { ...GENERATION, id: 2 }
     available = true
     listener?.()
     await expect(pending).resolves.toMatchObject({
@@ -181,14 +319,48 @@ describe('RemoteStream', () => {
     await stream.dispose()
   })
 
+  it('discards a delayed item from a replaced connection before accepting the new baseline', async () => {
+    let current = GENERATION
+    const pending = Promise.withResolvers<string>()
+    const opened = vi.fn()
+    const connection = { generation: { getSnapshot: () => current, subscribe: () => () => {} } }
+    const stream = new RemoteStream(connection, {
+      name: 'stale item',
+      open: scripted([{ values: [pending.promise] }, { values: ['fresh'], hold: true }], opened),
+      ended: () => new Error('unexpected end'),
+    })
+    try {
+      const next = stream[Symbol.asyncIterator]().next()
+      await vi.waitFor(() => { expect(opened).toHaveBeenCalledOnce() })
+      current = { ...GENERATION, id: 2 }
+      pending.resolve('stale')
+      await expect(next).resolves.toMatchObject({ value: { value: 'fresh' } })
+      expect(opened).toHaveBeenCalledTimes(2)
+    } finally { await stream.dispose() }
+  })
+
+  it('does not retry an unclassified local error when a connection is replaced', async () => {
+    let current = GENERATION
+    const opened = vi.fn(() => {
+      current = { ...GENERATION, id: 2 }
+      throw new Error('broken domain opener')
+    })
+    const stream = new RemoteStream({ generation: { getSnapshot: () => current, subscribe: () => () => {} } }, {
+      name: 'local error', open: opened, ended: () => new Error('unexpected end'),
+    })
+    await expect(stream[Symbol.asyncIterator]().next()).rejects.toMatchObject({ code: 'gateway/internal', message: 'broken domain opener' })
+    expect(opened).toHaveBeenCalledOnce()
+    await stream.dispose()
+  })
+
   it('stops a pending retry when the logical stream is disposed', async () => {
-    const source = hostSource(false)
+    const source = hostSource(true)
     let opened = 0
     const stream = new RemoteStream(source.connection, {
       name: 'fixture stream',
       open: scripted([
         { terminal: new RemoteStreamCarrierError('offline') },
-      ], () => { opened++ }),
+      ], () => { opened++; source.publish(false) }),
       ended: () => new Error('ended'),
     })
     const pending = stream[Symbol.asyncIterator]().next()
@@ -219,7 +391,7 @@ describe('RemoteStream', () => {
     await expect(stream[Symbol.asyncIterator]().next()).resolves.toMatchObject({
       value: { generation: 2, value: 'ready' },
     })
-    expect(disposed).toBe(1)
+    expect(disposed).toBe(2)
     await stream.dispose()
   })
 
@@ -288,16 +460,15 @@ describe('RemoteStream', () => {
     let subscriptions = 0
     const connection = {
       generation: {
-        getSnapshot: () => undefined,
+        getSnapshot: () => subscriptions < 2 ? undefined : GENERATION,
         subscribe: () => {
           subscriptions++
-          holder.stream?.restart()
+          if (subscriptions === 1) holder.stream?.restart()
           return () => {}
         },
       },
     }
     const stream = supervisor(connection, [
-      { terminal: new RemoteStreamCarrierError('offline') },
       { values: ['ready'], hold: true },
     ])
     holder.stream = stream
@@ -305,7 +476,7 @@ describe('RemoteStream', () => {
     await expect(stream[Symbol.asyncIterator]().next()).resolves.toMatchObject({
       value: { generation: 2, value: 'ready' },
     })
-    expect(subscriptions).toBe(1)
+    expect(subscriptions).toBe(2)
     await stream.dispose()
   })
 

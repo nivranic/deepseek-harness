@@ -27,8 +27,8 @@ import type {} from '@deepseek-ai/dsh-goal/client'
 // The `imageLimits` projection key merge (intake pre-check) arrives with the
 // wire types: apiproxy's sessions contract declares it, and client-runtime's
 // api-remotes import already places it in every client program.
-import type { Translate } from '@deepseek-ai/dsh-client-ui-slots'
-import type { ComposerBarProps } from '../contract/slots.ts'
+import type { InjectFace, Translate } from '@deepseek-ai/dsh-client-ui-slots'
+import type { ComposerBarProps, ComposerCapabilityInjected } from '../contract/slots.ts'
 import { ComposerContentEditable } from '../input/editor/ComposerContentEditable.tsx'
 import { DecoratorPortals } from '../input/editor/DecoratorPortals.tsx'
 import { registerComposerKeymap } from '../input/editor/keymap.ts'
@@ -38,11 +38,20 @@ import { ContextMeter } from './ContextMeter.tsx'
 import { PermissionSelect } from './PermissionSelect.tsx'
 import css from './InputBar.module.css'
 
-export type InputBarProps = ComposerBarProps
+export type InputBarProps = ComposerBarProps & {
+  /** Resolved message-control availability; display components never infer Host support. */
+  controlAvailable: boolean
+  /** Independent support for interrupting the current Session or addressed child. */
+  interruptAvailable: boolean
+  /** Generic-file staging is independent of inline image attachments. */
+  fileUploadAvailable: boolean
+  /** Reject delayed file-picker results after their originating Host changes. */
+  currentAuthority: () => boolean
+}
 
 export const InputBar = memo(function InputBar({
   useSession, useInput, inputActions, keyboard, addFiles, removeAttachment, resolveDraftAttachments,
-  retryFileUpload,
+  retryFileUpload, controlAvailable, interruptAvailable, fileUploadAvailable, currentAuthority,
   toggleCommandMenu, stop, command, t,
   renderSlot, useBusyEnter, useFileUploads, useNotices, useLexicon, useMenuLauncher,
   useProjection, sessionId, variant, disabled: inert = false, blocked,
@@ -125,7 +134,7 @@ export const InputBar = memo(function InputBar({
   // inert no-workspace state, the machine faces absent (no session), or a
   // parent-offline continuable child. An owner block also disables input;
   // adjudicating and submitting render read-only so the draft stays visible.
-  const disabled = removed || inert || !live || blocked !== undefined || parentOffline
+  const disabled = !controlAvailable || removed || inert || !live || blocked !== undefined || parentOffline
   const locked = disabled
   // The model seat is the ONE control a block leaves live: every block this
   // contract has is cleared by choosing a model, so locking it too would leave
@@ -229,6 +238,7 @@ export const InputBar = memo(function InputBar({
   // The host enforces the same image limits at submit for callers that bypass
   // this composer.
   const intakeFiles = useCallback((files: readonly File[]): void => {
+    if (!currentAuthority()) return
     if (subagent !== null || addFiles === undefined || files.length === 0) return
     const rejected = ((): string | null => {
       if (imageLimits !== undefined) {
@@ -250,15 +260,19 @@ export const InputBar = memo(function InputBar({
       return addFiles(files)
     })()
     if (rejected !== null) showToast(rejected)
-  }, [subagent, addFiles, attachments, imageLimits, showToast, t])
+  }, [currentAuthority, subagent, addFiles, attachments, imageLimits, showToast, t])
 
   const canAcceptDrop = subagent === null && !locked && !machineBusy && addFiles !== undefined
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const pickerAuthority = useRef<(() => boolean) | undefined>(undefined)
   const onPickFiles = (e: ChangeEvent<HTMLInputElement>): void => {
     const picked = e.target.files === null ? [] : [...e.target.files]
     // Reset so picking the same file again re-fires the change event.
     e.target.value = ''
+    const accepted = pickerAuthority.current?.() ?? false
+    pickerAuthority.current = undefined
+    if (!accepted) return
     if (picked.length > 0) intakeFiles(picked)
   }
 
@@ -266,18 +280,21 @@ export const InputBar = memo(function InputBar({
   // registration survives re-renders without re-arming per keystroke.
   const gate = useRef({
     locked, machineBusy, canSteerQueue, running, steeringAvailable, busyEnter,
-    intakeFiles, uploadsPending, showToast, t, canAcceptDrop,
+    intakeFiles, uploadsPending, showToast, t, canAcceptDrop, currentAuthority,
   })
   gate.current = {
     locked, machineBusy, canSteerQueue, running, steeringAvailable, busyEnter,
-    intakeFiles, uploadsPending, showToast, t, canAcceptDrop,
+    intakeFiles, uploadsPending, showToast, t, canAcceptDrop, currentAuthority,
   }
 
   useEffect(() => {
     if (keyboard === undefined) return
     return keyboard.bindFilePicker({
       available: () => gate.current.canAcceptDrop && fileInputRef.current !== null,
-      open: () => { fileInputRef.current?.click() },
+      open: () => {
+        pickerAuthority.current = gate.current.currentAuthority
+        fileInputRef.current?.click()
+      },
     })
   }, [keyboard])
 
@@ -353,7 +370,7 @@ export const InputBar = memo(function InputBar({
   // exposes Stop independently.
   const primaryStops = running && subagent === null && (empty || blocked !== undefined)
   // Disabled native buttons may omit mouseleave; their tooltip must close from state.
-  const primaryDisabled = primaryStops ? stop === undefined : empty || disabled || machineBusy || uploadsPending
+  const primaryDisabled = primaryStops ? !interruptAvailable || stop === undefined : empty || disabled || machineBusy || uploadsPending
   const interruptible = running && continuable
   const primarySubmitMode = resolveSubmitMode(busyEnter, running, 'enter', steeringAvailable)
   const plainMessageDraft = !empty && input?.phase === 'plain' && !draft.trimStart().startsWith('/')
@@ -398,16 +415,18 @@ export const InputBar = memo(function InputBar({
     return translated !== hintKey ? translated : rawHint
   })()
 
-  const placeholderText = placeholder ?? (parentOffline
-    ? t('placeholder.parentOffline')
-    : disabled
-      ? t('placeholder.unavailable')
+  const placeholderText = sessionId !== undefined && !controlAvailable
+    ? t(interruptAvailable ? 'placeholder.promptUnavailable' : 'placeholder.controlUnavailable')
+    : placeholder ?? (parentOffline
+      ? t('placeholder.parentOffline')
+      : disabled
+        ? t('placeholder.unavailable')
       // The steer hint deliberately outranks the plan placeholder:
       // while it shows, the whole-queue gesture is genuinely available
       // (the gate never consults plan mode), so the actionable hint wins.
-      : canSteerQueue
-        ? t('placeholder.steerQueue')
-        : planActive ? t('placeholder.plan') : t('placeholder.default'))
+        : canSteerQueue
+          ? t('placeholder.steerQueue')
+          : planActive ? t('placeholder.plan') : t('placeholder.default'))
 
   return (
     <div className={clsx(css.root, variant === 'hero' && css.hero)}>
@@ -447,7 +466,7 @@ export const InputBar = memo(function InputBar({
           onAddFiles: intakeFiles,
           onRemoveAttachment: (id) => { removeAttachment?.(id) },
           uploads,
-          onRetryFile: (id) => { retryFileUpload?.(id) },
+          onRetryFile: fileUploadAvailable ? (id) => { if (currentAuthority()) retryFileUpload?.(id) } : undefined,
           dropLimits: imageLimits === undefined ? undefined : {
             count: imageLimits.maxImagesPerMessage,
             size: imageSizeText(imageLimits.maxImageBytes),
@@ -503,6 +522,7 @@ export const InputBar = memo(function InputBar({
             <input
               ref={fileInputRef}
               type="file"
+              accept={fileUploadAvailable ? undefined : imageLimits?.mediaTypes.join(',') ?? 'image/*'}
               multiple
               disabled={subagent !== null}
               hidden
@@ -522,7 +542,7 @@ export const InputBar = memo(function InputBar({
               : renderSlot('conversation.input.right', {})}
             {sessionId === undefined ? null : renderSlot('conversation.input.model', { locked: modelSeatLocked })}
             <ContextMeter useProjection={useProjection} t={t} />
-            {interruptible && (
+            {interruptAvailable && interruptible && (
               <Tooltip label={t('input.stop')} side="top" delayMs={500} disabled={stop === undefined}>
                 <button
                   type="button"
@@ -538,7 +558,7 @@ export const InputBar = memo(function InputBar({
                 </button>
               </Tooltip>
             )}
-            <Tooltip label={primaryLabel} side="top" delayMs={500} disabled={primaryDisabled}>
+            {(primaryStops ? interruptAvailable : controlAvailable) && <Tooltip label={primaryLabel} side="top" delayMs={500} disabled={primaryDisabled}>
               <button
                 type="button"
                 className={css.primary}
@@ -557,7 +577,7 @@ export const InputBar = memo(function InputBar({
                   </svg>
                 )}
               </button>
-            </Tooltip>
+            </Tooltip>}
           </div>
         </div>
       </div>
@@ -567,3 +587,16 @@ export const InputBar = memo(function InputBar({
     </div>
   )
 })
+
+
+/**
+ * Resolve message-control availability through the renderer's generation hook.
+ * @param props - standard composer shares and capability-aware injection.
+ * @returns a composer preserving its draft while unsupported actions remain hidden.
+ */
+export function ControlAwareInputBar({ useControlCapability, ...props }:
+  ComposerBarProps & InjectFace<ComposerCapabilityInjected>) {
+  const control = useControlCapability(value => value)
+  return <InputBar {...props} controlAvailable={control.prompt} interruptAvailable={control.interrupt}
+    fileUploadAvailable={control.fileUpload} currentAuthority={control.current} stop={control.stop} />
+}

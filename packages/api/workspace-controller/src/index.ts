@@ -5,6 +5,7 @@ import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { WorkspaceCommands } from './commands.ts'
 import { DirectoryPickerController } from './directory-picker.ts'
 import { WorkspaceFeed } from './feed.ts'
+import { WORKSPACE_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type {
   WorkspaceArchiveSessionRequest,
   WorkspaceArchiveValue,
@@ -39,7 +40,7 @@ export class WorkspaceController extends TypertRemoteService {
 
   /** @param ctx - Host context containing the Workspace registry. */
   constructor(ctx: Context) {
-    super(ctx, 'workspaceController', { namespace: 'workspace' })
+    super(ctx, 'workspaceController', { namespace: 'workspace', capabilities: WORKSPACE_REMOTE_CAPABILITIES })
     this.commands = new WorkspaceCommands(ctx)
     this.feed = new WorkspaceFeed(ctx)
     // This package is the Loader entry for both Remote owners it hosts: the

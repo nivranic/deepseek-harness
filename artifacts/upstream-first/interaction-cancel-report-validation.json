@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Approval/Question cancellation during pending answer delivery and retry; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-cancel-source.json",
+    "sha256": "f6dff6b8b16ee65bd9be409caa044b56f8adcf8a3ba6b757008564346d5b5774"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a564c7d461336b86b31cac46197a58b9736d1d90c1f97fd5050a3d7cb27236e9"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/interaction-cancel-binding.json",
+    "sha256": "961a3e9024811e9fc3366a95659cae514c000547af8d8613243245e4f9408920"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-interaction-cancel-reports.mjs",
+      "sha256": "7d8de29f753931ca6e02f081412f8a5af4d1e50ae3cb15e7cdbe8c79287df2a2"
+    },
+    {
+      "path": ".artifacts/capture-interaction-cancel-validation.mjs",
+      "sha256": "b41559450cb1638cd12fdb2db25cb07b244786f3d34942b27bdcc72424fb327b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "8c0be1d0df45f602319f67a72c75441389ad448cf995a24745c30dbefd37469e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a7d46ff6a14076c64da8612aa0b84c154c418b913cb4aa44a0337ced823676b8"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-cancel-binding.log",
+      "sha256": "40f3edf1d0e052cae895e18ca78b9d42e9acb525df18726ad59fc2f5e352df82"
+    },
+    {
+      "path": ".artifacts/interaction-cancel-audit-tests.log",
+      "sha256": "4edd5b9822dbda431f852d006714d7e9058a4b7cd553fc3efcdf0e580dbe34f2"
+    },
+    {
+      "path": ".artifacts/interaction-cancel-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/interaction-cancel-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/interaction-cancel-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

@@ -14,14 +14,14 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import clsx from 'clsx'
 import type { RemoteFailure } from '@deepseek-ai/dsh-api-remotes/client'
-import type { PropsLocale, PropsRuntime, PropsStore, TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
+import type { InjectFace, PropsLocale, PropsRuntime, PropsStore, TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import {
   FileTypeIcon, IconFolderClose16, IconFolderOpen16, IconRefreshOutline16, classifyFileType,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import { fileAddressFor, pathPartsOf } from '@deepseek-ai/dsh-util-workspace-path'
 import type { WorkspaceDirectoryEntry } from '@deepseek-ai/dsh-api-workspace-files/types'
 import { childPath } from './face.ts'
-import type { FilesInjected } from './face.ts'
+import type { FilesRegistrationInjected } from './index.ts'
 import type {} from './locales.ts'
 import type { FilesTabState, createFilesStore } from './store.ts'
 import css from './FilesBody.module.css'
@@ -30,7 +30,7 @@ import css from './FilesBody.module.css'
 export type FilesBodyProps =
   & PropsRuntime<'sidebar.right.pane.tab'>
   & PropsStore<ReturnType<typeof createFilesStore>>
-  & FilesInjected
+  & InjectFace<FilesRegistrationInjected>
   & PropsLocale<'sidebarFiles'>
 
 /** Natural, case-insensitive name order, so `file2` precedes `file10`. */
@@ -105,6 +105,7 @@ interface TreeContext {
   readonly state: FilesTabState
   readonly onToggle: (path: string) => void
   readonly onOpen: (path: string) => void
+  readonly canOpen: (path: string) => boolean
   readonly t: TranslateNS<'sidebarFiles'>
 }
 
@@ -126,10 +127,17 @@ function Entry({ parent, entry, tree }: { parent: string; entry: WorkspaceDirect
   if (entry.type === 'file') {
     return (
       <li className={css.item} data-files-entry="file" data-files-path={path}>
-        <button type="button" className={css.row} onClick={() => { tree.onOpen(path) }}>
-          <FileTypeIcon kind={classifyFileType(entry.name)} size={16} className={css.fileIcon} />
-          <span className={css.name}>{entry.name}</span>
-        </button>
+        {tree.canOpen(path) ? (
+          <button type="button" className={css.row} onClick={() => { tree.onOpen(path) }}>
+            <FileTypeIcon kind={classifyFileType(entry.name)} size={16} className={css.fileIcon} />
+            <span className={css.name}>{entry.name}</span>
+          </button>
+        ) : (
+          <span className={clsx(css.row, css.other)} aria-disabled="true">
+            <FileTypeIcon kind={classifyFileType(entry.name)} size={16} className={css.fileIcon} />
+            <span className={css.name}>{entry.name}</span>
+          </span>
+        )}
       </li>
     )
   }
@@ -168,8 +176,9 @@ function Level({ path, tree }: { path: string; tree: TreeContext }): ReactNode {
 
 /** The file tree's body: the workspace root and whatever the reader has opened under it. */
 export function FilesBody({
-  useTabInfo, sessionId, useSessions, useStore, actions, start, load, toggle, t,
+  useTabInfo, sessionId, useSessions, useStore, actions, start, load, toggle, canOpenFile, useFileOpeners, t,
 }: FilesBodyProps): ReactNode {
+  useFileOpeners(value => value)
   const { tab } = useTabInfo()
   const { signal, actions: tabActions } = tab
   const cwd = useSessions(sessions => sessions.byId[sessionId]?.cwd)
@@ -196,7 +205,11 @@ export function FilesBody({
     state,
     onToggle: (path) => { toggle(tab.id, path, state.levels[path] !== undefined, signal) },
     // Every row is under the tree's root, so its address is session-relative.
-    onOpen: (path) => { tabActions.openResource(fileAddressFor(sessionId, state.root, path)) },
+    canOpen: path => canOpenFile(fileAddressFor(sessionId, state.root, path)),
+    onOpen: (path) => {
+      const address = fileAddressFor(sessionId, state.root, path)
+      if (canOpenFile(address)) tabActions.openResource(address)
+    },
     t,
   }
   // Reload drops every level and asks again for the expanded ones; a collapsed

@@ -148,6 +148,9 @@ export class UnsupportedImageMediaTypeError extends Error {
   }
 }
 
+/** Generic-file intake is unavailable; the composer owns the localized explanation. */
+export class FileUploadUnavailableError extends Error {}
+
 /** Scope-addressed conversation service (root singleton, provided as `conversation`). */
 export class ConversationController extends Service implements IConversation {
   /** The per-session input machine registry (SessionInputResolver face). */
@@ -168,6 +171,7 @@ export class ConversationController extends Service implements IConversation {
   }> = []
   private activeFileUploads = 0
   private readonly maxConcurrentFileUploads: number
+  private readonly attachmentLifetime = { disposed: false }
 
   /**
    * @param ctx - owning root context (the plugin apply context; the service
@@ -186,6 +190,7 @@ export class ConversationController extends Service implements IConversation {
     this.blocks = config.blocks
     this.maxConcurrentFileUploads = config.maxConcurrentFileUploads
     ctx.effect(() => async () => {
+      this.attachmentLifetime.disposed = true
       const operations = [...this.fileUploadOperations.values()]
       for (const operation of operations) operation.controller.abort()
       await Promise.allSettled([...this.pendingFileUploads])
@@ -208,7 +213,7 @@ export class ConversationController extends Service implements IConversation {
   async send(text: string): Promise<void> {
     const session = this.scopedSession('send')
     const result = await session.prompt([{ type: 'text', text }], 'queue')
-    if (!result.ok) throw new Error(`conversation.send failed: ${result.error.code}: ${result.error.message}`)
+    if (!result.ok) throw result.error
   }
 
   /**
@@ -232,6 +237,7 @@ export class ConversationController extends Service implements IConversation {
     mode: InputSubmitMode,
     signal?: AbortSignal,
   ): Promise<SubmitOutcome> {
+    const host = this.ctx.remote.$host
     const attachments = this.resolveDraftAttachments(attachmentIds)
     if (attachments.length !== attachmentIds.length) {
       throw new Error('conversation.sendSession: one or more draft attachments are no longer available')
@@ -263,8 +269,11 @@ export class ConversationController extends Service implements IConversation {
     const snapshot = session.getSnapshot()
     if (snapshot.subagent !== null) {
       const uploaded = await serializeAttachments()
+      signal?.throwIfAborted()
+      if (host !== this.ctx.remote.$host) return { kind: 'error' }
       const content = [...uploaded, ...(text === '' ? [] : [{ type: 'text' as const, text }])]
       const result = await session.prompt(content, mode, signal)
+      if (host !== this.ctx.remote.$host) return { kind: 'error' }
       return result.ok ? { kind: 'success' } : { kind: 'error' }
     }
     let finishRetirement: ((retirement: PendingSubmissionRetirement) => void) | undefined
@@ -284,12 +293,14 @@ export class ConversationController extends Service implements IConversation {
     try {
       await nextPaint()
       const uploaded = await serializeAttachments()
+      if (host !== this.ctx.remote.$host) { submission.abandon(); return { kind: 'error' } }
       content = [...uploaded, ...(text === '' ? [] : [{ type: 'text' as const, text }])]
     } catch (error) {
       submission.abandon()
       throw error
     }
     const result = await session.prompt(content, mode, signal, submission.requestId)
+    if (host !== this.ctx.remote.$host) return { kind: 'error' }
     if (!result.ok) return { kind: 'error' }
     if (retirement !== undefined && (await retirement).reason !== 'observed') return { kind: 'error' }
     return { kind: 'success' }
@@ -306,6 +317,9 @@ export class ConversationController extends Service implements IConversation {
    * @returns ordered draft descriptors.
    */
   createDrafts(sessionId: SessionId, files: readonly File[]): readonly ComposerAttachment[] {
+    if (this.attachmentLifetime.disposed) throw new Error('conversation attachments are disposed')
+    if (this.ctx.remote.$host.capabilities?.includes('file-upload.stage.v1') !== true
+      && files.some(file => !isImageMediaType(file.type))) throw new FileUploadUnavailableError('File staging is unavailable')
     return files.map((file) => {
       if (isImageMediaType(file.type)) {
         const attachment = browserDraftAttachment(file)
@@ -349,6 +363,9 @@ export class ConversationController extends Service implements IConversation {
   }
 
   private beginFileUpload(sessionId: SessionId, attachment: ComposerFileAttachment): void {
+    if (this.attachmentLifetime.disposed) return
+    const host = this.ctx.remote.$host
+    if (host.capabilities?.includes('file-upload.stage.v1') !== true) return
     this.fileUploadOperations.get(attachment.id)?.controller.abort()
     const controller = new AbortController()
     this.fileUploads.update((draft) => {
@@ -359,17 +376,18 @@ export class ConversationController extends Service implements IConversation {
     this.fileUploadOperations.set(attachment.id, { controller, done })
     this.pendingFileUploads.add(done)
     void done.then(() => { this.pendingFileUploads.delete(done) })
+    const current = (): boolean => !controller.signal.aborted && this.ctx.remote.$host === host
+      && this.fileUploadOperations.get(attachment.id)?.controller === controller
     const run = async (): Promise<void> => {
       try {
-        if (controller.signal.aborted
-          || this.fileUploadOperations.get(attachment.id)?.controller !== controller) return
+        if (!current()) return
         const result = await this.ctx.fileUpload.upload(
           sessionId,
           attachment.file,
           attachment.file.name === '' ? undefined : attachment.file.name,
           controller.signal,
           (progress) => {
-            if (this.fileUploadOperations.get(attachment.id)?.controller !== controller) return
+            if (!current()) return
             this.fileUploads.update((draft) => {
               if (!(attachment.id in draft)) return
               draft[attachment.id] = {
@@ -380,7 +398,7 @@ export class ConversationController extends Service implements IConversation {
             })
           },
         )
-        if (this.fileUploadOperations.get(attachment.id)?.controller !== controller) return
+        if (!current()) return
         this.fileUploads.update((draft) => {
           if (!(attachment.id in draft)) return
           draft[attachment.id] = result.ok
@@ -388,7 +406,7 @@ export class ConversationController extends Service implements IConversation {
             : { status: 'error', message: result.error.message }
         })
       } catch (error) {
-        if (this.fileUploadOperations.get(attachment.id)?.controller !== controller) return
+        if (!current()) return
         this.fileUploads.update((draft) => {
           if (!(attachment.id in draft)) return
           draft[attachment.id] = {
@@ -404,6 +422,22 @@ export class ConversationController extends Service implements IConversation {
     }
     this.fileUploadQueue.push({ run, settle })
     this.pumpFileUploads()
+  }
+
+  /**
+   * Withdraw queued uploads and Host receipts while retaining browser-owned draft files.
+   * @param message - localized explanation displayed until the user retries or removes the file.
+   */
+  withdrawFileUploads(message: string): void {
+    const operations = [...this.fileUploadOperations.values()]
+    this.fileUploadOperations.clear()
+    for (const operation of operations) operation.controller.abort()
+    for (const task of this.fileUploadQueue.splice(0)) task.settle()
+    this.fileUploads.update((draft) => {
+      for (const attachment of this.draftAttachments.values()) {
+        if (attachment.kind === 'file') draft[attachment.id] = { status: 'error', message }
+      }
+    })
   }
 
   /** Start queued upload Workers until the configured concurrency is occupied. */
@@ -444,12 +478,13 @@ export class ConversationController extends Service implements IConversation {
   async serializeDraftAttachments(
     attachmentIds: readonly DraftAttachmentId[],
   ): Promise<DraftAttachmentSerializationResult> {
+    const host = this.ctx.remote.$host
     const attachments = this.resolveDraftAttachments(attachmentIds)
     if (attachments.length !== attachmentIds.length) {
       throw new Error('conversation.serializeDraftAttachments: one or more draft attachments are no longer available')
     }
     const uploads = this.fileUploads.getSnapshot()
-    return {
+    const result = {
       attachments: await Promise.all(attachments.map(async (attachment) => {
         if (attachment.kind === 'image') return { type: 'image' as const, ...await this.encodeImage(attachment.file) }
         const upload = uploads[attachment.id]
@@ -459,6 +494,8 @@ export class ConversationController extends Service implements IConversation {
         return { type: 'file' as const, receiptId: upload.receiptId }
       })),
     }
+    if (host !== this.ctx.remote.$host) throw new Error('conversation.serializeDraftAttachments: connection changed')
+    return result
   }
 
   /**
@@ -499,7 +536,7 @@ export class ConversationController extends Service implements IConversation {
         action.kind === 'steer'
         && (result.error.code === 'session/steer-unavailable' || result.error.code === 'session/queue-item-not-found')
       ) return
-      throw new Error(`conversation.updateQueue failed: ${result.error.code}: ${result.error.message}`)
+      throw result.error
     }
   }
 
@@ -507,7 +544,7 @@ export class ConversationController extends Service implements IConversation {
   async cancel(): Promise<void> {
     const session = this.scopedSession('cancel')
     const result = await session.cancel()
-    if (!result.ok) throw new Error(`conversation.cancel failed: ${result.error.code}: ${result.error.message}`)
+    if (!result.ok) throw result.error
   }
 
   /** Pull one older history page for the scoped Session. */

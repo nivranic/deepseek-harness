@@ -25,7 +25,11 @@ Typing a `/` command opens a registered popup, a client action, a host command's
 <a id="use-this-package"></a>
 ## Use this package
 
+Remote command catalog and admission failures retain their original `RemoteError` until the calling entry handles them. Detached composer notices display the supplied diagnostic message without adding a service-call prefix.
+
 Mount this plugin alongside `ui-input-trigger` and `ui-conversation`; the `/` source then appears in the trigger menu, and business packages register their command surfaces through `ctx.commandUi`. Typing `/model` opens the registered popup; a host command with an argument claim opens its input or executes directly. The composer's `+` button and a typed `/` open the same menu: an Add section (File, Goal, Plan, Feedback) and a Commands section (Compact, Permission, Model, Export) in usage order, each row with a glyph, a localized title and description, and the command name as an alias where the localized title differs from it.
+
+The command source reads a Host catalog only when the current connection advertises `command.catalog.v1`; runnable Host rows additionally require `command.execute.v1`. Independent client contributions keep their own availability. Connection withdrawal immediately removes old candidates, releases catalog waiters and dismisses popups without moving keyboard focus. Retained Host candidates and input claims cannot execute on a replacement connection. Old command acknowledgments cannot consume a pending submission or publish a local completion or error notice; the draft and attachments stay available for explicit retry. A command already accepted by the Host may still have durable effects and is never automatically replayed.
 
 ### Kinds and decorations
 

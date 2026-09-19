@@ -1,7 +1,7 @@
 /** Electron shell: desktop project ownership, custom protocol, windows, and lifecycle. */
 
 import { readFile, writeFile } from 'node:fs/promises'
-import { extname, join, normalize, resolve, sep } from 'node:path'
+import { basename, extname, join, normalize, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   app,
@@ -9,7 +9,10 @@ import {
   dialog,
   ipcMain,
   Menu,
+  nativeImage,
   protocol,
+  screen,
+  Tray,
   type IpcMainInvokeEvent,
 } from 'electron'
 import { resolveDesktopPaths } from './paths.ts'
@@ -22,6 +25,10 @@ import { claimDesktopSingleInstance } from './single-instance.ts'
 import { DesktopUpdateCoordinator } from './update-coordinator.ts'
 import { desktopErrorState } from './startup-error.ts'
 import { startupFailureDocument } from './startup-document.ts'
+import { DesktopShellPreferences } from './shell-preferences.ts'
+import { DesktopShellBehavior } from './shell-behavior.ts'
+import { DesktopLoginItem } from './login-item.ts'
+import { LegacyDesktopSettingsImport, LegacySettingsError } from './legacy-settings.ts'
 
 const SCHEME = 'dsh-app'
 let focusPrimaryWindow = (): void => {}
@@ -163,6 +170,37 @@ async function main(): Promise<void> {
   let updateState: DesktopUpdateState = { phase: 'idle' }
   const locale = resolveDesktopLocale(app.getLocale())
   const messages = locale.messages
+  const preferences = new DesktopShellPreferences(join(paths.root, 'preferences.json'))
+  const loginItem = new DesktopLoginItem(app, process.execPath, process.platform)
+  let initiallyHidden = process.argv.includes('--hidden') || loginItem.openedAtLogin
+  const shellBehavior = new DesktopShellBehavior(preferences, {
+    createTray: () => {
+      const source = nativeImage.createFromPath(join(app.getAppPath(), 'resources', 'tray-icon.png'))
+      if (source.isEmpty()) throw new Error('Desktop tray icon is missing or unreadable')
+      const size = Math.round(16 * screen.getPrimaryDisplay().scaleFactor)
+      const icon = source.resize({ width: size, height: size })
+      if (process.platform === 'darwin') icon.setTemplateImage(true)
+      const tray = new Tray(icon)
+      try {
+        tray.setToolTip(messages.showMainWindow)
+        tray.setContextMenu(Menu.buildFromTemplate([
+          { label: messages.showMainWindow, click: () => { focusPrimaryWindow() } },
+          { type: 'separator' },
+          { label: messages.quitApplication, click: () => { app.quit() } },
+        ]))
+        tray.on('click', () => { focusPrimaryWindow() })
+      } catch (error) {
+        tray.destroy()
+        throw error
+      }
+      return tray
+    },
+    reveal: () => { focusPrimaryWindow() },
+    reportTrayFailure: (error) => {
+      console.error(error)
+      dialog.showErrorBox(messages.trayUnavailableTitle, messages.trayUnavailable)
+    },
+  })
   const appPreload = fileURLToPath(new URL('./preload-app.cjs', import.meta.url))
   const managementPreload = fileURLToPath(new URL('./preload.cjs', import.meta.url))
   const startupUrl = `${SCHEME}://shell/startup.html`
@@ -217,6 +255,7 @@ async function main(): Promise<void> {
   })
 
   const publishUpdate = (state: DesktopUpdateState): DesktopUpdateState => {
+    if (state.phase === 'error') shellInstallerOwnsQuit = false
     updateState = state
     for (const window of BrowserWindow.getAllWindows()) {
       window.webContents.send(DESKTOP_IPC.updatesState, state)
@@ -276,6 +315,7 @@ async function main(): Promise<void> {
     publishUpdate,
     async () => {
       shellInstallerOwnsQuit = true
+      await shellBehavior.flush()
       await backend.stop()
     },
   )
@@ -434,7 +474,9 @@ async function main(): Promise<void> {
     void pluginWindow.loadURL(`${SCHEME}://shell/plugin-manager.html`)
   }
 
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{
+  let importingSettings = false
+  const importStopped = (): boolean => quitting || shellInstallerOwnsQuit
+  const applicationMenu = Menu.buildFromTemplate([{
     label: process.platform === 'darwin' ? app.name : messages.application,
     submenu: [
       {
@@ -445,13 +487,109 @@ async function main(): Promise<void> {
       },
       { label: messages.checkUpdatesMenu, click: () => { void checkAndPrompt(true) } },
       { type: 'separator' },
+      {
+        id: 'desktop-close-to-tray',
+        type: 'checkbox',
+        label: process.platform === 'darwin' ? messages.closeToMenuBar : messages.closeToTray,
+        checked: shellBehavior.closeToTray,
+        click: (item) => {
+          if (quitting || shellInstallerOwnsQuit || importingSettings) return
+          item.enabled = false
+          void shellBehavior.setCloseToTray(item.checked).catch((error: unknown) => {
+            if (!quitting) dialog.showErrorBox(messages.preferencesFailedTitle, desktopErrorState(error).message)
+          }).finally(() => {
+            if (quitting) return
+            item.checked = shellBehavior.closeToTray
+            item.enabled = true
+          })
+        },
+      },
+      {
+        id: 'desktop-launch-at-login',
+        type: 'checkbox',
+        label: loginItem.available ? messages.launchAtLogin : messages.launchAtLoginUnavailable,
+        enabled: loginItem.available,
+        checked: loginItem.enabled,
+        click: (item) => {
+          if (quitting || shellInstallerOwnsQuit) return
+          const previous = !item.checked
+          try {
+            loginItem.setEnabled(item.checked)
+            item.checked = loginItem.enabled
+          } catch (error) {
+            item.checked = previous
+            console.error(error)
+            dialog.showErrorBox(messages.preferencesFailedTitle, messages.launchAtLoginFailed)
+          }
+        },
+      },
+      {
+        id: 'desktop-import-legacy-settings',
+        label: messages.importLegacySettings,
+        click: (item) => {
+          if (quitting || shellInstallerOwnsQuit || importingSettings) return
+          const closeItem = applicationMenu.getMenuItemById('desktop-close-to-tray')
+          if (closeItem === null) throw new Error('Desktop close preference menu is missing')
+          importingSettings = true
+          item.enabled = false
+          closeItem.enabled = false
+          void (async () => {
+            const selection = await dialog.showOpenDialog({
+              title: messages.importLegacySettings,
+              properties: ['openFile'],
+              filters: [{ name: messages.legacySettingsFiles, extensions: ['json', 'yaml', 'yml'] }],
+            })
+            const source = selection.filePaths[0]
+            if (selection.canceled || source === undefined || importStopped()) return
+            const preview = await LegacyDesktopSettingsImport.read(source)
+            if (importStopped()) return
+            const confirmation = await dialog.showMessageBox({
+              type: 'question',
+              title: messages.importLegacySettings,
+              message: formatDesktopMessage(messages.legacyImportPreview, {
+                current: shellBehavior.closeToTray ? messages.legacyCloseBackground : messages.legacyCloseNormal,
+                imported: preview.closeToTray ? messages.legacyCloseBackground : messages.legacyCloseNormal,
+              }),
+              detail: formatDesktopMessage(messages.legacyImportDetail, {
+                file: basename(source), login: preview.launchAtLogin ? messages.legacyLoginEnabled : messages.legacyLoginDisabled,
+              }),
+              buttons: [messages.legacyImportConfirm, messages.legacyImportCancel],
+              defaultId: 1,
+              cancelId: 1,
+            })
+            if (confirmation.response !== 0 || importStopped()) return
+            await preview.apply(shellBehavior)
+          })().catch((error: unknown) => {
+            const failures = {
+              unreadable: messages.legacyImportUnreadable, invalid: messages.legacyImportInvalid,
+              version: messages.legacyImportVersion, changed: messages.legacyImportChanged,
+            }
+            if (!quitting) dialog.showErrorBox(messages.preferencesFailedTitle,
+              error instanceof LegacySettingsError ? failures[error.reason] : messages.legacyImportFailed)
+          }).finally(() => {
+            importingSettings = false
+            if (quitting) return
+            item.enabled = true
+            closeItem.checked = shellBehavior.closeToTray
+            closeItem.enabled = true
+          })
+        },
+      },
+      { type: 'separator' },
       { role: 'quit' },
     ],
-  }]))
+  }])
+  Menu.setApplicationMenu(applicationMenu)
 
   const createMainWindow = (): BrowserWindow => {
-    const window = createWindow(appPreload, true)
+    const hide = initiallyHidden
+    initiallyHidden = false
+    const window = createWindow(appPreload, !hide)
     mainWindow = window
+    if (hide && !shellBehavior.hideAtLogin(window)) window.show()
+    window.on('close', (event) => {
+      if (!quitting && !shellInstallerOwnsQuit) shellBehavior.closeWindow(event, window)
+    })
     window.on('closed', () => { if (mainWindow === window) mainWindow = undefined })
     window.webContents.on('preload-error', (_event, _path, error) => {
       void showEmergencyError(error).catch((failure: unknown) => { console.error(failure) })
@@ -478,7 +616,7 @@ async function main(): Promise<void> {
   }
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) focusPrimaryWindow()
+    focusPrimaryWindow()
   })
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
@@ -487,7 +625,9 @@ async function main(): Promise<void> {
     if (shellInstallerOwnsQuit || quitting) return
     event.preventDefault()
     quitting = true
-    void backend.close().catch((error: unknown) => { console.error(error) }).finally(() => { app.quit() })
+    void Promise.allSettled([backend.close(), shellBehavior.close()]).then((results) => {
+      for (const result of results) if (result.status === 'rejected') console.error(result.reason)
+    }).finally(() => { app.quit() })
   })
 
   mainWindow = createMainWindow()

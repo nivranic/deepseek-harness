@@ -27,6 +27,8 @@ Use this package to browse every subagent conversation beneath a parent session,
 
 The session header keeps the current session title as the lineage breadcrumb and, when the session has subagent descendants, appends a `/` count trigger before the header's action row; the trigger opens the descendant catalog, counts the complete subagent-only lineage, stops at ordinary forks, and shows ongoing activity when any counted descendant is running. Select any depth to open that child's conversation with its exact `{parentSessionId, childSessionId, mode}` address.
 
+The header catalog requires `subagent.catalog.v1`; unsupported Hosts receive no catalog probe. Connection replacement closes the menu and invalidates its callbacks without discarding the selected child or its draft. Continuable Send additionally requires `subagent.prompt.v1`, while its independent Stop requires `subagent.interrupt.v1`. Capability support does not replace parent availability or Host authorization.
+
 ### Browsing the tree
 
 Rows display mode plus `running`/`inactive` activity and an optional log-backed title; the trailing column stacks total durable provider usage above active-turn duration. Keyboard navigation works with ArrowRight/ArrowLeft to expand and collapse branches and ArrowUp/ArrowDown, Home, End, and Escape to navigate or close the tree. An unlabeled one-shot row falls back to its session id; corrupt, unsupported, or unavailable rows remain readable but disabled.

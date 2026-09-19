@@ -579,12 +579,14 @@ class SingleExeBuild {
       return
     }
     console.log(`build-exe-for-python-sdk: ${label}: ${printable}`)
+    const environment = Object.fromEntries(Object.entries(process.env)
+      .filter(([key]) => key.toLowerCase() !== 'pnpm_config_verify_deps_before_run'))
     await new Promise<void>((resolvePromise, reject) => {
       const child = spawn(command, args, {
         cwd: root,
         stdio: 'inherit',
-        // Artifact builds must not mutate or validate a developer's Git hooks.
-        env: { ...process.env, CI: 'true' },
+        // pnpm 11 can replay production deploy settings and remove build tools before `exec pkg`.
+        env: { ...environment, CI: 'true', pnpm_config_verify_deps_before_run: 'false' },
       })
       child.once('error', (error) => {
         reject(new Error(`build-exe-for-python-sdk: ${label} failed to spawn: ${error.message} (${printable})`))

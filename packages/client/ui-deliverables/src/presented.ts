@@ -1,13 +1,7 @@
-/** Validate declared workspace paths and address their native-open actions. */
+/** Durable file declarations and native action request fields. */
 import type { PresentedFile } from '@deepseek-ai/dsh-tool-present/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { ToolCallId } from '@deepseek-ai/dsh-llm/brand'
-
-/** Authenticated POST route for opening a workspace file on the Host desktop. */
-export const PRESENT_OPEN_PATH = '/api/present.open'
-
-/** Authenticated desktop availability and destination metadata. */
-export const PRESENT_HOST_PATH = '/api/present.host'
 
 /** Native file action selected by an explicit user gesture. */
 export type PresentedAction = 'open' | 'reveal'
@@ -17,19 +11,6 @@ export interface PresentedHost {
   name: string
   available: boolean
   fileManager: 'finder' | 'explorer' | 'directory' | null
-}
-
-/**
- * Validate desktop metadata received over HTTP.
- * @param value - decoded response.
- * @returns whether all displayed and actionable fields are supported.
- */
-export function isPresentedHost(value: unknown): value is PresentedHost {
-  if (typeof value !== 'object' || value === null) return false
-  const host = value as Record<string, unknown>
-  return typeof host.name === 'string' && typeof host.available === 'boolean'
-    && (host.fileManager === null || host.fileManager === 'finder'
-      || host.fileManager === 'explorer' || host.fileManager === 'directory')
 }
 
 /**
@@ -45,14 +26,14 @@ export function isPresentedFile(value: unknown): value is PresentedFile {
 }
 
 /**
- * Build authenticated coordinates for a declared file.
+ * Identify one declared file in transient Client action state.
  * @param sessionId - owning Session.
  * @param seq - deliverables/presented event sequence.
  * @param index - original index in the event's files array.
- * @returns same-origin file action URL.
+ * @returns stable key for the Session event and file index.
  */
-export function presentedFileUrl(sessionId: SessionId, seq: number, index: number): string {
-  return `${PRESENT_OPEN_PATH}?${new URLSearchParams({ sessionId, seq: String(seq), index: String(index) })}`
+export function presentedFileKey(sessionId: SessionId, seq: number, index: number): string {
+  return JSON.stringify([sessionId, seq, index])
 }
 
 /**
@@ -75,4 +56,29 @@ export function isPresentedData(value: unknown): value is { turn: number; callId
 export function basename(path: string): string {
   const at = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
   return at === -1 ? path : path.slice(at + 1)
+}
+
+/** Coordinates of a persisted declaration in the viewed Session. */
+export interface PresentedFileRequest {
+  readonly sessionId: SessionId
+  readonly seq: number
+  readonly index: number
+}
+
+/** Native command completion, without copying or returning file bytes. */
+export interface PresentedFileActionValue {
+  readonly completed: true
+}
+
+declare module '@deepseek-ai/dsh-typert-protocol' {
+  interface RemoteErrorDetailsMap {
+    /** No presented file matches the requested Session event and file index. */
+    'presented-file/not-found': Record<string, never>
+    /** The Host does not provide the requested native file action. */
+    'presented-file/native-unavailable': Record<string, never>
+    /** The presented file has no verified Host path for the requested action. */
+    'presented-file/path-unavailable': Record<string, never>
+    /** The presented file could not be resolved or the native action failed. */
+    'presented-file/action-failed': Record<string, never>
+  }
 }

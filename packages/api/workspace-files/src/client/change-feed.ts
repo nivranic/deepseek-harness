@@ -117,11 +117,12 @@ class SessionFeed {
   ) {
     this.stream = remote.$stream<WorkspaceFileWatchFrame>({
       name: `workspace file changes of ${sessionId}`,
+      available: host => host.capabilities?.includes('workspace-files.changes.v1') === true,
       // A predecessor still closing finishes first, so one session never has
       // two Host streams open at once.
       open: (signal) => {
         this.started = false
-        return openAfter(after, () => remote.workspaceFiles.changes(sessionId, signal))
+        return openAfter(after, () => remote.workspaceFiles.changes(sessionId, signal), signal)
       },
       // A normal end means the Host closed the session's feed: the session is
       // gone or the Host is shutting down, so there is nothing to reopen.
@@ -190,10 +191,12 @@ class SessionFeed {
  * Open a Host stream once a predecessor has finished closing.
  * @param after - the predecessor's dispose, or nothing to wait for.
  * @param open - opens the stream.
+ * @param signal - cancellation while a predecessor closes.
  * @returns the stream's items.
  */
-async function* openAfter<T>(after: Promise<void> | undefined, open: () => AsyncIterable<T>): AsyncIterable<T> {
+async function* openAfter<T>(after: Promise<void> | undefined, open: () => AsyncIterable<T>, signal: AbortSignal): AsyncIterable<T> {
   await after
+  if (signal.aborted) return
   yield* open()
 }
 

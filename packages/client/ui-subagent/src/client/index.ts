@@ -3,7 +3,11 @@ import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { SubagentAddress } from '@deepseek-ai/dsh-subagent/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { ComposerChainProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
-import { SubagentHeaderLineage, type SubagentCatalogInjected } from './SubagentHeaderLineage.tsx'
+import type { SubagentCatalogInjected } from './SubagentHeaderLineage.tsx'
+import { CapabilityAwareSubagentHeader, type SubagentCatalogAccessInjected } from './CapabilityAwareSubagentHeader.tsx'
+import { createCatalogAccess } from './catalog-access.ts'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import {
   SubagentReadOnlyComposer, type SubagentReadOnlyMatch,
 } from './SubagentReadOnlyComposer.tsx'
@@ -27,7 +31,7 @@ export type {
 } from './SubagentReadOnlyComposer.tsx'
 
 /** Required services for conversation slots and session navigation. */
-export const inject = ['sessions', 'slots', 'locale']
+export const inject = ['sessions', 'slots', 'locale', 'connection', 'remote']
 
 /** Claim the composer for one-shot history or an unavailable continuation owner. */
 function selectReadOnlySubagent(owner: ComposerChainProps): SubagentReadOnlyMatch | null {
@@ -51,6 +55,9 @@ function selectReadOnlySubagent(owner: ComposerChainProps): SubagentReadOnlyMatc
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-subagent: dictionaries')
   const sessions = ctx.sessions
+  const connection = ctx.get('connection') as ConnectionHandle
+  let disposed = false
+  ctx.effect(() => () => { disposed = true }, 'ui-subagent: catalog lifetime')
   const catalogActions = (_parentSessionId: SessionId): SubagentCatalogInjected => ({
     openChild(address: SubagentAddress) {
       sessions.openSubagent(address)
@@ -67,8 +74,11 @@ export function apply(ctx: ClientContext): void {
     () => ctx.slots.register({
       name: 'conversation.session.header.lineage',
       locale: NS,
-      inject: catalogActions,
-    }, SubagentHeaderLineage),
+      inject: (id: SessionId): SubagentCatalogAccessInjected => ({ hooks: {
+        subagentCatalog: createCatalogAccess(() => ctx.remote.$host, listener => connection.generation.subscribe(listener),
+          () => !disposed, catalogActions(id)),
+      } }),
+    }, CapabilityAwareSubagentHeader),
   )
   ctx.slots.inject(
     'conversation.composer',

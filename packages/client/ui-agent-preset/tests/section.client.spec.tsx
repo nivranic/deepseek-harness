@@ -45,6 +45,9 @@ function renderSection(
   options: { creator?: boolean } = {},
 ) {
   const store = createSnapshotStore<AgentPresetSectionState>({ ...READY, ...state })
+  const capability = createSnapshotStore(true)
+  const settingsWrite = createSnapshotStore(true)
+  const presetDirectory = createSnapshotStore(true)
   const actions = {
     load: vi.fn(() => Promise.resolve()),
     // The shell-owned section affordance (SettingsSectionOwnerProps.close).
@@ -66,10 +69,17 @@ function renderSection(
   const props = {
     ...actions,
     useAgentPresetSection: bindSnapshotSelector(store),
+    useSettingsWrite: bindSnapshotSelector(settingsWrite),
+    usePresetDirectory: bindSnapshotSelector(presetDirectory),
+    usePresetManagement: bindSnapshotSelector(createSnapshotStore(true)),
+    useSessionManagement: bindSnapshotSelector(capability),
     t: (key: keyof typeof en) => en[key],
   } as unknown as AgentPresetSectionProps
   render(<AgentPresetSection {...props} />)
-  return actions
+  return { ...actions, setManagement: (value: boolean) => { capability.set(value) },
+    setSettingsWrite: (value: boolean) => { settingsWrite.set(value) },
+    setPresetDirectory: (value: boolean) => { presetDirectory.set(value) },
+  }
 }
 
 /** Locate a card by the id it prints, not by its display name. */
@@ -305,6 +315,20 @@ describe('the preset list', () => {
     expect(actions.close).toHaveBeenCalledTimes(1)
   })
 
+  it('hides only the Session creator when management is withdrawn and restores it without a new roster', () => {
+    const actions = renderSection({
+      rows: [...READY.rows, { id: 'cordis', trust: 'system', isDefault: false, name: '创造模式' }],
+    })
+    act(() => { actions.setManagement(false) })
+    expect(screen.queryByRole('button', { name: en.creatorDraft })).toBeNull()
+    expect(rowFor('mine')).toBeTruthy()
+    expect(actions.startCreatorDraft).not.toHaveBeenCalled()
+    act(() => { actions.setManagement(true) })
+    fireEvent.click(screen.getByRole('button', { name: en.creatorDraft }))
+    expect(actions.startCreatorDraft).toHaveBeenCalledOnce()
+    expect(actions.load).toHaveBeenCalledOnce()
+  })
+
   it('keeps the empty custom group on screen: heading plus the creator entry', () => {
     renderSection({
       rows: [
@@ -349,6 +373,10 @@ describe('the preset list', () => {
 
   it('renders nothing when the deployment composes no presets', () => {
     const { container } = render(<AgentPresetSection {...({
+      useSettingsWrite: bindSnapshotSelector(createSnapshotStore(true)),
+      usePresetDirectory: bindSnapshotSelector(createSnapshotStore(true)),
+      usePresetManagement: bindSnapshotSelector(createSnapshotStore(true)),
+      useSessionManagement: bindSnapshotSelector(createSnapshotStore(true)),
       useAgentPresetSection: bindSnapshotSelector(
         createSnapshotStore<AgentPresetSectionState>({ ...READY, status: 'unavailable', rows: [] })),
       t: (key: keyof typeof en) => en[key],
@@ -568,4 +596,22 @@ describe('a long card description', () => {
     // The first measurement does not depend on the observer.
     expect(within(rowFor('zh')).getByText(LONG).getAttribute('title')).toBe('')
   })
+})
+
+it('keeps preset browsing while Settings write and directory capabilities are absent', () => {
+  const actions = renderSection()
+  act(() => { actions.setSettingsWrite(false); actions.setPresetDirectory(false) })
+  const picker = screen.getByRole('switch', { name: en.showPicker })
+  expect(picker).toHaveProperty('disabled', true)
+  expect(screen.getByText(en.preferenceUnavailable)).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /^Open folder:/u })).toBeNull()
+  const choice = screen.getByRole('button', { name: en.preferenceUnavailable + ': mine' })
+  expect(choice).toHaveProperty('disabled', true)
+  fireEvent.click(choice)
+  expect(actions.makeDefault).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'View: Standard mode' }))
+  expect(actions.view).toHaveBeenCalledWith('standard')
+  act(() => { actions.setSettingsWrite(true); actions.setPresetDirectory(true) })
+  expect(screen.getByRole('switch', { name: en.showPicker })).toHaveProperty('disabled', false)
+  expect(screen.getByRole('button', { name: 'Open folder: mine' })).toBeTruthy()
 })

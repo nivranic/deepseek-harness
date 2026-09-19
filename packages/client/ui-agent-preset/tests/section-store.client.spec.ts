@@ -71,6 +71,7 @@ function fakeCtx(
   let listCount = 0
   return {
     remote: {
+      $host: { capabilities: ['agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1', 'settings.write.v1', 'settings.agent-preset-directory.v1'] },
       agentPresets: {
         list: () => {
           record('list', {})

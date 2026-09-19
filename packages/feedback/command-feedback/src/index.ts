@@ -13,6 +13,7 @@ import { CommandDefinitionId } from '@deepseek-ai/dsh-commands/brand'
 import type { CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
 import type { Session } from '@deepseek-ai/dsh-session'
 import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
+import { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   FeedbackCategory,
@@ -89,7 +90,7 @@ export class SessionFeedbackService extends TypertRemoteService {
    * @param ctx - Host context carrying the live Session store.
    */
   constructor(ctx: Context) {
-    super(ctx, 'sessionFeedback')
+    super(ctx, 'sessionFeedback', { capabilities: SESSION_FEEDBACK_REMOTE_CAPABILITIES })
   }
 
   /**

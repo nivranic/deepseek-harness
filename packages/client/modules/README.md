@@ -65,11 +65,15 @@ Executing a plugin bundle only registers its factory; every module-body side eff
 
 ### Incremental composition
 
+The Loader-resolved host module identifies the package that owns each client bundle. For managed executable proxies, the Node half follows the matching `dsh.moduleFallback.targets` export to the original manifest and reads resources relative to that package. It rejects malformed target maps, ambiguous export matches, missing owners, and proxy cycles instead of silently omitting the client row.
+
 The Node half scans incrementally per package — no full-rescan path. Every `internal/plugin` emission marks the fiber's entry name dirty; a microtask flush reconciles each dirty name against the live loader entries, and the activation pass seeds the same dirty set and flushes synchronously, so first scan and steady state share one implementation. Package metadata is cached per Loader specifier and owning-tree base URL until restart, while the resolved manifest package name identifies the browser module. Distinct active Loader sources resolving to one package name are rejected; removing the conflict promotes the remaining source without requiring its fiber to restart. Bundle content changes reach the graph only through `rebuilt()` (the HMR hook).
 
 The Node half snapshots each client bundle and available source map before publication. It groups resources into `/plugins/??...&rev=...` combo URLs, with one bootstrap combo for the modules row and one or more application combos for the other rows; each phase is partitioned before a URL exceeds 3 KiB. Every combo map is Indexed Source Map v3 and uses an authored section when available or an identity section for the packaged bundle. Initial per-plugin revisions use process nonces, so startup does not hash every plugin; HMR hashes only an artifact reported as changed. Advertised responses are immutable, and an unknown combination or revision returns 404.
 
 ### Boot manifest injection
+
+The optional Web carrier owns the `/plugins` route lifetime. The route registers when the Web service becomes available, unregisters when it unloads, and returns when it is replaced; the module graph remains available to shell carriers throughout.
 
 The host contributes structured index rows that inject, into `<head>`: the `window.__ModuleLoader__` queue facade, advisory preloads for every application combo, the parser-blocking bootstrap combo scripts, then the boot graph before the shell reads it. A Web carrier renders those rows into its index response; a shell-owned carrier can render the same rows without a Web server. The facade's `create()` materializes the modules bundle, delegates construction to its `createClientModuleSystem` export, and leaves the same facade in live-registration mode.
 

@@ -165,7 +165,7 @@ describe('readCallLine', () => {
 describe('GenericToolCard read body', () => {
   const ownerProps = (block: RunningToolCall | ToolResultNode): GenericToolCardProps => ({
     loadImage: vi.fn(() => Promise.reject(new Error('not used'))),
-    callId: 'c1', toolName: 'read', block, openFile: vi.fn(), t,
+    callId: 'c1', toolName: 'read', block, openFile: vi.fn(), canOpenFile: () => true, t,
   })
 
   /** The whole summary row is the expand toggle (ToolRow's unified interaction). */
@@ -189,7 +189,7 @@ describe('GenericToolCard read body', () => {
     const view = render(<GenericToolCard {...({
       callId: 'c1', toolName: 'echo', block: settled({
         call: { name: 'echo', argsRaw: '{"text":"x"}' }, meta: undefined,
-      }), openFile: vi.fn(), loadImage: vi.fn(() => Promise.reject(new Error('not used'))), t,
+      }), openFile: vi.fn(), canOpenFile: () => true, loadImage: vi.fn(() => Promise.reject(new Error('not used'))), t,
     })} />)
     toggleRow(view)
     expect(view.container.querySelector('[data-read]')).toBeNull()
@@ -212,7 +212,7 @@ describe('ReadRow keyed toolview', () => {
   })
 
   const rowProps = (block: RunningToolCall | ToolResultNode): Parameters<typeof ReadRow>[0] => ({
-    callId: 'c1', toolName: 'read', block, openFile: vi.fn(),
+    callId: 'c1', toolName: 'read', block, openFile: vi.fn(), canOpenFile: () => true,
     sessionId: SID, useSessions: bindSnapshotSelector(list()),
     t,
   } as unknown as Parameters<typeof ReadRow>[0])

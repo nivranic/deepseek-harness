@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Subagent breadcrumb fallback without duplicated ordinary Session titles; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/subagent-header-source.json",
+    "sha256": "15d2cf72dcc831e5f22aa3020b1ab33c7ef3bc58c0469318a19e7b0eba5eadc5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3117bd3d6496e34c42878a2ed08fe5d5b7331c7322a186d36958c4a79bbde5da"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/subagent-header-binding.json",
+    "sha256": "e2f830e2af80fda80f93af361512bc1fe7a292559a8eaf40e1db8054bab7cb52"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-subagent-header-reports.mjs",
+      "sha256": "b468fab584bc7c2e65818397d663814d7ad4d00e0f4e49cf7b7ebf6588a8fc68"
+    },
+    {
+      "path": ".artifacts/repair-subagent-header-history.mjs",
+      "sha256": "2795333e5e5eaadc90c4f421fc91e678868bc405311d5bed5f2d8dbab68d81e4"
+    },
+    {
+      "path": ".artifacts/repair-subagent-header-older-records.mjs",
+      "sha256": "5e76ea0a921a8095307310335afc4d0b3e7bc2c2f6b0c203527e9df2defd7169"
+    },
+    {
+      "path": ".artifacts/capture-subagent-header-validation.mjs",
+      "sha256": "17b8bff9324703be067bb45d205945ed9adf975c110ab1d994a863d0a62e7103"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "e328c161c8ea0bf578288c0a0a6e39eda9cb2678a1bf3052b00d445195b362eb"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8d5c97c355836634004d80fd0ea77391f46f78d7deff119f8b1a54dd2b445e8e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/subagent-header-binding.log",
+      "sha256": "24c82c13a029ce3feb991f3be4822b603e59b478f4c30619e75c5b75fb137d68"
+    },
+    {
+      "path": ".artifacts/subagent-header-audit-tests.log",
+      "sha256": "c09d172d3a52cccbcc482581c3d8d8c59c90b23aa67fef8588bdc3fa1fef47e5"
+    },
+    {
+      "path": ".artifacts/subagent-header-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/subagent-header-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/subagent-header-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    },
+    {
+      "path": ".artifacts/subagent-header-report-generation-initial.log",
+      "sha256": "e425a299ba61ea054ced83dd4c37f2483165433a93f2f842553306a7613b6ee5"
+    },
+    {
+      "path": ".artifacts/subagent-header-report-generation-history.log",
+      "sha256": "d4ed71333950dc02915374585b721778a5ededae9c2c0c431dca95f982ba24b0"
+    }
+  ]
+}

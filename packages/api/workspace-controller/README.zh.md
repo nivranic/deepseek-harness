@@ -24,7 +24,15 @@ kind: "package-reference"
 
 Host 控制器会串行执行正确性取决于当前注册表状态的变更，并为预期失败抛出带有稳定 `workspace/*` 或 `directory-picker/*` 错误码的 `RemoteError`。它的 `follow()` 流会同步订阅持久 Workspace 变更，先发出一份完整 baseline，再按顺序发出 `upsert`、`remove`、`order` 和 `archived` 增量。重连会以替换 baseline 开始新一代，因此消费方不依赖收到断线期间的每个增量。
 
-Client 入口提供 `ClientWorkspaceModel` 和 `createWorkspaceStateStream()`。该模型拥有 Workspace 行、registry 顺序、已归档 Session id、一元变更回显，以及流与一元调用的竞态处理。较新的 Host 行按 `updatedAt` 获胜；已提交的流顺序优先于较旧的一元响应；已经移除的 Workspace id 不会被延迟数据复活。该包公开与框架无关的快照和订阅，把导航策略与 React 钩子留给 UI owner。
+纯 `/capabilities` 入口声明独立的 `workspace.follow.v1`、`workspace.manage.v1` 和 `workspace.sessions.v1` 操作集。Host 通过 Typert 绑定公布这些能力，应用在派发前要求对应操作集。Session 管理能力不能授权 Workspace 注册表或归档操作。
+
+Directory Picker 使用同一纯声明入口定义 `directory-picker.native.v1`、`directory-picker.browse.v1` 和 `directory-picker.create.v1`。原生后端只声明原生选择；浏览后端分别声明列目录和创建能力。未知扩展种类不声明这些操作。后端能力在 Service 生命周期内稳定，因此替换后端会随控制器重建声明。文件系统访问仍由 Host 在调用时检查。
+
+目录创建在调用文件系统能力前，以 `gateway/bad-request` 和[可移植验证诊断](../../typert/protocol/README.zh.md)拒绝无效输入。
+
+Client 入口提供 `ClientWorkspaceModel` 和 `createWorkspaceStateStream()`。模型负责行、注册表顺序、归档 id，以及流与一元调用的竞态处理。同一连接内，较新的行按 `updatedAt` 获胜，已提交的流顺序优先于较旧的一元回显，延迟数据不能复活已移除的 id。Host 快照替换会清除这些投影及删除、排序依据；迟到的一元结果返回 `gateway/cancelled`，不会修改新投影。这不会撤销已经派发的 Host 变更。
+
+能力发现尚未完成时，模型保持加载状态；明确缺少跟随能力时，模型进入 `unavailable`，且不打开跟随流。Gateway 负责等待与恢复；能力恢复后打开新基线，不另行触发领域重启。快照与订阅不依赖框架，UI 负责导航和 React 钩子。
 
 -----
 
@@ -42,7 +50,7 @@ Client 入口提供 `ClientWorkspaceModel` 和 `createWorkspaceStateStream()`。
 <a id="known-limitations-and-deferred-work"></a>
 
 - `follow()` 在重连后替换完整投影，不提供持久 cursor 或增量追赶协议。
-- 进程内删除标记只会在 Client 模型生命周期内阻止延迟数据复活已移除的 Workspace。
+- 进程内删除标记仅保护当前 Host 快照的生命周期。
 
 
 <a id="dev-note"></a>

@@ -17,19 +17,33 @@ export type { WorkspaceFileParams } from './types.ts'
 export const inject = ['resources', 'remote', 'remote.workspaceFiles']
 
 /**
- * Client plugin body: register the `file` provider for this plugin's lifetime.
+ * Register metadata only for an admitted Host with stat support; replacement
+ * aborts the old registration and reopens held resources with fresh metadata.
  * @param ctx - client root context carrying `resources` and the Remote face.
  */
 export function apply(ctx: ClientContext): void {
   const changes = new ChangeFeed(ctx.remote)
-  const provider = createFileResourceProvider(ctx.remote, changes)
   ctx.effect(() => {
-    const release = ctx.resources.register(provider)
-    // Teardown waits for every session stream still closing, so the plugin
-    // leaves no Host stream behind.
+    let host: typeof ctx.remote.$host | undefined
+    let remove: (() => void) | undefined
+    const refresh = (): void => {
+      const next = ctx.remote.$host
+      if (next === host) return
+      host = next
+      remove?.()
+      remove = undefined
+      if (next.capabilities?.includes('workspace-files.stat.v1') !== true) return
+      const lifetime = new AbortController()
+      const provider = createFileResourceProvider(ctx.remote, changes, lifetime.signal)
+      const release = ctx.resources.register(provider)
+      remove = () => { lifetime.abort(); release() }
+    }
+    refresh()
+    const stop = ctx.on('connection/reset', refresh)
     return async () => {
-      release()
+      stop()
+      remove?.()
       await changes.settle()
     }
-  }, 'workspace-files: file resource provider')
+  }, 'workspace-files: admitted Host file provider')
 }

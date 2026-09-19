@@ -18,12 +18,15 @@ import type { MessageFeedbackItem, MessageFeedbackRating } from '@deepseek-ai/ds
 import type {} from './locales.ts'
 import type { MessageFeedbackActionResult, MessageFeedbackView } from './controller.ts'
 import type { FeedbackDialogState } from './dialog.ts'
+import type { FeedbackAccess } from './access.ts'
 
 /** Injected business face of one assistant-message feedback entry. */
 export interface MessageFeedbackInjected {
   hooks: {
     /** The owning Session's feedback view, shared by every message control. */
     feedback: HostObservable<MessageFeedbackView>
+    /** Supported operations belonging to the current admitted connection. */
+    feedbackAccess: HostObservable<FeedbackAccess>
   }
   /** Load the Session's feedback once, on first interaction. */
   ensure: () => Promise<MessageFeedbackActionResult>
@@ -59,6 +62,8 @@ export interface FeedbackDialogInjected {
   hooks: {
     /** The Session's dialog and toast state. */
     dialog: HostObservable<FeedbackDialogState>
+    /** Supported operations belonging to the current admitted connection. */
+    feedbackAccess: HostObservable<FeedbackAccess>
   }
   /**
    * Replace part of the draft: the category (null clears it) or the text.

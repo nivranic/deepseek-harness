@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-14T23:29:32.345Z",
+  "scope": "Linear shared HTML opening-tag lookup; incremental source and built public library validation",
+  "sourceFiles": [
+    {
+      "path": "packages/host/webserver/src/injections.ts",
+      "sha256": "a343ff40c10c24a80314b4bdb124525c7370904d1b773176864afe6bb50e5082",
+      "bytes": 5711
+    },
+    {
+      "path": "packages/host/webserver/tests/injections.spec.ts",
+      "sha256": "1149c6af3bd06320321190c832b719cc022c7040c5d30c3eba6bfb97469d2103",
+      "bytes": 2373
+    },
+    {
+      "path": "packages/host/webserver/README.md",
+      "sha256": "ed37fb0acb7b3ad3503177eb316406ab145d72988339395af518013934afe181",
+      "bytes": 8487
+    },
+    {
+      "path": "packages/host/webserver/README.zh.md",
+      "sha256": "ca89bde19f83e749229b0c6fa9a6665fc24b144489320eb5215ec92802958ed9",
+      "bytes": 7950
+    },
+    {
+      "path": "packages/host/webserver/README.i18n.yaml",
+      "sha256": "689e6d4b289efd63636ec7cb701a95c687486c5c930b8129d232075f00a53664",
+      "bytes": 433
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.md",
+      "sha256": "17970163753e10a542825e07f3911305196cffb590cef483c054a2c0d4542b24",
+      "bytes": 2555
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.zh.md",
+      "sha256": "f1bf7ac8cd8b1cfbefdcd763d73319e97110ebfe04499437bdf2545d0f31abe9",
+      "bytes": 2273
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.i18n.yaml",
+      "sha256": "37839d33069f3675ea6e7bdfe28cc9ca13ee932e44f75d6f0e327da8a07ce7b6",
+      "bytes": 527
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "packages/host/webserver/lib/index.js",
+      "sha256": "f446525224cf61d078dc92898a15972f9bdf2e65960c813cc1f38ab136d4e3ca",
+      "bytes": 13497
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/web-injection-built-smoke.json",
+      "sha256": "705e9c7c46915a80f17cf1ba9cccb2dd27e88fb84b0552cd9bcb6cc356175514",
+      "bytes": 467
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/verify-web-injection-built.mjs",
+      "sha256": "4cb8f81c2b6c044d5cbbd6bfa401ca65d7f40ad7e342ec2488dedaf94f454540",
+      "bytes": 2811
+    },
+    {
+      "path": ".artifacts/capture-web-injection-source.mjs",
+      "sha256": "0f56a36f47808729ac3064be36668f5f3538c4558c5b1dec65ee3c3c81ba75c1",
+      "bytes": 4640
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/web-injection-before.log",
+      "sha256": "ee334104892b6d32cc878ae55910c87192996fe54d1bd68359e39b1ac1f89353",
+      "bytes": 2053
+    },
+    {
+      "path": ".artifacts/web-injection-after.log",
+      "sha256": "7446e24df8555b762153dd5ebc2690b79c46b820621ad820023170de29c87ab2",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/web-injection-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/web-injection-pairing.log",
+      "sha256": "7dd11e84eb2507bd5969150c0bf7913e1f6f1199afd3e3af4636f0899ccb031a",
+      "bytes": 448
+    },
+    {
+      "path": ".artifacts/web-injection-pairing-sandbox.log",
+      "sha256": "f359d09c5a90fa7677e90fe08a74a1c9740e4d6dc8cd38169ff231ed90357f92",
+      "bytes": 1069
+    },
+    {
+      "path": ".artifacts/web-injection-doc-sync-startup-failure.log",
+      "sha256": "680fc74305e8f9afdd045811450210f5c6271f99096292c7fc2e119865c2d1c4",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/web-injection-doc-sync.log",
+      "sha256": "f483b9aa319daa6cc3a7d4398f15767b8cac7f765eeeedd6bbd5e136963dfee5",
+      "bytes": 2949
+    },
+    {
+      "path": ".artifacts/web-injection-built.log",
+      "sha256": "9cc327090cd85be1309bb21f5e42521cef08de63bf9c9847152c64f58524fd2f",
+      "bytes": 477
+    },
+    {
+      "path": ".artifacts/web-injection-full-lint-startup-failure.log",
+      "sha256": "7c358f1dcb3566f94d297259d4466e89af42dae8d89d4c21b31c4b68730570bb",
+      "bytes": 935
+    },
+    {
+      "path": ".artifacts/web-injection-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/cli-argv-source.json",
+      "sha256": "1351bffa2940c203f116ad6fce17bf53367990cbbd0e06f06124c71a660dfc77",
+      "bytes": 28579
+    }
+  ],
+  "checks": [
+    {
+      "id": "web-injection-before",
+      "status": "FAIL",
+      "passed": 28,
+      "failed": 2,
+      "command": "pnpm exec vitest run packages/host/webserver/tests/injections.spec.ts",
+      "detail": "The two repeated unterminated prefix regressions hit the child timeout before the fix."
+    },
+    {
+      "id": "web-injection-source",
+      "status": "PASS",
+      "tests": 34,
+      "command": "pnpm exec vitest run packages/host/webserver/tests/injections.spec.ts packages/host/webserver/tests/webserver.spec.ts"
+    },
+    {
+      "id": "web-injection-built",
+      "status": "PASS",
+      "tests": 30,
+      "command": "node .artifacts/verify-web-injection-built.mjs",
+      "receipt": "artifacts/upstream-first/web-injection-built-smoke.json"
+    },
+    {
+      "id": "web-injection-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "detail": "Host retry after sandbox uv_os_get_passwd ENOMEM before gate startup; includes Host build and documentation typecheck."
+    },
+    {
+      "id": "web-injection-lint",
+      "status": "PASS",
+      "command": "pnpm exec oxlint packages/host/webserver/src/injections.ts packages/host/webserver/tests/injections.spec.ts"
+    },
+    {
+      "id": "web-injection-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "detail": "Host retry after sandbox uv_os_get_passwd ENOMEM before lint startup."
+    }
+  ],
+  "exclusions": [
+    "No new exe or wheel",
+    "No browser or Desktop application run for this source increment",
+    "No real model",
+    "No Session, protocol, or visible copy changes"
+  ],
+  "supersessionReview": {
+    "newNote": ".agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.md",
+    "retainedIndependentNotes": [
+      ".agents/notes/implemented/architecture/2026-07-24-web-config-tree-boot-and-transport-layering.md",
+      ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.md"
+    ],
+    "disposition": "No fully or partially superseded decision; retain independent transport and client-loading ownership."
+  }
+}

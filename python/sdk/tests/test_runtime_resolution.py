@@ -32,11 +32,9 @@ def test_unknown_env_mode_fails_loud(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_explicit_mode_wins_over_env_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(RUNTIME_MODE_ENV_VAR, "bogus")
-    try:
-        args = resolve_bundled_launch_args("exe")
-    except FileNotFoundError:
-        return  # explicit 'exe' was honored; only the artifact is missing
-    assert args[0].endswith(("-x64", "-arm64"))
+    executable = Path("/explicit/runtime.exe")
+    monkeypatch.setattr(runtime, "bundled_runtime_path", lambda: executable)
+    assert resolve_bundled_launch_args("exe") == (str(executable),)
 
 
 def test_runtime_requires_spawn_helper_only_on_macos(
@@ -175,10 +173,11 @@ def test_windows_console_waits_and_forwards_runtime_status(monkeypatch: pytest.M
 def test_windows_console_branch_preserves_real_child_io_and_completion(tmp_path: Path, returncode: int) -> None:
     child = tmp_path / "child with spaces.py"
     sentinel = tmp_path / "finished"
+    forwarded = ["argument with spaces", "中文", 'embedded"quote', "", "C:\\folder with spaces\\", "tail\\\\"]
     child.write_text(
         "import pathlib,sys\n"
-        "assert sys.argv[1] == 'argument with spaces'\n"
-        "assert sys.argv[2] == '中文'\n"
+        f"assert sys.argv[1:] == {forwarded!r}\n"
+        "assert sys.stdin.read() == 'stdin-中文\\n'\n"
         "print('stdout-中文', flush=True)\n"
         "print('stderr-中文', file=sys.stderr, flush=True)\n"
         f"pathlib.Path({str(sentinel)!r}).write_text('done')\n"
@@ -186,12 +185,29 @@ def test_windows_console_branch_preserves_real_child_io_and_completion(tmp_path:
     )
     driver = (
         "import deepseek_harness_runtime as runtime; from types import SimpleNamespace; "
-        f"runtime.sys = SimpleNamespace(platform='win32', argv=['dsh', 'argument with spaces', '中文']); "
+        f"runtime.sys = SimpleNamespace(platform='win32', argv={['dsh', *forwarded]!r}); "
         f"runtime.resolve_bundled_launch_args = lambda: ({sys.executable!r}, {str(child)!r}); runtime.main()"
     )
-    result = subprocess.run([sys.executable, "-c", driver], capture_output=True, text=True, encoding="utf-8",
+    result = subprocess.run([sys.executable, "-c", driver], input="stdin-中文\n", capture_output=True, text=True, encoding="utf-8",
                             env={**os.environ, "DSH_HOME": str(tmp_path), "PYTHONIOENCODING": "utf-8"}, timeout=15)
     assert result.returncode == returncode, result.stderr
     assert result.stdout == "stdout-中文\n"
     assert result.stderr == "stderr-中文\n"
     assert sentinel.read_text() == "done"
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Native Windows DWORD exit status")
+@pytest.mark.parametrize("returncode", [0x7FFFFFFF, 0x80000000, 0xC000013A, 0xFFFFFFFF])
+def test_windows_console_preserves_native_dword_exit_status(tmp_path: Path, returncode: int) -> None:
+    # ExitProcess bypasses Python's own SystemExit conversion in the child.
+    child = f"import ctypes; ctypes.windll.kernel32.ExitProcess(ctypes.c_uint32({returncode}))"
+    driver = (
+        "import deepseek_harness_runtime as runtime; from types import SimpleNamespace; "
+        "runtime.sys = SimpleNamespace(platform='win32', argv=['dsh']); "
+        f"runtime.resolve_bundled_launch_args = lambda: ({sys.executable!r}, '-c', {child!r}); runtime.main()"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", driver], capture_output=True, text=True, encoding="utf-8",
+        env={**os.environ, "DSH_HOME": str(tmp_path)}, timeout=15,
+    )
+    assert result.returncode == returncode, result.stderr

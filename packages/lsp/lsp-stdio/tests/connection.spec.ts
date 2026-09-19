@@ -159,6 +159,29 @@ function connectScript(script: string, maxStderrBytes = 100_000, writer?: Connec
 }
 
 describe('LspConnection edge behavior', () => {
+  it('rejects all requests on a stdin error before the live server closes', async ({ task, signal }) => {
+    const failure = new Error('protocol stdin failed')
+    const inputFailure = Promise.withResolvers<() => void>()
+    const conn = connectScript('process.stderr.write("ready"); setInterval(() => {}, 1000)', undefined,
+      (stdin, _message, done) => { inputFailure.resolve(() => { stdin.emit('error', failure) }); done() })
+    await waitFor(() => conn.stderrTail === 'ready', task.timeout, signal)
+    const first = conn.request('initialize', {})
+    const second = conn.request('textDocument/hover', {})
+    let closed = false
+    void conn.closed.then(() => { closed = true })
+    const failInput = await inputFailure.promise
+    failInput()
+    expect(conn.failedWith(failure)).toBe(true)
+    expect(closed).toBe(false)
+    await expect(first).rejects.toBe(failure)
+    await expect(second).rejects.toBe(failure)
+    await expect(conn.request('textDocument/definition', {})).rejects.toBe(failure)
+    expect(closed).toBe(false)
+    conn.terminate()
+    await conn.closed
+    expect(await conn.waitForManagedRangeExit(signal)).toBe(true)
+  })
+
   it('fails a request when the command cannot be spawned', async () => {
     const conn = new LspConnection({
       command: '/definitely/not/a/real/binary/xyz',
@@ -251,9 +274,10 @@ describe('LspConnection edge behavior', () => {
 })
 
 /** Poll a predicate until it holds or a deadline elapses. */
-async function waitFor(predicate: () => boolean, timeoutMs = 3000): Promise<void> {
+async function waitFor(predicate: () => boolean, timeoutMs = 3000, signal?: AbortSignal): Promise<void> {
   const start = Date.now()
   while (!predicate()) {
+    signal?.throwIfAborted()
     if (Date.now() - start > timeoutMs) throw new Error('waitFor timed out')
     await new Promise<void>(resolve => setTimeout(resolve, 10))
   }

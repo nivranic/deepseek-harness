@@ -230,6 +230,7 @@ function fallbackState(context: ConversationNodeContext<ToolState>): ToolState |
 /** Root Tool lifecycle and nested PTC dispatch Definition. */
 export const toolDefinition: ConversationNodeDefinition<ToolState> = {
   kind: 'tool-call',
+  identityScope: 'step',
   target: 'chat',
   match: (event) => {
     if (event.type === 'tool/call') return { id: String(event.data.callId), role: 'start' }

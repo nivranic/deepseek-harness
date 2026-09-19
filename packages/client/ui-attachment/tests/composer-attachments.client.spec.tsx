@@ -277,3 +277,15 @@ describe('ComposerAttachments file drafts', () => {
     expect(view.getByTitle('.env').textContent).toContain('ENV 3B')
   })
 })
+
+it('retains an unavailable failed file and its remove action without rendering Retry', () => {
+  const remove = vi.fn()
+  const draft = fileDraft('unavailable')
+  const view = render(<ComposerAttachments {...props({
+    attachments: [draft], uploads: { [draft.id]: { status: 'error', message: 'connection changed' } },
+    onRetryFile: undefined, onRemoveAttachment: remove,
+  })} />)
+  expect(view.queryByRole('button', { name: /重试上传/ })).toBeNull()
+  fireEvent.click(view.getByRole('button', { name: '移除文件 unavailable.pdf' }))
+  expect(remove).toHaveBeenCalledWith(draft.id)
+})

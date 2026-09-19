@@ -509,6 +509,7 @@ describe('WebSearchCard', () => {
       maxUses: field('5'),
       apiKey: field(''),
       apiKeyConfigured: false,
+      apiKeySupported: true,
       apiKeyWritable: true,
       ...state,
     })
@@ -524,6 +525,13 @@ describe('WebSearchCard', () => {
 
     expect(screen.getByText(en.webSearchApiKeySet)).toBeTruthy()
     expect(screen.getByLabelText(en.webSearchApiKey)).toHaveProperty('type', 'password')
+  })
+
+  it('omits an unsupported credential field while keeping ordinary configuration', () => {
+    renderWebSearch({ apiKeySupported: false })
+    fireEvent.click(screen.getByText(en.webSearchTitle))
+    expect(screen.queryByLabelText(en.webSearchApiKey)).toBeNull()
+    expect(screen.getByLabelText(en.webSearchBaseUrl)).toBeTruthy()
   })
 
   it('keeps the key control usable while the settings document is read-only', () => {

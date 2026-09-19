@@ -67,7 +67,7 @@ export interface ComposerAttachmentsOwnerProps {
   /** Current per-draft upload states for file-kind attachments. */
   uploads: DraftFileUploads
   /** Restart one failed file upload. */
-  onRetryFile: (id: DraftAttachmentId) => void
+  onRetryFile: ((id: DraftAttachmentId) => void) | undefined
   /** Display-ready limits for the drop invitation. */
   dropLimits?: { readonly count: number; readonly size: string } | undefined
 }
@@ -246,6 +246,8 @@ export interface InputZone {
 
 /** Conversation View entries obtain their data from registered standard hooks. */
 export interface ConvViewOwnerProps {
+  /** Whether the admitted Host can supply Session history and live events. */
+  historyAvailable: boolean
   /** Focus request addressed to the selected View. */
   viewRequest: import('./views.ts').ConversationViewRequest | null
   /** Select a View and address one opaque focus identity to it. */
@@ -262,13 +264,19 @@ export interface ConversationInjected {
   /** Connect and open a blank Session in the selected Workspace. */
   selectWorkspace: (workspaceId: WorkspaceId) => Promise<void>
   /** Session-addressed composer block source, or the stable absent source. */
-  hooks: { composerBlock: ObservableSnapshot<ComposerBlock | undefined> }
+  hooks: {
+    composerBlock: ObservableSnapshot<ComposerBlock | undefined>
+    sessionManagement: ObservableSnapshot<boolean>
+  }
 }
 
 /** Business callbacks injected into the strict Session body. */
 export interface ConversationSessionInjected {
-  /** Package-owned View roster source bound only for the Conversation body. */
-  readonly hooks: { readonly conversationViews: ObservableSnapshot<readonly ViewTab[]> }
+  /** View roster and admitted history capability bound only for the Conversation body. */
+  readonly hooks: {
+    readonly conversationViews: ObservableSnapshot<readonly ViewTab[]>
+    readonly historyAvailable: ObservableSnapshot<boolean>
+  }
   /** Bind input draft persistence to the Session-owned store instance. */
   bindDraftMirror: (write: (text: string) => void) => () => void
   /** Select and activate one View while addressing an opaque focus request to it. */
@@ -324,6 +332,23 @@ export interface ComposerBarInjected {
     notices: ObservableSnapshot<InputNotice | null>
     lexicon: ObservableSnapshot<ReadonlyMap<'/' | '@', readonly string[]>>
     menuLauncher: ObservableSnapshot<string | null>
+  }
+}
+
+/** Independently admitted composer operations; Stop belongs to this snapshot's Host. */
+export interface ComposerControlAvailability {
+  readonly prompt: boolean
+  readonly interrupt: boolean
+  readonly fileUpload: boolean
+  readonly current: () => boolean
+  readonly stop: (() => void) | undefined
+}
+
+/** Composer injection with the admitted Host's message-control capability. */
+export interface ComposerCapabilityInjected extends ComposerBarInjected {
+  hooks: ComposerBarInjected['hooks'] & {
+    /** Reactive operation availability from the existing Connection generation. */
+    controlCapability: ObservableSnapshot<ComposerControlAvailability>
   }
 }
 
@@ -386,6 +411,7 @@ export type ConversationSessionSlotProps =
   & PropsRenderSlots<'conversation.view'>
   & PropsStore<ConversationStore>
   & InjectFace<ConversationSessionInjected>
+  & PropsLocale<'conversation'>
 
 /** Full props of the strict Session header. */
 export type ConversationSessionHeaderSlotProps =

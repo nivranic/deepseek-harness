@@ -9,7 +9,7 @@ import type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
 import type { CommandSubmitAttachment } from '@deepseek-ai/dsh-commands/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type {
-  SubagentCatalog, SubagentInterruptReceipt, SubagentPromptReceipt, SubagentPromptRequest,
+  SubagentCatalog, SubagentInterruptReceipt, SubagentInterruptTurnRequest, SubagentPromptReceipt, SubagentPromptRequest,
 } from '@deepseek-ai/dsh-subagent/client'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type { SessionRemote } from '../transport.ts'
@@ -36,10 +36,12 @@ export interface SessionSubagentsRemote {
     parentSessionId: SessionId,
     mode: 'continuable',
   ): Promise<RemoteResult<SubagentInterruptReceipt>>
+  interruptTurnByParent(request: SubagentInterruptTurnRequest): Promise<RemoteResult<SubagentInterruptReceipt>>
 }
 
 /** Generated Remote namespaces consumed by the Client Session object layer. */
 export interface SessionRemotes {
+  readonly $host: ClientRemote['$host']
   readonly $stream: ClientRemote['$stream']
   readonly commands: SessionCommandsRemote
   readonly session: SessionRemote

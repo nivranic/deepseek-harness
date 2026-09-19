@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "observedAt": "2026-09-15T19:40:50.777Z",
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/checkpoint-order-source.json",
+    "sha256": "3d9f773cc1c69f04b2278de0cb327186d53325f60892e637f494d7af8f45ba9b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/checkpoint-order-binding.json",
+    "sha256": "8c7154bfc6e1ffbb67fc963307103ec1f0dc1c71cae07a2aa6b9173a7449aa85"
+  },
+  "logs": [
+    {
+      "path": ".artifacts/checkpoint-order-audit-tests.log",
+      "sha256": "3f4c4949d55a899a3fb36fd2ca8f09032fb6f669c9e2dcec39d55b3dba1105b4"
+    },
+    {
+      "path": ".artifacts/checkpoint-order-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/checkpoint-order-report-doc-sync.log",
+      "sha256": "750c5035c4d9a37db37d5a1f5b4d3bf0ee84e29662eb0223cf78f7eb81f21434"
+    }
+  ],
+  "checks": [
+    {
+      "status": "PASS",
+      "command": "node .artifacts/check-checkpoint-order-binding.mjs",
+      "tests": 4,
+      "receipt": "artifacts/upstream-first/checkpoint-order-binding.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/verify-audit.test.mjs",
+      "tests": 13,
+      "log": ".artifacts/checkpoint-order-audit-tests.log"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/checkpoint-order-gate0.log"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync",
+      "passed": 34,
+      "failed": 0,
+      "log": ".artifacts/checkpoint-order-report-doc-sync.log"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 /** Session Controller adapter for Agent-scoped file-reference discovery. */
 
+import { FILE_REFERENCE_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-file-reference'
@@ -19,7 +20,7 @@ export class SessionFileReferences extends TypertRemoteService {
 
   /** @param ctx - Host context carrying the selected file-reference provider. */
   constructor(ctx: Context) {
-    super(ctx, 'sessionFileReferences', { namespace: 'fileReferences' })
+    super(ctx, 'sessionFileReferences', { namespace: 'fileReferences', capabilities: FILE_REFERENCE_REMOTE_CAPABILITIES })
   }
 
   /**

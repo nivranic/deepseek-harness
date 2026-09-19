@@ -45,6 +45,8 @@ function mount(options: {
   ensureResult?: MessageFeedbackActionResult
   retractResult?: MessageFeedbackActionResult
   status?: MessageFeedbackView['status']
+  putAvailable?: boolean
+  deleteAvailable?: boolean
 } = {}) {
   const view: MessageFeedbackView = {
     status: options.status ?? 'ready',
@@ -58,12 +60,29 @@ function mount(options: {
   const current = vi.fn((_id: MessageId) => options.committed ?? options.current)
   const useFeedback = (<T,>(select: (v: MessageFeedbackView) => T): T =>
     useSyncExternalStore(() => () => {}, () => select(view))) as never
-  const props = { messageId: MSG, ensure, current, retract, openDialog, useFeedback, t } as unknown as
-    Parameters<typeof MessageFeedbackActions>[0]
+  const props = {
+    access: {
+      generation: 1, read: true, put: options.putAvailable ?? true,
+      delete: options.deleteAvailable ?? true, record: true, current: () => true,
+    },
+    messageId: MSG, ensure, current, retract, openDialog, useFeedback, t,
+  } as unknown as Parameters<typeof MessageFeedbackActions>[0]
   return { ...render(<MessageFeedbackActions {...props} />), ensure, retract, openDialog }
 }
 
 describe('MessageFeedbackActions', () => {
+  it('renders a read-only committed rating without mutation buttons', () => {
+    const ui = mount({ current: item(), putAvailable: false, deleteAvailable: false })
+    expect(ui.getByRole('img', { name: zh['action.like'] })).toBeDefined()
+    expect(ui.queryByRole('button')).toBeNull()
+  })
+
+  it('offers only retraction when delete is supported independently of put', () => {
+    const ui = mount({ current: item(), putAvailable: false })
+    expect(ui.getAllByRole('button')).toHaveLength(1)
+    expect(ui.getByRole('button', { name: zh['action.likeActive'] })).toBeDefined()
+  })
+
   it('renders both rating buttons unpressed with no recorded feedback', () => {
     const ui = mount()
 
@@ -214,6 +233,7 @@ describe('MessageFeedbackActions', () => {
     const useFeedback = (<T,>(select: (v: MessageFeedbackView) => T): T =>
       useSyncExternalStore(() => () => {}, () => select(view))) as never
     const props = {
+      access: { generation: 1, read: true, put: true, delete: true, record: true, current: () => true },
       messageId: MSG,
       ensure: vi.fn(() => Promise.resolve<MessageFeedbackActionResult>({ ok: true })),
       current: () => recorded,
@@ -244,6 +264,7 @@ describe('MessageFeedbackActions', () => {
       useSyncExternalStore(() => () => {}, () => select(view))) as never
     const openDialog = vi.fn()
     const props = {
+      access: { generation: 1, read: true, put: true, delete: true, record: true, current: () => true },
       messageId: MSG,
       ensure: vi.fn(() => gate),
       current: () => undefined,
@@ -278,6 +299,7 @@ describe('MessageFeedbackActions', () => {
     const useFeedback = (<T,>(select: (v: MessageFeedbackView) => T): T =>
       useSyncExternalStore(() => () => {}, () => select(view))) as never
     const props = {
+      access: { generation: 1, read: true, put: true, delete: true, record: true, current: () => true },
       messageId: MSG,
       ensure: vi.fn(() => Promise.resolve<MessageFeedbackActionResult>({ ok: true })),
       current: () => item({ rating: 'negative' }),

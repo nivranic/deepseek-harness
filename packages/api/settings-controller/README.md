@@ -23,9 +23,13 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
+Host discovery advertises four independent operation sets from the live Remote binding: `settings.read.v1` for redacted description, `settings.write.v1` for merge/replace/path writes, `settings.document-open.v1` for the settings document, and `settings.agent-preset-directory.v1` for preset directory resolution and native-opening detection. The shared `./capabilities` declaration is consumed by Client admission before dispatch. Presence promises method support, not a mounted provider, writability, a native desktop, or Device permission. Provider and operation checks remain authoritative. Preset-directory support includes returning a path when native opening is disabled.
+
 Mount this package as a Loader entry in a profile that serves browser configuration. The entry registers both namespaces independently of their providers so a missing provider produces a named configuration error at invocation. Its generated descriptors enter the strict Typert registry, while the settings and credential Definitions remain plain Cordis Services with no wire obligations of their own.
 
 `describe(refs)` answers one map keyed by the requested names, so a settings page describing every reference its rows carry settles those rows together. It accepts at most 64 names per call, reports an invalid name or empty write value as `bad-request`, and copies each answer field by field — a provider returning more than `CredentialInfo` declares cannot widen what crosses. Valid `set(ref, value)` and `unset(ref)` calls report a provider refusal as `credential-rejected`, carrying the provider's message with only the reference in its details. Secret values cross in this direction only: no method here returns one.
+
+Request validation returns `gateway/bad-request` with the [portable validation diagnostics](../../typert/protocol/README.md) supplied by the protocol helper.
 
 `settings.describe()` returns deployment facts and every namespace under `redactSecrets: true`. `settings.update`, `settings.replace`, and `settings.mutate` expose the settings service's three write operations and return the namespace's new redacted view; stale writes use `settings-conflict` and other provider refusals use `settings-rejected`.
 
@@ -70,3 +74,5 @@ None.
 </details>
 
 **Runtime invariant:** No companion is published. The settings and credential seams own storage and update events, while this package only projects their methods onto the wire.
+
+The independent credentials binding advertises `credentials.describe.v1` for reference metadata and `credentials.write.v1` for `set`/`unset`. Neither permits reading secret values. Client admission checks the owning operation set before dispatch; credential provider availability and write permission remain Host checks.

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/remote-error-propagation-source.json",
+    "sha256": "031a0aa01febde9c7ccab0dffe0c800fe6a12837418b967364367f2ac55923bd"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "df19ed8e1ae094a90cbb11f47ecbb01ab091172d937aa79539940414a25f00d1"
+  },
+  "helper": {
+    "path": ".artifacts/check-remote-error-propagation-binding.mjs",
+    "sha256": "edb44583e375c64407089b93e6d14a1cf9567417c22d3cbc8490c0afc41919de"
+  }
+}

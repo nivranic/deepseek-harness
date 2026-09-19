@@ -48,6 +48,10 @@ Cold resume does not dispatch through a subagent provider. The continuation mana
 
 For start and follow-up, the caller signal owns lookup, materialization, and admission only until inbox acceptance. After the operation returns its `MessageId`, the manager owns the Activation independently; later caller cancellation does not cancel the accepted turn or dispose the child.
 
+Browser Prompt retries use the request identity already recorded on the child’s accepted messages. The Host-only `subagentPromptReceipts` projection retains original message ids after inbox consumption or removal; it excludes fork-inherited history and does not publish identities in Client snapshots. Per-child delivery serialization makes identity lookup and first admission mutually exclusive. Cold acknowledgement folds the persisted observation before materializing an Activation, so a duplicate cannot revive completed work or retain a temporary parent ownership hold. Authority and cancellation checks precede acknowledgement. This preserves one Agent inbox without adding a request queue, generic mutation store or Session event.
+
+The [addressed interrupt decision](2026-08-06-continuable-subagent-interrupt.md) owns observed-turn retry safety, timing checkpoint reconstruction and the legacy current-turn behavior.
+
 ### Durable Session and live Activation
 
 The Session owns the stable child identity, transcript, direct-parent lineage, delegation depth, and versioned continuation descriptor. `SessionHeader.parentSession` records the direct parent and is an authorization input; it is not a live routing capability and does not imply that the recorded parent is resident.

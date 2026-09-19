@@ -5,7 +5,7 @@
 // tag probe).
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { makeTranslate, RemoteError, SlotTestRuntime } from '@deepseek-ai/dsh-client-test-runtime'
+import { makeTranslate, RemoteError, SlotTestRuntime, TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
 import type {
   BeginSubmissionInput, PendingSubmissionRetirement, QueuedMessage,
 } from '@deepseek-ai/dsh-api-session-controller/client'
@@ -17,6 +17,8 @@ import { zh } from '../src/client/locales.ts'
 
 async function bench(maxConcurrentFileUploads = 2) {
   const runtime = await SlotTestRuntime.create()
+  const remote = new TestRemote(runtime.ctx)
+  remote.$host = { home: undefined, isLoopback: true, capabilities: ['subagent.prompt.v1', 'file-upload.stage.v1'] }
   runtime.fileUpload.available = true
   runtime.fileUpload.upload = (sessionId: SessionId, ...args: unknown[]) => {
     const session = runtime.sessions.behavior(sessionId) as {
@@ -47,7 +49,7 @@ async function bench(maxConcurrentFileUploads = 2) {
   const root = runtime.ctx.get('conversation') as ConversationController
   const scoped = runtime.sessions.scope('s1')!.get('conversation') as ConversationController
   const shell = hub.shellFor(runtime.sessions.binding('s1')!)
-  return { runtime, fiber, root, scoped, hub, shell, prompt, updateQueue, cancel, loadOlder }
+  return { remote, runtime, fiber, root, scoped, hub, shell, prompt, updateQueue, cancel, loadOlder }
 }
 
 describe('ConversationController', () => {
@@ -64,17 +66,20 @@ describe('ConversationController', () => {
     await b.runtime.dispose()
   })
 
-  it('folds Session business failures into callback rejections', async () => {
+  it('preserves Session failures and their details through callback rejections', async () => {
     const b = await bench()
-    b.prompt.mockResolvedValueOnce({ ok: false, error: new RemoteError('session/agent-busy', 'busy', { reason: 'busy' }) } as never)
-    await expect(b.scoped.send('x')).rejects.toThrow('conversation.send failed: session/agent-busy: busy')
-    b.cancel.mockResolvedValueOnce({ ok: false, error: new RemoteError('gateway/internal', 'nope', {}) } as never)
-    await expect(b.scoped.cancel()).rejects.toThrow('conversation.cancel failed: gateway/internal: nope')
+    const busy = new RemoteError('session/agent-busy', 'busy', { reason: 'busy' })
+    b.prompt.mockResolvedValueOnce({ ok: false, error: busy } as never)
+    await expect(b.scoped.send('x')).rejects.toBe(busy)
+    const stopped = new RemoteError('gateway/internal', 'nope', {})
+    b.cancel.mockResolvedValueOnce({ ok: false, error: stopped } as never)
+    await expect(b.scoped.cancel()).rejects.toBe(stopped)
+    const queue = new RemoteError('gateway/internal', 'broken', {})
     b.updateQueue.mockResolvedValueOnce({
-      ok: false, error: new RemoteError('gateway/internal', 'broken', {}),
+      ok: false, error: queue,
     } as never)
     await expect(b.scoped.updateQueue('item-1' as never, { kind: 'steer' }))
-      .rejects.toThrow('conversation.updateQueue failed: gateway/internal: broken')
+      .rejects.toBe(queue)
     await b.runtime.dispose()
   })
 
@@ -92,7 +97,7 @@ describe('ConversationController', () => {
       ok: false, error: new RemoteError('session/queue-item-not-found', 'claimed', { itemId: 'item-1' as QueuedMessage['id'] }),
     } as never)
     await expect(b.scoped.updateQueue('item-3' as never, { kind: 'remove' }))
-      .rejects.toThrow('conversation.updateQueue failed: session/queue-item-not-found: claimed')
+      .rejects.toMatchObject({ isDSHRemoteError: true, code: 'session/queue-item-not-found', details: { itemId: 'item-1' } })
     await b.runtime.dispose()
   })
 
@@ -859,4 +864,114 @@ describe('InputHub queue steering (empty-draft accelerated Enter)', () => {
     expect(b.updateQueue).not.toHaveBeenCalled()
     await b.runtime.dispose()
   })
+})
+
+it('retains child draft attachments without dispatching when the Host changes during image encoding', async () => {
+  const b = await bench()
+  const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:held-child')
+  const revoked = vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined)
+  let finish!: () => void
+  class HeldReader {
+    onload: (() => void) | null = null
+    onerror: (() => void) | null = null
+    result = 'data:image/png;base64,AQ=='
+    readAsDataURL(): void { finish = () => this.onload?.() }
+  }
+  vi.stubGlobal('FileReader', HeldReader)
+  try {
+    const session = b.runtime.sessions.binding('s1')!.session
+    const original = session.getSnapshot()
+    vi.spyOn(session, 'getSnapshot').mockReturnValue({ ...original, subagent: {
+      address: { parentSessionId: 'parent', childSessionId: 's1', mode: 'continuable' } as never,
+      parentAvailable: true,
+    } })
+    const [attachment] = b.root.createDrafts(session.sessionId, [new File([Uint8Array.of(1)], 'held.png', { type: 'image/png' })])
+    const sending = b.root.sendSession(session, 'keep child draft', [attachment!.id], 'queue')
+    b.remote.$host = { ...b.remote.$host }
+    finish()
+    await expect(sending).resolves.toEqual({ kind: 'error' })
+    expect(b.prompt).not.toHaveBeenCalled()
+    expect(b.root.resolveDraftAttachments([attachment!.id])).toHaveLength(1)
+  } finally {
+    vi.unstubAllGlobals()
+    await b.runtime.dispose()
+    created.mockRestore()
+    revoked.mockRestore()
+  }
+})
+
+it('withdraws queued and active uploads and ready receipts while keeping browser drafts for explicit retry', async () => {
+  const b = await bench(1)
+  const session = b.runtime.sessions.binding('s1')!.session
+  const ready = { ok: true as const, value: { receiptId: 'old-receipt' as never, file: { attachmentId: 'old-file' as never, name: 'ready.txt', bytes: 1 } } }
+  const late = Promise.withResolvers<typeof ready>()
+  const signals: AbortSignal[] = []
+  const progress: ((value: { loaded: number }) => void)[] = []
+  const upload = vi.fn((
+    _file: Blob | Uint8Array, name?: string, signal?: AbortSignal, onProgress?: (value: { loaded: number }) => void,
+  ) => {
+    if (signal !== undefined) signals.push(signal)
+    if (onProgress !== undefined) progress.push(onProgress)
+    return name === 'active.txt' ? late.promise : Promise.resolve(ready)
+  })
+  ;(session as { uploadFile?: unknown }).uploadFile = upload
+  const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:kept-image')
+  const files = ['ready', 'active', 'queued'].map(name => new File(['x'], name + '.txt', { type: 'text/plain' }))
+  const readyDraft = b.root.createDrafts(session.sessionId, [files[0]!])[0]!
+  await vi.waitFor(() => { expect(b.root.fileUploads.getSnapshot()[readyDraft.id]?.status).toBe('ready') })
+  const rest = b.root.createDrafts(session.sessionId, [...files.slice(1), new File(['i'], 'image.png', { type: 'image/png' })])
+  const drafts = [readyDraft, ...rest]
+  b.shell.addAttachments(drafts.map(draft => draft.id))
+  expect(upload).toHaveBeenCalledTimes(2)
+  b.remote.$host = { ...b.remote.$host, capabilities: [] }
+  b.root.withdrawFileUploads('connection changed')
+  expect(signals[1]?.aborted).toBe(true)
+  expect(b.root.resolveDraftAttachments(drafts.map(draft => draft.id))).toEqual(drafts)
+  expect(b.shell.snapshot.attachmentIds).toEqual(drafts.map(draft => draft.id))
+  for (const draft of drafts.slice(0, 3)) expect(b.root.fileUploads.getSnapshot()[draft.id]).toEqual({ status: 'error', message: 'connection changed' })
+  expect(b.root.fileUploads.getSnapshot()[rest[2]!.id]).toBeUndefined()
+  b.root.retryFileUpload(session.sessionId, readyDraft.id)
+  expect(upload).toHaveBeenCalledTimes(2)
+  await expect(b.root.serializeDraftAttachments([readyDraft.id])).rejects.toThrow('not finished uploading')
+  progress[1]?.({ loaded: 99 })
+  late.resolve(ready)
+  await Promise.resolve()
+  await Promise.resolve()
+  expect(upload).toHaveBeenCalledTimes(2)
+  expect(b.root.fileUploads.getSnapshot()[rest[0]!.id]?.status).toBe('error')
+  b.remote.$host = { ...b.remote.$host, capabilities: ['file-upload.stage.v1'] }
+  expect(upload).toHaveBeenCalledTimes(2)
+  b.root.retryFileUpload(session.sessionId, readyDraft.id)
+  await vi.waitFor(() => { expect(b.root.fileUploads.getSnapshot()[readyDraft.id]?.status).toBe('ready') })
+  expect(upload).toHaveBeenCalledTimes(3)
+  expect(upload.mock.calls.map(call => call[1])).toEqual(['ready.txt', 'active.txt', 'ready.txt'])
+  created.mockRestore()
+  await b.runtime.dispose()
+})
+
+it('rejects generic intake without capability while retaining the image path', async () => {
+  const b = await bench()
+  b.remote.$host = { ...b.remote.$host, capabilities: [] }
+  const file = new File(['x'], 'x.txt', { type: 'text/plain' })
+  expect(() => b.root.createDrafts('s1' as SessionId, [file])).toThrow('File staging is unavailable')
+  const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:available-image')
+  const drafts = b.root.createDrafts('s1' as SessionId, [new File(['i'], 'i.png', { type: 'image/png' })])
+  expect(drafts[0]?.kind).toBe('image')
+  expect(b.root.fileUploads.getSnapshot()).toEqual({})
+  created.mockRestore()
+  await b.runtime.dispose()
+})
+
+it('rejects a ready receipt serialized across Host replacement', async () => {
+  const b = await bench()
+  const session = b.runtime.sessions.binding('s1')!.session
+  ;(session as { uploadFile?: unknown }).uploadFile = () => Promise.resolve({ ok: true, value: {
+    receiptId: 'receipt', file: { attachmentId: 'file', name: 'x.txt', bytes: 1 },
+  } })
+  const [draft] = b.root.createDrafts(session.sessionId, [new File(['x'], 'x.txt', { type: 'text/plain' })])
+  await vi.waitFor(() => { expect(b.root.fileUploads.getSnapshot()[draft!.id]?.status).toBe('ready') })
+  const pending = b.root.serializeDraftAttachments([draft!.id])
+  b.remote.$host = { ...b.remote.$host }
+  await expect(pending).rejects.toThrow('connection changed')
+  await b.runtime.dispose()
 })

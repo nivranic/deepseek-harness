@@ -333,6 +333,8 @@ function panelProps(data: WorkflowRunChatData, sessions = listState(), openSessi
     useWorkspaces: selector => selector(panelWorkspace),
     useTurnData: () => undefined,
     openSkill: vi.fn(),
+    canOpenFile: () => true,
+    canOpenSkill: () => true,
     openFile: () => {},
     inspectCall: () => {},
     forkAt: () => {},

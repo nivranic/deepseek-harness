@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Independent Goal operation capabilities and generation-owned Goal dock authority; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/goal-capability-source.json",
+    "sha256": "d77cb0ae71e5f38f78c6f28ab654b660eee2178d2273ba138bb58304128ce816"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3470e37aa5221ceee6dd2fa23ad3187edeca6d8b32d2a443a1c25ad8d222f040"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/goal-capability-binding.json",
+    "sha256": "e95ef9d0f946606ccb11732a17c07efbda04498f656cb2db57324b97c9174e7f"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-goal-capability-reports.mjs",
+      "sha256": "2f206fd5ca8f4065753b0676fbada6f1ed2c6861b84c1464ab5570f419cf5387"
+    },
+    {
+      "path": ".artifacts/capture-goal-capability-validation.mjs",
+      "sha256": "fa0939897efa7f958249ff3010bcbbe47520ae915e341179959e5b49e3bc5656"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c6d7c2a5ce29988249a47f28205192f0b461169285eff19e39d77399f9b6ee04"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7c367fdc6a25b26e807e7271864a16b968f9dbc5cd52a67835356df933a7d437"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/goal-capability-binding.log",
+      "sha256": "9fb92f0a3b9dd2d2d21f72baf7595bfe81c5ac87d1c80246a2ce332fb01ed15d"
+    },
+    {
+      "path": ".artifacts/goal-capability-audit-tests.log",
+      "sha256": "2ed7b8412fa7f12ea8729bfab96994134dbbba0c0b567fbcfbbcf91ed319275d"
+    },
+    {
+      "path": ".artifacts/goal-capability-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/goal-capability-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/goal-capability-report-generation.log",
+      "sha256": "1f7721b16bdbb9df13d51bdb4ed1f5ba3b2b9527f8b9dd1b8e1e8b4b31e34d59"
+    }
+  ]
+}

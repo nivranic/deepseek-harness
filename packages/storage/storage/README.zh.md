@@ -78,6 +78,8 @@ kind: "package-reference"
 
 [`src/backend.ts`](src/backend.ts) 是后端实现者的规范性约定，由 `tests/contract.ts` 中的共享一致性套件逐条款检查。一个后端只拥有一种介质，并暴露可选的数据形状分面；`kv` 是唯一的分面，打开单元即可获得一个带版本、全局单例的 schema 句柄，其每次调用均具备原子性，并在完成时保证持久化。单元名与表名必须匹配 `UNIT_NAME_RE`；记录键是任意字符串，绝不进入文件路径。单元不对并发写入做串行化——顺序由调用方负责——介质上记录的版本与描述符不同时拒绝 `version-mismatch`（不做迁移）。
 
+单元 owner 可通过 `kv.open` 注册清理回调。后端关闭会先排空 owner，再关闭其单元，包括仍在等待进入后端的工作。共享的 [`closeOwnedKvUnits`](src/close-units.ts) 辅助函数保留所有清理失败，并等全部 owner 与单元结束后才释放介质。参见[关闭顺序决策](../../../.agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.zh.md)。
+
 ### 源码地图
 
 | 文件 | 职责 |

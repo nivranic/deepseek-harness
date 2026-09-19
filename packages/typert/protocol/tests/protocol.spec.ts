@@ -76,6 +76,15 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
 }
 
 describe('typert-protocol Remote declarations', () => {
+  it.each([
+    { id: 'session.follow', methods: ['follow'] },
+    { id: 'session.follow.v0', methods: ['follow'] },
+    { id: 'session.follow.v1', methods: [] },
+    { id: 'session.follow.v1', methods: ['../follow'] },
+  ])('rejects invalid capability registration $id with $methods', (capability) => {
+    expect(() => bindTypertRemote({}, 'sessions', { capabilities: [capability] })).toThrow(/capability/u)
+  })
+
   it('binds a TypertRemoteService name and executes decorators through the Vitest source transform', async () => {
     class Goals extends TypertRemoteService {
       constructor(ctx: Context) {

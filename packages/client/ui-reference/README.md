@@ -20,6 +20,8 @@ Use `dsh-client-ui-reference` when Web users need to mention files, folders, or 
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
+File and Session discovery independently require `file-reference.list.v1` and `session-reference.candidates.v1`. Missing support sends no request and supplies no rows; file support also governs directory crumbs and picks. Host replacement cancels old menu queries and discards late results. The registered source retains reference serialization and independently available file previews.
+
 -----
 
 <a id="use-this-package"></a>
@@ -37,7 +39,7 @@ A session pick inserts an atomic inline reference whose hidden `ref` and clipboa
 
 One unavailable or failed candidate domain yields no rows for that domain while the other still lists. A session-reference preparation failure occurs after prompt acceptance and terminates that agent turn.
 
-Click a file reference in the composer to preview its current contents in the right Sidebar. Quoted paths retain their spaces, and paths resolve in the composer Session. Folder and Session references retain their editing behavior.
+A file reference offers preview only while a current right-Sidebar viewer claims its Session address. Viewer changes update the composer without editing its draft; clicking rechecks the current route. Quoted paths retain spaces and resolve in the composer Session. Folder and Session references retain ordinary editing behavior.
 
 -----
 
@@ -51,7 +53,7 @@ The source keeps candidate encoding internal to the registration effect: the `/c
 
 ### Candidate flow
 
-For an unquoted token, the browser starts the `fileReferences/list` and `sessionReferenceResolver/candidates` Remote calls together, then deterministically orders files before sessions with locale-registered folder/file/session labels. Rows render under non-selectable file and session section headings without a redundant raw `reference` source title. A session row is dated from the Host session list's `updatedAt` through the same relative-time bucket that list uses, so one session reads the same age on both surfaces; a session the list does not carry falls back to the candidate's creation time. A drilled query publishes a breadcrumb from the workspace root to the directory being listed; each crumb carries the drill payload a folder row would, so returning to a step and descending into one are one outcome.
+For an unquoted token with both discovery capabilities, the browser starts the `fileReferences/list` and `sessionReferenceResolver/candidates` Remote calls together, then deterministically orders files before sessions with locale-registered folder/file/session labels. Rows render under non-selectable file and session section headings without a redundant raw `reference` source title. A session row is dated from the Host session list's `updatedAt` through the same relative-time bucket that list uses, so one session reads the same age on both surfaces; a session the list does not carry falls back to the candidate's creation time. A drilled query publishes a breadcrumb from the workspace root to the directory being listed; each crumb carries the drill payload a folder row would, so returning to a step and descending into one are one outcome.
 
 ### Serialization
 

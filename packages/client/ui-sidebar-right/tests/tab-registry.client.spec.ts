@@ -28,6 +28,41 @@ function ranked(registry: SidebarRightTabRegistry, address: string): string[] {
 }
 
 describe('SidebarRightTabRegistry — recognition', () => {
+  it('publishes changed address availability and releases its observer with the type', () => {
+    const registry = new SidebarRightTabRegistry(new Context())
+    let available = false
+    const listeners = new Set<() => void>()
+    const release = registry.register(typeFor('preview', ['dsh-resource://file/**'], {
+      canOpen: () => available,
+      subscribeAvailability(listener) {
+        listeners.add(listener)
+        return () => { listeners.delete(listener) }
+      },
+    }))
+    const snapshot = registry.entries()
+    expect(ranked(registry, 'dsh-resource://file/session/s/a.bin')).toEqual([])
+    const changed = vi.fn()
+    const stop = registry.subscribe(changed)
+    available = true
+    for (const listener of listeners) listener()
+    expect(changed).toHaveBeenCalledOnce()
+    expect(registry.entries()).not.toBe(snapshot)
+    expect(ranked(registry, 'dsh-resource://file/session/s/a.bin')).toEqual(['preview'])
+    release()
+    expect(listeners.size).toBe(0)
+    expect(registry.entries()).toEqual([])
+    stop()
+  })
+
+  it('rolls back type registration if its availability subscription cannot start', () => {
+    const registry = new SidebarRightTabRegistry(new Context())
+    expect(() => registry.register(typeFor('preview', ['dsh-resource://file/**'], {
+      subscribeAvailability() { throw new Error('subscription failed') },
+    }))).toThrow('subscription failed')
+    expect(registry.entries()).toEqual([])
+    expect(() => registry.register(typeFor('preview', ['dsh-resource://file/**']))).not.toThrow()
+  })
+
   it('rejects default-page resolution when the selected kind is not registered', () => {
     expect(() => defaultSeed(new SidebarRightTabRegistry(new Context())))
       .toThrow('default tab kind "guide" is not registered')

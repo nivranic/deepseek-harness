@@ -26,6 +26,7 @@ The packages below provide the Remote layer; the package READMEs own the exhaust
 
 | Package | Role | ctx key |
 |---|---|---|
+| [`host-description/`](host-description/README.md) | Describes authenticated Host identity, independent versions, and live capabilities. | `ctx.hostDescription` / `ctx.remote.host` |
 | [`remotes/`](remotes/README.md) | Chooses which Host capabilities and events the Client can consume. | — |
 | [`gateway/`](gateway/README.md) | Carries typed unary calls, multiplexed streams, and forwarded Host events. | `ctx.typertGateway` / `ctx.remote` |
 | [`session-controller/`](session-controller/README.md) | Owns Session commands, history streams, live control state, and Agent/Session identity policy. | `ctx.sessionController` / `ctx.remote.session` |

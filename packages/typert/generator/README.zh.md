@@ -43,9 +43,16 @@ files:
 
 构建完成后，`lib/typert.host.js` 与 `lib/typert.host.d.ts` 即存在，[loader](../loader/README.zh.md) 会在 Loader 组合中注册该贡献。生成的声明文件把 `TYPERT` 暴露为 `unknown`，因此参与贡献的包永远不会依赖运行时注册表。当声明缺失、指向错误文件，或在没有 Remote 方法的情况下发布 Remote 产物时，生成器会使构建失败；不支持的 Zod 投影会以 `TypertEmitError` 指明具体构造并失败，而不会展平或弱化源类型。
 
+绑定选项接受 `namespace` 与运行时拥有的 `capabilities`。能力声明不改变生成的调用编解码器或 Client 方法签名；未知选项名仍会让分析被拒绝。参见 [Host 发现](../../api/host-description/README.zh.md)。
+
+<a id="analyzing-a-workspace-statically"></a>
 ### 静态分析工作区
 
 静态消费方直接针对工作区的 `tsconfig.host.json` 与 `tsconfig.client.json` 聚合配置调用 `WorkspaceAnalyzer`，选择 face 与包子集，并在不生成或加载运行时产物的前提下读取生成的 `FaceModel` 与类型图。`analyzeInBatches()` 通过有界的编译器程序处理大批量包选择，模型形态保持一致；`discoverPackages()` 无需构建类型检查程序即可找出参与贡献的包。
+
+`analyzeRemoteErrors()` 直接从所属编译面提取基础 Remote 错误表和所选包的扩展，包括未被 service 或 schema 根引用的声明。它返回 `RemoteErrorWorkspaceModel`，为每个错误保留拥有方、错误码、源位置、语义说明、声明的详情类型节点及由 checker 解析的 JSON 详情节点。Host 与 Client 图保持独立，引用保留既有公开类型链接。同一编译面内重复的码、缺少说明、无法枚举的声明或非 JSON 详情会使分析失败。Codec 根复用严格 Remote 类型投影来解析跨面品牌与计算类型，不合并编译面。普通 `analyze()` 的结果不变。这些图是后续生成的输入，不是可执行 codec 或 JSON Schema。
+
+`emitRemoteErrorSchemas(face)` 生成 ESM 模块，其 `REMOTE_ERROR_DETAILS` 导出是错误码到 Zod 详情验证器的 Map。消费构建提供 Zod。仓库 `verify-remote-error-envelope` 门禁包含独立清单与详情根检查，比较两面的共有码，并在 `doc-sync` 中校验随包携带的 JSON Schema。常规 TypeScript 检查负责项目诊断；schema 验证不证明原生 Client 兼容。
 
 ### 在 tsdown 构建中运行生成
 
@@ -84,6 +91,8 @@ Host 与 Client 是两个独立的 TypeScript 程序。直接项目引用确定�
 ### 生成与发布约定
 
 `FaceModelEmitter` 输出包含受支持 Zod schema 与 `TYPERT` 贡献的可执行 JavaScript，以及把 schema 通过包的公开导出标注为 `z.ZodType<SourceType>` 的声明文件；不支持的 Zod 投影会失败。含 Remote 方法的 Host face 还会额外为 Client 生成 Host Remote 约定的 `typert.remote-client.*` 投影。`WorkspaceTypertGenerator` 校验每个贡献方的 `package.json`：`./typert` 与 `./client/typert`（存在 Remote 方法时还有 `./remote`）必须指向精确的生成文件，且 `files` 清单必须包含它们。
+
+`readonly` 数组与元组操作符使用 Zod readonly schema，验证元素类型并冻结解析后的容器。`keyof` 与 `unique` 操作符仍会使生成失败；readonly 不会使不支持的元素类型变得可生成。
 
 ### 目录投影
 

@@ -25,9 +25,13 @@ Trajectory 标签页让你以按轮次组织的事件记录表和交互式时间
 <a id="use-this-package"></a>
 ## 使用本包
 
+Conversation owner 提供 `historyAvailable`。为 false 时，Trajectory 隐藏远端历史加载提示与分页入口，但仍允许检查和逐页展开已缓存记录。
+
 在对话视图环中打开 Trajectory 标签页，把 agent 活动作为事件记录表与时间线查看。初始尾部完成定位前，记录表会用明确的加载行遮住真实记录；更早的前缀仍未加载时，首行控件会在点击时加载一页更早的历史，并在该页加载期间显示禁用的加载状态。
 
 ### 检查记录
+
+从 Chat 使用 Inspect 会选择准确的 Turn、Step 与工具调用，包括嵌套调用。即使其他请求使用相同的 provider call id，源内容块和所属消息链接也只在选中的 Step 内跳转。
 
 选择、时间线导航、折叠与搜索只覆盖 React 可见窗口。请求编号与累计用量覆盖完整的驻留快照。选择记录会打开局部检查器，查看 token 用量、耗时、输入、输出、计时与持久保留的图片。图片 URL 使用 Conversation 拥有的逐会话缓存，因此 Chat 与 Trajectory 对每个附件共享一次已授权读取。用户记录会在文本旁显示通用文件数量；记录没有文本时，则显示图片与文件数量。独立运行的压缩请求会按时间顺序显示在自己的 `Between turns` 区段中，而带编号的压缩仍位于其所属轮次内。
 
@@ -39,6 +43,10 @@ Trajectory 标签页让你以按轮次组织的事件记录表和交互式时间
 
 <a id="understand-the-implementation"></a>
 ## 理解实现
+
+Tool 生命周期节点和账本记录按 Step 区分：不同模型请求复用 provider call id 时，仍分别保留结果、耗时、schema 和嵌套 PTC 树。后续补齐较早调用后，已分页加载的更新保留同一节点身份。缺少所属 Step 的结果保留为独立的未定位记录，不借用其他调用的输出。
+
+[重复 id 录制回归](../../../apps/web/tests/tool-reused-id.snapshot.ts)启动随产品提供的 Web profile，比对完整持久化 Session 和最终工作区，并从 Chat 打开两次 Tool 执行。
 
 <details>
 <summary>实现细节——点击展开</summary>
@@ -81,6 +89,8 @@ Trajectory 要求会话壳把 composer 作为浮层置于全高记录表上方�
 无；该包既不组装也不发送提供方请求。
 
 ## 已知限制与延期工作
+
+- Inspect 请求对应的执行不在已驻留历史中时，请求保持待定。加载匹配历史后即可解析；视图不会替换为另一个相同 id 的调用。
 
 <a id="known-limitations-and-deferred-work"></a>
 

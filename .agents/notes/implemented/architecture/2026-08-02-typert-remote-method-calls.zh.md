@@ -529,3 +529,5 @@ Remote endpoint 使用 Connection 的 `trusted-host` authority。系统默认接
 支持取消的 Remote 签名会接收 Connection 请求的 `AbortSignal`，因此 HTTP 断连或 Client 侧 abort 能在不进入 JSON 协议的情况下传递到正在进行的业务工作。取消仍是协作式的：没有保留末位参数的方法会继续运行；收到 signal 的方法必须将它传给自身支持取消的操作，或自行观测它。
 
 lookup 配置当前以 key 为粒度，因此每个 `agent` 或 `session` 参数都采用同一套冷恢复策略。需要 live-only 语义的特定 Remote 必须等待显式的逐参数或逐 endpoint 策略，不能靠业务实现猜测对象是否刚被恢复。
+
+显式的活跃能力可用性由 [Host 发现决策](2026-09-16-host-description-and-capabilities.zh.md)定义。

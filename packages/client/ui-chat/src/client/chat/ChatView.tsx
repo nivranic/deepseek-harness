@@ -217,7 +217,7 @@ const ChatNodeList = memo(function ChatNodeList({ order, ...seatProps }: ChatNod
 export function ChatView({
   useSession, useChat, useChatNode, useChatNodeProcess, useSessions, useStore, actions, renderSlot,
   sessionId, openFile, openSkill, loadOlder, loadThrough, loadImage, openView, chatScroll, forkAt, fileMentions,
-  useTranscriptView, useProjection, t,
+  useTranscriptView, useReferenceAvailability, useProjection, historyAvailable, t,
 }: ChatViewSlotProps) {
   const order = useChat(s => s.order)
   const nodeStore = useChat(s => s.nodes)
@@ -241,9 +241,11 @@ export function ChatView({
   const openError = useSession(s => s.openError)
   const hasMore = useSession(s => s.hasMore)
   const loadingOlder = useSession(s => s.loadingOlder)
+  const referenceAvailability = useReferenceAvailability(value => value)
   const compactTranscript = useTranscriptView(mode => mode === 'compact')
-  const inspectCall = useCallback((callId: string) => {
-    openView('trajectory', callId)
+  const inspectCall = useCallback<ComponentProps<typeof ChatNodeSeat>['inspectCall']>((callId, location) => {
+    if (location.kind !== 'step') throw new Error('Tool inspection requires its enclosing Step Location')
+    openView('trajectory', JSON.stringify([location.turn.turn, location.step.step, callId]))
   }, [openView])
   const [fileOpenError, setFileOpenError] = useState<{ path: string; message: string } | null>(null)
   const [fileOpenBusy, setFileOpenBusy] = useState(false)
@@ -671,7 +673,7 @@ export function ChatView({
     // commit, so the target row cannot drift once the jump clears.
     if (realizePendingJump(local, el, true)) return
     const uncovered = firstSeq === null || firstSeq > pending.seq
-    if (uncovered && hasMore) {
+    if (uncovered && hasMore && historyAvailable) {
       // A plain pull owns the pager right now: hold the jump (busy stays)
       // instead of degrading to a wrong landing.
       if (loadingOlder) return
@@ -694,7 +696,7 @@ export function ChatView({
     pendingJumpRef.current = null
     setBusyJumpTurn(null)
     // Snapshot values are read at settle time; the completion tick is the trigger.
-  }, [jumpSettleTick])
+  }, [jumpSettleTick, historyAvailable])
 
   // A jump held while a plain pull owned the pager waits in the effect
   // above; the pull's completion is its retry signal.
@@ -703,6 +705,7 @@ export function ChatView({
   }, [loadingOlder])
 
   const loadOlderAnchored = (): void => {
+    if (!historyAvailable) return
     const local = listRef.current
     /* v8 ignore next -- ref-null guard: the paging button renders inside the list tree. */
     if (local !== null) {
@@ -724,6 +727,7 @@ export function ChatView({
     if (local === null) return
     const el = scrollerOf(local)
     if (item.anchor.kind === 'unloaded') {
+      if (!historyAvailable) return
       // Jumping into history is leaving the live tail: release bottom
       // ownership on the click itself, or the pinned-scroll snap (a
       // non-reader scroll delivery during the first prepend's compensation)
@@ -755,26 +759,26 @@ export function ChatView({
     anchorRef.current = landed === null || landed.dataset.chatAnchorKey === undefined
       ? null
       : { key: landed.dataset.chatAnchorKey, top: flowTop(landed, el) }
-  }, [loadingOlder, loadThrough])
+  }, [loadingOlder, loadThrough, historyAvailable])
 
   return (
     <div className={css.root}>
       <div ref={listRef} className={css.scroll}>
         <TurnNavigator
-          items={railItems}
+          items={historyAvailable ? railItems : railItems.filter(item => item.anchor.kind !== 'unloaded')}
           activeTurn={activeTurn}
           busyTurn={busyJumpTurn}
           onNavigate={navigateToTurn}
           t={t}
         />
         <div ref={columnRef} className={css.column} data-chat-flow="">
-          {openState === 'loading' && <div className={css.hint}>{t('chat.loadingHistory')}</div>}
+          {historyAvailable && openState === 'loading' && <div className={css.hint}>{t('chat.loadingHistory')}</div>}
           {openState === 'error' && openError !== null && (
             <div className={css.openError}>
               {t('chat.loadError', { message: openError.message, code: openError.code })}
             </div>
           )}
-          {hasMore && (
+          {historyAvailable && hasMore && (
             <div className={css.older}>
               <button type="button" disabled={loadingOlder} onClick={loadOlderAnchored}>
                 {loadingOlder ? t('loading') : t('chat.loadOlder')}
@@ -792,6 +796,7 @@ export function ChatView({
             cwd={cwd}
             openFile={requestOpenFile}
             openSkill={openSkill}
+            {...referenceAvailability}
             inspectCall={inspectCall}
             forkAt={forkAt}
             loadImage={loadImage}

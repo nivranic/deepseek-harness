@@ -44,6 +44,8 @@ kind: "package-reference"
 
 目标必须是由 append 来源事件产生的非空 assistant 消息。用户消息、空 assistant 占位及 replacement 来源消息返回 `target-not-found`。反馈跨重启保留；fork 即使继承了包含父会话反馈的前缀，初始时也没有自有反馈。
 
+Host 发现分别声明 `feedback.message.read.v1`、`feedback.message.put.v1` 和 `feedback.message.delete.v1`。Client Gateway 在派发前要求对应能力。操作支持不替代 Session 归属、目标校验或条目版本检查；既有持久化与无操作保证继续适用。
+
 <a id="understand-the-implementation"></a>
 ## 理解实现
 

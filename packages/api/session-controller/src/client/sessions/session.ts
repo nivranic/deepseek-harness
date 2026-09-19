@@ -235,6 +235,8 @@ export class Session implements SessionFace {
     signal?: AbortSignal,
     requestId?: SessionRequestId,
   ): Promise<RemoteResult<{ accepted: true }>> {
+    const host = this.remote.$host
+    const addressed = this.address !== undefined
     this.promptError = null
     this.lastAgentError = null
     // Synchronous, before the first await: the blank → engaging edge must be
@@ -276,6 +278,9 @@ export class Session implements SessionFace {
         clientTimeZone: resolvedClientTimeZone(),
       }, signal)
       result = routed.ok ? { ok: true, value: { accepted: true } } : routed
+    }
+    if (addressed && host !== this.remote.$host) {
+      return { ok: false, error: new RemoteError('gateway/connection-unavailable', 'Subagent prompt connection changed', { endpoint: 'subagents/prompt' }) }
     }
     if (!result.ok) {
       if (requestId !== undefined) this.retireFailedSubmission(requestId)
@@ -325,19 +330,39 @@ export class Session implements SessionFace {
   /**
    * Stop the active turn while the Host preserves pending inbox work; failures
    * land in promptError (same error-strip display slot). A subagent address
-   * routes through `subagents.interruptByParent`, whose durable parent-address
-   * authority works without a live parent Agent.
+   * uses its observed turn when the Host advertises addressed interruption;
+   * legacy Hosts use current-turn interruption. Parent-address authority works without a live parent Agent.
    * @returns the cancel result.
    */
   async cancel(): Promise<RemoteResult<{ accepted: true }>> {
+    const host = this.remote.$host
     const address = this.address
-    const result = address !== undefined
-      ? await this.remote.subagents.interruptByParent(
+    const targetedSubagent = host.capabilities?.includes('subagent.interrupt-turn.v1') === true
+    const interruptEndpoint = targetedSubagent ? 'subagents/interruptTurnByParent' : 'subagents/interruptByParent'
+    let result: RemoteResult<{ accepted: true }>
+    if (address !== undefined && targetedSubagent) {
+      const timing = this.projections.values().subagentTiming
+      const turnStartSeq = timing?.active === undefined ? null : timing.active.startSeq
+      result = timing === undefined || turnStartSeq === undefined
+        ? { ok: false, error: new RemoteError('gateway/connection-unavailable', 'Subagent cancellation target is not ready', { endpoint: interruptEndpoint }) }
+        : await this.remote.subagents.interruptTurnByParent({ ...address, mode: 'continuable', turnStartSeq })
+    } else if (address !== undefined) {
+      result = await this.remote.subagents.interruptByParent(
         address.childSessionId,
         address.parentSessionId,
         'continuable',
       )
-      : await this.remote.session.cancel({ sessionId: this.sessionId })
+    } else if (this.remote.$host.capabilities?.includes('session.cancel-turn.v1') === true) {
+      const turnStartSeq = this.projections.values().activeTurnStart
+      result = turnStartSeq === undefined
+        ? { ok: false, error: new RemoteError('gateway/connection-unavailable', 'Session cancellation target is not ready', { endpoint: 'session/cancelTurn' }) }
+        : await this.remote.session.cancelTurn({ sessionId: this.sessionId, turnStartSeq })
+    } else {
+      result = await this.remote.session.cancel({ sessionId: this.sessionId })
+    }
+    if (address !== undefined && host !== this.remote.$host) {
+      return { ok: false, error: new RemoteError('gateway/connection-unavailable', 'Subagent interrupt connection changed', { endpoint: interruptEndpoint }) }
+    }
     if (!result.ok) {
       this.promptError = { op: 'stop', error: result.error }
       this.notifier.markDirty()
@@ -360,6 +385,28 @@ export class Session implements SessionFace {
     const seq = SessionSeq(result.value.seq)
     this.projections.apply('title', result.value.title, seq)
     return { ok: true, value: { title: result.value.title, seq } }
+  }
+
+  /**
+   * Capture one editing baseline, retained across all submissions by this callback.
+   * @returns a submitter using conditional rename when advertised by the Host.
+   */
+  prepareRename(): (title: string) => Promise<RemoteResult<{ title: string; seq: SessionSeq }>> {
+    const conditional = this.remote.$host.capabilities?.includes('session.rename-at.v1') === true
+    const expectedRevision = this.projections.values().titleRevision
+    return async (title) => {
+      const request = { sessionId: this.sessionId, title }
+      const result = conditional
+        ? expectedRevision === undefined
+          ? { ok: false as const, error: new RemoteError('gateway/connection-unavailable', 'Session title revision is not ready', { endpoint: 'session/renameAt' }) }
+          : await this.remote.session.renameAt({ ...request, expectedRevision })
+        : await this.remote.session.rename(request)
+      if (!result.ok) return result
+      const seq = SessionSeq(result.value.seq)
+      this.projections.apply('title', result.value.title, seq)
+      if (conditional) this.projections.apply('titleRevision', result.value.seq, seq)
+      return { ok: true, value: { title: result.value.title, seq } }
+    }
   }
 
   /**

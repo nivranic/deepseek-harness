@@ -1,5 +1,6 @@
 /** Session-addressed, cold-readable skill catalog Remote. */
 
+import { SKILL_CATALOG_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-agent-presets/types'
 import type { SessionId } from '@deepseek-ai/dsh-session'
@@ -22,7 +23,7 @@ export class SessionSkillCatalog extends TypertRemoteService {
 
   /** @param ctx - Host context carrying Session reads and optional skill/preset services. */
   constructor(ctx: Context) {
-    super(ctx, 'sessionSkillCatalog', { namespace: 'skills' })
+    super(ctx, 'sessionSkillCatalog', { namespace: 'skills', capabilities: SKILL_CATALOG_REMOTE_CAPABILITIES })
   }
 
   /**

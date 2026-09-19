@@ -29,13 +29,9 @@ export function NativeDirectoryFlow(props: DirectoryFlowOwnerProps & NativeFlowI
   // latest handlers, not the ones captured when the chooser opened.
   const outcome = useRef(props)
   outcome.current = props
-  // Unmount (HMR replacing the occupant) discards settlements wholesale: the
-  // dead instance must neither adopt a path nor drive the owner's error
-  // surface. The wire carries no per-request abort, so the host-side chooser
-  // survives until answered — its answer just lands nowhere; the replacement
-  // instance re-arms under the owner's still-open request. An injected-face
-  // identity change alone (re-registration) keeps the pending settlement:
-  // the chooser on the host display is still the same dialog.
+  // Unmount discards settlements. The injected operation separately owns the
+  // registration lifetime: connection replacement or registration disposal
+  // cancels its chooser and prevents a result from reaching a replacement flow.
   const alive = useRef(true)
   useEffect(() => {
     // StrictMode's development replay runs the cleanup once before the real

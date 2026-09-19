@@ -100,10 +100,12 @@ export interface FilesInjected {
 /**
  * Bind the tree's face to one directory listing.
  * @param list - the bound `workspaceFiles.list` call.
+ * @param lifetime - optional registration lifetime joined with each tab signal.
  * @returns the Slot `inject` factory: session and bound actions in, face out.
  */
 export function filesFace(
   list: ListWorkspaceDirectory,
+  lifetime?: AbortSignal,
 ): (sessionId: SessionId, actions: BoundActions<ReturnType<typeof createFilesStore>>) => FilesInjected {
   return (
     sessionId: SessionId,
@@ -119,19 +121,22 @@ export function filesFace(
       return generation
     }
     const load = (tabId: TabId, path: string, signal: AbortSignal): void => {
+      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
       if (signal.aborted) return
       const generation = nextGeneration(tabId, path)
       actions.loading(tabId, path)
       void list(sessionId, path, signal).then((result) => {
         // A newer listing of this level was asked for since, or the record is
         // gone and its bookkeeping with it: nothing left for this one to write.
-        if (generations.get(tabId)?.get(path) !== generation) return
+        if (signal.aborted || generations.get(tabId)?.get(path) !== generation) return
         if (result.ok) actions.loaded(tabId, path, result.value)
         else actions.failed(tabId, path, result.error)
       })
     }
     return {
       start(tabId, root, signal) {
+        signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
+        if (signal.aborted) return
         actions.start(tabId, root)
         signal.addEventListener('abort', () => {
           generations.delete(tabId)
@@ -141,6 +146,7 @@ export function filesFace(
       },
       load,
       toggle(tabId, path, loaded, signal) {
+        if (signal.aborted || lifetime?.aborted === true) return
         actions.toggled(tabId, path)
         if (!loaded) load(tabId, path, signal)
       },

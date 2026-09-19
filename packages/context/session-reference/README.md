@@ -20,6 +20,8 @@ English | [中文](README.zh.md)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
+The Remote candidate method declares `session-reference.candidates.v1`. This capability covers metadata discovery only; snapshot preparation and durable reference context retain their existing validation and lifecycle.
+
 -----
 
 <a id="use-this-package"></a>

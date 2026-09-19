@@ -153,7 +153,7 @@ const contexts = new WeakMap<object, PageContext>()
 function ctxWith(face: object): PageContext {
   const existing = contexts.get(face)
   if (existing !== undefined) return existing
-  const ctx = { remote: face } as unknown as PageContext
+  const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1'] }, ...face } } as unknown as PageContext
   contexts.set(face, ctx)
   return ctx
 }
@@ -167,7 +167,7 @@ const operations = new WeakMap<object, ModelsOperations>()
 function operationsWith(face: object): ModelsOperations {
   const existing = operations.get(face)
   if (existing !== undefined) return existing
-  const bound = createModelsOperations(ctxWith(face))
+  const bound = createModelsOperations(ctxWith(face), () => 'Host operation unavailable')
   operations.set(face, bound)
   return bound
 }

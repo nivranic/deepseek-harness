@@ -159,6 +159,9 @@ export class CardForm<T> {
   private readonly listeners = new Set<() => void>()
   private saving = false
   private failed = false
+  private generation = 0
+  private disposed = false
+  private readonly stopScope: () => void
 
   /**
    * @param scope - the bound settings scope for this card's namespace.
@@ -172,7 +175,10 @@ export class CardForm<T> {
   ) {
     this.specs = new Map(specs.map(spec => [spec.field, spec]))
     this.secretSpecs = new Map(secrets.map(spec => [spec.field, spec]))
-    scope.subscribe(() => { this.publish() })
+    this.stopScope = scope.subscribe(() => {
+      if (scope.getSnapshot().status !== 'ready') this.reset()
+      else this.publish()
+    })
   }
 
   /**
@@ -194,7 +200,7 @@ export class CardForm<T> {
     const snapshot = this.scope.getSnapshot()
     const plan = this.plan()
     return {
-      available: snapshot.status === 'ready',
+      available: !this.disposed && snapshot.status === 'ready',
       writable: snapshot.writable,
       dirty: plan.length > 0,
       invalid: plan.some(item => item.run === undefined),
@@ -237,10 +243,8 @@ export class CardForm<T> {
       },
       save: () => { void this.save() },
       discard: () => {
-        if (this.staged.size === 0 && !this.failed) return
-        this.staged.clear()
-        this.failed = false
-        this.publish()
+        if (this.disposed || this.saving || (this.staged.size === 0 && !this.failed)) return
+        this.reset()
       },
     }
   }
@@ -252,23 +256,57 @@ export class CardForm<T> {
    * validators own the constraints no schema can express — so the outcome is
    * read back from the section rather than predicted here. A save that did not
    * land keeps its drafts, so the user can correct them instead of retyping.
+   * Namespace loss or disposal clears drafts and prevents remaining steps;
+   * successful settlement preserves edits made after this save began.
    * @returns settlement after every write and the read-back.
    */
   async save(): Promise<void> {
+    if (this.disposed || this.scope.getSnapshot().status !== 'ready') return
     const plan = this.plan()
     const writes = plan.flatMap(item => item.run === undefined ? [] : [item.run])
     if (plan.length === 0 || this.saving || writes.length !== plan.length) return
     this.saving = true
     this.failed = false
+    const generation = this.generation
+    const staged = new Map(this.staged)
     this.publish()
     let landed = true
     for (const write of writes) {
-      landed = await write() && landed
+      if (generation !== this.generation) return
+      let accepted: boolean
+      try {
+        accepted = await write()
+      } catch (_writeFailure) {
+        // A rejected write has no accepted value; keep this save's drafts for an explicit retry.
+        accepted = false
+      }
+      if (generation !== this.generation) return
+      landed = accepted && landed
     }
-    if (landed) this.staged.clear()
+    if (landed) {
+      for (const [field, edit] of staged) if (this.staged.get(field) === edit) this.staged.delete(field)
+    }
     this.saving = false
     this.failed = !landed
     this.publish()
+  }
+
+  /** Clear drafts and invalidate an in-flight save after its namespace or credential reference changes. */
+  reset(): void {
+    this.generation += 1
+    this.staged.clear()
+    this.saving = false
+    this.failed = false
+    this.publish()
+  }
+
+  /** Stop scope observation and prevent retained actions or pending saves from changing this form. */
+  dispose(): void {
+    if (this.disposed) return
+    this.disposed = true
+    this.stopScope()
+    this.reset()
+    this.listeners.clear()
   }
 
   /**
@@ -311,6 +349,7 @@ export class CardForm<T> {
   }
 
   private stage(field: string, edit: StagedEdit): void {
+    if (this.disposed || this.scope.getSnapshot().status !== 'ready') return
     this.staged.set(field, edit)
     this.failed = false
     this.publish()

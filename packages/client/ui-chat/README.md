@@ -15,6 +15,7 @@ File-mention providers receive the viewed Session ID with the closing-turn owner
 ## Table of Contents
 
 - [Reference previews](#reference-previews)
+- [Tool history](#tool-history)
 - [System prompt row](#system-prompt-row)
 - [Turn token usage](#turn-token-usage)
 - [Completed-turn footer](#completed-turn-footer)
@@ -29,7 +30,12 @@ File-mention providers receive the viewed Session ID with the closing-turn owner
 <a id="reference-previews"></a>
 ## Reference previews
 
-Sent file references and skills confirmed by the message’s logged invocation open in the right Sidebar. File paths use the viewed Session; skill names resolve through its current input-trigger source. Both use the prose file-link dotted underline on hover or focus. Sessions, directories, and command labels remain non-navigating references.
+Sent file references and logged skill invocations offer right-Sidebar previews only when a current viewer accepts the file address; skills also require a cached provider path. File paths use the viewed Session, and skill eligibility follows its optional input-trigger source. Viewer or catalog changes replace buttons with labels without altering history. Retained actions recheck current eligibility. The same query is passed to Tool rows and closing-Turn owners, so their result cards and prose links update with viewer availability. Available previews use the prose file-link dotted underline on hover or focus. Sessions, directories and command labels remain non-navigating references.
+
+<a id="tool-history"></a>
+## Tool history
+
+Tool nodes use the call id within its recorded Turn and Step. Reusing a provider id in a later model request retains separate root results and nested PTC trees, including history loaded before the call's start. Inspect opens that execution in Trajectory; nested-call Inspect keeps the root's Turn and Step.
 
 <a id="system-prompt-row"></a>
 ## System prompt row
@@ -57,6 +63,8 @@ Settings → General exposes a persisted, localized `Normal` / `Compact` convers
 
 <a id="scroll-ownership"></a>
 ## Scroll ownership
+
+The Conversation owner supplies `historyAvailable`. When false, Chat retains loaded rows but hides history loading, remote pagination, and navigation to unloaded turns; already loaded turns remain navigable.
 
 Chat restores semantic anchors across history prepend and renderer remounts. Pinned scroll deliveries without reader movement update follow ownership immediately, before subsequent layout changes can invalidate their floor. Reader movement remains pending until the sampling interval or `scrollend`, even inside the follow threshold, so layout growth cannot erase small scroll gestures. While the reader is pinned to the floor, `ResizeObserver` follows the new floor and selects the latest loaded Turn without reading row geometry. Once the reader moves away, flow-height changes preserve the top position and the reading-line geometry selects the active Turn. Turn-rail previews paint above sticky Markdown code-block banners, while the rail frame remains inside the transcript band above the composer.
 

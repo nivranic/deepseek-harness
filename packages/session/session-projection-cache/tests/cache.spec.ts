@@ -187,6 +187,69 @@ afterEach(async () => {
 })
 
 describe('SessionProjectionCache write policy', () => {
+  it('captures mutable projection values before waiting for log durability', async () => {
+    const { ctx, root, cache } = await harness()
+    ctx.sessionProjections.register({
+      ...marks3Unit,
+      init: () => ({ marks: [] }),
+      apply: (state, event) => {
+        if (event.type === 'cache-test/mark') state?.marks.push(...event.data.marks)
+        return state
+      },
+    })
+    const session = ctx.sessions.create(SessionId('capture-before-flush'))
+    await cache.write(session)
+    const first = mark(session, ['first'])
+    const entered = Promise.withResolvers<undefined>()
+    const durable = Promise.withResolvers<undefined>()
+    const flush = vi.spyOn(ctx.sessions, 'flush').mockImplementation(async () => {
+      entered.resolve(undefined)
+      await durable.promise
+      return true
+    })
+    const write = cache.write(session)
+    try {
+      await entered.promise
+      mark(session, ['later'])
+      durable.resolve(undefined)
+      await write
+      expect((await storedRows(root, session.id))?.['cache-test/marks3'])
+        .toEqual({ ver: 1, seq: first.seq, val: { marks: ['first'] } })
+    } finally {
+      durable.resolve(undefined)
+      await write
+      flush.mockRestore()
+    }
+  })
+
+  it('keeps checkpoint capture order when the earlier log flush is delayed', async () => {
+    const { ctx, root, cache } = await harness()
+    const session = ctx.sessions.create(SessionId('ordered-checkpoints'))
+    await cache.write(session)
+    mark(session, ['earlier'])
+    const entered = Promise.withResolvers<undefined>()
+    const durable = Promise.withResolvers<undefined>()
+    const flush = vi.spyOn(ctx.sessions, 'flush').mockResolvedValue(true).mockImplementationOnce(async () => {
+      entered.resolve(undefined)
+      await durable.promise
+      return true
+    })
+    const earlier = cache.write(session)
+    await entered.promise
+    const latest = mark(session, ['latest'])
+    const later = cache.write(session)
+    try {
+      durable.resolve(undefined)
+      await Promise.all([earlier, later])
+      expect((await storedRows(root, session.id))?.['cache-test/marks'])
+        .toEqual({ ver: 1, seq: latest.seq, val: { marks: ['latest'] } })
+    } finally {
+      durable.resolve(undefined)
+      await Promise.all([earlier, later])
+      flush.mockRestore()
+    }
+  })
+
   it('writes a durable checkpoint at turn/end (mandatory point)', async () => {
     const { ctx, root } = await harness()
     const session = ctx.sessions.create(SessionId('turn-end'))

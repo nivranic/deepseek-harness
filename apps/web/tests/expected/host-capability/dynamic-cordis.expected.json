@@ -1,0 +1,30 @@
+{
+  "noUnsupportedProbe": true,
+  "readOnlyControls": true,
+  "hostOnlyRunIndependent": true,
+  "declineWithoutRun": true,
+  "pendingDeclineRestoredFromInventory": true,
+  "clientActivationWithdrawn": true,
+  "explicitReattach": true,
+  "noAutomaticMutationReplay": true,
+  "cancelledStops": 1,
+  "replacementSelectionRetained": true,
+  "staleActionErrorSuppressed": true,
+  "composerDraftRetained": true,
+  "mutations": [
+    "runHostHalf",
+    "stopFromPanel",
+    "resolveRequestRun",
+    "runHostHalf",
+    "getClientCode",
+    "settleUserRun",
+    "runHostHalf",
+    "getClientCode",
+    "settleUserRun",
+    "stopFromPanel",
+    "undefineFromPanel"
+  ],
+  "modelRequests": 0,
+  "discoveryControlled": true,
+  "stopDeliveryControlled": true
+}

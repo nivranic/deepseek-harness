@@ -25,7 +25,11 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
+插件清单回调保留原始 `RemoteError`，包括此 Client 未知的错误码。页签负责本地化失败提示和显式重试 UI。
+
 打开设置中的「插件」分区并选择**插件列表**标签页，即可查看宿主的插件清单。插件激活期间不会读取 Remote——首次选择该标签页时才挂载组件，并通过 `api-remotes` 懒调用 `ctx.remote.pluginInventory.list()`。
+
+只有当前连接声明 `plugin.inventory.v1` 时才注册该标签页。连接替换会撤回标签页、取消读取，并丢弃搜索、已选预设、展开卡片和打开菜单。恢复后挂载新页面，按需读取当前 Host；旧页面的迟到响应或保留的重试回调不能更新或读取替换 Host。独立的输入框草稿保持不变。
 
 ### 阅读卡片
 

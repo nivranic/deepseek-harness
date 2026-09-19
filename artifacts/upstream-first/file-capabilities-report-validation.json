@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Workspace Files operation declarations and generation-owned metadata resources with optional observations; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/file-capabilities-source.json",
+    "sha256": "66757dbfa0f9878ddde5326578ea74ac732a312a84239a63d108fb9afeffc1b5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c7c9ada39beaa983532a535f60ca4322db0b0d304103dea267d7f385d6ab439d"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/file-capabilities-binding.json",
+    "sha256": "b5129b6980c5d306f0bc3a2bacce0ca221489fd0e3b12d669a8b4ff7d820d2ff"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-file-capabilities-reports.mjs",
+      "sha256": "21bdd741fd40f4a6c6d6512adcd6810e17743ba9fdf7e3d54a6edbe8fb1b77c1"
+    },
+    {
+      "path": ".artifacts/capture-file-capabilities-validation.mjs",
+      "sha256": "305582303bfee636ec8c9d92b6b69665f9a3416201c7648fc9ecad2ea1799f40"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "eaa18dc3fc8560b077ab87e0e7176101fab2cd54265f071aa4f1699c6c312207"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "b2a2942aaa4da718fbd6cd7f507e968431f446d0d2041f59d3f340b71a3f1c50"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/file-capabilities-binding.log",
+      "sha256": "b4aa86f64e08dc8e965970736f0df6ae25245c9bd063d1b12c048e5a589fc612"
+    },
+    {
+      "path": ".artifacts/file-capabilities-audit-tests.log",
+      "sha256": "c610e13e092fc19c6cf9cc88d98e22b0c8a5b365e91d526f2de23e95d5d1dacd"
+    },
+    {
+      "path": ".artifacts/file-capabilities-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/file-capabilities-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/file-capabilities-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

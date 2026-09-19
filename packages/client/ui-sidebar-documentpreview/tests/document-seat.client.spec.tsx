@@ -54,7 +54,7 @@ async function boot() {
     ok: true, value: { absolutePath: '/host/notes', version: 'v1', offset: 0, data: btoa('all'), bytes: 3, eof: true },
   })
   const workspaceFiles = { read, readAll: bytes }
-  rt.ctx.provide('remote', { workspaceFiles } as never)
+  rt.ctx.provide('remote', { workspaceFiles, $host: { capabilities: ['workspace-files.stat.v1', 'workspace-files.read-text.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1'] } } as never)
   rt.ctx.provide('remote.workspaceFiles', workspaceFiles as never)
   rt.ctx.effect(() => rt.ctx.resources.register({
     protocol: 'file',

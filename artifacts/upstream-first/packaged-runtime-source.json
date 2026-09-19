@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-14T19:47:02.310370+00:00",
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "scope": "Windows packaged runtime source and artifacts before further Phase 2 work",
+  "sourceFiles": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.i18n.yaml",
+      "sha256": "484129e6b913a095b7f42fefcbbad4246bed6126b0dcd82d3a38b5e7c17e331d",
+      "bytes": 604
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md",
+      "sha256": "5ee8391fef97a330486398de2cbe92463ae7e245f90d72ba278acae457597532",
+      "bytes": 22618
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md",
+      "sha256": "39cb60dd731ffdf356c88c4f732a977a84f249985526f8035b4315a09ce5a233",
+      "bytes": 21263
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.i18n.yaml",
+      "sha256": "0c298ec28ff70a64695a245432cd90b96ceed0951215e5c229dc229ac92c0c71",
+      "bytes": 544
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.md",
+      "sha256": "07ec8e58f6462e5792662681536abd48a99917080ba2ee4d16d588b96fd66923",
+      "bytes": 25140
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.zh.md",
+      "sha256": "83b016523bbc0aa18372fbf562a3360b149ded5b6b0dc7362431abcaeac4b329",
+      "bytes": 22822
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.i18n.yaml",
+      "sha256": "15356608315d28d2594716d93510f3dfa22fff54ccd6735c1546d05de87dfe03",
+      "bytes": 529
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.md",
+      "sha256": "f1486d944a4debde42173224012478dafc4445d150db0013a209ceefe209e540",
+      "bytes": 7232
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.zh.md",
+      "sha256": "5769a347adab3151457f5346eac51184dc9945da458fb4b9ffe306893a08bfab",
+      "bytes": 7009
+    },
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "f15ee7adb8fa4096521536e74a50d9ebb30000bfa08ce4d7b431e1219cd99f18",
+      "bytes": 422
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "f0cca32fcf71536d7f534bb9512cde2cdccb22af23322ff10955674a70bde15d",
+      "bytes": 27781
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "bff6f7dd12755155cf8312f312f80d8603652714eedd1cc6b1380e7fe455b32d",
+      "bytes": 25046
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.mjs",
+      "sha256": "3242149b816114129b53d41701136c96199b8cbe12df39d8c189bebd9bf99507",
+      "bytes": 5574
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "bd09d67c08f2c66516124ebcc71e1a71a36325be44255310098e0fdcbba18f56",
+      "bytes": 2087
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9",
+      "bytes": 1112
+    },
+    {
+      "path": "apps/desktop/src/locale.ts",
+      "sha256": "49a9fd9264740f56acf861ec53af5e49f23462c4f7f4a0ae51301b47a95b8a4a",
+      "bytes": 7404
+    },
+    {
+      "path": "apps/desktop/src/login-item.ts",
+      "sha256": "ffc2f8a7acacfc56ca2e015188c42aa41b3e745b9244f49a4b5b472b9712788c",
+      "bytes": 2526
+    },
+    {
+      "path": "apps/desktop/src/main.ts",
+      "sha256": "c8ba2de4df3a165133b7c3d4f720c78500d584908b917c9e4f9300283a8fc1ef",
+      "bytes": 24338
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "sha256": "ce599da150c30f10a59039097829c38b9abc420da9f8ea608b1bf98c11fc3c09",
+      "bytes": 3840
+    },
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99",
+      "bytes": 2740
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-darwin-zh.json",
+      "sha256": "8e82117c3f979c62989c500c982fd9b18ed335b8c9bc3bda6e22fcd4ab9be3fb",
+      "bytes": 583
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-development-en.json",
+      "sha256": "07a848f623ebadd917d2b6872d4411f3956f45970d631eb54eccc16a68aa54b2",
+      "bytes": 267
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-win32-zh.json",
+      "sha256": "63ad63f6690ccf2dca27f614dc186af5948d49e5245b731289b5b01889a42cc9",
+      "bytes": 574
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-tray-en.json",
+      "sha256": "65c4f0c0d0c49de85b40541eec05b39629396818d3ea7628368c0a57938764f1",
+      "bytes": 111
+    },
+    {
+      "path": "apps/desktop/tests/login-item.spec.ts",
+      "sha256": "8fbdbb0afc543731e2215a8303013930ff4dfb37b5d16780abd2c54e64af59ed",
+      "bytes": 2814
+    },
+    {
+      "path": "apps/desktop/tests/main-startup.spec.ts",
+      "sha256": "67e90467681d7c4cff60a841109e54610cd82e2528b45561454406c3ad3b9927",
+      "bytes": 24310
+    },
+    {
+      "path": "apps/desktop/tests/shell-behavior.spec.ts",
+      "sha256": "3d0fda2f2447dbf1906c4e2eca1a0e70ce9f8f19eeca09f49403b7c3ac1ae35e",
+      "bytes": 3977
+    },
+    {
+      "path": "apps/desktop/tests/shell-preferences.spec.ts",
+      "sha256": "5d8dfd7c5ccd391a03ee7f4d764f1851b60709c8015e7f897d5e7f98ca545d98",
+      "bytes": 3617
+    },
+    {
+      "path": "apps/desktop/tsconfig.json",
+      "sha256": "a9c6d65de293fd2a4880678a6add6c31237a82fb29cf01a732965a61ab7445ce",
+      "bytes": 266
+    },
+    {
+      "path": "packages/boot/app-boot/README.i18n.yaml",
+      "sha256": "f4e866839f1189b0a79f41749950798f80a080d64acef2a41ee703740670bfed",
+      "bytes": 432
+    },
+    {
+      "path": "packages/boot/app-boot/README.md",
+      "sha256": "e502d83aac17c7cc8cbf7af4af9fe563a41f603d123c07f4e0cb6f02f9ec7f0f",
+      "bytes": 14650
+    },
+    {
+      "path": "packages/boot/app-boot/README.zh.md",
+      "sha256": "94a6ae932fca0d3040b642ebe4a45acf92a8939aafc3195cd05b29d1fca34daa",
+      "bytes": 13814
+    },
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "7b1b1b40130b75acbb6c347cecc7818eae68e94460cdd6aa06d8fdc2dc6a2d59",
+      "bytes": 38765
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile-init.spec.ts",
+      "sha256": "6028b7b99a3374679af29ba7a006a72ef20b728888cd050fad867b2675070339",
+      "bytes": 1945
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile.spec.ts",
+      "sha256": "acc9edce3e5f44da3cf71a52d3deb44280e2e2d264e895dbe4185ea42d5afecd",
+      "bytes": 49006
+    },
+    {
+      "path": "packages/client/modules/README.i18n.yaml",
+      "sha256": "e38cac084cf2c53c9677badac460c5cbed1335372af8e5aa6d0483f9d06f7d78",
+      "bytes": 433
+    },
+    {
+      "path": "packages/client/modules/README.md",
+      "sha256": "79f9e32f70dfdb3d8a5dd32a544612bdba3272e9b84820a56b40542521ab048b",
+      "bytes": 10184
+    },
+    {
+      "path": "packages/client/modules/README.zh.md",
+      "sha256": "2957e7292ffee25384528aafd64e92b547da164260c5ba40c491f16cbf8581a9",
+      "bytes": 9518
+    },
+    {
+      "path": "packages/client/modules/src/index.ts",
+      "sha256": "c490ab03e366be5606a0a52d09c295b2d88eeb81ac357922d07e196ac0ae57f2",
+      "bytes": 41416
+    },
+    {
+      "path": "packages/client/modules/src/package-manifest.ts",
+      "sha256": "0886bdfd080ae14fb3177883edbea4dd90b59d769406ddeba9d9b14df0a293db",
+      "bytes": 3637
+    },
+    {
+      "path": "packages/client/modules/tests/node-half.client.spec.ts",
+      "sha256": "0095128e62afe6e0dd77343f25dcf73d57994788a0ba0386aaa32efeddeceee0",
+      "bytes": 38043
+    },
+    {
+      "path": "packages/client/modules/tests/package-manifest.spec.ts",
+      "sha256": "73801ac05764d23cd6c68cdf214b269e3bf0a4a3c7eb0ec9804256f643df9874",
+      "bytes": 4341
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "aca6c1434694060304eea0cf36c903e046c99da90d00dcaae1534c8c03a3e549",
+      "bytes": 868873
+    },
+    {
+      "path": "python/development.i18n.yaml",
+      "sha256": "d427cc3d3c494f18971cde441727407ae5b8c62473bddf79595ae0e190176235",
+      "bytes": 431
+    },
+    {
+      "path": "python/development.md",
+      "sha256": "2d89c8056bb1dceaba12fb146d51aa77eb2f0af8c0f75773b01f510b311b30e0",
+      "bytes": 8280
+    },
+    {
+      "path": "python/development.zh.md",
+      "sha256": "5d47c42a5b6e98dfb8d2b5ea75c86067e07898f3edb9abf33d897d3303b86257",
+      "bytes": 7969
+    },
+    {
+      "path": "python/sdk-runtime/README.i18n.yaml",
+      "sha256": "20c094fcb5c277d4ad81d656ca487ef85d18767ddbe8081e05ab23cdb5858c2e",
+      "bytes": 428
+    },
+    {
+      "path": "python/sdk-runtime/README.md",
+      "sha256": "f7d1b113b59cf5e9dd3e93533b54ada7ddbada891e126a43e2ef7f7ddeeb676f",
+      "bytes": 4903
+    },
+    {
+      "path": "python/sdk-runtime/README.zh.md",
+      "sha256": "b084a183062eaba8e952e4d6202bcb0bc51981d6e64355cea5ce5ab5325fca4f",
+      "bytes": 4637
+    },
+    {
+      "path": "python/sdk-runtime/package.json",
+      "sha256": "8137cf69d4ae99fd37344e35cc4d567fb1527aadc7b12342dd0c8f1a6cfad681",
+      "bytes": 8174
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.spec.ts",
+      "sha256": "679a3c1a890bdf59a7748dbde1badc29b13e4664ce35eaba1f89aa45cfef7cdd",
+      "bytes": 6513
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.ts",
+      "sha256": "fc3e1e7ddad2714699d461316dceaea9322bf3a5bb47bad3cb2ba2d5236dab96",
+      "bytes": 26200
+    },
+    {
+      "path": "scripts/project-doc-site.spec.ts",
+      "sha256": "df38d9e41fc5f712ba0fe34ac4b12c1bb268f75d229fa26d4e51b88cc9010b9e",
+      "bytes": 36097
+    },
+    {
+      "path": "scripts/verify-runtime-closure.spec.ts",
+      "sha256": "3cdc64d89470298773c21a0f3867f0ceee40fcdae3182345431f3cebfcf183df",
+      "bytes": 7641
+    },
+    {
+      "path": "scripts/verify-runtime-closure.ts",
+      "sha256": "f47f7fceb33a60b507f39285ca35552af7d8ab8e009789809bf94423ab4c5448",
+      "bytes": 9214
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64.exe",
+      "sha256": "184f1a4059ffa61c8a55c43e00c985142306bfcee5247c078236eea7be625b73",
+      "bytes": 240813056
+    },
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64-rg.exe",
+      "sha256": "f9dde63498b3193f098355dbec97af99dc4f6b8fa0df5ed04114a03012c042cb",
+      "bytes": 5429760
+    },
+    {
+      "path": "python/sdk-runtime/src/deepseek_harness_runtime/runtime/deepseek-harness-sdk-runtime-win-x64.exe",
+      "sha256": "184f1a4059ffa61c8a55c43e00c985142306bfcee5247c078236eea7be625b73",
+      "bytes": 240813056
+    },
+    {
+      "path": "python/sdk-runtime/src/deepseek_harness_runtime/runtime/deepseek-harness-sdk-runtime-win-x64-rg.exe",
+      "sha256": "f9dde63498b3193f098355dbec97af99dc4f6b8fa0df5ed04114a03012c042cb",
+      "bytes": 5429760
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/smoke-packaged-windows.py",
+      "sha256": "084e5bc02c492517f75696bd89de76a60ae7dc38fe6d7a152239ad2389c3449e",
+      "bytes": 8296
+    },
+    {
+      "path": ".artifacts/legacy-web-probe.py",
+      "sha256": "4f1202f1ef153c155af993591532e7d7c4357ac3e550017bf76f4942cab7a14b",
+      "bytes": 12649
+    }
+  ],
+  "ownedRuntimeProcessesAfterSmoke": 0,
+  "checks": [
+    {
+      "id": "module-profile-initial",
+      "status": "PASS",
+      "tests": 110,
+      "files": 4,
+      "command": "pnpm exec vitest run packages/client/modules/tests/node-half.client.spec.ts packages/client/modules/tests/package-manifest.spec.ts packages/boot/app-boot/tests/profile.spec.ts packages/boot/app-boot/tests/profile-init.spec.ts",
+      "detail": "Before two further profile cases; managed resource and packaged containment regressions were observed failing before their fixes."
+    },
+    {
+      "id": "module-profile-final",
+      "status": "PASS",
+      "tests": 66,
+      "files": 2,
+      "command": "pnpm exec vitest run packages/boot/app-boot/tests/profile.spec.ts packages/client/modules/tests/package-manifest.spec.ts",
+      "detail": "Includes packaged and ordinary Node resolution plus scoped installed application dependencies."
+    },
+    {
+      "id": "module-manifest-coverage",
+      "status": "PASS",
+      "detail": "package-manifest.ts: 43 statements, 47 branches, 3 functions and 37 lines; all 100%."
+    },
+    {
+      "id": "runtime-builder-closure",
+      "status": "PASS",
+      "tests": 16,
+      "files": 2,
+      "command": "pnpm exec vitest run scripts/build-exe-for-python-sdk.spec.ts scripts/verify-runtime-closure.spec.ts",
+      "detail": "Includes three app/native closure regressions, pnpm pre-command installation policy and Windows argument diagnostics."
+    },
+    {
+      "id": "runtime-closure",
+      "status": "PASS",
+      "workspacePackages": 247,
+      "command": "pnpm run verify-runtime-closure",
+      "detail": "The application-inclusive traversal required 22 additional explicit workspace peers. Registry lock resolutions remained byte-identical."
+    },
+    {
+      "id": "runtime-packaged-initial",
+      "status": "FAIL",
+      "receipt": "artifacts/upstream-first/packaged-web-smoke-initial.json",
+      "detail": "Actual executable startup failed on missing dsh-session-title-llm before app/native closure traversal and explicit peers were fixed."
+    },
+    {
+      "id": "runtime-packaging",
+      "status": "PASS",
+      "command": "node --import tsx/esm scripts/build-exe-for-python-sdk.ts --targets=node24-win-x64 --skip-build",
+      "log": ".artifacts/python-runtime-build-final.log",
+      "detail": "npm_execpath selected the installed pnpm 11.7.0 JavaScript entry. Source build had completed; official deployment, packaging and executable/sidecar sync then succeeded."
+    },
+    {
+      "id": "runtime-frozen-install",
+      "status": "PASS",
+      "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+      "detail": "Completed after packaging to restore normal workspace developer dependencies."
+    },
+    {
+      "id": "runtime-packaged-web",
+      "status": "PASS",
+      "command": "python .artifacts/smoke-packaged-windows.py",
+      "receipt": "artifacts/upstream-first/packaged-web-smoke.json",
+      "detail": "Fresh home outside checkout. Auth rejection/exchange, 53 plugin entries, two batches, two scripts, Session RPC, real Chrome settings/theme interaction, fixture-triggered disposal and exit 0. No remaining owned runtime process."
+    },
+    {
+      "id": "runtime-python-sdk-default",
+      "status": "PASS",
+      "command": "python scripts/smoke-python-runtime.py --scenario sdk-default",
+      "detail": "PYTHONPATH used source SDK/runtime, DSH_RUNTIME_MODE=exe, and telemetry disabled. MockModel scenario passed; no installed wheel or real model was tested."
+    }
+  ],
+  "limitations": [
+    "No installed wheel, signed installer, macOS/Linux artifact or real model acceptance.",
+    "Windows lifecycle uses a test-only file marker that emits SIGTERM in-process; not native OS signal delivery.",
+    "Earlier Desktop process smoke remains bound to desktop-tray-source.json; shared runtime sources have changed.",
+    "Profile empty-junction recovery and Python Windows launcher lifecycle remain pending."
+  ]
+}

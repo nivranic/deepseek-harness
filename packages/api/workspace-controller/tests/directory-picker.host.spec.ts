@@ -7,6 +7,12 @@ import { DirectoryPickerController } from '../src/directory-picker.ts'
 
 const roots: Context[] = []
 
+declare module '@deepseek-ai/dsh-host-directory-picker' {
+  interface DirectoryPickerCapabilities {
+    'test-unsupported': { kind: 'test-unsupported' }
+  }
+}
+
 afterEach(async () => {
   await Promise.all(roots.splice(0).map(ctx => ctx.fiber.dispose()))
 })
@@ -68,6 +74,16 @@ async function refused(call: Promise<unknown>): Promise<{ code: string; message:
 }
 
 describe('directoryPicker pick Remote', () => {
+  it('advertises only the operations its composed picker serves', async () => {
+    expect((await harness(NATIVE_STUB)).typertRemote.capabilities).toEqual([
+      { id: 'directory-picker.native.v1', methods: ['pick'] },
+    ])
+    expect((await harness(BROWSE_STUB)).typertRemote.capabilities).toEqual([
+      { id: 'directory-picker.browse.v1', methods: ['list'] },
+      { id: 'directory-picker.create.v1', methods: ['createDirectory'] },
+    ])
+    expect((await harness({ kind: 'test-unsupported' })).typertRemote.capabilities).toEqual([])
+  })
   it('answers the selected path or the operator\'s cancellation', async () => {
     const selected = await harness({ kind: 'native', pick: async () => '/tmp/project' })
     expect(await selected.pick(new AbortController().signal)).toBe('/tmp/project')

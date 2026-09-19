@@ -39,14 +39,24 @@ export interface TypertContextMap {}
 /** Merge-extensible direct Remote method signatures generated for consumers. */
 export interface TypertRemoteMap {}
 
+/** Portable validation diagnostic; validator-specific metadata is not transported. */
+export interface RemoteValidationIssue {
+  /** Validator diagnostic code; this is distinct from the Remote failure code. */
+  readonly code: string
+  /** Human-readable diagnostic supplied by the validating owner. */
+  readonly message: string
+  /** Object keys and array indices; symbol keys use their diagnostic string. */
+  readonly path: readonly (string | number)[]
+}
+
 /**
  * Merge-extensible Remote failure vocabulary: this package declares the
  * universal carrier codes once; the Gateway merges its infrastructure codes
  * and every owner merges its domain codes next to the throwing code.
  */
 export interface RemoteErrorDetailsMap {
-  /** Owner-side business validation refused the request; `issues` carries codec output when one produced it. */
-  'gateway/bad-request': { readonly issues?: readonly object[] }
+  /** Owner-side business validation refused the request; `issues` carries portable diagnostics when a codec produced them. */
+  'gateway/bad-request': { readonly issues?: readonly RemoteValidationIssue[] }
   /** The call was cancelled by the carrier signal or the backend. */
   'gateway/cancelled': {}
   /** Carrier, dispatch, or unclassified Host failure. */

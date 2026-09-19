@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "scope": "source binding and report audit only",
+  "files": [
+    {
+      "path": "artifacts/upstream-first/session-capability-source.json",
+      "sha256": "f7c3b57555033c87575c5e5df3e33ec280144eab06893031d8d10c67c0734a94"
+    },
+    {
+      "path": "artifacts/upstream-first/session-capability-binding.json",
+      "sha256": "7db952a2ae35c8cc3063d44e9b1e964800cb37f8200b93675346b34a30cffd84"
+    },
+    {
+      "path": "artifacts/upstream-first/write-reports.mjs",
+      "sha256": "12267fecaae2dee1722a85ad9bcc36ed13323e9d60b9aa71289c74ea2184a4ee"
+    },
+    {
+      "path": ".artifacts/check-session-capability-binding.mjs",
+      "sha256": "5bf72e3f31377aed1f58a6ee3f5333e40f504c4a75bd7edbddd564273e8135a5"
+    },
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "be8793998b47518e6348c58ef44fda8f08b5eafd3fdace75fae03fec3f72c6c5"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a93a78e4b9fecbd8f60481b91750698063530a761fa76e533c479f41363c6665"
+    }
+  ],
+  "checks": {
+    "bindingControls": 3,
+    "auditTests": 13,
+    "gate0": "PASS",
+    "diffCheck": "PASS"
+  },
+  "commands": [
+    "node .artifacts/check-session-capability-binding.mjs",
+    "node --test artifacts/upstream-first/verify-audit.test.mjs",
+    "node artifacts/upstream-first/verify-audit.mjs",
+    "git -c core.fsmonitor=false diff --check"
+  ],
+  "fullGuiPassed": false,
+  "completeGoal": false
+}

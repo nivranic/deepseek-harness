@@ -118,13 +118,15 @@ describe('ui-settings-general apply', () => {
     settings.mutate.mockResolvedValueOnce(ok(english))
     const t = c.ctx.locale.bind(NS)
     expect(t('title')).toBe('设置')
-    expect(t('connection.error')).toBe('连接异常')
-    expect(t('connection.connecting')).toBe('自动重连中')
+    expect(t('connection.offline')).toBe('网络离线')
+    expect(t('connection.connecting')).toBe('正在连接')
+    expect(t('connection.reconnecting')).toBe('自动重连中')
     expect(t('connection.connected')).toBe('连接成功')
     c.ctx.locale.setLocale('en')
     expect(t('close')).toBe('Close')
-    expect(t('connection.reconnect')).toBe('Disconnected, reconnect now')
-    expect(t('connection.connecting')).toBe('Reconnecting')
+    expect(t('connection.reconnect')).toBe('Offline, reconnect now')
+    expect(t('connection.connecting')).toBe('Connecting')
+    expect(t('connection.reconnecting')).toBe('Reconnecting')
     await vi.waitFor(() => {
       expect(settings.mutate.mock.calls).toEqual([
         [LOCALE_SETTINGS_NAMESPACE, [{ op: 'set', path: ['preference'], value: 'en' }], 0],
@@ -169,15 +171,14 @@ describe('ui-settings-general apply', () => {
   it('reads availability from the shared mirror and follows its reconnect refresh', async ({ mock, start }) => {
     const { c } = await client(mock, start, true)
     const { controller } = actionInjectedOf(c)
-    // Boot reads the document twice: the mirror's own `ensure` at apply, then
-    // the `connection/reset` of the first connection. The action's load adds none.
-    expect(c.mock.log.calls('settings/describe')).toHaveLength(2)
+    // Initial admission starts one shared read; opening the action adds none.
+    expect(c.mock.log.calls('settings/describe')).toHaveLength(1)
     await controller.load()
-    expect(c.mock.log.calls('settings/describe')).toHaveLength(2)
+    expect(c.mock.log.calls('settings/describe')).toHaveLength(1)
     expect(controller.store.getSnapshot().status).toBe('ready')
     c.connection.reconnect()
     await c.mock.streams.opened('$events', 2)
-    await vi.waitFor(() => { expect(c.mock.log.calls('settings/describe')).toHaveLength(3) })
+    await vi.waitFor(() => { expect(c.mock.log.calls('settings/describe')).toHaveLength(2) })
   })
 
   it('withholds the Host document action off-loopback', async ({ mock, start }) => {

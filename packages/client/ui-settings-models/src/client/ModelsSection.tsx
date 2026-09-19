@@ -12,7 +12,7 @@
  * re-renders from pushed invalidations or the post-apply reload.
  */
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Button, IconPlusOutline16, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
@@ -202,6 +202,12 @@ export function ModelsSection(props: ModelsSectionProps): ReactNode {
 }
 
 function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderSlot: ModelsRenderSlot }): ReactNode {
+  const generation = injected.useSnapshot(snapshot => snapshot.connectionGeneration)
+  const operations = useMemo(() => injected.operations.capture(), [injected.operations, generation])
+  return <Generation key={generation} injected={{ ...injected, operations }} renderSlot={renderSlot} />
+}
+
+function Generation({ injected, renderSlot }: { injected: ModelsSectionFace; renderSlot: ModelsRenderSlot }): ReactNode {
   const { controller, operations, schema, t } = injected
   const state = injected.useSnapshot(snapshot => snapshot)
   const [editing, setEditing] = useState<EditorTarget | undefined>(undefined)
@@ -262,6 +268,7 @@ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderS
   }
 
   if (state.status === 'idle') void controller.load()
+  if (state.status === 'unavailable') return null
   if (state.status === 'error') {
     /* v8 ignore next -- an error status always carries text; the fallback satisfies the nullable type */
     const errorText = state.error ?? ''
@@ -308,7 +315,7 @@ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderS
   return (
     <div className={styles['section']}>
       <h2 className={styles['title']}>{t('title')}</h2>
-      <p className={styles['intro']}>{t('intro')}</p>
+      <p className={styles['intro']}>{t(operations.supports.credentialsWrite ? 'intro' : 'configurationIntro')}</p>
       {!state.writable && state.status === 'ready' ? <p className={styles['notice']}>{t('readOnly')}</p> : null}
       {savedIdentity === undefined
         ? null
@@ -320,6 +327,8 @@ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderS
       <ul className={styles['rows']}>
         {configured.map((row) => {
           const target = targetOf(row)
+          const canRemove = operations.supports.settingsWrite && (row.apiKeyEnv !== deriveKeyRef(row.entry.provider)
+            || row.credential?.configured !== true || operations.supports.credentialsWrite)
           const namespace = state.namespaces.get(target.settingsNs)
           /* v8 ignore next -- the join marks a row configured only when its namespace resolved */
           if (namespace === undefined) return null
@@ -402,7 +411,7 @@ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderS
                   >
                     {t('edit')}
                   </button>
-                  {row.removable
+                  {row.removable && canRemove
                     ? (
                       <button
                         type="button"
@@ -510,7 +519,7 @@ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderS
               // and equal-width so they read as siblings and line up with the
               // rows above, rather than two pills of different lengths.
               <div className={styles['addActions']}>
-                {configurable.length > 0 && (
+                {operations.supports.settingsWrite && configurable.length > 0 && (
                   <button
                     type="button"
                     className={styles['addButton']}
@@ -529,7 +538,7 @@ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderS
                     {t('add')}
                   </button>
                 )}
-                {state.namespaces.has('llm-pi-ai') && (
+                {operations.supports.settingsWrite && state.namespaces.has('llm-pi-ai') && (
                   <button
                     type="button"
                     className={styles['addButton']}

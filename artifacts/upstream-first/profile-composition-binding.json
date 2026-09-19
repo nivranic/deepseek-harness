@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/profile-composition-source.json",
+      "status": "PASS",
+      "rejected": "Profile composition source record changed"
+    },
+    {
+      "path": "scripts/verify-profile-compositions.ts",
+      "status": "PASS",
+      "rejected": "Profile composition sourceFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-entry-valid-reviewed.json",
+      "status": "PASS",
+      "rejected": "Profile composition receipts changed after validation"
+    },
+    {
+      "path": ".artifacts/profile-composition-unmodified-checkout-final.log",
+      "status": "PASS",
+      "rejected": "Profile composition logs changed after validation"
+    }
+  ]
+}

@@ -56,6 +56,8 @@ Two fields: the database path and the journal mode. `:memory:` opens an in-proce
 
 Missing directories and database files are created owner-only (`0o700`/`0o600`); an existing database keeps its modes. A unit whose stored format version differs from its descriptor rejects `version-mismatch`, and a database stamped with a physical layout version other than the current one rejects outright — no migration, pre-release stance. Failures carry stable `StorageError` codes, and writes are durable once resolved.
 
+Backend close waits for pending opens, drains registered unit owners, and closes every unit before releasing the database. Concurrent closes share one result; cleanup failures are aggregated after all release attempts. New opens reject with `closed`.
+
 -----
 
 <a id="understand-the-implementation"></a>

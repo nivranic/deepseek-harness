@@ -73,6 +73,16 @@ Connection 拥有 request correlation、`/api` carrier、trust check、精确 Fe
 
 物理恢复与逻辑恢复彼此独立。Gateway mux 恢复物理 WebSocket；Connection 发布可用 generation 后，每个 `RemoteStream` 分别重开自己的 logical source。Carrier failure 可以重试；business error、非法 opening item 或 protocol violation 会令所属 logical stream 终止。
 
+Gateway 将需要人工处理的发现失败分类后，Connection 发布 `incompatible` 或 `fatal`。这两种状态暂停 generation 自动尝试并拒绝应用调用准入；Settings 提供本地化修正提示与手动重连。[发现失败决策](../../.agents/notes/implemented/bug-fix/2026-09-17-terminal-host-discovery.zh.md)定义分类范围。
+
+HTTP 调用者在发送前捕获 Connection generation。401 仅使仍活动的该 generation 失效并发布 `auth-expired`；已取消调用者与过时代次不能撤销较新的连接。恢复使用既有浏览器令牌交换与显式重连，不自动重新提交被拒绝的 Prompt。
+
+握手达到告警阈值或硬期限仍未收到 ready 帧时发布 `host-not-ready`，保留既有就绪取消与重试调度。这是观测到的就绪延迟，不是 Host 启动原因诊断，也不替代认证失败状态。
+
+Connection 区分首次 `connecting`、后续 `reconnecting`、`offline` 暂停与已准入的 `ready` generation。初始应用准入可等待第一次握手；恢复状态在 ready generation 出现前拒绝新的业务操作。Settings 通过本地化文字或轨道紧凑控件投影这些事实。
+
+source 的 `ConnectionGenerationProgress` 回调在首次及替换尝试验证 Host 访问权限期间报告 `authenticating`，复用 Connection 的代际取消与就绪期限。Gateway 在进度变化期间保留本次尝试是否允许初始等待的判断，因此重试认证不会把新业务操作排队。
+
 恢复方式由数据语义决定：
 
 - 持久 Session journal 校验逻辑 seq range，并根据每个 generation 的 opening snapshot 替换窗口；`page()` 提供更早历史并修复后续 range gap。
@@ -93,3 +103,49 @@ Connection 拥有 request correlation、`/api` carrier、trust check、精确 Fe
 - [API Gateway](../api-gateway.zh.md)：Host method、生成的 Remote contribution、stream 与 forwarded event。
 - [Web Client Slots](slots.zh.md)：component、hook、store、injection 与 placement。
 - [Conversation](conversation.zh.md)：持久 event correlation、target snapshot，以及 Chat 或 Trajectory view contribution。
+
+## 原生交付操作
+
+Web 交付所有者通过生成式 Remote 方法暴露 `ctx.presentedFiles`。`PresentedFileRequest` 使用当前查看的 `sessionId`，以及非负安全整数 `seq` 与 `index` 定位持久交付事件。Host 原生命令接受已验证的源路径后，`PresentedFileActionValue` 返回 `completed: true`。`PresentedHost` 包含服务端 `name`、配置决定的 `available` 状态，以及取值为 `finder`、`explorer`、`directory` 或 `null` 的 `fileManager`。API 能力存在不代表拥有原生操作权限或文件可用；[所有者](../../packages/client/ui-deliverables/README.zh.md#explicit-deliveries)定义操作生命周期与 Client 准入。
+
+<!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
+
+<a id="cordis-surface"></a>
+
+## Cordis API
+
+Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.zh.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxpresentedfiles--presentedfiles"></a>
+
+### `ctx.presentedFiles` — `PresentedFiles`
+
+Authenticated native actions for persisted file declarations; never activates an Agent.
+
+```ts cordis-catalog
+/**
+ * Describe the serving desktop without opening a file or activating an Agent.
+ * @param signal - caller cancellation.
+ * @returns serving desktop metadata; API support does not grant native execution permission.
+ */
+@Remote('desktop') desktop(signal: AbortSignal): PresentedHost
+
+/**
+ * Open the current source file in its default native application.
+ * @param request - persisted declaration coordinates in the viewed Session.
+ * @param signal - caller cancellation; disposal also cancels and awaits native work.
+ * @returns confirmation after the native command accepts the verified path.
+ */
+@Remote('open') open(request: PresentedFileRequest, signal: AbortSignal): Promise<PresentedFileActionValue>
+
+/**
+ * Reveal the current source in the Host file manager.
+ * @param request - persisted declaration coordinates in the viewed Session.
+ * @param signal - caller cancellation; disposal also cancels and awaits native work.
+ * @returns confirmation after the native command accepts the verified path.
+ */
+@Remote('reveal') reveal(request: PresentedFileRequest, signal: AbortSignal): Promise<PresentedFileActionValue>
+```
+
+Source: [`packages/client/ui-deliverables/src/present-open.ts`](../../packages/client/ui-deliverables/src/present-open.ts)
+<!-- END GENERATED cordis-surface -->

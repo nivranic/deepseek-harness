@@ -65,7 +65,8 @@ function MessageItem({ node, t: translate, referenceLabels, skillNames }: Messag
         : node,
   }
   const props = {
-    node: viewNode, t: translate, renderMessageImages, openFile: vi.fn(), openSkill: vi.fn(), useChat: useDetachedChat,
+    node: viewNode, t: translate, renderMessageImages, openFile: vi.fn(), openSkill: vi.fn(),
+    canOpenFile: () => true, canOpenSkill: () => true, useChat: useDetachedChat,
   } as unknown as ChatNodeViewProps
   switch (node.kind) {
     case 'user':

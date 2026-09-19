@@ -43,7 +43,7 @@ function buildWelcome(
   api: { describe?: ReturnType<typeof vi.fn>; mutate?: ReturnType<typeof vi.fn> },
   persistence: 'host' | 'memory' = 'host',
 ) {
-  const ctx = { remote: { settings: api } } as never
+  const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1'] }, settings: api } } as never
   const mirror = new SettingsDescribeMirror(ctx, persistence)
   const scope = new SettingsScopeController(
     ctx,

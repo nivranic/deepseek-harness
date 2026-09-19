@@ -1,0 +1,30 @@
+[
+  {
+    "available": false,
+    "tool": 0,
+    "produced": 0,
+    "presented": 1,
+    "prose": 0
+  },
+  {
+    "available": true,
+    "tool": 1,
+    "produced": 1,
+    "presented": 3,
+    "prose": 1
+  },
+  {
+    "available": false,
+    "tool": 0,
+    "produced": 0,
+    "presented": 1,
+    "prose": 0
+  },
+  {
+    "available": true,
+    "tool": 1,
+    "produced": 1,
+    "presented": 3,
+    "prose": 1
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "stage": "valid",
+  "scenario": "duplicate",
+  "invalidCompositionAccepted": false,
+  "exitCode": 0,
+  "fixtureSymlinkMaterialized": true,
+  "command": "node node_modules/tsx/dist/cli.mjs scripts/verify-cordis-config.ts",
+  "sourceRestoredSha256": "f833fcb5d0ade52f9bf02756eff17348b518f56e39b052c6109dd4c21475f16d"
+}

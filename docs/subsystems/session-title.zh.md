@@ -8,6 +8,8 @@
 
 ## 持久标题状态
 
+`titleRevision` 投影是最新持久化 `session/title` 事件序号；尚无标题时为 null。它表示条件编辑基线，不是投影快照的全局 `asOfSeq`。
+
 提供方生成修订时会记录 `SessionTitleProviderId`。`SessionTitleEventData` 列出生成标题时使用的精确人类消息 seq，`SessionTitleSnapshot` 则加入 `ctx.sessionTitle.get()` 与 `foldSessionTitle()` 返回的持久事件封装信息。`title` 投影的版本 1 状态与客户端视图都只保留标题字符串或 `null`，因此既有持久化缓存行仍可读取。
 
 ```ts type-equiv
@@ -174,11 +176,13 @@ get(session: Session): SessionTitleSnapshot | undefined
  * {@link SessionTitleService.refresh} remains the deliberate unpin).
  * @param session - exact live session to rename.
  * @param title - raw user input; normalized before acceptance.
- * @returns the accepted title snapshot.
+ * @param expectedRevision - captured title event seq, or null before any title; omitted for unconditional acceptance.
+ * @returns the accepted snapshot; an identical user-pinned conditional rename returns the existing event without appending.
  * @throws {SessionTitleInvalidError} when the title normalizes to empty.
+ * @throws {SessionTitleRevisionConflictError} when a conditional rename would replace a changed title.
  * @throws {Error} when the session is not live or the service is disposed.
  */
-rename(session: Session, title: string): SessionTitleSnapshot
+rename(session: Session, title: string, expectedRevision?: SessionSeq | null): SessionTitleSnapshot
 
 /**
  * Explicitly retry the registered provider, or materialize the built-in
@@ -198,7 +202,7 @@ async refresh(session: Session, signal?: AbortSignal): Promise<SessionTitleSnaps
 register(provider: SessionTitleProvider): () => Promise<void>
 ```
 
-Types: [Session](session.zh.md)
+Types: [Session](session.zh.md) · [SessionSeq](session.zh.md)
 
 Source: [`packages/session/session-title/src/index.ts`](../../packages/session/session-title/src/index.ts)
 <!-- END GENERATED cordis-surface -->

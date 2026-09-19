@@ -11,11 +11,9 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { ComposerChainProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { apply as applyLocale, inject as localeInject } from '@deepseek-ai/dsh-client-locale/client'
 import {
-  SubagentHeaderLineage, type SubagentCatalogInjected,
-} from '../src/client/SubagentHeaderLineage.tsx'
-import {
   SubagentReadOnlyComposer, type SubagentReadOnlyMatch,
 } from '../src/client/SubagentReadOnlyComposer.tsx'
+import { CapabilityAwareSubagentHeader, type SubagentCatalogAccessInjected } from '../src/client/CapabilityAwareSubagentHeader.tsx'
 import { apply, inject } from '../src/client/index.ts'
 
 function summary(partial: Partial<SessionSummary> & { id: SessionId }): SessionSummary {
@@ -70,7 +68,8 @@ async function fullBench(sessions: SessionSummary[]) {
   const ctx = new Context()
   const face = sessionsWith(sessions)
   ctx.provide('sessions', face)
-  ctx.provide('remote', { $on: () => () => {} } as never)
+  ctx.provide('remote', { $host: { capabilities: ['subagent.catalog.v1'] }, $on: () => () => {} } as never)
+  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
   ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
   await provideSlotFaces(ctx)
   await ctx.plugin({ inject: localeInject, apply: applyLocale }).await()
@@ -90,14 +89,14 @@ const FAMILY: SessionSummary[] = [
 
 describe('apply', () => {
   it('declares the services it binds', () => {
-    expect(inject).toEqual(['sessions', 'slots', 'locale'])
+    expect(inject).toEqual(['sessions', 'slots', 'locale', 'connection', 'remote'])
   })
 
   it('registers catalog actions and selects read-only subagent composers from session facts', async () => {
     const { ctx, face } = await fullBench(FAMILY)
     const catalogEntry = ctx.slots.entries('conversation.session.header.lineage')
-      .find(entry => entry.component === SubagentHeaderLineage)!
-    const actions = (catalogEntry.inject as unknown as (id: SessionId) => SubagentCatalogInjected)(sid('parent'))
+      .find(entry => entry.component === CapabilityAwareSubagentHeader)!
+    const actions = (catalogEntry.inject as unknown as (id: SessionId) => SubagentCatalogAccessInjected)(sid('parent')).hooks.subagentCatalog.getSnapshot().actions!
     const address: SubagentAddress = {
       parentSessionId: sid('parent'),
       childSessionId: sid('c1'),

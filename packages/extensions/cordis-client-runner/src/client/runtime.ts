@@ -175,6 +175,8 @@ export interface DynamicCordisLivePackage {
 
 /** The browser-side load engine for dynamic packages. */
 export class DynamicCordisPackageRunner {
+  private generation = 0
+  private disposed = false
   private readonly live = new Map<CordisDynamicPluginId, LivePackage>()
   /** Serializes load/unload per package id (a second request can outrun a slow load). */
   private readonly queues = new Map<CordisDynamicPluginId, Promise<unknown>>()
@@ -203,6 +205,7 @@ export class DynamicCordisPackageRunner {
     pluginId: CordisDynamicPluginId
     pluginRunId: CordisDynamicPluginRunId
     agentId: SessionId
+    current: () => boolean
   }>()
   /** This page's last render crash per package: what a run surface shows on the row. */
   private readonly failures = new Map<CordisDynamicPluginId, DynamicCordisRenderFailure>()
@@ -217,7 +220,7 @@ export class DynamicCordisPackageRunner {
     this.unwatch = env.slots.onEntryError((slot, entry, error, info) => {
       const component: unknown = (entry as { component?: unknown }).component
       const owner = indexable(component) ? this.owners.get(component) : undefined
-      if (owner === undefined) return
+      if (owner === undefined || !owner.current()) return
       const details = errorDetails(error)
       const failure: DynamicCordisRenderFailure = {
         slot,
@@ -286,15 +289,19 @@ export class DynamicCordisPackageRunner {
    * @returns the outcome the run orchestration reports to the host.
    */
   load(half: DynamicCordisClientHalf): Promise<DynamicCordisLoadResult> {
+    const generation = this.generation
+    const current = (): boolean => !this.disposed && generation === this.generation
     return this.enqueue(half.pluginId, async () => {
-      const current = this.live.get(half.pluginId)
-      if (current !== undefined) {
+      if (!current()) return withdrawnLoad()
+      const previous = this.live.get(half.pluginId)
+      if (previous !== undefined) {
         // Already running this activation here: nothing to load, but the caller
         // still needs an answer (a replayed run must not look unacknowledged).
-        if (current.pkg.pluginRunId === half.pluginRunId) return settled(current)
-        await this.teardown(current.pkg.pluginId, current.entryId, current.styles)
+        if (previous.pkg.pluginRunId === half.pluginRunId) return settled(previous)
+        await this.teardown(previous.pkg.pluginId, previous.entryId, previous.styles)
       }
-      const result = await this.mount(half)
+      if (!current()) return withdrawnLoad()
+      const result = await this.mount(half, current)
       this.notify()
       return result
     })
@@ -315,13 +322,25 @@ export class DynamicCordisPackageRunner {
     })
   }
 
-  /** Unload everything (plugin disposal path). */
-  async dispose(): Promise<void> {
-    this.unwatch()
-    for (const current of [...this.live.values()]) {
-      await this.teardown(current.pkg.pluginId, current.entryId, current.styles)
-    }
+  /** Withdraw page-owned activations and queued loads from the previous Connection. */
+  async reset(): Promise<void> {
+    this.generation += 1
+    const previous = new Map(this.live)
+    const ids = new Set([...previous.keys(), ...this.queues.keys()])
+    this.live.clear()
+    this.failures.clear()
     this.notify()
+    await Promise.all([...ids].map(id => this.enqueue(id, async () => {
+      const record = previous.get(id)
+      if (record !== undefined) await this.teardown(id, record.entryId, record.styles)
+    })))
+  }
+
+  /** Unload everything and refuse future loads after plugin disposal. */
+  async dispose(): Promise<void> {
+    this.disposed = true
+    this.unwatch()
+    await this.reset()
   }
 
   private notify(): void {
@@ -340,13 +359,19 @@ export class DynamicCordisPackageRunner {
     return next
   }
 
-  private async mount(half: DynamicCordisClientHalf): Promise<DynamicCordisLoadResult> {
+  private async mount(half: DynamicCordisClientHalf, current: () => boolean): Promise<DynamicCordisLoadResult> {
     const styles = new DynamicCordisStyles(half.pluginId)
     const ledger: DynamicCordisSlotLedgerRow[] = []
     let plugin: DynamicCordisEvaluatedPlugin | ((ctx: unknown) => unknown)
     try {
       plugin = await evaluateClientHalf(half.pluginId, half.code, {
-        invoke: (method, args) => this.env.invoke(half.pluginId, half.pluginRunId, method, args),
+        invoke: (method, args) => {
+          if (!current()) return Promise.reject(new Error('Dynamic Cordis connection changed'))
+          return this.env.invoke(half.pluginId, half.pluginRunId, method, args).then((value) => {
+            if (!current()) throw new Error('Dynamic Cordis connection changed')
+            return value
+          })
+        },
         noteError: (message) => {
           // A loaded package's own console.error: a page-local diagnostic with
           // no wire carrier (the run round trip settled long before).
@@ -358,13 +383,14 @@ export class DynamicCordisPackageRunner {
       return { ok: false, cause: 'evaluate', ...errorDetails(error), error }
     }
 
+    if (!current()) { styles.dispose(); return withdrawnLoad() }
     const pkg: DynamicCordisPackage = {
       pluginId: half.pluginId,
       packageId: half.packageId,
       pluginRunId: half.pluginRunId,
       name: half.name,
     }
-    const surface = this.guardedSurface(pkg, half.agentId, plugin, ledger)
+    const surface = this.guardedSurface(pkg, half.agentId, plugin, ledger, current)
     const moduleId = moduleIdOf(half.pluginId)
     // Invalidate-then-register keeps re-loading legal: the module table throws
     // loudly on a duplicate factory registration.
@@ -376,6 +402,7 @@ export class DynamicCordisPackageRunner {
     sink.load({ id: moduleId, factory: () => surface })
 
     const entryId = await this.env.loader.create({ name: moduleId })
+    if (!current()) { await this.teardown(half.pluginId, entryId, styles); return withdrawnLoad() }
     const fiber = this.env.loader.resolve(entryId).fiber
     if (fiber === undefined) {
       await this.teardown(half.pluginId, entryId, styles)
@@ -390,6 +417,7 @@ export class DynamicCordisPackageRunner {
     // Settled but not active = legal pending on an unsatisfied declaration. The
     // record is seated only now, so an error mirrored during `apply` cannot
     // claim the package is already live.
+    if (!current()) { await this.teardown(half.pluginId, entryId, styles); return withdrawnLoad() }
     const waitingFor = Object.keys(fiber.inject).filter(name => this.env.ctx.get(name) === undefined)
     const record: LivePackage = { pkg, entryId, styles, ledger, waitingFor }
     this.live.set(half.pluginId, record)
@@ -411,21 +439,25 @@ export class DynamicCordisPackageRunner {
     agentId: SessionId,
     plugin: DynamicCordisEvaluatedPlugin | ((ctx: unknown) => unknown),
     ledger: DynamicCordisSlotLedgerRow[],
+    current: () => boolean,
   ): DynamicCordisEvaluatedPlugin {
     const claim = (component: unknown): void => {
       if (indexable(component)) {
-        this.owners.set(component, { pluginId: pkg.pluginId, pluginRunId: pkg.pluginRunId, agentId })
+        this.owners.set(component, { pluginId: pkg.pluginId, pluginRunId: pkg.pluginRunId, agentId, current })
       }
     }
-    const guarded = (ctx: unknown): Context => dynamicCordisContext(ctx as Context, {
-      pkg,
-      ledger,
-      claim,
-      allocatePriority: () => --this.nextPriority,
-      reportFailure: (error) => {
-        this.env.reportGuardFailure(agentId, pkg.pluginId, pkg.pluginRunId, errorDetails(error))
-      },
-    })
+    const guarded = (ctx: unknown): Context => {
+      if (!current()) throw new Error('Dynamic Cordis connection changed')
+      return dynamicCordisContext(ctx as Context, {
+        pkg,
+        ledger,
+        claim,
+        allocatePriority: () => --this.nextPriority,
+        reportFailure: (error) => {
+          if (current()) this.env.reportGuardFailure(agentId, pkg.pluginId, pkg.pluginRunId, errorDetails(error))
+        },
+      })
+    }
     if (typeof plugin === 'function') {
       return { name: moduleIdOf(pkg.pluginId), apply: (ctx: unknown) => plugin(guarded(ctx)) }
     }
@@ -504,4 +536,9 @@ function renderFailureMessage(slot: string, message: string): string {
     .find(([name, text]) => message.includes(name) && !message.includes(text))?.[1]
   return `your entry in slot "${slot}" crashed while React rendered it: ${message}`
     + (redirect === undefined ? '' : `\n${redirect}`)
+}
+
+/** A withdrawn activation cannot register or report into the replacement Connection. */
+function withdrawnLoad(): DynamicCordisLoadResult {
+  return { ok: false, cause: 'activate', message: 'Dynamic Cordis connection changed' }
 }

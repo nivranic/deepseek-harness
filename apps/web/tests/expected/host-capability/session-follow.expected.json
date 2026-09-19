@@ -1,0 +1,16 @@
+{
+  "absent": {
+    "notice": "This Host cannot currently provide session history. Loaded content remains available and will sync when support returns.",
+    "cachedHistory": 1,
+    "newHistory": 0,
+    "draft": "Draft survives follow withdrawal",
+    "unavailableFollowRequests": 0,
+    "unavailablePageRequests": 0
+  },
+  "restored": {
+    "notice": 0,
+    "cachedHistory": 1,
+    "newHistory": 1,
+    "draft": "Draft survives follow withdrawal"
+  }
+}

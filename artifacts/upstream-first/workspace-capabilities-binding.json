@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/workspace-capabilities-source.json",
+    "sha256": "20b396539706dc39d2d1b6ef3da2e63d1997edd67404bf15ee8116b27fec40d3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b51273c5f93aa222b87bb407750b583eee07f5899d0ccd39a8828a306e465b5d"
+  },
+  "helper": {
+    "path": ".artifacts/check-workspace-capabilities-binding.mjs",
+    "sha256": "a66eb2a68e90b30cef5628ab842bc1b0ede9ca2efb701cf060e25757bb7755b1"
+  }
+}

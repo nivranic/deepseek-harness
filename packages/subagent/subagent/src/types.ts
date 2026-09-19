@@ -63,7 +63,12 @@ export interface ContinuableStart {
  * the exact live Agent object whose recorded lineage must contain the caller.
  */
 export type SubagentInterruptAuthority =
-  | { readonly kind: 'user'; readonly parentSessionId: SessionId }
+  | {
+    readonly kind: 'user'
+    readonly parentSessionId: SessionId
+    /** Omission keeps current-turn interruption; null or a stale sequence cannot cancel later work. */
+    readonly turnStartSeq?: number | null
+  }
   | { readonly kind: 'ancestor'; readonly agent: Agent }
 
 /** Options for one model-authored message between adjacent Agents. */

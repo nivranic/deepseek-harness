@@ -34,13 +34,16 @@ async function bench() {
   ctx.provide('locale', new LocaleRuntime(ctx))
   const listDirectory = vi.fn(async (): Promise<DirectoryListing> => homeListing)
   const createDirectory = vi.fn(async (path: string, name: string) => `${path}/${name}`)
-  ctx.provide('uiWorkspace', { listDirectory, createDirectory } as never)
+  const captureDirectoryOperations = vi.fn((_signal?: AbortSignal) => ({ listDirectory, createDirectory }))
+  ctx.provide('uiWorkspace', { listDirectory, createDirectory, captureDirectoryOperations } as never)
+  const remote = { $host: { home: HOME, isLoopback: true, capabilities: ['directory-picker.browse.v1', 'directory-picker.create.v1'] } }
+  ctx.provide('remote', remote as never)
   const slots = ctx.get('slots') as SlotRegistry
   const declare = () => slots.register({
     name: 'root',
     children: Object.fromEntries(HOLES.map(name => [name, { kind: 'single', scope: 'root' }])),
   } as never, () => null)
-  return { ctx, slots, listDirectory, createDirectory, declare }
+  return { ctx, slots, listDirectory, createDirectory, captureDirectoryOperations, remote, declare }
 }
 
 function owner(overrides: Partial<DirectoryFlowOwnerProps> = {}): DirectoryFlowOwnerProps {
@@ -52,8 +55,33 @@ function owner(overrides: Partial<DirectoryFlowOwnerProps> = {}): DirectoryFlowO
 }
 
 describe('directory-picker-browse client half', () => {
+  it('withdraws browse seats and exposes folder creation independently', async () => {
+    const b = await bench()
+    b.declare()
+    b.remote.$host = { ...b.remote.$host, capabilities: ['directory-picker.create.v1'] }
+    const fiber = b.ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+    for (const hole of HOLES) expect(b.slots.entries(hole)).toHaveLength(0)
+    b.remote.$host = { ...b.remote.$host, capabilities: ['directory-picker.browse.v1'] }
+    b.ctx.emit('connection/reset')
+    await vi.waitFor(() => { expect(b.slots.entries(HOLES[0])).toHaveLength(1) })
+    const entry = b.slots.entries(HOLES[0])[0]!
+    expect(entry.inject?.()).toMatchObject({ canCreateDirectory: false })
+    const lifetime = b.captureDirectoryOperations.mock.calls[0]![0]!
+    b.remote.$host = { ...b.remote.$host, capabilities: ['directory-picker.browse.v1', 'directory-picker.create.v1'] }
+    b.ctx.emit('connection/reset')
+    await vi.waitFor(() => { expect(b.slots.entries(HOLES[0])[0]).not.toBe(entry) })
+    expect(lifetime.aborted).toBe(true)
+    expect(b.slots.entries(HOLES[0])[0]!.inject?.()).toMatchObject({ canCreateDirectory: true })
+    b.remote.$host = { ...b.remote.$host, capabilities: [] }
+    b.ctx.emit('connection/reset')
+    await vi.waitFor(() => { for (const hole of HOLES) expect(b.slots.entries(hole)).toHaveLength(0) })
+    expect(b.listDirectory).not.toHaveBeenCalled()
+    expect(b.createDirectory).not.toHaveBeenCalled()
+    await fiber.dispose()
+  })
   it('declares the services it drives', () => {
-    expect(inject).toEqual(['slots', 'uiWorkspace', 'locale'])
+    expect(inject).toEqual(['slots', 'uiWorkspace', 'remote', 'locale'])
   })
 
   it('fills both directory-flow holes for declarations before or after apply, and leaves with its fiber', async () => {
@@ -195,6 +223,7 @@ describe('directory-picker-browse client half', () => {
     render(
       <BrowseDirectoryFlow
         {...props}
+        canCreateDirectory
         listDirectory={listDirectory}
         createDirectory={vi.fn(async () => '')}
         t={t}
@@ -214,6 +243,7 @@ describe('directory-picker-browse client half', () => {
     const view = render(
       <BrowseDirectoryFlow
         {...owner({ open: false })}
+        canCreateDirectory
         listDirectory={vi.fn(async () => homeListing)}
         createDirectory={vi.fn(async () => '')}
         t={key => key}

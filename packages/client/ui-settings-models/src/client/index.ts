@@ -78,7 +78,7 @@ export function apply(ctx: ClientContext): void {
   const schema = createSettingsSchemaOperations(ctx.settingsSchema)
   // Bound once here, where the Remote namespaces are declared in this plugin's
   // own `inject`; the cards receive callbacks and never a context.
-  const operations = createModelsOperations(ctx)
+  const operations = createModelsOperations(ctx, () => ctx.locale.bind(NS)('hostChanged'))
   const controller = new ModelsSettingsStore(ctx, schema, ctx.settingsScope.describe())
   // Registration-time text (the nav label thunk) and the inject faces share
   // one bound translate; copy freshness rides the locale revision.
@@ -128,17 +128,31 @@ export function apply(ctx: ClientContext): void {
     }
   }, 'ui-settings-models: pushed invalidations')
 
-  ctx.slots.inject('settings.section', () => ctx.slots.register({
-    name: 'settings.section',
-    id: 'models',
-    order: 10,
-    label: () => t('nav'),
-    inject: injected,
-    children: {
-      'settings.models.provider-card': { kind: 'keyed', scope: 'root' },
-      'settings.models.footer': { kind: 'list', scope: 'root' },
-    },
-  }, ModelsSection))
+  ctx.slots.inject('settings.section', () => {
+    let remove: (() => void) | undefined
+    const refresh = (): void => {
+      const capabilities = ctx.remote.$host.capabilities
+      if (capabilities?.includes('llm.providers.v1') !== true || !capabilities.includes('settings.read.v1')) {
+        remove?.()
+        remove = undefined
+        return
+      }
+      remove ??= ctx.slots.register({
+        name: 'settings.section',
+        id: 'models',
+        order: 10,
+        label: () => t('nav'),
+        inject: injected,
+        children: {
+          'settings.models.provider-card': { kind: 'keyed', scope: 'root' },
+          'settings.models.footer': { kind: 'list', scope: 'root' },
+        },
+      }, ModelsSection)
+    }
+    refresh()
+    const stop = ctx.on('connection/reset', refresh)
+    return () => { stop(); remove?.() }
+  })
   ctx.slots.inject('settings.onboarding', () => ctx.slots.register({
     name: 'settings.onboarding',
     id: 'welcome-notice',

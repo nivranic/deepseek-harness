@@ -39,7 +39,7 @@ const t = makeTranslate(zh, commonZh)
 function rowProps(block: unknown): Parameters<typeof AskQuestionRow>[0] {
   return {
     callId: 'c1', toolName: 'ask_user_question', block, t,
-    openFile: vi.fn(),
+    openFile: vi.fn(), canOpenFile: () => true,
     sessionId: 's1',
     useSessions: () => undefined,
   } as unknown as Parameters<typeof AskQuestionRow>[0]

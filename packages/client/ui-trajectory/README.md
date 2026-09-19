@@ -25,9 +25,13 @@ The Trajectory tab lets you inspect agent activity as a turn-aware ledger and in
 <a id="use-this-package"></a>
 ## Use this package
 
+The Conversation owner supplies `historyAvailable`. When false, Trajectory suppresses remote history loading and pagination while still allowing inspection and incremental display of resident records.
+
 Open the Trajectory tab in the conversation's view ring to inspect agent activity as an event ledger and timeline. The ledger covers records with an explicit loading row until the initial tail is positioned; while an older prefix remains unloaded, a first-row control loads one earlier page on click and shows a disabled loading status while that page is pending.
 
 ### Inspecting records
+
+Inspect from Chat selects the exact Turn, Step, and tool call, including nested calls. Source-block and parent-message links stay within the selected Step even when another request uses the same provider call id.
 
 Selection, timeline navigation, folding, and search cover the React-visible window. Request numbers and cumulative usage cover the complete resident snapshot. Selecting a record opens a local inspector for token usage, duration, Input, Output, Timing, and durable images. Image URLs use the Conversation-owned per-session cache, so Chat and Trajectory share one authorized read per attachment. A user record shows the generic-file count beside its text, while a record without text shows its image and file counts. A standalone compaction request appears chronologically in its own `Between turns` section, while a numbered compaction remains inside its owning turn.
 
@@ -39,6 +43,10 @@ A fixed Overview above the ledger projects real record start/duration timing fro
 
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
+
+Tool lifecycle nodes and ledger records are Step-scoped: repeated provider call ids in different model requests retain separate results, durations, schemas, and nested PTC trees. Paged updates keep the same node identity when their earlier call arrives. Results without an enclosing Step remain separate unlocated records and do not borrow another call's output.
+
+The [recorded same-id regression](../../../apps/web/tests/tool-reused-id.snapshot.ts) launches the shipped Web profile, compares the complete persisted Session and final workspace, and opens both Tool occurrences from Chat.
 
 <details>
 <summary>Implementation internals — click to expand</summary>
@@ -81,6 +89,8 @@ None, as the package is a browser-side UI plugin layer that registers nothing mo
 None; this package neither assembles nor sends a provider request.
 
 ## Known Limitations and Deferred Work
+
+- An Inspect request remains pending while its execution is outside resident history. Loading the matching history makes it resolvable; the view does not substitute another same-id call.
 
 <a id="known-limitations-and-deferred-work"></a>
 

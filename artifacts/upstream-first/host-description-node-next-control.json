@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "source": "packages/api/host-description/package.json",
+  "originalSha256": "67c55b1e9f615ef06e6ff20f9aadc462c1a73943f33423b669c7ac9f73e2a309",
+  "mutatedSha256": "9f78427eb95dffe224d2c2daab9ee321252cd2a29cda1fc8e84cd88e4c7b4211",
+  "backup": ".artifacts/host-description-node-next-package-before-v2.json",
+  "log": ".artifacts/host-description-node-next-rejection-v2.log",
+  "exitCode": 1,
+  "temporaryConsumerRemoved": true,
+  "packageTargetsPreserved": true
+}

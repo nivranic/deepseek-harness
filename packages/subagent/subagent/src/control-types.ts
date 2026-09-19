@@ -96,7 +96,7 @@ export type SubagentAddress =
 
 /** One human message addressed to a continuable direct child. */
 export interface SubagentPromptRequest {
-  /** Identity persisted on the accepted message, minted before the call. */
+  /** Mint before sending; retries acknowledge the first accepted message in this child's own log. */
   readonly requestId: SubagentPromptRequestId
   readonly parentSessionId: SessionId
   readonly childSessionId: SessionId
@@ -124,6 +124,15 @@ export interface SubagentInterruptReceipt {
   readonly accepted: true
 }
 
+/** Stop only the child turn observed by the caller; a stale or null target has no effect. */
+export interface SubagentInterruptTurnRequest {
+  readonly parentSessionId: SessionId
+  readonly childSessionId: SessionId
+  readonly mode: 'continuable'
+  /** Durable turn/start sequence; null means the caller observed no active turn. */
+  readonly turnStartSeq: number | null
+}
+
 /**
  * Failure details the control surface answers with. Catalog reads, prompts,
  * and interrupts share this vocabulary with the Client Remote result.
@@ -140,7 +149,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'subagent/unauthorized': { readonly childSessionId: SessionId }
     /** Image admission or model image-capability refusal. */
     'subagent/attachment-invalid': { readonly reason: string }
-    /** The child exists but its inbox cannot admit the message now. */
+    /** The child cannot admit the requested Prompt or addressed interruption with its current runtime state. */
     'subagent/delivery-unavailable': { readonly childSessionId: SessionId }
     /** The deployment mounts no session-projection registry. */
     'subagent/projections-unavailable': {}

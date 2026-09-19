@@ -32,7 +32,7 @@ import { followSnapshot, pageThrough } from './remote/history.client.ts'
 
 const AVAILABLE_STREAM_CONNECTION = {
   generation: {
-    getSnapshot: () => ({ id: 1, host: { home: '/h' } }),
+    getSnapshot: () => ({ id: 1, host: { home: '/h', capabilities: ['session.control.v1', 'session.follow.v1'] } }),
     subscribe: () => () => {},
   },
 }
@@ -146,8 +146,6 @@ export class FakeApiClient {
     () => Promise.resolve(ok({ attachment: { attachmentId: 'a' as never, mediaType: 'image/png', bytes: 1, width: 1, height: 1 }, data: 'AA==' }))
   onUpdateQueue: (payload: unknown) => Promise<RemoteResult<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
   onCancel: (payload: unknown) => Promise<RemoteResult<{ accepted: true }>> = () => Promise.resolve(ok({ accepted: true as const }))
-  onOpenWorkspacePath: (payload: unknown) => Promise<RemoteResult<{ opened: true }>> =
-    () => Promise.resolve(ok({ opened: true as const }))
 
   private readonly followConns = new Map<SessionId, ValueStreamConn<SessionFollowFrame>[]>()
   private readonly controlConns: ValueStreamConn<SessionControlFrame>[] = []
@@ -195,8 +193,13 @@ export class FakeApiClient {
     payload => Promise.resolve(ok({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
 
   /** Remote namespaces bound to this fake's programmable unary slots and stream pumps. */
+  host: SessionRemotes['$host'] = { home: undefined, isLoopback: true,
+    capabilities: ['subagent.catalog.v1', 'subagent.prompt.v1', 'subagent.interrupt.v1'] }
+
   sessionRemotes(): RuntimeRemotes {
+    const host = () => this.host
     return {
+      get $host() { return host() },
       $stream: <Item>(options: RemoteStreamOptions<Item>) => (
         new RemoteStream(AVAILABLE_STREAM_CONNECTION, options)
       ),
@@ -204,7 +207,6 @@ export class FakeApiClient {
         execute: () => Promise.resolve({ ok: true, value: undefined }),
       },
       session: {
-        canOpenWorkspacePath: () => Promise.resolve(ok(true)),
         list: payload => this.record('session.list', payload, this.onList(payload)),
         modelCatalog: () => Promise.resolve({
           ok: true,
@@ -226,16 +228,13 @@ export class FakeApiClient {
           this.onSelectModel(payload),
         ),
         rename: payload => this.record('session.rename', payload, this.onRename(payload)),
+        renameAt: payload => this.record('session.renameAt', payload, this.onRename(payload)),
         fork: payload => this.record('session.fork', payload, this.onFork(payload)),
         prompt: payload => this.record('session.prompt', payload, this.onPrompt(payload)),
         attachment: payload => this.record('session.attachment', payload, this.onAttachment(payload)),
         updateQueue: payload => this.record('session.updateQueue', payload, this.onUpdateQueue(payload)),
         cancel: payload => this.record('session.cancel', payload, this.onCancel(payload)),
-        openWorkspacePath: payload => this.record(
-          'session.openWorkspacePath',
-          payload,
-          this.onOpenWorkspacePath(payload),
-        ),
+        cancelTurn: payload => this.record('session.cancelTurn', payload, this.onCancel(payload)),
         page: request => this.page(request),
         follow: (request, signal) => this.openFollow(request, signal),
         control: signal => this.openControl(signal),
@@ -247,6 +246,9 @@ export class FakeApiClient {
           this.onSubagentList(parentSessionId),
         ),
         prompt: request => this.record('subagents.prompt', request, this.onSubagentPrompt(request)),
+        interruptTurnByParent: request => this.record(
+          'subagents.interruptTurnByParent', request, this.onSubagentInterrupt(request),
+        ),
         interruptByParent: (childSessionId, parentSessionId, mode) => this.record(
           'subagents.interruptByParent',
           { childSessionId, parentSessionId, mode },

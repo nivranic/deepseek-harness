@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { join } from 'node:path'
-import { DESKTOP_IPC } from '../src/ipc.ts'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import type { MenuItem, MenuItemConstructorOptions } from 'electron'
+import { DESKTOP_IPC, type DesktopUpdateState } from '../src/ipc.ts'
 
 const harness = await vi.hoisted(async () => {
   const { EventEmitter } = await import('node:events')
@@ -12,6 +15,12 @@ const harness = await vi.hoisted(async () => {
   }
   const windows: FakeWindow[] = []
   const hosts: FakeHost[] = []
+  const menus: MenuItemConstructorOptions[][] = []
+  const trays: FakeTray[] = []
+  const updateHooks = {
+    publish: (state: DesktopUpdateState) => state,
+    beforeRestart: async () => {},
+  }
   const handlers = new Map<string, (event: { senderFrame: { url: string } }) => unknown>()
   let pluginsEnabled = false
   let preparing = deferred()
@@ -32,6 +41,7 @@ const harness = await vi.hoisted(async () => {
       }),
     })
     readonly show = vi.fn()
+    readonly hide = vi.fn()
     readonly focus = vi.fn()
     readonly restore = vi.fn()
     constructor(readonly options: { show: boolean }) { super(); windows.push(this) }
@@ -42,7 +52,19 @@ const harness = await vi.hoisted(async () => {
       if (url === 'dsh-app://app/index.html') navigated.resolve()
     }
     static getAllWindows() { return windows.filter(window => !window.destroyed) }
-    close() { this.destroyed = true; this.emit('closed') }
+    close() {
+      const event = { preventDefault: vi.fn() }
+      this.emit('close', event)
+      if (event.preventDefault.mock.calls.length === 0) { this.destroyed = true; this.emit('closed') }
+    }
+  }
+  class FakeTray extends EventEmitter {
+    destroyed = false
+    readonly setToolTip = vi.fn()
+    readonly setContextMenu = vi.fn()
+    constructor() { super(); trays.push(this) }
+    isDestroyed() { return this.destroyed }
+    destroy() { this.destroyed = true }
   }
   class FakeHost {
     readonly ready = deferred()
@@ -60,9 +82,11 @@ const harness = await vi.hoisted(async () => {
     isPackaged: true,
     name: 'Desktop test',
     whenReady: () => Promise.resolve(),
-    getLocale: () => 'en-US',
+    getLocale: (): string => 'en-US',
     getVersion: () => '1.0.0',
     getAppPath: () => 'desktop-test-app',
+    getLoginItemSettings: () => ({ openAtLogin: false, wasOpenedAtLogin: false, executableWillLaunchAtLogin: false }),
+    setLoginItemSettings: vi.fn(),
     requestSingleInstanceLock: () => true,
     exit: vi.fn(),
     relaunch: vi.fn(),
@@ -73,8 +97,9 @@ const harness = await vi.hoisted(async () => {
     }),
   })
   return {
-    windows, hosts, handlers, app, FakeWindow, FakeHost,
-    dialog: { showErrorBox: vi.fn(), showMessageBox: vi.fn() },
+    windows, hosts, handlers, app, FakeWindow, FakeHost, FakeTray, menus, trays, updateHooks,
+    image: { isEmpty: (): boolean => false, resize: vi.fn(() => ({ setTemplateImage: vi.fn() })) },
+    dialog: { showErrorBox: vi.fn(), showMessageBox: vi.fn(), showOpenDialog: vi.fn() },
     applyRelease: vi.fn(() => { preparing.resolve(); return prepared.promise }),
     assertProfileRuntime: vi.fn(),
     canRecoverProfile: vi.fn(() => true),
@@ -86,6 +111,7 @@ const harness = await vi.hoisted(async () => {
     set pluginsEnabled(value: boolean) { pluginsEnabled = value },
     reset() {
       windows.length = 0; hosts.length = 0; handlers.clear(); app.removeAllListeners()
+      menus.length = 0; trays.length = 0
       app.isPackaged = true
       pluginsEnabled = false
       preparing = deferred(); prepared = deferred(); hostStarted = deferred()
@@ -101,10 +127,28 @@ vi.mock('electron', () => ({
   ipcMain: {
     handle: (channel: string, handler: (event: { senderFrame: { url: string } }) => unknown) => { harness.handlers.set(channel, handler) },
   },
-  Menu: { setApplicationMenu: vi.fn(), buildFromTemplate: vi.fn() },
+  Menu: {
+    setApplicationMenu: vi.fn(),
+    buildFromTemplate: (template: MenuItemConstructorOptions[]) => {
+      harness.menus.push(template)
+      return Object.assign(template, { getMenuItemById: (id: string) =>
+        (template[0]?.submenu as MenuItemConstructorOptions[] | undefined)?.find(item => item.id === id) ?? null })
+    },
+  },
+  Tray: harness.FakeTray,
+  nativeImage: { createFromPath: () => harness.image },
+  screen: { getPrimaryDisplay: () => ({ scaleFactor: 1 }) },
   protocol: { registerSchemesAsPrivileged: vi.fn(), handle: vi.fn() },
 }))
-vi.mock('../src/paths.ts', () => ({ resolveDesktopPaths: () => ({ profile: 'desktop-test-profile' }) }))
+vi.mock('../src/paths.ts', () => ({ resolveDesktopPaths: () => ({ root: 'desktop-test-root', profile: 'desktop-test-profile' }) }))
+vi.mock('../src/shell-preferences.ts', () => ({
+  DesktopShellPreferences: class {
+    closeToTray = false
+    async setCloseToTray(enabled: boolean) { this.closeToTray = enabled }
+    async close() {}
+    async flush() {}
+  },
+}))
 vi.mock('../src/project-manager.ts', () => ({
   DesktopProjectManager: class {
     readonly applyRelease = harness.applyRelease
@@ -121,12 +165,49 @@ vi.mock('../src/project-manager.ts', () => ({
   },
 }))
 vi.mock('../src/host-process.ts', () => ({ DesktopHostProcess: harness.FakeHost }))
-vi.mock('../src/update-coordinator.ts', () => ({ DesktopUpdateCoordinator: vi.fn() }))
+vi.mock('../src/update-coordinator.ts', () => ({
+  DesktopUpdateCoordinator: vi.fn(function (
+    publish: typeof harness.updateHooks.publish,
+    beforeRestart: typeof harness.updateHooks.beforeRestart,
+  ) {
+    harness.updateHooks.publish = publish
+    harness.updateHooks.beforeRestart = beforeRestart
+  }),
+}))
+
+function nativeItem(id: string): MenuItemConstructorOptions {
+  const submenu = harness.menus[0]?.[0]?.submenu as MenuItemConstructorOptions[]
+  const item = submenu.find(item => item.id === id)
+  if (item === undefined) throw new Error(`missing menu item ${id}`)
+  return item
+}
+
+function click(item: MenuItemConstructorOptions): void {
+  // These template callbacks use the mutable checkbox fields; native integration runs in Electron.
+  item.click?.(item as unknown as MenuItem, undefined, {})
+}
+
+async function setCloseToTray(enabled: boolean): Promise<void> {
+  const item = nativeItem('desktop-close-to-tray')
+  item.checked = enabled
+  click(item)
+  await vi.waitFor(() => { expect(item.enabled).toBe(true) })
+  expect(item.checked).toBe(enabled)
+}
 
 function invoke(channel: string): unknown {
   const handler = harness.handlers.get(channel)
   if (handler === undefined) throw new Error(`missing handler ${channel}`)
   return handler({ senderFrame: { url: 'dsh-app://shell/startup.html' } })
+}
+
+const settingsRoots: string[] = []
+function legacySettingsFile(): string {
+  const root = mkdtempSync(join(tmpdir(), 'dsh-main-import-'))
+  settingsRoots.push(root)
+  const file = join(root, '旧设置.yaml')
+  writeFileSync(file, 'formatVersion: 1\ndesktop: {closeAction: tray, launchAtLogin: true}\n')
+  return file
 }
 
 beforeEach(() => {
@@ -146,6 +227,7 @@ afterEach(async () => {
   for (const host of harness.hosts) { host.ready.resolve(); host.exited.resolve() }
   harness.app.quit()
   await harness.quitCompleted.promise
+  for (const root of settingsRoots.splice(0)) rmSync(root, { recursive: true, force: true })
   vi.restoreAllMocks()
   harness.canRecoverProfile.mockReturnValue(true)
   vi.clearAllTimers()
@@ -155,6 +237,175 @@ afterEach(async () => {
 })
 
 describe('desktop main startup', () => {
+  it('previews and explicitly imports close behavior while leaving OS login registration untouched', async () => {
+    vi.spyOn(harness.app, 'getLocale').mockReturnValue('zh-CN')
+    const source = legacySettingsFile()
+    const before = readFileSync(source)
+    harness.dialog.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [source] })
+    harness.dialog.showMessageBox.mockResolvedValue({ response: 0 })
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    const item = nativeItem('desktop-import-legacy-settings')
+    click(item)
+    click(item)
+    await vi.waitFor(() => { expect(item.enabled).toBe(true) })
+    expect(harness.dialog.showOpenDialog).toHaveBeenCalledTimes(1)
+    expect(harness.dialog.showErrorBox).not.toHaveBeenCalled()
+    expect(nativeItem('desktop-close-to-tray').checked).toBe(true)
+    expect(harness.trays).toHaveLength(1)
+    expect(harness.app.setLoginItemSettings).not.toHaveBeenCalled()
+    expect(readFileSync(source)).toEqual(before)
+    await expect(JSON.stringify(harness.dialog.showMessageBox.mock.calls[0]?.[0], null, 2) + '\n')
+      .toMatchFileSnapshot('expected/legacy-settings-import-preview-zh.json')
+  })
+
+  it.each(['select', 'confirm', 'changed'] as const)('retains close behavior after import %s cancellation or refusal', async (stage) => {
+    const source = legacySettingsFile()
+    harness.dialog.showOpenDialog.mockResolvedValue({ canceled: stage === 'select', filePaths: [source] })
+    harness.dialog.showMessageBox.mockImplementation(async () => {
+      if (stage === 'changed') writeFileSync(source, 'desktop: {closeAction: quit}\n')
+      return { response: stage === 'confirm' ? 1 : 0 }
+    })
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    const item = nativeItem('desktop-import-legacy-settings')
+    click(item)
+    await vi.waitFor(() => { expect(item.enabled).toBe(true) })
+    expect(nativeItem('desktop-close-to-tray').checked).toBe(false)
+    expect(harness.trays).toHaveLength(0)
+    expect(harness.app.setLoginItemSettings).not.toHaveBeenCalled()
+    if (stage === 'changed') expect(harness.dialog.showErrorBox).toHaveBeenCalledWith(
+      'Desktop Preference Failed', 'The settings file changed after the preview. Select it again to review the current values.',
+    )
+    else expect(harness.dialog.showErrorBox).not.toHaveBeenCalled()
+  })
+
+  it.each(['win32', 'darwin'] as const)('records Chinese native preferences on %s', async (platform) => {
+    vi.stubGlobal('process', { ...process, platform })
+    vi.spyOn(harness.app, 'getLocale').mockReturnValue('zh-CN')
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    const snapshot = (template: MenuItemConstructorOptions[]): unknown => template.map(
+      ({ label, type, role, enabled, checked, submenu }) => ({
+        label, type, role, enabled, checked,
+        ...(Array.isArray(submenu) ? { submenu: snapshot(submenu) } : {}),
+      }),
+    )
+    await expect(JSON.stringify(snapshot(harness.menus[0]!), null, 2) + '\n')
+      .toMatchFileSnapshot(`expected/native-menu-${platform}-zh.json`)
+    expect(nativeItem('desktop-close-to-tray').checked).toBe(false)
+    expect(harness.app.setLoginItemSettings).not.toHaveBeenCalled()
+  })
+
+  it('records the English development menu with login registration disabled', async () => {
+    harness.app.isPackaged = false
+    await import('../src/main.ts')
+    await harness.hostStarted.promise
+    const items = ['desktop-close-to-tray', 'desktop-launch-at-login', 'desktop-import-legacy-settings'].map((id) => {
+      const { label, checked, enabled } = nativeItem(id)
+      return { id, label, checked, enabled }
+    })
+    await expect(JSON.stringify(items, null, 2) + '\n').toMatchFileSnapshot('expected/native-menu-development-en.json')
+    expect(nativeItem('desktop-launch-at-login').enabled).toBe(false)
+    expect(harness.app.setLoginItemSettings).not.toHaveBeenCalled()
+  })
+
+  it('hides on close, restores from the tray and app activation, then quits through the tray', async () => {
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    harness.prepared.resolve()
+    await harness.hostStarted.promise
+    const host = harness.hosts[0]!
+    host.ready.resolve()
+    await harness.navigated.promise
+    await setCloseToTray(true)
+    const window = harness.windows[0]!
+    window.close()
+    expect(window.destroyed).toBe(false)
+    expect(window.hide).toHaveBeenCalledOnce()
+    expect(host.stop).not.toHaveBeenCalled()
+    const trayMenu = harness.menus[1]!
+    await expect(JSON.stringify(trayMenu.map(({ label, type }) => ({ label, type })), null, 2) + '\n')
+      .toMatchFileSnapshot('expected/native-tray-en.json')
+    click(trayMenu[0]!)
+    expect(window.show).toHaveBeenCalledOnce()
+    harness.app.emit('activate')
+    expect(window.show).toHaveBeenCalledTimes(2)
+    harness.trays[0]!.emit('click')
+    expect(window.show).toHaveBeenCalledTimes(3)
+    click(trayMenu[2]!)
+    await host.stopping.promise
+    expect(harness.app.quit).toHaveBeenCalledOnce()
+    host.exited.resolve()
+    await harness.quitCompleted.promise
+    expect(harness.trays[0]!.destroyed).toBe(true)
+    window.close()
+    expect(window.destroyed).toBe(true)
+  })
+
+  it('disabling close-to-tray reveals the window and permits an ordinary close', async () => {
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    await setCloseToTray(true)
+    const window = harness.windows[0]!
+    window.close()
+    await setCloseToTray(false)
+    expect(window.show).toHaveBeenCalledOnce()
+    expect(harness.trays[0]!.destroyed).toBe(true)
+    window.close()
+    expect(window.destroyed).toBe(true)
+  })
+
+  it('consumes hidden startup once and restores through second-instance activation', async () => {
+    vi.stubGlobal('process', { ...process, argv: [...process.argv, '--hidden'] })
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    const window = harness.windows[0]!
+    expect(window.options.show).toBe(false)
+    expect(window.hide).toHaveBeenCalledOnce()
+    expect(harness.trays).toHaveLength(1)
+    harness.app.emit('second-instance')
+    expect(window.show).toHaveBeenCalledOnce()
+    window.close()
+    harness.app.emit('activate')
+    expect(harness.windows[1]!.options.show).toBe(true)
+    expect(harness.windows[1]!.hide).not.toHaveBeenCalled()
+  })
+
+  it('shows a hidden startup when its tray image is unavailable', async () => {
+    vi.stubGlobal('process', { ...process, argv: [...process.argv, '--hidden'] })
+    vi.spyOn(harness.image, 'isEmpty').mockReturnValue(true)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    expect(harness.windows[0]!.show).toHaveBeenCalledOnce()
+    expect(harness.windows[0]!.hide).not.toHaveBeenCalled()
+    expect(harness.dialog.showErrorBox).toHaveBeenCalledOnce()
+  })
+
+  it('releases installer quit ownership after an update error', async () => {
+    await import('../src/main.ts')
+    await harness.preparing.promise
+    harness.prepared.resolve()
+    await harness.hostStarted.promise
+    const host = harness.hosts[0]!
+    host.ready.resolve()
+    await harness.navigated.promise
+    await setCloseToTray(true)
+    const preparing = harness.updateHooks.beforeRestart()
+    await host.stopping.promise
+    host.exited.resolve()
+    await preparing
+    harness.updateHooks.publish({ phase: 'error', message: 'installer refused replacement' })
+    const window = harness.windows[0]!
+    window.close()
+    expect(window.destroyed).toBe(false)
+    expect(window.hide).toHaveBeenCalledOnce()
+    harness.app.quit()
+    await harness.quitCompleted.promise
+    expect(harness.trays[0]!.destroyed).toBe(true)
+  })
+
   it('exits with a diagnostic when both initialization and emergency navigation fail', async () => {
     const exited = Promise.withResolvers<undefined>()
     vi.spyOn(harness.app, 'getLocale').mockImplementationOnce(() => { throw new Error('locale unavailable') })

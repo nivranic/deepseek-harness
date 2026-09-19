@@ -121,3 +121,5 @@ None.
 </details>
 
 **Runtime invariant:** No companion is published. A nav-entry-only section plugin rendering a fixed empty content column — it emits no cordis events and owns no cross-plugin mutable relation.
+
+The Models entry requires advertised provider-directory and Settings read support. Missing credential metadata support suppresses enrichment reads; missing credential write or model-discovery support hides the corresponding fields or actions while ordinary provider configuration remains available. Provider read-only state still disables supported controls. Connection replacement clears directory and namespace views, closes editors and discards credential drafts. Each editor captures operations for its initiating Host: retained callbacks and late results cannot continue a multi-step write against another Host. Same-generation invalidations refresh facts without discarding a draft.

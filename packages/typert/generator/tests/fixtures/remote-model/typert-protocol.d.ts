@@ -45,14 +45,20 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     protected constructor(
       ctx: unknown,
       serviceKey: string,
-      options?: { readonly namespace?: string },
+      options?: {
+        readonly namespace?: string
+        readonly capabilities?: readonly { readonly id: string; readonly methods: readonly string[] }[]
+      },
     )
   }
 
   export function bindTypertRemote<Service extends object>(
     service: Service,
     serviceKey: string,
-    options?: { readonly namespace?: string },
+    options?: {
+      readonly namespace?: string
+      readonly capabilities?: readonly { readonly id: string; readonly methods: readonly string[] }[]
+    },
   ): { readonly service: Service; readonly serviceKey: string; readonly namespace: string }
 
   export function Remote<This extends object, Args extends unknown[], Result>(

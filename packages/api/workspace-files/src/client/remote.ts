@@ -3,7 +3,7 @@
  * `workspaceFiles` methods by name, and the stream supervisor structurally, so
  * the feed and the provider are testable against a scripted face.
  */
-import type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
+import type { ClientRemote, RemoteStreamOptions } from '@deepseek-ai/dsh-api-gateway/client'
 // Merges the generated `workspaceFiles` namespace into the Remote face.
 import type {} from '@deepseek-ai/dsh-api-workspace-files/remote'
 
@@ -26,6 +26,8 @@ export interface SupervisedStream<Item> extends AsyncIterable<SupervisedStreamIt
 
 /** What one supervised stream needs from its owner. */
 export interface SupervisedStreamOptions<Item> {
+  /** Whether the admitted Host supports this stream. */
+  readonly available?: RemoteStreamOptions<Item>['available']
   /** Diagnostic owner name. */
   readonly name: string
   /** Open one physical generation; `signal` aborts it. */
@@ -39,6 +41,8 @@ export type WorkspaceFilesNamespace = Pick<ClientRemote['workspaceFiles'], 'stat
 
 /** The Client Remote as this package sees it. */
 export interface WorkspaceFilesRemote {
+  /** Immutable facts of the admitted Connection generation. */
+  readonly $host: ClientRemote['$host']
   /**
    * Create one reconnecting stream.
    * @param options - opener and end classification.

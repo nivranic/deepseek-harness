@@ -44,7 +44,7 @@ const FAILURE_COPY: Partial<Record<string, 'error.conflict' | 'error.noteTooLarg
  */
 export function FeedbackDialog({
   useDialog, edit, submit, dismiss, dismissFailure, dismissToast, t,
-}: FeedbackDialogProps) {
+}: Omit<FeedbackDialogProps, 'useFeedbackAccess'>) {
   const state = useDialog(s => s)
   // The toast centers over the composer card this entry renders inside of.
   const probeRef = useRef<HTMLSpanElement>(null)

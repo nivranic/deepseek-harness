@@ -78,6 +78,8 @@ The hub is a pure registration table with two faces, designed so backends and da
 
 [`src/backend.ts`](src/backend.ts) is the normative contract for backend implementers, checked clause by clause by the shared conformance suite in `tests/contract.ts`. A backend owns exactly one medium and exposes optional data-shape facets; `kv` is the only facet, and opening a unit yields a versioned, globally-singleton schema handle whose single calls are atomic and durable once resolved. Unit and table names must match `UNIT_NAME_RE`; record keys are arbitrary strings that never reach file paths. The unit does not serialize concurrent writes — ordering belongs to the caller — and a stored version differing from the descriptor rejects `version-mismatch` (no migration).
 
+A unit owner can register its teardown with `kv.open`. Backend close drains that owner before closing its unit, including work waiting to reach the backend. The shared [`closeOwnedKvUnits`](src/close-units.ts) helper retains every cleanup failure and releases the medium only after all owners and units settle. See the [teardown decision](../../../.agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.md).
+
 ### Source map
 
 | File | Role |

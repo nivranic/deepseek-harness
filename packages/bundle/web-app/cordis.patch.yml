@@ -101,6 +101,13 @@
     - id: plugin-inventory
       name: '@deepseek-ai/dsh-host-plugin-inventory'
 
+    - id: host-description
+      name: '@deepseek-ai/dsh-api-host-description'
+      config:
+        identityFile: !!js ctx.dshHomePath('.host-id')
+        displayName: DeepSeek Harness
+        transports: [http, websocket]
+
     # Session commands, cold reads, and live control over Typert Remote.
     - id: session-controller
       name: '@deepseek-ai/dsh-api-session-controller'

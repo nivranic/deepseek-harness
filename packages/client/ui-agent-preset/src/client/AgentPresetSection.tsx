@@ -16,7 +16,7 @@ import {
   Button, IconBrowseOutline16, IconCopyOutline16, IconFolderOpenOutline16,
   IconPlusOutline16, IconTrashOutline16, Modal, Switch, Tag, Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { SnapshotStore } from '@deepseek-ai/dsh-client-store'
+import type { ObservableSnapshot, SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { draftBlocker, type AgentPresetSectionState } from './section-store.ts'
 import { presetDisplayText, type AgentPresetSettingsKey } from './locales.ts'
@@ -27,6 +27,14 @@ export interface AgentPresetSectionInjected {
   hooks: {
     /** Page snapshot bound by the renderer as useAgentPresetSection. */
     agentPresetSection: SnapshotStore<AgentPresetSectionState>
+    /** Whether the admitted Host supports starting the authoring Session workflow. */
+    sessionManagement: ObservableSnapshot<boolean>
+    /** Whether the admitted Host supports copying and deleting presets. */
+    presetManagement: ObservableSnapshot<boolean>
+    /** Whether the Host supports editing Settings preferences. */
+    settingsWrite: ObservableSnapshot<boolean>
+    /** Whether the Host supports resolving or opening preset directories. */
+    presetDirectory: ObservableSnapshot<boolean>
   }
   /** Read the roster; called once when the section first renders. */
   load: () => Promise<void>
@@ -181,6 +189,10 @@ function CardDescription({ text }: { text: string }): ReactNode {
 export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
   const { useAgentPresetSection, t, load } = props
   const state = useAgentPresetSection(snapshot => snapshot)
+  const canManageSessions = props.useSessionManagement(value => value)
+  const canManagePresets = props.usePresetManagement(value => value)
+  const canWriteSettings = props.useSettingsWrite(value => value)
+  const canUseDirectory = props.usePresetDirectory(value => value)
   const viewedId = state.view?.id
   const viewedRow = viewedId === undefined ? undefined : state.rows.find(row => row.id === viewedId)
   const viewedTitle = state.view === null
@@ -212,7 +224,7 @@ export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
      Offered only where that preset is actually on the roster and a
      session can be landed; without a writable root the draft could
      never be discovered, so the reason rides the disabled button. */
-  const creatorButton = props.startCreatorDraft !== undefined && state.rows.some(row => row.id === 'cordis')
+  const creatorButton = canManageSessions && props.startCreatorDraft !== undefined && state.rows.some(row => row.id === 'cordis')
     ? (
       <button
         type="button"
@@ -243,11 +255,12 @@ export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
             <Tag>{t('showPickerBeta')}</Tag>
           </span>
           <p className={css.pickerPreferenceDescription}>{t('showPickerDescription')}</p>
+          {canWriteSettings ? null : <p className={css.pickerPreferenceDescription}>{t('preferenceUnavailable')}</p>}
         </div>
         <Switch
           checked={state.showPicker}
           label={t('showPicker')}
-          disabled={state.status !== 'ready' || state.policySaving}
+          disabled={!canWriteSettings || state.status !== 'ready' || state.policySaving}
           onChange={(next) => { void props.setPickerVisible(next) }}
         />
       </div>
@@ -262,7 +275,7 @@ export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
               ? t('brokenBadge')
               : row.isDefault
                 ? t(state.showPicker ? 'inUse' : 'selectionOffDefault')
-                : t(state.showPicker ? 'setDefault' : 'enablePickerToSetDefault'),
+                : t(!canWriteSettings ? 'preferenceUnavailable' : state.showPicker ? 'setDefault' : 'enablePickerToSetDefault'),
           }))
         // The custom group is where a preset of one's own will appear, so it
         // stays on screen even while empty: heading plus the creator entry.
@@ -301,7 +314,7 @@ export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
                       // `disabled`, which would take the card out of the tab
                       // order. With the reason moved onto the badge, that is
                       // the only way anyone without a pointer reaches it.
-                      disabled={row.isDefault
+                      disabled={!canWriteSettings || row.isDefault
                         || (row.broken === undefined && (!state.showPicker || state.policySaving))}
                       aria-disabled={row.broken !== undefined}
                       // Without this the name is the whole card read aloud —
@@ -373,7 +386,7 @@ export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
                             </button>
                           )
                           : null
-                        : (
+                        : canUseDirectory ? (
                           <button
                             type="button"
                             className={css.iconButton}
@@ -383,8 +396,8 @@ export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
                           >
                             <IconFolderOpenOutline16 />
                           </button>
-                        )}
-                      <button
+                        ) : null}
+                      {canManagePresets ? <button
                         type="button"
                         className={css.iconButton}
                         disabled={!state.authorable || row.broken !== undefined}
@@ -395,8 +408,8 @@ export function AgentPresetSection(props: AgentPresetSectionProps): ReactNode {
                         onClick={() => { props.beginCopy(row.id) }}
                       >
                         <IconCopyOutline16 />
-                      </button>
-                      {row.trust === 'user'
+                      </button> : null}
+                      {canManagePresets && row.trust === 'user'
                         ? (
                           <button
                             type="button"

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Observed-turn subagent interruption with explicit legacy behavior; complete phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/subagent-interrupt-target-source.json",
+    "sha256": "a6870291366de280ea870eb8630085e98f22e3d08273d47ae5b0b87bed5813da"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7e3920caaf12458fca49e07d63fea7635ed0653c6237f21c48ca37dcea8d0791"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/subagent-interrupt-target-binding.json",
+    "sha256": "274a3fbcfa80f6821584b777c90caf78208ebf532a5e63daf97260d54e24b76c"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-subagent-interrupt-target-reports.mjs",
+      "sha256": "095e4431cc32684ede7362b011cd1324d0623175f2bb9241bc80aeea8fb9f39a"
+    },
+    {
+      "path": ".artifacts/capture-subagent-interrupt-target-validation.mjs",
+      "sha256": "8b526014a8bd782f96eb2b74ae1f8ce7aaea7bb71fbe1804aa32fdc10c6c01e6"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "292c8b4d6ec2e285389507e2278f92e22076d381ed10dd1e616c9caf560b0975"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "d263101e5d479b7f2185f5b2ae8f17877d7af38f93d6abf57a57b27c052a2961"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/subagent-interrupt-target-binding.log",
+      "sha256": "8b3dda11fc2fd4adeeba54ea9cf9dc81107b92ec17c61c2b586e36762936e164"
+    },
+    {
+      "path": ".artifacts/subagent-interrupt-target-audit-tests.log",
+      "sha256": "da6d3abcb564bc1a8a27973edd8b6bbcbf8fdb5a21c758885e24d706772410bb"
+    },
+    {
+      "path": ".artifacts/subagent-interrupt-target-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/subagent-interrupt-target-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/subagent-interrupt-target-report-generation.log",
+      "sha256": "fee38423682f6d1f2e0a50aabd65d5aa82ca06f4423805940cb852603041bf6a"
+    }
+  ]
+}

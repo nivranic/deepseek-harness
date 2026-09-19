@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Dynamic Cordis admission and runtime withdrawal; panel and browser acceptance pending; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
+    "sha256": "a935a078717bd94ed8740e7d42a241e0cbe4465f28fdcff9925d27d700cd49c3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b940021b7618926f9aae6ecfde9ff45ca10c67ef2585a90669ef3eaf85e7126a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/dynamic-cordis-runtime-binding.json",
+    "sha256": "84454ad9a4d80a625043197e99d4ab3ede4d5b0841e0d9bac7ceb85e3dc1957f"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-dynamic-cordis-runtime-reports.mjs",
+      "sha256": "b397a4e26d4c6e8b9f8b3febb60d098e7fa2bbdf6a4ab793ae35f996c409e25e"
+    },
+    {
+      "path": ".artifacts/capture-dynamic-cordis-runtime-validation.mjs",
+      "sha256": "1d5760672f2108e530e2517f3b8f674673f3ebad402d7d337f94bd2f2e79a982"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "42873b2c845781b63e0395bd9c274dcc0b8231b93f8973dca736de8cd0e7d1be"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "109d3158bf31339e2c0d2fdde140f11fc00dc43b6121a7fe105cda5eb92db128"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/dynamic-cordis-runtime-binding.log",
+      "sha256": "5e45a6807e50b3c0f52a1235c35a6600de9b01d45c871f0aca5e8f1ab4a6dcea"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-runtime-audit-tests.log",
+      "sha256": "5580ac993f0bddae97012a73e437dc86d596a36aeacb03a9479ca1c1ede12d77"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-runtime-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-runtime-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-runtime-report-generation.log",
+      "sha256": "8da8e96e7724ad9905596b8633ea0e4250a2344814bf7676c5088d572171bfec"
+    }
+  ]
+}

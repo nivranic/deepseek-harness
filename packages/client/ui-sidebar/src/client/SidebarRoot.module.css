@@ -122,6 +122,10 @@
   border: none;
   background: transparent;
   color: inherit;
+  cursor: default;
+}
+
+button.brand {
   cursor: pointer;
 }
 

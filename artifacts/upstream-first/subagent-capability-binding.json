@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/subagent-capability-source.json",
+    "sha256": "7532b547dc33b7affbd42dbd7c82626d91282bc36fa82888315b9e1dfc07845b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "cdcefb21dcd0e2700c01a8381dff00264ba4d7ef93f10455fa504519fe99a61f"
+  },
+  "helper": {
+    "path": ".artifacts/check-subagent-capability-binding.mjs",
+    "sha256": "039a7e55e40ace86e34353c2babfb1f2038d917f2a05a91a753bade5166a520b"
+  }
+}

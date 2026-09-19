@@ -138,7 +138,8 @@ describe.skipIf(MODE === 'record')('web e2e: file and session references through
     const targetCreatedAt = Date.now() - 60_000
     await seedSession(scaffold, sourceSessionFixture(), SOURCE_SESSION_ID, undefined, { createdAt: targetCreatedAt - 1 })
     await seedSession(scaffold, targetSessionFixture(), TARGET_SESSION_ID, undefined, { createdAt: targetCreatedAt })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
     // Fixture files land before the workspace connects so the Host's file
@@ -175,7 +176,11 @@ describe.skipIf(MODE === 'record')('web e2e: file and session references through
     const snapshot = await captureStableAria(
       page, '[role="listbox"]', scaffold.workspaceCwd, {
         normalizeAge: true,
-        replacements: [[abbreviateHomePath(scaffold.workspaceCwd, homedir()), '{{cwd}}']],
+        replacements: [
+          // ARIA quotes the known fixture path with escaped Windows separators.
+          [JSON.stringify(scaffold.workspaceCwd).slice(1, -1), '{{cwd}}'],
+          [abbreviateHomePath(scaffold.workspaceCwd, homedir()), '{{cwd}}'],
+        ],
       },
     )
     await compareOrRefreshGolden(MENU_EXPECTED, snapshot, MODE)

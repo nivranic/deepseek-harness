@@ -78,12 +78,16 @@ export interface TitleInputState {
 
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionStateMap {
+    /** Durable title event seq, or null before the first title. */
+    titleRevision: number | null
     /** Latest logged title text, or null. */
     title: string | null
     /** Eligible human title input. */
     titleInput: TitleInputState
   }
   interface SessionProjectionMap {
+    /** Durable title event seq for conditional renames; independent of the stream cursor. */
+    titleRevision: number | null
     /**
      * The session's current normalized title — the latest `session/title`
      * event's text (last-wins), or `null` before the first title lands. A

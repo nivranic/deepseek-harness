@@ -48,7 +48,8 @@ function acceptWrites<T>(host: StubSettingsScope<T>): void {
 
 /** The card plugin's context, scripted down to the namespaces a card reaches. */
 function ctxWith(namespaces: object) {
-  return { remote: namespaces } as never
+  return { remote: { $host: { home: undefined, isLoopback: true,
+    capabilities: ['settings.read.v1', 'settings.write.v1', 'credentials.describe.v1', 'credentials.write.v1'] }, ...namespaces } } as never
 }
 
 function credentialsApi(configured: boolean) {
@@ -859,8 +860,6 @@ describe('WebSearchCardController', () => {
     const credentials = credentialsApi(true)
     const controller = new WebSearchCardController(host.scope, credentials.ctx)
     const state = () => controller.inject().hooks.webSearchCard.getSnapshot()
-    await vi.waitFor(() => { expect(credentials.describe).toHaveBeenCalled() })
-
     host.publish({ status: 'ready', writable: true, value: { baseURL: 'https://search.test/v1' }, user: {} })
     await vi.waitFor(() => { expect(state().apiKeyConfigured).toBe(true) })
 
@@ -876,6 +875,7 @@ describe('WebSearchCardController', () => {
     const controller = new WebSearchCardController(host.scope, credentials.ctx)
     host.publish({ status: 'ready', writable: true, value: {}, user: {} })
     const face = controller.inject()
+    await vi.waitFor(() => { expect(face.hooks.webSearchCard.getSnapshot().apiKeyWritable).toBe(true) })
 
     face.edit('apiKey', ' ds-secret ')
     expect(face.hooks.webSearchCard.getSnapshot().dirty).toBe(true)
@@ -895,12 +895,13 @@ describe('WebSearchCardController', () => {
     })
   })
 
-  it('keeps the stored key when the draft is left blank', () => {
+  it('keeps the stored key when the draft is left blank', async () => {
     const host = stubSettingsScope<WebSearchSettings>()
     const credentials = credentialsApi(true)
     const controller = new WebSearchCardController(host.scope, credentials.ctx)
     host.publish({ status: 'ready', writable: true, value: {}, user: {} })
     const face = controller.inject()
+    await vi.waitFor(() => { expect(face.hooks.webSearchCard.getSnapshot().apiKeyWritable).toBe(true) })
 
     face.edit('apiKey', '   ')
 
@@ -937,9 +938,14 @@ describe('WebSearchCardController', () => {
   it('addresses the reference the tab declares rather than the default', async () => {
     const host = stubSettingsScope<WebSearchSettings>()
     const credentials = credentialsApi(false)
+    credentials.describe.mockImplementation(() => Promise.resolve({
+      ok: true as const,
+      value: { DEEPSEEK_API_KEY: { configured: false, writable: true }, SEARCH_KEY: { configured: false, writable: true } },
+    }))
     const controller = new WebSearchCardController(host.scope, credentials.ctx)
     host.publish({ status: 'ready', writable: true, value: { apiKeyEnv: 'SEARCH_KEY' }, user: {} })
     const face = controller.inject()
+    await vi.waitFor(() => { expect(face.hooks.webSearchCard.getSnapshot().apiKeyWritable).toBe(true) })
 
     face.edit('apiKey', 'ds-secret')
     face.save()
@@ -954,6 +960,7 @@ describe('WebSearchCardController', () => {
     const controller = new WebSearchCardController(host.scope, credentials.ctx)
     host.publish({ status: 'ready', writable: true, value: {}, user: {} })
     const face = controller.inject()
+    await vi.waitFor(() => { expect(face.hooks.webSearchCard.getSnapshot().apiKeyWritable).toBe(true) })
 
     face.edit('apiKey', 'ds-secret')
     face.save()
@@ -963,7 +970,7 @@ describe('WebSearchCardController', () => {
     })
   })
 
-  it('keeps the card usable when the credential read is refused', async () => {
+  it('keeps ordinary configuration usable without assuming a refused credential read permits writes', async () => {
     const host = stubSettingsScope<WebSearchSettings>()
     const refusal = () => Promise.resolve({
       ok: false as const,
@@ -973,17 +980,21 @@ describe('WebSearchCardController', () => {
     const set = vi.fn(refusal)
     const controller = new WebSearchCardController(host.scope, ctxWith({ credentials: { describe, set } }))
     const face = controller.inject()
-    await vi.waitFor(() => { expect(describe).toHaveBeenCalled() })
 
     host.publish({ status: 'ready', writable: true, value: { baseURL: 'https://search.test/v1' }, user: {} })
+    await vi.waitFor(() => { expect(describe).toHaveBeenCalled() })
     face.edit('apiKey', 'ds-secret')
+    acceptWrites(host)
+    face.edit('baseURL', 'https://changed.test')
     face.save()
-    await vi.waitFor(() => { expect(set).toHaveBeenCalled() })
+    await vi.waitFor(() => { expect(host.set).toHaveBeenCalledWith('baseURL', 'https://changed.test') })
+    expect(set).not.toHaveBeenCalled()
 
     expect(face.hooks.webSearchCard.getSnapshot()).toMatchObject({
       available: true,
       apiKeyConfigured: false,
-      baseURL: { text: 'https://search.test/v1' },
+      apiKeyWritable: false,
+      baseURL: { text: 'https://changed.test' },
     })
   })
 
@@ -996,6 +1007,7 @@ describe('WebSearchCardController', () => {
     const controller = new WebSearchCardController(host.scope, ctxWith({
       credentials: { describe, set: vi.fn() },
     }))
+    host.publish({ status: 'ready', writable: true, value: {}, user: {} })
     await vi.waitFor(() => { expect(describe).toHaveBeenCalled() })
 
     expect(controller.inject().hooks.webSearchCard.getSnapshot().apiKeyConfigured).toBe(false)

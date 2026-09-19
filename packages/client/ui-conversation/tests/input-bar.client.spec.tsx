@@ -141,6 +141,8 @@ function bench(over?: BenchOptions) {
       ? {
         inputTriggers: (() => ({
           track: () => {},
+          canOpenReference: () => false,
+          referenceAvailability: { getSnapshot: () => ({ canOpenReference: () => false }), subscribe: () => () => {} },
           lexicon: { getSnapshot: () => lex, subscribe: () => () => {} },
         })) as unknown as NonNullable<ShellDeps['inputTriggers']>,
       }
@@ -164,6 +166,8 @@ function bench(over?: BenchOptions) {
     return null
   }) as never
   const props: InputBarProps = {
+    controlAvailable: true,
+    interruptAvailable: true, fileUploadAvailable: true, currentAuthority: () => true,
     usePanelInfo: selector => selector({ activePanelId: null }),
     sessionId: SID,
     SessionProvider: ({ children }) => children,
@@ -271,6 +275,29 @@ function writeDraft(shell: SessionInputShell, text: string): void {
 }
 
 describe('composer placeholder visibility', () => {
+  it('preserves the draft and blocks Enter while control is absent, then restores sending', async () => {
+    const { view, props, textarea, shell, sink } = bench({ draft: 'retained draft' })
+    view.rerender(<InputBar {...props} controlAvailable={false} interruptAvailable={false} />)
+    expect(editableOf(textarea)).toBe(false)
+    expect(view.queryByRole('button', { name: '发送消息' })).toBeNull()
+    expect(view.queryByRole('button', { name: '停止生成' })).toBeNull()
+    fireEvent.keyDown(textarea, { key: 'Enter', keyCode: 13 })
+    await act(async () => {})
+    expect(sink).not.toHaveBeenCalled()
+    expect(shell.snapshot.draft).toBe('retained draft')
+    view.rerender(<InputBar {...props} controlAvailable />)
+    expect(editableOf(textarea)).toBe(true)
+    fireEvent.click(view.getByRole('button', { name: '发送消息' }))
+    await vi.waitFor(() => { expect(sink).toHaveBeenCalledTimes(1) })
+  })
+
+  it('hides Stop when a running session loses control capability', () => {
+    const { view, props } = bench({ running: true })
+    expect(view.getByRole('button', { name: '停止生成' })).toBeTruthy()
+    view.rerender(<InputBar {...props} controlAvailable={false} interruptAvailable={false} />)
+    expect(view.queryByRole('button', { name: '停止生成' })).toBeNull()
+  })
+
   it.each([' ', '   ', '\t', '\n'])('hides for whitespace %j and returns after deletion', async (draft) => {
     const { view, shell, textarea, button, sink, props } = bench()
     const placeholder = () => view.container.querySelector('[data-composer-placeholder]')
@@ -1769,4 +1796,44 @@ describe('command launcher chrome and control seats', () => {
     const live = bench({ running: true, permissions })
     expect((live.view.getByLabelText(/^访问模式/) as HTMLButtonElement).disabled).toBe(false)
   })
+})
+
+it('keeps a running child interruptible while prompt capability is withdrawn', () => {
+  const { view, props, textarea, shell } = bench({ running: true, draft: 'keep draft', subagent: {
+    address: { parentSessionId: 'parent', childSessionId: 'child', mode: 'continuable' } as never,
+    parentAvailable: true,
+  } })
+  view.rerender(<InputBar {...props} controlAvailable={false} interruptAvailable />)
+  expect(editableOf(textarea)).toBe(false)
+  expect(view.queryByRole('button', { name: '发送消息' })).toBeNull()
+  const stop = view.getByRole('button', { name: '停止生成' })
+  expect(stop).toHaveProperty('disabled', false)
+  expect(shell.snapshot.draft).toBe('keep draft')
+  view.rerender(<InputBar {...props} controlAvailable interruptAvailable={false} />)
+  expect(editableOf(textarea)).toBe(true)
+  expect(view.queryByRole('button', { name: '停止生成' })).toBeNull()
+})
+
+it('describes missing prompt support without denying an available interrupt', () => {
+  const { view, props } = bench({ running: true })
+  view.rerender(<InputBar {...props} controlAvailable={false} interruptAvailable />)
+  expect(view.getByText('当前主机不支持发送消息')).toBeDefined()
+})
+
+it('keeps a native picker bound to the authority that opened it', () => {
+  const addFiles = vi.fn(() => null)
+  const b = bench({ addFiles })
+  let current = true
+  const oldAuthority = () => current
+  b.view.rerender(<InputBar {...b.props} fileUploadAvailable={false} currentAuthority={oldAuthority} />)
+  const input = b.view.container.querySelector<HTMLInputElement>('input[type="file"]')!
+  expect(input.accept).toContain('image/')
+  expect(b.shell.pickFiles()).toBe(true)
+  current = false
+  b.view.rerender(<InputBar {...b.props} currentAuthority={() => true} />)
+  fireEvent.change(input, { target: { files: [new File(['x'], 'late.txt', { type: 'text/plain' })] } })
+  expect(addFiles).not.toHaveBeenCalled()
+  expect(b.shell.pickFiles()).toBe(true)
+  fireEvent.change(input, { target: { files: [new File(['x'], 'fresh.txt', { type: 'text/plain' })] } })
+  expect(addFiles).toHaveBeenCalledOnce()
 })

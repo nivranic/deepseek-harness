@@ -1,0 +1,211 @@
+{
+  "scope": "Same host environment and fixture pnpm shim; installed wheel launch-chain diagnosis only",
+  "runtimeSha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181",
+  "outside": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc",
+  "cases": [
+    {
+      "launcher": "direct-node",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 39008,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-G3BgS7",
+        "links": [
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-G3BgS7\\target"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-G3BgS7\\target"
+          }
+        ]
+      }
+    },
+    {
+      "launcher": "python-node",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 40460,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-eTuWKL",
+        "links": [
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-eTuWKL\\target"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-eTuWKL\\target"
+          }
+        ]
+      }
+    },
+    {
+      "launcher": "repository-runtime",
+      "exitCode": 0,
+      "stderr": "dsh: initialized profile sdk at C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc\\home\\profiles\\sdk\n",
+      "probe": {
+        "pid": 45136,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc\\home\\profiles\\sdk",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-tDPJCC",
+        "links": [
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-tDPJCC\\target"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-tDPJCC\\target"
+          }
+        ]
+      }
+    },
+    {
+      "launcher": "installed-runtime",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 34428,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc\\home\\profiles\\sdk",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-LzlKNn",
+        "links": [
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          }
+        ]
+      }
+    },
+    {
+      "launcher": "python-main",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 18868,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc\\home\\profiles\\sdk",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-sztmVG",
+        "links": [
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          }
+        ]
+      }
+    },
+    {
+      "launcher": "installed-entry",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 36484,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-chain-ee8hxemc\\home\\profiles\\sdk",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-bcX4fQ",
+        "links": [
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          }
+        ]
+      }
+    }
+  ]
+}

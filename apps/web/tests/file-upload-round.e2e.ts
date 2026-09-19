@@ -118,7 +118,8 @@ describe('web e2e: generic file upload through the real assembly', () => {
       ...(MODE === 'record' ? {} : { replayFixture: FIXTURE, replayOverride: OVERRIDE, paceMs: 15 }),
     })
     scaffold.ctx.on('session/event', (_session, event: SessionEvent) => { sessionEvents.push(event) })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     await page.setViewportSize({ width: 900, height: 900 })
     tripwire = watchConsole(page)
@@ -149,7 +150,10 @@ describe('web e2e: generic file upload through the real assembly', () => {
     const imageBytes = await readFile(IMAGE_FIXTURE)
     // Pick through the composer's hidden file input: the upload RPC runs
     // immediately and the pending card appears before any prompt is typed.
-    await page.locator('input[type="file"]').setInputFiles([
+    await page.getByRole('button', { name: 'Add files or run commands' }).click()
+    const picker = page.waitForEvent('filechooser')
+    await page.getByRole('listbox', { name: 'Trigger suggestions' }).getByRole('option', { name: /File/u }).click()
+    await (await picker).setFiles([
       { name: FILE_NAME, mimeType: 'text/plain', buffer: Buffer.from(FILE_TEXT) },
       ...IMAGE_NAMES.map(name => ({ name, mimeType: 'image/png', buffer: imageBytes })),
     ])

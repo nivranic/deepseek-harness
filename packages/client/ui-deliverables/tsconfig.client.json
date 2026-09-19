@@ -8,6 +8,7 @@
   "include": [
     "src/client",
     "src/presented.ts",
+    "src/capabilities.ts",
     "src/css-modules.d.ts"
   ],
   "references": [

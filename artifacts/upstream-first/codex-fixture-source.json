@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T17:11:08.507Z",
+  "scope": "Codex test fixture command completion, call attribution, and real pinned CLI commands against a local Responses server on Windows x64",
+  "productSourcesUnchangedFromUpstream": true,
+  "sourceFiles": [
+    {
+      "path": "packages/subagent/subagent-codex/tests/responses-fixture.ts",
+      "sha256": "1870357933314ed38c8dbf6593a276ed1c712442be32736df141c480a80abba2",
+      "bytes": 11589
+    },
+    {
+      "path": "packages/subagent/subagent-codex/tests/responses-fixture.spec.ts",
+      "sha256": "c0c728992d6f2b76eeedc7a9781504ddaa4a98079c3ebd46b766b96bdaefb5ac",
+      "bytes": 5676
+    },
+    {
+      "path": "packages/subagent/subagent-codex/tests/real-product.spec.ts",
+      "sha256": "dc93d58157e72897f16a12cd44a74de886fcc4ccd769cab563ae1070d2073071",
+      "bytes": 19858
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-codex-command-completion.md",
+      "sha256": "263b9d4912e199bd255c9f873035435790b97f1a3ffc72d2698c7a2a5774cd5a",
+      "bytes": 2739
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-codex-command-completion.zh.md",
+      "sha256": "fbf88ad3cd076f801f44fbe3964436d9d271473ce665dce1ff3975e77e48aeb4",
+      "bytes": 2469
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-codex-command-completion.i18n.yaml",
+      "sha256": "6b0540b72473e4f0185862a459aac41991b522327894a5e79ee4d88ebad9102e",
+      "bytes": 530
+    }
+  ],
+  "productSources": [
+    {
+      "path": "packages/subagent/subagent-codex/package.json",
+      "sha256": "cb3167546b3e6f19e5d763d0bc1862ca99bfe79666c66126ae75adf4249d56eb",
+      "bytes": 2221
+    },
+    {
+      "path": "packages/subagent/subagent-codex/src/index.ts",
+      "sha256": "3adc9ab888a503e7063fdda990596901ac05abe3759f95b1f52f72307824f957",
+      "bytes": 4617
+    },
+    {
+      "path": "packages/subagent/subagent-codex/src/run.ts",
+      "sha256": "fd5c8bf5b1ca5db72199417c418c5002eca28ecef9911fa459e5f974a6036e4a",
+      "bytes": 14846
+    },
+    {
+      "path": "packages/subagent/subagent-codex/src/wire.ts",
+      "sha256": "317637b5ea9b42a9785240d28da9218d1fd40dfcce449c7dccb78e5c7f9be8d3",
+      "bytes": 24009
+    }
+  ],
+  "dependencyFiles": [
+    {
+      "path": "node_modules/.pnpm/@openai+codex@0.153.4/node_modules/@openai/codex/package.json",
+      "sha256": "302ed64d0846795501768be9f60f78133688c0c09162c76e80a8a04b045664cb",
+      "bytes": 1082
+    },
+    {
+      "path": "node_modules/.pnpm/@openai+codex@0.153.4/node_modules/@openai/codex/bin/codex.js",
+      "sha256": "61b0194f3bb6534439c8d26a3ed57d0805f84b884588b761795323eeb92fcf70",
+      "bytes": 8790
+    },
+    {
+      "path": "node_modules/.pnpm/@openai+codex@0.153.4-win32-x64/node_modules/@openai/codex/package.json",
+      "sha256": "8002fa9caa5677007dc55b8e0628198b4411bf2d4542027ec5814653b91acce3",
+      "bytes": 511
+    },
+    {
+      "path": "node_modules/.pnpm/@openai+codex@0.153.4-win32-x64/node_modules/@openai/codex/vendor/x86_64-pc-windows-msvc/bin/codex.exe",
+      "sha256": "444a3f0008050605cae73cd9b7a2dcac61294062dfaab56dd20430fd6498518b",
+      "bytes": 295408944
+    }
+  ],
+  "consumerSources": [
+    {
+      "path": "packages/subagent/subagent-codex/tests/real-product-cleanup.ts",
+      "sha256": "d04ce56609ecbae93e41cb1f7611552292a52e165187567a53f54c8cffdfb4ba",
+      "bytes": 1853
+    },
+    {
+      "path": "packages/subagent/subagent-codex/tests/real-product-cleanup.spec.ts",
+      "sha256": "55d4c5312f9b516e6bebcf0c17e276f670497c1505d639da66c43d9eeec2d6db",
+      "bytes": 6433
+    },
+    {
+      "path": "vitest.config.ts",
+      "sha256": "1cd0dea8b2d611b1bd7643c1091ab7c64bdec16b4499308e1d71bc6243c9bf60",
+      "bytes": 20408
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/codex-fixture-concurrent.json",
+      "sha256": "495411c2ef001dc0514962c8a124df1acc4ec0efb2458cddd0552c94f4f080c7",
+      "bytes": 1258
+    },
+    {
+      "path": "artifacts/upstream-first/codex-fixture-controls.json",
+      "sha256": "586e93b841ac879ad321dc026ec85c70e41c77e188ed0e21d7cc2ecbb82f9ab0",
+      "bytes": 1480
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/capture-codex-fixture.mjs",
+      "sha256": "52639fa59f672ea8832888ee5f0aa987944edc9390b325a3e2abdf5ece9a0e7f",
+      "bytes": 5485
+    },
+    {
+      "path": ".artifacts/codex-fixture-concurrent.mjs",
+      "sha256": "9d8262db94065ceff82253cdbc1f02b369c8210ca510da12137ffb72fa5508ca",
+      "bytes": 2376
+    },
+    {
+      "path": ".artifacts/codex-fixture-controls.mjs",
+      "sha256": "5ea6b5cb47e78930fab646a62834a01c3150cc091784f777dde4d5450b08463e",
+      "bytes": 2099
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/codex-command-baseline.log",
+      "sha256": "425822682bd7f07455779200d3809b2163dc81fb4e173e64780a1dfe71ec902c",
+      "bytes": 2185
+    },
+    {
+      "path": ".artifacts/codex-fixture-before.log",
+      "sha256": "9e07d9bd55190482732743f9eec8d4772415ec0ce56e5b35660e66b081e6df78",
+      "bytes": 1821
+    },
+    {
+      "path": ".artifacts/codex-fixture-after.log",
+      "sha256": "cbdfbbf2ab3379199eae1c7156dd26d78c1baf07358035ff04386542f2f13938",
+      "bytes": 940
+    },
+    {
+      "path": ".artifacts/codex-command-after.log",
+      "sha256": "0f26ef87596f225ef6cffcd98cf7989d0756346bbd9384380a3c052c049d1dd4",
+      "bytes": 3421
+    },
+    {
+      "path": ".artifacts/codex-fixture-lint.log",
+      "sha256": "f0f550f9fe58f7c613b3688e5acbfbfb37bd6e12f9047626c3842ed8de07f823",
+      "bytes": 907
+    },
+    {
+      "path": ".artifacts/codex-fixture-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/codex-fixture-pairing.log",
+      "sha256": "eda609b053e3df7f6bc11180e8e72ac72804c03b9d464a3929ba4c2bb709c29a",
+      "bytes": 335
+    },
+    {
+      "path": ".artifacts/codex-fixture-doc-sync.log",
+      "sha256": "5652d055d8d9fd2420cf309f40e670179372f901eaaa227d24ddff79ae445563",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/codex-fixture-concurrent-full.log",
+      "sha256": "1749cd94b5bdf4f2dc32c958a136c540f9002cab95722740d7521e39e8a5edb4",
+      "bytes": 12019
+    },
+    {
+      "path": ".artifacts/codex-fixture-concurrent-focused.log",
+      "sha256": "d404277826bc55ca91da7fe287e5f31480390086c92ca13a9300f9f8fed76a54",
+      "bytes": 3413
+    },
+    {
+      "path": ".artifacts/codex-fixture-control-early-completion.log",
+      "sha256": "be1428a8729d50cca73117a5799d03c759016ab5271ecd95c6c38b3abbd8a51a",
+      "bytes": 4125
+    },
+    {
+      "path": ".artifacts/codex-fixture-control-unrelated-result.log",
+      "sha256": "975b600f0aa063cc5d9c4d1335c37ac1c6f4b7f9771e306e599e44d1f9959809",
+      "bytes": 1840
+    },
+    {
+      "path": ".artifacts/codex-fixture-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/lsp-observation-source.json",
+      "sha256": "2a8931dcab314cb682735c200686433a4688910c0afda6c72cd2ac7f86e7afeb",
+      "bytes": 9613
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-source.json",
+      "sha256": "59f4ca5851df8b759b11eda44275b09c6f2baf9bd8efb55d218208a53d7e1e87",
+      "bytes": 11375
+    }
+  ],
+  "checks": [
+    {
+      "id": "codex-fixture-tests",
+      "status": "PASS",
+      "tests": 25,
+      "httpFixtureTests": 17,
+      "realCliTests": 8,
+      "command": "node .artifacts/codex-fixture-concurrent.mjs",
+      "log": ".artifacts/codex-fixture-concurrent-full.log"
+    },
+    {
+      "id": "codex-fixture-concurrent",
+      "status": "PASS",
+      "tests": 2,
+      "filteredSkipped": 23,
+      "overlapped": true,
+      "command": "node .artifacts/codex-fixture-concurrent.mjs",
+      "receipt": "artifacts/upstream-first/codex-fixture-concurrent.json"
+    },
+    {
+      "id": "codex-fixture-controls",
+      "status": "PASS",
+      "rejected": 2,
+      "command": "node .artifacts/codex-fixture-controls.mjs",
+      "receipt": "artifacts/upstream-first/codex-fixture-controls.json"
+    },
+    {
+      "id": "codex-fixture-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/codex-fixture-doc-sync.log"
+    },
+    {
+      "id": "codex-fixture-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/codex-fixture-full-lint.log"
+    }
+  ],
+  "limitations": [
+    "Actual Codex 0.153.4 on Windows x64; all model responses scripted locally, no authenticated real model acceptance",
+    "Codex emitted temporary-home helper-alias, unknown-model metadata, unsupported PowerShell snapshot, and unauthenticated featured-plugin warmup warnings; no host configuration changed",
+    "No provider code, dependency version, permission mode, production timeout, Session output, installer, or other-platform changes"
+  ]
+}

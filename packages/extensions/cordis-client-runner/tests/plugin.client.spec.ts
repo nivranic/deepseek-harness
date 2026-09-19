@@ -63,12 +63,13 @@ interface Bench {
    * tree, so it stands in for that caller on the same core seam.
    */
   crash: (slot: string, entry: unknown, abdicate: boolean, error: unknown) => void
+  replace: (operations?: readonly string[]) => void
   dispose: () => Promise<void>
   settle: () => Promise<void>
 }
 
 /** Mount the browser half over a module table and a loader standing on real fibers. */
-async function boot(): Promise<Bench> {
+async function boot(operations = ['run', 'client-code', 'resolve-run', 'settle-run', 'invoke', 'report-render', 'report-guard']): Promise<Bench> {
   const ctx = new Context()
   await ctx.plugin(SlotRegistry)
   const factories = new Map<string, () => unknown>()
@@ -156,7 +157,13 @@ async function boot(): Promise<Bench> {
       (listener as (...args: readonly unknown[]) => void)(payload)
     }
   }
+  const generationListeners = new Set<() => void>()
+  ctx.reflect.provide('connection', { generation: { subscribe: (listener: () => void) => {
+    generationListeners.add(listener)
+    return () => { generationListeners.delete(listener) }
+  } } })
   const remote = {
+    $host: { home: undefined, isLoopback: true, capabilities: operations.map(id => 'dynamic-cordis.' + id + '.v1') },
     dynamicCordisRunner: namespace,
     $on: (event: string, listener: (...args: never[]) => void) => {
       const bucket = listeners.get(event) ?? []
@@ -187,6 +194,10 @@ async function boot(): Promise<Bench> {
         _core: { reportEntryError(key: string, entry: unknown, error: unknown, info: { abdicate: boolean }): void }
       })._core
       core.reportEntryError(slot, entry, error, { abdicate })
+    },
+    replace: (next = operations) => {
+      remote.$host = { ...remote.$host, capabilities: next.map(id => 'dynamic-cordis.' + id + '.v1') }
+      for (const listener of generationListeners) listener()
     },
     dispose: async () => { await fiber.dispose() },
     settle: async () => { await new Promise((resolve) => { setTimeout(resolve, 0) }) },
@@ -434,4 +445,45 @@ describe('node half', () => {
     NodeHalf.apply()
     expect(typeof NodeHalf.apply).toBe('function')
   })
+})
+
+it('unloads a previous connection and rejects its retained host.call callback before dispatch', async () => {
+  const b = await boot()
+  b.source.current = { ...b.source.current, code: 'return { apply() { globalThis.__oldDynamicCall = () => host.call("ping") } }' }
+  await b.ctx.dynamicCordisRunner.startUserRun(USER_RUN)
+  const old = Reflect.get(globalThis, '__oldDynamicCall') as () => Promise<unknown>
+  b.replace()
+  expect(b.ctx.dynamicCordisRunner.getSnapshot()).toEqual([])
+  await expect(old()).rejects.toThrow('connection changed')
+  expect(b.invoked).toEqual([])
+  await b.settle()
+  expect(b.ctx.dynamicCordisRunner.isLoaded(PLUGIN)).toBe(false)
+  await b.dispose()
+  Reflect.deleteProperty(globalThis, '__oldDynamicCall')
+})
+
+it('requires the complete two-half operation set before beginning a user run', async () => {
+  const b = await boot(['run'])
+  await expect(b.ctx.dynamicCordisRunner.startUserRun(USER_RUN)).rejects.toMatchObject({
+    code: 'host/capability-unavailable', details: { capability: 'dynamic-cordis.client-code.v1' },
+  })
+  expect(b.ctx.dynamicCordisRunner.activeRuns.getSnapshot().size).toBe(0)
+  expect(b.ctx.dynamicCordisRunner.getSnapshot()).toEqual([])
+  expect(b.resolved).toEqual([])
+  await b.dispose()
+})
+
+it('can decline a model request when the Host exposes resolution without activation', async () => {
+  const b = await boot(['resolve-run'])
+  const requestId = 'decline-only' as ApprovalRequestId
+  b.forward('cordis/request-run', {
+    requestId, agentId: AGENT, pluginId: PLUGIN, packageId: PACKAGE, mode: 'run',
+    name: 'proof', purpose: 'decline-only support', requiresApproval: true,
+  })
+  expect(b.ctx.dynamicCordisRunner.activeRuns.getSnapshot().get(PLUGIN)?.phase).toBe('awaiting-approval')
+  await expect(b.ctx.dynamicCordisRunner.approve(requestId, false)).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+  await b.ctx.dynamicCordisRunner.decline(requestId)
+  expect(b.resolved).toEqual([{ requestId, resolution: { ok: false, reason: 'rejected' } }])
+  expect(b.ctx.dynamicCordisRunner.getSnapshot()).toEqual([])
+  await b.dispose()
 })

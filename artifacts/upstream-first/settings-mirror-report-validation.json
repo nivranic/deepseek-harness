@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for shared Settings mirror admission and generation-bound writes and document actions; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/settings-mirror-source.json",
+    "sha256": "ca668bf88a87eed51a67507da815c160995da670e0772004cd256a0247af17b1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6b774c3eb6eb1c0b73ff6baa0a405f4576c665bf701923c44510374ba4999df2"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/settings-mirror-binding.json",
+    "sha256": "cc0ab9ec89ffbb3f722d45750b7eadee08bf3b331ec1dd576cb52f1cb6cd3f81"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-settings-mirror-reports.mjs",
+      "sha256": "25a3e0ced2e4d595ce4b0cd973cf29fa8f184074f3dc9a2a1901c26dbdaec282"
+    },
+    {
+      "path": ".artifacts/capture-settings-mirror-validation.mjs",
+      "sha256": "3f586ae83e7f5731cb8f9baed2348881984266c95837aeccb592e67286dad640"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "80874d5867d08e94a73a16464395e58be33d85152f7db262ba8c386bbbe0ea3e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "9593270927fdd48d63c6248d51c3ba2ef183a2a137c8a7f8dcc6e2def9418246"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/settings-mirror-binding.log",
+      "sha256": "4a06e49e6764debd547f7c7c6f7539d71020d1cd1551b20435411d6085eec3d7"
+    },
+    {
+      "path": ".artifacts/settings-mirror-audit-tests.log",
+      "sha256": "86d133a1f5ba7406ed8a80034a30855666f42c0ee341008a565f4fac7f55b6d2"
+    },
+    {
+      "path": ".artifacts/settings-mirror-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/settings-mirror-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/settings-mirror-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

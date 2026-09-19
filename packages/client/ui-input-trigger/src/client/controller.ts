@@ -10,7 +10,7 @@
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type {
-  ArbitrateKey, ArbitrateOutcome, PickOutcome, ReferenceInsert,
+  ArbitrateKey, ArbitrateOutcome, PickOutcome, ReferenceInsert, ReferencePreviewAvailability,
 } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { detectTrigger } from '../core/detect.ts'
@@ -74,21 +74,26 @@ export class InputTriggerController {
 
   /** The authoritative hit: single truth for span CAS material (menu snapshot never carries it alone). */
   private hit: TriggerHit | null = null
+  /** Current source-owned preview queries; every invalidation supplies a fresh snapshot. */
+  readonly referenceAvailability: SnapshotStore<{ readonly canOpenReference: ReferencePreviewAvailability }> = createSnapshotStore({
+    canOpenReference: (source, reference) => this.canOpenReference(source, reference),
+  })
+  private readonly referenceOffs = new Map<InputTriggerSource, () => void>()
   /** Whether the open menu was reached by a drill pick; cleared with the menu. */
   private drilled = false
   private fetch: AbortController | null = null
   private disposed = false
   /** Per-source lexicon unsubscribers (sources without the hook never enter). */
   private readonly lexiconOffs = new Map<InputTriggerSource, () => void>()
+  private readonly candidateOffs = new Map<InputTriggerSource, () => void>()
 
   constructor(private readonly deps: InputTriggerControllerDeps) {
-    // Scope-birth prewarm: sessions are always agent-backed, so the one-time
-    // roster warm here replaces the projection-transition watch — there are
-    // no capability steps to react to.
     const projection = this.project()
     for (const src of deps.roster.all()) {
       src.warm?.(projection)
       this.watchLexicon(src, projection)
+      this.watchReferenceAvailability(src, projection)
+      this.watchCandidates(src, projection)
     }
     this.refreshLexicon()
   }
@@ -306,19 +311,29 @@ export class InputTriggerController {
   }
 
   /**
-   * Route a chip to its owner or an editable token to its current lexicon owner.
+   * Read a chip or editable token's current preview eligibility without fetching.
    * @param source - chip source name; undefined for editable text.
    * @param reference - source-owned id and optional chip glyph.
-   * @returns whether an owner accepted the preview, possibly awaiting its catalog.
+   * @returns whether a current owner and viewer can preview the reference.
+   */
+  canOpenReference: ReferencePreviewAvailability = (source, reference) => {
+    if (this.disposed) return false
+    const session = this.project()
+    return this.referenceOwners(source, reference).some(owner => owner.openReference !== undefined
+      && owner.canOpenReference?.(session, reference) === true)
+  }
+
+  /**
+   * Execute a currently eligible preview without changing the draft.
+   * @param source - explicit owner or inferred token.
+   * @param reference - source id and glyph.
+   * @returns whether an owner accepted the preview.
    */
   openReference(source: string | undefined, reference: Pick<ReferenceInsert, 'ref' | 'appearance'>): boolean {
     if (this.disposed) return false
     const session = this.project()
-    for (const owner of this.deps.roster.all()) {
-      const matches = source === undefined
-        ? reference.ref.startsWith(owner.trigger) && owner.lexicon?.(session)?.includes(reference.ref.slice(1))
-        : owner.name === source
-      if (matches && owner.openReference?.(session, reference)) {
+    for (const owner of this.referenceOwners(source, reference)) {
+      if (owner.canOpenReference?.(session, reference) === true && owner.openReference?.(session, reference)) {
         this.dismiss()
         return true
       }
@@ -361,6 +376,10 @@ export class InputTriggerController {
     }
     this.lexiconOffs.get(source)?.()
     this.lexiconOffs.delete(source)
+    this.referenceOffs.get(source)?.()
+    this.referenceOffs.delete(source)
+    this.candidateOffs.get(source)?.()
+    this.candidateOffs.delete(source)
     this.refreshLexicon()
   }
 
@@ -375,6 +394,8 @@ export class InputTriggerController {
     const projection = this.project()
     source.warm?.(projection)
     this.watchLexicon(source, projection)
+    this.watchReferenceAvailability(source, projection)
+    this.watchCandidates(source, projection)
     this.refreshLexicon()
   }
 
@@ -403,6 +424,11 @@ export class InputTriggerController {
     this.hit = null
     for (const off of this.lexiconOffs.values()) off()
     this.lexiconOffs.clear()
+    for (const off of this.referenceOffs.values()) off()
+    this.referenceOffs.clear()
+    for (const off of this.candidateOffs.values()) off()
+    this.candidateOffs.clear()
+    this.refreshReferenceAvailability()
   }
 
   /** The session projection handed to sources (agent-backed identity; constant per scope). */
@@ -448,6 +474,53 @@ export class InputTriggerController {
       rolls.set(src.trigger, prev === undefined ? names : [...prev, ...names])
     }
     this.lexicon.set(rolls)
+    this.refreshReferenceAvailability()
+  }
+
+  private referenceOwners(source: string | undefined, reference: Pick<ReferenceInsert, 'ref' | 'appearance'>): InputTriggerSource[] {
+    const session = this.project()
+    return this.deps.roster.all().filter(owner => source === undefined
+      ? reference.ref.startsWith(owner.trigger) && owner.lexicon?.(session)?.includes(reference.ref.slice(1)) === true
+      : owner.name === source)
+  }
+
+  private refreshReferenceAvailability(): void {
+    this.referenceAvailability.set({ canOpenReference: (source, reference) => this.canOpenReference(source, reference) })
+  }
+
+  private watchReferenceAvailability(source: InputTriggerSource, session: ClientSessionContext): void {
+    if (source.subscribeReferenceAvailability === undefined) return
+    this.referenceOffs.set(source, source.subscribeReferenceAvailability(session, () => { this.refreshReferenceAvailability() }))
+  }
+
+  private watchCandidates(source: InputTriggerSource, session: ClientSessionContext): void {
+    if (source.subscribeCandidates === undefined) return
+    this.candidateOffs.set(source, source.subscribeCandidates(session, () => {
+      if (this.disposed) return
+      const hit = this.hit
+      const launched = this.launcher.getSnapshot()
+      const relevant = hit !== null && this.menu.getSnapshot().open && hit.trigger === source.trigger
+        && (launched === null || launched === source.name)
+      if (relevant) {
+        this.stopFetch()
+        const roster = this.deps.roster.sources(hit.trigger).filter(item => launched === null || item.name === launched)
+        this.menu.set(seedGroups(this.menu.getSnapshot(), roster))
+        this.setHeaders(new Map())
+      }
+      const generation = this.menu.getSnapshot().generation
+      // All sources observe a generation withdrawal before any replacement query.
+      void Promise.resolve().then(() => {
+        if (this.disposed || !this.candidateOffs.has(source)) return
+        source.warm?.(session)
+        this.refreshLexicon()
+        const currentHit = this.hit
+        const menu = this.menu.getSnapshot()
+        if (!relevant || currentHit === null || menu.generation !== generation || !menu.open) return
+        const roster = this.deps.roster.sources(currentHit.trigger).filter(item => launched === null || item.name === launched)
+        this.refreshHeaders(currentHit, roster)
+        this.fetchCandidates(currentHit, roster)
+      })
+    }))
   }
 
   /** Wire one source's lexicon invalidation channel into refresh (hookless or roll-less sources never notify). */
@@ -461,7 +534,7 @@ export class InputTriggerController {
       // open menu, so one source cannot contribute its previous catalog.
       void Promise.resolve().then(() => {
         if (this.disposed || this.hit !== hit || !this.menu.getSnapshot().open) return
-        this.fetchCandidates(hit, this.deps.roster.sources(hit.trigger))
+        this.refreshOpenMenu()
       })
     }))
   }

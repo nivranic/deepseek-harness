@@ -37,6 +37,29 @@ afterEach(() => {
 })
 
 describe('verifyRuntimeClosure', () => {
+  it.each(['apps/cli', 'native/system', 'native/system/packages/linux-x64'])(
+    'traverses runtime dependencies declared by %s', async (directory) => {
+      const manifest = { name: 'runtime', dependencies: { '@scope/application': 'workspace:^' } }
+      const root = fixture({
+        'python/sdk-runtime/package.json': manifest,
+        'python/sdk-runtime/platforms.json': platforms,
+        'packages/preset/agent-presets/presets/minimal/agent.cordis.yml': '[]\n',
+        [`${directory}/package.json`]: {
+          name: '@scope/application', dependencies: { '@scope/provider': 'workspace:^' },
+        },
+      })
+      workspace(root, '@scope/provider', { peerDependencies: { '@scope/required': 'workspace:^' } })
+      workspace(root, '@scope/required', {})
+      const missing = await verifyRuntimeClosure(root)
+      expect(missing.workspacePackageCount).toBe(2)
+      expect(missing.failures).toEqual(['runtime -> @scope/application -> @scope/provider -> @scope/required'])
+      writeFileSync(join(root, 'python/sdk-runtime/package.json'), JSON.stringify({
+        ...manifest, dependencies: { ...manifest.dependencies, '@scope/required': 'workspace:^' },
+      }))
+      expect((await verifyRuntimeClosure(root)).failures).toEqual([])
+    },
+  )
+
   it('requires only plugins active for each published target', async () => {
     const root = fixture({
       'python/sdk-runtime/package.json': { name: 'runtime', dependencies: { '@scope/shared': 'workspace:^' } },

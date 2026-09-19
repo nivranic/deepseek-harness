@@ -47,6 +47,8 @@ Load the package with a composition entry; the only deployment choice is the def
 
 `defaultMaxGoalRounds` must be a positive safe integer; a create request that names its own cap overrides it. The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-goal) is the exhaustive source for every accepted field.
 
+Host discovery advertises Goal reads, creation, editing, pausing, resuming, completion and clearing as independent versioned capabilities. The Client Gateway requires the matching declaration before each Remote request. Agent ownership, revision checks and lifecycle preconditions remain with the Goal service; capability support does not authorize a mutation.
+
 ### Session projection
 
 `GoalService` requires `ctx.sessionProjections` ([`@deepseek-ai/dsh-session-projection`](../../session/session-projection/README.md)) and registers the `goal` projection unit at startup; a composition that omits the projection registry cannot activate `ctx.goals`. The unit's version 6 host state retains the latest valid current goal, every previously used goal id, and the first strict replay failure. Its client view exposes the current goal or `null` before the first create and after a clear tombstone. The key merges into both `SessionProjectionStateMap` and `SessionProjectionMap`; carriers serve the client value on the history tail page and the `session/projection` push frame.

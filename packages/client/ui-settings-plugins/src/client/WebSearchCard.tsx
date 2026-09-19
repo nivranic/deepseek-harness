@@ -34,7 +34,7 @@ export function WebSearchCard(props: WebSearchCardProps) {
       onSave={props.save}
       onDiscard={props.discard}
     >
-      <SecretField
+      {state.apiKeySupported ? <SecretField
         id="plugin-config-web-search-key"
         label={t('webSearchApiKey')}
         hint={t('webSearchApiKeyHint')}
@@ -47,7 +47,7 @@ export function WebSearchCard(props: WebSearchCardProps) {
         configured={state.apiKeyConfigured}
         stateLabel={state.apiKeyConfigured ? t('webSearchApiKeySet') : t('webSearchApiKeyUnset')}
         onEdit={(text) => { props.edit('apiKey', text) }}
-      />
+      /> : null}
       <ValueField
         id="plugin-config-web-search-endpoint"
         label={t('webSearchBaseUrl')}

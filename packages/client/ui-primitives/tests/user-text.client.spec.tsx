@@ -17,6 +17,31 @@ const project = (
   render(<div data-host>{projectUserText(text, labels, slashNames, slashKind)}</div>).container.querySelector('[data-host]')!
 
 describe('projectUserText', () => {
+  it('renders unavailable references as labels and refuses retained click handlers after withdrawal', () => {
+    const canOpenFile = vi.fn(() => true)
+    const canOpenSkill = vi.fn(() => true)
+    const openFile = vi.fn()
+    const openSkill = vi.fn()
+    const references = { canOpenFile, canOpenSkill, openFile, openSkill }
+    const content = () => <div>{projectUserText('@note.md /review', [], ['review'], 'skill', references)}</div>
+    const view = render(content())
+    const buttons = view.container.querySelectorAll('button')
+    expect(buttons).toHaveLength(2)
+    canOpenFile.mockReturnValue(false)
+    canOpenSkill.mockReturnValue(false)
+    for (const button of buttons) fireEvent.click(button)
+    expect(openFile).not.toHaveBeenCalled()
+    expect(openSkill).not.toHaveBeenCalled()
+    view.rerender(content())
+    expect(view.container.querySelectorAll('button')).toHaveLength(0)
+    expect(view.container.textContent).toBe('note.md /review')
+    canOpenFile.mockReturnValue(true)
+    view.rerender(content())
+    expect(view.container.querySelectorAll('button')).toHaveLength(1)
+    fireEvent.click(view.getByRole('button', { name: 'note.md' }))
+    expect(openFile).toHaveBeenCalledWith('note.md')
+  })
+
   it('keeps a decorated single-line message on one line: every part is inline', () => {
     const host = project('反反复复 /dsh-acp-test @执行几个命令测试', ['执行几个命令测试'], ['dsh-acp-test'])
     expect(host.querySelectorAll('div').length).toBe(0)
@@ -111,7 +136,7 @@ describe('projectUserText', () => {
     const openSkill = vi.fn()
     const view = render(<div>{projectUserText(
       '@src/a.ts @"notes a.md" /review @history @dir/ @"dir a/"', ['history'], ['review'], 'skill',
-      { openFile, openSkill },
+      { canOpenFile: () => true, canOpenSkill: () => true, openFile, openSkill },
     )}</div>)
     fireEvent.click(view.getByRole('button', { name: 'a.ts' }))
     fireEvent.click(view.getByRole('button', { name: 'notes a.md' }))
@@ -119,13 +144,13 @@ describe('projectUserText', () => {
     expect(openFile.mock.calls).toEqual([['src/a.ts'], ['notes a.md']])
     expect(openSkill).toHaveBeenCalledWith('review')
     expect(view.container.querySelectorAll('button')).toHaveLength(3)
-    const command = render(<div>{projectUserText('/help', [], ['help'], 'command', { openFile, openSkill })}</div>)
+    const command = render(<div>{projectUserText('/help', [], ['help'], 'command', { canOpenFile: () => true, canOpenSkill: () => true, openFile, openSkill })}</div>)
     expect(command.container.querySelector('button')).toBeNull()
   })
 
   it('preserves text-selection gestures and keyboard activation', () => {
     const openFile = vi.fn()
-    const view = render(<div>{projectUserText('@notes.md', [], [], 'skill', { openFile, openSkill: vi.fn() })}</div>)
+    const view = render(<div>{projectUserText('@notes.md', [], [], 'skill', { canOpenFile: () => true, canOpenSkill: () => true, openFile, openSkill: vi.fn() })}</div>)
     const button = view.getByRole('button', { name: 'notes.md' })
     const selection = document.getSelection()!
     const range = document.createRange()

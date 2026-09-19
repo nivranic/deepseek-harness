@@ -278,7 +278,7 @@ describe('ReadImageRow keyed toolview', () => {
     renderSlot?: PropsRenderSlots<'tool.call.images'>['renderSlot'],
     loader: MessageImageLoader = loadImage,
   ): Parameters<typeof ReadImageRow>[0] => ({
-    callId: 'c1', toolName: 'read_image', block, openFile: vi.fn(), renderSlot, loadImage: loader,
+    callId: 'c1', toolName: 'read_image', block, openFile: vi.fn(), canOpenFile: () => true, renderSlot, loadImage: loader,
     sessionId: SID, useSessions: bindSnapshotSelector(list()),
     t,
   } as unknown as Parameters<typeof ReadImageRow>[0])

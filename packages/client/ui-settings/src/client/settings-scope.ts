@@ -43,6 +43,7 @@ export class SettingsScopeController<T> implements SettingsScope<T> {
   private readonly store: SnapshotStore<SettingsScopeSnapshot<T>>
   private tail: Promise<void> = Promise.resolve()
   private writeGeneration = 0
+  private viewHost: Context['remote']['$host'] | undefined
   private disposed = false
   private readonly unsubscribe: (() => void) | undefined
   /**
@@ -50,7 +51,7 @@ export class SettingsScopeController<T> implements SettingsScope<T> {
    * mirror only folds the LATEST settlement in, so a queued successor takes
    * its fence from here first.
    */
-  private pendingRevision: number | undefined
+  private pendingRevision: { host: Context['remote']['$host']; revision: number } | undefined
 
   /**
    * @param ctx - the providing plugin's context, whose `remote.settings`
@@ -124,11 +125,18 @@ export class SettingsScopeController<T> implements SettingsScope<T> {
    * @returns settlement after the mutation and any latest-write recovery read.
    */
   mutate(ops: readonly SettingsPathOpView[], expectedRevision?: number): Promise<void> {
+    const host = this.ctx.remote.$host
+    if (this.viewHost !== host || this.getSnapshot().status !== 'ready'
+      || host.capabilities?.includes('settings.read.v1') !== true
+      || !host.capabilities.includes('settings.write.v1')) return Promise.resolve()
     const ownedOps = structuredClone(ops) as SettingsPathOpView[]
     const generation = ++this.writeGeneration
     return this.enqueue(async () => {
-      const revision = expectedRevision ?? this.pendingRevision ?? this.getSnapshot().revision
+      if (this.ctx.remote.$host !== host || this.getSnapshot().status !== 'ready') return
+      const pending = this.pendingRevision?.host === host ? this.pendingRevision.revision : undefined
+      const revision = expectedRevision ?? pending ?? this.getSnapshot().revision
       const response = await this.ctx.remote.settings.mutate(this.spec.namespace, ownedOps, revision)
+      if (this.ctx.remote.$host !== host) return
       if (!response.ok) {
         await this.recover(generation)
         return
@@ -138,7 +146,7 @@ export class SettingsScopeController<T> implements SettingsScope<T> {
         this.pendingRevision = undefined
         this.mirror.acceptView(response.value)
       } else {
-        this.pendingRevision = response.value.revision
+        this.pendingRevision = { host, revision: response.value.revision }
       }
     })
   }
@@ -177,7 +185,17 @@ export class SettingsScopeController<T> implements SettingsScope<T> {
   private derive(): void {
     if (this.disposed) return
     const mirrored = this.mirror.getSnapshot()
-    if (mirrored.view === undefined) return
+    if (mirrored.view === undefined) {
+      this.viewHost = undefined
+      this.pendingRevision = undefined
+      this.store.update((draft) => {
+        draft.status = mirrored.status === 'unavailable' ? 'unavailable' : 'loading'
+        draft.writable = false
+        draft.revision = undefined
+      })
+      return
+    }
+    this.viewHost = this.ctx.remote.$host
     const { writable } = mirrored.view
     const view = mirrored.view.namespaces.find(candidate => candidate.ns === this.spec.namespace)
     if (view === undefined) {

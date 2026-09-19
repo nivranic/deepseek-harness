@@ -23,6 +23,8 @@ export interface SubagentTimingProjection {
   settledMs: number
   /** Same-cut bounds of the currently open turn, when one has not reached `turn/end`. */
   active?: {
+    /** Durable turn/start sequence; absent on Hosts without addressed interrupt support. */
+    startSeq?: SessionSeq
     /** Start of the open turn. */
     since: number
     /** Latest event time folded into this projection cut. */

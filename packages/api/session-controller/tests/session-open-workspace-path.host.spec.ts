@@ -3,10 +3,7 @@ import { Context } from '@deepseek-ai/cordis'
 import AgentRegistry from '@deepseek-ai/dsh-agent'
 import SessionStore from '@deepseek-ai/dsh-session'
 import { describe, expect, it, vi } from 'vitest'
-import {
-  createSessionTestController,
-  createSessionTestRemote,
-} from './test-remote.ts'
+import { createSessionTestController } from './test-remote.ts'
 
 async function context(): Promise<Context> {
   const ctx = new Context()
@@ -15,52 +12,52 @@ async function context(): Promise<Context> {
   return ctx
 }
 
-describe('session/openWorkspacePath', () => {
+describe('Host-local workspace path operations', () => {
   it('reports the deployment opener capability independently of a Session', async () => {
     const ctx = await context()
-    const remote = createSessionTestRemote(ctx, {
+    const controller = createSessionTestController(ctx, {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
       canOpenPath: () => false,
     })
 
-    await expect(remote.canOpenWorkspacePath()).resolves.toEqual({ ok: true, value: false })
+    expect(controller.workspaceDesktop().available).toBe(false)
   })
 
   it('derives opener availability from config, an injected opener, or the platform probe', async () => {
-    const configured = createSessionTestRemote(await context(), {
+    const configured = createSessionTestController(await context(), {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
       nativeOpen: false,
     })
-    await expect(configured.canOpenWorkspacePath()).resolves.toEqual({ ok: true, value: false })
+    expect(configured.workspaceDesktop().available).toBe(false)
 
-    const injected = createSessionTestRemote(await context(), {
+    const injected = createSessionTestController(await context(), {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
       openPath: () => Promise.resolve(),
     })
-    await expect(injected.canOpenWorkspacePath()).resolves.toEqual({ ok: true, value: true })
+    expect(injected.workspaceDesktop().available).toBe(true)
 
-    const detected = createSessionTestRemote(await context(), {
+    const detected = createSessionTestController(await context(), {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
     })
-    await expect(detected.canOpenWorkspacePath()).resolves.toMatchObject({ ok: true })
+    expect(detected.workspaceDesktop().available).toBeTypeOf('boolean')
   })
 
-  it('hands a Client-resolved workspace path to the Host opener unchanged', async () => {
+  it('hands a Host-authorized workspace path to the Host opener unchanged', async () => {
     const ctx = await context()
     const openPath = vi.fn((_path: string, _signal: AbortSignal) => Promise.resolve())
-    const remote = createSessionTestRemote(ctx, {
+    const controller = createSessionTestController(ctx, {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
       openPath,
     })
     const signal = new AbortController().signal
 
-    await expect(remote.openWorkspacePath({ path: '/workspace/project/src/a.ts' }, signal))
-      .resolves.toEqual({ ok: true, value: { opened: true } })
+    await expect(controller.openWorkspacePath({ path: '/workspace/project/src/a.ts' }, signal))
+      .resolves.toEqual({ opened: true })
     expect(openPath).toHaveBeenCalledWith('/workspace/project/src/a.ts', signal)
     expect(ctx.agents.list()).toEqual([])
   })
@@ -68,28 +65,28 @@ describe('session/openWorkspacePath', () => {
   it('preserves relative and absolute Host-resolvable paths', async () => {
     const ctx = await context()
     const openPath = vi.fn((_path: string, _signal: AbortSignal) => Promise.resolve())
-    const remote = createSessionTestRemote(ctx, {
+    const controller = createSessionTestController(ctx, {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
       openPath,
     })
 
-    await remote.openWorkspacePath({ path: '/tmp/result.html' })
-    await remote.openWorkspacePath({ path: 'result.html' })
+    await controller.openWorkspacePath({ path: '/tmp/result.html' }, new AbortController().signal)
+    await controller.openWorkspacePath({ path: 'result.html' }, new AbortController().signal)
     expect(openPath.mock.calls.map(call => call[0])).toEqual(['/tmp/result.html', 'result.html'])
   })
 
   it('rejects empty paths before opening anything', async () => {
     const ctx = await context()
     const openPath = vi.fn((_path: string, _signal: AbortSignal) => Promise.resolve())
-    const remote = createSessionTestRemote(ctx, {
+    const controller = createSessionTestController(ctx, {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
       openPath,
     })
 
-    await expect(remote.openWorkspacePath({ path: '' }))
-      .resolves.toMatchObject({ ok: false, error: { code: 'gateway/bad-request' } })
+    await expect(controller.openWorkspacePath({ path: '' }, new AbortController().signal))
+      .rejects.toMatchObject({ code: 'gateway/bad-request' })
     expect(openPath).not.toHaveBeenCalled()
   })
 
@@ -97,22 +94,19 @@ describe('session/openWorkspacePath', () => {
     const ctx = await context()
     const openPath = vi.fn((_path: string, _signal: AbortSignal) =>
       Promise.reject(new Error('desktop unavailable')))
-    const remote = createSessionTestRemote(ctx, {
+    const controller = createSessionTestController(ctx, {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
       openPath,
     })
 
-    await expect(remote.openWorkspacePath({ path: 'result.html' }))
-      .resolves.toMatchObject({
-        ok: false,
-        error: { code: 'gateway/internal', message: 'path open failed: desktop unavailable' },
-      })
+    await expect(controller.openWorkspacePath({ path: 'result.html' }, new AbortController().signal))
+      .rejects.toMatchObject({ code: 'gateway/internal', message: 'path open failed: desktop unavailable' })
 
     const aborted = new AbortController()
     aborted.abort(new Error('gateway/cancelled'))
-    await expect(remote.openWorkspacePath({ path: 'result.html' }, aborted.signal))
-      .resolves.toMatchObject({ ok: false, error: { code: 'gateway/cancelled' } })
+    await expect(controller.openWorkspacePath({ path: 'result.html' }, aborted.signal))
+      .rejects.toThrow('gateway/cancelled')
   })
 
   it('classifies opener cancellation and non-Error failures', async () => {

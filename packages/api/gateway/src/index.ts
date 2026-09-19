@@ -10,8 +10,9 @@ import { Context, Service, symbols } from '@deepseek-ai/cordis'
 import type { ConnectionRpcHandler } from '@deepseek-ai/dsh-client-connection'
 import { Deque } from '@deepseek-ai/dsh-deque'
 import type { WebUpgradeRoute } from '@deepseek-ai/dsh-host-webserver'
-import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
+import { deadline, timeoutOf, MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import z from '@deepseek-ai/schemastery'
+import { decodeRemoteRequest, type RemoteProtocolVersion } from './protocol.ts'
 export type { TypertGatewayFaultDetails } from './remote-error-codes.ts'
 import {
   RemoteError,
@@ -54,6 +55,7 @@ import {
   type RemoteEventId,
   type RemoteEventInvocationFrame,
   type RemoteEventReadyFrame,
+  type RemoteInteractionRecord,
   type RemoteStreamFailure,
 } from './stream-protocol.ts'
 
@@ -69,7 +71,7 @@ export type {
   TypertRemoteEventOutcome,
   TypertRemoteEventSource,
 } from './types.ts'
-export type { RemoteEventHostInfo } from './stream-protocol.ts'
+export type { RemoteEventHostInfo, RemoteInteractionOrigin, RemoteInteractionPolicy, RemoteInteractionRecord, RemoteInteractionSessionId } from './stream-protocol.ts'
 
 interface GatewayErrorOptions {
   readonly cause?: unknown
@@ -96,6 +98,7 @@ interface RegisteredRemoteEventSource {
 }
 
 interface RemoteEventClient {
+  readonly version: RemoteProtocolVersion
   readonly id: RemoteEventClientId
   readonly queue: RemoteEventQueue
   readonly deliveries: Map<RemoteEventId, PendingRemoteEvent>
@@ -105,6 +108,7 @@ interface PendingRemoteEvent {
   readonly id: RemoteEventId
   readonly source: TypertRemoteEventInvocation
   readonly frame: RemoteEventInvocationFrame
+  readonly interaction?: RemoteInteractionRecord
   readonly deliveries: Set<RemoteEventClient>
   releaseContext: () => void
   releaseSignal: () => void
@@ -115,10 +119,17 @@ type ConnectionRpcError = Extract<ConnectionRpcResult, { readonly ok: false }>['
 const NEVER_ABORTED_SIGNAL = new AbortController().signal
 const DEFAULT_WEBSOCKET_HEARTBEAT_INTERVAL_MS = 2_000
 
-/** Gateway transport configuration. */
+/** Gateway transport and forwarded-interaction configuration. */
 export interface Config {
   /** WebSocket Ping interval from 1 through 2,147,483,647 milliseconds. @default 2000 */
   readonly websocketHeartbeatIntervalMs?: number
+  /** Optional Host-owned lifetimes for forwarded interactions; omitted kinds have no Gateway deadline. */
+  readonly interactionTimeoutMs?: {
+    /** Approval lifetime in milliseconds, from 1 through 2,147,483,647. */
+    readonly approval?: number
+    /** Question lifetime in milliseconds, from 1 through 2,147,483,647. */
+    readonly question?: number
+  }
 }
 
 interface ResolvedConfig extends Config {
@@ -171,6 +182,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
   static Config: z<Config> = z.object({
     websocketHeartbeatIntervalMs: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS)
       .default(DEFAULT_WEBSOCKET_HEARTBEAT_INTERVAL_MS),
+    interactionTimeoutMs: z.object({
+      approval: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
+      question: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
+    }),
   })
 
   /** Carrier adapter shared by the WebSocket mux and local Host transports. */
@@ -189,7 +204,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
    * @param ctx - owning Host Context with Typert registry access.
    * @param config - validated Gateway transport configuration.
    */
-  constructor(ctx: Context, config: Config) {
+  constructor(ctx: Context, private readonly config: Config) {
     super(ctx, 'typertGateway')
     const resolved = config as ResolvedConfig
     ctx.on('internal/service', () => {
@@ -290,6 +305,45 @@ export class TypertGatewayService extends Service implements TypertGateway {
   }
 
   /**
+   * Read the explicit operation sets of live Remote owners without invoking them.
+   * @returns sorted capability ids whose required method definitions are available.
+   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+   */
+  capabilities(): readonly string[] {
+    const ids = new Set<string>()
+    const available: string[] = []
+    for (const { binding, original } of this.activeBindings('host/describe')) {
+      const methods = new Set(remoteMethods(original).map(marker => marker.exportName ?? marker.method))
+      for (const capability of binding.capabilities ?? []) {
+        if (ids.has(capability.id)) throw new Error(`duplicate Remote capability ${JSON.stringify(capability.id)}`)
+        ids.add(capability.id)
+        let ready = true
+        for (const method of capability.methods) {
+          const endpoint = endpointOf(binding.namespace, method)
+          const strict = this.ctx.typert.local.get(endpoint)
+          if (strict === undefined && this.ctx.typert.local.hasSeen(endpoint)) {
+            ready = false
+            continue
+          }
+          if (strict === undefined && !methods.has(method)) {
+            throw new Error(`Remote capability ${JSON.stringify(capability.id)} requires unexported method ${JSON.stringify(endpoint)}`)
+          }
+          const descriptor = this.resolveDescriptor(binding.namespace, method, endpoint)
+          if (descriptor.service !== binding.serviceKey) {
+            throw new TypertGatewayError('gateway/provider-mismatch', endpoint, 'capability owner differs from the method provider')
+          }
+          const implementation = descriptor.implementation ?? descriptor.method
+          if (typeof Reflect.get(original, implementation) !== 'function') {
+            throw new TypertGatewayError('gateway/method-unavailable', endpoint, 'capability method implementation is unavailable')
+          }
+        }
+        if (ready) available.push(capability.id)
+      }
+    }
+    return available.sort()
+  }
+
+  /**
    * Invoke one live Remote method through strict generated reflection or SRC markers.
    * @param request - decoded endpoint and exact named wire arguments.
    * @returns the business result without output decoding.
@@ -354,14 +408,22 @@ export class TypertGatewayService extends Service implements TypertGateway {
     payload: unknown,
     signal: AbortSignal,
   ): Promise<ConnectionRpcResult> {
+    let version: RemoteProtocolVersion
+    try {
+      const decoded = decodeRemoteRequest(endpoint, payload)
+      payload = decoded.payload
+      version = decoded.version
+    } catch (error) {
+      return rpcFailure(error)
+    }
     if (endpoint === REMOTE_EVENT_RESULT_ENDPOINT) {
       try {
         const result = parseRemoteEventResultPayload(payload)
         const client = this.remoteEventClients.get(result.clientId)
         if (client === undefined) {
-          throw new Error('typert gateway: Remote event result identifies no active event stream')
+          throw new RemoteError('interaction-closed', 'Interaction delivery is no longer active', { eventId: result.eventId })
         }
-        this.receiveRemoteEventResult(client, result)
+        this.receiveRemoteEventResult(client, result, version)
         return { ok: true, value: undefined }
       } catch (error) {
         return rpcFailure(error)
@@ -375,8 +437,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
     payload: unknown,
     signal: AbortSignal,
   ): Promise<AsyncIterable<unknown>> {
+    const decoded = decodeRemoteRequest(endpoint, payload)
+    payload = decoded.payload
     if (endpoint === REMOTE_EVENT_STREAM_ENDPOINT) {
-      return this.openRemoteEvents(payload, signal)
+      return this.openRemoteEvents(payload, signal, decoded.version)
     }
     return this.stream(remoteRequest(endpoint, payload, signal))
   }
@@ -384,6 +448,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
   private async *openRemoteEvents(
     payload: unknown,
     signal: AbortSignal,
+    version: RemoteProtocolVersion = 1,
   ): AsyncGenerator<
     RemoteEventEmitFrame | RemoteEventInvocationFrame | RemoteEventCancellationFrame
     | RemoteEventReadyFrame
@@ -413,6 +478,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     let clientId = randomUUID() as RemoteEventClientId
     while (this.remoteEventClients.has(clientId)) clientId = randomUUID() as RemoteEventClientId
     const client: RemoteEventClient = {
+      version,
       id: clientId,
       queue: new RemoteEventQueue(),
       deliveries: new Map(),
@@ -420,7 +486,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
     this.remoteEventClients.set(clientId, client)
     for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)
     try {
-      yield { ...REMOTE_EVENT_STREAM_READY, clientId, host: registration.host }
+      yield { ...REMOTE_EVENT_STREAM_READY, clientId, host: registration.host,
+        ...(version === 2 ? { pendingInteractionIds: [...client.deliveries.values()]
+          .filter(pending => pending.interaction !== undefined).map(pending => pending.id) } : {}),
+      }
       yield* client.queue.iterate(lifetime)
     } finally {
       this.removeRemoteEventClient(client)
@@ -481,15 +550,28 @@ export class TypertGatewayService extends Service implements TypertGateway {
         source.resolve({ kind: 'next' })
         return
       }
-      const signals = new Set(projected.signal === undefined ? [] : [projected.signal])
+      const createdAt = Date.now()
+      const timeoutMs = source.interaction === undefined
+        ? undefined : this.config.interactionTimeoutMs?.[source.interaction.type]
+      const expiry = timeoutMs === undefined ? undefined
+        : deadline(projected.signal, timeoutMs, 'GATEWAY_INTERACTION_EXPIRED')
+      const signal = expiry?.signal ?? projected.signal
       const abort = (): void => {
-        const reason = [...signals].find(signal => signal.aborted)?.reason as unknown
+        if (expiry !== undefined && timeoutOf(expiry.signal, 'GATEWAY_INTERACTION_EXPIRED') !== undefined) {
+          this.expireRemoteEvent(pending)
+          return
+        }
+        const reason = signal?.reason as unknown
         this.cancelRemoteEvent(pending, reason instanceof Error
           ? reason
           : new Error('typert gateway: Remote event was cancelled', { cause: reason }))
       }
       const pending: PendingRemoteEvent = {
         id,
+        ...(source.interaction === undefined ? {} : { interaction: {
+          ...source.interaction, requestId: id, createdAt, status: 'pending' as const, revision: 1,
+          ...(timeoutMs === undefined ? {} : { expiresAt: createdAt + timeoutMs }),
+        } }),
         source,
         frame: {
           type: 'waterfall',
@@ -501,12 +583,13 @@ export class TypertGatewayService extends Service implements TypertGateway {
         deliveries: new Set(),
         releaseContext,
         releaseSignal: () => {
-          for (const signal of signals) signal.removeEventListener('abort', abort)
+          signal?.removeEventListener('abort', abort)
+          expiry?.[Symbol.dispose]()
         },
       }
       this.pendingRemoteEvents.set(id, pending)
-      for (const signal of signals) signal.addEventListener('abort', abort, { once: true })
-      if ([...signals].some(signal => signal.aborted)) abort()
+      signal?.addEventListener('abort', abort, { once: true })
+      if (signal?.aborted === true) abort()
       else for (const client of this.remoteEventClients.values()) this.deliverRemoteEvent(pending, client)
     } catch (error) {
       source.reject(error)
@@ -514,19 +597,45 @@ export class TypertGatewayService extends Service implements TypertGateway {
   }
 
   private deliverRemoteEvent(pending: PendingRemoteEvent, client: RemoteEventClient): void {
+    if (this.expireRemoteEventIfDue(pending)) return
     pending.deliveries.add(client)
     client.deliveries.set(pending.id, pending)
-    client.queue.push(pending.frame)
+    client.queue.push(client.version === 2 && pending.interaction !== undefined
+      ? { ...pending.frame, interaction: pending.interaction } : pending.frame)
   }
 
   private receiveRemoteEventResult(
     client: RemoteEventClient,
     result: ReturnType<typeof parseRemoteEventResult>,
+    version: RemoteProtocolVersion,
   ): void {
     const pending = this.pendingRemoteEvents.get(result.eventId)
-    // Settlement and Client replacement may race the result request. Results
-    // from a completed event or a superseded delivery are idempotent no-ops.
-    if (pending === undefined || !pending.deliveries.has(client)) return
+    if (pending === undefined || !pending.deliveries.has(client) || this.expireRemoteEventIfDue(pending)) {
+      throw new RemoteError('interaction-closed', 'Interaction delivery is no longer active', { eventId: result.eventId })
+    }
+    if (version !== client.version) {
+      throw new RemoteError('gateway/input-invalid', 'Remote event result protocol must match its delivery generation', {
+        endpoint: REMOTE_EVENT_RESULT_ENDPOINT, field: 'apiProtocolVersion',
+      })
+    }
+    if (client.version === 2 && pending.interaction !== undefined) {
+      if (result.interactionRevision === undefined) {
+        throw new RemoteError('gateway/input-invalid', 'Interaction result requires its delivered revision', {
+          endpoint: REMOTE_EVENT_RESULT_ENDPOINT, field: 'interactionRevision',
+        })
+      }
+      if (result.interactionRevision !== pending.interaction.revision) {
+        throw new RemoteError('revision-conflict', 'Interaction revision does not match the pending request', {
+          eventId: result.eventId,
+          expectedRevision: pending.interaction.revision,
+          receivedRevision: result.interactionRevision,
+        })
+      }
+    } else if (result.interactionRevision !== undefined) {
+      throw new RemoteError('gateway/input-invalid', 'Remote event delivery has no interaction revision', {
+        endpoint: REMOTE_EVENT_RESULT_ENDPOINT, field: 'interactionRevision',
+      })
+    }
     this.removeRemoteEventDelivery(pending, client)
     if (result.outcome.kind === 'result') {
       this.settleRemoteEvent(pending, {
@@ -552,17 +661,32 @@ export class TypertGatewayService extends Service implements TypertGateway {
   }
 
   private settleRemoteEvent(pending: PendingRemoteEvent, outcome: TypertRemoteEventOutcome): void {
-    this.finishRemoteEvent(pending)
+    this.finishRemoteEvent(pending, outcome.kind === 'result' ? 'resolved' : 'delegated')
     pending.source.resolve(outcome)
   }
 
   private cancelRemoteEvent(pending: PendingRemoteEvent, reason: unknown): void {
     if (this.pendingRemoteEvents.get(pending.id) !== pending) return
-    this.finishRemoteEvent(pending)
+    this.finishRemoteEvent(pending, 'cancelled')
     pending.source.reject(reason)
   }
 
-  private finishRemoteEvent(pending: PendingRemoteEvent): void {
+  private expireRemoteEventIfDue(pending: PendingRemoteEvent): boolean {
+    const expiresAt = pending.interaction?.expiresAt
+    if (expiresAt === undefined || Date.now() < expiresAt) return false
+    this.expireRemoteEvent(pending)
+    return true
+  }
+
+  private expireRemoteEvent(pending: PendingRemoteEvent): void {
+    if (this.pendingRemoteEvents.get(pending.id) !== pending) return
+    this.finishRemoteEvent(pending, 'expired')
+    pending.source.reject(new RemoteError('interaction-expired', 'Remote interaction expired before a response was accepted', {
+      eventId: pending.id,
+    }))
+  }
+
+  private finishRemoteEvent(pending: PendingRemoteEvent, status: Exclude<RemoteInteractionRecord['status'], 'pending'>): void {
     this.pendingRemoteEvents.delete(pending.id)
     pending.releaseSignal()
     pending.releaseContext()
@@ -572,7 +696,11 @@ export class TypertGatewayService extends Service implements TypertGateway {
       type: 'cancel',
       eventId: pending.id,
     }
-    for (const client of clients) client.queue.push(cancellation)
+    for (const client of clients) {
+      client.queue.push(client.version === 2 && pending.interaction !== undefined
+        ? { ...cancellation, interaction: { ...pending.interaction, status, revision: pending.interaction.revision + 1 } }
+        : cancellation)
+    }
   }
 
   private closeRemoteEvents(reason: unknown): void {
@@ -638,14 +766,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
 
   private resolveSrcDescriptor(namespace: string, method: string, endpoint: string): InvocationDescriptor {
     const candidates: InvocationDescriptor[] = []
-    for (const [serviceKey, definition] of Object.entries(this.ctx.reflect.props)) {
-      if (definition.type !== 'service') continue
-      const receiver = this.ctx.get(serviceKey) as unknown
-      if (!isObject(receiver)) continue
-      const original = originalOf(receiver)
-      const value = Reflect.get(original, 'typertRemote') as unknown
-      if (value === undefined) continue
-      const binding = readBinding(value, original, serviceKey, endpoint)
+    for (const { binding, original } of this.activeBindings(endpoint)) {
       if (binding.namespace !== namespace) continue
       const marker = remoteMethods(original).find(candidate => (candidate.exportName ?? candidate.method) === method)
       if (marker === undefined) continue
@@ -662,6 +783,19 @@ export class TypertGatewayService extends Service implements TypertGateway {
       )
     }
     return candidates[0] as InvocationDescriptor
+  }
+
+  private *activeBindings(endpoint: string): Generator<ResolvedBinding> {
+    for (const [serviceKey, definition] of Object.entries(this.ctx.reflect.props)) {
+      if (definition.type !== 'service') continue
+      const receiver = this.ctx.get(serviceKey) as unknown
+      if (!isObject(receiver)) continue
+      const original = originalOf(receiver)
+      const value = Reflect.get(original, 'typertRemote') as unknown
+      if (value === undefined) continue
+      const binding = readBinding(value, original, serviceKey, endpoint)
+      yield { binding, original }
+    }
   }
 
   private srcDescriptor(

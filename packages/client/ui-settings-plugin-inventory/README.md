@@ -25,7 +25,11 @@ The **Plugin list** tab lets Web users inspect plugins without changing their co
 <a id="use-this-package"></a>
 ## Use this package
 
+The inventory callback preserves the original `RemoteError`, including codes unknown to this Client. The tab owns its localized failure and explicit retry UI.
+
 Open the Plugins section in Settings and select the **Plugin list** tab to inspect the Host's plugin inventory. The tab reads no Remote during plugin activation — selecting it for the first time mounts the component and lazily calls `ctx.remote.pluginInventory.list()` through `api-remotes`.
+
+The tab is registered only while the current connection advertises `plugin.inventory.v1`. Connection replacement withdraws the tab, aborts its reads and discards search, selected preset, expanded cards and open menus. Restoration mounts a fresh page that reads the current Host lazily; a late response or retained retry callback from the previous page cannot update or read the replacement Host. Separate composer drafts remain unchanged.
 
 ### Reading a card
 

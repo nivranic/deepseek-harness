@@ -6,7 +6,7 @@
  * the onboarding plugin's shared modal, so the key is entered once.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { InjectFace, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -53,6 +53,7 @@ function assertNever(_value: never): never {
 export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): ReactNode {
   const { complete, controller, useModels, operations, schema, t } = props
   const state = useModels(snapshot => snapshot)
+  const captured = useMemo(() => operations.capture(), [operations, state.connectionGeneration])
   const readiness = onboardingReadiness(state)
 
   useEffect(() => {
@@ -101,12 +102,13 @@ export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): 
       <p className={styles.description}>{t('onboardingDescription')}</p>
       <div className={styles.editor}>
         <ProviderEditor
+          key={state.connectionGeneration}
           provider={row.entry.provider}
           displayName={row.entry.displayName}
           namespace={namespace}
           schema={schema}
           settingsPath={row.entry.settingsPath}
-          operations={operations}
+          operations={captured}
           t={t}
           readOnly={false}
           hideTitle

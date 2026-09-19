@@ -25,6 +25,8 @@ This package lets web-client features expose editable preferences backed by the 
 <a id="use-this-package"></a>
 ## Use this package
 
+The mirror waits for admitted `settings.read.v1` support before requesting a document. Missing support publishes `unavailable` without probing; a replacement Connection generation clears the held document and revision authority. Within one generation, failed refreshes retain the last accepted view. Effective writability also requires `settings.write.v1`. A scope submits only after that generation has supplied an accepted namespace; an earlier gesture is skipped and must be repeated explicitly. Queued writes capture their initiating generation, and replacement drops them without replay. Late results cannot update the mirror, trigger recovery against another generation, or pass a previous Host revision to a new write. Last accepted preference values may remain visible while their scope is unavailable; local UI changes do not imply Host persistence.
+
 Feature plugins use this package to store and edit their preferences without re-implementing transport or schema handling. Mount it once per composition; it injects the `remote` service with its `settings` namespace and owns the single `settings.describe` reader in the browser.
 
 ### Binding a namespace
@@ -51,7 +53,7 @@ The package realizes one ownership rule: the browser keeps one shared mirror of 
 
 ### The describe mirror
 
-The plugin injects `remote` with its `settings` namespace, resolves Host persistence once from the fixed `remote.$host` facts, and owns the one `settings.describe` reader in the browser: a shared mirror refreshed on every forwarded `settings/document-updated` event and on `connection/reset` (the first connection included, closing the window where a commit lands between the eager read and the SSE subscription). Cross-namespace surfaces read it through `ctx.settingsScope.describe()`, a read/fold face (`getSnapshot`/`subscribe`/`ensure`, plus `acceptView` folding a write answer in).
+The plugin injects `remote` with its `settings` namespace, resolves Host persistence once from the fixed `remote.$host` facts, and owns the one `settings.describe` reader in the browser: a shared mirror refreshed on every forwarded `settings/document-updated` event and on Connection generation changes. Withdrawal immediately clears the previous document and write authority; an admitted capable generation starts its read after event readiness and capability discovery. Cross-namespace surfaces read it through `ctx.settingsScope.describe()`, a read/fold face (`getSnapshot`/`subscribe`/`ensure`, plus `acceptView` folding a write answer in).
 
 ### Scope derivation
 

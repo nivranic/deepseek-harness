@@ -38,7 +38,10 @@ const S2_CMDS: CommandDescriptor[] = [
 
 type ExecuteValue = { matched: boolean; commandId?: string; result?: CommandResult }
 
+const COMMAND_CAPABILITIES = ['command.catalog.v1', 'command.execute.v1']
+
 interface BenchOptions {
+  capabilities?: readonly string[]
   /** Scripted catalog per list payload; default serves the fixed catalogs by session. */
   commands?: (payload: { sessionId: SessionId }) => Promise<{ commands: CommandDescriptor[] }>
   execute?: (payload: { sessionId: SessionId; line: string }) => Promise<ExecuteValue>
@@ -115,6 +118,16 @@ async function bench(opts: BenchOptions = {}) {
       : undefined,
   })
   const remote = Object.assign(new TestRemote(ctx), { commands: commandsRemote })
+  remote.$host = { ...remote.$host, capabilities: opts.capabilities ?? COMMAND_CAPABILITIES }
+  const listeners = new Set<() => void>()
+  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+    listeners.add(listener)
+    return () => { listeners.delete(listener) }
+  } } })
+  const reconnect = (capabilities: readonly string[] = COMMAND_CAPABILITIES) => {
+    remote.$host = { ...remote.$host, capabilities }
+    for (const listener of listeners) listener()
+  }
   ctx.provide('remote.commands', commandsRemote)
   const executions: Array<{ sessionId: SessionId; name: string; result: CommandResult }> = []
   ctx.on('command/executed', (sessionId, name, result) => {
@@ -145,7 +158,7 @@ async function bench(opts: BenchOptions = {}) {
   const warm = async (session: ClientSessionContext) => {
     await source.candidates(session, { query: '', position: 'leading', drilled: false, signal: new AbortController().signal })
   }
-  return { ctx, fiber, command, source, mint, warm, listCalls, executeCalls, executions, registered, notices, remote }
+  return { reconnect, ctx, fiber, command, source, mint, warm, listCalls, executeCalls, executions, registered, notices, remote }
 }
 
 function menuPick(source: InputTriggerSource, name: string, session: ClientSessionContext, end?: number) {
@@ -866,12 +879,10 @@ describe('detached admission notices', () => {
     mode = 'reject'
     menuPick(source, 'plan', proj('s1'))
     await flush()
-    // A dead Remote call and a rejected one now read alike: both arrive as a
-    // failed result, so the notice names the endpoint either way.
     expect(notices).toEqual([{
       scope: sid('s1'),
       level: 'error',
-      text: 'command.execute failed: gateway/internal: network down',
+      text: 'network down',
     }])
   })
 
@@ -1007,7 +1018,7 @@ describe('directory invalidation events', () => {
   it('connection/reset hard-drops every session key until its rewarm lands', async () => {
     let block = false
     let release!: (value: { commands: CommandDescriptor[] }) => void
-    const { ctx, source, warm } = await bench({
+    const { reconnect, source, warm } = await bench({
       commands: () => (block
         ? new Promise((resolve) => { release = resolve })
         : Promise.resolve({ commands: S2_CMDS })),
@@ -1015,11 +1026,129 @@ describe('directory invalidation events', () => {
     await warm(proj('s2'))
     expect(source.matchSpace!(proj('s2'), '/attach')).not.toBeUndefined()
     block = true
-    ctx.emit('connection/reset')
+    reconnect()
     // Hard reset: silent until the rewarm lands.
     expect(source.matchSpace!(proj('s2'), '/attach')).toBeUndefined()
     release({ commands: S2_CMDS })
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(source.matchSpace!(proj('s2'), '/attach')).not.toBeUndefined()
+  })
+})
+
+
+it('dismisses old-generation popups without stealing focus or accepting late options', async () => {
+  const { ctx, reconnect, command, source, mint } = await bench()
+  try {
+    const pending = Promise.withResolvers<SelectOption[]>()
+    command.register(themeContribution({ ui: themeUi({ options: () => pending.promise }) }))
+    const scope = mint('s1')
+    const focus = vi.fn()
+    command.bindComposerFocus(sid('s1'), focus)
+    menuPick(source, 'theme', proj('s1'), 6)
+    const popup = command.popupFor(scope.ctx)
+    expect(popup.state.getSnapshot().open).toBe(true)
+    reconnect()
+    expect(popup.state.getSnapshot().open).toBe(false)
+    pending.resolve([{ id: 'late', label: 'Late' }])
+    await Promise.resolve()
+    expect(popup.state.getSnapshot().open).toBe(false)
+    expect(focus).not.toHaveBeenCalled()
+  } finally {
+    await ctx.fiber.dispose()
+  }
+})
+
+describe('Host command generations', () => {
+  it.each([{ capabilities: [] }, { capabilities: ['command.execute.v1'] }])('keeps local contributions without probing an absent catalog: $capabilities', async ({ capabilities }) => {
+    const b = await bench({ capabilities })
+    onTestFinished(() => b.ctx.fiber.dispose())
+    const run = vi.fn()
+    b.command.register(themeContribution({ ui: { kind: 'action', run } }))
+    expect((await b.source.candidates(proj('s1'), req(''))).map(row => row.name)).toEqual(['theme'])
+    expect(b.listCalls).toEqual([])
+    expect(menuPick(b.source, 'theme', proj('s1'))).toBe('handled')
+    expect(run).toHaveBeenCalledTimes(1)
+    await expect(b.source.matchEnter!(proj('s1'), '/goal keep', req('').signal, { attachments: 0 })).rejects.toThrow('notice.connectionChanged')
+    expect(b.executeCalls).toEqual([])
+  })
+
+  it('does not offer execution from a catalog-only Host', async () => {
+    const b = await bench({ capabilities: ['command.catalog.v1'] })
+    onTestFinished(() => b.ctx.fiber.dispose())
+    expect(await b.source.candidates(proj('s1'), req(''))).toEqual([])
+    expect(b.listCalls).toHaveLength(1)
+    expect(b.source.matchSpace!(proj('s1'), '/goal')).toBeUndefined()
+    expect(menuPick(b.source, 'plan', proj('s1'))).toBeUndefined()
+    expect(b.executeCalls).toEqual([])
+  })
+
+  it('withdraws pending candidates and Enter without waiting for either Host response', async () => {
+    const old = Promise.withResolvers<{ commands: CommandDescriptor[] }>()
+    const current = Promise.withResolvers<{ commands: CommandDescriptor[] }>()
+    let round = 0
+    const b = await bench({ commands: () => (++round === 1 ? old.promise : current.promise) })
+    onTestFinished(() => b.ctx.fiber.dispose())
+    const listener = vi.fn()
+    const unsubscribe = b.source.subscribeCandidates!(proj('s1'), listener)
+    const rows = b.source.candidates(proj('s1'), req(''))
+    const enter = b.source.matchEnter!(proj('s1'), '/goal preserve', req('').signal, { attachments: 0 })
+    const rejected = expect(enter).rejects.toThrow('notice.connectionChanged')
+    b.reconnect()
+    expect(listener).toHaveBeenCalledTimes(1)
+    await expect(rows).resolves.toEqual([])
+    await rejected
+    old.resolve({ commands: [{ name: 'stale', description: '' }] })
+    current.resolve({ commands: S1_CMDS })
+    await b.warm(proj('s1'))
+    expect(b.source.matchSpace!(proj('s1'), '/goal')).toBeDefined()
+    expect(b.executeCalls).toEqual([])
+    unsubscribe()
+    b.reconnect([])
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  it('rejects a retained claim and candidate on an equally capable replacement', async () => {
+    const b = await bench()
+    onTestFinished(() => b.ctx.fiber.dispose())
+    const scope = b.mint('s1')
+    const rows = await b.source.candidates(proj('s1'), req(''))
+    const oldRow = rows.find(row => row.name === 'plan')!
+    const outcome = b.source.matchSpace!(proj('s1'), '/goal')
+    if (outcome === undefined || outcome === 'handled' || !('claim' in outcome)) throw new Error('expected claim')
+    b.reconnect()
+    await b.warm(proj('s1'))
+    await expect(outcome.claim.submit('keep draft', scope.ctx, [])).rejects.toThrow('notice.connectionChanged')
+    expect(b.source.onPick({ candidate: oldRow, session: proj('s1'), position: 'leading', via: 'menu', action: 'pick', span: { start: 0, end: 5, draftRev: 0 } })).toBeUndefined()
+    expect(b.executeCalls).toEqual([])
+    const fresh = b.source.matchSpace!(proj('s1'), '/goal')
+    if (fresh === undefined || fresh === 'handled' || !('claim' in fresh)) throw new Error('expected fresh claim')
+    await expect(fresh.claim.submit('explicit retry', scope.ctx, [])).resolves.toEqual({ kind: 'success' })
+    expect(b.executeCalls).toHaveLength(1)
+  })
+
+  it.each(['success', 'error'] as const)('discards an old detached %s acknowledgment without replay or notices', async (kind) => {
+    const pending = Promise.withResolvers<ExecuteValue>()
+    const b = await bench({ execute: () => pending.promise })
+    onTestFinished(() => b.ctx.fiber.dispose())
+    b.mint('s1')
+    await b.warm(proj('s1'))
+    expect(menuPick(b.source, 'plan', proj('s1'))).toBe('handled')
+    b.reconnect()
+    pending.resolve({ matched: true, result: { kind, text: 'late outcome' } })
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(b.executeCalls).toHaveLength(1)
+    expect(b.executions).toEqual([])
+    expect(b.notices).toEqual([])
+  })
+
+  it('releases a pending catalog on disposal and ignores late data', async () => {
+    const pending = Promise.withResolvers<{ commands: CommandDescriptor[] }>()
+    const b = await bench({ commands: () => pending.promise })
+    const rows = b.source.candidates(proj('s1'), req(''))
+    await b.fiber.dispose()
+    await expect(rows).resolves.toEqual([])
+    pending.resolve({ commands: S1_CMDS })
+    expect(b.executeCalls).toEqual([])
+    await b.ctx.fiber.dispose()
   })
 })

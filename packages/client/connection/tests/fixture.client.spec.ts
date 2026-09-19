@@ -1635,6 +1635,12 @@ describe('fixture Connection RPC', () => {
     vi.unstubAllGlobals()
   })
 
+  it.each(['canOpenWorkspacePath', 'openWorkspacePath', 'workspaceDesktop'])('does not emulate the Host-local Session method %s', async (method) => {
+    const rpc = createFixtureConnectionRpc()
+    await expect(rpc.call('/api', `session/${method}`, { args: {} }, new AbortController().signal))
+      .rejects.toThrow(`fixture connection RPC endpoint "session/${method}" is unavailable`)
+  })
+
   it('covers the migrated Remote dispatch table', async () => {
     const rpc = createFixtureConnectionRpc()
     const sessions = createSessionClient(rpc)

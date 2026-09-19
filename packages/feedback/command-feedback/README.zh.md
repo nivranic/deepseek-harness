@@ -38,6 +38,8 @@ kind: "package-reference"
 
 前后空白会被去除，但除此之外，评价会按输入原样保留：不进行截断、大小写折叠或命令解析——`/feedback /plan felt slow` 记录的就是这段字面文本。每次执行命令都会记录自己的条目；不会发生合并或替换。
 
+弹窗 Remote 声明 `feedback.session.record.v1`，Client Gateway 在记录 Session 备注前要求此能力。Host slash command 保留独立的命令执行准入。两条路径都不承诺幂等重试或落盘刷新确认。
+
 <a id="the-web-feedback-dialog"></a>
 ### Web 反馈弹窗
 

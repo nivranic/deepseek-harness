@@ -199,6 +199,18 @@ describe('gate graph validation', () => {
     expect(ids).toContain('package-readme-summaries')
   })
 
+  it.each(['doc-sync', 'doc-quick'] as const)('checks the published known-error vocabulary in %s', (mode) => {
+    const gate = withPnpmEntrypoint(() => gatesForMode(mode).find(subject => subject.id === 'remote-error-codes'))
+    expect(gate?.displayCommand).toBe('pnpm run verify-remote-error-codes')
+  })
+
+  it('keeps compiler-backed error coverage in doc-sync without adding it to quick prose checks', () => {
+    const full = withPnpmEntrypoint(() => gatesForMode('doc-sync'))
+    const quick = withPnpmEntrypoint(() => gatesForMode('doc-quick'))
+    expect(full.find(gate => gate.id === 'remote-error-envelope')?.displayCommand).toBe('pnpm run verify-remote-error-envelope')
+    expect(quick.some(gate => gate.id === 'remote-error-envelope')).toBe(false)
+  })
+
   it('derives the quick documentation aggregate from marked doc-sync leaves', () => {
     const full = withPnpmEntrypoint(() => gatesForMode('doc-sync'))
     const quick = withPnpmEntrypoint(() => gatesForMode('doc-quick'))

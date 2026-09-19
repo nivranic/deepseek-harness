@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/windows-runtime-review-source.json",
+      "status": "PASS",
+      "rejected": "Windows runtime review record changed"
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/windows-job.ts",
+      "status": "PASS",
+      "rejected": "Windows runtime review sourceFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/installed-token-comparison-final.json",
+      "status": "PASS",
+      "rejected": "Windows runtime review receipts changed after validation"
+    },
+    {
+      "path": ".artifacts/windows-job-native.log",
+      "status": "PASS",
+      "rejected": "Windows runtime review logs changed after validation"
+    },
+    {
+      "path": ".artifacts/probe-runtime-location.py",
+      "status": "PASS",
+      "rejected": "Windows wheel helpers changed after validation"
+    }
+  ]
+}

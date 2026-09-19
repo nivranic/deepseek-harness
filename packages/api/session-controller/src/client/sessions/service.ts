@@ -387,6 +387,11 @@ export class ClientSessions implements ISessions {
     this.manager.handleSessionError(...args)
   }
 
+  /** Withdraw child catalog authority before the replacement connection is ready. */
+  handleSubagentGenerationChanged(): void {
+    this.manager.handleSubagentGenerationChanged()
+  }
+
   /** Rebuild the Session baseline and every opened window after connection. */
   handleConnected(): void {
     this.manager.handleConnected()
@@ -447,7 +452,7 @@ export class ClientSessions implements ISessions {
       const child = this.binding(childId)?.session
       if (child === undefined) throw new Error(`fork child "${childId}" is not locally addressable`)
       const renamed = await child.rename(increasedForkTitle(sourceTitle))
-      if (!renamed.ok) throw new Error(`fork child rename failed: ${renamed.error.code}: ${renamed.error.message}`)
+      if (!renamed.ok) throw renamed.error
     }
     return childId
   }

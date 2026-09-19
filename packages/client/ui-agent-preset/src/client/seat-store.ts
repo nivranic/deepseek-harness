@@ -16,7 +16,7 @@ import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type { SessionSummary } from '@deepseek-ai/dsh-api-session-controller/client'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type {} from '@deepseek-ai/dsh-agent-presets/types'
-import { presetOptions, readRoster } from './settings-store.ts'
+import { hasHostCapability, presetOptions, readRoster } from './settings-store.ts'
 import type { AgentPresetOption } from './settings-store.ts'
 
 /** Hero-chip snapshot. */
@@ -78,6 +78,13 @@ export class AgentPresetSeatController {
   */
   async load(): Promise<void> {
     const generation = ++this.loadGeneration
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'agent-preset.select.v1')) {
+      this.staged = undefined
+      this.fallback = ''
+      this.store.set(INITIAL)
+      return
+    }
     const roster = await readRoster(this.ctx)
     if (generation !== this.loadGeneration) return
     if (!roster.ok) {
@@ -134,6 +141,8 @@ export class AgentPresetSeatController {
    * chip should announce itself on the session it lands on.
    */
   stage(id: string, introduce = false): void {
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'agent-preset.select.v1')) return
     this.staged = id
     this.set({ current: id, error: null, introduce })
   }
@@ -179,6 +188,12 @@ export class AgentPresetSeatController {
    * @returns once the switch settled, or immediately when there is nothing to do.
    */
   async apply(): Promise<void> {
+    if (!hasHostCapability(this.ctx, 'agent-preset.catalog.v1')
+      || !hasHostCapability(this.ctx, 'agent-preset.select.v1')) {
+      this.staged = undefined
+      this.set({ showPicker: false, introduce: false })
+      return
+    }
     const staged = this.staged
     const session = this.currentSession()
     if (staged === undefined) {
@@ -194,7 +209,9 @@ export class AgentPresetSeatController {
       return
     }
     this.set({ busy: true, error: null })
+    const host = this.ctx.remote.$host
     const result = await this.ctx.remote.agentPresets.select(session.id, staged)
+    if (this.ctx.remote.$host !== host) return
     this.staged = undefined
     if (!result.ok) {
       const { error } = result

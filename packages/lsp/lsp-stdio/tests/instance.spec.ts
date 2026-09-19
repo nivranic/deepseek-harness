@@ -148,48 +148,73 @@ describe('LspInstance query and abort', () => {
     await expect(run(instance, 'goToDefinition', controller.signal)).rejects.toThrow(/pre-abort/)
   })
 
-  it('cancels an in-flight request on abort and rejects', async () => {
-    const instance = makeInstance({ LSP_FAKE_HANG: '1' })
+  it('cancels an in-flight request on abort and rejects', async ({ task, signal }) => {
+    const received = join(root, 'request-received')
+    const instance = makeInstance({ LSP_FAKE_HANG: '1', LSP_FAKE_REQUEST_MARKER: received })
     const controller = new AbortController()
-    // Warm the instance first so the abort lands during the hanging request, not during startup.
     const pending = run(instance, 'goToDefinition', controller.signal)
-    await new Promise<void>(resolve => setTimeout(resolve, 300))
+      .then(() => undefined, (error: unknown) => error)
+    await waitForFile(received, task.timeout, signal)
     controller.abort(new Error('mid-flight'))
-    await expect(pending).rejects.toThrow(/mid-flight/)
+    const failure = await pending
+    expect(() => { throw failure }).toThrow(/mid-flight/)
   })
 
-  it('terminates the instance when the server ignores $/cancelRequest past the grace', async () => {
+  it('terminates the instance when the server ignores $/cancelRequest past the grace', async ({ task, signal }) => {
     // The hang server never honors cancellation, so after the bounded grace the instance must be torn
     // down (its process closed) rather than left with an active request.
-    const instance = makeInstance({ LSP_FAKE_HANG: '1' }, { killGraceMs: 100 })
+    const received = join(root, 'request-received')
+    let processClosed = false
+    const instance = makeInstance({ LSP_FAKE_HANG: '1', LSP_FAKE_REQUEST_MARKER: received }, { killGraceMs: 100 },
+      undefined, (spec) => {
+        const handle = spawnSubprocess(spec)
+        void Promise.allSettled([handle.done]).then(([result]) => { processClosed = result.status === 'fulfilled' })
+        return handle
+      })
     const controller = new AbortController()
     const pending = run(instance, 'goToDefinition', controller.signal)
-    await new Promise<void>(resolve => setTimeout(resolve, 300))
+      .then(() => undefined, (error: unknown) => error)
+    await waitForFile(received, task.timeout, signal)
+    expect(processClosed).toBe(false)
     controller.abort(new Error('mid-flight'))
-    await expect(pending).rejects.toThrow(/mid-flight/)
+    const failure = await pending
+    expect(() => { throw failure }).toThrow(/mid-flight/)
+    expect(processClosed).toBe(true)
     expect(instance.dead).toBe(true)
   })
 
-  it('resolves the cancel grace when the server honors $/cancelRequest', async () => {
+  it.for([0, 600])('resolves the cancel grace when the server honors $/cancelRequest (initialize delay %i ms)', async (initializeDelayMs, { task, signal }) => {
     // A server that answers $/cancelRequest by settling the pending request lets the grace race
     // resolve via the request rather than the timeout, so the instance is NOT force-terminated.
-    const script = 'let b=Buffer.alloc(0),reqId=null;'
+    const receivedPath = join(root, 'definition-received')
+    const cancelledPath = join(root, 'definition-cancelled')
+    const script = 'let b=Buffer.alloc(0),reqId=null,didCancel=false;'
       + 'const fr=(o)=>{const x=Buffer.from(JSON.stringify({jsonrpc:"2.0",...o}));return Buffer.concat([Buffer.from(`Content-Length: ${x.length}\\r\\n\\r\\n`),x]);};'
       + 'process.stdin.on("data",c=>{b=Buffer.concat([b,c]);for(;;){const s=b.indexOf("\\r\\n\\r\\n");if(s<0)break;const len=Number(/(\\d+)/.exec(b.toString("ascii",0,s))[1]);if(b.length<s+4+len)break;const m=JSON.parse(b.toString("utf8",s+4,s+4+len));b=b.subarray(s+4+len);'
-      + 'if(m.method==="initialize")process.stdout.write(fr({id:m.id,result:{capabilities:{positionEncoding:"utf-16",textDocumentSync:1,definitionProvider:true}}}));'
-      + 'else if(m.method==="textDocument/definition")reqId=m.id;'
-      + 'else if(m.method==="$/cancelRequest"&&reqId!==null)process.stdout.write(fr({id:reqId,error:{code:-32800,message:"request cancelled"}}));'
+      + `if(m.method==="initialize")setTimeout(()=>process.stdout.write(fr({id:m.id,result:{capabilities:{positionEncoding:"utf-16",textDocumentSync:1,definitionProvider:true}}})),${initializeDelayMs});`
+      + `else if(m.method==="textDocument/definition"){if(didCancel)process.stdout.write(fr({id:m.id,result:null}));else{reqId=m.id;require("node:fs").writeFileSync(${JSON.stringify(receivedPath)},String(reqId));}}`
+      + `else if(m.method==="$/cancelRequest"&&m.params.id===reqId){didCancel=true;require("node:fs").writeFileSync(${JSON.stringify(cancelledPath)},String(reqId));process.stdout.write(fr({id:reqId,error:{code:-32800,message:"request cancelled"}}));}`
       + 'else if(m.method==="shutdown")process.stdout.write(fr({id:m.id,result:null}));'
       + 'else if(m.method==="exit")process.exit(0);'
       + '}});'
     const instance = scriptInstance(script, { killGraceMs: 2_000 })
     const controller = new AbortController()
     const pending = run(instance, 'goToDefinition', controller.signal)
-    await new Promise<void>(resolve => setTimeout(resolve, 300))
+      .then(() => undefined, (error: unknown) => error)
+    await waitForFile(receivedPath, task.timeout, signal)
     controller.abort(new Error('mid-flight'))
-    await expect(pending).rejects.toThrow(/mid-flight/)
+    const failure = await pending
+    expect(() => { throw failure }).toThrow(/mid-flight/)
+    const requestId = await readFile(receivedPath, 'utf8')
+    expect(Number(requestId)).toBeGreaterThan(0)
+    expect(await readFile(cancelledPath, 'utf8')).toBe(requestId)
     // The server acknowledged cancellation within grace, so the instance was not force-killed.
     expect(instance.dead).toBe(false)
+    await expect(run(instance, 'goToDefinition')).resolves.toEqual({
+      kind: 'locations',
+      locations: [],
+      resolvedWorkspaceUri: pathToFileURL(ws).href,
+    })
     await instance.dispose()
   })
 
@@ -358,13 +383,16 @@ describe('LspInstance disposal', () => {
     }
   })
 
-  it('carries a non-Error abort reason as a generic aborted error', async () => {
-    const instance = makeInstance({ LSP_FAKE_HANG: '1' })
+  it('carries a non-Error abort reason as a generic aborted error', async ({ task, signal }) => {
+    const received = join(root, 'request-received')
+    const instance = makeInstance({ LSP_FAKE_HANG: '1', LSP_FAKE_REQUEST_MARKER: received })
     const controller = new AbortController()
     const pending = run(instance, 'goToDefinition', controller.signal)
-    await new Promise<void>(resolve => setTimeout(resolve, 200))
+      .then(() => undefined, (error: unknown) => error)
+    await waitForFile(received, task.timeout, signal)
     controller.abort('a string reason, not an Error')
-    await expect(pending).rejects.toThrow(/aborted/)
+    const failure = await pending
+    expect(() => { throw failure }).toThrow(/aborted/)
   })
 })
 

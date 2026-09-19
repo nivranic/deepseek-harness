@@ -10,6 +10,8 @@ import {
   SubagentHeaderLineage, type SubagentHeaderLineageProps,
 } from '../src/client/SubagentHeaderLineage.tsx'
 import { SubagentReadOnlyComposer } from '../src/client/SubagentReadOnlyComposer.tsx'
+import { CapabilityAwareSubagentHeader } from '../src/client/CapabilityAwareSubagentHeader.tsx'
+import type { SubagentCatalogAccess } from '../src/client/catalog-access.ts'
 import { zh } from '../src/client/locales.ts'
 
 afterEach(() => {
@@ -89,6 +91,21 @@ function summary(id: SessionId, updatedAt: number): SessionSummary {
     updatedAt,
   }
 }
+
+it('preserves only child breadcrumb text when catalog actions are unavailable', () => {
+  const parent = {
+    ...props(undefined),
+    useSubagentCatalog: <T,>(select: (value: SubagentCatalogAccess) => T): T => select({ generation: 1 }),
+  }
+  const view = render(<CapabilityAwareSubagentHeader {...parent} />)
+  expect(view.queryByText('Parent title')).toBeNull()
+  const child = { ...parent, ...props(undefined, {}, {
+    [PARENT]: { ...summary(PARENT, 1), origin: 'subagent', parentId: GRANDCHILD },
+  }) }
+  view.rerender(<CapabilityAwareSubagentHeader {...child} />)
+  expect(view.getByText('Parent title')).toBeDefined()
+  expect(view.queryByRole('button')).toBeNull()
+})
 
 function hoverCatalog(trigger: HTMLElement): void {
   const root = trigger.parentElement
@@ -433,7 +450,7 @@ describe('SubagentHeaderLineage', () => {
     expect(screen.getByText('约2年3个月')).toBeTruthy()
     expect(screen.getByText('约1年')).toBeTruthy()
 
-    await vi.advanceTimersByTimeAsync(1_000)
+    await act(async () => { await vi.advanceTimersByTimeAsync(1_000) })
     expect(screen.getByRole('treeitem', { name: /running.*4\.6K tok · 1分11秒/ })).toBeTruthy()
     expect(screen.getByRole('treeitem', { name: /finished.*123 tok · 1小时02分03秒/ })).toBeTruthy()
     expect(screen.getByRole('treeitem', { name: /interrupted.*123M tok · 6秒/ })).toBeTruthy()

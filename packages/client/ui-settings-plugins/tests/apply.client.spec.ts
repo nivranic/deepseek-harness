@@ -24,6 +24,7 @@ import { apply as hostApply } from '../src/index.ts'
  */
 async function bench(served?: string[]) {
   const ctx = new Context()
+  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry).await()
   const locale = new LocaleRuntime(ctx)
   locale.setLocale('zh')
@@ -42,7 +43,9 @@ async function bench(served?: string[]) {
         writable: true,
         hasDocument: true,
         namespaces: served.map(ns => ({
-          ns, schema: {}, value: {}, applies: 'live', secrets: [], revision: 0,
+          ns, schema: { uid: 1, refs: { 1: { uid: 1, type: 'object', dict: {}, meta: {} } } },
+          value: ns === 'subagent-model-selection' ? { enabled: false, allowedModels: [] } : {},
+          applies: 'live', secrets: [], revision: 0,
         })),
       },
     }))
@@ -51,6 +54,8 @@ async function bench(served?: string[]) {
     session: { modelCatalog: models },
     settings: { describe: describeSettings },
   })
+  remote.$host = { home: undefined, isLoopback: true,
+    capabilities: ['settings.read.v1', 'settings.write.v1', 'credentials.describe.v1', 'credentials.write.v1'] }
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   return {
     ctx, slots: ctx.get('slots') as SlotRegistry, describeCredentials, describeSettings, models, remote,
@@ -178,7 +183,7 @@ describe('ui-settings-plugins apply', () => {
   })
 
   it('re-reads the credential when the Host reports the watched reference changed', async () => {
-    const { ctx, slots, describeCredentials, remote } = await bench()
+    const { ctx, slots, describeCredentials, remote } = await bench(['web-search-deepseek'])
     declareRoot(slots)
     await ctx.plugin({ inject: [...inject], apply }).await()
     await vi.waitFor(() => { expect(describeCredentials).toHaveBeenCalled() })
@@ -209,7 +214,7 @@ describe('ui-settings-plugins apply', () => {
   })
 
   it('ignores a credential change for a reference no card watches', async () => {
-    const { ctx, slots, describeCredentials, remote } = await bench()
+    const { ctx, slots, describeCredentials, remote } = await bench(['web-search-deepseek'])
     declareRoot(slots)
     await ctx.plugin({ inject: [...inject], apply }).await()
     await vi.waitFor(() => { expect(describeCredentials).toHaveBeenCalled() })

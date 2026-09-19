@@ -61,6 +61,8 @@ export interface DirectoryBrowserProps {
    * business message over the ordinary Error text.
    */
   createDirectory: (path: string, name: string) => Promise<string>
+  /** Show folder creation only when its operation is supported. */
+  canCreateDirectory: boolean
   /** The operator confirmed a directory (the selection, else the listed level). */
   onOpen: (path: string) => void
   /** Close without picking (mask, Escape, Cancel). */
@@ -270,7 +272,9 @@ function LevelColumn({ entries, selectedPath, busy, onPick, showHidden, filterPr
  * @param props - owner-controlled browser props.
  * @returns the dialog element (null while closed, via Modal).
  */
-export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen, onClose, busy, t }: DirectoryBrowserProps) {
+export function DirectoryBrowser({
+  open, listDirectory, createDirectory, canCreateDirectory, onOpen, onClose, busy, t,
+}: DirectoryBrowserProps) {
   // Miller state: the listed level, the selected row in it, and the selected
   // folder's own listing (the right column; null while nothing is selected).
   const [parent, setParent] = useState<DirectoryListing | null>(null)
@@ -301,6 +305,13 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
   // Bumped on every open/close edge: settlements from a previous open (a
   // pending creation included) must never mutate a reopened dialog.
   const openGeneration = useRef(0)
+  useEffect(() => {
+    if (canCreateDirectory) return
+    openGeneration.current += 1
+    setFolderDraft(null)
+    setCreatingFolder(false)
+    setCreateError(null)
+  }, [canCreateDirectory])
   // Deep ancestry overflows the trail; keep its tail (the current directory
   // and the edit zone beside it) in view whenever the chain changes.
   const crumbTrailRef = useRef<HTMLSpanElement | null>(null)
@@ -606,7 +617,7 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
 
   const confirmCreate = (): void => {
     /* v8 ignore next -- reentry fence: the nested dialog only renders with a target and disables while creating. */
-    if (targetPath === null || folderDraft === null || creatingFolder) return
+    if (!canCreateDirectory || targetPath === null || folderDraft === null || creatingFolder) return
     // Trim only rejects an all-whitespace draft; the Host gets the original
     // spelling — the backend accepts any non-blank single segment verbatim,
     // and trimming here would create (and select) a different sibling.
@@ -962,7 +973,7 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
           {error !== null && <div className={css.error} role="alert">{error}</div>}
         </div>
         <div className={css.footerBar}>
-          <Button
+          {canCreateDirectory && <Button
             variant="outline"
             icon={<IconPlusOutline16 size={14} />}
             disabled={parent === null || loading || parentInert || draftPending}
@@ -972,7 +983,7 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
             }}
           >
             {t('browser.newFolder')}
-          </Button>
+          </Button>}
           <button
             type="button"
             className={clsx(css.showHiddenToggle, showHidden && css.showHiddenToggleActive)}
@@ -1005,7 +1016,7 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
       </div>
       {/* Nested create dialog (figma 813:23278): names one folder inside the target. */}
       <Modal
-        open={folderDraft !== null}
+        open={canCreateDirectory && folderDraft !== null}
         onClose={() => { if (!creatingFolder) setFolderDraft(null) }}
         title={t('browser.newFolder')}
         className={clsx(css.createDialog)}

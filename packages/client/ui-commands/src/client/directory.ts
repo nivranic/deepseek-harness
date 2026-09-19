@@ -34,6 +34,8 @@ class Entry {
 /** The session-keyed directory cache. Plain class — the owning service wires events and RPC. */
 export class CommandDirectory {
   private readonly entries = new Map<SessionId, Entry>()
+  private generation = 0
+  private disposed = false
 
   constructor(private readonly fetchCommands: FetchCommands) {}
 
@@ -80,10 +82,12 @@ export class CommandDirectory {
    * may have changed shape across the generation) and prewarms.
    */
   resetConnected(): void {
+    this.generation += 1
     for (const [key, entry] of this.entries) {
       entry.state = 'cold'
       entry.commands = []
       void this.refresh(key)
+      notifyWaiters(entry)
     }
   }
 
@@ -105,6 +109,7 @@ export class CommandDirectory {
    * @returns settled when this pull's outcome is published or discarded.
    */
   async refresh(sessionId: SessionId): Promise<void> {
+    if (this.disposed) return
     const entry = this.entry(sessionId)
     const epoch = ++entry.epoch
     if (entry.state !== 'ready') entry.state = 'pending'
@@ -134,15 +139,31 @@ export class CommandDirectory {
    * @returns the hot command snapshot.
    */
   async ensureReady(sessionId: SessionId, signal: AbortSignal): Promise<readonly CommandDescriptor[]> {
+    if (this.disposed) throw new Error('command directory disposed')
+    signal.throwIfAborted()
+    const generation = this.generation
     const entry = this.entry(sessionId)
     while (true) {
       if (entry.state === 'ready') return entry.commands
       if (entry.state !== 'pending') void this.refresh(sessionId)
       await settled(entry, signal)
+      if (generation !== this.generation) throw new Error('command directory connection changed')
       if (entry.state === 'failed') {
-        throw new Error(`command directory warmup failed: ${entry.lastError instanceof Error ? entry.lastError.message : String(entry.lastError)}`)
+        throw entry.lastError
       }
       // Still pending (the awaited pull was superseded) → wait for the winner.
+    }
+  }
+
+  /** Withdraw cached catalogs and release waiters when the owning plugin is disposed. */
+  dispose(): void {
+    this.disposed = true
+    this.generation += 1
+    for (const entry of this.entries.values()) {
+      entry.epoch += 1
+      entry.commands = []
+      entry.state = 'cold'
+      notifyWaiters(entry)
     }
   }
 

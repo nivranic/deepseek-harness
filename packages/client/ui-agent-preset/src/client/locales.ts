@@ -18,7 +18,7 @@ export type AgentPresetSettingsKey =
   | 'idRequired' | 'idInvalid' | 'idTaken'
   | 'deleteTitle' | 'deleteDescription' | 'deleteConfirm' | 'deleting'
   | 'showPicker' | 'showPickerBeta' | 'showPickerDescription'
-  | 'enablePickerToSetDefault' | 'enablePickerToCreate'
+  | 'enablePickerToSetDefault' | 'enablePickerToCreate' | 'preferenceUnavailable'
 
 /** English copy. */
 export const en: Record<AgentPresetSettingsKey, string> = {
@@ -87,6 +87,7 @@ export const en: Record<AgentPresetSettingsKey, string> = {
   showPickerBeta: 'Beta',
   showPickerDescription:
     'When enabled, new tasks can choose Standard, PTC, Creator, Minimal, and custom modes. When disabled, all new tasks use the default mode (Standard by default; configurable). Only affects new tasks.',
+  preferenceUnavailable: 'Preset preferences cannot be changed on this Host',
   enablePickerToSetDefault: 'Turn on Agent mode selection to choose a default',
   enablePickerToCreate: 'Turn on Agent mode selection to start Creator mode',
 }
@@ -148,6 +149,7 @@ export const zh: Record<AgentPresetSettingsKey, string> = {
   showPicker: '允许切换agent模式',
   showPickerBeta: 'beta',
   showPickerDescription: '开启后，新任务可选择标准、PTC、创造、极简及自定义模式；关闭后统一使用默认模式（默认为标准模式，可自定义）。仅影响新任务。',
+  preferenceUnavailable: '当前 Host 不支持修改预设偏好',
   enablePickerToSetDefault: '请先开启 Agent 模式选择，再设置默认模式',
   enablePickerToCreate: '请先开启 Agent 模式选择，再启动创造模式',
 }

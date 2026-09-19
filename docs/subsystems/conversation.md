@@ -28,6 +28,8 @@ The shell owns View selection and resolves the registered preferred View or Chat
 
 ## Replayable event families
 
+Definitions whose business ids are unique only within a model Step declare `identityScope: 'step'`. The assembler qualifies their ids with the durable Turn/Step enclosure, including a paged prefix anchored by a following coordinate before the next opening boundary. Unlocated claimed events wait without publishing a provisional Node. Session-wide identity remains the default; matchers still read only their own event. The [identity decision](../../.agents/notes/implemented/architecture/2026-08-09-client-conversation-node-assembly.md) owns the pagination rationale.
+
 Choose one stable business id before writing the Definition. Every event that contributes to the same Node must carry that id or derive it independently from its own payload; the client must never assign an update to “the latest unfinished” Context.
 
 For a review job, the event contract could be:

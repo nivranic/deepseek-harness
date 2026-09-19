@@ -36,7 +36,7 @@ function rejected<T>(): Answer<T> {
 
 /** The providing plugin's context, scripted down to the settings namespace. */
 function ctxWith(settings: object) {
-  return { remote: { settings } } as never
+  return { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1'] }, settings } } as never
 }
 
 function view(value: JsonValue, revision = 0): SettingsNamespaceView {
@@ -245,7 +245,7 @@ describe('SettingsScopeController', () => {
     expect(sibling.getSnapshot()).toMatchObject({ value: { preference: 'dark' }, revision: 5 })
   })
 
-  it('re-reads after a revisionless first write lands during the initial read', async () => {
+  it('requires an accepted namespace before a gesture can submit and does not replay the early gesture', async () => {
     const initial = deferred<ReturnType<typeof described>>()
     const describeCall = vi.fn()
       .mockReturnValueOnce(initial.promise)
@@ -256,15 +256,18 @@ describe('SettingsScopeController', () => {
     await Promise.resolve()
 
     await scope.set('preference', 'dark')
+    expect(mutate).not.toHaveBeenCalled()
     initial.resolve(described({ preference: 'system' }, 1))
     await loading
+    expect(mutate).not.toHaveBeenCalled()
+    await scope.set('preference', 'dark')
 
     expect(mutate).toHaveBeenCalledWith(
       'ui-test',
       [{ op: 'set', path: ['preference'], value: 'dark' }],
-      undefined,
+      1,
     )
-    expect(describeCall).toHaveBeenCalledTimes(2)
+    expect(describeCall).toHaveBeenCalledTimes(1)
     expect(scope.getSnapshot()).toMatchObject({ value: { preference: 'dark' }, revision: 2 })
   })
 
@@ -374,9 +377,10 @@ describe('SettingsScopeController', () => {
   it('cancels queued and post-dispose writes while draining the in-flight mutation', async () => {
     const first = deferred<Answer<SettingsNamespaceView>>()
     const mutate = vi.fn().mockReturnValue(first.promise)
-    const describeCall = vi.fn()
-    const { scope } = derivedScope({ describe: describeCall, mutate })
+    const describeCall = vi.fn().mockResolvedValueOnce(described({ preference: 'system' }, 0))
+    const { mirror, scope } = derivedScope({ describe: describeCall, mutate })
     const published = trackValues(scope)
+    await mirror.load()
     const dark = scope.set('preference', 'dark')
     await vi.waitFor(() => { expect(mutate).toHaveBeenCalledOnce() })
     const light = scope.set('preference', 'light')
@@ -388,8 +392,8 @@ describe('SettingsScopeController', () => {
     await Promise.all([dark, light, stop])
     await scope.set('preference', 'system')
     expect(mutate).toHaveBeenCalledOnce()
-    expect(describeCall).not.toHaveBeenCalled()
-    expect(published).toEqual([undefined])
+    expect(describeCall).toHaveBeenCalledOnce()
+    expect(published).toEqual([undefined, { preference: 'system' }])
   })
 
   it('stops deriving from the mirror after dispose', async () => {

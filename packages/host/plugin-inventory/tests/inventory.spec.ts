@@ -37,6 +37,7 @@ describe('PluginInventoryGateway', () => {
     expect(inventory.typertRemote).toMatchObject({
       serviceKey: 'pluginInventory',
       namespace: 'pluginInventory',
+      capabilities: [{ id: 'plugin.inventory.v1', methods: ['list'] }],
     })
     expect(remoteMethods(inventory)).toEqual([
       { method: 'list', invocation: { kind: 'direct' } },
@@ -123,4 +124,21 @@ describe('PluginInventoryGateway', () => {
       { id: 'damaged', trust: 'user', isDefault: false, broken: 'the composition file is missing', rows: [] },
     ])
   })
+})
+
+it('rejects a cancelled read before discovery and after pending preset discovery', async () => {
+  const { ctx, inventory } = await harness()
+  const gate = Promise.withResolvers<never[]>()
+  let reads = 0
+  ctx.provide('agentPresets', { compositionInventory: () => { reads++; return gate.promise } } as never)
+  const before = new AbortController()
+  before.abort()
+  await expect(inventory.list(before.signal)).rejects.toMatchObject({ name: 'AbortError' })
+  expect(reads).toBe(0)
+  const during = new AbortController()
+  const pending = inventory.list(during.signal)
+  during.abort()
+  gate.resolve([])
+  await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+  expect(reads).toBe(1)
 })

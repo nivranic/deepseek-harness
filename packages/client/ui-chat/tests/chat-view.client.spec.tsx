@@ -392,8 +392,10 @@ function makeHarness(
     useStore: bindSnapshotSelector(chat),
     actions: chat.actions,
     useTranscriptView: bindSnapshotSelector(transcriptView),
+    useReferenceAvailability: bindSnapshotSelector(createSnapshotStore({ canOpenFile: () => true, canOpenSkill: () => true })),
     renderSlot,
     SessionProvider: SessionProviderStub,
+    historyAvailable: true,
     viewRequest: null,
     openView,
     completeViewRequest: () => {},
@@ -470,6 +472,20 @@ function withSystemPrompt(
   return builder.replace({
     nodes: [prompt, ...snapshot.nodes.values()],
     timeline: snapshot.timeline,
+  })
+}
+
+function toolSnapshot(block: ToolResultNode, turn = 1, step = 1): ChatSnapshot {
+  const data = { get: () => undefined, source: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }
+  const stepLocation = { turn, step, start: undefined, end: undefined, status: 'unknown' as const, data }
+  const turnLocation = { turn, start: undefined, end: undefined, status: 'unknown' as const, steps: [stepLocation], data }
+  return new ChatSnapshotBuilder().replace({
+    nodes: [{
+      key: 'tool-occurrence', id: JSON.stringify([turn, step, block.callId]), target: 'chat', kind: 'tool-call',
+      anchorSeq: block.seq, location: { kind: 'step', turn: turnLocation, step: stepLocation },
+      visibility: 'visible', data: { root: block },
+    }],
+    timeline: { turnOrder: [turn], turns: new Map([[turn, turnLocation]]) },
   })
 }
 
@@ -1310,12 +1326,17 @@ describe('ChatView', () => {
   })
 
   it('hands the trajectory callback to the Tool seat', () => {
-    const h = makeHarness({
-      nodes: [toolResult(3, 'a')],
-    })
+    const h = makeHarness({}, {}, toolSnapshot(toolResult(3, 'a')))
     render(<h.ChatView {...h.props} />)
     h.toolOwners[0]?.inspectCall('a')
-    expect(h.openView).toHaveBeenCalledWith('trajectory', 'a')
+    expect(h.openView).toHaveBeenCalledWith('trajectory', '[1,1,"a"]')
+  })
+
+  it('keeps a nested Inspect target in its root execution', () => {
+    const h = makeHarness({}, {}, toolSnapshot(toolResult(3, 'a'), 2, 3))
+    render(<h.ChatView {...h.props} />)
+    h.toolOwners[0]?.inspectCall('nested')
+    expect(h.openView).toHaveBeenCalledWith('trajectory', '[2,3,"nested"]')
   })
 
   it('shows assistant IconActions only on the last content message of each turn', () => {
@@ -2206,7 +2227,7 @@ describe('ChatView', () => {
 
   it('hands each ordered root call to the keyed business-node slot', () => {
     const block = toolResult(3, 'a')
-    const h = makeHarness({ nodes: [block] })
+    const h = makeHarness({}, {}, toolSnapshot(block))
     const calls: { key: string; owner: object; entryKey?: string }[] = []
     h.setNodeRenderer(((key: string, owner: object, opts?: { entryKey?: string; fallback?: React.ReactNode }) => {
       calls.push({ key, owner, ...(opts?.entryKey !== undefined ? { entryKey: opts.entryKey } : {}) })
@@ -2225,7 +2246,7 @@ describe('ChatView', () => {
     owner.openFile('src/a.ts')
     expect(h.openFile).toHaveBeenCalledWith('src/a.ts')
     owner.inspectCall('a')
-    expect(h.openView).toHaveBeenCalledWith('trajectory', 'a')
+    expect(h.openView).toHaveBeenCalledWith('trajectory', '[1,1,"a"]')
   })
 
   it('shows a Host open refusal with the reason and retries the same path', async () => {
@@ -2787,6 +2808,19 @@ describe('ChatView', () => {
     } finally {
       host.remove()
     }
+  })
+
+  it('hides remote history loading and pagination while retaining loaded rows', () => {
+    const h = makeHarness({ nodes: [user(5, 'cached history')] }, { hasMore: true, openState: 'loading' })
+    const view = render(<h.ChatView {...h.props} historyAvailable={false} />)
+    expect(view.getByText('cached history')).toBeTruthy()
+    expect(view.queryByText('载入历史…')).toBeNull()
+    expect(view.queryByText('加载更早')).toBeNull()
+    expect(h.loadOlder).not.toHaveBeenCalled()
+    expect(h.loadThrough).not.toHaveBeenCalled()
+    view.rerender(<h.ChatView {...h.props} historyAvailable />)
+    fireEvent.click(view.getByText('加载更早'))
+    expect(h.loadOlder).toHaveBeenCalledOnce()
   })
 
   it('paging button loads older and shows its busy label', () => {

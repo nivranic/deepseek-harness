@@ -1111,6 +1111,7 @@ describe('TrajectoryTable', () => {
         text: 'bash · {"command":"pwd"}',
         inputDetail: '{"command":"pwd"}',
         callId: 'call-1',
+        callLocation: { turn: 1, step: 1 },
         timeSeconds: 0.1,
       }],
     }],
@@ -1122,7 +1123,7 @@ describe('TrajectoryTable', () => {
       <TrajectoryTable
         turns={CALL_TURNS}
         {...FOLD_PROPS}
-        inspectCallId="call-1"
+        inspectCallId='[1,1,"call-1"]'
         onInspectApplied={onInspectApplied}
       />,
     )
@@ -1138,12 +1139,55 @@ describe('TrajectoryTable', () => {
       <TrajectoryTable
         turns={CALL_TURNS}
         {...FOLD_PROPS}
-        inspectCallId="call-missing"
+        inspectCallId='[1,1,"call-missing"]'
         onInspectApplied={onInspectApplied}
       />,
     )
 
     expect(screen.getByRole('row', { name: /TOOL/ }).getAttribute('aria-selected')).toBe('false')
     expect(onInspectApplied).not.toHaveBeenCalled()
+  })
+
+  it.each([[1, 2], [2, 1]])('inspects the requested occurrence at turn %i step %i', (turn, step) => {
+    const turns: TrajectoryTurnModel[] = [
+      { turn: 1, groups: [{ title: 'Step 1', cells: [{
+        index: 1, kind: 'tool', text: 'read', callId: 'reused', callLocation: { turn: 1, step: 1 },
+        outputDetail: 'old result', timeSeconds: 1,
+      }] }] },
+      { turn, groups: [{ title: `Step ${step}`, cells: [{
+        index: 2, kind: 'tool', text: 'read', callId: 'reused', callLocation: { turn, step },
+        outputDetail: 'new result', timeSeconds: 2,
+      }] }] },
+    ]
+    const onInspectApplied = vi.fn()
+    const grouped = turn === 1 ? [{ turn: 1, groups: turns.flatMap(value => value.groups) }] : turns
+    render(<TrajectoryTable turns={grouped} {...FOLD_PROPS}
+      inspectCallId={JSON.stringify([turn, step, 'reused'])} onInspectApplied={onInspectApplied} />)
+    expect(onInspectApplied).toHaveBeenCalledOnce()
+    const selected = screen.getAllByRole('row', { name: /TOOL/ }).filter(row => row.getAttribute('aria-selected') === 'true')
+    expect(selected).toHaveLength(1)
+    expect(selected[0]?.getAttribute('data-record-index')).toBe('2')
+    expect(screen.getByRole('complementary', { name: 'Event details' }).textContent).toContain('new result')
+  })
+
+  it('keeps source-block and parent-message links in the selected Step', () => {
+    const turns: TrajectoryTurnModel[] = [{ turn: 1, groups: [1, 2].map(step => ({
+      title: `Step ${step}`, cells: [
+        { index: step * 2 - 1, recordId: `assistant-${step}`, kind: 'message', text: `assistant-${step}`,
+          sourceBlocks: [{ type: 'tool-call', content: '{}', callId: 'reused', toolName: 'read' }], timeSeconds: 1 },
+        { index: step * 2, kind: 'tool', text: 'read', callId: 'reused', callLocation: { turn: 1, step },
+          outputDetail: `result-${step}`, timeSeconds: 1 },
+      ],
+    })) }]
+    render(<TrajectoryTable turns={turns} {...FOLD_PROPS} />)
+    fireEvent.click(screen.getByRole('row', { name: /assistant-2/ }))
+    fireEvent.click(screen.getByRole('tab', { name: t('tab.raw') }))
+    fireEvent.click(screen.getByRole('button', { name: t('block.openSummary', { index: 1 }) }))
+    expect(screen.getByRole('complementary').textContent).toContain('result-2')
+    expect(screen.getAllByRole('row').find(row => row.getAttribute('aria-selected') === 'true')
+      ?.getAttribute('data-record-index')).toBe('4')
+    fireEvent.click(screen.getByRole('button', { name: t('details.assistantMessage') }))
+    expect(screen.getAllByRole('row').find(row => row.getAttribute('aria-selected') === 'true')
+      ?.getAttribute('data-record-index')).toBe('3')
   })
 })

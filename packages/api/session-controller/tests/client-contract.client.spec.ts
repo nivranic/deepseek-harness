@@ -7,6 +7,7 @@ import {
 } from '../src/client/contract/events.ts'
 import { LlmAttemptId } from '@deepseek-ai/dsh-llm/brand'
 import type { ISession } from '../src/client/contract/session.ts'
+import type { ClientRemote } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ProjectionsBaseline } from '../src/client/sessions/projection-store.ts'
 import { ProjectionValueStore } from '../src/client/sessions/projection-store.ts'
 import type { PromptContentPart as SessionPromptContentPart, SessionPageRequest } from '../src/types.ts'
@@ -56,6 +57,10 @@ function assistantSettlement(seq: SessionSeq): SessionAssistantSettlementEntry {
 }
 
 describe('Client Session contracts', () => {
+  it('excludes Host-local native helpers from the generated Client Session namespace', () => {
+    expectTypeOf<Extract<'canOpenWorkspacePath' | 'openWorkspacePath' | 'workspaceDesktop', keyof ClientRemote['session']>>().toBeNever()
+  })
+
   it('requires branded Session positions at internal event fixture boundaries', () => {
     expectTypeOf(entry).parameter(0).toEqualTypeOf<SessionSeq>()
     expectTypeOf(ev.user).parameter(0).toEqualTypeOf<SessionSeq>()

@@ -7,7 +7,7 @@ import type {
   IWorkspaces, WorkspaceId, WorkspaceSnapshot, WorkspaceView,
 } from '@deepseek-ai/dsh-api-workspace-controller/client'
 import type { ClientRemote, DirectoryListing } from '@deepseek-ai/dsh-api-remotes/client'
-import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
+import { TestRemote, RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
 import type { RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
 import { SessionId } from '@deepseek-ai/dsh-session/types'
 import { LayoutController } from '@deepseek-ai/dsh-client-ui-layout/client'
@@ -186,12 +186,15 @@ class FakeDirectoryPicker {
 }
 
 interface BenchOptions {
+  readonly capabilities?: readonly string[]
   readonly workspaces?: WorkspaceSnapshot
   readonly sessions?: SessionListState
 }
 
 function bench(options: BenchOptions = {}) {
   const ctx = new Context()
+  const remote = new TestRemote(ctx)
+  remote.$host = { home: undefined, isLoopback: true, capabilities: options.capabilities ?? ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1', 'directory-picker.native.v1', 'directory-picker.browse.v1', 'directory-picker.create.v1'] }
   const layout = new LayoutController({
     selectPanel: vi.fn(), retainMainPanels: vi.fn(),
     setSidebar: vi.fn(), toggleSidebar: vi.fn(), setViewportWidth: vi.fn(),
@@ -209,7 +212,7 @@ function bench(options: BenchOptions = {}) {
     workspaces,
     sessions as unknown as ISessions,
   )
-  return { ctx, directoryPicker, sessions, uiWorkspace, workspaces, layout, selectPanel }
+  return { ctx, remote, directoryPicker, sessions, uiWorkspace, workspaces, layout, selectPanel }
 }
 
 async function flush(): Promise<void> {
@@ -582,5 +585,137 @@ describe('UiWorkspaceService', () => {
     await expect(b.uiWorkspace.createDirectory('/home/u', 'new')).rejects.toMatchObject({
       rpcError: { code: 'directory-picker/exists' },
     })
+  })
+
+  it('does not dispatch unsupported directory operations', async () => {
+    const b = bench({ capabilities: ['workspace.manage.v1'] })
+    await expect(b.uiWorkspace.pickDirectory()).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    await expect(b.uiWorkspace.listDirectory()).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    await expect(b.uiWorkspace.createDirectory('/home/u', 'blocked')).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    expect(b.directoryPicker.calls).toEqual([])
+  })
+
+  it.each(['pick', 'list', 'create'] as const)('binds pending and retained %s calls to their initiating Host', async (operation) => {
+    const b = bench()
+    const gate = Promise.withResolvers<undefined>()
+    b.directoryPicker.onPick = async () => { await gate.promise; return { ok: true, value: '/old' } }
+    b.directoryPicker.onList = async () => { await gate.promise; return { ok: true, value: listing } }
+    b.directoryPicker.onCreateDirectory = async () => { await gate.promise; return { ok: true, value: '/old/new' } }
+    const scope = b.uiWorkspace.captureDirectoryOperations()
+    const call = {
+      pick: () => scope.pickDirectory(), list: () => scope.listDirectory(), create: () => scope.createDirectory('/old', 'new'),
+    }[operation]
+    const pending = call()
+    b.remote.$host = { ...b.remote.$host }
+    gate.resolve(undefined)
+    await expect(pending).rejects.toMatchObject({ code: 'gateway/cancelled' })
+    await expect(call()).rejects.toMatchObject({ code: 'gateway/cancelled' })
+    expect(b.directoryPicker.calls).toHaveLength(1)
+    await expect(b.uiWorkspace.listDirectory()).resolves.toEqual(listing)
+  })
+
+  it('cancels directory reads with their registration and rejects retained calls after disposal', async () => {
+    const b = bench()
+    const lifetime = new AbortController()
+    const request = new AbortController()
+    const list = vi.spyOn(b.directoryPicker.remote, 'list')
+    const scope = b.uiWorkspace.captureDirectoryOperations(lifetime.signal)
+    await scope.listDirectory('/home/u', request.signal)
+    const signal = list.mock.calls[0]![1]!
+    lifetime.abort()
+    expect(signal.aborted).toBe(true)
+    await expect(scope.listDirectory()).rejects.toMatchObject({ code: 'gateway/cancelled' })
+    expect(list).toHaveBeenCalledOnce()
+  })
+
+  it('does not expose an old directory failure through a replacement Host', async () => {
+    const b = bench()
+    const response = Promise.withResolvers<RemoteResult<DirectoryListing>>()
+    b.directoryPicker.onList = () => response.promise
+    const pending = b.uiWorkspace.listDirectory()
+    b.remote.$host = { ...b.remote.$host }
+    response.resolve({ ok: false, error: new RemoteError('directory-picker/unreadable', 'old host denied', { path: '/old' }) })
+    await expect(pending).rejects.toMatchObject({ code: 'gateway/cancelled' })
+  })
+})
+
+
+describe('Workspace Session-management admission', () => {
+  it('retries startup after an old Host attempt fails after the new Host is admitted', async () => {
+    const b = bench()
+    const stale = Promise.withResolvers<SessionId>()
+    b.sessions.create.mockReturnValueOnce(stale.promise)
+    b.workspaces.list.set(workspaceState([workspace('alpha')]))
+    b.sessions.list.set(sessionState())
+    expect(b.sessions.create).toHaveBeenCalledOnce()
+    b.remote.$host = { ...b.remote.$host, capabilities: [] }
+    b.ctx.emit('connection/reset')
+    b.remote.$host = { ...b.remote.$host, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+    b.ctx.emit('connection/reset')
+    stale.reject(new Error('old Host closed'))
+    await vi.waitFor(() => { expect(b.sessions.open).toHaveBeenCalledExactlyOnceWith(sid('created-alpha')) })
+    expect(b.sessions.create).toHaveBeenCalledTimes(2)
+    await b.ctx.fiber.dispose()
+  })
+
+  it('rejects creation, blank reuse and fork before replacing navigation', async () => {
+    const b = bench({ capabilities: [],
+      sessions: sessionState([summary('blank', { blank: true, cwd: '/w/alpha' })], sid('blank')),
+      workspaces: workspaceState([workspace('alpha', [sid('blank')])]),
+    })
+    const navigate = vi.spyOn(b.layout, 'beginNavigation')
+    const beforeOpen = vi.fn()
+    await expect(b.uiWorkspace.connectWorkspace(wid('alpha'))).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    await expect(b.uiWorkspace.openWorkspace(wid('alpha'), beforeOpen)).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    await expect(b.uiWorkspace.forkSession(sid('blank'))).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    b.uiWorkspace.startSession(wid('alpha'))
+    expect(navigate).not.toHaveBeenCalled()
+    expect(beforeOpen).not.toHaveBeenCalled()
+    expect(b.sessions.create).not.toHaveBeenCalled()
+    expect(b.sessions.fork).not.toHaveBeenCalled()
+    expect(b.sessions.open).not.toHaveBeenCalled()
+    b.uiWorkspace.openSession(sid('blank'))
+    expect(b.sessions.open).toHaveBeenCalledExactlyOnceWith(sid('blank'))
+    await b.ctx.fiber.dispose()
+  })
+
+  it('keeps the selected Session and panel when New Session is unavailable without a target', async () => {
+    const b = bench({ capabilities: [], sessions: sessionState([summary('current')], sid('current')) })
+    b.uiWorkspace.startSession()
+    expect(b.sessions.clear).not.toHaveBeenCalled()
+    expect(b.selectPanel).not.toHaveBeenCalled()
+    await b.ctx.fiber.dispose()
+  })
+
+  it.each(['workspace', 'fork'] as const)('does not select the completed %s result after capability withdrawal', async (kind) => {
+    const b = bench({ sessions: sessionState([summary('current')], sid('current')),
+      workspaces: workspaceState([workspace('alpha')]) })
+    const result = Promise.withResolvers<SessionId>()
+    b.sessions.create.mockReturnValue(result.promise)
+    b.sessions.fork.mockReturnValue(result.promise)
+    const moveDraft = vi.fn()
+    const pending = kind === 'workspace' ? b.uiWorkspace.openWorkspace(wid('alpha'), moveDraft)
+      : b.uiWorkspace.forkSession(sid('current'))
+    b.remote.$host = { ...b.remote.$host, capabilities: [] }
+    b.ctx.emit('connection/reset')
+    result.resolve(sid('completed'))
+    await pending
+    expect(moveDraft).not.toHaveBeenCalled()
+    expect(b.sessions.open).not.toHaveBeenCalled()
+    expect(b.sessions.list.getSnapshot().current).toBe(sid('current'))
+    await b.ctx.fiber.dispose()
+  })
+
+  it('waits for management support before automatic startup selection and releases the observer', async () => {
+    const b = bench({ capabilities: [], sessions: sessionState(), workspaces: workspaceState([workspace('alpha')]) })
+    await flush()
+    expect(b.sessions.create).not.toHaveBeenCalled()
+    b.remote.$host = { ...b.remote.$host, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+    b.ctx.emit('connection/reset')
+    await vi.waitFor(() => { expect(b.sessions.open).toHaveBeenCalledExactlyOnceWith(sid('created-alpha')) })
+    expect(b.sessions.create).toHaveBeenCalledOnce()
+    await b.ctx.fiber.dispose()
+    b.ctx.emit('connection/reset')
+    expect(b.sessions.create).toHaveBeenCalledOnce()
   })
 })

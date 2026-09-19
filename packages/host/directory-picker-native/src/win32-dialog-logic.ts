@@ -38,7 +38,7 @@ export interface Win32FolderDialog {
   show(): number
   /**
    * `IFileDialog::GetResult` + `IShellItem::GetDisplayName(SIGDN_FILESYSPATH)`,
-   * releasing the shell item and freeing the COM string.
+   * releasing the shell item and freeing the COM string even if decoding throws.
    * @returns the call chain's HRESULT and, on success, the selected path.
    */
   resultPath(): { hr: number; path?: string }

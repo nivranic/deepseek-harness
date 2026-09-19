@@ -48,6 +48,10 @@ inbox 接受消息前发生任何失败，操作都会在不返回任何 id 的�
 
 对于 start 和 follow-up，调用方 signal 只在 inbox 接受消息前持有查找、物化和准入。操作返回 `MessageId` 后，管理器会独立持有该激活；调用方之后的取消不会取消已接受的轮次，也不会 dispose child。
 
+浏览器 Prompt 重试使用已记录在子级接收消息中的请求身份。仅属于 Host 的 `subagentPromptReceipts` 投影在 inbox 消费或移除后保留原消息 id；它排除 fork 继承历史，也不在 Client 快照中发布这些身份。每个子级的投递串行化使身份查询与首次准入互斥。冷状态确认在物化激活前折叠持久化观察，因此重复请求不会重启已完成的工作或遗留临时父级持有关系。权限与取消检查先于确认。这保留唯一的 Agent inbox，不增加请求队列、通用变更存储或 Session 事件。
+
+[按目标中断决策](2026-08-06-continuable-subagent-interrupt.zh.md)拥有已观察轮次的重试安全、timing checkpoint 重建及旧的当前轮次行为。
+
 ### 持久化会话与在线激活
 
 会话持有稳定的 child 身份、transcript（文本记录）、直接 parent 谱系、委派深度和带版本的继续执行描述符。`SessionHeader.parentSession` 记录直接 parent，并作为鉴权输入；它不是在线路由能力，也不表示记录的 parent 仍然驻留。

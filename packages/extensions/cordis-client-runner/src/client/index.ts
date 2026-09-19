@@ -10,6 +10,8 @@
  * it until asked again.
  */
 
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import type { Context } from '@deepseek-ai/cordis'
 import type {
   ApprovalRequestId, CordisDynamicPluginId, DynamicCordisInvokeResult,
@@ -179,20 +181,32 @@ export const name = 'cordis-client-runner'
  * namespace parks this plugin until the host side exists, so a page never loads
  * a browser half whose host half it could not reach.
  */
-export const inject = ['loader', 'modules', 'slots', 'remote', 'remote.dynamicCordisRunner']
+export const inject = ['loader', 'modules', 'slots', 'remote', 'remote.dynamicCordisRunner', 'connection']
 
 /**
  * Client plugin body: build the runner and subscribe the dispatch family.
  * @param ctx - client root context.
  */
 export function apply(ctx: Context): void {
+  const supports = (operation: string): boolean => ctx.remote.$host.capabilities?.includes('dynamic-cordis.' + operation + '.v1') === true
+  const requireOperations = (operations: readonly string[]): void => {
+    for (const operation of operations) {
+      if (!supports(operation)) throw new RemoteError('host/capability-unavailable', 'Host does not support this Dynamic Cordis operation', {
+        capability: 'dynamic-cordis.' + operation + '.v1',
+      })
+    }
+  }
+  const runOperations = (hasClientHalf: boolean, modelRequest: boolean): readonly string[] => hasClientHalf
+    ? ['run', 'client-code', modelRequest ? 'resolve-run' : 'settle-run'] : ['run']
   provideClientTimer(ctx)
   const inspect = new ClientCordisInspectRegistry({
     sync: async (providers) => {
+      if (!supports('inspect-manifest')) return
       const answered = await ctx.remote.dynamicCordisRunner.syncInspectManifest(providers)
       if (!answered.ok) throw new Error(`${answered.error.code}: ${answered.error.message}`)
     },
     resolve: async (agentId, requestId, resolution) => {
+      requireOperations(['inspect-resolve'])
       const answered = await ctx.remote.dynamicCordisRunner.resolveInspectQuery(agentId, requestId, resolution)
       if (!answered.ok) throw new Error(`${answered.error.code}: ${answered.error.message}`)
     },
@@ -201,7 +215,6 @@ export function apply(ctx: Context): void {
   for (const provider of clientInspectProviders(ctx)) {
     ctx.effect(() => inspect.register(provider), `cordis-client-runner: inspect ${provider.manifest.id}`)
   }
-  ctx.on('connection/reset', () => { inspect.publish() })
 
   const runner = new DynamicCordisPackageRunner({
     ctx,
@@ -227,6 +240,7 @@ export function apply(ctx: Context): void {
     // belongs to was answered before it ever rendered, so nothing waits on this
     // and a failed report must not turn one crash into two.
     reportRenderFailure: (agentId, pluginId, pluginRunId, failure) => {
+      if (!supports('report-render')) return
       void ctx.remote.dynamicCordisRunner.reportRenderFailure(agentId, pluginId, pluginRunId, failure).then((result) => {
         if (!result.ok) {
           console.error(`[cordis-client-runner] reporting a render failure of ${pluginId} failed:`, result.error)
@@ -236,6 +250,7 @@ export function apply(ctx: Context): void {
       })
     },
     reportGuardFailure: (agentId, pluginId, pluginRunId, failure) => {
+      if (!supports('report-guard')) return
       void ctx.remote.dynamicCordisRunner.reportClientGuardFailure(agentId, pluginId, pluginRunId, failure).then((result) => {
         if (!result.ok) {
           console.error(`[cordis-client-runner] reporting a guard failure of ${pluginId} failed:`, result.error)
@@ -280,27 +295,49 @@ export function apply(ctx: Context): void {
     activeRuns: orchestrator.activeRuns,
     lastRunError: orchestrator.lastRunError,
     renderFailures: runner.renderFailures,
-    reconcileApprovals: (rows) => { orchestrator.reconcileApprovals(rows) },
-    approve: (requestId, approveFutureVersions) => orchestrator.approve(requestId, approveFutureVersions),
-    decline: requestId => orchestrator.decline(requestId),
-    startUserRun: request => orchestrator.startUserRun(request),
+    reconcileApprovals: (rows) => {
+      const automatic = runOperations(true, true).every(supports)
+      orchestrator.reconcileApprovals(automatic ? rows : supports('resolve-run')
+        ? rows.filter(row => row.latestRun?.requiresApproval ?? row.latestRun?.status === 'awaiting-approval') : [])
+    },
+    approve: async (requestId, approveFutureVersions) => {
+      requireOperations(runOperations(true, true))
+      await orchestrator.approve(requestId, approveFutureVersions)
+    },
+    decline: async (requestId) => { requireOperations(['resolve-run']); await orchestrator.decline(requestId) },
+    startUserRun: async (request) => {
+      requireOperations(runOperations(request.hasClientHalf, false))
+      await orchestrator.startUserRun(request)
+    },
     subscribe: fn => runner.subscribe(fn),
     getSnapshot: () => runner.getSnapshot(),
     isLoaded: id => runner.isLoaded(id),
   }
   ctx.provide('dynamicCordisRunner', face)
-  ctx.effect(() => () => { void runner.dispose() }, 'cordis-client-runner: dynamic package runner')
+  const connection = ctx.get('connection') as ConnectionHandle
+  ctx.effect(() => connection.generation.subscribe(() => {
+    orchestrator.reset()
+    inspect.reset()
+    void runner.reset().catch((error: unknown) => { console.error('[cordis-client-runner] withdrawing Client activations failed:', error) })
+    inspect.publish()
+  }), 'cordis-client-runner: connection lifetime')
+  ctx.effect(() => () => {
+    orchestrator.reset()
+    inspect.dispose()
+    return runner.dispose()
+  }, 'cordis-client-runner: dynamic package runner')
 
   // Forwarded Host events: `$on` hands the listener the Host's own argument list,
   // so these read the request itself rather than a transport envelope.
   ctx.remote.$on('cordis/request-run', (request) => {
-    orchestrator.open(request)
+    if (request.requiresApproval ? supports('resolve-run') : runOperations(true, true).every(supports)) orchestrator.open(request)
   })
   ctx.remote.$on('cordis/request-run-resolved', (resolved) => { orchestrator.close(resolved.requestId) })
   ctx.remote.$on('cordis/dynamic-retract', (retracted) => {
     runner.retract(retracted.pluginId, retracted.pluginRunId)
   })
   ctx.remote.$on('cordis/inspect-query', (request) => {
+    if (!supports('inspect-resolve')) return
     void inspect.query(request).catch((error: unknown) => {
       console.error(`[cordis-client-runner] inspect query ${request.provider}.${request.method} failed:`, error)
     })

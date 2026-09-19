@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "scope": "source binding and report audit only",
+  "files": [
+    {
+      "path": "artifacts/upstream-first/workspace-management-source.json",
+      "sha256": "dcf26815c6c94d63ff3579bae3d43aa38c7cd45e0ec5a9e85af1bbdbdef50175"
+    },
+    {
+      "path": "artifacts/upstream-first/workspace-management-binding.json",
+      "sha256": "7dbb1cf7ef02e27bdff229148233b81960766ee4de9824e305b7e25197794f8c"
+    },
+    {
+      "path": "artifacts/upstream-first/write-reports.mjs",
+      "sha256": "b6907a0afc71c10e366507de1dae8cce0d67a9cd09521e88c298f778f2f70785"
+    },
+    {
+      "path": ".artifacts/check-workspace-management-binding.mjs",
+      "sha256": "5503686d7f63a0cb76e7681c2e185afa8d96bc94d9201291e455b4df40786058"
+    },
+    {
+      "path": ".artifacts/workspace-management-audit-tests.log",
+      "sha256": "39266109f339002e2e389de87a5ffe7ee77a5d6b85bfe84b443a5ac7cc57cfe3"
+    },
+    {
+      "path": ".artifacts/workspace-management-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "820c00413b431cc5c00d5eab0feb1a560866954c75b27b9b3dec0664b47b9ccb"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "fca5431618514ddb63609f884271cb1d54743736b4ebf3595b3f9b0e973b4d26"
+    }
+  ],
+  "checks": {
+    "bindingControls": 3,
+    "auditTests": 13,
+    "gate0": "PASS",
+    "diffCheck": "PASS"
+  },
+  "fullGuiPassed": false,
+  "completeGoal": false
+}

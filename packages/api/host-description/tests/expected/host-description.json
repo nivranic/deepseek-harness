@@ -1,0 +1,23 @@
+{
+  "hostId": "<HostId>",
+  "displayName": "DeepSeek Harness",
+  "productVersion": "<ProductVersion>",
+  "transports": [
+    "http",
+    "websocket"
+  ],
+  "apiProtocolVersion": 1,
+  "sessionFormatVersion": 3,
+  "platform": "<Platform>",
+  "arch": "<Arch>",
+  "runtimeMode": "full",
+  "capabilities": [
+    "host.describe.v1",
+    "host.negotiate.v1"
+  ],
+  "serverTime": 0,
+  "supportedApiProtocolVersions": [
+    2,
+    1
+  ]
+}

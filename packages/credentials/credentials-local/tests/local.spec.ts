@@ -446,11 +446,18 @@ describe('real hot reload', () => {
     await writeCredentials(path, 'version: 1\nrefs:\n  DSH_CRED_TEST: live\n  DSH_CRED_OTHER: extra\n')
     await vi.waitFor(async () => {
       expect(await ctx.credentials.resolve(KEY)).toEqual({ value: 'live', source: 'file' })
+      expect(await ctx.credentials.resolve(OTHER)).toEqual({ value: 'extra', source: 'file' })
     })
 
-    // Wholesale replacement: an entry deleted on disk never lingers in memory.
-    await writeCredentials(path, 'version: 1\nrefs:\n  DSH_CRED_TEST: live\n')
+    // An empty document is a valid intermediate editor state, not the final replacement.
+    await writeCredentials(path, '')
     await vi.waitFor(async () => {
+      expect(await ctx.credentials.resolve(KEY)).toBeUndefined()
+      expect(await ctx.credentials.resolve(OTHER)).toBeUndefined()
+    })
+    await writeCredentials(path, 'version: 1\nrefs:\n  DSH_CRED_TEST: replaced\n')
+    await vi.waitFor(async () => {
+      expect(await ctx.credentials.resolve(KEY)).toEqual({ value: 'replaced', source: 'file' })
       expect(await ctx.credentials.resolve(OTHER)).toBeUndefined()
     })
 

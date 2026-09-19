@@ -1,0 +1,1296 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T18:51:37.585Z",
+  "scope": "Current Windows Desktop native payload fix, official unsigned NSIS build and actual unpacked Electron application",
+  "sourceFiles": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.i18n.yaml",
+      "sha256": "d9b3b700b0fd276043120dc436fe1b0edfcd6dd8889b8f2eb4d8834142aeca60",
+      "bytes": 604
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md",
+      "sha256": "6df910de0db75e54ef90272265fce738e4731dc7d307f9a11dc68d7b337f4242",
+      "bytes": 23051
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md",
+      "sha256": "4012a14d29adc454bf7203926001573c5b470a79eb9b1e9d6708b45a171b7a5c",
+      "bytes": 21647
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.i18n.yaml",
+      "sha256": "20d4af696e069e0bb4abac4ec0b5d9d7ec25bb4eba79104adfc16ed23dc5ed4e",
+      "bytes": 544
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.md",
+      "sha256": "cc03242b1c3cdc3916ccdf5f5e60f55f98bb5296440ed26464b60ed5d4e4d3dd",
+      "bytes": 25486
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.zh.md",
+      "sha256": "33a8d5b475f69f99f7bfab4e0fcab43f743c65ab5e1cea0d1b143415f193b623",
+      "bytes": 23114
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.i18n.yaml",
+      "sha256": "a7c505e40e09ef6883d28589ec4059c077dcd0f582bb1bca955129a42015523d",
+      "bytes": 529
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.md",
+      "sha256": "2a76dd254f82812ba2127eb2018baca74782b573e3ac41bcaabb783fd0704d41",
+      "bytes": 8444
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.zh.md",
+      "sha256": "559338078833b987a62bfdc3fdf2ed214b78d798b692262f7932f29e06bddae4",
+      "bytes": 8075
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-08-desktop-bundled-runtime-and-external-plugins.i18n.yaml",
+      "sha256": "f7b499cc08527ce773b7d94405d67ca60d9a20b3d28ba8a91adb1e64b426c23c",
+      "bytes": 595
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-08-desktop-bundled-runtime-and-external-plugins.md",
+      "sha256": "2e6c9c5f7df10bc113a3f772914be8d206c387bb0fe8f0e18b94af69545c4eae",
+      "bytes": 10237
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-08-desktop-bundled-runtime-and-external-plugins.zh.md",
+      "sha256": "7f53f8ae2ee352f61777f22adb577d94b7951e51c1372d01524d02004b86de6f",
+      "bytes": 8816
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-model-context.i18n.yaml",
+      "sha256": "2a623139ca31b3ba10a05afba5b1d5b7f7d7436d003e1e5e68d611ec72dae3a5",
+      "bytes": 526
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-model-context.md",
+      "sha256": "8ff9291e1d08d754aee8ef91ac581744806b1eb88601cad4aae27205e902a1cc",
+      "bytes": 3045
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-model-context.zh.md",
+      "sha256": "e10a4b4a5d0c3c7d23b025845130c208cf2db88e9edcdcee277e1fff8b190b9e",
+      "bytes": 2621
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.i18n.yaml",
+      "sha256": "36894d490d444ab197efea5f4a3774bc706cb4a7c7e86ff48bb5f602e16f96c6",
+      "bytes": 538
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.md",
+      "sha256": "99d4517696356591c0618b553aa54e7b40a1ea942980b0c9b2dfafb28352a508",
+      "bytes": 4466
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.zh.md",
+      "sha256": "a7e86e81665c925bd934f69b032e1323120400ea9cf9ab4e55c0e9054fd0dadc",
+      "bytes": 3923
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-08-31-win32-picker-path-string-read.i18n.yaml",
+      "sha256": "ae4693b39b95258114dfab151c3389296e6588b5454b09a516ef19cf3158f6e8",
+      "bytes": 545
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-08-31-win32-picker-path-string-read.md",
+      "sha256": "a174da21dc9f2d041b8b5460fee585675b1aedfac1d2d6c8f2d8e40336b9b965",
+      "bytes": 2247
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-08-31-win32-picker-path-string-read.zh.md",
+      "sha256": "2d92603071a9825a5e825adbddb93b3a4cd802caa7857c91f6d67d3d96124152",
+      "bytes": 2066
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.i18n.yaml",
+      "sha256": "37839d33069f3675ea6e7bdfe28cc9ca13ee932e44f75d6f0e327da8a07ce7b6",
+      "bytes": 527
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.md",
+      "sha256": "17970163753e10a542825e07f3911305196cffb590cef483c054a2c0d4542b24",
+      "bytes": 2555
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.zh.md",
+      "sha256": "f1bf7ac8cd8b1cfbefdcd763d73319e97110ebfe04499437bdf2545d0f31abe9",
+      "bytes": 2273
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-path-suffix-trimming.i18n.yaml",
+      "sha256": "fcc167d337cf9ba529929cbc09f131307eca10a80b5597a5c119d64d2bf1f055",
+      "bytes": 539
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-path-suffix-trimming.md",
+      "sha256": "f0e06b4ae83cf26b360252696b1ad972b74a6d4ed5a0cad2b5e0260a5b81f00d",
+      "bytes": 1910
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-path-suffix-trimming.zh.md",
+      "sha256": "3278f275ad1f5c30eecf0c3c52db61ed54366f086e33b628fea2f8a3836578af",
+      "bytes": 1716
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-lock-release-inspection-race.i18n.yaml",
+      "sha256": "dfd823fd64af8686cafab90d1386df1b63d5aff7fbce71a5668299e9a2944dac",
+      "bytes": 542
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-lock-release-inspection-race.md",
+      "sha256": "f57894f7866cc1afcb5c6387312ee3adc6c425bb376587b8033ae136e966ddd8",
+      "bytes": 1976
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-lock-release-inspection-race.zh.md",
+      "sha256": "db0314e8e8b2a469e7daeabda046f572b367fe3b95773a1fca0394a2c4c88a52",
+      "bytes": 1738
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-desktop-native-runtime-smoke.i18n.yaml",
+      "sha256": "6adbc04d2caa8aa96fdc3223e046fe160098d9eec43acb4e0b9e1995e594d8aa",
+      "bytes": 542
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-desktop-native-runtime-smoke.md",
+      "sha256": "5c431f9ecbe2a9cad6f8452a6fa4870440f95af5482431ba6ec79e8e8f45dd18",
+      "bytes": 3131
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-desktop-native-runtime-smoke.zh.md",
+      "sha256": "2f560ce0bdc67758cfcb7cef42f5736a8e82d03eb8fede6421d0534800923503",
+      "bytes": 2673
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-08-ci-completion-observations.i18n.yaml",
+      "sha256": "913c38ff5d4eb63aac500c653b4ec10183697cd7dd8f62590421df7b5bcb95f8",
+      "bytes": 536
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-08-ci-completion-observations.md",
+      "sha256": "eb6b31b7fef83a18f4603e21bdc3fb2a099829acdff8f2887860e03bb1df1379",
+      "bytes": 6586
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-08-ci-completion-observations.zh.md",
+      "sha256": "f7d793067743e19a75174e487df2ea685af534133de02028c997db0e55ee1759",
+      "bytes": 5747
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-codex-command-completion.i18n.yaml",
+      "sha256": "6b0540b72473e4f0185862a459aac41991b522327894a5e79ee4d88ebad9102e",
+      "bytes": 530
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-codex-command-completion.md",
+      "sha256": "263b9d4912e199bd255c9f873035435790b97f1a3ffc72d2698c7a2a5774cd5a",
+      "bytes": 2739
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-codex-command-completion.zh.md",
+      "sha256": "fbf88ad3cd076f801f44fbe3964436d9d271473ce665dce1ff3975e77e48aeb4",
+      "bytes": 2469
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-lsp-request-observation.i18n.yaml",
+      "sha256": "c7ab32dad01a4a3831a1aa891d2164356242b91c6a584775d9eadfd34ec50f2c",
+      "bytes": 527
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-lsp-request-observation.md",
+      "sha256": "ecb9d64086606e848c4586c4c10424ea3959c1c0d0409bc745c3441047105a4a",
+      "bytes": 3168
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-lsp-request-observation.zh.md",
+      "sha256": "8a30c81c063d581d819ac7c14add1b9d0da3856afe72320a53d874497ccae862",
+      "bytes": 2687
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-shipped-profile-composition-check.i18n.yaml",
+      "sha256": "45625647a20e10cda9bd915724c0cab0e764a6591454fdfc79089ff376c198b1",
+      "bytes": 557
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-shipped-profile-composition-check.md",
+      "sha256": "40ac23eda3cfd6b6964d38d35f3235984b52baf14d0580e33e3d9abe7a300206",
+      "bytes": 3549
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-shipped-profile-composition-check.zh.md",
+      "sha256": "acd8e52011c194b29b8927d187fe750fe59bd8a4058c2bd65e468cb389691d45",
+      "bytes": 3139
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.i18n.yaml",
+      "sha256": "72b7fcc8810ca978820f58a3e4b7cecba0ea1bfdb83039f182c708e730f8bad0",
+      "bytes": 538
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.md",
+      "sha256": "7ea050cc5a6941189bc10625c8439dc0f2256636e2c44d8a677911b2946bdf68",
+      "bytes": 3949
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.zh.md",
+      "sha256": "d39c90fdba037f85e65754bb55744d59f0d561057572a25a164a5126a6400e9c",
+      "bytes": 3276
+    },
+    {
+      "path": "apps/cli/README.i18n.yaml",
+      "sha256": "8a2e65b8729fab610e08353f683fb32cd293639b0e21c7861e4f45a094e85801",
+      "bytes": 418
+    },
+    {
+      "path": "apps/cli/README.md",
+      "sha256": "464ce0fd816ca42953effa38c418ed105f2730eb4b9a939637968fd5c66451e5",
+      "bytes": 4877
+    },
+    {
+      "path": "apps/cli/README.zh.md",
+      "sha256": "ac5e1efb49ffde98b2f39db96296ff4183737ef2476d9e3d871cbf687a76d44d",
+      "bytes": 5075
+    },
+    {
+      "path": "apps/cli/package.json",
+      "sha256": "1e3c242270ab7f0e28c28b3642e322796b722da2b07bda565318b82a6c02dce1",
+      "bytes": 6777
+    },
+    {
+      "path": "apps/cli/src/plugin.ts",
+      "sha256": "1f73972c870b1132f9e99e29395566e5b0e0633124c786eb2ec5f875c3d5aab4",
+      "bytes": 7326
+    },
+    {
+      "path": "apps/cli/tests/plugin-windows.spec.ts",
+      "sha256": "34bd8897eae1728813c279322ae0fae36af42b89a24b278b3dde3a8cc9af6b45",
+      "bytes": 2062
+    },
+    {
+      "path": "apps/cli/tests/plugin.spec.ts",
+      "sha256": "8b11684a414445de3d6db491141e8c98aa7c99fae69d7d4a7a7d5f42c3c8a526",
+      "bytes": 2269
+    },
+    {
+      "path": "apps/desktop-host/package.json",
+      "sha256": "9e6b965ba0aa8742a80fcfd43882294a60ce0a60f6d6fc1409a18280456acc5a",
+      "bytes": 1103
+    },
+    {
+      "path": "apps/desktop-host/src/desktop-context.ts",
+      "sha256": "b3d2baded7d5b410d32c0bd097c9afc08d9f2a6f364de47f31a3ffb511e86f71",
+      "bytes": 1205
+    },
+    {
+      "path": "apps/desktop-host/src/index.ts",
+      "sha256": "e0f20d4ab6335ced1db26aa62f95ba685502012eafcd44fcf20bd035fbab5208",
+      "bytes": 23146
+    },
+    {
+      "path": "apps/desktop-host/tsconfig.json",
+      "sha256": "cfed34cf4b5868b8bd0a349be7f2a97661e4b309d28083d05a94d478b8a5c3fb",
+      "bytes": 683
+    },
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "60a0d8103c285117070e2f5d1f7ac90e72677ea4ee9d8f2977046d8fd7e706da",
+      "bytes": 422
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "a620f02499052b42d7134c8b37065bd772339cfdaa29e19b89a29c785b7f66cc",
+      "bytes": 29317
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "afea9e9357f84ac3d8a12fd12b5be27a492fffb4660a50b16a8bee421b8ea8cc",
+      "bytes": 26425
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.mjs",
+      "sha256": "3242149b816114129b53d41701136c96199b8cbe12df39d8c189bebd9bf99507",
+      "bytes": 5574
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "bd09d67c08f2c66516124ebcc71e1a71a36325be44255310098e0fdcbba18f56",
+      "bytes": 2087
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9",
+      "bytes": 1112
+    },
+    {
+      "path": "apps/desktop/scripts/runtime-file-policy.ts",
+      "sha256": "28865b7cfb6bea94eae08678ca28c5132e0a4639392e904fdeeadd801e2a13ca",
+      "bytes": 1897
+    },
+    {
+      "path": "apps/desktop/scripts/smoke-runtime.ts",
+      "sha256": "dc5c774419e2a4fe756a6e28e240d50a4f24708f38e8de2469d647e630b07e99",
+      "bytes": 4051
+    },
+    {
+      "path": "apps/desktop/src/legacy-settings.ts",
+      "sha256": "da6a6f1838ef4893a30ee077fa1d3130698e973211ea03c15035a7cb2d31b06e",
+      "bytes": 4745
+    },
+    {
+      "path": "apps/desktop/src/locale.ts",
+      "sha256": "8ccc7d096eb392fe354c7cfa13d239fb1c1925f478a3ead177b8726d14fd9519",
+      "bytes": 9723
+    },
+    {
+      "path": "apps/desktop/src/login-item.ts",
+      "sha256": "ffc2f8a7acacfc56ca2e015188c42aa41b3e745b9244f49a4b5b472b9712788c",
+      "bytes": 2526
+    },
+    {
+      "path": "apps/desktop/src/main.ts",
+      "sha256": "5c0b64c5099cc9f7464c16c23b36f567ee1fcd14329da525a85557e5c971182c",
+      "bytes": 27325
+    },
+    {
+      "path": "apps/desktop/src/project-manager.ts",
+      "sha256": "434feefc3c7888d40904667b18b79849249d4e8df49a29c7dc59461833f9a31f",
+      "bytes": 26543
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "sha256": "ce599da150c30f10a59039097829c38b9abc420da9f8ea608b1bf98c11fc3c09",
+      "bytes": 3840
+    },
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99",
+      "bytes": 2740
+    },
+    {
+      "path": "apps/desktop/tests/desktop-context.spec.ts",
+      "sha256": "8ec5d05883ee0b81f52aa1675970bc00608ed90fae6880ff7d52a6199dfad33a",
+      "bytes": 3123
+    },
+    {
+      "path": "apps/desktop/tests/expected/legacy-settings-import-preview-zh.json",
+      "sha256": "8ed7557519708b68d1bfb921a0f3db3d2fff238fcdb8913ab6a6a30a738a22b8",
+      "bytes": 415
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-darwin-zh.json",
+      "sha256": "076e552a58b91ee55c78234b2cc71061a477cb55e141f62a7051dfa7c323da3a",
+      "bytes": 647
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-development-en.json",
+      "sha256": "cbf393d7e3c544ac1ef213dde491be94407eef0814e9da3bdb389de6a117f2b4",
+      "bytes": 369
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-win32-zh.json",
+      "sha256": "365cacda8ee17ba884cac8fbd39cffe895e17e7bd7a3310c232702abf312b124",
+      "bytes": 638
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-tray-en.json",
+      "sha256": "65c4f0c0d0c49de85b40541eec05b39629396818d3ea7628368c0a57938764f1",
+      "bytes": 111
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/runtime-payload-smoke.mjs",
+      "sha256": "b7f97c9cf1a0ae63622d02638198afddb99659b021b132cf122e6aa464ac1244",
+      "bytes": 4969
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/runtime-session-lease.mjs",
+      "sha256": "f19c0b4b899d353943fd11c60321130154e9b6b24206dd7a0ae11598a48c7af0",
+      "bytes": 1792
+    },
+    {
+      "path": "apps/desktop/tests/legacy-settings.spec.ts",
+      "sha256": "894c3c8acc27f51422b6bbfa03b88e493d69c54e2124a6d7e5d33a5db3b4c537",
+      "bytes": 6044
+    },
+    {
+      "path": "apps/desktop/tests/login-item.spec.ts",
+      "sha256": "8fbdbb0afc543731e2215a8303013930ff4dfb37b5d16780abd2c54e64af59ed",
+      "bytes": 2814
+    },
+    {
+      "path": "apps/desktop/tests/main-startup.spec.ts",
+      "sha256": "8a66b7af9a32bc711025dc7b881bab60a0d36de43a88e77b6a8341f3c84dbcff",
+      "bytes": 27450
+    },
+    {
+      "path": "apps/desktop/tests/project-manager.spec.ts",
+      "sha256": "795a0566db73d4bd79f84e6da42dc41b11ea122cdf5e3bdbf34fe75f3ad9d629",
+      "bytes": 23216
+    },
+    {
+      "path": "apps/desktop/tests/runtime-file-policy.spec.ts",
+      "sha256": "47e5f3f464987bf1775acc6413cfd17592a54472312b9b69050a49ded479d00b",
+      "bytes": 4486
+    },
+    {
+      "path": "apps/desktop/tests/shell-behavior.spec.ts",
+      "sha256": "3d0fda2f2447dbf1906c4e2eca1a0e70ce9f8f19eeca09f49403b7c3ac1ae35e",
+      "bytes": 3977
+    },
+    {
+      "path": "apps/desktop/tests/shell-preferences.spec.ts",
+      "sha256": "5d8dfd7c5ccd391a03ee7f4d764f1851b60709c8015e7f897d5e7f98ca545d98",
+      "bytes": 3617
+    },
+    {
+      "path": "apps/desktop/tsconfig.json",
+      "sha256": "a9c6d65de293fd2a4880678a6add6c31237a82fb29cf01a732965a61ab7445ce",
+      "bytes": 266
+    },
+    {
+      "path": "docs/plans/2026-09-14-upstream-first.i18n.yaml",
+      "sha256": "28fc2115e4ff4dc25b5814a03e36510c2c2190f914cb53da710b69c832246cd2",
+      "bytes": 477
+    },
+    {
+      "path": "docs/plans/2026-09-14-upstream-first.md",
+      "sha256": "288bc2593faff89fec983cdffdeb0a13f45eb0fad4e5b92c0513adcb8578748d",
+      "bytes": 5307
+    },
+    {
+      "path": "docs/plans/2026-09-14-upstream-first.zh.md",
+      "sha256": "d237a9a2f041a4635c3457526e8c0542324c5c42efb00d589a298fcc5ab30d59",
+      "bytes": 4814
+    },
+    {
+      "path": "packages/boot/app-boot/README.i18n.yaml",
+      "sha256": "94b02e93b59bba265fbe5859c3e1e5854e219d93c81d433346dd16a87a05d297",
+      "bytes": 432
+    },
+    {
+      "path": "packages/boot/app-boot/README.md",
+      "sha256": "1214b4bb58339542c43288d0f0ac22f0f5d4bb40a92e399645877d20ff094e08",
+      "bytes": 14820
+    },
+    {
+      "path": "packages/boot/app-boot/README.zh.md",
+      "sha256": "72961d51ba8cf29191d602f5cf7f9f17acaf44a40aafeef2ede3f2eb572083ad",
+      "bytes": 13967
+    },
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "29a4224ab083e7c6378d6b67f9c0dc65c1642a1ac84efab8d9f07eb736241922",
+      "bytes": 39156
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile-init.spec.ts",
+      "sha256": "6028b7b99a3374679af29ba7a006a72ef20b728888cd050fad867b2675070339",
+      "bytes": 1945
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile.spec.ts",
+      "sha256": "40905aa6ec8f8c0fe9904ed88dac0d1556a5fa3a68f9cdf53eb30339f15b001a",
+      "bytes": 50619
+    },
+    {
+      "path": "packages/client/modules/README.i18n.yaml",
+      "sha256": "c3e923b43a70a072f07409e30d37eb4cbb3ab2dcf3e89afa5857cefbb374e525",
+      "bytes": 433
+    },
+    {
+      "path": "packages/client/modules/README.md",
+      "sha256": "c7a0687209bf131b30bae71073f76210fcb51fcf92389fb9b5d4d8cf4daf126c",
+      "bytes": 10433
+    },
+    {
+      "path": "packages/client/modules/README.zh.md",
+      "sha256": "a836f800234d55c358d8d644ca201771877ca4a352f22c56e7f0b0e5625b61d6",
+      "bytes": 9719
+    },
+    {
+      "path": "packages/client/modules/src/index.ts",
+      "sha256": "c5f2c2b4b43f97da9506e6c7aed6f102a3bb4113ae25a692df2ef4e83b2008c9",
+      "bytes": 41343
+    },
+    {
+      "path": "packages/client/modules/src/package-manifest.ts",
+      "sha256": "0886bdfd080ae14fb3177883edbea4dd90b59d769406ddeba9d9b14df0a293db",
+      "bytes": 3637
+    },
+    {
+      "path": "packages/client/modules/tests/node-half.client.spec.ts",
+      "sha256": "6eb8bd2e05fe128aee5aa2f10e3ec0fc1b565243440c0c8dac76799d840267fe",
+      "bytes": 39779
+    },
+    {
+      "path": "packages/client/modules/tests/package-manifest.spec.ts",
+      "sha256": "73801ac05764d23cd6c68cdf214b269e3bf0a4a3c7eb0ec9804256f643df9874",
+      "bytes": 4341
+    },
+    {
+      "path": "packages/client/ui-subagent/tests/conversation-ui.client.spec.tsx",
+      "sha256": "efd6f2d618a1f13a84117b6660881fb2058247c3d7fb4078216ed73745b81cae",
+      "bytes": 34025
+    },
+    {
+      "path": "packages/context/file-reference-local/tests/search.spec.ts",
+      "sha256": "edfb6fb7e7a1b99c33545855547fa0d39602b0b2eacef02dfbe9fd60499e08b3",
+      "bytes": 14477
+    },
+    {
+      "path": "packages/credentials/credentials-local/tests/local.spec.ts",
+      "sha256": "68b3706d51cb3bf4ad1603234c043c850338490095b16fac7784c75b06948673",
+      "bytes": 24275
+    },
+    {
+      "path": "packages/host/directory-picker-native/README.i18n.yaml",
+      "sha256": "dd01dd2f947e31803fb9d636957af437bf3f37b56e9629529f01ef76d127b597",
+      "bytes": 447
+    },
+    {
+      "path": "packages/host/directory-picker-native/README.md",
+      "sha256": "453d717b2dafeb232036c6ecd8cf443eb82328204a9f86de3cf443ad8e9c83f5",
+      "bytes": 7258
+    },
+    {
+      "path": "packages/host/directory-picker-native/README.zh.md",
+      "sha256": "91464631962a987b27030b3e00f9b799fededec61f1fc2ed83cebf4a3c4226e3",
+      "bytes": 6734
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog-bindings.ts",
+      "sha256": "ef920a6c57a277cf13869f65c238e403ba3d98221393653b8212b974dcfb295b",
+      "bytes": 9898
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog-logic.ts",
+      "sha256": "5aa475eee9a929314af30d17ce72fa2053ca6c4298617f5b580eb9f1743288eb",
+      "bytes": 5891
+    },
+    {
+      "path": "packages/host/directory-picker-native/tests/win32-dialog-bindings.spec.ts",
+      "sha256": "6054a2df42458a6b94818119e8cd37a1abac251682b2a0b0e262f442f82897a6",
+      "bytes": 19453
+    },
+    {
+      "path": "packages/host/webserver/README.i18n.yaml",
+      "sha256": "689e6d4b289efd63636ec7cb701a95c687486c5c930b8129d232075f00a53664",
+      "bytes": 433
+    },
+    {
+      "path": "packages/host/webserver/README.md",
+      "sha256": "ed37fb0acb7b3ad3503177eb316406ab145d72988339395af518013934afe181",
+      "bytes": 8487
+    },
+    {
+      "path": "packages/host/webserver/README.zh.md",
+      "sha256": "ca89bde19f83e749229b0c6fa9a6665fc24b144489320eb5215ec92802958ed9",
+      "bytes": 7950
+    },
+    {
+      "path": "packages/host/webserver/src/injections.ts",
+      "sha256": "a343ff40c10c24a80314b4bdb124525c7370904d1b773176864afe6bb50e5082",
+      "bytes": 5711
+    },
+    {
+      "path": "packages/host/webserver/tests/injections.spec.ts",
+      "sha256": "1149c6af3bd06320321190c832b719cc022c7040c5d30c3eba6bfb97469d2103",
+      "bytes": 2373
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/tests/connection.spec.ts",
+      "sha256": "b90f6235df91dd7b75d1394ab95d1560ebd23db7c26a66f1b483e7378cc77417",
+      "bytes": 13845
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/tests/fixture-server.ts",
+      "sha256": "0b9665ce6b3aeeaa12ed931d679eaec05bbda62487699eb30f301a8e712c1e3e",
+      "bytes": 8808
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/tests/instance.spec.ts",
+      "sha256": "b2c56cc4dbf33fe3fb4c1bf1ffcec226230a198c0ed6582633b615c2c5379147",
+      "bytes": 21247
+    },
+    {
+      "path": "packages/subagent/subagent-codex/tests/real-product.spec.ts",
+      "sha256": "dc93d58157e72897f16a12cd44a74de886fcc4ccd769cab563ae1070d2073071",
+      "bytes": 19858
+    },
+    {
+      "path": "packages/subagent/subagent-codex/tests/responses-fixture.spec.ts",
+      "sha256": "c0c728992d6f2b76eeedc7a9781504ddaa4a98079c3ebd46b766b96bdaefb5ac",
+      "bytes": 5676
+    },
+    {
+      "path": "packages/subagent/subagent-codex/tests/responses-fixture.ts",
+      "sha256": "1870357933314ed38c8dbf6593a276ed1c712442be32736df141c480a80abba2",
+      "bytes": 11589
+    },
+    {
+      "path": "packages/util/atomic-write/README.i18n.yaml",
+      "sha256": "43829a541a697432f318835511a9cb886c49b3d1098a0512c93f39b4c0ac2809",
+      "bytes": 436
+    },
+    {
+      "path": "packages/util/atomic-write/README.md",
+      "sha256": "5709f79228f1260d1f4ccaac141ed9d25d9e121f98b33cbb5564eeff4bf6b606",
+      "bytes": 7789
+    },
+    {
+      "path": "packages/util/atomic-write/README.zh.md",
+      "sha256": "f0406c8dd3a92e97ed01253b9d1c631ff4780954868e6208cfd08c49a98af5ce",
+      "bytes": 7278
+    },
+    {
+      "path": "packages/util/atomic-write/src/index.ts",
+      "sha256": "e7635cb34e6eb93c489949a577e4ddfa0d9137f77291e501be9c526392c8fb4d",
+      "bytes": 8545
+    },
+    {
+      "path": "packages/util/atomic-write/tests/atomic-write.spec.ts",
+      "sha256": "fa6679c4fa10bff3202f9e42c0e49449480a8e9187036dbb8e0989213849c0e0",
+      "bytes": 10801
+    },
+    {
+      "path": "packages/util/workspace-path/README.i18n.yaml",
+      "sha256": "326e0cfbd0d14fbeda1d269cc9694c5891cee160f635efd4d02067ccf9529b38",
+      "bytes": 438
+    },
+    {
+      "path": "packages/util/workspace-path/README.md",
+      "sha256": "46756a43f10b338b564d3c5ec2e3cd152f271ee1e7fbc4a2236f822c81306643",
+      "bytes": 3693
+    },
+    {
+      "path": "packages/util/workspace-path/README.zh.md",
+      "sha256": "1d10e03916b743340955ef7d2a6fcf39b8c0fb5e84f3a3916c99871a6f6182a3",
+      "bytes": 3455
+    },
+    {
+      "path": "packages/util/workspace-path/src/index.ts",
+      "sha256": "1f9a8f76d24a476c1166bd6b5a672a700d11e33ab4fe4c3575914449b8a7210f",
+      "bytes": 5624
+    },
+    {
+      "path": "packages/util/workspace-path/tests/index.spec.ts",
+      "sha256": "4809a94be6faa2e086239e1e9db83d18d0977b12dfde840a63ade85361b3f7c8",
+      "bytes": 7101
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "69e404a23b1950861792a742aa3cf03de2efc2c7e5599a6f0dbe415a181730ee",
+      "bytes": 869000
+    },
+    {
+      "path": "python/development.i18n.yaml",
+      "sha256": "d427cc3d3c494f18971cde441727407ae5b8c62473bddf79595ae0e190176235",
+      "bytes": 431
+    },
+    {
+      "path": "python/development.md",
+      "sha256": "2d89c8056bb1dceaba12fb146d51aa77eb2f0af8c0f75773b01f510b311b30e0",
+      "bytes": 8280
+    },
+    {
+      "path": "python/development.zh.md",
+      "sha256": "5d47c42a5b6e98dfb8d2b5ea75c86067e07898f3edb9abf33d897d3303b86257",
+      "bytes": 7969
+    },
+    {
+      "path": "python/sdk-runtime/README.i18n.yaml",
+      "sha256": "e8a93ed0815227b8740118de1197bcf4656dab6a8a7288440dbc06e8def79787",
+      "bytes": 428
+    },
+    {
+      "path": "python/sdk-runtime/README.md",
+      "sha256": "ed36bca11923993ec77b8b979a9e7fe3a37658c95114fe42c3b592eaaf3579a2",
+      "bytes": 4958
+    },
+    {
+      "path": "python/sdk-runtime/README.zh.md",
+      "sha256": "07cd1659c19cab272809b63b9f97f1e767d07fa4260587fa7b58ead4b704d3a3",
+      "bytes": 4689
+    },
+    {
+      "path": "python/sdk-runtime/package.json",
+      "sha256": "8137cf69d4ae99fd37344e35cc4d567fb1527aadc7b12342dd0c8f1a6cfad681",
+      "bytes": 8174
+    },
+    {
+      "path": "python/sdk-runtime/src/deepseek_harness_runtime/__init__.py",
+      "sha256": "e838ea61e3c7d4bb99f82dffe25b469d3a0b64486d88850e06254242b094655f",
+      "bytes": 7546
+    },
+    {
+      "path": "python/sdk/tests/test_runtime_resolution.py",
+      "sha256": "627ed1f78b21d9a04b0b7e32850f5b737556378b027891972f89c0bd73a33838",
+      "bytes": 9150
+    },
+    {
+      "path": "python/sdk/tests/test_smoke_model.py",
+      "sha256": "dbf1fe7c00ab1bf835239526964a31df62530ea23f2856683cf2ec32a097bde2",
+      "bytes": 20988
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.spec.ts",
+      "sha256": "679a3c1a890bdf59a7748dbde1badc29b13e4664ce35eaba1f89aa45cfef7cdd",
+      "bytes": 6513
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.ts",
+      "sha256": "fc3e1e7ddad2714699d461316dceaea9322bf3a5bb47bad3cb2ba2d5236dab96",
+      "bytes": 26200
+    },
+    {
+      "path": "scripts/project-doc-site.spec.ts",
+      "sha256": "df38d9e41fc5f712ba0fe34ac4b12c1bb268f75d229fa26d4e51b88cc9010b9e",
+      "bytes": 36097
+    },
+    {
+      "path": "scripts/smoke-python-runtime.py",
+      "sha256": "0e5abd64e8a7d3172dde23e08765e803524ee308082e18c24f5c8ec5cf4bf422",
+      "bytes": 105157
+    },
+    {
+      "path": "scripts/verify-cordis-config.spec.ts",
+      "sha256": "4f74fcc5b78e367741a90746b2908536b3c0399b0526cbba5d3ce987e3ae688a",
+      "bytes": 16167
+    },
+    {
+      "path": "scripts/verify-cordis-config.ts",
+      "sha256": "4f6a62ce0368131e47d71b2a7e0dfa19cf780fbde0a29f40ff57f3cb9544ff2a",
+      "bytes": 22687
+    },
+    {
+      "path": "scripts/verify-profile-compositions.ts",
+      "sha256": "200ffe53886d9e7e364389158f54ded5778e61c600324fc5a649ee1cf15887ea",
+      "bytes": 7150
+    },
+    {
+      "path": "scripts/verify-runtime-closure.spec.ts",
+      "sha256": "3cdc64d89470298773c21a0f3867f0ceee40fcdae3182345431f3cebfcf183df",
+      "bytes": 7641
+    },
+    {
+      "path": "scripts/verify-runtime-closure.ts",
+      "sha256": "f47f7fceb33a60b507f39285ca35552af7d8ab8e009789809bf94423ab4c5448",
+      "bytes": 9214
+    },
+    {
+      "path": "snapshots/session/desktop-context/cordis.snapshot.yml",
+      "sha256": "af409125de30c39eb0a0fc8d87761f3f006268e18f54516d5e4dc79d5644b072",
+      "bytes": 1378
+    },
+    {
+      "path": "snapshots/session/desktop-context/cordis.yml",
+      "sha256": "15d2cd2dc165aeb3059678bd8ccedb75960e3b99dc08f75c5adfa3a8fefa8c36",
+      "bytes": 365
+    },
+    {
+      "path": "snapshots/session/desktop-context/fixture.mjs",
+      "sha256": "1959fd2dc7de83726de048354cac0bdd7d3b49ad4bc76f07099330b363a06318",
+      "bytes": 584
+    },
+    {
+      "path": "snapshots/session/desktop-context/session.v3.jsonl",
+      "sha256": "7e4611c2588645c3a6ccd5d9915115d039a589180c6c5e0c3b114684cf8c5b06",
+      "bytes": 4234
+    },
+    {
+      "path": "snapshots/session/desktop-context/snapshot.yml",
+      "sha256": "7e6cd604187a98fb2136eb2685b6514dd77d9ad8fd83aa7cda9a3d413d5facc7",
+      "bytes": 149
+    },
+    {
+      "path": "snapshots/session/desktop-context/system-prompt.expected.md",
+      "sha256": "c5a46faf23cb003b2b5ebc142785e965a71012a9cc50db53f3cbab17582aedd1",
+      "bytes": 4787
+    },
+    {
+      "path": "snapshots/session/desktop-context/tool-schemas.expected.json",
+      "sha256": "9adf8bf3a9799f69829d7991db3d1ffffae405c58dbf3dc13844a4c56c860ab8",
+      "bytes": 27955
+    }
+  ],
+  "deletedSources": [],
+  "archives": [
+    {
+      "path": ".artifacts/desktop-pre-package/archive.json",
+      "sha256": "773bea9aac7550e41936d29321dd5c8238d17b2b163bca2a57e2358ceebd632a",
+      "bytes": 13696
+    },
+    {
+      "path": ".artifacts/desktop-before-payload-fix/archive.json",
+      "sha256": "2e6171afdf606a1677a01dd5da8db87996904749ce9257e9def0de270c518380",
+      "bytes": 3861
+    },
+    {
+      "path": ".artifacts/desktop-package-candidate-inputs/manifest.json",
+      "sha256": "ce3a086babcfe14d9c475ea82302aab24bcadec0a71644592e223358c0940c02",
+      "bytes": 55560
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/desktop-payload-fix-controls.json",
+      "sha256": "684b4002d6ade374a108d054e7022b6587b29e1144ea39b4fde4f5c70747e8c5",
+      "bytes": 1366
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-pre-package-archive-check.json",
+      "sha256": "9423f7c7bdc17935ea3ddf9fb934ab13bde7474627c1fd3452a899175aba4da6",
+      "bytes": 512
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-ui-open.json",
+      "sha256": "921ebb6a23aa6f7b44228238ce6e9e0b5fd9d2766fefe96741cd51ba1fb50fd6",
+      "bytes": 1309
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-process-exit.json",
+      "sha256": "dd93cbcefff823ae9bbc295ea615f6e1d60dcbe252f110e58379722d888856f2",
+      "bytes": 1037
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-host-process-exit.json",
+      "sha256": "96762dd8dfbb24175ec1fad30d623b100bcd090b49437cf3224ce1f6f26f695c",
+      "bytes": 1053
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-acceptance.json",
+      "sha256": "c37554b68c7cdaca868ee170e90182c295553dde7fd9f0b3cb35fb10ed2c3775",
+      "bytes": 5731
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-completed.json",
+      "sha256": "b2e767695c5e3857ba1f1b479e2ff3db46d6029e1fbf8799eae01d82a227d9b5",
+      "bytes": 1969
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-final.json",
+      "sha256": "c2455a55ec5d66ff0dc50656130c54d35a2e47a926133b251f72e8673baf4a43",
+      "bytes": 1539
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-host-verification.json",
+      "sha256": "b0308d23c36781ccd451d2ded14393da8278b8cd1bcfd01f19fda23ee5289f9b",
+      "bytes": 226
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-output.json",
+      "sha256": "0c245e1dfabf656bdfb87dc49814e6ad760a8bda84b90f76963ff5bea1663446",
+      "bytes": 4720
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-home.png",
+      "sha256": "c839de4a2e6dcee7da2a88cf3f3e48579026e29ce08316057cebf148110db34f",
+      "bytes": 86823
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-ready.png",
+      "sha256": "fa28e4bea2c497c8d813300c80f21e521fde3caa0c9af5f7195ae9f94a3d287d",
+      "bytes": 41664
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-settings-initial.png",
+      "sha256": "30513439e245e86f819309a8b162c36db8ac82fee7fba3f3d08bb09eadd1d390",
+      "bytes": 93791
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-settings-light.png",
+      "sha256": "a7d13736a920f385407d04cdde03fb53a03485680290b865366d75c40d145450",
+      "bytes": 102944
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-settings-dark.png",
+      "sha256": "896beb0a361efed984189f67613e6ca7960eead02c6678b4a41a546e4cb6034f",
+      "bytes": 93947
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-plugins.png",
+      "sha256": "f723306fca069e47c6447c4cbe74c022c83819c48b1a5d8c9ba51d05604241b2",
+      "bytes": 39074
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/archive-desktop-build.mjs",
+      "sha256": "e2c73295004ad74699c7feeb893423d11db435cced7e4b78fa6632f64864eac5",
+      "bytes": 2161
+    },
+    {
+      "path": ".artifacts/check-desktop-archive.mjs",
+      "sha256": "22d33cad4ff5b3f0cd86ad0f5c7dc50706c83613a6fd08d231010464d8bd99f5",
+      "bytes": 1834
+    },
+    {
+      "path": ".artifacts/archive-desktop-payload-inputs.mjs",
+      "sha256": "5b1b41dc52c9e62e5baefb9010d5907f1e6b3b9f77c75b1d1a20f73630428c09",
+      "bytes": 1611
+    },
+    {
+      "path": ".artifacts/capture-desktop-package-inputs.mjs",
+      "sha256": "2ca4b3b0cfe94bf53b93f0c7a3a5385556024247637b5b9b4e978f269fff93aa",
+      "bytes": 2311
+    },
+    {
+      "path": ".artifacts/desktop-payload-fix-controls.mjs",
+      "sha256": "d584fbe3a2f0b2a21851a39a3f84d8902cf050b9acb4337d5a4e4829a48242c2",
+      "bytes": 2204
+    },
+    {
+      "path": ".artifacts/run-prepared-desktop-smoke.mjs",
+      "sha256": "a54ebf91dbce8e8cd7a6b09aab323efe1f107964c4fa4d02f4fe3e8d86a03351",
+      "bytes": 440
+    },
+    {
+      "path": ".artifacts/launch-packaged-desktop.mjs",
+      "sha256": "118621f2179b9c56cad3bb8fe4fca85a3392b5d9d6aa9817c48524de9b54ece2",
+      "bytes": 3304
+    },
+    {
+      "path": ".artifacts/launch-packaged-desktop-host.mjs",
+      "sha256": "aa218a19de7bf67835fa2e7251baa7391c80aa2806f079e9a4d58cd0380e59c0",
+      "bytes": 3329
+    },
+    {
+      "path": ".artifacts/desktop-inspector.mjs",
+      "sha256": "a287133d0bce112776788fb7527cf7c132eda3bb35538c25ae499588df53ebd8",
+      "bytes": 2194
+    },
+    {
+      "path": ".artifacts/desktop-packaged-ui.mjs",
+      "sha256": "52d8d93f0cdf50bb689aefbd3669e873816ca2ac41b1bc76ee88da3fb61e3841",
+      "bytes": 2776
+    },
+    {
+      "path": ".artifacts/desktop-packaged-acceptance.mjs",
+      "sha256": "47c248c0f9fff49be2c1a1b6aac06e461cc213e2bd692b2994020cea47638cc5",
+      "bytes": 8863
+    },
+    {
+      "path": ".artifacts/complete-desktop-packaged-acceptance.mjs",
+      "sha256": "ac0097d1bca16f1ffedf4a4372ed486ccf813771c87faf8e5d91363e60f12d7f",
+      "bytes": 3766
+    },
+    {
+      "path": ".artifacts/finish-desktop-packaged.mjs",
+      "sha256": "7b8f4347c9d7d22d7487a5ffb9390c11a28c8e8e2317cb9704f8f38637dc72cc",
+      "bytes": 2734
+    },
+    {
+      "path": ".artifacts/verify-packaged-desktop-output.mjs",
+      "sha256": "74829942eed83aea722bca2f4490382733b87cfb89073ee1ff7a6b1fde020cf3",
+      "bytes": 4663
+    },
+    {
+      "path": ".artifacts/capture-desktop-package-source.mjs",
+      "sha256": "30020f2ae13b01477b57a1a2ed92ceccd0e656d9b4fe02dcf6e0367da5298c20",
+      "bytes": 6580
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/desktop-package-windows.log",
+      "sha256": "6e839dca2c342e0f24df416bedbf06ea9cb732e28dba05432c776997c2a43744",
+      "bytes": 488398
+    },
+    {
+      "path": ".artifacts/desktop-package-windows-configured.log",
+      "sha256": "595ce8dc522969457e773831480521e09e19214fef010b8b181cd3ebccd3ad5e",
+      "bytes": 498627
+    },
+    {
+      "path": ".artifacts/desktop-package-windows-reviewed.log",
+      "sha256": "b51ebe300f1050b3ccd2512fb4d76ca4c09c782602dfaddd2e3beb8088dc054c",
+      "bytes": 496941
+    },
+    {
+      "path": ".artifacts/desktop-payload-fix-tests.log",
+      "sha256": "2c94e33cf161c5b4dd58ff9018609e9d6b998c5b863baa9760635262eb69bbea",
+      "bytes": 942
+    },
+    {
+      "path": ".artifacts/desktop-payload-fix-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/desktop-payload-fix-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/desktop-payload-fix-doc-sync.log",
+      "sha256": "fdbbef0b50dca9adc13b36c50f91c91377ee2a89571b742e9cf25d7c2d98b5df",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/desktop-payload-fix-pairing.log",
+      "sha256": "979511da4844ea3a2bcdfde1fe300002601bf10b12d79a9aa3cde9cc977cc342",
+      "bytes": 679
+    },
+    {
+      "path": ".artifacts/desktop-payload-fix-runtime.log",
+      "sha256": "f6ffa4c70011d9e6b81bcbbca0d47fa9d77078160465a04bd0f7ee7bb82d373a",
+      "bytes": 5636
+    },
+    {
+      "path": ".artifacts/desktop-payload-control-obsolete-build-permission.log",
+      "sha256": "bd55189024bd260c2cdc4473f2257d0841a97d1b35d768647c2a8702383cde8c",
+      "bytes": 2152
+    },
+    {
+      "path": ".artifacts/desktop-payload-control-released-before-contender.log",
+      "sha256": "ecbb075da4ca3de02107b7773b400039a848cdad02df04f00dba052184f85501",
+      "bytes": 2829
+    },
+    {
+      "path": ".artifacts/desktop-packaged-start.log",
+      "sha256": "ed4bbd0817edc15fe5b0326e22bdf8f56dc77e6a1b5e553dd17cca16577b5f1b",
+      "bytes": 1731
+    },
+    {
+      "path": ".artifacts/desktop-packaged-host-start.log",
+      "sha256": "1e4d5f30f6a6858523bc5deff7ba3c06d6cbc77cb8d80d7b458bfdc9cede9710",
+      "bytes": 1399
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/deepseek-harness-0.1.5-rc.2-win-x64.exe",
+      "sha256": "d55a864c72d917a6aa2d6401c0598223a5db46e0115a7d5cc2c88aa77df931b6",
+      "bytes": 180277356
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/deepseek-harness-0.1.5-rc.2-win-x64.exe.blockmap",
+      "sha256": "3c176b31bdaaf24f9911c90bd748c8c486073e290416bb7476223725bbc69dd7",
+      "bytes": 188153
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/DeepSeek Harness.exe",
+      "sha256": "0f9aa369b704e08ba66f5f8d3443504f9fc83c29dd6ff453d6eac22afa676709",
+      "bytes": 244440576
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/app.asar",
+      "sha256": "026d4547922b40816aa43105771de4be2e71422dd70816603a7c79b183dd4ca9",
+      "bytes": 2481693
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/dsh/desktop-runtime.json",
+      "sha256": "09b411a16d9b535c115ee5598a36f41cca72c58ef5bfae2107ea02cd08b49808",
+      "bytes": 2551430
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/runtime/node/node.exe",
+      "sha256": "c6335d08331c23d68b9f2b18adb102002d76ef150b47248e954c507e0d033664",
+      "bytes": 92299080
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/runtime/pnpm/bin/pnpm.mjs",
+      "sha256": "ff3224d46b47fbb24a7e9fe15fededef7e00892d07d4e376b6762d4899906bfd",
+      "bytes": 1464
+    }
+  ],
+  "builtFiles": [
+    {
+      "path": "apps/desktop/lib/main.js",
+      "sha256": "6a6a059e31024e0090a8ec17eb4d9f4eaf322c7ec885f50ad8b1c81659ddba9b",
+      "bytes": 205637
+    },
+    {
+      "path": "apps/desktop/lib/preload-app.cjs",
+      "sha256": "87788b6e3f75279de7c4931a9ffe063740df2002db600d2ea1dffb0fda765777",
+      "bytes": 1905
+    },
+    {
+      "path": "apps/desktop/lib/preload.cjs",
+      "sha256": "596c0ba3b325ef17202118b5e272162bc8419359f9aa14a6e38793c480e0e1fe",
+      "bytes": 2538
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.css",
+      "sha256": "c1ab4b6d85866488b9dc0a3d567ba0384cc811422cdfdfcb39315e041f979704",
+      "bytes": 1363
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.html",
+      "sha256": "329aeafcaa09fa8dfbd4b1a9e6f8ccb7df66177f8f7023e1f52d64ad61dfd2d7",
+      "bytes": 1497
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.js",
+      "sha256": "62decc7d611270f6288139262856d89227a48fc2a4b59cf37470120db8c90040",
+      "bytes": 5077
+    },
+    {
+      "path": "apps/desktop/renderer/startup.css",
+      "sha256": "83d221d4686dc05edcc2d1bc9b8807b62ae2525c5202f3b95bf60362f70d958d",
+      "bytes": 1525
+    },
+    {
+      "path": "apps/desktop/renderer/startup.html",
+      "sha256": "0076664202606a62340eb49d23729096911547e2591d7ab4a1925cfff73cb9da",
+      "bytes": 995
+    },
+    {
+      "path": "apps/desktop/renderer/startup.js",
+      "sha256": "783a335de0401584b4149c9f19e78f8280db169e39dd08e1c4d243c0bbe172eb",
+      "bytes": 2618
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9",
+      "bytes": 1112
+    }
+  ],
+  "sourcePatch": {
+    "path": ".artifacts/desktop-package-candidate-inputs/source.patch",
+    "sha256": "d1c3f21e7cf27816692954c375406279e78c62816cb63e70015f1831c055a075",
+    "bytes": 289288
+  },
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/desktop-context-source.json",
+      "sha256": "a76b0e3858d5e0c5dbaf5dfb4fe65e8a4d4668f7c41a5afac7605afb870d47c8",
+      "bytes": 28687
+    },
+    {
+      "path": "artifacts/upstream-first/helper-fixes-source.json",
+      "sha256": "a91762aaf4ac7d7c71eff1616828357871e629ca3803a4a45f8e7389cec54a6e",
+      "bytes": 11935
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-source.json",
+      "sha256": "59f4ca5851df8b759b11eda44275b09c6f2baf9bd8efb55d218208a53d7e1e87",
+      "bytes": 11375
+    }
+  ],
+  "change": "Remove obsolete fs-ext permission and payload-specific handling; exercise current native modules and real JSONL lease exclusivity/release through a loaded external plugin. Session implementation and on-disk format unchanged.",
+  "release": {
+    "schemaVersion": 1,
+    "version": "0.1.5-rc.2",
+    "hostProtocolVersion": 3,
+    "nodeVersion": "24.17.0",
+    "pnpmVersion": "11.7.0"
+  },
+  "appId": "ai.deepseek.harness.upstreamfirst.validation",
+  "appIdScope": "Process-only local unsigned validation identity",
+  "checks": [
+    {
+      "id": "desktop-native-payload-tests",
+      "status": "PASS",
+      "tests": 29,
+      "command": "pnpm exec vitest run apps/desktop/tests/project-manager.spec.ts apps/desktop/tests/runtime-file-policy.spec.ts",
+      "log": ".artifacts/desktop-payload-fix-tests.log"
+    },
+    {
+      "id": "desktop-native-payload-controls",
+      "status": "PASS",
+      "tests": 2,
+      "command": "node .artifacts/desktop-payload-fix-controls.mjs",
+      "receipt": "artifacts/upstream-first/desktop-payload-fix-controls.json"
+    },
+    {
+      "id": "desktop-native-payload-doc-sync",
+      "status": "PASS",
+      "gates": 34,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/desktop-payload-fix-doc-sync.log"
+    },
+    {
+      "id": "desktop-native-payload-lint",
+      "status": "PASS",
+      "command": "pnpm run lint",
+      "log": ".artifacts/desktop-payload-fix-full-lint.log"
+    },
+    {
+      "id": "desktop-windows-unsigned-package",
+      "status": "PASS",
+      "command": "pnpm run package:desktop:win:x64:unsigned",
+      "environment": {
+        "DSH_DESKTOP_APP_ID": "ai.deepseek.harness.upstreamfirst.validation"
+      },
+      "exitCode": 0,
+      "log": ".artifacts/desktop-package-windows-reviewed.log"
+    },
+    {
+      "id": "desktop-packaged-ui",
+      "status": "PASS",
+      "receipt": "artifacts/upstream-first/desktop-packaged-final.json"
+    },
+    {
+      "id": "desktop-packaged-output",
+      "status": "PASS",
+      "command": "node .artifacts/verify-packaged-desktop-output.mjs",
+      "receipt": "artifacts/upstream-first/desktop-packaged-output.json"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "initial-build",
+      "status": "ABORTED",
+      "reason": "Required DSH_DESKTOP_APP_ID absent; verified build process tree stopped before publication"
+    },
+    {
+      "id": "configured-build",
+      "status": "FAIL",
+      "reason": "Real native payload smoke required fs-ext, which current production packages no longer ship"
+    },
+    {
+      "id": "reviewed-build",
+      "status": "PASS",
+      "reason": "Official complete unsigned Windows build and embedded payload/Host lease smokes completed"
+    },
+    {
+      "id": "sandbox-app",
+      "status": "FAIL",
+      "reason": "GPU subprocess exited repeatedly with -1073741515; Electron exited 2147483651"
+    },
+    {
+      "id": "host-app",
+      "status": "PASS",
+      "reason": "Same EXE/args with fresh isolated data; real UI/tray/plugin page and graceful exit passed"
+    },
+    {
+      "id": "ui-probes",
+      "status": "CORRECTED",
+      "reason": "Initial probe used wrong plugin-manager URL; next observed close synchronously. Both failures preserved; final observed-state checks completed on same app without product changes"
+    }
+  ],
+  "conclusions": {
+    "nativePayload": true,
+    "jsonlLeaseExclusive": true,
+    "externalPluginLoader": true,
+    "unsignedInstallerBuilt": true,
+    "actualPackagedApp": true,
+    "actualPluginInstallation": false,
+    "installerExecuted": false,
+    "osLoginRegistration": false,
+    "realModel": false,
+    "macOS": false,
+    "phase2Complete": false,
+    "shellExitCode": 0,
+    "hostProcessGone": true
+  },
+  "limitations": [
+    "Installer was produced but not installed",
+    "Signing, update, OS login, macOS and real model not verified",
+    "Observed unpacked application uses current candidate; older SEA/wheel records remain historical",
+    "Sandbox GPU failure is recorded separately from host execution",
+    "External plugin fixture loading does not qualify public registry installation",
+    "Installed SEA/wheel pnpm junction denial remains unresolved",
+    "No user data migrated or OS policy changed"
+  ]
+}

@@ -44,6 +44,8 @@ export class GoalService extends TypertRemoteService {
 
 Generation turns the method into a wire endpoint under the service's namespace; Clients call it as a typed method through `ctx.remote` (see the [API Gateway reference](../../../docs/api-gateway.md)). A method opts into cooperative cancellation by declaring `signal: AbortSignal` as its final parameter — the signal is injected, never a JSON parameter or lookup field.
 
+`bindTypertRemote` and `TypertRemoteService` accept explicit `capabilities` declarations beside `namespace`. Each versioned id names the exported methods required from that owner. The [Gateway](../../api/gateway/README.md) reads their current availability; declarations do not grant caller permissions or infer capabilities from names.
+
 ### Associating Host objects and Contexts with wire identities
 
 Complex Host objects cannot cross the wire directly. A business package declares the association through the merge-extensible `TypertLookupMap` and `TypertContextMap`. A Host Context adapter owns the stable wire declaration and resolves wire identities to live Contexts. A Client Context adapter maps in both directions because scoped calls originate from a Client Context and forwarded Host events resolve their explicit wire identity there. Host composition may override its synchronous or asynchronous resolver. A resolver that refuses on policy grounds throws `RemoteError` with its own code, which reaches the caller unchanged.
@@ -55,6 +57,7 @@ One class carries every Remote failure: `RemoteError`, holding a stable `<domain
 ```text
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface RemoteErrorDetailsMap {
+    /** The requested Goal is unavailable. */
     'goal/not-found': { readonly goalId: string }
   }
 }
@@ -62,6 +65,14 @@ throw new RemoteError('goal/not-found', `goal "${id}" does not exist`, { goalId:
 ```
 
 An owner throws at the failure point; no package writes an error-class family or an exit-mapping function. A caller discriminates by `code` — never by `instanceof` — and a `code` branch narrows `details` with no cast, because `RemoteFailure` is the code-discriminated union of `RemoteError` instances. Infrastructure that must recognize a failure carried across a module or realm copy of the class calls `remoteErrorOf(value)`, which reads a structural marker instead of the prototype chain.
+
+The exported [known-code JSON Schema](remote-error-codes.schema.json) lists this package build's finite repository-owned vocabulary with each owner's JSDoc meaning and source declaration. Regenerate it with `pnpm run gen-remote-error-codes`; `verify-remote-error-codes`, `test:docs` and `doc-sync` reject stale output, duplicate owners, undocumented codes and unbounded declarations. It recognizes code strings only: the TypeScript details annotation is not a JSON Schema for payload validation. Unknown codes from newer Hosts or external plugins remain opaque diagnostics; preserve code, message and details without inferring recovery or permissions. Schema membership does not imply that a capability is mounted.
+
+The [Remote failure JSON Schema](remote-errors.schema.json) validates `code`, `message` and object `details`. Known codes select their generated details schema; unknown codes retain opaque object diagnostics, and a malformed known code cannot use that fallback. Input validation accepts extension fields and does not alter the original diagnostic. Regenerate with `pnpm run gen-remote-error-envelope`; `verify-remote-error-envelope` in `doc-sync` verifies the independent inventory, resolved details roots, cross-face agreement and artifact freshness. See [the generator API](../generator/README.md#analyzing-a-workspace-statically). Tuple details fail generation because the current converter omits tuple cardinality. Consumers need a complete draft-2020-12 validator, including `not`; Zod’s reverse JSON Schema conversion does not support that keyword.
+
+`classifyRemoteFailureCode(code)` — or `classifyRemoteFailure(error)` for a caught value — maps a code onto the closed `RemoteFailureClass` presentation semantics shared by every Client: `authentication`, `permission`, `host-state`, `compatibility`, `carrier-invalid`, `transport`, `conflict`, `unavailable`, and `unknown`. The classification lists only codes with agreed cross-Client meaning; the merge-extensible vocabulary deliberately leaves the rest, including every future code, as `unknown`, presented as an opaque diagnostic without inferring recovery or permissions. The repository `verify-remote-error-envelope` gate rejects a classification that references codes missing from the declared inventory.
+
+`gateway/bad-request` carries optional `RemoteValidationIssue` entries with `code`, `message`, and `path` (string keys or numeric indices). Owners use `remoteValidationIssues` to copy those fields from validator output; symbol path keys become diagnostic strings. Validator-specific metadata and input values are omitted. Diagnostic messages remain owner-authored and are not redacted by this helper.
 
 ### Receiving forwarded Host events on the Client
 
@@ -99,6 +110,7 @@ Every namespace, method, lookup, and Context segment must satisfy `isTypertRemot
 |---|---|
 | [`src/index.ts`](src/index.ts) | Decorators, Gateway bindings, `remoteMethods`, segment validation |
 | [`src/remote-error.ts`](src/remote-error.ts) | `RemoteError` and the structural `remoteErrorOf` recognizer |
+| [`src/failure-classes.ts`](src/failure-classes.ts) | `RemoteFailureClass`, `classifyRemoteFailure*`, and the inventory-verified classification map |
 | [`src/types.ts`](src/types.ts) | Protocol maps, `RemoteErrorDetailsMap`, `RemoteResult`, `InvocationDescriptor`, codecs, provider contracts, registry interfaces, `TypertClientRemote` |
 | — | No runtime invariant companion is published; decorators retain private immutable declarations and bindings are frozen values with no independent event stream to cross-check. |
 

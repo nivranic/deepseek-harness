@@ -28,7 +28,7 @@ import type {
 } from '../contract/input.ts'
 import type { InputSubmitMode } from '../contract/composer-submission.ts'
 import { SubmitMachine } from './machine.ts'
-import { registerReferenceActivation } from './editor/reference-activation.ts'
+import { registerReferenceActivation, refreshReferenceAvailability } from './editor/reference-activation.ts'
 import { ReferenceChipNode, $createReferenceChipNode } from './editor/chip-node.tsx'
 import { refreshClaimDecoration, registerClaimDecoration } from './editor/claim-decor.ts'
 import { registerTextRefDecoration, rescanTextRefs, TextRefNode } from './editor/text-ref.ts'
@@ -181,8 +181,9 @@ export class SessionInputShell implements SessionInput {
     })
     this.unregister = mergeRegister(
       registerPlainText(this.editor),
-      registerReferenceActivation(this.editor, (source, reference) =>
-        this.deps.inputTriggers?.()?.openReference(source, reference) ?? false),
+      registerReferenceActivation(this.editor,
+        (source, reference) => this.deps.inputTriggers?.()?.openReference(source, reference) ?? false,
+        (source, reference) => this.deps.inputTriggers?.()?.canOpenReference(source, reference) ?? false),
       registerHistory(this.editor, createEmptyHistoryState(), HISTORY_MERGE_DELAY_MS),
       this.editor.registerUpdateListener(() => { this.onEditorUpdate() }),
       registerClaimDecoration(this.editor, () => this.activeClaimToken()),
@@ -226,7 +227,10 @@ export class SessionInputShell implements SessionInput {
     if (this.lexiconOff !== undefined) return
     const controller = this.deps.inputTriggers?.()
     if (controller === undefined) return
-    this.lexiconOff = controller.lexicon.subscribe(() => { rescanTextRefs(this.editor) })
+    this.lexiconOff = mergeRegister(
+      controller.lexicon.subscribe(() => { rescanTextRefs(this.editor) }),
+      controller.referenceAvailability.subscribe(() => { refreshReferenceAvailability(this.editor) }),
+    )
   }
 
   /** Re-project, run the claim watch, publish, and feed trigger tracking after every editor commit. */

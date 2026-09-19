@@ -70,7 +70,7 @@ $on<Event extends TypertRemoteEvent>(event: Event, listener: TypertClientEventLi
 
 **契约只公开消费动词。**`ClientRemoteService` 激活时就把内部唯一的 `$events` pump 注册为 Connection generation source，与当前有无 `$on` 订阅无关；浏览器通过共享 Remote mux 打开 `$events`，进程内组合通过 `connection.rpc.open` 打开同一 logical stream。解码、精确 item 校验和订阅表派发都是 Gateway Client 的私有实现，`TypertClientRemote` 不暴露生产方方法，因此业务插件不能伪造一条 Host 事件。
 
-每次 Host 打开 `$events` 时，API Remotes source factory 先同步挂载所有 allowlist listener，Gateway 随后产出首项 `{ type: 'ready', clientId, host: { home } }`，再开始迭代事件 source。`ConnectionController` 只有在该项到达后才发布 `connected`，因此 baseline 读取不会跑在增量 listener 前面。
+每次 Host 打开 `$events` 时，API Remotes source factory 先同步挂载所有 allowlist listener，Gateway 随后产出首项 `{ type: 'ready', clientId, host: { home } }`，再开始迭代事件 source。`ConnectionController` 只有在该项到达后才发布 `ready`，因此 baseline 读取不会跑在增量 listener 前面。
 
 物理 mux 断开会让 logical stream 以 `RemoteStreamCarrierError` 结束；Host 返回的 Remote stream error、意外正常结束、非 ready 首项或畸形事件项也会结束当前 generation。Connection 撤回该 generation，在退避后重开 `$events`；Gateway mux 只负责重建物理 WebSocket。转发事件不重放；凡正确性依赖恢复的状态，owner 必须另有查询、cursor 或 opening baseline，不能把 `$on` 当作可靠日志。
 
@@ -136,6 +136,12 @@ Client 要求首项是带非空 `clientId` 与 `host.home` 的 `ready`；后续 
 
 `$events` 是 Gateway 内部 endpoint，不进入生成的 Typert Remote descriptor，也不成为 `ctx.remote.<namespace>`。应用选择仍只存在于 `api/remotes` 的 allowlist 和 Host source；Gateway 只拥有注册、payload 校验与物理传输。
 
+Host 持有的待处理 waterfall 不随单个 HTTP 结果请求或 Client 断线结束。只有该 Client 的确切投递仍待处理时，回答才能生效。已完成请求、已撤回的 Client 连接代次及已委托投递返回 `interaction-closed`，不再确认另一次成功决定；Client 将该关闭结果视为本地完成，避免竞争回答使同一 Connection 的其他工作失效。待处理请求仍随 Host signal 或 Context 结束。Host 重启恢复、变更去重和设备授权仍是独立要求。
+
+应用标识 Approval 和 Question 交互及其 Session、所需回答权限。Gateway 在现有待处理事件记录中保留请求身份、创建时间、状态和 revision，避免第二个注册表争夺取消所有权。协议 2 投递附带此记录；协议 1 保持原有帧字段。重放保留待处理身份和 revision 1。终结通知携带 revision 2，在一次结果、取消或配置到期后关闭其余投递。Gateway 在消费投递前比较回答的 revision。Client 校验记录，但不将其注入业务请求。所需权限只是描述性元数据，不构成授权；持久化恢复仍是独立责任。
+
+协议 2 的 ready 帧包含该连接代次打开前已排队的待处理交互 id。Client 依据此权威快照丢弃过时回答，仅保留活动交互中已完成、尚未确认的回答。相同 id 和 revision 的重放会在新连接代次重发已复制的回答，不再调用监听器。HTTP 传输失败保留回答，投递确认或被拒绝则移除。缺少快照支持时禁用保留。此缓存的数量由待处理工作约束，避免另建 Host 回执注册表及其保留策略；它无法识别由哪个 Client 结算已关闭的交互，也不跨页面刷新保存。Host 重启不会重放旧副作用。[Gateway README](../../../../packages/api/gateway/README.zh.md)拥有重试和过期的详细规则。
+
 ### apps/web 的 browser e2e 属于 Host 面
 
 `apps/web/tests/**` 那批 e2e 在**根 `tsconfig.host.json`** 做类型检查：它们在进程内起真 harness、直接访问 `ctx.connection`、Host `SessionStore.get/create/flush` 与 `ctx.sessionProjectionCache`。**运行时用浏览器 ≠ 类型上属于 Client 程序**——把它们搬进 Client 聚合会报错，因为一个 program 装不下两个 face 对同一个 Context key 的合并。
@@ -177,8 +183,10 @@ Client 要求首项是带非空 `clientId` 与 `host.home` 的 `ready`；后续 
 
 ## 验证
 
-钉住该行为的东西：
-
+- Question 恢复分别等待对话完成和本地化预设名称。回答完成不代表独立的预设列表读取已完成，此间显示原始 id 不能证明预设丢失。名称未就绪时保存去除认证信息的列表响应诊断。
+- 录制回放在回答 HTTP 请求被暂停时刷新页面，分别覆盖 Host 接受前和接受后。新 Client 仅重新展示仍待处理的记录，并要求显式回答；已接受结果从对话记录恢复。不含启动 token 的 URL 使用已有浏览器 Cookie 刷新，完整 Session 与独立工作区结果仍匹配同一 fixture。
+- 真实进程测试在首次回答或自动重试被暂停、尚未送达 Host 时，取消 Approval 与 Question 所在回合。测试断言各能力的取消结果、审批没有副作用、迟到回答已关闭，以及后续交互不受旧取消请求影响。公开取消 RPC 以持久化 `turn/start` 序号为目标，没有新增测试专用取消入口。
+- Approval 与 Question 录制用例启动官方 Web profile，在 Host 接受前丢弃回答或接受后丢弃确认，并比较完整持久化 Session。Question 竞争用例让失败方 Client 提交不同选项和文字；只有胜出回答进入工具结果，迟到重试返回 `interaction-closed`。[浏览器测试说明](../../../../apps/web/tests/README.zh.md)记录故障控制方式和验证范围。
 - Host source 真组合测试：两个 Client stream 各自收到 host emit 的 `{ event, args }`，其中一个断开不会影响另一个；非 JSON 实参会响亮拒绝且不会毒化后续合法事件。
 - 类型层负例拒绝未选择事件、非 `void` 的无 scope 事件、非 Agent-scoped waterfall，以及声明 mode 与签名不符的条目。`$on('slots/changed', …)`（Client 本地事件）与 `$on('skills/change', …)`（已声明但未选中）都编译失败——因此 `$on` 的键面恰好等于名单。
 - 消费端 `$on('settings/document-updated', …)` 把 `ns` 解析为 `SettingsNamespace`：brand 穿过 wire 存活。

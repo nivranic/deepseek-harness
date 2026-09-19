@@ -33,7 +33,7 @@ import { ConfigurablePluginsTabController } from './tab-store.ts'
 import {
   SUBAGENT_MODEL_SELECTION_NS, SubagentModelSelectionCardController,
 } from './subagent-model-selection-card-controller.ts'
-import { WEB_SEARCH_NS, WebSearchCardController } from './web-search-card-controller.ts'
+import { WEB_SEARCH_NS, WebSearchCardController, type WebSearchSettings } from './web-search-card-controller.ts'
 import { en, zh } from './locales.ts'
 
 export type { PluginsSettingsSectionInjected, PluginsSettingsSectionProps } from './PluginsSettingsSection.tsx'
@@ -67,8 +67,8 @@ export function apply(ctx: ClientContext): void {
 
   const bash = new BashCardController(ctx.settingsScope.bind({ namespace: SHELL_NS }))
   const agentLoop = new AgentLoopCardController(ctx.settingsScope.bind({ namespace: AGENT_LOOP_NS }))
-  const webSearch = new WebSearchCardController(
-    ctx.settingsScope.bind({ namespace: WEB_SEARCH_NS }), ctx)
+  const webSearchScope = ctx.settingsScope.bind<WebSearchSettings>({ namespace: WEB_SEARCH_NS })
+  let webSearch: WebSearchCardController | undefined
   const subagentModelSelection = new SubagentModelSelectionCardController(
     ctx.settingsScope.bind({ namespace: SUBAGENT_MODEL_SELECTION_NS }),
     ctx,
@@ -78,7 +78,7 @@ export function apply(ctx: ClientContext): void {
   // scope publishes nothing when one is written. This is the only signal that
   // a key written on another surface reached the Host.
   ctx.effect(
-    () => ctx.remote.$on('credentials/reference-updated', (ref) => { webSearch.refreshCredential(ref) }),
+    () => ctx.remote.$on('credentials/reference-updated', (ref) => { webSearch?.refreshCredential(ref) }),
     'ui-settings-plugins: credential invalidations',
   )
   ctx.effect(
@@ -183,11 +183,31 @@ export function apply(ctx: ClientContext): void {
       locale: NS,
       inject: () => subagentModelSelection.inject(),
     }, SubagentModelSelectionCard)
-    yield ctx.slots.register({
-      name: 'settings.plugin.item',
-      key: WEB_SEARCH_NS,
-      locale: NS,
-      inject: () => webSearch.inject(),
-    }, WebSearchCard)
+  })
+  ctx.slots.inject('settings.plugin.item', () => {
+    let host: typeof ctx.remote.$host | undefined
+    let remove: (() => void) | undefined
+    const refresh = (): void => {
+      if (host === ctx.remote.$host) return
+      host = ctx.remote.$host
+      remove?.()
+      webSearch?.dispose()
+      const controller = new WebSearchCardController(webSearchScope, ctx)
+      webSearch = controller
+      remove = ctx.slots.register({
+        name: 'settings.plugin.item',
+        key: WEB_SEARCH_NS,
+        locale: NS,
+        inject: () => controller.inject(),
+      }, WebSearchCard)
+    }
+    refresh()
+    const stop = ctx.on('connection/reset', refresh)
+    return () => {
+      stop()
+      remove?.()
+      webSearch?.dispose()
+      webSearch = undefined
+    }
   })
 }

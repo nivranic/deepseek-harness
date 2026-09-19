@@ -4,6 +4,8 @@
 
 以下类型由生成的 Remote 产物、Host Gateway 与消费方 API assembly 共用。[Typert Gateway Agent Note](../../.agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.zh.md) 负责架构与传输决策；本页记录 [`dsh-typert-protocol`](../../packages/typert/protocol/src/types.ts) 和 [`dsh-api-gateway`](../../packages/api/gateway/src/types.ts) 中公共约定的字面定义。
 
+验证失败使用导出的 `RemoteValidationIssue` 类型：`code` 和 `message` 是字符串，`path` 是由字符串键与数字索引组成的只读数组。`RemoteErrorDetailsMap['gateway/bad-request'].issues` 可省略，缺失表示拥有方未提供 codec 诊断。[协议辅助函数](../../packages/typert/protocol/README.zh.md)负责转换验证库输出。
+
 ## Lookup 与上下文声明
 
 业务对象包通过声明合并扩展两个空 map。lookup 将一种 Host 对象类型与其 wire identity 关联；上下文声明将一种作用域上下文类别与其 wire identity 关联。生成的 descriptor 引用这些 key，运行时提供方则提供活对象解析行为。
@@ -139,6 +141,8 @@ interface TypertRemoteNamespaceMap {}
 
 ## Host Gateway
 
+内部协议 2 的 ready 帧通过可选字段 `pendingInteractionIds` 列出为该 Client 连接代次排队的待处理交互。[Gateway 回答保留](../../packages/api/gateway/README.zh.md#client-service-clientremote-ctx-key-remote)要求同时具备此快照与应用准备回调提供的品牌类型 `RemoteInteractionReplyScope`，将重试限制在同一已发现 Host 的待处理工作内。缺少 scope 时禁用保留；scope 仅属于 Client，不是 wire 字段或授权决定。
+
 Connection 会先解码 carrier envelope，再调用 `ctx.typertGateway`。请求将精确的具名 wire 字段与 carrier 的取消 signal 分开携带；基础设施与边界失败由 `TypertGatewayError` 承载，其 `gateway/*` 码就是普通的 `RemoteError` 码，因此 RPC 适配器会把每个经结构识别的 `RemoteError` 连同其 code 与 details 原样放行，只把无法识别的异常归并为 `gateway/internal`。
 
 ```ts type-equiv
@@ -182,6 +186,15 @@ type TypertGatewayErrorCode =
 interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
+
+  /**
+   * Read explicit capability ids from active Remote bindings whose required
+   * methods are available. Withdrawn strict definitions are not advertised.
+   * This describes operations, not a caller's authorization to invoke them.
+   * @returns unique capability ids in lexical order.
+   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+   */
+  capabilities(): readonly string[]
   /**
    * Register the application-selected forwarded-event source.
    * @param source - stream factory installed by the Remote assembly.
@@ -205,6 +218,61 @@ interface TypertGateway {
    * @returns a cancellation-aware iterable over the business results.
    */
   stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
+}
+```
+
+<a id="host-discovery"></a>
+## Host 发现
+
+[Host description](../../packages/api/host-description/README.zh.md)通过现有认证 Remote 返回下列事实。能力由活跃绑定显式声明，不代表调用方权限；三类版本分别由不同位置拥有。
+
+```ts type-equiv
+/** One explicitly versioned business operation set advertised by its live Remote owner. */
+interface TypertRemoteCapability {
+  /** Semantic capability id ending in `.v` and a positive integer, such as `session.follow.v1`. */
+  readonly id: string
+  /** Nonempty set of exported method names required by this capability in the binding's namespace. */
+  readonly methods: readonly string[]
+}
+```
+
+```ts type-equiv
+/** Persistent identity of one Harness home; not an authentication credential. */
+type HostId = Branded<'HostId'>
+```
+
+```ts type-equiv
+/** Physical carriers provided by the Host composition. */
+type HostTransport = 'http' | 'websocket' | 'desktop-pipe'
+```
+
+```ts type-equiv
+/** Authenticated discovery result for the currently running Host. */
+interface HostDescriptor {
+  /** Stable across launches sharing the same configured identity file. */
+  readonly hostId: HostId
+  /** Operator-configured label; never used to resolve Host identity. */
+  readonly displayName: string
+  /** Installed Harness package release, independent of protocol generations. */
+  readonly productVersion: string
+  /** Selected response generation; describe uses the protocol-1 discovery representation. */
+  readonly apiProtocolVersion: number
+  /** Offered request codecs; absent on Hosts without negotiation. */
+  readonly supportedApiProtocolVersions?: readonly number[]
+  /** Session writer generation; Clients do not parse the corresponding disk format. */
+  readonly sessionFormatVersion: number
+  /** Host Node.js platform value. */
+  readonly platform: string
+  /** Host Node.js architecture value. */
+  readonly arch: string
+  /** This implementation runs the full Harness; Lite is a separate runtime. */
+  readonly runtimeMode: 'full'
+  /** Explicit versioned operation sets supported by live Remote owners, sorted by id. */
+  readonly capabilities: readonly string[]
+  /** Carriers configured by the application that hosts this service. */
+  readonly transports: readonly HostTransport[]
+  /** Host UTC clock at description time, in milliseconds since the Unix epoch. */
+  readonly serverTime: number
 }
 ```
 
@@ -241,6 +309,30 @@ interface TypertClientRemote extends TypertRemoteNamespaceMap {
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.zh.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxhostdescription--hostdescriptiongateway"></a>
+
+### `ctx.hostDescription` — `HostDescriptionGateway`
+
+Read-only Remote namespace for Host facts and explicitly declared capabilities.
+
+```ts cordis-catalog
+/**
+ * Read current Host facts without changing Session or Workspace state.
+ * Capability presence does not grant permission to invoke its operations.
+ * @returns installed versions, stable identity, and current operation availability.
+ */
+@Remote('describe') describe(): HostDescriptor
+
+/**
+ * Select the highest shared request codec without changing identity or granting permissions.
+ * @param supportedApiProtocolVersions - nonempty, distinct positive integer Client offers.
+ * @returns Host facts expressed in the selected API generation.
+ */
+@Remote('negotiate') negotiate(supportedApiProtocolVersions: readonly number[]): HostDescriptor
+```
+
+Source: [`packages/api/host-description/src/index.ts`](../../packages/api/host-description/src/index.ts)
 
 <a id="ctxtypert--typertregistry"></a>
 
@@ -322,6 +414,13 @@ Resolve strict generated definitions or conservative SRC markers against current
  * @returns disposer removing this source and cancelling its active streams.
  */
 registerRemoteEvents( source: TypertRemoteEventSource, host: RemoteEventHostInfo, ): () => Promise<void>
+
+/**
+ * Read the explicit operation sets of live Remote owners without invoking them.
+ * @returns sorted capability ids whose required method definitions are available.
+ * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+ */
+capabilities(): readonly string[]
 
 /**
  * Invoke one live Remote method through strict generated reflection or SRC markers.

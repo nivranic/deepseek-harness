@@ -64,7 +64,7 @@ export type {
 export type {
   ArbitrateKey, ArbitrateOutcome, BeginCommandRequest, CommandClaim, ConsumeTokenRequest,
   DraftAttachmentId, InputActions, InputState, InsertReferenceRequest, InsertTextRequest,
-  PickOutcome, ReferenceInsert, SessionInput, SessionInputResolver, SubmitAttachment,
+  PickOutcome, ReferenceInsert, ReferencePreviewAvailability, SessionInput, SessionInputResolver, SubmitAttachment,
   SubmitOutcome, TokenSpan,
 } from './contract/input.ts'
 export type { ComposerBlock, ComposerBlocks } from './contract/composer-blocks.ts'

@@ -21,6 +21,7 @@
  * @module @deepseek-ai/dsh-agent-presets
  */
 
+import { AGENT_PRESET_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { stat } from 'node:fs/promises'
 import { Context } from '@deepseek-ai/cordis'
 import { evaluate } from '@deepseek-ai/cordis-plugin-loader'
@@ -164,7 +165,7 @@ export class AgentPresets extends TypertRemoteService {
   private readonly selfCtx: Context
 
   constructor(ctx: Context, public config: Config) {
-    super(ctx, 'agentPresets')
+    super(ctx, 'agentPresets', { capabilities: AGENT_PRESET_REMOTE_CAPABILITIES })
     this.selfCtx = ctx
     const { baseUrl } = ctx
     if (baseUrl === undefined) {

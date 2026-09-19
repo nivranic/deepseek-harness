@@ -17,16 +17,22 @@ export interface ReferenceChipProps {
   readonly appearance?: ReferenceIconKind | undefined
   /** Owner-resolution failure styling bit. */
   readonly invalid: boolean
+  /** Current preview affordance, independent from reference validity. */
+  readonly openable: boolean
 }
 
 /**
  * Render one inline reference chip.
- * @param props - label, optional domain glyph, and the invalid bit.
+ * @param props - label, optional domain glyph, validity, and preview eligibility.
  * @returns the chip body (icon + truncating label).
  */
-export function ReferenceChip({ label, appearance, invalid }: ReferenceChipProps): ReactNode {
+export function ReferenceChip({ label, appearance, invalid, openable }: ReferenceChipProps): ReactNode {
   return (
-    <span className={clsx(referenceCss.reference, css.chip, appearance === 'file' && !invalid && referenceCss.openable, invalid && css.invalid)} title={label}>
+    <span
+      className={clsx(referenceCss.reference, css.chip, openable && !invalid && referenceCss.openable, invalid && css.invalid)}
+      title={label}
+      data-reference-openable={openable && !invalid || undefined}
+    >
       {appearance === undefined
         ? <span className={css.marker} aria-hidden>@</span>
         : <ReferenceIcon kind={appearance} size={14} className={css.icon} />}

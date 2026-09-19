@@ -69,7 +69,8 @@ export const Config: z<Config> = z.object({
 export class DomainFacility {
   private readonly domains = new Map<string, DomainImpl>()
   /** Names reserved by an in-flight or completed open, so concurrent opens of one name fail loud. */
-  private readonly reserved = new Set<string>()
+  private readonly reserved = new Map<string, () => Promise<void>>()
+  private closing: Promise<void> | undefined
 
   /**
    * @param ctx - Context of the domain plugin; open-domain effects and change
@@ -96,15 +97,30 @@ export class DomainFacility {
    * Lifecycle: the CALLER owns the returned handle and closes it via
    * `Domain.close()` (typically as its own `ctx.effect` disposer) — the
    * facility does not tie the domain to any consumer fiber. Domains still
-   * open when the facility unmounts are closed by the plugin disposer.
+   * open when the facility or backend closes are drained before their units
+   * close. Closing joins pending initialization; an otherwise valid open
+   * rejects with `closed` instead of returning a handle after that request.
    * @param spec - The domain declaration, typically from `defineDomain`.
    * @returns the opened domain handle, typed by the spec.
    */
   async open<S extends DomainSpec>(spec: S): Promise<Domain<S>> {
+    if (this.closing !== undefined) throw new DomainError('closed', 'domain facility is closed')
     if (this.reserved.has(spec.name)) {
       throw new DomainError('already-open', `domain '${spec.name}' is already open`)
     }
-    this.reserved.add(spec.name)
+    const initialized = Promise.withResolvers<{ domain?: DomainImpl; cleanupErrors: unknown[] }>()
+    const initialization = { closeRequested: false, cleanupErrors: [] as unknown[] }
+    const closeOwner = (): Promise<void> => {
+      initialization.closeRequested = true
+      const domain = this.domains.get(spec.name)
+      return domain === undefined
+        ? initialized.promise.then(async ({ domain: opened, cleanupErrors }) => {
+          if (cleanupErrors.length > 0) throw new AggregateError(cleanupErrors, `domain '${spec.name}' initialization cleanup failed`)
+          await opened?.close()
+        })
+        : domain.close()
+    }
+    this.reserved.set(spec.name, closeOwner)
     try {
       const backendName = this.config.routes?.[spec.name] ?? this.config.backend
       const backend = this.ctx.storage.backend.get(backendName)
@@ -114,7 +130,7 @@ export class DomainFacility {
           `backend '${backendName}' routed for domain '${spec.name}' has no kv facet`,
         )
       }
-      const unit = await backend.kv.open(descriptorOf(spec))
+      const unit = await backend.kv.open(descriptorOf(spec), closeOwner)
       try {
         const snapshot = await unit.loadAll()
         const tables = new Map<string, Map<string, unknown>>()
@@ -149,6 +165,7 @@ export class DomainFacility {
           : snapshot.global === null
             ? globalSpec.initial
             : parseRecord(spec.name, '', '', () => globalSpec.schema.parse(snapshot.global))
+        if (initialization.closeRequested) throw new DomainError('closed', `domain '${spec.name}' closed during initialization`)
         // The onClosed hook runs strictly after teardown completes: writes
         // landing during the drain still emit domain/changed, and the domain
         // stays resolvable (the package invariant cross-checks each event)
@@ -158,18 +175,25 @@ export class DomainFacility {
           this.reserved.delete(spec.name)
         })
         this.domains.set(spec.name, domain)
+        initialized.resolve({ domain, cleanupErrors: [] })
         // The single type-erasure point: DomainImpl is the untyped runtime,
         // Domain<S> the spec-typed view; the unknown hop is required because
         // S's conditional global-handle type stays unresolved here.
         return domain as unknown as Domain<S>
       } catch (error) {
-        await unit.close()
+        try {
+          await unit.close()
+        } catch (cleanupError) {
+          initialization.cleanupErrors.push(cleanupError)
+          throw new AggregateError([error, cleanupError], `domain '${spec.name}' initialization and cleanup failed`)
+        }
         throw error
       }
     } catch (error) {
       // Any failure means the domain never registered (nothing can throw
       // after it), so releasing the name reservation is unconditional.
       this.reserved.delete(spec.name)
+      initialized.resolve({ cleanupErrors: initialization.cleanupErrors })
       throw error
     }
   }
@@ -186,13 +210,21 @@ export class DomainFacility {
   }
 
   /**
-   * Close every domain still open on this facility. The unmount path for
-   * consumers that never called `Domain.close()` themselves; closing is
-   * idempotent, so double-closing an already-closed domain is harmless.
-   * @returns resolution after every unit is released.
+   * Stop new opens and close every initialized or still-opening domain.
+   * Pending initialization rejects instead of publishing a handle after close.
+   * Concurrent and repeated calls share one terminal teardown.
+   * @returns resolution after every owner and unit settles.
+   * @throws AggregateError containing domain teardown failures after all owners settle.
    */
-  async closeAll(): Promise<void> {
-    await Promise.all([...this.domains.values()].map(domain => domain.close()))
+  closeAll(): Promise<void> {
+    this.closing ??= this.closeDomains()
+    return this.closing
+  }
+
+  private async closeDomains(): Promise<void> {
+    const results = await Promise.allSettled([...this.reserved.values()].map(close => close()))
+    const errors = results.flatMap((result): unknown[] => result.status === 'rejected' ? [result.reason] : [])
+    if (errors.length > 0) throw new AggregateError(errors, 'Domain facility teardown failed')
   }
 }
 
@@ -229,8 +261,11 @@ export function apply(ctx: Context, config: Config): Promise<void> {
       return async () => {
         // Close leftovers before unmounting: draining writes still emit
         // domain/changed, whose invariant resolves the facility through the hub.
-        await facility.closeAll()
-        unmount()
+        try {
+          await facility.closeAll()
+        } finally {
+          unmount()
+        }
       }
     })
     domainCtx.provide('storageDomain', facility)

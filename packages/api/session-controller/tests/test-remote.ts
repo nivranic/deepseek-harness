@@ -45,13 +45,12 @@ import type {
   SessionFollowRequest,
   SessionListRequest,
   SessionListValue,
-  SessionOpenWorkspacePathRequest,
-  SessionOpenWorkspacePathValue,
   SessionPage,
   SessionPageRequest,
   SessionPromptRequest,
   SessionPromptValue,
   SessionRenameRequest,
+  SessionRenameAtRequest,
   SessionRenameValue,
   SessionSearchRequest,
   SessionSearchValue,
@@ -63,22 +62,18 @@ import type {
 
 /** Direct test face matching the generated `ctx.remote.session` unary methods. */
 export interface TestSessionRemote {
-  canOpenWorkspacePath(): Promise<RemoteResult<boolean>>
   list(request: SessionListRequest, signal?: AbortSignal): Promise<RemoteResult<SessionListValue>>
   search(request: SessionSearchRequest, signal?: AbortSignal): Promise<RemoteResult<SessionSearchValue>>
   create(request: SessionCreateRequest): Promise<RemoteResult<SessionCreateValue>>
   selectModel(request: SessionSelectModelRequest): Promise<RemoteResult<SessionSelectModelValue>>
   modelCatalog(): Promise<RemoteResult<ModelCatalog>>
   rename(request: SessionRenameRequest): Promise<RemoteResult<SessionRenameValue>>
+  renameAt(request: SessionRenameAtRequest): Promise<RemoteResult<SessionRenameValue>>
   fork(request: SessionForkRequest): Promise<RemoteResult<SessionForkValue>>
   prompt(request: SessionPromptRequest, signal?: AbortSignal): Promise<RemoteResult<SessionPromptValue>>
   attachment(request: SessionAttachmentRequest): Promise<RemoteResult<SessionAttachmentValue>>
   updateQueue(request: SessionUpdateQueueRequest): Promise<RemoteResult<SessionUpdateQueueValue>>
   cancel(request: SessionCancelRequest): Promise<RemoteResult<SessionCancelValue>>
-  openWorkspacePath(
-    request: SessionOpenWorkspacePathRequest,
-    signal?: AbortSignal,
-  ): Promise<RemoteResult<SessionOpenWorkspacePathValue>>
   page(request: SessionPageRequest, signal?: AbortSignal): Promise<RemoteResult<SessionPage>>
   follow(request: SessionFollowRequest, signal?: AbortSignal): AsyncIterable<SessionFollowFrame>
   control(signal?: AbortSignal): AsyncIterable<SessionControlFrame>
@@ -331,7 +326,6 @@ export function createSessionTestRemote(
 ): TestSessionRemote {
   const direct = createSessionTestController(ctx, defaults)
   return {
-    canOpenWorkspacePath: () => remoteResult(() => direct.canOpenWorkspacePath()),
     list: (request, signal = new AbortController().signal) => remoteResult(
       () => direct.list(request, signal),
       signal,
@@ -344,6 +338,7 @@ export function createSessionTestRemote(
     selectModel: request => remoteResult(() => direct.selectModel(request)),
     modelCatalog: () => remoteResult(() => direct.modelCatalog()),
     rename: request => remoteResult(() => direct.rename(request)),
+    renameAt: request => remoteResult(() => direct.renameAt(request)),
     fork: request => remoteResult(() => direct.fork(request)),
     prompt: (request, signal = new AbortController().signal) => remoteResult(
       () => direct.prompt(request, signal),
@@ -352,10 +347,6 @@ export function createSessionTestRemote(
     attachment: request => remoteResult(() => direct.attachment(request)),
     updateQueue: request => remoteResult(() => direct.updateQueue(request)),
     cancel: request => remoteResult(() => direct.cancel(request)),
-    openWorkspacePath: (request, signal = new AbortController().signal) => remoteResult(
-      () => direct.openWorkspacePath(request, signal),
-      signal,
-    ),
     page: (request, signal = new AbortController().signal) => remoteResult(
       () => direct.page(request, signal),
       signal,

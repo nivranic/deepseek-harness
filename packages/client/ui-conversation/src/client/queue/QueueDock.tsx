@@ -1,7 +1,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
-import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import {
   IconCheckOutline16, IconChevronDownOutline14, IconChevronUpOutline14, IconCloseOutline16,
@@ -370,24 +370,40 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
 /** Registers queue actions backed by the session-scoped conversation service. */
 export const queueDockEntry = {
   name: 'conversation-queue-dock',
-  inject: ['slots', 'conversation', 'sessions', 'uiConversation'],
+  inject: ['slots', 'conversation', 'sessions', 'uiConversation', 'remote'],
   apply(ctx: Context): void {
+    const controlCapability: HostObservable<boolean> = {
+      getSnapshot: () => ctx.remote.$host.capabilities?.includes('session.control.v1') === true,
+      subscribe: listener => ctx.on('connection/reset', listener),
+    }
     ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
       name: 'conversation.input.dock',
       id: 'queue',
       order: 20,
       locale: NS,
-      inject: (sessionId: SessionId): QueueDockInjected => {
+      inject: (sessionId: SessionId): QueueDockInjected & { hooks: { controlCapability: HostObservable<boolean> } } => {
         const actx = ctx.sessions.scope(sessionId)
         if (actx === undefined) throw new Error(`queue dock: session "${sessionId}" resolved no scope`)
         const conversation = actx.get('conversation')
         if (conversation === undefined) throw new Error('queue dock: conversation service unavailable')
         return {
+          hooks: { controlCapability },
           updateQueue: (itemId, action) => conversation.updateQueue(itemId, action),
           notify: (level, text) => { conversation.input.for(actx).notify(level, text) },
           loadImage: attachment => ctx.uiConversation.imageUrl(sessionId, attachment),
         }
       },
-    }, QueueDock))
+    }, ControlAwareQueueDock))
   },
+}
+
+
+/**
+ * Hide old-generation queue controls while the Host does not advertise them.
+ * @param props - queue data and renderer-bound capability hook.
+ * @returns the queue dock only for an admitted control-capable Host.
+ */
+export function ControlAwareQueueDock({ useControlCapability, ...props }:
+  QueueDockProps & InjectFace<{ hooks: { controlCapability: HostObservable<boolean> } }>) {
+  return useControlCapability(value => value) ? <QueueDock {...props} /> : null
 }

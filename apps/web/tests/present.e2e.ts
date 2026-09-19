@@ -140,19 +140,19 @@ fs.appendFileSync(${JSON.stringify(openLog)}, JSON.stringify({ path, action, con
       await page.getByRole('button', { name: 'Collapse right sidebar', exact: true }).click()
       const beforeReveal = (await opened()).length
       await row.getByRole('button', { name: 'More file actions for report.txt', exact: true }).click()
-      const revealResponse = page.waitForResponse(response => response.url().includes('action=reveal') && response.request().method() === 'POST')
+      const revealResponse = page.waitForResponse(response => response.url().includes('/api/presentedFiles/reveal') && response.request().method() === 'POST')
       await page.getByRole('menuitem', { name: process.platform === 'darwin' ? /Show in Finder/ : /Open containing folder/ }).click()
-      expect((await revealResponse).status()).toBe(204)
+      expect(await (await revealResponse).json()).toMatchObject({ result: { ok: true, value: { completed: true } } })
       expect(await row.getByRole('button', { name: 'Open report.txt in sidebar', exact: true })
         .evaluate(button => button === document.activeElement)).toBe(true)
       await expect.poll(opened).toHaveLength(beforeReveal + 1)
       expect((await opened()).at(-1)).toEqual({ action: 'reveal', content: null, path: await realpath(process.platform === 'darwin' ? join(cwd, 'report.txt') : cwd) })
       for (const [name, bytes] of [['report.txt', 'EDITED_REPORT\n'], ['说明.txt', 'EDITED_NOTE\n']] as const) {
         const count = (await opened()).length
-        const response = page.waitForResponse(response => response.url().includes('/api/present.open?') && response.request().method() === 'POST')
+        const response = page.waitForResponse(response => response.url().includes('/api/presentedFiles/open') && response.request().method() === 'POST')
         await row.getByRole('button', { name: `More file actions for ${name}`, exact: true }).click()
         await page.getByRole('menuitem', { name: 'Open in default app', exact: true }).click()
-        expect((await response).status()).toBe(204)
+        expect(await (await response).json()).toMatchObject({ result: { ok: true, value: { completed: true } } })
         await page.waitForFunction(() => document.querySelector('[data-presented-files-row] button:disabled') === null)
         expect(await opened()).toHaveLength(count + 1)
         expect((await opened()).at(-1)).toEqual({ action: 'open', path: await realpath(join(cwd, name)), content: bytes })
@@ -263,10 +263,10 @@ fs.appendFileSync(${JSON.stringify(openLog)}, JSON.stringify({ path, action, con
     }
     const beforeDelete = (await opened()).length
     await unlink(join(cwd, 'report.txt'))
-    const missing = page.waitForResponse(response => response.url().includes('/api/present.open?'))
+    const missing = page.waitForResponse(response => response.url().includes('/api/presentedFiles/open'))
     await page.locator('[data-presented-files-row]').getByRole('button', { name: 'More file actions for report.txt', exact: true }).click()
     await page.getByRole('menuitem', { name: 'Open in default app', exact: true }).click()
-    expect((await missing).status()).toBe(404)
+    expect(await (await missing).json()).toMatchObject({ result: { ok: false, error: { code: 'presented-file/not-found' } } })
     await page.getByText('Could not open. Click to retry.', { exact: true }).waitFor()
     expect(await opened()).toHaveLength(beforeDelete)
     expect(downloads).toEqual([])

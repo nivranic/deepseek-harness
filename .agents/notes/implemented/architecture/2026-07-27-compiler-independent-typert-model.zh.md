@@ -26,6 +26,12 @@ PackageModel 识别 Cordis service、event、`@typert object` 引用对象和 `@
 
 构建期的 `CordisCatalogProjector` 一次消费分析后的 `FaceModel` 与 `TypeGraph`，生成 `docs/cordis-catalog/events.md`、`docs/cordis-catalog/services.md`，以及为 `tool-cordis` 提交的静态 `SERVICE_API`、`EVENT_API` 和 `TYPE_API` catalog。`tool-cordis` 读取该静态 catalog，运行时不依赖 `ctx.typert`。[`dsh-typert-loader`](../../../../packages/typert/loader/README.zh.md) 与注册表仍是独立的运行时路径：loader 监听 Cordis Loader 配置项生命周期事件，导入显式发布的 `./typert` host 产物，并通过 `ctx.typert` 注册；两者都不是当前 `cordis_inspect` catalog 的数据源。
 
+Remote 失败声明使用独立的 `analyzeRemoteErrors()` 投影，因为 Client 特有的拒绝不一定出现在 service 或显式 schema 根中。它与普通分析复用同一套编译面程序、公开导出解析及保留声明结构的 TypeGraph 转换。结果记录声明拥有方和详情节点，不增加运行时注册，也不合并 Host 与 Client 的 Context。每次投影前清除先前的跨面链接，使复用的分析器只报告当前分析结果。已知码清单仍独立收集；对应门禁拒绝遗漏声明、拥有方或语义不一致以及缺失的详情根。每个错误还通过现有严格 Remote 类型投影保留由 checker 解析的 JSON 详情根，在所属程序中解析导入的品牌与计算类型；非 JSON 详情使提取失败。生成器可消费该根，文档仍保留原始引用。可移植 schema 等价性仍是独立义务。
+
+Zod emitter 通过与 `ReadonlyArray` 相同的 readonly 包装保留声明的数组与元组容器只读语义，在冻结解析后的容器前验证元素。其他类型操作符及不支持的元素投影仍会失败；该支持不会求值 TypeScript 类型，也不会放宽 JSON 可表示性。
+
+`emitRemoteErrorSchemas` 针对各错误解析后的详情根复用既有 Zod emitter，导出以错误码为键的 Map。Map 键保留不透明的码，不发生原型碰撞；各编译面拒绝重复的码根。仓库 envelope 生成器在生成期间执行这些模块，并采用 Zod 输入投影，不另行实现 TypeScript 解释器。
+
 ## Verification contract
 
 提交内的小型双 face project 对完整类型模型及其源码声明索引做 snapshot。全仓分批分析与直接聚焦分析必须为相同 face 生成模型等价的 `FaceModel` 与 `TypeGraph`。类型级全集和运行时集合比较保证每种 node、target、declaration 与 member discriminant 都来自真实 TypeScript syntax；字段语义矩阵覆盖所有 keyword、type operator、literal value 类目，以及泛型、参数、tuple、mapped modifier、import attributes、abstract、predicate 和 enum initializer 的各个状态。

@@ -14,6 +14,7 @@ import {
 import type { MessageFeedbackRating } from '@deepseek-ai/dsh-message-feedback/types'
 import type { MessageFeedbackActionFailure } from './controller.ts'
 import type { MessageFeedbackActionProps } from './slots.ts'
+import type { FeedbackAccess } from './access.ts'
 import css from './MessageFeedbackActions.module.css'
 
 /**
@@ -23,8 +24,8 @@ import css from './MessageFeedbackActions.module.css'
  * @returns the rating buttons with any failure notice beside them.
  */
 export function MessageFeedbackActions({
-  messageId, ensure, current, retract, openDialog, useFeedback, t,
-}: MessageFeedbackActionProps) {
+  messageId, ensure, current, retract, openDialog, useFeedback, t, access,
+}: Omit<MessageFeedbackActionProps, 'useFeedbackAccess'> & { access: FeedbackAccess }) {
   const item = useFeedback(view => view.items.get(messageId))
   const loadFailed = useFeedback(view => view.status === 'error')
   const rating = item?.rating
@@ -35,10 +36,11 @@ export function MessageFeedbackActions({
   // Session's feedback is read once on first hover/focus rather than on mount.
   const seeded = useRef(false)
   const seed = useCallback(() => {
+    if (!access.current()) return
     if (seeded.current) return
     seeded.current = true
     void ensure()
-  }, [ensure])
+  }, [access, ensure])
 
   const alive = useRef(true)
   useEffect(() => () => { alive.current = false }, [])
@@ -51,22 +53,24 @@ export function MessageFeedbackActions({
   // dialog and records only after submission. The decision waits for the
   // seeding read, so a click on a cold row still sees the stored judgment.
   const choose = useCallback((nextRating: MessageFeedbackRating) => {
+    if (!access.current()) return
     setPending(true)
     setFailure(null)
     void ensure().then((loaded) => {
-      if (!alive.current) return
+      if (!alive.current || !access.current()) return
       if (!loaded.ok || current(messageId)?.rating !== nextRating) {
         setPending(false)
-        openDialog(messageId, nextRating)
+        if (access.put) openDialog(messageId, nextRating)
         return
       }
+      if (!access.delete) { setPending(false); return }
       void retract(messageId, nextRating).then((result) => {
-        if (!alive.current) return
+        if (!alive.current || !access.current()) return
         setPending(false)
         if (!result.ok) setFailure(errorCopy(result))
       })
     })
-  }, [current, ensure, errorCopy, messageId, openDialog, retract])
+  }, [access, current, ensure, errorCopy, messageId, openDialog, retract])
 
   const onLike = useCallback(() => { choose('positive') }, [choose])
   const onDislike = useCallback(() => { choose('negative') }, [choose])
@@ -76,7 +80,7 @@ export function MessageFeedbackActions({
 
   return (
     <>
-      <Tooltip label={likeLabel} side="bottom">
+      {(rating === 'positive' ? access.delete : access.put) && <Tooltip label={likeLabel} side="bottom">
         <button
           type="button"
           className={css.action}
@@ -90,8 +94,8 @@ export function MessageFeedbackActions({
         >
           {rating === 'positive' ? <IconLikeFill16 /> : <IconLikeOutline16 />}
         </button>
-      </Tooltip>
-      <Tooltip label={dislikeLabel} side="bottom">
+      </Tooltip>}
+      {(rating === 'negative' ? access.delete : access.put) && <Tooltip label={dislikeLabel} side="bottom">
         <button
           type="button"
           className={css.action}
@@ -105,7 +109,9 @@ export function MessageFeedbackActions({
         >
           {rating === 'negative' ? <IconDislikeFill16 /> : <IconDislikeOutline16 />}
         </button>
-      </Tooltip>
+      </Tooltip>}
+      {rating === 'positive' && !access.delete && <span role="img" aria-label={t('action.like')}><IconLikeFill16 /></span>}
+      {rating === 'negative' && !access.delete && <span role="img" aria-label={t('action.dislike')}><IconDislikeFill16 /></span>}
       {failure === null && loadFailed && (
         <span className={css.failure} role="status">{t('error.load')}</span>
       )}

@@ -1,0 +1,76 @@
+{
+  "created": {
+    "sessionId": "session-3ec85c1d-0ec3-4b6c-8bdd-76066bf0937c",
+    "agentPreset": "standard"
+  },
+  "cwd": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\desktop-execution2-home\\execution-workspace-EkkQFr",
+  "hostPid": 42840,
+  "sectionNames": [
+    "harness:identity",
+    "deployment:persona-prefix",
+    "plan:policy",
+    "context:file-reference",
+    "tool:pwsh",
+    "tool:read",
+    "tool:write",
+    "tool:edit",
+    "tool:glob",
+    "tool:grep",
+    "tool:jobs",
+    "tool:web_search",
+    "tool:web_fetch",
+    "tool:goal",
+    "tool:workflow",
+    "tool:ralph",
+    "tool:subagent",
+    "tool:subagent_fork",
+    "ui:deliverable-file-references",
+    "deployment:persona-suffix"
+  ],
+  "contextNames": [
+    "sandbox:policy",
+    "approval:policy"
+  ],
+  "persona": [
+    {
+      "name": "deployment:persona-prefix",
+      "text": "You are a coding agent powered by the {{model}} model."
+    },
+    {
+      "name": "deployment:persona-suffix",
+      "text": "Your working directory is {{cwd}}."
+    }
+  ],
+  "toolNames": [
+    "ask_user_question",
+    "create_goal",
+    "edit",
+    "exit_plan_mode",
+    "get_goal",
+    "glob",
+    "grep",
+    "interrupt_agent",
+    "job_kill",
+    "job_list",
+    "job_output",
+    "list_agents",
+    "present",
+    "pwsh",
+    "ralph",
+    "read",
+    "read_image",
+    "send_message",
+    "skill",
+    "subagent",
+    "subagent_fork",
+    "todo_write",
+    "update_goal",
+    "web_fetch",
+    "web_search",
+    "workflow",
+    "write"
+  ],
+  "includesDesktopOrientation": false,
+  "includesWebOrientation": false,
+  "includesSessionCwd": true
+}

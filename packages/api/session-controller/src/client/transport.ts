@@ -118,6 +118,7 @@ export function createSessionControlStream(
 ): SessionControlStream {
   const stream = remote.$stream<SessionControlFrame>({
     name: 'session control stream',
+    available: host => host.capabilities?.includes('session.control.v1') === true,
     open: signal => remote.session.control(signal),
     ended: accepted => accepted
       ? new RemoteStreamCarrierError('session control stream ended without a terminal result')
@@ -153,6 +154,7 @@ export class SessionEventStream extends RemoteJournalStream<
   ) {
     super(remote, {
       name: 'session event stream',
+      available: host => host.capabilities?.includes('session.follow.v1') === true,
       emptyCursor: -1,
       entries: page => page.records,
       hasMore: page => page.hasMore,

@@ -7,6 +7,7 @@
   },
   "files": [
     "src/client/index.ts",
+    "src/client/host-preparation.ts",
     "src/remote-events.ts",
     "src/types.ts"
   ],
@@ -82,6 +83,12 @@
     },
     {
       "path": "../../feedback/command-feedback"
+    },
+    {
+      "path": "../host-description"
+    },
+    {
+      "path": "../../client/ui-deliverables/tsconfig.host.json"
     }
   ]
 }

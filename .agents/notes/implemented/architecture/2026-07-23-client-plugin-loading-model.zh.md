@@ -26,6 +26,8 @@ host 侧，cordis 插件装载站在 Node 的模块机制之上——require cac
 
 ### 包成员与模块请求
 
+活动 Loader 解析出的宿主模块标识其资源所属包。受管理的打包可执行文件代理为每个导出子路径记录原始模块 URL；Client Modules 沿该精确 export 找到原始 manifest，不把 `dsh.client` 和相对资源路径复制到代理中。映射错误、匹配不唯一、缺少所属包或循环都会使组合失败。[profile 决策](2026-08-05-profile-plugin-bundles.zh.md) 负责代理创建和安装查找。
+
 [Client 外壳分层 Note](2026-08-15-client-shells-and-dynamic-packages.zh.md)定义当前的静态、动态包集合及其 import 规则。装载机件把每个 `dsh.client` 包视为一个 host graph row，且每个包只有一个普通 `lib/client.js` factory bundle。包声明携带 Cordis `inject` 边、同步模块表 `external` 请求，以及可选的 `immediately` 预取标记；负责组合的 app 只拥有挂载名册。
 
 Web 内核保持不依赖框架，也不 import 任何动态包实体。Modules 本身是动态图 row，但 host parser 会在 Vite 主模块前送达其 factory。内核调用 `create()` 时，由 HTML 安装的 `__ModuleLoader__` facade 使用该 factory 构造模块系统。其他每个动态图 row 都归属一个 application combo 脚本；React、Cordis 与静态 UI 库的身份由外壳 seed 提供。
@@ -67,6 +69,8 @@ Host 会快照每个已构建插件产物，并把每个调度阶段的有序 ro
 3. Graph 顺序治理同步 factory 可用性；Cordis 激活与之独立，仍经服务等待推进。
 4. `settled` = 每个 entry 已创建 + `loader.await()` 完全停稳 + 一次全 ACTIVE 扫描。扫描列出每个 import 失败、FAILED 或 PENDING 的 fiber 及其缺失的服务。它存在的理由：cordis 的 inject 等待没有超时——这次扫描就是大声失败的兜底线。
 5. 不依赖框架的 loading 页经 `internal/status` 投影真实 fiber 状态。检查完成后，内核调用 `ctx.uiRenderer.mount(container)`，一次切换到真实 UI。
+
+可选 Web 路由始终在注入 `webServer` 的子插件中注册。仅有服务可用，并不授权父插件上下文读取该属性。子插件负责路由的释放和替换，父插件保留模块图，因此两种服务加载顺序都能工作，Shell 载体也不依赖 Web server。
 
 ### 热重载：一个驱动插件，自行监视的 bundle
 

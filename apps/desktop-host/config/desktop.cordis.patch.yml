@@ -26,6 +26,12 @@
     - credentials
   config: {}
 
+- id: host-description
+  config:
+    identityFile: !!js ctx.dshHomePath('.host-id')
+    displayName: DeepSeek Harness
+    transports: [desktop-pipe]
+
 - insert:
     - id: directory-picker-native
       name: '@deepseek-ai/dsh-host-directory-picker-native'

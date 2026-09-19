@@ -15,6 +15,8 @@ pnpm exec tsx scripts/build-exe-for-python-sdk.ts
 
 所需 `lib/` 产物已存在时使用 `--skip-build`；如需选择平台，请使用 `--targets=node24-linux-x64,node24-linux-arm64,node24-macos-arm64,node24-macos-x64,node24-win-x64`。每个目标都应在其原生架构上构建。产物写入 `dist-exe/`，脚本会将所选载体同步到 `python/sdk-runtime/`。Windows 会生成 `.exe` 与 `-rg.exe`；macOS 构建还会同步 `node-pty` 所需的配套 spawn 辅助程序。
 
+构建前显式安装依赖；构建器会禁用 pnpm 执行命令前的自动安装。Windows 上，如果 `pnpm.cmd` 启动器未提供 JavaScript 入口，需要让 `npm_execpath` 指向已安装的 `pnpm.mjs` 或 `pnpm.cjs`。构建通过 Node 调用该文件，不经过命令 shell。
+
 ## 验证 SDK
 
 请将虚拟环境放在 `python/` 之外，安装测试组，然后运行 Python 测试套件：

@@ -19,6 +19,10 @@ The `dsh` command is the sole supported Node application launcher: profiles are 
 
 The invoking directory is the default workspace root. The `web`, `headless`, `sdk`, `sdk-minimal`, and `acp` profiles auto-initialize on first use from shipped templates. Create another profile at an unused, non-shipped name with `--from-default-profile`, or initialize a base-backed profile through `dsh plugin`. The `desktop` name is reserved for the Electron-owned profile, so the CLI rejects boot, config-dump, and plugin-management requests for it.
 
+Each profile owns a single-package pnpm workspace. Plugin commands permit dependency changes at that workspace root for the current invocation.
+
+Quote paths and shell metacharacters in the calling shell as usual. After `dsh` receives them, plugin arguments retain spaces, Unicode, quotes, empty values, and literal metacharacters through Windows pnpm shims. Relative path specs resolve from the invoking directory even though pnpm runs inside the profile.
+
 ## App arguments
 
 The launcher parses only its own flags and hands everything after them to the booted profile, where any injected app plugin may parse the shared immutable snapshot ([`dsh-cmdline`](../../packages/boot/cmdline/README.md)). The first token the launcher does not recognize starts the app's arguments:

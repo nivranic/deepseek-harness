@@ -117,8 +117,22 @@ export interface InputTriggerHit {
   readonly span: TokenSpan
 }
 
+/** Synchronous preview eligibility; reading it never starts a catalog request. */
+export type ReferencePreviewAvailability = (
+  source: string | undefined,
+  reference: Pick<ReferenceInsert, 'ref' | 'appearance'>,
+) => boolean
+
 /** Structural per-Session trigger provider consumed by the input shell. */
 export interface InputTriggerController {
+  /** Current preview eligibility, invalidated by source and viewer changes. */
+  readonly referenceAvailability: ObservableSnapshot<{ readonly canOpenReference: ReferencePreviewAvailability }>
+  /**
+   * @param source - reference owner or inferred token.
+   * @param reference - source id and glyph.
+   * @returns current preview eligibility without fetching.
+   */
+  canOpenReference: ReferencePreviewAvailability
   readonly launcher: ObservableSnapshot<string | null>
   readonly lexicon: ObservableSnapshot<ReadonlyMap<'/' | '@', readonly string[]>>
   /** @param draft - current draft. @param caret - caret offset. @param guard - availability tier. @param draftRev - input revision. */

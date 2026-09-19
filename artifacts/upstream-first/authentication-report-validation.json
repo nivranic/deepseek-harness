@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Generation-scoped HTTP401 authentication failure and explicit Prompt recovery; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/authentication-source.json",
+    "sha256": "d6d1728bcb7f801da23ec603fc8533042f32320372430d0c6dde08f6453405b6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "035918ce62db1e747bdaca5b15fe92636f196fa85906c43fdd44d02171042452"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/authentication-binding.json",
+    "sha256": "fca6fa5fb48385c041f7f8fe6ed4456fb93aeceddcc2745925eecb05dc1335c8"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-authentication-reports.mjs",
+      "sha256": "04a7de458e32a65c5fdae3aa35cf863838a8edb6f2c695bbdca6adf30d2826ab"
+    },
+    {
+      "path": ".artifacts/capture-authentication-validation.mjs",
+      "sha256": "b8feb3c19c07fb425db48881481def903aa2353b45b017dd91e0e30322866fba"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "eabdec8c9cb9c5de9e97b84b735c28589aec29fa11e20323f3def64d247778e4"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "1b495c4ff2067c907dbaa3063b258e8160421e74e19018751ab14cadf28d0caa"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/authentication-binding.log",
+      "sha256": "6c1cb684cd17050cd032432a5184af761d50ceb21b678acfb2c2ff4072b40504"
+    },
+    {
+      "path": ".artifacts/authentication-audit-tests.log",
+      "sha256": "44c5187f33879b457d7c3ff483d5d62e5fc582351c3dcc6b534e11095e0a4f92"
+    },
+    {
+      "path": ".artifacts/authentication-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/authentication-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/authentication-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

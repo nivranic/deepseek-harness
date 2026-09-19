@@ -42,11 +42,13 @@ function mountShell({ collapsed = false, width = 300 }: { collapsed?: boolean; w
   const brandMark = <span data-testid="custom-brand-mark">M</span>
   const brandName = <span data-testid="custom-brand-name">Custom Brand</span>
   let current = { collapsed, width }
+  let canManageSessions = true
   const root = () => (
     <SidebarRoot
       collapsed={current.collapsed} width={current.width}
       useSessions={neverHook} useSessionPendingInteraction={useSessionPendingInteraction}
       usePanelInfo={usePanelInfo} selectPanel={() => {}} usePanels={selector => selector([])}
+      useSessionManagement={selector => selector(canManageSessions)}
       useResource={useResource} useWorkspaces={neverHook}
       startSession={startSession} toggleSidebar={toggleSidebar} t={t}
       renderSlot={((
@@ -71,6 +73,7 @@ function mountShell({ collapsed = false, width = 300 }: { collapsed?: boolean; w
   const view = render(root())
   return {
     startSession,
+    setManagement(value: boolean) { canManageSessions = value; view.rerender(root()) },
     toggleSidebar,
     regionOwner: () => {
       if (regionOwner === undefined) throw new Error('region owner not rendered')
@@ -92,6 +95,20 @@ function mountShell({ collapsed = false, width = 300 }: { collapsed?: boolean; w
 }
 
 describe('SidebarRoot shell', () => {
+  it.each([false, true])('hides creation shortcuts while preserving navigation, collapsed=%s', (collapsed) => {
+    const b = mountShell({ collapsed })
+    expect(screen.getAllByRole('button', { name: 'New session' })).toHaveLength(collapsed ? 1 : 2)
+    b.setManagement(false)
+    expect(screen.queryByRole('button', { name: 'New session' })).toBeNull()
+    if (!collapsed) expect(screen.getByTestId('custom-brand-name')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: collapsed ? 'Open sidebar' : 'Collapse sidebar' }))
+    expect(b.toggleSidebar).toHaveBeenCalledOnce()
+    expect(b.startSession).not.toHaveBeenCalled()
+    b.setManagement(true)
+    fireEvent.click(screen.getAllByRole('button', { name: 'New session' })[0]!)
+    expect(b.startSession).toHaveBeenCalledOnce()
+  })
+
   it('routes New Session (capsule + wordmark) and the column toggle', () => {
     const b = mountShell()
     expect(screen.getByTestId('custom-brand-mark')).toBeTruthy()
@@ -113,6 +130,7 @@ describe('SidebarRoot shell', () => {
       collapsed={false} width={300}
       useSessions={neverHook} useSessionPendingInteraction={useSessionPendingInteraction}
       usePanelInfo={usePanelInfo} selectPanel={() => {}} usePanels={selector => selector([])}
+      useSessionManagement={selector => selector(true)}
       useResource={useResource} useWorkspaces={neverHook}
       startSession={vi.fn()} toggleSidebar={vi.fn()} t={t}
       renderSlot={((_key: string, _owner: unknown, options?: { fallback?: ReactNode }) =>
@@ -133,6 +151,7 @@ describe('SidebarRoot shell', () => {
       collapsed={false} width={300}
       useSessions={neverHook} useSessionPendingInteraction={useSessionPendingInteraction}
       usePanelInfo={usePanelInfo} selectPanel={() => {}} usePanels={selector => selector([])}
+      useSessionManagement={selector => selector(true)}
       useResource={useResource} useWorkspaces={neverHook}
       startSession={vi.fn()} toggleSidebar={vi.fn()} t={t}
       renderSlot={((_key: string, _owner: unknown, options?: { fallback?: ReactNode }) =>
@@ -148,6 +167,7 @@ describe('SidebarRoot shell', () => {
       collapsed={false} width={300}
       useSessions={neverHook} useSessionPendingInteraction={useSessionPendingInteraction}
       usePanelInfo={usePanelInfo} selectPanel={() => {}} usePanels={selector => selector([])}
+      useSessionManagement={selector => selector(true)}
       useResource={useResource} useWorkspaces={neverHook}
       startSession={vi.fn()} toggleSidebar={vi.fn()} t={t}
       renderSlot={((_key: string, _owner: unknown, options?: { fallback?: ReactNode }) =>

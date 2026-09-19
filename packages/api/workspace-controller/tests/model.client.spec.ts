@@ -20,6 +20,7 @@ import type {
 } from '../src/types.ts'
 import { RemoteError, type RemoteFailure, type RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
 
 const sid = (id: string): SessionId => id as SessionId
 const wid = (id: string): WorkspaceId => id as WorkspaceId
@@ -123,7 +124,8 @@ class FakeWorkspaceRemote implements WorkspaceRemote {
 }
 
 function modelFor(remote = new FakeWorkspaceRemote()): ClientWorkspaceModel {
-  return new ClientWorkspaceModel(remote)
+  const host = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+  return new ClientWorkspaceModel(remote, () => host)
 }
 
 function baseline(
@@ -135,6 +137,70 @@ function baseline(
 }
 
 describe('ClientWorkspaceModel', () => {
+  it('distinguishes pending discovery from absent follow and resets connection-owned state', () => {
+    let host: ClientRemote['$host'] = { home: undefined, isLoopback: true }
+    const model = new ClientWorkspaceModel(new FakeWorkspaceRemote(), () => host)
+    expect(model.getSnapshot()).toMatchObject({ state: 'loading', phase: 'pending' })
+    host = { ...host, capabilities: ['workspace.follow.v1'] }
+    expect(model.synchronizeHost()).toBe(true)
+    baseline(model, [workspace('removed'), workspace('old')], [sid('archived')])
+    model.removeView(wid('removed'))
+    host = { ...host, capabilities: [] }
+    model.synchronizeHost()
+    expect(model.getSnapshot()).toMatchObject({ state: 'unavailable', phase: 'ready', items: [], archivedSessionIds: [], error: null })
+    expect(model.synchronizeHost()).toBe(false)
+    host = { ...host, capabilities: ['workspace.follow.v1'] }
+    model.synchronizeHost()
+    expect(model.getSnapshot()).toMatchObject({ state: 'loading', phase: 'pending' })
+    baseline(model, [workspace('removed')])
+    expect(model.getSnapshot().items.map(item => item.workspaceId)).toEqual(['removed'])
+  })
+
+  it.each(['create', 'rename', 'delete', 'insertBefore', 'insertSessionBefore', 'archiveSession'] as const)(
+    'ignores a late %s result after a replacement Host baseline', async (method) => {
+      const remote = new FakeWorkspaceRemote()
+      const gate = deferred<undefined>()
+      remote.onCreate = async () => { await gate.promise; return remoteOk({ workspace: workspace('late'), created: true }) }
+      remote.onRename = async () => { await gate.promise; return remoteOk({ workspace: { ...workspace('same'), title: 'late' } }) }
+      remote.onDelete = async () => { await gate.promise; return remoteOk({ deleted: true }) }
+      remote.onInsertBefore = async () => { await gate.promise; return remoteOk({ workspaceIds: [wid('other'), wid('same')] }) }
+      remote.onInsertSessionBefore = async () => { await gate.promise; return remoteOk({ workspace: workspace('same', [sid('late')]) }) }
+      remote.onArchiveSession = async () => { await gate.promise; return remoteOk({ archivedSessionIds: [sid('late')] }) }
+      let host: ClientRemote['$host'] = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1'] }
+      const model = new ClientWorkspaceModel(remote, () => host)
+      baseline(model, [workspace('same'), workspace('other')])
+      const operations = {
+        create: () => model.create({ path: '/w/late' }),
+        rename: () => model.rename(wid('same'), 'late'),
+        delete: () => model.delete(wid('same')),
+        insertBefore: () => model.insertBefore(wid('same')),
+        insertSessionBefore: () => model.insertSessionBefore(wid('same'), sid('late')),
+        archiveSession: () => model.archiveSession(sid('late')),
+      }
+      const pending = operations[method]()
+      host = { ...host }
+      model.synchronizeHost()
+      baseline(model, [workspace('same', [sid('current')]), workspace('other')], [sid('current-archive')])
+      const current = model.getSnapshot()
+      gate.resolve(undefined)
+      await expect(pending).resolves.toMatchObject({ ok: false, error: { code: 'gateway/cancelled' } })
+      expect(model.getSnapshot()).toBe(current)
+    },
+  )
+
+  it('clears old rows on a late response even before the reset observer runs', async () => {
+    const remote = new FakeWorkspaceRemote()
+    const gate = deferred<RemoteResult<WorkspaceCreateValue>>()
+    remote.onCreate = () => gate.promise
+    let host: ClientRemote['$host'] = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1'] }
+    const model = new ClientWorkspaceModel(remote, () => host)
+    baseline(model, [workspace('old')])
+    const pending = model.create({ path: '/w/late' })
+    host = { ...host, capabilities: [] }
+    gate.resolve(remoteOk({ workspace: workspace('late'), created: true }))
+    await expect(pending).resolves.toMatchObject({ ok: false, error: { code: 'gateway/cancelled' } })
+    expect(model.getSnapshot()).toMatchObject({ items: [], state: 'unavailable' })
+  })
   it('replaces reconnect state and applies ordered increments', () => {
     const model = modelFor()
     expect(model.getSnapshot()).toMatchObject({ phase: 'pending', state: 'loading' })

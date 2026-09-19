@@ -81,11 +81,13 @@ interface TabReads {
  * Bind the preview's face to one paged read and one complete-byte read.
  * @param read - the bound `workspaceFiles.read` call.
  * @param readAll - ordinary complete-byte Remote read.
+ * @param lifetime - optional registration lifetime joined with each tab signal.
  * @returns the Slot `inject` factory: bound actions in, face out. The slot's session id is unused because the address carries its own.
  */
 export function textFace(
   read: ReadWorkspaceFilePage,
   readAll: ReadDocumentBytes,
+  lifetime?: AbortSignal,
 ): (sessionId: SessionId, actions: BoundActions<TextStore>) => TextInjected {
   return (_sessionId: SessionId, actions: BoundActions<TextStore>): TextInjected => {
     const tabs = new Map<TabId, TabReads>()
@@ -113,6 +115,7 @@ export function textFace(
       return reads
     }
     const loadPage = (tabId: TabId, file: SessionFile, offset: number, signal: AbortSignal, observedVersion?: string): void => {
+      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
       if (signal.aborted) return
       const reads = modeOf(tabId, signal, 'text-pages')
       const { generation } = reads
@@ -134,6 +137,7 @@ export function textFace(
       })
     }
     const loadAll = (tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string): void => {
+      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
       if (signal.aborted) return
       const reads = modeOf(tabId, signal, 'bytes-complete')
       const { generation } = reads
@@ -161,6 +165,7 @@ export function textFace(
     const restart = (
       tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string, mode: DocumentLoadMode = 'text-pages',
     ): void => {
+      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
       if (signal.aborted) return
       const reads = readsOf(tabId, signal)
       reads.generation += 1

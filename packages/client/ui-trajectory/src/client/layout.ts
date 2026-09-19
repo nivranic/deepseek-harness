@@ -6,7 +6,6 @@ import type {
   AssistantBlock,
   AssistantMessageNode,
   ConversationLocation,
-  RequestInspectionSnapshot,
   RequestPromptChange,
   RequestView,
   ToolCallBlock,
@@ -43,7 +42,7 @@ export interface TrajectoryLayoutInput {
   partial: TrajectorySnapshot['partial']
   runningCalls: TrajectorySnapshot['runningCalls']
   requests?: readonly RequestView[]
-  callSchemas?: RequestInspectionSnapshot['callSchemas']
+  callSchemas?: TrajectorySnapshot['callSchemas']
 }
 
 interface UsageLike {
@@ -159,19 +158,19 @@ export function deriveTrajectoryLayout(
   const {
     nodes, eventLocations, partial, runningCalls, requests = [], callSchemas,
   } = input
-  const resultByCall = indexResults(nodes)
+  const resultByCall = indexResults(nodes, eventLocations)
   const callById = new Map<string, ToolCallBlock>(resultByCall)
-  for (const call of runningCalls) callById.set(call.callId, call)
+  for (const call of runningCalls) callById.set(callKey(call.callId, call), call)
   const emittedCallIds = indexAssistantCallIds(nodes)
   const followingAssistants = indexFollowingAssistants(nodes)
   const callStartById = new Map<string, number>()
-  for (const result of resultByCall.values()) {
+  for (const [key, result] of resultByCall) {
     const startedAt = finiteTime(result.callTime)
-    if (startedAt !== null) callStartById.set(result.callId, startedAt)
+    if (startedAt !== null) callStartById.set(key, startedAt)
   }
   for (const call of runningCalls) {
     const startedAt = finiteTime(call.time)
-    if (startedAt !== null) callStartById.set(call.callId, startedAt)
+    if (startedAt !== null) callStartById.set(callKey(call.callId, call), startedAt)
   }
   const turns = new Map<number, TurnBucket>()
   const standaloneCompactions: TurnBucket[] = []
@@ -199,6 +198,11 @@ export function deriveTrajectoryLayout(
   }
   const pushStep = (turn: number, step: number, laid: readonly LaidCell[]) => {
     if (laid.length === 0) return
+    if (turn > 0 && step > 0) {
+      for (const entry of laid) {
+        if (entry.callId !== undefined) entry.cell.callLocation = { turn, step }
+      }
+    }
     const groups = bucket(turn).groups
     const title = t('group.step', { step })
     const existing = groups.find(group => group.title === title)
@@ -447,7 +451,7 @@ export function deriveTrajectoryLayout(
       continue
     }
     if (node.kind === 'tool-result') {
-      if (!emittedCallIds.has(node.callId)) {
+      if (!emittedCallIds.has(resultKey(node, eventLocations))) {
         const toolName = node.call?.name
         const resultPreview = summarizeResult(node, t)
         const laidList: LaidCell[] = [{
@@ -476,7 +480,9 @@ export function deriveTrajectoryLayout(
           laidList.push(laid)
           index = laid.cell.index
         }
-        pushStep(0, 1, laidList)
+        const location = eventLocations?.get(node.seq)
+        pushStep(location?.kind === 'step' ? location.turn.turn : 0,
+          location?.kind === 'step' ? location.step.step : 1, laidList)
       }
       prevAbsTime = finiteTime(node.time) ?? prevAbsTime
     }
@@ -505,7 +511,7 @@ export function deriveTrajectoryLayout(
 
   const seenCalls = collectCallIds(turns)
   for (const call of runningCalls) {
-    if (seenCalls.has(call.callId)) continue
+    if (seenCalls.has(callKey(call.callId, call))) continue
     const laidList: LaidCell[] = [{
       absTime: null,
       toolName: call.name,
@@ -615,10 +621,10 @@ export function appendTrajectoryPartialLayout(
 
 function attachToolSchema(
   laid: LaidCell,
-  callSchemas: RequestInspectionSnapshot['callSchemas'] | undefined,
+  callSchemas: TrajectorySnapshot['callSchemas'] | undefined,
 ): void {
-  if (laid.callId === undefined || callSchemas === undefined) return
-  const schema = callSchemas.get(laid.callId)
+  if (laid.callId === undefined || laid.cell.callLocation === undefined || callSchemas === undefined) return
+  const schema = callSchemas.get(callKey(laid.callId, laid.cell.callLocation))
   if (schema === undefined) return
   laid.cell.schemaDetail = JSON.stringify(schema, null, 2)
 }
@@ -762,12 +768,13 @@ function expandAssistant(
   for (const block of node.blocks) {
     // Text and reasoning belong to the one Assistant record emitted above.
     if (block.kind !== 'tool-call') continue
-    const result = results.get(block.callId)
+    const key = callKey(block.callId, node)
+    const result = results.get(key)
     const toolDuration = streaming || result === undefined
       ? null
       : durationSeconds(result.time, result.callTime)
-    const callAbs = finiteTime(callStarts.get(block.callId))
-    const call = calls.get(block.callId)
+    const callAbs = finiteTime(callStarts.get(key))
+    const call = calls.get(key)
     const resultPreview = result === undefined ? undefined : summarizeResult(result, t)
     out.push({
       absTime: callAbs,
@@ -956,10 +963,24 @@ function attachUsage(cell: TrajectoryCellProps, usage: UsageLike | undefined): v
   if (usage.reasoningTokens !== undefined) cell.think = usage.reasoningTokens
 }
 
-function indexResults(nodes: TrajectorySnapshot['eventNodes']): Map<string, ToolResultNode> {
+function callKey(callId: string, location: { readonly turn: number; readonly step: number }): string {
+  return JSON.stringify([location.turn, location.step, callId])
+}
+
+function resultKey(node: ToolResultNode, locations: TrajectoryLayoutInput['eventLocations']): string {
+  const location = locations?.get(node.seq)
+  return location?.kind === 'step'
+    ? callKey(node.callId, { turn: location.turn.turn, step: location.step.step })
+    : JSON.stringify(['unlocated', node.seq, node.callId])
+}
+
+function indexResults(
+  nodes: TrajectorySnapshot['eventNodes'],
+  locations: TrajectoryLayoutInput['eventLocations'],
+): Map<string, ToolResultNode> {
   const map = new Map<string, ToolResultNode>()
   for (const node of nodes) {
-    if (node.kind === 'tool-result') map.set(node.callId, node)
+    if (node.kind === 'tool-result') map.set(resultKey(node, locations), node)
   }
   return map
 }
@@ -969,7 +990,7 @@ function indexAssistantCallIds(nodes: TrajectorySnapshot['eventNodes']): Readonl
   for (const node of nodes) {
     if (node.kind !== 'assistant') continue
     for (const block of node.blocks) {
-      if (block.kind === 'tool-call') ids.add(block.callId)
+      if (block.kind === 'tool-call') ids.add(callKey(block.callId, node))
     }
   }
   return ids
@@ -982,7 +1003,9 @@ function collectCallIds(
   for (const entry of turns.values()) {
     for (const group of entry.groups) {
       for (const laid of group.laid) {
-        if (laid.callId !== undefined) ids.add(laid.callId)
+        if (laid.callId !== undefined && laid.cell.callLocation !== undefined) {
+          ids.add(callKey(laid.callId, laid.cell.callLocation))
+        }
       }
     }
   }

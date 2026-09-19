@@ -20,10 +20,14 @@ English | [中文](README.zh.md)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
+Catalog discovery and warming require `skill.catalog.v1`. Connection generation changes withdraw the cached catalog and notify candidate observers; the controller retries warming after discovery admits support. Old requests cannot repopulate names or previews. Missing support removes skill suggestions and decoration without changing typed `/name` text or Host invocation semantics.
+
 -----
 
 <a id="use-this-package"></a>
 ## Use this package
+
+Catalog rejections preserve the original `RemoteError` for the slash-menu caller. Failed reads still leave the cache retryable.
 
 Type `/` in the composer and pick a skill from the suggestions, or type `/name` directly; the sent message carries the literal text, and the host loads the skill the same way for a menu pick or a hand-typed token. A name shared with a host command still resolves to the command — adjudication claims the line client-side before it ever becomes a prompt.
 
@@ -35,7 +39,7 @@ Ordinary-session candidates come from the `skills/list` Remote; the host serves 
 
 A collapsed row renders the skill glyph, `Skill` title, and requested skill name; running calls carry the transcript shimmer, failures replace the name with the first error line, and interrupted calls use the warning state. A settled row expands into a bounded `Instructions` card containing the exact durable tool output, with the standard trajectory `Inspect` affordance when available. The row derives its name, lifecycle, and body only from the frozen call/result slice supplied by ui-tool, never from the current catalog, so replay stays stable when installed skills or their descriptions change.
 
-Hovering over `/name` highlights the entire reference. Clicking a known skill opens its provider-supplied `SKILL.md` path in the right Sidebar while keeping the token editable. An uncached click shares the per-Session catalog fetch and opens when it completes, retaining the clicked Session address. Preset changes, connection resets, and plugin disposal cancel pending previews; a later click fetches the current catalog again. Skills without a file path remain invocable but have no file preview.
+Hovering over `/name` highlights the entire reference. A preview requires a provider path in the settled per-Session catalog and a current Sidebar viewer for that path. Eligibility queries and cold clicks never fetch or retain a delayed open. Normal source warming and menu discovery load the catalog; preset changes, generation loss and disposal withdraw its preview eligibility. Skills without a file path remain invocable. Previewing preserves editable text and skill invocation semantics.
 
 -----
 
@@ -49,7 +53,7 @@ The source implements no adjudication hooks and no reference codec: the pick lan
 
 ### Candidate flow
 
-Catalogs cache per ordinary session with a single-flight fetch; the scope-birth `warm` hook prewarms the session's entry, the forwarded `agent-preset/selected` owner event drops that one session's entry (the catalog belongs to the preset, and a blank session may switch after the warm), and `connection/reset` clears everything. Catalog-addressed continuable children resolve no skill candidates locally because the existing skill RPC requires an attached session; viewing their persisted history must not activate them. The list RPC rides the plugin's root-context connection captured at registration; draft chip visuals derive from the `lexicon` scan.
+Catalogs cache per ordinary session with a single-flight fetch; the scope-birth `warm` hook prewarms the session's entry, the forwarded `agent-preset/selected` owner event drops that one session's entry (the catalog belongs to the preset, and a blank session may switch after the warm), and Connection generation clears everything. Catalog-addressed continuable children resolve no skill candidates locally because the existing skill RPC requires an attached session; viewing their persisted history must not activate them. The list RPC rides the plugin's root-context connection captured at registration; draft chip visuals derive from the `lexicon` scan.
 
 ### Registration
 
@@ -97,7 +101,7 @@ These limits define where the reference and the row fall back to generic behavio
 
 - **Result-only history pages use the generic row** — keyed dispatch needs the paired call in the runtime window; pagination that leaves the call outside has no tool identity. This client presentation feature does not extend the history wire contract to recover it.
 - **Text is the truth** — the reference is plain draft text; a hand-typed identical token is the same reference, and the host gesture boundary judges the sent text, not the menu interaction. Chip visuals derive from the lexicon scan; no occurrence identity, position tracking, or structured reference payload exists on the prompt wire.
-- **A menu opened before the prewarm settles** shows no skill candidates for that keystroke; the next keystroke re-polls the settled cache.
+- **A pending catalog** supplies no names until settlement; lexicon notification refreshes an open menu without another keystroke.
 
 <a id="dev-note"></a>
 ### Dev Note

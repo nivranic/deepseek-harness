@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T19:35:13.440Z",
+  "scope": "Projection checkpoint capture order, queued domain durability prerequisites, and recorded Web Session regression",
+  "sourceFiles": [
+    {
+      "path": "packages/storage/storage-domain/src/domain.ts",
+      "sha256": "a00a2d0eb3ec9fb0c0f62ae5d2426ca0fcee18b134f21536f57523e47b04c7b8",
+      "bytes": 12856
+    },
+    {
+      "path": "packages/storage/storage-domain/tests/domain.spec.ts",
+      "sha256": "ae9108a0e9e660f4e10817c7923dd9a2e7bf38c190513a919effad984b43760a",
+      "bytes": 21072
+    },
+    {
+      "path": "packages/session/session-projection-cache/src/index.ts",
+      "sha256": "f2315d2d804a0a0e0e8627954f6e0b53074de11eee499d4b6cc1ac88f6b542a3",
+      "bytes": 19525
+    },
+    {
+      "path": "packages/session/session-projection-cache/tests/cache.spec.ts",
+      "sha256": "f37795adfd9f3233ee610e5dac336f1a47436c6f2cd281124646c403d40cfdbd",
+      "bytes": 34875
+    },
+    {
+      "path": "apps/web/tests/checkpoint-order.snapshot.ts",
+      "sha256": "c4f71dc619b92a509d3a68d3e56db883b2ca27108356507cf25a76c8436aa596",
+      "bytes": 3208
+    },
+    {
+      "path": "snapshots/web/checkpoint-order/snapshot.yml",
+      "sha256": "95a3eb2083753fd4f7e0f51db8936c978ae1891604dda74727f08334afb2682a",
+      "bytes": 125
+    },
+    {
+      "path": "snapshots/web/checkpoint-order/session.v3.jsonl",
+      "sha256": "4d31bc61537408110d42aa2d81d5acaed06e945531f6bba6ef3c7db56d2df52c",
+      "bytes": 663
+    },
+    {
+      "path": "scripts/session-snapshot-corpus.corpus.ts",
+      "sha256": "9af49b304075a0bc1180849739da7c4515a367f7fdc0eca4374846fe7c1d91a0",
+      "bytes": 9921
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "ef5d379cbb3cb2310f826968ecac41385ebdf9ab3caf06dd16d0ece147128c12",
+      "bytes": 472561
+    },
+    {
+      "path": "packages/storage/storage-domain/README.md",
+      "sha256": "9482f1f11216d24f4a9d4252d53975fe722d8b49cf241c1e1fda236962fd5cd4",
+      "bytes": 10127
+    },
+    {
+      "path": "packages/storage/storage-domain/README.zh.md",
+      "sha256": "26c5e1383dc5564097ab0db55bf5a960be129d52a3c20eaca9fd7ea5561fa8cb",
+      "bytes": 9601
+    },
+    {
+      "path": "packages/storage/storage-domain/README.i18n.yaml",
+      "sha256": "322b42dae67dec991615e8c1bfd9c2718bfee9e3ac72f70baa141ecdfc899c87",
+      "bytes": 441
+    },
+    {
+      "path": "packages/session/session-projection-cache/README.md",
+      "sha256": "12a051fd4479564b970650b27dfabdc9bfa0352c0e0bc99d92b28765cecfee9d",
+      "bytes": 11035
+    },
+    {
+      "path": "packages/session/session-projection-cache/README.zh.md",
+      "sha256": "139de4ffda74db29db5fef6e09d5a271a23f403b7d31c673c4232e3dfcee8594",
+      "bytes": 9948
+    },
+    {
+      "path": "packages/session/session-projection-cache/README.i18n.yaml",
+      "sha256": "cc693294b602a8c2b17f8504fe2b18462ea2c2a8352fcefc83d417de4a5ff7c6",
+      "bytes": 451
+    },
+    {
+      "path": "docs/subsystems/storage.md",
+      "sha256": "794e27d3f8502d2e0b5bc2d92a7940d03ae4310519e1b1212cdfd60d7c049751",
+      "bytes": 17241
+    },
+    {
+      "path": "docs/subsystems/storage.zh.md",
+      "sha256": "d492194a825862764b195508de5f6703b3d0f334a0c4bcb3502c36d2d90b3df7",
+      "bytes": 17264
+    },
+    {
+      "path": "docs/subsystems/storage.i18n.yaml",
+      "sha256": "638008e18067f53f8897f128704a1111bc4dfed9994dd047bed0c252e24c9557",
+      "bytes": 428
+    },
+    {
+      "path": "docs/subsystems/session-projection.md",
+      "sha256": "f0dd1caefc99bcb3db6d7563c1f79ee1751a81223bf8273bd66d68c51e6708ef",
+      "bytes": 22425
+    },
+    {
+      "path": "docs/subsystems/session-projection.zh.md",
+      "sha256": "9591c8ba389666525a80e7ff0f5b531151bd4ae2538ab68d7d8254bad04b7cbc",
+      "bytes": 22403
+    },
+    {
+      "path": "docs/subsystems/session-projection.i18n.yaml",
+      "sha256": "2e3b57b5c16e623a2080c26fa60e93bf61475ccfdcc99404f4762275894dec45",
+      "bytes": 461
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-checkpoint-write-order.md",
+      "sha256": "2e987597fe7746b713d3243c68887baec9dee06ddf7a662802b09fbdf1d8096a",
+      "bytes": 3250
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-checkpoint-write-order.zh.md",
+      "sha256": "5de0ed490d180b29e8c642855a401315ae450ecd411de6a6547f38032df90866",
+      "bytes": 2887
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-checkpoint-write-order.i18n.yaml",
+      "sha256": "301f064d32ec2f302be5a7cbe7d5ee67fa5a62b7e379d3d238494cc73b1dfd7f",
+      "bytes": 524
+    }
+  ],
+  "unchangedSources": [
+    {
+      "path": "packages/core/session/src/index.ts",
+      "sha256": "688aafe3897fdf6f8dc5da1f7ec57d6af0c8484e6afda06d05ff7ecfb932cc1c",
+      "bytes": 57965
+    },
+    {
+      "path": "packages/session/session-projection/src/index.ts",
+      "sha256": "2186b62bfd59c0b5ea1413287f34e3a5be79b2162c5e0e2eb2143d7e42fea39f",
+      "bytes": 31464
+    },
+    {
+      "path": "packages/session/session-projection-cache/src/spec.ts",
+      "sha256": "4158071d96e13ec477d7565810e241bbf50707988c6497141dae17393403bce2",
+      "bytes": 5279
+    },
+    {
+      "path": "packages/storage/storage/src/backend.ts",
+      "sha256": "063881a34d9a375f2c38fa76b8192690b6dd7e62d37b68e18c055632007625ac",
+      "bytes": 6106
+    },
+    {
+      "path": "packages/storage/storage-domain/src/index.ts",
+      "sha256": "661c0b7daa38e994443782a47362e9c3077c62df5da2c7db4892816ea5e8d32f",
+      "bytes": 9988
+    },
+    {
+      "path": "packages/storage/storage-json/src/index.ts",
+      "sha256": "bae1a1c29859dea20d21c2730bbf3c5a30e31ed6cd7d872b8e1c726e65a33a63",
+      "bytes": 4510
+    },
+    {
+      "path": "packages/storage/storage-sqlite/src/index.ts",
+      "sha256": "14df50e3a48f8f15a61dcc44fdfc06c518e261bb3d14938ecf0369aa29a184fc",
+      "bytes": 6697
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/checkpoint-order-before.log",
+      "sha256": "512830aa22afe4723f2778428aa7237aaf2319ef13da76418146d0a8412d7bad",
+      "bytes": 1900
+    },
+    {
+      "path": ".artifacts/checkpoint-order-before-durable.log",
+      "sha256": "d39bba6aa4acc5ce34cdd1fdf1b3585c5af33bb47c1c72a624f6325c1f4703ec",
+      "bytes": 2147
+    },
+    {
+      "path": ".artifacts/checkpoint-order-tests.log",
+      "sha256": "79e771942df44f3860a77b80bce5721b25e1a913c62aa32ff0cef950baa2eba1",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/checkpoint-order-final-tests.log",
+      "sha256": "1680cbff829488d61f381a90114caf6a15b4707f87003717b6ed7f875c78d9fd",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/checkpoint-order-final-web.log",
+      "sha256": "396fd9d0ba8f57c596b952abefc6fcd48818df97e1c9597553377a42150adc31",
+      "bytes": 479
+    },
+    {
+      "path": ".artifacts/checkpoint-order-snapshot.log",
+      "sha256": "27b65388345ce24f3cda47854d436fb40638cbf9ba4615545e6718238cdab3b4",
+      "bytes": 526
+    },
+    {
+      "path": ".artifacts/checkpoint-order-web-snapshot.log",
+      "sha256": "3434833eac7d51fe2bac8e5cbc0207ae0b345d48dd5ff3b525ebf8ef1d79d47b",
+      "bytes": 1554
+    },
+    {
+      "path": ".artifacts/checkpoint-order-web-snapshot-closed-prefix.log",
+      "sha256": "f768720eba8b531d32e06625e342a2ec6315d656d63a849827eea5eea356f917",
+      "bytes": 1540
+    },
+    {
+      "path": ".artifacts/checkpoint-order-web-snapshot-title-view.log",
+      "sha256": "ea2f302983eeb3ca9b0af7ebdee5c48654906c1af3ec59a4a5b208f5d890ee3b",
+      "bytes": 2386
+    },
+    {
+      "path": ".artifacts/checkpoint-order-web-snapshot-final.log",
+      "sha256": "62e92f867798822bff4e10a9fc293705f5fb3d8f640d1e447777077cfae3b9bd",
+      "bytes": 479
+    },
+    {
+      "path": ".artifacts/checkpoint-order-corpus.log",
+      "sha256": "5136628553d7dffa551be2d6acc18776eb7c2ae4dabb3fb4cc3dc1aab31b9c7d",
+      "bytes": 1718
+    },
+    {
+      "path": ".artifacts/checkpoint-order-corpus-final.log",
+      "sha256": "ab0237157053d77f353dc5f10e84b75f9dcc78496a7f745844f5161e6c88886f",
+      "bytes": 481
+    },
+    {
+      "path": ".artifacts/checkpoint-corpus-control.log",
+      "sha256": "1b2494dfe12613fa0494129fd6a794c121e567d1cdd97f8e03300a5005f97bba",
+      "bytes": 1647
+    },
+    {
+      "path": ".artifacts/checkpoint-order-control-wait-outside-queue.log",
+      "sha256": "ebae87c06dacd77750e51cbba503d3435dcff2e24a63f3b01553bb5c661ce96d",
+      "bytes": 2111
+    },
+    {
+      "path": ".artifacts/checkpoint-order-control-skip-prerequisite.log",
+      "sha256": "04769f76d88ca7666c08da89c270a01a24139d742be525177496eda2451c3ea1",
+      "bytes": 2215
+    },
+    {
+      "path": ".artifacts/checkpoint-order-focused-lint.log",
+      "sha256": "b538924d797ad1b98e9117b3e96de755cd78a84d5f7151fec9357750889fe090",
+      "bytes": 4787
+    },
+    {
+      "path": ".artifacts/checkpoint-order-focused-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/checkpoint-order-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/checkpoint-order-full-lint-final.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/checkpoint-order-host-build.log",
+      "sha256": "7b74051569165201989d7ebffd29ec3248998398039da531fb14ddca73146939",
+      "bytes": 180714
+    },
+    {
+      "path": ".artifacts/checkpoint-order-doc-sync-initial.log",
+      "sha256": "81e4dd3c1ed69303d220b4f4320dceecc36ca9625c8e6e8da6ebc315b77317a7",
+      "bytes": 4085
+    },
+    {
+      "path": ".artifacts/checkpoint-order-doc-sync-final.log",
+      "sha256": "9952d34fe9b77a3f438914e29038a6c649ed60969440f478920dcbb9207cccc9",
+      "bytes": 2947
+    },
+    {
+      "path": ".artifacts/checkpoint-order-pairing.log",
+      "sha256": "6fe6e965096370350bd0ed4385f371f57016c8b2f44d7e19ec7bc530102d91aa",
+      "bytes": 714
+    },
+    {
+      "path": ".artifacts/checkpoint-order-pairing-final.log",
+      "sha256": "1e71c15cca08a55db9c8ecf62fbce09b197eb7d96c851824024a4f829efa977e",
+      "bytes": 243
+    },
+    {
+      "path": ".artifacts/checkpoint-order-catalog.log",
+      "sha256": "b365ed5a77269536c97856606afea8a56e99ba33b4606be644ddbd9e9e15b20e",
+      "bytes": 122
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/checkpoint-order-controls.mjs",
+      "sha256": "40acb4a87cb09b42cdc6418f576687ba8b7a3a65613ff095437033e594663be1",
+      "bytes": 2104
+    },
+    {
+      "path": ".artifacts/checkpoint-corpus-control.mjs",
+      "sha256": "17d569e0642ed956f39d7fe4444b69b3f75846b31541830657e1cffb4af28d4d",
+      "bytes": 1463
+    },
+    {
+      "path": ".artifacts/capture-checkpoint-order.mjs",
+      "sha256": "3e4c58266411356830c738fa3d65cd7c82c32713bf7319abcf1debce16f4a490",
+      "bytes": 6797
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/checkpoint-order-controls.json",
+      "sha256": "acfdf5586967b1df02edaafbf96fdec38ada9c0e44eefa95c4ce835092c837f9",
+      "bytes": 1396
+    },
+    {
+      "path": "artifacts/upstream-first/checkpoint-corpus-control.json",
+      "sha256": "22e42dbb01bab4e116b29f4324dbd2ea6c652f1afd4f60ce79f655f6bedfd8c4",
+      "bytes": 414
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/desktop-package-source.json",
+      "sha256": "add7c3e5142f62e9d5524c485b1e951fabb25b4bad01442378a4a42aced5032d",
+      "bytes": 48091
+    }
+  ],
+  "checks": [
+    {
+      "id": "checkpoint-order-owner-tests",
+      "status": "PASS",
+      "tests": 71,
+      "command": "pnpm exec vitest run packages/storage/storage-domain/tests packages/session/session-projection-cache/tests",
+      "log": ".artifacts/checkpoint-order-final-tests.log"
+    },
+    {
+      "id": "checkpoint-order-web-snapshot",
+      "status": "PASS",
+      "tests": 1,
+      "command": "pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/checkpoint-order.snapshot.ts",
+      "log": ".artifacts/checkpoint-order-final-web.log"
+    },
+    {
+      "id": "checkpoint-order-corpus",
+      "status": "PASS",
+      "tests": 3,
+      "command": "pnpm exec vitest run --config vitest.snapshot.config.ts scripts/session-snapshot-corpus.corpus.ts",
+      "log": ".artifacts/checkpoint-order-corpus-final.log"
+    },
+    {
+      "id": "checkpoint-order-rejection-controls",
+      "status": "PASS",
+      "tests": 2,
+      "receipt": "artifacts/upstream-first/checkpoint-order-controls.json"
+    },
+    {
+      "id": "checkpoint-order-corpus-rejection",
+      "status": "PASS",
+      "tests": 1,
+      "receipt": "artifacts/upstream-first/checkpoint-corpus-control.json"
+    },
+    {
+      "id": "checkpoint-order-host-build",
+      "status": "PASS",
+      "command": "pnpm run build:lib:host",
+      "log": ".artifacts/checkpoint-order-host-build.log"
+    },
+    {
+      "id": "checkpoint-order-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/checkpoint-order-full-lint-final.log"
+    },
+    {
+      "id": "checkpoint-order-doc-sync",
+      "status": "PASS",
+      "gates": 34,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/checkpoint-order-doc-sync-final.log"
+    }
+  ],
+  "conclusions": {
+    "olderCheckpointOvertakeReproduced": true,
+    "queuedFlushPreservesCaptureOrder": true,
+    "domainCloseDrainsAcceptedPrerequisites": true,
+    "mutableProjectionCloneAlreadyCorrectUpstream": true,
+    "identityAndInheritedEventCountPreserved": true,
+    "sessionFormatChanged": false,
+    "backendDirectDisposalFixed": false,
+    "hostDescriptorImplemented": false,
+    "phase3Complete": false,
+    "newDesktopInstaller": false,
+    "realModel": false
+  },
+  "observations": [
+    "First focused run confirmed existing projection cloning and failed call-order expectation; final baseline reproducer observed the stale durable row itself",
+    "Web probe setup failures were corrected against actual seed, title-view, and resume-event contracts; persisted-log comparison now passes",
+    "Snapshot corpus initially hit EPERM reading ignored Python .pytest_cache; scanner now skips that generated cache while still rejecting unregistered source adapters",
+    "Initial documentation checks found a stale generated API reference and mismatched bilingual anchors; final generation and pairing checks pass",
+    "Behavior and mutation controls preceded the final JSDoc wording; their original source digests remain in their own receipts"
+  ],
+  "limitations": [
+    "Windows host execution only; recorded Web composition uses no model provider calls",
+    "Direct backend disposal/initialization teardown remains unported",
+    "HostDescriptor, capability/version/error negotiation and idempotency remain pending",
+    "Desktop installer and older SEA/wheel artifacts retain their own earlier source records"
+  ]
+}

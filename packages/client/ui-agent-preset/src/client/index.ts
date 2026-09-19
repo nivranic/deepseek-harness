@@ -34,7 +34,7 @@ import type { AgentPresetSectionInjected } from './AgentPresetSection.tsx'
 import { AgentPresetSeatController } from './seat-store.ts'
 import { AgentPresetSectionController } from './section-store.ts'
 import { en, zh, type AgentPresetSettingsKey } from './locales.ts'
-import { AGENT_PRESET_SETTINGS_NS, AgentPresetSettingsController } from './settings-store.ts'
+import { AGENT_PRESET_SETTINGS_NS, AgentPresetSettingsController, hasHostCapability } from './settings-store.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -63,6 +63,24 @@ export const inject = [
  * @param ctx - the browser plugin context.
  */
 export function apply(ctx: ClientContext): void {
+  const sessionManagement: AgentPresetSectionInjected['hooks']['sessionManagement'] = {
+    getSnapshot: () => ctx.remote.$host.capabilities?.includes('session.manage.v1') === true
+      && hasHostCapability(ctx, 'agent-preset.select.v1')
+      && hasHostCapability(ctx, 'agent-preset.catalog.v1'),
+    subscribe: listener => ctx.on('connection/reset', listener),
+  }
+  const presetManagement: AgentPresetSectionInjected['hooks']['presetManagement'] = {
+    getSnapshot: () => hasHostCapability(ctx, 'agent-preset.manage.v1'),
+    subscribe: listener => ctx.on('connection/reset', listener),
+  }
+  const settingsWrite: AgentPresetSectionInjected['hooks']['settingsWrite'] = {
+    getSnapshot: () => hasHostCapability(ctx, 'settings.write.v1'),
+    subscribe: listener => ctx.on('connection/reset', listener),
+  }
+  const presetDirectory: AgentPresetSectionInjected['hooks']['presetDirectory'] = {
+    getSnapshot: () => hasHostCapability(ctx, 'settings.agent-preset-directory.v1'),
+    subscribe: listener => ctx.on('connection/reset', listener),
+  }
   const controller = new AgentPresetSettingsController(ctx)
   // One roster, three surfaces. The chip is registered in a later scope, so it
   // subscribes here rather than being reached from this one.
@@ -149,6 +167,7 @@ export function apply(ctx: ClientContext): void {
       // on: the chip's list-change applier composes the blank session the
       // workspace connect produces or reuses.
       creatorDraft = () => {
+        if (!sessionManagement.getSnapshot()) return
         if (!section.store.getSnapshot().showPicker) return
         // The introduce cue makes the chip announce the pick the user never
         // made on this screen — the stage happened back in settings.
@@ -191,7 +210,7 @@ export function apply(ctx: ClientContext): void {
   }
 
   const sectionInjected = (): AgentPresetSectionInjected => ({
-    hooks: { agentPresetSection: section.store },
+    hooks: { agentPresetSection: section.store, sessionManagement, presetManagement, settingsWrite, presetDirectory },
     load: () => section.load(),
     view: (id: string) => section.view(id),
     closeView: () => { section.closeView() },
@@ -210,12 +229,25 @@ export function apply(ctx: ClientContext): void {
 
   // Ordered after Models: choosing a model is routine, and composing an
   // agent is the deployment-shaping act behind it.
-  ctx.slots.inject('settings.section', () => ctx.slots.register({
-    name: 'settings.section',
-    id: 'agent-presets',
-    order: 20,
-    label: () => ctx.locale.bind('settings.agentPreset')('nav'),
-    locale: 'settings.agentPreset',
-    inject: sectionInjected,
-  }, AgentPresetSection))
+  ctx.slots.inject('settings.section', () => {
+    let remove: (() => void) | undefined
+    const refresh = (): void => {
+      if (!hasHostCapability(ctx, 'agent-preset.catalog.v1')) {
+        remove?.()
+        remove = undefined
+        return
+      }
+      remove ??= ctx.slots.register({
+        name: 'settings.section',
+        id: 'agent-presets',
+        order: 20,
+        label: () => ctx.locale.bind('settings.agentPreset')('nav'),
+        locale: 'settings.agentPreset',
+        inject: sectionInjected,
+      }, AgentPresetSection)
+    }
+    refresh()
+    const stop = ctx.on('connection/reset', refresh)
+    return () => { stop(); remove?.() }
+  })
 }

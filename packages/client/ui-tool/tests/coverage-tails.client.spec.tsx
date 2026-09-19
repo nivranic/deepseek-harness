@@ -36,7 +36,7 @@ function listStore() {
 
 function bashProps(block: RunningToolCall | ToolResultNode): BashRowProps {
   return {
-    callId: 'c1', toolName: 'bash', block, openFile: vi.fn(),
+    callId: 'c1', toolName: 'bash', block, openFile: vi.fn(), canOpenFile: () => true,
     sessionId: SID, useSessions: bindSnapshotSelector(listStore()),
     t,
   } as unknown as BashRowProps
@@ -60,7 +60,7 @@ describe('Tool presentation tails', () => {
     }
     const props: GenericToolCardProps = {
       loadImage: vi.fn(() => Promise.reject(new Error('not used'))),
-      callId: 'c5', toolName: 'todo_write', block: settled, openFile: vi.fn(), t,
+      callId: 'c5', toolName: 'todo_write', block: settled, openFile: vi.fn(), canOpenFile: () => true, t,
     }
     const view = render(<GenericToolCard {...props} />)
     expect(view.container.querySelector('[data-variant="others"] svg')).not.toBeNull()

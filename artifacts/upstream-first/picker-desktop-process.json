@@ -1,0 +1,12 @@
+{
+  "hostPid": 45212,
+  "node": "22.22.1",
+  "electron": null,
+  "kind": "native",
+  "entry": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\packages\\host\\directory-picker-native\\lib\\index.js",
+  "entrySha256": "a6b86e580576ce0433ef92ecd8aa152544ec0398ef59390d01933bcd71978191",
+  "shell": {
+    "pid": 31636,
+    "electron": "44.0.0"
+  }
+}

@@ -92,6 +92,7 @@ function mount(overrides: Partial<Parameters<typeof DirectoryBrowser>[0]> = {}) 
   const onClose = vi.fn()
   const props = {
     open: true,
+    canCreateDirectory: true,
     listDirectory,
     createDirectory,
     onOpen,
@@ -103,6 +104,26 @@ function mount(overrides: Partial<Parameters<typeof DirectoryBrowser>[0]> = {}) 
   const view = render(<DirectoryBrowser {...props} />)
   return { view, props, listDirectory, createDirectory, onOpen, onClose }
 }
+
+it('browses without folder creation and discards an in-flight create on withdrawal', async () => {
+  const pending = Promise.withResolvers<string>()
+  const createDirectory = vi.fn(() => pending.promise)
+  const b = mount({ canCreateDirectory: false, createDirectory })
+  await waitFor(() => { expect(screen.getByRole('listitem')).toBeTruthy() })
+  expect(screen.queryByRole('button', { name: 'browser.newFolder' })).toBeNull()
+  b.view.rerender(<DirectoryBrowser {...b.props} canCreateDirectory />)
+  fireEvent.click(screen.getByRole('button', { name: 'browser.newFolder' }))
+  fireEvent.change(screen.getByLabelText('browser.folderName'), { target: { value: 'old draft' } })
+  fireEvent.click(screen.getByRole('button', { name: 'browser.create' }))
+  expect(createDirectory).toHaveBeenCalledOnce()
+  const reads = b.listDirectory.mock.calls.length
+  b.view.rerender(<DirectoryBrowser {...b.props} canCreateDirectory={false} />)
+  b.view.rerender(<DirectoryBrowser {...b.props} canCreateDirectory />)
+  await act(async () => { pending.resolve('/home/u/old draft') })
+  expect(screen.queryByLabelText('browser.folderName')).toBeNull()
+  expect(b.listDirectory).toHaveBeenCalledTimes(reads)
+  expect(b.onOpen).not.toHaveBeenCalled()
+})
 
 /** The rendered level columns, left-to-right. */
 function columns(): HTMLElement[] {

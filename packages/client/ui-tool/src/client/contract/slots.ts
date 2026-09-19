@@ -68,6 +68,8 @@ export interface ToolCallOwnerProps {
    * passes it, and the opened surface lands there.
    */
   openFile: (path: string, options?: OpenFileOptions) => void
+  /** Current viewer eligibility; unavailable paths remain plain summaries. */
+  canOpenFile: (path: string) => boolean
   /**
    * Session-authorized image loader for the `tool.call.images` slot, supplied
    * by the chat node that owns this call. A composed chat node always

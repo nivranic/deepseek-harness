@@ -23,6 +23,7 @@ describe('HTML registration', () => {
     const title = vi.fn(() => 'localized HTML')
     expect(htmlBodyDefinition(title)).toEqual({
       id: HTML_BODY_ID, extensions: ['html', 'htm'], priority: 'builtin', title, loading: 'bytes-complete', wrap: false,
+      requiredCapabilities: ['workspace-files.read-related.v1'],
     })
     expect(title).not.toHaveBeenCalled()
     expect(htmlBodyDefinition(title).title()).toBe('localized HTML')
@@ -35,7 +36,8 @@ describe('HTML registration', () => {
     const dictionaries = new Map<string, unknown>()
     const bodies = new Map<string, unknown>()
     const readRelated = vi.fn().mockResolvedValue({ ok: true, value: { data: '' } })
-    ctx.provide('remote', { workspaceFiles: { readRelated } } as never)
+    const remote = { workspaceFiles: { readRelated }, $host: { capabilities: ['workspace-files.read-related.v1'] } }
+    ctx.provide('remote', remote as never)
     const register = vi.fn((options: Registration, body: unknown) => {
       bodies.set(options.key, body)
       return () => { bodies.delete(options.key) }
@@ -60,13 +62,23 @@ describe('HTML registration', () => {
     expect(typeof injected?.readRelated).toBe('function')
     const signal = new AbortController().signal
     await injected?.readRelated('dsh-resource://file/session/explicit-session/sub/index.html', '../app.js', signal)
-    expect(readRelated).toHaveBeenLastCalledWith('explicit-session', 'sub/index.html', '../app.js', signal)
+    expect(readRelated).toHaveBeenLastCalledWith('explicit-session', 'sub/index.html', '../app.js', expect.any(AbortSignal))
     await injected?.readRelated(sessionFileAddress('absolute-session', '/workspace/index.html'), './app.js', signal)
-    expect(readRelated).toHaveBeenLastCalledWith('absolute-session', '/workspace/index.html', './app.js', signal)
+    expect(readRelated).toHaveBeenLastCalledWith('absolute-session', '/workspace/index.html', './app.js', expect.any(AbortSignal))
     expect(() => injected?.readRelated('dsh-resource://file/absolute/workspace/index.html', './app.js', signal))
       .toThrow('not a session file address')
     expect(readRelated).toHaveBeenCalledTimes(2)
+    const pending = Promise.withResolvers<unknown>()
+    readRelated.mockReturnValueOnce(pending.promise)
+    const late = injected!.readRelated(sessionFileAddress('late-session', '/workspace/index.html'), './late.js', signal)
+    remote.$host = { capabilities: ['workspace-files.read-related.v1'] }
+    pending.resolve({ ok: true, value: { data: 'stale' } })
+    await expect(late).resolves.toMatchObject({ ok: false, error: { code: 'gateway/cancelled' } })
+    await expect(injected!.readRelated(sessionFileAddress('late-session', '/workspace/index.html'), './again.js', signal))
+      .resolves.toMatchObject({ ok: false, error: { code: 'gateway/cancelled' } })
+    expect(readRelated).toHaveBeenCalledTimes(3)
     await dispose()
+    expect((readRelated.mock.calls[2]![3] as AbortSignal).aborted).toBe(true)
     expect(registry.getSnapshot()).toEqual([])
     expect(bodies.size).toBe(0)
     expect(dictionaries.size).toBe(0)

@@ -1,0 +1,598 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T20:18:19.068Z",
+  "scope": "Backend owner-before-unit teardown, initialization quiescence, aggregated cleanup failures, and recorded Web checkpoint drainage",
+  "sourceFiles": [
+    {
+      "path": "packages/storage/storage/src/backend.ts",
+      "sha256": "9373a7bbcd95b2a97e8829a67e305f6c76116412a021d67fe1039982abc6819c",
+      "bytes": 6573
+    },
+    {
+      "path": "packages/storage/storage/src/close-units.ts",
+      "sha256": "af2500ceb286125332fe1ebe56adde60eda3eacaef4e2227bc35a5b3a99f9d9c",
+      "bytes": 1488
+    },
+    {
+      "path": "packages/storage/storage/src/error.ts",
+      "sha256": "31b7dce58c9bae07413756d3079133f5bbf8e9f9944f69c256385f1092705ac8",
+      "bytes": 934
+    },
+    {
+      "path": "packages/storage/storage/src/index.ts",
+      "sha256": "09483020ccc1e3da82c2ac212cd8ef0170d80b39d59a8d948157384a080369f3",
+      "bytes": 3583
+    },
+    {
+      "path": "packages/storage/storage/src/registry.ts",
+      "sha256": "c8f5005c8a8b3376743b0bac3f5ec8861df9a68da916b6064ce73246852e7fae",
+      "bytes": 2005
+    },
+    {
+      "path": "packages/storage/storage/tests/close-units.spec.ts",
+      "sha256": "99bc822241c4a77034896e6f99243c67787317129a44e19f01ab7daae0b8e6a1",
+      "bytes": 1457
+    },
+    {
+      "path": "packages/storage/storage/tests/contract.ts",
+      "sha256": "338259a5646ebc8e37c8d624fd9b3d0ce6c2b46db531dac2f349356e4ae1058a",
+      "bytes": 6529
+    },
+    {
+      "path": "packages/storage/storage/tests/registry.spec.ts",
+      "sha256": "334c23bc0e696bb27839e47e3a1772bcd263e366f0a256efbc91a6ef6f8d9d5a",
+      "bytes": 3394
+    },
+    {
+      "path": "packages/storage/storage-json/src/atomic.ts",
+      "sha256": "ccb2372d1b78fb7c5b00f688435519ea7a44a700e2a206c4df3fb58c1ac54d72",
+      "bytes": 1854
+    },
+    {
+      "path": "packages/storage/storage-json/src/format.ts",
+      "sha256": "7419ddd28ad0f03d039ff5a91a2ab88bcb9f9bf4a6e9033de27617ce7fc5b9a6",
+      "bytes": 5217
+    },
+    {
+      "path": "packages/storage/storage-json/src/index.ts",
+      "sha256": "d7e2c1d366536c771e1dc325b5892553a1bc65872911338cd7a36b44f475698d",
+      "bytes": 4766
+    },
+    {
+      "path": "packages/storage/storage-json/src/per-record-unit.ts",
+      "sha256": "a41c8c459ee97a056c4497d90bf4915efa06fdbcfe803f8743a92f9f991465d9",
+      "bytes": 13721
+    },
+    {
+      "path": "packages/storage/storage-json/src/single-unit.ts",
+      "sha256": "db857ab80f6f77bb2e2ad4c7e798dc795417e4a34e753e613a7a2be0163e1f76",
+      "bytes": 5297
+    },
+    {
+      "path": "packages/storage/storage-json/tests/json-backend.spec.ts",
+      "sha256": "6c1508868d6d4a0f67254d0612b4a9044cc11597b8f363c2f1132e96b07a608e",
+      "bytes": 23949
+    },
+    {
+      "path": "packages/storage/storage-sqlite/src/index.ts",
+      "sha256": "7b99e541532ef1a197ed087e17359630d10e2096c47a800579e66b42b64a4e86",
+      "bytes": 7085
+    },
+    {
+      "path": "packages/storage/storage-sqlite/src/schema.ts",
+      "sha256": "7536636af47b23ffffd85cbdbf6ead1a32031bd582accc4bf573ec2c7df397fa",
+      "bytes": 4951
+    },
+    {
+      "path": "packages/storage/storage-sqlite/src/unit.ts",
+      "sha256": "c8bb51d296bff13e4d547141e48f85213756b96fd568c4214d7dd2fdff97c399",
+      "bytes": 5837
+    },
+    {
+      "path": "packages/storage/storage-sqlite/tests/sqlite-backend.spec.ts",
+      "sha256": "d26b49347ac232eb7de215f90f223f108c31a805784cb07d14ea3242f7075b4a",
+      "bytes": 11498
+    },
+    {
+      "path": "packages/storage/storage-domain/src/domain.ts",
+      "sha256": "a00a2d0eb3ec9fb0c0f62ae5d2426ca0fcee18b134f21536f57523e47b04c7b8",
+      "bytes": 12856
+    },
+    {
+      "path": "packages/storage/storage-domain/src/error.ts",
+      "sha256": "1f285ff8b6aeba68b96f048fc1f427212b5f6e1938770915adf40ecff3f938da",
+      "bytes": 1732
+    },
+    {
+      "path": "packages/storage/storage-domain/src/events.ts",
+      "sha256": "3c239eca0157166ce7ae8b417215e1e5366e5c6f36e375f3680f4bacfaf1da1c",
+      "bytes": 1771
+    },
+    {
+      "path": "packages/storage/storage-domain/src/index.ts",
+      "sha256": "c97e6087c1c23a04f457491654349cef56f904671d0193c35b0d6f00aeee8e0d",
+      "bytes": 11949
+    },
+    {
+      "path": "packages/storage/storage-domain/src/invariant.ts",
+      "sha256": "5fd0720dae9e3cbf794d54fcfdead0a429d6a5fb705d2b2568778d399c157e66",
+      "bytes": 2758
+    },
+    {
+      "path": "packages/storage/storage-domain/src/spec.ts",
+      "sha256": "f08d0e7932b1bba40546d63f780359c12a81ebcba080d8b439a6eb960cf355cd",
+      "bytes": 7442
+    },
+    {
+      "path": "packages/storage/storage-domain/tests/domain.spec.ts",
+      "sha256": "94dc80713051c0a2189c135c7ba703b47d442f91b3248624b3cffcce2f673bfa",
+      "bytes": 27399
+    },
+    {
+      "path": "packages/storage/storage-domain/tests/helpers/memory-backend.ts",
+      "sha256": "c6e14ab5566ba5e6e17031c94434f88ef0ce124b7a242795c9b1d546e9ed1af5",
+      "bytes": 6138
+    },
+    {
+      "path": "packages/storage/storage-domain/tests/invariant.spec.ts",
+      "sha256": "1caabb0079ff702a1d97fcbd2ad3d90a9bcf4e26a29e8946a145dff3be59c6c0",
+      "bytes": 3741
+    },
+    {
+      "path": "packages/storage/storage/README.md",
+      "sha256": "34529236e8774a14bc73e8033f245f2bf97d647706404b104a7cb28df4aecad4",
+      "bytes": 8748
+    },
+    {
+      "path": "packages/storage/storage/README.zh.md",
+      "sha256": "3deab4beaf5fabcc702b217fdea9cefd33d525006d1da62ca80f2e25d6b07613",
+      "bytes": 8255
+    },
+    {
+      "path": "packages/storage/storage/README.i18n.yaml",
+      "sha256": "72c210dd9c74da426b2f42216a99661bb64865dd69ce34a9e294ff356d17d042",
+      "bytes": 434
+    },
+    {
+      "path": "packages/storage/storage-json/README.md",
+      "sha256": "aa758976b0afcab3ea8a07c096ba70f27bcf49175c23a88fbe4d6b12107c16b8",
+      "bytes": 8787
+    },
+    {
+      "path": "packages/storage/storage-json/README.zh.md",
+      "sha256": "c6be7ed52bd0abb21f16018bc7bb620af55f91849979faa94ab4e05b3286e97e",
+      "bytes": 8217
+    },
+    {
+      "path": "packages/storage/storage-json/README.i18n.yaml",
+      "sha256": "c4e2a7512c07861171260aa767d43a64c7821b26df047a24b465e750c9c9d018",
+      "bytes": 439
+    },
+    {
+      "path": "packages/storage/storage-sqlite/README.md",
+      "sha256": "3d717da2dcd9af34e8d6c8285ece0f62cd545241c6319caa3d0f26089d473328",
+      "bytes": 8162
+    },
+    {
+      "path": "packages/storage/storage-sqlite/README.zh.md",
+      "sha256": "35e6194f5448d4e647d76607f0d1154de99167ad6a77687bc43c5d5cea00a3ad",
+      "bytes": 7689
+    },
+    {
+      "path": "packages/storage/storage-sqlite/README.i18n.yaml",
+      "sha256": "9964519103b116a0b24e79d0c767e5337581dedaeb13690c2fb5f03393546dee",
+      "bytes": 441
+    },
+    {
+      "path": "packages/storage/storage-domain/README.md",
+      "sha256": "e4a12cd42c29acf04dd00be6fcddb029ea43eb927e1ad4d81a234e7c350e4613",
+      "bytes": 10673
+    },
+    {
+      "path": "packages/storage/storage-domain/README.zh.md",
+      "sha256": "0529d2920f9bbe4ca3f0042d805e9bb5c9cbbd6548a11bfeab0d08a878d5c036",
+      "bytes": 10110
+    },
+    {
+      "path": "packages/storage/storage-domain/README.i18n.yaml",
+      "sha256": "c3c36e5322589283da4169fbddb8e4d206cf8af777d7336525bd3f926f82be51",
+      "bytes": 441
+    },
+    {
+      "path": "docs/subsystems/storage.md",
+      "sha256": "10703c3a655b7758c8b3f60cd82b2f24c25cb53eba0612c72fbca479f2ff96c1",
+      "bytes": 18055
+    },
+    {
+      "path": "docs/subsystems/storage.zh.md",
+      "sha256": "246c23a26ef1ec502e9e5208fc30fb63c77978d09e2e9b5a9c052d09a0f56822",
+      "bytes": 18021
+    },
+    {
+      "path": "docs/subsystems/storage.i18n.yaml",
+      "sha256": "c0482f3f058372404af4e34875ef6e9c6444ec06494b08e561c548302ea261c4",
+      "bytes": 428
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-checkpoint-write-order.md",
+      "sha256": "6c661c0dd72c103fcd0a78b1b0c4d91b3b31bc58374187e2f62467236032b3f7",
+      "bytes": 3291
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-checkpoint-write-order.zh.md",
+      "sha256": "0be506e548c572966d076e2f36de264ddaef53ed40210b806f15ed62623250fa",
+      "bytes": 2948
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-checkpoint-write-order.i18n.yaml",
+      "sha256": "aa139b8bb80ba435d550808d1a8ba423cab438d57d2b2222f6490216e696a111",
+      "bytes": 524
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.md",
+      "sha256": "e8c2a234ba0852fe1ee1275d3d5ef6f0c591a26fbb7e037c97e4265deb8de7d8",
+      "bytes": 3271
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.zh.md",
+      "sha256": "1d41a899328493acb5cff597788983e360c70c5cadfa275d2947ba8c3e8ad418",
+      "bytes": 3059
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.i18n.yaml",
+      "sha256": "94d4f2048bb4406c26dd6e118aa0e78dbd885da924fa4fb0ede59f8bacf41cc1",
+      "bytes": 524
+    },
+    {
+      "path": "apps/web/tests/checkpoint-order.snapshot.ts",
+      "sha256": "192935c0d173e7b8a78b2e22763a8872a2a465a3fc3ff83cfc2c49c50fd4aad9",
+      "bytes": 4082
+    },
+    {
+      "path": "apps/web/tests/scaffold.ts",
+      "sha256": "b41dd4e11c53b1b0c23d90b37bf3f8d964f3ce654c20ed30aab2f892bdbda28d",
+      "bytes": 73920
+    },
+    {
+      "path": "snapshots/web/checkpoint-order/snapshot.yml",
+      "sha256": "95a3eb2083753fd4f7e0f51db8936c978ae1891604dda74727f08334afb2682a",
+      "bytes": 125
+    },
+    {
+      "path": "snapshots/web/checkpoint-order/session.v3.jsonl",
+      "sha256": "4d31bc61537408110d42aa2d81d5acaed06e945531f6bba6ef3c7db56d2df52c",
+      "bytes": 663
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "7caca243d6968251d00c697ffcecb7ddc00672a929f8ffb358198a8c30d598ba",
+      "bytes": 472839
+    }
+  ],
+  "unchangedSources": [
+    {
+      "path": "packages/core/session/src/index.ts",
+      "sha256": "688aafe3897fdf6f8dc5da1f7ec57d6af0c8484e6afda06d05ff7ecfb932cc1c",
+      "bytes": 57965
+    },
+    {
+      "path": "packages/session/session-projection/src/index.ts",
+      "sha256": "2186b62bfd59c0b5ea1413287f34e3a5be79b2162c5e0e2eb2143d7e42fea39f",
+      "bytes": 31464
+    },
+    {
+      "path": "packages/session/session-projection-cache/src/index.ts",
+      "sha256": "f2315d2d804a0a0e0e8627954f6e0b53074de11eee499d4b6cc1ac88f6b542a3",
+      "bytes": 19525
+    },
+    {
+      "path": "packages/session/session-projection-cache/src/spec.ts",
+      "sha256": "4158071d96e13ec477d7565810e241bbf50707988c6497141dae17393403bce2",
+      "bytes": 5279
+    },
+    {
+      "path": "packages/storage/storage-domain/src/domain.ts",
+      "sha256": "a00a2d0eb3ec9fb0c0f62ae5d2426ca0fcee18b134f21536f57523e47b04c7b8",
+      "bytes": 12856
+    },
+    {
+      "path": "scripts/session-snapshot-corpus.corpus.ts",
+      "sha256": "9af49b304075a0bc1180849739da7c4515a367f7fdc0eca4374846fe7c1d91a0",
+      "bytes": 9921
+    }
+  ],
+  "builtFiles": [
+    {
+      "path": "packages/storage/storage/lib/index.js",
+      "sha256": "4c6fbaf03e7792ab4806d543710052208e29686c43442db3ad964adbfbb6193f",
+      "bytes": 6201
+    },
+    {
+      "path": "packages/storage/storage-json/lib/index.js",
+      "sha256": "b4f7e74427cf1fd001f2bf04330df587499eb8b9c5c774ef5a48a439df09e735",
+      "bytes": 23949
+    },
+    {
+      "path": "packages/storage/storage-sqlite/lib/index.js",
+      "sha256": "a14df12a0cdb5be3290a5cf2fa0c22059e6690bd4a4701b15d3401f50240c88c",
+      "bytes": 12100
+    },
+    {
+      "path": "packages/storage/storage-domain/lib/index.js",
+      "sha256": "637431303c5828f73c62c495bd9de3e41a60a739718c81310944dc8b5afcfd21",
+      "bytes": 19050
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/storage-owner-before-tests.log",
+      "sha256": "044aa9788567c92b5da40b1077663b0fe0332c68ee6f186a40e03352627b492b",
+      "bytes": 4363
+    },
+    {
+      "path": ".artifacts/storage-owner-built-web-snapshot.log",
+      "sha256": "63db500aa4f8faba39225a5849e8a2e687b6e7a7bada7b25c8af06c20af6d6c3",
+      "bytes": 480
+    },
+    {
+      "path": ".artifacts/storage-owner-control-hide-cleanup-failure.log",
+      "sha256": "ce0b4b23bbfc5ca16f483ab495e215eb68111098ce7a97f510ae75c54686765e",
+      "bytes": 3191
+    },
+    {
+      "path": ".artifacts/storage-owner-control-publish-after-close.log",
+      "sha256": "cd9626821b9dac4919a2377567f0df5b2fa058e7477f3a45546765fd6d8c7f30",
+      "bytes": 2896
+    },
+    {
+      "path": ".artifacts/storage-owner-control-publish-assertion.log",
+      "sha256": "c51c78019950129e9ab89cb475a94a1cc18efecbc1015222b60ccf44bd35425c",
+      "bytes": 2292
+    },
+    {
+      "path": ".artifacts/storage-owner-control-skip-owner.log",
+      "sha256": "2a14aad2d1803e26b833fe445fe574e9f16fc7ffa6d92b12e3c9bd29715e631f",
+      "bytes": 2008
+    },
+    {
+      "path": ".artifacts/storage-owner-controls-run.log",
+      "sha256": "2cdf23a9133961e7f4b70761109c1abe16fa8f96f2252479a94c734950b28860",
+      "bytes": 29
+    },
+    {
+      "path": ".artifacts/storage-owner-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/storage-owner-doc-sync.log",
+      "sha256": "4a03e507adc54d7bb99b4a1e7f3eadbdc9a0392ac4a23830151ab8a826480291",
+      "bytes": 2947
+    },
+    {
+      "path": ".artifacts/storage-owner-final-domain-assertion.log",
+      "sha256": "1d6c7456c6ac793e1f1fdfed01564b2d40f3f2ccbf36cda33831f76b266a4da4",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/storage-owner-final-domain.log",
+      "sha256": "e204d75ccd50af3b3e1f39a5467f94a80f9964c056ef8aced282c9aff5875eb0",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/storage-owner-final-host-build.log",
+      "sha256": "6ff999d43bd4b65178f8e3d5fc55329c1465818d7f923ce33ea8e510c2ce6961",
+      "bytes": 180086
+    },
+    {
+      "path": ".artifacts/storage-owner-final-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/storage-owner-final-test-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/storage-owner-final-web.log",
+      "sha256": "ab83b46d22df8d1a6e9ec841f57730e8a1f4f43c227cef9f1f7ea655174d70c7",
+      "bytes": 481
+    },
+    {
+      "path": ".artifacts/storage-owner-first-tests.log",
+      "sha256": "83a6f548b95bf968e5c83063c03a85c2e3a97494a7d6388c221f0b82776a598c",
+      "bytes": 2263
+    },
+    {
+      "path": ".artifacts/storage-owner-focused-lint.log",
+      "sha256": "e6e9f73e4e2ec52877f883c5155ece18d52f3c3e165c6d8347fe8b814e53f3fc",
+      "bytes": 278
+    },
+    {
+      "path": ".artifacts/storage-owner-gen-cordis.log",
+      "sha256": "10a0d9fc9b0770ef16b1acddb0fab4472e1464fb5f6a0581d9765cfbcc122908",
+      "bytes": 122
+    },
+    {
+      "path": ".artifacts/storage-owner-host-build.log",
+      "sha256": "d54abe85bd899aee2436b2bacb1655b6f252135c48a098ce0c3fa0e4d42bf8c0",
+      "bytes": 180949
+    },
+    {
+      "path": ".artifacts/storage-owner-owner-tests.log",
+      "sha256": "cc0c73711090162da07a37f7b752c8128e7f96100c00d6f1d25c7240f8f1095a",
+      "bytes": 1114
+    },
+    {
+      "path": ".artifacts/storage-owner-pairing.log",
+      "sha256": "a26a07c9879bb7c0d76fab992b7fd0db8ae176976c050fdcdaec3ca98f069f73",
+      "bytes": 1127
+    },
+    {
+      "path": ".artifacts/storage-owner-publish-control-run.log",
+      "sha256": "d11f4e1e3727a1716808a6686905db9174597b692f6b8bea937829d09f682b13",
+      "bytes": 41
+    },
+    {
+      "path": ".artifacts/storage-owner-reviewed-lint.log",
+      "sha256": "a06ce16c7b1c14a69c5d6fda7eb4c183761beb717f278d54b9c82ad4e698d387",
+      "bytes": 517
+    },
+    {
+      "path": ".artifacts/storage-owner-reviewed-tests.log",
+      "sha256": "460f828b3e2098711f525003bb7449f836c3eb768a4c2f435ff21037cb0404db",
+      "bytes": 1114
+    },
+    {
+      "path": ".artifacts/storage-owner-web-snapshot.log",
+      "sha256": "c112efd00c39ef3799f78a7919c66dc64dd29cfcd102a61b35cda56d792d6686",
+      "bytes": 1313
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/storage-owner-controls.mjs",
+      "sha256": "a57126c0fb3cfe3a5db596d05ed76b8d42d9573ea2a5fc0af4dcd385ed9c8a5d",
+      "bytes": 2238
+    },
+    {
+      "path": ".artifacts/storage-owner-publish-control.mjs",
+      "sha256": "f6947aa4d58fc230d1485f3e80198f9f6ca01f5eb3477a35bb454cd69bfcf379",
+      "bytes": 1757
+    },
+    {
+      "path": ".artifacts/write-storage-owner-docs.mjs",
+      "sha256": "0cfafafe203942473c4cacaeceec703602d359ad32e14867e43962b1ad7460b3",
+      "bytes": 7359
+    },
+    {
+      "path": ".artifacts/capture-storage-owner.mjs",
+      "sha256": "06581d6b66a09ae7e29adf7823b8293e4a5110388748a17ae6c2dbeb389ab2de",
+      "bytes": 7023
+    },
+    {
+      "path": ".artifacts/archive-storage-owner-inputs.mjs",
+      "sha256": "4aa9964d46bb92b743e67366328779242cd166cbd80d3e165363654001d934f9",
+      "bytes": 1204
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/storage-owner-controls.json",
+      "sha256": "81e6266e7f733ef0fe8c1edfcb79ff53b35f03b819ecf3e60b7ff984ce87260a",
+      "bytes": 2029
+    },
+    {
+      "path": "artifacts/upstream-first/storage-owner-publish-control.json",
+      "sha256": "d7f010828cbc04b6f7bc6ec82836f9e446b68ee80058ed9dd6c6af5a2af7bd60",
+      "bytes": 608
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/checkpoint-order-source.json",
+      "sha256": "3d9f773cc1c69f04b2278de0cb327186d53325f60892e637f494d7af8f45ba9b",
+      "bytes": 15035
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-package-source.json",
+      "sha256": "add7c3e5142f62e9d5524c485b1e951fabb25b4bad01442378a4a42aced5032d",
+      "bytes": 48091
+    },
+    {
+      "path": ".artifacts/storage-owner-before/archive.json",
+      "sha256": "af5bb641be01cb162ebb6b30371564b69be835bfe471d69869c2e1f6356f6690",
+      "bytes": 9165
+    }
+  ],
+  "checks": [
+    {
+      "id": "storage-owner-conformance",
+      "status": "PASS",
+      "tests": 109,
+      "command": "pnpm exec vitest run packages/storage/storage/tests packages/storage/storage-json/tests packages/storage/storage-sqlite/tests packages/storage/storage-domain/tests",
+      "log": ".artifacts/storage-owner-reviewed-tests.log"
+    },
+    {
+      "id": "storage-owner-final-domain-assertions",
+      "status": "PASS",
+      "tests": 38,
+      "command": "pnpm exec vitest run packages/storage/storage-domain/tests/domain.spec.ts",
+      "log": ".artifacts/storage-owner-final-domain-assertion.log"
+    },
+    {
+      "id": "storage-owner-built-web-snapshot",
+      "status": "PASS",
+      "tests": 2,
+      "command": "pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/checkpoint-order.snapshot.ts",
+      "log": ".artifacts/storage-owner-final-web.log"
+    },
+    {
+      "id": "storage-owner-rejection-controls",
+      "status": "PASS",
+      "controls": 3,
+      "receipts": [
+        "artifacts/upstream-first/storage-owner-controls.json",
+        "artifacts/upstream-first/storage-owner-publish-control.json"
+      ]
+    },
+    {
+      "id": "storage-owner-host-build",
+      "status": "PASS",
+      "command": "pnpm run build:lib:host",
+      "log": ".artifacts/storage-owner-final-host-build.log"
+    },
+    {
+      "id": "storage-owner-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/storage-owner-final-lint.log"
+    },
+    {
+      "id": "storage-owner-final-test-lint",
+      "status": "PASS",
+      "command": "pnpm exec tsx scripts/run-oxlint.ts packages/storage/storage-domain/tests/domain.spec.ts",
+      "log": ".artifacts/storage-owner-final-test-lint.log"
+    },
+    {
+      "id": "storage-owner-doc-sync",
+      "status": "PASS",
+      "gates": 34,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/storage-owner-doc-sync.log"
+    },
+    {
+      "id": "storage-owner-whitespace",
+      "status": "PASS",
+      "command": "git diff --check",
+      "log": ".artifacts/storage-owner-diff-check.log"
+    }
+  ],
+  "conclusions": {
+    "backendDirectDisposalFixed": true,
+    "initializationJoined": true,
+    "acceptedDomainWorkDrained": true,
+    "allCleanupFailuresRetained": true,
+    "sharedOwnerCloseHelper": true,
+    "checkpointIdentityAndSessionFormatPreserved": true,
+    "phase3Complete": false,
+    "newDesktopInstaller": false,
+    "realModel": false
+  },
+  "observations": [
+    "Old backends failed owner-drain and cleanup aggregation regressions; the first implementation changed SQLite version-mismatch precedence, then restored it before validation",
+    "An early Web snapshot loaded old built packages; final Web checks run after official Host rebuild",
+    "Concurrent closers now observe initialization cleanup failure while the opener retains both initialization and cleanup errors",
+    "The first publication rejection encountered a formatter error on an unexpected Cordis Domain; the final scalar-result control proves both close scenarios fail by AssertionError",
+    "Full lint and doc-sync passed; only a test result assertion changed afterward, followed by focused lint and the complete Domain test file",
+    "Prior checkpoint source evidence resolves through a sealed archive; this record binds all current inputs directly"
+  ],
+  "limitations": [
+    "Windows host tests; no model provider calls",
+    "Previously packaged Desktop installer does not contain these Storage changes",
+    "HostDescriptor, negotiation, idempotency, data conversion and remaining phases are incomplete",
+    "No user data migration, OS autostart registration, commit, push or publication"
+  ]
+}

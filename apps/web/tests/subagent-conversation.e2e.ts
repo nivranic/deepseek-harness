@@ -115,7 +115,8 @@ describe('web e2e: persisted subagent conversation and human continuation', () =
       replayChildFixtures: [childFixturePath],
       paceMs: 25,
     })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     page.on('request', (request) => {
       const path = new URL(request.url()).pathname
@@ -421,15 +422,17 @@ describe('web e2e: persisted subagent conversation and human continuation', () =
       await expect.poll(() => requested, { timeout: 15_000 }).toBe(true)
       expect(await page.getByText('This subagent is read-only for now', { exact: true }).count()).toBe(0)
       expect(await page.locator('[data-composer-seat]').evaluate(element =>
-        getComputedStyle(element).visibility)).toBe('hidden')
+        getComputedStyle(element).visibility)).toBe('visible')
+      const input = page.locator('[data-composer-input]')
+      expect(await input.getAttribute('aria-disabled')).toBe('true')
+      expect(await input.getAttribute('contenteditable')).toBe('false')
       releaseCatalog()
-      const input = page.getByRole('textbox', { name: 'Message or run a task, / commands, @ files or sessions' })
       await input.waitFor({ timeout: 15_000 })
       await expect.poll(() => input.isEnabled(), { timeout: 15_000 }).toBe(true)
       acknowledgeReloadConnectionLoss(tripwire, warningStart)
     } finally {
       releaseCatalog()
-      await page.unroute(pattern)
+      await page.unrouteAll({ behavior: 'wait' })
     }
   })
 
@@ -586,12 +589,25 @@ describe('web e2e: persisted subagent conversation and human continuation', () =
       new URL(response.url()).pathname === '/api/subagents/prompt')
     await input.fill(POST_FORK_FOLLOWUP)
     await input.press('Enter')
-    const promptReceipt = await (await promptResponse).json() as {
-      result: { ok: true } | { ok: false; error: { code: string; message: string } }
+    const acceptedResponse = await promptResponse
+    const promptBody = acceptedResponse.request().postData()
+    if (promptBody === null) throw new Error('subagent prompt request has no body')
+    const promptReceipt = await acceptedResponse.json() as {
+      result: { ok: true; value: { messageId: string } } | { ok: false; error: { code: string; message: string } }
     }
     if (!promptReceipt.result.ok) {
       throw new Error(`post-fork follow-up rejected: ${JSON.stringify(promptReceipt.result.error)}`)
     }
+    const acceptedMessageId = promptReceipt.result.value.messageId
+    const repeatPrompt = async (): Promise<unknown> => {
+      const response = await scaffold.hostFetch('/api/subagents/prompt', {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: promptBody,
+      })
+      expect(response.ok).toBe(true)
+      return (await response.json() as { result: unknown }).result
+    }
+    const repeated = await Promise.all([repeatPrompt(), repeatPrompt()])
+    expect(repeated).toEqual([promptReceipt.result, promptReceipt.result])
     await expect.poll(async () => {
       // The resumed loop appends the follow-up turn's closing events durably,
       // so the physical log alone answers whether the turn settled.
@@ -602,5 +618,11 @@ describe('web e2e: persisted subagent conversation and human continuation', () =
     }, { timeout: 30_000 }).toBe(true)
     expect(scaffold.ctx.agents.get(forkId)).not.toBeUndefined()
     await expect.poll(() => scaffold.ctx.agents.get(childId), { timeout: 10_000 }).toBeUndefined()
+    const beforeRetry = await readPersistedEvents(scaffold, childId)
+    expect(beforeRetry.filter(event => event.type === 'agent/inbox/spliced'
+      && event.data.inserted.some(message => message.id === acceptedMessageId))).toHaveLength(1)
+    expect(await repeatPrompt()).toEqual(promptReceipt.result)
+    expect(scaffold.ctx.agents.get(childId)).toBeUndefined()
+    expect(await readPersistedEvents(scaffold, childId)).toEqual(beforeRetry)
   })
 })

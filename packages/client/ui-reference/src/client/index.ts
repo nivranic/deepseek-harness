@@ -12,7 +12,8 @@
  * @module @deepseek-ai/dsh-client-ui-reference/client
  */
 // Type-only: pulls the generated Remote API and ctx.remote merge through the Client assembly boundary.
-import type {} from '@deepseek-ai/dsh-api-remotes/client'
+import type { FILE_REFERENCE_REMOTE_CAPABILITIES, SESSION_REFERENCE_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
@@ -31,7 +32,7 @@ import { en, NS, zh, type ReferenceKey } from './locales.ts'
 /** Required services: the trigger registry, the Remote namespaces, and the copy. */
 export const inject = [
   'inputTriggers', 'locale', 'sessions', 'remote', 'remote.fileReferences',
-  'remote.sessionReferenceResolver', 'sidebarRight',
+  'remote.sessionReferenceResolver', 'sidebarRight', 'sidebarRightTabs', 'connection',
 ]
 
 /**
@@ -42,19 +43,27 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-reference: dictionaries')
   const t = ctx.locale.bind(NS)
   const sessions = ctx.get('sessions') as ISessions
+  const connection = ctx.get('connection') as ConnectionHandle
+  const supports = (capability: typeof FILE_REFERENCE_REMOTE_CAPABILITIES[number]['id'] | typeof SESSION_REFERENCE_REMOTE_CAPABILITIES[number]['id']): boolean =>
+    ctx.remote.$host.capabilities?.includes(capability) === true
   const source: InputTriggerSource = {
     trigger: '@',
     name: 'reference',
     showGroupTitle: false,
+    subscribeCandidates: (_session, listener) => connection.generation.subscribe(listener),
     async candidates(session: ClientSessionContext, { query, quoted, drilled, signal }) {
-      const fileLookup = ctx.remote.fileReferences.list(session.sessionId, query, signal)
+      const host = ctx.remote.$host
+      const cancelled = (): boolean => signal.aborted
+      if (cancelled()) return []
+      const fileLookup = supports('file-reference.list.v1') ? ctx.remote.fileReferences.list(session.sessionId, query, signal)
         .then(result => result.ok ? result.value : [])
-      const sessionLookup = quoted === true
+        : Promise.resolve([] as FileReferenceCandidate[])
+      const sessionLookup = quoted === true || !supports('session-reference.candidates.v1')
         ? Promise.resolve([] as SessionReferenceMentionCandidate[])
         : ctx.remote.sessionReferenceResolver.candidates(session.sessionId, query, signal)
           .then(result => result.ok ? result.value : [])
       const [fileItems, sessionItems] = await Promise.all([fileLookup, sessionLookup])
-      if (signal.aborted) return []
+      if (cancelled() || ctx.remote.$host !== host) return []
       // The header already names the directory being listed; rows repeat it only
       // when there is no header to carry it.
       const withLocation = crumbsFor(query, quoted === true, drilled, t) === undefined
@@ -73,11 +82,13 @@ export function apply(ctx: ClientContext): void {
       ]
     },
     header(_session: ClientSessionContext, req) {
+      if (!supports('file-reference.list.v1')) return undefined
       return crumbsFor(req.query, req.quoted === true, req.drilled, t)
     },
     onPick({ candidate, action }) {
       const value = parseCandidate(candidate.value)
       if (value?.kind === 'file') {
+        if (!supports('file-reference.list.v1')) return undefined
         // A directory row carries two verbs: the settling pick resolves the
         // folder itself as an atomic reference, while the drill action (Tab /
         // row chevron / a header crumb) keeps the literal descent text and
@@ -96,6 +107,7 @@ export function apply(ctx: ClientContext): void {
         }
       }
       if (value?.kind === 'session') {
+        if (!supports('session-reference.candidates.v1')) return undefined
         return {
           insert: {
             source: 'reference',
@@ -108,8 +120,16 @@ export function apply(ctx: ClientContext): void {
       }
       return undefined
     },
-    openReference(session, { ref, appearance }) {
+    canOpenReference(session, { ref, appearance }) {
       if (appearance !== 'file') return false
+      const path = ref.startsWith('@"') ? ref.slice(2, -1) : ref.slice(1)
+      const cwd = sessions.list.getSnapshot().byId[session.sessionId]?.cwd
+      return ctx.sidebarRightTabs.candidates(fileAddressFor(session.sessionId, cwd, path)).length > 0
+    },
+    subscribeReferenceAvailability: (_session, listener) => ctx.sidebarRightTabs.subscribe(listener),
+    openReference(session, reference) {
+      if (source.canOpenReference?.(session, reference) !== true) return false
+      const { ref } = reference
       const path = ref.startsWith('@"') ? ref.slice(2, -1) : ref.slice(1)
       const cwd = sessions.list.getSnapshot().byId[session.sessionId]?.cwd
       ctx.sidebarRight.openResource(fileAddressFor(session.sessionId, cwd, path))

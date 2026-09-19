@@ -1,7 +1,7 @@
 /** Reconnecting lifecycle for one single-consumer Remote stream. */
 
 import { RemoteError, remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import type { ConnectionHandle, ConnectionHostInfo, ConnectionGeneration } from '@deepseek-ai/dsh-client-connection/client'
 import { RemoteStreamCarrierError } from './stream-client.ts'
 
 /** One item annotated with the physical Remote-stream generation that delivered it. */
@@ -20,6 +20,8 @@ export interface RemoteStreamItem<Item> {
 export interface RemoteStreamOptions<Item> {
   /** Diagnostic owner name used for cancellation failures. */
   readonly name: string
+  /** Wait without opening until an admitted Host satisfies this domain predicate. */
+  readonly available?: (host: ConnectionHostInfo) => boolean
   /** Open one physical generation of the logical stream. */
   readonly open: (signal: AbortSignal) => AsyncIterable<Item>
   /** Classify a normal generation end after or before its opening item was accepted. */
@@ -30,6 +32,7 @@ export interface RemoteStreamOptions<Item> {
 
 /**
  * Reopens one logical Remote stream across carrier generations.
+ * Opening waits for an admitted Host, even without a domain capability predicate.
  *
  * Connection owns physical retry timing; Gateway performs each requested
  * replacement. The domain consumer owns its opening item and every later
@@ -94,6 +97,7 @@ export class RemoteStream<Item> implements AsyncIterable<RemoteStreamItem<Item>>
 
   private async * read(): AsyncGenerator<RemoteStreamItem<Item>> {
     let attempt = 0
+    let admittedHostId: number | undefined
     let generation = 0
     let observedRevision = this.revision
     try {
@@ -108,16 +112,26 @@ export class RemoteStream<Item> implements AsyncIterable<RemoteStreamItem<Item>>
         const signal = AbortSignal.any([this.lifetime.signal, generationAbort.signal])
         const generationId = ++generation
         let accepted = false
+        let host: ConnectionGeneration | undefined
         try {
+          host = await waitForRemoteStreamHost(this.connection, signal, this.options.available ?? (() => true))
+          const hostId = host.id
+          if (this.connection.generation.getSnapshot()?.id !== hostId) continue
+          if (admittedHostId !== hostId) {
+            admittedHostId = hostId
+            attempt = 0
+          }
           for await (const value of this.options.open(signal)) {
             if (isAborted(this.lifetime.signal)) return
             if (revision !== this.revision) break
+            if (this.connection.generation.getSnapshot()?.id !== hostId) break
             yield {
               generation: generationId,
               value,
               signal,
               accept: () => {
                 if (this.generationAbort !== generationAbort || revision !== this.revision) return
+                if (this.connection.generation.getSnapshot()?.id !== hostId) return
                 accepted = true
                 attempt = 0
               },
@@ -125,11 +139,19 @@ export class RemoteStream<Item> implements AsyncIterable<RemoteStreamItem<Item>>
           }
           if (isAborted(this.lifetime.signal)) return
           if (revision !== this.revision) continue
+          if (this.connection.generation.getSnapshot()?.id !== hostId) continue
           throw this.options.ended(accepted)
         } catch (error) {
           if (isAborted(this.lifetime.signal)) return
           if (revision !== this.revision) continue
-          if (!(error instanceof RemoteStreamCarrierError)) throw terminalStreamFailure(error)
+          const currentHost = this.connection.generation.getSnapshot()
+          // Admission may fail after its observed connection has already been replaced.
+          if (host !== undefined && host.id !== currentHost?.id
+            && (error instanceof RemoteStreamCarrierError || remoteErrorOf(error) !== undefined)) {
+            if (currentHost === undefined && error instanceof RemoteStreamCarrierError) this.options.carrierFailed?.(error)
+            continue
+          }
+          if (!(error instanceof RemoteStreamCarrierError)) throw terminalStreamFailure(error, this.options.name)
           this.options.carrierFailed?.(error)
           if (revision !== this.revision) continue
           attempt++
@@ -138,7 +160,7 @@ export class RemoteStream<Item> implements AsyncIterable<RemoteStreamItem<Item>>
           } catch (retryError) {
             if (isAborted(this.lifetime.signal)) return
             if (revision !== this.revision) continue
-            throw terminalStreamFailure(retryError)
+            throw terminalStreamFailure(retryError, this.options.name)
           }
         } finally {
           this.generationAbort = undefined
@@ -168,21 +190,36 @@ async function waitForRemoteStreamRetry(
     if (attempt === 1) return
     throw error
   }
-  await new Promise<void>((resolve, reject) => {
+  await waitForRemoteStreamHost(connection, signal, () => true)
+}
+
+async function waitForRemoteStreamHost(
+  connection: Pick<ConnectionHandle, 'generation'>,
+  signal: AbortSignal,
+  available: (host: ConnectionHostInfo) => boolean,
+): Promise<ConnectionGeneration> {
+  signal.throwIfAborted()
+  return new Promise<ConnectionGeneration>((resolve, reject) => {
     const subscription: {
       dispose?: () => void
       finished: boolean
     } = { finished: false }
-    const finish = (failure?: Error): void => {
+    const finish = (outcome: ConnectionGeneration | Error): void => {
       if (subscription.finished) return
       subscription.finished = true
       subscription.dispose?.()
       signal.removeEventListener('abort', aborted)
-      if (failure === undefined) resolve()
-      else reject(failure)
+      if (outcome instanceof Error) reject(outcome)
+      else resolve(outcome)
     }
     const inspect = (): void => {
-      if (connection.generation.getSnapshot() !== undefined) finish()
+      const generation = connection.generation.getSnapshot()
+      if (generation === undefined) return
+      try {
+        if (available(generation.host)) finish(generation)
+      } catch (cause) {
+        finish(cause instanceof Error ? cause : new Error('Remote stream admission failed', { cause }))
+      }
     }
     const aborted = (): void => {
       finish(new Error('Remote stream retry aborted', { cause: signal.reason }))
@@ -203,7 +240,10 @@ async function waitForRemoteStreamRetry(
  * terminal outcome — it stays the retry-internal signal fed to `carrierFailed`
  * and the `ended(true)` retry trigger.
  */
-function terminalStreamFailure(error: unknown): Error {
+function terminalStreamFailure(error: unknown, stream: string): Error {
+  if (error instanceof RemoteStreamCarrierError) {
+    return new RemoteError('gateway/transport-interrupted', error.message, { stream }, { cause: error })
+  }
   return remoteErrorOf(error) ?? new RemoteError(
     'gateway/internal',
     error instanceof Error ? error.message : String(error),

@@ -47,7 +47,7 @@ The surface renders tabs whose bodies it does not know: each tab carries a `kind
 
 ### Entry points and removals
 
-`ui-chat`'s `openFile(path, { line? })` — reached by tool-row path links, produced-file chips, and closing-message mentions — now opens the file into the Sidebar through the navigation face (see [tab types and navigation](../architecture/2026-09-05-sidebar-tab-types-and-navigation.md)). The `Show in folder` action and its `canOpenWorkspacePath` probe are removed from `ui-deliverables`: the Sidebar has no directory form, and the product keeps no secondary entry. `DetailsPanel`, `ToolDetails`, the tool-node reader, the chat store's selection, `ToolDetailsProps`, and `CENTER_MIN` are removed. `session/openWorkspacePath` remains on the Host with no web caller.
+`ui-chat`'s `openFile(path, { line? })` — reached by tool-row path links, produced-file chips, and closing-message mentions — now opens the file into the Sidebar through the navigation face (see [tab types and navigation](../architecture/2026-09-05-sidebar-tab-types-and-navigation.md)). The Sidebar has no directory form. Native delivery actions remain independent of sidebar previews and follow the [declared-file owner](../../../../packages/client/ui-deliverables/README.md). `DetailsPanel`, `ToolDetails`, the tool-node reader, the chat store's selection, `ToolDetailsProps`, and `CENTER_MIN` are removed. `SessionController.openWorkspacePath` is a Host-local helper, absent from the generated Session Remote namespace.
 
 ## Alternatives considered
 

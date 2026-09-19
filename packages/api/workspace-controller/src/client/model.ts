@@ -2,8 +2,8 @@
 
 import { notifySubscribers } from '@deepseek-ai/dsh-client-store'
 import type {} from '@deepseek-ai/dsh-api-workspace-controller/remote'
-import { isRemoteFailure } from '@deepseek-ai/dsh-api-gateway/client'
-import type { RemoteFailure, RemoteResult, TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol'
+import { isRemoteFailure, type ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
+import { RemoteError, type RemoteFailure, type RemoteResult, type TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   WorkspaceArchiveSessionRequest,
   WorkspaceArchiveValue,
@@ -29,7 +29,7 @@ export interface WorkspaceSnapshot {
   readonly items: readonly WorkspaceView[]
   /** Complete registry-global archive set in Host order. */
   readonly archivedSessionIds: WorkspaceArchiveValue['archivedSessionIds']
-  readonly state: 'idle' | 'loading' | 'error'
+  readonly state: 'idle' | 'loading' | 'error' | 'unavailable'
   readonly phase: WorkspaceListPhase
   readonly error: RemoteFailure | null
 }
@@ -71,10 +71,39 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
   private notificationPending = false
   private notificationScheduled = false
   private notificationGeneration = 0
+  private host: ClientRemote['$host'] | undefined
 
-  /** @param remote - generated Workspace Remote namespace. */
-  constructor(private readonly remote: WorkspaceRemote) {
+  /**
+   * @param remote - generated Workspace Remote namespace.
+   * @param hostInfo - current admitted Host identity and capabilities.
+   */
+  constructor(private readonly remote: WorkspaceRemote, private readonly hostInfo: () => ClientRemote['$host']) {
     this.snapshotCache = this.buildSnapshot()
+    this.synchronizeHost()
+  }
+
+  /**
+   * Clear the previous connection's rows, archive set and ordering authority.
+   * @returns whether the Host snapshot changed; discovery pending remains loading, absent follow support settles unavailable.
+   */
+  synchronizeHost(): boolean {
+    const host = this.hostInfo()
+    if (host === this.host) return false
+    const initial = this.host === undefined
+    this.host = host
+    this.items = []
+    this.archivedSessionIds = []
+    this.committedOrder = []
+    this.removedIds.clear()
+    this.orderRequestGeneration += 1
+    this.orderFrameGeneration += 1
+    const unavailable = host.capabilities !== undefined && !host.capabilities.includes('workspace.follow.v1')
+    this.state = unavailable ? 'unavailable' : 'loading'
+    this.phase = unavailable ? 'ready' : 'pending'
+    this.error = null
+    if (initial) this.snapshotCache = this.buildSnapshot()
+    else this.invalidate()
+    return true
   }
 
   /**
@@ -83,7 +112,9 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
    * @returns generated Remote result.
    */
   async create(input: WorkspaceCreateRequest): Promise<RemoteResult<WorkspaceCreateValue>> {
+    const host = this.captureHost()
     const result = await this.remote.create(input)
+    if (host !== this.hostInfo()) return this.replaced()
     if (result.ok) this.upsert(result.value.workspace)
     return result
   }
@@ -95,7 +126,9 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
    * @returns generated Remote result.
    */
   async rename(workspaceId: WorkspaceId, title: string): Promise<RemoteResult<WorkspaceValue>> {
+    const host = this.captureHost()
     const result = await this.remote.rename({ workspaceId, title })
+    if (host !== this.hostInfo()) return this.replaced()
     if (result.ok) this.upsert(result.value.workspace)
     return result
   }
@@ -106,7 +139,9 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
    * @returns generated Remote result.
    */
   async delete(workspaceId: WorkspaceId): Promise<RemoteResult<WorkspaceDeleteValue>> {
+    const host = this.captureHost()
     const result = await this.remote.delete({ workspaceId })
+    if (host !== this.hostInfo()) return this.replaced()
     if (result.ok) this.remove(workspaceId, true)
     return result
   }
@@ -121,6 +156,7 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
     workspaceId: WorkspaceId,
     beforeWorkspaceId?: WorkspaceId,
   ): Promise<RemoteResult<WorkspaceOrderValue>> {
+    const host = this.captureHost()
     const requestGeneration = ++this.orderRequestGeneration
     const frameGeneration = this.orderFrameGeneration
     const localOrder = this.items.map(workspace => workspace.workspaceId)
@@ -129,6 +165,7 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
       workspaceId,
       ...beforeWorkspaceId === undefined ? {} : { beforeWorkspaceId },
     })
+    if (host !== this.hostInfo()) return this.replaced()
     if (requestGeneration === this.orderRequestGeneration
       && frameGeneration === this.orderFrameGeneration) {
       this.installOrder(result.ok ? result.value.workspaceIds : this.committedOrder, result.ok)
@@ -148,11 +185,13 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
     sessionId: WorkspaceInsertSessionBeforeRequest['sessionId'],
     beforeSessionId?: WorkspaceInsertSessionBeforeRequest['beforeSessionId'],
   ): Promise<RemoteResult<WorkspaceValue>> {
+    const host = this.captureHost()
     const result = await this.remote.insertSessionBefore({
       workspaceId,
       sessionId,
       ...beforeSessionId === undefined ? {} : { beforeSessionId },
     })
+    if (host !== this.hostInfo()) return this.replaced()
     if (result.ok) this.upsert(result.value.workspace)
     return result
   }
@@ -165,7 +204,9 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
   async archiveSession(
     sessionId: WorkspaceArchiveSessionRequest['sessionId'],
   ): Promise<RemoteResult<WorkspaceArchiveValue>> {
+    const host = this.captureHost()
     const result = await this.remote.archiveSession({ sessionId })
+    if (host !== this.hostInfo()) return this.replaced()
     if (result.ok) this.installArchived(result.value.archivedSessionIds)
     return result
   }
@@ -175,6 +216,7 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
    * @param baseline - complete Workspace and archive projection.
    */
   replaceBaseline(baseline: WorkspaceBaseline): void {
+    this.synchronizeHost()
     this.orderFrameGeneration++
     this.installViews(baseline.items)
     this.installArchived(baseline.archivedSessionIds)
@@ -253,6 +295,16 @@ export class ClientWorkspaceModel implements WorkspaceFollowSink {
       phase: this.phase,
       error: this.error,
     }
+  }
+
+  private captureHost(): ClientRemote['$host'] {
+    this.synchronizeHost()
+    return this.hostInfo()
+  }
+
+  private replaced(): RemoteResult<never> {
+    this.synchronizeHost()
+    return { ok: false, error: new RemoteError('gateway/cancelled', 'Workspace request belongs to a replaced connection', {}) }
   }
 
   private installArchived(archivedSessionIds: WorkspaceArchiveValue['archivedSessionIds']): void {

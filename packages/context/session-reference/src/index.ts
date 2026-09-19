@@ -8,6 +8,7 @@
 import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
+import { SESSION_REFERENCE_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { createUserMessage, freezeMessage, LlmError } from '@deepseek-ai/dsh-llm'
 import type { ContentBlock, LlmResolvedModelInfo, UserMessage } from '@deepseek-ai/dsh-llm'
@@ -95,7 +96,7 @@ export class SessionReferenceResolver extends TypertRemoteService {
   private readonly assembledRoutes = new WeakMap<Agent, { provider: string | undefined; model: string | undefined }>()
 
   constructor(ctx: Context, config: Config = {}) {
-    super(ctx, 'sessionReferenceResolver')
+    super(ctx, 'sessionReferenceResolver', { capabilities: SESSION_REFERENCE_REMOTE_CAPABILITIES })
     this.config = {
       maxReferences: config.maxReferences ?? MAX_REFERENCES,
       candidateLimit: config.candidateLimit ?? DEFAULT_CANDIDATE_LIMIT,

@@ -14,7 +14,8 @@ import { Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (`commands/change` rides the allowlist) into this program.
-import type {} from '@deepseek-ai/dsh-api-remotes/client'
+import type { COMMAND_REMOTE_CAPABILITIES, RemoteHostFacts } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { CommandResult } from '@deepseek-ai/dsh-commands/types'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
@@ -57,6 +58,7 @@ function submittedCommandName(line: string): string {
 
 /** Live mutable state in one holder (service methods run behind the caller-ctx tracker). */
 interface LiveState {
+  disposed: boolean
   readonly contributions: Map<string, CommandContribution>
   readonly decorations: Map<string, CommandDecoration>
   readonly popups: Map<SessionId, PopupSelectController<ClientSessionContext>>
@@ -64,10 +66,11 @@ interface LiveState {
 
 /** Command surface: session-keyed directory + '/' source + contribution registry + per-session popups. */
 export class CommandUiRuntime extends Service implements CommandUiContract {
-  static inject = ['inputTriggers', 'sessions', 'remote', 'remote.commands']
+  static inject = ['inputTriggers', 'sessions', 'remote', 'remote.commands', 'connection']
 
   private readonly directory: CommandDirectory
-  private readonly live: LiveState = { contributions: new Map(), decorations: new Map(), popups: new Map() }
+  private readonly candidateHosts = new WeakMap<InputTriggerCandidate, RemoteHostFacts>()
+  private readonly live: LiveState = { disposed: false, contributions: new Map(), decorations: new Map(), popups: new Map() }
   /** `command`-namespace translator (composer refusal notices). */
   private readonly t: TranslateNS<'command'>
 
@@ -81,16 +84,20 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     if (locale === undefined) throw new Error('ui-commands: locale service unavailable')
     this.t = locale.bind('command')
     this.directory = new CommandDirectory(async (sessionId) => {
-      if (this.sessions().subagentAddress(sessionId) !== undefined) return []
+      if (!this.supports('command.catalog.v1') || this.sessions().subagentAddress(sessionId) !== undefined) return []
+      const host = ctx.remote.$host
       const result = await ctx.remote.commands.list(sessionId)
-      if (!result.ok) throw new Error(`command.list failed: ${result.error.code}: ${result.error.message}`)
+      if (!this.current(host)) return []
+      if (!result.ok) throw result.error
       return result.value
     })
+    const connection = ctx.get('connection') as ConnectionHandle
     const inputTriggers = ctx.get('inputTriggers')
     if (inputTriggers === undefined) throw new Error('ui-commands: slash service unavailable')
     ctx.effect(() => inputTriggers.registerSource({
       trigger: '/',
       name: 'command',
+      subscribeCandidates: (_session, listener) => connection.generation.subscribe(listener),
       candidates: (session, req) => this.candidates(session, req),
       onPick: pick => this.dispatch(pick),
       matchSpace: (session, token) => this.matchSpace(session, token),
@@ -102,7 +109,15 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     // registers nothing globally. Drop that key's old composition before
     // prewarming so a newly opened menu waits for the replacement catalog.
     ctx.remote.$on('agent-preset/selected', (sessionId) => { this.directory.resetSession(sessionId) })
-    ctx.on('connection/reset', () => { this.directory.resetConnected() })
+    ctx.effect(() => connection.generation.subscribe(() => {
+      for (const popup of this.live.popups.values()) popup.dismiss({ focusComposer: false })
+      this.directory.resetConnected()
+    }), 'command: generation withdrawal')
+    ctx.effect(() => () => {
+      this.live.disposed = true
+      this.directory.dispose()
+      for (const popup of this.live.popups.values()) popup.dismiss({ focusComposer: false })
+    }, 'command: disposal')
   }
 
   /**
@@ -195,7 +210,16 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * shared name-and-label ranking for a typed one.
    */
   private async candidates(session: ClientSessionContext, req: CandidateRequest): Promise<readonly InputTriggerCandidate[]> {
-    const list = await this.directory.ensureReady(session.sessionId, req.signal)
+    const host = this.ctx.remote.$host
+    let list: readonly CommandDescriptor[]
+    try {
+      list = await this.directory.ensureReady(session.sessionId, req.signal)
+    } catch (error) {
+      if (!this.current(host) || req.signal.aborted) return []
+      throw error
+    }
+    if (!this.current(host) || req.signal.aborted) return []
+    if (!this.supports('command.execute.v1')) list = []
     const rows: InputTriggerCandidate[] = []
     const seen = new Set<string>()
     for (const c of list) {
@@ -219,17 +243,22 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       })
     }
     const visible = rows.filter(c => req.position === 'leading' || c.hint === undefined)
-    return req.query === '' ? sectionRows(visible, this.t) : rankByName(visible, req.query)
+    const result = req.query === '' ? sectionRows(visible, this.t) : rankByName(visible, req.query)
+    for (const row of result) if (seen.has(row.name)) this.candidateHosts.set(row, host)
+    return result
   }
 
   /** Decision table, menu column: contribution/decorated-host → popup or action; host input → claim; host bare → detached execute. */
   private dispatch(pick: InputTriggerPick): PickOutcome {
+    const origin = this.candidateHosts.get(pick.candidate)
+    if (origin !== undefined && !this.current(origin)) return undefined
     const name = pick.candidate.name
     const contribution = this.live.contributions.get(name)
     if (contribution !== undefined && contribution.available(pick.session)) {
       this.invoke(name, contribution.ui, pick.session, { via: 'menu', span: pick.span })
       return 'handled'
     }
+    if (!this.supports('command.execute.v1')) return undefined
     const desc = this.directory.resolve(pick.session.sessionId, name)
     if (desc === undefined) return undefined // snapshot swapped between menu and pick → miss
     // A decoration replaces the HOST row's bare invocation with its popup or
@@ -250,7 +279,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
 
   /** Decision table, space column: hot-key sync check; only host leadingInput claims. */
   private matchSpace(session: ClientSessionContext, token: string): PickOutcome {
-    if (!token.startsWith('/')) return undefined
+    if (!token.startsWith('/') || !this.supports('command.execute.v1')) return undefined
     if (this.live.contributions.has(token.slice(1))) return undefined // popup and action kinds never claim on space
     const desc = this.directory.resolve(session.sessionId, token.slice(1))
     if (desc === undefined || desc.input === undefined) return undefined
@@ -296,7 +325,16 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       this.invoke(typedName, contribution.ui, session, { via: 'enter', token })
       return 'handled'
     }
-    await this.directory.ensureReady(session.sessionId, signal)
+    const host = this.ctx.remote.$host
+    this.requireExecution(host)
+    try {
+      await this.directory.ensureReady(session.sessionId, signal)
+    } catch (error) {
+      this.requireExecution(host)
+      throw error
+    }
+    signal.throwIfAborted()
+    this.requireExecution(host)
     const desc = this.directory.resolve(session.sessionId, typedName)
     if (desc === undefined) return undefined
     const name = desc.name
@@ -350,6 +388,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * always sends the catalog name.
    */
   private leadingClaim(desc: CommandDescriptor, session: ClientSessionContext, shown: string): CommandClaim {
+    const host = this.ctx.remote.$host
     const token = `/${shown} `
     const line = `/${desc.name} `
     return {
@@ -357,7 +396,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       token,
       ...(desc.input !== undefined ? { hint: desc.input.hint } : {}),
       ...(desc.input?.attachments === true ? { attachments: true } : {}),
-      submit: (args, _actx, attachments) => this.execute(session, line + args, attachments),
+      submit: (args, _actx, attachments) => this.execute(session, line + args, attachments, host),
     }
   }
 
@@ -376,9 +415,12 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     session: ClientSessionContext,
     line: string,
     attachments: readonly SubmitAttachment[] = [],
+    host: RemoteHostFacts = this.ctx.remote.$host,
   ): Promise<SubmitOutcome> {
+    this.requireExecution(host)
     const result = await this.ctx.remote.commands.execute(session.sessionId, line, attachments)
-    if (!result.ok) throw new Error(`command.execute failed: ${result.error.code}: ${result.error.message}`)
+    this.requireExecution(host)
+    if (!result.ok) throw result.error
     if (result.value === undefined) return { kind: 'error', text: `unknown or malformed command: ${line}` }
     this.notifyExecuted(session.sessionId, submittedCommandName(line), result.value.result)
     // A submission consumes its attachments only after handler success; an
@@ -421,12 +463,14 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * notice as immediate feedback.
    */
   private runDetached(desc: CommandDescriptor, session: ClientSessionContext, line: string): void {
-    void this.execute(session, line).then(
+    const host = this.ctx.remote.$host
+    void this.execute(session, line, [], host).then(
       (outcome) => {
         // matched:false maps to an error outcome with no logged lifecycle.
-        if (outcome.kind === 'error') this.noticeFor(session.sessionId, 'error', outcome.text ?? `/${desc.name} failed`)
+        if (this.current(host) && outcome.kind === 'error') this.noticeFor(session.sessionId, 'error', outcome.text ?? `/${desc.name} failed`)
       },
       (error: unknown) => {
+        if (!this.current(host)) return
         this.noticeFor(session.sessionId, 'error', error instanceof Error ? error.message : String(error))
       },
     )
@@ -455,6 +499,20 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
   /** id → actx interchange (registered exchange point: this service coordinates for projection-only sources). */
   private scopeFor(id: SessionId): ClientContext | undefined {
     return this.sessions().scope(id)
+  }
+
+  private current(host: RemoteHostFacts): boolean {
+    return !this.live.disposed && this.ctx.remote.$host === host
+  }
+
+  private supports(capability: typeof COMMAND_REMOTE_CAPABILITIES[number]['id']): boolean {
+    return !this.live.disposed && this.ctx.remote.$host.capabilities?.includes(capability) === true
+  }
+
+  private requireExecution(host: RemoteHostFacts): void {
+    if (!this.current(host) || !this.supports('command.catalog.v1') || !this.supports('command.execute.v1')) {
+      throw new Error(this.t('notice.connectionChanged'))
+    }
   }
 
   private sessions(): ISessions {

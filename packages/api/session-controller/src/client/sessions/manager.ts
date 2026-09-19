@@ -93,6 +93,7 @@ type SessionListMutation =
 
 /** Instance cluster + frame entry + the session list. */
 export class SessionManager {
+  private disposed = false
   private readonly sessions = new Map<SessionId, Session>()
   /** In-flight Session disposals remain here after instances leave `sessions`, so manager disposal can await quiescence. */
   private readonly sessionDisposals = new Set<Promise<void>>()
@@ -253,6 +254,8 @@ export class SessionManager {
    * @returns when every Session Remote iterator has completed teardown.
    */
   async dispose(): Promise<void> {
+    this.disposed = true
+    this.handleSubagentGenerationChanged()
     for (const timer of this.catalogDebounce.values()) clearTimeout(timer)
     this.catalogDebounce.clear()
     this.catalogStale.clear()
@@ -353,11 +356,15 @@ export class SessionManager {
    * @param parentSessionId - catalog owner.
    */
   refreshSubagents(parentSessionId: SessionId): Promise<void> {
+    const host = this.remote.$host
+    if (this.disposed || host.capabilities?.includes('subagent.catalog.v1') !== true) return Promise.resolve()
     const existing = this.catalogInflight.get(parentSessionId)
     if (existing !== undefined) return existing.promise
     const previous = this.catalogs.get(parentSessionId)
     const expandableRows = new Set<SessionId>()
     const activityRows = new Map<SessionId, 'running' | 'inactive'>()
+    const current = (): boolean => !this.disposed && this.remote.$host === host
+      && this.catalogInflight.get(parentSessionId)?.expandableRows === expandableRows
     this.catalogs.set(parentSessionId, {
       entries: previous?.entries ?? [],
       ...(previous?.parentAvailable === undefined
@@ -370,6 +377,7 @@ export class SessionManager {
     const operation = (async () => {
       try {
         const result = await this.remote.subagents.list(parentSessionId)
+        if (!current()) return
         if (result.ok) {
           const parentAvailable = this.catalogInflight.get(parentSessionId)?.parentAvailableOverride
             ?? result.value.parentAvailable
@@ -398,6 +406,7 @@ export class SessionManager {
           })
         }
       } catch (error: unknown) {
+        if (!current()) return
         if (!isRemoteFailure(error)) throw error
         this.catalogs.set(parentSessionId, {
           entries: this.withCatalogMutations(
@@ -411,12 +420,11 @@ export class SessionManager {
           error,
         })
       } finally {
-        this.catalogInflight.delete(parentSessionId)
-        // Re-arm the trailing pull before the dirty notify: the response the
-        // caller observed predates the stale-marking change, so the follow-up
-        // refresh is the only carrier of that change.
-        if (this.catalogStale.delete(parentSessionId)) void this.refreshSubagents(parentSessionId)
-        this.notifier.markDirty()
+        if (current()) {
+          this.catalogInflight.delete(parentSessionId)
+          if (this.catalogStale.delete(parentSessionId)) void this.refreshSubagents(parentSessionId)
+          this.notifier.markDirty()
+        }
       }
     })()
     this.catalogInflight.set(parentSessionId, {
@@ -434,6 +442,7 @@ export class SessionManager {
    * @param open - current menu state.
    */
   setSubagentCatalogOpen(parentSessionId: SessionId, open: boolean): void {
+    if (open && (this.disposed || this.remote.$host.capabilities?.includes('subagent.catalog.v1') !== true)) return
     if (open) {
       this.openCatalogs.add(parentSessionId)
       void this.refreshSubagents(parentSessionId)
@@ -784,6 +793,18 @@ export class SessionManager {
    */
   handleSessionError(sessionId: SessionId, message: string): void {
     this.sessions.get(sessionId)?.handleAgentError(message)
+  }
+
+  /** Withdraw transient child catalogs while retaining durable addresses and resident Session drafts. */
+  handleSubagentGenerationChanged(): void {
+    for (const timer of this.catalogDebounce.values()) clearTimeout(timer)
+    this.catalogDebounce.clear()
+    this.catalogInflight.clear()
+    this.catalogStale.clear()
+    this.openCatalogs.clear()
+    this.catalogs.clear()
+    for (const [id, address] of this.addresses) this.sessions.get(id)?.configureSubagent(address)
+    this.notifier.notifyNow()
   }
 
   /**

@@ -161,6 +161,14 @@ export class FixtureSession implements SessionFace {
   }
 
   /**
+   * Fail-loud stub for capturing a title editor.
+   * @returns never; fixtures must supply their submitter.
+   */
+  prepareRename(): never {
+    throw new Error('prepareRename is not stubbed on the fixture Session')
+  }
+
+  /**
    * Fail-loud stub; supply `rename` on the fixture's session face to exercise it.
    * @returns never — always throws.
    */

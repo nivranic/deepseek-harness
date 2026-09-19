@@ -204,6 +204,12 @@
   background: var(--dsw-alias-state-business-primary);
 }
 
+.historyUnavailable {
+  padding: 12px 24px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+}
+
 .viewArea {
   display: flex;
   flex: 1;

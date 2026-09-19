@@ -23,7 +23,7 @@ export interface TestClientOptions {
    * that provides `uiRenderer`. Default false.
    */
   readonly mount?: boolean | HTMLElement
-  /** Wait for `ctx.connection.state === 'connected'` before returning. Default true. */
+  /** Wait for `ctx.connection.state === 'ready'` before returning. Default true. */
   readonly awaitConnected?: boolean
   /** Readiness budget in milliseconds before `start` rejects with the mock log summary. Default 5000. */
   readonly connectTimeoutMs?: number
@@ -171,7 +171,7 @@ async function settle(fn: () => Promise<void>): Promise<void> {
 
 async function awaitConnected(ctx: Context, mock: RemoteMock, timeoutMs: number): Promise<void> {
   const { state } = connectionOf(ctx)
-  if (state.getSnapshot() === 'connected') return
+  if (state.getSnapshot() === 'ready') return
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
       unsubscribe()
@@ -183,7 +183,7 @@ async function awaitConnected(ctx: Context, mock: RemoteMock, timeoutMs: number)
       ))
     }, timeoutMs)
     const unsubscribe = state.subscribe(() => {
-      if (state.getSnapshot() !== 'connected') return
+      if (state.getSnapshot() !== 'ready') return
       clearTimeout(timer)
       unsubscribe()
       resolve()

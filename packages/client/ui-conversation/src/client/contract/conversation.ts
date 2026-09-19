@@ -127,6 +127,7 @@ export type ConversationMatch =
 export interface ConversationViewNode {
   readonly key: string
   readonly kind: string
+  /** Engine-resolved identity, including Turn/Step qualification when declared. */
   readonly id: string
   readonly target: string
   readonly data: unknown
@@ -147,6 +148,7 @@ export interface ConversationViewSnapshotStore {
 export interface ConversationNodeContext<State = unknown> {
   readonly key: string
   readonly kind: string
+  /** Engine-resolved identity; matched event payloads retain the original business id. */
   readonly id: string
   readonly matches: readonly ConversationMatch[]
   readonly start: ConversationStartMatch | undefined
@@ -184,6 +186,12 @@ export type ConversationLocationDataScope = 'step' | 'turn'
 /** One independently registered business Event-to-Node state machine. */
 export interface ConversationNodeDefinition<State = unknown> {
   readonly kind: string
+  /**
+   * Step-local business ids are qualified by their durable Turn/Step enclosure.
+   * Every matched event must belong to a Step; an unlocated history prefix
+   * remains pending until an enclosing boundary or coordinate is available.
+   */
+  readonly identityScope?: 'step'
   /** Sole view target owned by this Definition; omitted for state-only Contexts. */
   readonly target?: string
   /**

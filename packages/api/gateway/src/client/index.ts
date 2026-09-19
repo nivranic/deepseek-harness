@@ -4,12 +4,15 @@
  * participates in method lookup, invocation, or type exposure.
  */
 
+import { encodeRemotePayload } from '../protocol.ts'
 import { Service } from '@deepseek-ai/cordis'
-import { RemoteError, remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
+import { RemoteError, classifyRemoteFailure, remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
+import type { ConnectionHttpError } from '@deepseek-ai/dsh-client-connection/client'
 export type { TypertGatewayFaultDetails } from '../remote-error-codes.ts'
 import type { Context } from '@deepseek-ai/cordis'
 import type {
   ConnectionHandle,
+  ConnectionHostInfo,
 } from '@deepseek-ai/dsh-client-connection/client'
 import type {
   InvocationDescriptor,
@@ -27,6 +30,8 @@ import {
   RemoteStreamMuxClient,
 } from './stream-client.ts'
 import { ClientRemoteEvents } from './remote-events.ts'
+import { ClientRemotePreparation, type RemotePreparation, type RemoteAdmission } from './preparation.ts'
+export type { RemotePreparation, RemotePreparationFacts, RemoteAdmission, RemoteInteractionReplyScope } from './preparation.ts'
 import {
   RemoteStream,
   type RemoteStreamOptions,
@@ -101,21 +106,27 @@ interface InstalledMethod {
 /** Typed Remote service augmented by generated direct namespaces and Gateway stream supervision. */
 export interface ClientRemote extends TypertClientRemote {
   /**
+   * Install application discovery before mounting selected business namespaces.
+   * @param prepare - first unary exchange and compatibility validation for each attempt.
+   * @param admission - optional application operation policy checked before carrier dispatch.
+   * @returns disposer withdrawing admission until another owner is registered.
+   */
+  $prepare(prepare: RemotePreparation, admission?: RemoteAdmission): () => Promise<void>
+  /**
    * Create one independently cancellable, reconnecting logical stream.
    * @param options - domain-owned opener and generation-end classification.
    * @returns a single-consumer stream annotated with physical generation ids.
    */
   $stream<Item>(options: RemoteStreamOptions<Item>): RemoteStream<Item>
   /**
-   * Fixed Host facts as plain reads: no store, no subscription, no generation
-   * counter. `home` stays undefined until the first ready frame and reflects
-   * the latest one afterwards.
+   * Current admitted Host facts as plain reads. Generation loss clears the facts;
+   * consumers subscribe through Connection when they need change notifications.
    */
   readonly $host: RemoteHostFacts
 }
 
-/** The fixed Host facts exposed on `ctx.remote.$host`. */
-export interface RemoteHostFacts {
+/** The admitted generation's Host facts exposed on `ctx.remote.$host`. */
+export interface RemoteHostFacts extends Omit<ConnectionHostInfo, 'home'> {
   /** Host home directory from the ready frame, undefined before it. */
   readonly home: string | undefined
   /** Whether the carrier connects to the local Host. */
@@ -147,6 +158,8 @@ class ClientRemoteService extends Service implements ClientRemote {
   private hostFacts: RemoteHostFacts | undefined
   private readonly streams = new RemoteStreamMuxClient()
   private readonly events: ClientRemoteEvents
+  private readonly preparation: ClientRemotePreparation
+  private hostGeneration: ConnectionHostInfo | undefined
   private mutations = Promise.resolve()
 
   constructor(ctx: Context) {
@@ -154,10 +167,12 @@ class ClientRemoteService extends Service implements ClientRemote {
     this.ownerCtx = ctx
     const connection = ctx.get('connection') as ConnectionHandle
     this.connection = connection
+    this.preparation = new ClientRemotePreparation(connection)
     this.events = new ClientRemoteEvents(
       ctx,
       connection,
       (endpoint, payload, signal) => this.openRemoteStream(endpoint, payload, signal),
+      (signal, progress) => this.preparation.run(signal, progress),
     )
     if (connection.rpc.open === undefined) this.streams.start()
     let disposed = false
@@ -167,6 +182,15 @@ class ClientRemoteService extends Service implements ClientRemote {
       if (connection.rpc.open === undefined) this.streams.start()
       loop = connection.start({
         onConnected: () => { this.ownerCtx.emit('connection/reset') },
+        classifyFailure: (error) => {
+          // Only generation-terminal classes select a phase; the remaining
+          // classes keep the default reconnect behavior of the generation loop.
+          switch (classifyRemoteFailure(error)) {
+            case 'compatibility': return 'incompatible'
+            case 'carrier-invalid': return 'fatal'
+            default: return undefined
+          }
+        },
         onReconnectRequested: () => {
           if (connection.rpc.open === undefined) this.streams.reconnect()
         },
@@ -187,13 +211,17 @@ class ClientRemoteService extends Service implements ClientRemote {
     return new RemoteStream(this.connection, options)
   }
 
+  $prepare(prepare: RemotePreparation, admission?: RemoteAdmission): () => Promise<void> {
+    const dispose = this.ctx.effect(() => this.preparation.register(prepare, admission), 'api-gateway.client.preparation')
+    return async () => { await dispose() }
+  }
+
   get $host(): RemoteHostFacts {
-    // Identity-stable: readers (useSyncExternalStore snapshots, memo inputs)
-    // compare by reference, so a fresh object is minted only when the fact
-    // itself changed. isLoopback is fixed for the page lifetime.
-    const home = this.connection.generation.getSnapshot()?.host.home
-    if (this.hostFacts === undefined || this.hostFacts.home !== home) {
-      this.hostFacts = { home, isLoopback: this.connection.isLoopback }
+    // Snapshot identity follows the admitted generation; isLoopback is page-local.
+    const host = this.connection.generation.getSnapshot()?.host
+    if (this.hostFacts === undefined || this.hostGeneration !== host) {
+      this.hostGeneration = host
+      this.hostFacts = { ...host, home: host?.home, isLoopback: this.connection.isLoopback }
     }
     return this.hostFacts
   }
@@ -439,17 +467,25 @@ class ClientRemoteService extends Service implements ClientRemote {
     const prepared = this.prepareInvocation(descriptor, projection, token, callerCtx, values, boundIdentity)
     const connection = this.ownerCtx.get('connection') as ConnectionHandle | undefined
     if (connection === undefined) throw new Error(`client api: ${endpoint} has no active Connection`)
+    let signal = prepared.signal
     try {
-      const result = await connection.rpc.call('/api', endpoint, { args: prepared.args }, prepared.signal)
+      const admission = await this.preparation.admit(signal, endpoint)
+      signal = admission.signal
+      signal.throwIfAborted()
+      const result = await connection.rpc.call('/api', endpoint, encodeRemotePayload(prepared.args, admission.version), signal)
       if (!mountActive(token)) return withdrawn(endpoint)
+      signal.throwIfAborted()
       if (!result.ok) return { ok: false, error: rebuiltFailure(result.error) }
       return { ok: true, value: result.value }
     } catch (error) {
-      // Carrier throws (offline or abort) are outcomes of the call, not assembly
-      // faults, so they join the same error branch. A caller-aborted call is a
-      // cancellation even when the local throw wins the race against the wire
-      // round-trip, so it gets the same code the Host would have produced.
+      // Caller or contribution cancellation wins over a received HTTP failure.
+      // HTTP 401 can itself cancel the admitted generation; that cancellation
+      // must not hide the request's authentication failure.
       if (prepared.signal.aborted) return cancelledFailure(endpoint, error)
+      if (connectionHttpErrorOf(error) !== undefined) return carrierFailure(endpoint, error)
+      if (signal.aborted) return cancelledFailure(endpoint, error)
+      const remoteFailure = remoteErrorOf(error)
+      if (remoteFailure !== undefined) return { ok: false, error: remoteFailure }
       return carrierFailure(endpoint, error)
     }
   }
@@ -465,10 +501,20 @@ class ClientRemoteService extends Service implements ClientRemote {
     const endpoint = endpointOf(descriptor)
     if (!token.active) throw new Error(withdrawn(endpoint).error.message)
     const prepared = this.prepareInvocation(descriptor, projection, token, callerCtx, values, boundIdentity)
-    const stream = this.openRemoteStream(endpoint, { args: prepared.args }, prepared.signal)
-    for await (const value of stream) {
-      if (!mountActive(token)) throw new Error(withdrawn(endpoint).error.message)
-      yield value
+    const admission = await this.preparation.admit(prepared.signal, endpoint)
+    const signal = admission.signal
+    try {
+      signal.throwIfAborted()
+      const stream = this.openRemoteStream(endpoint, encodeRemotePayload(prepared.args, admission.version), signal)
+      for await (const value of stream) {
+        if (!mountActive(token)) throw new Error(withdrawn(endpoint).error.message)
+        yield value
+      }
+    } catch (cause) {
+      if (signal.aborted && !prepared.signal.aborted) {
+        throw new RemoteStreamCarrierError('api gateway: admitted Host generation ended', { cause })
+      }
+      throw cause
     }
   }
 
@@ -729,14 +775,36 @@ function withdrawn(endpoint: string): Extract<RemoteResult<never>, { readonly ok
 }
 
 /**
- * The error branch a carrier throw (offline, transport fault) folds into: `gateway/internal` naming the endpoint and
- * the thrown message. Exported so a stand-in for this face folds identically.
+ * Normalize an identified HTTP rejection or transport interruption without changing business errors.
+ * Unknown carrier exceptions retain `gateway/internal`. Exported so fixture carriers fold identically.
  * @param endpoint - `<namespace>/<method>` that was called.
  * @param error - what the carrier threw.
  * @returns the failed result.
  */
 export function carrierFailure(endpoint: string, error: unknown): Extract<RemoteResult<never>, { readonly ok: false }> {
+  const http = connectionHttpErrorOf(error)
+  if (http !== undefined) {
+    const details = { endpoint, httpStatus: http.status }
+    const failure = http.status === 401 ? new RemoteError('gateway/authentication-required', http.message, details)
+      : http.status === 403 ? new RemoteError('gateway/permission-denied', http.message, details)
+        : http.status === 503 ? new RemoteError('gateway/host-not-ready', http.message, details)
+          : new RemoteError('gateway/transport-interrupted', http.message, details)
+    return { ok: false, error: failure }
+  }
+  if (typeof error === 'object' && error !== null
+    && (error as { isDSHConnectionTransportError?: unknown }).isDSHConnectionTransportError === true) {
+    return { ok: false, error: new RemoteError('gateway/transport-interrupted',
+      `client api: ${endpoint} transport interrupted`, { endpoint }, { cause: error }) }
+  }
   return internalFailure(`client api: ${endpoint} failed: ${error instanceof Error ? error.message : String(error)}`)
+}
+
+/** Connection bundles share transport error fields, never prototype identity. */
+function connectionHttpErrorOf(value: unknown): ConnectionHttpError | undefined {
+  if (typeof value === 'object' && value !== null
+    && (value as { isDSHConnectionHttpError?: unknown }).isDSHConnectionHttpError === true
+    && typeof (value as { status?: unknown }).status === 'number') return value as ConnectionHttpError
+  return undefined
 }
 
 /**
@@ -758,8 +826,8 @@ function internalFailure(message: string): Extract<RemoteResult<never>, { readon
 
 /**
  * Whether a caught value is a Remote failure this face delivered or threw.
- * The one consumer-facing discrimination point: marked instances carry their
- * Host code; anything else is a local fault the caller should let crash.
+ * The one consumer-facing discrimination point: marked instances carry a
+ * Remote failure code; anything else is a local fault the caller should let crash.
  * @param error - a caught value.
  * @returns true when the value narrows to RemoteFailure.
  */

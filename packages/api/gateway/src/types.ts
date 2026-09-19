@@ -4,7 +4,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import type { RemoteEventHostInfo } from './stream-protocol.ts'
+import type { RemoteEventHostInfo, RemoteInteractionOrigin } from './stream-protocol.ts'
 
 /** One Remote method request after a carrier has decoded its envelope. */
 export interface InvokeRemoteRequest {
@@ -52,6 +52,8 @@ export interface TypertRemoteEventInvocation {
   /** Sole request argument before the waterfall's `next()` callback. */
   readonly request: object
   readonly context: TypertRemoteEventContext
+  /** Application-declared interaction identity; the Gateway owns its lifecycle record. */
+  readonly interaction?: RemoteInteractionOrigin
   /** Resume the source's Cordis listener with a Client result or `next()`. */
   readonly resolve: (outcome: TypertRemoteEventOutcome) => void
   /** Reject the source's Cordis listener after cancellation, transport failure, or Client rejection. */
@@ -123,6 +125,15 @@ export type TypertGatewayErrorCode =
 export interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
+
+  /**
+   * Read explicit capability ids from active Remote bindings whose required
+   * methods are available. Withdrawn strict definitions are not advertised.
+   * This describes operations, not a caller's authorization to invoke them.
+   * @returns unique capability ids in lexical order.
+   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+   */
+  capabilities(): readonly string[]
 
   /**
    * Register the application-selected forwarded-event source.

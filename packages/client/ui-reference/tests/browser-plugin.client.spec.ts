@@ -18,6 +18,7 @@ import { apply as nodeApply } from '../src/index.ts'
 
 const sid = (value: string): SessionId => value as SessionId
 const session: ClientSessionContext = { sessionId: sid('target') }
+const discoveryCapabilities = ['file-reference.list.v1', 'session-reference.candidates.v1']
 /** The target session's own workspace: candidates in it are the `sameWorkspace` rows. */
 const HOME = '/Users/dev'
 const CREATED_AT = 1_700_000_000_000
@@ -75,8 +76,14 @@ async function bench(
     }],
   })),
   listed: Record<string, { updatedAt: number }> = {},
-): Promise<{ ctx: Context; fiber: ReturnType<Context['plugin']>; source: InputTriggerSource }> {
+) {
   const ctx = new Context()
+  const listeners = new Set<() => void>()
+  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+    listeners.add(listener)
+    return () => { listeners.delete(listener) }
+  } } })
+  ctx.provide('sidebarRightTabs', { candidates: vi.fn(() => [{}]), subscribe: () => () => {} })
   ctx.provide('sidebarRight', { openResource: vi.fn() })
   let source: InputTriggerSource | undefined
   ctx.provide('inputTriggers', {
@@ -86,13 +93,13 @@ async function bench(
     },
   })
   class RemoteService extends Service {
-    readonly $host = { home: HOME, isLoopback: true }
+    $host = { home: HOME, isLoopback: true, capabilities: discoveryCapabilities }
 
     constructor(serviceCtx: Context) {
       super(serviceCtx, 'remote')
     }
   }
-  new RemoteService(ctx)
+  const remote = new RemoteService(ctx)
   ctx.provide('remote.fileReferences', { list: files })
   ctx.provide('remote.sessionReferenceResolver', { candidates: sessions })
   ctx.provide('locale', new LocaleRuntime(ctx))
@@ -100,18 +107,23 @@ async function bench(
   const fiber = ctx.plugin({ inject: [...inject], apply })
   await fiber.await()
   if (source === undefined) throw new Error('reference source was not registered')
-  return { ctx, fiber, source }
+  return { ctx, fiber, source, replaceHost: (capabilities: string[]) => {
+    remote.$host = { ...remote.$host, capabilities }
+    for (const listener of [...listeners]) listener()
+  } }
 }
 
 describe('apply', () => {
   it('declares its services and releases the @ reference registration on disposal', async () => {
     expect(inject).toEqual([
       'inputTriggers', 'locale', 'sessions', 'remote', 'remote.fileReferences',
-      'remote.sessionReferenceResolver', 'sidebarRight',
+      'remote.sessionReferenceResolver', 'sidebarRight', 'sidebarRightTabs', 'connection',
     ])
     const { fiber } = await bench()
     let registered: InputTriggerSource | undefined
     const ctx = new Context()
+    ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    ctx.provide('sidebarRightTabs', { candidates: vi.fn(() => [{}]), subscribe: () => () => {} })
     ctx.provide('sidebarRight', { openResource: vi.fn() })
     ctx.provide('inputTriggers', {
       registerSource(source: InputTriggerSource) {
@@ -145,6 +157,50 @@ describe('apply', () => {
 })
 
 describe('candidates', () => {
+  it.each([
+    [[], 0, 0],
+    [['file-reference.list.v1'], 1, 0],
+    [['session-reference.candidates.v1'], 0, 1],
+  ] as const)('discovers only independently advertised domains: %j', async (capabilities, fileCalls, sessionCalls) => {
+    const files = vi.fn<RemoteLookup<FileReferenceCandidate>>().mockResolvedValue({ ok: true, value: [] })
+    const sessions = vi.fn<RemoteLookup<SessionReferenceMentionCandidate>>().mockResolvedValue({ ok: true, value: [] })
+    const { source, replaceHost, fiber } = await bench(files, sessions)
+    replaceHost([...capabilities])
+    await source.candidates(session, request(''))
+    expect(files).toHaveBeenCalledTimes(fileCalls)
+    expect(sessions).toHaveBeenCalledTimes(sessionCalls)
+    await fiber.dispose()
+  })
+
+  it('withdraws stale picks and headers but retains file serialization and preview', async () => {
+    const { source, replaceHost, fiber } = await bench()
+    const candidates = await source.candidates(session, request(''))
+    const listener = vi.fn()
+    const off = source.subscribeCandidates!(session, listener)
+    replaceHost([])
+    expect(listener).toHaveBeenCalledOnce()
+    for (const candidate of candidates) {
+      expect(source.onPick({ candidate, session, position: 'inline', via: 'menu', action: 'pick', span: { start: 0, end: 1, draftRev: 1 } })).toBeUndefined()
+    }
+    expect(source.header!(session, { query: 'src/', quoted: false, drilled: true })).toBeUndefined()
+    await expect(source.codec!.serialize('@src/a.ts', new AbortController().signal)).resolves.toBe('@src/a.ts')
+    expect(source.openReference!(session, { ref: '@src/a.ts', appearance: 'file' })).toBe(true)
+    off()
+    replaceHost(discoveryCapabilities)
+    expect(listener).toHaveBeenCalledOnce()
+    expect(await source.candidates(session, request(''))).toHaveLength(3)
+    await fiber.dispose()
+  })
+
+  it('discards a previous Host response even when its caller did not cancel', async () => {
+    const pending = Promise.withResolvers<RemoteEnvelope<FileReferenceCandidate[]>>()
+    const { source, replaceHost, fiber } = await bench(() => pending.promise)
+    const result = source.candidates(session, request(''))
+    replaceHost(discoveryCapabilities)
+    pending.resolve({ ok: true, value: [{ path: 'old.ts', kind: 'file' }] })
+    await expect(result).resolves.toEqual([])
+    await fiber.dispose()
+  })
   it('starts both Remote lookups together and renders files before sessions with stable labels', async () => {
     let releaseFiles!: () => void
     let releaseSessions!: () => void

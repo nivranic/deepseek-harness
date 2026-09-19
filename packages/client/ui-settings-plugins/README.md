@@ -108,3 +108,7 @@ None.
 </details>
 
 **Runtime invariant:** No companion is published. This is a browser-side settings surface whose node half owns no event stream or mutable runtime data; the layering and write refusals are Host contracts covered by the owning plugins and the api-proxy.
+
+The Web-search card reads credential metadata only after its current namespace is accepted and the Host advertises `credentials.describe.v1`. Its key field additionally requires `credentials.write.v1`; supported but read-only credential providers keep a disabled field. Ordinary settings remain editable without credential support, and writable credentials remain independent of a read-only settings document. Missing or refused metadata never implies permission to write. Each card controller belongs to one admitted Host; replacement releases its observers and clears drafts. Only the latest metadata read for the active reference can publish, and a refused write cannot succeed merely because an older key exists.
+
+The shared card form clears staged settings and secret literals when its namespace becomes unavailable or the form is disposed. An in-flight save cannot run remaining writes after that invalidation, and its late result cannot replace the new form state. Write failures keep drafts for explicit retry; a successful save removes only the edits it submitted, preserving newer input made while it was pending. This reuses the Settings scope lifecycle without another connection controller.

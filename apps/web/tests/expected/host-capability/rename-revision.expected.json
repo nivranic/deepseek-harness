@@ -1,0 +1,7 @@
+{
+  "conflictCode": "session/revision-conflict",
+  "conflictCopy": "The title changed while you were editing. Copy your draft, close and reopen Rename, then save again.",
+  "preservedDraft": "First draft",
+  "titles": ["Original title", "Second saved", "First draft", "Final title"],
+  "finalTitle": "Final title"
+}

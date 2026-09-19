@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for formal remote error envelope schema with unknown-code exclusion and explicit tuple rejection; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/remote-error-envelope-schema-source.json",
+    "sha256": "d6edb271961e2a57c8b779cb251ceec7683dc15342c71451b79bd094aa8e4853"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "46c266093023914f4a709f5fdcc18d5ac362d69a32385762a15150543dffe6ac"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/remote-error-envelope-schema-binding.json",
+    "sha256": "242d1e4214f4954e2b13e65b1ab91d341db65c1dff0eb403dad6d1114e1fb885"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-remote-error-envelope-schema-reports.mjs",
+      "sha256": "6048fedbabace330e00062a109528b3230376ef13f9a26255c72c704c270bfbe"
+    },
+    {
+      "path": ".artifacts/capture-remote-error-envelope-schema-validation.mjs",
+      "sha256": "eab24ff43737ef05e2c363dcb34b0e44a5fe26200fca39c0ec10c98d08087090"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ff99e2e1a8eb2700c8f5b79aa774e5d4d76166f7ada3bbfc89ae035b7227fa73"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c4b16e3ce4f7b677f1a70a01d30dc6266b32f3c0f84c1d1af3a31718ad392a4c"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/remote-error-envelope-schema-binding.log",
+      "sha256": "4afc59765a6df8e9b07a033088caf9d0417b22e63fbfe2444f095237d15913b7"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-audit-tests.log",
+      "sha256": "e487b30322c936c59b5643e931307d11c9a8d3db38e41a4b75216523f607cf80"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-report-generation.log",
+      "sha256": "20b0b4da34f1a7d34b38ce065a5e10c4852e415b1380dcfca7f2510ea3ca31cd"
+    }
+  ]
+}

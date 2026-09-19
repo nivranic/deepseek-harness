@@ -16,6 +16,7 @@ import { Script } from 'node:vm'
 import ts from 'typescript'
 import { cordisConfigFiles } from './cordis-config-files.ts'
 import { isCordisGroupEntry, isJsExpr, loadCordisYaml } from './cordis-yaml.ts'
+import { profileCompositionErrors } from './verify-profile-compositions.ts'
 
 export interface PackageManifest {
   name?: string
@@ -75,7 +76,7 @@ if (import.meta.main) {
   errors.push(...validatePackageTestResolution())
   errors.push(...packageTestFixtureDependencyErrors())
   errors.push(...validateSourcePlaneResolution())
-  errors.push(...validatePresetPlaneSeparation())
+  errors.push(...validateShippedProfileCompositions())
   errors.push(...validateClientHalvesDeclared())
 
   if (errors.length > 0) {
@@ -114,77 +115,6 @@ function validateClientHalvesDeclared(): string[] {
       ? `${manifestPath}: exports "./client" but declares no dsh.client, so its browser half is never served`
       : `${manifestPath}: declares dsh.client but exports no "./client" entry to serve`]
   })
-}
-
-/**
- * No shipped agent preset may repeat a row the host composition still runs.
- *
- * A preset contributes what ONE session adds to the host's registries. A row
- * active on both planes is therefore mounted twice — once per process and once
- * per session — and what that costs depends on what the row does: a provider
- * behind an `isolate` realm shadows the host's for its own consumers, so a host
- * contributor to that service reaches nobody; a row that registers into a host
- * singleton registers once per live session, so the second one collides.
- *
- * Both failure modes have occurred. A preset-local provider once shadowed the
- * host route that its consumer needed, and a host-registry contribution once
- * registered again for every live session until the second registration threw.
- * Neither changes a tool catalog, so no catalog assertion can see them — and the
- * shipped presets are near-copies of each other, so a fix applied to three of
- * four is the normal failure.
- * @returns one diagnostic per preset row that is also active on the host plane.
- */
-function validatePresetPlaneSeparation(): string[] {
-  const problems: string[] = []
-  // The shipped Web surface is two bundle patch layers over an empty root.
-  const hostFile = 'packages/bundle/base/cordis.patch.yml'
-  const overlayFile = 'packages/bundle/web-app/cordis.patch.yml'
-  const hostRows = rowIds(hostFile)
-  const overlay = loadEntries(overlayFile)
-  const disabled = new Set<string>()
-  for (const entry of overlay) {
-    if (!isRecord(entry)) continue
-    if (entry.disabled === true && typeof entry.id === 'string') disabled.add(entry.id)
-  }
-  // The overlay's own inserts are host-plane too; its disables take them back out.
-  const active = new Set([...hostRows, ...rowIds(overlayFile)].filter(id => !disabled.has(id)))
-  for (const file of globSync('packages/preset/agent-presets/presets/*/agent.cordis.yml', { cwd: root })) {
-    for (const id of rowIds(file)) {
-      if (!active.has(id)) continue
-      problems.push(
-        `${file}: row "${id}" is also active in the host composition; `
-        + 'a row belongs to exactly one plane',
-      )
-    }
-  }
-  return problems
-}
-
-/** Every entry of one config file, or an empty list when it is not an entry array. */
-function loadEntries(file: string): unknown[] {
-  const document = loadCordisYaml(readFileSync(resolve(root, file), 'utf8'))
-  return isUnknownArray(document) ? document : []
-}
-
-/**
- * Row ids declared anywhere in one config file, including inside group `config`
- * lists — a preset nests most of its rows in `isolate` groups.
- * @param file - repository-relative config path.
- * @returns the declared ids.
- */
-function rowIds(file: string): Set<string> {
-  const ids = new Set<string>()
-  const walk = (value: unknown): void => {
-    if (isUnknownArray(value)) {
-      for (const item of value) walk(item)
-      return
-    }
-    if (!isRecord(value)) return
-    if (typeof value.id === 'string' && typeof value.name === 'string') ids.add(value.id)
-    for (const child of Object.values(value)) walk(child)
-  }
-  walk(loadEntries(file))
-  return ids
 }
 
 function validateEntry(value: unknown, file: string, path: string): void {
@@ -365,6 +295,24 @@ export function bundleManifestPaths(repoRoot: string = root): string[] {
     .filter(path => typeof readManifest(path, repoRoot).dsh?.bundle?.patch === 'string')
     .map(path => path.replaceAll('\\', '/'))
     .sort()
+}
+
+/**
+ * Check the effective entry ids of every shipped CLI and Desktop composition.
+ * @param repoRoot - Source checkout supplying manifests, profile declarations, and patches.
+ * @returns Diagnostics for invalid composed entries or missing bundle declarations.
+ */
+export function validateShippedProfileCompositions(repoRoot: string = root): string[] {
+  const patches = new Map<string, string>()
+  for (const path of bundleManifestPaths(repoRoot)) {
+    const manifest = readManifest(path, repoRoot)
+    if (typeof manifest.name !== 'string' || typeof manifest.dsh?.bundle?.patch !== 'string') {
+      throw new Error(`${path}: a Bundle requires a package name and patch declaration`)
+    }
+    if (patches.has(manifest.name)) throw new Error(`${path}: duplicate Bundle package name ${manifest.name}`)
+    patches.set(manifest.name, resolve(repoRoot, dirname(path), manifest.dsh.bundle.patch))
+  }
+  return profileCompositionErrors(repoRoot, patches)
 }
 
 /**

@@ -66,7 +66,7 @@ expect(view.getByRole('alert')).toHaveTextContent('goal/not-found')
 
 ### Whole-client tier
 
-The slot tier above mounts one feature against doubles. The whole-client tier boots the real assembly: `TestClient.start(plan, mock, options)` installs `{ rpc: mock.rpc }` as `globalThis.__DSH_TRANSPORT__`, imports every roster row's `/client` module in-process (or takes the plan's `provide` replacement), synthesizes the boot graph with `graphFromRoster` and hands the loaded modules to the production module system, boots through the production `bootClient`, optionally mounts `uiRenderer`, and waits for `ctx.connection.state === 'connected'`. It lives behind a deep import so slot-tier specs never load it:
+The slot tier above mounts one feature against doubles. The whole-client tier boots the real assembly: `TestClient.start(plan, mock, options)` installs `{ rpc: mock.rpc }` as `globalThis.__DSH_TRANSPORT__`, imports every roster row's `/client` module in-process (or takes the plan's `provide` replacement), synthesizes the boot graph with `graphFromRoster` and hands the loaded modules to the production module system, boots through the production `bootClient`, optionally mounts `uiRenderer`, and waits for `ctx.connection.state === 'ready'`. It lives behind a deep import so slot-tier specs never load it:
 
 ```text
 // @vitest-environment jsdom
@@ -185,3 +185,11 @@ These limits define how the bench is consumed. They are current package constrai
 None.
 
 </details>
+
+The assembly fixture explicitly advertises Session follow/control, Workspace follow/management/Session-organization and Settings read/write/document-open support by default; its optional capability list can model absence. Standalone `TestRemote` contexts still require the test to provide Host capabilities explicitly when exercising a capability-aware consumer. Namespace proxies do not infer capability promises from method presence.
+
+The default fixture also advertises native picking, directory browsing and directory creation for composed consumer tests. Real Hosts advertise only the operations served by their backend; capability tests explicitly select smaller sets.
+
+The default assembly also explicitly advertises LLM provider-directory/model-discovery and credential metadata/write support. Capability tests override this list to verify absence without inferring support from fake method presence.
+
+The default assembly explicitly advertises all Workspace Files operation sets. Tests of negotiated subsets override that list; namespace method presence supplies no capability promise.

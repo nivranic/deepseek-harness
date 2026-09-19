@@ -9,6 +9,8 @@ import { Service, type Context } from '@deepseek-ai/cordis'
 import type { TypertContextMap } from './types.ts'
 
 export { RemoteError, remoteErrorOf } from './remote-error.ts'
+export { remoteValidationIssues } from './validation-issues.ts'
+export { classifyRemoteFailure, classifyRemoteFailureCode, REMOTE_FAILURE_CLASSES, type RemoteFailureClass } from './failure-classes.ts'
 
 const TYPERT_REMOTE_SEGMENT_PATTERN = /^[A-Za-z0-9_$.-]+$/
 
@@ -28,6 +30,7 @@ export type {
   RemoteErrorCode,
   RemoteErrorDetailsMap,
   RemoteFailure,
+  RemoteValidationIssue,
   RemoteResult,
   TypertClientEventListener,
   TypertClientRemote,
@@ -71,6 +74,16 @@ export type {
 export interface TypertGatewayBindingOptions {
   /** Wire namespace; defaults to the Cordis service key. */
   readonly namespace?: string
+  /** Versioned business capabilities whose required Remote methods this Service owns. */
+  readonly capabilities?: readonly TypertRemoteCapability[]
+}
+
+/** One explicitly versioned business operation set advertised by its live Remote owner. */
+export interface TypertRemoteCapability {
+  /** Semantic capability id ending in `.v` and a positive integer, such as `session.follow.v1`. */
+  readonly id: string
+  /** Nonempty set of exported method names required by this capability in the binding's namespace. */
+  readonly methods: readonly string[]
 }
 
 /** Visible declaration that one Service participates in Typert Gateway export. */
@@ -78,6 +91,7 @@ export interface TypertGatewayBinding<Service extends object = object> {
   readonly service: Service
   readonly serviceKey: string
   readonly namespace: string
+  readonly capabilities?: readonly TypertRemoteCapability[]
 }
 
 /** Invocation mode recorded by a Remote method decorator. */
@@ -135,7 +149,7 @@ const REMOTE_METHOD_DESCRIPTOR = '@deepseek-ai/dsh-typert-protocol/remote-method
  * Bind one visible Service field to a Cordis key and Remote namespace.
  * @param service - owning Service instance, normally `this`.
  * @param serviceKey - exact Cordis service key.
- * @param options - optional distinct wire namespace.
+ * @param options - optional distinct wire namespace and versioned capability declarations.
  * @returns a frozen, inspectable binding with no compiler-injected metadata.
  */
 export function bindTypertRemote<Service extends object>(
@@ -146,7 +160,16 @@ export function bindTypertRemote<Service extends object>(
   validateName('service key', serviceKey)
   const namespace = options.namespace ?? serviceKey
   validateName('namespace', namespace)
-  return Object.freeze({ service, serviceKey, namespace })
+  for (const capability of options.capabilities ?? []) {
+    if (!/^[a-z][a-zA-Z0-9.-]*\.v[1-9]\d*$/u.test(capability.id) || capability.methods.length === 0) {
+      throw new TypeError(`invalid Remote capability declaration for ${JSON.stringify(serviceKey)}: ${JSON.stringify(capability.id)}`)
+    }
+    for (const method of capability.methods) validateName('capability method', method)
+  }
+  return Object.freeze({
+    service, serviceKey, namespace,
+    ...(options.capabilities === undefined ? {} : { capabilities: options.capabilities }),
+  })
 }
 
 /** Cordis Service base that exposes its registered name through Typert Gateway. */
@@ -158,7 +181,7 @@ export abstract class TypertRemoteService<out T = never> extends Service<T> {
    * Register the Service and bind the same key to Typert Gateway.
    * @param ctx - owning Cordis Context.
    * @param serviceKey - exact Cordis service key and default wire namespace.
-   * @param options - optional distinct wire namespace.
+   * @param options - optional distinct wire namespace and versioned capability declarations.
    */
   protected constructor(ctx: Context, serviceKey: string, options: TypertGatewayBindingOptions = {}) {
     super(ctx, serviceKey)

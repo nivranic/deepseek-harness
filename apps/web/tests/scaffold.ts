@@ -30,6 +30,7 @@ import { basename, dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { Page } from 'playwright'
 import { expect } from 'vitest'
+import { captureFixtureHomePaths, realizeFixtureHomePaths } from './fixture-home-paths.ts'
 import { Context } from '@deepseek-ai/cordis'
 import { DSH_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@deepseek-ai/dsh-launch-environment'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
@@ -1003,7 +1004,7 @@ function stableSessionFixture(
   harnessHome: string,
 ): string {
   const prepared = prepareSessionSnapshotFixtureForComparison(
-    normalizeWebSessionVolatiles(rawSessionLog(session), workspaceCwd),
+    captureFixtureHomePaths(normalizeWebSessionVolatiles(rawSessionLog(session), workspaceCwd), harnessHome),
   )
   const stabilized = existing === ''
     ? prepared
@@ -1013,7 +1014,6 @@ function stableSessionFixture(
     })
   const fresh = scrubSessionSnapshot(stabilized)
     .split(session.id).join('{{session:1}}')
-    .split(harnessHome).join('{{harnessHome}}')
   const stable = redactSessionSnapshotIds(stabilizeFixtureMessageIds([fresh], [existing]))[0]
   if (stable === undefined) throw new Error('session harvest produced no stabilized fixture')
   return stable
@@ -1061,9 +1061,9 @@ async function assertReplaySession(
     cwd: typeof expectedHeader.cwd === 'string' ? expectedHeader.cwd : '\0no-cwd\0',
   }
   const actualSnapshot = normalizeSessionSnapshots([normalizeWebSessionVolatiles(actual)], actualContext)[0]
-    ?.split(harnessHome).join('{{harnessHome}}')
-  const expectedSnapshot = normalizeSessionSnapshots([normalizeWebSessionVolatiles(expected)], expectedContext)[0]
-    ?.split(harnessHome).join('{{harnessHome}}')
+  const expectedSnapshot = normalizeSessionSnapshots([
+    normalizeWebSessionVolatiles(realizeFixtureHomePaths(expected, harnessHome)),
+  ], expectedContext)[0]
   expect(actualSnapshot, `${fixturePath}: persisted replay`).toBe(expectedSnapshot)
 
   if (manifest.header?.pin !== true) return

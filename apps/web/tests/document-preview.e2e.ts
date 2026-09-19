@@ -61,7 +61,8 @@ describe.skipIf(MODE === 'record')('web e2e: document preview through Files', ()
   beforeAll(async () => {
     outsideRoot = await mkdtemp(join(tmpdir(), 'dsh-preview-outside-'))
     scaffold = await launchWebScaffold({ replayFixture: FIXTURE, paceMs: 5, compareReplaySession: false, extraOverlayPath: PAGING_PATCH })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
@@ -436,9 +437,13 @@ describe.skipIf(MODE === 'record')('web e2e: document preview through Files', ()
       }
     })).toEqual({ scrollTop, scrollportBelowBanner: true, firstLineAbove: true })
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(page.url()).origin })
+    // Establish the OS clipboard representation from known source; Windows
+    // converts LF to CRLF even without the product's Copy implementation.
+    await page.evaluate(text => navigator.clipboard.writeText(text), codeLines.join('\n'))
+    const expectedClipboard = await page.evaluate(() => navigator.clipboard.readText())
     await page.evaluate(() => navigator.clipboard.writeText(''))
     await codeBlock.getByRole('button', { name: 'Copy', exact: true }).click()
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(codeLines.join('\n'))
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expectedClipboard)
     sections.push([
       '## Code paging', '',
       `- Viewer: ${await viewer.innerText()}`,

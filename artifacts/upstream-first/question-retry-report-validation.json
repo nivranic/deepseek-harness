@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for recorded Question retry and competing Client answers; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/question-retry-source.json",
+    "sha256": "610a0c745687e08854c29b48e32e9a23cfc2a0382b551bac80e30eae3b4bc70f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f9fae82bc59cabb8dae173a099d303d0edfafcff5accd8dc311a75c889251338"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/question-retry-binding.json",
+    "sha256": "4d5672205230350045cbcccc23e785cce65af890287b0f9687cf82b603f47d69"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-question-retry-reports.mjs",
+      "sha256": "4f6bdd7ee8e5a11799c4a3bbd5ee6e98bf04d695b8a595b6b0c47435881e08a2"
+    },
+    {
+      "path": ".artifacts/capture-question-retry-validation.mjs",
+      "sha256": "8335ecd63c152f0f78b27270a38d1354a7a2f898863260b2d3e6e248f2ee251b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4b55c9a971f3e05d952067c3773e921cfcba85a84f7bc179757a7462ba0dd969"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "956f2ec77fafb8852505b21b1bda32f2b66d60b9e17fbb6caea9ecc8d5cf046f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/question-retry-binding.log",
+      "sha256": "ea341376b1310fe3b42c090322370489b007ebe5c9ff7cdf45eb5cd843958723"
+    },
+    {
+      "path": ".artifacts/question-retry-audit-tests.log",
+      "sha256": "e10a22727ae4b9a676c9ba1fdf3dc1c883951e4738d012061fb60cc0b1b29139"
+    },
+    {
+      "path": ".artifacts/question-retry-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/question-retry-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/question-retry-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

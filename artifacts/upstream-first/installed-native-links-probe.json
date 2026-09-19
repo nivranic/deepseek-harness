@@ -1,0 +1,154 @@
+{
+  "scope": "Read-only launch-chain diagnosis with generated link fixtures",
+  "cases": [
+    {
+      "launcher": "node",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 15500,
+        "nodeResult": {
+          "status": "PASS",
+          "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-native-7kumAP\\target"
+        },
+        "python": {
+          "exitCode": 0,
+          "stdout": "{\"status\": \"PASS\"}\r\n",
+          "stderr": ""
+        },
+        "environment": {
+          "NODE_OPTIONS": {
+            "length": 26,
+            "sha256": "80bd6bfd48b7cd096d6ef5639087a0bae1d4b191380d64f6f20d269f488152eb"
+          },
+          "NODE_PATH": null,
+          "PKG_EXECPATH": null,
+          "DSH_HOME": {
+            "length": 74,
+            "sha256": "a858f95f75e45384e0c19bf4f90d81f2a7e5fb12fab52ff0f618a1d889bc39c0"
+          },
+          "PATH": {
+            "length": 3059,
+            "sha256": "8122879d9563b062b53f3f7c4d157f06dcb5cf4cd5940c4eafdbbd4851c87dfb"
+          },
+          "TEMP": {
+            "length": 33,
+            "sha256": "1c1f38e27f5e430155cc438c0cf5873893b573db7c871dfec2e283835afdddbf"
+          },
+          "TMP": {
+            "length": 33,
+            "sha256": "1c1f38e27f5e430155cc438c0cf5873893b573db7c871dfec2e283835afdddbf"
+          },
+          "__COMPAT_LAYER": {
+            "length": 18,
+            "sha256": "03168538918d75b470907d1d6a4f82a9687378cca3858d40e03720e029d9d4e5"
+          },
+          "ComSpec": {
+            "length": 27,
+            "sha256": "56a79d121b8a0f187e172d87f06c86f8ae9bc3d047ba8505bf03e77030687ad4"
+          }
+        }
+      }
+    },
+    {
+      "launcher": "repository",
+      "exitCode": 0,
+      "stderr": "dsh: initialized profile sdk at C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-native-links-g54ksz4o\\home\\profiles\\sdk\n",
+      "probe": {
+        "pid": 47892,
+        "nodeResult": {
+          "status": "PASS",
+          "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-native-kdAPAO\\target"
+        },
+        "python": {
+          "exitCode": 0,
+          "stdout": "{\"status\": \"PASS\"}\r\n",
+          "stderr": ""
+        },
+        "environment": {
+          "NODE_OPTIONS": {
+            "length": 26,
+            "sha256": "80bd6bfd48b7cd096d6ef5639087a0bae1d4b191380d64f6f20d269f488152eb"
+          },
+          "NODE_PATH": null,
+          "PKG_EXECPATH": null,
+          "DSH_HOME": {
+            "length": 74,
+            "sha256": "a858f95f75e45384e0c19bf4f90d81f2a7e5fb12fab52ff0f618a1d889bc39c0"
+          },
+          "PATH": {
+            "length": 3059,
+            "sha256": "8122879d9563b062b53f3f7c4d157f06dcb5cf4cd5940c4eafdbbd4851c87dfb"
+          },
+          "TEMP": {
+            "length": 33,
+            "sha256": "1c1f38e27f5e430155cc438c0cf5873893b573db7c871dfec2e283835afdddbf"
+          },
+          "TMP": {
+            "length": 33,
+            "sha256": "1c1f38e27f5e430155cc438c0cf5873893b573db7c871dfec2e283835afdddbf"
+          },
+          "__COMPAT_LAYER": {
+            "length": 18,
+            "sha256": "03168538918d75b470907d1d6a4f82a9687378cca3858d40e03720e029d9d4e5"
+          },
+          "ComSpec": {
+            "length": 27,
+            "sha256": "56a79d121b8a0f187e172d87f06c86f8ae9bc3d047ba8505bf03e77030687ad4"
+          }
+        }
+      }
+    },
+    {
+      "launcher": "installed",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 24840,
+        "nodeResult": {
+          "status": "FAIL",
+          "code": "EPERM",
+          "errno": -4048
+        },
+        "python": {
+          "exitCode": null,
+          "error": "ETIMEDOUT",
+          "stdout": "",
+          "stderr": ""
+        },
+        "environment": {
+          "NODE_OPTIONS": {
+            "length": 26,
+            "sha256": "80bd6bfd48b7cd096d6ef5639087a0bae1d4b191380d64f6f20d269f488152eb"
+          },
+          "NODE_PATH": null,
+          "PKG_EXECPATH": null,
+          "DSH_HOME": {
+            "length": 74,
+            "sha256": "a858f95f75e45384e0c19bf4f90d81f2a7e5fb12fab52ff0f618a1d889bc39c0"
+          },
+          "PATH": {
+            "length": 3059,
+            "sha256": "8122879d9563b062b53f3f7c4d157f06dcb5cf4cd5940c4eafdbbd4851c87dfb"
+          },
+          "TEMP": {
+            "length": 33,
+            "sha256": "1c1f38e27f5e430155cc438c0cf5873893b573db7c871dfec2e283835afdddbf"
+          },
+          "TMP": {
+            "length": 33,
+            "sha256": "1c1f38e27f5e430155cc438c0cf5873893b573db7c871dfec2e283835afdddbf"
+          },
+          "__COMPAT_LAYER": {
+            "length": 18,
+            "sha256": "03168538918d75b470907d1d6a4f82a9687378cca3858d40e03720e029d9d4e5"
+          },
+          "ComSpec": {
+            "length": 27,
+            "sha256": "56a79d121b8a0f187e172d87f06c86f8ae9bc3d047ba8505bf03e77030687ad4"
+          }
+        }
+      }
+    }
+  ]
+}

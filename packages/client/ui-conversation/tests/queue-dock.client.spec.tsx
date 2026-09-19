@@ -21,7 +21,9 @@ import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts
 import type { QueueItemId } from '../src/client/contract/queue.ts'
 import type { InputState } from '../src/client/contract/input.ts'
 import { zh } from '../src/client/locales.ts'
-import { QueueDock, queueDockEntry, type QueueDockInjected, type QueueDockProps } from '../src/client/queue/QueueDock.tsx'
+import {
+  ControlAwareQueueDock, QueueDock, queueDockEntry, type QueueDockInjected, type QueueDockProps,
+} from '../src/client/queue/QueueDock.tsx'
 
 // Every session-scope fixture carries the resource hook the resources plugin merges into GlobalStandardProps.
 const useResource = (() => ({ status: 'none' as const, value: undefined, failure: undefined })) as GlobalStandardProps['useResource']
@@ -622,14 +624,31 @@ describe('QueueDock', () => {
 
   it('registers as the terminal composer-context entry', () => {
     expect(queueDockEntry.name).toBe('conversation-queue-dock')
-    expect(queueDockEntry.inject).toEqual(['slots', 'conversation', 'sessions', 'uiConversation'])
+    expect(queueDockEntry.inject).toEqual(['slots', 'conversation', 'sessions', 'uiConversation', 'remote'])
     const register = vi.fn(() => () => undefined)
     const inject = vi.fn((_name: string, callback: () => () => void) => callback())
     queueDockEntry.apply({ slots: { inject, register } } as never)
     expect(inject).toHaveBeenCalledWith('conversation.input.dock', expect.any(Function))
     expect(register).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'conversation.input.dock', id: 'queue', order: 20 }),
-      QueueDock,
+      ControlAwareQueueDock,
     )
+  })
+
+  it('hides queue actions without control capability and restores the retained rows', () => {
+    const capability = createSnapshotStore(false)
+    const snap = snapshotWith([row('retained', 'retained queued message')])
+    const props = kitFor(snap)
+    const view = render(<ControlAwareQueueDock
+      {...props}
+      useSession={bindSnapshotSelector(createSnapshotStore(snap))}
+      useControlCapability={bindSnapshotSelector(capability)}
+    />)
+    expect(view.container.innerHTML).toBe('')
+    act(() => { capability.set(true) })
+    expect(view.getByText('retained queued message')).toBeTruthy()
+    expect(view.getByLabelText('删除排队消息')).toBeTruthy()
+    act(() => { capability.set(false) })
+    expect(view.container.innerHTML).toBe('')
   })
 })

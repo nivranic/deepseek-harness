@@ -113,7 +113,7 @@ export function ComposerAttachments({
                       : {}}
                     labels={fileCardLabels(t, attachment.file.name)}
                     onRemove={() => { onRemoveAttachment(attachment.id) }}
-                    onRetry={() => { onRetryFile(attachment.id) }}
+                    {...onRetryFile === undefined ? {} : { onRetry: () => { onRetryFile(attachment.id) } }}
                   />
                 )
               }

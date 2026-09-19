@@ -2,13 +2,79 @@ import { describe, expect, it } from 'vitest'
 import {
   isRemoteJsonValue,
   parseRemoteEventResult,
+  parseRemoteInteractionRecord,
   parseRemoteStreamClientMessage,
   projectRemoteEventRequest,
   projectRemoteEventRejection,
   restoreRemoteEventRejection,
+  type RemoteEventId,
 } from '../src/stream-protocol.ts'
 
+describe('Remote interaction records', () => {
+  const eventId = 'event-1' as RemoteEventId
+  const record = {
+    requestId: eventId, sessionId: 'session-1', type: 'approval', requiredPermission: 'approval.respond',
+    createdAt: 100, status: 'pending', revision: 1,
+  }
+
+  it('preserves configured expiry and requires it on expired terminal records', () => {
+    const expiring = { ...record, expiresAt: 200 }
+    expect(parseRemoteInteractionRecord(expiring, eventId, true)).toEqual(expiring)
+    const expired = { ...expiring, status: 'expired', revision: 2 }
+    expect(parseRemoteInteractionRecord(expired, eventId, false)).toEqual(expired)
+    expect(() => parseRemoteInteractionRecord({ ...record, status: 'expired', revision: 2 }, eventId, false))
+      .toThrow('invalid interaction record')
+  })
+
+  it.each([undefined, null, 0, 99, 100, 100.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1, '200'])
+  ('rejects invalid expiresAt %s', (expiresAt) => {
+    expect(() => parseRemoteInteractionRecord({ ...record, expiresAt }, eventId, true)).toThrow('invalid interaction record')
+  })
+
+  it('accepts pending approvals and questions and terminal revisions', () => {
+    expect(parseRemoteInteractionRecord(record, eventId, true)).toEqual(record)
+    const question = { ...record, type: 'question', requiredPermission: 'question.respond' }
+    expect(parseRemoteInteractionRecord(question, eventId, true)).toEqual(question)
+    for (const status of ['resolved', 'delegated', 'cancelled']) {
+      const terminal = { ...record, status, revision: 2 }
+      expect(parseRemoteInteractionRecord(terminal, eventId, false)).toEqual(terminal)
+      expect(() => parseRemoteInteractionRecord(terminal, eventId, true)).toThrow('invalid interaction record')
+    }
+    expect(() => parseRemoteInteractionRecord(record, eventId, false)).toThrow('invalid interaction record')
+  })
+
+  it.each([
+    { requestId: 'other' }, { sessionId: '' }, { sessionId: 1 }, { extra: true },
+    { createdAt: -1 }, { createdAt: -0 }, { createdAt: 1.5 }, { createdAt: NaN },
+    { createdAt: Infinity }, { createdAt: Number.MAX_SAFE_INTEGER + 1 }, { createdAt: '100' },
+    { type: 'unknown' }, { requiredPermission: 'question.respond' }, { status: 'unknown' },
+    { status: ['resolved'] }, { revision: 0 }, { revision: '1' },
+  ])('rejects malformed or mismatched records %#', (patch) => {
+    expect(() => parseRemoteInteractionRecord({ ...record, ...patch }, eventId, true))
+      .toThrow('invalid interaction record')
+    expect(() => parseRemoteInteractionRecord({ ...record, status: 'resolved', revision: 2, ...patch }, eventId, false))
+      .toThrow('invalid interaction record')
+  })
+
+  it.each([null, [], {}, { ...record, revision: undefined }])('rejects missing records or fields %#', (value) => {
+    expect(() => parseRemoteInteractionRecord(value, eventId, true)).toThrow('invalid interaction record')
+  })
+})
+
 describe('Remote Event result protocol', () => {
+  it.each([{ kind: 'next' }, { kind: 'result', value: true },
+    { kind: 'rejected', error: { name: 'Error', message: 'cancelled' } }])('preserves revision for $kind', (outcome) => {
+    const value = { clientId: 'client-1', eventId: 'event-1', interactionRevision: 1, outcome }
+    expect(parseRemoteEventResult(value)).toEqual(value)
+  })
+
+  it.each([undefined, null, 0, -0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1, NaN, Infinity, '1'])
+  ('rejects an invalid interaction revision %s', (interactionRevision) => {
+    expect(() => parseRemoteEventResult({
+      clientId: 'client-1', eventId: 'event-1', interactionRevision, outcome: { kind: 'next' },
+    })).toThrow('invalid Remote event result')
+  })
+
   it('accepts delegation, values, and structured rejections', () => {
     expect(parseRemoteEventResult({
       clientId: 'client-1', eventId: 'event-1', outcome: { kind: 'next' },

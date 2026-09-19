@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use this package to choose Web GUI permission presets for future sessions or switch the current session. The General settings row changes only the default for sessions created later, while the `/permission` picker changes only the current session and marks its active preset. Built-in presets use localized labels; explicit host labels remain unchanged, and unknown kebab-case names appear in title case. Full access always requires explicit risk acknowledgement. Both surfaces confirm changes only after the host pushes the resulting permission state.
+Use this package to choose Web GUI permission presets for future sessions or switch the current session. The General settings row changes only the default for sessions created later, while the `/permission` picker changes only the current session and marks its active preset. Built-in presets use localized labels; explicit host labels remain unchanged, and unknown kebab-case names appear in title case. Full access always requires explicit risk acknowledgement. The current-session picker follows Host projection updates; the default row confirms the Host mutation response.
 
 ## Table of Contents
 
@@ -25,6 +25,8 @@ Use this package to choose Web GUI permission presets for future sessions or swi
 <a id="use-this-package"></a>
 ## Use this package
 
+A rejected permission command propagates its original `RemoteError`; an unmatched local command remains a separate local failure.
+
 Mount this plugin alongside the settings and commands packages; the permission row then appears in General settings, and the `/permission` picker replaces the bare command invocation. The current-session picker is available exactly while the projection key is present; a permission-less composition shows neither picker nor Settings row.
 
 ### The picker
@@ -32,6 +34,8 @@ Mount this plugin alongside the settings and commands packages; the permission r
 A pick submits the `/permission <preset>` command line. The argument-bearing form (`/permission <preset>` typed directly) still switches directly; the decoration replaces only the bare invocation. The built-in labels are `Read Only`, `Workspace Write`, and `Full access` in English and `仅可查看`, `工作区内修改`, and `完全权限` in Chinese; `custom` is display state, never a target.
 
 ### The Settings row
+
+The default row requires a current-generation descriptor, `settings.read.v1`, `settings.write.v1`, and a writable provider. Generation withdrawal clears its value and closes the menu and risk confirmation. A replaced Host cannot receive a retained selection or inherit an old response or error. Writes already dispatched are not undone or replayed; disposal waits for their settlement and suppresses publication. A failed current-generation save permits an explicit retry.
 
 The row derives its options from the host's dynamic `defaultPreset` enum, uses the same localized labels as the current-session picker, and writes one settings mutation. The value applies only when a later session is created; changing it never switches or rewrites the current session.
 

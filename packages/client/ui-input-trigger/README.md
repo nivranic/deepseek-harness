@@ -20,6 +20,10 @@ When users type `/` or `@` at the caret in the Web GUI, this package opens a gro
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
+A source may implement `subscribeCandidates` to invalidate discovery independently of its lexicon. Notifications cancel the old query and immediately clear menu rows and headers, then retry deduplicated warming and refresh the open menu after source observers settle. Programmatic launchers retain their single-source roster; disposal releases subscriptions and cancels queued refreshes.
+
+Deferred refresh uses the existing menu generation and the latest trigger span. Re-detecting the same query does not cancel its replacement fetch; changing the query or closing the menu supersedes queued work.
+
 -----
 
 <a id="use-this-package"></a>
@@ -31,7 +35,7 @@ Mount this plugin alongside `ui-conversation`; the menu then appears in the inpu
 
 The composer surface keeps focus while the menu is open: rows pick on mousedown, the highlight rides `aria-activedescendant`, and a pointer press outside both the menu and the composer card dismisses it. Space and Enter adjudication polls the optional `matchSpace`/`matchEnter` hooks in registration order; the first non-undefined answer wins, and a source can refuse a submission it cannot consume whole. Tab acts on the highlighted completion: a candidate declaring `drill: true` routes through `onPick` with `action: 'drill'`, while an ordinary candidate settles through `action: 'pick'`; without a highlight, Tab passes untouched so native focus traversal survives. A drillable row's trailing chevron exposes the same second verb to pointer users. A source implementing the optional `header` hook additionally publishes crumbs above its group: the pipeline re-polls it on every hit with the live query and whether a drill, rather than typing, produced it, and a crumb pick routes back through `onPick` with `action: 'drill'`.
 
-A source may implement `openReference(session, reference)` to open a draft reference without submitting it. Acceptance may precede asynchronous catalog loading. Chips route by source name; editable tokens route through the current source lexicon. Returning `false`, a missing source, or a disposed controller leaves the editor gesture unchanged.
+Sources pair `canOpenReference(session, reference)` with `openReference` and may publish viewer changes through `subscribeReferenceAvailability`. Eligibility reads are synchronous and never fetch. The controller publishes source, lexicon and viewer changes through `referenceAvailability`, and rechecks eligibility before opening. Chips route by source name; editable tokens use the current lexicon. Unavailable or disposed owners leave the editor gesture unchanged.
 
 -----
 

@@ -997,10 +997,11 @@ describe('fork', () => {
     })
     await feedList(b, [{ id: 'source' }])
     b.api.onFork = () => Promise.resolve(ok({ sessionId: sid('child') }))
-    b.api.onRename = () => Promise.resolve(err(new RemoteError('session/title-invalid', 'rejected', { sessionId: sid('child') })))
+    const failure = new RemoteError('session/title-invalid', 'rejected', { sessionId: sid('child') })
+    b.api.onRename = () => Promise.resolve(err(failure))
 
     await expect(b.svc.fork({ sessionId: sid('source'), increaseTitle: true }))
-      .rejects.toThrow('fork child rename failed: session/title-invalid: rejected')
+      .rejects.toBe(failure)
     expect(b.svc.binding(sid('child'))).toBeDefined()
   })
 })

@@ -17,7 +17,7 @@ import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client
 export interface SettingsDescribeView {
   /** Every namespace a live Host plugin registered, as the Host reported it. */
   namespaces: readonly SettingsNamespaceView[]
-  /** Whether the settings provider accepts writes. */
+  /** Whether the provider accepts writes and this Host advertises Settings write support. */
   writable: boolean
   /** Whether a native settings document exists for the Host to open. */
   hasDocument: boolean
@@ -26,12 +26,13 @@ export interface SettingsDescribeView {
 /** Mirror state every derived settings surface renders from. */
 export interface SettingsMirrorSnapshot {
   /**
-   * `unavailable` is the terminal non-loopback state; `ready` persists across
-   * later failed refreshes (the held view keeps serving); `idle` means no
-   * answer is held and no read is running, so `ensure` will start one.
+   * `loading` also covers pending discovery; `unavailable` means memory
+   * persistence or explicitly absent read support. A replacement
+   * generation clears its predecessor's view. Within one generation, `ready`
+   * survives failed refreshes; `idle` lets `ensure` retry an unanswered read.
    */
   status: 'idle' | 'loading' | 'ready' | 'unavailable'
-  /** The last good answer; undefined until the first success. */
+  /** The current generation's last good answer; undefined until its first success. */
   view: SettingsDescribeView | undefined
   /** The latest refresh failure message, cleared by the next success. */
   error: string | null
@@ -52,8 +53,8 @@ export interface SettingsDescribeFace {
    */
   subscribe(listener: () => void): () => void
   /**
-   * Resolve once an answer is held (or the mirror is terminally unavailable),
-   * reading only from `idle`.
+   * Join an active read or start one from `idle` when Host support is known.
+   * Pending discovery may resolve without an answer; observe snapshot status.
    * @returns settlement of the current or newly started read, if any.
    */
   ensure(): Promise<void>
@@ -75,6 +76,7 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
   private inFlight: Promise<void> | undefined
   private rerun = false
   private generation = 0
+  private host: ClientContext['remote']['$host'] | undefined
 
   /**
    * @param ctx - the providing plugin's context, whose `remote.settings`
@@ -113,6 +115,8 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
    */
   load(): Promise<void> {
     if (this.persistence === 'memory') return Promise.resolve()
+    this.syncHost()
+    if (!this.canRead()) return Promise.resolve()
     if (this.inFlight !== undefined) {
       this.rerun = true
       return this.inFlight
@@ -124,13 +128,13 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
   }
 
   /**
-   * Resolve once an answer is held (or the mirror is terminally unavailable),
-   * reading only from `idle`. The cheap idempotent entry for surfaces that
-   * render on first use.
+   * Join an active read or start one from `idle` when Host support is known.
+   * Pending discovery may resolve without an answer; observe snapshot status.
    * @returns settlement of the current or newly started read, if any.
    */
   ensure(): Promise<void> {
     if (this.persistence === 'memory') return Promise.resolve()
+    this.syncHost()
     if (this.inFlight !== undefined) return this.inFlight
     if (this.getSnapshot().status === 'idle') return this.load()
     return Promise.resolve()
@@ -144,6 +148,8 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
    * @param view - the namespace view a settings write answered with.
    */
   acceptView(view: SettingsNamespaceView): void {
+    this.syncHost()
+    if (!this.canRead()) return
     const before = this.store.getSnapshot()
     this.generation += 1
     if (this.inFlight !== undefined) this.rerun = true
@@ -163,6 +169,22 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
     return this.store.getSnapshot().view?.namespaces.find(row => row.ns === ns)
   }
 
+  private canRead(): boolean {
+    return this.ctx.remote.$host.capabilities?.includes('settings.read.v1') === true
+  }
+
+  /** A replacement Host cannot inherit the previous generation's document or write authority. */
+  private syncHost(): void {
+    const host = this.ctx.remote.$host
+    if (host === this.host) return
+    this.host = host
+    this.generation += 1
+    this.store.set({
+      status: this.canRead() ? 'idle' : host.capabilities === undefined ? 'loading' : 'unavailable',
+      view: undefined, error: null,
+    })
+  }
+
   private async run(): Promise<void> {
     // The in-flight slot must clear in the same synchronous segment that
     // observes `rerun` false (and on abrupt exit): a `.finally()` on the
@@ -170,6 +192,9 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
     // that gap would mark a rerun nobody reads, losing the read.
     try {
       do {
+        this.syncHost()
+        if (!this.canRead()) return
+        const host = this.ctx.remote.$host
         const before = this.store.getSnapshot()
         if (before.status === 'idle') this.store.set({ ...before, status: 'loading' })
         // Cleared immediately before the wire read goes out: a load() marked
@@ -188,9 +213,12 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
           outcome = { failure: error instanceof Error ? error.message : String(error) }
         }
         // A write answer invalidates a document read before that write committed.
-        if (generation !== this.generation) continue
+        if (generation !== this.generation || host !== this.ctx.remote.$host) continue
         if ('view' in outcome) {
-          this.store.set({ status: 'ready', view: outcome.view, error: null })
+          this.store.set({ status: 'ready', view: {
+            ...outcome.view,
+            writable: outcome.view.writable && host.capabilities?.includes('settings.write.v1') === true,
+          }, error: null })
         } else {
           const held = this.store.getSnapshot()
           // No answer yet: fall back to idle so `ensure` retries; with one, the

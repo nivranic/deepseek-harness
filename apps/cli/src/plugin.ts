@@ -10,7 +10,7 @@
  * @module @deepseek-ai/dsh/plugin
  */
 
-import { spawnSync } from 'node:child_process'
+import { execaSync } from 'execa'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import {
@@ -113,9 +113,12 @@ function anchorPathSpec(argument: string, cwd: string): string {
 
 /**
  * Run one `dsh plugin` invocation: init if needed, forward to pnpm, reconcile.
+ * The invocation permits dependency writes at the selected profile's workspace root.
+ * Arguments remain literal through platform command resolution and Windows shims.
  * @param profile - the profile name.
- * @param args - pnpm arguments with relative path specs anchored to the invoking directory.
- * @returns the pnpm exit code.
+ * @param args - pnpm arguments; relative path specs resolve from the invoking directory.
+ * @returns the pnpm exit code, 127 when pnpm is absent, or 1 after signal termination.
+ * @throws Process-start errors other than a missing pnpm command.
  */
 export function runPlugin(profile: string, args: readonly string[]): number {
   const dir = resolveProfileDir(profile)
@@ -129,22 +132,23 @@ export function runPlugin(profile: string, args: readonly string[]): number {
     process.stderr.write(`${NAME}: initialized profile ${profile} at ${dir}\n`)
   }
   const before = readProfileManifest(NAME, dir)
-  // Windows resolves pnpm through its .cmd shim, which spawn() refuses
-  // without a shell since the CVE-2024-27980 hardening.
-  const result = spawnSync('pnpm', args.map(argument => anchorPathSpec(argument, process.cwd())), {
+  const result = execaSync('pnpm', [
+    '--config.ignore-workspace-root-check=true',
+    ...args.map(argument => anchorPathSpec(argument, process.cwd())),
+  ], {
     cwd: dir,
     stdio: 'inherit',
-    shell: process.platform === 'win32',
+    reject: false,
   })
-  if (result.error !== undefined) {
-    const code = (result.error as NodeJS.ErrnoException).code
+  if (result instanceof Error && result.code !== undefined) {
+    const code = result.code
     if (code === 'ENOENT') {
       process.stderr.write(`${NAME}: pnpm not found on PATH — install pnpm to manage profile plugins\n`)
       return 127
     }
-    throw result.error
+    throw result
   }
-  const exitCode = result.status ?? 1
+  const exitCode = result.exitCode ?? 1
   if (exitCode === 0) {
     reconcilePlugins(before, dir)
   } else {

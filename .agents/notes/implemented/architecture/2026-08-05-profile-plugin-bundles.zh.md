@@ -14,7 +14,15 @@ Status: implemented
 
 默认 Profile 模板为 `web`、`headless`、`sdk` 与 `acp` 使用 `@deepseek-ai/dsh-base` 作为共享核心，并在其上叠加一个模式组合包。[独立 `sdk-minimal` profile](../../../../packages/bundle/sdk-minimal/README.zh.md)则只列出一个拥有完整显式配置树的组合包。通用的 `dsh --profile <name>` 把剩余参数交给该 profile 的命令行启动行：Web 持有自己的 flag 家族，headless 持有任务位置参数，协议 profile 不接受应用选项。patch overlay 使用启动器持有的 `--patch`。新的非内置目标可以使用 `--from-default-profile <template>`，在启动或配置 dump 之前复制一个默认模板的 bundle 列表与 patch 重载策略。这会创建依赖为空、用户 patch 为空的独立 profile：它既不读取与模板同名的本地 profile，也不记录继承关系。launcher 会以独占方式领取完整的目标目录，因此既有状态和并发创建者都会在不作修改的情况下失败。`dsh plugin --profile <name> <args...>` 是一层薄薄的 pnpm 转发器，负责初始化一个以 base 为基础的 profile，并依据已安装包的组合包声明调和 `dsh.profile.bundles`；没有组合包声明的包保持为普通依赖。[Headless 作为直接 core 入口](../../archived/architecture/2026-08-09-headless-direct-core-entry-point.md)负责 headless 组合约定。
 
-解析在构造上就是双锚点的：`dsh.profile.bundles` 中的名称先从 dsh 安装目录解析，再从 profile 目录解析——因此内置组合包始终来自与运行中 `dsh` 相同的安装，pnpm 从不管理它们——而 patch 行中的裸插件名称经 profile 目录的 Node 父目录逐级查找，落到受维护的扁平回退目录 `$DSH_HOME/profiles/node_modules`（安装目录的应用与各组合包所依赖的每个包各一个符号链接，每次启动时修复）。
+`initProfile` 通过文件系统的独占创建逐一初始化三个 profile 文件。先检查存在性再普通写入，会截断在这两个操作之间由其他写入者创建的文件。只有条目已存在的错误视为成功，权限与存储错误继续抛出。这会保护每个已有条目，但不承诺并发读取者能看到完整目录，也不负责修复中断的写入。
+
+`dsh plugin` 通过单次调用选项，允许修改 profile 的 pnpm workspace 根目录依赖。profile 目录就是预期的目标包，因此 pnpm 的 workspace 根目录保护必须允许该写入，而不要求调用者补充包管理器 flag，也不修改持久化的 pnpm 设置。
+
+转发器使用已有的 `execa` 依赖解析平台命令，并通过 Windows pnpm shim 传输字面 argv。Node 的 `shell: true` 会把参数拼成命令字符串，拆分路径并解释元字符；自行维护 cmd.exe 转义会重复进程库的职责。CLI 仍负责保留调用者的参数向量、继承 stdio、缺少命令时的诊断及子进程退出状态。
+
+组合包名称先从 dsh 安装目录解析，再从 profile 目录解析，因此内置组合包使用正在运行的安装。裸插件名称通过 profile 目录解析到 `$DSH_HOME/profiles/node_modules`。普通 Node 在该目录修复符号链接，打包可执行文件则写入指向虚拟模块 URL 的 ESM 代理。打包依赖查找限定在已部署安装内，因为 pkg 中可能存在构建机父目录记录，却没有可部署的模块内容。普通 Node 保留父目录解析行为。
+
+Windows 会先创建 junction 目录，再附加 reparse point，因此创建中断后可能在 dsh 自有 fallback 位置留下空目录。修复过程只用非递归的 `rmdirSync` 移除该空目录，再重试创建链接。外来文件与非空的非托管目录仍会使启动失败；pnpm 管理的 profile 条目不在该恢复范围内。递归删除整个路径会失去这项内容保护。
 
 两项配套重构：webserver 内置的静态 dist 服务改为单一所有者的**回退席位**（`registerFallback`／`applyIndexTaps`），SPA 服务器提取到 `@deepseek-ai/dsh-host-frontend-static`，使 web 组合包以组合的方式持有自己的 dist，而不是靠启动器代码；[dsh CLI 个人配置决策](../../archived/feature/2026-07-20-dsh-cli-personal-config.md)的个人 overlay 机制（`loadPersonalPatches`、`$DSH_HOME/config.yaml`）改为面向逐 profile 与 home 级的 `cordis.patch.yml` 层（`loadOptionalPatches`、接受文件名的 `watchUserPatches`），取代该笔记的各入口模式与文件位置，同时保留其 Harness home 根目录、patch 语义与响亮失败的解析。
 

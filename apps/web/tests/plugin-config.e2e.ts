@@ -10,6 +10,8 @@ import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import { join } from 'node:path'
+import type { ServerResponse } from '@deepseek-ai/dsh-client-connection'
+import type { SettingsDescribeValue } from '@deepseek-ai/dsh-settings/types'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,
@@ -25,16 +27,27 @@ describe('web e2e: plugin configuration section', () => {
   let browser: Browser
   let page: Page
   let tripwire: ReturnType<typeof watchConsole>
+  let composedTimeout: string
 
   beforeAll(async () => {
     scaffold = await launchWebScaffold({})
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     // Chinese browser: the section asserts the localized copy the client
     // derives from it, as the rest of the settings surface does.
     page = await browser.newPage({ viewport: { width: 1680, height: 1000 }, locale: ZH_BROWSER_LOCALE })
     tripwire = watchConsole(page)
+    const initialSettings = page.waitForResponse(response => new URL(response.url()).pathname === '/api/settings/describe')
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
     await page.waitForSelector('[class*="frame"]', { timeout: 30_000 })
+    const response = await (await initialSettings).json() as ServerResponse
+    if (!response.result.ok) throw new Error('initial Settings description failed')
+    const settings = response.result.value as SettingsDescribeValue
+    const shell = settings.namespaces.find(row => row.ns === 'shell')
+    const timeout = (shell?.value as { timeoutMs?: number } | undefined)?.timeoutMs
+    expect(typeof timeout).toBe('number')
+    expect((shell?.user as { timeoutMs?: number } | undefined)?.timeoutMs).toBeUndefined()
+    composedTimeout = String(timeout)
   }, 120_000)
 
   afterAll(async () => {
@@ -136,8 +149,8 @@ describe('web e2e: plugin configuration section', () => {
 
     const timeout = dialog.getByLabel('命令超时（毫秒）')
     await timeout.waitFor({ timeout: 10_000 })
-    // The composed default this deployment ships, before any user layer.
-    expect(await timeout.inputValue()).toBe('60000')
+    // Host metadata owns the platform-specific executor default, before any user override.
+    expect(await timeout.inputValue()).toBe(composedTimeout)
     await timeout.fill('12000')
     await timeout.blur()
 
@@ -204,7 +217,7 @@ describe('web e2e: plugin configuration section', () => {
     // The reset stages the composed default; the document still carries the
     // override until the save lands.
     await dialog.getByRole('button', { name: '恢复默认' }).click()
-    await expect.poll(() => timeout.inputValue(), { timeout: 5_000 }).toBe('60000')
+    await expect.poll(() => timeout.inputValue(), { timeout: 5_000 }).toBe(composedTimeout)
     expect(await settingsDocument()).toContain('timeoutMs: 12000')
 
     await dialog.getByRole('button', { name: '保存', exact: true }).click()
@@ -214,7 +227,7 @@ describe('web e2e: plugin configuration section', () => {
     const expandTerminal = dialog.getByRole('button', { name: '展开设置: 终端' })
     await expandTerminal.waitFor({ timeout: 5_000 })
     await expandTerminal.click()
-    expect(await timeout.inputValue()).toBe('60000')
+    expect(await timeout.inputValue()).toBe(composedTimeout)
     expect(await dialog.getByText('已覆盖').count()).toBe(0)
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)

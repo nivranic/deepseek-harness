@@ -80,7 +80,7 @@ describe('Session open', () => {
     expect(snapshot.openError?.code).toBe('session/not-found')
   })
 
-  it('lands exhausted carrier retries in openState=error as gateway/internal', async ({ mock, start }) => {
+  it('lands exhausted carrier retries in openState=error as gateway/transport-interrupted', async ({ mock, start }) => {
     const session = await sessionBench(mock, start, SID)
     // Two consecutive carrier losses before any opening is accepted exhaust the
     // Gateway's retry budget; the escaping failure crosses the stream boundary marked.
@@ -88,7 +88,7 @@ describe('Session open', () => {
     await session.open()
     expect(session.getSnapshot().openState).toBe('error')
     expect(session.getSnapshot().openError).toMatchObject({
-      code: 'gateway/internal', message: 'history carrier down',
+      code: 'gateway/transport-interrupted', message: 'history carrier down',
     })
     expect(mock.log.requests(FOLLOW)).toHaveLength(2)
   })
@@ -727,6 +727,7 @@ describe('remaining branches', () => {
     const stale = Promise.withResolvers<RemoteResult<SessionPage>>()
     mock.stream(FOLLOW, followScript(() => stale.promise))
     const opening = session.open()
+    await vi.waitFor(() => { expect(mock.log.requests(FOLLOW)).toHaveLength(1) })
     mock.stream(FOLLOW, followScript(history(plainTurn(SessionSeq(0), 0, 'a', 'b'))))
     const resynced = session.resync()
     stale.reject(new Error('stale wire'))
@@ -739,6 +740,7 @@ describe('remaining branches', () => {
     const stale = Promise.withResolvers<RemoteResult<SessionPage>>()
     mock.stream(FOLLOW, followScript(() => stale.promise))
     const opening = session.open()
+    await vi.waitFor(() => { expect(mock.log.requests(FOLLOW)).toHaveLength(1) })
     mock.stream(FOLLOW, followScript(history(plainTurn(SessionSeq(6), 1, '新', '代'))))
     const resynced = session.resync()
     stale.resolve(history(plainTurn(SessionSeq(0), 0, '旧', '代'))) // success, but its generation is gone
@@ -859,6 +861,7 @@ describe('resync', () => {
     const stale = Promise.withResolvers<RemoteResult<SessionPage>>()
     mock.stream(FOLLOW, followScript(() => stale.promise))
     const firstOpen = session.open()
+    await vi.waitFor(() => { expect(mock.log.requests(FOLLOW)).toHaveLength(1) })
     mock.stream(FOLLOW, followScript(history(plainTurn(SessionSeq(6), 1, '新', '代'))))
     const resynced = session.resync()
     stale.reject(new Error('dead connection')) // the doomed pre-disconnect request fails late

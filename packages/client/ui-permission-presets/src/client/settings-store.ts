@@ -90,7 +90,9 @@ export class PermissionPresetSettingsController {
   })
 
   private following: (() => void) | undefined
-  private saving = false
+  private viewHost: ClientContext['remote']['$host'] | undefined
+  private savingHost: ClientContext['remote']['$host'] | undefined
+  private readonly writes = new Set<Promise<void>>()
   private disposed = false
 
   /**
@@ -126,14 +128,30 @@ export class PermissionPresetSettingsController {
    * control is disabled during the save, so this only drops programmatic
    * double-submits rather than user intent.
    * @param preset - advertised preset key.
-   * @returns nothing; {@link store} carries success or failure.
+   * A retained gesture requires a descriptor from the current Host. Replacing
+   * that Host suppresses the old response without replaying the write.
+   * @returns settlement of this write; {@link store} carries success or failure.
    */
-  async select(preset: string): Promise<void> {
+  select(preset: string): Promise<void> {
+    if (this.disposed) return Promise.resolve()
+    const host = this.ctx.remote.$host
     const state = this.store.getSnapshot()
-    const view = this.describeFace.getSnapshot().view?.namespaces
+    const mirrored = this.describeFace.getSnapshot()
+    const view = mirrored.view?.namespaces
       .find(entry => entry.ns === PERMISSION_SETTINGS_NS)
-    if (view === undefined || !state.writable || this.saving) return
-    this.saving = true
+    if (this.viewHost !== host || view === undefined || !state.writable
+      || this.savingHost === host || mirrored.status !== 'ready'
+      || host.capabilities?.includes('settings.read.v1') !== true
+      || !host.capabilities.includes('settings.write.v1')) return Promise.resolve()
+    const operation = this.save(preset, view.revision, host)
+    this.writes.add(operation)
+    const finished = (): void => { this.writes.delete(operation) }
+    void operation.then(finished, finished)
+    return operation
+  }
+
+  private async save(preset: string, revision: number, host: ClientContext['remote']['$host']): Promise<void> {
+    this.savingHost = host
     this.store.update((draft) => {
       draft.status = 'saving'
       draft.error = null
@@ -143,14 +161,17 @@ export class PermissionPresetSettingsController {
       response = await this.ctx.remote.settings.mutate(
         PERMISSION_SETTINGS_NS,
         [{ op: 'set', path: ['defaultPreset'], value: preset }],
-        view.revision,
+        revision,
       )
+    } catch (error) {
+      if (!this.disposed && this.ctx.remote.$host === host) this.fail(error)
+      return
     } finally {
       // Cleared before the fold below, whose publish reaches `derive` through
       // this row's own subscription and is skipped while a save is pending.
-      this.saving = false
+      if (this.savingHost === host) this.savingHost = undefined
     }
-    if (this.disposed) return
+    if (this.disposed || this.ctx.remote.$host !== host) return
     if (!response.ok) {
       this.fail(response.error)
       return
@@ -160,16 +181,23 @@ export class PermissionPresetSettingsController {
     this.describeFace.acceptView(response.value)
   }
 
-  /** Stop following the mirror; later publishes leave the snapshot alone. */
-  dispose(): void {
+  /**
+   * Stop following the mirror and reject new gestures without undoing dispatched writes.
+   * @returns settlement after pending writes stop publishing into this controller.
+   */
+  async dispose(): Promise<void> {
     this.disposed = true
     this.following?.()
     this.following = undefined
+    await Promise.allSettled([...this.writes])
   }
 
   private derive(): void {
-    if (this.disposed || this.saving) return
+    if (this.disposed) return
+    const host = this.ctx.remote.$host
     const mirrored = this.describeFace.getSnapshot()
+    if (this.savingHost === host && mirrored.view !== undefined) return
+    this.viewHost = mirrored.view === undefined ? undefined : host
     if (mirrored.status === 'unavailable') {
       // The terminal non-loopback state: this client keeps Host persistence disabled, so
       // the row hides itself exactly like an unserved namespace.
@@ -182,6 +210,13 @@ export class PermissionPresetSettingsController {
       return
     }
     if (mirrored.view === undefined) {
+      this.store.update((state) => {
+        state.status = 'loading'
+        state.error = null
+        state.writable = false
+        state.currentValue = ''
+        state.options = []
+      })
       // A held failure with no answer is a failed row; without one the read
       // is still in flight and the row keeps its loading state.
       if (mirrored.error !== null) this.fail(new Error(mirrored.error))

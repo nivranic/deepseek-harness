@@ -132,7 +132,7 @@ export function apply(ctx: ClientContext): void {
     select,
   })
 
-  ctx.effect(() => () => { controller.dispose() }, 'ui-permission: settings row directory')
+  ctx.effect(() => () => controller.dispose(), 'ui-permission: settings row directory')
 
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({
     name: 'settings.general.item',
@@ -159,7 +159,7 @@ export function apply(ctx: ClientContext): void {
         const live = sessionFor(session)
         if (live === undefined) throw new Error('this session is not materialized yet')
         const result = await live.command(`/permission ${option.id}`)
-        if (!result.ok) throw new Error(`permission switch failed: ${result.error.code}: ${result.error.message}`)
+        if (!result.ok) throw result.error
         if (!result.value.matched) throw new Error('the host offers no /permission command')
       },
     },

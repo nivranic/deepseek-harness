@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Capability-admitted file tree and document renderers with registration-owned content and live viewer availability; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/file-ui-capabilities-source.json",
+    "sha256": "28fe0c5bbad518b4c58798879905fc01f61c20be3c35b8373be893d5be959bc8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "bdc4394ea6b39d8212815de897604a88c923f94af972b563b7f4d612e56a0f99"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/file-ui-capabilities-binding.json",
+    "sha256": "01f0ad3c5ff3699b763d6feff6c6e5d32eddcca4a8b047fb1e3d04b69fa913ee"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-file-ui-capabilities-reports.mjs",
+      "sha256": "3a7b5ef840c49d71eb6e1e1051a50f4bb5aade26e3bb57bf019ec11c2fd503df"
+    },
+    {
+      "path": ".artifacts/capture-file-ui-capabilities-validation.mjs",
+      "sha256": "28d7122822b00e5b516b43e88c96f7b1e3daf95f877ba89956c4ccfcb789f46a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b6d6e899a7b3e4255abca329ef5eeab85e8524a57ccf1e8a0041127646280d13"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "eb993b9b367cf8b7911f9f645c6dfded10e18e39fbdc0dfce2e7c7cf067e3f65"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/file-ui-capabilities-binding.log",
+      "sha256": "daf57b8a9aa86a0c9ef4baadb77ad3e5c89702e7b85a4e255030d111cb7beea1"
+    },
+    {
+      "path": ".artifacts/file-ui-capabilities-audit-tests.log",
+      "sha256": "5b9108147cb0bac571f44b68c197ca9ee712c677bd75c99b4c5f2d6ff9497d2f"
+    },
+    {
+      "path": ".artifacts/file-ui-capabilities-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/file-ui-capabilities-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/file-ui-capabilities-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

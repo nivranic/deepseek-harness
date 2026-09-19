@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import SessionStore from '@deepseek-ai/dsh-session'
+import SessionStore, { SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import SubagentRuntime from '../src/index.ts'
@@ -17,6 +17,22 @@ function fold(events: SessionEvent[]) {
 }
 
 describe('subagent timing projection', () => {
+  it('rebuilds an old timing checkpoint before exposing a cancellation target', async () => {
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      await ctx.plugin(SessionProjectionRegistry)
+      ctx.sessionProjections.register(subagentTimingProjectionDefinition)
+      const session = ctx.sessions.create()
+      const events = [event('turn/start', 0, 100), event('subagent/descriptor', 1, 110)]
+      const restored = ctx.sessionProjections.restore({
+        subagentTiming: { ver: 2, seq: SessionSeq(1), val: { settledMs: 0, active: { since: 100, through: 110 }, descriptorSeen: true } },
+      }, events, SessionLogOffset(0), session.header, SessionLogOffset(0))
+      expect(restored.snapshot.values.subagentTiming).toEqual({ settledMs: 0, active: { since: 100, through: 110, startSeq: 0 } })
+      expect(restored.checkpoint.subagentTiming?.ver).toBe(3)
+    } finally { await ctx.fiber.dispose() }
+  })
+
   it('registers with the optional session projection registry', async () => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)
@@ -54,7 +70,7 @@ describe('subagent timing projection', () => {
       event('turn/end', 2, 900),
       event('turn/start', 3, 2_000),
       event('assistant/attempt', 4, 2_500),
-    ])).toEqual({ settledMs: 0, active: { since: 2_000, through: 2_500 } })
+    ])).toEqual({ settledMs: 0, active: { since: 2_000, through: 2_500, startSeq: 3 } })
   })
 
   it('ignores completed pre-descriptor turns and unrelated events', () => {

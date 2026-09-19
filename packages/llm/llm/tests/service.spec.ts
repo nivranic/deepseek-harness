@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import LlmRuntime, {
@@ -24,6 +24,17 @@ import type {
   LlmResolvedModelInfo,
   SystemPromptUpdate,
 } from '@deepseek-ai/dsh-llm'
+
+it('advertises directory and discovery independently of installed adapters', async () => {
+  const ctx = new Context()
+  const fiber = ctx.plugin(LlmRuntime)
+  onTestFinished(async () => { await fiber.dispose() })
+  await fiber.await()
+  expect(ctx.llm.typertRemote.capabilities).toEqual([
+    { id: 'llm.providers.v1', methods: ['listProviders', 'listConfigurableProviders'] },
+    { id: 'llm.discover-models.v1', methods: ['discoverModels'] },
+  ])
+})
 
 class ScriptedAdapter extends LlmAdapter {
   constructor(private script: StreamChunk[]) {

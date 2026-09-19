@@ -25,10 +25,10 @@
 
 import { createRequire } from 'node:module'
 import {
-  existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, statSync,
+  existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmdirSync, rmSync, statSync,
   symlinkSync, unlinkSync, writeFileSync,
 } from 'node:fs'
-import { basename, dirname, join, relative, resolve } from 'node:path'
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { withFileLock } from '@deepseek-ai/dsh-atomic-write'
 import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
@@ -156,7 +156,7 @@ autoInstallPeers: false
 
 /**
  * Initialize a profile directory: manifest, empty user patch layer, and the
- * pnpm settings out-of-tree plugins need. Existing files are never touched,
+ * pnpm settings out-of-tree plugins need. Exclusive creation preserves existing entries,
  * so re-running is a no-op on an initialized profile.
  * @param dir - the profile directory from {@link resolveProfileDir}.
  * @param bundles - the initial `dsh.profile.bundles` layer list.
@@ -168,20 +168,24 @@ export function initProfile(
   patchReload: ProfilePatchReload = DEFAULT_PROFILE_PATCH_RELOAD,
 ): void {
   mkdirSync(dir, { recursive: true })
-  const manifestPath = join(dir, 'package.json')
-  if (!existsSync(manifestPath)) {
-    const manifest: ProfileManifest & { private: boolean } = {
-      name: `dsh-profile-${basename(dir)}`,
-      private: true,
-      dependencies: {},
-      dsh: { profile: { bundles: [...bundles], patchReload } },
-    }
-    writeFileSync(manifestPath, JSON.stringify(manifest, undefined, 2) + '\n')
+  const manifest: ProfileManifest & { private: boolean } = {
+    name: `dsh-profile-${basename(dir)}`,
+    private: true,
+    dependencies: {},
+    dsh: { profile: { bundles: [...bundles], patchReload } },
   }
-  const patchPath = join(dir, PROFILE_PATCH_FILENAME)
-  if (!existsSync(patchPath)) writeFileSync(patchPath, PROFILE_PATCH_TEMPLATE)
-  const workspacePath = join(dir, 'pnpm-workspace.yaml')
-  if (!existsSync(workspacePath)) writeFileSync(workspacePath, PROFILE_PNPM_WORKSPACE)
+  createProfileFile(join(dir, 'package.json'), JSON.stringify(manifest, undefined, 2) + '\n')
+  createProfileFile(join(dir, PROFILE_PATCH_FILENAME), PROFILE_PATCH_TEMPLATE)
+  createProfileFile(join(dir, 'pnpm-workspace.yaml'), PROFILE_PNPM_WORKSPACE)
+}
+
+/** Preserve an entry published by another initializer; propagate other write failures. */
+function createProfileFile(path: string, content: string): void {
+  try {
+    writeFileSync(path, content, { flag: 'wx' })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+  }
 }
 
 function readModuleProxyRecord(link: string): ModuleProxyRecord | undefined {
@@ -205,11 +209,16 @@ function ensureSymlink(link: string, target: string): void {
   }
   if (stat !== undefined) {
     if (!stat.isSymbolicLink()) {
-      const existing = stat.isDirectory() ? readModuleProxyRecord(link) : undefined
-      if (existing?.dsh?.moduleFallback?.targets === undefined) {
-        throw new Error(`dsh: ${link} exists and is not a symlink or dsh-managed module proxy; remove it so dsh can manage the installation fallback`)
+      // Windows junction creation can leave an empty directory before writing its reparse point.
+      if (stat.isDirectory() && readdirSync(link).length === 0) {
+        rmdirSync(link)
+      } else {
+        const existing = stat.isDirectory() ? readModuleProxyRecord(link) : undefined
+        if (existing?.dsh?.moduleFallback?.targets === undefined) {
+          throw new Error(`dsh: ${link} exists and is not a symlink or dsh-managed module proxy; remove it so dsh can manage the installation fallback`)
+        }
+        rmSync(link, { recursive: true })
       }
-      rmSync(link, { recursive: true })
       stat = undefined
     }
     if (stat !== undefined) {
@@ -461,10 +470,26 @@ function profileDependencyNames(manifest: ProfileManifest): string[] {
   return [...Object.keys(manifest.dependencies ?? {}), ...Object.keys(manifest.peerDependencies ?? {})]
 }
 
+/** Deployment dependency directory for an installed package or standalone application. */
+function installationModulesDirectory(installAnchor: string): string {
+  for (let directory = dirname(installAnchor); dirname(directory) !== directory; directory = dirname(directory)) {
+    if (basename(directory) === 'node_modules') return directory
+  }
+  return join(dirname(installAnchor), 'node_modules')
+}
+
 /** Resolve the installation generation that every profile must find through the fallback directory. */
 function resolveModuleFallbackEntries(
   installAnchor: string,
 ): { entries: ModuleFallbackEntry[]; packageNames: ReadonlySet<string> } {
+  const packaged = isPackagedExecutable()
+  const modulesDirectory = installationModulesDirectory(installAnchor)
+  // pkg can retain build-machine ancestor records outside the deployed dependency tree.
+  const outsideInstallation = (candidate: string): boolean => {
+    if (!packaged) return false
+    const path = relative(modulesDirectory, candidate)
+    return path === '..' || path.startsWith(`..${sep}`) || isAbsolute(path)
+  }
   const appManifest = readModuleFallbackManifest(installAnchor)
   const links = new Map<string, string>()
   /* v8 ignore next -- a real app manifest always declares its name */
@@ -479,7 +504,7 @@ function resolveModuleFallbackEntries(
     /* v8 ignore next -- a real app manifest always declares dependencies */
     for (const dep of profileDependencyNames(next.manifest)) {
       if (links.has(dep)) continue
-      const dir = packageDirFromAnchor(next.anchor, dep)
+      const dir = packageDirFromAnchor(next.anchor, dep, outsideInstallation)
       // A declared-but-uninstalled dependency cannot be a loader-visible
       // plugin; skip it rather than fail the whole boot.
       if (dir === undefined) continue
@@ -488,7 +513,7 @@ function resolveModuleFallbackEntries(
       queue.push({ anchor: manifestPath, manifest: readModuleFallbackManifest(manifestPath) })
     }
   }
-  const entries = !isPackagedExecutable()
+  const entries = !packaged
     ? [...links].map(([packageName, packageDir]) => ({ kind: 'symlink' as const, packageName, packageDir }))
     : [...links].flatMap(([packageName, packageDir]) => {
       const source = packageProxySource(packageName, packageDir)
@@ -537,7 +562,11 @@ export interface ProfileModuleFallbackOptions {
  * `$DSH_HOME/profiles/node_modules` mirrors the dsh installation dependency
  * closure. Plain Node writes symlinks; a packaged executable writes ESM
  * proxies under a cross-process lock because operating-system links cannot
- * enter pkg's virtual filesystem. Missing packages carried only by selected
+ * enter pkg's virtual filesystem. Packaged dependency lookup stays inside the
+ * installation's node_modules tree, excluding build-machine ancestors.
+ * Empty directories at owned link paths are repaired after interrupted junction
+ * creation; foreign files and nonempty unmanaged directories reject startup.
+ * Missing packages carried only by selected
  * bundles are linked through a profile-owned directory into that profile's
  * `node_modules`; pnpm-managed entries remain authoritative, and another
  * profile's links cannot change its resolution.

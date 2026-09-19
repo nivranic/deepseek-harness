@@ -17,7 +17,7 @@ const usePanelInfo: GlobalStandardProps['usePanelInfo'] = selector => selector({
 
 /** Store over a real mirror derived from the same scripted context. */
 function derivedDocumentStore(remote: object) {
-  const ctx = { remote } as never
+  const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1'] }, ...remote } } as never
   return new SettingsDocumentStore(ctx, new SettingsDescribeMirror(ctx))
 }
 import { en } from '../src/client/locales.ts'
@@ -102,7 +102,7 @@ describe('SettingsDocumentAction', () => {
     const describe = vi.fn()
       .mockResolvedValueOnce({ ok: true as const, value: { writable: true, hasDocument: false, namespaces: [] } })
       .mockResolvedValueOnce({ ok: true as const, value: { writable: true, hasDocument: true, namespaces: [] } })
-    const ctx = { remote: { settings: { describe, openSettingsDocument: vi.fn() } } } as never
+    const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1'] }, settings: { describe, openSettingsDocument: vi.fn() } } } as never
     const mirror = new SettingsDescribeMirror(ctx)
     const controller = new SettingsDocumentStore(ctx, mirror)
     const first = render(<SettingsDocumentAction

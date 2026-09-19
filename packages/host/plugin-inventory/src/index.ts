@@ -4,6 +4,7 @@ import type { Context, FiberState } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
 // Type-only: the optional agent-preset roster resolved through `ctx.get`.
 import type {} from '@deepseek-ai/dsh-agent-presets'
+import { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 // Typert-generated ./typert and ./remote artifacts import Zod at runtime.
 import type {} from 'zod'
@@ -47,7 +48,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
   static inject = ['loader']
 
   constructor(ctx: Context) {
-    super(ctx, 'pluginInventory')
+    super(ctx, 'pluginInventory', { capabilities: PLUGIN_INVENTORY_REMOTE_CAPABILITIES })
   }
 
   /**
@@ -59,11 +60,13 @@ export class PluginInventoryGateway extends TypertRemoteService {
    * preset's composition rows, because those rows — not the Loader's own
    * entries — are where a deployment that mounts the roster runs its
    * model-facing plugins.
+   * @param signal - optional request cancellation; cancelled reads return no inventory.
    * @returns Current non-group Loader entries in Loader order, with per-preset
    * compositions when a roster is composed.
    */
   @Remote('list')
-  async list(): Promise<PluginInventorySnapshot> {
+  async list(signal?: AbortSignal): Promise<PluginInventorySnapshot> {
+    signal?.throwIfAborted()
     const entries: PluginInventoryEntry[] = []
     for (const entry of this.ctx.loader.entries()) {
       if (entry.options.group) continue
@@ -85,6 +88,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
         })),
       }),
     )
+    signal?.throwIfAborted()
     return { entries, agentPresets }
   }
 }

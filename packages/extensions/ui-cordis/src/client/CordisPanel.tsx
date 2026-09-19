@@ -107,6 +107,7 @@ export function CordisPanel({
   wide,
   useSessions, useInventory, useActiveRuns, useRunErrors, useLoaded, useRenderFailures,
   onApprove, onDecline, onRun, onStop, onRemove, onRefresh, t,
+  current: authorityCurrent, canApprove, canDecline, canRun, canStop, canRemove,
 }: CordisPanelProps) {
   const inventory = useInventory(snapshot => snapshot)
   const activeRuns = useActiveRuns(snapshot => snapshot)
@@ -179,7 +180,7 @@ export function CordisPanel({
   if (all.length === 0) return null
 
   const runAction = async (pluginId: CordisDynamicPluginId, action: () => Promise<void | { ok: boolean; message?: string }>) => {
-    if (pending.has(pluginId)) return
+    if (!authorityCurrent() || pending.has(pluginId)) return
     setPending(currentPending => new Set(currentPending).add(pluginId))
     setActionErrors((currentErrors) => {
       const next = new Map(currentErrors)
@@ -188,21 +189,25 @@ export function CordisPanel({
     })
     try {
       const result = await action()
+      if (!authorityCurrent()) return
       if (result !== undefined && !result.ok) {
         setActionErrors(currentErrors => new Map(currentErrors).set(pluginId, result.message ?? 'operation failed'))
       }
     } catch (error) {
+      if (!authorityCurrent()) return
       setActionErrors(currentErrors => new Map(currentErrors).set(
         pluginId,
         error instanceof Error ? error.message : String(error),
       ))
     } finally {
-      setPending((currentPending) => {
-        const next = new Set(currentPending)
-        next.delete(pluginId)
-        return next
-      })
-      onRefresh()
+      if (authorityCurrent()) {
+        setPending((currentPending) => {
+          const next = new Set(currentPending)
+          next.delete(pluginId)
+          return next
+        })
+        onRefresh()
+      }
     }
   }
 
@@ -272,44 +277,44 @@ export function CordisPanel({
           <div className={css.rowActions}>
             {awaiting !== undefined && (
               <>
-                <RowAction
+                {canApprove && <RowAction
                   label={t('action.approveOnce')}
                   data-cordis-approve={awaiting}
                   disabled={busy}
                   onClick={() => { void runAction(pluginId, async () => {
                     await onApprove(awaiting, false)
-                    setOpen(false)
+                    if (authorityCurrent()) setOpen(false)
                   }) }}
                 >
                   <IconCheckOutline16 size={14} />
-                </RowAction>
-                <RowAction
+                </RowAction>}
+                {canApprove && <RowAction
                   label={t('action.approvePlugin')}
                   data-cordis-approve-plugin={awaiting}
                   disabled={busy}
                   onClick={() => { void runAction(pluginId, async () => {
                     await onApprove(awaiting, true)
-                    setOpen(false)
+                    if (authorityCurrent()) setOpen(false)
                   }) }}
                 >
                   <DoubleCheckIcon />
-                </RowAction>
-                <RowAction
+                </RowAction>}
+                {canDecline && <RowAction
                   label={t('action.decline')}
                   data-cordis-decline={awaiting}
                   disabled={busy}
                   onClick={() => { void runAction(pluginId, async () => {
                     await onDecline(awaiting)
-                    setOpen(false)
+                    if (authorityCurrent()) setOpen(false)
                   }) }}
                 >
                   <IconCloseOutline16 size={14} />
-                </RowAction>
+                </RowAction>}
               </>
             )}
             {awaiting === undefined && listed !== undefined
               && selectedPackageId !== undefined && listed.activeRun === undefined && (
-              <RowAction
+              canRun(selectedPackage?.hasClientHalf === true) && <RowAction
                 label={t('action.run')}
                 data-cordis-switch="run"
                 disabled={busy}
@@ -326,7 +331,7 @@ export function CordisPanel({
             )}
             {awaiting === undefined && listed !== undefined && listed.activeRun !== undefined
               && selectedPackageId !== listed.activeRun.packageId && selectedPackage !== undefined && (
-              <RowAction
+              canRun(selectedPackage.hasClientHalf) && <RowAction
                 label={t('action.run')}
                 data-cordis-switch="run"
                 disabled={busy}
@@ -343,7 +348,7 @@ export function CordisPanel({
             )}
             {awaiting === undefined && listed !== undefined && listed.activeRun !== undefined && status === 'client-pending'
               && activePackage !== undefined && selectedPackageId === listed.activeRun.packageId && (
-              <RowAction
+              canRun(selectedPackage?.hasClientHalf === true) && <RowAction
                 label={t('action.run')}
                 data-cordis-switch="run"
                 disabled={busy}
@@ -359,7 +364,7 @@ export function CordisPanel({
               </RowAction>
             )}
             {awaiting === undefined && listed !== undefined && listed.activeRun !== undefined && (
-              <RowAction
+              canStop && <RowAction
                 label={t('action.stop')}
                 data-cordis-switch="stop"
                 disabled={busy}
@@ -369,7 +374,7 @@ export function CordisPanel({
               </RowAction>
             )}
             {awaiting === undefined && listed !== undefined && (
-              <RowAction
+              canRemove && <RowAction
                 label={t('action.remove')}
                 data-cordis-remove={pluginId}
                 disabled={busy}
@@ -385,7 +390,7 @@ export function CordisPanel({
             <span>{currentPackageId === undefined ? '' : t('panel.current', { packageId: currentPackageId })}</span>
             <span>{t('panel.next', { packageId: nextPackageId })}</span>
             <div className={css.transitionActions}>
-              <button
+              {canRun(packageOf(listed, nextPackageId)?.hasClientHalf === true) && <button
                 type="button"
                 disabled={busy}
                 onClick={() => { void runAction(pluginId, () => onRun({
@@ -395,8 +400,8 @@ export function CordisPanel({
                   mode: currentPackageId === undefined ? 'run' : 'update',
                   hasClientHalf: packageOf(listed, nextPackageId)?.hasClientHalf === true,
                 })) }}
-              >{t('action.retry')}</button>
-              {currentPackageId !== undefined && (
+              >{t('action.retry')}</button>}
+              {currentPackageId !== undefined && canRun(packageOf(listed, currentPackageId)?.hasClientHalf === true) && (
                 <button
                   type="button"
                   disabled={busy}

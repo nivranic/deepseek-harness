@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "status": "SETTINGS_OPEN",
+  "scope": "Actual unsigned packaged Electron renderer; isolated home; no model",
+  "actions": [
+    "document.querySelector('button[aria-label=\"设置\"]')"
+  ],
+  "screenshots": [
+    "artifacts/upstream-first/desktop-packaged-ready.png",
+    "artifacts/upstream-first/desktop-packaged-settings-initial.png"
+  ],
+  "initial": {
+    "url": "dsh-app://app/index.html",
+    "text": "新会话\n工作区\n暂无会话\n设置\n探索未至之境\n预览版\n选择工作区\n标准模式\n选择一个工作区开始",
+    "bridge": [
+      "protocolVersion"
+    ],
+    "viewport": {
+      "width": 1266,
+      "height": 778,
+      "ratio": 1.5
+    }
+  },
+  "settingsText": "新会话\n工作区\n暂无会话\n设置\n设置\n通用设置\n模型\n插件\nAgent 预设\n打开配置文件\n关闭\n权限\n选择新会话的默认权限模式\n工作区内修改\n语言\n中文\n外观\n浅色\n深色\n跟随系统\n字号大小\n仅影响会话内容的字号\n14\npx\n对话显示\n控制已完成轮次的过程内容\n紧凑\n繁忙时的发送行为\n智能体运行时 Enter 键和发送按钮的行为；Cmd/Ctrl+Enter 使用另一行为\n排队发送\n探索未至之境\n预览版\n选择工作区\n标准模式\n选择一个工作区开始"
+}

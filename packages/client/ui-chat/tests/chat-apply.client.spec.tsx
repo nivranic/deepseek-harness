@@ -43,6 +43,7 @@ async function bench() {
       : stubSettingsScope().scope,
   } as never)
   runtime.ctx.provide('layout', { openRightbar: vi.fn(), closeRightbar: vi.fn() } as never)
+  runtime.ctx.provide('sidebarRightTabs', { candidates: vi.fn(() => [{}]), subscribe: () => () => {} } as never)
   runtime.ctx.provide('sidebarRight', { openResource: vi.fn() } as never)
   runtime.ctx.provide('uiWorkspace', {
     openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
@@ -52,7 +53,7 @@ async function bench() {
     openSession: (id: SessionId) => { runtime.sessions.open(id) },
   } as never)
   new TestRemote(runtime.ctx, {
-    session: { openWorkspacePath: vi.fn(async () => ({ ok: true, value: { opened: true } })) },
+    session: {},
   })
   const locale = new LocaleRuntime(runtime.ctx)
   runtime.ctx.provide('locale', locale)

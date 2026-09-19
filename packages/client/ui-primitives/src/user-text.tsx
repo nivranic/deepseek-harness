@@ -38,6 +38,10 @@ interface DecorationRange {
 
 /** Optional navigation supplied by consumers that can preview references. */
 export interface UserTextReferences {
+  /** Read current file viewer eligibility without requesting content. */
+  canOpenFile: (path: string) => boolean
+  /** Read current cached skill and viewer eligibility without fetching. */
+  canOpenSkill: (name: string) => boolean
   /** Open a file path decoded from an `@` mention. */
   openFile: (path: string) => void
   /** Open the source of a skill loaded for this message. */
@@ -124,11 +128,13 @@ export function projectUserText(
       )}
       {displayLabel}
     </>
+    const path = label.slice(1).replace(/^"|"$/gu, '')
+    const skillName = label.slice(1)
     const open = references === undefined ? undefined
-      : referenceKind === 'file'
-        ? () => { references.openFile(label.slice(1).replace(/^"|"$/gu, '')) }
-        : referenceKind === undefined && slashKind === 'skill'
-          ? () => { references.openSkill(label.slice(1)) }
+      : referenceKind === 'file' && references.canOpenFile(path)
+        ? () => { if (references.canOpenFile(path)) references.openFile(path) }
+        : referenceKind === undefined && slashKind === 'skill' && references.canOpenSkill(skillName)
+          ? () => { if (references.canOpenSkill(skillName)) references.openSkill(skillName) }
           : undefined
     const className = clsx(css.refChip, referenceKind === undefined && css.slashChip)
     parts.push(open === undefined

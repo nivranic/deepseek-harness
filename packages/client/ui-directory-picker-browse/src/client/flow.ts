@@ -17,6 +17,8 @@ export interface BrowseFlowInjected {
   listDirectory: (path?: string, signal?: AbortSignal) => Promise<DirectoryListing>
   /** Create one child directory under an existing parent. */
   createDirectory: (path: string, name: string) => Promise<string>
+  /** Whether the admitted Host supports directory creation independently from browsing. */
+  canCreateDirectory: boolean
   /** Localized dialog copy (this package's namespace). */
   t: Translate
 }
@@ -36,6 +38,7 @@ export function BrowseDirectoryFlow(props: DirectoryFlowOwnerProps & BrowseFlowI
     busy: props.busy,
     listDirectory: props.listDirectory,
     createDirectory: props.createDirectory,
+    canCreateDirectory: props.canCreateDirectory,
     t: props.t,
     onOpen: props.onPicked,
     onClose: props.onCancel,

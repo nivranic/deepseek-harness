@@ -1,0 +1,17 @@
+{
+  "observations": [
+    { "stage": "catalog-only", "editable": false, "send": 0, "stop": 0 },
+    { "stage": "ready", "editable": true, "send": 1, "stop": 1 },
+    { "stage": "interrupt-only", "editable": false, "send": 0, "stop": 1 },
+    { "stage": "catalog-withdrawn", "editable": false, "send": 0, "stop": 1 },
+    { "stage": "restored-idle", "editable": true, "send": 1, "stop": 0 }
+  ],
+  "initialCatalogHidden": true,
+  "retainedDraft": true,
+  "promptRequests": 0,
+  "interruptRequests": 1,
+  "childTurnAborted": true,
+  "noAutomaticReplay": true,
+  "discoveryControlled": true,
+  "modelScripted": true
+}

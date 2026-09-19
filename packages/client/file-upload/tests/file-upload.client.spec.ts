@@ -6,6 +6,13 @@ import { fileUploadWorker, FileUploadRuntime } from '../src/client/runtime.ts'
 import type { FileUploadBody } from '../src/client/contract.ts'
 import type { ClientFileUploadHooks } from '../src/types.ts'
 
+const HOST = { home: undefined, isLoopback: true, capabilities: ['file-upload.stage.v1'] }
+
+function prepareRuntime(ctx: Context): void {
+  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  if (ctx.get('remote') === undefined) ctx.provide('remote', { $host: HOST } as never)
+}
+
 interface UploadGlobal {
   __DSH_FILE_UPLOAD__?: ClientFileUploadHooks
 }
@@ -218,6 +225,7 @@ describe('file upload service', () => {
       Promise.resolve(new Response('accepted', { status: 202 })))
     ;(globalThis as UploadGlobal).__DSH_FILE_UPLOAD__ = { fetch }
     const ctx = new Context()
+    prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
     const blob = new Blob(['opaque'])
@@ -226,13 +234,13 @@ describe('file upload service', () => {
       path: '/api/upload', body: blob, headers: { 'x-test': 'yes' }, signal,
     })).resolves.toEqual({ status: 202, body: 'accepted' })
     expect(fetch).toHaveBeenLastCalledWith(new URL('https://preview.test/api/upload'), {
-      method: 'POST', headers: { 'x-test': 'yes' }, body: blob, signal,
+      method: 'POST', headers: { 'x-test': 'yes' }, body: blob, signal: expect.any(AbortSignal) as AbortSignal,
     })
 
     const stream = new ReadableStream<Uint8Array>({ start(controller) { controller.close() } })
     await (ctx.fileUpload as FileUploadRuntime).post({ path: '/stream', body: stream })
     expect(fetch).toHaveBeenLastCalledWith(new URL('https://preview.test/stream'), {
-      method: 'POST', body: stream, duplex: 'half',
+      method: 'POST', body: stream, duplex: 'half', signal: expect.any(AbortSignal) as AbortSignal,
     })
     await fiber.dispose()
   })
@@ -242,12 +250,13 @@ describe('file upload service', () => {
     const fetch = vi.fn(() => Promise.resolve(new Response(null, { status: 204 })))
     ;(globalThis as UploadGlobal).__DSH_FILE_UPLOAD__ = { fetch }
     const ctx = new Context()
+    prepareRuntime(ctx)
     const fiber = ctx.plugin({ apply })
     await fiber
     const body = new Blob()
     await (ctx.fileUpload as FileUploadRuntime).post({ path: '/fallback', body })
     expect(fetch).toHaveBeenCalledWith(new URL('http://dsh.internal/fallback'), {
-      method: 'POST', body,
+      method: 'POST', body, signal: expect.any(AbortSignal) as AbortSignal,
     })
     await fiber.dispose()
   })
@@ -255,6 +264,7 @@ describe('file upload service', () => {
   it('leaves the fixture on its generated Remote fallback', async () => {
     vi.stubGlobal('location', { origin: 'https://fixture.test', search: '?fixture' })
     const ctx = new Context()
+    prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
     expect(ctx.fileUpload.available).toBe(false)
@@ -266,6 +276,7 @@ describe('file upload service', () => {
   it('fails loud when a served browser has no Worker implementation', async () => {
     vi.stubGlobal('Worker', undefined)
     const ctx = new Context()
+    prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
     await expect((ctx.fileUpload as FileUploadRuntime).post({ path: '/upload', body: new Blob() }))
@@ -287,6 +298,7 @@ describe('file upload service', () => {
     vi.stubGlobal('Worker', FakeWorker)
     vi.stubGlobal('location', { origin: 'https://harness.test' })
     const ctx = new Context()
+    prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
     const progress = vi.fn()
@@ -325,6 +337,7 @@ describe('file upload service', () => {
     }
     vi.stubGlobal('Worker', FakeWorker)
     const ctx = new Context()
+    prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
     const stream = new ReadableStream<Uint8Array>({ start(controller) { controller.close() } })
@@ -350,6 +363,7 @@ describe('file upload service', () => {
     }
     vi.stubGlobal('Worker', FakeWorker)
     const ctx = new Context()
+    prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
 
@@ -375,7 +389,7 @@ describe('file upload service', () => {
     already.abort()
     await expect((ctx.fileUpload as FileUploadRuntime).post({ path: '/upload', body: new Blob(), signal: already.signal }))
       .rejects.toMatchObject({ name: 'AbortError' })
-    expect(FakeWorker.all[4]?.postMessage).not.toHaveBeenCalled()
+    expect(FakeWorker.all).toHaveLength(4)
     await fiber.dispose()
   })
 })
@@ -394,7 +408,8 @@ describe('Session-addressed file upload', () => {
         file: { attachmentId: 'remote-file', name: 'file', bytes: 3 },
       },
     }))
-    ctx.provide('remote', { fileUploads: { upload: remote } } as never)
+    ctx.provide('remote', { $host: HOST, fileUploads: { upload: remote } } as never)
+    prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
     return { ctx, fiber, remote, service: ctx.fileUpload }
@@ -432,7 +447,7 @@ describe('Session-addressed file upload', () => {
         method: 'POST',
         headers: { 'content-type': 'application/octet-stream' },
         body: file,
-        signal,
+        signal: expect.any(AbortSignal) as AbortSignal,
       }),
     )
     await fiber.dispose()
@@ -453,8 +468,8 @@ describe('Session-addressed file upload', () => {
     await expect(service.upload(SESSION_ID, new Blob([Uint8Array.of(1)])))
       .resolves.toMatchObject({ ok: true })
     expect(remote.mock.calls).toEqual([
-      [SESSION_ID, { data: 'AAAA', name: 'bytes.bin' }, undefined],
-      [SESSION_ID, { data: 'AQ==' }, undefined],
+      [SESSION_ID, { data: 'AAAA', name: 'bytes.bin' }, expect.any(AbortSignal)],
+      [SESSION_ID, { data: 'AQ==' }, expect.any(AbortSignal)],
     ])
     await fiber.dispose()
   })
@@ -512,5 +527,99 @@ describe('Session-addressed file upload', () => {
       },
     })
     await failed.fiber.dispose()
+  })
+})
+
+describe('file upload Connection lifetime', () => {
+  async function bench(capabilities: string[] = ['file-upload.stage.v1']) {
+    const listeners = new Set<() => void>()
+    const remote = { $host: { ...HOST, capabilities }, fileUploads: { upload: vi.fn(async () => ({ ok: true })) } }
+    const ctx = new Context()
+    ctx.provide('remote', remote as never)
+    ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
+    } } })
+    const fiber = ctx.plugin(FileUploadRuntime)
+    await fiber
+    const replace = () => {
+      remote.$host = { ...remote.$host }
+      for (const listener of listeners) listener()
+    }
+    return { service: ctx.fileUpload as FileUploadRuntime, fiber, remote, replace, listeners }
+  }
+
+  it('rejects unsupported raw bodies and encoded uploads before reading bytes or creating a Worker', async () => {
+    const worker = vi.fn()
+    vi.stubGlobal('Worker', worker)
+    const b = await bench([])
+    const blob = new Blob(['secret'])
+    const read = vi.spyOn(blob, 'arrayBuffer')
+    await expect(b.service.post({ path: '/upload', body: blob })).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    await expect(b.service.upload('s1' as SessionId, blob)).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    await expect(b.service.upload('s1' as SessionId, Uint8Array.of(1))).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    expect(worker).not.toHaveBeenCalled()
+    expect(read).not.toHaveBeenCalled()
+    expect(b.remote.fileUploads.upload).not.toHaveBeenCalled()
+    await b.fiber.dispose()
+  })
+
+  it('rejects a Blob encoded after replacement without dispatching to either Host', async () => {
+    vi.stubGlobal('location', { search: '?fixture' })
+    const b = await bench()
+    const bytes = Promise.withResolvers<ArrayBuffer>()
+    const blob = new Blob(['x'])
+    vi.spyOn(blob, 'arrayBuffer').mockReturnValue(bytes.promise)
+    const pending = b.service.upload('s1' as SessionId, blob)
+    const rejected = expect(pending).rejects.toMatchObject({ code: 'gateway/connection-unavailable' })
+    b.replace()
+    bytes.resolve(new ArrayBuffer(1))
+    await rejected
+    expect(b.remote.fileUploads.upload).not.toHaveBeenCalled()
+    await b.fiber.dispose()
+  })
+
+  it.each(['replace', 'dispose'] as const)('cancels the raw carrier on %s and suppresses its late progress and receipt', async (action) => {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:worker')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    class Worker {
+      static last: Worker | undefined
+      onmessage: ((event: MessageEvent) => void) | null = null
+      onerror: ((event: ErrorEvent) => void) | null = null
+      readonly postMessage = vi.fn()
+      readonly terminate = vi.fn()
+      constructor() { Worker.last = this }
+    }
+    vi.stubGlobal('Worker', Worker)
+    const b = await bench()
+    const progress = vi.fn()
+    const pending = b.service.upload('s1' as SessionId, new Blob(['x']), undefined, undefined, progress)
+    const rejected = expect(pending).rejects.toMatchObject({ code: 'gateway/connection-unavailable' })
+    const worker = Worker.last!
+    worker.onmessage?.({ data: { kind: 'progress', loaded: 1 } } as MessageEvent)
+    if (action === 'replace') b.replace()
+    else await b.fiber.dispose()
+    worker.onmessage?.({ data: { kind: 'progress', loaded: 2 } } as MessageEvent)
+    worker.onmessage?.({ data: { kind: 'complete', status: 200, body: '{}' } } as MessageEvent)
+    await rejected
+    expect(progress).toHaveBeenCalledExactlyOnceWith({ loaded: 1 })
+    expect(worker.terminate).toHaveBeenCalledOnce()
+    if (action === 'replace') await b.fiber.dispose()
+    expect(b.listeners.size).toBe(0)
+    await expect(b.service.upload('s1' as SessionId, Uint8Array.of(1))).rejects.toMatchObject({ code: 'gateway/connection-unavailable' })
+  })
+
+  it('propagates caller cancellation to a custom carrier and rejects a late successful response', async () => {
+    const gate = Promise.withResolvers<Response>()
+    let observed: AbortSignal | null | undefined
+    ;(globalThis as UploadGlobal).__DSH_FILE_UPLOAD__ = { fetch: (_url, init) => { observed = init.signal; return gate.promise } }
+    const b = await bench()
+    const caller = new AbortController()
+    const pending = b.service.post({ path: '/upload', body: new Blob(), signal: caller.signal })
+    caller.abort()
+    expect(observed?.aborted).toBe(true)
+    gate.resolve(new Response('late success'))
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+    await b.fiber.dispose()
   })
 })

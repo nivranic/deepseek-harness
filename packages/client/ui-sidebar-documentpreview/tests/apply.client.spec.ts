@@ -30,6 +30,8 @@ import { en, zh } from '../src/client/locales.ts'
 import type { textFace } from '../src/client/face.ts'
 import type { TextStore } from '../src/client/store.ts'
 import { FILE, SESSION, TAB_ID, page } from './fixtures.client.ts'
+import type { TextPreviewInjected } from '../src/client/TextPreview.tsx'
+import { sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
 
 interface Recorded {
   name: string
@@ -40,7 +42,7 @@ interface Recorded {
   component: unknown
 }
 
-async function boot() {
+async function boot(capabilities = ['workspace-files.stat.v1', 'workspace-files.read-text.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1']) {
   const ctx = new Context()
   const tabs = new SidebarRightTabRegistry(ctx)
   const registered: Recorded[] = []
@@ -69,15 +71,82 @@ async function boot() {
   ctx.provide('sidebarRightTabs', tabs as never)
   ctx.provide('slots', slots as never)
   ctx.provide('locale', locale as never)
-  ctx.provide('remote', { workspaceFiles } as never)
+  const remote = { workspaceFiles, $host: { capabilities, home: undefined, isLoopback: false } }
+  ctx.provide('remote', remote as never)
   ctx.provide('remote.workspaceFiles', workspaceFiles as never)
   const fiber = ctx.plugin({ inject: [...inject], apply })
   onTestFinished(async () => { await fiber.dispose() })
   await fiber.await()
-  return { tabs, registered, dictionaries, fiber, workspaceFiles }
+  return { tabs, registered, dictionaries, fiber, workspaceFiles, ctx, remote }
 }
 
 describe('ui-sidebar-documentpreview apply', () => {
+  it.each([
+    [[], [], []],
+    [['workspace-files.read-text.v1'], [], []],
+    [['workspace-files.stat.v1'], [], []],
+    [['workspace-files.stat.v1', 'workspace-files.read-text.v1'], ['unknown', 'png', 'html', 'md'], [PLAIN_BODY_ID, MARKDOWN_BODY_ID, '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code']],
+    [['workspace-files.stat.v1', 'workspace-files.read-all.v1'], ['png'], [IMAGE_BODY_ID, PDF_BODY_ID]],
+    [['workspace-files.stat.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1'], ['png', 'html'], [HTML_BODY_ID, IMAGE_BODY_ID, PDF_BODY_ID]],
+  ])('admits file types and renderer choices for %j', async (capabilities, suffixes, ids) => {
+    const h = await boot(capabilities)
+    for (const suffix of ['unknown', 'png', 'html', 'md']) {
+      expect(h.tabs.candidates(sessionFileAddress(SESSION, 'file.' + suffix)).length > 0).toBe(suffixes.includes(suffix))
+    }
+    const registration = h.registered.find(entry => entry.component === TextPreview)
+    if (ids.length === 0) {
+      expect(registration).toBeUndefined()
+      return
+    }
+    if (registration === undefined) throw new Error('missing preview registration')
+    const store = (registration.store as TextStore).create()
+    const face = (registration.inject as (id: typeof SESSION, actions: typeof store.actions) => TextPreviewInjected)(SESSION, store.actions)
+    expect(face.hooks.documentPreviews.getSnapshot().map(item => item.id)).toEqual(ids)
+  })
+
+  it('aborts pending content and refuses retained readers when the admitted Host changes', async () => {
+    const h = await boot()
+    const registration = h.registered.find(entry => entry.component === TextPreview)!
+    const store = (registration.store as TextStore).create()
+    const face = (registration.inject as ReturnType<typeof textFace>)(SESSION, store.actions)
+    const pending = Promise.withResolvers<ReturnType<typeof page>>()
+    h.workspaceFiles.read.mockReturnValueOnce(pending.promise)
+    face.loadPage(TAB_ID, FILE, 1, new AbortController().signal)
+    const signal = h.workspaceFiles.read.mock.calls[0]![3] as AbortSignal
+    h.remote.$host = { ...h.remote.$host, capabilities: [] }
+    h.ctx.emit('connection/reset')
+    expect(signal.aborted).toBe(true)
+    expect(h.tabs.get(TEXTPREVIEW_KIND)).toBeUndefined()
+    pending.resolve(page(1, ['late content'], true))
+    await pending.promise
+    expect(store.getSnapshot().byTab[TAB_ID]).toBeUndefined()
+    face.loadPage(TAB_ID, FILE, 1, new AbortController().signal)
+    face.loadAll(TAB_ID, FILE, new AbortController().signal)
+    expect(h.workspaceFiles.read).toHaveBeenCalledOnce()
+    expect(h.workspaceFiles.readAll).not.toHaveBeenCalled()
+    h.remote.$host = { ...h.remote.$host, capabilities: ['workspace-files.stat.v1', 'workspace-files.read-text.v1'] }
+    h.ctx.emit('connection/reset')
+    expect(h.tabs.get(TEXTPREVIEW_KIND)).toBeDefined()
+    expect(h.registered.find(entry => entry.component === TextPreview)?.store).not.toBe(registration.store)
+  })
+
+  it('notifies file entry consumers when a renderer adds or removes an admitted suffix', async () => {
+    const h = await boot(['workspace-files.stat.v1', 'workspace-files.read-all.v1'])
+    const address = sessionFileAddress(SESSION, 'custom.bin')
+    expect(h.tabs.candidates(address)).toEqual([])
+    const changed = vi.fn()
+    const stop = h.tabs.subscribe(changed)
+    const release = h.ctx.documentPreviews.register({
+      id: 'custom-binary', extensions: ['bin'], loading: 'bytes-complete', title: () => 'custom',
+    })
+    expect(changed).toHaveBeenCalledOnce()
+    expect(h.tabs.candidates(address).map(item => item.kind)).toEqual(['text'])
+    release()
+    expect(changed).toHaveBeenCalledTimes(2)
+    expect(h.tabs.candidates(address)).toEqual([])
+    stop()
+  })
+
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
   })
@@ -121,11 +190,11 @@ describe('ui-sidebar-documentpreview apply', () => {
     onTestFinished(() => { controller.abort() })
     face.loadPage(TAB_ID, FILE, 1, controller.signal, 'v1')
     await workspaceFiles.read.mock.results[0]?.value
-    expect(workspaceFiles.read).toHaveBeenCalledExactlyOnceWith(FILE.sessionId, FILE.path, { offset: 1 }, controller.signal)
+    expect(workspaceFiles.read).toHaveBeenCalledExactlyOnceWith(FILE.sessionId, FILE.path, { offset: 1 }, expect.any(AbortSignal))
     expect(instance.getSnapshot().byTab[TAB_ID]?.pages[1]?.text).toBe('first')
     face.loadAll(TAB_ID, FILE, controller.signal, 'v1')
     await workspaceFiles.readAll.mock.results[0]?.value
-    expect(workspaceFiles.readAll).toHaveBeenCalledExactlyOnceWith(FILE.sessionId, FILE.path, controller.signal)
+    expect(workspaceFiles.readAll).toHaveBeenCalledExactlyOnceWith(FILE.sessionId, FILE.path, expect.any(AbortSignal))
     expect(instance.getSnapshot().byTab[TAB_ID]?.complete?.data).toEqual(new Uint8Array([0, 1, 255]))
   })
 })

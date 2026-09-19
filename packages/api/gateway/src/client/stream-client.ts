@@ -1,6 +1,6 @@
-import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 /** Browser owner for the Gateway multiplexed Remote stream socket. */
 
+import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import {
   parseRemoteStreamServerMessage,
   REMOTE_STREAM_MUX_PATH,
@@ -226,8 +226,8 @@ export class RemoteStreamMuxClient {
       const frame = parseRemoteStreamServerMessage(data)
       this.streams.get(frame.streamId)?.push(frame)
     } catch (error) {
-      const failure = new RemoteStreamCarrierError('api gateway: invalid Remote stream frame', { cause: error })
-      this.failAll(failure)
+      const failure = new RemoteError('gateway/stream-invalid', 'api gateway: invalid Remote stream frame',
+        { stream: REMOTE_STREAM_MUX_PATH }, { cause: error })
       this.lost(socket, failure)
       socket.close(4002, 'invalid Remote stream frame')
     }
@@ -235,7 +235,7 @@ export class RemoteStreamMuxClient {
 
   private lost(
     socket: WebSocket,
-    error: RemoteStreamCarrierError = new RemoteStreamCarrierError(
+    error: Error = new RemoteStreamCarrierError(
       'api gateway: Remote stream WebSocket closed',
     ),
   ): void {

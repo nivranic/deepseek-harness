@@ -8,8 +8,10 @@ import goalsRemote from '@deepseek-ai/dsh-goal/remote'
 import llmRemote from '@deepseek-ai/dsh-llm/remote'
 import dynamicRemote from '@deepseek-ai/dsh-cordis-host-runner/remote'
 import pluginInventoryRemote from '@deepseek-ai/dsh-host-plugin-inventory/remote'
+import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
 import messageFeedbackRemote from '@deepseek-ai/dsh-message-feedback/remote'
 import sessionFeedbackRemote from '@deepseek-ai/dsh-command-feedback/remote'
+import presentedFilesRemote from '@deepseek-ai/dsh-client-ui-deliverables/remote'
 import fileUploadsRemote from '@deepseek-ai/dsh-client-file-upload/remote'
 import sessionReferencesRemote from '@deepseek-ai/dsh-session-reference/remote'
 import subagentsRemote from '@deepseek-ai/dsh-subagent/remote'
@@ -17,8 +19,28 @@ import sessionRemote from '@deepseek-ai/dsh-api-session-controller/remote'
 import workspaceRemote from '@deepseek-ai/dsh-api-workspace-controller/remote'
 import workspaceFilesRemote from '@deepseek-ai/dsh-api-workspace-files/remote'
 import type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
+import { createHostPreparation, admitHostOperation } from './host-preparation.ts'
 
+export type { SETTINGS_REMOTE_CAPABILITIES, CREDENTIAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-settings-controller/capabilities'
+export type { LLM_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-llm/capabilities'
+export type { MESSAGE_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-message-feedback/capabilities'
+export type { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-command-feedback/capabilities'
+export type { DYNAMIC_CORDIS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-cordis-host-runner/capabilities'
+export type { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-host-plugin-inventory/capabilities'
+export type { FILE_UPLOAD_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-file-upload/capabilities'
+export type { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
+export type { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
+export type { COMMAND_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-commands/capabilities'
+export type { FILE_REFERENCE_REMOTE_CAPABILITIES, SKILL_CATALOG_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-session-controller/capabilities'
+export type { SESSION_REFERENCE_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-session-reference/capabilities'
+export type { WORKSPACE_FILES_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-workspace-files/capabilities'
+export type { WORKSPACE_REMOTE_CAPABILITIES, DIRECTORY_PICKER_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-workspace-controller/capabilities'
+export type {} from '@deepseek-ai/dsh-client-ui-deliverables/remote'
+export type * from '@deepseek-ai/dsh-client-ui-deliverables/types'
 export type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
+export type { HostDescriptor, HostId, HostTransport } from '@deepseek-ai/dsh-api-host-description/types'
+export type {} from './host-preparation.ts'
+export type {} from '@deepseek-ai/dsh-api-host-description/remote'
 export type { PluginInventorySnapshot } from '@deepseek-ai/dsh-host-plugin-inventory/types'
 export type {} from '@deepseek-ai/dsh-agent-presets/remote'
 export type {} from '@deepseek-ai/dsh-commands/remote'
@@ -148,22 +170,26 @@ export const inject = ['remote']
  * @returns disposer after every selected Remote namespace is ready.
  */
 export async function apply(ctx: Context): Promise<() => Promise<void>> {
+  const stopPreparation = ctx.remote.$prepare(createHostPreparation(hostDescriptionRemote), admitHostOperation)
   const disposers: Array<() => Promise<void>> = []
   try {
     for (const contribution of [
       agentPresetsRemote, commandsRemote, settingsControllerRemote, goalsRemote, llmRemote, dynamicRemote,
-      pluginInventoryRemote, messageFeedbackRemote, sessionFeedbackRemote, fileUploadsRemote, sessionReferencesRemote,
+      hostDescriptionRemote, pluginInventoryRemote, messageFeedbackRemote, sessionFeedbackRemote,
+      fileUploadsRemote, presentedFilesRemote, sessionReferencesRemote,
       subagentsRemote, sessionRemote, workspaceRemote, workspaceFilesRemote,
     ]) {
       disposers.push(await ctx.remote.$mount(contribution))
     }
   } catch (error) {
     for (const dispose of disposers.reverse()) await dispose()
+    await stopPreparation()
     throw error
   }
   // Unwound in reverse mount order, so a namespace never outlives one mounted
   // after it.
   return async () => {
     for (const dispose of disposers.reverse()) await dispose()
+    await stopPreparation()
   }
 }

@@ -167,9 +167,11 @@ export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
             const nameOut: unknown[] = [null]
             const gotName = method(item, SLOT_GET_DISPLAY_NAME, protoGetDisplayName)(SIGDN_FILESYSPATH, nameOut)
             if (gotName < 0) return { hr: gotName }
-            const path = readUtf16(koffi, nameOut[0], pointerSize)
-            coTaskMemFree(nameOut[0])
-            return { hr: gotName, path }
+            try {
+              return { hr: gotName, path: readUtf16(koffi, nameOut[0], pointerSize) }
+            } finally {
+              coTaskMemFree(nameOut[0])
+            }
           } finally {
             method(item, SLOT_RELEASE, protoRelease)()
           }

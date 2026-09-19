@@ -32,7 +32,7 @@ A resource address is `dsh-resource://<type>/…`, and the type — the URI host
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Resolution is lexical** — it recognizes POSIX absolute paths, Windows drive paths, and UNC paths, preserves the Workspace path's separator when joining a relative path, and does not access a filesystem or canonicalize `.` and `..` segments.
+- **Resolution is lexical** — it recognizes POSIX absolute paths, Windows drive paths, and UNC paths, preserves the Workspace path's separator when joining a relative path, and does not access a filesystem or canonicalize `.` and `..` segments. Trailing-separator removal scans only the suffix; internal separator runs keep their original spelling without repeated scans.
 - **Home abbreviation is POSIX-only** — Windows paths remain unchanged because a portable browser cannot infer Windows home-path equivalence safely.
 
 

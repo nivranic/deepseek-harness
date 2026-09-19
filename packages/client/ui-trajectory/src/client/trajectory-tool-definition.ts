@@ -213,6 +213,7 @@ function fallbackState(context: ConversationNodeContext<ToolState>): ToolState |
 /** Trajectory-owned root Tool lifecycle with nested PTC dispatch calls. */
 const trajectoryToolDefinition: ConversationNodeDefinition<ToolState> = {
   kind: 'trajectory-tool-call',
+  identityScope: 'step',
   target: 'trajectory',
   match: (event) => {
     if (event.type === 'tool/call') return { id: String(event.data.callId), role: 'start' }

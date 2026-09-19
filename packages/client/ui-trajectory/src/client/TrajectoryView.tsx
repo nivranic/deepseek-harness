@@ -33,9 +33,9 @@ const EMPTY_RECORD_IDS: ReadonlySet<string> = new Set()
 const SEARCH_INDEX_THROTTLE_MS = 3_000
 const HISTORY_PAGE_NODES = 50
 
-function containsCall(calls: readonly ToolCallBlock[], callId: string): boolean {
+function containsCall(calls: readonly ToolCallBlock[], focus: string, scope: { turn: number; step: number }): boolean {
   for (const call of calls) {
-    if (call.callId === callId || containsCall(call.subCalls, callId)) return true
+    if (JSON.stringify([scope.turn, scope.step, call.callId]) === focus || containsCall(call.subCalls, focus, scope)) return true
   }
   return false
 }
@@ -127,7 +127,7 @@ function addUsage(
 }
 
 export function TrajectoryView({
-  useSession, useTrajectory, useDuration, loadOlder, loadImage, setActualDuration,
+  useSession, useTrajectory, useDuration, loadOlder, loadImage, setActualDuration, historyAvailable,
   viewRequest, completeViewRequest, renderSlot, t,
 }: ConvViewProps
   & PropsRenderSlots<'conversation.trajectory.images'>
@@ -183,12 +183,12 @@ export function TrajectoryView({
         request.startSeq >= firstSeq || (request.resultSeq ?? -1) >= firstSeq),
     }
   }, [completeInspection, historyStartIndex])
-  const historyLoading = useSession(snapshot => snapshot.openState === 'loading')
+  const historyLoading = useSession(snapshot => snapshot.openState === 'loading') && historyAvailable
   const olderHistoryLoading = useSession(snapshot => snapshot.loadingOlder)
   const sessionHasOlderHistory = useSession(snapshot => snapshot.hasMore)
   const hasResidentOlderHistory = historyStartIndex > 0
   const hasOlderHistory = hasResidentOlderHistory
-    || sessionHasOlderHistory
+    || (sessionHasOlderHistory && historyAvailable)
   const nodes = inspection.eventNodes
   const eventLocations = inspection.eventLocations
   const historyBaseSeq = nodes[0]?.seq ?? 0
@@ -199,10 +199,18 @@ export function TrajectoryView({
   const inspectCallId = viewRequest?.view === 'trajectory' ? viewRequest.focus : null
   const inspectNodeIndex = useMemo(() => inspectCallId === null
     ? -1
-    : completeInspection.eventNodes.findIndex(node => node.kind === 'assistant'
-      ? node.blocks.some(block => block.kind === 'tool-call' && block.callId === inspectCallId)
-      : node.kind === 'tool-result' && containsCall([node], inspectCallId)),
-  [completeInspection.eventNodes, inspectCallId])
+    : completeInspection.eventNodes.findIndex((node) => {
+      if (node.kind === 'assistant') {
+        return node.blocks.some(block => block.kind === 'tool-call'
+          && JSON.stringify([node.turn, node.step, block.callId]) === inspectCallId)
+      }
+      if (node.kind !== 'tool-result') return false
+      const location = completeInspection.eventLocations.get(node.seq)
+      return location?.kind === 'step' && containsCall([node], inspectCallId, {
+        turn: location.turn.turn, step: location.step.step,
+      })
+    }),
+  [completeInspection.eventNodes, completeInspection.eventLocations, inspectCallId])
   useEffect(() => {
     if (inspectNodeIndex < 0 || inspectNodeIndex >= historyStartIndex) return
     setHistoryNodeLimit(limit => limit + historyStartIndex - inspectNodeIndex)
@@ -499,10 +507,10 @@ export function TrajectoryView({
   }
 
   const loadEarlierHistory = useCallback(async () => {
-    if (!hasResidentOlderHistory && !await loadOlder()) return false
+    if (!hasResidentOlderHistory && (!historyAvailable || !await loadOlder())) return false
     setHistoryNodeLimit(limit => limit + HISTORY_PAGE_NODES)
     return true
-  }, [hasResidentOlderHistory, loadOlder])
+  }, [hasResidentOlderHistory, loadOlder, historyAvailable])
 
   return (
     <div className={css.root} data-conversation-composer-overlay="">

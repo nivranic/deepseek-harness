@@ -16,6 +16,7 @@ import {
   deriveTrajectoryLayout as deriveTrajectoryLayoutWithLocale,
 } from '../src/client/layout.ts'
 import { t } from './locale.client.ts'
+import { trajectoryRecordId } from '../src/client/trajectory-record.ts'
 
 const deriveTrajectoryLayout = (
   input: Parameters<typeof deriveTrajectoryLayoutWithLocale>[0],
@@ -33,6 +34,12 @@ interface LegacyConversationSlice {
 
 const EMPTY_LOCATION_DATA_SOURCE = { getSnapshot: () => undefined, subscribe: () => () => {} }
 const EMPTY_LOCATION_DATA = { get: () => undefined, source: () => EMPTY_LOCATION_DATA_SOURCE }
+
+function stepLocations(seqs: readonly number[], turn = 1, step = 1): ReadonlyMap<number, ConversationLocation> {
+  const stepValue = { turn, step, start: undefined, end: undefined, status: 'unknown' as const, data: EMPTY_LOCATION_DATA }
+  const turnValue = { turn, start: undefined, end: undefined, status: 'unknown' as const, steps: [stepValue], data: EMPTY_LOCATION_DATA }
+  return new Map(seqs.map(seq => [seq, { kind: 'step', turn: turnValue, step: stepValue }]))
+}
 
 afterEach(cleanup)
 
@@ -75,6 +82,37 @@ describe('TrajectoryTurn', () => {
 })
 
 describe('deriveTrajectoryLayout', () => {
+  it('keeps a new running call when an earlier Step used the same id', () => {
+    const nodes: ConversationNode[] = [{
+      kind: 'tool-result', seq: 4, time: 4, callId: 'reused',
+      call: { name: 'read', argsRaw: '{}' }, callTime: 3,
+      content: [{ type: 'text', text: 'old output' }], isError: false, subCalls: [],
+    }]
+    const turns = deriveTrajectoryLayout({
+      nodes, eventLocations: stepLocations([4]), partial: null,
+      runningCalls: [{ callId: 'reused', name: 'read', argsRaw: '{}', turn: 1, step: 2, time: 8, subCalls: [] }],
+    })
+    const cells = turns.flatMap(turn => turn.groups.flatMap(group => group.cells))
+    expect(cells.map(cell => [cell.outputDetail, cell.startedAt, cell.timeSeconds])).toEqual([
+      ['old output', 3, 0.001], [undefined, 8, null],
+    ])
+    expect(new Set(cells.map(trajectoryRecordId)).size).toBe(2)
+  })
+
+  it('leaves unlocated same-id results separate from a located Assistant call', () => {
+    const nodes: ConversationNode[] = [1, 2].map(seq => ({
+      kind: 'tool-result', seq, time: seq, callId: 'reused', call: null, callTime: null,
+      content: [{ type: 'text', text: `unlocated-${seq}` }], isError: false, subCalls: [],
+    }))
+    nodes.push({ kind: 'assistant', seq: 3, time: 3, turn: 2, step: 1,
+      blocks: [{ kind: 'tool-call', callId: 'reused', name: 'read', argsRaw: '{}' }],
+    })
+    const turns = deriveTrajectoryLayout({ nodes, partial: null, runningCalls: [] })
+    const cells = turns.flatMap(turn => turn.groups.flatMap(group => group.cells)).filter(cell => cell.kind === 'tool')
+    expect(cells.map(cell => cell.outputDetail)).toEqual(['unlocated-1', 'unlocated-2', undefined])
+    expect(new Set(cells.map(trajectoryRecordId)).size).toBe(3)
+  })
+
   it('expands assistant blocks, hangs usage on Message, and folds call+result into Tool', () => {
     const nodes = [
       { kind: 'user', seq: 1, time: 1_000, content: [{ type: 'text', text: 'hello' }], source: null },
@@ -93,7 +131,7 @@ describe('deriveTrajectoryLayout', () => {
         content: [{ type: 'text', text: 'a.txt' }], isError: false,
       },
     ] as unknown as LegacyConversationSlice['nodes']
-    const turns = deriveTrajectoryLayout({ nodes, partial: null, runningCalls: [] })
+    const turns = deriveTrajectoryLayout({ nodes, eventLocations: stepLocations([3]), partial: null, runningCalls: [] })
     expect(turns).toHaveLength(1)
     expect(turns[0]?.turn).toBe(1)
     const kinds = turns[0]?.groups.flatMap(g => g.cells.map(c => c.kind))
@@ -229,7 +267,7 @@ describe('deriveTrajectoryLayout', () => {
         content: [], isError: false,
       },
     ] as unknown as LegacyConversationSlice['nodes']
-    const turns = deriveTrajectoryLayout({ nodes, partial: null, runningCalls: [] })
+    const turns = deriveTrajectoryLayout({ nodes, eventLocations: stepLocations([2, 3]), partial: null, runningCalls: [] })
     expect(turns[0]?.groups[0]?.description).toBe('3,000 ms bash×2')
   })
 
@@ -467,7 +505,7 @@ describe('deriveTrajectoryLayout', () => {
         blocks: [{ kind: 'text', text: 'done' }],
       },
     ] as unknown as LegacyConversationSlice['nodes']
-    const turns = deriveTrajectoryLayout({ nodes, partial: null, runningCalls: [] })
+    const turns = deriveTrajectoryLayout({ nodes, eventLocations: stepLocations([3]), partial: null, runningCalls: [] })
     const cells = turns[0]?.groups.flatMap(g => g.cells) ?? []
     const message = cells.find(c => c.kind === 'message' && c.previewMarkdown === 'done')
     // From the compaction marker at 9.5s, not from context at 9s or the earlier surfaces.
@@ -526,7 +564,9 @@ describe('run_code sub-dispatch cells', () => {
       settledSub(1, 'bash', 6_300, 7_300),
       settledSub(2, 'read', 7_300, 7_800),
     ]
-    const turns = deriveTrajectoryLayout({ nodes: withSubCalls(subCalls), partial: null, runningCalls: [] })
+    const turns = deriveTrajectoryLayout({
+      nodes: withSubCalls(subCalls), eventLocations: stepLocations([3]), partial: null, runningCalls: [],
+    })
     const cells = turns[0]!.groups.flatMap(g => g.cells)
     expect(cells.map(c => c.kind)).toEqual(['message', 'tool', 'subtool', 'subtool'])
     expect(cells[0]?.text).toBe('Tool call only')
@@ -559,7 +599,9 @@ describe('run_code sub-dispatch cells', () => {
       ...settledSub(1, 'run_code', 6_300, 8_000),
       subCalls: [leaf],
     }
-    const turns = deriveTrajectoryLayout({ nodes: withSubCalls([child]), partial: null, runningCalls: [] })
+    const turns = deriveTrajectoryLayout({
+      nodes: withSubCalls([child]), eventLocations: stepLocations([3]), partial: null, runningCalls: [],
+    })
     const cells = turns[0]!.groups.flatMap(group => group.cells)
     expect(cells.map(cell => cell.kind)).toEqual(['message', 'tool', 'subtool', 'subtool'])
     expect(cells.slice(2).map(cell => cell.callId)).toEqual([

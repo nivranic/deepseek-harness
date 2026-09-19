@@ -190,14 +190,46 @@ Source: [`packages/core/agent-tool-presentation/src/index.ts:38`](../packages/co
 Requires: `typert`
 
 ```ts config-catalog
-/** Gateway transport configuration. */
+/** Gateway transport and forwarded-interaction configuration. */
 export interface Config {
   /** WebSocket Ping interval from 1 through 2,147,483,647 milliseconds. @default 2000 */
   readonly websocketHeartbeatIntervalMs?: number
+  /** Optional Host-owned lifetimes for forwarded interactions; omitted kinds have no Gateway deadline. */
+  readonly interactionTimeoutMs?: {
+    /** Approval lifetime in milliseconds, from 1 through 2,147,483,647. */
+    readonly approval?: number
+    /** Question lifetime in milliseconds, from 1 through 2,147,483,647. */
+    readonly question?: number
+  }
 }
 ```
 
-Source: [`packages/api/gateway/src/index.ts:119`](../packages/api/gateway/src/index.ts)
+Source: [`packages/api/gateway/src/index.ts:123`](../packages/api/gateway/src/index.ts)
+
+<a id="deepseek-aidsh-api-host-description"></a>
+
+## `@deepseek-ai/dsh-api-host-description`
+
+Requires: `typertGateway`
+
+```ts config-catalog
+/** Application-owned identity location, label, and physical carriers. */
+export interface Config {
+  /** Absolute path to the Harness home's persistent UUID file. */
+  identityFile: string
+  /** Operator-visible Host label. @default DeepSeek Harness */
+  displayName?: string
+  /** Physical carriers actually mounted by the application. */
+  transports: HostTransport[]
+  /** Maximum wait for concurrent identity creation, in milliseconds. @default 2000 */
+  identityLockWaitMs?: number
+}
+
+/** Physical carriers provided by the Host composition. */
+export type HostTransport = 'http' | 'websocket' | 'desktop-pipe'
+```
+
+Source: [`packages/api/host-description/src/index.ts:17`](../packages/api/host-description/src/index.ts)
 
 <a id="deepseek-aidsh-api-session-controller"></a>
 
@@ -213,7 +245,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/api/session-controller/src/index.ts:71`](../packages/api/session-controller/src/index.ts)
+Source: [`packages/api/session-controller/src/index.ts:75`](../packages/api/session-controller/src/index.ts)
 
 <a id="deepseek-aidsh-api-settings-controller"></a>
 
@@ -227,7 +259,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/api/settings-controller/src/index.ts:36`](../packages/api/settings-controller/src/index.ts)
+Source: [`packages/api/settings-controller/src/index.ts:37`](../packages/api/settings-controller/src/index.ts)
 
 <a id="deepseek-aidsh-api-workspace-files"></a>
 
@@ -518,7 +550,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/extensions/cordis-host-runner/src/index.ts:88`](../packages/extensions/cordis-host-runner/src/index.ts)
+Source: [`packages/extensions/cordis-host-runner/src/index.ts:89`](../packages/extensions/cordis-host-runner/src/index.ts)
 
 <a id="deepseek-aidsh-credentials-local"></a>
 
@@ -808,7 +840,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/goal/goal/src/index.ts:172`](../packages/goal/goal/src/index.ts)
+Source: [`packages/goal/goal/src/index.ts:173`](../packages/goal/goal/src/index.ts)
 
 <a id="deepseek-aidsh-headless"></a>
 
@@ -1592,7 +1624,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/feedback/message-feedback/src/index.ts:40`](../packages/feedback/message-feedback/src/index.ts)
+Source: [`packages/feedback/message-feedback/src/index.ts:41`](../packages/feedback/message-feedback/src/index.ts)
 
 <a id="deepseek-aidsh-permission-presets"></a>
 
@@ -3459,7 +3491,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-client-ui-commands` ([`packages/client/ui-commands/src/index.ts`](../packages/client/ui-commands/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-conversation` ([`packages/client/ui-conversation/src/index.ts`](../packages/client/ui-conversation/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-cordis` ([`packages/extensions/ui-cordis/src/index.ts`](../packages/extensions/ui-cordis/src/index.ts))
-- `@deepseek-ai/dsh-client-ui-deliverables` — requires `systemPrompt` · `connection` · `sessionQuery` · `sessionController` · `workspaceFiles` · `fs` · `sandboxPolicy` ([`packages/client/ui-deliverables/src/index.ts`](../packages/client/ui-deliverables/src/index.ts))
+- `@deepseek-ai/dsh-client-ui-deliverables` — requires `systemPrompt` · `sessionQuery` · `sessionController` · `workspaceFiles` · `fs` · `sandboxPolicy` ([`packages/client/ui-deliverables/src/index.ts`](../packages/client/ui-deliverables/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-directory-picker-browse` ([`packages/client/ui-directory-picker-browse/src/index.ts`](../packages/client/ui-directory-picker-browse/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-directory-picker-native` ([`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-goal` ([`packages/client/ui-goal/src/index.ts`](../packages/client/ui-goal/src/index.ts))

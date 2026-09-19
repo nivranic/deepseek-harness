@@ -75,7 +75,7 @@ The Gateway-internal `$events` logical stream is the sole generation source for 
 
 The Host event source installs incremental listeners synchronously before returning its first frame. Gateway then sends `{ type: 'ready', clientId, host: { home } }`; this frame proves that the current generation can receive increments and carries the stable Host path-display fact.
 
-`ConnectionController` publishes `connected` only after `$events` readiness, so a Session or Workspace baseline cannot be read before Host incremental listeners are ready.
+`ConnectionController` publishes `ready` only after `$events` readiness, so a Session or Workspace baseline cannot be read before Host incremental listeners are ready.
 
 Unexpected normal completion of `$events`, a Host error, a malformed opening frame, or a carrier failure ends the current Connection generation. Connection withdraws the generation, then re-establishes `$events` under its bounded backoff unless the browser is offline or a user requests an immediate retry.
 
@@ -137,13 +137,17 @@ If a page request is canceled with its physical carrier generation, the journal 
 
 ### Session Controller
 
+Conditional title edits use the same durable-log and projection ownership: `titleRevision` names the latest title event, while `title` remains a string. `session.rename-at.v1` exposes an endpoint separate from unconditional `rename`, so operation admission does not change legacy Hosts. The title service owns normalization and synchronous compare-and-append. An identical user-pinned title returns its existing event; a different title with a changed revision fails explicitly. The UI captures the revision when editing begins and retains it on retries, because reading at Save would authorize overwriting concurrent edits. Missing projection data fails without sending. This does not identify a mutation across later revisions or provide a durable receipt ledger.
+
 `packages/api/session-controller` provides Host `ctx.sessionController` and the generated `ctx.remote.session` namespace.
 
-It owns Session list, search, create, selectModel, rename, fork, prompt, attachment, updateQueue, cancel, page, follow, and control. The Host-generation model catalog is exposed separately through `session/modelCatalog` because it is not Session-specific.
+It owns Session list, search, create, selectModel, rename, fork, prompt, attachment, updateQueue, cancel, cancelTurn, page, follow, and control. The Host-generation model catalog is exposed separately through `session/modelCatalog` because it is not Session-specific.
 
 The package separates agent, commands, control, history, and list controllers internally, but Session identity resolution, activation policy, subagent ownership, and Remote error projection have one public owner.
 
 Other Host Remote namespaces reuse the same identity rules through `ctx.sessionController.inspect()` or `resolveAgent()`; they do not retain a second Session resolver.
+
+Targeted cancellation uses the existing Session projection channel. `activeTurnStart` names the durable `turn/start` sequence and becomes null at `turn/end`. The `session.cancel-turn.v1` capability advertises `cancelTurn`: its required target is that sequence or an explicitly observed null. The Host checks this projection and requests cancellation synchronously, so a delayed retry cannot cancel a subsequent turn or maintenance activity. A stale or null target is accepted without a new effect. The Client captures the projection once per click and fails while it is unavailable; Hosts without the capability retain the separate legacy `cancel` call. This operation adds no receipt registry or Session event, and subagent interruption remains parent-routed.
 
 #### Activation policy
 
@@ -158,7 +162,7 @@ Each method explicitly selects a cold inspection, live-only lookup, or resume-ca
 | `session.follow(address)` | one live or prepared observation carrying the opening page and projections | Publishes the snapshot first, then promotes an ordinary cold Session once in the background |
 | `session.control()` | current attached Agents, pending registry, and process-local registries | Baseline and reconnect do not resume an Agent |
 | `session.attachment`, fork source read | authorized durable Session data | A read does not resume an Agent |
-| `session.updateQueue`, `cancel` | only the current live Agent | Does not resume vanished state |
+| `session.updateQueue`, `cancel`, `cancelTurn` | only the current live Agent | Does not resume vanished state |
 | `models`, `selectModel`, `rename`, `prompt` | command resolves the target Session | Resumes only when the method explicitly permits it |
 | `create` and fork target | new Session/Agent | The user command supplies creation authority |
 
@@ -243,6 +247,14 @@ ctx.remote.workspace.follow() -|[]> RemoteSnapshotStream
 Workspace Remote methods, state feed, and Client data model do not pass through API Proxy or depend on `host/workspace-*` notifications.
 
 ### Remote Event
+
+Host restart ends pending Gateway invocations. A durable `approval/asked` event describes an interrupted request; it does not recreate its continuation or authorize the tool. Session's existing interrupted-tail repair closes recorded calls without results as `TOOL_OUTCOME_UNKNOWN` and closes the turn as interrupted. Read-only history supplies these closers without writing; Agent activation persists them. Browser reconnection restores history and clears obsolete interaction UI without submitting the unsent draft. The [real-process Web regression](../../../../apps/web/tests/host-restart.e2e.ts) preserves one isolated home, port, browser cookie, and unsent draft across abrupt process termination, then explicitly submits the next turn. This is interrupted-session reconciliation, not durable pending-invocation resumption.
+
+Question has no separate durable pending-request event; its interrupted Tool call follows the same Session repair. A new Approval or Question after restart has a new interaction id and can settle on the recovered Connection. Rejecting a stale reply does not consume the new request or invalidate that Connection. The browser regression answers the new Question and rejects the new Approval, then checks their durable Tool results and the model's next request; it never synthesizes a decision for the interrupted Approval.
+
+Gateway owns optional per-kind expiry for its pending forwarded interactions. No configured lifetime means no automatic expiry. A configured lifetime creates one Host timestamp and one disposable elapsed timer, independent of Client connections; replay keeps the timestamp. Host deadline checks also precede replay and reply acceptance so sleep or a delayed timer cannot authorize an overdue answer. The first expiry, cancellation, or answer removes the record and clears the timer. Expiry closes protocol-2 deliveries with status `expired` and rejects the source with `interaction-expired`; existing Approval containment remains fail-closed. Protocol-1 cancellation fields remain unchanged. This policy applies to the forwarded invocation, not local answerers, and provides no persistent restart recovery.
+
+Interaction answers are bound to both the pending record revision and the protocol of their active Client delivery. Protocol 2 echoes the delivered revision on every outcome, including delegation and listener rejection. Gateway validates both facts before removing a delivery, so invalid answers cannot consume another Client's chance to answer or cancel the Host waterfall. Protocol 1 retains its field set; merely wrapping a protocol-2 answer in a legacy envelope does not select legacy validation. Closed-delivery detection precedes revision comparison. Revision mismatch follows Client generation recovery and replays the still-pending request. These checks do not grant device authority or retain a durable mutation receipt.
 
 Remote Event reuses owner packages' Cordis `Events` declarations. The original Host event is the sole business signature, and Client `ctx.remote.$on(event, listener)` derives its parameters, waterfall result, and `next()` from that declaration.
 

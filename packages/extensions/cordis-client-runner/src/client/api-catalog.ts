@@ -335,23 +335,26 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'openWorkspace(workspaceId: WorkspaceId, beforeOpen?: (sessionId: SessionId) => void): Promise<void>',
         description: 'Connect a Workspace and open its Session unless a later navigation supersedes it.',
         parameters: [{ name: 'workspaceId', description: 'target Workspace.' }, { name: 'beforeOpen', description: 'optional synchronous preparation for the selected Session, skipped after supersession.' }],
-        returns: 'completion; a superseded request may create a Session but does not open it.',
+        returns: 'completion; supersession or capability withdrawal may leave a created Session unselected.',
+        throws: ['a capability failure before navigation when Session management is unavailable.'],
       },
       {
         signature: 'forkSession(sessionId: SessionId): Promise<void>',
         description: 'Fork a Session and open the child unless a later navigation supersedes it.',
         parameters: [{ name: 'sessionId', description: 'source Session.' }],
-        returns: 'completion; a superseded request leaves its child available without selecting it.',
+        returns: 'completion; supersession or capability withdrawal leaves its child available without selecting it.',
+        throws: ['a capability failure before navigation when Session management is unavailable.'],
       },
       {
         signature: 'connectWorkspace(workspaceId: WorkspaceId): Promise<SessionId>',
         description: 'Resolve the reusable or newly created blank Session for a Workspace.',
         parameters: [{ name: 'workspaceId', description: 'target Workspace.' }],
         returns: 'a Session already addressable through the Session Controller.',
+        throws: ['a capability failure when Session management is unavailable.'],
       },
       {
         signature: 'startSession(workspaceId?: WorkspaceId): void',
-        description: 'Start a New Session flow and navigate to its Session.',
+        description: 'Start a New Session flow and navigate to its Session; unavailable management leaves selection unchanged.',
         parameters: [{ name: 'workspaceId', description: 'explicit target; absent inherits the current or most recent Workspace.' }],
       },
       {
@@ -500,7 +503,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ClientRemote',
-    declaration: 'export interface ClientRemote extends TypertClientRemote {\n    $stream<Item>(options: RemoteStreamOptions<Item>): RemoteStream<Item>;\n    readonly $host: RemoteHostFacts;\n}',
+    declaration: 'export interface ClientRemote extends TypertClientRemote {\n    $prepare(prepare: RemotePreparation, admission?: RemoteAdmission): () => Promise<void>;\n    $stream<Item>(options: RemoteStreamOptions<Item>): RemoteStream<Item>;\n    readonly $host: RemoteHostFacts;\n}',
   },
   {
     name: 'CommonKeyOf',
@@ -515,8 +518,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ConnectionGeneration {\n    readonly id: number;\n    readonly host: ConnectionHostInfo;\n}',
   },
   {
+    name: 'ConnectionGenerationProgress',
+    declaration: 'export type ConnectionGenerationProgress = (phase: \'authenticating\' | \'connecting\') => void;',
+  },
+  {
     name: 'ConnectionGenerationSource',
-    declaration: 'export type ConnectionGenerationSource = (signal: AbortSignal, ready: (host: ConnectionHostInfo) => void) => Promise<void>;',
+    declaration: 'export type ConnectionGenerationSource = (signal: AbortSignal, ready: (host: ConnectionHostInfo) => void, progress: ConnectionGenerationProgress) => Promise<void>;',
   },
   {
     name: 'ConnectionGenerationState',
@@ -548,11 +555,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConnectionSinks',
-    declaration: 'export interface ConnectionSinks {\n    onConnected?: (host: ConnectionHostInfo) => void;\n    onStateChange?: (state: ConnectionState) => void;\n    onReconnectRequested?: () => void;\n}',
+    declaration: 'export interface ConnectionSinks {\n    onConnected?: (host: ConnectionHostInfo) => void;\n    onStateChange?: (state: ConnectionState) => void;\n    onReconnectRequested?: () => void;\n    classifyFailure?: (error: unknown) => \'incompatible\' | \'fatal\' | undefined;\n}',
   },
   {
     name: 'ConnectionState',
-    declaration: 'export type ConnectionState = \'connected\' | \'disconnected\' | \'connecting\';',
+    declaration: 'export type ConnectionState = \'ready\' | \'offline\' | \'connecting\' | \'authenticating\' | \'reconnecting\' | \'host-not-ready\' | \'auth-expired\' | \'incompatible\' | \'fatal\';',
   },
   {
     name: 'ConnectionStateSource',
@@ -588,7 +595,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ISession',
-    declaration: 'export interface ISession {\n    readonly sessionId: SessionId;\n    readonly projections: ProjectionsFace;\n    beginSubmission(input: BeginSubmissionInput): SubmissionHandle;\n    prompt(content: PromptContentPart[], mode: \'queue\' | \'steer\', signal?: AbortSignal, requestId?: SessionRequestId): Promise<RemoteResult<{\n        accepted: true;\n    }>>;\n    readAttachment(attachmentId: AttachmentIdType): Promise<RemoteResult<{\n        attachment: ImageAttachmentRef;\n        data: Uint8Array;\n    }>>;\n    updateQueue(itemId: MessageId, action: QueueAction): Promise<RemoteResult<{\n        accepted: true;\n    }>>;\n    cancel(): Promise<RemoteResult<{\n        accepted: true;\n    }>>;\n    rename(title: string): Promise<RemoteResult<{\n        title: string;\n        seq: SessionSeq;\n    }>>;\n    loadOlder(): Promise<void>;\n    loadThrough(seq: SessionSeq): Promise<void>;\n    command(line: string): Promise<RemoteResult<{\n        matched: boolean;\n    }>>;\n}',
+    declaration: 'export interface ISession {\n    readonly sessionId: SessionId;\n    readonly projections: ProjectionsFace;\n    beginSubmission(input: BeginSubmissionInput): SubmissionHandle;\n    prompt(content: PromptContentPart[], mode: \'queue\' | \'steer\', signal?: AbortSignal, requestId?: SessionRequestId): Promise<RemoteResult<{\n        accepted: true;\n    }>>;\n    readAttachment(attachmentId: AttachmentIdType): Promise<RemoteResult<{\n        attachment: ImageAttachmentRef;\n        data: Uint8Array;\n    }>>;\n    updateQueue(itemId: MessageId, action: QueueAction): Promise<RemoteResult<{\n        accepted: true;\n    }>>;\n    cancel(): Promise<RemoteResult<{\n        accepted: true;\n    }>>;\n    rename(title: string): Promise<RemoteResult<{\n        title: string;\n        seq: SessionSeq;\n    }>>;\n    prepareRename(): (title: string) => Promise<RemoteResult<{\n        title: string;\n        seq: SessionSeq;\n    }>>;\n    loadOlder(): Promise<void>;\n    loadThrough(seq: SessionSeq): Promise<void>;\n    command(line: string): Promise<RemoteResult<{\n        matched: boolean;\n    }>>;\n}',
   },
   {
     name: 'KeyedHooksSources',
@@ -727,8 +734,28 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type PropsStore<H> = H extends StoreHandle<infer T, infer A> ? {\n    useStore: SnapshotSelectorHook<T>;\n    actions: BakedActions<T, A>;\n} : object;',
   },
   {
+    name: 'RemoteAdmission',
+    declaration: 'export type RemoteAdmission = (endpoint: string, facts: RemotePreparationFacts) => void;',
+  },
+  {
     name: 'RemoteHostFacts',
-    declaration: 'export interface RemoteHostFacts {\n    readonly home: string | undefined;\n    readonly isLoopback: boolean;\n}',
+    declaration: 'export interface RemoteHostFacts extends Omit<ConnectionHostInfo, \'home\'> {\n    readonly home: string | undefined;\n    readonly isLoopback: boolean;\n}',
+  },
+  {
+    name: 'RemoteInteractionReplyScope',
+    declaration: 'export type RemoteInteractionReplyScope = Branded<\'RemoteInteractionReplyScope\'>;',
+  },
+  {
+    name: 'RemotePreparation',
+    declaration: 'export type RemotePreparation = (rpc: ConnectionHandle[\'rpc\'], signal: AbortSignal, progress?: ConnectionGenerationProgress) => Promise<RemotePreparationFacts>;',
+  },
+  {
+    name: 'RemotePreparationFacts',
+    declaration: 'export type RemotePreparationFacts = Omit<ConnectionHostInfo, \'home\' | \'apiProtocolVersion\'> & {\n    readonly apiProtocolVersion: RemoteProtocolVersion;\n    readonly interactionReplyScope?: RemoteInteractionReplyScope;\n};',
+  },
+  {
+    name: 'RemoteProtocolVersion',
+    declaration: 'export type RemoteProtocolVersion = typeof SUPPORTED_REMOTE_PROTOCOL_VERSIONS[number];',
   },
   {
     name: 'RemoteStream',
@@ -744,7 +771,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteStreamOptions',
-    declaration: 'export interface RemoteStreamOptions<Item> {\n    readonly name: string;\n    readonly open: (signal: AbortSignal) => AsyncIterable<Item>;\n    readonly ended: (accepted: boolean) => Error;\n    readonly carrierFailed?: (error: RemoteStreamCarrierError) => void;\n}',
+    declaration: 'export interface RemoteStreamOptions<Item> {\n    readonly name: string;\n    readonly available?: (host: ConnectionHostInfo) => boolean;\n    readonly open: (signal: AbortSignal) => AsyncIterable<Item>;\n    readonly ended: (accepted: boolean) => Error;\n    readonly carrierFailed?: (error: RemoteStreamCarrierError) => void;\n}',
   },
   {
     name: 'ScopeOf',

@@ -39,7 +39,8 @@ async function bench() {
   const commandsRemote = { list: () => Promise.resolve({ ok: true as const, value: [] }) }
   // The service subscribes its cache-invalidation events on construction, so
   // the Remote face needs `$on` even where this spec dispatches none.
-  ctx.provide('remote', { commands: commandsRemote, $on: () => () => {} })
+  ctx.provide('remote', { commands: commandsRemote, $host: { capabilities: ['command.catalog.v1', 'command.execute.v1'] }, $on: () => () => {} })
+  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
   ctx.provide('remote.commands', commandsRemote)
   await ctx.plugin(SlotRegistry).await()
   ctx.slots.register({
@@ -58,7 +59,7 @@ async function bench() {
 
 describe('apply', () => {
   it('declares the services it binds', () => {
-    expect(inject).toEqual(['inputTriggers', 'sessions', 'remote', 'remote.commands', 'locale'])
+    expect(inject).toEqual(['inputTriggers', 'sessions', 'remote', 'remote.commands', 'locale', 'connection'])
   })
 
   it('mounts ctx.commandUi, registers the source and the overlay entry, and folds up on disposal', async () => {

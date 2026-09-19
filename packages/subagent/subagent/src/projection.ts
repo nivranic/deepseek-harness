@@ -18,9 +18,9 @@ export interface TimingState {
   /** Milliseconds accumulated across completed post-descriptor turns. */
   settledMs: number
   /** Current open interval kept paired inside the fold. */
-  active?: { since: number; through: number } | undefined
+  active?: { since: number; through: number; startSeq: SessionSeq } | undefined
   /** Latest pre-descriptor turn start, promoted when the child's own descriptor arrives. */
-  pendingTurnStart?: number | undefined
+  pendingTurnStart?: { since: number; startSeq: SessionSeq } | undefined
   /** Whether the fold has crossed a descriptor in this logical log. */
   descriptorSeen: boolean
 }
@@ -28,6 +28,7 @@ export interface TimingState {
 const activeIntervalSchema = z.object({
   since: z.number().int().nonnegative(),
   through: z.number().int().nonnegative(),
+  startSeq: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).transform(SessionSeq),
 }).strict()
 
 const projectionSchema: z.ZodType<SubagentTimingProjection> = z.object({
@@ -41,7 +42,7 @@ const projectionSchema: z.ZodType<SubagentTimingProjection> = z.object({
 const timingStateSchema: z.ZodType<TimingState> = z.object({
   settledMs: z.number().int().nonnegative(),
   active: activeIntervalSchema.optional(),
-  pendingTurnStart: z.number().int().nonnegative().optional(),
+  pendingTurnStart: activeIntervalSchema.omit({ through: true }).optional(),
   descriptorSeen: z.boolean(),
 }).strict()
 
@@ -67,17 +68,17 @@ export const subagentTimingProjectionDefinition = {
   apply: (state, event) => {
     if (event.type === 'turn/start') {
       return state.descriptorSeen
-        ? { ...state, active: { since: event.time, through: event.time } }
-        : { ...state, pendingTurnStart: event.time }
+        ? { ...state, active: { since: event.time, through: event.time, startSeq: event.seq } }
+        : { ...state, pendingTurnStart: { since: event.time, startSeq: event.seq } }
     }
     if (event.type === 'subagent/descriptor') {
-      const activeSince = state.active?.since ?? state.pendingTurnStart
+      const active = state.active ?? state.pendingTurnStart
       return {
         descriptorSeen: true,
         settledMs: 0,
-        ...(activeSince === undefined
+        ...(active === undefined
           ? {}
-          : { active: { since: activeSince, through: event.time } }),
+          : { active: { since: active.since, startSeq: active.startSeq, through: event.time } }),
       }
     }
     if (event.type === 'turn/end') {
@@ -103,7 +104,7 @@ export const subagentTimingProjectionDefinition = {
       ...(state.active === undefined ? {} : { active: state.active }),
     }),
   },
-  stateVersion: 2,
+  stateVersion: 3,
 } satisfies ProjectionDefinition<'subagentTiming', TimingState>
 
 interface IdentityState {

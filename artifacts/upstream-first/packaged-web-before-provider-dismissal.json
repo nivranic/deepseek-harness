@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "scope": "Windows packaged dsh web outside checkout with an isolated home",
+  "realModelTested": false,
+  "installedWheelTested": false,
+  "helperSourceSha": "16482eec880f40bb472c9328acf5a8819bc988f9",
+  "lifecycle": "Shipped web profile plus a test-only file marker emitting SIGTERM, as in the upstream Windows built-bin fixture",
+  "isolatedRoot": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-upstream-packaged-oum2kip7",
+  "executableSha256": "184f1a4059ffa61c8a55c43e00c985142306bfcee5247c078236eea7be625b73",
+  "executableBytes": 240813056,
+  "pid": 21236,
+  "http": {
+    "authentication": "PASS",
+    "frontend": "PASS",
+    "scriptCount": 2,
+    "pluginCount": 53,
+    "batchCount": 2,
+    "sessionRpc": "PASS"
+  },
+  "browser": {
+    "status": "IN_PROGRESS",
+    "firstRunNoticeDismissed": true,
+    "pageErrors": [],
+    "bootEntries": 53,
+    "buttonsAfterSettings": [
+      "DSH Local Build0.1.5-rc.2-c291e79-dirty",
+      "",
+      "New Session",
+      "",
+      "",
+      "",
+      "Settings",
+      "Choose workspace",
+      "",
+      "",
+      "Configure later",
+      "Save and continue"
+    ],
+    "headingsAfterSettings": [
+      "Add an API key to get started"
+    ],
+    "dialogsAfterSettings": [
+      {
+        "label": "Add an API key to get started",
+        "labelledby": null,
+        "text": "Add an API key to get started\n\nConfigure the official DeepSeek provider to start building.\n\nAPI key\nConfigure later\nSave and continue"
+      }
+    ]
+  },
+  "stage": "open-settings",
+  "screenshot": {
+    "path": "artifacts/upstream-first/packaged-web-settings.png",
+    "sha256": "0d48079d81a1526c9958144ea64275e3c7962801cea205b852db2de02a500f61"
+  },
+  "failureType": "TimeoutError",
+  "failure": "Packaged startup or browser verification failed; no credential-bearing output retained",
+  "shutdown": {
+    "exitCode": 0,
+    "forced": false,
+    "disposed": true
+  },
+  "diagnostics": []
+}

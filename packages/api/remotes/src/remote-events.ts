@@ -7,6 +7,7 @@
  */
 
 import type {} from '@deepseek-ai/dsh-api-session-controller/remote-events'
+import type { RemoteInteractionPolicy } from '@deepseek-ai/dsh-api-gateway/protocol'
 import type { TypertForwardableEventEntry } from '@deepseek-ai/dsh-typert-protocol'
 
 /**
@@ -15,7 +16,7 @@ import type { TypertForwardableEventEntry } from '@deepseek-ai/dsh-typert-protoc
  */
 export const API_REMOTE_FORWARDED_EVENTS = [
   { event: 'agent-preset/selected', mode: 'emit' },
-  { event: 'approval/request', mode: 'waterfall' },
+  { event: 'approval/request', mode: 'waterfall', interaction: { type: 'approval', requiredPermission: 'approval.respond' } },
   { event: 'api-session/activity', mode: 'emit' },
   { event: 'api-session/added', mode: 'emit' },
   { event: 'api-session/error', mode: 'emit' },
@@ -32,5 +33,5 @@ export const API_REMOTE_FORWARDED_EVENTS = [
   { event: 'cordis/inspect-query-resolved', mode: 'emit' },
   { event: 'llm/adapters-updated', mode: 'emit' },
   { event: 'settings/document-updated', mode: 'emit' },
-  { event: 'user-questions/request', mode: 'waterfall' },
-] as const satisfies readonly TypertForwardableEventEntry[]
+  { event: 'user-questions/request', mode: 'waterfall', interaction: { type: 'question', requiredPermission: 'question.respond' } },
+] as const satisfies readonly (TypertForwardableEventEntry & { readonly interaction?: RemoteInteractionPolicy })[]

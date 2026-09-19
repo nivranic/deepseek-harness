@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/lsp-observation-source.json",
+      "status": "PASS",
+      "rejected": "LSP observation source record changed"
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/tests/instance.spec.ts",
+      "status": "PASS",
+      "rejected": "LSP observation sourceFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/lsp-concurrent.json",
+      "status": "PASS",
+      "rejected": "LSP observation receipts changed after validation"
+    },
+    {
+      "path": ".artifacts/lsp-concurrent-final-focused.log",
+      "status": "PASS",
+      "rejected": "LSP observation logs changed after validation"
+    }
+  ]
+}

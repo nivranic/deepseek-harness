@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Windows official development Desktop; standard preset, scoped complete persona and restoration; scripted model only",
+  "stages": [
+    {
+      "stage": "initial",
+      "receipt": "artifacts/upstream-first/desktop-context-initial.json",
+      "requests": 1
+    },
+    {
+      "stage": "complete",
+      "receipt": "artifacts/upstream-first/desktop-context-complete.json",
+      "requests": 2
+    },
+    {
+      "stage": "restored",
+      "receipt": "artifacts/upstream-first/desktop-context-restored.json",
+      "requests": 3
+    }
+  ],
+  "persistedLog": {
+    "path": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\desktop-context-home-9cPdpt\\sessions\\--E-Mix-project-deepseek-harness-.worktrees-upstream-first-.artifacts-desktop-context-home-9cPdpt-execution-workspace-yzI8rn--\\session-fbe4786e-8373-4dea-8fcf-c4dd11808ef7\\session.v3.jsonl.zstd",
+    "sha256": "47cf632a6b14285dc9e623d0866b700a935b03e6b5454d738533191254776488",
+    "frames": 14,
+    "bytesConsumed": 61424,
+    "systemEvents": 3,
+    "promptsMatchModelRequests": true
+  },
+  "shell": {
+    "pid": 34140,
+    "electron": "44.0.0"
+  },
+  "hostPid": 46800,
+  "shutdown": {
+    "launcherExitCode": 0,
+    "shellExited": true,
+    "hostExited": true,
+    "forced": false
+  },
+  "realModelTested": false,
+  "installerTested": false,
+  "osLoginRegistrationWritten": false,
+  "macosTested": false
+}

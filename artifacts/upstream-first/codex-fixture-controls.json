@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "early-completion",
+      "status": "PASS",
+      "mutationRejected": true,
+      "testExitCode": 1,
+      "source": "packages/subagent/subagent-codex/tests/responses-fixture.ts",
+      "originalSha256": "1870357933314ed38c8dbf6593a276ed1c712442be32736df141c480a80abba2",
+      "mutatedSha256": "f3510cb9c97c1ce5b8070d4f765c1104037ae344fd7baef1bc1d3f542d1edd86",
+      "log": ".artifacts/codex-fixture-control-early-completion.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/subagent/subagent-codex/tests/responses-fixture.spec.ts",
+        "-t",
+        "rejects incomplete or unsuccessful"
+      ]
+    },
+    {
+      "name": "unrelated-result",
+      "status": "PASS",
+      "mutationRejected": true,
+      "testExitCode": 1,
+      "source": "packages/subagent/subagent-codex/tests/responses-fixture.ts",
+      "originalSha256": "1870357933314ed38c8dbf6593a276ed1c712442be32736df141c480a80abba2",
+      "mutatedSha256": "4dc73944bd5145889aa0691810b72632d4d6cd946519b53646b4c799784daedf",
+      "log": ".artifacts/codex-fixture-control-unrelated-result.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/subagent/subagent-codex/tests/responses-fixture.spec.ts",
+        "-t",
+        "rejects foreign output"
+      ]
+    }
+  ]
+}

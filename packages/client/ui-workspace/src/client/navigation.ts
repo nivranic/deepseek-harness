@@ -1,7 +1,8 @@
 /** Workspace archive and directory UI capability. */
 
+import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { Service, type Context } from '@deepseek-ai/cordis'
-import type { ClientRemote, DirectoryListing, RemoteFailure } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ClientRemote, DirectoryListing, RemoteFailure, RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
 import type {
   ISessions,
   SessionListState,
@@ -23,23 +24,26 @@ export interface UiWorkspace {
    * Connect a Workspace and open its Session unless a later navigation supersedes it.
    * @param workspaceId - target Workspace.
    * @param beforeOpen - optional synchronous preparation for the selected Session, skipped after supersession.
-   * @returns completion; a superseded request may create a Session but does not open it.
+   * @returns completion; supersession or capability withdrawal may leave a created Session unselected.
+   * @throws a capability failure before navigation when Session management is unavailable.
    */
   openWorkspace(workspaceId: WorkspaceId, beforeOpen?: (sessionId: SessionId) => void): Promise<void>
   /**
    * Fork a Session and open the child unless a later navigation supersedes it.
    * @param sessionId - source Session.
-   * @returns completion; a superseded request leaves its child available without selecting it.
+   * @returns completion; supersession or capability withdrawal leaves its child available without selecting it.
+   * @throws a capability failure before navigation when Session management is unavailable.
    */
   forkSession(sessionId: SessionId): Promise<void>
   /**
    * Resolve the reusable or newly created blank Session for a Workspace.
    * @param workspaceId - target Workspace.
    * @returns a Session already addressable through the Session Controller.
+   * @throws a capability failure when Session management is unavailable.
    */
   connectWorkspace(workspaceId: WorkspaceId): Promise<SessionId>
   /**
-   * Start a New Session flow and navigate to its Session.
+   * Start a New Session flow and navigate to its Session; unavailable management leaves selection unchanged.
    * @param workspaceId - explicit target; absent inherits the current or most recent Workspace.
    */
   startSession(workspaceId?: WorkspaceId): void
@@ -67,6 +71,12 @@ export interface UiWorkspace {
    * @returns created absolute path.
    */
   createDirectory(path: string, name: string): Promise<string>
+  /**
+   * Bind directory operations to the current admitted Host and an optional owner lifetime.
+   * @param signal - registration lifetime; cancellation invalidates callbacks and aborts directory reads or a native chooser.
+   * @returns operations that require their advertised capability and reject late results after replacement or disposal.
+   */
+  captureDirectoryOperations(signal?: AbortSignal): Pick<UiWorkspace, 'pickDirectory' | 'listDirectory' | 'createDirectory'>
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -108,6 +118,7 @@ class UiWorkspaceService extends Service implements UiWorkspace {
   }
 
   async connectWorkspace(workspaceId: WorkspaceId): Promise<SessionId> {
+    this.requireSessionManagement()
     const workspace = this.workspaces.list.getSnapshot().items
       .find(item => item.workspaceId === workspaceId)
     if (workspace === undefined) {
@@ -137,8 +148,9 @@ class UiWorkspaceService extends Service implements UiWorkspace {
   }
 
   async openWorkspace(workspaceId: WorkspaceId, beforeOpen?: (sessionId: SessionId) => void): Promise<void> {
+    this.requireSessionManagement()
     const navigation = AbortSignal.any([this.ctx.layout.beginNavigation(), this.lifetime.signal])
-    const isCurrent = (): boolean => !navigation.aborted
+    const isCurrent = (): boolean => !navigation.aborted && this.canManageSessions()
     const sessionId = await this.connectWorkspace(workspaceId)
     if (!isCurrent()) return
     beforeOpen?.(sessionId)
@@ -146,12 +158,14 @@ class UiWorkspaceService extends Service implements UiWorkspace {
   }
 
   async forkSession(sessionId: SessionId): Promise<void> {
+    this.requireSessionManagement()
     const navigation = AbortSignal.any([this.ctx.layout.beginNavigation(), this.lifetime.signal])
     const childId = await this.sessions.fork({ sessionId, increaseTitle: true })
-    if (!navigation.aborted) this.openSession(childId)
+    if (!navigation.aborted && this.canManageSessions()) this.openSession(childId)
   }
 
   startSession(workspaceId?: WorkspaceId): void {
+    if (!this.canManageSessions()) return
     const workspace = this.workspaces.list.getSnapshot()
     const sessions = this.sessions.list.getSnapshot()
     const current = sessions.current
@@ -173,25 +187,62 @@ class UiWorkspaceService extends Service implements UiWorkspace {
   }
 
   async archiveSession(sessionId: SessionId): Promise<void> {
+    if (this.ctx.remote.$host.capabilities?.includes('workspace.sessions.v1') !== true) {
+      throw new RemoteError('host/capability-unavailable', 'Host cannot organize Workspace Sessions', { capability: 'workspace.sessions.v1' })
+    }
     await this.workspaces.archiveSession(sessionId)
   }
 
   async pickDirectory(): Promise<string | null> {
-    const result = await this.directoryPicker.pick()
-    if (!result.ok) throw new Error(`directory picker failed: ${result.error.message}`)
-    return result.value
+    return this.captureDirectoryOperations().pickDirectory()
   }
 
   async listDirectory(path?: string, signal?: AbortSignal): Promise<DirectoryListing> {
-    const result = await this.directoryPicker.list(path, signal)
-    if (!result.ok) throw new DirectoryBrowseError(result.error)
-    return result.value
+    return this.captureDirectoryOperations().listDirectory(path, signal)
   }
 
   async createDirectory(path: string, name: string): Promise<string> {
-    const result = await this.directoryPicker.createDirectory(path, name)
-    if (!result.ok) throw new DirectoryBrowseError(result.error)
-    return result.value
+    return this.captureDirectoryOperations().createDirectory(path, name)
+  }
+
+  captureDirectoryOperations(signal?: AbortSignal): Pick<UiWorkspace, 'pickDirectory' | 'listDirectory' | 'createDirectory'> {
+    const host = this.ctx.remote.$host
+    const requireCurrent = (): void => {
+      if (host !== this.ctx.remote.$host || signal?.aborted === true) {
+        throw new RemoteError('gateway/cancelled', 'Directory interaction belongs to a replaced or disposed owner', {})
+      }
+    }
+    const run = async <T>(
+      capability: string,
+      operation: () => Promise<RemoteResult<T>>,
+      failure: (error: RemoteFailure) => Error = error => new DirectoryBrowseError(error),
+    ): Promise<T> => {
+      requireCurrent()
+      if (host.capabilities?.includes(capability) !== true) {
+        throw new RemoteError('host/capability-unavailable', 'Host does not support this directory operation', { capability })
+      }
+      const result = await operation()
+      requireCurrent()
+      if (!result.ok) throw failure(result.error)
+      return result.value
+    }
+    return {
+      pickDirectory: () => run('directory-picker.native.v1', () => this.directoryPicker.pick(signal),
+        error => new Error(`directory picker failed: ${error.message}`)),
+      listDirectory: (path, requestSignal) => run('directory-picker.browse.v1', () => this.directoryPicker.list(path,
+        signal === undefined ? requestSignal : requestSignal === undefined ? signal : AbortSignal.any([signal, requestSignal]))),
+      createDirectory: (path, name) => run('directory-picker.create.v1', () => this.directoryPicker.createDirectory(path, name)),
+    }
+  }
+
+  private canManageSessions(): boolean {
+    return this.ctx.remote.$host.capabilities?.includes('session.manage.v1') === true
+  }
+
+  private requireSessionManagement(): void {
+    if (!this.canManageSessions()) {
+      throw new RemoteError('host/capability-unavailable', 'Host cannot manage Sessions', { capability: 'session.manage.v1' })
+    }
   }
 
   private watchNavigation(): () => void {
@@ -199,7 +250,7 @@ class UiWorkspaceService extends Service implements UiWorkspace {
     const reconcile = (): void => {
       if (this.lifetime.signal.aborted) return
       if (this.clearArchivedCurrent()) return
-      if (initial !== 'waiting') return
+      if (initial !== 'waiting' || !this.canManageSessions()) return
       const workspace = this.workspaces.list.getSnapshot()
       const sessions = this.sessions.list.getSnapshot()
       if (workspace.phase !== 'ready' || sessions.phase !== 'ready') return
@@ -213,9 +264,14 @@ class UiWorkspaceService extends Service implements UiWorkspace {
         return
       }
       initial = 'connecting'
+      const host = this.ctx.remote.$host
       void this.connectWorkspace(target).then(
         (sessionId) => {
           if (this.lifetime.signal.aborted) return
+          if (!this.canManageSessions()) {
+            initial = 'waiting'
+            return
+          }
           if (this.sessions.list.getSnapshot().current === undefined) {
             this.sessions.open(sessionId)
           }
@@ -224,15 +280,21 @@ class UiWorkspaceService extends Service implements UiWorkspace {
         (reason: unknown) => {
           if (this.lifetime.signal.aborted) return
           initial = 'waiting'
+          if (this.ctx.remote.$host !== host) {
+            reconcile()
+            return
+          }
           console.warn('initial workspace selection failed:', reason)
         },
       )
     }
+    const disposeConnection = this.ctx.on('connection/reset', reconcile)
     const disposeWorkspaces = this.workspaces.list.subscribe(reconcile)
     const disposeSessions = this.sessions.list.subscribe(reconcile)
     reconcile()
     return () => {
       this.lifetime.abort()
+      disposeConnection()
       disposeSessions()
       disposeWorkspaces()
     }

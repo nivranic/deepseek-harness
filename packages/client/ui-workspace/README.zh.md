@@ -25,6 +25,14 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
+Session 搜索回调传播原始 `RemoteError`，使调用方能够独立于显示文本检查其 code 和 details。
+
+Workspace 选择（包括复用空 Session）在建立导航意图前要求 `session.manage.v1`。创建与分叉在选中结果或搬移草稿前再次检查；能力撤回不会撤销 Host 已完成的变更。启动时自动选择会等待能力支持，并随 Connection 更新恢复，不重复待完成的请求。直接选中已有 Session 仍然可用。
+
+分组和单列表中的 Workspace 行新建 Session、Session 重命名与分叉要求 `session.manage.v1`。Workspace 注册、重命名、删除和注册表拖拽要求 `workspace.manage.v1`；归档和 Workspace 内 Session 拖拽独立要求 `workspace.sessions.v1`。缺少操作集时撤回对应控件，已有 Session 导航仍可使用；保留的回调会重新检查支持情况。Ungrouped 和单列表排序仍为本地操作。没有可用操作的行不显示菜单。
+
+Host 快照替换会关闭管理对话框和目录流程，清除草稿与忙碌状态，并忽略旧回调和待完成结果。恢复不会重新打开这些交互。跟随投影不可用时，不清除已保存的 Workspace 视图偏好。这些 UI 检查不会取消或回滚已经派发到 Host 的请求。
+
 用侧边栏浏览 Workspace 及其 Session、重排它们并新建会话；在 Session Intent 主视觉区用选择器为新会话选择 Workspace。打开的 Workspace 默认显示五条非空白 Session，并在首条提示词落地前把当前选中的空白**新会话**作为一条临时额外行。**展开其余**会显示隐藏条目；关闭再打开 Workspace 会恢复该折叠投影。
 
 ### 重排序与视图选项
@@ -33,9 +41,13 @@ kind: "package-reference"
 
 ### 搜索
 
+内容搜索要求 `session.search.v1`；能力缺失时保留本地标题和 Workspace 匹配，并显示搜索提示。Connection 代际撤销会中止待完成查询并移除内容结果。新准入且具备该能力的代际会重新读取当前查询，不改变查询文本、所选 Session 或输入草稿。旧代际的迟到响应不能恢复结果。
+
 折叠搜索是视图和添加操作旁的一枚区头按钮：激活后输入框会扩展并占据区头。非空白查询会以单一扁平结果列表替代任一浏览模式——不区分大小写的标题和 Workspace 子串匹配项会立即显示，经 250 ms 防抖的 Host 请求则会加入经过排序的当前对话内容匹配项及其摘要片段。每次新查询都会中止前一个请求；内容搜索失败时，元数据匹配项仍会显示，同时给出警告。列表最多显示 20 条结果。选择结果会清空并收起搜索、打开 Session，并在当前浏览模式中将其行滚动到可见区域；分组浏览还会按需展开所属 Workspace 和完整 Session 列表。
 
 ### 管理会话
+
+Session 重命名对话框在打开时捕获标题版本。保存冲突时保留草稿，并显示本地化提示，要求基于当前标题重新打开编辑框。重复保存保留原始版本，不会自动采用另一编辑者的版本。不支持条件重命名的 Host 保留原有行为。
 
 Session 行内的 Rename 操作打开一个以该行显示标题预填的对话框；确认未修改的标题是有意允许的——这正是把当前自动标题钉住、不再被重新生成覆盖的手势。Archive 不经确认对话框直接提交，归档集合回声落地后，该行从所有分组视图中消失。Fork 在源会话最后一个已完成轮次处 fork，在客户端递增继承的持久化标题后再打开子会话。Workspace 行内的 Delete 操作会打开确认框，说明保留边界；成功后该分组被移除，其 Session 则留在 Ungrouped 下。
 
@@ -62,6 +74,8 @@ Session 行渲染运行时的实时 `pendingInteraction` 分类：审批显示**
 本包是一条组合：两个目标 slot 都由其他插件声明，因此 `apply` 使用 `slots.inject()` 在各自的声明生命周期内完成注册，并在目标 slot 的声明恢复后重新注册。
 
 ### 目录流子 slot
+
+`captureDirectoryOperations(signal?)` 将目录回调绑定到已准入 Host 和所属注册生命周期。每项操作在派发前检查对应能力，替换或释放后到达的结果以 `gateway/cancelled` 拒绝。释放会中止列目录与原生选择请求，但不会回滚已经派发到 Host 的目录创建。目录流程使用这些捕获的回调，避免保留的交互在另一 Host 上启动。
 
 每个注册各自声明一个**目录流子 slot**（`single` kind：`conversation.hero.workspace.directoryFlow`／`sidebar.workspaces.directoryFlow`），由组合的选择器包 client half 填入其选取交互——`-native` 后端的无渲染 OS 选择器驱动，`-browse` 组合下则是应用内浏览对话框。平铺显示的**添加工作区…** 操作仅在当前界面的 slot 被占用时渲染；slot 为空意味着该组合没有目录选择能力。本包持有触发与接纳：占用方通过 slot 的属主交互约定（`open`/`busy`/`onPicked`/`onCancel`/`onError`）每次打开上报一个所选路径，owner 通过对象层接纳它，并等待 Workspace 列表投影刷新后才选中已提交的 Workspace。
 

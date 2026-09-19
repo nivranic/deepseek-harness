@@ -75,7 +75,7 @@ Gateway 内部 `$events` logical stream 是 `ConnectionHandle` 唯一的 generat
 
 Host event source 在返回首帧前同步安装增量 listener。Gateway 随后发送 `{ type: 'ready', clientId, host: { home } }`；该 frame 证明当前 generation 已经能够接收增量，并携带稳定的 Host 路径显示信息。
 
-`ConnectionController` 只有在 `$events` ready 后才发布 `connected`，所以 Session 或 Workspace baseline 不会在 Host 增量 listener 就绪前开始读取。
+`ConnectionController` 只有在 `$events` ready 后才发布 `ready`，所以 Session 或 Workspace baseline 不会在 Host 增量 listener 就绪前开始读取。
 
 `$events` 正常意外结束、Host 错误、畸形首帧或 carrier 失败都会结束当前 Connection generation。Connection 撤回该 generation，随后按有界退避重新建立 `$events`；浏览器离线时暂停，用户要求立即重试时则跳过等待。
 
@@ -137,13 +137,17 @@ repair 期间旧 window 保持可读；page 与期间积累的 live entries 拼�
 
 ### Session Controller
 
+条件标题编辑沿用相同的持久化日志与投影归属：`titleRevision` 表示最新标题事件，`title` 保持字符串。`session.rename-at.v1` 暴露独立于无条件 `rename` 的入口，使操作准入不改变旧 Host。标题服务负责规范化及同步比较、追加。与当前用户固定标题相同的输入返回原有事件；版本已变化且标题不同则明确失败。UI 在开始编辑时捕获版本并在重试时保留，因为保存时才读取版本会授权覆盖并发修改。缺少投影数据时不发送请求，直接失败。该机制不跨后续版本识别同一变更，也不提供持久化回执账本。
+
 `packages/api/session-controller` 提供 Host `ctx.sessionController` 与生成的 `ctx.remote.session` namespace。
 
-它拥有 Session list、search、create、selectModel、rename、fork、prompt、attachment、updateQueue、cancel、page、follow 与 control。Host generation 的 model catalog 通过独立的 `session/modelCatalog` 公开，因为它不属于特定 Session。
+它拥有 Session list、search、create、selectModel、rename、fork、prompt、attachment、updateQueue、cancel、cancelTurn、page、follow 与 control。Host generation 的 model catalog 通过独立的 `session/modelCatalog` 公开，因为它不属于特定 Session。
 
 包内的 agent、commands、control、history 与 list controller 分开实现，但 Session 身份解析、激活策略、subagent ownership 和 Remote 错误投影只有一个公开 owner。
 
 其他 Host Remote namespace 通过 `ctx.sessionController.inspect()` 或 `resolveAgent()` 复用同一身份规则，不保留第二份 Session resolver。
+
+按目标取消复用现有 Session 投影通道。`activeTurnStart` 表示持久化 `turn/start` 序号，在 `turn/end` 时变为 null。`session.cancel-turn.v1` 能力声明支持 `cancelTurn`：其必填目标为该序号或明确观察到的 null。Host 同步检查投影并请求取消，因此迟到重试不会取消后续回合或维护任务。过时或 null 目标返回接受结果，不产生新作用。Client 每次点击只捕获一次投影，投影不可用时返回失败；未声明能力的 Host 继续使用独立的旧 `cancel` 调用。该操作不增加回执注册表或 Session 事件，子代理中断仍按父级路由。
 
 #### 激活策略
 
@@ -158,7 +162,7 @@ Session Remote 方法传递 `SessionId` 或 `SessionAddress`，不靠参数类�
 | `session.follow(address)` | 一份携带 opening page 与 projection 的 live 或 prepared observation | 先发布 snapshot，再在后台把普通冷 Session 提升一次 |
 | `session.control()` | 当前 attached Agent、pending registry 与进程内 registry | baseline 与重连不恢复 Agent |
 | `session.attachment`、fork 源读取 | 已授权的持久 Session 数据 | 读取不恢复 Agent |
-| `session.updateQueue`、`cancel` | 仅命中当前 live Agent | 不为已消失状态恢复 Agent |
+| `session.updateQueue`、`cancel`、`cancelTurn` | 仅命中当前 live Agent | 不为已消失状态恢复 Agent |
 | `models`、`selectModel`、`rename`、`prompt` | 命令解析目标 Session | 仅按方法约定显式恢复 |
 | `create` 与 fork 目标 | 新 Session／Agent | 用户命令提供创建授权 |
 
@@ -243,6 +247,14 @@ ctx.remote.workspace.follow() -|[]> RemoteSnapshotStream
 Workspace Remote 方法、状态 feed 和 Client 数据模型均不经过 API Proxy，也不依赖 `host/workspace-*` 通知。
 
 ### Remote Event
+
+Host 重启会结束待处理 Gateway 调用。持久化的 `approval/asked` 事件记录一项中断请求，不会重建其续体或授权工具。Session 既有的中断尾部修复将已记录调用但没有结果的工具标为 `TOOL_OUTCOME_UNKNOWN`，并以 interrupted 结束回合。只读历史在内存中补齐这些结束事件；Agent 激活时将它们持久化。浏览器重连恢复历史并清除过时交互 UI，不提交未发送草稿。[真实进程 Web 回归](../../../../apps/web/tests/host-restart.e2e.ts)在突然终止进程前后保留同一隔离 home、端口、浏览器 Cookie 和未发送草稿，随后显式提交下一回合。此机制修复中断 Session，不恢复持久化的待处理调用续体。
+
+Question 没有独立的持久化待处理请求事件，其中断的 Tool 调用沿用同一 Session 修复。重启后新建的 Approval 或 Question 使用新的交互 id，可以在恢复后的 Connection 上结算。拒绝迟到回答不会消耗新请求，也不会使该 Connection 失效。浏览器回归回答新 Question、拒绝新 Approval，并核对相应的持久化 Tool 结果及模型的下一次请求；不会为中断的 Approval 合成决定。
+
+Gateway 为其待处理转发交互拥有按类型可选的过期策略。未配置存活时间时不自动过期。配置后生成一个 Host 截止时间和一个可清理的时长定时器，不依赖 Client 连接；重放保留原时间戳。Host 在重放和接受回答前也检查期限，避免休眠或定时回调延迟放行过期回答。过期、取消或回答中最先完成的一项移除记录并清理定时器。过期以 `expired` 状态关闭协议 2 投递，并以 `interaction-expired` 拒绝事件源；既有 Approval 错误处理保持失败关闭。协议 1 的取消字段不变。此策略只作用于转发调用，不限制本地回答方，也不提供持久化重启恢复。
+
+交互回答同时绑定待处理记录版本和其活动 Client 投递协议。协议 2 的所有结果都回传投递版本，包括委托和监听器拒绝。Gateway 在移除投递前验证这两项事实，无效回答不会消耗其他 Client 的回答机会，也不会取消 Host waterfall。协议 1 保留原有字段；将协议 2 回答改用旧格式封装不能切换为旧验证规则。已关闭投递的检查先于版本比较。版本不匹配沿用 Client 连接代次恢复，并重放仍待处理的请求。这些检查不授予设备权限，也不保留持久化变更回执。
 
 Remote Event 复用 owner 包的 Cordis `Events` 声明。Host 原事件是唯一业务签名，Client `ctx.remote.$on(event, listener)` 从同一声明推导参数、waterfall 结果与 `next()`。
 

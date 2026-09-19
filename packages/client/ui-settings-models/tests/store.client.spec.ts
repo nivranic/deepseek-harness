@@ -114,7 +114,7 @@ function api(overrides: {
     },
   }
   // The page plugin's context, scripted down to the namespaces it reaches.
-  const ctx = { remote: face } as never
+  const ctx = { remote: { $host: { capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1'] }, ...face } } as never
   return { ctx, face, mirror: new SettingsDescribeMirror(ctx), seenRefs }
 }
 

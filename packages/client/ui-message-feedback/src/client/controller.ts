@@ -1,6 +1,6 @@
 /**
  * Browser-local object layer over one Session's durable message-feedback
- * sidecar. The Host owns per-item compare-and-set: every mutation carries the
+ * log. The Host owns per-item compare-and-set: every mutation carries the
  * version this controller last observed, and a `version-conflict` reply carries
  * the authoritative item, so a lost race reconciles from the reply itself
  * instead of refetching the whole Session.
@@ -9,7 +9,7 @@
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { HostObservable } from '@deepseek-ai/dsh-client-ui-slots'
-import type { MessageId } from '@deepseek-ai/dsh-api-remotes/client'
+import type { MessageId, RemoteHostFacts } from '@deepseek-ai/dsh-api-remotes/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { FeedbackRecord } from '@deepseek-ai/dsh-command-feedback/types'
 import type {
@@ -93,6 +93,7 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
   private loadPromise: Promise<MessageFeedbackActionResult> | null = null
   private operationTail: Promise<void> = Promise.resolve()
   private disposed = false
+  private observed = false
 
   /**
    * @param ctx - the browser plugin context carrying the messageFeedback Remote namespace.
@@ -117,6 +118,8 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
    * @returns the settled load result, shared by concurrent callers.
    */
   ensure(): Promise<MessageFeedbackActionResult> {
+    if (this.disposed) return Promise.resolve(DISPOSED)
+    if (!this.supports('feedback.message.read.v1')) return Promise.resolve(fail('capability-unavailable'))
     if (this.view.status === 'ready') return Promise.resolve(OK)
     return this.refresh()
   }
@@ -132,11 +135,19 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
    * @returns the settled reload result.
    */
   refresh(): Promise<MessageFeedbackActionResult> {
+    if (this.disposed) return Promise.resolve(DISPOSED)
+    if (!this.supports('feedback.message.read.v1')) return Promise.resolve(fail('capability-unavailable'))
     if (this.loadPromise !== null) return this.loadPromise
+    this.observed = true
     this.publish({ status: 'loading', items: this.view.items, error: null })
-    const pending = this.load()
+    const host = this.ctx.remote.$host
+    const pending = this.load(host).catch(() => {
+      if (!this.current(host)) return fail('connection-changed')
+      this.publish({ status: 'error', items: this.view.items, error: 'request-failed' })
+      return fail('request-failed')
+    })
     this.loadPromise = pending
-    return pending.finally(() => { this.loadPromise = null })
+    return pending.finally(() => { if (this.loadPromise === pending) this.loadPromise = null })
   }
 
   /**
@@ -164,10 +175,10 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
     rating: MessageFeedbackRating,
     entry: FeedbackRecord = {},
   ): Promise<MessageFeedbackActionResult> {
-    return this.mutate(async () => {
+    return this.mutate(async (host) => {
       const observed = this.view.items.get(messageId)
-      return await this.putCommitted(messageId, rating, entry, observed)
-    })
+      return await this.putCommitted(messageId, rating, entry, observed, host)
+    }, { capability: 'feedback.message.put.v1' })
   }
 
   /**
@@ -179,12 +190,12 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
    * @returns the settled mutation result.
    */
   retract(messageId: MessageId, rating: MessageFeedbackRating): Promise<MessageFeedbackActionResult> {
-    return this.mutate(async () => {
+    return this.mutate(async (host) => {
       const observed = this.view.items.get(messageId)
       return observed?.rating === rating
-        ? await this.deleteCommitted(messageId, observed)
+        ? await this.deleteCommitted(messageId, observed, host)
         : OK
-    })
+    }, { capability: 'feedback.message.delete.v1' })
   }
 
   /** Commit one put against the observed version and reconcile a conflict. */
@@ -193,6 +204,7 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
     rating: MessageFeedbackRating,
     entry: FeedbackRecord,
     observed: MessageFeedbackItem | undefined,
+    host: RemoteHostFacts,
   ): Promise<MessageFeedbackActionResult> {
     const carried = await this.ctx.remote.messageFeedback.put({
       sessionId: this.sessionId,
@@ -202,6 +214,7 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
       ...(entry.category === undefined ? {} : { category: entry.category }),
       ifVersion: observed?.version ?? null,
     })
+    if (!this.current(host)) return fail('connection-changed')
     if (!carried.ok) return carrierFailure(carried.error)
     const result = carried.value
     if (result.ok) {
@@ -216,12 +229,14 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
   private async deleteCommitted(
     messageId: MessageId,
     observed: MessageFeedbackItem,
+    host: RemoteHostFacts,
   ): Promise<MessageFeedbackActionResult> {
     const carried = await this.ctx.remote.messageFeedback.delete({
       sessionId: this.sessionId,
       messageId,
       ifVersion: observed.version,
     })
+    if (!this.current(host)) return fail('connection-changed')
     if (!carried.ok) return carrierFailure(carried.error)
     const result = carried.value
     if (result.ok) {
@@ -232,16 +247,37 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
     return fail(result.error.code)
   }
 
+  /** Withdraw process-local feedback and queued work without replaying mutations. */
+  handleGenerationChanged(): void {
+    this.loadPromise = null
+    this.operationTail = Promise.resolve()
+    this.publish(INITIAL_VIEW)
+  }
+
+  /** Refresh previously observed feedback after admission; cold Sessions remain unqueried. */
+  resyncIfObserved(): void {
+    if (this.observed) void this.resync()
+  }
+
+  private supports(capability: string): boolean {
+    return this.ctx.remote.$host.capabilities?.includes(capability) === true
+  }
+
+  private current(host: RemoteHostFacts): boolean {
+    return !this.disposed && this.ctx.remote.$host === host
+  }
+
   /** Drop subscribers and refuse further work when the owning fiber unloads. */
   dispose(): void {
     this.disposed = true
     this.listeners.clear()
   }
 
-  /** Fetch the whole sidecar and publish it as the seeded view. */
-  private async load(): Promise<MessageFeedbackActionResult> {
+  /** Fetch current log-backed feedback and publish only within the originating connection. */
+  private async load(host: RemoteHostFacts): Promise<MessageFeedbackActionResult> {
     const carried = await this.ctx.remote.messageFeedback.list({ sessionId: this.sessionId })
-    if (this.disposed) return OK
+    if (this.disposed) return DISPOSED
+    if (!this.current(host)) return fail('connection-changed')
     if (!carried.ok) {
       this.publish({ status: 'error', items: this.view.items, error: carried.error.message })
       return carrierFailure(carried.error)
@@ -262,11 +298,15 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
    * operations always compare against the committed version.
    */
   private mutate<T>(
-    operation: () => Promise<T>,
-    options: { readonly seed?: boolean } = {},
+    operation: (host: RemoteHostFacts) => Promise<T>,
+    options: { readonly seed?: boolean; readonly capability?: string } = {},
   ): Promise<T | MessageFeedbackActionFailure> {
+    if (this.disposed) return Promise.resolve(DISPOSED)
+    const host = this.ctx.remote.$host
     const guarded = async (): Promise<T | MessageFeedbackActionFailure> => {
       if (this.disposed) return DISPOSED
+      if (!this.current(host)) return fail('connection-changed')
+      if (!this.supports(options.capability ?? 'feedback.message.read.v1')) return fail('capability-unavailable')
       if (options.seed !== false) {
         const loaded = await this.ensure()
         if (!loaded.ok) return loaded
@@ -275,22 +315,16 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
         // oxlint-disable-next-line typescript/no-unnecessary-condition -- dispose() can run during the await.
         if (this.disposed) return DISPOSED
       }
-      return await operation()
+      if (!this.current(host)) return fail('connection-changed')
+      return await operation(host)
     }
-    const result = this.operationTail.then(guarded, guarded)
-    // `guarded` settles every carrier and business failure as a
-    // MessageFeedbackActionResult and never rethrows, so this tail cannot reject and
-    // needs no rejection handler.
+    const result = this.operationTail.then(guarded, guarded).catch(() =>
+      fail(this.current(host) ? 'request-failed' : 'connection-changed'))
     this.operationTail = result.then(() => undefined)
     return result
   }
 
-  /**
-   * Replace one message's entry, keeping every other entry's identity. Only a
-   * `mutate` operation reaches this, and `mutate` refuses admission once the
-   * controller is disposed, so no disposal guard belongs here; `publish` is
-   * the single place that stops notifying after listeners are dropped.
-   */
+  /** Replace one admitted message entry, keeping every other entry's identity. */
   private commit(messageId: MessageId, item: MessageFeedbackItem | null): void {
     const items = new Map(this.view.items)
     if (item === null) items.delete(messageId)
@@ -300,6 +334,7 @@ export class MessageFeedbackController implements HostObservable<MessageFeedback
 
   /** Replace the view and contain subscriber failures at the observable boundary. */
   private publish(view: MessageFeedbackView): void {
+    if (this.disposed) return
     this.view = Object.freeze(view)
     for (const listener of this.listeners) {
       try {

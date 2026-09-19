@@ -341,6 +341,49 @@ describe('Session file uploads', () => {
     expect(followup).toHaveBeenCalledOnce()
   })
 
+  it.each(['queue', 'steer'] as const)('admits concurrent %s retries only once after attachment admission', async (mode) => {
+    const { ctx, controller, agent, followup } = await uploadHarness()
+    const admitted = Promise.withResolvers<{ readonly type: 'text'; readonly text: string }[]>()
+    const admission = vi.spyOn(ctx.attachments, 'admitPromptContent').mockReturnValue(admitted.promise)
+    const deliver = (message: UserMessage): void => {
+      agent.session.append('agent/inbox/spliced', { target: 'next-turn', start: 0, inserted: [message] })
+      agent.inbox.append('next-turn', message)
+    }
+    followup.mockImplementation(deliver)
+    const steer = vi.spyOn(agent, 'steer').mockImplementation(deliver)
+    const request = { ...promptRequest([{ type: 'text', text: 'once' }]), mode }
+    const first = controller.prompt(request)
+    const retry = controller.prompt(request)
+    await vi.waitFor(() => { expect(admission).toHaveBeenCalledTimes(2) })
+    admitted.resolve([{ type: 'text', text: 'once' }])
+    await expect(Promise.all([first, retry])).resolves.toEqual([{ accepted: true }, { accepted: true }])
+    expect(mode === 'queue' ? followup : steer).toHaveBeenCalledOnce()
+    expect(agent.inbox.nextTurn).toHaveLength(1)
+  })
+
+  it.each(['claimed', 'cancelled'] as const)('does not resurrect an accepted request after its inbox occurrence is %s', async (state) => {
+    const { controller, agent, followup } = await uploadHarness()
+    const request = promptRequest([{ type: 'text', text: 'once' }])
+    const message = createUserMessage({ content: [{ type: 'text', text: 'once' }],
+      source: { kind: 'user', rpcId: request.requestId } })
+    agent.session.append('agent/inbox/spliced', { target: 'next-turn', start: 0, inserted: [message] })
+    agent.session.append('agent/inbox/spliced', { target: 'next-turn', start: 0, removedCount: 1, inserted: [],
+      ...(state === 'cancelled' ? { outcome: 'canceled' as const } : {}),
+    })
+    expect(agent.inbox.nextTurn).toHaveLength(0)
+    await expect(controller.prompt(request)).resolves.toEqual({ accepted: true })
+    expect(followup).not.toHaveBeenCalled()
+  })
+
+  it('allows the same request identity after an admission failed before insertion', async () => {
+    const { controller, followup } = await uploadHarness()
+    const request = promptRequest([{ type: 'text', text: 'retry rejected admission' }])
+    followup.mockImplementationOnce(() => { throw new Error('not admitted') })
+    await expect(controller.prompt(request)).rejects.toMatchObject({ code: 'session/agent-busy' })
+    await expect(controller.prompt(request)).resolves.toEqual({ accepted: true })
+    expect(followup).toHaveBeenCalledTimes(2)
+  })
+
   it('deduplicates a retried rpcId already present in the durable log', async () => {
     const { controller, agent, followup } = await uploadHarness()
     const request = promptRequest([{ type: 'text', text: 'once' }])

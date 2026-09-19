@@ -237,7 +237,7 @@ def write_profile_patch(
         },
         {"id": "session-telemetry-otel", "disabled": True},
         *patches,
-    ], indent=2))
+    ], indent=2), encoding="utf-8", newline="\n")
     return path
 
 
@@ -501,7 +501,7 @@ def host_node_version() -> str:
     if node is None:
         raise AssertionError("the spawn-node scenario requires Node on PATH for comparison")
     return subprocess.run(
-        [node, "--version"], capture_output=True, text=True, check=True,
+        [node, "--version"], capture_output=True, text=True, check=True, encoding="utf-8",
     ).stdout.strip()
 
 
@@ -1062,7 +1062,7 @@ def smoke_sdk_minimal(
                     "id": "in-history-prompt",
                     "name": (Path(__file__).resolve().parent / "fixtures/python-sdk-in-history-prompt.mjs").as_uri(),
                 }]},
-            ]))
+            ]), encoding="utf-8", newline="\n")
             patches = (str(patch),)
         with DeepSeekHarness(
             provider="deepseek-official",
@@ -1103,7 +1103,7 @@ def smoke_sdk_fs_search(base_url: str, executable: Path) -> None:
 
     with tempfile.TemporaryDirectory(prefix="dsh-sdk-fs-search-") as temporary:
         root = Path(temporary).resolve()
-        (root / "needle.txt").write_text(f"{FS_SEARCH_MARKER}\n")
+        (root / "needle.txt").write_text(f"{FS_SEARCH_MARKER}\n", encoding="utf-8", newline="\n")
         dsh_home = root / "home"
         sessions = dsh_home / "sessions"
         patch = write_profile_patch(root, "fs-search.patch.yml", sessions, [
@@ -1170,7 +1170,7 @@ def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
         dsh_home = root / "home"
         sessions = dsh_home / "sessions"
         server_script = root / "mcp_server.py"
-        server_script.write_text(MCP_SERVER_SCRIPT)
+        server_script.write_text(MCP_SERVER_SCRIPT, encoding="utf-8", newline="\n")
         patch = write_mcp_patch(root, sessions, server_script)
         discovery_log = server_script.with_suffix(".log")
         with DeepSeekHarness(
@@ -1191,7 +1191,7 @@ def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
             result = harness.run(MCP_PROMPT, session_id="mcp-smoke")
 
         assert result.final_response == MCP_TEXT, result.final_response
-        assert discovery_log.read_text().splitlines() == [
+        assert discovery_log.read_text(encoding="utf-8").splitlines() == [
             "initialize",
             "notifications/initialized",
             "tools/list",
@@ -1207,7 +1207,7 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
     with tempfile.TemporaryDirectory(prefix="dsh-sdk-profile-plugin-") as temporary:
         root = Path(temporary).resolve()
         dsh_home = root / "home"
-        plugin = root / "plugin"
+        plugin = root / "plugin with spaces & unicode-插件"
         plugin.mkdir()
         (plugin / "package.json").write_text(json.dumps({
             "name": "dsh-python-blackbox-plugin",
@@ -1217,7 +1217,7 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
             "exports": "./index.js",
             "peerDependencies": {"@deepseek-ai/cordis": "*"},
             "dsh": {"bundle": {"patch": "./cordis.patch.yml"}},
-        }, indent=2))
+        }, indent=2), encoding="utf-8", newline="\n")
         (plugin / "index.js").write_text(
             "import { Context } from '@deepseek-ai/cordis'\n"
             "export const name = 'python-sdk-blackbox-plugin'\n"
@@ -1229,11 +1229,11 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
             "    order: 10,\n"
             f"    text: '{PROFILE_PLUGIN_MARKER}',\n"
             "  }))\n"
-            "}\n"
+            "}\n", encoding="utf-8", newline="\n"
         )
         (plugin / "cordis.patch.yml").write_text(json.dumps([{
             "insert": [{"id": "python-sdk-blackbox-plugin", "name": "dsh-python-blackbox-plugin"}],
-        }], indent=2))
+        }], indent=2), encoding="utf-8", newline="\n")
 
         dsh = Path(sysconfig.get_path("scripts")) / ("dsh.exe" if IS_WINDOWS else "dsh")
         environment = {**os.environ, "DSH_HOME": str(dsh_home)}
@@ -1243,7 +1243,7 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
             env=environment,
             text=True,
             capture_output=True,
-            check=False,
+            check=False, encoding="utf-8",
         )
         if installed.returncode != 0:
             raise AssertionError(
@@ -1251,7 +1251,7 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
                 f"returncode={installed.returncode} (0x{installed.returncode & 0xffffffff:08x}) "
                 f"stdout={installed.stdout!r} stderr={installed.stderr!r}"
             )
-        manifest = json.loads((dsh_home / "profiles" / "sdk" / "package.json").read_text())
+        manifest = json.loads((dsh_home / "profiles" / "sdk" / "package.json").read_text(encoding="utf-8"))
         if "dsh-python-blackbox-plugin" not in manifest.get("dependencies", {}):
             raise AssertionError(f"dsh plugin did not record the external dependency: {manifest}")
         if "dsh-python-blackbox-plugin" not in manifest["dsh"]["profile"]["bundles"]:
@@ -1478,7 +1478,7 @@ def smoke_packaged_runner(executable: Path) -> None:
             target_env["PACKAGED_RUNNER_EXPECTED_CWD"] = str(root)
             request_path.write_text(
                 json.dumps({"cwd": str(root), "env": target_env}),
-                encoding="utf-8",
+                encoding="utf-8", newline="\n",
             )
             request_path.chmod(0o600)
             environment = dict(os.environ)
@@ -1490,7 +1490,7 @@ def smoke_packaged_runner(executable: Path) -> None:
                 capture_output=True,
                 text=True,
                 timeout=30,
-                check=False,
+                check=False, encoding="utf-8",
             )
             if result.returncode != 7 or request_path.exists() or (root / "startup-error.json").exists():
                 raise AssertionError(
@@ -1535,7 +1535,7 @@ const result = await new Promise((resolve, reject) => {
 })
 process.stdout.write(JSON.stringify({ ...result, messages, stdout, stderr }))
 """,
-            encoding="utf-8",
+            encoding="utf-8", newline="\n",
         )
         helper_result = subprocess.run(
             [node, str(helper), str(executable), sys.executable, str(root), target_script],
@@ -1543,7 +1543,7 @@ process.stdout.write(JSON.stringify({ ...result, messages, stdout, stderr }))
             capture_output=True,
             text=True,
             timeout=30,
-            check=False,
+            check=False, encoding="utf-8",
         )
         if helper_result.returncode != 0:
             raise AssertionError(f"packaged Windows runner helper failed: {helper_result.stderr}")
@@ -1751,7 +1751,7 @@ def assert_session_log(sessions: Path, cwd: Path, *expected_texts: str) -> None:
     logs = latest_persisted_session_paths(sessions)
     if len(logs) != 1:
         raise AssertionError(f"expected one JSONL session log under {sessions}, found {logs}")
-    content = logs[0].read_text()
+    content = logs[0].read_text(encoding="utf-8")
     assert_persisted_session_version(logs[0], content)
     lines = content.splitlines()
     header = json.loads(lines[0])

@@ -418,9 +418,9 @@ export interface TrajectoryTableProps {
   collapsedAssistants: ReadonlySet<string>
   /** Toggle tool calls under one assistant record. */
   onToggleAssistant: (id: string) => void
-  /** One-shot cross-view inspect: open and scroll to this call's record. */
+  /** One-shot cross-view inspect, encoded as the JSON tuple [turn, step, provider call id]. */
   inspectCallId?: string | null
-  /** Acknowledge a consumed (or unresolvable) inspect request. */
+  /** Acknowledge a resolved inspect request; unavailable occurrences remain pending. */
   onInspectApplied?: (() => void) | undefined
 }
 
@@ -935,6 +935,7 @@ function parentRecords(
   if (parentCallId !== undefined) {
     message = records.find(candidate =>
       candidate.turn === record.turn
+      && candidate.group === record.group
       && candidate.cell.kind === 'message'
       && candidate.cell.sourceBlocks?.some(block => block.callId === parentCallId) === true,
     )
@@ -2135,7 +2136,8 @@ export function TrajectoryTable({
   }
 
   const openCallSummary = (callId: string) => {
-    const target = allRecords.find(record => record.cell.callId === callId)
+    const target = selected === undefined ? undefined : allRecords.find(record =>
+      record.turn === selected.turn && record.group === selected.group && record.cell.callId === callId)
     if (target !== undefined) openRecordSummary(target)
   }
 
@@ -2147,7 +2149,8 @@ export function TrajectoryTable({
   openRecordSummaryRef.current = openRecordSummary
   useEffect(() => {
     if (inspectCallId === null) return
-    const target = flattenRecords(turns).find(record => record.cell.callId === inspectCallId)
+    const target = flattenRecords(turns).find(({ cell }) => cell.callId !== undefined && cell.callLocation !== undefined
+      && JSON.stringify([cell.callLocation.turn, cell.callLocation.step, cell.callId]) === inspectCallId)
     if (target === undefined) return
     openRecordSummaryRef.current(target)
     pendingScrollRecordId.current = trajectoryRecordId(target.cell)
