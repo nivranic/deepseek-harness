@@ -12,6 +12,10 @@ dependencies {
     // serialization annotations, so the runtime jar needs no compiler plugin.
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    // The Gateway failure envelope and shared failure classification the shell
+    // consumes for presentation; api because the presenter's surface exposes
+    // RemoteFailureClass.
+    api(project(":contract"))
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")

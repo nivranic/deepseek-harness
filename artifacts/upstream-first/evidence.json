@@ -5,27 +5,47 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "b3264e452d9ea81635ab1a1a36c0d4b17ab78d8ddbaced1744d0e6a52b7909b0"
+      "sha256": "065c363c96e85de220b48ea42e003ee3fc3b41fc3e9553dfd39cfb613c8c92d1"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "7257ed6df8a67bfaafccfd157452053c144f5a7a6f1dd449d73ccc5e6ca3377b"
+      "sha256": "e5b252f4cca3b875bafc3326925f255471d808bce015b37361d03d2cbfeb04cb"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "107034a939c5c221e467160f60e8679cc07810892723b54646d0dc4d0ca4e86e"
+      "sha256": "73801d8c8e4e5638e0df30817cf3e5b39701eb5120d7a4c65b515c8f603944fa"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "1b948fc46ec3fcad9a1a2862becc0a8960e3006fbad6a7c20216a3b7527e19f9"
+      "sha256": "36912b665b4bc936686b7abffd92ac18bf6d21c60ea9b6bb54c256593ce0ef78"
+    },
+    {
+      "path": "apps/android/core/build.gradle.kts",
+      "sha256": "e538c79a5b6f7018c633e58502b380ceafcd018e48e8fdde4e95c67d18d2d57d"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
+      "sha256": "cc9b0898f6fbb8df2f7b528204f81057ec37daddb5a41ad1f61ea506f66b91c3"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
+      "sha256": "f9b6eb1b9c29afd47d11bc5b707503847f4b7f7d1e0bde616eef4bc2c529113c"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt",
+      "sha256": "5a15907b754f2dfed881efc761df5ad2725a12b1e3aea7261b59f5d74f8c1684"
+    },
+    {
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+      "sha256": "af0c22f35ce28fec242e514db42eaae98ab6dc5afa7af46b37cdd66ed03517ad"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "1c3e8bdfa6a249063b36ccb4f68b3ff5bbbf23ced7cfa73e48230801f6376c20"
+      "sha256": "ede9c9b50f1c472eadf0a1cc8f7d505ba3e72ca8c70d9597f95079b5166abf63"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "95aa07eb825897f78d3234252b1a00a4d2b5e64e8111380bdcf07baccf8bdc22"
+      "sha256": "82db4a5d529944617efae161a9d2871190a7f1257704e4977c4f5949d2f8bf9e"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5558,6 +5578,36 @@
     },
     {
       "status": "PASS",
+      "command": ":contract:test + :core:test — 185 tests green including GatewayFailurePresentationTest (class/action/text matrix, all ten classes, opaque unknowns) and the envelope-preservation cases in LinkClientTest (unary details, stream details)",
+      "log": ".artifacts/gateway-consumption-jvm-tests.log",
+      "sourceRecord": "artifacts/upstream-first/gateway-consumption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": ":app:assembleDebug regression through verifyScannerResources after the core -> contract wiring",
+      "log": ".artifacts/gateway-consumption-assemble-debug.log",
+      "sourceRecord": "artifacts/upstream-first/gateway-consumption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Emulator smoke (AVD pvoice): rebuilt APK installs, MainActivity resumed, process alive, zero crash-buffer entries",
+      "log": ".artifacts/gateway-consumption-emulator-smoke.log",
+      "sourceRecord": "artifacts/upstream-first/gateway-consumption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates after the bilingual apps/android README consumption paragraph and the Agent Note",
+      "log": ".artifacts/gateway-consumption-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/gateway-consumption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the consumption evidence",
+      "log": ".artifacts/gateway-consumption-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/gateway-consumption-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6061,7 +6111,119 @@
     "installerQualified": false,
     "otherPlatformsQualified": false
   },
+  "gatewayConsumption": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/gateway-consumption-source.json",
+    "scope": "Android shell Gateway failure contract consumption: LinkWire keeps the failure envelope details it already validated (unary result and stream failure frame), LinkClientException.Refused carries code, envelopeMessage and structured details out of both refusal paths, and GatewayFailurePresentation consumes the shared RemoteFailureClasses mirror — known classes get one next action and one presentation string, codes outside the vocabulary stay opaque diagnostics with the envelope verbatim; the file viewer consults the classifier before its private lite-fold refinement",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "limitations": [
+      "The consumption seam is exercised by JVM tests against a real local HTTP server and by an emulator launch smoke; no live Host-to-device refusal exchange was driven (that needs a Host-facing pairing fixture on the emulator lane).",
+      "Presentation strings are shell-local Chinese literals matching the migrated shell convention; the web/desktop locale-dictionary pattern does not apply to this standalone module.",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Broaden UI classification adoption breadth across the remaining web/desktop surfaces and continue the remaining specification sections; extend the emulator lane to exercise a classified refusal end-to-end once a Host-facing fixture exists",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "scannerAar": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/gateway-consumption-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/scanner-aar-source.json",
     "scope": "Scanner AAR chain closed on this host: Go 1.27.1 and NDK 30.0.16248370 (sdkmanager) build the committed native/support-scanner into support-scanner.aar with staticVerification PASS, :app:assembleDebug passes the verifyScannerResources gate (AAR checksum, embedded manifest, receipt sourceSha), and the APK installs and launches on a local emulator AVD with MainActivity resumed and no crash",
@@ -9444,7 +9606,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/scanner-aar-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/gateway-consumption-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -9927,7 +10089,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "95aa07eb825897f78d3234252b1a00a4d2b5e64e8111380bdcf07baccf8bdc22"
+        "sha256": "82db4a5d529944617efae161a9d2871190a7f1257704e4977c4f5949d2f8bf9e"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

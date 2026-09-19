@@ -51,6 +51,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 /**
@@ -110,7 +111,7 @@ class LinkClientTest {
                 200,
                 """{"k":"v","v":{"event":"approval/requested","eventId":"e1"}}""" + "\n" +
                     """{"k":"v","v":{"event":"question/requested","eventId":"e2"}}""" + "\n" +
-                    """{"k":"e","c":"role","m":"observer may not answer","d":{}}""" + "\n",
+                    """{"k":"e","c":"role","m":"observer may not answer","d":{"role":"observer"}}""" + "\n",
                 contentType = "application/x-ndjson",
             )
         }
@@ -428,6 +429,28 @@ class LinkClientTest {
     fun unpairedCallsFailLoud() = runBlocking {
         val failure = assertFailsWith<LinkClientException.Unpaired> { client(MemoryLinkCredentialsStore()).call("session/list") }
         assertEquals("no paired identity", failure.message)
+    }
+
+    @Test
+    fun refusalsCarryTheFailureEnvelopeIncludingDetails() = runBlocking {
+        server.createContext("/api/session/artifact") { exchange ->
+            val body = capture(exchange)
+            respond(
+                exchange,
+                200,
+                """{"type":"server-response","rpcId":"${rpcId(body)}",""" +
+                    """"result":{"ok":false,"error":{"code":"gateway/permission-denied",""" +
+                    """"message":"interaction approval denied",""" +
+                    """"details":{"endpoint":"session/artifact","requiredPermission":"interaction.answer"}}}}""",
+            )
+        }
+        val link = client(pairedStore("http://127.0.0.1:${server.address.port}", "ab".repeat(32)))
+        val failure = assertFailsWith<LinkClientException.Refused> { link.call("session/artifact") }
+        assertEquals("gateway/permission-denied", failure.code)
+        assertEquals("interaction approval denied", failure.envelopeMessage)
+        val details = assertIs<WireValue.ObjectValue>(failure.details)
+        assertEquals(WireValue.StringValue("session/artifact"), details.entries["endpoint"])
+        assertEquals(WireValue.StringValue("interaction.answer"), details.entries["requiredPermission"])
     }
 
     @Test
@@ -815,6 +838,9 @@ class LinkClientTest {
         assertEquals(2, collected.size)
         assertEquals("approval/requested", (collected[0] as WireValue.ObjectValue).entries["event"]?.let { (it as WireValue.StringValue).value })
         assertEquals("observer may not answer", failure.message!!.substringAfter("role: "))
+        assertEquals("role", failure.code)
+        val streamDetails = assertIs<WireValue.ObjectValue>(failure.details)
+        assertEquals(WireValue.StringValue("observer"), streamDetails.entries["role"])
         val streamBody = Json.parseToJsonElement(capturedBodies.poll()).jsonObject
         assertEquals(setOf("args"), streamBody.keys)
         assertEquals("{}", streamBody["args"].toString())

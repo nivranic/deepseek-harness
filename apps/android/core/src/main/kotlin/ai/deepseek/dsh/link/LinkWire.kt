@@ -81,6 +81,7 @@ data class LinkResult(
     val value: WireValue?,
     val errorCode: String?,
     val errorMessage: String?,
+    val errorDetails: WireValue?,
 ) {
     companion object {
         fun fromJsonElement(element: JsonElement): LinkResult {
@@ -88,12 +89,17 @@ data class LinkResult(
             val ok = (obj["ok"] as? JsonPrimitive)?.takeUnless { it.isString }?.booleanOrNull ?: invalidResponse()
             if (ok) {
                 obj.requireAbsent("error")
-                return LinkResult(true, obj["value"]?.let { WireValue.fromJsonElement(it) }, null, null)
+                return LinkResult(true, obj["value"]?.let { WireValue.fromJsonElement(it) }, null, null, null)
             }
             obj.requireAbsent("value")
             val error = obj["error"].responseObject()
-            WireValue.fromJsonElement(error["details"].responseObject())
-            return LinkResult(false, null, error.responseString("code"), error.responseString("message"))
+            return LinkResult(
+                false,
+                null,
+                error.responseString("code"),
+                error.responseString("message"),
+                WireValue.fromJsonElement(error["details"].responseObject()),
+            )
         }
     }
 }
@@ -116,7 +122,13 @@ data class LinkResponseEnvelope(val type: String, val rpcId: String, val result:
 }
 
 /** One NDJSON Remote-stream frame: `{"k":"v","v":…}` or `{"k":"e",…}`. */
-data class DecodedLinkStreamFrame(val kind: String, val value: WireValue?, val code: String?, val message: String?) {
+data class DecodedLinkStreamFrame(
+    val kind: String,
+    val value: WireValue?,
+    val code: String?,
+    val message: String?,
+    val details: WireValue?,
+) {
     val isFailure: Boolean get() = kind == "e"
 
     companion object {
@@ -125,12 +137,17 @@ data class DecodedLinkStreamFrame(val kind: String, val value: WireValue?, val c
             return when (obj.responseString("k")) {
                 "v" -> {
                     obj.requireAbsent("c", "m", "d")
-                    DecodedLinkStreamFrame("v", obj["v"]?.let { WireValue.fromJsonElement(it) }, null, null)
+                    DecodedLinkStreamFrame("v", obj["v"]?.let { WireValue.fromJsonElement(it) }, null, null, null)
                 }
                 "e" -> {
                     obj.requireAbsent("v")
-                    WireValue.fromJsonElement(obj["d"].responseObject())
-                    DecodedLinkStreamFrame("e", null, obj.responseString("c"), obj.responseString("m"))
+                    DecodedLinkStreamFrame(
+                        "e",
+                        null,
+                        obj.responseString("c"),
+                        obj.responseString("m"),
+                        WireValue.fromJsonElement(obj["d"].responseObject()),
+                    )
                 }
                 else -> invalidResponse()
             }

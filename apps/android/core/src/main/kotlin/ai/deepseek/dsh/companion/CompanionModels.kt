@@ -772,12 +772,19 @@ class FilesModel(private val wire: WireDriving, private val scope: CoroutineScop
         )
     }
 
-    private fun readFailureText(failure: ai.deepseek.dsh.link.LinkClientException.Refused): String = when (failure.code) {
-        "file-binary" -> "二进制文件，无法文本预览"
-        "file-not-found" -> "未找到该文件"
-        "path-outside-root" -> "路径越出工作区根"
-        "not-a-regular-file" -> "不是常规文件"
-        else -> "读取失败：${failure.code}"
+    private fun readFailureText(failure: ai.deepseek.dsh.link.LinkClientException.Refused): String {
+        // Shared vocabulary first: codes the Gateway contract classifies get
+        // class-level copy; private lite-fold codes keep their specific text
+        // and only then fall back to the opaque code.
+        val presentation = GatewayFailurePresenter.present(GatewayFailureEnvelope.from(failure))
+        if (presentation.failureClass != ai.deepseek.dsh.contract.RemoteFailureClass.UNKNOWN) return presentation.text
+        return when (failure.code) {
+            "file-binary" -> "二进制文件，无法文本预览"
+            "file-not-found" -> "未找到该文件"
+            "path-outside-root" -> "路径越出工作区根"
+            "not-a-regular-file" -> "不是常规文件"
+            else -> presentation.text
+        }
     }
 
     private data class ReadPage(val content: String, val truncated: Boolean, val size: Int, val mediaType: String)

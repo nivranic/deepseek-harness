@@ -45,7 +45,12 @@ sealed class LinkClientException(message: String) : RuntimeException(message) {
 
     class Unpaired : LinkClientException("no paired identity")
 
-    class Refused(val code: String, message: String) : LinkClientException("refused $code: $message")
+    /** A Gateway refusal carrying the failure envelope: code, message, and
+     * the structured details when the envelope provided them. */
+    class Refused(val code: String, message: String, val details: WireValue? = null) : LinkClientException("refused $code: $message") {
+        /** The envelope's message field, distinct from the log-shaped [message]. */
+        val envelopeMessage: String = message
+    }
 
     class BadWire(message: String) : LinkClientException("bad wire: $message")
 }
@@ -317,7 +322,7 @@ class LinkClient private constructor(
                 throw LinkClientException.BadWire("failed result carried a value")
             }
             if (response.result.errorCode != null) {
-                throw LinkClientException.Refused(response.result.errorCode!!, response.result.errorMessage ?: "")
+                throw LinkClientException.Refused(response.result.errorCode!!, response.result.errorMessage ?: "", response.result.errorDetails)
             }
             throw LinkClientException.BadWire("failed result lacked a structured error")
         }
@@ -375,6 +380,7 @@ class LinkClient private constructor(
                                         throw LinkClientException.Refused(
                                             frame.code ?: "internal",
                                             frame.message ?: "stream failed",
+                                            frame.details,
                                         )
                                     }
                                     frames.send(frame.value ?: WireValue.NullValue)

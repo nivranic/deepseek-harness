@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-android-gateway-failure-consumption.md
+2026-09-20-android-gateway-failure-consumption.md: e2c25df7ad7a220e01095552344fb2964d3f8245
+2026-09-20-android-gateway-failure-consumption.zh.md: 22337faffd7f2a1616c902bb17c6631bf216607e
