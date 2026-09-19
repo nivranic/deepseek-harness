@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-permission-source.json",
+    "sha256": "104a2f41eaeab27b5d87b0328a1a1ebe8a5a044f3803510475db059a47728a3b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f39750f736ed9128ebec8d5e0d728222cd476c73847def8f53d47df33cbc88d6"
+  },
+  "helper": {
+    "path": ".artifacts/check-interaction-permission-binding.mjs",
+    "sha256": "1ee1067d5353bbe9e5e8f8f0e6ea5b96ece121cc59370ed66a46a750d5b93ad2"
+  }
+}

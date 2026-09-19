@@ -2405,9 +2405,10 @@
       "owner": "Interaction、Session 与恢复",
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
-        "docs/defensive-patterns.md"
+        "docs/defensive-patterns.md",
+        "artifacts/upstream-first/interaction-permission-source.json"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
+      "remaining": "已有回答竞争、断线和重启证据；requiredPermission 已在 Host 网关权威执行：无对应权限的 Remote 客户端回复被 403 gateway/permission-denied 拒绝、PendingInteraction 不结算、Remote event 投递不消费、底层 Tool 不执行，approval 与 question 两方向均有正反向 fixture 测试（packages/api/gateway/tests/gateway-stream.host.spec.ts，227 项全绿）；完整审批信息（§38 字段矩阵）、后台/休眠、持久化确认、跨端恢复与 Device Trust 角色化替代该部署级开关仍待实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

@@ -102,6 +102,8 @@ interface RemoteEventClient {
   readonly id: RemoteEventClientId
   readonly queue: RemoteEventQueue
   readonly deliveries: Map<RemoteEventId, PendingRemoteEvent>
+  /** Interaction reply permissions this client holds; enforced Host-side on every result. */
+  readonly replyPermissions: ReadonlySet<string>
 }
 
 interface PendingRemoteEvent {
@@ -129,6 +131,19 @@ export interface Config {
     readonly approval?: number
     /** Question lifetime in milliseconds, from 1 through 2,147,483,647. */
     readonly question?: number
+  }
+  /**
+   * Interaction reply permissions each connected Remote client holds. The
+   * requiredPermission on a pending interaction is enforced Host-side: a
+   * reply from a client without it is rejected without settling or consuming
+   * the delivery, so the underlying tool side effect never runs. Defaults to
+   * granting both; Device Trust roles replace this deployment-wide switch.
+   */
+  readonly interactionReplyPermissions?: {
+    /** Whether clients may answer approvals ('approval.respond'). @default true */
+    readonly approval?: boolean
+    /** Whether clients may answer questions ('question.respond'). @default true */
+    readonly question?: boolean
   }
 }
 
@@ -186,6 +201,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
       approval: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
       question: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
     }),
+    interactionReplyPermissions: z.object({
+      approval: z.boolean().default(true),
+      question: z.boolean().default(true),
+    }).default({ approval: true, question: true }),
   })
 
   /** Carrier adapter shared by the WebSocket mux and local Host transports. */
@@ -198,6 +217,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
   private remoteEvents: RegisteredRemoteEventSource | undefined
   private readonly remoteEventClients = new Map<RemoteEventClientId, RemoteEventClient>()
   private readonly pendingRemoteEvents = new Map<RemoteEventId, PendingRemoteEvent>()
+  private readonly interactionReplyPermissions: ReadonlySet<string>
 
   /**
    * Register the Gateway against the active Typert registry.
@@ -207,6 +227,11 @@ export class TypertGatewayService extends Service implements TypertGateway {
   constructor(ctx: Context, private readonly config: Config) {
     super(ctx, 'typertGateway')
     const resolved = config as ResolvedConfig
+    const replyPermissions = config.interactionReplyPermissions ?? { approval: true, question: true }
+    this.interactionReplyPermissions = new Set([
+      ...replyPermissions.approval === true ? ['approval.respond' as const] : [],
+      ...replyPermissions.question === true ? ['question.respond' as const] : [],
+    ])
     ctx.on('internal/service', () => {
       this.srcClaims = undefined
     })
@@ -482,6 +507,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       id: clientId,
       queue: new RemoteEventQueue(),
       deliveries: new Map(),
+      replyPermissions: this.interactionReplyPermissions,
     }
     this.remoteEventClients.set(clientId, client)
     for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)
@@ -635,6 +661,12 @@ export class TypertGatewayService extends Service implements TypertGateway {
       throw new RemoteError('gateway/input-invalid', 'Remote event delivery has no interaction revision', {
         endpoint: REMOTE_EVENT_RESULT_ENDPOINT, field: 'interactionRevision',
       })
+    }
+    const requiredPermission = pending.interaction?.requiredPermission
+    if (requiredPermission !== undefined && !client.replyPermissions.has(requiredPermission)) {
+      throw new RemoteError('gateway/permission-denied',
+        'Client is not permitted to answer this interaction kind',
+        { endpoint: REMOTE_EVENT_RESULT_ENDPOINT, httpStatus: 403 })
     }
     this.removeRemoteEventDelivery(pending, client)
     if (result.outcome.kind === 'result') {

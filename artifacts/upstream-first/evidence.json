@@ -4,20 +4,48 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": ".github/workflows/ci.yml",
-      "sha256": "80dc1262f9c53e2d253c9639fe7693ba49b9f18ab218ca44477ab85d25189d53"
+      "path": "apps/apple/contract/Package.swift",
+      "sha256": "16ae42efbdd904e71f015c7d654a1ccee44af73884cb535d208403e5d94904c9"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "c85ee11973603e2901136bce3348da1a9f5018b5158ed6ee2c69f8cb310fcd07"
+      "sha256": "42409f878cf0772c0b5496e85c6ff99857188f70e653565a476a26a967b7c1fb"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "6ea35b73eb2388a086de4c728bdc14a39b92a8d10da998956e59d92e4dfe8263"
+      "sha256": "f39750f736ed9128ebec8d5e0d728222cd476c73847def8f53d47df33cbc88d6"
     },
     {
-      "path": "scripts/gen-remote-failure-classes-json.mjs",
-      "sha256": "2aa0452bee1ceebb19eb2a39d69a423a3834f05bdfc77e25fb033dd526287fff"
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "be9993c12f31501e28e05895fab25ea310b5687739c744f5b4cb3a6d4875a3a2"
+    },
+    {
+      "path": "docs/config-catalog.md",
+      "sha256": "69a0eb1786ab9bb92727fc527ff60b0c8b1ff72dabd9c33279d185f94ec78d50"
+    },
+    {
+      "path": "docs/config-catalog.zh.md",
+      "sha256": "02a9ade782db386f76bf7338f02eaafcfbde8c3e398ff4ca58fe2232b3bff6a2"
+    },
+    {
+      "path": "packages/api/gateway/README.i18n.yaml",
+      "sha256": "c7af6eafa3272db31ed1c29815d4cf24755ee4f79c81eacd20acfac245a75870"
+    },
+    {
+      "path": "packages/api/gateway/README.md",
+      "sha256": "3f4a997eb273e88ae0170fd3c1fb6d78b8ea48f90be93aabb3d0f4156109e00f"
+    },
+    {
+      "path": "packages/api/gateway/README.zh.md",
+      "sha256": "cd90e0893aee64620210014144a6f7f3dfa8c37fe7a603b579473511f78168a4"
+    },
+    {
+      "path": "packages/api/gateway/src/index.ts",
+      "sha256": "b41d2d9eb6110e932828b5c622d6355c4b01f6b648c533792e4a0bb8cefe21c3"
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+      "sha256": "909cc79c1a61e3f77b364fc1cba7ac2cc13c5872085e2836a14a2a21a5ea0673"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5376,6 +5404,36 @@
     },
     {
       "status": "PASS",
+      "command": "Gateway host-stream suite including the deny/allow fixture pair for approval and question replies (11 files, 431 tests)",
+      "log": ".artifacts/interaction-permission-tests.log",
+      "sourceRecord": "artifacts/upstream-first/interaction-permission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/interaction-permission-lint.log",
+      "sourceRecord": "artifacts/upstream-first/interaction-permission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates after the bilingual Gateway README and config-catalog mirror",
+      "log": ".artifacts/interaction-permission-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/interaction-permission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 15 evidence update",
+      "log": ".artifacts/interaction-permission-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/interaction-permission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Host-face library rebuild carrying the new Config surface",
+      "log": ".artifacts/interaction-permission-build-lib.log",
+      "sourceRecord": "artifacts/upstream-first/interaction-permission-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -5879,7 +5937,89 @@
     "installerQualified": false,
     "otherPlatformsQualified": false
   },
+  "interactionPermission": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/interaction-permission-source.json",
+    "scope": "Host-authoritative enforcement of PendingInteraction requiredPermission at the Gateway reply boundary: a reply from a client without the permission is rejected with gateway/permission-denied before delivery consumption, so the interaction stays unsettled and the underlying tool side effect never runs",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": "CI",
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "limitations": [
+      "The switch is deployment-wide Gateway configuration; per-device reply permissions require the Device Trust family and replace this switch when they land.",
+      "Enforcement evidence is the in-process Gateway fixture suite plus the rebuilt host-face libraries; no physical device, published-client, or real-API e2e claim is made (e2e stays skipped per authorization).",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "appleContract": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/interaction-permission-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/apple-contract-source.json",
     "scope": "Swift contract package mirroring the failure classification with macOS CI lane; classification and schema-structure evidence only, no payload validator",
@@ -8689,7 +8829,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/apple-contract-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/interaction-permission-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -9172,7 +9312,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "6ea35b73eb2388a086de4c728bdc14a39b92a8d10da998956e59d92e4dfe8263"
+        "sha256": "f39750f736ed9128ebec8d5e0d728222cd476c73847def8f53d47df33cbc88d6"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

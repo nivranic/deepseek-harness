@@ -18,9 +18,15 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## Interaction 回复权限的 Host 权威执行
+
+[当前来源记录](artifacts/upstream-first/interaction-permission-source.json)在 Gateway 回复边界落地 §15 requiredPermission 的 Host 权威执行：无对应权限的 Remote 客户端回复以 403 gateway/permission-denied 拒绝，PendingInteraction 不结算、Remote event 投递不消费，底层 Tool 不产生副作用；approval 与 question 两方向均有正反向 fixture 测试（Gateway 套件 431 项全绿）。部署级开关 interactionReplyPermissions 默认双授权，Device Trust 角色化落地后按角色替代。
+
+apps/apple/contract/Package.swift 的 Swift 5.9 尾随逗号修复随本来源记录提交；swift-contract CI lane 待重调度回收首跑结果。原生外壳、模拟器/真机、多版本行为仍未完成；Session writer 保持 V3。
+
 ## Swift 契约列与 macOS CI lane
 
-[当前来源记录](artifacts/upstream-first/apple-contract-source.json)在 apps/apple/contract 建立 Swift 包：RemoteFailureClass 枚举与 28 码镜像消费与 Kotlin/TS 同一权威，测试资源由生成脚本从协议包刷新。Swift 侧只固定结构证据——镜像等值、分类 ⊆ schema 已声明码、不透明未知分支排除全部 84 已知码、未分类词解析 unknown；payload 校验仍由 Ajv 与 networknt 列持有，未用脆弱的 Swift 校验器复实现。
+[历史来源记录](artifacts/upstream-first/apple-contract-source.json)在 apps/apple/contract 建立 Swift 包：RemoteFailureClass 枚举与 28 码镜像消费与 Kotlin/TS 同一权威，测试资源由生成脚本从协议包刷新。Swift 侧只固定结构证据——镜像等值、分类 ⊆ schema 已声明码、不透明未知分支排除全部 84 已知码、未分类词解析 unknown；payload 校验仍由 Ajv 与 networknt 列持有，未用脆弱的 Swift 校验器复实现。
 
 ci.yml 新增 swift-contract 作业（macos-14，pull_request/workflow_dispatch 条件下运行 swift test）；本机 Windows 无法运行 swift，该检查在来源记录中如实标记 PENDING_CI，待调度的 macOS lane 回报后由下一来源记录接续。gen-remote-failure-classes-json.mjs 同时刷新 Apple 测试资源，漂移由测试拒绝。
 

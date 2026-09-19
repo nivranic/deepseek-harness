@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Host-side interaction reply permission enforcement at the Gateway boundary; Device Trust roles, physical-device and real-API qualification remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-permission-source.json",
+    "sha256": "104a2f41eaeab27b5d87b0328a1a1ebe8a5a044f3803510475db059a47728a3b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f39750f736ed9128ebec8d5e0d728222cd476c73847def8f53d47df33cbc88d6"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/interaction-permission-binding.json",
+    "sha256": "ec9a1253617d012c099d86f32faed04f69c5250363314031f1a619fa4db17002"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-interaction-permission-reports.mjs",
+      "sha256": "453fcfae1abaab6de3758c511c09f72b932839e441d206c6399a7c0a85c971fe"
+    },
+    {
+      "path": ".artifacts/capture-interaction-permission-validation.mjs",
+      "sha256": "fa868109820740963f25f666536de0f95b7ab192b60c176e87e8fe60bb9d0c00"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7e0bd1bef74efdab53eeb0ab4343fd953949f07935b5fdbd3d900f7f753228f7"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "1d6c3ab990891a6819dc086ab61e399010b3522a7f993b75c54238fd94df8687"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-permission-binding.log",
+      "sha256": "330aea284edde193829f919ed0a46b5f3984aa4bb590e8255152de21b5d251af"
+    },
+    {
+      "path": ".artifacts/interaction-permission-audit-tests.log",
+      "sha256": "5b5fd173437ca3e1da177fa4d33fde1405391be78b1e02f46e7c252da31a6505"
+    },
+    {
+      "path": ".artifacts/interaction-permission-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/interaction-permission-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/interaction-permission-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

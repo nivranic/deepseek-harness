@@ -201,10 +201,23 @@ export interface Config {
     /** Question lifetime in milliseconds, from 1 through 2,147,483,647. */
     readonly question?: number
   }
+  /**
+   * Interaction reply permissions each connected Remote client holds. The
+   * requiredPermission on a pending interaction is enforced Host-side: a
+   * reply from a client without it is rejected without settling or consuming
+   * the delivery, so the underlying tool side effect never runs. Defaults to
+   * granting both; Device Trust roles replace this deployment-wide switch.
+   */
+  readonly interactionReplyPermissions?: {
+    /** Whether clients may answer approvals ('approval.respond'). @default true */
+    readonly approval?: boolean
+    /** Whether clients may answer questions ('question.respond'). @default true */
+    readonly question?: boolean
+  }
 }
 ```
 
-Source: [`packages/api/gateway/src/index.ts:123`](../packages/api/gateway/src/index.ts)
+Source: [`packages/api/gateway/src/index.ts:125`](../packages/api/gateway/src/index.ts)
 
 <a id="deepseek-aidsh-api-host-description"></a>
 

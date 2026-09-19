@@ -6,5 +6,5 @@ let package = Package(
     targets: [
         .target(name: "DSHContract"),
         .testTarget(name: "DSHContractTests", resources: [.copy("Resources/")]),
-    ],
+    ]
 )

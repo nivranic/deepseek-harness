@@ -223,7 +223,8 @@ afterEach(async () => {
 
 describe('Typert Remote streams', () => {
   it('validates optional per-kind interaction timeouts without a default deadline', () => {
-    expect(TypertGatewayService.Config({})).toEqual({ websocketHeartbeatIntervalMs: 2_000, interactionTimeoutMs: {} })
+    expect(TypertGatewayService.Config({})).toEqual({ websocketHeartbeatIntervalMs: 2_000, interactionTimeoutMs: {},
+      interactionReplyPermissions: { approval: true, question: true } })
     expect(TypertGatewayService.Config({ interactionTimeoutMs: { approval: 1, question: MAX_TIMER_DELAY_MS } }))
       .toMatchObject({ interactionTimeoutMs: { approval: 1, question: MAX_TIMER_DELAY_MS } })
     for (const value of [0, -1, 1.5, Infinity, MAX_TIMER_DELAY_MS + 1]) {
@@ -417,9 +418,11 @@ describe('Typert Remote streams', () => {
   })
 
   it('validates the WebSocket heartbeat timer range', () => {
-    expect(TypertGatewayService.Config({})).toEqual({ websocketHeartbeatIntervalMs: 2_000, interactionTimeoutMs: {} })
+    expect(TypertGatewayService.Config({})).toEqual({ websocketHeartbeatIntervalMs: 2_000, interactionTimeoutMs: {},
+      interactionReplyPermissions: { approval: true, question: true } })
     expect(TypertGatewayService.Config({ websocketHeartbeatIntervalMs: MAX_TIMER_DELAY_MS }))
-      .toEqual({ websocketHeartbeatIntervalMs: MAX_TIMER_DELAY_MS, interactionTimeoutMs: {} })
+      .toEqual({ websocketHeartbeatIntervalMs: MAX_TIMER_DELAY_MS, interactionTimeoutMs: {},
+        interactionReplyPermissions: { approval: true, question: true } })
     for (const websocketHeartbeatIntervalMs of [0, 1.5, MAX_TIMER_DELAY_MS + 1]) {
       expect(() => TypertGatewayService.Config({ websocketHeartbeatIntervalMs })).toThrow()
     }
@@ -841,6 +844,50 @@ describe('Typert Remote streams', () => {
     first.socket.close()
     second.socket.close()
     await unregister()
+  })
+
+  it.each([1, 2] as const)('rejects a reply without the required permission and keeps the interaction unsettled (protocol %s)', async (version) => {
+    const { ctx } = await setup(true, { interactionReplyPermissions: { approval: false, question: true } })
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const agent = ctx.extend()
+    const client = await openEventClient(ctx, 'events-a', version)
+    const approval = pendingInvocation(agent, undefined, 'ship', agentId('agent-1'), {
+      sessionId: 'session-1' as RemoteInteractionSessionId, type: 'approval', requiredPermission: 'approval.respond',
+    })
+    const question = pendingInvocation(agent, undefined, 'deliver', agentId('agent-1'), {
+      sessionId: 'session-1' as RemoteInteractionSessionId, type: 'question', requiredPermission: 'question.respond',
+    })
+    source.push(approval.dispatch)
+    source.push(question.dispatch)
+    await vi.waitFor(() => {
+      expect(deliveredInvocation(client)).toBeDefined()
+    })
+    const frames = client.frames
+      .filter(frame => frame.type === 'item' && frame.streamId === client.streamId)
+      .map(frame => frame.value as RemoteEventInvocationFrame)
+      .filter(value => Object.hasOwn(value, 'eventId'))
+    const byPrompt = (prompt: string) => frames.find(frame => (frame.request as { prompt?: unknown } | undefined)?.prompt === prompt)!
+    const approvalFrame = byPrompt('ship')
+    const questionFrame = byPrompt('deliver')
+    expect(approvalFrame).toBeDefined()
+    expect(questionFrame).toBeDefined()
+
+    const unsettled = expect(approval.outcome).rejects.toThrow('forwarded Remote event source was removed')
+    await expect(sendEventResult(client, approvalFrame, {
+      kind: 'result', value: 'allowed',
+    }, version)).rejects.toMatchObject({ code: 'gateway/permission-denied' })
+    expect(approval.resolve).not.toHaveBeenCalled()
+    expect(approval.reject).not.toHaveBeenCalled()
+
+    await sendEventResult(client, questionFrame, {
+      kind: 'result', value: 'answered',
+    }, version)
+    await expect(question.outcome).resolves.toEqual({ kind: 'result', value: 'answered' })
+    expect(approval.resolve).not.toHaveBeenCalled()
+    client.socket.close()
+    await unregister()
+    await unsettled
   })
 
   it.each([1, 2] as const)('accepts one answer and reports interaction-closed to the loser over protocol %s', async (version) => {
