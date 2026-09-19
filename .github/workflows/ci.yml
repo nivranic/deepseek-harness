@@ -47,12 +47,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Swift contract tests
-        # -v prints the frontend invocation and stderr of any failing task;
-        # swift test has failed emit-module without diagnostics on this lane.
+        # --disable-sandbox: SwiftPM's seatbelt sandbox kills swift-frontend
+        # children with exit 1 and no diagnostics on this runner image; the
+        # sandbox only guards manifest plugins, which this package does not use.
         run: |
           swift --version
-          swift build -v --build-tests
-          swift test
+          swift build --build-tests --disable-sandbox
+          swift test --disable-sandbox
         working-directory: apps/apple/contract
   node-24:
     if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
