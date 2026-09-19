@@ -50,11 +50,21 @@ jobs:
         # Invoke the 16.2 toolchain's swift binary directly: DEVELOPER_DIR only
         # retargets compilation, so the 5.10 driver on PATH kept planning the
         # old module layout while the 6.0.3 compiler wrote Modules/ — the test
-        # target then never found the library module.
+        # target then never found the library module. The mini-with-test probe
+        # isolates any remaining package-manifest variable.
         run: |
           SWIFT=/Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift
           "$SWIFT" --version
-          "$SWIFT" build --build-tests
+          set -o pipefail
+          "$SWIFT" build --build-tests 2>&1 | tail -5 || {
+            echo '--- probe: minimal package with a test target ---'
+            mkdir -p /tmp/mini2/Sources/Mini /tmp/mini2/Tests/MiniTests
+            cp Sources/DSHContract/*.swift /tmp/mini2/Sources/Mini/
+            printf 'import XCTest\n@testable import Mini\nfinal class MiniTests: XCTestCase {\n  func testMirror() { XCTAssertEqual(RemoteFailureClasses.classify("future/x"), RemoteFailureClass.unknown) }\n}\n' > /tmp/mini2/Tests/MiniTests/MiniTests.swift
+            printf '// swift-tools-version:5.9\nimport PackageDescription\nlet package = Package(name: "Mini", targets: [.target(name: "Mini"), .testTarget(name: "MiniTests")])\n' > /tmp/mini2/Package.swift
+            (cd /tmp/mini2 && "$SWIFT" test 2>&1 | tail -5; echo "mini2-exit=$?")
+            exit 1
+          }
           "$SWIFT" test
         working-directory: apps/apple/contract
   node-24:
