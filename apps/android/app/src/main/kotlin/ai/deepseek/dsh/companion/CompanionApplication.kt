@@ -16,6 +16,7 @@ class CompanionApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        ensureEd25519KeyGeneration()
         val info = packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
         val application = packageManager.getApplicationInfo(packageName,
             PackageManager.ApplicationInfoFlags.of(PackageManager.GET_META_DATA.toLong()))
@@ -36,7 +37,20 @@ class CompanionApplication : Application() {
                     checkNotNull(manager).getHistoricalProcessExitReasons(packageName, 0, maximumRecords).map {
                         ProcessExitRecord(it.processStateSummary, exitReason(it.reason))
                     }
-            })
+                })
+    }
+
+    /**
+     * Register the bundled Conscrypt when the platform exposes no Ed25519
+     * key generation: pairing's `KeyPairGenerator.getInstance("Ed25519")`
+     * fails with NoSuchAlgorithmException on platform Conscrypt (Android
+     * issue 399856239, still true on Android 15). Position 2 keeps the
+     * platform provider first, so only services it lacks — Ed25519 key
+     * generation and signing — fall through to the bundled provider.
+     */
+    private fun ensureEd25519KeyGeneration() {
+        if (java.security.Security.getProviders().any { it.getService("KeyPairGenerator", "Ed25519") != null }) return
+        java.security.Security.insertProviderAt(org.conscrypt.Conscrypt.newProvider(), 2)
     }
 }
 

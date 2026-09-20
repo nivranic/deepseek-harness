@@ -166,6 +166,10 @@ dependencies {
     bundletool("com.android.tools.build:bundletool:1.18.0")
     implementation(project(":core"))
     implementation(files(scannerAar))
+    // Platform Conscrypt does not expose Ed25519 key generation (Android
+    // issue 399856239), so pairing's KeyPairGenerator needs the bundled
+    // provider registered by CompanionApplication.
+    implementation("org.conscrypt:conscrypt-android:2.7.0")
     val composeBom = platform("androidx.compose:compose-bom:2025.01.00")
     implementation(composeBom)
     implementation("androidx.activity:activity-compose:1.9.3")

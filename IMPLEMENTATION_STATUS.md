@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 模拟器 lane 分类拒绝端到端
+
+[当前来源记录](artifacts/upstream-first/android-refusal-lane-source.json)以随库提交的 Host 侧 Link 夹具（apps/android/support/link-fixture-host.mjs，HTTPS 携带被配对载荷 pin 的自签夹具证书）在本地 AVD 上端到端驱动真实分类拒绝：外壳经自身配对屏完成配对（一次性码值、Ed25519 设备密钥注册），此后每个请求携带经服务端校验的 Ed25519 签名，workspace/follow 流送达工作区记录，列表调用返回夹具文件，被拒绝的 workspaceFiles/read 在文件页呈现类别文案"Host 拒绝了本次调用"（gateway/permission-denied → PERMISSION 类）。驱动该交换修复两处 JVM 测试看不见的外壳缺陷：平台 Conscrypt 不提供 Ed25519 密钥生成（Android issue 399856239），app 捆绑 org.conscrypt:conscrypt-android:2.7.0 并在平台缺失时注册；Files 模型的 workspace/follow 流从未启动，文件页永远为空。生产者侧 failureClass 采纳经调查判为架构空项（所有 job 生产者在 Host 侧运行、RemoteError 不会到达，dsh-sdk provider 在结算前把失败归一化为普通错误），前记录的队列项表述由此更正。Gradle 套件 + :app:assembleDebug、doc-sync 36 门、traceability 6/6 全绿；交换日志、UI dump 与截图随记录归档。局限：夹具是最小 Link Host 而非候选网关（候选不提供 /link/pair，设备侧接入归属仍是 §48 审计决策）；真机与发布签名仍未认定。
+
 ## jobs 面失败类别线程化
 
-[当前来源记录](artifacts/upstream-first/jobs-failure-class-source.json)把失败类别线程化到 jobs 面：JobOutcome 与 JobSnapshot 增加可选 failureClass（RemoteFailureClass），本地注册表在结算失败时把类别携带到快照，jobView 投影进 SessionJob wire 类型，ui-jobs 失败行对认证、兼容、可重试与冲突类别呈现类别文案，其余类别与未分类失败保持原始明细（tooltip 保留原始 detail）——第五个共享分类采纳面。jobs-local 66/66（新增结算类别携带用例）、ui-jobs 22/22（新增类别文案与未分类原始明细用例）、typecheck、lint 0/0、doc-sync 36 门全绿。局限：生产者尚未在结算失败时填充类别（bash/子代理生产者为队列项）；模拟器 lane Host 配对夹具仍未驱动真实分类拒绝交换；工具调用错误行保持刻意不分类。
+[历史来源记录](artifacts/upstream-first/jobs-failure-class-source.json)把失败类别线程化到 jobs 面：JobOutcome 与 JobSnapshot 增加可选 failureClass（RemoteFailureClass），本地注册表在结算失败时把类别携带到快照，jobView 投影进 SessionJob wire 类型，ui-jobs 失败行对认证、兼容、可重试与冲突类别呈现类别文案，其余类别与未分类失败保持原始明细（tooltip 保留原始 detail）——第五个共享分类采纳面。jobs-local 66/66（新增结算类别携带用例）、ui-jobs 22/22（新增类别文案与未分类原始明细用例）、typecheck、lint 0/0、doc-sync 36 门全绿。局限：生产者尚未在结算失败时填充类别（bash/子代理生产者为队列项）；模拟器 lane Host 配对夹具仍未驱动真实分类拒绝交换；工具调用错误行保持刻意不分类。
 
 ## 队列操作失败分类采纳
 

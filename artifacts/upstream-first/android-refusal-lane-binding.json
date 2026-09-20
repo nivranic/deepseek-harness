@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/jobs-failure-class-source.json",
+    "sha256": "5c13a75e7d3f68436104fa6f33c9905d3aa4d7959193e06c70ac76e8fc1dd570"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6f4fac3f88d001507f441ccc523aacaf801e08752163a243cd0d8ade53863eda"
+  },
+  "helper": {
+    "path": ".artifacts/check-jobs-failure-class-binding.mjs",
+    "sha256": "10187e45b5518399dcc90e4eadefd7d15f005fc08ec25e9d57f4bef70ffca7d8"
+  }
+}

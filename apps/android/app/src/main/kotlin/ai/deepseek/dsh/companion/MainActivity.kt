@@ -449,6 +449,9 @@ fun FilesTab(model: CompanionViewModel) {
     val selected by model.files.selectedWorkspace.collectAsStateWithLifecycle()
     val openFile by model.files.openFile.collectAsStateWithLifecycle()
     val openFileError by model.files.openFileError.collectAsStateWithLifecycle()
+    // The workspace list arrives over the follow stream; without this start
+    // the tab renders entries of a stream nobody opened.
+    LaunchedEffect(model.paired) { if (model.paired) model.files.start() }
     LaunchedEffect(model.paired, selected) { model.files.list() }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
