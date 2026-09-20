@@ -22,6 +22,10 @@
 
 [当前来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 外壳消费 Gateway 失败契约
+
+[当前来源记录](artifacts/upstream-first/ui-classification-adoption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
+
 ## 扫描器 AAR 链与 Android 外壳解锁
 
 [历史来源记录](artifacts/upstream-first/scanner-aar-source.json)在本机闭合扫描器 AAR 链：Go 1.27.1 与经 sdkmanager 安装的 NDK 30.0.16248370 按 native/support-scanner/build.json 精确版本运行已提交构建器，产出 8,133,055 字节的 support-scanner.aar（sha256 5af7b7b9…9976），staticVerification PASS（模块图逐 ABI 一致、许可证清单、来源断言、私有路径扫描）；:app:assembleDebug 通过 verifyScannerResources 门禁（回执 sourceSha 与内嵌 manifest 校验），APK 在本地模拟器 AVD 上安装、启动并保持 MainActivity resumed、零崩溃缓冲。不可达的 sum/proxy 端点与 360 主动防御经模块缓存预置（goproxy.cn 镜像）、预置 go.sum、子进程 GOSUMDB=off 与剥离符号链接绕开，内容完整性仍由 ziphash、go mod verify 与来源断言保证（Agent Note 2026-09-20-scanner-toolchain-host-accommodations）。回执中 deviceExecution 仍为 NOT_EXECUTED：扫描器库本体未在设备上调用，冒烟仅覆盖内嵌外壳。

@@ -11,6 +11,7 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import {
   IconChevronDownOutline14, IconChevronRightOutline14, IconRefreshOutline14, StateDot,
 } from '@deepseek-ai/dsh-client-ui-primitives'
+import { classifyRemoteFailure } from '@deepseek-ai/dsh-typert-protocol'
 import type { PropsLocale, PropsRuntime, TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import { NS } from './locales.ts'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
@@ -65,6 +66,21 @@ function treeItems(root: HTMLDivElement | null): HTMLElement[] {
 }
 
 /** Compact token count shared in shape with the conversation stats strip. */
+/**
+ * Present a catalog load failure through the shared Remote failure
+ * classification: classes with actionable copy get their class text, and
+ * everything else keeps the raw message (falling back to the generic text) —
+ * unknown codes stay presentable as opaque diagnostics.
+ */
+function catalogFailureText(error: unknown, t: TranslateNS<typeof NS>): string {
+  switch (classifyRemoteFailure(error)) {
+    case 'authentication': return t('load.errorAuthentication')
+    case 'compatibility': return t('load.errorCompatibility')
+    case 'host-state': case 'transport': return t('load.errorRetry')
+    default: return error instanceof Error && error.message !== '' ? error.message : t('load.error')
+  }
+}
+
 function formatTokens(value: number, t: TranslateNS<typeof NS>): string {
   const scaled = (next: number): string => next >= 100
     ? String(Math.round(next))
@@ -256,7 +272,7 @@ function CatalogRows({
       )}
       {catalog.state === 'error' && (
         <div className={css.error}>
-          <span>{catalog.error?.message ?? t('load.error')}</span>
+          <span>{catalogFailureText(catalog.error, t)}</span>
           <button
             type="button"
             className={css.refresh}

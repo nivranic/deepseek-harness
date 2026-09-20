@@ -600,6 +600,39 @@ describe('SubagentHeaderLineage', () => {
     expect(screen.getByText('index down')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /重试/ }))
     expect(failed.refresh).toHaveBeenCalledWith(PARENT)
+    cleanup()
+  })
+
+  it('presents catalog failures through the shared classification, keeping other classes opaque', () => {
+    const classified = props(catalog({
+      entries: [],
+      state: 'error',
+      error: new RemoteError('gateway/authentication-required', 'stale token', { endpoint: 'session/subagentCatalog', httpStatus: 401 }),
+    }))
+    render(<SubagentHeaderLineage {...classified} />)
+    hoverCatalog(screen.getByRole('button', { name: /0 个子代理/ }))
+    expect(screen.getByText('需要重新认证后才能加载子代理')).toBeTruthy()
+    expect(screen.queryByText('stale token')).toBeNull()
+    cleanup()
+
+    const retryable = props(catalog({
+      entries: [],
+      state: 'error',
+      error: new RemoteError('gateway/host-not-ready', 'warming', { endpoint: 'session/subagentCatalog', httpStatus: 503 }),
+    }))
+    render(<SubagentHeaderLineage {...retryable} />)
+    hoverCatalog(screen.getByRole('button', { name: /0 个子代理/ }))
+    expect(screen.getByText('Host 暂不可用，稍后重试即可')).toBeTruthy()
+    cleanup()
+
+    const unavailable = props(catalog({
+      entries: [],
+      state: 'error',
+      error: new RemoteError('session/not-found', 'parent gone', { sessionId: PARENT }),
+    }))
+    render(<SubagentHeaderLineage {...unavailable} />)
+    hoverCatalog(screen.getByRole('button', { name: /0 个子代理/ }))
+    expect(screen.getByText('parent gone')).toBeTruthy()
   })
 
   it('keeps known descendants reachable while their catalog is absent or stale-empty', () => {

@@ -27,7 +27,7 @@ kind: "package-reference"
 
 会话页头保留当前会话 title 作为谱系面包屑，并在会话存在 subagent 后代时，于页头操作行之前追加 `/` 数量触发器；触发器打开后代目录，统计仅含 subagent 的完整谱系、在普通 fork 处停止，并在任一计入统计的后代处于 `running` 时显示活动仍在进行。选择任意深度，即可用该子会话的确切 `{parentSessionId, childSessionId, mode}` 地址打开其对话。
 
-页眉目录要求 `subagent.catalog.v1`，不支持的 Host 不会收到目录探测。替换连接会关闭菜单并使其回调失效，同时保留已选子级及其草稿。可继续子级的 Send 还要求 `subagent.prompt.v1`，独立 Stop 要求 `subagent.interrupt.v1`。能力支持不替代父级可用性或 Host 授权。
+页眉目录要求 `subagent.catalog.v1`，不支持的 Host 不会收到目录探测。替换连接会关闭菜单并使其回调失效，同时保留已选子级及其草稿。可继续子级的 Send 还要求 `subagent.prompt.v1`，独立 Stop 要求 `subagent.interrupt.v1`。能力支持不替代父级可用性或 Host 授权。目录加载失败经共享 Remote 失败分类呈现：认证、兼容与可重试类别显示类别文案，共享词汇表之外的码保持不透明诊断并原样携带信封 message。
 
 ### 浏览目录
 

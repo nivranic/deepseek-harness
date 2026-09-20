@@ -4,48 +4,20 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "065c363c96e85de220b48ea42e003ee3fc3b41fc3e9553dfd39cfb613c8c92d1"
-    },
-    {
-      "path": "apps/android/README.i18n.yaml",
-      "sha256": "e5b252f4cca3b875bafc3326925f255471d808bce015b37361d03d2cbfeb04cb"
-    },
-    {
-      "path": "apps/android/README.md",
-      "sha256": "73801d8c8e4e5638e0df30817cf3e5b39701eb5120d7a4c65b515c8f603944fa"
-    },
-    {
-      "path": "apps/android/README.zh.md",
-      "sha256": "36912b665b4bc936686b7abffd92ac18bf6d21c60ea9b6bb54c256593ce0ef78"
-    },
-    {
-      "path": "apps/android/core/build.gradle.kts",
-      "sha256": "e538c79a5b6f7018c633e58502b380ceafcd018e48e8fdde4e95c67d18d2d57d"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-      "sha256": "cc9b0898f6fbb8df2f7b528204f81057ec37daddb5a41ad1f61ea506f66b91c3"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
-      "sha256": "f9b6eb1b9c29afd47d11bc5b707503847f4b7f7d1e0bde616eef4bc2c529113c"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt",
-      "sha256": "5a15907b754f2dfed881efc761df5ad2725a12b1e3aea7261b59f5d74f8c1684"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
-      "sha256": "af0c22f35ce28fec242e514db42eaae98ab6dc5afa7af46b37cdd66ed03517ad"
-    },
-    {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "ede9c9b50f1c472eadf0a1cc8f7d505ba3e72ca8c70d9597f95079b5166abf63"
+      "sha256": "dc82ab710aaffff1cbc7d4d39c4d151d7ea92e352b405d9eadb44fe64aa0151f"
+    },
+    {
+      "path": "artifacts/upstream-first/ui-classification-adoption-binding.json",
+      "sha256": "321384c5a0a3768469838e2e3548b13f5c7d669e654d7b6b643e3c96d595179e"
+    },
+    {
+      "path": "artifacts/upstream-first/ui-classification-adoption-source.json",
+      "sha256": "e7c16fa2245efaf84377ba1ff0217a66d65632c0680377997848ba098233ba6a"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "82db4a5d529944617efae161a9d2871190a7f1257704e4977c4f5949d2f8bf9e"
+      "sha256": "0859c172ef16531bd01db4f2abb46b199016f2141acf29e3528ae0f8ad83f9a1"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -9606,7 +9578,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/gateway-consumption-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -10089,7 +10061,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "82db4a5d529944617efae161a9d2871190a7f1257704e4977c4f5949d2f8bf9e"
+        "sha256": "0859c172ef16531bd01db4f2abb46b199016f2141acf29e3528ae0f8ad83f9a1"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
