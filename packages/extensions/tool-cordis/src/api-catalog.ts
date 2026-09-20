@@ -4517,7 +4517,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'JobOutcome',
-    declaration: 'export interface JobOutcome {\n    status: \'completed\' | \'killed\' | \'failed\';\n    detail?: string;\n    output?: string;\n}',
+    declaration: 'export interface JobOutcome {\n    status: \'completed\' | \'killed\' | \'failed\';\n    detail?: string;\n    failureClass?: RemoteFailureClass;\n    output?: string;\n}',
   },
   {
     name: 'JobRead',
@@ -4529,7 +4529,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'JobSnapshot',
-    declaration: 'export interface JobSnapshot {\n    id: JobId;\n    kind: JobKind;\n    label: string;\n    outputLimitBytes?: number;\n    ownerSession?: SessionId;\n    status: JobStatus;\n    detail?: string;\n    startedAt: number;\n    finishedAt?: number;\n    reported: boolean;\n}',
+    declaration: 'export interface JobSnapshot {\n    id: JobId;\n    kind: JobKind;\n    label: string;\n    outputLimitBytes?: number;\n    ownerSession?: SessionId;\n    status: JobStatus;\n    detail?: string;\n    failureClass?: RemoteFailureClass;\n    startedAt: number;\n    finishedAt?: number;\n    reported: boolean;\n}',
   },
   {
     name: 'JobStart',
@@ -4988,6 +4988,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RemoteEventHostInfo {\n    readonly home: string;\n}',
   },
   {
+    name: 'RemoteFailureClass',
+    declaration: 'export type RemoteFailureClass = \'authentication\' | \'permission\' | \'host-state\' | \'compatibility\' | \'carrier-invalid\' | \'transport\' | \'conflict\' | \'unavailable\' | \'invalid-input\' | \'unknown\';',
+  },
+  {
     name: 'RemoteInteractionOrigin',
     declaration: 'export type RemoteInteractionOrigin = {\n    readonly sessionId: RemoteInteractionSessionId;\n} & RemoteInteractionPolicy;',
   },
@@ -5349,7 +5353,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionJob',
-    declaration: 'export interface SessionJob {\n    readonly id: JobId;\n    readonly kind: string;\n    readonly label: string;\n    readonly status: \'running\' | \'stopping\' | \'completed\' | \'killed\' | \'failed\';\n    readonly detail?: string;\n    readonly startedAt: number;\n    readonly finishedAt?: number;\n}',
+    declaration: 'export interface SessionJob {\n    readonly id: JobId;\n    readonly kind: string;\n    readonly label: string;\n    readonly status: \'running\' | \'stopping\' | \'completed\' | \'killed\' | \'failed\';\n    readonly detail?: string;\n    readonly failureClass?: RemoteFailureClass;\n    readonly startedAt: number;\n    readonly finishedAt?: number;\n}',
   },
   {
     name: 'SessionLineageNode',

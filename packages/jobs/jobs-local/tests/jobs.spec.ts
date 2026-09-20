@@ -321,6 +321,15 @@ describe('LocalJobRegistry reads and settlement', () => {
     expect(ctx.jobs.read(id)).toMatchObject({ text: '', snapshot: { status: 'failed', detail: 'max-tokens' } })
   })
 
+  it('carries a classified Remote failure onto the settled snapshot', async () => {
+    const ctx = await harness()
+    const p = producer({ kind: 'subagent' })
+    const id = ctx.jobs.start(p.spec)
+    p.settle({ status: 'failed', detail: 'index down', failureClass: 'host-state' })
+    await tick()
+    expect(ctx.jobs.read(id).snapshot).toMatchObject({ status: 'failed', detail: 'index down', failureClass: 'host-state' })
+  })
+
   it('throws for unknown job ids', async () => {
     const ctx = await harness()
     expect(() => ctx.jobs.read(JobId('bash-99'))).toThrow('unknown job bash-99')

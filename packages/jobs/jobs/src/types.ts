@@ -6,6 +6,7 @@
 
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { SessionId } from '@deepseek-ai/dsh-session'
+import type { RemoteFailureClass } from '@deepseek-ai/dsh-typert-protocol'
 import type { JobId } from './brand.ts'
 
 export { JobId } from './brand.ts'
@@ -34,6 +35,12 @@ export interface JobOutcome {
   status: 'completed' | 'killed' | 'failed'
   /** Kind-specific detail rendered into status lines ('exit code: 3', 'max-tokens'). */
   detail?: string
+  /**
+   * Shared classification of the Remote failure that broke the job, supplied
+   * by producers whose failure cause was a Remote error the shared vocabulary
+   * classifies. Absent for non-Remote failures and every non-`failed` outcome.
+   */
+  failureClass?: RemoteFailureClass
   /** Final output for jobs without `readOutput`; stream jobs leave it unset. */
   output?: string
 }
@@ -113,6 +120,8 @@ export interface JobSnapshot {
   status: JobStatus
   /** Kind-specific status detail, present once the producer supplied one (usually terminal). */
   detail?: string
+  /** Shared classification of the Remote failure that broke the job; absent for non-Remote failures. */
+  failureClass?: RemoteFailureClass
   /** Epoch ms when the job was registered. */
   startedAt: number
   /** Epoch ms when the job settled; absent while `running`/`stopping`. */

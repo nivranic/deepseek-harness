@@ -230,6 +230,16 @@ describe('JobListAction wire tolerance', () => {
     ])
   })
 
+  it('presents a failed job through its shared failure class, keeping unclassified detail raw', () => {
+    render(<JobListAction {...props([
+      job({ id: 'bash-1' as JobView['id'], label: 'auth', status: 'failed', detail: 'stale token', failureClass: 'authentication' }),
+      job({ id: 'bash-2' as JobView['id'], label: 'plain', status: 'failed', detail: 'exit code: 3' }),
+    ])} />)
+    fireEvent.click(screen.getByRole('button'))
+    expect(rowCells().map(cells => cells[2])).toEqual(['因需要重新认证而失败', 'exit code: 3'])
+    expect(screen.getByTitle('stale token')).toBeTruthy()
+  })
+
   it('falls back to start order when neither settled job carries a finish time', () => {
     render(<JobListAction {...props([
       job({ id: 'bash-2' as JobView['id'], label: 'later', status: 'failed', startedAt: START + 1_000 }),

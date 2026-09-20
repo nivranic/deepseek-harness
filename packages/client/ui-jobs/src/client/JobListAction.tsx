@@ -54,6 +54,21 @@ function statusLabel(status: JobView['status'], t: TranslateNS<typeof NS>): stri
 }
 
 /**
+ * A failed job's status text: the shared failure classification when the
+ * producer carried one (Remote failures only), the kind-specific detail
+ * otherwise. The title tooltip keeps the raw detail either way.
+ */
+function failureText(job: JobView, status: string, t: TranslateNS<typeof NS>): string {
+  switch (job.failureClass) {
+    case 'authentication': return t('failure.authentication')
+    case 'compatibility': return t('failure.compatibility')
+    case 'host-state': case 'transport': return t('failure.retry')
+    case 'conflict': return t('failure.refresh')
+    default: return job.detail ?? status
+  }
+}
+
+/**
  * Elapsed time in at most two adjacent units. A background job that outlives
  * an hour is already exceptional, so hours is the widest unit — beyond that the
  * figure stays in hours rather than growing a day/month vocabulary no producer
@@ -165,7 +180,7 @@ export function JobListAction({ sessionId, useSessions, t }: JobListActionProps)
                   <StateDot state={dotState(job.status)} className={css.rowDot} />
                   <span className={css.kind}>{job.kind}</span>
                   <span className={css.label} title={job.label}>{job.label}</span>
-                  <span className={css.status} title={job.detail ?? status}>{job.detail ?? status}</span>
+                  <span className={css.status} title={job.detail ?? status}>{job.status === 'failed' ? failureText(job, status, t) : (job.detail ?? status)}</span>
                   <span
                     className={css.duration}
                     title={t(live ? 'duration.title.live' : 'duration.title.done', { duration })}

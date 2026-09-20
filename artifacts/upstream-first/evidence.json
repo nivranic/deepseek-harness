@@ -5,47 +5,123 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "7cd2ab37dafe9d0563bc3940444b375ed9e4136ca9ae48b741234e7bb1541500"
+      "sha256": "441491c4a6ab26d6770d926b7df1f7effa8b2c360b85117dacc89aeb50e0a1d6"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "002b787bc25ff07f8ec07e686f2a2885acb94290ca7f589dd0be3122694109b8"
+      "sha256": "5a6b0f7cb8d8c65b0f16904b6f75b2f3aeb27be9e94576a692f6189a4783456d"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "52a0859d078295739106fa8f2bacbd63cdfc42181728d342d4442c3176f41019"
+      "sha256": "a2db0f1686fd6d9b366a1217714725b7c7930a53096a41143fb8c2b689d62021"
     },
     {
-      "path": "packages/client/ui-conversation/README.i18n.yaml",
-      "sha256": "3b99aee06e63c19da5fad2d629df53a821a8ac3487852e2da1a2061b53b474ee"
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "8520ae197186b021f3fb60670bfc2aec60f918b965c0155690fed90cf9e26e45"
     },
     {
-      "path": "packages/client/ui-conversation/README.md",
-      "sha256": "8a45bafe655098cbbd8861e1210b26b027b9f201a5d585d29e915280358703b9"
+      "path": "docs/config-catalog.md",
+      "sha256": "bddd1f02be807bf5551d3a087f4354e2f90c72d329511acac2da3880e3d3e2fb"
     },
     {
-      "path": "packages/client/ui-conversation/README.zh.md",
-      "sha256": "9455bc418ee2c042ab6dff1ecc8a4abf31168f7f381b183fec98453f015ae41c"
+      "path": "docs/config-catalog.zh.md",
+      "sha256": "34b12c06f4bebd77a0a2230a9c559103990de648f83d00cf0127b4150f3827cb"
     },
     {
-      "path": "packages/client/ui-conversation/package.json",
-      "sha256": "e6cb24aa2829884ca3eb84cdbf186a39c9563f60a8a20b2c42aa87c9e63acdf8"
+      "path": "docs/event-producer-consumer.i18n.yaml",
+      "sha256": "59f9073fd493a6a08380baba72547c3c5796891ebb7470f28042004235a61d64"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/locales.ts",
-      "sha256": "a4a58e73716700f3316eca315b845a768ba784a44ebd9311e7b25052f208c58b"
+      "path": "docs/event-producer-consumer.md",
+      "sha256": "21e9b6915e91a1e73f3ce562773543fdbc5d9a16a1e8864b1b4509fb95e71bbd"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/queue/QueueDock.tsx",
-      "sha256": "3203173e0030d77728c782b39f0ce08dff76bd31088d3790313e2f6a632416cd"
+      "path": "docs/event-producer-consumer.zh.md",
+      "sha256": "19e058b91bda9219dce1bcdf366176106c6e93b47b9471e7beab6cffe6cc7ec2"
     },
     {
-      "path": "packages/client/ui-conversation/tests/queue-dock.client.spec.tsx",
-      "sha256": "11d6ccef44ad6e36a5742bf912a446bd419cff6008774ff662ec590f787f786b"
+      "path": "docs/persistence-catalog.i18n.yaml",
+      "sha256": "aa3ce1c551d209be378cbbb1fd479e17784e34d80fc4e8c2dd0dd56b5751d6a1"
+    },
+    {
+      "path": "docs/persistence-catalog.md",
+      "sha256": "976af945c5c38375175d66d101b065e6a765eefa188ac5aa3129e14513d5ca6e"
+    },
+    {
+      "path": "docs/persistence-catalog.zh.md",
+      "sha256": "6dfbdf59d54434d6269a0e8809079d503f40aae3bc02be804948a7f7746e574c"
+    },
+    {
+      "path": "docs/subsystems/jobs.i18n.yaml",
+      "sha256": "8eb32fc25c0e539c43adae54ba53ae7815a2112f12ecf5113bf2030ccf9d94c0"
+    },
+    {
+      "path": "docs/subsystems/jobs.md",
+      "sha256": "d11b5530a7159f29a00cc7bf5f498c1da6ed4a2e60aac757378f357b4cd5878c"
+    },
+    {
+      "path": "docs/subsystems/jobs.zh.md",
+      "sha256": "7f6c23a5ab843d5983c756a0d25eb0b42fc6eb7afcc1dafd3b046ef43c2be860"
+    },
+    {
+      "path": "packages/api/session-controller/src/control.ts",
+      "sha256": "90644770b79fb9492addece5227db6f60842d03656bf85ee6c7d69c20d6ba514"
+    },
+    {
+      "path": "packages/api/session-controller/src/types.ts",
+      "sha256": "41debed927328790da023dd2c5b12db97057ac56fa3c413dbe067c872628c6d8"
+    },
+    {
+      "path": "packages/client/ui-jobs/README.i18n.yaml",
+      "sha256": "f4ba45c6878929fdbaa859bcba21846063b5a225793c8d7e4ea6a5379b15d79b"
+    },
+    {
+      "path": "packages/client/ui-jobs/README.md",
+      "sha256": "d9bb3dbe4bd231a35721a9d469c83a4bc674b737f5d5a3e185ec1804f3d12852"
+    },
+    {
+      "path": "packages/client/ui-jobs/README.zh.md",
+      "sha256": "fd598bb081059ef40d1196225bb4d32e336d8d4a9955f11dbfd37f78435e758f"
+    },
+    {
+      "path": "packages/client/ui-jobs/src/client/JobListAction.tsx",
+      "sha256": "4469678801c662ca9d084d46ce37ff75f369cc21e853d73eae255def8487964a"
+    },
+    {
+      "path": "packages/client/ui-jobs/src/client/locales.ts",
+      "sha256": "1ff42d0e9c713a3a15337a5befb586a0088c9b0621f5a72213193050aad5c8cd"
+    },
+    {
+      "path": "packages/client/ui-jobs/tests/job-list-action.client.spec.tsx",
+      "sha256": "755808f261d51fd2bf815e79439772ddb2ac50c65d783827ebee095d2859e7a8"
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "d9c05f7ad0be8a9f491c59ef1e7d2c5757e65f48a6aa52617252a8d010e87c31"
+    },
+    {
+      "path": "packages/jobs/jobs-local/package.json",
+      "sha256": "f4e79a262efd558c333937843e24e62fe3ea099bebf17e36eea5c7c20154a018"
+    },
+    {
+      "path": "packages/jobs/jobs-local/src/index.ts",
+      "sha256": "381041b0955eeb238359aab0cde5acee0ae6cd221b9bb8ed65ed844777d01305"
+    },
+    {
+      "path": "packages/jobs/jobs-local/tests/jobs.spec.ts",
+      "sha256": "bd674d0074faa956a1b60c029f25c60b3f84e3226491973e077ff63a4ef8fffe"
+    },
+    {
+      "path": "packages/jobs/jobs/package.json",
+      "sha256": "59dcf3a3ef521e59e8f58610579f00610cace3e5fc6fba262ba1c1124d8f9bbc"
+    },
+    {
+      "path": "packages/jobs/jobs/src/types.ts",
+      "sha256": "d7e2b5b4a6694c599e7a17b59b2ad53a714da2bc95cf216b810e9b273892596d"
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "d0915c8035d179200ab70582c7ab709abd05db9eaf2ce16e375448ae639be462"
+      "sha256": "67f9706bc98f5cb57e1d7de6237c07f378e42d98236b76f8b5841804d70b9df8"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5608,6 +5684,96 @@
     },
     {
       "status": "PASS",
+      "command": "ui-subagent suite (4 files, 36 tests) including the new classification-presentation cases: authentication and host-state codes show class copy, unclassified classes keep the raw message",
+      "log": ".artifacts/ui-classification-tests.log",
+      "sourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck after the dsh-typert-protocol dependency addition",
+      "log": ".artifacts/ui-classification-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/ui-classification-lint.log",
+      "sourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates after the bilingual ui-subagent README sentence",
+      "log": ".artifacts/ui-classification-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the adoption evidence",
+      "log": ".artifacts/ui-classification-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "ui-conversation suite (33 files, 447 tests) including the new classified-vs-static queue failure cases",
+      "log": ".artifacts/queue-classification-tests.log",
+      "sourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck after the dsh-typert-protocol dependency addition",
+      "log": ".artifacts/queue-classification-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/queue-classification-lint.log",
+      "sourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates after the bilingual ui-conversation README sentence",
+      "log": ".artifacts/queue-classification-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the queue adoption evidence",
+      "log": ".artifacts/queue-classification-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "jobs-local suite (66 tests, new registry-carry case) + ui-jobs suite (22 tests, new class-copy-vs-raw-detail case); session-controller media-references symlink failure is the documented Windows EPERM class",
+      "log": ".artifacts/jobs-classification-tests.log",
+      "sourceRecord": "artifacts/upstream-first/jobs-failure-class-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck across the jobs/session-controller/ui-jobs type additions",
+      "log": ".artifacts/jobs-classification-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/jobs-failure-class-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/jobs-classification-lint.log",
+      "sourceRecord": "artifacts/upstream-first/jobs-failure-class-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the en+zh subsystem type blocks, regenerated catalogs, and mirrored zh line references",
+      "log": ".artifacts/jobs-classification-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/jobs-failure-class-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the threading evidence",
+      "log": ".artifacts/jobs-classification-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/jobs-failure-class-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6111,7 +6277,351 @@
     "installerQualified": false,
     "otherPlatformsQualified": false
   },
+  "uiClassificationAdoption": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/queue-classification-adoption-source.json",
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json",
+    "scope": "UI classification adoption breadth: the subagent lineage catalog presents load failures through the shared Remote failure classification (ui-subagent joins ui-workspace and ui-deliverables) — authentication, compatibility, and retryable classes get class copy, other classes and unknown codes keep the envelope message verbatim with the generic fallback",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 3,
+    "limitations": [
+      "The adoption covers the subagent lineage catalog; other failure-presenting surfaces (jobs, tool cards, deliverable previews beyond the two already-adopted surfaces) still present raw messages and remain queue items.",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Continue UI classification adoption breadth across remaining failure-presenting surfaces, the emulator-lane Host pairing fixture, and the remaining specification sections",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
+  "queueClassificationAdoption": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/jobs-failure-class-source.json",
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json",
+    "scope": "Queue-dock classification adoption: failed queue actions (edit, remove, steer) present through the shared Remote failure classification — authentication, compatibility, retryable, and conflict classes show class copy; other classes and non-Remote errors keep the action static failure text (ui-conversation joins ui-workspace, ui-deliverables, and ui-subagent)",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 4,
+    "queueDockClassificationAdopted": true,
+    "limitations": [
+      "The adoption covers queue edit/remove/steer actions; the jobs surface needs the SessionJob wire type to carry a failure class and remains a queue item; tool-call error rows are model/tool-produced failures, not Remote failures, and are deliberately not classified.",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Continue classification adoption breadth (jobs detail threading needs the SessionJob wire type), the emulator-lane Host pairing fixture, and the remaining specification sections",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
+  "jobsFailureClass": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/jobs-failure-class-source.json",
+    "scope": "Job failure class threading: JobOutcome and JobSnapshot gain optional failureClass (RemoteFailureClass), the local registry carries it from settlement onto the snapshot, jobView projects it into SessionJob, and ui-jobs failed rows present class copy with the raw detail retained in the tooltip — the fifth shared-classification surface (producers supply the field incrementally; tool-call error rows stay deliberately unclassified)",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "limitations": [
+      "No producer yet supplies failureClass: the field threads end to end and presents when present, but every current failed job still shows its raw detail until producers adopt (next queue item).",
+      "The session-controller media-references symlink test fails on this host (Windows symlink EPERM without Developer Mode) — documented Windows-environment class, not a regression.",
+      "No user-data migration, autostart, delegation or memory changes. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Producer adoption of failureClass (bash/subagent producers classify their caught Remote errors), the emulator-lane Host pairing fixture, and the remaining specification sections",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "gatewayConsumption": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/ui-classification-adoption-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/gateway-consumption-source.json",
     "scope": "Android shell Gateway failure contract consumption: LinkWire keeps the failure envelope details it already validated (unary result and stream failure frame), LinkClientException.Refused carries code, envelopeMessage and structured details out of both refusal paths, and GatewayFailurePresentation consumes the shared RemoteFailureClasses mirror — known classes get one next action and one presentation string, codes outside the vocabulary stay opaque diagnostics with the envelope verbatim; the file viewer consults the classifier before its private lite-fold refinement",
@@ -9606,7 +10116,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/jobs-failure-class-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -10089,7 +10599,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "52a0859d078295739106fa8f2bacbd63cdfc42181728d342d4442c3176f41019"
+        "sha256": "a2db0f1686fd6d9b366a1217714725b7c7930a53096a41143fb8c2b689d62021"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

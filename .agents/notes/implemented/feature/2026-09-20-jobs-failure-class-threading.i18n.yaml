@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-jobs-failure-class-threading.md
+2026-09-20-jobs-failure-class-threading.md: 908e772a2243dafdc13a3798bc75f527eb4e19f3
+2026-09-20-jobs-failure-class-threading.zh.md: f3241f0f0ee1a551d950b531adda2776a7c4befc

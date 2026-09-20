@@ -16,6 +16,7 @@ import { AnonymousEntries, ScopedLayers, scopeOf } from '@deepseek-ai/dsh-scope'
 import type { ScopeLayer } from '@deepseek-ai/dsh-scope'
 import { deadline, timeoutOf } from '@deepseek-ai/dsh-timeout'
 import { JobRegistry, JobId } from '@deepseek-ai/dsh-jobs'
+import type { RemoteFailureClass } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   JobDoneListener, JobKind, JobOutcome, JobRead, JobSnapshot, JobStart, JobStatus,
   JobsChangedListener,
@@ -48,6 +49,7 @@ interface TrackedTask {
   readOutput: (() => string) | undefined
   status: JobStatus
   detail: string | undefined
+  failureClass: RemoteFailureClass | undefined
   output: string | undefined
   startedAt: number
   finishedAt: number | undefined
@@ -164,6 +166,7 @@ export class LocalJobRegistry extends JobRegistry {
       readOutput: hooks.readOutput?.bind(hooks),
       status: 'running',
       detail: undefined,
+      failureClass: undefined,
       output: undefined,
       startedAt: Date.now(),
       finishedAt: undefined,
@@ -370,6 +373,7 @@ export class LocalJobRegistry extends JobRegistry {
       ...ownerSession !== undefined ? { ownerSession } : {},
       status: job.status,
       ...job.detail !== undefined ? { detail: job.detail } : {},
+      ...job.failureClass !== undefined ? { failureClass: job.failureClass } : {},
       startedAt: job.startedAt,
       ...job.finishedAt !== undefined ? { finishedAt: job.finishedAt } : {},
       reported: job.reported,
@@ -417,6 +421,7 @@ export class LocalJobRegistry extends JobRegistry {
     if (isTerminal(job.status)) return
     job.status = outcome.status
     job.detail = outcome.detail
+    job.failureClass = outcome.failureClass
     job.output = outcome.output
     job.finishedAt = Date.now()
     if (job.waiters > 0) job.reported = true

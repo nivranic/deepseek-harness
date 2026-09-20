@@ -11,6 +11,7 @@ import type { SessionProjectionMap } from '@deepseek-ai/dsh-session-projection/t
 import type { JobId } from '@deepseek-ai/dsh-jobs/brand'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { WorkspaceId } from '@deepseek-ai/dsh-workspace/types'
+import type { RemoteFailureClass } from '@deepseek-ai/dsh-typert-protocol'
 
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionStateMap {
@@ -576,6 +577,8 @@ export interface SessionJob {
   readonly label: string
   readonly status: 'running' | 'stopping' | 'completed' | 'killed' | 'failed'
   readonly detail?: string
+  /** Shared classification of the Remote failure that broke the job; absent for non-Remote failures. */
+  readonly failureClass?: RemoteFailureClass
   readonly startedAt: number
   readonly finishedAt?: number
 }
