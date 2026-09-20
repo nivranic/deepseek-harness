@@ -14,7 +14,7 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import {
-  bindSnapshotSelector, conversationSnapshot, makeTranslate,
+  bindSnapshotSelector, conversationSnapshot, makeTranslate, RemoteError,
 } from '@deepseek-ai/dsh-client-test-runtime'
 import type { SessionPendingInteractionSnapshot } from '@deepseek-ai/dsh-client-ui-session/client'
 import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts'
@@ -458,6 +458,37 @@ describe('QueueDock', () => {
         content: [{ type: 'text', text: 'after' }],
       })
     })
+  })
+
+  it('presents failed queue actions through the shared classification, keeping other failures static', async () => {
+    const snap = snapshotWith([row('i-edit', 'before')])
+    const source = liveSession(snap)
+    const notify = vi.fn()
+    const updateQueue = vi.fn(() => Promise.reject(
+      new RemoteError('gateway/host-not-ready', 'warming', { endpoint: 'session/updateQueueItem', httpStatus: 503 }),
+    ))
+    const { getByLabelText } = render(
+      <QueueDock {...kitFor(snap, { updateQueue, notify })} useSession={source.useSession} />,
+    )
+    fireEvent.click(getByLabelText('编辑排队消息'))
+    const editor = getByLabelText('编辑排队消息') as HTMLInputElement
+    fireEvent.change(editor, { target: { value: 'after' } })
+    fireEvent.keyDown(editor, { key: 'Enter' })
+    await waitFor(() => { expect(notify).toHaveBeenCalledOnce() })
+    expect(notify).toHaveBeenCalledWith('error', 'Host 暂不可用，稍后重试即可。')
+    cleanup()
+
+    notify.mockClear()
+    const staticFailure = vi.fn(() => Promise.reject(new Error('network hiccup')))
+    const rerendered = render(
+      <QueueDock {...kitFor(snap, { updateQueue: staticFailure, notify })} useSession={source.useSession} />,
+    )
+    fireEvent.click(rerendered.getByLabelText('编辑排队消息'))
+    const editor2 = rerendered.getByLabelText('编辑排队消息') as HTMLInputElement
+    fireEvent.change(editor2, { target: { value: 'later' } })
+    fireEvent.keyDown(editor2, { key: 'Enter' })
+    await waitFor(() => { expect(notify).toHaveBeenCalledOnce() })
+    expect(notify).toHaveBeenCalledWith('error', '编辑失败：这条消息可能已经开始发送。')
   })
 
   it('cancels an edit by button or Escape without mutating the queue', () => {

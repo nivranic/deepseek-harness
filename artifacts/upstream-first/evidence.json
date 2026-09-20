@@ -4,20 +4,48 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7cd2ab37dafe9d0563bc3940444b375ed9e4136ca9ae48b741234e7bb1541500"
+    },
+    {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "dc82ab710aaffff1cbc7d4d39c4d151d7ea92e352b405d9eadb44fe64aa0151f"
-    },
-    {
-      "path": "artifacts/upstream-first/ui-classification-adoption-binding.json",
-      "sha256": "321384c5a0a3768469838e2e3548b13f5c7d669e654d7b6b643e3c96d595179e"
-    },
-    {
-      "path": "artifacts/upstream-first/ui-classification-adoption-source.json",
-      "sha256": "e7c16fa2245efaf84377ba1ff0217a66d65632c0680377997848ba098233ba6a"
+      "sha256": "002b787bc25ff07f8ec07e686f2a2885acb94290ca7f589dd0be3122694109b8"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "0859c172ef16531bd01db4f2abb46b199016f2141acf29e3528ae0f8ad83f9a1"
+      "sha256": "52a0859d078295739106fa8f2bacbd63cdfc42181728d342d4442c3176f41019"
+    },
+    {
+      "path": "packages/client/ui-conversation/README.i18n.yaml",
+      "sha256": "3b99aee06e63c19da5fad2d629df53a821a8ac3487852e2da1a2061b53b474ee"
+    },
+    {
+      "path": "packages/client/ui-conversation/README.md",
+      "sha256": "8a45bafe655098cbbd8861e1210b26b027b9f201a5d585d29e915280358703b9"
+    },
+    {
+      "path": "packages/client/ui-conversation/README.zh.md",
+      "sha256": "9455bc418ee2c042ab6dff1ecc8a4abf31168f7f381b183fec98453f015ae41c"
+    },
+    {
+      "path": "packages/client/ui-conversation/package.json",
+      "sha256": "e6cb24aa2829884ca3eb84cdbf186a39c9563f60a8a20b2c42aa87c9e63acdf8"
+    },
+    {
+      "path": "packages/client/ui-conversation/src/client/locales.ts",
+      "sha256": "a4a58e73716700f3316eca315b845a768ba784a44ebd9311e7b25052f208c58b"
+    },
+    {
+      "path": "packages/client/ui-conversation/src/client/queue/QueueDock.tsx",
+      "sha256": "3203173e0030d77728c782b39f0ce08dff76bd31088d3790313e2f6a632416cd"
+    },
+    {
+      "path": "packages/client/ui-conversation/tests/queue-dock.client.spec.tsx",
+      "sha256": "11d6ccef44ad6e36a5742bf912a446bd419cff6008774ff662ec590f787f786b"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "d0915c8035d179200ab70582c7ab709abd05db9eaf2ce16e375448ae639be462"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -9578,7 +9606,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/ui-classification-adoption-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/queue-classification-adoption-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -10061,7 +10089,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "0859c172ef16531bd01db4f2abb46b199016f2141acf29e3528ae0f8ad83f9a1"
+        "sha256": "52a0859d078295739106fa8f2bacbd63cdfc42181728d342d4442c3176f41019"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

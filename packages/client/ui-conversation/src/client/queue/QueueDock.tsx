@@ -1,6 +1,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
+import { classifyRemoteFailure } from '@deepseek-ai/dsh-typert-protocol'
 import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import {
@@ -18,6 +19,22 @@ export interface QueueDockInjected {
   notify: (level: 'info' | 'error', text: string) => void
   /** Resolve one durable queued image into a session-scoped browser URL. */
   loadImage: (attachment: ImageAttachmentRef) => Promise<string>
+}
+
+/**
+ * Present a failed queue action through the shared Remote failure
+ * classification: classes with actionable copy get their class text, and
+ * everything else (including non-Remote errors) keeps the action's static
+ * failure string.
+ */
+function queueFailureText(error: unknown, fallback: string, t: QueueDockProps['t']): string {
+  switch (classifyRemoteFailure(error)) {
+    case 'authentication': return t('queue.failureAuthentication')
+    case 'compatibility': return t('queue.failureCompatibility')
+    case 'host-state': case 'transport': return t('queue.failureRetry')
+    case 'conflict': return t('queue.failureRefresh')
+    default: return fallback
+  }
 }
 
 /**
@@ -125,8 +142,11 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
     try {
       await updateQueue(itemId, action)
       return true
-    } catch {
-      notify('error', failure)
+    } catch (error) {
+      // Queue operations are Remote calls: failures the shared vocabulary
+      // classifies present their class copy; anything else keeps the action's
+      // static failure text (the raw error stays in the console/diagnostics).
+      notify('error', queueFailureText(error, failure, t))
       return false
     } finally {
       setBusy(current => current === itemId ? null : current)

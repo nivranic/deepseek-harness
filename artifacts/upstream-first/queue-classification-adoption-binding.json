@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/gateway-consumption-source.json",
+    "sha256": "208c8b3591d5675b0f17b2c96e2276ad4cfd9a30e22e0f0df533faa2d8c652c2"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "52a0859d078295739106fa8f2bacbd63cdfc42181728d342d4442c3176f41019"
+  },
+  "helper": {
+    "path": ".artifacts/check-gateway-consumption-binding.mjs",
+    "sha256": "a3dc7bd31d2625499eda6b18f995e01cb2fe91f1c37c625ba804cea44ac69301"
+  }
+}

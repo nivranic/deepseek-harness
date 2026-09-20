@@ -24,7 +24,13 @@
 
 ## Android 外壳消费 Gateway 失败契约
 
-[当前来源记录](artifacts/upstream-first/ui-classification-adoption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
+## 队列操作失败分类采纳
+
+[当前来源记录](artifacts/upstream-first/queue-classification-adoption-source.json)把队列 dock 的编辑/删除/插话失败接入共享 Remote 失败分类（ui-conversation 加入 ui-workspace、ui-deliverables 与 ui-subagent 行列）：认证、兼容、可重试与冲突类别给出类别文案，其余类别与非 Remote 错误保持操作的静态失败文案。ui-conversation 套件 447/447（新增分类对静态用例）、typecheck、lint 0/0、doc-sync 36 门全绿。局限：jobs 面需 SessionJob wire 类型携带失败类别（队列项）；工具调用错误行是模型/工具产生的失败而非 Remote 失败，刻意不分类。
+
+## UI 分类采纳广度
+
+[历史来源记录](artifacts/upstream-first/ui-classification-adoption-source.json)把子代理血缘目录的加载失败呈现接入共享 Remote 失败分类（ui-subagent 加入 ui-workspace 与 ui-deliverables 行列）：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
 ## 扫描器 AAR 链与 Android 外壳解锁
 
