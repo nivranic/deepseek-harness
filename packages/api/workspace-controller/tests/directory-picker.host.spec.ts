@@ -76,11 +76,11 @@ async function refused(call: Promise<unknown>): Promise<{ code: string; message:
 describe('directoryPicker pick Remote', () => {
   it('advertises only the operations its composed picker serves', async () => {
     expect((await harness(NATIVE_STUB)).typertRemote.capabilities).toEqual([
-      { id: 'directory-picker.native.v1', methods: ['pick'] },
+      { id: 'directory-picker.native.v1', methods: ['pick'], requiredPermission: 'view' },
     ])
     expect((await harness(BROWSE_STUB)).typertRemote.capabilities).toEqual([
-      { id: 'directory-picker.browse.v1', methods: ['list'] },
-      { id: 'directory-picker.create.v1', methods: ['createDirectory'] },
+      { id: 'directory-picker.browse.v1', methods: ['list'], requiredPermission: 'view' },
+      { id: 'directory-picker.create.v1', methods: ['createDirectory'], requiredPermission: 'prompt.send' },
     ])
     expect((await harness({ kind: 'test-unsupported' })).typertRemote.capabilities).toEqual([])
   })

@@ -81,9 +81,9 @@ describe('WorkspaceController commands', () => {
   it('advertises follow, registry management and session organization independently', async () => {
     const { controller } = await harness()
     expect(controller.typertRemote.capabilities).toEqual([
-      { id: 'workspace.follow.v1', methods: ['follow'] },
-      { id: 'workspace.manage.v1', methods: ['create', 'rename', 'delete', 'insertBefore'] },
-      { id: 'workspace.sessions.v1', methods: ['archiveSession', 'insertSessionBefore'] },
+      { id: 'workspace.follow.v1', methods: ['follow'], requiredPermission: 'view' },
+      { id: 'workspace.manage.v1', methods: ['create', 'rename', 'delete', 'insertBefore'], requiredPermission: 'prompt.send' },
+      { id: 'workspace.sessions.v1', methods: ['archiveSession', 'insertSessionBefore'], requiredPermission: 'prompt.send' },
     ])
   })
   it('serializes concurrent path adoption and preserves an existing title', async () => {
@@ -341,5 +341,21 @@ describe('WorkspaceController follow', () => {
     await ctx.fiber.dispose()
     roots.splice(roots.indexOf(ctx), 1)
     await expect(closing).resolves.toEqual({ done: true, value: undefined })
+  })
+})
+
+describe('Workspace capability device permissions', () => {
+  it('declares view on read-only sets and prompt.send on workspace mutation', async () => {
+    const { DIRECTORY_PICKER_REMOTE_CAPABILITIES, WORKSPACE_REMOTE_CAPABILITIES } = await import('../src/capabilities.ts')
+    expect(Object.fromEntries(WORKSPACE_REMOTE_CAPABILITIES.map(entry => [entry.id, entry.requiredPermission]))).toEqual({
+      'workspace.follow.v1': 'view',
+      'workspace.manage.v1': 'prompt.send',
+      'workspace.sessions.v1': 'prompt.send',
+    })
+    expect(Object.fromEntries(DIRECTORY_PICKER_REMOTE_CAPABILITIES.map(entry => [entry.id, entry.requiredPermission]))).toEqual({
+      'directory-picker.native.v1': 'view',
+      'directory-picker.browse.v1': 'view',
+      'directory-picker.create.v1': 'prompt.send',
+    })
   })
 })

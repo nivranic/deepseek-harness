@@ -24,7 +24,7 @@ kind: "package-reference"
 
 Host 控制器会串行执行正确性取决于当前注册表状态的变更，并为预期失败抛出带有稳定 `workspace/*` 或 `directory-picker/*` 错误码的 `RemoteError`。它的 `follow()` 流会同步订阅持久 Workspace 变更，先发出一份完整 baseline，再按顺序发出 `upsert`、`remove`、`order` 和 `archived` 增量。重连会以替换 baseline 开始新一代，因此消费方不依赖收到断线期间的每个增量。
 
-纯 `/capabilities` 入口声明独立的 `workspace.follow.v1`、`workspace.manage.v1` 和 `workspace.sessions.v1` 操作集。Host 通过 Typert 绑定公布这些能力，应用在派发前要求对应操作集。Session 管理能力不能授权 Workspace 注册表或归档操作。
+纯 `/capabilities` 入口声明独立的 `workspace.follow.v1`、`workspace.manage.v1` 和 `workspace.sessions.v1` 操作集。Host 通过 Typert 绑定公布这些能力，应用在派发前要求对应操作集。Session 管理能力不能授权 Workspace 注册表或归档操作。 设备权限遵循第 21 节表格：`follow` 要求 `view`，注册表管理与会话组织要求 `prompt.send`；目录选择器对原生选择与浏览声明 `view`、对目录创建声明 `prompt.send`。缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 Directory Picker 使用同一纯声明入口定义 `directory-picker.native.v1`、`directory-picker.browse.v1` 和 `directory-picker.create.v1`。原生后端只声明原生选择；浏览后端分别声明列目录和创建能力。未知扩展种类不声明这些操作。后端能力在 Service 生命周期内稳定，因此替换后端会随控制器重建声明。文件系统访问仍由 Host 在调用时检查。
 

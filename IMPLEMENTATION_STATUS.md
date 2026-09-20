@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Workspace 能力设备权限（第 21 节第二个业务采纳）
+
+[当前来源记录](artifacts/upstream-first/workspace-capability-permissions-source.json)按端点语义声明全部 workspace-controller 能力——每个集合本就同质、无需拆分：workspace.follow.v1 要求 view；workspace.manage.v1（create/rename/delete/insertBefore）与 workspace.sessions.v1（archiveSession/insertSessionBefore）要求 prompt.send（沿用 session 先例：工作区生命周期写入属会话参与）；目录选择器对 native pick 与 browse 声明 view、对 createDirectory（其唯一文件系统写）声明 prompt.send。全仓锁面 grep 未发现整集 pin，仅包内两处能力 deep-equal 补字段。viewer 设备可跟随工作区状态；collaborator 及以上管理注册表、会话顺序与选择器建目录；匿名调用不受影响。664 项测试通过（一项预先存在的 Windows 环境失败经干净树验证排除）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：jobs/settings 等其余业务归属方推广待续。
+
 ## Session 能力设备权限（第 21 节首个业务采纳）
 
-[当前来源记录](artifacts/upstream-first/session-capability-permissions-source.json)按端点语义声明全部 session-controller 能力并拆分读写集合：只读集合（session.follow.v1、自 manage 拆出的 session.list.v1、session.search.v1、自 model.select 拆出的 model.catalog.v1、file-reference.list.v1、skill.catalog.v1）声明 view；会话变更集合（session.control.v1、cancel-turn、rename-at、manage（现仅 create/rename/fork）、attachment、model.select（现仅 selectModel））声明 prompt.send。持有 view 的设备（所有角色）可跟随、列举、搜索、读目录；prompt.send（collaborator 及以上）门控全部会话变更——与第 21 节矩阵一致；匿名调用不受影响。能力准入映射、host-description e2e 期望与浏览器 fixture 同步两个新 id；网关证据新增 prompt.send 门控用例（viewer 拒绝、collaborator 准入）。856 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿；一个预先存在的 Windows symlink 环境失败（media-references）经干净树验证与本增量无关。局限：拆分改变广播能力 id（无已发布客户端需迁移）；workspace/jobs/settings 等其余业务归属方的声明推广待续。
+[历史来源记录](artifacts/upstream-first/session-capability-permissions-source.json)按端点语义声明全部 session-controller 能力并拆分读写集合：只读集合（session.follow.v1、自 manage 拆出的 session.list.v1、session.search.v1、自 model.select 拆出的 model.catalog.v1、file-reference.list.v1、skill.catalog.v1）声明 view；会话变更集合（session.control.v1、cancel-turn、rename-at、manage（现仅 create/rename/fork）、attachment、model.select（现仅 selectModel））声明 prompt.send。持有 view 的设备（所有角色）可跟随、列举、搜索、读目录；prompt.send（collaborator 及以上）门控全部会话变更——与第 21 节矩阵一致；匿名调用不受影响。能力准入映射、host-description e2e 期望与浏览器 fixture 同步两个新 id；网关证据新增 prompt.send 门控用例（viewer 拒绝、collaborator 准入）。856 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿；一个预先存在的 Windows symlink 环境失败（media-references）经干净树验证与本增量无关。局限：拆分改变广播能力 id（无已发布客户端需迁移）；workspace/jobs/settings 等其余业务归属方的声明推广待续。
 
 ## 按请求设备准入（第 21 节远端执行授权）
 

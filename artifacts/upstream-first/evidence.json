@@ -5,51 +5,43 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "c8ae8961299acc0465c7cd5af81c8d4960ea86a07a88cfdda329bd6d170789fb"
-    },
-    {
-      "path": "apps/web/tests/host-description.e2e.ts",
-      "sha256": "8696e7ff53a5c2d4a24ff227f7185e7071a8126b555c0d6420cf99383d1b998f"
+      "sha256": "a4faf9b3740d6b427d1270706f23e004a0df8e6d75a86a9183316a6e06dfccd5"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "7bfd55c5ff71388d63109be59cd916cb892e7674b6dda8d593b80f874b70777a"
+      "sha256": "cfae25cdad3668069f2827d9e370da5d60a841e8abf396b4146b89adced82101"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "e88d9eb197d2f5fe04640164c4ae319bb02bbed9ba12fce923dee736c002c699"
+      "sha256": "490d758128b130ff17a42a29d13fe39130813a8e517f9a9343e30506ceea727d"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "7e5ad40b0ef77cb0b7c640d124cce8dc0fb4018cb3b671ba8beb98bce6497866"
+      "sha256": "53cc70d8f98ab82bf8ad09952746f6c1ec2e804ac284b9c45e3fa1ea92a84bc5"
     },
     {
-      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
-      "sha256": "54e9015ae066896d817f0522a2a2e741ca1bd587db2568406c1c788910b53082"
+      "path": "packages/api/workspace-controller/README.i18n.yaml",
+      "sha256": "4b1279f54e4cb5cfa2557152e96060760fe66cd0b0dd1e05486d2d75fe659319"
     },
     {
-      "path": "packages/api/remotes/tests/host-preparation.client.spec.ts",
-      "sha256": "6180884e54439decf563391f2d83bb3f94fe415e39fcb3d4fe13adf1bb11ce82"
+      "path": "packages/api/workspace-controller/README.md",
+      "sha256": "777f5ff04ff4a9b188d27aa885d4dc63a7579b1e2c8a6339ad1df01d78bc73d9"
     },
     {
-      "path": "packages/api/session-controller/README.i18n.yaml",
-      "sha256": "218ed7e28563a990e30ab3535e2d47cb8dd11f300ec8e236ffb1ff0a71acfa72"
+      "path": "packages/api/workspace-controller/README.zh.md",
+      "sha256": "cb32dbb6b62ceeb706e34a0a2ed50d84b115da36f52a18ad6b31dc90f62101da"
     },
     {
-      "path": "packages/api/session-controller/README.md",
-      "sha256": "483b865b524289472be27fbbb4efba96d82a5cf5a7c9f0297bb7bc04fb868929"
+      "path": "packages/api/workspace-controller/src/capabilities.ts",
+      "sha256": "da2822b1de7a7ae205219eab51fe06b9070949066610668662a4aa80f7c9fa85"
     },
     {
-      "path": "packages/api/session-controller/README.zh.md",
-      "sha256": "b10059f6c9e4ea368b5d529fdbce22bfbd58d0a4d5527c9723d18bc5e1efda7d"
+      "path": "packages/api/workspace-controller/tests/directory-picker.host.spec.ts",
+      "sha256": "a18bef623d0b3f4a2ae6f247567da68bd929fbfdbd37706acbaef6f145b0d342"
     },
     {
-      "path": "packages/api/session-controller/src/capabilities.ts",
-      "sha256": "0460b7f3ca2bb5b05ebce8fe09dc00cf58fa0695ed88a2077b6ab12d1d4025cf"
-    },
-    {
-      "path": "packages/client/connection/src/client/fixture.ts",
-      "sha256": "78221090a93fda58c8ec2e33c82d591fb173dfb7328c86b513088710e38859d1"
+      "path": "packages/api/workspace-controller/tests/workspace-controller.host.spec.ts",
+      "sha256": "439f3bd5fe6520b5fe11de6d1c5e4c964d019c6e2e094e77387eda603c7be931"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5948,6 +5940,36 @@
     },
     {
       "status": "PASS",
+      "command": "Workspace-controller (incl. the declaration unit test), remotes, gateway, device-trust, and typert-protocol suites: 664 passed with one pre-existing Windows-environment failure (transport exhausted-carrier-retries, verified failing on a clean tree) excluded",
+      "log": ".artifacts/workspace-capability-permissions-tests.log",
+      "sourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck after the declarations",
+      "log": ".artifacts/workspace-capability-permissions-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/workspace-capability-permissions-lint.log",
+      "sourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the README permission documentation",
+      "log": ".artifacts/workspace-capability-permissions-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 21 workspace adoption evidence",
+      "log": ".artifacts/workspace-capability-permissions-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6678,7 +6700,149 @@
       ]
     }
   },
+  "workspaceCapabilityPermissions": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json",
+    "scope": "Workspace capabilities declare their device permissions, the second business adoption of requiredPermission: workspace.follow.v1 requires view; workspace.manage.v1 (create, rename, delete, insertBefore) and workspace.sessions.v1 (archiveSession, insertSessionBefore) require prompt.send following the session precedent that workspace-lifecycle writes are conversation participation; the directory picker declares view for native pick and browse and prompt.send for createDirectory, its only filesystem mutation. No splits were needed — every set is homogeneous; the full-repository lock-surface grep found no full-set pins and only the two package-internal capability deep-equals gained the field. A viewer device can follow workspace state; collaborator and up manage registries, session order, and picker-created directories; anonymous callers unaffected",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "limitations": [
+      "The pre-existing Windows-environment failure in workspace transport.client (exhausted carrier retries) fails identically on a clean tree and is excluded.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "jobs/settings and the remaining business owners adopt requiredPermission declarations in their own increments; cross-release interop waits for real published versions; nonce-ledger replay hardening and change identity confirmation stay open; macOS, physical devices, and signing stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "sessionCapabilityPermissions": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/workspace-capability-permissions-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/session-capability-permissions-source.json",
     "scope": "Session capabilities declare their device permissions with read/write splits, the first business adoption of requiredPermission: read-only sets (session.follow.v1, the new session.list.v1 split out of manage, session.search.v1, the new model.catalog.v1 split out of model.select, file-reference.list.v1, skill.catalog.v1) declare view; conversation-mutating sets (session.control.v1, cancel-turn, rename-at, manage now create/rename/fork only, attachment, model.select now selectModel only) declare prompt.send. A device holding view can follow, list, search, and read catalogs; prompt.send (collaborator and up) gates all conversation mutation per the section 21 matrix; anonymous callers unaffected. Gateway evidence adds a prompt.send gating case (viewer refused, collaborator admitted)",
@@ -11468,7 +11632,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/session-capability-permissions-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -11951,7 +12115,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "7e5ad40b0ef77cb0b7c640d124cce8dc0fb4018cb3b671ba8beb98bce6497866"
+        "sha256": "53cc70d8f98ab82bf8ad09952746f6c1ec2e804ac284b9c45e3fa1ea92a84bc5"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
