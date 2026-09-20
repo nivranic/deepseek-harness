@@ -1,14 +1,16 @@
 /**
  * Minimal Host-side Link fixture for the Android emulator lane: pairs one
  * device over the QR payload protocol, verifies Ed25519 request signatures,
- * answers the unary and stream endpoints the companion shell drives, and
- * refuses `workspaceFiles/read` with the classified failure envelope
- * `gateway/permission-denied` so the shell's GatewayFailurePresentation can
- * be exercised against a live server. HTTPS rides the committed self-signed
- * fixture certificate whose SPKI digest the pairing payload pins, so the
- * TLS-plus-pinning path the real protocol uses stays exercised. Run with
- * node; `--port` selects the listen port (default 18080) and the pairing
- * code is `fixture-code-1`.
+ * admits the four-key signed device admission on every business RPC and
+ * stream open (signature over `deviceId\ntimestamp\nnonce`, acceptance
+ * window, replay ledger), answers the unary and stream endpoints the
+ * companion shell drives, and refuses `workspaceFiles/read` with the
+ * classified failure envelope `gateway/permission-denied` so the shell's
+ * GatewayFailurePresentation can be exercised against a live server. HTTPS
+ * rides the committed self-signed fixture certificate whose SPKI digest the
+ * pairing payload pins, so the TLS-plus-pinning path the real protocol uses
+ * stays exercised. Run with node; `--port` selects the listen port (default
+ * 18080) and the pairing code is `fixture-code-1`.
  * @module apps/android/support/link-fixture-host.mjs
  */
 import { createServer } from 'node:https'
@@ -16,12 +18,14 @@ import { createHash, createPublicKey, verify } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createAdmissionTracker } from './link-admission.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const port = Number(process.argv.includes('--port') ? process.argv[process.argv.indexOf('--port') + 1] : 18080)
 const pairingCode = 'fixture-code-1'
 /** deviceId → base64 SPKI DER of the device's Ed25519 key, registered at pair. */
 const devices = new Map()
+const admissions = createAdmissionTracker(deviceId => devices.get(deviceId))
 
 const log = (event, fields = {}) => {
   console.log(JSON.stringify({ ts: new Date().toISOString(), event, ...fields }))
@@ -113,6 +117,22 @@ const handle = (req, res) => {
       return
     }
     if (path.startsWith('/link/stream/')) {
+      const open = JSON.parse(body.toString('utf8'))
+      const admission = open.args === undefined || !('device' in open.args) ? undefined : open.args.device
+      if (admission === undefined) {
+        log('admission-missing', { path })
+        res.writeHead(200, { 'content-type': 'application/x-ndjson' })
+        res.end(`${JSON.stringify({ k: 'e', c: 'gateway/arguments-invalid', m: 'device admission required', d: {} })}\n`)
+        return
+      }
+      const verdict = admissions.verify(admission)
+      if (!verdict.ok) {
+        log('admission-rejected', { path, code: verdict.code })
+        res.writeHead(200, { 'content-type': 'application/x-ndjson' })
+        res.end(`${JSON.stringify({ k: 'e', c: verdict.code, m: verdict.message, d: verdict.details })}\n`)
+        return
+      }
+      log('admission-verified', { path, deviceId: verdict.deviceId, nonce: verdict.nonce })
       // One workspace record over the follow stream; unknown streams stay
       // frameless and open so unrelated watchers do not flap.
       res.writeHead(200, { 'content-type': 'application/x-ndjson' })
@@ -124,6 +144,21 @@ const handle = (req, res) => {
     if (path.startsWith('/api/')) {
       const request = JSON.parse(body.toString('utf8'))
       const rpcId = request.rpcId
+      const admission = request.payload === undefined || !('device' in request.payload) ? undefined : request.payload.device
+      if (admission === undefined) {
+        log('admission-missing', { path })
+        res.writeHead(200, { 'content-type': 'application/json' })
+        res.end(refused(rpcId, 'gateway/arguments-invalid', 'device admission required', {}))
+        return
+      }
+      const verdict = admissions.verify(admission)
+      if (!verdict.ok) {
+        log('admission-rejected', { path, code: verdict.code })
+        res.writeHead(200, { 'content-type': 'application/json' })
+        res.end(refused(rpcId, verdict.code, verdict.message, verdict.details))
+        return
+      }
+      log('admission-verified', { path, deviceId: verdict.deviceId, nonce: verdict.nonce })
       if (path === '/api/session/list') {
         res.writeHead(200, { 'content-type': 'application/json' })
         res.end(ok(rpcId, { items: [] }))

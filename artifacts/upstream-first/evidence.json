@@ -5,130 +5,63 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "09312ccb3f3ec835f97fde3dd06881e5990e9cce941d6309af9d88816a8f7852"
+      "sha256": "c34eaff27486460e03002b5569c6efd0e88967dc3bfaa85d1a6d56d45ffa1779"
     },
     {
-      "path": "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/RemoteFailureClasses.kt",
-      "sha256": "fcf1c64470526f3f56a1d369ac45fb7ac1283aab94f987b0afb2b65ca6239c61"
+      "path": "apps/android/README.i18n.yaml",
+      "sha256": "7f87c55ed84338929235c9323a70f40e31d44a66fc660efaccfe63e44b9bb481"
     },
     {
-      "path": "apps/android/contract/src/test/kotlin/ai/deepseek/dsh/contract/EnvelopeSchemaTest.kt",
-      "sha256": "b5c5625cbebab195ac71013e95ac91b4e5a0cc594d7c2c604666167bb057a04c"
+      "path": "apps/android/README.md",
+      "sha256": "12c24a92a986aa415bf05a15914d4ef4cbaf784ecdd635869a01f7a8839ba739"
     },
     {
-      "path": "apps/android/contract/src/test/resources/generated/remote-failure-classes.json",
-      "sha256": "c7bc45ab41d116d162ba3a0956f0f9301e6935a49600d4db7f9c93d1defab497"
+      "path": "apps/android/README.zh.md",
+      "sha256": "a8bad6f073f3900f041aa97a5ecf7fd3b3d466478db3b0f7c11712a8538fb183"
     },
     {
-      "path": "apps/apple/contract/Sources/DSHContract/RemoteFailureClasses.swift",
-      "sha256": "c482e7e71418b5a2c07884013c710379f0a7bec890509df956171f8a41ca374a"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
+      "sha256": "07834dc6239746137074d2f68ea17947edd3c6be9266749bb99783b8073c6f6f"
     },
     {
-      "path": "apps/apple/contract/Sources/DSHContract/main.swift",
-      "sha256": "ef2fa1c808637abe5b4d3baa3e0135bfae887ead33dae54e95f42644d7e6f4e9"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt",
+      "sha256": "5289942a5c086b134dcbb20505f6cd99d2e3e6540ecfd4166d35e9912bd7dcb6"
     },
     {
-      "path": "apps/apple/contract/fixtures/remote-errors.schema.json",
-      "sha256": "093c223065ff372c32d7ed4264b605f46b2ba971090cc6dab1ebc7284fc38688"
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+      "sha256": "1feb33354f8c668e9f338f04a8e05ae5ce76aa88e669cbd8f4582a8f9709f73d"
     },
     {
-      "path": "apps/apple/contract/fixtures/remote-failure-classes.json",
-      "sha256": "c7bc45ab41d116d162ba3a0956f0f9301e6935a49600d4db7f9c93d1defab497"
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkWireTest.kt",
+      "sha256": "cbc9d7106b1984bddc3ccf543f9b390a2b9d7599cf9b96c8bb2076263ae541e7"
+    },
+    {
+      "path": "apps/android/support/link-fixture-host.mjs",
+      "sha256": "7edd67f3f16976247e20600c90fc9cac38d01d54b81327f23ff97d3a3e9f3e33"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "f410eec33e1f997ee38703aa03302d542d95da9d3cfa1a0fc9d3f032cf5625a5"
+      "sha256": "9e463f61c43cc6712b8e97d7c54356e1116e56a4c1a8a042437dc056ce3c32cc"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "6d9cf47fd8b50bc5171ff96555b1de634ccda685b3b2ca6f3568b071ea6e16aa"
+      "sha256": "425302653c36ed41a70179ba226d384baaf3831eddd09da94c3e333e890ccadd"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "87bc6c98dfee580d6c2e0a646183dda4aff6b7b1862596a7f4fe07a6dd2c8640"
-    },
-    {
-      "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "d78b448544e4f9dbdfdbe1162ac3b7fcafa119f1b6c8c06040db4a50839267e5"
-    },
-    {
-      "path": "docs/config-catalog.md",
-      "sha256": "e18770c9e21189530178dfc31a7c5807e62bb91e9d922544480e962162a4e292"
-    },
-    {
-      "path": "docs/config-catalog.zh.md",
-      "sha256": "a3747bf7b20d9190acb0c779a825a1051d220fbda1b4f79464d79b491422585b"
-    },
-    {
-      "path": "docs/subsystems/device-trust.i18n.yaml",
-      "sha256": "4ebf6d538684746f2c5455eda73cb66445b2f2915a4c70a249eff1f85adbe29e"
-    },
-    {
-      "path": "docs/subsystems/device-trust.md",
-      "sha256": "3407381c47154ba68d57848ce7a1c359bc6c38fa4265ba22dc607de7f7ab991e"
-    },
-    {
-      "path": "docs/subsystems/device-trust.zh.md",
-      "sha256": "89689642d57e166462507f5e1a18a1293d9c512a3e5f0595b461b30d37b0eab8"
-    },
-    {
-      "path": "packages/api/device-trust/README.i18n.yaml",
-      "sha256": "d3a71b35b8122da7f5aecb5a5fd010d3c2e65b3917fb4b7b32fbb4abf5e70752"
-    },
-    {
-      "path": "packages/api/device-trust/README.md",
-      "sha256": "176f252ad213979498c1d425019f42916131f1904f5e435ad000cc97c8bf47ac"
-    },
-    {
-      "path": "packages/api/device-trust/README.zh.md",
-      "sha256": "78a26b8567f0073ab29cc761250d0ba31e0799bf04b581c52db42e4e31db5582"
-    },
-    {
-      "path": "packages/api/device-trust/src/index.ts",
-      "sha256": "bb4ac1e0bff33f38f4cf132ecfc0f02f495332c6f7003b858f0999972bcd7a38"
-    },
-    {
-      "path": "packages/api/device-trust/src/spec.ts",
-      "sha256": "7c4cff13954f6df4a329b21caa32bbb691067e4b596b07ee262466c646e786d6"
-    },
-    {
-      "path": "packages/api/device-trust/src/types.ts",
-      "sha256": "eff5ffea13269a547e322346a02d42adeb8cd731020ad59a1edd42ef8067e56c"
-    },
-    {
-      "path": "packages/api/device-trust/tests/device-trust.host.spec.ts",
-      "sha256": "cef1c0d9f584dd530f9aa6aab816fc8039518dd32d9bdaa11bd2c591d8f9982f"
-    },
-    {
-      "path": "packages/api/gateway/src/index.ts",
-      "sha256": "6537c5fb9a951823796ee7e73d7ca473e40203b2069896c6c17146b8a3e39062"
-    },
-    {
-      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-      "sha256": "8f746caf2e3d0b793c9faefbedfa392df3f58c67128fa49cb7e0f0239df70f4a"
-    },
-    {
-      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
-      "sha256": "048c6ff58fb76b878abf7f055748cb255f7e4cbe84d9ec80841aa3e02ce61234"
-    },
-    {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "a088f29428c0649c4fad74d21c61317046882b57669f811e96293f006a4f7f39"
-    },
-    {
-      "path": "packages/typert/protocol/remote-error-codes.schema.json",
-      "sha256": "59362beea6a73c1cdda0e7feeb9bdfd2c57a75b47237c12ab253b1e0bceb5679"
-    },
-    {
-      "path": "packages/typert/protocol/remote-errors.schema.json",
-      "sha256": "093c223065ff372c32d7ed4264b605f46b2ba971090cc6dab1ebc7284fc38688"
-    },
-    {
-      "path": "packages/typert/protocol/src/failure-classes.ts",
-      "sha256": "13542fdd62fdfca55f4130a5e750daf6c7f3607b4249df7080479d7ea569334d"
+      "sha256": "25d244ab743ba7a8438e46f648c3354a12c161a2bd9ba5d219cc62884556c502"
     }
   ],
-  "candidateUntrackedSourceChanges": [],
+  "candidateUntrackedSourceChanges": [
+    {
+      "path": "apps/android/support/link-admission.mjs",
+      "sha256": "a062f29b85611a01aff2b9bbdf2d76d43a9d859f8bced83f8be94cf001cca579"
+    },
+    {
+      "path": "apps/android/support/link-admission.test.mjs",
+      "sha256": "823bb16b18ff0e1fe3f7b98a58405f39002f605ffc6275639869cb25a2b736dc"
+    }
+  ],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -6120,6 +6053,42 @@
     },
     {
       "status": "PASS",
+      "command": ":contract:test + :core:test + :app:assembleDebug (LinkClientTest 36 incl. deterministic-signature and nonce-freshness cases, LinkWireTest 6 incl. payload.device rendering) and node --test link-admission 5/5",
+      "log": ".artifacts/android-device-admission-tests.log",
+      "sourceRecord": "artifacts/upstream-first/android-device-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Emulator lane: real app pairing through the fixture, five admissions with five distinct nonces verified across /api and /link/stream, classified refusal still presented",
+      "log": ".artifacts/android-device-admission-lane.log",
+      "sourceRecord": "artifacts/upstream-first/android-device-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck after the client and fixture changes",
+      "log": ".artifacts/android-device-admission-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/android-device-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint (covers the fixture mjs)",
+      "log": ".artifacts/android-device-admission-lint.log",
+      "sourceRecord": "artifacts/upstream-first/android-device-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the bilingual README adoption sections",
+      "log": ".artifacts/android-device-admission-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/android-device-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 21 client-adoption evidence",
+      "log": ".artifacts/android-device-admission-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/android-device-admission-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6850,7 +6819,154 @@
       ]
     }
   },
+  "androidDeviceAdmission": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/android-device-admission-source.json",
+    "scope": "The Android client adopts the gateway per-request device admission: DeviceAdmission signs the three-line form deviceId newline timestamp newline nonce with the paired Ed25519 key and a fresh UUID nonce per call; LinkRequestEnvelope renders it as payload.device beside args (the Link mirror of the gateway versioned request envelope) and stream() places it as args.device (the gateway stream-open placement); currentIdentity centralizes the paired-identity load. The fixture host verifies what the gateway enforces through the testable link-admission tracker — four-key shape, acceptance window, signature against the pairing-registered key, replay ledger with per-entry lazy two-window expiry and the last-admitted pair, refusing device/replay-detected for nonce reuse at any timestamp and regressed timestamps — and requires the admission on /api and /link/stream so the lane cannot pass unsigned. Emulator-lane evidence: the real app UI paired through the fixture and five admissions with five distinct nonces were server-verified across both surfaces (session/list, workspaceFiles list and read on /api; $events and workspace/follow streams) with the classified gateway/permission-denied refusal still presenting, proving admission verification precedes the permission gate in the gateway order",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "limitations": [
+      "The fixture replay ledger is process-local; a fixture restart forgets seen nonces (the lane instrument does not claim the gateway durable high-water semantics).",
+      "iOS adoption remains open; no Swift mirror of this client surface exists yet.",
+      "No physical-device or release-signing qualification is claimed.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "change identity confirmation; iOS client adoption (no Swift client surface yet); section 7-11 UI product lines; cross-release interop waits for real published versions; macOS, physical devices, and signing stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "admissionNonceLedger": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/android-device-admission-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/admission-nonce-ledger-source.json",
     "scope": "Device admission carries a replay nonce ledger: the signed message is the three-line form deviceId newline timestamp newline nonce, the gateway wire parser accepts exactly the four-key admission shape on both the per-request envelope and the stream-open path, and admitDevice refuses a replay with the new device/replay-detected code (reason timestamp-regressed or nonce-reuse, classified authentication) before the grant records the new high-water mark — a timestamp older than the grant durable lastAdmittedAt, a nonce this process already admitted, or the exact persisted lastAdmittedAt/lastAdmittedNonce pair. The durable high-water pair survives Host restarts and the storage transform re-validates monotonicity; the process-local per-device nonce ledger expires at twice the admission window. This increment also repairs the contract-mirror drift the deviceRoleAdmission increment left: the apple schema fixture and Swift guard disagreed (90 vs 85 branches) and both native mirrors lacked every device/* code, so the Swift self-check executable had been failing since that push; both mirrors now carry device/admission-expired and device/replay-detected as authentication, Kotlin pins 92 branches/91 known codes, Swift guards pin the same, and all fixtures are regenerated after the schema regen",
@@ -12071,7 +12187,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/admission-nonce-ledger-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/android-device-admission-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -12554,7 +12670,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "87bc6c98dfee580d6c2e0a646183dda4aff6b7b1862596a7f4fe07a6dd2c8640"
+        "sha256": "25d244ab743ba7a8438e46f648c3354a12c161a2bd9ba5d219cc62884556c502"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

@@ -63,14 +63,24 @@ sealed class WireValue {
 private val JsonPrimitive.contentOrNullSafe: String?
     get() = content
 
-/** The unary request envelope: `{ type, rpcId, method, payload: { args } }`. */
-data class LinkRequestEnvelope(val rpcId: String, val method: String, val args: Map<String, WireValue>) {
+/** The unary request envelope: `{ type, rpcId, method, payload: { args, device? } }`.
+ * The optional `device` admission rides beside `args`, mirroring the gateway's
+ * versioned request envelope; a paired client sends it on every business call. */
+data class LinkRequestEnvelope(
+    val rpcId: String,
+    val method: String,
+    val args: Map<String, WireValue>,
+    val device: Map<String, WireValue>? = null,
+) {
     fun toJsonElement(): JsonElement = buildJsonObject {
         put("type", "client-request")
         put("rpcId", rpcId)
         put("method", method)
         put("payload", buildJsonObject {
             put("args", buildJsonObject { args.forEach { (key, value) -> put(key, value.toJsonElement()) } })
+            device?.let { admission ->
+                put("device", buildJsonObject { admission.forEach { (key, value) -> put(key, value.toJsonElement()) } })
+            }
         })
     }
 }

@@ -32,6 +32,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -367,6 +368,60 @@ class LinkClientTest {
         assertEquals(WireValue.StringValue("accepted"), client.call("compatibility"))
     }
 
+    @Test
+    fun businessCallsCarryTheFourKeySignedDeviceAdmission() = runBlocking {
+        val store = MemoryLinkCredentialsStore()
+        val client = client(store)
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+        capturedBodies.clear()
+        client.call("session/list")
+        client.call("session/list")
+        val admissions = capturedBodies
+            .filter { body -> body.contains("\"client-request\"") }
+            .map { body -> Json.parseToJsonElement(body).jsonObject.getValue("payload").jsonObject.getValue("device").jsonObject }
+        assertEquals(2, admissions.size)
+        val credentials = store.load()!!
+        val privateKeyRaw = Base64.getDecoder().decode(credentials.signingKeyBase64)
+        val nonces = admissions.map { admission ->
+            assertEquals(setOf("deviceId", "timestamp", "nonce", "signature"), admission.keys)
+            val deviceId = admission.getValue("deviceId").jsonPrimitive.content
+            val timestamp = admission.getValue("timestamp").jsonPrimitive.longOrNull
+            val nonce = admission.getValue("nonce").jsonPrimitive.content
+            val signature = admission.getValue("signature").jsonPrimitive.content
+            assertEquals("d-1", deviceId)
+            assertTrue(timestamp != null && Math.abs(System.currentTimeMillis() - timestamp) < 300_000, "timestamp within the window")
+            // Ed25519 is deterministic, so re-signing the three-line form with
+            // the stored key reproduces exactly the signature carried on the wire.
+            assertEquals(LinkSigning.sign("$deviceId\n$timestamp\n$nonce", privateKeyRaw), signature)
+            nonce
+        }
+        assertEquals(2, nonces.toSet().size, "every call carries a fresh nonce")
+    }
+
+    @Test
+    fun streamOpenCarriesTheDeviceAdmissionInsideArgs() = runTest {
+        val store = MemoryLinkCredentialsStore()
+        val client = client(store)
+        client.pair(pairingPayload(), deviceName = "Pixel 9")
+        capturedBodies.clear()
+        assertFailsWith<LinkClientException.Refused> { client.stream("\$events").collect {} }
+        val open = Json.parseToJsonElement(capturedBodies.last()).jsonObject
+        val args = open.getValue("args").jsonObject
+        val admission = args.getValue("device").jsonObject
+        val credentials = store.load()!!
+        val privateKeyRaw = Base64.getDecoder().decode(credentials.signingKeyBase64)
+        val deviceId = admission.getValue("deviceId").jsonPrimitive.content
+        val timestamp = admission.getValue("timestamp").jsonPrimitive.longOrNull
+        val nonce = admission.getValue("nonce").jsonPrimitive.content
+        val signature = admission.getValue("signature").jsonPrimitive.content
+        assertEquals("d-1", deviceId)
+        assertEquals(
+            LinkSigning.sign("$deviceId\n$timestamp\n$nonce", privateKeyRaw),
+            signature,
+            "the stream-open admission signs the same three-line form",
+        )
+    }
+
     private fun capture(exchange: HttpExchange): String {
         val body = exchange.requestBody.readBytes().decodeToString()
         if (exchange.requestURI.path != "/link/describe") capturedBodies.add(body)
@@ -506,8 +561,9 @@ class LinkClientTest {
         assertEquals(WireValue.ObjectValue(mapOf("items" to WireValue.ArrayValue(emptyList()))), value)
         val callBody = Json.parseToJsonElement(capturedBodies.poll()).jsonObject
         val callPayload = callBody["payload"]!!.jsonObject
-        assertEquals(setOf("args"), callPayload.keys)
+        assertEquals(setOf("args", "device"), callPayload.keys)
         assertEquals("{}", callPayload["args"].toString())
+        assertEquals("d-1", callPayload["device"]!!.jsonObject["deviceId"]!!.jsonPrimitive.content)
         val headerMap = capturedHeaders.associate { it }
         assertEquals("d-1", headerMap[LinkSigning.deviceIdHeader])
         assertTrue(headerMap[LinkSigning.timestampHeader]!!.all { it.isDigit() }, "timestamp is epoch millis")
@@ -843,7 +899,8 @@ class LinkClientTest {
         assertEquals(WireValue.StringValue("observer"), streamDetails.entries["role"])
         val streamBody = Json.parseToJsonElement(capturedBodies.poll()).jsonObject
         assertEquals(setOf("args"), streamBody.keys)
-        assertEquals("{}", streamBody["args"].toString())
+        val openArgs = streamBody["args"]!!.jsonObject
+        assertEquals("d-1", openArgs["device"]!!.jsonObject["deviceId"]!!.jsonPrimitive.content)
     }
 
     @Test

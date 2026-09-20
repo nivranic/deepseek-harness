@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Android device admission; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-device-admission-source.json",
+    "sha256": "bcacf81cb542fb385931705b4dfdb150b599a6674e5964e0409d71c30d29bb99"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "25d244ab743ba7a8438e46f648c3354a12c161a2bd9ba5d219cc62884556c502"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-device-admission-binding.json",
+    "sha256": "775a800bf435243c94613c475bfc0fbe1fafca775887284a8a87882c44693f50"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-device-admission-reports.mjs",
+      "sha256": "07af30bcc18b5dbb505cee2692241f2021f2ec48e951aea08d3ba7d3b98904d5"
+    },
+    {
+      "path": ".artifacts/capture-android-device-admission-validation.mjs",
+      "sha256": "3ff121124e6569aadde86d1f5946ed076c006e501464905e695f47a02085bbfa"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c34eaff27486460e03002b5569c6efd0e88967dc3bfaa85d1a6d56d45ffa1779"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "2eb984545aa71f2cf07f79fd1c5582d002ebf102e5d27ffed879138d5d020f45"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-device-admission-binding.log",
+      "sha256": "b5c25af9ccadf0564b041d8e6c5e14f03319c3309e20c2998d9e1a31bd4b13f1"
+    },
+    {
+      "path": ".artifacts/android-device-admission-audit-tests.log",
+      "sha256": "b14acf43e66eb456b5c5493b74839b9d83f2a851fbd4888d14d22297fc29e57c"
+    },
+    {
+      "path": ".artifacts/android-device-admission-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-device-admission-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-device-admission-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

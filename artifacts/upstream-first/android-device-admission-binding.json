@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-device-admission-source.json",
+    "sha256": "bcacf81cb542fb385931705b4dfdb150b599a6674e5964e0409d71c30d29bb99"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "25d244ab743ba7a8438e46f648c3354a12c161a2bd9ba5d219cc62884556c502"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-device-admission-binding.mjs",
+    "sha256": "8f208101fb89ddeebd6d359f38ac60c18208f07fc5f1bed5f77bce82c1e9d20b"
+  }
+}

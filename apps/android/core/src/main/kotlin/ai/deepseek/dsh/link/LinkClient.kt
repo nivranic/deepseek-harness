@@ -306,7 +306,13 @@ class LinkClient private constructor(
         withContext(Dispatchers.IO) {
             requireCompatibleHost()
             val rpcId = "rpc-${UUID.randomUUID()}"
-            val envelope = LinkRequestEnvelope(rpcId = rpcId, method = method, args = args)
+            val (credentials, privateKeyRaw) = currentIdentity()
+            val envelope = LinkRequestEnvelope(
+                rpcId = rpcId,
+                method = method,
+                args = args,
+                device = DeviceAdmission.create(credentials.deviceId, privateKeyRaw).toWireValue().entries,
+            )
             val body = Json.encodeToString(envelope.toJsonElement())
                 .toByteArray(Charsets.UTF_8)
             val data = post("/api/$method", body, signed = true)
@@ -338,11 +344,14 @@ class LinkClient private constructor(
      */
     fun stream(endpoint: String, payload: Map<String, WireValue> = emptyMap()): Flow<WireValue> = flow {
         requireCompatibleHost()
+        val (credentials, privateKeyRaw) = currentIdentity()
+        val admission = DeviceAdmission.create(credentials.deviceId, privateKeyRaw)
         val body = Json.encodeToString(
             JsonElement.serializer(),
             kotlinx.serialization.json.buildJsonObject {
                 put("args", kotlinx.serialization.json.buildJsonObject {
                     payload.forEach { (key, value) -> put(key, value.toJsonElement()) }
+                    put("device", admission.toWireValue().toJsonElement())
                 })
             },
         ).toByteArray(Charsets.UTF_8)
@@ -586,10 +595,7 @@ class LinkClient private constructor(
     }
 
     private fun applyCredentials(builder: Request.Builder, path: String, body: ByteArray) {
-        val credentials = store.load() ?: throw LinkClientException.Unpaired()
-        observeRole(credentials.role)
-        val privateKeyRaw = credentials.signingKeyRaw
-            ?: throw LinkClientException.BadWire("stored signing key is not base64")
+        val (credentials, privateKeyRaw) = currentIdentity()
         val timestamp = System.currentTimeMillis().toString()
         val input = LinkSigning.signingInput(
             timestamp = timestamp,
@@ -600,6 +606,16 @@ class LinkClient private constructor(
         builder.header(LinkSigning.deviceIdHeader, credentials.deviceId)
         builder.header(LinkSigning.timestampHeader, timestamp)
         builder.header(LinkSigning.signatureHeader, LinkSigning.sign(input, privateKeyRaw))
+    }
+
+    /** The paired identity with its raw signing key; every signed request and
+     * business admission requires both. */
+    private fun currentIdentity(): Pair<LinkCredentials, ByteArray> {
+        val credentials = store.load() ?: throw LinkClientException.Unpaired()
+        observeRole(credentials.role)
+        val privateKeyRaw = credentials.signingKeyRaw
+            ?: throw LinkClientException.BadWire("stored signing key is not base64")
+        return credentials to privateKeyRaw
     }
 
     private fun checkStatus(status: Int, body: ByteArray?) {

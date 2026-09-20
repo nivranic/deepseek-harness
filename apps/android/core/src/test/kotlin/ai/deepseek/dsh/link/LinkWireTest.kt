@@ -28,6 +28,33 @@ class LinkWireTest {
     }
 
     @Test
+    fun requestEnvelopeRendersTheDeviceAdmissionBesideArgs() {
+        val admission = DeviceAdmission(
+            deviceId = "d-1",
+            timestamp = 1_700_000_000_000,
+            nonce = "nonce-1",
+            signature = "c2ln",
+        )
+        val obj = Json.parseToJsonElement(
+            Json.encodeToString(
+                LinkRequestEnvelope(
+                    rpcId = "rpc-1",
+                    method = "session/list",
+                    args = emptyMap(),
+                    device = admission.toWireValue().entries,
+                ).toJsonElement(),
+            ),
+        ) as kotlinx.serialization.json.JsonObject
+        val payload = obj["payload"] as kotlinx.serialization.json.JsonObject
+        assertEquals(setOf("args", "device"), payload.keys)
+        val device = payload["device"] as kotlinx.serialization.json.JsonObject
+        assertEquals("d-1", device["deviceId"]!!.jsonPrimitiveText())
+        assertEquals("1700000000000", device["timestamp"]!!.jsonPrimitiveText())
+        assertEquals("nonce-1", device["nonce"]!!.jsonPrimitiveText())
+        assertEquals("c2ln", device["signature"]!!.jsonPrimitiveText())
+    }
+
+    @Test
     fun wireValueRoundTripsThroughJson() {
         val original = WireValue.ObjectValue(
             mapOf(
