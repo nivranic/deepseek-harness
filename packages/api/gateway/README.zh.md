@@ -58,7 +58,7 @@ Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显�
 
 协议 2 的交互结果、委托和拒绝均回传 `interactionRevision`。Gateway 在移除投递或结算调用方前与待处理记录比较。缺少版本返回 `gateway/input-invalid`；不匹配返回携带预期版本和收到版本的 `revision-conflict`。回答协议必须与活动投递连接代次一致，防止协议 2 回答通过旧格式省略版本检查。协议 1 和没有交互记录的 waterfall 拒绝版本字段。无效回答保留待处理投递；已关闭投递仍返回 `interaction-closed`。Client 版本失败沿用原有连接代次恢复流程，由 Host 重放待处理记录，不向业务监听器注入元数据。
 
-`interactionReplyPermissions.approval` 与 `.question`（默认 `true`）在 Host 侧对每条转发交互应答强制执行：不具备待决交互 `requiredPermission` 的 client 收到 `gateway/permission-denied`，其应答既不结算调用也不消费投递，底层工具副作用不会发生，其他有资格的应答者仍可作答。该开关当前为部署级；Device Trust 角色将以按设备解析替代。
+`interactionReplyPermissions.approval` 与 `.question`（默认 `true`）在 Host 侧对每条转发交互应答强制执行：不具备待决交互 `requiredPermission` 的 client 收到 `gateway/permission-denied`，其应答既不结算调用也不消费投递，底层工具副作用不会发生，其他有资格的应答者仍可作答。该开关是匿名 client 的默认值：Remote 事件流打开时 `args` 携带签名设备准入（`{deviceId, timestamp, signature}`，组合了 device-trust 时经 `ctx.deviceTrust` 验证）的 client 改为获得其设备角色第 21 节权限集。
 
 `interactionTimeoutMs.approval` 和 `.question` 可分别限制被转发交互的存活时间，单位为毫秒，范围为 1 至 2,147,483,647。未配置的类型没有 Gateway 期限。期限从 Gateway 创建待处理记录时起算；`expiresAt` 使用 Host 时间，重连时保持不变。经过时长的定时器，或重放、接受回答前对 Host 截止时间的检查，会使请求过期，因此时钟回拨不会延长已启动的计时，回调延迟也不会放行到期后的回答。结算、调用方取消或事件源取消均清理定时器。过期以 `interaction-expired` 拒绝 Host 调用，并向协议 2 消费者发送 `expired` 终结记录；协议 1 接收原有取消字段。迟到回答返回 `interaction-closed`。Approval 将回答方拒绝映射为既有的失败关闭结果 `unavailable`，Question 则传播过期错误。此转发调用之外的本地回答方不受影响；过期记录不跨 Host 重启保存。
 

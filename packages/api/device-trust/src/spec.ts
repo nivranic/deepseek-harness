@@ -23,7 +23,7 @@ import type { DeviceId } from './types.ts'
  */
 export const deviceGrantRecord = z.object({
   deviceName: z.string().min(1),
-  role: z.enum(['viewer', 'collaborator', 'admin']),
+  role: z.enum(['viewer', 'collaborator', 'controller', 'owner']),
   /** Base64 SPKI DER of the device's Ed25519 key, registered at redemption. */
   devicePublicKey: z.string().min(1),
   /** Lowercase hex SHA-256 of the SPKI DER. */

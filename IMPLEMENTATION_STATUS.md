@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 设备角色准入（Phase 7 第三增量）
+
+[当前来源记录](artifacts/upstream-first/device-role-admission-source.json)把角色词表对齐规格第 21 节表格（viewer/collaborator/controller/owner；packages/api/device-trust/src/permissions.ts 的 DEVICE_ROLE_PERMISSIONS 恰好持有表格权限列），新增 admitDevice（device.admit.v1）：对 deviceId+LF+时间戳的 UTF-8 字节做 base64 Ed25519 验签，按代价从低到高检查 not-found→already-revoked→admission-expired→key-invalid，接受窗口 admissionWindowMs 默认五分钟；网关在 Remote 事件流打开接受 args.device（信封内保持版本 2 元数据契约），经 ctx.get 惰性解析 deviceTrust（未组合即不广播设备能力，呈现身份时以 gateway/service-unavailable 大声失败），被准入 client 的回复权限改为其角色权限集——第 15 节 Host 侧 requiredPermission 执行不变。四角色 × approval/question 矩阵经真实 WebSocket 传输双向测试；device/admission-expired 归 authentication 类。489 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿；Kotlin :contract:test 已知分支计数 84→90 顺带修正了前两增量遗留的漂移。局限：准入绑定流打开（撤销在下次重连生效、无 nonce 账本），按请求业务 RPC 签名延期。
+
 ## 设备授权持久化（Phase 7 第二增量）
 
-[当前来源记录](artifacts/upstream-first/device-trust-durable-source.json)把授权从进程内 Map 迁入 device_trust 存储域（packages/api/device-trust/src/spec.ts：defineDomain、DeviceId 键的 grants 表、single 布局、版本 1）：授权在 Host 重启后存活，非法已存记录使 open 拒绝（权威数据不跳过——静默丢失撤销是安全洞）；服务注入 storageDomain、在 [Service.init] 打开域并以 ctx.effect 关闭，读取走域内存表同步状态、写入先落盘。兑换只在持久 put 完成后消费码值（存储失败不烧码），撤销为原子 update（变换内在队列槽位已撤销时抛 device/already-revoked，missing-key 映射 device/not-found）；待定配对码按设计保持进程内——一次性过期机密不得跨重启存活。两个行为测试固定契约：授权（含撤销状态）跨重启存活、待定码值不跨重启存活。Gateway + device-trust 套件 444/444、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：持久化走组合的 json 后端（<dshHome>/storages），按域路由到 SQLite 为后续部署选择；device/* 码保持未分类，角色映射权限检查与请求签名准入未接线。
+[历史来源记录](artifacts/upstream-first/device-trust-durable-source.json)把授权从进程内 Map 迁入 device_trust 存储域（packages/api/device-trust/src/spec.ts：defineDomain、DeviceId 键的 grants 表、single 布局、版本 1）：授权在 Host 重启后存活，非法已存记录使 open 拒绝（权威数据不跳过——静默丢失撤销是安全洞）；服务注入 storageDomain、在 [Service.init] 打开域并以 ctx.effect 关闭，读取走域内存表同步状态、写入先落盘。兑换只在持久 put 完成后消费码值（存储失败不烧码），撤销为原子 update（变换内在队列槽位已撤销时抛 device/already-revoked，missing-key 映射 device/not-found）；待定配对码按设计保持进程内——一次性过期机密不得跨重启存活。两个行为测试固定契约：授权（含撤销状态）跨重启存活、待定码值不跨重启存活。Gateway + device-trust 套件 444/444、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：持久化走组合的 json 后端（<dshHome>/storages），按域路由到 SQLite 为后续部署选择；device/* 码保持未分类，角色映射权限检查与请求签名准入未接线。
 
 ## 设备信任接缝（Phase 7 首个增量）
 

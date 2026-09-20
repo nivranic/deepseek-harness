@@ -1,22 +1,26 @@
 /**
  * Device-trust seam on the candidate gateway: pairing issuance with one-time
  * expiring codes, redemption registering the device's Ed25519 public key, the
- * durable grant store over the storage-domain seam, and revocation. The audit
- * decision 2026-09-20-link-access-takeover-audit names this seam the single
- * owner of device-facing access; permission execution stays with the section
- * 15 seam and no non-localhost admission opens here.
+ * durable grant store over the storage-domain seam, signed admission, and
+ * revocation. The audit decision 2026-09-20-link-access-takeover-audit names
+ * this seam the single owner of device-facing access; permission execution
+ * stays with the section 15 seam, which consumes each admission's section 21
+ * permission set, and no non-localhost admission opens here.
  * @module @deepseek-ai/dsh-api-device-trust
  */
 
-import { createHash, randomUUID } from 'node:crypto'
+import { createHash, createPublicKey, randomUUID, verify as verifySignature } from 'node:crypto'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { RemoteError, TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { DomainError, type KvTable } from '@deepseek-ai/dsh-storage-domain'
 import { DEVICE_TRUST_REMOTE_CAPABILITIES } from './capabilities.ts'
+import { DEVICE_ROLE_PERMISSIONS } from './permissions.ts'
 import { deviceTrustDomainSpec } from './spec.ts'
 import type { DeviceGrantRecord } from './spec.ts'
 import type {
+  AdmitDeviceRequest,
+  DeviceAdmission,
   DeviceId,
   DeviceRole,
   DeviceView,
@@ -30,6 +34,7 @@ import type {
 
 export type * from './types.ts'
 export { DEVICE_TRUST_REMOTE_CAPABILITIES } from './capabilities.ts'
+export { DEVICE_ROLE_PERMISSIONS } from './permissions.ts'
 export { deviceTrustDomainSpec, deviceGrantRecord } from './spec.ts'
 export type { DeviceGrantRecord } from './spec.ts'
 
@@ -52,12 +57,18 @@ declare module '@deepseek-ai/cordis' {
   }
 }
 
-/** Config: deployment-varying choices of the pairing ceremony. */
+/** Config: deployment-varying choices of the pairing ceremony and admission. */
 export interface Config {
   /** Lifetime of an issued pairing code in ms (default five minutes). */
   pairingTtlMs?: number
   /** Role assigned at redemption when issuance named none (default viewer). */
   defaultRole?: DeviceRole
+  /**
+   * Acceptance window around the signed admission timestamp in ms (default
+   * five minutes); an admission signed further from now fails with
+   * `device/admission-expired`.
+   */
+  admissionWindowMs?: number
 }
 
 /** Fixed 12-byte SubjectPublicKeyInfo header before one raw Ed25519 key. */
@@ -104,8 +115,10 @@ export class DeviceTrustService extends TypertRemoteService {
     defaultRole: z.union([
       z.const('viewer'),
       z.const('collaborator'),
-      z.const('admin'),
+      z.const('controller'),
+      z.const('owner'),
     ]).default('viewer'),
+    admissionWindowMs: z.number().step(1).min(1).default(300_000),
   })
 
   /**
@@ -113,7 +126,7 @@ export class DeviceTrustService extends TypertRemoteService {
    * not survive a Host restart, and the ceremony simply reissues after one.
    */
   private readonly pairings = new Map<string, PendingPairing>()
-  private readonly resolved: { pairingTtlMs: number; defaultRole: DeviceRole }
+  private readonly resolved: { pairingTtlMs: number; defaultRole: DeviceRole; admissionWindowMs: number }
   private grants?: KvTable<DeviceId, DeviceGrantRecord>
 
   constructor(ctx: Context, config: Config = {}) {
@@ -121,6 +134,7 @@ export class DeviceTrustService extends TypertRemoteService {
     this.resolved = {
       pairingTtlMs: config.pairingTtlMs ?? 300_000,
       defaultRole: config.defaultRole ?? 'viewer',
+      admissionWindowMs: config.admissionWindowMs ?? 300_000,
     }
   }
 
@@ -240,6 +254,68 @@ export class DeviceTrustService extends TypertRemoteService {
       throw error
     }
     return { deviceId: request.deviceId, revokedAt }
+  }
+
+  /**
+   * Verify one signed admission and return the device's identity with its
+   * section 21 permission set. Checks run cheapest-first: the grant must
+   * exist and be active, the signed timestamp must sit inside the admission
+   * window, and the Ed25519 signature over `deviceId + "\n" + timestamp`
+   * (UTF-8) must verify against the paired key. The Gateway resolves one
+   * admission per Remote event stream open and derives the client's reply
+   * permissions from the returned set.
+   * @param request - the device's signed admission message.
+   * @returns the admitted identity, role, and permissions.
+   * @throws RemoteError `device/not-found`, `device/already-revoked`,
+   * `device/admission-expired`, `device/key-invalid`, or `gateway/bad-request`.
+   */
+  @Remote('admitDevice')
+  admitDevice(request: AdmitDeviceRequest): DeviceAdmission {
+    if (typeof request.signature !== 'string' || request.signature === '') {
+      throw new RemoteError('gateway/bad-request', 'signature must be a non-empty string', {})
+    }
+    const grant = this.table().get(request.deviceId)
+    if (grant === undefined) {
+      throw new RemoteError('device/not-found', 'no device grant with the addressed id', { deviceId: request.deviceId })
+    }
+    if (grant.revokedAt !== undefined) {
+      throw new RemoteError('device/already-revoked', 'device grant was already revoked', {
+        deviceId: request.deviceId, revokedAt: grant.revokedAt,
+      })
+    }
+    if (Math.abs(Date.now() - request.timestamp) > this.resolved.admissionWindowMs) {
+      throw new RemoteError('device/admission-expired', 'signed admission timestamp fell outside the acceptance window', {
+        deviceId: request.deviceId, timestamp: request.timestamp, admissionWindowMs: this.resolved.admissionWindowMs,
+      })
+    }
+    const message = Buffer.from(`${request.deviceId}\n${request.timestamp}`, 'utf8')
+    let signature: Buffer
+    try {
+      signature = Buffer.from(request.signature, 'base64')
+    } catch {
+      throw new RemoteError('device/key-invalid', 'admission signature is not base64', { reason: 'not-base64' })
+    }
+    const publicKey = createPublicKey({ key: decodeDeviceKey(grant.devicePublicKey).spki, format: 'der', type: 'spki' })
+    let valid = false
+    try {
+      valid = verifySignature(null, message, publicKey, signature)
+    } catch {
+      // Node throws (instead of returning false) only for a malformed signature
+      // buffer or key encoding; both are the caller's invalid-signature case.
+      valid = false
+    }
+    if (!valid) {
+      throw new RemoteError('device/key-invalid', 'admission signature does not verify against the paired key', {
+        reason: 'signature-mismatch',
+      })
+    }
+    return {
+      deviceId: request.deviceId,
+      deviceName: grant.deviceName,
+      role: grant.role,
+      permissions: [...DEVICE_ROLE_PERMISSIONS[grant.role]],
+      admittedAt: Date.now(),
+    }
   }
 }
 

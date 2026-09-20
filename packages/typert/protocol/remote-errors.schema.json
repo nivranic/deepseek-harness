@@ -234,6 +234,47 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "device/admission-expired"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "timestamp": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "admissionWindowMs": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "deviceId",
+            "timestamp",
+            "admissionWindowMs"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The signed admission timestamp fell outside the acceptance window."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "device/already-revoked"
         },
         "message": {
@@ -3181,6 +3222,7 @@
               "agent-preset/not-found",
               "agent-preset/read-only",
               "credential/rejected",
+              "device/admission-expired",
               "device/already-revoked",
               "device/key-invalid",
               "device/not-found",

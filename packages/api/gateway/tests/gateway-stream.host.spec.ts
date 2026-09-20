@@ -1,4 +1,7 @@
-import { randomUUID } from 'node:crypto'
+import { generateKeyPairSync, randomUUID, sign as edSign } from 'node:crypto'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { once } from 'node:events'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import WebSocket, { type RawData } from 'ws'
@@ -6,6 +9,15 @@ import { Context, Service, symbols } from '@deepseek-ai/cordis'
 import { apply as applyConnection, inject as connectionInject } from '@deepseek-ai/dsh-client-connection'
 import WebServer from '@deepseek-ai/dsh-host-webserver'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
+import Storage from '@deepseek-ai/dsh-storage'
+import {
+  apply as storageJsonApply, Config as storageJsonConfig, inject as storageJsonInject, name as storageJsonName,
+} from '@deepseek-ai/dsh-storage-json'
+import {
+  apply as storageDomainApply, Config as storageDomainConfig, inject as storageDomainInject, name as storageDomainName,
+} from '@deepseek-ai/dsh-storage-domain'
+import DeviceTrustService from '@deepseek-ai/dsh-api-device-trust'
+import type { DeviceId } from '@deepseek-ai/dsh-api-device-trust/types'
 import {
   bindTypertRemote,
   Remote,
@@ -1309,6 +1321,165 @@ describe('Typert Remote streams', () => {
   })
 })
 
+describe('Typert Gateway device admission', () => {
+  const storageRoots: string[] = []
+
+  afterEach(async () => {
+    await Promise.all(storageRoots.splice(0).map(root => rm(root, { recursive: true, force: true })))
+  })
+
+  /** Boot the transport stack with the durable device-trust service present. */
+  async function setupDevices(gatewayConfig: GatewayConfig = {}): Promise<Context> {
+    const ctx = new Context()
+    roots.push(ctx)
+    const storageRoot = await mkdtemp(join(tmpdir(), 'gateway-devices-'))
+    storageRoots.push(storageRoot)
+    await ctx.plugin(WebServer, { host: '127.0.0.1', port: 0 })
+    provideBrowserCredentials(ctx)
+    await ctx.plugin(TypertRegistry)
+    await ctx.plugin(Storage)
+    const jsonBackend = { name: storageJsonName, inject: storageJsonInject, apply: storageJsonApply, Config: storageJsonConfig }
+    await ctx.plugin(jsonBackend, { root: storageRoot })
+    await ctx.plugin(
+      { name: storageDomainName, inject: storageDomainInject, apply: storageDomainApply, Config: storageDomainConfig },
+      { backend: 'json' },
+    )
+    await ctx.plugin(DeviceTrustService)
+    await ctx.plugin(TypertGatewayService, gatewayConfig)
+    await ctx.plugin({ inject: [...connectionInject], apply: applyConnection })
+    return ctx
+  }
+
+  /** One freshly generated Ed25519 pair with the wire form of its public key. */
+  function ed25519(): { publicKeyB64: string; sign: (message: string) => string } {
+    const { publicKey, privateKey } = generateKeyPairSync('ed25519')
+    return {
+      publicKeyB64: publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
+      sign: message => edSign(null, Buffer.from(message, 'utf8'), privateKey).toString('base64'),
+    }
+  }
+
+  /** Pair one real key under the named section 21 role. */
+  async function pairDevice(
+    ctx: Context,
+    role: 'viewer' | 'collaborator' | 'controller' | 'owner',
+  ): Promise<{ deviceId: DeviceId; key: ReturnType<typeof ed25519> }> {
+    const key = ed25519()
+    const issuance = ctx.deviceTrust.issuePairing(role)
+    const grant = await ctx.deviceTrust.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: key.publicKeyB64 })
+    return { deviceId: grant.deviceId, key }
+  }
+
+  /** The signed open-payload device field for one paired device. */
+  function admissionOf(device: { deviceId: DeviceId; key: ReturnType<typeof ed25519> }):
+  { deviceId: string; timestamp: number; signature: string } {
+    const timestamp = Date.now()
+    return { deviceId: device.deviceId, timestamp, signature: device.key.sign(`${device.deviceId}\n${String(timestamp)}`) }
+  }
+
+  it('derives reply permissions from the admitted role matrix', { timeout: 30_000 }, async () => {
+    const ctx = await setupDevices({ interactionReplyPermissions: { approval: true, question: true } })
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const agent = ctx.extend()
+    const matrix = [
+      ['viewer', false, false],
+      ['collaborator', false, true],
+      ['controller', true, true],
+      ['owner', true, true],
+    ] as const
+    // Denied interactions settle only when the Remote event source is removed
+    // below, so their rejection assertions are awaited after the loop.
+    const unsettledOutcomes: Promise<unknown>[] = []
+    for (const [role, mayApprove, mayAnswer] of matrix) {
+      const device = await pairDevice(ctx, role)
+      const client = await openEventClient(ctx, `events-${role}`, 2, admissionOf(device))
+      const approval = pendingInvocation(agent, undefined, `approve-${role}`, agentId('agent-1'), {
+        sessionId: 'session-1' as RemoteInteractionSessionId, type: 'approval', requiredPermission: 'approval.respond',
+      })
+      const question = pendingInvocation(agent, undefined, `answer-${role}`, agentId('agent-1'), {
+        sessionId: 'session-1' as RemoteInteractionSessionId, type: 'question', requiredPermission: 'question.respond',
+      })
+      source.push(approval.dispatch)
+      source.push(question.dispatch)
+      const frames = client.frames
+      const byPrompt = (prompt: string) => frames
+        .filter(frame => frame.type === 'item' && frame.streamId === client.streamId)
+        .map(frame => frame.value as RemoteEventInvocationFrame)
+        .filter(value => Object.hasOwn(value, 'eventId'))
+        .find(frame => (frame.request as { prompt?: unknown } | undefined)?.prompt === prompt)!
+      await vi.waitFor(() => {
+        expect(byPrompt(`approve-${role}`)).toBeDefined()
+        expect(byPrompt(`answer-${role}`)).toBeDefined()
+      })
+      const approvalFrame = byPrompt(`approve-${role}`)
+      const questionFrame = byPrompt(`answer-${role}`)
+
+      if (mayApprove) {
+        await sendEventResult(client, approvalFrame, { kind: 'result', value: 'allowed' }, 2)
+        await expect(approval.outcome).resolves.toEqual({ kind: 'result', value: 'allowed' })
+      } else {
+        unsettledOutcomes.push(expect(approval.outcome).rejects.toThrow('forwarded Remote event source was removed'))
+        await expect(sendEventResult(client, approvalFrame, { kind: 'result', value: 'allowed' }, 2))
+          .rejects.toMatchObject({ code: 'gateway/permission-denied' })
+      }
+      if (mayAnswer) {
+        await sendEventResult(client, questionFrame, { kind: 'result', value: 'answered' }, 2)
+        await expect(question.outcome).resolves.toEqual({ kind: 'result', value: 'answered' })
+      } else {
+        unsettledOutcomes.push(expect(question.outcome).rejects.toThrow('forwarded Remote event source was removed'))
+        await expect(sendEventResult(client, questionFrame, { kind: 'result', value: 'answered' }, 2))
+          .rejects.toMatchObject({ code: 'gateway/permission-denied' })
+      }
+      client.socket.close()
+    }
+    await unregister()
+    await Promise.all(unsettledOutcomes)
+  })
+
+  it('rejects an admission signed by a different key with the device code', async () => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const device = await pairDevice(ctx, 'controller')
+    const other = ed25519()
+    const timestamp = Date.now()
+    const failure = await openEventFailure(ctx, 'events-wrong-key', {
+      deviceId: device.deviceId, timestamp, signature: other.sign(`${device.deviceId}\n${String(timestamp)}`),
+    })
+    expect(failure.code).toBe('device/key-invalid')
+    await unregister()
+  })
+
+  it('rejects the admission of a revoked device', async () => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const device = await pairDevice(ctx, 'collaborator')
+    await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+    const failure = await openEventFailure(ctx, 'events-revoked', admissionOf(device))
+    expect(failure.code).toBe('device/already-revoked')
+    await unregister()
+  })
+
+  it('rejects a malformed device field at the wire boundary', async () => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const failure = await openEventFailure(ctx, 'events-malformed', { deviceId: 'device-1' })
+    expect(failure.code).toBe('gateway/arguments-invalid')
+    await unregister()
+  })
+
+  it('rejects a device identity when the device-trust service is absent', async () => {
+    const { ctx } = await setup(true)
+    const failure = await openEventFailure(ctx, 'events-no-trust', {
+      deviceId: 'device-1', timestamp: Date.now(), signature: 'c2lnbmF0dXJl',
+    })
+    expect(failure.code).toBe('gateway/service-unavailable')
+  })
+})
+
 async function setup(
   transport: boolean,
   gatewayConfig: GatewayConfig = {},
@@ -1383,7 +1554,12 @@ interface RemoteEventTestClient {
   readonly cookie: string
 }
 
-async function openEventClient(ctx: Context, streamId: string, version: 1 | 2 = 1): Promise<RemoteEventTestClient> {
+async function openEventClient(
+  ctx: Context,
+  streamId: string,
+  version: 1 | 2 = 1,
+  device?: { readonly deviceId: string; readonly timestamp: number; readonly signature: string },
+): Promise<RemoteEventTestClient> {
   const origin = `http://127.0.0.1:${String(ctx.webServer.port)}`
   const cookie = browserCookie(ctx)
   const socket = new WebSocket(`${origin.replace('http:', 'ws:')}/api/remote.mux`, {
@@ -1393,10 +1569,15 @@ async function openEventClient(ctx: Context, streamId: string, version: 1 | 2 = 
   const frames: Record<string, unknown>[] = []
   socket.on('message', (data) => { frames.push(JSON.parse(rawText(data)) as Record<string, unknown>) })
   socket.send(JSON.stringify({ type: 'open', streamId, endpoint: '$events',
-    payload: { ...(version === 2 ? { apiProtocolVersion: 2 } : {}), args: {} },
+    payload: {
+      ...(version === 2 ? { apiProtocolVersion: 2 } : {}),
+      args: { ...(device === undefined ? {} : { device }) },
+    },
   }))
   let clientId: RemoteEventClientId | undefined
   await vi.waitFor(() => {
+    const failed = frames.find(frame => frame.type === 'error' && frame.streamId === streamId)
+    if (failed !== undefined) throw new Error(`stream open failed: ${JSON.stringify(failed)}`)
     const ready = frames.find(frame => frame.type === 'item'
       && frame.streamId === streamId
       && typeof frame.value === 'object'
@@ -1408,6 +1589,30 @@ async function openEventClient(ctx: Context, streamId: string, version: 1 | 2 = 
   })
   if (clientId === undefined) throw new Error('Remote event stream omitted its Client id')
   return { socket, frames, streamId, clientId, origin, cookie }
+}
+
+/** Open a Remote event stream whose open must fail; returns the error frame's error. */
+async function openEventFailure(ctx: Context, streamId: string, device: unknown): Promise<{ code: string; message: string }> {
+  const origin = `http://127.0.0.1:${String(ctx.webServer.port)}`
+  const cookie = browserCookie(ctx)
+  const socket = new WebSocket(`${origin.replace('http:', 'ws:')}/api/remote.mux`, {
+    headers: { cookie },
+  })
+  await once(socket, 'open')
+  const frames: Record<string, unknown>[] = []
+  socket.on('message', (data) => { frames.push(JSON.parse(rawText(data)) as Record<string, unknown>) })
+  socket.send(JSON.stringify({ type: 'open', streamId, endpoint: '$events', payload: { args: { device } } }))
+  let failure: { code: string; message: string } | undefined
+  await vi.waitFor(() => {
+    const frame = frames.find(entry => entry.type === 'error' && entry.streamId === streamId)
+    expect(frame).toBeDefined()
+    const error = (frame as { error?: { code?: unknown; message?: unknown } }).error
+    expect(typeof error?.code).toBe('string')
+    expect(typeof error?.message).toBe('string')
+    failure = { code: error!.code as string, message: error!.message as string }
+  })
+  socket.close()
+  return failure!
 }
 
 function deliveredInvocation(client: RemoteEventTestClient): RemoteEventInvocationFrame | undefined {

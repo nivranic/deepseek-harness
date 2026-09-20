@@ -14,6 +14,8 @@ import { deadline, timeoutOf, MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeou
 import z from '@deepseek-ai/schemastery'
 import { DIAGNOSTICS_ONLY_ENDPOINTS, decodeRemoteRequest, type RemoteProtocolVersion, SUPPORTED_REMOTE_PROTOCOL_VERSIONS } from './protocol.ts'
 export type { TypertGatewayFaultDetails } from './remote-error-codes.ts'
+import type { DeviceId } from '@deepseek-ai/dsh-api-device-trust/types'
+import type {} from '@deepseek-ai/dsh-api-device-trust'
 import {
   RemoteError,
   remoteErrorOf,
@@ -97,6 +99,13 @@ interface RegisteredRemoteEventSource {
   readonly host: RemoteEventHostInfo
 }
 
+/** Signed device admission fields from a Remote event stream open payload. */
+interface DeviceAdmissionWire {
+  readonly deviceId: string
+  readonly timestamp: number
+  readonly signature: string
+}
+
 interface RemoteEventClient {
   readonly version: RemoteProtocolVersion
   readonly id: RemoteEventClientId
@@ -133,16 +142,17 @@ export interface Config {
     readonly question?: number
   }
   /**
-   * Interaction reply permissions each connected Remote client holds. The
-   * requiredPermission on a pending interaction is enforced Host-side: a
+   * Interaction reply permissions an anonymous connected Remote client holds.
+   * The requiredPermission on a pending interaction is enforced Host-side: a
    * reply from a client without it is rejected without settling or consuming
-   * the delivery, so the underlying tool side effect never runs. Defaults to
-   * granting both; Device Trust roles replace this deployment-wide switch.
+   * the delivery, so the underlying tool side effect never runs. A client that
+   * presents a signed device admission at stream open instead receives the
+   * section 21 permission set of its device-trust role.
    */
   readonly interactionReplyPermissions?: {
-    /** Whether clients may answer approvals ('approval.respond'). @default true */
+    /** Whether anonymous clients may answer approvals ('approval.respond'). @default true */
     readonly approval?: boolean
-    /** Whether clients may answer questions ('question.respond'). @default true */
+    /** Whether anonymous clients may answer questions ('question.respond'). @default true */
     readonly question?: boolean
   }
 }
@@ -499,13 +509,16 @@ export class TypertGatewayService extends Service implements TypertGateway {
       || !Object.hasOwn(payload, 'args')
       || !isObject(payload.args)
       || !isPlainObject(payload.args)
-      || Reflect.ownKeys(payload.args).length !== 0) {
+      || Reflect.ownKeys(payload.args).some(key => key !== 'device')) {
       throw new TypertGatewayError(
         'gateway/arguments-invalid',
         REMOTE_EVENT_STREAM_ENDPOINT,
-        'forwarded Remote event stream requires an empty args object',
+        'forwarded Remote event stream requires an empty args object or a device admission',
       )
     }
+    const device = Object.hasOwn(payload.args, 'device')
+      ? parseDeviceAdmission(payload.args.device)
+      : undefined
     const registration = this.remoteEvents
     if (registration === undefined) {
       throw new TypertGatewayError(
@@ -522,7 +535,9 @@ export class TypertGatewayService extends Service implements TypertGateway {
       id: clientId,
       queue: new RemoteEventQueue(),
       deliveries: new Map(),
-      replyPermissions: this.interactionReplyPermissions,
+      replyPermissions: device === undefined
+        ? this.interactionReplyPermissions
+        : this.admitDeviceClient(device),
     }
     this.remoteEventClients.set(clientId, client)
     for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)
@@ -699,6 +714,32 @@ export class TypertGatewayService extends Service implements TypertGateway {
   private removeRemoteEventDelivery(pending: PendingRemoteEvent, client: RemoteEventClient): void {
     pending.deliveries.delete(client)
     client.deliveries.delete(pending.id)
+  }
+
+  /**
+   * Resolve one signed device admission and derive the connecting client's
+   * reply permissions from its section 21 role set. The device-trust service
+   * is resolved lazily: a composition without it advertises no device
+   * capabilities, and a device identity presented to such a Gateway fails
+   * loud here instead of silently falling back to the anonymous default.
+   * @param device - the admission fields parsed from the stream open payload.
+   * @returns the admitted device's permission set as reply permissions.
+   */
+  private admitDeviceClient(device: DeviceAdmissionWire): ReadonlySet<string> {
+    const deviceTrust = this.ctx.get('deviceTrust')
+    if (deviceTrust === undefined) {
+      throw new TypertGatewayError(
+        'gateway/service-unavailable',
+        REMOTE_EVENT_STREAM_ENDPOINT,
+        'device admission requires the device-trust service',
+      )
+    }
+    const admission = deviceTrust.admitDevice({
+      deviceId: device.deviceId as DeviceId,
+      timestamp: device.timestamp,
+      signature: device.signature,
+    })
+    return new Set<string>(admission.permissions)
   }
 
   private removeRemoteEventClient(client: RemoteEventClient): void {
@@ -1380,6 +1421,34 @@ function isPlainObject(value: object): value is Record<string, unknown> {
 
 function isObject(value: unknown): value is object {
   return (typeof value === 'object' && value !== null) || typeof value === 'function'
+}
+
+/**
+ * Validate the optional device admission argument of a Remote event stream
+ * open payload at the wire boundary.
+ * @param value - the `args.device` field the client presented.
+ * @returns the admission fields to verify against the device-trust grants.
+ * @throws TypertGatewayError `gateway/arguments-invalid` when the field is
+ * not `{deviceId, timestamp, signature}` with a non-empty deviceId string, a
+ * safe-integer epoch-ms timestamp, and a non-empty signature string.
+ */
+function parseDeviceAdmission(value: unknown): DeviceAdmissionWire {
+  if (!isObject(value)
+    || !isPlainObject(value)
+    || Reflect.ownKeys(value).length !== 3
+    || typeof value.deviceId !== 'string'
+    || value.deviceId === ''
+    || typeof value.timestamp !== 'number'
+    || !Number.isSafeInteger(value.timestamp)
+    || typeof value.signature !== 'string'
+    || value.signature === '') {
+    throw new TypertGatewayError(
+      'gateway/arguments-invalid',
+      REMOTE_EVENT_STREAM_ENDPOINT,
+      'device admission requires deviceId, an integer timestamp, and a signature',
+    )
+  }
+  return { deviceId: value.deviceId, timestamp: value.timestamp, signature: value.signature }
 }
 
 export default TypertGatewayService

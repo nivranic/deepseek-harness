@@ -6,15 +6,30 @@
 
 ## 标识与角色
 
-`DeviceId` 与 `PairingCodeId` 是[品牌化标识](core.zh.md#branded-ids)。角色使用第 21 节线上命名，从不直接授予能力或权限；权限执行仍归交互回复接缝。
+`DeviceId` 与 `PairingCodeId` 是[品牌化标识](core.zh.md#branded-ids)。角色使用第 21 节表格命名，并恰好持有该表格的权限列；权限执行仍归交互回复接缝。
 
 ```ts type-equiv
 /**
- * Section 21 role table wire names. A role names what the Client may ask
- * next; permission execution stays with the section 15 Host-authoritative
- * seam, which reconciles roles onto `requiredPermission` checks.
+ * Section 21 role table wire names: Viewer, Collaborator, Controller, Owner.
+ * A role names what the Client may ask next; permission execution stays with
+ * the section 15 Host-authoritative seam, which reconciles roles onto
+ * `requiredPermission` checks.
  */
-type DeviceRole = 'viewer' | 'collaborator' | 'admin'
+type DeviceRole = 'viewer' | 'collaborator' | 'controller' | 'owner'
+```
+
+```ts type-equiv
+/**
+ * One grantable capability kind from the section 21 table columns. Roles hold
+ * these as sets via {@link DEVICE_ROLE_PERMISSIONS}; the section 15 seam checks
+ * the two `*.respond` kinds against pending interactions' `requiredPermission`.
+ */
+type DevicePermission =
+  | 'view'
+  | 'prompt.send'
+  | 'question.respond'
+  | 'approval.respond'
+  | 'device.admin'
 ```
 
 ## 配对仪式
@@ -80,6 +95,35 @@ interface RevokeDeviceResult {
 }
 ```
 
+## 签名准入
+
+```ts type-equiv
+/**
+ * Signed admission request a device presents when opening a Gateway Remote
+ * event stream. The signature is base64 Ed25519 over the UTF-8 bytes of
+ * `deviceId + "\n" + timestamp` (decimal epoch ms) made with the paired key.
+ */
+interface AdmitDeviceRequest {
+  readonly deviceId: DeviceId
+  /** Epoch ms when the device signed; accepted within the admission window. */
+  readonly timestamp: number
+  /** Base64 Ed25519 signature over the canonical admission message. */
+  readonly signature: string
+}
+```
+
+```ts type-equiv
+/** Admission outcome: the device's identity, role, and its permission set. */
+interface DeviceAdmission {
+  readonly deviceId: DeviceId
+  readonly deviceName: string
+  readonly role: DeviceRole
+  readonly permissions: readonly DevicePermission[]
+  /** Epoch ms when the Host accepted the admission. */
+  readonly admittedAt: number
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -135,6 +179,21 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
  * @throws RemoteError `device/not-found` or `device/already-revoked`.
  */
 @Remote('revokeDevice') async revokeDevice(request: RevokeDeviceRequest): Promise<RevokeDeviceResult>
+
+/**
+ * Verify one signed admission and return the device's identity with its
+ * section 21 permission set. Checks run cheapest-first: the grant must
+ * exist and be active, the signed timestamp must sit inside the admission
+ * window, and the Ed25519 signature over `deviceId + "\n" + timestamp`
+ * (UTF-8) must verify against the paired key. The Gateway resolves one
+ * admission per Remote event stream open and derives the client's reply
+ * permissions from the returned set.
+ * @param request - the device's signed admission message.
+ * @returns the admitted identity, role, and permissions.
+ * @throws RemoteError `device/not-found`, `device/already-revoked`,
+ * `device/admission-expired`, `device/key-invalid`, or `gateway/bad-request`.
+ */
+@Remote('admitDevice') admitDevice(request: AdmitDeviceRequest): DeviceAdmission
 ```
 
 Source: [`packages/api/device-trust/src/index.ts`](../../packages/api/device-trust/src/index.ts)

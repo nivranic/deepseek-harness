@@ -234,6 +234,171 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "device/already-revoked"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "revokedAt": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "deviceId",
+            "revokedAt"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The addressed device grant was already revoked."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "device/key-invalid"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The presented public key is not a base64 Ed25519 SPKI DER."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "device/not-found"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "deviceId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The addressed device grant does not exist."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "device/pairing-expired"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "expiresAt": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "code",
+            "expiresAt"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The presented code expired before redemption."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "device/pairing-invalid"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "code"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The presented code is unknown or was already redeemed."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "directory-picker/create-failed"
         },
         "message": {
@@ -3016,6 +3181,11 @@
               "agent-preset/not-found",
               "agent-preset/read-only",
               "credential/rejected",
+              "device/already-revoked",
+              "device/key-invalid",
+              "device/not-found",
+              "device/pairing-expired",
+              "device/pairing-invalid",
               "directory-picker/create-failed",
               "directory-picker/exists",
               "directory-picker/unavailable",

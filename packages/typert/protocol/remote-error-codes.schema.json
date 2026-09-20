@@ -42,6 +42,12 @@
       "x-typescript-details": "{ readonly ref: string }"
     },
     {
+      "const": "device/admission-expired",
+      "description": "The signed admission timestamp fell outside the acceptance window.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{\n      readonly deviceId: string\n      readonly timestamp: number\n      readonly admissionWindowMs: number\n    }"
+    },
+    {
       "const": "device/already-revoked",
       "description": "The addressed device grant was already revoked.",
       "x-source": "packages/api/device-trust/src/types.ts",

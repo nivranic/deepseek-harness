@@ -190,23 +190,30 @@ Source: [`packages/core/agent-tool-presentation/src/index.ts:38`](../packages/co
 Requires: `storageDomain`
 
 ```ts config-catalog
-/** Config: deployment-varying choices of the pairing ceremony. */
+/** Config: deployment-varying choices of the pairing ceremony and admission. */
 export interface Config {
   /** Lifetime of an issued pairing code in ms (default five minutes). */
   pairingTtlMs?: number
   /** Role assigned at redemption when issuance named none (default viewer). */
   defaultRole?: DeviceRole
+  /**
+   * Acceptance window around the signed admission timestamp in ms (default
+   * five minutes); an admission signed further from now fails with
+   * `device/admission-expired`.
+   */
+  admissionWindowMs?: number
 }
 
 /**
- * Section 21 role table wire names. A role names what the Client may ask
- * next; permission execution stays with the section 15 Host-authoritative
- * seam, which reconciles roles onto `requiredPermission` checks.
+ * Section 21 role table wire names: Viewer, Collaborator, Controller, Owner.
+ * A role names what the Client may ask next; permission execution stays with
+ * the section 15 Host-authoritative seam, which reconciles roles onto
+ * `requiredPermission` checks.
  */
-export type DeviceRole = 'viewer' | 'collaborator' | 'admin'
+export type DeviceRole = 'viewer' | 'collaborator' | 'controller' | 'owner'
 ```
 
-Source: [`packages/api/device-trust/src/index.ts:56`](../packages/api/device-trust/src/index.ts)
+Source: [`packages/api/device-trust/src/index.ts:61`](../packages/api/device-trust/src/index.ts)
 
 <a id="deepseek-aidsh-api-gateway"></a>
 
@@ -227,22 +234,23 @@ export interface Config {
     readonly question?: number
   }
   /**
-   * Interaction reply permissions each connected Remote client holds. The
-   * requiredPermission on a pending interaction is enforced Host-side: a
+   * Interaction reply permissions an anonymous connected Remote client holds.
+   * The requiredPermission on a pending interaction is enforced Host-side: a
    * reply from a client without it is rejected without settling or consuming
-   * the delivery, so the underlying tool side effect never runs. Defaults to
-   * granting both; Device Trust roles replace this deployment-wide switch.
+   * the delivery, so the underlying tool side effect never runs. A client that
+   * presents a signed device admission at stream open instead receives the
+   * section 21 permission set of its device-trust role.
    */
   readonly interactionReplyPermissions?: {
-    /** Whether clients may answer approvals ('approval.respond'). @default true */
+    /** Whether anonymous clients may answer approvals ('approval.respond'). @default true */
     readonly approval?: boolean
-    /** Whether clients may answer questions ('question.respond'). @default true */
+    /** Whether anonymous clients may answer questions ('question.respond'). @default true */
     readonly question?: boolean
   }
 }
 ```
 
-Source: [`packages/api/gateway/src/index.ts:125`](../packages/api/gateway/src/index.ts)
+Source: [`packages/api/gateway/src/index.ts:134`](../packages/api/gateway/src/index.ts)
 
 <a id="deepseek-aidsh-api-host-description"></a>
 

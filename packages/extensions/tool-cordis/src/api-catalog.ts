@@ -863,6 +863,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the revoke acknowledgement.',
         throws: ['RemoteError `device/not-found` or `device/already-revoked`.'],
       },
+      {
+        signature: '@Remote(\'admitDevice\') admitDevice(request: AdmitDeviceRequest): DeviceAdmission',
+        description: 'Verify one signed admission and return the device\'s identity with its section 21 permission set. Checks run cheapest-first: the grant must exist and be active, the signed timestamp must sit inside the admission window, and the Ed25519 signature over `deviceId + "\\n" + timestamp` (UTF-8) must verify against the paired key. The Gateway resolves one admission per Remote event stream open and derives the client\'s reply permissions from the returned set.',
+        parameters: [{ name: 'request', description: 'the device\'s signed admission message.' }],
+        returns: 'the admitted identity, role, and permissions.',
+        throws: ['RemoteError `device/not-found`, `device/already-revoked`, `device/admission-expired`, `device/key-invalid`, or `gateway/bad-request`.'],
+      },
     ],
   },
   {
@@ -3669,6 +3676,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface AdapterRegistrationHandle {\n    (): void;\n    replace(providers: string[]): void;\n}',
   },
   {
+    name: 'AdmitDeviceRequest',
+    declaration: 'export interface AdmitDeviceRequest {\n    readonly deviceId: DeviceId;\n    readonly timestamp: number;\n    readonly signature: string;\n}',
+  },
+  {
     name: 'AdmittedPromptContentPart',
     declaration: 'export type AdmittedPromptContentPart = {\n    readonly type: \'text\';\n    readonly text: string;\n} | {\n    readonly type: \'image\';\n    readonly attachment: ImageAttachmentRef;\n} | {\n    readonly type: \'file\';\n    readonly attachment: FileAttachmentRef;\n};',
   },
@@ -4177,12 +4188,20 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type DeepSeekLlmApiJson = null | boolean | number | string | DeepSeekLlmApiJson[] | {\n    [key: string]: DeepSeekLlmApiJson;\n};',
   },
   {
+    name: 'DeviceAdmission',
+    declaration: 'export interface DeviceAdmission {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly permissions: readonly DevicePermission[];\n    readonly admittedAt: number;\n}',
+  },
+  {
     name: 'DeviceId',
     declaration: 'export type DeviceId = Branded<\'DeviceId\'>;',
   },
   {
+    name: 'DevicePermission',
+    declaration: 'export type DevicePermission = \'view\' | \'prompt.send\' | \'question.respond\' | \'approval.respond\' | \'device.admin\';',
+  },
+  {
     name: 'DeviceRole',
-    declaration: 'export type DeviceRole = \'viewer\' | \'collaborator\' | \'admin\';',
+    declaration: 'export type DeviceRole = \'viewer\' | \'collaborator\' | \'controller\' | \'owner\';',
   },
   {
     name: 'DeviceView',

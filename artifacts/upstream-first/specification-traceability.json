@@ -2407,9 +2407,10 @@
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
         "docs/defensive-patterns.md",
-        "artifacts/upstream-first/interaction-permission-source.json"
+        "artifacts/upstream-first/interaction-permission-source.json",
+        "artifacts/upstream-first/device-trust-durable-source.json"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；requiredPermission 已在 Host 网关权威执行：无对应权限的 Remote 客户端回复被 403 gateway/permission-denied 拒绝、PendingInteraction 不结算、Remote event 投递不消费、底层 Tool 不执行，approval 与 question 两方向均有正反向 fixture 测试（packages/api/gateway/tests/gateway-stream.host.spec.ts，227 项全绿）；完整审批信息（§38 字段矩阵）、后台/休眠、持久化确认、跨端恢复与 Device Trust 角色化替代该部署级开关仍待实现及验证。",
+      "remaining": "已有回答竞争、断线和重启证据；requiredPermission 已在 Host 网关权威执行：无对应权限的 Remote 客户端回复被 403 gateway/permission-denied 拒绝、PendingInteraction 不结算、Remote event 投递不消费、底层 Tool 不执行，approval 与 question 两方向均有正反向 fixture 测试（packages/api/gateway/tests/gateway-stream.host.spec.ts）；Device Trust 角色化已接线：设备在 Remote 事件流打开时以签名准入（args.device：deviceId+时间戳+Ed25519 签名，device/admission-expired 归 authentication 类）验证，client 回复权限改为其第 21 节角色权限集，viewer/collaborator/controller/owner 四角色 × approval/question 矩阵有双向测试。完整审批信息（§38 字段矩阵）、后台/休眠、持久化确认与跨端恢复仍待实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2903,9 +2904,10 @@
       "owner": "Device Trust、凭据与本地认证",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "ARCHITECTURE_DECISIONS.md"
+        "ARCHITECTURE_DECISIONS.md",
+        "packages/api/device-trust"
       ],
-      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。",
+      "remaining": "Pair（一次性过期码 + Ed25519 SPKI 兑换）、Role（第 21 节四角色 viewer/collaborator/controller/owner 恰好持有表格权限列，经 DEVICE_ROLE_PERMISSIONS）、Revoke（原子 update、撤销保留列表）已实现且授权经 device_trust 存储域持久；签名准入（admitDevice：配对密钥验签 + 接受窗口）已在网关流打开接线并把角色映射到第 15 节 requiredPermission 检查。安全存储于 Host 侧凭据链、准入按流验证（撤销在下次重连生效、无 nonce 账本）的重放/降级威胁审查、按请求的业务 RPC 签名与远端执行授权未完成；保留既有 local Host/Origin 防线。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

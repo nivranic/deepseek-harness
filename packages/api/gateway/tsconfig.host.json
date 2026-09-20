@@ -37,6 +37,9 @@
     },
     {
       "path": "../../util/timeout"
+    },
+    {
+      "path": "../device-trust/tsconfig.host.json"
     }
   ]
 }

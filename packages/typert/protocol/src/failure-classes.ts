@@ -37,6 +37,7 @@ export type RemoteFailureClass =
  */
 export const REMOTE_FAILURE_CLASSES: Readonly<Record<string, RemoteFailureClass>> = {
   'gateway/authentication-required': 'authentication',
+  'device/admission-expired': 'authentication',
   'gateway/permission-denied': 'permission',
   'subagent/unauthorized': 'permission',
   'gateway/host-not-ready': 'host-state',

@@ -2133,6 +2133,21 @@
     },
     {
       "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DevicePermission",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "AdmitDeviceRequest",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DeviceAdmission",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
       "symbol": "PairingIssuance",
       "source": "packages/api/device-trust/src/types.ts"
     },

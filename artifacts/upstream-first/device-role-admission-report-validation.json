@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the role-mapped permission checks with signed admission; per-request business-RPC signatures and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-role-admission-source.json",
+    "sha256": "ab3a6b9658073023a944f8effec3d230b355b9cf742e098e342b981d3e33e0cb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "867f0a9a0716056617f79aa8065021c7ebfe0b2422ed212df610f701890a1bc3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-role-admission-binding.json",
+    "sha256": "ffdaddd5b61bd87c32aeec3092874f4bb6fdb95e0c8acb54246037ef6875fad5"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-role-admission-reports.mjs",
+      "sha256": "b0f790aaaba9ab07efd811c059ced597f9227b3db9c33fb95475a01979f7f6c7"
+    },
+    {
+      "path": ".artifacts/capture-device-role-admission-validation.mjs",
+      "sha256": "2e832ac1fa2d8efb3f409592bf3e45d1dd86d3f2fab02b444b6b5390c81760ff"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "8c70df2eaead8edf28261eec6ec1c480b0958187c3b3680b501886214e1091f1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5f2df8db6de747c5028871e111bbe9ffd19d02aaf264a5c9581148f3157e9d64"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-role-admission-binding.log",
+      "sha256": "e0b958fdc7dc617ea67d6f049285e8d2ef4a9e5c1d585c9289b5f8a564889d1b"
+    },
+    {
+      "path": ".artifacts/device-role-admission-audit-tests.log",
+      "sha256": "1baece84fe759e9a0d771d26d33f5cb24ffce343b7d732ba486c63dbc8918bcb"
+    },
+    {
+      "path": ".artifacts/device-role-admission-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/device-role-admission-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/device-role-admission-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

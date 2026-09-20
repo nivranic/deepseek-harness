@@ -15,11 +15,24 @@ export type DeviceId = Branded<'DeviceId'>
 export type PairingCodeId = Branded<'PairingCodeId'>
 
 /**
- * Section 21 role table wire names. A role names what the Client may ask
- * next; permission execution stays with the section 15 Host-authoritative
- * seam, which reconciles roles onto `requiredPermission` checks.
+ * Section 21 role table wire names: Viewer, Collaborator, Controller, Owner.
+ * A role names what the Client may ask next; permission execution stays with
+ * the section 15 Host-authoritative seam, which reconciles roles onto
+ * `requiredPermission` checks.
  */
-export type DeviceRole = 'viewer' | 'collaborator' | 'admin'
+export type DeviceRole = 'viewer' | 'collaborator' | 'controller' | 'owner'
+
+/**
+ * One grantable capability kind from the section 21 table columns. Roles hold
+ * these as sets via {@link DEVICE_ROLE_PERMISSIONS}; the section 15 seam checks
+ * the two `*.respond` kinds against pending interactions' `requiredPermission`.
+ */
+export type DevicePermission =
+  | 'view'
+  | 'prompt.send'
+  | 'question.respond'
+  | 'approval.respond'
+  | 'device.admin'
 
 /** One durable device grant as the store holds it. */
 export interface DeviceGrant {
@@ -84,6 +97,29 @@ export interface RevokeDeviceResult {
 }
 
 /**
+ * Signed admission request a device presents when opening a Gateway Remote
+ * event stream. The signature is base64 Ed25519 over the UTF-8 bytes of
+ * `deviceId + "\n" + timestamp` (decimal epoch ms) made with the paired key.
+ */
+export interface AdmitDeviceRequest {
+  readonly deviceId: DeviceId
+  /** Epoch ms when the device signed; accepted within the admission window. */
+  readonly timestamp: number
+  /** Base64 Ed25519 signature over the canonical admission message. */
+  readonly signature: string
+}
+
+/** Admission outcome: the device's identity, role, and its permission set. */
+export interface DeviceAdmission {
+  readonly deviceId: DeviceId
+  readonly deviceName: string
+  readonly role: DeviceRole
+  readonly permissions: readonly DevicePermission[]
+  /** Epoch ms when the Host accepted the admission. */
+  readonly admittedAt: number
+}
+
+/**
  * Failure details the device-trust surface answers with. Catalog reads and
  * mutations share this vocabulary with the Client Remote result.
  */
@@ -99,5 +135,11 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'device/already-revoked': { readonly deviceId: string; readonly revokedAt: number }
     /** The presented public key is not a base64 Ed25519 SPKI DER. */
     'device/key-invalid': { readonly reason: string }
+    /** The signed admission timestamp fell outside the acceptance window. */
+    'device/admission-expired': {
+      readonly deviceId: string
+      readonly timestamp: number
+      readonly admissionWindowMs: number
+    }
   }
 }
