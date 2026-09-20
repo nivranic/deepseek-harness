@@ -4,24 +4,16 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": ".gitattributes",
-      "sha256": "4bb6e4ddfa96f1ca9a2f6ebaba3c25364120b8d0c43f4a52be76a82bcdbc6a51"
-    },
-    {
-      "path": "artifacts/upstream-first/android-refusal-lane-binding.json",
-      "sha256": "27751ed6420d00c5c3b9047728c2abb43d5c60f6a88a2e2a549e75e194c4fed4"
-    },
-    {
-      "path": "artifacts/upstream-first/android-refusal-lane-source.json",
-      "sha256": "2348ab38cbe55f9565c6471edad68e51f161fe2d2b356c3cec4d819bc260e898"
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "bbbf4dc8c82b686baaca89e0af70a8fc6659c55a78bbfea514f0bd58f51fa80e"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "edebe42767974702796193de5127177c64b4ca1c74bcd7ae672990a4add82dea"
+      "sha256": "85bb17057ffa6f7a829a072dc7ffd4ef8f367d0d187deb5ed285a9b11354d217"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "6f4fac3f88d001507f441ccc523aacaf801e08752163a243cd0d8ade53863eda"
+      "sha256": "e041a72a4859a362a2cb909ea06a04da4711b12782f26f0ec694d9199f39206b"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5698,6 +5690,18 @@
     },
     {
       "status": "PASS",
+      "command": "Documentation gates (36) after the en+zh decision note",
+      "log": ".artifacts/link-access-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/link-access-audit-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section-48 decision",
+      "log": ".artifacts/link-access-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/link-access-audit-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6428,7 +6432,130 @@
       ]
     }
   },
+  "linkAccessAudit": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/link-access-audit-source.json",
+    "scope": "Link-access takeover audit (spec section 48): the retired packages/remote/link-* and device-trust stay retired; the candidate gateway plus Connection carrier is the single owner of device-facing access, with pairing and trust landing as a capability-gated seam (device-pair.v1 style) rather than a resurrected Link server; the migrated Android Link client remains the device-side carrier for the emulator lane until the candidate-native seam exists, and Phase 7 sequencing starts from the device grant store and pairing issuance",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "limitations": [
+      "Decision-only increment: no pairing, grant, role, or revocation code lands here; Phase 7 starts from the named seam with its first increment (device grant store and pairing issuance).",
+      "The Android shell keeps speaking the migrated Link protocol to the lane fixture until the candidate-native device seam exists; no non-localhost admission opens before the LAN TLS/pinning decision. The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Phase 7 first increment: device grant store and pairing issuance on the gateway seam named by the audit, then role-mapped permission checks through the section-15 seam, then revocation and lost-device UX; continue the remaining specification sections (macOS, physical devices, and signing stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e)",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "androidRefusalLane": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/link-access-audit-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/android-refusal-lane-source.json",
     "scope": "Android refusal lane: the committed Host-side Link fixture pairs the real APK over pinned TLS with server-verified Ed25519 signatures, streams the workspace follow records, lists the fixture file, and the refused workspaceFiles/read presents the class copy for gateway/permission-denied in the Files tab — the emulator lane now drives a real classified Host-to-device refusal exchange (driving it repaired platform Ed25519 key generation via bundled Conscrypt and the never-started files follow stream)",
@@ -10161,7 +10288,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/android-refusal-lane-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/link-access-audit-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -10644,7 +10771,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "6f4fac3f88d001507f441ccc523aacaf801e08752163a243cd0d8ade53863eda"
+        "sha256": "e041a72a4859a362a2cb909ea06a04da4711b12782f26f0ec694d9199f39206b"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
