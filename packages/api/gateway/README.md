@@ -44,6 +44,15 @@ Gateway accepts the protocol-1 `{ args }` request and an explicit `apiProtocolVe
 
 An explicit `apiProtocolVersion` of 0 announces the diagnostics-only tier for Clients two generations behind: the request rides the frozen protocol-1 codec and is admitted for the read-only Host discovery endpoints (`host/describe`, `host/negotiate`) only. Every other endpoint — business RPC, streams, and event-result settlement — rejects with `gateway/protocol-unsupported` carrying the same compatibility details, so the Client presents the ordinary upgrade guidance. The tier is a fixed protocol invariant, not configuration; `host/negotiate` still requires positive integer offers, so a diagnostics-only Client cannot negotiate itself into a full codec.
 
+The admitted endpoint surface per announced version, pinned as one interop matrix by `pins the protocol-version by endpoint-class interop matrix` in `tests/gateway.host.spec.ts` (stream-open admitted-version rows live in the stream suite):
+
+| Announced version | Discovery (`host/describe`, `host/negotiate`) | Business RPC | Remote event stream open | Event-result settlement |
+| --- | --- | --- | --- | --- |
+| 0 (diagnostics-only) | admitted, read-only | refused: diagnostics message | refused: diagnostics message | refused: diagnostics message |
+| 1 (legacy) | admitted | admitted | admitted | admitted |
+| 2 (current) | admitted | admitted | admitted | admitted |
+| unknown or malformed | refused: `gateway/protocol-unsupported` | refused: `gateway/protocol-unsupported` | refused: `gateway/protocol-unsupported` | refused: `gateway/protocol-unsupported` |
+
 Initial application calls may wait during `connecting` until discovery and the opening event frame admit them. Calls made while `reconnecting`, `offline` or a failure state is active fail before carrier dispatch. A reconnect never resubmits the rejected operation; callers must make a new explicit request after `ready`.
 
 During generation establishment, unsupported Host or Gateway protocols and missing required discovery capabilities publish `incompatible`; invalid Host discovery and a withdrawn preparation owner publish `fatal`. Both suspend automatic attempts in Connection. Business calls fail before dispatch while either state is active; manual reconnect repeats discovery before admission. Ordinary business-operation failures do not change Connection state.

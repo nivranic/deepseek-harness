@@ -44,6 +44,15 @@ Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显�
 
 显式 `apiProtocolVersion` 0 声明落后两代的诊断层级：请求沿用冻结的协议 1 编解码，且只对只读 Host 发现端点（`host/describe`、`host/negotiate`）准入。其余所有端点——业务 RPC、流与事件结果结算——以携带相同兼容性详情的 `gateway/protocol-unsupported` 拒绝，Client 因此呈现常规升级指引。该层级是固定协议不变量而非配置项；`host/negotiate` 仍要求正整数报价，诊断层 Client 无法把自己协商进完整编解码器。
 
+按声明版本划分的准入端点面，由 `tests/gateway.host.spec.ts` 的 `pins the protocol-version by endpoint-class interop matrix` 作为一张互通矩阵固定（流打开的准入版本行在流套件中）：
+
+| 声明版本 | 发现端点（`host/describe`、`host/negotiate`） | 业务 RPC | Remote 事件流打开 | 事件结果结算 |
+| --- | --- | --- | --- | --- |
+| 0（仅诊断） | 准入，只读 | 拒绝：诊断消息 | 拒绝：诊断消息 | 拒绝：诊断消息 |
+| 1（遗留） | 准入 | 准入 | 准入 | 准入 |
+| 2（当前） | 准入 | 准入 | 准入 | 准入 |
+| 未知或畸形 | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` |
+
 初始应用调用可在 `connecting` 期间等待，直到发现与事件首帧允许准入。`reconnecting`、`offline` 或失败状态期间发起的调用在载体发送前失败。重连不会重新提交被拒绝的操作；调用者必须在 `ready` 后显式发起新请求。
 
 建立 generation 时，Host 或 Gateway 协议不受支持、发现阶段缺少必需能力会发布 `incompatible`；Host 发现信息无效或 preparation owner 被撤回会发布 `fatal`。两者均暂停 Connection 的自动尝试。任一状态生效期间，业务调用在发送前失败；手动重连会重新执行发现后才允许调用。普通业务操作失败不改变 Connection 状态。

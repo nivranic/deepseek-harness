@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-09-21-protocol-interop-matrix.md
+2026-09-21-protocol-interop-matrix.md: a177723bd40c829259d7173cdbca272f9d79c754
+2026-09-21-protocol-interop-matrix.zh.md: 0b231672a9eba00ef583d8255cbf764a0c2e480d

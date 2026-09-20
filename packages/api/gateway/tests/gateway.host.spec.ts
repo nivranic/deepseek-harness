@@ -50,6 +50,33 @@ const emptyModel: TypertContribution['model'] = {
   objects: [],
 }
 
+/** Host-namespace discovery fixture: the interop matrix needs the read-only discovery endpoints to resolve with the real capability ids. */
+class HostDiscoveryService extends Service {
+  readonly typertRemote
+
+  constructor(ctx: Context) {
+    super(ctx, 'hostDiscovery')
+    this.typertRemote = bindTypertRemote(this, 'hostDiscovery', {
+      namespace: 'host',
+      capabilities: [
+        { id: 'host.describe.v1', methods: ['describe'] },
+        { id: 'host.negotiate.v1', methods: ['negotiate'] },
+      ],
+    })
+  }
+
+  @Remote
+  describe(): { readonly hostId: string } {
+    return { hostId: 'matrix-fixture' }
+  }
+
+  @Remote
+  negotiate(supportedApiProtocolVersions: readonly number[]): { readonly apiProtocolVersion: number } {
+    const offered = [...supportedApiProtocolVersions].sort((left, right) => right - left)
+    return { apiProtocolVersion: offered[0] ?? 1 }
+  }
+}
+
 class GoalService extends Service {
   readonly typertRemote
   readonly calls: string[] = []
@@ -1162,6 +1189,65 @@ describe('TypertGatewayService', () => {
       await expect(handler('goals/passthrough', { apiProtocolVersion: 2, args: { value: 'denied' }, extra: true }, signal))
         .resolves.toMatchObject({ ok: false })
       expect(rawGoalService(ctx).calls).toEqual(['passthrough', 'passthrough', 'passthrough'])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('pins the protocol-version by endpoint-class interop matrix', async () => {
+    const ctx = new Context()
+    try {
+      await ctx.plugin(TypertRegistry)
+      await ctx.plugin(FakeConnectionService)
+      await ctx.plugin(TypertGatewayService)
+      await ctx.plugin(GoalService)
+      await ctx.plugin(HostDiscoveryService)
+      const handler = rawConnection(ctx).handler!
+      const signal = new AbortController().signal
+      const unsupported = 'Remote request API protocol is unsupported; update the application'
+      const diagnostics = 'Remote request API protocol is limited to diagnostics on this Host; update the application before reconnecting'
+
+      // Discovery endpoints admit every negotiated tier: diagnostics-only 0,
+      // legacy 1, and current 2; an unknown future version never reaches them.
+      for (const endpoint of ['host/describe', 'host/negotiate']) {
+        const args = endpoint === 'host/negotiate' ? { supportedApiProtocolVersions: [2, 1] } : {}
+        for (const version of [0, 1, 2]) {
+          await expect(handler(endpoint, { apiProtocolVersion: version, args }, signal))
+            .resolves.toMatchObject({ ok: true })
+        }
+        for (const version of [3, -1, 1.5, '2', null]) {
+          await expect(handler(endpoint, { apiProtocolVersion: version, args }, signal))
+            .resolves.toMatchObject({ ok: false, error: { code: 'gateway/protocol-unsupported', message: unsupported } })
+        }
+      }
+
+      // Business RPC and event results admit 1 and 2, route 0 to the
+      // diagnostics refusal, and refuse unknown versions before dispatch.
+      for (const [endpoint, args] of [
+        ['goals/passthrough', { value: 'matrix' }],
+        ['$events/result', { clientId: 'matrix-client', eventId: 'matrix-event', outcome: { kind: 'next' } }],
+      ] as const) {
+        for (const version of [1, 2]) {
+          const outcome = await handler(endpoint, { apiProtocolVersion: version, args }, signal)
+          if (endpoint === 'goals/passthrough') expect(outcome).toMatchObject({ ok: true, value: 'matrix' })
+          else expect(outcome).toMatchObject({ ok: false, error: { code: 'interaction-closed' } })
+        }
+        await expect(handler(endpoint, { apiProtocolVersion: 0, args }, signal))
+          .resolves.toMatchObject({ ok: false, error: { code: 'gateway/protocol-unsupported', message: diagnostics } })
+        for (const version of [3, -1, 1.5, '2', null]) {
+          await expect(handler(endpoint, { apiProtocolVersion: version, args }, signal))
+            .resolves.toMatchObject({ ok: false, error: { code: 'gateway/protocol-unsupported', message: unsupported } })
+        }
+      }
+
+      // The stream-open rows of the same grid live in the stream suite, where
+      // a registered Remote event source backs the admitted-version cells.
+      for (const version of [0, 3]) {
+        await expect(ctx.typertGateway.wireStream.open('$events', { apiProtocolVersion: version, args: {} }, new AbortController().signal))
+          .rejects.toMatchObject(version === 0
+            ? { code: 'gateway/protocol-unsupported', message: diagnostics }
+            : { code: 'gateway/protocol-unsupported', message: unsupported })
+      }
     } finally {
       await ctx.fiber.dispose()
     }

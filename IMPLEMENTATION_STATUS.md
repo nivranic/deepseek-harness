@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 协议版本互通矩阵（第 14 节版本轴证据）
+
+[当前来源记录](artifacts/upstream-first/protocol-interop-matrix-source.json)把第 14 节兼容矩阵的版本轴固定为单一规范测试：pins the protocol-version by endpoint-class interop matrix（packages/api/gateway/tests/gateway.host.spec.ts）以真实网关加内联 HostDiscoveryService fixture（host 命名空间、host.describe.v1/negotiate.v1 能力）使两个发现端点可解析，遍历版本 0/1/2/未知与畸形 × 发现端点、业务 RPC、事件结果结算、流打开拒绝行——发现端点准入每个协商层级，业务与事件结果准入 1 与 2（事件结果正格经业务级 interaction-closed 证明版本准入），0 在发现之外得到诊断拒绝消息，未知版本得到通用 gateway/protocol-unsupported；准入版本的流打开行留在流套件。README 以双语言表格记录同一网格。诚实的剩余：跨真实发布版本的互通、设备撤销状态行、闭合错误语义与变更身份确认仍开放（尚无可测的已发布版本）。456 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。
+
 ## 设备撤销连接状态（第 18 节补全）
 
-[当前来源记录](artifacts/upstream-first/device-revoked-state-source.json)补齐第 18 节状态清单的最后一项：ConnectionState 与 ConnectionSinks.classifyFailure 联合类型新增 device-revoked（与 incompatible、fatal 并列的终态分类——blocked 路径撤回就绪状态并暂停自动重试，直到手动重连或浏览器网络变化），SettingsRoot 以 locale 键 connection.deviceRevoked / deviceRevokedAction（重新配对指引）呈现，连接指示器经既有 blocked 标志显示断开；Phase 7 签名准入的 device/already-revoked 拒绝是其设计触发源，浏览器 generation source 在设备客户端采用 args.device 流打开形式后自然映射。分类器仍归 Gateway 所有，Connection 只拥有调度与状态。十个第 18 节状态现均有双语言 locale-owned UX 文案；253 项测试（含 device-revoked 阻塞分类与设置矩阵行）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。剩余：多版本/多语言矩阵、闭合错误语义与变更身份确认。
+[历史来源记录](artifacts/upstream-first/device-revoked-state-source.json)补齐第 18 节状态清单的最后一项：ConnectionState 与 ConnectionSinks.classifyFailure 联合类型新增 device-revoked（与 incompatible、fatal 并列的终态分类——blocked 路径撤回就绪状态并暂停自动重试，直到手动重连或浏览器网络变化），SettingsRoot 以 locale 键 connection.deviceRevoked / deviceRevokedAction（重新配对指引）呈现，连接指示器经既有 blocked 标志显示断开；Phase 7 签名准入的 device/already-revoked 拒绝是其设计触发源，浏览器 generation source 在设备客户端采用 args.device 流打开形式后自然映射。分类器仍归 Gateway 所有，Connection 只拥有调度与状态。十个第 18 节状态现均有双语言 locale-owned UX 文案；253 项测试（含 device-revoked 阻塞分类与设置矩阵行）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。剩余：多版本/多语言矩阵、闭合错误语义与变更身份确认。
 
 ## 设备角色准入（Phase 7 第三增量）
 

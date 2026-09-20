@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/protocol-interop-matrix-source.json",
+    "sha256": "b4e16d3653e7cf6549dd6eb790ac592c351790b74fc18aaefbca7379182144d5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "397c22af5fcd4a10ce4722209c331f10b6899f9af05c5a6c6befaed4d3b88da0"
+  },
+  "helper": {
+    "path": ".artifacts/check-protocol-interop-matrix-binding.mjs",
+    "sha256": "5638bcb9adee0ad95400ba5a20829a24d43667e0487538521e3492b6aaef7e79"
+  }
+}

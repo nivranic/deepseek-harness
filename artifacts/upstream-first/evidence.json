@@ -5,55 +5,35 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "fd225363f31b55c7658f391b0bae9e82c1c91651aa724b6106c23e6a8cb5df08"
+      "sha256": "57c43adb2fc629a238fe8ff2fdbed32afab58e3080f957a601d860806762530e"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "8fe342db0a5744c27f898b38cc975de30e6bb9f2379510c270f4ee81dfffa6b7"
+      "sha256": "8768410862342cf60128d2e184419af799fcf02074acb8cf929f6942a9d0f09a"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "d55c77f51000b121378f64bbf10f05f07f340337dd2672d4b11d55b0535db00c"
+      "sha256": "34b4e0bcb27ab12aac85567bae5e52ed2ffc6bdcde9208e1c65b2133f4688f73"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "35a73ce4cda5000efb2f8332f3e552502f5a2bdd1e7510e68c66e888e830d047"
+      "sha256": "397c22af5fcd4a10ce4722209c331f10b6899f9af05c5a6c6befaed4d3b88da0"
     },
     {
-      "path": "packages/client/connection/README.i18n.yaml",
-      "sha256": "e3dde486b1d2d7bb0c9a3353386da5502e25345acbfb69f7bdf8ff746baef5d6"
+      "path": "packages/api/gateway/README.i18n.yaml",
+      "sha256": "5da0ac3c0b00fbcde4dadec3ff94804d0968db33ba2fb0b9b6abdaed9f071b88"
     },
     {
-      "path": "packages/client/connection/README.md",
-      "sha256": "961721418d9871345eb62aba97029c2aebb854d293e45e0fa42684d7d644fd7d"
+      "path": "packages/api/gateway/README.md",
+      "sha256": "500051d84b85ae9c4eb10f5f6bbeb1f970f49cd162162ac723248d43028cc54b"
     },
     {
-      "path": "packages/client/connection/README.zh.md",
-      "sha256": "ee917fbc6172448be7c24967931e5dc3290c7fecc2521c5c9f85f39b8ff9c309"
+      "path": "packages/api/gateway/README.zh.md",
+      "sha256": "f891f5b4ab23ebf3b85f4f09cbd4f051881c5991fda4e785c5cbdb5dac90050f"
     },
     {
-      "path": "packages/client/connection/src/client/connection.ts",
-      "sha256": "5f32af377fe539af78c1386621e7b4f648f2599d1f32c9014e4396888ca60072"
-    },
-    {
-      "path": "packages/client/connection/tests/connection.client.spec.ts",
-      "sha256": "bf7031ae71597bffdd8172011fb8bb66295f5bc08c481948278446304d38850b"
-    },
-    {
-      "path": "packages/client/ui-settings-general/src/client/SettingsRoot.tsx",
-      "sha256": "28e72ac946c8714c7972be54f8ebab57bc7faa4951bea9b2fe359beb3dc92701"
-    },
-    {
-      "path": "packages/client/ui-settings-general/src/client/locales.ts",
-      "sha256": "000c4602e29f722829b190f90d654660c70b4eca3256f5ddf2322946840d2cc1"
-    },
-    {
-      "path": "packages/client/ui-settings-general/tests/settings-root.client.spec.tsx",
-      "sha256": "abddbf28acd9f2fde55e3c1385fb4d0d5b7ee25d24c4e5dc35c3145413ad8125"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-      "sha256": "f74cd8bbcd8da34d2dc30f54fa3d11046d4c979d681b3a9560981ef5dbba467c"
+      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
+      "sha256": "fa9355a23dea9ed2c9855920127e6901e85d16e9fb952052291d7e416378ccdb"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5862,6 +5842,36 @@
     },
     {
       "status": "PASS",
+      "command": "Gateway (438 incl. the interop matrix) and device-trust suites: 456 tests",
+      "log": ".artifacts/protocol-interop-matrix-tests.log",
+      "sourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck with the inline discovery fixture",
+      "log": ".artifacts/protocol-interop-matrix-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/protocol-interop-matrix-lint.log",
+      "sourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the bilingual matrix table",
+      "log": ".artifacts/protocol-interop-matrix-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 14 matrix evidence",
+      "log": ".artifacts/protocol-interop-matrix-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6592,7 +6602,142 @@
       ]
     }
   },
+  "protocolInteropMatrix": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json",
+    "scope": "The section 14 version-axis interop matrix pinned as one canonical test: pins the protocol-version by endpoint-class interop matrix (gateway.host.spec.ts) boots the real gateway with an inline HostDiscoveryService fixture so both discovery endpoints resolve, then walks version 0/1/2/unknown-malformed × discovery, business RPC, event-result settlement, and stream-open refusal rows — discovery admits every negotiated tier, business and event results admit 1 and 2 with the event-result positive cells proving version admission through the business-level interaction-closed, version 0 outside discovery gets the diagnostics refusal, unknown versions get the generic gateway/protocol-unsupported; the README documents the same grid as a bilingual table. Cross-release, device-revocation-state, closed-error-semantics, and change-identity rows of section 14 stay honestly open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "limitations": [
+      "The pinned matrix is the version axis only, against one in-repo Host; no released N-1/N-2 builds exist to test cross-release interop yet.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Section 14 and 18 qualification continues with cross-release interop against real published versions, device-revocation-state rows, closed error semantics, and change identity confirmation; Phase 7 per-request business-RPC signatures stay plan-open on endpoint permission classification; the remaining specification sections (macOS, physical devices, and signing stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e)",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "deviceRevokedState": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/protocol-interop-matrix-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/device-revoked-state-source.json",
     "scope": "The device-revoked Connection state closes the section 18 state list: ConnectionState and the ConnectionSinks.classifyFailure union gain device-revoked beside incompatible and fatal (the blocked path withdraws readiness and suspends automatic retries until manual reconnect or a browser network transition), and the settings surface presents it through the locale-owned keys connection.deviceRevoked / connection.deviceRevokedAction with pair-again guidance — the signed-admission increment device/already-revoked refusal is its designed trigger source, so all ten section 18 states now carry dedicated UX copy in both languages",
@@ -10966,7 +11111,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/device-revoked-state-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -11449,7 +11594,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "35a73ce4cda5000efb2f8332f3e552502f5a2bdd1e7510e68c66e888e830d047"
+        "sha256": "397c22af5fcd4a10ce4722209c331f10b6899f9af05c5a6c6befaed4d3b88da0"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

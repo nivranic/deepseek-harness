@@ -2263,7 +2263,7 @@
         "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
         "artifacts/upstream-first/diagnostics-only-tier-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据。§14 兼容矩阵已在网关逐行落实：N/N 全量（协议 2）、N/N-1 双向协商（协议 1 遗留编解码）、N-2 经显式 apiProtocolVersion 0 获只读 Host 发现端点（host/describe、host/negotiate）的诊断层级准入，业务端点以相同 compatibility 失败拒绝；Unknown 仍拒绝并给升级指引（packages/api/gateway/src/protocol.ts，套件 432/432）。仍缺多版本真实互通矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "remaining": "发现、独立能力与部分协议已有证据。§14 兼容矩阵已在网关逐行落实并作为一张互通矩阵固定（packages/api/gateway/tests/gateway.host.spec.ts 的 protocol-version × endpoint-class 矩阵测试：发现端点 0/1/2 全准入、未知版本统一 gateway/protocol-unsupported、业务 RPC 与事件结果对 0 走诊断拒绝、流打开拒绝行在流套件；README 双语矩阵表）。仍缺跨真实发布版本（N 对 N-1/N-2 Host 与反向）的互通验证、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
