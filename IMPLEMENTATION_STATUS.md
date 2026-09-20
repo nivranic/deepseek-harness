@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 其余归属方设备权限（第 21 节声明闭环）
+
+[当前来源记录](artifacts/upstream-first/remaining-capability-permissions-source.json)按端点语义为其余全部业务归属方声明设备权限——每个集合本就同质、无拆分、无锁面变化：只读与操作系统面取 view（脱敏设置描述、配置文档、预设目录操作、凭据元数据、workspace-files 七个操作集、presented-file 三操作、session-reference 候选发现、插件清单、LLM 提供方目录与模型发现、agent-preset 目录、命令目录、message-feedback 列表、goal 读取、subagent 目录、dynamic-cordis 清单/Client 源码/inspect 握手）；驱动会话的变更取 prompt.send（设置与凭据写入、文件暂存、preset 选择与管理、命令执行、message-feedback 记录与删除、Session 备注记录、goal 全部变更、subagent 提示词与父级寻址中断、dynamic-cordis 运行生命周期含失败报告与调用）。device-trust 配对引导（redeem/admit）刻意不声明，其规格钉住 issue/list/revoke=device.admin 与引导对不声明；host-preparation 规格断言二十个业务声明来源的每个能力都声明第 21 节词汇内权限，闭环防止未来能力悄悄回退 fail-closed。jobs 为 Host 侧生产者、无 Remote 能力面，无需声明。十七个受影响套件 3236 项测试通过（三处预先存在的 Windows 环境失败类经干净树验证排除）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：跨端设备客户端采用与跨发布互通待续。
+
 ## Workspace 能力设备权限（第 21 节第二个业务采纳）
 
-[当前来源记录](artifacts/upstream-first/workspace-capability-permissions-source.json)按端点语义声明全部 workspace-controller 能力——每个集合本就同质、无需拆分：workspace.follow.v1 要求 view；workspace.manage.v1（create/rename/delete/insertBefore）与 workspace.sessions.v1（archiveSession/insertSessionBefore）要求 prompt.send（沿用 session 先例：工作区生命周期写入属会话参与）；目录选择器对 native pick 与 browse 声明 view、对 createDirectory（其唯一文件系统写）声明 prompt.send。全仓锁面 grep 未发现整集 pin，仅包内两处能力 deep-equal 补字段。viewer 设备可跟随工作区状态；collaborator 及以上管理注册表、会话顺序与选择器建目录；匿名调用不受影响。664 项测试通过（一项预先存在的 Windows 环境失败经干净树验证排除）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：jobs/settings 等其余业务归属方推广待续。
+[历史来源记录](artifacts/upstream-first/workspace-capability-permissions-source.json)按端点语义声明全部 workspace-controller 能力——每个集合本就同质、无需拆分：workspace.follow.v1 要求 view；workspace.manage.v1（create/rename/delete/insertBefore）与 workspace.sessions.v1（archiveSession/insertSessionBefore）要求 prompt.send（沿用 session 先例：工作区生命周期写入属会话参与）；目录选择器对 native pick 与 browse 声明 view、对 createDirectory（其唯一文件系统写）声明 prompt.send。全仓锁面 grep 未发现整集 pin，仅包内两处能力 deep-equal 补字段。viewer 设备可跟随工作区状态；collaborator 及以上管理注册表、会话顺序与选择器建目录；匿名调用不受影响。664 项测试通过（一项预先存在的 Windows 环境失败经干净树验证排除）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：jobs/settings 等其余业务归属方推广待续。
 
 ## Session 能力设备权限（第 21 节首个业务采纳）
 

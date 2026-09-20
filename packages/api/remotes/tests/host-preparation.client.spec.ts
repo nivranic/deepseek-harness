@@ -1,7 +1,23 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
+import type { TypertRemoteCapability, TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import type { HostDescriptor, HostId } from '@deepseek-ai/dsh-api-host-description/types'
 import { LEGACY_DISCOVERY_PROTOCOL_VERSION } from '@deepseek-ai/dsh-api-gateway/protocol'
+import { SESSION_REMOTE_CAPABILITIES, FILE_REFERENCE_REMOTE_CAPABILITIES, SKILL_CATALOG_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-session-controller/capabilities'
+import { WORKSPACE_REMOTE_CAPABILITIES, DIRECTORY_PICKER_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-workspace-controller/capabilities'
+import { SETTINGS_REMOTE_CAPABILITIES, CREDENTIAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-settings-controller/capabilities'
+import { WORKSPACE_FILES_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-workspace-files/capabilities'
+import { FILE_UPLOAD_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-file-upload/capabilities'
+import { PRESENTED_FILE_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-ui-deliverables/capabilities'
+import { SESSION_REFERENCE_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-session-reference/capabilities'
+import { DYNAMIC_CORDIS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-cordis-host-runner/capabilities'
+import { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-command-feedback/capabilities'
+import { MESSAGE_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-message-feedback/capabilities'
+import { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
+import { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-host-plugin-inventory/capabilities'
+import { COMMAND_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-commands/capabilities'
+import { LLM_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-llm/capabilities'
+import { AGENT_PRESET_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-agent-presets/capabilities'
+import { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
 import { admitHostOperation, createHostPreparation } from '../src/client/host-preparation.ts'
 
 describe('Workspace Files operation capability admission', () => {
@@ -366,4 +382,25 @@ it.each([
       .toThrow(expect.objectContaining({ code: 'host/capability-unavailable', details: { capability } }))
   }
   expect(() => { admitHostOperation(endpoint, { apiProtocolVersion: 2, capabilities: [capability] }) }).not.toThrow()
+})
+
+describe('Device permission declarations cover every business capability', () => {
+  const vocabulary: readonly string[] = ['view', 'prompt.send', 'question.respond', 'approval.respond', 'device.admin']
+  const sources: readonly (readonly TypertRemoteCapability[])[] = [
+    SESSION_REMOTE_CAPABILITIES, FILE_REFERENCE_REMOTE_CAPABILITIES, SKILL_CATALOG_REMOTE_CAPABILITIES,
+    WORKSPACE_REMOTE_CAPABILITIES, DIRECTORY_PICKER_REMOTE_CAPABILITIES,
+    SETTINGS_REMOTE_CAPABILITIES, CREDENTIAL_REMOTE_CAPABILITIES, WORKSPACE_FILES_REMOTE_CAPABILITIES,
+    FILE_UPLOAD_REMOTE_CAPABILITIES, PRESENTED_FILE_REMOTE_CAPABILITIES, SESSION_REFERENCE_REMOTE_CAPABILITIES,
+    DYNAMIC_CORDIS_REMOTE_CAPABILITIES, SESSION_FEEDBACK_REMOTE_CAPABILITIES, MESSAGE_FEEDBACK_REMOTE_CAPABILITIES,
+    GOAL_REMOTE_CAPABILITIES, PLUGIN_INVENTORY_REMOTE_CAPABILITIES, COMMAND_REMOTE_CAPABILITIES,
+    LLM_REMOTE_CAPABILITIES, AGENT_PRESET_REMOTE_CAPABILITIES, SUBAGENT_REMOTE_CAPABILITIES,
+  ]
+  it('declares a section 21 permission on every capability these namespaces advertise', () => {
+    for (const capabilities of sources) {
+      for (const capability of capabilities) {
+        expect(capability.requiredPermission, capability.id).toBeDefined()
+        expect(vocabulary, capability.id).toContain(capability.requiredPermission)
+      }
+    }
+  })
 })

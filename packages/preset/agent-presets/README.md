@@ -25,7 +25,7 @@ Use `dsh-agent-presets` to give each session the tools, prompt sections, and ski
 <a id="use-this-package"></a>
 ## Use this package
 
-Host advertisement separates `agent-preset.catalog.v1` (`list`, `read`), `agent-preset.select.v1` (`select`), and `agent-preset.manage.v1` (`copy`, `deletePreset`). The shared `./capabilities` wire leaf declares required methods; live Gateway bindings determine availability. These facts describe operation support, not Device permission or a configured writable preset root. Settings preferences and directory operations retain their separate Settings owner.
+Host advertisement separates `agent-preset.catalog.v1` (`list`, `read`), `agent-preset.select.v1` (`select`), and `agent-preset.manage.v1` (`copy`, `deletePreset`). The shared `./capabilities` wire leaf declares required methods; live Gateway bindings determine availability. These facts describe operation support, not Device permission or a configured writable preset root. Settings preferences and directory operations retain their separate Settings owner. Device permissions follow the section 21 table: the catalog declares `view`; selection and management declare `prompt.send`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 Mount this package in a composition that should give each agent session its own tools, prompt sections, and skills from a preset file. Every session names a preset — explicitly or through the configured default — and is composed from it; without the package, sessions fall back to whatever the host composition mounts.
 

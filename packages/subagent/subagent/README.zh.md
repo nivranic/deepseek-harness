@@ -50,7 +50,7 @@ kind: "package-reference"
 
 每个确切在线 Agent 都可以对直接可继续 child 使用 `sendMessage()`；驻留的可继续 child 还可以对自己的直接 parent 使用它。正在工作的目标通过 Steer 在最近 step 接收 Agent 消息；空闲目标启动轮次，且只有直接 child 可以冷恢复。parent 也可以随时中断正在运行的后代或列举自己的子级。浏览器发出的继续执行提示词会独立选择 Queue 或 Steer，并且可以携带图片部分：Host 先通过附件存储完成整批图片的准入与持久化，子级 inbox 才接受这条消息；当子级声明的模型不接受图片输入时拒绝投递。发现覆盖两种形态：服务列举直接子级与完整后代树——模式、活动状态与谱系——直接读取在线会话状态与可选持久化，不加载任何子 agent。
 
-Host 发现分别为既有列表、提示词和父级寻址中断操作声明 `subagent.catalog.v1`、`subagent.prompt.v1`、`subagent.interrupt.v1` 与 `subagent.interrupt-turn.v1`。Client Gateway 在派发前要求对应声明。这些声明表示 Remote 支持；持久父子归属、在线激活状态和提供方检查仍然必需。有效的重复 Prompt requestId 确认该子级自身 Session 中首次接受的消息，即使消息已从 inbox 移除或子级已停止；它不会替换内容或唤醒暂停的工作。父级权限与取消检查仍适用。仅属于 Host 的接收记录投影从既有入队和消息事件重建身份，并排除 fork 继承的历史。`interruptTurnByParent` 接收持久父子地址及已观察的 `turnStartSeq`。只有匹配且仍打开的子级自身轮次才会被取消；null、过时、不存在或已结束的目标均返回接受结果且不执行操作。匹配前先检查在线子级的权限，不查询在线父级。缺少 timing 状态时拒绝投递。旧 `interruptByParent` 保留当前轮次语义。
+Host 发现分别为既有列表、提示词和父级寻址中断操作声明 `subagent.catalog.v1`、`subagent.prompt.v1`、`subagent.interrupt.v1` 与 `subagent.interrupt-turn.v1`。Client Gateway 在派发前要求对应声明。这些声明表示 Remote 支持；持久父子归属、在线激活状态和提供方检查仍然必需。有效的重复 Prompt requestId 确认该子级自身 Session 中首次接受的消息，即使消息已从 inbox 移除或子级已停止；它不会替换内容或唤醒暂停的工作。父级权限与取消检查仍适用。仅属于 Host 的接收记录投影从既有入队和消息事件重建身份，并排除 fork 继承的历史。`interruptTurnByParent` 接收持久父子地址及已观察的 `turnStartSeq`。只有匹配且仍打开的子级自身轮次才会被取消；null、过时、不存在或已结束的目标均返回接受结果且不执行操作。匹配前先检查在线子级的权限，不查询在线父级。缺少 timing 状态时拒绝投递。旧 `interruptByParent` 保留当前轮次语义。 设备权限遵循第 21 节表格：子级目录声明 `view`，提示词与父级寻址中断声明 `prompt.send`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 Remote 控制验证通过 `gateway/bad-request` 报告[可移植验证诊断](../../typert/protocol/README.zh.md)，在执行子级前拒绝无效请求。
 

@@ -59,7 +59,7 @@ ctx.commands.register({
 
 ### 从适配器分派
 
-Host 发现分别以 `command.catalog.v1` 声明 `list`，以 `command.execute.v1` 声明 `execute`。生成的 Client 仅在当前连接提供对应能力时准入操作。这些声明不替代 Agent 解析、附件授权或处理器策略。
+Host 发现分别以 `command.catalog.v1` 声明 `list`，以 `command.execute.v1` 声明 `execute`。生成的 Client 仅在当前连接提供对应能力时准入操作。这些声明不替代 Agent 解析、附件授权或处理器策略。 设备权限遵循第 21 节表格：命令目录声明 `view`，命令执行声明 `prompt.send`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 交互式适配器调用 `execute(agent, line, attachments, signal)`，传入确切的接收 agent、完整命令行与本次提交的有序附件。它返回已结算的 `CommandExecution`——规范化结果加生命周期配对 `commandId`——语法无效或名称未知时返回 `undefined`。`list(agent)` 与 `find(agent, name)` 在应用 agent 作用域遮蔽后用于命令发现。
 

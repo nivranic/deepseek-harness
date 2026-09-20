@@ -27,7 +27,7 @@ This package lets browser features store a `Blob`, exact bytes, or a `ReadableSt
 
 Mount the package before a consumer that injects `fileUpload`, then call `ctx.fileUpload.upload(sessionId, body, name, signal, onProgress)`. The Session identity addresses both the raw route and generated Remote fallback; callers do not assemble either request.
 
-File staging requires `file-upload.stage.v1` on the current Host. The Client captures the connection before reading bytes or starting either carrier; replacement or disposal cancels active work and rejects late receipts and progress. Capability support does not grant authorization, undo a completed Host upload, or make retry idempotent. Consumers decide whether to keep their browser-owned drafts for an explicit retry.
+File staging requires `file-upload.stage.v1` on the current Host. The Client captures the connection before reading bytes or starting either carrier; replacement or disposal cancels active work and rejects late receipts and progress. Capability support does not grant authorization, undo a completed Host upload, or make retry idempotent. Consumers decide whether to keep their browser-owned drafts for an explicit retry. Device permissions follow the section 21 table: staging requires `prompt.send`, because an upload participates in composing a later prompt. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 ```yaml
 - id: file-upload

@@ -37,7 +37,7 @@ Mount the package beside `dsh-fs`, `dsh-sandbox-policy`, the Session store, and 
 | `list(path)` | `WorkspaceDirectoryListing { path, entries, truncated }` | Direct children of one directory |
 | `changes()` | stream of `WorkspaceFileWatchFrame` | Subscription readiness, then filesystem observations inside the workspace root |
 
-`WORKSPACE_FILES_REMOTE_CAPABILITIES` in `./capabilities` declares stat, listing, text pages, byte windows, complete reads, related reads and observations independently. The Host advertises these operation sets through its existing Typert binding; API Remotes requires the exact owning capability before dispatch. API support does not grant filesystem access.
+`WORKSPACE_FILES_REMOTE_CAPABILITIES` in `./capabilities` declares stat, listing, text pages, byte windows, complete reads, related reads and observations independently. The Host advertises these operation sets through its existing Typert binding; API Remotes requires the exact owning capability before dispatch. API support does not grant filesystem access. Device permissions follow the section 21 table: every operation set declares `view`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 ### Addressing and paths
 

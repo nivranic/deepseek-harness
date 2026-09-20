@@ -20,7 +20,7 @@ kind: "package-reference"
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
 
-Remote 候选方法声明 `session-reference.candidates.v1`。该能力仅覆盖元数据发现；快照准备和持久引用上下文保持既有验证与生命周期。
+Remote 候选方法声明 `session-reference.candidates.v1`。该能力仅覆盖元数据发现；快照准备和持久引用上下文保持既有验证与生命周期。 设备权限遵循第 21 节表格：候选发现声明 `view`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 -----
 

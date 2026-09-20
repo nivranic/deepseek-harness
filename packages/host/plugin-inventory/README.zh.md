@@ -27,7 +27,7 @@ kind: "package-reference"
 
 当客户端或设置页需要展示宿主当前组合了什么——哪些插件已加载、已启用、是否存活，以及每个 agent preset 会给会话什么——时调用 `pluginInventory/list`。Remote 是唯一入口：该服务仅供 Remote 使用，刻意不声明同进程 Cordis `Context` 合并。
 
-本服务为 `list` 声明 `plugin.inventory.v1`。Client 必须先发现该能力再读取；该能力不授予 Loader 或预设变更权限。可选取消信号会在检查前及等待预设发现完成后拒绝请求，已取消的读取不会返回清单。
+本服务为 `list` 声明 `plugin.inventory.v1`。Client 必须先发现该能力再读取；该能力不授予 Loader 或预设变更权限。可选取消信号会在检查前及等待预设发现完成后拒绝请求，已取消的读取不会返回清单。 设备权限遵循第 21 节表格：清单列表声明 `view`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 ### 快照包含什么
 

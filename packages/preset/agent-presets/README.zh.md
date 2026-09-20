@@ -25,7 +25,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-Host 分别声明 `agent-preset.catalog.v1`（`list`、`read`）、`agent-preset.select.v1`（`select`）与 `agent-preset.manage.v1`（`copy`、`deletePreset`）。共享的 `./capabilities` 协议模块列出所需方法，当前 Gateway 绑定决定能力是否可用。这些事实表示操作支持，不代表设备权限或已配置可写预设根目录。偏好设置与目录操作继续由独立的 Settings 所有者负责。
+Host 分别声明 `agent-preset.catalog.v1`（`list`、`read`）、`agent-preset.select.v1`（`select`）与 `agent-preset.manage.v1`（`copy`、`deletePreset`）。共享的 `./capabilities` 协议模块列出所需方法，当前 Gateway 绑定决定能力是否可用。这些事实表示操作支持，不代表设备权限或已配置可写预设根目录。偏好设置与目录操作继续由独立的 Settings 所有者负责。 设备权限遵循第 21 节表格：目录声明 `view`；选择与管理声明 `prompt.send`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 在需要让每个 agent 会话从 preset 文件获得自己的工具、提示词段落与 skill 的组装中挂载本包。每个会话都会命名一个 preset——显式指定或通过配置的默认值——并据此组装；没有本包时，会话只能回退到宿主组装挂载的内容。
 

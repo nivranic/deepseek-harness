@@ -38,7 +38,7 @@ Type `/feedback` followed by your remark and send it. A successful entry is ackn
 
 Surrounding whitespace is trimmed, but the remark is otherwise kept exactly as typed: no truncation, case folding, or command parsing — `/feedback /plan felt slow` records that literal text. Each command records its own entry; nothing is merged or replaced.
 
-The dialog Remote declares `feedback.session.record.v1`. Client Gateway admission requires this capability before recording a Session remark. The Host slash command keeps its independent command-execution admission. Neither path promises idempotent retries or a disk-flush acknowledgement.
+The dialog Remote declares `feedback.session.record.v1`. Client Gateway admission requires this capability before recording a Session remark. The Host slash command keeps its independent command-execution admission. Neither path promises idempotent retries or a disk-flush acknowledgement. Device permissions follow the section 21 table: Session remark recording declares `prompt.send`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 <a id="the-web-feedback-dialog"></a>
 ### The Web feedback dialog

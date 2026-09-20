@@ -27,7 +27,7 @@ Clients can call `pluginInventory/list` to display the host’s current plugins 
 
 Call `pluginInventory/list` when a client or settings page needs to show what is currently composed in the host — which plugins are loaded, enabled, and alive, and what each agent preset would give a session. The Remote is the only entry point: the service is Remote-only and deliberately declares no same-process Cordis `Context` merge.
 
-The service declares `plugin.inventory.v1` for `list`. Clients must discover that capability before reading; it grants no Loader or preset mutation rights. An optional cancellation signal rejects before inspection and after pending preset discovery, so a cancelled read returns no snapshot.
+The service declares `plugin.inventory.v1` for `list`. Clients must discover that capability before reading; it grants no Loader or preset mutation rights. An optional cancellation signal rejects before inspection and after pending preset discovery, so a cancelled read returns no snapshot. Device permissions follow the section 21 table: inventory listing declares `view`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 ### What a snapshot contains
 

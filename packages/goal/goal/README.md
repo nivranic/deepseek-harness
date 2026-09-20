@@ -47,7 +47,7 @@ Load the package with a composition entry; the only deployment choice is the def
 
 `defaultMaxGoalRounds` must be a positive safe integer; a create request that names its own cap overrides it. The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-goal) is the exhaustive source for every accepted field.
 
-Host discovery advertises Goal reads, creation, editing, pausing, resuming, completion and clearing as independent versioned capabilities. The Client Gateway requires the matching declaration before each Remote request. Agent ownership, revision checks and lifecycle preconditions remain with the Goal service; capability support does not authorize a mutation.
+Host discovery advertises Goal reads, creation, editing, pausing, resuming, completion and clearing as independent versioned capabilities. The Client Gateway requires the matching declaration before each Remote request. Agent ownership, revision checks and lifecycle preconditions remain with the Goal service; capability support does not authorize a mutation. Device permissions follow the section 21 table: Goal reads declare `view`; creation, editing, pausing, resuming, completion, and clearing declare `prompt.send`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 ### Session projection
 

@@ -37,7 +37,7 @@ kind: "package-reference"
 | `list(path)` | `WorkspaceDirectoryListing { path, entries, truncated }` | 一个目录的直接子项 |
 | `changes()` | `WorkspaceFileWatchFrame` 流 | 订阅就绪确认，随后为工作区根内的文件系统观察 |
 
-`./capabilities` 中的 `WORKSPACE_FILES_REMOTE_CAPABILITIES` 独立声明 stat、列目录、文本分页、字节窗口、完整读取、关联文件读取和变更观察。Host 通过现有 Typert 绑定声明这些操作集；API Remotes 在派发前要求具体操作所属的能力。API 支持不授予文件系统访问权限。
+`./capabilities` 中的 `WORKSPACE_FILES_REMOTE_CAPABILITIES` 独立声明 stat、列目录、文本分页、字节窗口、完整读取、关联文件读取和变更观察。Host 通过现有 Typert 绑定声明这些操作集；API Remotes 在派发前要求具体操作所属的能力。API 支持不授予文件系统访问权限。 设备权限遵循第 21 节表格：每个操作集都声明 `view`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 ### 寻址与路径
 

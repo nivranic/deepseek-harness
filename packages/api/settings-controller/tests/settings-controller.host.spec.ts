@@ -75,10 +75,10 @@ describe('the settings Remote namespace a configuration page calls', () => {
     expect(controller.typertRemote.serviceKey).toBe('settingsController')
     expect(controller.typertRemote.namespace).toBe('settings')
     expect(controller.typertRemote.capabilities).toEqual([
-      { id: 'settings.read.v1', methods: ['describe'] },
-      { id: 'settings.write.v1', methods: ['update', 'replace', 'mutate'] },
-      { id: 'settings.document-open.v1', methods: ['openSettingsDocument'] },
-      { id: 'settings.agent-preset-directory.v1', methods: ['canOpenAgentPresetDirectory', 'openAgentPresetDirectory'] },
+      { id: 'settings.read.v1', methods: ['describe'], requiredPermission: 'view' },
+      { id: 'settings.write.v1', methods: ['update', 'replace', 'mutate'], requiredPermission: 'prompt.send' },
+      { id: 'settings.document-open.v1', methods: ['openSettingsDocument'], requiredPermission: 'view' },
+      { id: 'settings.agent-preset-directory.v1', methods: ['canOpenAgentPresetDirectory', 'openAgentPresetDirectory'], requiredPermission: 'view' },
     ])
     expect(remoteMethods(controller)).toEqual([
       { method: 'describe', invocation: { kind: 'direct' } },

@@ -31,8 +31,8 @@ it('advertises directory and discovery independently of installed adapters', asy
   onTestFinished(async () => { await fiber.dispose() })
   await fiber.await()
   expect(ctx.llm.typertRemote.capabilities).toEqual([
-    { id: 'llm.providers.v1', methods: ['listProviders', 'listConfigurableProviders'] },
-    { id: 'llm.discover-models.v1', methods: ['discoverModels'] },
+    { id: 'llm.providers.v1', methods: ['listProviders', 'listConfigurableProviders'], requiredPermission: 'view' },
+    { id: 'llm.discover-models.v1', methods: ['discoverModels'], requiredPermission: 'view' },
   ])
 })
 

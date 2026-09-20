@@ -172,4 +172,4 @@ This Dev Note is non-authoritative working context: open questions and undecided
 
 </details>
 
-Host discovery advertises `llm.providers.v1` for the registered/configurable provider directory and `llm.discover-models.v1` for endpoint model discovery. The pure `./capabilities` module shares these method sets with Client admission. Support does not imply that an adapter or discovery handler is mounted, that an endpoint is reachable, or that credentials authorize it.
+Host discovery advertises `llm.providers.v1` for the registered/configurable provider directory and `llm.discover-models.v1` for endpoint model discovery. The pure `./capabilities` module shares these method sets with Client admission. Support does not imply that an adapter or discovery handler is mounted, that an endpoint is reachable, or that credentials authorize it. Device permissions follow the section 21 table: the provider directory and model discovery both declare `view`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.

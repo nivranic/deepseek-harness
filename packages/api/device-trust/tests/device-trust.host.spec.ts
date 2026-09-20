@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { generateKeyPairSync, sign as edSign } from 'node:crypto'
 import { Context } from '@deepseek-ai/cordis'
-import { remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
+import { remoteErrorOf, type TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
 import Storage from '@deepseek-ai/dsh-storage'
 import {
   apply as storageJsonApply, Config as storageJsonConfig, inject as storageJsonInject, name as storageJsonName,
@@ -54,6 +54,20 @@ async function boot(config: Partial<Config> = {}, root?: string): Promise<Device
 
 afterEach(async () => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
+})
+
+describe('device-trust capability device permissions', () => {
+  it('gates administration on device.admin and keeps the pairing bootstrap undeclared', async () => {
+    const { DEVICE_TRUST_REMOTE_CAPABILITIES } = await import('../src/capabilities.ts')
+    const capabilities: readonly TypertRemoteCapability[] = DEVICE_TRUST_REMOTE_CAPABILITIES
+    expect(capabilities.map(({ id, requiredPermission }) => [id, requiredPermission])).toEqual([
+      ['device-pair.issue.v1', 'device.admin'],
+      ['device-pair.redeem.v1', undefined],
+      ['device.admit.v1', undefined],
+      ['device.list.v1', 'device.admin'],
+      ['device.revoke.v1', 'device.admin'],
+    ])
+  })
 })
 
 describe('device-trust pairing issuance', () => {

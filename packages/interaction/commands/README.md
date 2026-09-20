@@ -59,7 +59,7 @@ A command may declare `input.attachments` to accept composer images and generic 
 
 ### Dispatching from an adapter
 
-Host discovery advertises `command.catalog.v1` for `list` and `command.execute.v1` for `execute` independently. The generated Client admits each operation only when its capability is present on the current connection. These declarations do not replace Agent resolution, attachment authorization, or handler policy.
+Host discovery advertises `command.catalog.v1` for `list` and `command.execute.v1` for `execute` independently. The generated Client admits each operation only when its capability is present on the current connection. These declarations do not replace Agent resolution, attachment authorization, or handler policy. Device permissions follow the section 21 table: catalog listing declares `view` while command execution declares `prompt.send`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 An interactive adapter calls `execute(agent, line, attachments, signal)` with the exact receiving agent, the full command line, and the submission's ordered attachments. It returns the settled `CommandExecution` — the normalized result plus its lifecycle `commandId` — or `undefined` for invalid syntax or an unknown name. `list(agent)` and `find(agent, name)` serve discovery after agent-scoped shadowing.
 

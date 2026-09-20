@@ -5,43 +5,267 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "a4faf9b3740d6b427d1270706f23e004a0df8e6d75a86a9183316a6e06dfccd5"
+      "sha256": "765520967c629ad23ffda5383a671648136527b368c02ef0eb646303f6cb07ab"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "cfae25cdad3668069f2827d9e370da5d60a841e8abf396b4146b89adced82101"
+      "sha256": "3fd103f97d6edb3ce0d305775714cad2d6487af4dd578c46674f5f09930ffbd7"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "490d758128b130ff17a42a29d13fe39130813a8e517f9a9343e30506ceea727d"
+      "sha256": "8784b84ca8efeab72ea58afc27841183707095ab16bb09127b39f3a63382e80f"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "53cc70d8f98ab82bf8ad09952746f6c1ec2e804ac284b9c45e3fa1ea92a84bc5"
+      "sha256": "eaa3e2c38d69219bc1dd8c8101d26a493c5faf80eee42d8653beb37c90806a8e"
     },
     {
-      "path": "packages/api/workspace-controller/README.i18n.yaml",
-      "sha256": "4b1279f54e4cb5cfa2557152e96060760fe66cd0b0dd1e05486d2d75fe659319"
+      "path": "packages/api/device-trust/tests/device-trust.host.spec.ts",
+      "sha256": "02875aa74d8f10f195fea5084ffa04587ac4d4b5d6446ccdf3f1d00b78cf38cf"
     },
     {
-      "path": "packages/api/workspace-controller/README.md",
-      "sha256": "777f5ff04ff4a9b188d27aa885d4dc63a7579b1e2c8a6339ad1df01d78bc73d9"
+      "path": "packages/api/remotes/tests/host-preparation.client.spec.ts",
+      "sha256": "ff2c96ecb6a35c80051cc79d945667db8dcad6d9dcd614ad3869f107200a3bf6"
     },
     {
-      "path": "packages/api/workspace-controller/README.zh.md",
-      "sha256": "cb32dbb6b62ceeb706e34a0a2ed50d84b115da36f52a18ad6b31dc90f62101da"
+      "path": "packages/api/settings-controller/README.i18n.yaml",
+      "sha256": "2005f997f368d4a6ef819c536cff361c505eb9ce6f30d277548f701d6a10a90b"
     },
     {
-      "path": "packages/api/workspace-controller/src/capabilities.ts",
-      "sha256": "da2822b1de7a7ae205219eab51fe06b9070949066610668662a4aa80f7c9fa85"
+      "path": "packages/api/settings-controller/README.md",
+      "sha256": "28b3da150aa742958e536dd40652f924ebd5ab6b8cdf44b1c954a991ffa50502"
     },
     {
-      "path": "packages/api/workspace-controller/tests/directory-picker.host.spec.ts",
-      "sha256": "a18bef623d0b3f4a2ae6f247567da68bd929fbfdbd37706acbaef6f145b0d342"
+      "path": "packages/api/settings-controller/README.zh.md",
+      "sha256": "fee91a3dcb66c00dde0d5aa1c0aa5532432dd2d7ad69f0da2c2b9143447d0fdb"
     },
     {
-      "path": "packages/api/workspace-controller/tests/workspace-controller.host.spec.ts",
-      "sha256": "439f3bd5fe6520b5fe11de6d1c5e4c964d019c6e2e094e77387eda603c7be931"
+      "path": "packages/api/settings-controller/src/capabilities.ts",
+      "sha256": "384b76b1741767cec7d1212870c88f18762b659d4c362dc5a44406545f041049"
+    },
+    {
+      "path": "packages/api/settings-controller/tests/credentials-controller.host.spec.ts",
+      "sha256": "1249c1d286ee1c9127764afdab5ff99abefc8096c11648a202cb7e2bff0faf18"
+    },
+    {
+      "path": "packages/api/settings-controller/tests/settings-controller.host.spec.ts",
+      "sha256": "ad6a1986ceb75ee0c3fbfe2b74a5211e7de8e75657cffa994724e36ca102f106"
+    },
+    {
+      "path": "packages/api/workspace-files/README.i18n.yaml",
+      "sha256": "add75cbea7ccd4f041aab582091b3808c80ea44b2c69050a19dd9035794db2f1"
+    },
+    {
+      "path": "packages/api/workspace-files/README.md",
+      "sha256": "8fea9a66879f322b3a575b3aea8576c30a99eb9349842a7d73325e5c7114bd28"
+    },
+    {
+      "path": "packages/api/workspace-files/README.zh.md",
+      "sha256": "503e18281368d8ed7f8f34ec4513b78320db2bc633fe67a930f518efe2c37151"
+    },
+    {
+      "path": "packages/api/workspace-files/src/capabilities.ts",
+      "sha256": "3af6c6934d301cdc95c8028f0956b251dfcc4cbfea1b3d8d119e6dfafa1c57ec"
+    },
+    {
+      "path": "packages/api/workspace-files/tests/scope.spec.ts",
+      "sha256": "2df8f6e32f4d14f9408e0582f5f6ad76192dcd8a40242cf340304cc9a1cc3098"
+    },
+    {
+      "path": "packages/client/file-upload/README.i18n.yaml",
+      "sha256": "e6632eda8c9fbe8d47cfef44e1e4f751e9472220496b0f1beac8c1790bbce108"
+    },
+    {
+      "path": "packages/client/file-upload/README.md",
+      "sha256": "58bd9378fe1c25bbceea490be85b11a7e7bc2464bad644fdd455541e208cd14d"
+    },
+    {
+      "path": "packages/client/file-upload/README.zh.md",
+      "sha256": "b0ccdb52372a8507d6cfef5e84b7892d1de9598feef8a0d2c48a0ea8065175bf"
+    },
+    {
+      "path": "packages/client/file-upload/src/capabilities.ts",
+      "sha256": "88f4ce2150080127e52b3b2e53e9a645330e046e485bb658fd9950e795b72d12"
+    },
+    {
+      "path": "packages/client/ui-deliverables/README.i18n.yaml",
+      "sha256": "52b62a1ebaea8290180873d6104b7c10060d67efeba8740802f51e09be32937f"
+    },
+    {
+      "path": "packages/client/ui-deliverables/README.md",
+      "sha256": "5190bd0719acddc80061369541b312bfc24b6ea9655a5bd480662f6e2e978138"
+    },
+    {
+      "path": "packages/client/ui-deliverables/README.zh.md",
+      "sha256": "851b6cffde7096102c9884411cb8f1b371353967fc8db4e8969b66f27e421584"
+    },
+    {
+      "path": "packages/client/ui-deliverables/src/capabilities.ts",
+      "sha256": "ebc46405a0754aabfd5119c8c4da99f998242058aeabbca4ebe9ed4ee4105be4"
+    },
+    {
+      "path": "packages/context/session-reference/README.i18n.yaml",
+      "sha256": "297c317eee606b45539fe34c404ef9bfa0aac7e33c618e9e2d00a2950e270ae7"
+    },
+    {
+      "path": "packages/context/session-reference/README.md",
+      "sha256": "e717b3cc0ae683faf256a9f1ac328049eaaee4fa39e9d22e174e45c9ab08d0e0"
+    },
+    {
+      "path": "packages/context/session-reference/README.zh.md",
+      "sha256": "52b0f9f19ba2e67801d0fb1d6bb56a5e07868f1011d64b305dd315b9d435c0c4"
+    },
+    {
+      "path": "packages/context/session-reference/src/capabilities.ts",
+      "sha256": "ea3bf21353442c56e238baacb68ab1aeb3cf8b6bedfc1c02e05935c89aea0570"
+    },
+    {
+      "path": "packages/extensions/cordis-host-runner/README.i18n.yaml",
+      "sha256": "8962f532c67bf1776d11d7625e9684e6562ace1053a8c4fba325eb994aad3e8f"
+    },
+    {
+      "path": "packages/extensions/cordis-host-runner/README.md",
+      "sha256": "eef1c70fdd67bb99b0b43a436f6c07e29ff7f27dcc2760455524e084eeb89a85"
+    },
+    {
+      "path": "packages/extensions/cordis-host-runner/README.zh.md",
+      "sha256": "54ca68b339e0da65903ac611224203c13ecb264fcb5047436853dc7081436490"
+    },
+    {
+      "path": "packages/extensions/cordis-host-runner/src/capabilities.ts",
+      "sha256": "82287f3ec7b63a506daa5be102141a0d076c491dd28057956d868a9b09b97c6f"
+    },
+    {
+      "path": "packages/feedback/command-feedback/README.i18n.yaml",
+      "sha256": "7bc555a914a9dbf4b309aa5dea98056f4a012f9a6c53ed9976038e14e34115db"
+    },
+    {
+      "path": "packages/feedback/command-feedback/README.md",
+      "sha256": "a6e9d6599fd6f458b1008ba39aacc22a1854c5cbe45541ed23122fa8b050fa6c"
+    },
+    {
+      "path": "packages/feedback/command-feedback/README.zh.md",
+      "sha256": "bf01befe8e83bf48039dd936e696a6ed6605a05dea05e87b1ac389f5e662e6a7"
+    },
+    {
+      "path": "packages/feedback/command-feedback/src/capabilities.ts",
+      "sha256": "e47a06bd7cc3d0ebbeb643238ec26fdd6dbb3604a306556a90369c734743e94a"
+    },
+    {
+      "path": "packages/feedback/message-feedback/README.i18n.yaml",
+      "sha256": "fb44603e05aa50c3f50691aa1303a4f4c53609b3b84b00247f62082844a2c6fa"
+    },
+    {
+      "path": "packages/feedback/message-feedback/README.md",
+      "sha256": "d1de36cd34c217630b08843db7a6db867dec09b1d86591e35ebc227f6842793b"
+    },
+    {
+      "path": "packages/feedback/message-feedback/README.zh.md",
+      "sha256": "b1117aa77bb4ce3c35d5e7fe44a483734e6de366c3359af4618d1c5c5b9ba870"
+    },
+    {
+      "path": "packages/feedback/message-feedback/src/capabilities.ts",
+      "sha256": "c09359fd9b2c6bab6f5feda7d9be1236143990ce82de973c77a0be24972d173d"
+    },
+    {
+      "path": "packages/goal/goal/README.i18n.yaml",
+      "sha256": "aa08d8508c39b527985724accbc048007b88ed95a219da42118ccbb48305d351"
+    },
+    {
+      "path": "packages/goal/goal/README.md",
+      "sha256": "62c67c0f76fbf42f26d64b7f5d955fcb8a286b6459a0153229e5d42661083a7d"
+    },
+    {
+      "path": "packages/goal/goal/README.zh.md",
+      "sha256": "1a643077f29f8495564b5d5e299bf5f3f20d4fe40d6b295fd5807a90d5d3ac02"
+    },
+    {
+      "path": "packages/goal/goal/src/capabilities.ts",
+      "sha256": "6de86a4671245771ba331dd501ca075fdfa45782db4fdadb404feeff9716cbf3"
+    },
+    {
+      "path": "packages/host/plugin-inventory/README.i18n.yaml",
+      "sha256": "c5c8d9f86fff3a91f7929e9fc3255124e6ecf313b93d443dcff026efeadc46b2"
+    },
+    {
+      "path": "packages/host/plugin-inventory/README.md",
+      "sha256": "50d16287178abb1df42db20262abb2653951192cbc7b2faf06de64b661d76bd9"
+    },
+    {
+      "path": "packages/host/plugin-inventory/README.zh.md",
+      "sha256": "c08cff6cbc1798d3b8b98e83c99392c1777e95bdf36e286031dd4ad53283c09c"
+    },
+    {
+      "path": "packages/host/plugin-inventory/src/capabilities.ts",
+      "sha256": "66772e0d19209f053bbfb694e9c8ec877875d2c392c81b79225665cb6e23e22f"
+    },
+    {
+      "path": "packages/interaction/commands/README.i18n.yaml",
+      "sha256": "0833f57777fa35bbba3370fe39409107cffc45b78f411668598905f5f441fdf4"
+    },
+    {
+      "path": "packages/interaction/commands/README.md",
+      "sha256": "7b32fed1c700f2989b10b86756c39408bcc66684d92e0e3cbbd39c8d96eb2276"
+    },
+    {
+      "path": "packages/interaction/commands/README.zh.md",
+      "sha256": "67ef349c58540c9766f8ff9904f422e122c39124abb7e88dc6642d6e9054dd56"
+    },
+    {
+      "path": "packages/interaction/commands/src/capabilities.ts",
+      "sha256": "77008f9956c2f4aa82f247aa12adbfde6d7257cb6ab2e21acc45e8f4c6093a5c"
+    },
+    {
+      "path": "packages/llm/llm/README.i18n.yaml",
+      "sha256": "bd8634e3748c2fcda673e325022217c5f96afeea20f2a287d0ee29632a6c54e5"
+    },
+    {
+      "path": "packages/llm/llm/README.md",
+      "sha256": "54bf12b3637f68338b0ade8a93388a1f95d6c7a7ea9c50b12a0682199748e374"
+    },
+    {
+      "path": "packages/llm/llm/README.zh.md",
+      "sha256": "58faf8259b3f256d68d5db37caf2772a230ffe42c274ec494cc238fbbae0d877"
+    },
+    {
+      "path": "packages/llm/llm/src/capabilities.ts",
+      "sha256": "b71fcef15ff5a00b602107be713de1cd460acad00844a1f389c24e91fc383047"
+    },
+    {
+      "path": "packages/llm/llm/tests/service.spec.ts",
+      "sha256": "5130f6333d161feeda55c609bd4183e93e24dcbda9a61225e2e8e164418bf5ca"
+    },
+    {
+      "path": "packages/preset/agent-presets/README.i18n.yaml",
+      "sha256": "a71cc5a44f8e9469c7625d39cb417a18dfacde7f53943c8a56d7dd37e9b94d94"
+    },
+    {
+      "path": "packages/preset/agent-presets/README.md",
+      "sha256": "264f005a4a9e1a4b0263a72464d5bde3cd46df7313c5e5b2dbfdc015df4fd445"
+    },
+    {
+      "path": "packages/preset/agent-presets/README.zh.md",
+      "sha256": "6426a7d7f3505ef9399b35446ed74a50be12c100c3ec4b39395535c3ecbe321a"
+    },
+    {
+      "path": "packages/preset/agent-presets/src/capabilities.ts",
+      "sha256": "de5f3f68cc2364c4cb9a825943bbf87decc11111fcbeea342b3f197fc310afe0"
+    },
+    {
+      "path": "packages/subagent/subagent/README.i18n.yaml",
+      "sha256": "3d2c67c63509b51adc6cc15e2aaec2ca6f4207bdb280bd471da1d9113170bf2f"
+    },
+    {
+      "path": "packages/subagent/subagent/README.md",
+      "sha256": "9befa6bb6ffa3a1cba6895e3f500f962caf7508e0d8cc6e7b74d4ff50f94f324"
+    },
+    {
+      "path": "packages/subagent/subagent/README.zh.md",
+      "sha256": "2f2252fba69ff9b910f6c3b9a83a813400aaec17153ee41f80f96dc023300561"
+    },
+    {
+      "path": "packages/subagent/subagent/src/capabilities.ts",
+      "sha256": "176cc6449476666d82aed4b61113dea2e8ac26129a02a82e5723275276b10aee"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5970,6 +6194,36 @@
     },
     {
       "status": "PASS",
+      "command": "All seventeen affected suites (settings-controller, workspace-files, device-trust, remotes, llm, gateway, file-upload, ui-deliverables, session-reference, cordis-host-runner, command-feedback, message-feedback, goal, plugin-inventory, commands, agent-presets, subagent): 3236 passed with three pre-existing Windows-environment failure classes (workspace-files symlinks x6, presented-file symlink, agent-presets dangling install link) each verified failing on a clean tree and excluded",
+      "log": ".artifacts/remaining-capability-permissions-tests.log",
+      "sourceRecord": "artifacts/upstream-first/remaining-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck after the fourteen declarations and the two new tests",
+      "log": ".artifacts/remaining-capability-permissions-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/remaining-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/remaining-capability-permissions-lint.log",
+      "sourceRecord": "artifacts/upstream-first/remaining-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the fourteen bilingual README permission sentences",
+      "log": ".artifacts/remaining-capability-permissions-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/remaining-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 21 adoption-closure evidence",
+      "log": ".artifacts/remaining-capability-permissions-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/remaining-capability-permissions-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6700,7 +6954,150 @@
       ]
     }
   },
+  "remainingCapabilityPermissions": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/remaining-capability-permissions-source.json",
+    "scope": "The remaining business owners declare their device permissions, closing the requiredPermission adoption arc: reads and OS-surface actions take view (redacted settings description, the settings document, preset-directory operations, credential metadata, all seven workspace-files sets, presented-file desktop/open/reveal, session-reference candidates, plugin inventory, the LLM provider directory and model discovery, agent-preset catalog, command catalog, message-feedback listing, goal reads, subagent catalog, dynamic-cordis inventory/client-code/inspect handshake) and session-driving mutations take prompt.send (settings and credential writes, file staging, preset selection and management, command execution, message-feedback record/delete, session-remark recording, all goal mutations, subagent prompting and interrupts, dynamic-cordis run lifecycle including failure reports and invocation). Every set was already homogeneous — no splits, no consumer lock-surface changes. The device-trust pairing bootstrap (redeem, admit) stays deliberately undeclared; its specification pins device.admin on administration and the undeclared bootstrap pair, and the host-preparation specification closes the arc by asserting every capability across the twenty business declaration sources names a section 21 permission. Jobs declares no Remote capabilities so nothing belongs to it",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "limitations": [
+      "Three pre-existing Windows-environment failure classes (workspace-files symlink tests, the presented-file symlink test, the agent-presets dangling install-link test) fail identically on clean trees and are excluded.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "cross-release interop waits for real published versions; nonce-ledger replay hardening and change identity confirmation stay open; macOS, physical devices, and signing stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "workspaceCapabilityPermissions": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/remaining-capability-permissions-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json",
     "scope": "Workspace capabilities declare their device permissions, the second business adoption of requiredPermission: workspace.follow.v1 requires view; workspace.manage.v1 (create, rename, delete, insertBefore) and workspace.sessions.v1 (archiveSession, insertSessionBefore) require prompt.send following the session precedent that workspace-lifecycle writes are conversation participation; the directory picker declares view for native pick and browse and prompt.send for createDirectory, its only filesystem mutation. No splits were needed — every set is homogeneous; the full-repository lock-surface grep found no full-set pins and only the two package-internal capability deep-equals gained the field. A viewer device can follow workspace state; collaborator and up manage registries, session order, and picker-created directories; anonymous callers unaffected",
@@ -11632,7 +12029,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/workspace-capability-permissions-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/remaining-capability-permissions-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -12115,7 +12512,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "53cc70d8f98ab82bf8ad09952746f6c1ec2e804ac284b9c45e3fa1ea92a84bc5"
+        "sha256": "eaa3e2c38d69219bc1dd8c8101d26a493c5faf80eee42d8653beb37c90806a8e"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
