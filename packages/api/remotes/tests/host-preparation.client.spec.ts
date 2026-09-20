@@ -86,10 +86,10 @@ describe('Session operation capability admission', () => {
     ['updateQueue', 'session.control.v1'], ['cancel', 'session.control.v1'],
     ['cancelTurn', 'session.cancel-turn.v1'],
     ['renameAt', 'session.rename-at.v1'],
-    ['list', 'session.manage.v1'], ['create', 'session.manage.v1'],
+    ['list', 'session.list.v1'], ['create', 'session.manage.v1'],
     ['rename', 'session.manage.v1'], ['fork', 'session.manage.v1'],
     ['search', 'session.search.v1'], ['attachment', 'session.attachment.v1'],
-    ['modelCatalog', 'model.select.v1'], ['selectModel', 'model.select.v1'],
+    ['modelCatalog', 'model.catalog.v1'], ['selectModel', 'model.select.v1'],
   ])('requires the advertised capability for session/%s', (method, capability) => {
     expect(() =>{  admitHostOperation(`session/${method}`, { apiProtocolVersion: 2, capabilities: [] }) })
       .toThrow(expect.objectContaining({ code: 'host/capability-unavailable', details: { capability } }))

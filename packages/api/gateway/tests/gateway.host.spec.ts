@@ -1705,6 +1705,23 @@ class VaultService extends Service {
   }
 }
 
+/** Prompt.send-declared fixture: conversation participation is the section 21 gate. */
+class ComposerService extends Service {
+  readonly typertRemote
+
+  constructor(ctx: Context) {
+    super(ctx, 'composer')
+    this.typertRemote = bindTypertRemote(this, 'composer', {
+      capabilities: [{ id: 'composer.prompt.v1', methods: ['send'], requiredPermission: 'prompt.send' }],
+    })
+  }
+
+  @Remote
+  send(value: unknown): unknown {
+    return value
+  }
+}
+
 describe('Typert Gateway per-request device admission', () => {
   const storageRoots: string[] = []
 
@@ -1726,6 +1743,7 @@ describe('Typert Gateway per-request device admission', () => {
     await ctx.plugin(GoalService)
     await ctx.plugin(HostDiscoveryService)
     await ctx.plugin(VaultService)
+    await ctx.plugin(ComposerService)
     await ctx.plugin(Storage)
     const jsonBackend = { name: storageJsonName, inject: storageJsonInject, apply: storageJsonApply, Config: storageJsonConfig }
     await ctx.plugin(jsonBackend, { root: storageRoot })
@@ -1836,6 +1854,20 @@ describe('Typert Gateway per-request device admission', () => {
       const device = await pairDevice(ctx, 'owner')
       await expect(handler('vault/grant', deviceEnvelope(device, {}, Date.now() - 600_000), new AbortController().signal))
         .resolves.toMatchObject({ ok: false, error: { code: 'device/admission-expired' } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('gates prompt.send capabilities between viewer and collaborator', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      const viewer = await pairDevice(ctx, 'viewer')
+      await expect(handler('composer/send', deviceEnvelope(viewer, { value: 'no' }), new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied', details: { role: 'viewer', required: 'prompt.send' } } })
+      const collaborator = await pairDevice(ctx, 'collaborator')
+      await expect(handler('composer/send', deviceEnvelope(collaborator, { value: 'yes' }), new AbortController().signal))
+        .resolves.toMatchObject({ ok: true, value: 'yes' })
     } finally {
       await ctx.fiber.dispose()
     }

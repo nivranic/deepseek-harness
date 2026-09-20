@@ -697,8 +697,8 @@ it('describes live Host capabilities through authenticated Remote and refuses an
     expect(descriptor.hostId).toBe((await readFile(join(scaffold.harnessHome, '.host-id'), 'utf8')).trimEnd())
     expect(descriptor.capabilities).toEqual([
       'agent-preset.catalog.v1', 'agent-preset.manage.v1', 'agent-preset.select.v1',
-      'host.describe.v1', 'host.negotiate.v1', 'model.select.v1', 'session.cancel-turn.v1',
-      'session.control.v1', 'session.follow.v1', 'session.manage.v1', 'session.rename-at.v1',
+      'host.describe.v1', 'host.negotiate.v1', 'model.catalog.v1', 'model.select.v1', 'session.cancel-turn.v1',
+      'session.control.v1', 'session.follow.v1', 'session.list.v1', 'session.manage.v1', 'session.rename-at.v1',
       'settings.agent-preset-directory.v1', 'settings.document-open.v1', 'settings.read.v1', 'settings.write.v1',
     ])
   } finally {

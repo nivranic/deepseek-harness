@@ -38,7 +38,7 @@ Client 控制流在打开前等待已准入且声明 `session.control.v1` 的 Ho
 
 历史页与 follow opening 快照为每个持久 Session 事件携带一条 `{ type: 'event', event: SessionWireEvent }` record。Client 把每条已接受 record 保留为一个持久 `SessionEventLikeEntry`；Assistant token 边界保留在 `assistant/message` 或 `assistant/attempt` 的紧凑流内。工具参数、结果内容、失败信息和 `tool/result.data.meta` 原样通过；控制器不解析工具定义、不运行展示转换器，也不附加 UI 数据。
 
-此 owner 声明 `session.follow.v1`（跟随与分页）、`session.control.v1`（控制、prompt、队列更新与取消）、`session.manage.v1`（列举、创建、重命名与 fork）和 `model.select.v1`（目录与选择）。[Host 发现](../host-description/README.zh.md)在其 Remote 定义可用时报告这些操作集合；能力存在不代表变更操作可安全重试。
+此 owner 声明 `session.follow.v1`（跟随与分页）、`session.control.v1`（控制、prompt、队列更新与取消）、`session.list.v1`（列举）、`session.manage.v1`（创建、重命名与 fork）、`model.catalog.v1`（目录）和 `model.select.v1`（选择）。每个能力声明其设备权限：只读集合（跟随、列举、搜索、目录、文件引用与技能列表）要求 `view`；会话变更集合（控制、按轮取消、条件重命名、管理、附件、模型选择）要求 `prompt.send`——缺少已声明权限的设备角色在派发前被拒绝，匿名调用不受影响。[Host 发现](../host-description/README.zh.md)在其 Remote 定义可用时报告这些操作集合；能力存在不代表变更操作可安全重试。
 
 额外的 `session.cancel-turn.v1` 能力提供 `cancelTurn({ sessionId, turnStartSeq })`。只有 `turnStartSeq` 等于当前 `activeTurnStart` 投影时，Host 才请求取消；过时目标或显式 null 返回接受结果且不执行操作。Client 每次点击捕获目标，投影尚未到达时报告不可用状态而不作推断。未声明该能力的 Host 使用旧的当前活动 `cancel` 操作，后者不承诺迟到重试安全。两种操作都不恢复冷 Agent，按目标取消保留待处理 inbox。
 
