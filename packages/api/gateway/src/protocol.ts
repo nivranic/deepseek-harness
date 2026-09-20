@@ -35,16 +35,24 @@ export interface DecodedRemoteRequest {
   readonly payload: unknown
   /** True when the announcement named the diagnostics-only version instead of a negotiated codec. */
   readonly diagnosticsOnly: boolean
+  /** Signed device admission a versioned envelope carried beside `args`; absent for anonymous requests. */
+  readonly device?: unknown
 }
 
 /**
  * Encode named arguments with a previously resolved peer protocol.
  * @param args - exact named business arguments or reserved-event arguments.
  * @param version - codec selected before dispatch; version 1 omits all metadata.
+ * @param device - optional signed device admission riding the versioned envelope.
  * @returns carrier payload accepted by the selected protocol's Host.
  */
-export function encodeRemotePayload(args: Readonly<Record<string, unknown>>, version: RemoteProtocolVersion): object {
-  return version === 1 ? { args } : { apiProtocolVersion: version, args }
+export function encodeRemotePayload(
+  args: Readonly<Record<string, unknown>>,
+  version: RemoteProtocolVersion,
+  device?: unknown,
+): object {
+  if (version === 1) return { args }
+  return { apiProtocolVersion: version, args, ...(device === undefined ? {} : { device }) }
 }
 
 /**
@@ -85,6 +93,17 @@ export function decodeRemoteRequest(endpoint: string, payload: unknown): Decoded
   }
   const prototype: unknown = Object.getPrototypeOf(payload)
   if (prototype !== Object.prototype && prototype !== null) return { version: codec, payload, diagnosticsOnly }
-  if (Reflect.ownKeys(payload).length !== 2 || !Object.hasOwn(payload, 'args')) return { version: codec, payload, diagnosticsOnly }
-  return { version: codec, payload: { args: Reflect.get(payload, 'args') as unknown }, diagnosticsOnly }
+  const keys = Reflect.ownKeys(payload)
+  if (keys.length === 2 && Object.hasOwn(payload, 'args')) {
+    return { version: codec, payload: { args: Reflect.get(payload, 'args') as unknown }, diagnosticsOnly }
+  }
+  if (keys.length === 3 && Object.hasOwn(payload, 'args') && Object.hasOwn(payload, 'device')) {
+    return {
+      version: codec,
+      payload: { args: Reflect.get(payload, 'args') as unknown },
+      diagnosticsOnly,
+      device: Reflect.get(payload, 'device'),
+    }
+  }
+  return { version: codec, payload, diagnosticsOnly }
 }

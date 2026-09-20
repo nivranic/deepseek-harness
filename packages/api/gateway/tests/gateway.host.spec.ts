@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { Context, Service, symbols } from '@deepseek-ai/cordis'
 import { z } from 'zod'
 import { apply as applyConnection, inject as connectionInject } from '@deepseek-ai/dsh-client-connection'
@@ -19,6 +19,18 @@ import {
 } from '@deepseek-ai/dsh-typert-protocol'
 import TypertRegistry, { type TypertContribution } from '@deepseek-ai/dsh-typert-registry'
 import TypertGatewayService, { TypertGatewayError } from '@deepseek-ai/dsh-api-gateway'
+import { generateKeyPairSync, sign as edSign } from 'node:crypto'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import Storage from '@deepseek-ai/dsh-storage'
+import {
+  apply as storageJsonApply, Config as storageJsonConfig, inject as storageJsonInject, name as storageJsonName,
+} from '@deepseek-ai/dsh-storage-json'
+import {
+  apply as storageDomainApply, Config as storageDomainConfig, inject as storageDomainInject, name as storageDomainName,
+} from '@deepseek-ai/dsh-storage-domain'
+import DeviceTrustService from '@deepseek-ai/dsh-api-device-trust'
 import { provideBrowserCredentials } from './browser-credentials.ts'
 
 interface FixtureAgent {
@@ -59,8 +71,8 @@ class HostDiscoveryService extends Service {
     this.typertRemote = bindTypertRemote(this, 'hostDiscovery', {
       namespace: 'host',
       capabilities: [
-        { id: 'host.describe.v1', methods: ['describe'] },
-        { id: 'host.negotiate.v1', methods: ['negotiate'] },
+        { id: 'host.describe.v1', methods: ['describe'], requiredPermission: 'view' },
+        { id: 'host.negotiate.v1', methods: ['negotiate'], requiredPermission: 'view' },
       ],
     })
   }
@@ -1675,3 +1687,169 @@ async function expectCode(
   }
   throw new Error(`expected TypertGatewayError ${code}`)
 }
+
+/** Device.admin-declared fixture: a device caller's permission set gates its single method. */
+class VaultService extends Service {
+  readonly typertRemote
+
+  constructor(ctx: Context) {
+    super(ctx, 'vault')
+    this.typertRemote = bindTypertRemote(this, 'vault', {
+      capabilities: [{ id: 'vault.admin.v1', methods: ['grant'], requiredPermission: 'device.admin' }],
+    })
+  }
+
+  @Remote
+  grant(): string {
+    return 'granted'
+  }
+}
+
+describe('Typert Gateway per-request device admission', () => {
+  const storageRoots: string[] = []
+
+  afterEach(async () => {
+    await Promise.all(storageRoots.splice(0).map(root => rm(root, { recursive: true, force: true })))
+  })
+
+  /** One unary handler over the trust stack, typed for the admission cases. */
+  type TrustHandle = (endpoint: string, payload: unknown, signal: AbortSignal) => Promise<unknown>
+
+  /** Boot the trust stack (durable device-trust) beside the ordinary fixtures. */
+  async function setupTrust(): Promise<{ readonly ctx: Context; readonly handler: TrustHandle }> {
+    const ctx = new Context()
+    const storageRoot = await mkdtemp(join(tmpdir(), 'gateway-rpc-devices-'))
+    storageRoots.push(storageRoot)
+    await ctx.plugin(TypertRegistry)
+    await ctx.plugin(FakeConnectionService)
+    await ctx.plugin(TypertGatewayService)
+    await ctx.plugin(GoalService)
+    await ctx.plugin(HostDiscoveryService)
+    await ctx.plugin(VaultService)
+    await ctx.plugin(Storage)
+    const jsonBackend = { name: storageJsonName, inject: storageJsonInject, apply: storageJsonApply, Config: storageJsonConfig }
+    await ctx.plugin(jsonBackend, { root: storageRoot })
+    await ctx.plugin(
+      { name: storageDomainName, inject: storageDomainInject, apply: storageDomainApply, Config: storageDomainConfig },
+      { backend: 'json' },
+    )
+    await ctx.plugin(DeviceTrustService)
+    return { ctx, handler: rawConnection(ctx).handler! }
+  }
+
+  function ed25519(): { publicKeyB64: string; sign: (message: string) => string } {
+    const { publicKey, privateKey } = generateKeyPairSync('ed25519')
+    return {
+      publicKeyB64: publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
+      sign: message => edSign(null, Buffer.from(message, 'utf8'), privateKey).toString('base64'),
+    }
+  }
+
+  async function pairDevice(ctx: Context, role: 'viewer' | 'collaborator' | 'controller' | 'owner'): Promise<{ deviceId: string; key: ReturnType<typeof ed25519> }> {
+    const key = ed25519()
+    const issuance = ctx.deviceTrust.issuePairing(role)
+    const grant = await ctx.deviceTrust.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: key.publicKeyB64 })
+    return { deviceId: grant.deviceId, key }
+  }
+
+  /** The signed per-request envelope for one paired device. */
+  function deviceEnvelope(
+    device: { deviceId: string; key: ReturnType<typeof ed25519> },
+    args: Readonly<Record<string, unknown>>,
+    timestamp = Date.now(),
+  ): object {
+    const signature = device.key.sign(`${device.deviceId}\n${String(timestamp)}`)
+    return { apiProtocolVersion: 2, args, device: { deviceId: device.deviceId, timestamp, signature } }
+  }
+
+  it('admits a device-identified request whose role holds the declared permission', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      const device = await pairDevice(ctx, 'viewer')
+      await expect(handler('host/describe', deviceEnvelope(device, {}), new AbortController().signal))
+        .resolves.toMatchObject({ ok: true })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('refuses a device-identified request beyond the role permission set', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      const device = await pairDevice(ctx, 'viewer')
+      await expect(handler('vault/grant', deviceEnvelope(device, {}), new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied', details: { role: 'viewer', required: 'device.admin' } } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('admits an owner device on a device.admin capability', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      const device = await pairDevice(ctx, 'owner')
+      await expect(handler('vault/grant', deviceEnvelope(device, {}), new AbortController().signal))
+        .resolves.toMatchObject({ ok: true, value: 'granted' })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('refuses device-identified requests on undeclared capabilities', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      const device = await pairDevice(ctx, 'owner')
+      await expect(handler('goals/passthrough', deviceEnvelope(device, { value: 'x' }), new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied', details: { role: 'owner', reason: 'undeclared' } } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('rejects a malformed device field at the envelope boundary', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      await expect(handler('host/describe', { apiProtocolVersion: 2, args: {}, device: { deviceId: 'x' } }, new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/arguments-invalid' } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('rejects a device identity when the device-trust service is absent', async () => {
+    const ctx = new Context()
+    try {
+      await ctx.plugin(TypertRegistry)
+      await ctx.plugin(FakeConnectionService)
+      await ctx.plugin(TypertGatewayService)
+      const handler = rawConnection(ctx).handler!
+      await expect(handler('host/describe', { apiProtocolVersion: 2, args: {}, device: { deviceId: 'device-x', timestamp: Date.now(), signature: 'c2ln' } }, new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/service-unavailable' } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('rejects an admission timestamp outside the window', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      const device = await pairDevice(ctx, 'owner')
+      await expect(handler('vault/grant', deviceEnvelope(device, {}, Date.now() - 600_000), new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'device/admission-expired' } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('keeps anonymous requests on the same endpoints unchanged', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      await expect(handler('vault/grant', { apiProtocolVersion: 2, args: {} }, new AbortController().signal))
+        .resolves.toMatchObject({ ok: true, value: 'granted' })
+      await expect(handler('goals/passthrough', { apiProtocolVersion: 2, args: { value: 'plain' } }, new AbortController().signal))
+        .resolves.toMatchObject({ ok: true, value: 'plain' })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+})

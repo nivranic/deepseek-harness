@@ -217,9 +217,9 @@
     },
     {
       "const": "gateway/permission-denied",
-      "description": "The HTTP carrier returned 403; this refusal does not establish that a device was revoked.",
+      "description": "The HTTP carrier returned 403, or a device-identified request was refused; the refusal does not establish that a device was revoked.",
       "x-source": "packages/api/gateway/src/remote-error-codes.ts",
-      "x-typescript-details": "TypertGatewayHttpFaultDetails"
+      "x-typescript-details": "| TypertGatewayHttpFaultDetails\n      | { readonly endpoint: string; readonly role: string; readonly reason: 'undeclared' }\n      | { readonly endpoint: string; readonly role: string; readonly required: string }"
     },
     {
       "const": "gateway/preparation-unavailable",

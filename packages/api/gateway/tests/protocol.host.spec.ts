@@ -44,3 +44,22 @@ describe('Remote request codecs', () => {
     }
   })
 })
+
+describe('device admission envelope codec', () => {
+  it('strips the reserved device key beside the versioned args', () => {
+    const device = { deviceId: 'device-1', timestamp: 5, signature: 'c2ln' }
+    for (const version of [1, 2] as const) {
+      expect(decodeRemoteRequest('host/describe', { apiProtocolVersion: version, args: {}, device }))
+        .toEqual({ version, payload: { args: {} }, diagnosticsOnly: false, device })
+    }
+    expect(decodeRemoteRequest('host/describe', { apiProtocolVersion: 2, args: {}, device, extra: true }).device)
+      .toBeUndefined()
+  })
+
+  it('encodes the device admission only on the versioned codec', () => {
+    const device = { deviceId: 'device-1', timestamp: 5, signature: 'c2ln' }
+    expect(encodeRemotePayload({}, 2, device)).toEqual({ apiProtocolVersion: 2, args: {}, device })
+    expect(encodeRemotePayload({}, 1, device)).toEqual({ args: {} })
+    expect(encodeRemotePayload({}, 2)).toEqual({ apiProtocolVersion: 2, args: {} })
+  })
+})

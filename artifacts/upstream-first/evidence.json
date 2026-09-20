@@ -5,35 +5,111 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "57c43adb2fc629a238fe8ff2fdbed32afab58e3080f957a601d860806762530e"
+      "sha256": "ca5c5442591bc1ca06c8702cab280d8937b2083f327c660698d47bf8a3f5dcdf"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "8768410862342cf60128d2e184419af799fcf02074acb8cf929f6942a9d0f09a"
+      "sha256": "098e966fa8e87f7ad19db05529a82318dea6f94db33c0afea6fb4edc7c15bf8e"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "34b4e0bcb27ab12aac85567bae5e52ed2ffc6bdcde9208e1c65b2133f4688f73"
+      "sha256": "ca9785aa3b3678e7ca56f6ca2d6ab56cd7f45ec1b21c91814b16ab2047be3499"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "397c22af5fcd4a10ce4722209c331f10b6899f9af05c5a6c6befaed4d3b88da0"
+      "sha256": "d896c28ef7235bcdeb8eee5f37181e059e037e9c8fb55e0ba549e6c28727e422"
+    },
+    {
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "359e31e1c50c84f52b494df16c43bba91b55677aabdde0caeb0c6baf2300d86d"
+    },
+    {
+      "path": "docs/config-catalog.md",
+      "sha256": "3701cb5ccabb4dee505b23f071c6750f0ebe9789af99c8204b26f5c3cf79c928"
+    },
+    {
+      "path": "docs/subsystems/typert.i18n.yaml",
+      "sha256": "90066bbe7a39e5f74f8593e3ed5776e3767f092f098d0cfe5e4eb6b1fe5dae71"
+    },
+    {
+      "path": "docs/subsystems/typert.md",
+      "sha256": "0c0dc008de64c8b6224d9a10115bab0b9f694596c1e53de6231f8ed7c6baa890"
+    },
+    {
+      "path": "docs/subsystems/typert.zh.md",
+      "sha256": "f33a1f469ae7b6999f4ff37be7641b5b08f263bfd95895aca0f261d8f9a024b3"
+    },
+    {
+      "path": "packages/api/device-trust/README.i18n.yaml",
+      "sha256": "110554ce7a25fc1ddfe1f5ff3907a46336741db6197a663e7101ec7be4c991be"
+    },
+    {
+      "path": "packages/api/device-trust/README.md",
+      "sha256": "9680141b49e919c77cdd92b654fd5086568fb175c7f048ea3d07a17f8ecd9167"
+    },
+    {
+      "path": "packages/api/device-trust/README.zh.md",
+      "sha256": "eb7573e0d112dba2e64c32332e3e473b69e81e35001f538fb4d2637423f9e09e"
+    },
+    {
+      "path": "packages/api/device-trust/src/capabilities.ts",
+      "sha256": "1a768a6bde2e607746854a0a09c74cdabbd64d8534c86f2fbd04128f7ad82d3b"
     },
     {
       "path": "packages/api/gateway/README.i18n.yaml",
-      "sha256": "5da0ac3c0b00fbcde4dadec3ff94804d0968db33ba2fb0b9b6abdaed9f071b88"
+      "sha256": "2ba959bc9f0d5930d04d0ca29141b0461f20e7434012bdac7598815c8d9a52aa"
     },
     {
       "path": "packages/api/gateway/README.md",
-      "sha256": "500051d84b85ae9c4eb10f5f6bbeb1f970f49cd162162ac723248d43028cc54b"
+      "sha256": "7f4ebbdbb690f4a71fef30c47fd60ca463bee867cd44ff9391f207345942070b"
     },
     {
       "path": "packages/api/gateway/README.zh.md",
-      "sha256": "f891f5b4ab23ebf3b85f4f09cbd4f051881c5991fda4e785c5cbdb5dac90050f"
+      "sha256": "0be9383ddf69710e67a848fc270d4f8dba596e94d9745274cd30388654440e27"
+    },
+    {
+      "path": "packages/api/gateway/src/index.ts",
+      "sha256": "2d8901a0042e43b08c70af8deae21ec2f1e9278edd08c298e5d536949a57d8ba"
+    },
+    {
+      "path": "packages/api/gateway/src/protocol.ts",
+      "sha256": "4eed9419934334b7f0b09206988339a8b675b3b5575762031ede45d4587aa463"
+    },
+    {
+      "path": "packages/api/gateway/src/remote-error-codes.ts",
+      "sha256": "05f6ecf8e2f9021f2e944a88bf88c267ad7d1324145501629031259c83fe476c"
     },
     {
       "path": "packages/api/gateway/tests/gateway.host.spec.ts",
-      "sha256": "fa9355a23dea9ed2c9855920127e6901e85d16e9fb952052291d7e416378ccdb"
+      "sha256": "625e4b52ec9d091aee6485b8491ff16cd5feb0435f245ec4328279a106f96ac0"
+    },
+    {
+      "path": "packages/api/gateway/tests/protocol.host.spec.ts",
+      "sha256": "1587dd0e4c82fd3159caa4e7eda0060978d4d3a91bc3869a292384d5b3ef12a1"
+    },
+    {
+      "path": "packages/api/host-description/src/index.ts",
+      "sha256": "9c353dee39f9ac6721bcf301e8b83fd5b44dc81d6ee6f3e93b8cbe1f50415db4"
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "e5e1bd51fce1d5f17d676d5f22799ff513e1cc1b08df60a04a00437eeda8c777"
+    },
+    {
+      "path": "packages/typert/protocol/remote-error-codes.schema.json",
+      "sha256": "4f46226ca2187cceaea28a77ac26f65394aef2b4de4b216f6b35833bcf17ce8a"
+    },
+    {
+      "path": "packages/typert/protocol/remote-errors.schema.json",
+      "sha256": "06ad10bb084b3a78b4b470882859308019f728b10899cf8fdf5b6c454777cffd"
+    },
+    {
+      "path": "packages/typert/protocol/src/index.ts",
+      "sha256": "7a74234b2141560bea0a8f24a9f7584989dcac8aa77344912220598b1b350a28"
+    },
+    {
+      "path": "scripts/type-equiv.manifest.json",
+      "sha256": "a287cfc3b305f8fbe7d7682065a5f49aabe73ed8c1c1f096367ad29ed48ce00b"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -5872,6 +5948,36 @@
     },
     {
       "status": "PASS",
+      "command": "Gateway (446 incl. eight per-request admission cases and the envelope codec tests), device-trust, and typert-protocol suites: 489 tests",
+      "log": ".artifacts/per-request-admission-tests.log",
+      "sourceRecord": "artifacts/upstream-first/per-request-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck with the capability permission vocabulary",
+      "log": ".artifacts/per-request-admission-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/per-request-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/per-request-admission-lint.log",
+      "sourceRecord": "artifacts/upstream-first/per-request-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the README and typert type-equiv updates",
+      "log": ".artifacts/per-request-admission-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/per-request-admission-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 21 remote-execution evidence",
+      "log": ".artifacts/per-request-admission-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/per-request-admission-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6602,7 +6708,146 @@
       ]
     }
   },
+  "perRequestAdmission": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/per-request-admission-source.json",
+    "scope": "Per-request device admission gates business RPC on declared capability permissions: TypertRemoteCapability gains optional requiredPermission (RemoteCapabilityPermission = the section 21 table columns, a typert-protocol vocabulary); a versioned request envelope may carry the signed device admission beside args ({apiProtocolVersion, args, device} — decodeRemoteRequest strips the reserved third key, version 1 never carries one); the gateway verifies through the same admission ladder and gates the endpoint on the owning capability declaration — role without the permission or an undeclared capability refuses with gateway/permission-denied (details.role + required/reason undeclared) before dispatch, anonymous requests never take this path, and $events keeps its section 15 stream governance. First declarations: device-trust issue/list/revoke = device.admin (redeem/admit undeclared as pre-identity), host describe/negotiate = view",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "limitations": [
+      "The admission signature covers deviceId and timestamp only, so the acceptance window bounds cross-endpoint replay; a nonce ledger stays deferred.",
+      "Device clients do not yet exist end to end, so the per-request gate is exercised through tests while the browser generation source stays anonymous.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Business services adopt requiredPermission declarations in their own increments (devices stay fail-closed on undeclared capabilities by design); cross-release interop waits for real published versions; nonce-ledger replay hardening and change identity confirmation stay open; macOS, physical devices, and signing stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "protocolInteropMatrix": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/per-request-admission-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json",
     "scope": "The section 14 version-axis interop matrix pinned as one canonical test: pins the protocol-version by endpoint-class interop matrix (gateway.host.spec.ts) boots the real gateway with an inline HostDiscoveryService fixture so both discovery endpoints resolve, then walks version 0/1/2/unknown-malformed × discovery, business RPC, event-result settlement, and stream-open refusal rows — discovery admits every negotiated tier, business and event results admit 1 and 2 with the event-result positive cells proving version admission through the business-level interaction-closed, version 0 outside discovery gets the diagnostics refusal, unknown versions get the generic gateway/protocol-unsupported; the README documents the same grid as a bilingual table. Cross-release, device-revocation-state, closed-error-semantics, and change-identity rows of section 14 stay honestly open",
@@ -11111,7 +11356,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/protocol-interop-matrix-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/per-request-admission-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -11594,7 +11839,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "397c22af5fcd4a10ce4722209c331f10b6899f9af05c5a6c6befaed4d3b88da0"
+        "sha256": "d896c28ef7235bcdeb8eee5f37181e059e037e9c8fb55e0ba549e6c28727e422"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 按请求设备准入（第 21 节远端执行授权）
+
+[当前来源记录](artifacts/upstream-first/per-request-admission-source.json)把授权面裁定落在能力层：TypertRemoteCapability 新增可选 requiredPermission（typert-protocol 词汇 RemoteCapabilityPermission = 第 21 节表格列 view/prompt.send/question.respond/approval.respond/device.admin）；版本化请求信封可在 args 旁携带签名设备准入（{apiProtocolVersion, args, device}，decodeRemoteRequest 剥离保留第三键，版本 1 永不携带），网关按请求经同一 cheapest-first 阶梯验证并按所属能力声明门控端点——角色缺少已声明权限或能力未声明（对设备 fail-closed）在派发前以 gateway/permission-denied（details.role + required / reason undeclared）拒绝，匿名请求不受影响，$events 维持第 15 节流准入治理。首批声明：device-trust 的 issue/list/revoke = device.admin（redeem/admit 先于身份保持未声明）、host 的 describe/negotiate = view；业务服务在各自增量采纳。489 项测试（含八项按请求准入用例与信封编解码测试）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：签名仅覆盖 deviceId+时间戳（接受窗口约束跨端点重放，nonce 账本延期），端到端设备客户端尚不存在（测试先行）。
+
 ## 协议版本互通矩阵（第 14 节版本轴证据）
 
-[当前来源记录](artifacts/upstream-first/protocol-interop-matrix-source.json)把第 14 节兼容矩阵的版本轴固定为单一规范测试：pins the protocol-version by endpoint-class interop matrix（packages/api/gateway/tests/gateway.host.spec.ts）以真实网关加内联 HostDiscoveryService fixture（host 命名空间、host.describe.v1/negotiate.v1 能力）使两个发现端点可解析，遍历版本 0/1/2/未知与畸形 × 发现端点、业务 RPC、事件结果结算、流打开拒绝行——发现端点准入每个协商层级，业务与事件结果准入 1 与 2（事件结果正格经业务级 interaction-closed 证明版本准入），0 在发现之外得到诊断拒绝消息，未知版本得到通用 gateway/protocol-unsupported；准入版本的流打开行留在流套件。README 以双语言表格记录同一网格。诚实的剩余：跨真实发布版本的互通、设备撤销状态行、闭合错误语义与变更身份确认仍开放（尚无可测的已发布版本）。456 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。
+[历史来源记录](artifacts/upstream-first/protocol-interop-matrix-source.json)把第 14 节兼容矩阵的版本轴固定为单一规范测试：pins the protocol-version by endpoint-class interop matrix（packages/api/gateway/tests/gateway.host.spec.ts）以真实网关加内联 HostDiscoveryService fixture（host 命名空间、host.describe.v1/negotiate.v1 能力）使两个发现端点可解析，遍历版本 0/1/2/未知与畸形 × 发现端点、业务 RPC、事件结果结算、流打开拒绝行——发现端点准入每个协商层级，业务与事件结果准入 1 与 2（事件结果正格经业务级 interaction-closed 证明版本准入），0 在发现之外得到诊断拒绝消息，未知版本得到通用 gateway/protocol-unsupported；准入版本的流打开行留在流套件。README 以双语言表格记录同一网格。诚实的剩余：跨真实发布版本的互通、设备撤销状态行、闭合错误语义与变更身份确认仍开放（尚无可测的已发布版本）。456 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。
 
 ## 设备撤销连接状态（第 18 节补全）
 

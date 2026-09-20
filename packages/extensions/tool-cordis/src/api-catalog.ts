@@ -5052,6 +5052,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RedeemPairingResult {\n    readonly deviceId: DeviceId;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n}',
   },
   {
+    name: 'RemoteCapabilityPermission',
+    declaration: 'export type RemoteCapabilityPermission = \'view\' | \'prompt.send\' | \'question.respond\' | \'approval.respond\' | \'device.admin\';',
+  },
+  {
     name: 'RemoteError',
     declaration: 'export class RemoteError<Code extends RemoteErrorCode = RemoteErrorCode> extends Error {\n    readonly isDSHRemoteError: true;\n    constructor(readonly code: Code, message: string, readonly details: RemoteErrorDetailsMap[Code], options?: ErrorOptions);\n}',
   },
@@ -6409,7 +6413,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TypertRemoteCapability',
-    declaration: 'export interface TypertRemoteCapability {\n    readonly id: string;\n    readonly methods: readonly string[];\n}',
+    declaration: 'export interface TypertRemoteCapability {\n    readonly id: string;\n    readonly methods: readonly string[];\n    readonly requiredPermission?: RemoteCapabilityPermission;\n}',
   },
   {
     name: 'TypertRemoteEventContext',

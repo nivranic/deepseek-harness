@@ -28,8 +28,14 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'host/capability-unavailable': { readonly capability: string }
     /** The HTTP carrier returned 401; authenticate with the Host before explicitly retrying the operation. */
     'gateway/authentication-required': TypertGatewayHttpFaultDetails
-    /** The HTTP carrier returned 403; this refusal does not establish that a device was revoked. */
-    'gateway/permission-denied': TypertGatewayHttpFaultDetails
+    /**
+     * The HTTP carrier returned 403, or a device-identified request was
+     * refused; the refusal does not establish that a device was revoked.
+     */
+    'gateway/permission-denied':
+      | TypertGatewayHttpFaultDetails
+      | { readonly endpoint: string; readonly role: string; readonly reason: 'undeclared' }
+      | { readonly endpoint: string; readonly role: string; readonly required: string }
     /** The HTTP carrier returned 503 for this request; it does not invalidate an otherwise ready generation. */
     'gateway/host-not-ready': TypertGatewayHttpFaultDetails
     /**

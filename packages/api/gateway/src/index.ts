@@ -24,6 +24,7 @@ import {
   type InvocationParameterDescriptor,
   type TypertCodec,
   type TypertGatewayBinding,
+  type RemoteCapabilityPermission,
 } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   InvokeRemoteRequest,
@@ -462,6 +463,9 @@ export class TypertGatewayService extends Service implements TypertGateway {
       payload = decoded.payload
       version = decoded.version
       if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) return rpcFailure(this.diagnosticsOnlyRejection(endpoint))
+      if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_RESULT_ENDPOINT) {
+        this.admitRpcDevice(endpoint, decoded.device)
+      }
     } catch (error) {
       return rpcFailure(error)
     }
@@ -489,6 +493,9 @@ export class TypertGatewayService extends Service implements TypertGateway {
     const decoded = decodeRemoteRequest(endpoint, payload)
     if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) throw this.diagnosticsOnlyRejection(endpoint)
     payload = decoded.payload
+    if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_STREAM_ENDPOINT) {
+      this.admitRpcDevice(endpoint, decoded.device)
+    }
     if (endpoint === REMOTE_EVENT_STREAM_ENDPOINT) {
       return this.openRemoteEvents(payload, signal, decoded.version)
     }
@@ -740,6 +747,63 @@ export class TypertGatewayService extends Service implements TypertGateway {
       signature: device.signature,
     })
     return new Set<string>(admission.permissions)
+  }
+
+  /**
+   * Verify one signed per-request device admission and gate the endpoint on
+   * the caller's role set. The capability owning the endpoint declares its
+   * `requiredPermission`; a device caller without it — and a device caller on
+   * an undeclared capability — is refused before dispatch, while anonymous
+   * requests never take this path. Failures throw; the RPC path folds them
+   * through its envelope and the stream path surfaces them as the open error.
+   * @param endpoint - canonical Remote endpoint the device wants to invoke.
+   * @param deviceValue - the envelope's `device` field.
+   */
+  private admitRpcDevice(endpoint: string, deviceValue: unknown): void {
+    const device = parseDeviceAdmission(deviceValue)
+    const deviceTrust = this.ctx.get('deviceTrust')
+    if (deviceTrust === undefined) {
+      throw new TypertGatewayError(
+        'gateway/service-unavailable',
+        endpoint,
+        'device admission requires the device-trust service',
+      )
+    }
+    const admission = deviceTrust.admitDevice({
+      deviceId: device.deviceId as DeviceId,
+      timestamp: device.timestamp,
+      signature: device.signature,
+    })
+    const required = this.requiredPermissionOf(endpoint)
+    if (required === undefined) {
+      throw new RemoteError(
+        'gateway/permission-denied',
+        'no capability declares device access for this endpoint',
+        { endpoint, role: admission.role, reason: 'undeclared' },
+      )
+    }
+    if (!admission.permissions.includes(required)) {
+      throw new RemoteError(
+        'gateway/permission-denied',
+        `device role "${admission.role}" does not hold the required permission`,
+        { endpoint, role: admission.role, required },
+      )
+    }
+  }
+
+  /** The owning capability's declared permission for one endpoint, if any. */
+  private requiredPermissionOf(endpoint: string): RemoteCapabilityPermission | undefined {
+    const separator = endpoint.indexOf('/')
+    if (separator <= 0) return undefined
+    const namespace = endpoint.slice(0, separator)
+    const method = endpoint.slice(separator + 1)
+    for (const { binding } of this.activeBindings(endpoint)) {
+      if (binding.namespace !== namespace) continue
+      for (const capability of binding.capabilities ?? []) {
+        if (capability.methods.includes(method)) return capability.requiredPermission
+      }
+    }
+    return undefined
   }
 
   private removeRemoteEventClient(client: RemoteEventClient): void {

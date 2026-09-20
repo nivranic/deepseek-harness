@@ -233,9 +233,28 @@ interface TypertRemoteCapability {
   readonly id: string
   /** Nonempty set of exported method names required by this capability in the binding's namespace. */
   readonly methods: readonly string[]
+  /**
+   * Permission a device-identified request must hold to invoke this
+   * capability's methods. Absent capabilities are not device-admissible;
+   * anonymous callers are unaffected by this field.
+   */
+  readonly requiredPermission?: RemoteCapabilityPermission
 }
 ```
 
+```ts type-equiv
+/**
+ * Grantable permission kinds from the section 21 device-role table columns.
+ * The two `*.respond` kinds are checked against pending interactions'
+ * requiredPermission; the others gate device-identified business requests.
+ */
+type RemoteCapabilityPermission =
+  | 'view'
+  | 'prompt.send'
+  | 'question.respond'
+  | 'approval.respond'
+  | 'device.admin'
+```
 ```ts type-equiv
 /** Persistent identity of one Harness home; not an authentication credential. */
 type HostId = Branded<'HostId'>

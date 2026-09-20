@@ -56,7 +56,10 @@ export class HostDescriptionGateway extends TypertRemoteService {
   constructor(ctx: Context, private readonly facts: HostFacts) {
     super(ctx, 'hostDescription', {
       namespace: 'host',
-      capabilities: [{ id: 'host.describe.v1', methods: ['describe'] }, { id: 'host.negotiate.v1', methods: ['negotiate'] }],
+      capabilities: [
+        { id: 'host.describe.v1', methods: ['describe'], requiredPermission: 'view' },
+        { id: 'host.negotiate.v1', methods: ['negotiate'], requiredPermission: 'view' },
+      ],
     })
   }
 

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/per-request-admission-source.json",
+    "sha256": "e5d6303ed72abb51749fc67dbd33be155b5d6cfc44981dd9944b755ac8187ac4"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d896c28ef7235bcdeb8eee5f37181e059e037e9c8fb55e0ba549e6c28727e422"
+  },
+  "helper": {
+    "path": ".artifacts/check-per-request-admission-binding.mjs",
+    "sha256": "a03319471bc97ac929838819e5c189772807ca78fa4164a1b757c3977e223af9"
+  }
+}

@@ -1238,20 +1238,69 @@
           "type": "string"
         },
         "details": {
-          "type": "object",
-          "properties": {
-            "endpoint": {
-              "readOnly": true,
-              "type": "string"
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "httpStatus": {
+                  "readOnly": true,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "endpoint",
+                "httpStatus"
+              ]
             },
-            "httpStatus": {
-              "readOnly": true,
-              "type": "number"
+            {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "role": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "reason": {
+                  "readOnly": true,
+                  "type": "string",
+                  "const": "undeclared"
+                }
+              },
+              "required": [
+                "endpoint",
+                "role",
+                "reason"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "role": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "required": {
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "endpoint",
+                "role",
+                "required"
+              ]
             }
-          },
-          "required": [
-            "endpoint",
-            "httpStatus"
           ]
         }
       },
@@ -1261,7 +1310,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The HTTP carrier returned 403; this refusal does not establish that a device was revoked."
+      "description": "The HTTP carrier returned 403, or a device-identified request was refused; the refusal does not establish that a device was revoked."
     },
     {
       "type": "object",

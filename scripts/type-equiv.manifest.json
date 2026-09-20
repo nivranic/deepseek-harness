@@ -2123,6 +2123,11 @@
     },
     {
       "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteCapabilityPermission",
+      "source": "packages/typert/protocol/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
       "symbol": "TypertRemoteCapability",
       "source": "packages/typert/protocol/src/index.ts"
     },
