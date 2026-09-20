@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/device-trust.md
-device-trust.md: c15db36fb272ad588fe190f6f9331e75c348b703
-device-trust.zh.md: 043128a2b66e707a82caea051057c5c8b3c6d0f7
+device-trust.md: 8d9a12755af4080637e269f406b130e27cc8e271
+device-trust.zh.md: 005c64248f7ffb42efff47bd3ddcfe8fc1e11a39

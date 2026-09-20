@@ -834,8 +834,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'deviceTrust',
-    summary: 'Device-trust service (`ctx.deviceTrust`) over the process-local grant store.',
-    description: 'Device-trust service (`ctx.deviceTrust`) over the process-local grant store.',
+    summary: 'Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.',
+    description: 'Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.',
     methods: [
       {
         signature: '@Remote(\'issuePairing\') issuePairing(role?: DeviceRole): PairingIssuance',
@@ -844,20 +844,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the issuance the operator shows the device (for example as QR content).',
       },
       {
-        signature: '@Remote(\'redeemPairing\') redeemPairing(request: RedeemPairingRequest): RedeemPairingResult',
-        description: 'Redeem one pairing code with the device\'s freshly generated Ed25519 key.',
+        signature: '@Remote(\'redeemPairing\') async redeemPairing(request: RedeemPairingRequest): Promise<RedeemPairingResult>',
+        description: 'Redeem one pairing code with the device\'s freshly generated Ed25519 key. The grant is durable before the code is consumed: a failed store write leaves the code redeemable instead of burning it.',
         parameters: [{ name: 'request', description: 'the single-use code, a device name, and the base64 SPKI DER public key.' }],
         returns: 'the created grant identity.',
-        throws: ['RemoteError `device/pairing-invalid`, `device/pairing-expired`, or `device/key-invalid`.'],
+        throws: ['RemoteError `device/pairing-invalid`, `device/pairing-expired`, `device/key-invalid`, or `gateway/bad-request`.'],
       },
       {
         signature: '@Remote(\'listDevices\') listDevices(): readonly DeviceView[]',
-        description: 'List every grant, active and revoked; key material stays in the store.',
+        description: 'List every grant, active and revoked; key material stays in the store. Reads come from the domain\'s in-memory state — the same state every write mutated only after durability — so a read can never go around the write chain to the medium.',
         parameters: [],
-        returns: 'fresh views in pairing order.',
+        returns: 'fresh views in iteration order.',
       },
       {
-        signature: '@Remote(\'revokeDevice\') revokeDevice(request: RevokeDeviceRequest): RevokeDeviceResult',
+        signature: '@Remote(\'revokeDevice\') async revokeDevice(request: RevokeDeviceRequest): Promise<RevokeDeviceResult>',
         description: 'Revoke one grant. A revoked grant stays listed with its revocation time; a later role-mapped admission must treat it as refused.',
         parameters: [{ name: 'request', description: 'the addressed grant.' }],
         returns: 'the revoke acknowledgement.',

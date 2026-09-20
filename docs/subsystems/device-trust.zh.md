@@ -92,7 +92,7 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 
 ### `ctx.deviceTrust` — `DeviceTrustService`
 
-Device-trust service (`ctx.deviceTrust`) over the process-local grant store.
+Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
 
 ```ts cordis-catalog
 /**
@@ -108,17 +108,22 @@ Device-trust service (`ctx.deviceTrust`) over the process-local grant store.
 
 /**
  * Redeem one pairing code with the device's freshly generated Ed25519 key.
+ * The grant is durable before the code is consumed: a failed store write
+ * leaves the code redeemable instead of burning it.
  * @param request - the single-use code, a device name, and the base64 SPKI
  * DER public key.
  * @returns the created grant identity.
  * @throws RemoteError `device/pairing-invalid`, `device/pairing-expired`,
- * or `device/key-invalid`.
+ * `device/key-invalid`, or `gateway/bad-request`.
  */
-@Remote('redeemPairing') redeemPairing(request: RedeemPairingRequest): RedeemPairingResult
+@Remote('redeemPairing') async redeemPairing(request: RedeemPairingRequest): Promise<RedeemPairingResult>
 
 /**
  * List every grant, active and revoked; key material stays in the store.
- * @returns fresh views in pairing order.
+ * Reads come from the domain's in-memory state — the same state every
+ * write mutated only after durability — so a read can never go around the
+ * write chain to the medium.
+ * @returns fresh views in iteration order.
  */
 @Remote('listDevices') listDevices(): readonly DeviceView[]
 
@@ -129,7 +134,7 @@ Device-trust service (`ctx.deviceTrust`) over the process-local grant store.
  * @returns the revoke acknowledgement.
  * @throws RemoteError `device/not-found` or `device/already-revoked`.
  */
-@Remote('revokeDevice') revokeDevice(request: RevokeDeviceRequest): RevokeDeviceResult
+@Remote('revokeDevice') async revokeDevice(request: RevokeDeviceRequest): Promise<RevokeDeviceResult>
 ```
 
 Source: [`packages/api/device-trust/src/index.ts`](../../packages/api/device-trust/src/index.ts)

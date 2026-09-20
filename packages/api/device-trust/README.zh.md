@@ -8,7 +8,7 @@ kind: "package-reference"
 
 ## 概述
 
-`@deepseek-ai/dsh-api-device-trust` 拥有 Host `ctx.deviceTrust` 服务：[Link 接管审计决策](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.zh.md)命名的设备信任接缝。网关拥有设备侧接入；配对是能力门控的仪式而非复活的 Link 服务器，权限执行仍归交互回复接缝。服务签发一次性过期配对码、以设备新生成的 Ed25519 公钥兑换、持有进程内授权存储并撤销授权。
+`@deepseek-ai/dsh-api-device-trust` 拥有 Host `ctx.deviceTrust` 服务：[Link 接管审计决策](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.zh.md)命名的设备信任接缝。网关拥有设备侧接入；配对是能力门控的仪式而非复活的 Link 服务器，权限执行仍归交互回复接缝。服务签发一次性过期配对码、以设备新生成的 Ed25519 公钥兑换、经 storage-domain 接缝持有持久授权存储并撤销授权。
 
 ## 目录
 
@@ -41,7 +41,7 @@ kind: "package-reference"
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- 授权存储为进程内：授权随 Host 进程消亡。持久化——及其带来的 persistence-catalog 义务——与第 15 节接缝的角色映射权限检查、请求签名准入同属 Phase 7 下一个增量。
+- 授权存于持久的 `device_trust` 存储域（组合的 json 后端上的 single 布局）：授权在 Host 重启后存活，非法存储记录使 open 拒绝，存储写入失败时配对码保持可兑换。待定配对码按设计保持进程内——一次性过期机密不得在重启后存活。第 15 节接缝的角色映射权限检查与请求签名准入仍是 Phase 7 下一步。
 - 新的 `device/*` 失败码在共享呈现词表中保持刻意未分类，直到它们具备跨 Client 语义。
 - 此处不开放任何非 localhost 准入：LAN TLS/pinning 决策之前 localhost 防线保持关闭。
 
@@ -55,4 +55,4 @@ kind: "package-reference"
 
 </details>
 
-**运行时不变式：** 不发布伴生入口。存储为进程内；角色命名 Client 的下一步，权限执行仍归交互回复接缝。
+**运行时不变式：** 不发布伴生入口。授权经 `device_trust` 域持久而配对码进程内；角色命名 Client 的下一步，权限执行仍归交互回复接缝。

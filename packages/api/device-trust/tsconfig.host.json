@@ -9,12 +9,15 @@
     "src/capabilities.ts",
     "src/client.ts",
     "src/index.ts",
+    "src/spec.ts",
     "src/types.ts"
   ],
   "references": [
     { "path": "../../../vendor/cordis" },
     { "path": "../../../vendor/schemastery" },
     { "path": "../../util/brand" },
-    { "path": "../../typert/protocol" }
+    { "path": "../../typert/protocol" },
+    { "path": "../../storage/storage" },
+    { "path": "../../storage/storage-domain" }
   ]
 }

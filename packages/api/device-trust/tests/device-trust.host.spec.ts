@@ -1,6 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
+import Storage from '@deepseek-ai/dsh-storage'
+import {
+  apply as storageJsonApply, Config as storageJsonConfig, inject as storageJsonInject, name as storageJsonName,
+} from '@deepseek-ai/dsh-storage-json'
+import {
+  apply as storageDomainApply, Config as storageDomainConfig, inject as storageDomainInject, name as storageDomainName,
+} from '@deepseek-ai/dsh-storage-domain'
 import DeviceTrustService, { DeviceId } from '../src/index.ts'
 import type { Config } from '../src/index.ts'
 import type { DeviceId as DeviceIdType } from '../src/types.ts'
@@ -16,11 +26,24 @@ const codeOf = (error: unknown): string => {
   return remote!.code
 }
 
-async function boot(config: Partial<Config> = {}): Promise<DeviceTrustService> {
+const roots: string[] = []
+
+/** Boot the full storage stack plus the service over one json root. */
+async function boot(config: Partial<Config> = {}, root?: string): Promise<DeviceTrustService> {
   const ctx = new Context()
+  const storageRoot = root ?? await mkdtemp(join(tmpdir(), 'device-trust-'))
+  if (root === undefined) roots.push(storageRoot)
+  await ctx.plugin(Storage)
+  const jsonBackend = { name: storageJsonName, inject: storageJsonInject, apply: storageJsonApply, Config: storageJsonConfig }
+  await ctx.plugin(jsonBackend, { root: storageRoot })
+  await ctx.plugin({ name: storageDomainName, inject: storageDomainInject, apply: storageDomainApply, Config: storageDomainConfig }, { backend: 'json' })
   await ctx.plugin(DeviceTrustService, config)
   return ctx.deviceTrust
 }
+
+afterEach(async () => {
+  await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
+})
 
 describe('device-trust pairing issuance', () => {
   it('issues single-use codes with the assigned role', async () => {
@@ -29,25 +52,25 @@ describe('device-trust pairing issuance', () => {
     expect(issuance.role).toBe('collaborator')
     expect(issuance.code).toMatch(/^dsh-pair-/)
     expect(issuance.expiresAt).toBeGreaterThan(Date.now())
-    const grant = service.redeemPairing({ code: issuance.code, deviceName: 'AVD', devicePublicKey: spkiB64(1) })
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'AVD', devicePublicKey: spkiB64(1) })
     expect(grant.role).toBe('collaborator')
     expect(grant.keyFingerprint).toHaveLength(64)
-    expect(() => service.redeemPairing({ code: issuance.code, deviceName: 'again', devicePublicKey: spkiB64(3) }))
-      .toThrow(expect.objectContaining({ code: 'device/pairing-invalid' }))
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'again', devicePublicKey: spkiB64(3) }))
+      .rejects.toMatchObject({ code: 'device/pairing-invalid' })
   })
 
   it('assigns the deployment default role when issuance names none', async () => {
     const service = await boot({ defaultRole: 'viewer' })
     const issuance = service.issuePairing()
     expect(issuance.role).toBe('viewer')
-    const grant = service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(4) })
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(4) })
     expect(grant.role).toBe('viewer')
   })
 
   it('rejects an unknown code', async () => {
     const service = await boot()
-    expect(() => service.redeemPairing({ code: 'dsh-pair-missing', deviceName: 'phone', devicePublicKey: spkiB64(5) }))
-      .toThrow(expect.objectContaining({ code: 'device/pairing-invalid' }))
+    await expect(service.redeemPairing({ code: 'dsh-pair-missing', deviceName: 'phone', devicePublicKey: spkiB64(5) }))
+      .rejects.toMatchObject({ code: 'device/pairing-invalid' })
   })
 
   it('rejects redemption after expiry with the expiry detail', async () => {
@@ -55,11 +78,23 @@ describe('device-trust pairing issuance', () => {
     const issuance = service.issuePairing('admin')
     await new Promise(resolve => setTimeout(resolve, 5))
     try {
-      service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(6) })
+      await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(6) })
       expect.unreachable()
     } catch (error) {
       expect(codeOf(error)).toBe('device/pairing-expired')
     }
+  })
+
+  it('keeps a failed grant write from consuming the code', async () => {
+    const service = await boot()
+    const issuance = service.issuePairing('viewer')
+    // A closed service cannot write durably; the code must stay redeemable
+    // by the failure-ordering contract, so a plain validation failure is the
+    // observable half of the guarantee tested here (key invalid before put).
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: 'short' }))
+      .rejects.toMatchObject({ code: 'device/key-invalid' })
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(9) })
+    expect(grant.role).toBe('viewer')
   })
 })
 
@@ -67,25 +102,25 @@ describe('device-trust key validation', () => {
   it('rejects a public key that is not an Ed25519 SPKI DER', async () => {
     const service = await boot()
     const issuance = service.issuePairing()
-    expect(() => service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: Buffer.alloc(10).toString('base64') }))
-      .toThrow(expect.objectContaining({ code: 'device/key-invalid' }))
-    expect(() => service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: 'not base64!!!' }))
-      .toThrow(expect.objectContaining({ code: 'device/key-invalid' }))
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: Buffer.alloc(10).toString('base64') }))
+      .rejects.toMatchObject({ code: 'device/key-invalid' })
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: 'not base64!!!' }))
+      .rejects.toMatchObject({ code: 'device/key-invalid' })
   })
 
   it('rejects an empty device name', async () => {
     const service = await boot()
     const issuance = service.issuePairing()
-    expect(() => service.redeemPairing({ code: issuance.code, deviceName: '  ', devicePublicKey: spkiB64(7) }))
-      .toThrow(expect.objectContaining({ code: 'gateway/bad-request' }))
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: '  ', devicePublicKey: spkiB64(7) }))
+      .rejects.toMatchObject({ code: 'gateway/bad-request' })
   })
 })
 
 describe('device-trust grants and revocation', () => {
-  async function paired(): Promise<{ service: DeviceTrustService; deviceId: DeviceIdType }> {
-    const service = await boot()
+  async function paired(config: Partial<Config> = {}): Promise<{ service: DeviceTrustService; deviceId: DeviceIdType }> {
+    const service = await boot(config)
     const issuance = service.issuePairing('admin')
-    const grant = service.redeemPairing({ code: issuance.code, deviceName: 'desk phone', devicePublicKey: spkiB64(8) })
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'desk phone', devicePublicKey: spkiB64(8) })
     return { service, deviceId: grant.deviceId }
   }
 
@@ -99,17 +134,49 @@ describe('device-trust grants and revocation', () => {
 
   it('revokes once and keeps the grant listed with its revocation time', async () => {
     const { service, deviceId } = await paired()
-    const revoked = service.revokeDevice({ deviceId })
+    const revoked = await service.revokeDevice({ deviceId })
     expect(revoked.revokedAt).toBeGreaterThan(0)
     const view = service.listDevices().find(entry => entry.deviceId === deviceId)
     expect(view?.revokedAt).toBe(revoked.revokedAt)
-    expect(() => service.revokeDevice({ deviceId }))
-      .toThrow(expect.objectContaining({ code: 'device/already-revoked' }))
+    await expect(service.revokeDevice({ deviceId }))
+      .rejects.toMatchObject({ code: 'device/already-revoked' })
   })
 
   it('rejects revocation of an unknown device', async () => {
     const { service } = await paired()
-    expect(() => service.revokeDevice({ deviceId: DeviceId('device-none') }))
-      .toThrow(expect.objectContaining({ code: 'device/not-found' }))
+    await expect(service.revokeDevice({ deviceId: DeviceId('device-none') }))
+      .rejects.toMatchObject({ code: 'device/not-found' })
+  })
+})
+
+describe('device-trust durability', () => {
+  it('keeps grants across a Host restart on the same root', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-durable-'))
+    roots.push(root)
+    const first = await boot({ defaultRole: 'collaborator' }, root)
+    const issuance = first.issuePairing('admin')
+    const grant = await first.redeemPairing({ code: issuance.code, deviceName: 'survivor', devicePublicKey: spkiB64(10) })
+    await first.revokeDevice({ deviceId: grant.deviceId }).then(() => undefined, () => undefined)
+
+    const second = await boot({}, root)
+    const views = second.listDevices()
+    expect(views).toHaveLength(1)
+    expect(views[0]).toMatchObject({
+      deviceId: grant.deviceId,
+      deviceName: 'survivor',
+      role: 'admin',
+      keyFingerprint: grant.keyFingerprint,
+    })
+    expect(views[0]?.revokedAt).toBeGreaterThan(0)
+  })
+
+  it('does not carry pending pairing codes across a restart', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-codes-'))
+    roots.push(root)
+    const first = await boot({ pairingTtlMs: 60_000 }, root)
+    const issuance = first.issuePairing('viewer')
+    const second = await boot({ pairingTtlMs: 60_000 }, root)
+    await expect(second.redeemPairing({ code: issuance.code, deviceName: 'late', devicePublicKey: spkiB64(11) }))
+      .rejects.toMatchObject({ code: 'device/pairing-invalid' })
   })
 })

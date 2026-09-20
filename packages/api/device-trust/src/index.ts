@@ -1,20 +1,22 @@
 /**
  * Device-trust seam on the candidate gateway: pairing issuance with one-time
  * expiring codes, redemption registering the device's Ed25519 public key, the
- * process-local grant store, and revocation. The audit decision
- * 2026-09-20-link-access-takeover-audit names this seam the single owner of
- * device-facing access; permission execution stays with the section 15 seam
- * and no non-localhost admission opens here.
+ * durable grant store over the storage-domain seam, and revocation. The audit
+ * decision 2026-09-20-link-access-takeover-audit names this seam the single
+ * owner of device-facing access; permission execution stays with the section
+ * 15 seam and no non-localhost admission opens here.
  * @module @deepseek-ai/dsh-api-device-trust
  */
 
 import { createHash, randomUUID } from 'node:crypto'
-import { Context } from '@deepseek-ai/cordis'
+import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { RemoteError, TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
+import { DomainError, type KvTable } from '@deepseek-ai/dsh-storage-domain'
 import { DEVICE_TRUST_REMOTE_CAPABILITIES } from './capabilities.ts'
+import { deviceTrustDomainSpec } from './spec.ts'
+import type { DeviceGrantRecord } from './spec.ts'
 import type {
-  DeviceGrant,
   DeviceId,
   DeviceRole,
   DeviceView,
@@ -28,6 +30,8 @@ import type {
 
 export type * from './types.ts'
 export { DEVICE_TRUST_REMOTE_CAPABILITIES } from './capabilities.ts'
+export { deviceTrustDomainSpec, deviceGrantRecord } from './spec.ts'
+export type { DeviceGrantRecord } from './spec.ts'
 
 /**
  * Runtime constructor for the branded device identity.
@@ -91,8 +95,10 @@ interface PendingPairing {
   redeemed: boolean
 }
 
-/** Device-trust service (`ctx.deviceTrust`) over the process-local grant store. */
+/** Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain. */
 export class DeviceTrustService extends TypertRemoteService {
+  static inject = ['storageDomain']
+
   static Config: z<Config> = z.object({
     pairingTtlMs: z.number().step(1).min(1).default(300_000),
     defaultRole: z.union([
@@ -102,9 +108,13 @@ export class DeviceTrustService extends TypertRemoteService {
     ]).default('viewer'),
   })
 
-  private readonly grants = new Map<DeviceId, DeviceGrant>()
+  /**
+   * Pending pairing codes stay process-local: a one-time expiring secret must
+   * not survive a Host restart, and the ceremony simply reissues after one.
+   */
   private readonly pairings = new Map<string, PendingPairing>()
   private readonly resolved: { pairingTtlMs: number; defaultRole: DeviceRole }
+  private grants?: KvTable<DeviceId, DeviceGrantRecord>
 
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'deviceTrust', { namespace: 'deviceTrust', capabilities: DEVICE_TRUST_REMOTE_CAPABILITIES })
@@ -112,6 +122,19 @@ export class DeviceTrustService extends TypertRemoteService {
       pairingTtlMs: config.pairingTtlMs ?? 300_000,
       defaultRole: config.defaultRole ?? 'viewer',
     }
+  }
+
+  /** Open the durable grants table; an invalid stored record rejects here. */
+  protected async [Service.init](): Promise<void> {
+    const domain = await this.ctx.storageDomain.open(deviceTrustDomainSpec)
+    this.ctx.effect(() => () => domain.close(), 'deviceTrust.domainClose')
+    this.grants = domain.table('grants')
+  }
+
+  /** The opened grants table; the service starts only after [Service.init]. */
+  private table(): KvTable<DeviceId, DeviceGrantRecord> {
+    if (this.grants === undefined) throw new Error('device-trust domain is not open')
+    return this.grants
   }
 
   /**
@@ -135,14 +158,16 @@ export class DeviceTrustService extends TypertRemoteService {
 
   /**
    * Redeem one pairing code with the device's freshly generated Ed25519 key.
+   * The grant is durable before the code is consumed: a failed store write
+   * leaves the code redeemable instead of burning it.
    * @param request - the single-use code, a device name, and the base64 SPKI
    * DER public key.
    * @returns the created grant identity.
    * @throws RemoteError `device/pairing-invalid`, `device/pairing-expired`,
-   * or `device/key-invalid`.
+   * `device/key-invalid`, or `gateway/bad-request`.
    */
   @Remote('redeemPairing')
-  redeemPairing(request: RedeemPairingRequest): RedeemPairingResult {
+  async redeemPairing(request: RedeemPairingRequest): Promise<RedeemPairingResult> {
     const pending = this.pairings.get(request.code)
     if (pending === undefined || pending.redeemed) {
       throw new RemoteError('device/pairing-invalid', 'pairing code is unknown or already redeemed', { code: request.code })
@@ -157,24 +182,27 @@ export class DeviceTrustService extends TypertRemoteService {
       throw new RemoteError('gateway/bad-request', 'deviceName must be non-empty', {})
     }
     const { fingerprint } = decodeDeviceKey(request.devicePublicKey)
-    pending.redeemed = true
     const pairedAt = Date.now()
     const deviceId = DeviceId(`device-${randomUUID()}`)
-    this.grants.set(deviceId, {
-      deviceId, deviceName, role: pending.role,
+    await this.table().put(deviceId, {
+      deviceName, role: pending.role,
       devicePublicKey: request.devicePublicKey, keyFingerprint: fingerprint, pairedAt,
     })
+    pending.redeemed = true
     return { deviceId, role: pending.role, keyFingerprint: fingerprint, pairedAt }
   }
 
   /**
    * List every grant, active and revoked; key material stays in the store.
-   * @returns fresh views in pairing order.
+   * Reads come from the domain's in-memory state — the same state every
+   * write mutated only after durability — so a read can never go around the
+   * write chain to the medium.
+   * @returns fresh views in iteration order.
    */
   @Remote('listDevices')
   listDevices(): readonly DeviceView[] {
-    return [...this.grants.values()].map(grant => ({
-      deviceId: grant.deviceId,
+    return [...this.table().entries()].map(([deviceId, grant]) => ({
+      deviceId,
       deviceName: grant.deviceName,
       role: grant.role,
       keyFingerprint: grant.keyFingerprint,
@@ -191,18 +219,26 @@ export class DeviceTrustService extends TypertRemoteService {
    * @throws RemoteError `device/not-found` or `device/already-revoked`.
    */
   @Remote('revokeDevice')
-  revokeDevice(request: RevokeDeviceRequest): RevokeDeviceResult {
-    const grant = this.grants.get(request.deviceId)
-    if (grant === undefined) {
+  async revokeDevice(request: RevokeDeviceRequest): Promise<RevokeDeviceResult> {
+    if (this.table().get(request.deviceId) === undefined) {
       throw new RemoteError('device/not-found', 'no device grant with the addressed id', { deviceId: request.deviceId })
     }
-    if (grant.revokedAt !== undefined) {
-      throw new RemoteError('device/already-revoked', 'device grant was already revoked', {
-        deviceId: request.deviceId, revokedAt: grant.revokedAt,
-      })
-    }
     const revokedAt = Date.now()
-    this.grants.set(request.deviceId, { ...grant, revokedAt })
+    try {
+      await this.table().update(request.deviceId, (current): DeviceGrantRecord => {
+        if (current.revokedAt !== undefined) {
+          throw new RemoteError('device/already-revoked', 'device grant was already revoked', {
+            deviceId: request.deviceId, revokedAt: current.revokedAt,
+          })
+        }
+        return { ...current, revokedAt }
+      })
+    } catch (error) {
+      if (error instanceof DomainError && error.code === 'missing-key') {
+        throw new RemoteError('device/not-found', 'no device grant with the addressed id', { deviceId: request.deviceId })
+      }
+      throw error
+    }
     return { deviceId: request.deviceId, revokedAt }
   }
 }

@@ -187,6 +187,8 @@ Source: [`packages/core/agent-tool-presentation/src/index.ts:38`](../packages/co
 
 ## `@deepseek-ai/dsh-api-device-trust`
 
+Requires: `storageDomain`
+
 ```ts config-catalog
 /** Config: deployment-varying choices of the pairing ceremony. */
 export interface Config {
@@ -204,7 +206,7 @@ export interface Config {
 export type DeviceRole = 'viewer' | 'collaborator' | 'admin'
 ```
 
-Source: [`packages/api/device-trust/src/index.ts:52`](../packages/api/device-trust/src/index.ts)
+Source: [`packages/api/device-trust/src/index.ts:56`](../packages/api/device-trust/src/index.ts)
 
 <a id="deepseek-aidsh-api-gateway"></a>
 

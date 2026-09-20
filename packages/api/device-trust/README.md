@@ -8,7 +8,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`@deepseek-ai/dsh-api-device-trust` owns the Host `ctx.deviceTrust` service: the device-trust seam named by the [link-access takeover audit](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.md). The gateway owns device-facing access; pairing is a capability-gated ceremony rather than a resurrected Link server, and permission execution stays with the interaction-reply seam. The service issues one-time expiring pairing codes, redeems them against the device's freshly generated Ed25519 public key, holds the process-local grant store, and revokes grants.
+`@deepseek-ai/dsh-api-device-trust` owns the Host `ctx.deviceTrust` service: the device-trust seam named by the [link-access takeover audit](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.md). The gateway owns device-facing access; pairing is a capability-gated ceremony rather than a resurrected Link server, and permission execution stays with the interaction-reply seam. The service issues one-time expiring pairing codes, redeems them against the device's freshly generated Ed25519 public key, holds the durable grant store over the storage-domain seam, and revokes grants.
 
 ## Table of Contents
 
@@ -40,7 +40,7 @@ No direct effect; device-trust operations do not alter model requests.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- The grant store is process-local: grants die with the Host process. Durability — with the persistence-catalog obligations it carries — is the next Phase 7 increment, alongside role-mapped permission checks through the section 15 seam and request-signature admission.
+- Grants live in the durable `device_trust` storage domain (single layout over the composed json backend): they survive Host restarts, an invalid stored record rejects the open, and a failed store write leaves a pairing code redeemable. Pending pairing codes stay process-local by design — a one-time expiring secret must not survive a restart. Role-mapped permission checks through the section 15 seam and request-signature admission remain the next Phase 7 steps.
 - The new `device/*` failure codes stay deliberately unclassified in the shared presentation vocabulary until they carry cross-Client semantics.
 - No non-localhost admission opens here: the localhost line stays closed until the LAN TLS/pinning decision.
 
@@ -54,4 +54,4 @@ The audit decision recorded in `.agents/notes/implemented/architecture/2026-09-2
 
 </details>
 
-**Runtime invariant:** No companion is published. The store is process-local; roles name the next Client step, permission execution stays with the interaction-reply seam.
+**Runtime invariant:** No companion is published. Grants are durable over the `device_trust` domain while pairing codes are process-local; roles name the next Client step, permission execution stays with the interaction-reply seam.
