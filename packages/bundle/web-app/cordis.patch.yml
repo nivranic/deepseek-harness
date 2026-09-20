@@ -126,6 +126,12 @@
     - id: workspace-controller
       name: '@deepseek-ai/dsh-api-workspace-controller'
 
+    # Device-trust seam: one-time pairing issuance, device grants, and
+    # revocation over Typert Remote; permission execution stays with the
+    # interaction-reply seam and no non-localhost admission opens here.
+    - id: device-trust
+      name: '@deepseek-ai/dsh-api-device-trust'
+
     - id: cordis-host-runner
       name: '@deepseek-ai/dsh-cordis-host-runner'
 

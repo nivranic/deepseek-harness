@@ -42,6 +42,36 @@
       "x-typescript-details": "{ readonly ref: string }"
     },
     {
+      "const": "device/already-revoked",
+      "description": "The addressed device grant was already revoked.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly deviceId: string; readonly revokedAt: number }"
+    },
+    {
+      "const": "device/key-invalid",
+      "description": "The presented public key is not a base64 Ed25519 SPKI DER.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly reason: string }"
+    },
+    {
+      "const": "device/not-found",
+      "description": "The addressed device grant does not exist.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly deviceId: string }"
+    },
+    {
+      "const": "device/pairing-expired",
+      "description": "The presented code expired before redemption.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly code: string; readonly expiresAt: number }"
+    },
+    {
+      "const": "device/pairing-invalid",
+      "description": "The presented code is unknown or was already redeemed.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly code: string }"
+    },
+    {
       "const": "directory-picker/create-failed",
       "description": "The parent is not fully qualified, the name is not one segment, or creation failed.",
       "x-source": "packages/api/workspace-controller/src/types.ts",

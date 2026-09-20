@@ -833,6 +833,39 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'deviceTrust',
+    summary: 'Device-trust service (`ctx.deviceTrust`) over the process-local grant store.',
+    description: 'Device-trust service (`ctx.deviceTrust`) over the process-local grant store.',
+    methods: [
+      {
+        signature: '@Remote(\'issuePairing\') issuePairing(role?: DeviceRole): PairingIssuance',
+        description: 'Issue one one-time pairing code. The code is a single-use secret: a second redemption fails with `device/pairing-invalid`, and redemption after the expiry fails with `device/pairing-expired`.',
+        parameters: [{ name: 'role', description: 'role assigned to the redeeming device; omission uses the deployment default.' }],
+        returns: 'the issuance the operator shows the device (for example as QR content).',
+      },
+      {
+        signature: '@Remote(\'redeemPairing\') redeemPairing(request: RedeemPairingRequest): RedeemPairingResult',
+        description: 'Redeem one pairing code with the device\'s freshly generated Ed25519 key.',
+        parameters: [{ name: 'request', description: 'the single-use code, a device name, and the base64 SPKI DER public key.' }],
+        returns: 'the created grant identity.',
+        throws: ['RemoteError `device/pairing-invalid`, `device/pairing-expired`, or `device/key-invalid`.'],
+      },
+      {
+        signature: '@Remote(\'listDevices\') listDevices(): readonly DeviceView[]',
+        description: 'List every grant, active and revoked; key material stays in the store.',
+        parameters: [],
+        returns: 'fresh views in pairing order.',
+      },
+      {
+        signature: '@Remote(\'revokeDevice\') revokeDevice(request: RevokeDeviceRequest): RevokeDeviceResult',
+        description: 'Revoke one grant. A revoked grant stays listed with its revocation time; a later role-mapped admission must treat it as refused.',
+        parameters: [{ name: 'request', description: 'the addressed grant.' }],
+        returns: 'the revoke acknowledgement.',
+        throws: ['RemoteError `device/not-found` or `device/already-revoked`.'],
+      },
+    ],
+  },
+  {
     key: 'directoryPicker',
     summary: 'Abstract directory-picking service.',
     description: 'Abstract directory-picking service. Subclass, implement `capability()`, and load the subclass as a plugin — it registers as `ctx.directoryPicker` (one implementation per context; loading a second throws, cordis\' standard duplicate-service behavior). The capability object must be stable for the service lifetime: consumers may capture it across calls.',
@@ -4144,6 +4177,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type DeepSeekLlmApiJson = null | boolean | number | string | DeepSeekLlmApiJson[] | {\n    [key: string]: DeepSeekLlmApiJson;\n};',
   },
   {
+    name: 'DeviceId',
+    declaration: 'export type DeviceId = Branded<\'DeviceId\'>;',
+  },
+  {
+    name: 'DeviceRole',
+    declaration: 'export type DeviceRole = \'viewer\' | \'collaborator\' | \'admin\';',
+  },
+  {
+    name: 'DeviceView',
+    declaration: 'export interface DeviceView {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n    readonly revokedAt?: number;\n}',
+  },
+  {
     name: 'DiffCallView',
     declaration: 'export interface DiffCallView {\n    card: \'diff\';\n    title: string;\n    diffs: FileDiff[];\n    locations?: FileLocation[];\n}',
   },
@@ -4828,6 +4873,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type OptionalSessionSeq = SessionSeq | null;',
   },
   {
+    name: 'PairingCodeId',
+    declaration: 'export type PairingCodeId = Branded<\'PairingCodeId\'>;',
+  },
+  {
+    name: 'PairingIssuance',
+    declaration: 'export interface PairingIssuance {\n    readonly pairingId: PairingCodeId;\n    readonly code: string;\n    readonly role: DeviceRole;\n    readonly expiresAt: number;\n}',
+  },
+  {
     name: 'PermissionSelect',
     declaration: 'export interface PermissionSelect {\n    options: PresetOption[];\n    currentValue: string;\n}',
   },
@@ -4972,6 +5025,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RedactedSecret {\n    path: string[];\n    set: boolean;\n}',
   },
   {
+    name: 'RedeemPairingRequest',
+    declaration: 'export interface RedeemPairingRequest {\n    readonly code: string;\n    readonly deviceName: string;\n    readonly devicePublicKey: string;\n}',
+  },
+  {
+    name: 'RedeemPairingResult',
+    declaration: 'export interface RedeemPairingResult {\n    readonly deviceId: DeviceId;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n}',
+  },
+  {
     name: 'RemoteError',
     declaration: 'export class RemoteError<Code extends RemoteErrorCode = RemoteErrorCode> extends Error {\n    readonly isDSHRemoteError: true;\n    constructor(readonly code: Code, message: string, readonly details: RemoteErrorDetailsMap[Code], options?: ErrorOptions);\n}',
   },
@@ -5062,6 +5123,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ResumeAgentOptions',
     declaration: 'export interface ResumeAgentOptions {\n    readonly resumeSessionId: SessionId;\n    readonly parentAgent?: Agent;\n    readonly agentOptions?: AgentOptions;\n    readonly signal?: AbortSignal;\n    readonly setup?: AgentSetup;\n}',
+  },
+  {
+    name: 'RevokeDeviceRequest',
+    declaration: 'export interface RevokeDeviceRequest {\n    readonly deviceId: DeviceId;\n}',
+  },
+  {
+    name: 'RevokeDeviceResult',
+    declaration: 'export interface RevokeDeviceResult {\n    readonly deviceId: DeviceId;\n    readonly revokedAt: number;\n}',
   },
   {
     name: 'RunnerFailureRule',

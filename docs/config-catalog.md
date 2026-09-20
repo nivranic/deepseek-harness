@@ -183,6 +183,29 @@ Depends on: [`ToolPresentationMode`](subsystems/tools.md)
 
 Source: [`packages/core/agent-tool-presentation/src/index.ts:38`](../packages/core/agent-tool-presentation/src/index.ts)
 
+<a id="deepseek-aidsh-api-device-trust"></a>
+
+## `@deepseek-ai/dsh-api-device-trust`
+
+```ts config-catalog
+/** Config: deployment-varying choices of the pairing ceremony. */
+export interface Config {
+  /** Lifetime of an issued pairing code in ms (default five minutes). */
+  pairingTtlMs?: number
+  /** Role assigned at redemption when issuance named none (default viewer). */
+  defaultRole?: DeviceRole
+}
+
+/**
+ * Section 21 role table wire names. A role names what the Client may ask
+ * next; permission execution stays with the section 15 Host-authoritative
+ * seam, which reconciles roles onto `requiredPermission` checks.
+ */
+export type DeviceRole = 'viewer' | 'collaborator' | 'admin'
+```
+
+Source: [`packages/api/device-trust/src/index.ts:52`](../packages/api/device-trust/src/index.ts)
+
 <a id="deepseek-aidsh-api-gateway"></a>
 
 ## `@deepseek-ai/dsh-api-gateway`

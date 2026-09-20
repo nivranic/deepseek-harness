@@ -2125,6 +2125,41 @@
       "doc": "docs/subsystems/typert.md",
       "symbol": "TypertRemoteCapability",
       "source": "packages/typert/protocol/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DeviceRole",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "PairingIssuance",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RedeemPairingRequest",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RedeemPairingResult",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DeviceView",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RevokeDeviceRequest",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RevokeDeviceResult",
+      "source": "packages/api/device-trust/src/types.ts"
     }
   ]
 }

@@ -6,7 +6,7 @@ Status: implemented
 
 ## 问题
 
-规格 §48 列出 pre-upstream 的 `packages/remote/link-access`、`packages/remote/device-trust`、`packages/remote/link-contracts`，并禁止默认原样继续：Agent 必须先审计官方当前 API/Connection 能否接管这些责任，再按最新 upstream 包归属做最终放置。模拟器 lane 现在用迁入的 Link 客户端协议对夹具 Host 说话，而候选 harness 不提供 `/link/pair` 端点——归属问题卡着 Phase 7（Device Trust）与 Phase 8（Remote Transport）。
+规格 §48 列出 pre-upstream 的远端接入组——退役的 `packages/remote/` 树下的 `link-access`、`device-trust`、`link-contracts`——并禁止默认原样继续：Agent 必须先审计官方当前 API/Connection 能否接管这些责任，再按最新 upstream 包归属做最终放置。模拟器 lane 现在用迁入的 Link 客户端协议对夹具 Host 说话，而候选 harness 不提供 `/link/pair` 端点——归属问题卡着 Phase 7（Device Trust）与 Phase 8（Remote Transport）。
 
 ## 审计发现
 
@@ -16,7 +16,7 @@ Status: implemented
 
 ## 决策
 
-1. **不复活。** `packages/remote/link-*` 与 `packages/remote/device-trust` 保持退役；不从 pre-upstream 树移植任何东西。
+1. **不复活。** 退役的 `packages/remote/` 树下的 `link-*` 与 `device-trust` 组保持退役；不从 pre-upstream 树移植任何东西。
 2. **候选网关是设备侧接入的唯一归属。** 设备配对与信任作为既有网关 + Connection 载体上的能力门控接缝落地（§13 风格的 `device-pair.v1` 声明），而不是并行的 Link 服务器。网关既有的准入、能力、权限、失败面对设备与对 web/desktop 客户端完全同权适用。
 3. **线上协议仍归客户端。** `apps/android/core` 迁入的 Link 客户端栈保持为设备侧载体，直到候选原生的设备接缝存在；夹具 Host 把该线上协议记为 lane 工具。Phase 7 开启时，配对仪式、设备密钥登记、角色、撤销都按网关的契约生成来规格化，§21 的角色表（Viewer/Collaborator/Admin）经既有 §15 接缝调和，而不是沿用 Link 协议的 observer/controller/administrator 命名。
 4. **顺序。** Phase 7 从本决策起步：先设备授权存储与配对签发，其次经既有 §15 接缝做角色映射的权限检查，最后撤销与 lost-device UX（§22）。LAN 载体（§24：发现是便利，不是信任）在任何非 localhost 准入前需要 TLS/pinning 决策；localhost 防线在此之前保持关闭。

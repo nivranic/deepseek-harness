@@ -609,6 +609,15 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Owns the Worker-hosted CDP target and the transport-independent Host and Client observation and Cordis-tree query API.',
   },
   {
+    key: 'deviceTrust',
+    pkg: 'api-device-trust',
+    title: 'Device trust seam',
+    mode: 'seam',
+    implementations: [],
+    consumers: ['web-app'],
+    note: 'The gateway-owned device-facing access seam: one-time pairing issuance, device grants, and revocation over Typert Remote; permission execution stays with the interaction-reply seam.',
+  },
+  {
     key: 'jobs',
     pkg: 'jobs',
     title: 'Background job registry',

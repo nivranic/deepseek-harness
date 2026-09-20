@@ -6,7 +6,7 @@ English | [中文](2026-09-20-link-access-takeover-audit.zh.md)
 
 ## Problem
 
-Spec §48 lists the pre-upstream `packages/remote/link-access`, `packages/remote/device-trust`, and `packages/remote/link-contracts` and forbids continuing them as-is by default: the agent must first audit whether the official current API/Connection can take over those responsibilities, then place the work by current upstream package ownership. The emulator lane now speaks the migrated Link client protocol against a fixture Host, and the candidate harness serves no `/link/pair` endpoint — the ownership question gates Phase 7 (Device Trust) and Phase 8 (Remote Transport).
+Spec §48 lists the pre-upstream remote-access groups — `link-access`, `device-trust`, and `link-contracts` under the retired `packages/remote/` tree — and forbids continuing them as-is by default: the agent must first audit whether the official current API/Connection can take over those responsibilities, then place the work by current upstream package ownership. The emulator lane now speaks the migrated Link client protocol against a fixture Host, and the candidate harness serves no `/link/pair` endpoint — the ownership question gates Phase 7 (Device Trust) and Phase 8 (Remote Transport).
 
 ## Audit findings
 
@@ -16,7 +16,7 @@ Spec §48 lists the pre-upstream `packages/remote/link-access`, `packages/remote
 
 ## Decision
 
-1. **No resurrection.** `packages/remote/link-*` and `packages/remote/device-trust` stay retired; nothing is ported from the pre-upstream tree.
+1. **No resurrection.** The retired `packages/remote/` tree's `link-*` and `device-trust` groups stay retired; nothing is ported from the pre-upstream tree.
 2. **The candidate gateway is the single owner of device-facing access.** Device pairing and trust land as a capability-gated seam on the existing gateway + Connection carrier (a `device-pair.v1`-style declaration per §13), not as a parallel Link server. The gateway's existing admission, capability, permission, and failure surfaces apply to devices exactly as they do to web/desktop clients.
 3. **The wire stays the client's.** The migrated Link client stack in `apps/android/core` remains the device-side carrier until the candidate-native device seam exists; the fixture Host documents that wire as the lane instrument. When Phase 7 opens, the pairing ceremony, device-key registry, roles, and revocation are specified against the gateway's contract generation, with §21's role table (Viewer/Collaborator/Admin) reconciled onto the existing `requiredPermission` execution rather than the Link protocol's observer/controller/administrator names.
 4. **Sequencing.** Phase 7 work starts from this decision: device grant store and pairing issuance first, role-mapped permission checks through the existing §15 seam second, revocation and lost-device UX (§22) third. The LAN carrier (§24: discovery is convenience, never trust) requires a TLS/pinning decision before any non-localhost admission; the localhost line stays closed until then.

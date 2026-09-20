@@ -842,6 +842,22 @@ importers:
         specifier: workspace:^
         version: link:../../interaction/user-approval
 
+  packages/api/device-trust:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-brand':
+        specifier: workspace:^
+        version: link:../../util/brand
+      '@deepseek-ai/dsh-typert-protocol':
+        specifier: workspace:^
+        version: link:../../typert/protocol
+
   packages/api/gateway:
     dependencies:
       '@deepseek-ai/dsh-deque':
@@ -1806,6 +1822,9 @@ importers:
       '@deepseek-ai/dsh-agent-presets':
         specifier: workspace:^
         version: link:../../preset/agent-presets
+      '@deepseek-ai/dsh-api-device-trust':
+        specifier: workspace:^
+        version: link:../../api/device-trust
       '@deepseek-ai/dsh-api-host-description':
         specifier: workspace:^
         version: link:../../api/host-description
