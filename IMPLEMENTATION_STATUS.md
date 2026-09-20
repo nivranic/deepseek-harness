@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 设备撤销连接状态（第 18 节补全）
+
+[当前来源记录](artifacts/upstream-first/device-revoked-state-source.json)补齐第 18 节状态清单的最后一项：ConnectionState 与 ConnectionSinks.classifyFailure 联合类型新增 device-revoked（与 incompatible、fatal 并列的终态分类——blocked 路径撤回就绪状态并暂停自动重试，直到手动重连或浏览器网络变化），SettingsRoot 以 locale 键 connection.deviceRevoked / deviceRevokedAction（重新配对指引）呈现，连接指示器经既有 blocked 标志显示断开；Phase 7 签名准入的 device/already-revoked 拒绝是其设计触发源，浏览器 generation source 在设备客户端采用 args.device 流打开形式后自然映射。分类器仍归 Gateway 所有，Connection 只拥有调度与状态。十个第 18 节状态现均有双语言 locale-owned UX 文案；253 项测试（含 device-revoked 阻塞分类与设置矩阵行）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。剩余：多版本/多语言矩阵、闭合错误语义与变更身份确认。
+
 ## 设备角色准入（Phase 7 第三增量）
 
-[当前来源记录](artifacts/upstream-first/device-role-admission-source.json)把角色词表对齐规格第 21 节表格（viewer/collaborator/controller/owner；packages/api/device-trust/src/permissions.ts 的 DEVICE_ROLE_PERMISSIONS 恰好持有表格权限列），新增 admitDevice（device.admit.v1）：对 deviceId+LF+时间戳的 UTF-8 字节做 base64 Ed25519 验签，按代价从低到高检查 not-found→already-revoked→admission-expired→key-invalid，接受窗口 admissionWindowMs 默认五分钟；网关在 Remote 事件流打开接受 args.device（信封内保持版本 2 元数据契约），经 ctx.get 惰性解析 deviceTrust（未组合即不广播设备能力，呈现身份时以 gateway/service-unavailable 大声失败），被准入 client 的回复权限改为其角色权限集——第 15 节 Host 侧 requiredPermission 执行不变。四角色 × approval/question 矩阵经真实 WebSocket 传输双向测试；device/admission-expired 归 authentication 类。489 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿；Kotlin :contract:test 已知分支计数 84→90 顺带修正了前两增量遗留的漂移。局限：准入绑定流打开（撤销在下次重连生效、无 nonce 账本），按请求业务 RPC 签名延期。
+[历史来源记录](artifacts/upstream-first/device-role-admission-source.json)把角色词表对齐规格第 21 节表格（viewer/collaborator/controller/owner；packages/api/device-trust/src/permissions.ts 的 DEVICE_ROLE_PERMISSIONS 恰好持有表格权限列），新增 admitDevice（device.admit.v1）：对 deviceId+LF+时间戳的 UTF-8 字节做 base64 Ed25519 验签，按代价从低到高检查 not-found→already-revoked→admission-expired→key-invalid，接受窗口 admissionWindowMs 默认五分钟；网关在 Remote 事件流打开接受 args.device（信封内保持版本 2 元数据契约），经 ctx.get 惰性解析 deviceTrust（未组合即不广播设备能力，呈现身份时以 gateway/service-unavailable 大声失败），被准入 client 的回复权限改为其角色权限集——第 15 节 Host 侧 requiredPermission 执行不变。四角色 × approval/question 矩阵经真实 WebSocket 传输双向测试；device/admission-expired 归 authentication 类。489 项测试、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿；Kotlin :contract:test 已知分支计数 84→90 顺带修正了前两增量遗留的漂移。局限：准入绑定流打开（撤销在下次重连生效、无 nonce 账本），按请求业务 RPC 签名延期。
 
 ## 设备授权持久化（Phase 7 第二增量）
 

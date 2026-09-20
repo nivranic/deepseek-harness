@@ -2660,9 +2660,10 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
+        "packages/client/connection"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "remaining": "十个状态全部落地并有对应 UX：connecting/authenticating/ready/offline/reconnecting/host-not-ready/auth-expired/device-revoked/incompatible/fatal（packages/client/connection/src/client/connection.ts；device-revoked 由 classifyFailure 返回——Host 撤销设备授权即终态，SettingsRoot 以 locale 键 connection.deviceRevoked/DeviceRevokedAction 呈现重配对指引并暂停自动重试，§15/§21 的签名准入提供撤销触发源）。完整多版本/多语言矩阵、闭合错误语义和变更身份确认仍待验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

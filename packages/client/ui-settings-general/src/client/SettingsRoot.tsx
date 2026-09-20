@@ -170,10 +170,13 @@ export function SettingsRoot(props: SettingsRootComponentProps) {
 
   const hostNotReady = connectionState === 'host-not-ready'
   const blocked = connectionState === 'incompatible' || connectionState === 'fatal' || connectionState === 'auth-expired'
+    || connectionState === 'device-revoked'
   const failureLabel = connectionState === 'auth-expired' ? t('connection.authExpired')
-    : connectionState === 'incompatible' ? t('connection.incompatible') : t('connection.fatal')
+    : connectionState === 'device-revoked' ? t('connection.deviceRevoked')
+      : connectionState === 'incompatible' ? t('connection.incompatible') : t('connection.fatal')
   const failureAction = connectionState === 'auth-expired' ? t('connection.authenticateAction')
-    : connectionState === 'incompatible' ? t('connection.updateAction') : t('connection.repairAction')
+    : connectionState === 'device-revoked' ? t('connection.deviceRevokedAction')
+      : connectionState === 'incompatible' ? t('connection.updateAction') : t('connection.repairAction')
   const progressAction = hostNotReady ? t('connection.waitAction')
     : connectionState === 'authenticating' ? t('connection.authenticatingAction')
       : connectionState === 'connecting' ? t('connection.startAction') : t('connection.restart')

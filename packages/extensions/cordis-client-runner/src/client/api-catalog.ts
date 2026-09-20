@@ -555,11 +555,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConnectionSinks',
-    declaration: 'export interface ConnectionSinks {\n    onConnected?: (host: ConnectionHostInfo) => void;\n    onStateChange?: (state: ConnectionState) => void;\n    onReconnectRequested?: () => void;\n    classifyFailure?: (error: unknown) => \'incompatible\' | \'fatal\' | undefined;\n}',
+    declaration: 'export interface ConnectionSinks {\n    onConnected?: (host: ConnectionHostInfo) => void;\n    onStateChange?: (state: ConnectionState) => void;\n    onReconnectRequested?: () => void;\n    classifyFailure?: (error: unknown) => \'device-revoked\' | \'incompatible\' | \'fatal\' | undefined;\n}',
   },
   {
     name: 'ConnectionState',
-    declaration: 'export type ConnectionState = \'ready\' | \'offline\' | \'connecting\' | \'authenticating\' | \'reconnecting\' | \'host-not-ready\' | \'auth-expired\' | \'incompatible\' | \'fatal\';',
+    declaration: 'export type ConnectionState = \'ready\' | \'offline\' | \'connecting\' | \'authenticating\' | \'reconnecting\' | \'host-not-ready\' | \'auth-expired\' | \'device-revoked\' | \'incompatible\' | \'fatal\';',
   },
   {
     name: 'ConnectionStateSource',
