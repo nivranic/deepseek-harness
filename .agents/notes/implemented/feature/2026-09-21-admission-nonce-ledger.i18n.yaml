@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-admission-nonce-ledger.md
+2026-09-21-admission-nonce-ledger.md: 152db653bb0639d05c7667b1480e62e48c90c394
+2026-09-21-admission-nonce-ledger.zh.md: 2c4d525826a26c27a9c97b0154b3a30a5151e987

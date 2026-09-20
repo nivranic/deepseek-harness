@@ -7,6 +7,8 @@ public enum RemoteFailureClasses {
     /// Mirror of the TypeScript authority; kept exact by the package tests.
     public static let byCode: [String: RemoteFailureClass] = [
         "gateway/authentication-required": .authentication,
+        "device/admission-expired": .authentication,
+        "device/replay-detected": .authentication,
         "gateway/permission-denied": .permission,
         "subagent/unauthorized": .permission,
         "gateway/host-not-ready": .hostState,

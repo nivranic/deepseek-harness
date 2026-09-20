@@ -126,6 +126,13 @@ export class DeviceTrustService extends TypertRemoteService {
    * not survive a Host restart, and the ceremony simply reissues after one.
    */
   private readonly pairings = new Map<string, PendingPairing>()
+  /**
+   * Recently admitted nonces per device, expiring at twice the admission
+   * window: outside that horizon an admission can no longer pass the window
+   * check, so the ledger entry is dead weight. Process-local on purpose —
+   * the durable grant's high-water mark covers cross-restart exact replay.
+   */
+  private readonly recentNonces = new Map<DeviceId, Map<string, number>>()
   private readonly resolved: { pairingTtlMs: number; defaultRole: DeviceRole; admissionWindowMs: number }
   private grants?: KvTable<DeviceId, DeviceGrantRecord>
 
@@ -260,19 +267,27 @@ export class DeviceTrustService extends TypertRemoteService {
    * Verify one signed admission and return the device's identity with its
    * section 21 permission set. Checks run cheapest-first: the grant must
    * exist and be active, the signed timestamp must sit inside the admission
-   * window, and the Ed25519 signature over `deviceId + "\n" + timestamp`
-   * (UTF-8) must verify against the paired key. The Gateway resolves one
+   * window, and the Ed25519 signature over `deviceId + "\n" + timestamp +
+   * "\n" + nonce` (UTF-8) must verify against the paired key. An admission
+   * that replays an already-accepted one — a timestamp older than the grant's
+   * durable high-water mark, or a nonce this process or the persisted
+   * last-admission pair has already seen — is refused as replay before the
+   * grant records the new high-water mark. The Gateway resolves one
    * admission per Remote event stream open and derives the client's reply
    * permissions from the returned set.
    * @param request - the device's signed admission message.
    * @returns the admitted identity, role, and permissions.
    * @throws RemoteError `device/not-found`, `device/already-revoked`,
-   * `device/admission-expired`, `device/key-invalid`, or `gateway/bad-request`.
+   * `device/admission-expired`, `device/key-invalid`, `device/replay-detected`,
+   * or `gateway/bad-request`.
    */
   @Remote('admitDevice')
-  admitDevice(request: AdmitDeviceRequest): DeviceAdmission {
+  async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission> {
     if (typeof request.signature !== 'string' || request.signature === '') {
       throw new RemoteError('gateway/bad-request', 'signature must be a non-empty string', {})
+    }
+    if (typeof request.nonce !== 'string' || request.nonce === '') {
+      throw new RemoteError('gateway/bad-request', 'nonce must be a non-empty string', {})
     }
     const grant = this.table().get(request.deviceId)
     if (grant === undefined) {
@@ -288,7 +303,7 @@ export class DeviceTrustService extends TypertRemoteService {
         deviceId: request.deviceId, timestamp: request.timestamp, admissionWindowMs: this.resolved.admissionWindowMs,
       })
     }
-    const message = Buffer.from(`${request.deviceId}\n${request.timestamp}`, 'utf8')
+    const message = Buffer.from(`${request.deviceId}\n${request.timestamp}\n${request.nonce}`, 'utf8')
     let signature: Buffer
     try {
       signature = Buffer.from(request.signature, 'base64')
@@ -309,13 +324,64 @@ export class DeviceTrustService extends TypertRemoteService {
         reason: 'signature-mismatch',
       })
     }
+    if (grant.lastAdmittedAt !== undefined && request.timestamp < grant.lastAdmittedAt) {
+      throw new RemoteError('device/replay-detected', 'admission timestamp is older than the last accepted admission', {
+        deviceId: request.deviceId, reason: 'timestamp-regressed',
+      })
+    }
+    if (this.recentNonce(request.deviceId, request.nonce)) {
+      throw new RemoteError('device/replay-detected', 'admission nonce was already used', {
+        deviceId: request.deviceId, reason: 'nonce-reuse',
+      })
+    }
+    this.rememberNonce(request.deviceId, request.nonce)
+    const recorded = await this.table().update(request.deviceId, (current): DeviceGrantRecord => {
+      if (current.lastAdmittedAt !== undefined && request.timestamp < current.lastAdmittedAt) {
+        throw new RemoteError('device/replay-detected', 'admission timestamp is older than the last accepted admission', {
+          deviceId: request.deviceId, reason: 'timestamp-regressed',
+        })
+      }
+      if (current.lastAdmittedAt === request.timestamp && current.lastAdmittedNonce === request.nonce) {
+        throw new RemoteError('device/replay-detected', 'admission nonce was already used', {
+          deviceId: request.deviceId, reason: 'nonce-reuse',
+        })
+      }
+      return { ...current, lastAdmittedAt: request.timestamp, lastAdmittedNonce: request.nonce }
+    })
     return {
       deviceId: request.deviceId,
-      deviceName: grant.deviceName,
-      role: grant.role,
-      permissions: [...DEVICE_ROLE_PERMISSIONS[grant.role]],
+      deviceName: recorded.deviceName,
+      role: recorded.role,
+      permissions: [...DEVICE_ROLE_PERMISSIONS[recorded.role]],
       admittedAt: Date.now(),
     }
+  }
+
+  /** Whether this process already admitted `nonce` for the device inside the ledger horizon. */
+  private recentNonce(deviceId: DeviceId, nonce: string): boolean {
+    const ledger = this.recentNonces.get(deviceId)
+    if (ledger === undefined) return false
+    const seenAt = ledger.get(nonce)
+    if (seenAt === undefined) return false
+    if (Date.now() > seenAt) {
+      ledger.delete(nonce)
+      return false
+    }
+    return true
+  }
+
+  /** Record `nonce` for the device, dropping entries whose horizon has passed. */
+  private rememberNonce(deviceId: DeviceId, nonce: string): void {
+    const horizon = Date.now() + 2 * this.resolved.admissionWindowMs
+    let ledger = this.recentNonces.get(deviceId)
+    if (ledger === undefined) {
+      ledger = new Map()
+      this.recentNonces.set(deviceId, ledger)
+    }
+    for (const [entry, expiresAt] of ledger) {
+      if (Date.now() > expiresAt) ledger.delete(entry)
+    }
+    ledger.set(nonce, horizon)
   }
 }
 

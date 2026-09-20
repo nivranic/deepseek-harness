@@ -1770,14 +1770,18 @@ describe('Typert Gateway per-request device admission', () => {
     return { deviceId: grant.deviceId, key }
   }
 
+  /** Fresh nonce counter; every envelope signs deviceId, timestamp, and nonce. */
+  let envelopeNonce = 0
+
   /** The signed per-request envelope for one paired device. */
   function deviceEnvelope(
     device: { deviceId: string; key: ReturnType<typeof ed25519> },
     args: Readonly<Record<string, unknown>>,
     timestamp = Date.now(),
+    nonce = `rpc-${++envelopeNonce}`,
   ): object {
-    const signature = device.key.sign(`${device.deviceId}\n${String(timestamp)}`)
-    return { apiProtocolVersion: 2, args, device: { deviceId: device.deviceId, timestamp, signature } }
+    const signature = device.key.sign(`${device.deviceId}\n${String(timestamp)}\n${nonce}`)
+    return { apiProtocolVersion: 2, args, device: { deviceId: device.deviceId, timestamp, nonce, signature } }
   }
 
   it('admits a device-identified request whose role holds the declared permission', async () => {
@@ -1786,6 +1790,20 @@ describe('Typert Gateway per-request device admission', () => {
       const device = await pairDevice(ctx, 'viewer')
       await expect(handler('host/describe', deviceEnvelope(device, {}), new AbortController().signal))
         .resolves.toMatchObject({ ok: true })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('refuses a replayed per-request envelope', async () => {
+    const { ctx, handler } = await setupTrust()
+    try {
+      const device = await pairDevice(ctx, 'owner')
+      const replayed = deviceEnvelope(device, {})
+      await expect(handler('vault/grant', replayed, new AbortController().signal))
+        .resolves.toMatchObject({ ok: true, value: 'granted' })
+      await expect(handler('vault/grant', replayed, new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'device/replay-detected', details: { deviceId: device.deviceId, reason: 'nonce-reuse' } } })
     } finally {
       await ctx.fiber.dispose()
     }
@@ -1841,7 +1859,7 @@ describe('Typert Gateway per-request device admission', () => {
       await ctx.plugin(FakeConnectionService)
       await ctx.plugin(TypertGatewayService)
       const handler = rawConnection(ctx).handler!
-      await expect(handler('host/describe', { apiProtocolVersion: 2, args: {}, device: { deviceId: 'device-x', timestamp: Date.now(), signature: 'c2ln' } }, new AbortController().signal))
+      await expect(handler('host/describe', { apiProtocolVersion: 2, args: {}, device: { deviceId: 'device-x', timestamp: Date.now(), nonce: 'nonce-absent', signature: 'c2ln' } }, new AbortController().signal))
         .resolves.toMatchObject({ ok: false, error: { code: 'gateway/service-unavailable' } })
     } finally {
       await ctx.fiber.dispose()

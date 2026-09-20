@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/admission-nonce-ledger-source.json",
+    "sha256": "70ade05dc1384a83ac8436015934074fd5a3c287256177bf15d8a81c670c8a53"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "87bc6c98dfee580d6c2e0a646183dda4aff6b7b1862596a7f4fe07a6dd2c8640"
+  },
+  "helper": {
+    "path": ".artifacts/check-admission-nonce-ledger-binding.mjs",
+    "sha256": "083f8f1c9b88f0bb8f979e8fb7af48453aaa25d3e1979dc3b7686b2523b926cd"
+  }
+}

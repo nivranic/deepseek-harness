@@ -1370,11 +1370,15 @@ describe('Typert Gateway device admission', () => {
     return { deviceId: grant.deviceId, key }
   }
 
+  /** Fresh nonce per admission; a replayed open payload must be refused. */
+  let admissionCounter = 0
+
   /** The signed open-payload device field for one paired device. */
   function admissionOf(device: { deviceId: DeviceId; key: ReturnType<typeof ed25519> }):
-  { deviceId: string; timestamp: number; signature: string } {
+  { deviceId: string; timestamp: number; nonce: string; signature: string } {
     const timestamp = Date.now()
-    return { deviceId: device.deviceId, timestamp, signature: device.key.sign(`${device.deviceId}\n${String(timestamp)}`) }
+    const nonce = `open-${++admissionCounter}`
+    return { deviceId: device.deviceId, timestamp, nonce, signature: device.key.sign(`${device.deviceId}\n${String(timestamp)}\n${nonce}`) }
   }
 
   it('derives reply permissions from the admitted role matrix', { timeout: 30_000 }, async () => {
@@ -1445,9 +1449,22 @@ describe('Typert Gateway device admission', () => {
     const other = ed25519()
     const timestamp = Date.now()
     const failure = await openEventFailure(ctx, 'events-wrong-key', {
-      deviceId: device.deviceId, timestamp, signature: other.sign(`${device.deviceId}\n${String(timestamp)}`),
+      deviceId: device.deviceId, timestamp, nonce: 'nonce-wrong-key', signature: other.sign(`${device.deviceId}\n${String(timestamp)}\nnonce-wrong-key`),
     })
     expect(failure.code).toBe('device/key-invalid')
+    await unregister()
+  })
+
+  it('refuses a replayed stream-open admission', async () => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const device = await pairDevice(ctx, 'collaborator')
+    const replayed = admissionOf(device)
+    const first = await openEventClient(ctx, 'events-first-open', 2, replayed)
+    expect(first.streamId).toBeTruthy()
+    const failure = await openEventFailure(ctx, 'events-replayed-open', replayed)
+    expect(failure.code).toBe('device/replay-detected')
     await unregister()
   })
 
@@ -1474,7 +1491,7 @@ describe('Typert Gateway device admission', () => {
   it('rejects a device identity when the device-trust service is absent', async () => {
     const { ctx } = await setup(true)
     const failure = await openEventFailure(ctx, 'events-no-trust', {
-      deviceId: 'device-1', timestamp: Date.now(), signature: 'c2lnbmF0dXJl',
+      deviceId: 'device-1', timestamp: Date.now(), nonce: 'nonce-absent', signature: 'c2lnbmF0dXJl',
     })
     expect(failure.code).toBe('gateway/service-unavailable')
   })
@@ -1558,7 +1575,7 @@ async function openEventClient(
   ctx: Context,
   streamId: string,
   version: 1 | 2 = 1,
-  device?: { readonly deviceId: string; readonly timestamp: number; readonly signature: string },
+  device?: { readonly deviceId: string; readonly timestamp: number; readonly nonce: string; readonly signature: string },
 ): Promise<RemoteEventTestClient> {
   const origin = `http://127.0.0.1:${String(ctx.webServer.port)}`
   const cookie = browserCookie(ctx)

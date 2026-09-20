@@ -78,6 +78,12 @@
       "x-typescript-details": "{ readonly code: string }"
     },
     {
+      "const": "device/replay-detected",
+      "description": "The admission replays one already accepted: a regressed timestamp or a reused nonce.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{\n      readonly deviceId: string\n      readonly reason: 'timestamp-regressed' | 'nonce-reuse'\n    }"
+    },
+    {
       "const": "directory-picker/create-failed",
       "description": "The parent is not fully qualified, the name is not one segment, or creation failed.",
       "x-source": "packages/api/workspace-controller/src/types.ts",

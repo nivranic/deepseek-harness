@@ -234,6 +234,47 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "device/admission-expired"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "timestamp": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "admissionWindowMs": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "deviceId",
+            "timestamp",
+            "admissionWindowMs"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The signed admission timestamp fell outside the acceptance window."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "device/already-revoked"
         },
         "message": {
@@ -393,6 +434,51 @@
       ],
       "additionalProperties": {},
       "description": "The presented code is unknown or was already redeemed."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "device/replay-detected"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "timestamp-regressed"
+                },
+                {
+                  "type": "string",
+                  "const": "nonce-reuse"
+                }
+              ]
+            }
+          },
+          "required": [
+            "deviceId",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The admission replays one already accepted: a regressed timestamp or a reused nonce."
     },
     {
       "type": "object",
@@ -1197,20 +1283,69 @@
           "type": "string"
         },
         "details": {
-          "type": "object",
-          "properties": {
-            "endpoint": {
-              "readOnly": true,
-              "type": "string"
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "httpStatus": {
+                  "readOnly": true,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "endpoint",
+                "httpStatus"
+              ]
             },
-            "httpStatus": {
-              "readOnly": true,
-              "type": "number"
+            {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "role": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "reason": {
+                  "readOnly": true,
+                  "type": "string",
+                  "const": "undeclared"
+                }
+              },
+              "required": [
+                "endpoint",
+                "role",
+                "reason"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "role": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "required": {
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "endpoint",
+                "role",
+                "required"
+              ]
             }
-          },
-          "required": [
-            "endpoint",
-            "httpStatus"
           ]
         }
       },
@@ -1220,7 +1355,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The HTTP carrier returned 403; this refusal does not establish that a device was revoked."
+      "description": "The HTTP carrier returned 403, or a device-identified request was refused; the refusal does not establish that a device was revoked."
     },
     {
       "type": "object",
@@ -3181,11 +3316,13 @@
               "agent-preset/not-found",
               "agent-preset/read-only",
               "credential/rejected",
+              "device/admission-expired",
               "device/already-revoked",
               "device/key-invalid",
               "device/not-found",
               "device/pairing-expired",
               "device/pairing-invalid",
+              "device/replay-detected",
               "directory-picker/create-failed",
               "directory-picker/exists",
               "directory-picker/unavailable",

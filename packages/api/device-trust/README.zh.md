@@ -28,7 +28,7 @@ kind: "package-reference"
 
 角色使用第 21 节表格命名（`viewer`、`collaborator`、`controller`、`owner`），并恰好持有该表格的权限列（经 `DEVICE_ROLE_PERMISSIONS`：`view`、`prompt.send`、`question.respond`、`approval.respond`、`device.admin`）；从不授予表外能力或权限。Host 默认角色来自 `defaultRole`（默认 `viewer`）。
 
-`admitDevice` 验证一次签名准入：签名是设备以配对密钥对 `deviceId + "\n" + timestamp` 的 UTF-8 字节生成的 base64 Ed25519，时间戳必须落在接受窗口内（`admissionWindowMs`，默认五分钟）。检查按代价从低到高执行——未知设备（`device/not-found`）、已撤销授权（`device/already-revoked`）、过期或超前时间戳（`device/admission-expired`）、然后是签名（`device/key-invalid`）——网关在每次 Remote 事件流打开时解析一次准入，并从返回的角色集派生该 client 的回复权限。
+`admitDevice` 验证一次签名准入：签名是设备以配对密钥对 `deviceId + "\n" + timestamp + "\n" + nonce` 的 UTF-8 字节生成的 base64 Ed25519，时间戳必须落在接受窗口内（`admissionWindowMs`，默认五分钟），且每个请求携带全新 nonce。检查按代价从低到高执行——未知设备（`device/not-found`）、已撤销授权（`device/already-revoked`）、过期或超前时间戳（`device/admission-expired`）、然后是签名（`device/key-invalid`）——重放的准入以 `device/replay-detected` 拒绝，判断先于授权记录新的高水位：时间戳早于授权持久化的 `lastAdmittedAt`，或 nonce 已在本进程见过、或等于持久化的 `lastAdmittedNonce`。持久化高水位对跨 Host 重启生效；进程内 nonce 账本在两倍接受窗口后过期——超过该视界后，重放的准入本就无法通过窗口检查。网关在每次 Remote 事件流打开与每个设备标识请求上各解析一次准入，并从返回的角色集派生该 client 的回复权限与端点的权限门控。
 
 <a id="model-experience"></a>
 ## 模型体验

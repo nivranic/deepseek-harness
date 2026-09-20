@@ -250,7 +250,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/api/gateway/src/index.ts:134`](../packages/api/gateway/src/index.ts)
+来源：[`packages/api/gateway/src/index.ts:136`](../packages/api/gateway/src/index.ts)
 
 <a id="deepseek-aidsh-api-host-description"></a>
 

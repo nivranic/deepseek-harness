@@ -864,11 +864,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['RemoteError `device/not-found` or `device/already-revoked`.'],
       },
       {
-        signature: '@Remote(\'admitDevice\') admitDevice(request: AdmitDeviceRequest): DeviceAdmission',
-        description: 'Verify one signed admission and return the device\'s identity with its section 21 permission set. Checks run cheapest-first: the grant must exist and be active, the signed timestamp must sit inside the admission window, and the Ed25519 signature over `deviceId + "\\n" + timestamp` (UTF-8) must verify against the paired key. The Gateway resolves one admission per Remote event stream open and derives the client\'s reply permissions from the returned set.',
+        signature: '@Remote(\'admitDevice\') async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission>',
+        description: 'Verify one signed admission and return the device\'s identity with its section 21 permission set. Checks run cheapest-first: the grant must exist and be active, the signed timestamp must sit inside the admission window, and the Ed25519 signature over `deviceId + "\\n" + timestamp + "\\n" + nonce` (UTF-8) must verify against the paired key. An admission that replays an already-accepted one — a timestamp older than the grant\'s durable high-water mark, or a nonce this process or the persisted last-admission pair has already seen — is refused as replay before the grant records the new high-water mark. The Gateway resolves one admission per Remote event stream open and derives the client\'s reply permissions from the returned set.',
         parameters: [{ name: 'request', description: 'the device\'s signed admission message.' }],
         returns: 'the admitted identity, role, and permissions.',
-        throws: ['RemoteError `device/not-found`, `device/already-revoked`, `device/admission-expired`, `device/key-invalid`, or `gateway/bad-request`.'],
+        throws: ['RemoteError `device/not-found`, `device/already-revoked`, `device/admission-expired`, `device/key-invalid`, `device/replay-detected`, or `gateway/bad-request`.'],
       },
     ],
   },
@@ -3677,7 +3677,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'AdmitDeviceRequest',
-    declaration: 'export interface AdmitDeviceRequest {\n    readonly deviceId: DeviceId;\n    readonly timestamp: number;\n    readonly signature: string;\n}',
+    declaration: 'export interface AdmitDeviceRequest {\n    readonly deviceId: DeviceId;\n    readonly timestamp: number;\n    readonly nonce: string;\n    readonly signature: string;\n}',
   },
   {
     name: 'AdmittedPromptContentPart',

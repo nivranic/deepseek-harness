@@ -14,6 +14,8 @@ object RemoteFailureClasses {
     /** Mirror of the TypeScript authority; kept exact by EnvelopeSchemaTest. */
     val BY_CODE: Map<String, RemoteFailureClass> = mapOf(
         "gateway/authentication-required" to RemoteFailureClass.AUTHENTICATION,
+        "device/admission-expired" to RemoteFailureClass.AUTHENTICATION,
+        "device/replay-detected" to RemoteFailureClass.AUTHENTICATION,
         "gateway/permission-denied" to RemoteFailureClass.PERMISSION,
         "subagent/unauthorized" to RemoteFailureClass.PERMISSION,
         "gateway/host-not-ready" to RemoteFailureClass.HOST_STATE,

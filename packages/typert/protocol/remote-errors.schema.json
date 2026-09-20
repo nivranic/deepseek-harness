@@ -440,6 +440,51 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "device/replay-detected"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "timestamp-regressed"
+                },
+                {
+                  "type": "string",
+                  "const": "nonce-reuse"
+                }
+              ]
+            }
+          },
+          "required": [
+            "deviceId",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The admission replays one already accepted: a regressed timestamp or a reused nonce."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "directory-picker/create-failed"
         },
         "message": {
@@ -3277,6 +3322,7 @@
               "device/not-found",
               "device/pairing-expired",
               "device/pairing-invalid",
+              "device/replay-detected",
               "directory-picker/create-failed",
               "directory-picker/exists",
               "directory-picker/unavailable",

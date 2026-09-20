@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 设备准入重放 nonce 账本
+
+[当前来源记录](artifacts/upstream-first/admission-nonce-ledger-source.json)把签名准入消息扩展为三段式 deviceId
+ timestamp
+ nonce：网关 wire 解析器在按请求信封与流打开两条路径上只接受四键 {deviceId, timestamp, nonce, signature}；签名验证后、授权记录新高水位之前，admitDevice 以新错误码 device/replay-detected（reason=timestamp-regressed|nonce-reuse，分类 authentication）拒绝重放——时间戳早于授权持久化的 lastAdmittedAt、nonce 已被本进程准入、或恰等于持久化的 lastAdmittedAt/lastAdmittedNonce 对；持久化高水位对跨重启生效且存储 transform 内重验单调性，进程内每设备 nonce 账本两倍窗口视界后过期。增量同时修复 deviceRoleAdmission 遗留的契约镜像漂移：苹果 schema 夹具（90 分支）与 Swift 守卫（85）自该次推送起不一致且两个原生镜像缺失全部 device/* 码、Swift 自检件一直在失败；现在两镜像以 authentication 携带 device/admission-expired 与 device/replay-detected，Kotlin 钉 92 分支/91 已知码（8/8 通过），Swift 守卫同数，全部夹具在 schema 重生成后刷新。616 项测试、typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。局限：先于原始投递的重放仍可成功一次（受窗口约束）；设备时钟回拨在墙钟追上前失败；Swift 泳道由 CI 负责。
+
 ## 其余归属方设备权限（第 21 节声明闭环）
 
-[当前来源记录](artifacts/upstream-first/remaining-capability-permissions-source.json)按端点语义为其余全部业务归属方声明设备权限——每个集合本就同质、无拆分、无锁面变化：只读与操作系统面取 view（脱敏设置描述、配置文档、预设目录操作、凭据元数据、workspace-files 七个操作集、presented-file 三操作、session-reference 候选发现、插件清单、LLM 提供方目录与模型发现、agent-preset 目录、命令目录、message-feedback 列表、goal 读取、subagent 目录、dynamic-cordis 清单/Client 源码/inspect 握手）；驱动会话的变更取 prompt.send（设置与凭据写入、文件暂存、preset 选择与管理、命令执行、message-feedback 记录与删除、Session 备注记录、goal 全部变更、subagent 提示词与父级寻址中断、dynamic-cordis 运行生命周期含失败报告与调用）。device-trust 配对引导（redeem/admit）刻意不声明，其规格钉住 issue/list/revoke=device.admin 与引导对不声明；host-preparation 规格断言二十个业务声明来源的每个能力都声明第 21 节词汇内权限，闭环防止未来能力悄悄回退 fail-closed。jobs 为 Host 侧生产者、无 Remote 能力面，无需声明。十七个受影响套件 3236 项测试通过（三处预先存在的 Windows 环境失败类经干净树验证排除）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：跨端设备客户端采用与跨发布互通待续。
+[历史来源记录](artifacts/upstream-first/remaining-capability-permissions-source.json)按端点语义为其余全部业务归属方声明设备权限——每个集合本就同质、无拆分、无锁面变化：只读与操作系统面取 view（脱敏设置描述、配置文档、预设目录操作、凭据元数据、workspace-files 七个操作集、presented-file 三操作、session-reference 候选发现、插件清单、LLM 提供方目录与模型发现、agent-preset 目录、命令目录、message-feedback 列表、goal 读取、subagent 目录、dynamic-cordis 清单/Client 源码/inspect 握手）；驱动会话的变更取 prompt.send（设置与凭据写入、文件暂存、preset 选择与管理、命令执行、message-feedback 记录与删除、Session 备注记录、goal 全部变更、subagent 提示词与父级寻址中断、dynamic-cordis 运行生命周期含失败报告与调用）。device-trust 配对引导（redeem/admit）刻意不声明，其规格钉住 issue/list/revoke=device.admin 与引导对不声明；host-preparation 规格断言二十个业务声明来源的每个能力都声明第 21 节词汇内权限，闭环防止未来能力悄悄回退 fail-closed。jobs 为 Host 侧生产者、无 Remote 能力面，无需声明。十七个受影响套件 3236 项测试通过（三处预先存在的 Windows 环境失败类经干净树验证排除）、typecheck、lint 0/0、doc-sync 36 门、traceability 6/6 全绿。局限：跨端设备客户端采用与跨发布互通待续。
 
 ## Workspace 能力设备权限（第 21 节第二个业务采纳）
 

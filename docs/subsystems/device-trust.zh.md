@@ -101,12 +101,16 @@ interface RevokeDeviceResult {
 /**
  * Signed admission request a device presents when opening a Gateway Remote
  * event stream. The signature is base64 Ed25519 over the UTF-8 bytes of
- * `deviceId + "\n" + timestamp` (decimal epoch ms) made with the paired key.
+ * `deviceId + "\n" + timestamp (decimal epoch ms) + "\n" + nonce` made with
+ * the paired key. Every request carries a fresh nonce; a replayed admission
+ * is refused.
  */
 interface AdmitDeviceRequest {
   readonly deviceId: DeviceId
   /** Epoch ms when the device signed; accepted within the admission window. */
   readonly timestamp: number
+  /** Fresh per-request value the device never reuses across admissions. */
+  readonly nonce: string
   /** Base64 Ed25519 signature over the canonical admission message. */
   readonly signature: string
 }
@@ -184,16 +188,21 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
  * Verify one signed admission and return the device's identity with its
  * section 21 permission set. Checks run cheapest-first: the grant must
  * exist and be active, the signed timestamp must sit inside the admission
- * window, and the Ed25519 signature over `deviceId + "\n" + timestamp`
- * (UTF-8) must verify against the paired key. The Gateway resolves one
+ * window, and the Ed25519 signature over `deviceId + "\n" + timestamp +
+ * "\n" + nonce` (UTF-8) must verify against the paired key. An admission
+ * that replays an already-accepted one — a timestamp older than the grant's
+ * durable high-water mark, or a nonce this process or the persisted
+ * last-admission pair has already seen — is refused as replay before the
+ * grant records the new high-water mark. The Gateway resolves one
  * admission per Remote event stream open and derives the client's reply
  * permissions from the returned set.
  * @param request - the device's signed admission message.
  * @returns the admitted identity, role, and permissions.
  * @throws RemoteError `device/not-found`, `device/already-revoked`,
- * `device/admission-expired`, `device/key-invalid`, or `gateway/bad-request`.
+ * `device/admission-expired`, `device/key-invalid`, `device/replay-detected`,
+ * or `gateway/bad-request`.
  */
-@Remote('admitDevice') admitDevice(request: AdmitDeviceRequest): DeviceAdmission
+@Remote('admitDevice') async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission>
 ```
 
 Source: [`packages/api/device-trust/src/index.ts`](../../packages/api/device-trust/src/index.ts)

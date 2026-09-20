@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the admission nonce ledger; the declaration arc is closed and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/admission-nonce-ledger-source.json",
+    "sha256": "70ade05dc1384a83ac8436015934074fd5a3c287256177bf15d8a81c670c8a53"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "87bc6c98dfee580d6c2e0a646183dda4aff6b7b1862596a7f4fe07a6dd2c8640"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/admission-nonce-ledger-binding.json",
+    "sha256": "13f8935ac6cac5dde557eb518b5a35585a568df45e6c037b00bc5dacb17a4a6d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-admission-nonce-ledger-reports.mjs",
+      "sha256": "3a88a4691f0843e4cb708fec2249e867d2870a35b5d56a7987c23b11b844a87e"
+    },
+    {
+      "path": ".artifacts/capture-admission-nonce-ledger-validation.mjs",
+      "sha256": "a513af3a7a60c3027ad28141f6f9cb73a3e686e216513ca49502349c53a83c22"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "09312ccb3f3ec835f97fde3dd06881e5990e9cce941d6309af9d88816a8f7852"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "15ce83517b90c661ce5380d0f1dbe46ae34abcfdb5818b500a2475517f044f45"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/admission-nonce-ledger-binding.log",
+      "sha256": "63b14d9419aa40002e215efe3cced18d4f867f259210b6b17c4e152eba7486c8"
+    },
+    {
+      "path": ".artifacts/admission-nonce-ledger-audit-tests.log",
+      "sha256": "13f3ef28c50aed9bc6d4f5dbea7cbaf7f83c389f03cfa734f7ff96acab70df3f"
+    },
+    {
+      "path": ".artifacts/admission-nonce-ledger-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/admission-nonce-ledger-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/admission-nonce-ledger-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

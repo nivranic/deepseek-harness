@@ -229,8 +229,8 @@ describe('device-trust signed admission', () => {
     for (const [role, permissions] of table) {
       const { deviceId, key } = await paired(service, role)
       const timestamp = Date.now()
-      const admission = service.admitDevice({
-        deviceId, timestamp, signature: key.sign(`${deviceId}\n${timestamp}`),
+      const admission = await service.admitDevice({
+        deviceId, timestamp, nonce: `nonce-${role}`, signature: key.sign(`${deviceId}\n${timestamp}\nnonce-${role}`),
       })
       expect(admission.role).toBe(role)
       expect(admission.permissions).toEqual(permissions)
@@ -244,7 +244,7 @@ describe('device-trust signed admission', () => {
     const timestamp = Date.now()
     const deviceId = DeviceId('device-none')
     try {
-      service.admitDevice({ deviceId, timestamp, signature: key.sign(`${deviceId}\n${timestamp}`) })
+      await service.admitDevice({ deviceId, timestamp, nonce: 'nonce-a', signature: key.sign(`${deviceId}\n${timestamp}\nnonce-a`) })
       expect.unreachable()
     } catch (error) {
       expect(codeOf(error)).toBe('device/not-found')
@@ -257,7 +257,7 @@ describe('device-trust signed admission', () => {
     await service.revokeDevice({ deviceId })
     const timestamp = Date.now()
     try {
-      service.admitDevice({ deviceId, timestamp, signature: key.sign(`${deviceId}\n${timestamp}`) })
+      await service.admitDevice({ deviceId, timestamp, nonce: 'nonce-a', signature: key.sign(`${deviceId}\n${timestamp}\nnonce-a`) })
       expect.unreachable()
     } catch (error) {
       expect(codeOf(error)).toBe('device/already-revoked')
@@ -267,9 +267,9 @@ describe('device-trust signed admission', () => {
   it('rejects a stale and a future timestamp outside the window', async () => {
     const service = await boot({ admissionWindowMs: 1_000 })
     const { deviceId, key } = await paired(service, 'collaborator')
-    for (const timestamp of [Date.now() - 2_000, Date.now() + 2_000]) {
+    for (const [timestamp, nonce] of [[Date.now() - 2_000, 'nonce-stale'], [Date.now() + 2_000, 'nonce-future']] as const) {
       try {
-        service.admitDevice({ deviceId, timestamp, signature: key.sign(`${deviceId}\n${timestamp}`) })
+        await service.admitDevice({ deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) })
         expect.unreachable()
       } catch (error) {
         expect(codeOf(error)).toBe('device/admission-expired')
@@ -283,21 +283,74 @@ describe('device-trust signed admission', () => {
     const other = ed25519()
     const timestamp = Date.now()
     try {
-      service.admitDevice({ deviceId, timestamp, signature: other.sign(`${deviceId}\n${timestamp}`) })
+      await service.admitDevice({ deviceId, timestamp, nonce: 'nonce-a', signature: other.sign(`${deviceId}\n${timestamp}\nnonce-a`) })
       expect.unreachable()
     } catch (error) {
       expect(codeOf(error)).toBe('device/key-invalid')
     }
   })
 
-  it('rejects an empty signature as a bad request', async () => {
+  it('rejects an empty signature or nonce as a bad request', async () => {
     const service = await boot()
     const { deviceId } = await paired(service, 'owner')
+    for (const request of [
+      { deviceId, timestamp: Date.now(), nonce: 'nonce-a', signature: '' },
+      { deviceId, timestamp: Date.now(), nonce: '', signature: 'sig' },
+    ] as const) {
+      try {
+        await service.admitDevice(request)
+        expect.unreachable()
+      } catch (error) {
+        expect(codeOf(error)).toBe('gateway/bad-request')
+      }
+    }
+  })
+
+  it('rejects a replayed admission by nonce and by regressed timestamp', async () => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'collaborator')
+    const first = Date.now()
+    const message = (timestamp: number, nonce: string) => `${deviceId}\n${timestamp}\n${nonce}`
+    const admitted = await service.admitDevice({ deviceId, timestamp: first, nonce: 'nonce-1', signature: key.sign(message(first, 'nonce-1')) })
+    expect(admitted.role).toBe('collaborator')
     try {
-      service.admitDevice({ deviceId, timestamp: Date.now(), signature: '' })
+      await service.admitDevice({ deviceId, timestamp: first, nonce: 'nonce-1', signature: key.sign(message(first, 'nonce-1')) })
       expect.unreachable()
     } catch (error) {
-      expect(codeOf(error)).toBe('gateway/bad-request')
+      expect(codeOf(error)).toBe('device/replay-detected')
     }
+    try {
+      await service.admitDevice({ deviceId, timestamp: first - 1, nonce: 'nonce-2', signature: key.sign(message(first - 1, 'nonce-2')) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/replay-detected')
+    }
+    const advanced = await service.admitDevice({ deviceId, timestamp: first + 1, nonce: 'nonce-3', signature: key.sign(message(first + 1, 'nonce-3')) })
+    expect(advanced.role).toBe('collaborator')
+  })
+
+  it('keeps the timestamp high-water mark and the last nonce across a restart', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-replay-'))
+    roots.push(root)
+    const first = await boot({}, root)
+    const { deviceId, key } = await paired(first, 'viewer')
+    const timestamp = Date.now()
+    await first.admitDevice({ deviceId, timestamp, nonce: 'nonce-1', signature: key.sign(`${deviceId}\n${timestamp}\nnonce-1`) })
+    const second = await boot({}, root)
+    const message = (nonce: string) => `${deviceId}\n${timestamp}\n${nonce}`
+    try {
+      await second.admitDevice({ deviceId, timestamp, nonce: 'nonce-1', signature: key.sign(message('nonce-1')) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/replay-detected')
+    }
+    try {
+      await second.admitDevice({ deviceId, timestamp: timestamp - 1, nonce: 'nonce-2', signature: key.sign(`${deviceId}\n${timestamp - 1}\nnonce-2`) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/replay-detected')
+    }
+    const resumed = await second.admitDevice({ deviceId, timestamp: timestamp + 1, nonce: 'nonce-3', signature: key.sign(`${deviceId}\n${timestamp + 1}\nnonce-3`) })
+    expect(resumed.role).toBe('viewer')
   })
 })

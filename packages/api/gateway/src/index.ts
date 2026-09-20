@@ -104,6 +104,7 @@ interface RegisteredRemoteEventSource {
 interface DeviceAdmissionWire {
   readonly deviceId: string
   readonly timestamp: number
+  readonly nonce: string
   readonly signature: string
 }
 
@@ -464,7 +465,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       version = decoded.version
       if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) return rpcFailure(this.diagnosticsOnlyRejection(endpoint))
       if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_RESULT_ENDPOINT) {
-        this.admitRpcDevice(endpoint, decoded.device)
+        await this.admitRpcDevice(endpoint, decoded.device)
       }
     } catch (error) {
       return rpcFailure(error)
@@ -494,7 +495,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) throw this.diagnosticsOnlyRejection(endpoint)
     payload = decoded.payload
     if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_STREAM_ENDPOINT) {
-      this.admitRpcDevice(endpoint, decoded.device)
+      await this.admitRpcDevice(endpoint, decoded.device)
     }
     if (endpoint === REMOTE_EVENT_STREAM_ENDPOINT) {
       return this.openRemoteEvents(payload, signal, decoded.version)
@@ -544,7 +545,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       deliveries: new Map(),
       replyPermissions: device === undefined
         ? this.interactionReplyPermissions
-        : this.admitDeviceClient(device),
+        : await this.admitDeviceClient(device),
     }
     this.remoteEventClients.set(clientId, client)
     for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)
@@ -732,7 +733,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
    * @param device - the admission fields parsed from the stream open payload.
    * @returns the admitted device's permission set as reply permissions.
    */
-  private admitDeviceClient(device: DeviceAdmissionWire): ReadonlySet<string> {
+  private async admitDeviceClient(device: DeviceAdmissionWire): Promise<ReadonlySet<string>> {
     const deviceTrust = this.ctx.get('deviceTrust')
     if (deviceTrust === undefined) {
       throw new TypertGatewayError(
@@ -741,9 +742,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
         'device admission requires the device-trust service',
       )
     }
-    const admission = deviceTrust.admitDevice({
+    const admission = await deviceTrust.admitDevice({
       deviceId: device.deviceId as DeviceId,
       timestamp: device.timestamp,
+      nonce: device.nonce,
       signature: device.signature,
     })
     return new Set<string>(admission.permissions)
@@ -759,7 +761,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
    * @param endpoint - canonical Remote endpoint the device wants to invoke.
    * @param deviceValue - the envelope's `device` field.
    */
-  private admitRpcDevice(endpoint: string, deviceValue: unknown): void {
+  private async admitRpcDevice(endpoint: string, deviceValue: unknown): Promise<void> {
     const device = parseDeviceAdmission(deviceValue)
     const deviceTrust = this.ctx.get('deviceTrust')
     if (deviceTrust === undefined) {
@@ -769,9 +771,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
         'device admission requires the device-trust service',
       )
     }
-    const admission = deviceTrust.admitDevice({
+    const admission = await deviceTrust.admitDevice({
       deviceId: device.deviceId as DeviceId,
       timestamp: device.timestamp,
+      nonce: device.nonce,
       signature: device.signature,
     })
     const required = this.requiredPermissionOf(endpoint)
@@ -1493,26 +1496,29 @@ function isObject(value: unknown): value is object {
  * @param value - the `args.device` field the client presented.
  * @returns the admission fields to verify against the device-trust grants.
  * @throws TypertGatewayError `gateway/arguments-invalid` when the field is
- * not `{deviceId, timestamp, signature}` with a non-empty deviceId string, a
- * safe-integer epoch-ms timestamp, and a non-empty signature string.
+ * not `{deviceId, timestamp, nonce, signature}` with a non-empty deviceId
+ * string, a safe-integer epoch-ms timestamp, a non-empty nonce string, and a
+ * non-empty signature string.
  */
 function parseDeviceAdmission(value: unknown): DeviceAdmissionWire {
   if (!isObject(value)
     || !isPlainObject(value)
-    || Reflect.ownKeys(value).length !== 3
+    || Reflect.ownKeys(value).length !== 4
     || typeof value.deviceId !== 'string'
     || value.deviceId === ''
     || typeof value.timestamp !== 'number'
     || !Number.isSafeInteger(value.timestamp)
+    || typeof value.nonce !== 'string'
+    || value.nonce === ''
     || typeof value.signature !== 'string'
     || value.signature === '') {
     throw new TypertGatewayError(
       'gateway/arguments-invalid',
       REMOTE_EVENT_STREAM_ENDPOINT,
-      'device admission requires deviceId, an integer timestamp, and a signature',
+      'device admission requires deviceId, an integer timestamp, a nonce, and a signature',
     )
   }
-  return { deviceId: value.deviceId, timestamp: value.timestamp, signature: value.signature }
+  return { deviceId: value.deviceId, timestamp: value.timestamp, nonce: value.nonce, signature: value.signature }
 }
 
 export default TypertGatewayService

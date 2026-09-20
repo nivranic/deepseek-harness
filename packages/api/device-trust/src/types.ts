@@ -99,12 +99,16 @@ export interface RevokeDeviceResult {
 /**
  * Signed admission request a device presents when opening a Gateway Remote
  * event stream. The signature is base64 Ed25519 over the UTF-8 bytes of
- * `deviceId + "\n" + timestamp` (decimal epoch ms) made with the paired key.
+ * `deviceId + "\n" + timestamp (decimal epoch ms) + "\n" + nonce` made with
+ * the paired key. Every request carries a fresh nonce; a replayed admission
+ * is refused.
  */
 export interface AdmitDeviceRequest {
   readonly deviceId: DeviceId
   /** Epoch ms when the device signed; accepted within the admission window. */
   readonly timestamp: number
+  /** Fresh per-request value the device never reuses across admissions. */
+  readonly nonce: string
   /** Base64 Ed25519 signature over the canonical admission message. */
   readonly signature: string
 }
@@ -140,6 +144,11 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       readonly deviceId: string
       readonly timestamp: number
       readonly admissionWindowMs: number
+    }
+    /** The admission replays one already accepted: a regressed timestamp or a reused nonce. */
+    'device/replay-detected': {
+      readonly deviceId: string
+      readonly reason: 'timestamp-regressed' | 'nonce-reuse'
     }
   }
 }
