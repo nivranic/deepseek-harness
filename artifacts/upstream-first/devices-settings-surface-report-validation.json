@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Devices settings surface; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/devices-settings-surface-source.json",
+    "sha256": "9d36ed92019f756398adceb042a5e094bda02ac8cf4126eaae468ec80e9b429f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8f76cafde38d2995448fa98d6480d25bdb3743c2f01af32809415ffcf3f0b49c"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/devices-settings-surface-binding.json",
+    "sha256": "46f18c881dee55330876f9dfbc228107d4526efb1b056a78fc07adc66044b77c"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-devices-settings-surface-reports.mjs",
+      "sha256": "e741da4a4cd6a04d3de4689f92c2f2485c0c234229d0b5fa2c518ac43ac37896"
+    },
+    {
+      "path": ".artifacts/capture-devices-settings-surface-validation.mjs",
+      "sha256": "d3910af065c8b89b3abac910e2ba4966a7914fbbcfb8ecba0fceb44f0ca46d7a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "fcf349802e14eac8c0a8e43f53911787f43b8083944ded8353f49f7bad3c1b9d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "24dfe6676bd95d9978b2904b076a7b41c11cdbd10cafe3a61a952c398d9cd177"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/devices-settings-surface-binding.log",
+      "sha256": "f69d56f0f3b479d290eb088899719c09754dddc4018cdf1c25238e515ede501d"
+    },
+    {
+      "path": ".artifacts/devices-settings-surface-audit-tests.log",
+      "sha256": "3736f8267f56aa73311d848f416052267436eb6b8c85c879b8e51f176b32728c"
+    },
+    {
+      "path": ".artifacts/devices-settings-surface-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/devices-settings-surface-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/devices-settings-surface-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

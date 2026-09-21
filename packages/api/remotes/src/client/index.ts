@@ -8,6 +8,7 @@ import goalsRemote from '@deepseek-ai/dsh-goal/remote'
 import llmRemote from '@deepseek-ai/dsh-llm/remote'
 import dynamicRemote from '@deepseek-ai/dsh-cordis-host-runner/remote'
 import pluginInventoryRemote from '@deepseek-ai/dsh-host-plugin-inventory/remote'
+import deviceTrustRemote from '@deepseek-ai/dsh-api-device-trust/remote'
 import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
 import messageFeedbackRemote from '@deepseek-ai/dsh-message-feedback/remote'
 import sessionFeedbackRemote from '@deepseek-ai/dsh-command-feedback/remote'
@@ -27,6 +28,7 @@ export type { MESSAGE_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-mess
 export type { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-command-feedback/capabilities'
 export type { DYNAMIC_CORDIS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-cordis-host-runner/capabilities'
 export type { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-host-plugin-inventory/capabilities'
+export type { DEVICE_TRUST_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-device-trust/capabilities'
 export type { FILE_UPLOAD_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-file-upload/capabilities'
 export type { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
 export type { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
@@ -48,6 +50,8 @@ export type {} from '@deepseek-ai/dsh-api-settings-controller/remote'
 export type {} from '@deepseek-ai/dsh-goal/remote'
 export type {} from '@deepseek-ai/dsh-llm/remote'
 export type {} from '@deepseek-ai/dsh-host-plugin-inventory/remote'
+export type {} from '@deepseek-ai/dsh-api-device-trust/remote'
+export type { DeviceId, DeviceView, DeviceRole } from '@deepseek-ai/dsh-api-device-trust/types'
 export type {} from '@deepseek-ai/dsh-message-feedback/remote'
 export type {} from '@deepseek-ai/dsh-command-feedback/remote'
 export type {} from '@deepseek-ai/dsh-client-file-upload/remote'
@@ -175,7 +179,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
   try {
     for (const contribution of [
       agentPresetsRemote, commandsRemote, settingsControllerRemote, goalsRemote, llmRemote, dynamicRemote,
-      hostDescriptionRemote, pluginInventoryRemote, messageFeedbackRemote, sessionFeedbackRemote,
+      hostDescriptionRemote, pluginInventoryRemote, deviceTrustRemote, messageFeedbackRemote, sessionFeedbackRemote,
       fileUploadsRemote, presentedFilesRemote, sessionReferencesRemote,
       subagentsRemote, sessionRemote, workspaceRemote, workspaceFilesRemote,
     ]) {

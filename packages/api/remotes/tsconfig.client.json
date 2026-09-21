@@ -88,6 +88,9 @@
       "path": "../host-description"
     },
     {
+      "path": "../device-trust/tsconfig.host.json"
+    },
+    {
       "path": "../../client/ui-deliverables/tsconfig.host.json"
     }
   ]

@@ -119,6 +119,8 @@ interface RenameDeviceRequest {
 }
 ```
 
+The Web **Devices** settings section ([`packages/client/ui-settings-devices`](../../packages/client/ui-settings-devices/README.md)) is the operator surface over these projections: it lists every grant with role, platform, paired and last-seen times, and fingerprint; revoked grants stay visible without actions. Rename edits inline, one-device revoke and revoke-all require explicit confirmation, a completed revoke-all reports its count, and every failure follows `classifyRemoteFailure` into localized copy. The section registers only while the connection advertises `device.list.v1` and re-registers on connection replacement, so it never reaches a Host its generation does not cover.
+
 ## Signed admission
 
 ```ts type-equiv

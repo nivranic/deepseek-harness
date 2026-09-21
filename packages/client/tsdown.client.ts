@@ -58,7 +58,7 @@ function styleInjectionModule(
  * Everything else under @deepseek-ai/* is either a module-table entry
  * (external) or a leak the purity gate rejects.
  */
-export const INLINE_SAFE = /^(?:@deepseek-ai\/dsh-(?:file-reference|session|llm|tools|brand|deque|output-retention|typert-protocol|util-crypto|util-values|util-workspace-path)(?:\/|$)|@deepseek-ai\/dsh-token-meter\/client$|@deepseek-ai\/dsh-host-open-in-app\/shared$|@deepseek-ai\/dsh-agent-presets\/(?:display|capabilities)$|@deepseek-ai\/dsh-(?:session-reference|commands|goal|subagent|message-feedback|command-feedback|client-file-upload|host-plugin-inventory|cordis-host-runner)\/capabilities$|@deepseek-ai\/dsh-client-ui-deliverables\/capabilities$|@deepseek-ai\/dsh-spill-policy\/notice$|@deepseek-ai\/dsh-api-gateway\/protocol$|@deepseek-ai\/dsh-api-(?:session-controller|settings-controller|workspace-controller|workspace-files)\/capabilities$)/
+export const INLINE_SAFE = /^(?:@deepseek-ai\/dsh-(?:file-reference|session|llm|tools|brand|deque|output-retention|typert-protocol|util-crypto|util-values|util-workspace-path)(?:\/|$)|@deepseek-ai\/dsh-token-meter\/client$|@deepseek-ai\/dsh-host-open-in-app\/shared$|@deepseek-ai\/dsh-agent-presets\/(?:display|capabilities)$|@deepseek-ai\/dsh-(?:session-reference|commands|goal|subagent|message-feedback|command-feedback|client-file-upload|host-plugin-inventory|cordis-host-runner)\/capabilities$|@deepseek-ai\/dsh-client-ui-deliverables\/capabilities$|@deepseek-ai\/dsh-spill-policy\/notice$|@deepseek-ai\/dsh-api-gateway\/protocol$|@deepseek-ai\/dsh-api-(?:session-controller|settings-controller|workspace-controller|workspace-files|device-trust)\/capabilities$)/
 
 /**
  * Vendored framework libraries: rescoped into @deepseek-ai, so the gate below

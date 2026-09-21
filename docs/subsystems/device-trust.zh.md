@@ -119,6 +119,8 @@ interface RenameDeviceRequest {
 }
 ```
 
+Web 设置的**设备**分区（[`packages/client/ui-settings-devices`](../../packages/client/ui-settings-devices/README.zh.md)）是这些投影的运维界面：它列出每条授权的角色、平台、配对与最近活跃时间和指纹；已撤销的授权保持可见且无操作。重命名在行内编辑，单设备撤销与全部撤销都要求显式确认，完成的全部撤销报告数量，失败一律经 `classifyRemoteFailure` 映射为本地化文案。分区仅在连接声明 `device.list.v1` 时注册，并在连接替换时重新注册，因此不会触达其代际不覆盖的宿主。
+
 ## 签名准入
 
 ```ts type-equiv
