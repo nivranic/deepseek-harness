@@ -1726,7 +1726,7 @@
         "docs/architecture.md",
         "ARCHITECTURE_DECISIONS.md"
       ],
-      "remaining": "继续按各 owner 核验唯一运行时、Session、RPC 和共享 Client；实验项不等同正式产品验收。",
+      "remaining": "设计语言已按第 9 节收口为单一 token 层：ui-theme design-platform.css 定义语义 alias（label/fill/state/button 家族）、typography/radius/spacing/ease/duration 原语与深浅两套主题块；Web/Desktop/手机档共用同一客户端 UI 与级联（手机适配只经媒体查询与 env() 安全区，见 §7/§8 封存记录）。机械执行已落地：ui-theme 既有跨包审计（corner-shape 配对、elevation 中性边框、scrollbar token 引用）之外新增 design-language 审计——遍历全部 client 包 src 的 CSS，剥离注释/url()/var() 回退/mask-image 后断言无裸 hex 色值；唯一裸值收敛于五处具名理由的例外（ui-workspace Rows 与 ui-primitives HoverCard 的固定暗面、InputBar 发送箭头静态白、JsonTree 语法高亮色板、web 启动页 pre-theme 字面量），每处在文件内注明理由；FileCard removeFailed 的裸 #fff 已改为 inverted-label token。真机 platform-native 微调矩阵与视觉验收仍开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

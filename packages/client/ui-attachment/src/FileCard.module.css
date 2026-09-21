@@ -125,7 +125,7 @@
 
 .removeFailed {
   background: var(--dsw-alias-state-error-primary, #d54941);
-  color: #fff;
+  color: var(--dsw-alias-label-primary-inverted, #fff);
   opacity: 1;
 }
 

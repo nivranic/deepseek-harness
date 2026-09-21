@@ -1,3 +1,6 @@
+/* Syntax palette: JSON token colors are a code-highlighting theme (VS Code
+ * light), not theme-semantic UI color; each value is a local custom property
+ * consumed only inside this component. */
 .root {
   --json-tree-property: #881391;
   --json-tree-string: #c41a16;

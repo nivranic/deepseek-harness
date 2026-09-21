@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Design language closure; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/design-language-source.json",
+    "sha256": "9d1869aa83a05610a3301bf6149572956604468cf09278e9d02bc39992ed2994"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "094aeb924260a8673d4e37c09ebb5a78198ec401a45fab624aca5302478f5032"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/design-language-binding.json",
+    "sha256": "46e99d1ff8448f6662c6af060c23f6a234f1b3f77b01d11dd24b0a3f287f641f"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-design-language-reports.mjs",
+      "sha256": "0a4a8c722cd6aaa896ba9c353f660bd8be289db3409258b7eccaa21580ddc055"
+    },
+    {
+      "path": ".artifacts/capture-design-language-validation.mjs",
+      "sha256": "32be9612b162c5f8d8b1230165e5a21451a14fc54f8b89883b88ba312badf252"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "60fc27e6b1656e0de96af2db112024af8a953466bb4b11c63f889643e6b0fec3"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "778c6f5a7a871fe3067c4b5aff64bc81eb45fb2c0d1e2096431b259b4d4bbec4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/design-language-binding.log",
+      "sha256": "5313ab835a5c8b36025217a34680211f8411a0175910f8c0e0572b35b89301c3"
+    },
+    {
+      "path": ".artifacts/design-language-audit-tests.log",
+      "sha256": "2e19f1e080ccab3c6f61f456933a235cbc1ec0843deb2602211317b05a2601ca"
+    },
+    {
+      "path": ".artifacts/design-language-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/design-language-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/design-language-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

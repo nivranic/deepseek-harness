@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 设计语言收口（§9）
+
+[当前来源记录](artifacts/upstream-first/design-language-source.json)把第 9 节收口为单一 token 层并加机械执行：ui-theme design-platform.css 本就声明语义 alias 家族、typography/radius/spacing/ease/duration 原语与深浅两套主题块，本增量新增 design-language 审计——遍历每个 client 包 src 样式表，剥离注释、url() 数据 URI 色板、var() 回退值与 mask-image 透明度渐变后，断言声明中无裸 hex 色值；仍保留字面量的五个文件（ui-workspace Rows 与 ui-primitives HoverCard 的固定暗面、InputBar 静态白发送箭头、JsonTree 语法色板、web pre-theme 启动页）均在文件内注明理由并收敛于审计同步校验的具名允许清单。FileCard removeFailed 的裸 #fff 改为 inverted-label token；手机顶栏状态圆点补 corner-shape: round 配对（既有 corner-shape 跨包审计要求）。测试 127 项（含两项审计用例）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。局限：真机 platform-native 视觉矩阵与验收仍开放（本机无硬件）。
+
 ## 手机顶栏（§10 第二个表面）
 
-[当前来源记录](artifacts/upstream-first/phone-top-bar-source.json)补齐第 10 节手机顶栏：strict Session header 在标题簇之前新增 leading 列表座位（SlotMap 合并 + 子注册 + PropsRenderSlots 键，客户端目录再生），ui-sidebar 在其中注册返回会话入口——「箭头+会话」按钮（sidebar 命名空间 phone.backToSessions，双语），与输入框侧抽屉开关共用 max-width 599.5px 媒体查询只在手机档显示，点击打开载有会话列表的悬浮抽屉；运行位置 chip 在 Host generation 已建立时携带状态圆点（6px，state-success-primary），手机顶栏读作「Host ● platform」。overflow 菜单（⋮）如实保持开放——其条目取决于尚不存在的工具栏集合，不预造。测试 473 项（含返回按钮组件/注册用例与媒体查询源级 pin）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。局限：手机档视觉验收依托媒体查询级联（与已封存抽屉开关同层），本机无真机浏览器通过。
+[历史来源记录](artifacts/upstream-first/phone-top-bar-source.json)补齐第 10 节手机顶栏：strict Session header 在标题簇之前新增 leading 列表座位（SlotMap 合并 + 子注册 + PropsRenderSlots 键，客户端目录再生），ui-sidebar 在其中注册返回会话入口——「箭头+会话」按钮（sidebar 命名空间 phone.backToSessions，双语），与输入框侧抽屉开关共用 max-width 599.5px 媒体查询只在手机档显示，点击打开载有会话列表的悬浮抽屉；运行位置 chip 在 Host generation 已建立时携带状态圆点（6px，state-success-primary），手机顶栏读作「Host ● platform」。overflow 菜单（⋮）如实保持开放——其条目取决于尚不存在的工具栏集合，不预造。测试 473 项（含返回按钮组件/注册用例与媒体查询源级 pin）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。局限：手机档视觉验收依托媒体查询级联（与已封存抽屉开关同层），本机无真机浏览器通过。
 
 ## 运行位置可见（§10 首个跨端原则表面）
 
