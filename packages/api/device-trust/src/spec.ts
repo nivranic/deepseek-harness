@@ -30,6 +30,8 @@ export const deviceGrantRecord = z.object({
   keyFingerprint: z.string().regex(/^[0-9a-f]{64}$/),
   /** Epoch ms when the pairing was redeemed. */
   pairedAt: z.number().int().nonnegative(),
+  /** Client-declared platform label, e.g. `android`; absent when unnamed. */
+  platform: z.string().min(1).optional(),
   /** Epoch ms of the newest accepted admission; the replay high-water mark. */
   lastAdmittedAt: z.number().int().nonnegative().optional(),
   /** Nonce of the newest accepted admission; exact-replay guard across restarts. */

@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 设备身份变更确认（第 22 节补全与第 18 节第十一个状态）
+
+[当前来源记录](artifacts/upstream-first/device-identity-confirmation-source.json)补全第 22 节丢失设备清单并让身份变更以确认收口：revokeAllDevices（device.revoke-all.v1，device.admin）撤销全部活跃授权并返回共享时间与数量；renameDevice（device.rename.v1，device.admin）只改显示名不动身份/密钥/角色；列表暴露准入派生的 lastSeenAt 与客户端声明的 platform（Android 配对发送 android、夹具接受）。撤销经类型化事件 deviceTrust/grantsRevoked 播报，网关为每个已准入 Remote 事件流 client 记录 deviceId、事件到达即终止对应流（流测试以 wire end 帧断言；优雅流结束不关 mux socket）。连接面：网关 client 的 classifyFailure 把 device/already-revoked 映射为 device-revoked（修复该状态此前无生产方、不可达的缺陷），device/not-found 与 device/key-invalid 映射为新状态 identity-changed；两者暂停重试并以 locale 键给出重配对指引；device/replay-detected 刻意保持自动重试。码比较为普通字符串匹配（client face 不链接 device-trust 的 details-map 声明，词表按 wire 可合并扩展）。§22 行如实刷新（管理 UI 归 §7-§11）。854 项测试、typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。局限：rename/revoke-all 的设置页呈现待 §7-§11 产品线；iOS 采用开放。
+
 ## Android 客户端设备准入采用
 
-[当前来源记录](artifacts/upstream-first/android-device-admission-source.json)让 Android LinkWire 为每个业务调用签名设备准入：DeviceAdmission 以配对 Ed25519 密钥对三段式 deviceId
+[历史来源记录](artifacts/upstream-first/android-device-admission-source.json)让 Android LinkWire 为每个业务调用签名设备准入：DeviceAdmission 以配对 Ed25519 密钥对三段式 deviceId
  timestamp
  nonce 签名、每次调用全新 UUID nonce；RPC 信封渲染为 args 旁的 payload.device（网关版本化请求信封的 Link 镜像）、流打开放在 args.device（网关流打开位置）；currentIdentity 收拢配对身份加载；配对与 /link/describe 保持无准入。夹具 Host 经可测的 link-admission 追踪器校验网关语义——四键形状、接受窗口、对配对密钥的签名、带逐条惰性过期与最后接受对的重放账本，nonce 任意时间戳重用与时间戳回退均以 device/replay-detected 拒绝——并在 /api 与 /link/stream 强制准入。模拟器 lane 实证：真实应用 UI 经夹具配对，两条面共五次准入、五个不同 nonce 服务端验证（session/list、workspaceFiles list/read 于 /api；$events 与 workspace/follow 流），分类 gateway/permission-denied 拒绝仍呈现，证明准入校验先于权限门控。:core:test 36/36 + :contract:test + :app:assembleDebug、node --test 5/5、typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。局限：夹具账本进程内；iOS 采用开放（尚无 Swift 客户端表面）。
 

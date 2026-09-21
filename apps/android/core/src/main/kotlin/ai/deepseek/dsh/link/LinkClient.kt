@@ -226,6 +226,7 @@ class LinkClient private constructor(
                 put("code", payload.code)
                 put("deviceName", deviceName)
                 put("devicePublicKey", Base64.getEncoder().encodeToString(LinkSigning.ed25519SpkiDer(publicRaw)))
+                put("platform", "android")
             },
         )
         val data = post("/link/pair", body.toByteArray(Charsets.UTF_8), signed = false)

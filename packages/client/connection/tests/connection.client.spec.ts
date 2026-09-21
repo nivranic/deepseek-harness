@@ -118,7 +118,7 @@ describe('connection lifecycle', () => {
   })
 
 
-  it.each(['incompatible', 'fatal', 'device-revoked'] as const)('suspends %s failures until explicit retry', async (blocked) => {
+  it.each(['incompatible', 'fatal', 'device-revoked', 'identity-changed'] as const)('suspends %s failures until explicit retry', async (blocked) => {
     vi.useFakeTimers()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const source = new FakeGenerationSource()

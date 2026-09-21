@@ -864,6 +864,19 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['RemoteError `device/not-found` or `device/already-revoked`.'],
       },
       {
+        signature: '@Remote(\'revokeAllDevices\') async revokeAllDevices(): Promise<RevokeAllDevicesResult>',
+        description: 'Revoke every still-active grant — the lost-device panic path. Already revoked grants keep their original revocation time; the event carries exactly the identities this call revoked.',
+        parameters: [],
+        returns: 'the shared revocation time and how many grants it revoked.',
+      },
+      {
+        signature: '@Remote(\'renameDevice\') async renameDevice(request: RenameDeviceRequest): Promise<DeviceView>',
+        description: 'Rename one grant\'s display name; the identity, key, and role are untouched, so an operator reconciling a re-paired device can relabel the stale and current identities without touching access.',
+        parameters: [{ name: 'request', description: 'the addressed grant and its replacement name.' }],
+        returns: 'the renamed grant\'s fresh view.',
+        throws: ['RemoteError `device/not-found` or `gateway/bad-request`.'],
+      },
+      {
         signature: '@Remote(\'admitDevice\') async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission>',
         description: 'Verify one signed admission and return the device\'s identity with its section 21 permission set. Checks run cheapest-first: the grant must exist and be active, the signed timestamp must sit inside the admission window, and the Ed25519 signature over `deviceId + "\\n" + timestamp + "\\n" + nonce` (UTF-8) must verify against the paired key. An admission that replays an already-accepted one — a timestamp older than the grant\'s durable high-water mark, or a nonce this process or the persisted last-admission pair has already seen — is refused as replay before the grant records the new high-water mark. The Gateway resolves one admission per Remote event stream open and derives the client\'s reply permissions from the returned set.',
         parameters: [{ name: 'request', description: 'the device\'s signed admission message.' }],
@@ -3372,6 +3385,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'ref', description: 'the reference whose stored value changed.' }],
   },
   {
+    name: 'deviceTrust/grantsRevoked',
+    mode: 'emit',
+    signature: '\'deviceTrust/grantsRevoked\'(revocation: { readonly revokedAt: number; readonly deviceIds: readonly DeviceId[] }): void',
+    summary: 'Grants became revoked — by one revocation or revoke-all — so holders of still-open admitted streams must terminate them immediately.',
+    description: 'Grants became revoked — by one revocation or revoke-all — so holders of still-open admitted streams must terminate them immediately.',
+    parameters: [{ name: 'revocation', description: 'the shared revocation time and the revoked identities.' }],
+  },
+  {
     name: 'domain/changed',
     mode: 'emit',
     signature: '\'domain/changed\'(change: DomainChanged): void',
@@ -4205,7 +4226,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'DeviceView',
-    declaration: 'export interface DeviceView {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n    readonly revokedAt?: number;\n}',
+    declaration: 'export interface DeviceView {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n    readonly platform?: string;\n    readonly lastSeenAt?: number;\n    readonly revokedAt?: number;\n}',
   },
   {
     name: 'DiffCallView',
@@ -5045,7 +5066,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RedeemPairingRequest',
-    declaration: 'export interface RedeemPairingRequest {\n    readonly code: string;\n    readonly deviceName: string;\n    readonly devicePublicKey: string;\n}',
+    declaration: 'export interface RedeemPairingRequest {\n    readonly code: string;\n    readonly deviceName: string;\n    readonly devicePublicKey: string;\n    readonly platform?: string;\n}',
   },
   {
     name: 'RedeemPairingResult',
@@ -5090,6 +5111,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'RemoteValidationIssue',
     declaration: 'export interface RemoteValidationIssue {\n    readonly code: string;\n    readonly message: string;\n    readonly path: readonly (string | number)[];\n}',
+  },
+  {
+    name: 'RenameDeviceRequest',
+    declaration: 'export interface RenameDeviceRequest {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n}',
   },
   {
     name: 'ReplayEnvelope',
@@ -5146,6 +5171,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ResumeAgentOptions',
     declaration: 'export interface ResumeAgentOptions {\n    readonly resumeSessionId: SessionId;\n    readonly parentAgent?: Agent;\n    readonly agentOptions?: AgentOptions;\n    readonly signal?: AbortSignal;\n    readonly setup?: AgentSetup;\n}',
+  },
+  {
+    name: 'RevokeAllDevicesResult',
+    declaration: 'export interface RevokeAllDevicesResult {\n    readonly revokedAt: number;\n    readonly count: number;\n}',
   },
   {
     name: 'RevokeDeviceRequest',

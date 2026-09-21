@@ -556,6 +556,7 @@ class LinkClientTest {
         assertTrue(pairBody.contains("\"code\":\"7Kd9m2Xq4Lp8Rt3Vw6Yy1Zc5Bn8Qf2Hj\""), pairBody)
         assertTrue(pairBody.contains("\"deviceName\":\"Pixel 9\""), pairBody)
         assertTrue(pairBody.contains("\"devicePublicKey\":\""), pairBody)
+        assertTrue(pairBody.contains("\"platform\":\"android\""), pairBody)
 
         val value = client.call("session/list")
         assertEquals(WireValue.ObjectValue(mapOf("items" to WireValue.ArrayValue(emptyList()))), value)

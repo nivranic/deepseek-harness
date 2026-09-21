@@ -45,6 +45,12 @@ export interface DeviceGrant {
   readonly keyFingerprint: string
   /** Epoch ms when the pairing was redeemed. */
   readonly pairedAt: number
+  /** Client-declared platform label, e.g. `android`; absent when unnamed. */
+  readonly platform?: string
+  /** Epoch ms of the newest accepted admission; absent before the first. */
+  readonly lastAdmittedAt?: number
+  /** Nonce of the newest accepted admission; exact-replay guard across restarts. */
+  readonly lastAdmittedNonce?: string
   /** Epoch ms when the grant was revoked; absent while active. */
   readonly revokedAt?: number
 }
@@ -56,6 +62,10 @@ export interface DeviceView {
   readonly role: DeviceRole
   readonly keyFingerprint: string
   readonly pairedAt: number
+  /** Client-declared platform label, e.g. `android`; absent when unnamed. */
+  readonly platform?: string
+  /** Epoch ms of the newest accepted admission; absent before the first. */
+  readonly lastSeenAt?: number
   readonly revokedAt?: number
 }
 
@@ -75,6 +85,8 @@ export interface RedeemPairingRequest {
   readonly deviceName: string
   /** Base64 SPKI DER of the device's freshly generated Ed25519 key. */
   readonly devicePublicKey: string
+  /** Client-declared platform label, e.g. `android`; absent when unnamed. */
+  readonly platform?: string
 }
 
 /** Acknowledged grant identity returned once at redemption. */
@@ -94,6 +106,20 @@ export interface RevokeDeviceRequest {
 export interface RevokeDeviceResult {
   readonly deviceId: DeviceId
   readonly revokedAt: number
+}
+
+/** Revoke-all acknowledgement: the shared revocation time and the count. */
+export interface RevokeAllDevicesResult {
+  readonly revokedAt: number
+  /** How many still-active grants this call revoked. */
+  readonly count: number
+}
+
+/** Rename request for one grant. */
+export interface RenameDeviceRequest {
+  readonly deviceId: DeviceId
+  /** The replacement display name, non-empty. */
+  readonly deviceName: string
 }
 
 /**

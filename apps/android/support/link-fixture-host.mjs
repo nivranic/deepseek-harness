@@ -96,7 +96,7 @@ const handle = (req, res) => {
         return
       }
       devices.set('d-fixture-1', payload.devicePublicKey)
-      log('pair-accepted', { deviceName: payload.deviceName, deviceId: 'd-fixture-1' })
+      log('pair-accepted', { deviceName: payload.deviceName, deviceId: 'd-fixture-1', platform: payload.platform ?? null })
       res.writeHead(200, { 'content-type': 'application/json' })
       res.end(JSON.stringify({
         deviceId: 'd-fixture-1', hostId: 'h-fixture', hostName: 'Link Fixture Host',

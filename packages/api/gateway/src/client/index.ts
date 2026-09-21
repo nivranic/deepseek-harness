@@ -183,8 +183,19 @@ class ClientRemoteService extends Service implements ClientRemote {
       loop = connection.start({
         onConnected: () => { this.ownerCtx.emit('connection/reset') },
         classifyFailure: (error) => {
-          // Only generation-terminal classes select a phase; the remaining
-          // classes keep the default reconnect behavior of the generation loop.
+          // Device admissions answer with identity verdicts the Connection
+          // surface must confirm instead of retrying: a revoked grant blocks
+          // as device-revoked, an identity the Host no longer holds or a key
+          // it no longer matches blocks as identity-changed (re-pair). The
+          // code comparison is a plain string match because the client face
+          // does not link the device-trust package's details-map declaration;
+          // the vocabulary is merge-extensible over the wire. Only
+          // generation-terminal classes select a phase; the remaining classes
+          // keep the default reconnect behavior of the generation loop.
+          const remote = remoteErrorOf(error)
+          const code: string | undefined = remote?.code
+          if (code === 'device/already-revoked') return 'device-revoked'
+          if (code === 'device/not-found' || code === 'device/key-invalid') return 'identity-changed'
           switch (classifyRemoteFailure(error)) {
             case 'compatibility': return 'incompatible'
             case 'carrier-invalid': return 'fatal'

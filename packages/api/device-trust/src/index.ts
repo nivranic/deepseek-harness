@@ -28,6 +28,8 @@ import type {
   PairingIssuance,
   RedeemPairingRequest,
   RedeemPairingResult,
+  RenameDeviceRequest,
+  RevokeAllDevicesResult,
   RevokeDeviceRequest,
   RevokeDeviceResult,
 } from './types.ts'
@@ -54,6 +56,15 @@ function PairingCodeId(id: string): PairingCodeId {
 declare module '@deepseek-ai/cordis' {
   interface Context {
     deviceTrust: DeviceTrustService
+  }
+  interface Events {
+    /**
+     * Grants became revoked — by one revocation or revoke-all — so holders of
+     * still-open admitted streams must terminate them immediately.
+     * @param revocation - the shared revocation time and the revoked identities.
+     * @mode emit
+     */
+    'deviceTrust/grantsRevoked'(revocation: { readonly revokedAt: number; readonly deviceIds: readonly DeviceId[] }): void
   }
 }
 
@@ -202,12 +213,17 @@ export class DeviceTrustService extends TypertRemoteService {
     if (deviceName === '') {
       throw new RemoteError('gateway/bad-request', 'deviceName must be non-empty', {})
     }
+    const platform = request.platform?.trim()
+    if (platform !== undefined && platform === '') {
+      throw new RemoteError('gateway/bad-request', 'platform must be non-empty when present', {})
+    }
     const { fingerprint } = decodeDeviceKey(request.devicePublicKey)
     const pairedAt = Date.now()
     const deviceId = DeviceId(`device-${randomUUID()}`)
     await this.table().put(deviceId, {
       deviceName, role: pending.role,
       devicePublicKey: request.devicePublicKey, keyFingerprint: fingerprint, pairedAt,
+      ...platform === undefined ? {} : { platform },
     })
     pending.redeemed = true
     return { deviceId, role: pending.role, keyFingerprint: fingerprint, pairedAt }
@@ -228,6 +244,8 @@ export class DeviceTrustService extends TypertRemoteService {
       role: grant.role,
       keyFingerprint: grant.keyFingerprint,
       pairedAt: grant.pairedAt,
+      ...grant.platform === undefined ? {} : { platform: grant.platform },
+      ...grant.lastAdmittedAt === undefined ? {} : { lastSeenAt: grant.lastAdmittedAt },
       ...grant.revokedAt === undefined ? {} : { revokedAt: grant.revokedAt },
     }))
   }
@@ -260,7 +278,68 @@ export class DeviceTrustService extends TypertRemoteService {
       }
       throw error
     }
+    this.ctx.emit('deviceTrust/grantsRevoked', { revokedAt, deviceIds: [request.deviceId] })
     return { deviceId: request.deviceId, revokedAt }
+  }
+
+  /**
+   * Revoke every still-active grant — the lost-device panic path. Already
+   * revoked grants keep their original revocation time; the event carries
+   * exactly the identities this call revoked.
+   * @returns the shared revocation time and how many grants it revoked.
+   */
+  @Remote('revokeAllDevices')
+  async revokeAllDevices(): Promise<RevokeAllDevicesResult> {
+    const revokedAt = Date.now()
+    const deviceIds: DeviceId[] = []
+    for (const [deviceId, grant] of this.table().entries()) {
+      if (grant.revokedAt !== undefined) continue
+      deviceIds.push(deviceId)
+    }
+    await Promise.all(deviceIds.map(deviceId =>
+      this.table().update(deviceId, (current): DeviceGrantRecord =>
+        current.revokedAt === undefined ? { ...current, revokedAt } : current),
+    ))
+    if (deviceIds.length > 0) this.ctx.emit('deviceTrust/grantsRevoked', { revokedAt, deviceIds })
+    return { revokedAt, count: deviceIds.length }
+  }
+
+  /**
+   * Rename one grant's display name; the identity, key, and role are
+   * untouched, so an operator reconciling a re-paired device can relabel the
+   * stale and current identities without touching access.
+   * @param request - the addressed grant and its replacement name.
+   * @returns the renamed grant's fresh view.
+   * @throws RemoteError `device/not-found` or `gateway/bad-request`.
+   */
+  @Remote('renameDevice')
+  async renameDevice(request: RenameDeviceRequest): Promise<DeviceView> {
+    const deviceName = request.deviceName.trim()
+    if (deviceName === '') {
+      throw new RemoteError('gateway/bad-request', 'deviceName must be non-empty', {})
+    }
+    if (this.table().get(request.deviceId) === undefined) {
+      throw new RemoteError('device/not-found', 'no device grant with the addressed id', { deviceId: request.deviceId })
+    }
+    let updated: DeviceGrantRecord
+    try {
+      updated = await this.table().update(request.deviceId, current => ({ ...current, deviceName }))
+    } catch (error) {
+      if (error instanceof DomainError && error.code === 'missing-key') {
+        throw new RemoteError('device/not-found', 'no device grant with the addressed id', { deviceId: request.deviceId })
+      }
+      throw error
+    }
+    return {
+      deviceId: request.deviceId,
+      deviceName: updated.deviceName,
+      role: updated.role,
+      keyFingerprint: updated.keyFingerprint,
+      pairedAt: updated.pairedAt,
+      ...updated.platform === undefined ? {} : { platform: updated.platform },
+      ...updated.lastAdmittedAt === undefined ? {} : { lastSeenAt: updated.lastAdmittedAt },
+      ...updated.revokedAt === undefined ? {} : { revokedAt: updated.revokedAt },
+    }
   }
 
   /**

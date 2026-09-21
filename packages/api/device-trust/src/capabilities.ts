@@ -11,4 +11,6 @@ export const DEVICE_TRUST_REMOTE_CAPABILITIES = [
   { id: 'device.admit.v1', methods: ['admitDevice'] },
   { id: 'device.list.v1', methods: ['listDevices'], requiredPermission: 'device.admin' },
   { id: 'device.revoke.v1', methods: ['revokeDevice'], requiredPermission: 'device.admin' },
+  { id: 'device.revoke-all.v1', methods: ['revokeAllDevices'], requiredPermission: 'device.admin' },
+  { id: 'device.rename.v1', methods: ['renameDevice'], requiredPermission: 'device.admin' },
 ] as const satisfies readonly TypertRemoteCapability[]

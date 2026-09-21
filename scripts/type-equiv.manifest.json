@@ -2180,6 +2180,16 @@
       "doc": "docs/subsystems/device-trust.md",
       "symbol": "RevokeDeviceResult",
       "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RevokeAllDevicesResult",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RenameDeviceRequest",
+      "source": "packages/api/device-trust/src/types.ts"
     }
   ]
 }

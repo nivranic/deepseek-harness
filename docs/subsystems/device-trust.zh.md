@@ -53,6 +53,8 @@ interface RedeemPairingRequest {
   readonly deviceName: string
   /** Base64 SPKI DER of the device's freshly generated Ed25519 key. */
   readonly devicePublicKey: string
+  /** Client-declared platform label, e.g. `android`; absent when unnamed. */
+  readonly platform?: string
 }
 ```
 
@@ -76,6 +78,10 @@ interface DeviceView {
   readonly role: DeviceRole
   readonly keyFingerprint: string
   readonly pairedAt: number
+  /** Client-declared platform label, e.g. `android`; absent when unnamed. */
+  readonly platform?: string
+  /** Epoch ms of the newest accepted admission; absent before the first. */
+  readonly lastSeenAt?: number
   readonly revokedAt?: number
 }
 ```
@@ -92,6 +98,24 @@ interface RevokeDeviceRequest {
 interface RevokeDeviceResult {
   readonly deviceId: DeviceId
   readonly revokedAt: number
+}
+```
+
+```ts type-equiv
+/** Revoke-all acknowledgement: the shared revocation time and the count. */
+interface RevokeAllDevicesResult {
+  readonly revokedAt: number
+  /** How many still-active grants this call revoked. */
+  readonly count: number
+}
+```
+
+```ts type-equiv
+/** Rename request for one grant. */
+interface RenameDeviceRequest {
+  readonly deviceId: DeviceId
+  /** The replacement display name, non-empty. */
+  readonly deviceName: string
 }
 ```
 
@@ -185,6 +209,24 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
 @Remote('revokeDevice') async revokeDevice(request: RevokeDeviceRequest): Promise<RevokeDeviceResult>
 
 /**
+ * Revoke every still-active grant — the lost-device panic path. Already
+ * revoked grants keep their original revocation time; the event carries
+ * exactly the identities this call revoked.
+ * @returns the shared revocation time and how many grants it revoked.
+ */
+@Remote('revokeAllDevices') async revokeAllDevices(): Promise<RevokeAllDevicesResult>
+
+/**
+ * Rename one grant's display name; the identity, key, and role are
+ * untouched, so an operator reconciling a re-paired device can relabel the
+ * stale and current identities without touching access.
+ * @param request - the addressed grant and its replacement name.
+ * @returns the renamed grant's fresh view.
+ * @throws RemoteError `device/not-found` or `gateway/bad-request`.
+ */
+@Remote('renameDevice') async renameDevice(request: RenameDeviceRequest): Promise<DeviceView>
+
+/**
  * Verify one signed admission and return the device's identity with its
  * section 21 permission set. Checks run cheapest-first: the grant must
  * exist and be active, the signed timestamp must sit inside the admission
@@ -203,6 +245,28 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
  * or `gateway/bad-request`.
  */
 @Remote('admitDevice') async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission>
+```
+
+Source: [`packages/api/device-trust/src/index.ts`](../../packages/api/device-trust/src/index.ts)
+
+<a id="devicetrust-events"></a>
+
+### `deviceTrust/*` events
+
+<a id="devicetrustgrantsrevoked--emit"></a>
+
+#### `deviceTrust/grantsRevoked` — emit
+
+Grants became revoked — by one revocation or revoke-all — so holders of still-open admitted streams must terminate them immediately.
+
+```ts cordis-catalog
+/**
+ * Grants became revoked — by one revocation or revoke-all — so holders of
+ * still-open admitted streams must terminate them immediately.
+ * @param revocation - the shared revocation time and the revoked identities.
+ * @mode emit
+ */
+'deviceTrust/grantsRevoked'(revocation: { readonly revokedAt: number; readonly deviceIds: readonly DeviceId[] }): void
 ```
 
 Source: [`packages/api/device-trust/src/index.ts`](../../packages/api/device-trust/src/index.ts)

@@ -52,6 +52,12 @@ async function boot(config: Partial<Config> = {}, root?: string): Promise<Device
   return ctx.deviceTrust
 }
 
+/** Boot like [boot] but also hand back the Context, for ctx-level event listeners. */
+async function bootWithContext(config: Partial<Config> = {}, root?: string): Promise<{ service: DeviceTrustService; ctx: Context }> {
+  const service = await boot(config, root)
+  return { service, ctx: (service as unknown as { ctx: Context }).ctx }
+}
+
 afterEach(async () => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
@@ -66,6 +72,8 @@ describe('device-trust capability device permissions', () => {
       ['device.admit.v1', undefined],
       ['device.list.v1', 'device.admin'],
       ['device.revoke.v1', 'device.admin'],
+      ['device.revoke-all.v1', 'device.admin'],
+      ['device.rename.v1', 'device.admin'],
     ])
   })
 })
@@ -171,6 +179,85 @@ describe('device-trust grants and revocation', () => {
     const { service } = await paired()
     await expect(service.revokeDevice({ deviceId: DeviceId('device-none') }))
       .rejects.toMatchObject({ code: 'device/not-found' })
+  })
+
+  it('revokes every active grant at once and keeps earlier revocations untouched', async () => {
+    const service = await boot()
+    const first = service.issuePairing('viewer')
+    const firstGrant = await service.redeemPairing({ code: first.code, deviceName: 'one', devicePublicKey: spkiB64(11) })
+    const second = service.issuePairing('collaborator')
+    const secondGrant = await service.redeemPairing({ code: second.code, deviceName: 'two', devicePublicKey: spkiB64(12) })
+    const earlier = await service.revokeDevice({ deviceId: firstGrant.deviceId })
+    const result = await service.revokeAllDevices()
+    expect(result.count).toBe(1)
+    expect(result.revokedAt).toBeGreaterThanOrEqual(earlier.revokedAt)
+    const views = service.listDevices()
+    expect(views.find(entry => entry.deviceId === firstGrant.deviceId)?.revokedAt).toBe(earlier.revokedAt)
+    expect(views.find(entry => entry.deviceId === secondGrant.deviceId)?.revokedAt).toBe(result.revokedAt)
+    expect(await service.revokeAllDevices()).toMatchObject({ count: 0 })
+  })
+
+  it('renames one grant without touching identity, key, or role', async () => {
+    const { service, deviceId } = await paired()
+    const renamed = await service.renameDevice({ deviceId, deviceName: '  tablet  ' })
+    expect(renamed).toMatchObject({ deviceId, deviceName: 'tablet', role: 'owner' })
+    expect(renamed.keyFingerprint).toBe(service.listDevices()[0]?.keyFingerprint)
+    await expect(service.renameDevice({ deviceId: DeviceId('device-none'), deviceName: 'x' }))
+      .rejects.toMatchObject({ code: 'device/not-found' })
+    await expect(service.renameDevice({ deviceId, deviceName: ' ' }))
+      .rejects.toMatchObject({ code: 'gateway/bad-request' })
+  })
+
+  it('carries the pairing platform and the admission-derived last-seen time in listings', async () => {
+    const service = await boot()
+    const issuance = service.issuePairing('collaborator')
+    const grant = await service.redeemPairing({
+      code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(13), platform: 'android',
+    })
+    const fresh = service.listDevices()[0]
+    expect(fresh).toMatchObject({ platform: 'android' })
+    expect(fresh).not.toHaveProperty('lastSeenAt')
+    await service.admitDevice({
+      deviceId: grant.deviceId, timestamp: Date.now(), nonce: 'nonce-seen', signature: 'unsigned',
+    }).then(() => undefined, () => undefined)
+    const key = ed25519()
+    const second = service.issuePairing('viewer')
+    const secondGrant = await service.redeemPairing({
+      code: second.code, deviceName: 'quiet phone', devicePublicKey: key.publicKeyB64,
+    })
+    const timestamp = Date.now()
+    await service.admitDevice({
+      deviceId: secondGrant.deviceId, timestamp, nonce: 'nonce-seen',
+      signature: key.sign(`${secondGrant.deviceId}\n${timestamp}\nnonce-seen`),
+    })
+    const seen = service.listDevices().find(entry => entry.deviceId === secondGrant.deviceId)
+    expect(seen?.lastSeenAt).toBe(timestamp)
+    const plain = service.issuePairing('viewer')
+    await service.redeemPairing({ code: plain.code, deviceName: 'bare', devicePublicKey: spkiB64(14) })
+    expect(service.listDevices().find(entry => entry.deviceName === 'bare')).not.toHaveProperty('platform')
+    const blank = service.issuePairing('viewer')
+    await expect(service.redeemPairing({ code: blank.code, deviceName: 'x', devicePublicKey: spkiB64(15), platform: '  ' }))
+      .rejects.toMatchObject({ code: 'gateway/bad-request' })
+  })
+
+  it('announces revoked identities for still-open admitted streams', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-events-'))
+    roots.push(root)
+    const first = await bootWithContext({}, root)
+    const key = ed25519()
+    const issuance = first.service.issuePairing('collaborator')
+    const grant = await first.service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: key.publicKeyB64 })
+    const events: Array<{ revokedAt: number; deviceIds: readonly DeviceIdType[] }> = []
+    first.ctx.on('deviceTrust/grantsRevoked', (revocation) => { events.push({ ...revocation }) })
+    const single = await first.service.revokeDevice({ deviceId: grant.deviceId })
+    expect(events).toEqual([{ revokedAt: single.revokedAt, deviceIds: [grant.deviceId] }])
+    const second = await bootWithContext({}, root)
+    const other = second.service.issuePairing('viewer')
+    const otherGrant = await second.service.redeemPairing({ code: other.code, deviceName: 'two', devicePublicKey: spkiB64(16) })
+    events.length = 0
+    second.ctx.on('deviceTrust/grantsRevoked', (revocation) => { events.push({ ...revocation }) })
+    const all = await second.service.revokeAllDevices()
+    expect(events).toEqual([{ revokedAt: all.revokedAt, deviceIds: [otherGrant.deviceId] }])
   })
 })
 

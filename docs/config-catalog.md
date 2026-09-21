@@ -213,7 +213,7 @@ export interface Config {
 export type DeviceRole = 'viewer' | 'collaborator' | 'controller' | 'owner'
 ```
 
-Source: [`packages/api/device-trust/src/index.ts:61`](../packages/api/device-trust/src/index.ts)
+Source: [`packages/api/device-trust/src/index.ts:72`](../packages/api/device-trust/src/index.ts)
 
 <a id="deepseek-aidsh-api-gateway"></a>
 
@@ -250,7 +250,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/api/gateway/src/index.ts:136`](../packages/api/gateway/src/index.ts)
+Source: [`packages/api/gateway/src/index.ts:138`](../packages/api/gateway/src/index.ts)
 
 <a id="deepseek-aidsh-api-host-description"></a>
 

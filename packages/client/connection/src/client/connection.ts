@@ -50,6 +50,7 @@ export type ConnectionState =
   | 'host-not-ready'
   | 'auth-expired'
   | 'device-revoked'
+  | 'identity-changed'
   | 'incompatible'
   | 'fatal'
 
@@ -62,7 +63,7 @@ export interface ConnectionSinks {
   /** Start one fresh physical-carrier attempt before each logical retry. */
   onReconnectRequested?: () => void
   /** Classify a generation failure that requires intervention; undefined keeps automatic retry. */
-  classifyFailure?: (error: unknown) => 'device-revoked' | 'incompatible' | 'fatal' | undefined
+  classifyFailure?: (error: unknown) => 'device-revoked' | 'identity-changed' | 'incompatible' | 'fatal' | undefined
 }
 
 /**
@@ -311,7 +312,7 @@ export class ConnectionController {
       if (!this.isRunning()) return
       const authenticationExpired = ac.signal.reason === AUTHENTICATION_EXPIRED
       if (!this.immediateRetry && this.networkAvailable && (authenticationExpired || failure !== undefined)) {
-        let blocked: 'auth-expired' | 'device-revoked' | 'incompatible' | 'fatal' | undefined
+        let blocked: 'auth-expired' | 'device-revoked' | 'identity-changed' | 'incompatible' | 'fatal' | undefined
         if (authenticationExpired) blocked = 'auth-expired'
         else this.callSink(() => { blocked = this.sinks.classifyFailure?.(failure) })
         if (!this.isRunning()) return

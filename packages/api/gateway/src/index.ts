@@ -115,6 +115,8 @@ interface RemoteEventClient {
   readonly deliveries: Map<RemoteEventId, PendingRemoteEvent>
   /** Interaction reply permissions this client holds; enforced Host-side on every result. */
   readonly replyPermissions: ReadonlySet<string>
+  /** The admitted device identity when the stream opened with one; anonymous streams leave it absent. */
+  readonly deviceId?: DeviceId
 }
 
 interface PendingRemoteEvent {
@@ -246,6 +248,15 @@ export class TypertGatewayService extends Service implements TypertGateway {
     ])
     ctx.on('internal/service', () => {
       this.srcClaims = undefined
+    })
+    // Section 22: revoking a device must immediately end its still-open
+    // admitted Remote event streams; device-trust announces the identities.
+    ctx.on('deviceTrust/grantsRevoked', (revocation) => {
+      for (const client of [...this.remoteEventClients.values()]) {
+        if (client.deviceId !== undefined && revocation.deviceIds.includes(client.deviceId)) {
+          this.removeRemoteEventClient(client)
+        }
+      }
     })
     ctx.inject(['connection'], (connectionCtx) => {
       connectionCtx.connection.rpc.intercept(
@@ -546,6 +557,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       replyPermissions: device === undefined
         ? this.interactionReplyPermissions
         : await this.admitDeviceClient(device),
+      ...device === undefined ? {} : { deviceId: device.deviceId as DeviceId },
     }
     this.remoteEventClients.set(clientId, client)
     for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)

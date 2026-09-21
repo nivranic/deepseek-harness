@@ -178,6 +178,7 @@ describe('SettingsRoot trigger', () => {
     ['incompatible', 'Update required', 'Host and Client are incompatible. Update the application, then reconnect'],
     ['fatal', 'Host data unavailable', 'Host data is invalid or unavailable. Automatic retries are paused; check Host, then reconnect'],
     ['device-revoked', 'Device revoked', 'This device grant was revoked on the Host and automatic retries are paused; pair again on the Host, then reconnect'],
+    ['identity-changed', 'Device identity changed', 'The Host no longer recognizes this device identity or key (a re-pair or Host reset), and automatic retries are paused; pair again, then reconnect'],
   ] as const)('shows %s recovery instructions even in the collapsed rail', (state, label, action) => {
     const mounted = mount({ wide: false, connectionState: state })
     const control = screen.getByRole('button', { name: action })

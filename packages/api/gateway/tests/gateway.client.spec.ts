@@ -2078,6 +2078,27 @@ describe('Client Typert API', () => {
     }
   })
 
+  it('classifies device admission identity verdicts for the Connection surface', async () => {
+    const { client, generation, start } = await benchFiber(vi.fn<ConnectionHandle['rpc']['call']>(), 'in-process')
+    const run = generation.start()
+    try {
+      const classify = start.mock.calls[0]?.[0].classifyFailure
+      expect(classify).toBeDefined()
+      // The details map is merge-extensible; this program has not linked the
+      // device-trust declaration, so the wire codes construct through a cast.
+      const deviceError = (code: string, details: Record<string, unknown>) =>
+        new RemoteError(code as never, code, details as never)
+      expect(classify?.(deviceError('device/already-revoked', { deviceId: 'd-1', revokedAt: 1 }))).toBe('device-revoked')
+      expect(classify?.(deviceError('device/not-found', { deviceId: 'd-1' }))).toBe('identity-changed')
+      expect(classify?.(deviceError('device/key-invalid', { reason: 'signature-mismatch' }))).toBe('identity-changed')
+      expect(classify?.(deviceError('device/replay-detected', { deviceId: 'd-1', reason: 'nonce-reuse' }))).toBe(undefined)
+      expect(classify?.(new TypeError('unrelated'))).toBe(undefined)
+    } finally {
+      await client.dispose()
+      await run.done.catch(() => undefined)
+    }
+  })
+
   it('propagates physical carrier failure and opens events for the replacement generation', async () => {
     const { ctx, client, carrier, generation, run } = await eventBench()
     const seen: string[] = []

@@ -2663,7 +2663,7 @@
         "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
         "packages/client/connection"
       ],
-      "remaining": "十个状态全部落地并有对应 UX：connecting/authenticating/ready/offline/reconnecting/host-not-ready/auth-expired/device-revoked/incompatible/fatal（packages/client/connection/src/client/connection.ts；device-revoked 由 classifyFailure 返回——Host 撤销设备授权即终态，SettingsRoot 以 locale 键 connection.deviceRevoked/DeviceRevokedAction 呈现重配对指引并暂停自动重试，§15/§21 的签名准入提供撤销触发源）。完整多版本/多语言矩阵、闭合错误语义和变更身份确认仍待验证。",
+      "remaining": "规格的十个状态全部落地并有对应 UX，变更身份确认为第十一个状态收口：connecting/authenticating/ready/offline/reconnecting/host-not-ready/auth-expired/device-revoked/identity-changed/incompatible/fatal（packages/client/connection/src/client/connection.ts；device-revoked 与 identity-changed 由网关 client 的 classifyFailure 映射 device/already-revoked 与 device/not-found+device/key-invalid（本次修复了 device-revoked 此前无生产方分类器、状态不可达的缺陷）；SettingsRoot 以 locale 键呈现两类重配对指引并暂停自动重试，§15/§21 的签名准入提供触发源）。完整多版本/多语言矩阵与闭合错误语义仍待验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2981,7 +2981,7 @@
         "SECURITY_STATUS.md",
         "ARCHITECTURE_DECISIONS.md"
       ],
-      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。",
+      "remaining": "本节清单全部落地：revoke one（revokeDevice）、revoke all（revokeAllDevices，返回共享撤销时间与数量）、rename（renameDevice，不动身份/密钥/角色）、last seen（列表暴露持久化 lastSeenAt=最后接受准入时间）、platform（配对请求携带客户端声明的平台标签，Android 发送 android，夹具接受）、key fingerprint、pairedAt、role 均在 DeviceView 列表（packages/api/device-trust）。设备撤销后立即断开已有流已实现并测试：device-trust 派发类型化事件 deviceTrust/grantsRevoked（撤销时间+身份列表），网关为每个已准入 Remote 事件流 client 记录 deviceId，事件到达即终止该流（gateway-stream 测试以流 end 帧断言）。安全存储于 Host 侧凭据链；重放防护见 nonce 账本记录；降级威胁审查与远端执行授权见 §21 记录；管理 UI（rename/revoke-all 的设置页呈现）归 §7-§11 产品线；保留既有 local Host/Origin 防线。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

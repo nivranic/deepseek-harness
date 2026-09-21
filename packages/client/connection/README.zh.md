@@ -57,7 +57,7 @@ API Gateway Client 把内部 `$events` 逻辑流注册为唯一 generation sourc
 
 `ctx.connection.reconnect()` 会中断活动工作、重置序列，并立即开始 retry 1。浏览器 `offline` 会中断活动工作、发布 `offline` 并暂停自动尝试；下一次 `online` 转换会重置序列并从 500ms 档开始。只有 ready 项会发布 `ready`。Gateway mux 不拥有独立重试调度。
 
-generation owner 可把失败尝试分类为 `incompatible`、`fatal` 或 `device-revoked`（Host 已撤销此设备授权；重新配对后再重连）。这三种状态撤回就绪状态，并暂停自动尝试，直到手动重连或浏览器网络状态变化。分类在 source 清理结束后执行；取消错误不能覆盖已请求的重连或离线状态。未分类的失败继续持续恢复。Connection 拥有调度，Gateway 拥有应用错误分类。
+generation owner 可把失败尝试分类为 `incompatible`、`fatal`、`device-revoked`（Host 已撤销此设备授权；重新配对后再重连）或 `identity-changed`（Host 已不再识别此设备身份或密钥——重新配对或 Host 重置；重新配对后再重连）。这四种状态撤回就绪状态，并暂停自动尝试，直到手动重连或浏览器网络状态变化。分类在 source 清理结束后执行；取消错误不能覆盖已请求的重连或离线状态。未分类的失败继续持续恢复。Connection 拥有调度，Gateway 拥有应用错误分类。
 
 当前 generation 发起的请求收到 HTTP 401 后发布 `auth-expired`，取消该 generation 并暂停自动恢复。此状态表示浏览器认证缺失、过期或因其他原因被拒绝；Host 的最小响应不披露具体原因。旧 generation 或已取消调用者的迟到响应不能使替换 generation 失效。HTTP 403 与业务错误响应不代表认证过期。请通过 Host 当前启动链接重新建立有效浏览器会话，再显式重连；Connection 不重新提交失败请求。[Gateway](../../api/gateway/README.zh.md)独立拥有已完成交互回答的重试。
 

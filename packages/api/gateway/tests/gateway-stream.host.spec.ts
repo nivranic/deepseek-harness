@@ -1468,6 +1468,21 @@ describe('Typert Gateway device admission', () => {
     await unregister()
   })
 
+  it('terminates an admitted Remote event stream immediately when its device is revoked', { timeout: 30_000 }, async () => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const device = await pairDevice(ctx, 'collaborator')
+    const client = await openEventClient(ctx, 'events-revoke-disconnect', 2, admissionOf(device))
+    await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+    await vi.waitFor(() => {
+      const ended = client.frames.find(frame => frame.type === 'end' && frame.streamId === client.streamId)
+      expect(ended).toBeDefined()
+    })
+    client.socket.close()
+    await unregister()
+  })
+
   it('rejects the admission of a revoked device', async () => {
     const ctx = await setupDevices()
     const source = new RemoteEventSourceProbe()
