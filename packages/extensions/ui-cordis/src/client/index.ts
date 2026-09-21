@@ -47,6 +47,22 @@ export function apply(ctx: ClientContext): void {
 
   const lifetime = { disposed: false }
   const connection = ctx.get('connection') as ConnectionHandle
+  // Both inventory-backed registrations reopen per admitted Host with a guard
+  // pinned to the Host they opened on.
+  const beginAdmittedRegistration = (): {
+    readonly host: ReturnType<typeof currentHost>
+    readonly current: () => boolean
+    readonly done: () => void
+  } | undefined => {
+    if (!supports('inventory')) return undefined
+    const host = currentHost()
+    let alive = true
+    return {
+      host,
+      current: () => alive && !lifetime.disposed && currentHost() === host,
+      done: () => { alive = false },
+    }
+  }
   const currentHost = () => ctx.remote.$host
   const supports = (operation: string): boolean => !lifetime.disposed
     && currentHost().capabilities?.includes('dynamic-cordis.' + operation + '.v1') === true
@@ -113,10 +129,9 @@ export function apply(ctx: ClientContext): void {
     const register = (): void => {
       remove?.()
       remove = undefined
-      if (!supports('inventory')) return
-      const host = currentHost()
-      let alive = true
-      const current = (): boolean => alive && !lifetime.disposed && currentHost() === host
+      const admitted = beginAdmittedRegistration()
+      if (admitted === undefined) return
+      const { host, current, done } = admitted
       const requireCurrent = (): void => { if (!current()) throw new Error('Dynamic Cordis connection changed') }
       const supported = (operation: string): boolean => host.capabilities?.includes('dynamic-cordis.' + operation + '.v1') === true
       const canRun = (client: boolean): boolean => supported('run')
@@ -163,7 +178,7 @@ export function apply(ctx: ClientContext): void {
           onRefresh: () => { if (current()) refreshInventory() },
         }),
       }, PanelForConnection)
-      remove = () => { alive = false; unregister() }
+      remove = () => { done(); unregister() }
     }
     register()
     const stop = connection.generation.subscribe(register)
@@ -209,10 +224,9 @@ export function apply(ctx: ClientContext): void {
     const register = (): void => {
       remove?.()
       remove = undefined
-      if (!supports('inventory')) return
-      const host = currentHost()
-      let alive = true
-      const current = (): boolean => alive && !lifetime.disposed && currentHost() === host
+      const admitted = beginAdmittedRegistration()
+      if (admitted === undefined) return
+      const { current, done } = admitted
       const source: InputTriggerSource = {
         trigger: '@',
         name: 'cordis',
@@ -234,7 +248,7 @@ export function apply(ctx: ClientContext): void {
         onPick({ candidate }) { return current() ? { text: `@${candidate.name} ` } : undefined },
       }
       const unregister = slash.registerSource(source)
-      remove = () => { alive = false; unregister() }
+      remove = () => { done(); unregister() }
     }
     register()
     const stop = connection.generation.subscribe(register)

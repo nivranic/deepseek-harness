@@ -120,6 +120,8 @@ export function apply(ctx: ClientContext): void {
       }
       return undefined
     },
+    // session-file tab resolution restated deliberately (client bundle purity forbids the shared-helper import)
+    /* jscpd:ignore-start */
     canOpenReference(session, { ref, appearance }) {
       if (appearance !== 'file') return false
       const path = ref.startsWith('@"') ? ref.slice(2, -1) : ref.slice(1)
@@ -135,6 +137,7 @@ export function apply(ctx: ClientContext): void {
       ctx.sidebarRight.openResource(fileAddressFor(session.sessionId, cwd, path))
       return true
     },
+    /* jscpd:ignore-end */
     codec: {
       clipboardText: ref => ref,
       serialize: ref => Promise.resolve(ref),

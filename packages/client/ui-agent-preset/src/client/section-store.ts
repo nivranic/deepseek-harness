@@ -199,9 +199,7 @@ export class AgentPresetSectionController {
         this.set({ error: failure })
         return
       }
-      const effectiveDefault = await this.confirmEffectiveDefault(showPicker)
-      if (effectiveDefault === undefined || this.ctx.remote.$host !== host) return
-      const syncFailure = await syncBlankSession?.(effectiveDefault)
+      const syncFailure = await this.settlePolicyWrite(host, showPicker, syncBlankSession)
       if (syncFailure !== undefined) this.set({ error: syncFailure })
     } catch (error: unknown) {
       if (this.ctx.remote.$host !== host) return
@@ -210,6 +208,25 @@ export class AgentPresetSectionController {
     } finally {
       if (this.ctx.remote.$host === host) this.set({ policySaving: false })
     }
+  }
+
+  /**
+   * Shared settle tail for writes held under the policy-saving lock: confirm
+   * the effective default for the picker visibility just written, then run the
+   * optional blank-session sync.
+   * @param host - the Host the write started on; a replacement abandons the tail.
+   * @param showPicker - the picker visibility the write established.
+   * @param syncBlankSession - optional current-blank-task sync.
+   * @returns the sync failure copy to surface, or undefined when it settled clean.
+   */
+  private async settlePolicyWrite(
+    host: typeof this.ctx.remote.$host,
+    showPicker: boolean,
+    syncBlankSession?: (id: string) => Promise<string | undefined>,
+  ): Promise<string | undefined> {
+    const effectiveDefault = await this.confirmEffectiveDefault(showPicker)
+    if (effectiveDefault === undefined || this.ctx.remote.$host !== host) return undefined
+    return await syncBlankSession?.(effectiveDefault)
   }
 
   private patchCopy(patch: Partial<CopyDraft>): void {
@@ -466,9 +483,7 @@ export class AgentPresetSectionController {
         this.set({ error: failure })
         return
       }
-      const effectiveDefault = await this.confirmEffectiveDefault(true)
-      if (effectiveDefault === undefined || this.ctx.remote.$host !== host) return
-      const syncFailure = await syncBlankSession?.(effectiveDefault)
+      const syncFailure = await this.settlePolicyWrite(host, true, syncBlankSession)
       if (syncFailure !== undefined) this.set({ error: syncFailure })
     } catch (error: unknown) {
       if (this.ctx.remote.$host !== host) return

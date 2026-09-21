@@ -24,6 +24,8 @@ export const inject = ['resources', 'remote', 'remote.workspaceFiles']
 export function apply(ctx: ClientContext): void {
   const changes = new ChangeFeed(ctx.remote)
   ctx.effect(() => {
+    // admitted-Host lifecycle scaffold is deliberately self-contained (client bundle purity forbids cross-plugin client-face value imports)
+    /* jscpd:ignore-start */
     let host: typeof ctx.remote.$host | undefined
     let remove: (() => void) | undefined
     const refresh = (): void => {
@@ -38,6 +40,7 @@ export function apply(ctx: ClientContext): void {
       const release = ctx.resources.register(provider)
       remove = () => { lifetime.abort(); release() }
     }
+    /* jscpd:ignore-end */
     refresh()
     const stop = ctx.on('connection/reset', refresh)
     return async () => {

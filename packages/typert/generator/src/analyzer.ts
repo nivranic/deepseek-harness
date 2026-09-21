@@ -682,10 +682,15 @@ class FaceAnalyzer {
     return {
       face: this.face,
       packages,
-      graph: {
-        declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
-        nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
-      },
+      graph: this.sortedGraph(),
+    }
+  }
+
+  /** Shared result graph: both face analyses return id-sorted declarations and nodes. */
+  private sortedGraph(): { declarations: readonly TypeDeclarationModel[]; nodes: readonly TypeNodeModel[] } {
+    return {
+      declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
+      nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
     }
   }
 
@@ -808,10 +813,7 @@ class FaceAnalyzer {
     return {
       face: this.face,
       errors: [...errors.values()].sort((left, right) => left.code.localeCompare(right.code)),
-      graph: {
-        declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
-        nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
-      },
+      graph: this.sortedGraph(),
     }
   }
 

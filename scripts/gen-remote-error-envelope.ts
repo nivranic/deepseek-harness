@@ -1,7 +1,7 @@
 /** Generate the portable Remote failure envelope from independent compiler-face codecs. */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { runGeneratorCli } from './gen-script-cli.ts'
 import { isDeepStrictEqual } from 'node:util'
 import { z } from 'zod'
 import { emitRemoteErrorSchemas } from '@deepseek-ai/dsh-typert-generator'
@@ -79,9 +79,7 @@ export function renderRemoteErrorEnvelopeSchema(
   }, null, 2) + '\n'
 }
 
-if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2)
-  if (args.length > 1 || args.length === 1 && args[0] !== '--check') throw new Error('Usage: gen-remote-error-envelope.ts [--check]')
+runGeneratorCli({ url: import.meta.url, usage: 'gen-remote-error-envelope.ts [--check]' }, async (check) => {
   const root = resolve(import.meta.dirname, '..')
   const { expected, model } = analyzeRemoteErrorWorkspace(root)
   const faces: RemoteErrorSchemaFace[] = []
@@ -94,8 +92,8 @@ if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(
   }
   const result = renderRemoteErrorEnvelopeSchema(expected, faces)
   const path = resolve(root, output)
-  if (args[0] === '--check') {
+  if (check) {
     if (readFileSync(path, 'utf8') !== result) throw new Error(`${output} is stale; run pnpm run gen-remote-error-envelope`)
   } else writeFileSync(path, result)
-  console.log(`${output}: ${args[0] === '--check' ? 'current' : 'generated'}; ${String(expected.length)} known codes plus opaque unknowns`)
-}
+  console.log(`${output}: ${check ? 'current' : 'generated'}; ${String(expected.length)} known codes plus opaque unknowns`)
+})

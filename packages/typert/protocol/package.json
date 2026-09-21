@@ -29,10 +29,10 @@
   },
   "files": [
     "lib/index.js",
-    "lib/types/**/*.js",
-    "lib/types/**/*.d.ts",
     "remote-error-codes.schema.json",
-    "remote-errors.schema.json"
+    "remote-errors.schema.json",
+    "lib/types/**/*.js",
+    "lib/types/**/*.d.ts"
   ],
   "license": "MIT",
   "peerDependencies": {

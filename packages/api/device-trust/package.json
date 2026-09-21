@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-api-device-trust",
   "description": "Device-trust seam on the candidate gateway: one-time pairing issuance, device grants, and revocation",
-  "version": "0.1.2-alpha.1",
+  "version": "0.1.5-rc.2",
   "publishConfig": {
     "access": "public"
   },
@@ -42,13 +42,13 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "lib/index.js",
     "lib/types/**/*.js",
     "lib/types/**/*.d.ts",
     "lib/typert.host.js",
     "lib/typert.host.d.ts",
     "lib/typert.remote-client.js",
-    "lib/typert.remote-client.d.ts",
-    "lib/index.js"
+    "lib/typert.remote-client.d.ts"
   ],
   "license": "MIT",
   "peerDependencies": {

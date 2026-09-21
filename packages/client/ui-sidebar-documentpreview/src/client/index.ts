@@ -91,6 +91,8 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-sidebar-documentpreview: dictionaries')
 
   ctx.effect(() => {
+    // admitted-Host lifecycle scaffold is deliberately self-contained (client bundle purity forbids cross-plugin client-face value imports)
+    /* jscpd:ignore-start */
     let host: typeof ctx.remote.$host | undefined
     let remove: (() => void) | undefined
     const refresh = (): void => {
@@ -141,6 +143,7 @@ export function apply(ctx: ClientContext): void {
       }, 'ui-sidebar-documentpreview: admitted Host entries')
       remove = () => { lifetime.abort(); void dispose() }
     }
+    /* jscpd:ignore-end */
     refresh()
     const stop = ctx.on('connection/reset', refresh)
     return () => { stop(); remove?.() }

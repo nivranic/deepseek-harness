@@ -2,7 +2,7 @@
 
 import { globSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { runGeneratorCli } from './gen-script-cli.ts'
 import ts from 'typescript'
 import { parseJsDoc, rawJsDoc } from './jsdoc.ts'
 
@@ -89,18 +89,16 @@ export function renderRemoteErrorCodeSchema(sources: readonly RemoteErrorSource[
   }, null, 2) + '\n'
 }
 
-if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2)
-  if (args.length > 1 || args.length === 1 && args[0] !== '--check') throw new Error('Usage: gen-remote-error-codes.ts [--check]')
+runGeneratorCli({ url: import.meta.url, usage: 'gen-remote-error-codes.ts [--check]' }, (check) => {
   const paths = globSync(['packages/*/*/src/**/*.ts', 'packages/*/*/src/**/*.tsx',
     'packages/*/*/src/**/*.mts', 'packages/*/*/src/**/*.cts'], { cwd: ROOT }).sort()
   const result = renderRemoteErrorCodeSchema(paths.map(path => ({
     path: path.replaceAll('\\', '/'), text: readFileSync(resolve(ROOT, path), 'utf8'),
   })))
-  if (args[0] === '--check') {
+  if (check) {
     if (readFileSync(resolve(ROOT, OUTPUT), 'utf8') !== result) {
       throw new Error(`${OUTPUT} is stale; run pnpm run gen-remote-error-codes`)
     }
   } else writeFileSync(resolve(ROOT, OUTPUT), result)
-  console.log(`${OUTPUT}: ${args[0] === '--check' ? 'current' : 'generated'}`)
-}
+  console.log(`${OUTPUT}: ${check ? 'current' : 'generated'}`)
+})

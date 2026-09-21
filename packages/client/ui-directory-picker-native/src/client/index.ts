@@ -28,6 +28,8 @@ export const inject = ['slots', 'uiWorkspace', 'remote']
 export function apply(ctx: ClientContext): void {
   ctx.slots.inject('conversation.hero.workspace.directoryFlow', () =>
     ctx.slots.inject('sidebar.workspaces.directoryFlow', () => {
+      // per-admitted-Host registration restated deliberately (client bundle purity forbids the shared-helper import)
+      /* jscpd:ignore-start */
       let currentHost: typeof ctx.remote.$host | undefined
       let remove: (() => void) | undefined
       const refresh = (): void => {
@@ -53,6 +55,7 @@ export function apply(ctx: ClientContext): void {
         }, 'directory-picker-native: admitted Host entries')
         remove = () => { lifetime.abort(); void dispose() }
       }
+      /* jscpd:ignore-end */
       refresh()
       const stop = ctx.on('connection/reset', refresh)
       return () => { stop(); remove?.() }

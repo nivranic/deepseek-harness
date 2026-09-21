@@ -161,6 +161,12 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   '@deepseek-ai/dsh-client-ui-theme': ['lib/styles'],
   // The CPython side ships as source .py files, published as-is rather than built.
   '@deepseek-ai/dsh-experimental-code-runtime-python': ['py/**/*.py'],
+  // The protocol publishes its generated failure-vocabulary schemas for native
+  // mirror generators; they are data artifacts, not build outputs.
+  '@deepseek-ai/dsh-typert-protocol': ['remote-error-codes.schema.json', 'remote-errors.schema.json'],
+  // The browser-safe emitted tree under lib/types keeps its CSS modules next
+  // to the JavaScript that imports them by relative path.
+  '@deepseek-ai/dsh-client-ui-deliverables': ['lib/types/**/*.css'],
   // The shipped preset compositions travel inside the roster package.
   '@deepseek-ai/dsh-agent-presets': ['presets'],
   // The Web Host mounts the default-off settings owner independently of each

@@ -188,6 +188,8 @@ export function apply(ctx: ClientContext): void {
         if (listeners.size === 0) lexiconListeners.delete(key)
       }
     },
+    // session-file tab resolution restated deliberately (client bundle purity forbids the shared-helper import)
+    /* jscpd:ignore-start */
     canOpenReference(session, { ref }) {
       if (!supported()) return false
       if (sessions.subagentAddress(session.sessionId) !== undefined) return false
@@ -205,6 +207,7 @@ export function apply(ctx: ClientContext): void {
       ctx.sidebarRight.openResource(fileAddressFor(session.sessionId, cwd, path))
       return true
     },
+    /* jscpd:ignore-end */
     onPick({ candidate }) {
       if (!supported()) return undefined
       // Plain-text-reference decision (web-input-machine note): the pick

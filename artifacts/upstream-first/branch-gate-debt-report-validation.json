@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Branch gate debt; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/branch-gate-debt-source.json",
+    "sha256": "63962384a6620b880c9bd41306b2a2fea93f4866e525d4e577193c919fcf05eb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3b9c4163cc7013e3858d87eaa8f01ef347e53cc6a108d2070c17e097f6800c87"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/branch-gate-debt-binding.json",
+    "sha256": "87127bb8554e88e5f7457987e1a7512bdee74a03b3e71b9202d2b67991f497b9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-branch-gate-debt-reports.mjs",
+      "sha256": "df1a7ca4adafdbecd89b3eef312bcd12ea083331e9f86eb0dbff789d9b203cf5"
+    },
+    {
+      "path": ".artifacts/capture-branch-gate-debt-validation.mjs",
+      "sha256": "b529cd6ed5b51f13dbe5716ed5faaad691233378e0a794d32612cecfd43e549c"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "90cc9520df1337025ec8e7c18425696a04f93a9dc830e824488d4571b2b72d15"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "57d07bd9b25c7a46c482debb16849ea525c7bf430d300682f47c9683422aa53a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/branch-gate-debt-binding.log",
+      "sha256": "2c6cfc8d9f46008638b07d03fa33a9d7dbf7aece3c285db3f4fd86bda5c675db"
+    },
+    {
+      "path": ".artifacts/branch-gate-debt-audit-tests.log",
+      "sha256": "b990742c7520eb848df611c78fdf8ed38394ad518e79eb687d5e51ef8b267a16"
+    },
+    {
+      "path": ".artifacts/branch-gate-debt-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/branch-gate-debt-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/branch-gate-debt-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}
