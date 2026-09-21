@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/foldable-frame-source.json",
+    "sha256": "73785fd13c40174bdcb581deb7464ed661685caa841fbfc32df5b05548317031"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "819cca6aa38d9d17dde78a3b45b24099676380d458ee5d847db8d918ca7484e2"
+  },
+  "helper": {
+    "path": ".artifacts/check-foldable-frame-binding.mjs",
+    "sha256": "824d1bbd73ae4c7ce6eeebf4e570e6659de706d26c69b0ce743a8481da88b45e"
+  }
+}

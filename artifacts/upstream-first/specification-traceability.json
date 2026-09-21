@@ -1589,7 +1589,7 @@
         "PLATFORM_VERIFICATION.md",
         "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "安全区已落地（§8 Safe Area）：页面 viewport 声明 viewport-fit=cover，ui-theme 在 :root 定义 --dsw-safe-area-{top,right,bottom,left}=env(safe-area-inset-*, 0px)，AppFrame 壳层以四边 padding 收进 Dynamic Island/Home Indicator/横屏边缘，手机档悬浮抽屉与拖拽手柄按同一变量锚定（packages/client/ui-layout、ui-theme、apps/web；六项源级 pin 测试）。虚拟键盘已落地：AppFrame 订阅 visualViewport（resize+scroll，scale===1 且高度小于 innerHeight 判定为键盘遮挡），遮挡期间把框架钉在可视高度——输入区随中栏底部保持在键盘之上，键盘收起或双指缩放时还原样式表高度（packages/client/ui-layout，49 项测试含五项键盘避让用例）；旋转与 Foldable 尚未落地；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
+      "remaining": "安全区已落地（§8 Safe Area）：页面 viewport 声明 viewport-fit=cover，ui-theme 在 :root 定义 --dsw-safe-area-{top,right,bottom,left}=env(safe-area-inset-*, 0px)，AppFrame 壳层以四边 padding 收进 Dynamic Island/Home Indicator/横屏边缘，手机档悬浮抽屉与拖拽手柄按同一变量锚定（packages/client/ui-layout、ui-theme、apps/web；六项源级 pin 测试）。虚拟键盘已落地：AppFrame 订阅 visualViewport（resize+scroll，scale===1 且高度小于 innerHeight 判定为键盘遮挡），遮挡期间把框架钉在可视高度——输入区随中栏底部保持在键盘之上，键盘收起或双指缩放时还原样式表高度（packages/client/ui-layout，49 项测试含五项键盘避让用例）；旋转与 Foldable 已结构性收口：AppFrame 从不读取 window.innerWidth，布局只随框架自身盒（ResizeObserver）测量变化——折叠屏窗口尺寸变化因此天然适配（新测试：折叠窗口变化经框架盒测量生效 + 源级 pin 禁止 innerWidth；packages/client/ui-layout，51 项）；旋转依赖同一宽度分层与 env() 安全区（随方向旋转），iPhone/iPad/Android 平板的方向矩阵实测仍待真机；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

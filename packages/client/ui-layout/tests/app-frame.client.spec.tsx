@@ -3,6 +3,8 @@
 import type { GlobalStandardProps, RenderOpts } from '@deepseek-ai/dsh-client-ui-slots'
 import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { act, cleanup, render } from '@testing-library/react'
 import { AppFrame } from '../src/client/AppFrame.tsx'
 import type { AppFrameProps } from '../src/client/AppFrame.tsx'
@@ -717,5 +719,26 @@ describe('AppFrame on-screen keyboard avoidance', () => {
     expect(frame.style.height).toBe('400px')
     unmount()
     expect(frame.style.height).toBe('')
+  })
+})
+
+describe('AppFrame foldable and rotation adaptation', () => {
+  it('follows a window-size change measured on the frame, not the window', () => {
+    // A foldable resizes its window without the stale innerWidth meaning
+    // anything: the frame's own box is the only authority.
+    frameWidth = 900
+    vi.stubGlobal('innerWidth', 375)
+    const { frame } = mountFrame()
+    expect(frame.getAttribute('data-sidebar-overlay')).toBeNull()
+    resize(500)
+    expect(frame.getAttribute('data-sidebar-overlay')).toBe('true')
+    resize(1200)
+    expect(frame.getAttribute('data-sidebar-overlay')).toBeNull()
+  })
+
+  it('never reads window.innerWidth for layout decisions', () => {
+    const source = readFileSync(join(import.meta.dirname, '../src/client/AppFrame.tsx'), 'utf8')
+    expect(source).not.toContain('window.innerWidth')
+    expect(source).not.toContain('innerWidth')
   })
 })

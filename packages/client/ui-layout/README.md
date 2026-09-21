@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package provides the Web GUI's three-column AppFrame, edge-column widths, and `ctx.layout` presentation control. The right column concedes space before the center; its occupant renders fullscreen while the frame retains the wide-screen track underneath. The theme presenter owns color scheme, alias tokens, content font size, and document metadata. The frame keeps every column and overlay inside the notched-device safe areas (`env(safe-area-inset-*)` under `viewport-fit=cover`) and pins itself to the visible height while the on-screen keyboard covers the visual viewport. Layout state resets on reload.
+This package provides the Web GUI's three-column AppFrame, edge-column widths, and `ctx.layout` presentation control. The right column concedes space before the center; its occupant renders fullscreen while the frame retains the wide-screen track underneath. The theme presenter owns color scheme, alias tokens, content font size, and document metadata. The frame keeps every column and overlay inside the notched-device safe areas (`env(safe-area-inset-*)` under `viewport-fit=cover`) and pins itself to the visible height while the on-screen keyboard covers the visual viewport. Layout never reads `window.innerWidth`: the frame's own box drives every tier, so foldable window changes adapt directly. Layout state resets on reload.
 
 ## Table of Contents
 
