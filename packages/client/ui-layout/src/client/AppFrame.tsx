@@ -130,6 +130,35 @@ export function AppFrame({
   const frameRef = useRef<HTMLDivElement | null>(null)
   const viewport = layoutInfo.viewportWidth
 
+  // The on-screen keyboard (iOS keyboard, Android IME, or a floating
+  // keyboard) can shrink the visual viewport without resizing the layout
+  // viewport: pin the frame to the visible height so the bottom of the
+  // conversation, including the composer, never sits under it. Pinch zoom
+  // also shrinks the visual viewport, but it is zoom, not the keyboard — the
+  // frame keeps its layout box there.
+  useLayoutEffect(() => {
+    const viewport = window.visualViewport
+    const el = frameRef.current
+    /* v8 ignore next -- the ref is always attached by effect time: the frame div renders unconditionally. */
+    // Runtime `undefined` (jsdom, older browsers) arrives typed as `null`;
+    // fold both absences into one undefined guard.
+    const view: VisualViewport | undefined = viewport ?? undefined
+    if (view === undefined || el === null) return
+    const apply = () => {
+      const keyboardCovers = view.scale === 1 && view.height < window.innerHeight - 1
+      if (keyboardCovers) el.style.height = `${view.height}px`
+      else el.style.removeProperty('height')
+    }
+    apply()
+    view.addEventListener('resize', apply)
+    view.addEventListener('scroll', apply)
+    return () => {
+      view.removeEventListener('resize', apply)
+      view.removeEventListener('scroll', apply)
+      el.style.removeProperty('height')
+    }
+  }, [])
+
   // Track the frame's own box (not the window): rAF-throttled ResizeObserver.
   useLayoutEffect(() => {
     const el = frameRef.current

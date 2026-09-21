@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-本包提供 Web GUI 的三栏 AppFrame、左右栏宽度与 `ctx.layout` 呈现控制。右栏先让步以保护中栏空间，全屏由占用方呈现，框架保留宽屏底层轨道。主题呈现器负责配色、别名 token、正文字号与 document 元数据；框架让每一栏与悬浮层都留在刘海屏安全区内（`viewport-fit=cover` 下的 `env(safe-area-inset-*)`）；布局状态在刷新后重置。
+本包提供 Web GUI 的三栏 AppFrame、左右栏宽度与 `ctx.layout` 呈现控制。右栏先让步以保护中栏空间，全屏由占用方呈现，框架保留宽屏底层轨道。主题呈现器负责配色、别名 token、正文字号与 document 元数据。框架让每一栏与悬浮层都留在刘海屏安全区内（`viewport-fit=cover` 下的 `env(safe-area-inset-*)`），屏幕键盘遮挡可视视口期间把自身钉在可见高度上。布局状态在刷新后重置。
 
 ## 目录
 

@@ -5,71 +5,42 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "54d9e9e68eda8f7e8d02edf09c4f1278f2f52941428ffa5645566d696410d86c"
-    },
-    {
-      "path": "apps/web/index.html",
-      "sha256": "31d2ef43715e880ad8cc2e647f0f117200ce4bd11af0deb5871696295e6041e9"
+      "sha256": "d26bb75002655b9dae619edde729be6a0cce04df5833df7ede363ff30df2b647"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "ece74d7faa45f764902c29f78a007b5e34789b7d18788d6392070fd635629b5f"
+      "sha256": "1129927084daa5af4e6dec35a8805b470ce11a0a65132a91716f9389969c8ec5"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "65c7b06a90edcef0f0106a53c494132054c60f19054abc1fb327a4df4f1e2558"
+      "sha256": "56576d1e5f48b4e3530f9af090e53bb12c20336efa421b02c43643130d3cb2ab"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "4e773c9bc994220622e91179f25b8a58110f8f203602a292e3c52d9b4fac89b1"
+      "sha256": "6edee7bba3b1b381c774099ce5f9b2a35c0bc59ec1bce2eebf247fc57570ae54"
     },
     {
       "path": "packages/client/ui-layout/README.i18n.yaml",
-      "sha256": "66d060bdf680f30fe3c6ccf1fe3855f91846435fb2e8ac96ffec99e75c540a57"
+      "sha256": "cee486c34c44108e72a5ac0e0d141f923ebce5e2b4087159f3a609daf57520d7"
     },
     {
       "path": "packages/client/ui-layout/README.md",
-      "sha256": "8e6ca4202cf416f2ec723e0962d4167bc1574aff21e55d7bc18db8e96638ee27"
+      "sha256": "0a63768eb0946aeab29850795c68be6f0183e5ddb79484e2bdfd3c20918bfa55"
     },
     {
       "path": "packages/client/ui-layout/README.zh.md",
-      "sha256": "0cb1f09ac759d74a3bb4609dfa2861df33f30210ff35d7b1823633e12b0e0c79"
+      "sha256": "671363f111bc0911b8bc4de200030a0923189ef6bb76e15604e43d5f681bc163"
     },
     {
-      "path": "packages/client/ui-layout/src/client/AppFrame.module.css",
-      "sha256": "8ca4de10c5822580ed3a58180bd0c02e295efdf67e60daa02c4882629d860f24"
+      "path": "packages/client/ui-layout/src/client/AppFrame.tsx",
+      "sha256": "57023abde9300f5ff1f500abe10dfa1b0942e6d2f6c6eb80eecfa144eb99a3da"
     },
     {
-      "path": "packages/client/ui-theme/README.i18n.yaml",
-      "sha256": "9c353c0ec2faed3b6fd96dc272189a27843a8f593e8ec39e80ae85aec6db3704"
-    },
-    {
-      "path": "packages/client/ui-theme/README.md",
-      "sha256": "5729211f178b0533773e71fbcea4d2b17e285bafcaa6be89e697e5c392026ecd"
-    },
-    {
-      "path": "packages/client/ui-theme/README.zh.md",
-      "sha256": "2693d7079e4db278988f30bb539765a6acdfe84985eec63621b0858e51f2a4b3"
-    },
-    {
-      "path": "packages/client/ui-theme/src/styles/base.css",
-      "sha256": "804de18323a4af6c338e8b7eca9a4967ff06074dbe66806fecb45edf81f3051f"
+      "path": "packages/client/ui-layout/tests/app-frame.client.spec.tsx",
+      "sha256": "dc4561c7d18c139376b3280ece590e953bfdd5da21149354f06c9961d339bc59"
     }
   ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "apps/web/tests/viewport-meta.spec.ts",
-      "sha256": "c986f23402d8135c1748147d73287ef3c3ea16813d228a3f5931f75691f8dfb0"
-    },
-    {
-      "path": "packages/client/ui-layout/tests/safe-area-styles.client.spec.ts",
-      "sha256": "e7e0f30c95302d4db885863640713f44777cd62bfc70422b156dbb528230c73d"
-    },
-    {
-      "path": "packages/client/ui-theme/tests/safe-area-styles.client.spec.ts",
-      "sha256": "cd0ba9b8434a53d7d478d2af995168b48bfe3e301c1f19a4b59b667d49c7cea0"
-    }
-  ],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -6217,6 +6188,36 @@
     },
     {
       "status": "PASS",
+      "command": "ui-layout full suite: 122 passed including the five on-screen keyboard avoidance cases",
+      "log": ".artifacts/keyboard-avoidance-tests.log",
+      "sourceRecord": "artifacts/upstream-first/keyboard-avoidance-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck after the AppFrame effect",
+      "log": ".artifacts/keyboard-avoidance-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/keyboard-avoidance-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/keyboard-avoidance-lint.log",
+      "sourceRecord": "artifacts/upstream-first/keyboard-avoidance-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the bilingual layout README update",
+      "log": ".artifacts/keyboard-avoidance-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/keyboard-avoidance-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 8 keyboard landing",
+      "log": ".artifacts/keyboard-avoidance-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/keyboard-avoidance-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -6947,7 +6948,158 @@
       ]
     }
   },
+  "keyboardAvoidance": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/keyboard-avoidance-source.json",
+    "scope": "Keyboard avoidance (spec section 8 second boundary): the AppFrame subscribes to window.visualViewport (resize and scroll) and, while the keyboard covers the viewport — scale 1 with the visible height under the window height — pins the frame element to the visible height, so the conversation bottom, including the composer, rides above the on-screen keyboard (iOS keyboard, Android IME, or a floating keyboard); when the keyboard closes, or under pinch zoom (which also shrinks the visual viewport but is zoom, not occlusion), the inline height clears and the stylesheet box returns. Runtime null/undefined visualViewport folds into one guard, so jsdom and older browsers mount untouched. Five jsdom cases hold the behavior through a stubbed visual viewport with live listeners: pinning while covered and following further resizes, clearing on keyboard close, ignoring pinch zoom until scale returns to 1, mounting without a visual viewport, and clearing the pinned height on unmount (packages/client/ui-layout). Section 8 traceability row refreshed honestly: rotation and foldable remain open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "limitations": [
+      "The pinning heuristic (scale 1 and visible height below the window height) distinguishes keyboards from pinch zoom, but a real-device pass over the iOS keyboard, Android IME, and a floating keyboard remains open — no physical device on this host.",
+      "Rotation and foldable boundaries of section 8 are not addressed here.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 8 remainder (rotation, foldable) and section 9-11 product lines (conversation page structure, cross-device view principle); iOS client adoption (no Swift client surface yet); cross-release interop waits for real published versions; macOS, physical devices, and signing stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "safeAreaInsets": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/keyboard-avoidance-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/safe-area-insets-source.json",
     "scope": "Safe-area insets (spec section 8 first boundary): the page opts into viewport-fit=cover (apps/web/index.html), the token sheet declares the four --dsw-safe-area-* variables on :root over env(safe-area-inset-*, 0px) so plain desktops and env-less browsers resolve every edge to zero (packages/client/ui-theme base.css), and the AppFrame shell pads itself with all four edges so the Dynamic Island, Home Indicator, and landscape insets never cover columns (packages/client/ui-layout AppFrame.module.css); the phone-tier overlay drawer anchors its top/bottom/left to the same variables because absolute children resolve against the padding box, and the drag handles bound themselves by the vertical insets. Six source-pin tests hold the contract (theme tokens declared on :root with zero fallbacks; frame four-edge padding; drawer and handle anchoring; viewport meta) — jsdom cannot compute env(), so the pins are source-level like the chat spacing precedent, and the geometry claim rests on the CSS cascade itself. Section 8 traceability row refreshed honestly: virtual keyboard, rotation, and foldable remain open",
@@ -12913,7 +13065,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/safe-area-insets-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/keyboard-avoidance-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -13396,7 +13548,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "4e773c9bc994220622e91179f25b8a58110f8f203602a292e3c52d9b4fac89b1"
+        "sha256": "6edee7bba3b1b381c774099ce5f9b2a35c0bc59ec1bce2eebf247fc57570ae54"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

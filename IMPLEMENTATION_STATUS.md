@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 虚拟键盘避让（§8 第二个边界）
+
+[当前来源记录](artifacts/upstream-first/keyboard-avoidance-source.json)落地第 8 节 Virtual Keyboard 边界：AppFrame 订阅 window.visualViewport（resize+scroll），在 scale===1 且可视高度小于窗口高度（键盘遮挡判定）期间把框架元素钉在可视高度——会话底部连同输入区随之保持在 iOS 键盘/Android IME/浮动键盘之上；键盘收起或双指缩放（同样缩小可视视口但属于缩放而非遮挡）时清除内联高度、回到样式表盒。运行时 null/undefined visualViewport 折叠为同一守卫，jsdom 与旧浏览器挂载不受影响。五项 jsdom 用例（带监听器的 stub visualViewport）钉住行为：遮挡期间钉高并跟随后续 resize、键盘收起还原、双指缩放忽略直到 scale 回 1、无 visualViewport 环境不触动、卸载清除钉高（packages/client/ui-layout，全套 122 项）。§8 traceability 行如实刷新（旋转/Foldable 仍开放）。typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。局限：真机 iOS 键盘/Android IME/浮动键盘实测保持开放（本机无真机）。
+
 ## 移动端安全区适配（§8 首个边界）
 
-[当前来源记录](artifacts/upstream-first/safe-area-insets-source.json)落地第 8 节 Safe Area 边界：页面 viewport 声明 viewport-fit=cover（apps/web/index.html），ui-theme 在 :root 定义四个 --dsw-safe-area-{top,right,bottom,left}=env(safe-area-inset-*, 0px)（普通桌面与无 env() 浏览器一律解析为 0），AppFrame 壳层以四边 padding 收进 Dynamic Island/Home Indicator/横屏边缘，手机档悬浮抽屉与拖拽手柄锚定同一组变量（绝对定位子元素以 padding box 为原点，抽屉在其上再叠加安全区）。六项源级 pin 测试钉住契约（token 声明与 0 回退、框架四边 padding、抽屉/手柄锚定、viewport meta）——jsdom 无法计算 env()，几何主张依托 CSS 级联本身，刘海屏真机视觉验收保持开放。ui-layout/ui-theme 双语 README 更新、§8 traceability 行如实刷新（虚拟键盘/旋转/Foldable 仍开放）。202 项测试、typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。
+[历史来源记录](artifacts/upstream-first/safe-area-insets-source.json)落地第 8 节 Safe Area 边界：页面 viewport 声明 viewport-fit=cover（apps/web/index.html），ui-theme 在 :root 定义四个 --dsw-safe-area-{top,right,bottom,left}=env(safe-area-inset-*, 0px)（普通桌面与无 env() 浏览器一律解析为 0），AppFrame 壳层以四边 padding 收进 Dynamic Island/Home Indicator/横屏边缘，手机档悬浮抽屉与拖拽手柄锚定同一组变量（绝对定位子元素以 padding box 为原点，抽屉在其上再叠加安全区）。六项源级 pin 测试钉住契约（token 声明与 0 回退、框架四边 padding、抽屉/手柄锚定、viewport meta）——jsdom 无法计算 env()，几何主张依托 CSS 级联本身，刘海屏真机视觉验收保持开放。ui-layout/ui-theme 双语 README 更新、§8 traceability 行如实刷新（虚拟键盘/旋转/Foldable 仍开放）。202 项测试、typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。
 
 ## 分支门禁债务清理（duplication 7 克隆 + hygiene 5 门）
 

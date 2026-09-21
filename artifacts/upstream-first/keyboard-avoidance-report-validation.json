@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Keyboard avoidance; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/keyboard-avoidance-source.json",
+    "sha256": "4df77a0ba6c6741391cd8afd18c65d478be91391b01ca476a5b3d045c97c2772"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6edee7bba3b1b381c774099ce5f9b2a35c0bc59ec1bce2eebf247fc57570ae54"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/keyboard-avoidance-binding.json",
+    "sha256": "b7f3fb78aafdf36eec3e704fdd8d2cfc6360adf433eca3a2014b529e95955553"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-keyboard-avoidance-reports.mjs",
+      "sha256": "4b1fed023ca5eb1c7ceb7671abe33e429c4ca2cd15cb971f46ae7dfd3d0e1f74"
+    },
+    {
+      "path": ".artifacts/capture-keyboard-avoidance-validation.mjs",
+      "sha256": "797145319cdb95bceb02c6ba37ce10f0e7b48b32bf8e10d0cbb1a2bc2dd6cc21"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "d26bb75002655b9dae619edde729be6a0cce04df5833df7ede363ff30df2b647"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7f4459f797d550dc029e2302fcfa1acd021d24b4ddeae9277b66d045e4f532c1"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/keyboard-avoidance-binding.log",
+      "sha256": "8331f9386bc1618c7782284e5c28d5c99a2a871e976586dd3d0b9517f6497683"
+    },
+    {
+      "path": ".artifacts/keyboard-avoidance-audit-tests.log",
+      "sha256": "88845ee232588c69877913a857710260dde03e19361c47f1e4c133b13a789193"
+    },
+    {
+      "path": ".artifacts/keyboard-avoidance-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/keyboard-avoidance-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/keyboard-avoidance-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

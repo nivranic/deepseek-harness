@@ -640,3 +640,82 @@ describe('AppFrame phone tier (specification section 7)', () => {
     expect(frame.querySelector('[data-side="sidebar"]')).not.toBeNull()
   })
 })
+
+describe('AppFrame on-screen keyboard avoidance', () => {
+  /** Stub the visual viewport the effect subscribes to, with live listeners. */
+  interface ViewportStub {
+    height: number
+    scale: number
+    offsetTop: number
+    dispatch(type: string): void
+  }
+
+  function stubVisualViewport(initial: { height: number; scale: number }): { viewport: ViewportStub } {
+    const listeners = new Map<string, Set<() => void>>()
+    const viewport = {
+      height: initial.height,
+      scale: initial.scale,
+      offsetTop: 0,
+      addEventListener(type: string, listener: () => void) {
+        if (!listeners.has(type)) listeners.set(type, new Set())
+        listeners.get(type)!.add(listener)
+      },
+      removeEventListener(type: string, listener: () => void) {
+        listeners.get(type)?.delete(listener)
+      },
+      dispatch(type: string) {
+        for (const listener of listeners.get(type) ?? []) listener()
+      },
+    }
+    replaceProperty(window, 'visualViewport', viewport as unknown as VisualViewport)
+    replaceProperty(window, 'innerHeight', 768)
+    return { viewport }
+  }
+
+  it('pins the frame to the visual viewport height while the keyboard covers it', () => {
+    const { viewport } = stubVisualViewport({ height: 400, scale: 1 })
+    const { frame } = mountFrame()
+    expect(frame.style.height).toBe('400px')
+    act(() => {
+      viewport.height = 500
+      viewport.dispatch('resize')
+    })
+    expect(frame.style.height).toBe('500px')
+  })
+
+  it('returns the frame to its stylesheet height when the keyboard closes', () => {
+    const { viewport } = stubVisualViewport({ height: 400, scale: 1 })
+    const { frame } = mountFrame()
+    expect(frame.style.height).toBe('400px')
+    act(() => {
+      viewport.height = 768
+      viewport.dispatch('resize')
+    })
+    expect(frame.style.height).toBe('')
+  })
+
+  it('keeps the layout box under pinch zoom, which also shrinks the visual viewport', () => {
+    const { viewport } = stubVisualViewport({ height: 300, scale: 2 })
+    const { frame } = mountFrame()
+    expect(frame.style.height).toBe('')
+    act(() => {
+      viewport.scale = 1
+      viewport.dispatch('scroll')
+    })
+    expect(frame.style.height).toBe('300px')
+  })
+
+  it('leaves environments without a visual viewport untouched', () => {
+    replaceProperty(window, 'visualViewport', undefined as unknown as VisualViewport)
+    const { frame } = mountFrame()
+    expect(frame.style.height).toBe('')
+  })
+
+  it('clears the pinned height on unmount', () => {
+    stubVisualViewport({ height: 400, scale: 1 })
+    const { frame, unmount } = mountFrame()
+    expect(frame.style.height).toBe('400px')
+    unmount()
+    expect(frame.style.height).toBe('')
+  })
+})
