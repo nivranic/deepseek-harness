@@ -73,3 +73,14 @@ describe('SidebarRoot.module.css', () => {
     expect(declarations('.fallbackBrandName')?.get('white-space')).toBe('nowrap')
   })
 })
+
+describe('SessionsBackButton.module.css', () => {
+  const backCss = readFileSync(fileURLToPath(new URL('../src/client/SessionsBackButton.module.css', import.meta.url)), 'utf8')
+
+  it('keeps the Sessions back affordance phone-tier-only', () => {
+    expect(backCss).toContain('display: none')
+    expect(backCss).toContain('@media (max-width: 599.5px)')
+    // The phone tier reveals it as the same 32px control row the drawer button uses.
+    expect(backCss.match(/display: inline-flex/g)).toHaveLength(1)
+  })
+})

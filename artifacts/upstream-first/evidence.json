@@ -5,462 +5,95 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "ca691f500dbd7bac36aa01bc5b81bd89c229dbd2e6d5532a555e560515d193d0"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt",
-      "sha256": "56b887d84623f13c828359b23a9ad94b4263dff4a426b6d60f953d910ff51117"
+      "sha256": "f837c090228b6e4e10e0bcb16077a56c6e315e5c7283b58260441adb2a0e5b43"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "d4268fd12fc77cb790e0e260ec09411f7e0fe63696f2660aa867d0e2f0d10249"
+      "sha256": "5a4bb045e9a97bbd81722831ae6fa920ff0619238b351e277fb3549c4d49989e"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "edaccb9ee5b3e4ad9820ce5a3af6e941f29d61b3c17e031356de20785a579ca1"
+      "sha256": "ec3b3a698e0004b2f2b9f027e9fe1faa0ad69f52c84c1d1da4a079ff1d7a254f"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "addf602788fb944b7479b27a59ddcaa2c9ea1c2928765f015f28d100ec27c3f7"
-    },
-    {
-      "path": "packages/api/gateway/README.i18n.yaml",
-      "sha256": "4c8011bad651e92a9c2e3141df7c00d89ae92fbae3e2ba3b3fd3b2fe5974b599"
-    },
-    {
-      "path": "packages/api/gateway/README.md",
-      "sha256": "bd3ad7a351606fc2beb668f1970a13304f2c8a437e93c6a82ec7c7b27127f57e"
-    },
-    {
-      "path": "packages/api/gateway/README.zh.md",
-      "sha256": "f08f8d4d8e24cc8af1b9a9c6c05fa42dfd444f0fad2be43baba1fe1e530c17a8"
-    },
-    {
-      "path": "packages/api/gateway/src/client/index.ts",
-      "sha256": "8e8625be62b15bdc414ef3f24d55156a2eda9939cdb45c2b11886b958dce04d9"
-    },
-    {
-      "path": "packages/api/gateway/src/client/preparation.ts",
-      "sha256": "67fa618d35f5bc05478c05aa02f0bafad1f2de47fc5b417ba4859acad8cab2b8"
-    },
-    {
-      "path": "packages/api/gateway/src/client/remote-events.ts",
-      "sha256": "5e3b9f8473b5898f2665abb30976e02437598566269f9265be66572a07ffea5e"
-    },
-    {
-      "path": "packages/api/gateway/src/index.ts",
-      "sha256": "5207fd209a8933eca12254e224e3451c257b7c95631a4c6e68cae57108095188"
-    },
-    {
-      "path": "packages/api/gateway/src/stream-protocol.ts",
-      "sha256": "dc9efe6f0aba137221714af7e0b5e8feeb7105bb3ea796ae792d23e9aa5fada8"
-    },
-    {
-      "path": "packages/api/gateway/tests/control-retry.client.spec.ts",
-      "sha256": "45e529009b065335bf2ab5e9172dcd3a85c0deda7fb77f2add7af6e7463492c8"
-    },
-    {
-      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-      "sha256": "e1e545d04a818b3bf79363fc2d80c431fb5637bed605ee82bacd7ab21617a726"
-    },
-    {
-      "path": "packages/api/gateway/tests/gateway.client.spec.ts",
-      "sha256": "013ee30524e50a02181c0cde33673a300a564a2533eb0d885f22e4b3aeb749c8"
-    },
-    {
-      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
-      "sha256": "3ceb288e115d3d22677ae8a101dc70e589b8345282b25268c1fc9935fc4a5403"
-    },
-    {
-      "path": "packages/api/gateway/tests/journal-stream.client.spec.ts",
-      "sha256": "bce4db4800f739d53e73740fda6787831c6f928343dd6e5cb306c016e714867e"
-    },
-    {
-      "path": "packages/api/gateway/tests/preparation.client.spec.ts",
-      "sha256": "4852506166ecead9fa8738b6574b9a728d8f81ea3eea01042680220b8da896f6"
-    },
-    {
-      "path": "packages/api/gateway/tests/transport-failure.client.spec.ts",
-      "sha256": "b8008702ca8758c53de9e683ee41a98b8b5413b1e8663086320dfc13d02014c7"
-    },
-    {
-      "path": "packages/api/remotes/README.i18n.yaml",
-      "sha256": "9815d6a6a607f1fc32beee014f284164380eb7a2166e09edbda89699e3a788e5"
-    },
-    {
-      "path": "packages/api/remotes/README.md",
-      "sha256": "3cd6787decc7a05d2cbeace311311d35cd352a98714c60aef60726bbecb4cc74"
-    },
-    {
-      "path": "packages/api/remotes/README.zh.md",
-      "sha256": "f8c628d0bf5515dbf99814febe7baf6dc469892a40650e353106da467ba46fd9"
-    },
-    {
-      "path": "packages/api/remotes/src/index.ts",
-      "sha256": "4859477872764fa104072937762e77c31168b1355a0dda5177b2236ca75e945a"
-    },
-    {
-      "path": "packages/api/session-controller/tests/client-apply.client.spec.ts",
-      "sha256": "56abf828f049f93cb697bd6529f9754c018cbf9ca0639ebc850c941bf5b43172"
-    },
-    {
-      "path": "packages/api/session-controller/tests/fake-api.client.ts",
-      "sha256": "6357e228abd74d5d51ce8a396f5a820b6a4d9087c5849afb62bb2ec5369f62d1"
-    },
-    {
-      "path": "packages/api/session-controller/tests/session-remote-rejection.client.spec.ts",
-      "sha256": "3ff183cc12210a32d991643a6bf6f02b082df2a4ce2b27e105c4e97fc8f15b3e"
-    },
-    {
-      "path": "packages/api/session-controller/tests/transport.client.spec.ts",
-      "sha256": "91ea0439e6494e6f0a99bd0f8018543649326dd7d99466e92e0e82bc7b12178f"
-    },
-    {
-      "path": "packages/api/workspace-controller/tests/model.client.spec.ts",
-      "sha256": "dab0c6df2bfe758e5303f129e5e6f54f4313de562f16b0305a5f4c4da7b8daea"
-    },
-    {
-      "path": "packages/api/workspace-controller/tests/transport.client.spec.ts",
-      "sha256": "c265bc0aa1ebbf381484192c7df8e4d35ff3fdfe2f56e55fc987660c6baef490"
-    },
-    {
-      "path": "packages/api/workspace-files/tests/fake-remote.client.ts",
-      "sha256": "11b4659a15984e1ecd7752a1eed9ab3210f23ebf0220d8f89cc015f0c60f16ac"
-    },
-    {
-      "path": "packages/client/connection/README.i18n.yaml",
-      "sha256": "0138b8bf8e3a57de698d0b88a1ea9a96b5e3eef72f95d64e3a2ae767f36cd9a9"
-    },
-    {
-      "path": "packages/client/connection/README.md",
-      "sha256": "7ecc1b7b244f5e771da2acfdd42e59c88ad197ac49bb9a3790eb94c65aa5911b"
-    },
-    {
-      "path": "packages/client/connection/README.zh.md",
-      "sha256": "fd21b8a782c420754fdae25f71cdabf56a859bdd652f01993843cf2ab9eb3f50"
-    },
-    {
-      "path": "packages/client/connection/src/client/connection.ts",
-      "sha256": "099863a0bb0692f5fbaa21ff6799f434097ac849c9038551dfce32bf8d217368"
-    },
-    {
-      "path": "packages/client/connection/src/client/fixture.ts",
-      "sha256": "0c32f4f018909cfd132cda4bed5f3e87800cf4a77b9c98e99355276615b596f8"
-    },
-    {
-      "path": "packages/client/connection/tests/client-apply.client.spec.ts",
-      "sha256": "188d20d194fd07c338e999a8503f32f82a530bf73fe89f76ef8edf8063ad3e56"
-    },
-    {
-      "path": "packages/client/connection/tests/connection.client.spec.ts",
-      "sha256": "839fccbeebabce91468d8c6f043db1ce4ec1db7f3c59c2ecbb32ae5d4d576b8d"
-    },
-    {
-      "path": "packages/client/connection/tests/fake-generation.client.ts",
-      "sha256": "7aea50b987b8385b9d1bd51393ed6b3ebb8b884a7edb21f7e36d89a2fe4de3e0"
-    },
-    {
-      "path": "packages/client/connection/tests/generation.client.spec.ts",
-      "sha256": "ef1ea88f466ff3f7deb73c25490faafa1f98681b350856ab89b98de64345d279"
-    },
-    {
-      "path": "packages/client/file-upload/tests/file-upload.client.spec.ts",
-      "sha256": "c9c2faf70bc804b5f24d1bcd8b8ca7866208baabca04a6e7c3b95c89acb5a64d"
-    },
-    {
-      "path": "packages/client/locale/tests/apply.client.spec.ts",
-      "sha256": "aebb9686df522e45a4cb932952a517f80742cee8db8e9a00d4d3cd108b8b41c4"
-    },
-    {
-      "path": "packages/client/locale/tests/document-language.client.spec.ts",
-      "sha256": "039bee0f56eff98c10fcf10154835fabf74deb5269d0f4682c19006ebe9337f8"
-    },
-    {
-      "path": "packages/client/ui-agent-preset/tests/apply.client.spec.ts",
-      "sha256": "659cd23fb9164d23fe9d628d3ef92a0b88e0d11fc0670e1198c1eb164438ee5d"
-    },
-    {
-      "path": "packages/client/ui-chat/tests/apply-inject.client.spec.tsx",
-      "sha256": "3af861fd16e085238701a5d66a957ec518f9bc2017c64e0c5d13bd7cd7b643e2"
-    },
-    {
-      "path": "packages/client/ui-chat/tests/chat-apply.client.spec.tsx",
-      "sha256": "cde284e8a1714460559a1c7a025395190fdb93696bf0f60d4656efba04e05a57"
-    },
-    {
-      "path": "packages/client/ui-commands/tests/browser-plugin.client.spec.ts",
-      "sha256": "74e3917d6fe6cd382febbb1fdbb44b31bb1ee7bc2c67a07f577b9eb4e7b92ead"
-    },
-    {
-      "path": "packages/client/ui-commands/tests/service.client.spec.ts",
-      "sha256": "9444c0b8a9184f2b82e59e2bc6197b01264f3e2e29a72d7428b4ac05958e450d"
+      "sha256": "97a77173b63a757724f2a94d7d1171f765ec423849b6c4e9aed8950319c4e61f"
     },
     {
       "path": "packages/client/ui-conversation/README.i18n.yaml",
-      "sha256": "8980e89d2d45a5ca759fdfa6a8e996d35abceb3e43e57c9289ab0243566a3ca7"
+      "sha256": "a06e35dafa1d538a96afa26b00b31061f7a406c8acd95857c155f2bc646abc4d"
     },
     {
       "path": "packages/client/ui-conversation/README.md",
-      "sha256": "e9a9b3fc30755bed07d4f84cd887196fd384a443de6217776b2d6a148cde9464"
+      "sha256": "3509df9b58a045288839db1ba26b470a8df65ee8eb711c32183d1e975971accf"
     },
     {
       "path": "packages/client/ui-conversation/README.zh.md",
-      "sha256": "68bc314c2dfc605f704d638596541528a6fc3e6b3bb189ffb3a8552ab4ea1995"
+      "sha256": "8cab4f3507de9be21b49286f69533ae94dd217fa5e81e369cdf272b870dd1dc7"
     },
     {
       "path": "packages/client/ui-conversation/src/client/apply.ts",
-      "sha256": "bc1fb9622cdfe187dc91013d28dd96932c910474dde77c3f592a34cf8fa2fecf"
+      "sha256": "b98ac329178a4ff683d965ee956a2e04742389d9aa78e79e4246d827aa563d3f"
     },
     {
       "path": "packages/client/ui-conversation/src/client/contract/slots.ts",
-      "sha256": "18968a3cb939a691e628b3b79b40c59da97a4a7302ae6128dab46087036a2d08"
-    },
-    {
-      "path": "packages/client/ui-conversation/src/client/locales.ts",
-      "sha256": "876ec25708e5bf806733517df5a6c7ab92c36acbb20fb6f4a778f14f02b4ec95"
+      "sha256": "599160bee014b4189253d8d8a540cf3a05930dffe51b9154bf97b7c96c2fdbbe"
     },
     {
       "path": "packages/client/ui-conversation/src/client/skeleton/ConversationRoot.module.css",
-      "sha256": "c754393f1d8b3890987918919e2eb898a0b41d961b19648c06b3e771008557f9"
+      "sha256": "06b3d285d1e317e568fb2e66b5a9a71b0c7a9f52e9acf8ab0648012e04c25991"
     },
     {
       "path": "packages/client/ui-conversation/src/client/skeleton/ConversationSession.tsx",
-      "sha256": "bfb2026db27b4bf2a0c1915bd7d9ff52a91c68fac7bf2a7db0a2842701efbeae"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/apply-inject.client.spec.tsx",
-      "sha256": "83c077f1229acd14e6d1c744cd2eb06d493d6c526bd8b38bd6f3479904891e1f"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/apply-wiring.client.spec.tsx",
-      "sha256": "757aa3eda1b9afae3a76130628722b3cd71727e9ce7431bf3a7c8d115b603240"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/assembly-surfaces.client.spec.tsx",
-      "sha256": "5fad4bc7772af22cf88da9c445714646a8f5d30964f48f0a8d27f764458d7fc1"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/control-capabilities.client.spec.ts",
-      "sha256": "5c1943ed0a9ed34d19560bd699e193fb39d765d5f2dc897de087810d5a339e68"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/service-orchestration.client.spec.ts",
-      "sha256": "648a7eca838f8bb942dcfb7bc0c3a7780b1df5753036c717dd2a32550458ca89"
+      "sha256": "ddf9fef4788b46ee6dc2a5cb6d3efed7b9d70833a09c1ad8a2693822a4b76fac"
     },
     {
       "path": "packages/client/ui-conversation/tests/skeleton.client.spec.tsx",
-      "sha256": "5199b67cff80b38a5ae79307557b72b22f60bd092763a52286ac32e007cb19af"
+      "sha256": "e5a44d82537fb2d8a37e316845e95343a4dac2126ff6e17e5241d95b507cbefe"
     },
     {
-      "path": "packages/client/ui-deliverables/tests/native-file-fixture.client.ts",
-      "sha256": "46e353696898a172f363f287295724b267ad1f02ab1c84385874077fbc74917c"
+      "path": "packages/client/ui-sidebar/README.i18n.yaml",
+      "sha256": "c2a83ad41cc886d4723f7fdd9edeef73c261d7754fe7cfc0fcf24068a6add1d8"
     },
     {
-      "path": "packages/client/ui-deliverables/tests/produced-files.client.spec.tsx",
-      "sha256": "f68cda58d45f4e3db8ec091f243434449f93c2e65d7e5ed5bd9a3f5aafa87acc"
+      "path": "packages/client/ui-sidebar/README.md",
+      "sha256": "b746ffec9826209306abf298c29c15f07b772cfe1b2b214d38cbb651c43b49ab"
     },
     {
-      "path": "packages/client/ui-directory-picker-native/tests/client-flow.client.spec.tsx",
-      "sha256": "ddd441cc76785e00c98c73132ae8ef8c88aca1bec6126e327f1a28a32b65b805"
+      "path": "packages/client/ui-sidebar/README.zh.md",
+      "sha256": "16926d84a420f53ce18d255fd4db58ce61878bc216333226184987dab99a5866"
     },
     {
-      "path": "packages/client/ui-goal/tests/access-source.client.spec.ts",
-      "sha256": "b44dc7729c1544d0f4a365238c4cfb96b7257769c4abff89f670e283bf527e50"
+      "path": "packages/client/ui-sidebar/src/client/index.ts",
+      "sha256": "65a39a738e46fae918f521522258f595028e2f5d88af18d51d0ab463fcb31d1d"
     },
     {
-      "path": "packages/client/ui-goal/tests/browser-plugin.client.spec.tsx",
-      "sha256": "0eb55ac2aa75d53f7f12f834b24435e20fab8cb73b1e332d199349c91d7dccef"
-    },
-    {
-      "path": "packages/client/ui-message-feedback/tests/browser-plugin.client.spec.tsx",
-      "sha256": "8208d53c0552eace18d855d65632892e30a266b9ed88c9231bcb78fafebf6fde"
-    },
-    {
-      "path": "packages/client/ui-message-feedback/tests/controller.client.spec.ts",
-      "sha256": "7c81bd077b7e27bb7312ce20fb7ea077fa17174bccdd01d54b98d0630c33e176"
-    },
-    {
-      "path": "packages/client/ui-message-feedback/tests/generation.client.spec.ts",
-      "sha256": "be1d60ddebedec71597399fc40409a2881e01afa5bb9e845d0b7d51aeb83e143"
-    },
-    {
-      "path": "packages/client/ui-model-selection/tests/browser-plugin.client.spec.ts",
-      "sha256": "193ba7e0ccb9c5fe489710638b18673af5d71cb6fe6802527a73fad49910092e"
-    },
-    {
-      "path": "packages/client/ui-permission-presets/tests/browser-plugin.client.spec.ts",
-      "sha256": "fec4c6548d6a2ce2a9fd4dd6e081c668f16b48090b58ecb826d6882ded2ca3c5"
-    },
-    {
-      "path": "packages/client/ui-permission-presets/tests/permission-presets-row.client.spec.tsx",
-      "sha256": "3f0bf67d61b02365d9dda5173533ffebf48ede627ea959e4e3bc8d5df52d1c3a"
-    },
-    {
-      "path": "packages/client/ui-permission-presets/tests/settings-store.client.spec.ts",
-      "sha256": "6f42178272556fb28823583337a020f848b5211b2265ffd28198e751e55738e0"
-    },
-    {
-      "path": "packages/client/ui-reference/tests/browser-plugin.client.spec.ts",
-      "sha256": "7b101440f8010a100935d54d11e0c5e378def6aefa6157fe012ef1f289945a16"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/tests/browser-plugin.client.spec.tsx",
-      "sha256": "f570d27c9be85df9985f8464cc0c57f25878eee0c275148f992486a9b41bfbb2"
-    },
-    {
-      "path": "packages/client/ui-settings-models/tests/apply.client.spec.ts",
-      "sha256": "5115f28f371e156e71eed0cb5a0b53afbb792257743c5061b08c864a02902ce1"
-    },
-    {
-      "path": "packages/client/ui-settings-models/tests/capabilities.client.spec.ts",
-      "sha256": "45c9a1f7237bd612901ea7393d65c23d012002c68629191578acc94a5a2f4e2b"
-    },
-    {
-      "path": "packages/client/ui-settings-plugin-inventory/tests/browser-plugin.client.spec.tsx",
-      "sha256": "8cf00553abc866d0b6bbab9928efd5db77d6cc4c078491fcbf39a5b9474bdbbf"
-    },
-    {
-      "path": "packages/client/ui-settings-plugins/tests/apply.client.spec.ts",
-      "sha256": "e853669f79f2397eae55ddfb6d650e6ba01df70a073b9b3cdfeb48ee93c093e9"
-    },
-    {
-      "path": "packages/client/ui-settings-plugins/tests/capabilities.client.spec.ts",
-      "sha256": "cc228b5ae929218b50580d3036be5866adf5646926c88e86ed4b56af4462498f"
-    },
-    {
-      "path": "packages/client/ui-settings-plugins/tests/stores.client.spec.ts",
-      "sha256": "b1da6afc050d0a50ccb2c0dfd90eae09282f9a8ee87e222fd1cc0c8b212f8917"
-    },
-    {
-      "path": "packages/client/ui-settings/tests/plugin.client.spec.ts",
-      "sha256": "b56e5a698145020dd2fd48e11f4d71f0666a03bef0e9217bdd844d1ea48afd11"
-    },
-    {
-      "path": "packages/client/ui-settings/tests/settings-generation.client.spec.ts",
-      "sha256": "adfc3c49a08c55b2780173c48ddd7f817b2564cb1ab1f4b387f0cd764e886a60"
-    },
-    {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/apply.client.spec.ts",
-      "sha256": "d80aefe9da34bc1b97a57f6dd045f70948f7686beabc4e250f8b83eea2b86e81"
-    },
-    {
-      "path": "packages/client/ui-sidebar-files/tests/apply.client.spec.ts",
-      "sha256": "27c3a9b3f145b37200be1effa45b590128c77a7b570f98183ce2b7feb51d72be"
+      "path": "packages/client/ui-sidebar/src/client/locales.ts",
+      "sha256": "080afbc0690467f548ba480c278c34da0db103be893e2d20e029816c304940a8"
     },
     {
       "path": "packages/client/ui-sidebar/tests/apply.client.spec.tsx",
-      "sha256": "f068ea3dc217392bbea605148cdf23791be8f4b91d444b4d490567a9d52886a1"
+      "sha256": "871fab3f058bfb683e7398d52ed4af519b10a3f7e9bb58da78b668735a4cb503"
     },
     {
-      "path": "packages/client/ui-sidebar/tests/panel-list.client.spec.tsx",
-      "sha256": "7c31fc81535bd118183fe96a86a618403671efdf2f669a583c18c592a0c5b0bb"
+      "path": "packages/client/ui-sidebar/tests/sidebar-root.client.spec.tsx",
+      "sha256": "c0d2154d75fa146e3bde4f4b331479540f0fe6314ec1d8a46e49c83927368b63"
     },
     {
-      "path": "packages/client/ui-sidebar/tests/sidebar-snapshot.client.spec.tsx",
-      "sha256": "e74454d8c3817bf84d020f41927b7a3061f4b38737834e5249d366f00a82d6c3"
-    },
-    {
-      "path": "packages/client/ui-skill/tests/browser-plugin.client.spec.ts",
-      "sha256": "f01ee5c3cf368ac025ded043da1feb0da40c813ba18d196b997a533566337f13"
-    },
-    {
-      "path": "packages/client/ui-subagent/tests/browser-plugin.client.spec.ts",
-      "sha256": "5b8e98502897a0f34b17a567e7c2512c1d9ace1b5b5460fd30b92cfa2881e3cf"
-    },
-    {
-      "path": "packages/client/ui-subagent/tests/catalog-access.client.spec.ts",
-      "sha256": "492694d10764a36a8152d984dc2910eec3ae3a01656de6b5e2960db30a55fc9f"
-    },
-    {
-      "path": "packages/client/ui-theme/tests/apply.client.spec.ts",
-      "sha256": "c1ffdb7173911a24c2c42f7a646ec77467b270444f7226843416795bc8bc5b7b"
-    },
-    {
-      "path": "packages/client/ui-tool/tests/assembly-surfaces.client.spec.tsx",
-      "sha256": "6e121f84b484c6463b19702ffd970286571fb529501ee6b99cd6df3182569596"
-    },
-    {
-      "path": "packages/client/ui-tool/tests/toolview-slot.client.spec.tsx",
-      "sha256": "2a045cf67862f083a1f2ec3d709f87c217f94ecbfbfb7b44e3e361de508ca939"
-    },
-    {
-      "path": "packages/client/ui-trajectory/tests/views.client.spec.tsx",
-      "sha256": "328d39fd488e193238d07c8e3f938ba09209216bb2f69f5779f4f3dc858300d8"
-    },
-    {
-      "path": "packages/client/ui-workspace/tests/apply.client.spec.ts",
-      "sha256": "e516874aa7da7dbdbb273847db74edc4c6177847e7ef3ddf5682dd9598d60afc"
-    },
-    {
-      "path": "packages/client/ui-workspace/tests/host-home-staleness.client.spec.tsx",
-      "sha256": "10005ed8d397fafb69a400041a62024a14029a5a55ed0488253ad6d9c8ad07bb"
-    },
-    {
-      "path": "packages/client/ui-workspace/tests/rename-assembly.client.spec.tsx",
-      "sha256": "0a38bc1bc3887cecb6feab2412a348faba476fbe5c23b691385fd41c5361fd5c"
-    },
-    {
-      "path": "packages/client/ui-workspace/tests/workspace-browser.client.spec.tsx",
-      "sha256": "a837943663f7371bc70f41cc4e6e18c3316b9f198e534736371353bb8633bb12"
-    },
-    {
-      "path": "packages/client/ui-workspace/tests/workspace-picker.client.spec.tsx",
-      "sha256": "e781334ecdfd87743e0df692b6a7481082a5a30ea642011056f27318a80a72b6"
-    },
-    {
-      "path": "packages/client/ui-workspace/tests/workspaces-service.client.spec.ts",
-      "sha256": "303f0fa6b244b4c0d6016326592cbe6a08497237f0b1dbbf55299aa4bf114ddf"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-      "sha256": "d4513bd8fd9acb596cf7aa60704f8453d1fb0c27155318f8b4012843e9287c58"
+      "path": "packages/client/ui-sidebar/tests/sidebar-styles.client.spec.ts",
+      "sha256": "798102a986371114d4a27cebf5e464910c4f95878672cd1a2901dae0d7be707d"
     },
     {
       "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
-      "sha256": "730257a06a7044c49dcf2d20578cec9c8a127af38eb215808448e8ed86364fbe"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/tests/plugin.client.spec.ts",
-      "sha256": "0a5fd273ae7bb862bbebdd5f65c61d3ad2ed3605ce2f3057b5dfaf83cc7bfe39"
-    },
-    {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "a703235cc87ad5acd16a7c28bb4d61e6791c63722c4ba42330ac9f48365d2425"
-    },
-    {
-      "path": "packages/extensions/ui-cordis/tests/browser-plugin.client.spec.tsx",
-      "sha256": "7b0685ee3f35cd1bba03d1216ff8f524b6e1fc3d64faeb1f9e376c29f226c7c4"
-    },
-    {
-      "path": "packages/test-support/client-runtime/src/remote.ts",
-      "sha256": "60f1a6adb82b052f429e9b213de5a52bc9f61dbc62f10f8b97a07dadf8828f59"
-    },
-    {
-      "path": "packages/test-support/client-runtime/tests/assembly-test-client.client.spec.ts",
-      "sha256": "f66d4e68703ec7a401daabe74e671cf336b1cac8c50ba14355cde0e40c1a68fd"
-    },
-    {
-      "path": "packages/test-support/remote-mock/README.i18n.yaml",
-      "sha256": "4eafc093bacf4e864e5a080603e37720eef3a6a5798e1ebc94f724552aebeb18"
-    },
-    {
-      "path": "packages/test-support/remote-mock/README.md",
-      "sha256": "f403e70a758330aa29461c12e910076dc2c069fd7bfdbf2e3a05e8f1bcc77f62"
-    },
-    {
-      "path": "packages/test-support/remote-mock/README.zh.md",
-      "sha256": "8154384ce4369d145d08f4767f9b09ac1edb20e31736660f5d3a862d45cd431e"
-    },
-    {
-      "path": "packages/test-support/remote-mock/src/remote-mock.ts",
-      "sha256": "c08aeeaa367b18bf1d35af5796819435b950c593b2e79ec95fc69fa59d070768"
-    },
-    {
-      "path": "packages/test-support/remote-mock/tests/streams.client.spec.ts",
-      "sha256": "26c361eadb4c39cd5d07df4be7301bf9b733d50f675debf3db0ce09fe72b0ecb"
+      "sha256": "398eb00aa42fcbe616fd6e9d18692c8bde5ee8928d51473e3aaed4492e73f47f"
     }
   ],
-  "candidateUntrackedSourceChanges": [],
+  "candidateUntrackedSourceChanges": [
+    {
+      "path": "packages/client/ui-sidebar/src/client/SessionsBackButton.tsx",
+      "sha256": "485ceff5bbb278606ea9bfa699951b83704e21341e9f38a4f2de51a9113b9344"
+    }
+  ],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -6704,6 +6337,42 @@
     },
     {
       "status": "PASS",
+      "command": "ui-conversation + ui-sidebar suites: 473 passed including the back-button component/registration tests and the media-query source pin",
+      "log": ".artifacts/phone-top-bar-tests.log",
+      "sourceRecord": "artifacts/upstream-first/phone-top-bar-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/phone-top-bar-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/phone-top-bar-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/phone-top-bar-lint.log",
+      "sourceRecord": "artifacts/upstream-first/phone-top-bar-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the bilingual README updates",
+      "log": ".artifacts/phone-top-bar-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/phone-top-bar-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 10 phone-top-bar note",
+      "log": ".artifacts/phone-top-bar-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/phone-top-bar-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/phone-top-bar-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/phone-top-bar-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7434,7 +7103,161 @@
       ]
     }
   },
+  "phoneTopBar": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/phone-top-bar-source.json",
+    "scope": "Phone-tier conversation top bar (spec section 10 remainder): the strict Session header gains a leading list seat ahead of the title cluster, and ui-sidebar registers the back-to-Sessions affordance there — a chevron-plus-label button (phone.backToSessions, sidebar namespace) shown only under the same max-width 599.5px media query as the composer-edge drawer opener, opening the drawer that carries the Sessions roster. The running-location chip gains a status dot (6px, state-success-primary) shown while a Host generation is established, so the phone top bar reads Host ● with the platform name. The overflow menu (⋮) stays honestly open: its entries depend on a toolbar set that does not exist yet, so none is fabricated. SlotMap merge + header child registration + PropsRenderSlots key ripple the client catalog (regenerated)",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "limitations": [
+      "Phone-tier visual acceptance rests on the media-query cascade (same tier as the sealed drawer opener); no physical-device browser pass on this host.",
+      "The overflow menu (⋮) stays open — its entries depend on a toolbar set that does not exist yet.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 10 remainder (overflow menu entries once a toolbar set exists, richer device naming via host.describe displayName, permission-tier display); section 9 design-language traceability; iOS client adoption (no Swift client surface yet); cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "runningLocation": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/phone-top-bar-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/running-location-source.json",
     "scope": "Running-location visibility (spec section 10, first cross-device-principle surface): the ready frame now carries the Host Node.js platform alongside home — API Remotes registers homedir()+platform(), the Gateway emits host:{home,platform}, the client parser enforces the exact key set, and ConnectionHostInfo exposes it on the established generation (pre-release: no wire compatibility promise). The strict Session header renders one quiet locale-owned chip 「运行位置 <platform>」 in its utilities row from a package-local hostFacts observable (ui-conversation inject hooks, mirroring the ui-workspace useHostInfo pattern — a GlobalStandardProps seat was built first and deliberately reverted to avoid rippling every slot props literal). The chip disappears while no generation is ready, so a phone client never implies local execution. RemoteMock/fixture defaults gain platform linux; Kotlin LinkContracts mirrors the ready-frame host; the committed cordis catalog regenerated. Repairs beyond the increment boundary, each verified failing at clean HEAD first: four client benches (ui-chat apply-inject/chat-apply, ui-tool assembly-surfaces/toolview-slot) had not provided the connection service their inject already required since the checkpoint import — they now provide the standard generation stub",
@@ -13854,7 +13677,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/running-location-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/phone-top-bar-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -14337,7 +14160,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "addf602788fb944b7479b27a59ddcaa2c9ea1c2928765f015f28d100ec27c3f7"
+        "sha256": "97a77173b63a757724f2a94d7d1171f765ec423849b6c4e9aed8950319c4e61f"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

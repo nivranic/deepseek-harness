@@ -170,3 +170,31 @@ describe('ui-sidebar apply', () => {
     expect(b.slots.entries('main')).toHaveLength(0)
   })
 })
+
+describe('phone-tier conversation affordances', () => {
+  it('registers the Sessions back button on the header leading seat once declared', async () => {
+    const b = await bench(false)
+    const HeaderFrame = ({ renderSlot }: PropsRenderSlots<'conversation.session.header.leading'>) =>
+      renderSlot('conversation.session.header.leading', {})
+    const HeaderHost = ({ renderSlot }: PropsRenderSlots<'conversation.session.header'>) =>
+      renderSlot('conversation.session.header', {})
+    b.slots.register(
+      { name: 'root', children: {
+        'conversation.session.header': { kind: 'single', scope: 'session' },
+      } },
+      HeaderHost,
+    )
+    b.slots.register(
+      { name: 'conversation.session.header', children: {
+        'conversation.session.header.leading': { kind: 'list', scope: 'session' },
+      } },
+      HeaderFrame,
+    )
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const entries = b.slots.entries('conversation.session.header.leading')
+    expect(entries.map(entry => entry.options.id)).toEqual(['sidebar.phoneBack'])
+    const injected = (entries[0]!.inject as () => { toggleSidebar: () => void })()
+    injected.toggleSidebar()
+    expect(b.layout.toggleSidebar).toHaveBeenCalledOnce()
+  })
+})

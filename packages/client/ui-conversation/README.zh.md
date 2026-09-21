@@ -56,7 +56,7 @@ Workspace 标签和未绑定工作区的输入框选择入口要求 `session.man
 
 本包占据 root 作用域 `main` 中的 `conversation` key，其包装层声明 optional-Session `main.conversation` shell。本包注册 strict Session header/body、View list、composer chain 与 bar、输入区域、Hero 区域、queue dock、草稿持久化和 phase 计算。`ctx.uiSession.provide()` 从同一个 Session binding 物化 Conversation 与 input source，并将 `inputActions` 作为稳定标准 prop 提供。
 
-strict Session header 展示运行位置：utilities 行中一枚安静的 chip 显示已建立 Connection generation ready frame 携带的 Host platform，未就绪期间消失。该 chip 仅作展示——视图可以在设备间移动，而执行始终留在拥有该 Session 的 Host 上。
+strict Session header 展示运行位置：utilities 行中一枚安静的 chip 显示已建立 Connection generation ready frame 携带的 Host platform，并在 generation 已建立时携带状态圆点，未就绪期间消失。该 chip 仅作展示——视图可以在设备间移动，而执行始终留在拥有该 Session 的 Host 上。header 还在标题簇之前暴露 leading 座位；手机档导航（返回会话）注册于此，并靠自身媒体查询在手机档以上隐藏。
 
 View 选择规则固定：有效且已注册的持久化选择优先，其次是已注册的 `chat`，否则不渲染 View；绝不选择第一个已注册 View。Shell phase 只组合 Session lifecycle 与 active-target set，不读取任何 target-specific 快照。
 

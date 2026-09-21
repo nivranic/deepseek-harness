@@ -25,7 +25,7 @@ dsh Web 客户端的侧边栏让用户识别当前构建、启动新会话、将
 <a id="use-this-package"></a>
 ## 使用本包
 
-侧边栏是导航外壳：用户看到品牌、启动新会话、折叠轨道并到达 Settings。功能插件填充它的席位——ui-workspace 填充 `sidebar.workspaces`，ui-settings 在 `sidebar.settings` 注册触发行与设置面板。低于 600px 时布局完全移除轨道，因此本插件还会向输入框的 `conversation.input.left` 列表席位注册手机层抽屉开关：一个仅由该媒体查询显示的 32px 面板按钮，用于切换框架的悬浮抽屉。
+侧边栏是导航外壳：用户看到品牌、启动新会话、折叠轨道并到达 Settings。功能插件填充它的席位——ui-workspace 填充 `sidebar.workspaces`，ui-settings 在 `sidebar.settings` 注册触发行与设置面板。低于 600px 时布局完全移除轨道，因此本插件还会向输入框的 `conversation.input.left` 列表席位注册手机层抽屉开关：一个仅由该媒体查询显示的 32px 面板按钮，用于切换框架的悬浮抽屉。会话 header 的 `conversation.session.header.leading` 列表携带配套的返回会话入口——同一媒体查询下的「箭头+会话」按钮——手机上打开的会话可从顶栏返回列表（规格 §10）。
 
 ### 品牌与 New Session
 

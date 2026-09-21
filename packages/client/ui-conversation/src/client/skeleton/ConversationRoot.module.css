@@ -68,6 +68,19 @@
   min-width: 0;
 }
 
+/* Leading seat: phone-tier navigation (back to Sessions) and future header
+   occupants; collapses out of the row while empty. */
+.headerLeading {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLeading:empty {
+  display: none;
+}
+
 .crumbs {
   display: flex;
   align-items: center;
@@ -140,12 +153,23 @@
   display: none;
 }
 
-/* Running-location chip: one quiet fact, so tertiary label at caption size. */
+/* Running-location chip: one quiet fact, so tertiary label at caption size.
+   The dot marks an established Host generation (specification §10 Host ●). */
 .headerHost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   line-height: 1;
   color: var(--dsw-alias-label-tertiary);
   white-space: nowrap;
+}
+
+.headerHostDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dsw-alias-state-success-primary);
 }
 
 /* The far-right corner seat reaches 16px into the header's 28px right padding,

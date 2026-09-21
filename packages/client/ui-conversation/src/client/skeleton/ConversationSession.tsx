@@ -77,6 +77,9 @@ export function ConversationSessionHeader({
       {!hideChrome && (
         <>
           <div className={css.titleRow}>
+            <div className={css.headerLeading}>
+              {renderSlot('conversation.session.header.leading', {})}
+            </div>
             <div className={css.titleCluster}>
               <nav className={css.crumbs} aria-label={t('session.hierarchy')}>
                 {ancestry.map((summary, index) => {
@@ -134,6 +137,7 @@ export function ConversationSessionHeader({
             <div className={css.headerUtilities}>
               {host !== undefined && (
                 <span className={css.headerHost} data-conversation-running-location="">
+                  <span className={css.headerHostDot} aria-hidden="true" />
                   {t('session.runningLocation', { platform: host.platform })}
                 </span>
               )}

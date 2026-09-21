@@ -1,0 +1,32 @@
+/* Hidden except on the phone tier (specification §10, < 600px frame): same
+   media-query tier as PhoneDrawerButton — the query matches the window while
+   the frame keys off its own measured width; in a plain browser shell the
+   two coincide. */
+.button {
+  display: none;
+}
+
+@media (max-width: 599.5px) {
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: var(--ds-radius-sm, 8px);
+    background: transparent;
+    color: var(--dsw-alias-fg-secondary);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .button:hover {
+    background: var(--dsw-alias-fill-hover);
+  }
+}
+
+.icon {
+  display: block;
+}

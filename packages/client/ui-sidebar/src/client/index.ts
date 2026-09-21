@@ -14,6 +14,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { SidebarPanelMetadata, SidebarRootInjected } from './contract/slots.ts'
 import { PhoneDrawerButton } from './PhoneDrawerButton.tsx'
+import { SessionsBackButton } from './SessionsBackButton.tsx'
 import { SidebarRoot } from './SidebarRoot.tsx'
 import { en, zh, type SidebarKey } from './locales.ts'
 
@@ -100,5 +101,13 @@ export function apply(ctx: ClientContext): void {
     locale: NS,
     inject: () => ({ toggleSidebar: () => { ctx.layout.toggleSidebar() } }),
   }, PhoneDrawerButton))
+  // Phone-tier conversation-page back affordance (specification §10 top
+  // bar): the session header's leading seat, opening the same drawer.
+  ctx.slots.inject('conversation.session.header.leading', () => ctx.slots.register({
+    name: 'conversation.session.header.leading',
+    id: 'sidebar.phoneBack',
+    locale: NS,
+    inject: () => ({ toggleSidebar: () => { ctx.layout.toggleSidebar() } }),
+  }, SessionsBackButton))
   syncPanels()
 }

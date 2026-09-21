@@ -209,3 +209,15 @@ describe('SidebarRoot shell', () => {
     expect(screen.getByRole('button', { name: 'Open sidebar' })).toBeTruthy()
   })
 })
+
+describe('SessionsBackButton', () => {
+  it('carries the Sessions label and opens the drawer', async () => {
+    const { SessionsBackButton } = await import('../src/client/SessionsBackButton.tsx')
+    const toggleSidebar = vi.fn()
+    const { container } = render(<SessionsBackButton t={t} toggleSidebar={toggleSidebar} />)
+    const button = container.querySelector('[data-sidebar-sessions-back]') as HTMLButtonElement
+    expect(button.textContent).toBe('Sessions')
+    fireEvent.click(button)
+    expect(toggleSidebar).toHaveBeenCalledOnce()
+  })
+})

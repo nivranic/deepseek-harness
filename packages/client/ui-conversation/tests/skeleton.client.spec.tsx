@@ -478,6 +478,8 @@ describe('ConversationRoot resident composer', () => {
     })
     const chip = b.view.container.querySelector('[data-conversation-running-location]')
     expect(chip?.textContent).toBe('运行位置 linux')
+    expect(chip?.querySelector('[aria-hidden="true"]')).not.toBeNull()
+    expect(b.slotCalls).toContain('conversation.session.header.leading')
   })
 
   it('keeps intermediate subagent breadcrumbs at the compact title size', () => {

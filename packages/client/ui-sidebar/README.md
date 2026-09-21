@@ -25,7 +25,7 @@ The dsh web client sidebar lets users recognize the active build, start a new se
 <a id="use-this-package"></a>
 ## Use this package
 
-The sidebar is the navigation shell: users see the brand, start new sessions, collapse the rail, and reach Settings. Feature plugins fill its seats — ui-workspace fills `sidebar.workspaces`, ui-settings registers the trigger row and settings panel at `sidebar.settings`. Below 600px the layout drops the rail entirely, so the plugin also registers a phone-tier drawer opener into the composer's `conversation.input.left` list: a 32px panel button, shown only by that media query, that toggles the frame's overlay drawer.
+The sidebar is the navigation shell: users see the brand, start new sessions, collapse the rail, and reach Settings. Feature plugins fill its seats — ui-workspace fills `sidebar.workspaces`, ui-settings registers the trigger row and settings panel at `sidebar.settings`. Below 600px the layout drops the rail entirely, so the plugin also registers a phone-tier drawer opener into the composer's `conversation.input.left` list: a 32px panel button, shown only by that media query, that toggles the frame's overlay drawer. The session header's `conversation.session.header.leading` list carries the matching back-to-Sessions affordance — a chevron-plus-label button under the same media query — so an open phone conversation returns to the roster from the top bar (specification §10).
 
 ### Brand and New Session
 
