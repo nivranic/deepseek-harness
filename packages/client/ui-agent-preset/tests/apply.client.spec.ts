@@ -76,7 +76,7 @@ async function bench(options: {
   failSettingsUpdate?: boolean
 } = {}) {
   const ctx = new Context()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   // The host's answer, mutable so a spec can move the default the way the
   // settings surface does and watch who re-reads it.
   let ROSTER: typeof ROSTER_ONE | typeof ROSTER_MOVED | typeof ROSTER_AUTHORED | typeof ROSTER_HIDDEN = ROSTER_ONE
@@ -121,7 +121,7 @@ async function bench(options: {
     },
   }
   const remote = new TestRemote(ctx, { settings })
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1', 'settings.write.v1', 'settings.agent-preset-directory.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1', 'settings.write.v1', 'settings.agent-preset-directory.v1'] }
   // The roster and the switch are the AgentPresets Remote namespace; the
   // shared double carries no generated namespaces, so this spec stages its
   // own. Registered twice on purpose: the nested key satisfies the plugin's
@@ -608,11 +608,11 @@ describe('ui-agent-preset apply', () => {
     expect(uiWorkspace.starts).toHaveLength(0)
     await section.setPickerVisible(true)
     const before = seat.hooks.agentPresetSeat.getSnapshot().current
-    remote.$host = { home: undefined, isLoopback: true, capabilities: [] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: [] }
     section.startCreatorDraft?.()
     expect(uiWorkspace.starts).toHaveLength(0)
     expect(seat.hooks.agentPresetSeat.getSnapshot().current).toBe(before)
-    remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1', 'settings.write.v1', 'settings.agent-preset-directory.v1'] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1', 'settings.write.v1', 'settings.agent-preset-directory.v1'] }
     section.startCreatorDraft?.()
 
     // The pick is staged on the chip's own controller — the session the
@@ -767,26 +767,26 @@ describe('AgentPresetSeatController reconciliation', () => {
 it('removes and restores the preset Settings entry with catalog capability and releases its observer', async () => {
   const { ctx, slots, remote, calls } = await bench()
   declareRoot(slots)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: [] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: [] }
   const owner = ctx.plugin({ inject: [...inject], apply })
   await owner.await()
   try {
     expect(slots.entries('settings.section')).toHaveLength(0)
     expect(calls).not.toContain('list')
-    remote.$host = { home: undefined, isLoopback: true, capabilities: ['agent-preset.catalog.v1'] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['agent-preset.catalog.v1'] }
     ctx.emit('connection/reset')
     expect(slots.entries('settings.section')).toHaveLength(1)
     const face = (slots.entries('settings.section')[0]!.inject as unknown as () => AgentPresetSectionInjected)()
     expect(face.hooks.presetManagement.getSnapshot()).toBe(false)
     await face.load()
-    remote.$host = { home: undefined, isLoopback: true, capabilities: [] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: [] }
     ctx.emit('connection/reset')
     expect(slots.entries('settings.section')).toHaveLength(0)
     const before = calls.length
     await face.view('standard')
     await face.openLocation('standard')
     expect(calls).toHaveLength(before)
-    remote.$host = { home: undefined, isLoopback: true, capabilities: ['agent-preset.catalog.v1'] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['agent-preset.catalog.v1'] }
     ctx.emit('connection/reset')
     expect(slots.entries('settings.section')).toHaveLength(1)
   } finally {

@@ -149,7 +149,7 @@ describe('Workspace state stream', () => {
     let capabilities: string[] = []
     const listeners = new Set<() => void>()
     const source = { generation: {
-      getSnapshot: () => ({ id: 1, host: { home: '/fixture', capabilities } }),
+      getSnapshot: () => ({ id: 1, host: { home: '/fixture', platform: 'linux', capabilities } }),
       subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } },
     } }
     const follow = vi.fn(async function* (signal: AbortSignal) {

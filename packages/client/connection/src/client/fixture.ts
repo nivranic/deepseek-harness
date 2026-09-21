@@ -243,7 +243,7 @@ interface FixtureRemoteEventResult {
 interface FixtureRemoteEventReadyFrame {
   readonly type: 'ready'
   readonly clientId: string
-  readonly host: { readonly home: string }
+  readonly host: { readonly home: string; readonly platform: string }
 }
 
 interface FixtureProjectionFrame {
@@ -3548,7 +3548,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       if (gamma !== undefined) setRunning(gamma.sessionId, !gamma.running)
     }, 5000)
     try {
-      yield { type: 'ready', clientId, host: { home: FIXTURE_HOME } }
+      yield { type: 'ready', clientId, host: { home: FIXTURE_HOME, platform: 'linux' } }
       if (approvalPending) yield approvalInvocation()
       if (questionPending) yield questionInvocation()
       yield* conn.drain(signal)

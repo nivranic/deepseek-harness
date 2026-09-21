@@ -18,7 +18,7 @@ import { zh } from '../src/client/locales.ts'
 const useResource = (() => ({ status: 'none' as const, value: undefined, failure: undefined, reload: () => {} })) as GlobalStandardProps['useResource']
 const usePanelInfo: GlobalStandardProps['usePanelInfo'] = selector => selector({ activePanelId: null })
 
-const HOST_FACTS = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1', 'workspace.manage.v1'] }
+const HOST_FACTS = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['workspace.follow.v1', 'workspace.manage.v1'] }
 const useHostInfo: WorkspacePickerProps['useHostInfo'] = selector => selector(HOST_FACTS)
 
 afterEach(cleanup)

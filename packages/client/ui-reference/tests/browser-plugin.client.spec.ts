@@ -79,7 +79,7 @@ async function bench(
 ) {
   const ctx = new Context()
   const listeners = new Set<() => void>()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     listeners.add(listener)
     return () => { listeners.delete(listener) }
   } } })
@@ -122,7 +122,7 @@ describe('apply', () => {
     const { fiber } = await bench()
     let registered: InputTriggerSource | undefined
     const ctx = new Context()
-    ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
     ctx.provide('sidebarRightTabs', { candidates: vi.fn(() => [{}]), subscribe: () => () => {} })
     ctx.provide('sidebarRight', { openResource: vi.fn() })
     ctx.provide('inputTriggers', {
@@ -132,7 +132,7 @@ describe('apply', () => {
       },
     })
     class RemoteService extends Service {
-      readonly $host = { home: undefined, isLoopback: false }
+      readonly $host = { home: undefined, platform: undefined, isLoopback: false }
 
       constructor(serviceCtx: Context) {
         super(serviceCtx, 'remote')

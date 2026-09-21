@@ -57,7 +57,7 @@ function equalBreadcrumbs(left: readonly Breadcrumb[], right: readonly Breadcrum
  * @returns the hidden blank-session header or visible title and tabs.
  */
 export function ConversationSessionHeader({
-  sessionId, useSession, useSessions, useConversation, useConversationViews, useStore,
+  sessionId, useSession, useSessions, useConversation, useConversationViews, useHostFacts, useStore,
   renderSlot, open, selectView, t,
 }: ConversationSessionHeaderProps) {
   const tabs = useConversationViews(value => value)
@@ -66,6 +66,7 @@ export function ConversationSessionHeader({
   const ancestry = useSessions(s => deriveAncestry(s, sessionId), equalBreadcrumbs)
   const session = useSession(s => s)
   const conversation = useConversation(s => s)
+  const host = useHostFacts(value => value)
   const hideChrome = session.blank && conversationPhase(session, conversation) === 'blank'
 
   return (
@@ -131,6 +132,11 @@ export function ConversationSessionHeader({
               </div>
             </div>
             <div className={css.headerUtilities}>
+              {host !== undefined && (
+                <span className={css.headerHost} data-conversation-running-location="">
+                  {t('session.runningLocation', { platform: host.platform })}
+                </span>
+              )}
               {renderSlot('conversation.session.header.utilities', {})}
             </div>
             <div className={css.headerCorner} data-conversation-header-corner="">

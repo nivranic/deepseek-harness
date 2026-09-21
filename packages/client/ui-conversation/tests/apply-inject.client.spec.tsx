@@ -34,9 +34,9 @@ function sessionFakeFor() {
 
 async function bench() {
   const runtime = await SlotTestRuntime.create()
-  runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   const remote = new TestRemote(runtime.ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1', 'file-upload.stage.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1', 'file-upload.stage.v1'] }
   const rootUpload = vi.fn(() => Promise.resolve({
     ok: true as const,
     value: {

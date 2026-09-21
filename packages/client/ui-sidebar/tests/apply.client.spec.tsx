@@ -32,7 +32,7 @@ async function bench(declare = true) {
   if (ctx === undefined) throw new Error('the sidebar fixture owner did not activate')
   await ctx.plugin(SlotRegistry).await()
   const remote = new TestRemote(ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
   const layout = { toggleSidebar: vi.fn(), selectPanel: vi.fn() }
   const uiWorkspace = { startSession: vi.fn() }
   ctx.provide('layout', layout)
@@ -59,13 +59,13 @@ describe('ui-sidebar apply', () => {
     const changed = vi.fn()
     const dispose = injected.hooks.sessionManagement.subscribe(changed)
     expect(injected.hooks.sessionManagement.getSnapshot()).toBe(true)
-    b.remote.$host = { home: undefined, isLoopback: true, capabilities: [] }
+    b.remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: [] }
     b.ctx.emit('connection/reset')
     expect(changed).toHaveBeenCalledOnce()
     expect(injected.hooks.sessionManagement.getSnapshot()).toBe(false)
     injected.startSession()
     expect(b.uiWorkspace.startSession).not.toHaveBeenCalled()
-    b.remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
+    b.remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
     b.ctx.emit('connection/reset')
     injected.startSession()
     expect(b.uiWorkspace.startSession).toHaveBeenCalledOnce()

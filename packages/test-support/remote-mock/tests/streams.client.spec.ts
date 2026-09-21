@@ -185,14 +185,14 @@ describe('RemoteMock streams', () => {
   })
 
   it('waits for opens with opened(), and answers $events with one ready frame per generation', async () => {
-    const mock = RemoteMock.create({ host: { home: '/home/me' } })
+    const mock = RemoteMock.create({ host: { home: '/home/me', platform: 'linux' } })
     const second = mock.streams.opened('$events', 2)
     const first = mock.open('$events', [{}], idle())
-    await expect(take(first, 1)).resolves.toEqual([{ type: 'ready', clientId: 'mock-client-1', host: { home: '/home/me' } }])
+    await expect(take(first, 1)).resolves.toEqual([{ type: 'ready', clientId: 'mock-client-1', host: { home: '/home/me', platform: 'linux' } }])
     const again = mock.open('$events', [{}], idle())
     await expect(second).resolves.toBeUndefined()
     await expect(mock.streams.opened('$events', 1)).resolves.toBeUndefined()
-    await expect(take(again, 1)).resolves.toEqual([{ type: 'ready', clientId: 'mock-client-2', host: { home: '/home/me' } }])
+    await expect(take(again, 1)).resolves.toEqual([{ type: 'ready', clientId: 'mock-client-2', host: { home: '/home/me', platform: 'linux' } }])
     expect(RemoteMock.create().modeOf('$events')).toBe('stream')
   })
 })

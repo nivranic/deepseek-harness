@@ -6,7 +6,7 @@ import {
   RemoteStream,
 } from '../src/client/index.ts'
 
-const GENERATION = { id: 1, host: { home: '/home/fixture' } }
+const GENERATION = { id: 1, host: { home: '/home/fixture', platform: 'linux' } }
 
 function hostSource(initiallyAvailable: boolean): {
   connection: Pick<ConnectionHandle, 'generation'>
@@ -166,7 +166,7 @@ describe('RemoteStream', () => {
     const listeners = new Set<() => void>()
     const opened = vi.fn()
     const stream = new RemoteStream({ generation: {
-      getSnapshot: () => ({ id: 1, host: { home: '/home/fixture', capabilities } }),
+      getSnapshot: () => ({ id: 1, host: { home: '/home/fixture', platform: 'linux', capabilities } }),
       subscribe: (listener) => {
         listeners.add(listener)
         return () => { listeners.delete(listener) }

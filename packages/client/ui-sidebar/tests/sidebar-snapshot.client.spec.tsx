@@ -40,7 +40,7 @@ afterEach(() => {
 async function bench(options: { locale?: 'en' } = {}) {
   const runtime = await SlotTestRuntime.create()
   const remote = new TestRemote(runtime.ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
   runtime.ctx.provide('layout', { toggleSidebar: vi.fn() })
   runtime.ctx.provide('uiWorkspace', { startSession: vi.fn() } as never)
   const locale = new LocaleRuntime(runtime.ctx)

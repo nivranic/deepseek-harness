@@ -173,7 +173,7 @@ export class ClientRemoteEvents {
             if (replyScope === undefined || answer.scope !== replyScope || !pendingIds.has(id)) this.unanswered.delete(id)
           }
           const { interactionReplyScope: _scope, ...hostFacts } = facts
-          ready({ ...hostFacts, home: opening.host.home })
+          ready({ ...hostFacts, home: opening.host.home, platform: opening.host.platform })
           continue
         }
         let frame: ReturnType<typeof parseRemoteEventFrame>
@@ -341,8 +341,9 @@ function parseRemoteEventReady(value: unknown, version: RemoteProtocolVersion): 
     || value.type !== 'ready'
     || !isRemoteEventClientId(value.clientId)
     || !isRemoteEventRecord(value.host)
-    || !hasExactRemoteEventKeys(value.host, ['home'])
-    || typeof value.host.home !== 'string') {
+    || !hasExactRemoteEventKeys(value.host, ['home', 'platform'])
+    || typeof value.host.home !== 'string'
+    || typeof value.host.platform !== 'string') {
     throw new TypeError('client api: forwarded Remote event stream did not begin with ready')
   }
   const ids = value.pendingInteractionIds
@@ -350,7 +351,7 @@ function parseRemoteEventReady(value: unknown, version: RemoteProtocolVersion): 
     && (!Array.isArray(ids) || !ids.every(isRemoteEventId) || new Set(ids).size !== ids.length)) {
     throw new TypeError('client api: invalid pending interaction snapshot')
   }
-  return { clientId: value.clientId, host: { home: value.host.home },
+  return { clientId: value.clientId, host: { home: value.host.home, platform: value.host.platform },
     ...(Array.isArray(ids) ? { pendingInteractionIds: ids as RemoteEventId[] } : {}),
   }
 }

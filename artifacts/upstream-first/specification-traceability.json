@@ -1883,7 +1883,7 @@
         "PLATFORM_VERIFICATION.md",
         "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。",
+      "remaining": "运行位置已落地（§10）：ready frame 携带 Host Node.js platform（网关与客户端严格解析，pre-release 无 wire 兼容承诺），Connection generation 暴露 ConnectionHostInfo，会话页 strict header 的 utilities 行以 locale 键显示「运行位置 <platform>」chip——generation 未就绪即消失，手机端不会误以为命令在本机执行（§11 第一原则的呈现面）；Kotlin Link 契约镜像同步。手机顶栏返回/overflow chrome、更丰富的设备命名（host.describe displayName）与权限档显示仍开放；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

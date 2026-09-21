@@ -5,6 +5,7 @@ import { act, cleanup, fireEvent, waitFor, within } from '@testing-library/react
 import { useState } from 'react'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import type { ISession } from '@deepseek-ai/dsh-api-session-controller/client'
+import type { ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import type { PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
 import {
   RemoteError, TestRemote, SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope,
@@ -59,11 +60,16 @@ function WorkspaceProbe({ open }: EmptyWorkspaceOwnerProps) {
   )
 }
 
-async function bench(opts?: { blank?: boolean }) {
+async function bench(opts?: { blank?: boolean; generationHost?: ConnectionHostInfo }) {
   const runtime = await SlotTestRuntime.create()
-  runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  runtime.ctx.provide('connection', {
+    generation: {
+      getSnapshot: () => opts?.generationHost === undefined ? undefined : { id: 1, host: opts.generationHost },
+      subscribe: () => () => {},
+    },
+  })
   const remote = new TestRemote(runtime.ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
   runtime.ctx.provide('uiWorkspace', {
     openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
       beforeOpen(SID)
@@ -92,9 +98,9 @@ async function bench(opts?: { blank?: boolean }) {
 describe('resident composer', () => {
   it('renders the locked view state while no session exists at all', async () => {
     const runtime = await SlotTestRuntime.create()
-    runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
     const remote = new TestRemote(runtime.ctx)
-    remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
       openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
         beforeOpen(SID)
@@ -128,9 +134,9 @@ describe('resident composer', () => {
 
   it('keeps the complete Hero tree mounted when the first Workspace session appears', async () => {
     const runtime = await SlotTestRuntime.create()
-    runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
     const remote = new TestRemote(runtime.ctx)
-    remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
       openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
         beforeOpen(SID)
@@ -202,9 +208,9 @@ describe('resident composer', () => {
 describe('prompt rejection through the assembled composer', () => {
   it('renders the promptError alert strip and keeps the draft in the machine', async () => {
     const runtime = await SlotTestRuntime.create()
-    runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
     const remote = new TestRemote(runtime.ctx)
-    remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
       openWorkspace: vi.fn(async (_workspaceId: WorkspaceId, beforeOpen: (id: SessionId) => void) => {
         beforeOpen(SID)
@@ -265,6 +271,14 @@ describe('title projection across assembled surfaces', () => {
       expect(within(hierarchy).getByRole('button', { name: '修订标题' }).hasAttribute('disabled')).toBe(true)
     })
     expect(within(hierarchy).queryByRole('button', { name: 'S' })).toBeNull()
+    await runtime.dispose()
+  })
+
+  it('the assembled header shows the running location off the established generation', async () => {
+    const runtime = await bench({ generationHost: { home: '/home/u', platform: 'linux' } })
+    const view = runtime.renderRoot()
+    const chip = view.container.querySelector('[data-conversation-running-location]')
+    expect(chip?.textContent).toBe('运行位置 linux')
     await runtime.dispose()
   })
 })

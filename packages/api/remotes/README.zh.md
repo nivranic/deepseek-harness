@@ -58,7 +58,7 @@ Host 发现会在首次 `host/describe` 请求检查 Host 访问权限前报告 
 
 监听器签名不在此处重写。名单内每条事件的 Cordis `Events` 声明都住在其 owner 包 client-safe 的 `./types` 导出，本包两个 face 都把那些声明纳入编译面。Host face 还会把每个条目断言给 `TypertForwardableEventEntry`：`emit` 条目必须是已声明的单向事件，`waterfall` 条目则必须是已声明的 agent-scoped waterfall，且其最后一个参数是返回相同结果类型的 `next()` 回调。
 
-Host entry 为每条 Client 流独立注册一组 allowlist listener 和一个队列，并在普通事件入队前拒绝非 JSON 参数。对于 waterfall，它只投影顶层 agent 身份与 JSON 请求字段；Client 结果也必须能无损表示为 JSON，而 `next()` 会委托给后续 Host listener。每个作用域 waterfall 请求都必须以 `request.agent` 直接携带路由所用的 agent；Host 会在转发前拒绝缺失或不匹配的身份。该 source 在 `ctx.typertGateway.registerRemoteEvents()` 暴露 Gateway 内部的 `$events` 逻辑流前同步挂好所有 listener，因此首个 `ready` 项既能证明增量投递已就绪，也会携带供 Client 显示路径的 Host home。撤回注册会中止活动流。
+Host entry 为每条 Client 流独立注册一组 allowlist listener 和一个队列，并在普通事件入队前拒绝非 JSON 参数。对于 waterfall，它只投影顶层 agent 身份与 JSON 请求字段；Client 结果也必须能无损表示为 JSON，而 `next()` 会委托给后续 Host listener。每个作用域 waterfall 请求都必须以 `request.agent` 直接携带路由所用的 agent；Host 会在转发前拒绝缺失或不匹配的身份。该 source 在 `ctx.typertGateway.registerRemoteEvents()` 暴露 Gateway 内部的 `$events` 逻辑流前同步挂好所有 listener，因此首个 `ready` 项既能证明增量投递已就绪，也会携带供 Client 显示路径的 Host home 与 Node.js platform。撤回注册会中止活动流。
 
 Approval 和 Question 条目显式声明交互类型及所需回答权限。Host 事件源附带路由所用 Agent 的 Session 身份；Gateway 持有待处理记录并按协议版本投递。共享名单从 Gateway 中立的 `/protocol` 入口导入这些类型，避免将 Host Context 声明引入 Client 程序。该元数据不实现设备信任或回答授权。
 

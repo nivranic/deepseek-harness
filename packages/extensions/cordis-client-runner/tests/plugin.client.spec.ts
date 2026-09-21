@@ -158,12 +158,12 @@ async function boot(operations = ['run', 'client-code', 'resolve-run', 'settle-r
     }
   }
   const generationListeners = new Set<() => void>()
-  ctx.reflect.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  ctx.reflect.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     generationListeners.add(listener)
     return () => { generationListeners.delete(listener) }
   } } })
   const remote = {
-    $host: { home: undefined, isLoopback: true, capabilities: operations.map(id => 'dynamic-cordis.' + id + '.v1') },
+    $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: operations.map(id => 'dynamic-cordis.' + id + '.v1') },
     dynamicCordisRunner: namespace,
     $on: (event: string, listener: (...args: never[]) => void) => {
       const bucket = listeners.get(event) ?? []

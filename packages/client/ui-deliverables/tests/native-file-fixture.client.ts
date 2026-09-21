@@ -14,7 +14,7 @@ export function nativeFileRemote(capabilities = ['presented-file.desktop.v1', 'p
   const open = vi.fn<ClientRemote['presentedFiles']['open']>().mockResolvedValue({ ok: true, value: { completed: true } })
   const reveal = vi.fn<ClientRemote['presentedFiles']['reveal']>().mockResolvedValue({ ok: true, value: { completed: true } })
   const remote = {
-    $host: { home: undefined, isLoopback: true, capabilities } as RemoteHostFacts,
+    $host: { home: undefined, platform: undefined, isLoopback: true, capabilities } as RemoteHostFacts,
     presentedFiles: { desktop, open, reveal },
   }
   return { remote, desktop, open, reveal }

@@ -17,7 +17,7 @@ const PARENT = 'fk-parent' as SessionId
 function rejecting(message: string): SessionRemotes {
   const reject = (): Promise<never> => Promise.reject(new Error(message))
   return {
-    $host: { home: undefined, isLoopback: true },
+    $host: { home: undefined, platform: undefined, isLoopback: true },
     $stream: () => { throw new Error('unused') },
     commands: { execute: reject },
     session: { prompt: reject, cancel: reject },

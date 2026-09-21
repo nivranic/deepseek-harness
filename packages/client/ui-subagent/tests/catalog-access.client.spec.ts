@@ -3,7 +3,7 @@ import type { RemoteHostFacts } from '@deepseek-ai/dsh-api-remotes/client'
 import { createCatalogAccess } from '../src/client/catalog-access.ts'
 
 it('withdraws catalog actions immediately and rejects retained menu callbacks after replacement', () => {
-  let host: RemoteHostFacts = { home: undefined, isLoopback: true, capabilities: ['subagent.catalog.v1'] }
+  let host: RemoteHostFacts = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['subagent.catalog.v1'] }
   const listeners = new Set<() => void>()
   const actions = { openChild: vi.fn(), refresh: vi.fn(), setCatalogOpen: vi.fn() }
   const source = createCatalogAccess(() => host,

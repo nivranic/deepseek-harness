@@ -49,7 +49,7 @@ class GenerationProbe {
     }
     this.active.add(finish)
     signal.addEventListener('abort', finish, { once: true })
-    ready({ home: '/h' })
+    ready({ home: '/h', platform: 'linux' })
     if (signal.aborted) finish()
   })
 
@@ -285,7 +285,7 @@ describe('connection client apply', () => {
     let calls = 0
     const source: ConnectionGenerationSource = (signal, ready) => new Promise<void>((resolve) => {
       calls++
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       signal.addEventListener('abort', () => { resolve() }, { once: true })
     })
     handle.registerGenerationSource(source)
@@ -551,7 +551,7 @@ describe('connection client apply', () => {
     handle.registerGenerationSource(async (signal, ready) => {
       attempts++
       if (phase === 'discovery' && !restored) await handle.rpc.call('/api', 'host/describe', {}, signal)
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       await new Promise<void>((resolve) => { signal.addEventListener('abort', () => { resolve() }, { once: true }) })
     })
     const loop = handle.start({})

@@ -24,7 +24,7 @@ import { apply as hostApply } from '../src/index.ts'
 async function bench(isLoopback = true, mock = RemoteMock.create().load(remoteDefaultResponses), services: object = {}) {
   onTestFinished(() => { mock.assertNoUnmatched() })
   const ctx = new Context()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry).await()
   const locale = new LocaleRuntime(ctx)
   locale.setLocale('zh')
@@ -44,7 +44,7 @@ async function bench(isLoopback = true, mock = RemoteMock.create().load(remoteDe
     settings: mock.remote.settings,
   })
   // The fixed Host facts the settings provider reads its persistence from.
-  remote.$host = { home: undefined, isLoopback, capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback, capabilities: ['settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1'] }
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, remote }
 }

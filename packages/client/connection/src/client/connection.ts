@@ -7,6 +7,8 @@ export type { ConnectionRecoveryConfig } from '../recovery-config.ts'
 export interface ConnectionHostInfo {
   /** Host account home used only to abbreviate displayed filesystem paths. */
   readonly home: string
+  /** Host Node.js platform value; the running-location surface shows it. */
+  readonly platform: string
 }
 
 /** One successfully established Host generation. */

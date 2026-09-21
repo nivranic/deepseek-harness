@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Running-location visibility; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/running-location-source.json",
+    "sha256": "3060ad2039d33f1e7c851d35e8c9fabed75c0f4782a7eb4fd6f4bd831b87791f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "addf602788fb944b7479b27a59ddcaa2c9ea1c2928765f015f28d100ec27c3f7"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/running-location-binding.json",
+    "sha256": "49a1f1a3d79b652ff79ca28c9b350608b6d7648d12fc5673d0646d88ed8b60be"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-running-location-reports.mjs",
+      "sha256": "5924a03a8f3a5c909b412f2d9b79c96e09f0d1670674e3664bf7fbb8d634c1ce"
+    },
+    {
+      "path": ".artifacts/capture-running-location-validation.mjs",
+      "sha256": "253e65e6f93a8e41ceec2822e3f31058843e7175370cf4951dbf28e2f0aa2481"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ca691f500dbd7bac36aa01bc5b81bd89c229dbd2e6d5532a555e560515d193d0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "407a3e71185f9a61802ecacf41caff70221558856b22e40f988b83b437e3f575"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/running-location-binding.log",
+      "sha256": "585b9e1d41b844fdb6d19f3460d187c02d655eac904ce5bce13e31746806df60"
+    },
+    {
+      "path": ".artifacts/running-location-audit-tests.log",
+      "sha256": "70607746e86f2656478cf56851a4f016899db06f469a50362650fd44330b4fb4"
+    },
+    {
+      "path": ".artifacts/running-location-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/running-location-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/running-location-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -10,7 +10,7 @@ function bench(hidden: readonly string[] = [], writable = true) {
   const scope = stubSettingsScope<WebSearchSettings>()
   const metadata = (configured: boolean) => ({ ok: true as const, value: { DEEPSEEK_API_KEY: { configured, writable } } })
   const remote = {
-    $host: { home: undefined, isLoopback: true, capabilities: capabilities.filter(id => !hidden.includes(id)) },
+    $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: capabilities.filter(id => !hidden.includes(id)) },
     credentials: {
       describe: vi.fn(async () => metadata(false)),
       set: vi.fn(async (): Promise<RemoteResult<void>> => ({ ok: true, value: undefined })),

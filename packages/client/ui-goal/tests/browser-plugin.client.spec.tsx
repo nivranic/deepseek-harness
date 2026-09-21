@@ -103,7 +103,7 @@ async function bench(options: {
   })
   let activeGoals: ReturnType<typeof goals> | undefined = goals('goals')
   class RemoteService extends Service {
-    $host: RemoteHostFacts = { home: undefined, isLoopback: true, capabilities: options.capabilities ?? [
+    $host: RemoteHostFacts = { home: undefined, platform: undefined, isLoopback: true, capabilities: options.capabilities ?? [
       'goal.read.v1', 'goal.edit.v1', 'goal.pause.v1', 'goal.resume.v1', 'goal.clear.v1',
     ] }
     readonly activationListeners = new Set<(event: {
@@ -134,7 +134,7 @@ async function bench(options: {
   }
   const remote = new RemoteService(ctx)
   const generationListeners = new Set<() => void>()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     generationListeners.add(listener)
     return () => { generationListeners.delete(listener) }
   } } })

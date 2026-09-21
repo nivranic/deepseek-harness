@@ -11,7 +11,7 @@ import { apply as hostApply } from '../src/index.ts'
 
 async function bench() {
   const ctx = new Context()
-  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   await ctx.plugin(SlotRegistry).await()
   const create = vi.fn(async (input: { name: string } | { path: string }) => ({
     workspaceId: 'ws-new' as never,
@@ -65,7 +65,7 @@ async function bench() {
   const pickDirectory = vi.fn(() => Promise.resolve({ ok: true as const, value: '/projects/picked' }))
   const directoryPicker = { pick: pickDirectory }
   const remote = Object.assign(new TestRemote(ctx), { directoryPicker })
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
   ctx.provide('remote.directoryPicker', directoryPicker as never)
   const locale = new LocaleRuntime(ctx)
   // These specs assert the shipped Chinese copy. There is no jsdom `window`
@@ -124,12 +124,12 @@ describe('ui-workspace apply', () => {
     const start = vi.spyOn(b.ctx.uiWorkspace, 'startSession').mockImplementation(() => undefined)
     const fork = vi.spyOn(b.ctx.uiWorkspace, 'forkSession').mockResolvedValue(undefined)
     const browser = (b.slots.entries('sidebar.workspaces')[0]!.inject as () => WorkspaceBrowserInjected)()
-    b.remote.$host = { home: undefined, isLoopback: true, capabilities: [] }
+    b.remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: [] }
     browser.startSession()
     browser.forkSession('session' as never)
     expect(start).not.toHaveBeenCalled()
     expect(fork).not.toHaveBeenCalled()
-    b.remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+    b.remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
     browser.startSession()
     browser.forkSession('session' as never)
     expect(start).toHaveBeenCalledOnce()

@@ -40,7 +40,7 @@ async function bench() {
   // The service subscribes its cache-invalidation events on construction, so
   // the Remote face needs `$on` even where this spec dispatches none.
   ctx.provide('remote', { commands: commandsRemote, $host: { capabilities: ['command.catalog.v1', 'command.execute.v1'] }, $on: () => () => {} })
-  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   ctx.provide('remote.commands', commandsRemote)
   await ctx.plugin(SlotRegistry).await()
   ctx.slots.register({

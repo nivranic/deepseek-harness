@@ -138,7 +138,7 @@ describe('Session Controller Client apply', () => {
     // The second $events generation stays unready until the test lets the Host answer.
     mock.stream(EVENTS, (_args, stream) => {
       opens += 1
-      const ready = { type: 'ready', clientId: `mock-client-${String(opens)}`, host: { home: '/home/mock' } }
+      const ready = { type: 'ready', clientId: `mock-client-${String(opens)}`, host: { home: '/home/mock', platform: 'linux' } }
       if (opens === 1) stream.push(ready)
       else void hostBack.promise.then(() => { stream.push(ready) })
     })

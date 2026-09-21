@@ -19,7 +19,7 @@ const schema = new SettingsSchemaService(new Context())
 
 /** Controller over a real mirror derived from the same scripted context. */
 function derivedController(remote: { settings: object }) {
-  const ctx = { remote: { ...remote, $host: { home: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] } } } as never
+  const ctx = { remote: { ...remote, $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] } } } as never
   return new PermissionPresetSettingsController(new SettingsDescribeMirror(ctx), ctx, schema)
 }
 

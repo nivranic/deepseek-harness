@@ -6,7 +6,7 @@ import { createComposerControlSource } from '../src/client/input/control-capabil
 const CHILD: SubagentAddress = { parentSessionId: 'p' as never, childSessionId: 'c' as never, mode: 'continuable' }
 
 function bench(capabilities: readonly string[], address: SubagentAddress | undefined = CHILD) {
-  let host: RemoteHostFacts = { home: undefined, isLoopback: true, capabilities }
+  let host: RemoteHostFacts = { home: undefined, platform: undefined, isLoopback: true, capabilities }
   const cancel = vi.fn(() => Promise.resolve())
   const listeners = new Set<() => void>()
   const source = createComposerControlSource({

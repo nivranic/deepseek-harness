@@ -560,7 +560,7 @@ describe('plugin registration', () => {
       native.remote.$host = { ...native.remote.$host }
       for (const listener of [...listeners]) listener()
     }
-    ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+    ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
       listeners.add(listener)
       return () => { listeners.delete(listener) }
     } } })

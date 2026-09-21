@@ -49,6 +49,8 @@ export type RemoteInteractionRecord = RemoteInteractionOrigin & {
 export interface RemoteEventHostInfo {
   /** Host account home used only to abbreviate displayed filesystem paths. */
   readonly home: string
+  /** Host Node.js platform value; the running-location surface shows it. */
+  readonly platform: string
 }
 
 /** Opening item that binds later HTTP results to this active event stream. */

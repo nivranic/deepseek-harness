@@ -29,7 +29,7 @@ function SidebarFrame({ renderSlot }: FrameProps) {
 async function bench() {
   const runtime = await SlotTestRuntime.create()
   const listeners = new Set<() => void>()
-  runtime.ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     listeners.add(listener)
     return () => { listeners.delete(listener) }
   } } })
@@ -76,7 +76,7 @@ describe('Host home in the assembled browsing region', () => {
     // First render precedes the ready frame: the shell mounts while the carrier
     // is still handshaking, so the Host reports no home yet.
     const { runtime, remote, notifyGeneration } = await bench()
-    remote.$host = { home: undefined, isLoopback: true }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true }
     runtime.renderRoot()
     vi.useFakeTimers()
     try {
@@ -84,7 +84,7 @@ describe('Host home in the assembled browsing region', () => {
       expect(screen.getByText('/home/u/Documents/project')).toBeTruthy()
       closeHoverCard()
 
-      remote.$host = { home: '/home/u', isLoopback: true }
+      remote.$host = { home: '/home/u', platform: 'linux', isLoopback: true }
       act(() => { notifyGeneration() })
       openHoverCard()
 

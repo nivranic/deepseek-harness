@@ -55,7 +55,7 @@ async function boot(capabilities = ['workspace-files.list.v1']) {
   ctx.provide('sidebarRightTabs', tabs as never)
   ctx.provide('slots', slots as never)
   ctx.provide('locale', locale as never)
-  const remote = { workspaceFiles, $host: { capabilities, home: undefined, isLoopback: false } }
+  const remote = { workspaceFiles, $host: { capabilities, home: undefined, platform: undefined, isLoopback: false } }
   ctx.provide('remote', remote as never)
   ctx.provide('remote.workspaceFiles', workspaceFiles as never)
   const fiber = ctx.plugin({ inject: [...inject], apply })

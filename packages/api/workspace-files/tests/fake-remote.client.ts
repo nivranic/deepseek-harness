@@ -83,7 +83,7 @@ interface OpenedWatch {
 
 /** The scripted Remote: every stat waits for the spec, every session stream is a {@link Source}. */
 export class FakeRemote implements WorkspaceFilesRemote {
-  $host: WorkspaceFilesRemote['$host'] = { home: undefined, isLoopback: false, capabilities: ['workspace-files.stat.v1', 'workspace-files.changes.v1'] }
+  $host: WorkspaceFilesRemote['$host'] = { home: undefined, platform: undefined, isLoopback: false, capabilities: ['workspace-files.stat.v1', 'workspace-files.changes.v1'] }
   readonly calls: Array<'changes' | 'accept' | 'stat'> = []
   readonly opened: OpenedWatch[] = []
   readonly disposed: string[] = []
@@ -118,7 +118,7 @@ export class FakeRemote implements WorkspaceFilesRemote {
   }
 
   $stream<Item>(options: SupervisedStreamOptions<Item>): SupervisedStream<Item> {
-    if (options.available?.({ ...this.$host, home: '/host' }) === false) throw new Error('test Host does not support this stream')
+    if (options.available?.({ ...this.$host, home: '/host', platform: 'linux' }) === false) throw new Error('test Host does not support this stream')
     const controller = new AbortController()
     const disposed = this.disposed
     const calls = this.calls

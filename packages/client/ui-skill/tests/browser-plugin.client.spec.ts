@@ -34,7 +34,7 @@ const generations = new WeakMap<Context, () => void>()
 
 function provideRemote(ctx: Context, list: ListFn): TestRemote {
   const listeners = new Set<() => void>()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     listeners.add(listener)
     return () => { listeners.delete(listener) }
   } } })
@@ -127,7 +127,7 @@ describe('catalog capabilities', () => {
   it('waits for discovery before warming and withdraws cached names and picks on loss', async () => {
     const list = vi.fn(listOk([{ name: 'review', description: 'Review', path: '/review/SKILL.md' }]))
     const { ctx, source, remote } = await bench(list)
-    remote.$host = { home: undefined, isLoopback: true }
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true }
     source.warm!(proj('s'))
     await expect(source.candidates(proj('s'), req(''))).resolves.toEqual([])
     expect(list).not.toHaveBeenCalled()

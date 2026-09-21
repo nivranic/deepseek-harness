@@ -6,10 +6,10 @@ import { fileUploadWorker, FileUploadRuntime } from '../src/client/runtime.ts'
 import type { FileUploadBody } from '../src/client/contract.ts'
 import type { ClientFileUploadHooks } from '../src/types.ts'
 
-const HOST = { home: undefined, isLoopback: true, capabilities: ['file-upload.stage.v1'] }
+const HOST = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['file-upload.stage.v1'] }
 
 function prepareRuntime(ctx: Context): void {
-  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   if (ctx.get('remote') === undefined) ctx.provide('remote', { $host: HOST } as never)
 }
 
@@ -536,7 +536,7 @@ describe('file upload Connection lifetime', () => {
     const remote = { $host: { ...HOST, capabilities }, fileUploads: { upload: vi.fn(async () => ({ ok: true })) } }
     const ctx = new Context()
     ctx.provide('remote', remote as never)
-    ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+    ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
       listeners.add(listener)
       return () => { listeners.delete(listener) }
     } } })

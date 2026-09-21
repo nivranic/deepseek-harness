@@ -69,7 +69,7 @@ async function fullBench(sessions: SessionSummary[]) {
   const face = sessionsWith(sessions)
   ctx.provide('sessions', face)
   ctx.provide('remote', { $host: { capabilities: ['subagent.catalog.v1'] }, $on: () => () => {} } as never)
-  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
   await provideSlotFaces(ctx)
   await ctx.plugin({ inject: localeInject, apply: applyLocale }).await()

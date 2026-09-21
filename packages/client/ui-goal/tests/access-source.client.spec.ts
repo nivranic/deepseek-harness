@@ -8,7 +8,7 @@ const CAPABILITIES = ['goal.read.v1', 'goal.edit.v1', 'goal.pause.v1', 'goal.res
 const REF = { id: 'goal-1' as GoalRef['id'], revision: 3 }
 
 function bench(capabilities: readonly string[] = CAPABILITIES) {
-  let host: RemoteHostFacts = { home: undefined, isLoopback: true, capabilities }
+  let host: RemoteHostFacts = { home: undefined, platform: undefined, isLoopback: true, capabilities }
   let alive = true
   const listeners = new Set<() => void>()
   const request = vi.fn<() => Promise<GoalActionResult>>(() => Promise.resolve({ ok: true, value: undefined }))

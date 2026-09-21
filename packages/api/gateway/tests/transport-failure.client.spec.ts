@@ -24,7 +24,7 @@ describe('Gateway transport failure semantics', () => {
   ] as const)('classifies %s failure after its existing retry policy', async (_kind, failure, code, opens) => {
     let opened = 0
     let losses = 0
-    const generation: ConnectionGeneration = { id: 1, host: { home: '/fixture' } }
+    const generation: ConnectionGeneration = { id: 1, host: { home: '/fixture', platform: 'linux' } }
     const stream = new RemoteStream({ generation: {
       getSnapshot: () => generation, subscribe: () => () => {},
     } }, {

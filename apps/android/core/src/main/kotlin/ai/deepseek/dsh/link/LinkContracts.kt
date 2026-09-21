@@ -83,6 +83,7 @@ enum class LinkRemoteEventOutcomeKind(val wire: String) {
 }
 data class LinkRemoteEventHostInfo(
     val home: String,
+    val platform: String,
 )
 data class LinkRemoteEventReadyFrame(
     val type: String, // constant "ready"

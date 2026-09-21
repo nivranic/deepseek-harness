@@ -31,7 +31,7 @@ export class TestRemote {
    * Fixed Host facts mirrored from the production `ctx.remote.$host`. Plain
    * mutable field: a spec assigns it to script a non-loopback or homed Host.
    */
-  $host: RemoteHostFacts = { home: undefined, isLoopback: true }
+  $host: RemoteHostFacts = { home: undefined, platform: undefined, isLoopback: true }
 
   /**
    * Register the double as `ctx.remote`, plus one service per scripted

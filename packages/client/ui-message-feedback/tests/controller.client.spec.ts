@@ -57,7 +57,7 @@ function fakeRemote(script: Script = {}) {
     }
   const ctx = {
     remote: {
-      $host: { home: undefined, isLoopback: true, capabilities: ['feedback.message.read.v1', 'feedback.message.put.v1', 'feedback.message.delete.v1', 'feedback.session.record.v1'] },
+      $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: ['feedback.message.read.v1', 'feedback.message.put.v1', 'feedback.message.delete.v1', 'feedback.session.record.v1'] },
       messageFeedback: {
         list: record('list', script.list, { ok: true, value: { items: [] } }),
         put: record('put', script.put, { ok: true, value: item() }),

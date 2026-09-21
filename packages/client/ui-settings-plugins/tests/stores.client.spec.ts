@@ -48,7 +48,7 @@ function acceptWrites<T>(host: StubSettingsScope<T>): void {
 
 /** The card plugin's context, scripted down to the namespaces a card reaches. */
 function ctxWith(namespaces: object) {
-  return { remote: { $host: { home: undefined, isLoopback: true,
+  return { remote: { $host: { home: undefined, platform: undefined, isLoopback: true,
     capabilities: ['settings.read.v1', 'settings.write.v1', 'credentials.describe.v1', 'credentials.write.v1'] }, ...namespaces } } as never
 }
 

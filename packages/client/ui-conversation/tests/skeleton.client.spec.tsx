@@ -5,6 +5,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import type { Context } from '@deepseek-ai/cordis'
 import type { SessionListState, SessionSnapshot } from '@deepseek-ai/dsh-api-session-controller/client'
+import type { ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import type { WorkspaceSnapshot, WorkspaceView } from '@deepseek-ai/dsh-api-workspace-controller/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import {
@@ -128,6 +129,8 @@ function mount(
     composerBlock?: { reason: string }
     /** Mutable view ledger used by registration-order regressions. */
     viewTabs?: ViewTab[]
+    /** Host facts the header's running-location chip reads; absent while no generation is ready. */
+    headerHostFacts?: ConnectionHostInfo
   } = {},
 ) {
   const root = sid('root')
@@ -177,6 +180,8 @@ function mount(
     { id: 'trajectory', label: 'Trajectory' },
   ]
   const useConversationViews: SessionSlotProps['useConversationViews'] = selector => selector(viewTabs)
+  const headerHostFacts = options.headerHostFacts
+  const useHostFacts: ComponentProps<typeof ConversationSessionHeader>['useHostFacts'] = selector => selector(headerHostFacts)
   /** Owner share handed to the two composer tool-row seats, per render. */
   const seatOwners: { key: string; owner: unknown }[] = []
   let pickerOwner: unknown
@@ -198,6 +203,7 @@ function mount(
           useSession={useSession}
           useConversation={useConversation}
           useConversationViews={useConversationViews}
+          useHostFacts={useHostFacts}
           useChat={useChat}
           useTrajectory={useTrajectory}
           useSessions={props.useSessions}
@@ -461,6 +467,17 @@ describe('ConversationRoot resident composer', () => {
     expect((b.view.getByRole('button', { name: 'Child' }) as HTMLButtonElement).disabled).toBe(true)
     fireEvent.click(root)
     expect(b.open).toHaveBeenCalledWith(sid('root'))
+  })
+
+  it('shows the running-location chip only while Host facts exist', () => {
+    const bare = mount(sessionSnapshotOf())
+    expect(bare.view.container.querySelector('[data-conversation-running-location]')).toBeNull()
+
+    const b = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+    })
+    const chip = b.view.container.querySelector('[data-conversation-running-location]')
+    expect(chip?.textContent).toBe('运行位置 linux')
   })
 
   it('keeps intermediate subagent breadcrumbs at the compact title size', () => {

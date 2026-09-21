@@ -62,7 +62,7 @@ async function fixture(version: 1 | 2 = 1, deliverEvent = false, admission?: Rem
       }
       await Promise.race([eventReady.promise, aborted(signal)])
       if (signal.aborted) return
-      yield { type: 'ready', clientId: 'admission-client', host: { home: '/home/admission' } }
+      yield { type: 'ready', clientId: 'admission-client', host: { home: '/home/admission', platform: 'linux' } }
       if (deliverEvent) yield { type: 'waterfall', event: 'fixture/approval', eventId: 'event-1', agentId: 'agent-1', request: {} }
       await aborted(signal)
     },
@@ -125,7 +125,7 @@ describe('application Remote preparation', () => {
     })
     vi.stubGlobal('__DSH_TRANSPORT__', { fetch, openStream: (_endpoint: string, _payload: unknown, signal: AbortSignal) => ({
       async *[Symbol.asyncIterator]() {
-        yield { type: 'ready', clientId: 'http-client', host: { home: '/h' } }
+        yield { type: 'ready', clientId: 'http-client', host: { home: '/h', platform: 'linux' } }
         await aborted(signal)
       },
     }) })

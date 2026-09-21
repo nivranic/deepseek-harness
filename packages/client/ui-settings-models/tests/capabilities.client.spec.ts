@@ -9,7 +9,7 @@ const capabilities = ['llm.providers.v1', 'llm.discover-models.v1', 'credentials
 const view = { ns: 'llm-deepseek', revision: 1, schema: {}, value: { apiKeyEnv: 'FIXTURE_API_KEY' }, base: {}, applies: 'live' as const, secrets: [] }
 function bench(hidden: readonly string[] = []) {
   const remote = {
-    $host: { home: undefined, isLoopback: true, capabilities: capabilities.filter(id => !hidden.includes(id)) },
+    $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: capabilities.filter(id => !hidden.includes(id)) },
     llm: {
       listProviders: vi.fn(async () => ({ ok: true as const, value: [{ id: 'deepseek-official', name: 'DeepSeek' }] })),
       listConfigurableProviders: vi.fn(async () => ({ ok: true as const, value: [{ provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [] }] })),

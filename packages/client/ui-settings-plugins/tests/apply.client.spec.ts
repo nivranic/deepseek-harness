@@ -24,7 +24,7 @@ import { apply as hostApply } from '../src/index.ts'
  */
 async function bench(served?: string[]) {
   const ctx = new Context()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry).await()
   const locale = new LocaleRuntime(ctx)
   locale.setLocale('zh')
@@ -54,7 +54,7 @@ async function bench(served?: string[]) {
     session: { modelCatalog: models },
     settings: { describe: describeSettings },
   })
-  remote.$host = { home: undefined, isLoopback: true,
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true,
     capabilities: ['settings.read.v1', 'settings.write.v1', 'credentials.describe.v1', 'credentials.write.v1'] }
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   return {

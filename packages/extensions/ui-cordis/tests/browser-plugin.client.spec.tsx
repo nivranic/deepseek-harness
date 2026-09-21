@@ -25,12 +25,12 @@ async function bench(operations: string[] = ['inventory']) {
   const locale = new LocaleRuntime(ctx)
   ctx.provide('locale', locale)
   const generations = new Set<() => void>()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     generations.add(listener)
     return () => { generations.delete(listener) }
   } } })
   class RemoteService extends Service {
-    $host = { home: undefined, isLoopback: true, capabilities: operations.map(id => 'dynamic-cordis.' + id + '.v1') }
+    $host = { home: undefined, platform: undefined, isLoopback: true, capabilities: operations.map(id => 'dynamic-cordis.' + id + '.v1') }
     $on = () => () => {}
     constructor(scope: Context) { super(scope, 'remote') }
   }

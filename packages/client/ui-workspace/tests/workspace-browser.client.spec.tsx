@@ -73,12 +73,12 @@ function dragData(): Pick<DataTransfer, 'effectAllowed' | 'dropEffect' | 'setDat
   return { effectAllowed: 'uninitialized', dropEffect: 'none', setData: vi.fn() }
 }
 
-const HOST_FACTS_0 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
-const HOST_FACTS_1 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
-const HOST_FACTS_2 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
-const HOST_FACTS_3 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
-const HOST_FACTS_4 = { home: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
-const HOST_FACTS_5 = { home: '/home/u', isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_0 = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_1 = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.search.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_2 = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_3 = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.search.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_4 = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+const HOST_FACTS_5 = { home: '/home/u', platform: 'linux', isLoopback: true, capabilities: ['session.search.v1', 'session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
 
 function mount(overrides: Partial<WorkspaceBrowserProps> = {}) {
   const store = createWorkspaceViewStore().create()
@@ -1047,7 +1047,7 @@ describe('WorkspaceBrowser', () => {
       fireEvent.change(input, { target: { value: 'needle' } })
       await act(async () => { await vi.advanceTimersByTimeAsync(250) })
       const signal = searchSessions.mock.calls[0]![1]
-      rerender(b, { useHostInfo: hook({ home: undefined, isLoopback: true }) })
+      rerender(b, { useHostInfo: hook({ home: undefined, platform: undefined, isLoopback: true }) })
       expect(signal.aborted).toBe(true)
       await act(async () => {
         if (settlement === 'resolve') pending.resolve({ items: [{ sessionId: sid('old-hit'), snippet: 'needle stale' }], hasMore: false })

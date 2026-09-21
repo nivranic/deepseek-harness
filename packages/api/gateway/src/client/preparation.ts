@@ -24,7 +24,7 @@ interface Admission {
 export type RemoteInteractionReplyScope = Branded<'RemoteInteractionReplyScope'>
 
 /** Application-owned facts attached to the existing Connection generation. */
-export type RemotePreparationFacts = Omit<ConnectionHostInfo, 'home' | 'apiProtocolVersion'> & {
+export type RemotePreparationFacts = Omit<ConnectionHostInfo, 'home' | 'apiProtocolVersion' | 'platform'> & {
   /** Selected codec for all requests in this connection generation. */
   readonly apiProtocolVersion: RemoteProtocolVersion
   /** Same authenticated Host authority across reconnects; absent scope forbids retained-answer replay. */

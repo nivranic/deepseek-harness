@@ -38,7 +38,7 @@ Connection 可用时，Host 入口会在 Connection 共享的 `/api` FetchHandle
 
 流式 Remote 使用 `@Remote({ mode: 'stream' })` 并返回 `Iterable` 或 `AsyncIterable`。`ctx.typertGateway.stream()` 执行与一元调用相同的 endpoint、参数、lookup 和取消校验，再用生成的 result codec 校验每个产出项。Client 插件激活时打开 Gateway 自有的 `/api/remote.mux` WebSocket，并让它在空闲时保持连接。Connection 拥有重试调度；每次 retry 前，它要求 mux 取消候选或活动 socket，并且只做一次全新的物理连接尝试。Host 按配置的 `websocketHeartbeatIntervalMs` 间隔（默认 2 秒）发送 Ping 控制帧，浏览器在 WebSocket 协议层自动回复 Pong，使空闲网络中间层持续看到流量，而不新增 Remote 流帧。若 socket 尚未回复上一次 Ping，Host 会在下一间隔终止它。可独立取消的逻辑流共享这条连接；进程内 Connection 载体直接提供等价的流，不打开该 WebSocket。
 
-Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为它保留内部 `$events` logical endpoint，只接受空 `args`，并在 source 撤回时中止该注册打开的流。事件名单、参数校验、每个 Client 的队列及 opening `{ type: 'ready', clientId, host: { home } }` frame 中的 Host home 由 API Remotes 拥有。source factory 在返回 iterable 前同步挂好增量 listener，因此 Client 只在增量投递就绪后发布 generation 并开始 baseline 读取。
+Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为它保留内部 `$events` logical endpoint，只接受空 `args`，并在 source 撤回时中止该注册打开的流。事件名单、参数校验、每个 Client 的队列及 opening `{ type: 'ready', clientId, host: { home, platform } }` frame 中的 Host home 与 platform 由 API Remotes 拥有。source factory 在返回 iterable 前同步挂好增量 listener，因此 Client 只在增量投递就绪后发布 generation 并开始 baseline 读取。
 
 Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显式 `apiProtocolVersion` 1 或 2。共享 `/protocol` 入口按已选版本编码；版本 1 省略元数据以支持旧 Host。未知或格式错误的显式版本在业务调用、流打开或事件结果结算前返回 `gateway/protocol-unsupported`。端点参数仍严格校验。请求元数据不授予权限。应用准备回调必须返回明确选择的编解码器，由准入代际及其事件回复持有；独立组合显式解析为协议 1。
 
@@ -98,7 +98,7 @@ Host 进程重启会丢弃待处理调用。Client 重连时移除旧投递；�
 
 已识别的 Connection 传输中断使用 `gateway/transport-interrupted` 和 `{ endpoint }`；逻辑流的载体重试耗尽使用同一码和 `{ stream }`。只有实际收到 HTTP 响应时才提供 `httpStatus`。这些分类不会重试变更操作，也不改变流重试策略。
 
-`ctx.remote.$host` 读取已准入代际的 Host 事实和页面本地的 `isLoopback` 值。在就绪前以及断连期间，`home` 和应用发现事实不可用。它不添加存储或订阅；消费方通过 Connection 代际变化观察失效与替换，或通过 `connection/reset` 观察新建立的代际。
+`ctx.remote.$host` 读取已准入代际的 Host 事实和页面本地的 `isLoopback` 值。在就绪前以及断连期间，`home`、`platform` 和应用发现事实不可用；运行位置表面读取 `platform`。它不添加存储或订阅；消费方通过 Connection 代际变化观察失效与替换，或通过 `connection/reset` 观察新建立的代际。
 
 `ctx.remote.$stream()` 返回跨越多个物理载体代次的单消费方 `RemoteStream`。每次调用领域 opener 前，它等待已准入 Host 及可选能力谓词满足；因此首次连接准备不会以不可用错误终止领域流。Host 仍在线时，它允许一次立即重试；Host 离线时，它等待下一代连接，并为每个流项标注物理代次。领域消费方校验并接受各代次的 opening value；业务与协议错误仍然终止流。一切终态失败离开本面时都是 `RemoteError`，包括重试耗尽和在 opening value 之前就结束的代次，因此流消费方与一元调用方用同一种方式判别。`RemoteStreamCarrierError` 命名的是可重试的物理丢失，它只作为 `carrierFailed` 回调参数到达领域，绝不作为终态结果。`RemoteSnapshotStream` 在此之上规定每代由一个初始快照和后续 delta 组成。`RemoteJournalStream` 将可选的 Host 可用性谓词传给同一流监督器，并基于领域提供的 entry 闭区间提供 follow-before-page、分页、重连追赶与缺口修复；它丢弃完整重复项，并拒绝缺口、倒置区间和部分重叠。领域还可以携带无 cursor 的通知：通知绝不推进或修复持久 cursor，在缺口修复期间收到的通知只会在 replacement page 提交后发布。若更新代次取代该修复，旧代次 held notification 会与其 page 一同丢弃。对任一种流执行 dispose（资源释放）时，系统会取消该流的请求，并在活动 iterator 完全停止后完成资源释放。
 

@@ -18,7 +18,7 @@ import { zh } from '../src/client/locales.ts'
 async function bench(maxConcurrentFileUploads = 2) {
   const runtime = await SlotTestRuntime.create()
   const remote = new TestRemote(runtime.ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['subagent.prompt.v1', 'file-upload.stage.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['subagent.prompt.v1', 'file-upload.stage.v1'] }
   runtime.fileUpload.available = true
   runtime.fileUpload.upload = (sessionId: SessionId, ...args: unknown[]) => {
     const session = runtime.sessions.behavior(sessionId) as {

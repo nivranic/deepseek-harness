@@ -156,7 +156,7 @@ describe('TestClient (jsdom)', () => {
       setTimeout(() => {
         if (first) stream.fail(new Error('flap'))
         // Branded on the Gateway side; the test mints a plain string.
-        else stream.push({ type: 'ready', clientId: 'reconnected' as never, host: { home: '/home/mock' } })
+        else stream.push({ type: 'ready', clientId: 'reconnected' as never, host: { home: '/home/mock', platform: 'linux' } })
       }, 20)
     })
     const client = await TestClient.start({ roster: API_ROSTER }, mock)

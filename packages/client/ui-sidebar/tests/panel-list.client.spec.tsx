@@ -34,7 +34,7 @@ afterEach(async () => {
 async function bench(collapsed = false) {
   const runtime = await SlotTestRuntime.create()
   const remote = new TestRemote(runtime.ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
   runtimes.add(runtime)
   const locale = new LocaleRuntime(runtime.ctx)
   locale.setLocale('en')

@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 运行位置可见（§10 首个跨端原则表面）
+
+[当前来源记录](artifacts/upstream-first/running-location-source.json)落地第 10 节运行位置：ready frame 在 home 旁携带 Host Node.js platform——API Remotes 注册 homedir()+platform()，Gateway 产出 host:{home,platform}，client 解析器强制键集精确匹配，ConnectionHostInfo 在已建立 generation 上暴露它（pre-release：无 wire 兼容承诺）。会话页 strict header 的 utilities 行以 locale 键渲染一枚安静的「运行位置 <platform>」chip——数据来自包内 hostFacts observable（ui-conversation inject hooks，对称 ui-workspace 的 useHostInfo 模式；先建的 GlobalStandardProps 全局座位因波及所有 slot props 字面量而被刻意回退）；generation 未就绪即消失，手机端不会误以为命令在本机执行。RemoteMock/夹具默认 platform linux；Kotlin LinkContracts 镜像 ready-frame host；已提交 cordis catalog 再生成。边界外修复（每处先在干净 HEAD 验证失败再修）：四个 client bench（ui-chat apply-inject/chat-apply、ui-tool assembly-surfaces/toolview-slot）自 checkpoint 导入起就未提供其 inject 已要求的 connection 服务——现在提供标准 generation 桩。修改面套件 1559 项通过（一项既有 Windows 环境失败：workspace-controller exhausted-carrier-retries，干净 HEAD 验证为既有）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。局限：手机顶栏 chrome 与 Workstation 式设备命名仍开放。
+
 ## 旋转与 Foldable 结构性收口（§8 收尾）
 
-[当前来源记录](artifacts/upstream-first/foldable-frame-source.json)以契约钉住而非新增机制的方式收口第 8 节剩余边界：AppFrame 本就经 ResizeObserver 测量自身盒而非 window.innerWidth，折叠屏窗口尺寸变化因此天然适配——一项行为用例以刻意过期的 innerWidth stub 驱动折叠式变化（框架 900px 而 innerWidth 声称 375，再 500、再 1200）并断言分层只随框架测量走；一项源级 pin 断言 AppFrame 源码不存在任何 innerWidth 读取。旋转依赖同一宽度分层与随方向旋转的 env() 安全区（见安全区增量）；手机/iPad/Android 平板的方向矩阵实测如实保持真机开放（packages/client/ui-layout，124 项测试）。§8 traceability 行刷新；ui-layout 双语 README 补折叠屏句。typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。
+[历史来源记录](artifacts/upstream-first/foldable-frame-source.json)以契约钉住而非新增机制的方式收口第 8 节剩余边界：AppFrame 本就经 ResizeObserver 测量自身盒而非 window.innerWidth，折叠屏窗口尺寸变化因此天然适配——一项行为用例以刻意过期的 innerWidth stub 驱动折叠式变化（框架 900px 而 innerWidth 声称 375，再 500、再 1200）并断言分层只随框架测量走；一项源级 pin 断言 AppFrame 源码不存在任何 innerWidth 读取。旋转依赖同一宽度分层与随方向旋转的 env() 安全区（见安全区增量）；手机/iPad/Android 平板的方向矩阵实测如实保持真机开放（packages/client/ui-layout，124 项测试）。§8 traceability 行刷新；ui-layout 双语 README 补折叠屏句。typecheck、lint 0/0、doc-sync 36、traceability 6/6 全绿。
 
 ## 虚拟键盘避让（§8 第二个边界）
 

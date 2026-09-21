@@ -194,7 +194,7 @@ interface BenchOptions {
 function bench(options: BenchOptions = {}) {
   const ctx = new Context()
   const remote = new TestRemote(ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: options.capabilities ?? ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1', 'directory-picker.native.v1', 'directory-picker.browse.v1', 'directory-picker.create.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: options.capabilities ?? ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1', 'directory-picker.native.v1', 'directory-picker.browse.v1', 'directory-picker.create.v1'] }
   const layout = new LayoutController({
     selectPanel: vi.fn(), retainMainPanels: vi.fn(),
     setSidebar: vi.fn(), toggleSidebar: vi.fn(), setViewportWidth: vi.fn(),

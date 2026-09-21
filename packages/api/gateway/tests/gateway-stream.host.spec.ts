@@ -57,7 +57,7 @@ vi.mock('node:crypto', async (importOriginal) => {
 
 const randomUuid = vi.mocked(randomUUID)
 const browserCookies = new WeakMap<Context, string>()
-const REMOTE_HOST = { home: '/home/fixture' } as const
+const REMOTE_HOST = { home: '/home/fixture', platform: 'linux' } as const
 type AgentWireId = TypertContextWire<TypertContextMap['agent']>
 const agentId = (value: string): AgentWireId => value as AgentWireId
 

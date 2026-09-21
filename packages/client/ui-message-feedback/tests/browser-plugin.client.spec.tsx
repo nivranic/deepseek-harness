@@ -56,7 +56,7 @@ async function bench(options: { recordResult?: unknown; recordCarrier?: unknown 
     },
   }
   class RemoteService extends Service {
-    readonly $host = { home: undefined, isLoopback: true, capabilities: ['feedback.message.read.v1', 'feedback.message.put.v1', 'feedback.message.delete.v1', 'feedback.session.record.v1'] }
+    readonly $host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['feedback.message.read.v1', 'feedback.message.put.v1', 'feedback.message.delete.v1', 'feedback.session.record.v1'] }
     constructor(serviceCtx: Context) {
       super(serviceCtx, 'remote')
     }
@@ -68,7 +68,7 @@ async function bench(options: { recordResult?: unknown; recordCarrier?: unknown 
       return carried(options.recordResult ?? { ok: true as const, value: { recorded: true as const } })
     },
   }
-  ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   new RemoteService(ctx)
   ctx.provide('remote.messageFeedback', messageFeedback)
   ctx.provide('remote.sessionFeedback', sessionFeedback)

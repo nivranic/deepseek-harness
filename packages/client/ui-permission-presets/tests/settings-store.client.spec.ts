@@ -43,7 +43,7 @@ function ok<T>(value: T) {
 
 /** The permission controller over a real mirror and one scripted context. */
 function permissionController(api: object) {
-  const remote = { $host: { home: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }, settings: api }
+  const remote = { $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }, settings: api }
   const ctx = { remote } as never
   const mirror = new SettingsDescribeMirror(ctx)
   return { remote, mirror, controller: new PermissionPresetSettingsController(mirror, ctx, schema) }
@@ -275,7 +275,7 @@ describe('permission settings store', () => {
 
     const ctx = {
       remote: {
-        $host: { home: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] },
+        $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] },
         settings: {
           describe: () => Promise.resolve(ok({
             writable: true, hasDocument: false, namespaces: [view('read-only')],
@@ -297,7 +297,7 @@ describe('permission settings store', () => {
   it('hides the row in a remote browser instead of loading forever', async () => {
     const describeCall = vi.fn()
     const mutate = vi.fn()
-    const ctx = { remote: { $host: { home: undefined, isLoopback: false, capabilities: ['settings.read.v1', 'settings.write.v1'] }, settings: { describe: describeCall, mutate } } } as never
+    const ctx = { remote: { $host: { home: undefined, platform: undefined, isLoopback: false, capabilities: ['settings.read.v1', 'settings.write.v1'] }, settings: { describe: describeCall, mutate } } } as never
     const mirror = new SettingsDescribeMirror(ctx, 'memory')
     const controller = new PermissionPresetSettingsController(mirror, ctx, schema)
     await controller.load()

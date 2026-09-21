@@ -77,7 +77,7 @@ await mock.streams.drained('session/follow')
 
 ### 接上客户端
 
-`mock.rpc` 是 `ClientConnectionRpc` 面：装成 `globalThis.__DSH_TRANSPORT__ = { rpc: mock.rpc }`，生产的 `connection` 插件就用它替代 HTTP 调用方，每次 Remote 调用直达 `dispatch`、每条流直达 `open`，中间没有信封。payload 携带 `{ args }`——整机代理发数组、Gateway 自身端点发一个对象（到达时是一个位置参数）；signal 中止的调用以中止原因 reject。`RemoteMock.create()` 登记一条流 `$events`，用 `{ type: 'ready', clientId, host: { home } }`（host 来自 `RemoteMockOptions.host`，默认 `/home/mock`）应答 Gateway 客户端的打开并保持打开——这正是整机能达到 `connected` 的原因；测试可以像任何流一样覆盖或让它失败。
+`mock.rpc` 是 `ClientConnectionRpc` 面：装成 `globalThis.__DSH_TRANSPORT__ = { rpc: mock.rpc }`，生产的 `connection` 插件就用它替代 HTTP 调用方，每次 Remote 调用直达 `dispatch`、每条流直达 `open`，中间没有信封。payload 携带 `{ args }`——整机代理发数组、Gateway 自身端点发一个对象（到达时是一个位置参数）；signal 中止的调用以中止原因 reject。`RemoteMock.create()` 登记一条流 `$events`，用 `{ type: 'ready', clientId, host: { home, platform } }`（host 来自 `RemoteMockOptions.host`，默认 `/home/mock`）应答 Gateway 客户端的打开并保持打开——这正是整机能达到 `connected` 的原因；测试可以像任何流一样覆盖或让它失败。
 
 ### 观察与断言
 

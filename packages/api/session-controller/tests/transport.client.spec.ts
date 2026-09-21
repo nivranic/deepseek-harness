@@ -35,7 +35,7 @@ type SessionTransportRemote = Pick<SessionRemote, 'control' | 'follow' | 'page'>
 const ADDRESS: SessionAddress = { kind: 'session', sessionId: 'session-1' as never }
 const AVAILABLE_CONNECTION = {
   generation: {
-    getSnapshot: () => ({ id: 1, host: { home: '/home/fixture', capabilities: ['session.control.v1', 'session.follow.v1'] } }),
+    getSnapshot: () => ({ id: 1, host: { home: '/home/fixture', platform: 'linux', capabilities: ['session.control.v1', 'session.follow.v1'] } }),
     subscribe: () => () => {},
   },
 }
@@ -79,7 +79,7 @@ function sessionClient(
   connection: Pick<ConnectionHandle, 'generation'> = AVAILABLE_CONNECTION,
 ): SessionRemotes {
   return {
-    $host: { home: undefined, isLoopback: true },
+    $host: { home: undefined, platform: undefined, isLoopback: true },
     session: remote as SessionRemote,
     $stream: <Item>(options: RemoteStreamOptions<Item>) => (
       new RemoteStream(connection, options)
@@ -725,7 +725,7 @@ describe('Session Client stream adapters', () => {
 
 describe('Session follow capability availability', () => {
   function hostConnection(capabilities: string[] = []) {
-    let current = { id: 1, host: { home: '/home/fixture', capabilities } }
+    let current = { id: 1, host: { home: '/home/fixture', platform: 'linux', capabilities } }
     const listeners = new Set<() => void>()
     return {
       generation: {
@@ -737,7 +737,7 @@ describe('Session follow capability availability', () => {
       },
       listeners,
       advertise(next: string[]) {
-        current = { id: current.id + 1, host: { home: '/home/fixture', capabilities: next } }
+        current = { id: current.id + 1, host: { home: '/home/fixture', platform: 'linux', capabilities: next } }
         for (const listener of listeners) listener()
       },
     }

@@ -1,7 +1,7 @@
 /** Connection generation readiness, loss, retry, and sink isolation. */
 
 import { describe, expect, it, vi } from 'vitest'
-import type { ConnectionGenerationSource, ConnectionState } from '../src/client/connection.ts'
+import type { ConnectionGenerationSource, ConnectionHostInfo, ConnectionState } from '../src/client/connection.ts'
 import { ConnectionController } from '../src/client/connection.ts'
 import { FakeGenerationSource } from './fake-generation.client.ts'
 
@@ -26,7 +26,7 @@ describe('connection lifecycle', () => {
       await vi.advanceTimersByTimeAsync(0)
       expect(states).toEqual(['connecting', 'authenticating'])
       attempts[0]!.progress('connecting')
-      attempts[0]!.ready({ home: '/h' })
+      attempts[0]!.ready({ home: '/h', platform: 'linux' })
       await vi.advanceTimersByTimeAsync(0)
       attempts[0]!.progress('authenticating')
       expect(states.at(-1)).toBe('ready')
@@ -61,7 +61,7 @@ describe('connection lifecycle', () => {
     let handled = false
     const source = vi.fn<ConnectionGenerationSource>((signal, ready, progress) => {
       progress('authenticating')
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       if (signal.aborted) return Promise.resolve()
       return new Promise((resolve) => { signal.addEventListener('abort', () => { resolve() }, { once: true }) })
     })
@@ -223,7 +223,7 @@ describe('connection lifecycle', () => {
     const source: ConnectionGenerationSource = (signal, ready) => {
       calls++
       if (!available) return Promise.reject(new Error('offline'))
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       return new Promise<void>((resolve) => {
         signal.addEventListener('abort', () => { resolve() }, { once: true })
       })
@@ -302,7 +302,7 @@ describe('connection lifecycle', () => {
     const source: ConnectionGenerationSource = (signal, ready) => {
       calls++
       if (calls === 1) return Promise.reject(new Error('offline'))
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       return new Promise<void>((resolve) => {
         signal.addEventListener('abort', () => { resolve() }, { once: true })
       })
@@ -336,7 +336,7 @@ describe('connection lifecycle', () => {
       calls++
       active++
       maxActive = Math.max(maxActive, active)
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       signal.addEventListener('abort', () => {
         active--
         resolve()
@@ -672,8 +672,8 @@ describe('connection lifecycle', () => {
   it('accepts only the first readiness report from one generation', async () => {
     const homes: string[] = []
     const source: ConnectionGenerationSource = (signal, ready) => {
-      ready({ home: '/first' })
-      ready({ home: '/duplicate' })
+      ready({ home: '/first', platform: 'linux' })
+      ready({ home: '/duplicate', platform: 'linux' })
       return new Promise<void>((resolve) => {
         signal.addEventListener('abort', () => { resolve() }, { once: true })
       })
@@ -695,7 +695,7 @@ describe('connection lifecycle', () => {
     const connected = vi.fn()
     const source: ConnectionGenerationSource = (signal, ready) => new Promise<void>((resolve) => {
       sourceCalls++
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       queueMicrotask(() => { owner.controller?.stop() })
       signal.addEventListener('abort', () => { resolve() }, { once: true })
     })
@@ -743,7 +743,7 @@ describe('connection lifecycle', () => {
     const source: ConnectionGenerationSource = (signal, ready) => {
       sourceCalls++
       if (sourceCalls === 1) return fail()
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       return new Promise<void>((resolve) => {
         signal.addEventListener('abort', () => { resolve() }, { once: true })
       })
@@ -832,7 +832,7 @@ describe('connection lifecycle', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const cleanup = Promise.withResolvers<undefined>()
     const signals: AbortSignal[] = []
-    const report: Array<(host: { home: string }) => void> = []
+    const report: Array<(host: ConnectionHostInfo) => void> = []
     const connected = vi.fn()
     const states: ConnectionState[] = []
     const source: ConnectionGenerationSource = async (signal, ready) => {
@@ -857,7 +857,7 @@ describe('connection lifecycle', () => {
         : []
       warnings.push(['[connection] connection generation was not ready within 100ms; cancelling generation'])
       expect(warnSpy.mock.calls).toEqual(warnings)
-      report[0]!({ home: '/stale' })
+      report[0]!({ home: '/stale', platform: 'linux' })
       await vi.advanceTimersByTimeAsync(1_000)
       expect(signals).toHaveLength(1)
       expect(connected).not.toHaveBeenCalled()
@@ -865,9 +865,9 @@ describe('connection lifecycle', () => {
       cleanup.resolve(undefined)
       await vi.advanceTimersByTimeAsync(5)
       expect(signals).toHaveLength(2)
-      report[1]!({ home: '/fresh' })
+      report[1]!({ home: '/fresh', platform: 'linux' })
       await vi.advanceTimersByTimeAsync(0)
-      expect(connected).toHaveBeenCalledExactlyOnceWith({ home: '/fresh' })
+      expect(connected).toHaveBeenCalledExactlyOnceWith({ home: '/fresh', platform: 'linux' })
       expect(states).toEqual(['connecting', 'host-not-ready', 'reconnecting', 'ready'])
       expect(vi.getTimerCount()).toBe(0)
     } finally {
@@ -959,7 +959,7 @@ describe('connection lifecycle', () => {
     const source: ConnectionGenerationSource = (signal, ready) => {
       sourceCalls++
       if (sourceCalls <= 2) return Promise.reject(new Error('down'))
-      ready({ home: '/h' })
+      ready({ home: '/h', platform: 'linux' })
       return new Promise<void>((resolve) => {
         signal.addEventListener('abort', () => { resolve() }, { once: true })
       })

@@ -124,7 +124,7 @@ class FakeWorkspaceRemote implements WorkspaceRemote {
 }
 
 function modelFor(remote = new FakeWorkspaceRemote()): ClientWorkspaceModel {
-  const host = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
+  const host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
   return new ClientWorkspaceModel(remote, () => host)
 }
 
@@ -138,7 +138,7 @@ function baseline(
 
 describe('ClientWorkspaceModel', () => {
   it('distinguishes pending discovery from absent follow and resets connection-owned state', () => {
-    let host: ClientRemote['$host'] = { home: undefined, isLoopback: true }
+    let host: ClientRemote['$host'] = { home: undefined, platform: undefined, isLoopback: true }
     const model = new ClientWorkspaceModel(new FakeWorkspaceRemote(), () => host)
     expect(model.getSnapshot()).toMatchObject({ state: 'loading', phase: 'pending' })
     host = { ...host, capabilities: ['workspace.follow.v1'] }
@@ -166,7 +166,7 @@ describe('ClientWorkspaceModel', () => {
       remote.onInsertBefore = async () => { await gate.promise; return remoteOk({ workspaceIds: [wid('other'), wid('same')] }) }
       remote.onInsertSessionBefore = async () => { await gate.promise; return remoteOk({ workspace: workspace('same', [sid('late')]) }) }
       remote.onArchiveSession = async () => { await gate.promise; return remoteOk({ archivedSessionIds: [sid('late')] }) }
-      let host: ClientRemote['$host'] = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1'] }
+      let host: ClientRemote['$host'] = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['workspace.follow.v1'] }
       const model = new ClientWorkspaceModel(remote, () => host)
       baseline(model, [workspace('same'), workspace('other')])
       const operations = {
@@ -192,7 +192,7 @@ describe('ClientWorkspaceModel', () => {
     const remote = new FakeWorkspaceRemote()
     const gate = deferred<RemoteResult<WorkspaceCreateValue>>()
     remote.onCreate = () => gate.promise
-    let host: ClientRemote['$host'] = { home: undefined, isLoopback: true, capabilities: ['workspace.follow.v1'] }
+    let host: ClientRemote['$host'] = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['workspace.follow.v1'] }
     const model = new ClientWorkspaceModel(remote, () => host)
     baseline(model, [workspace('old')])
     const pending = model.create({ path: '/w/late' })

@@ -120,7 +120,7 @@ async function bench(opts: BenchOptions = {}) {
   const remote = Object.assign(new TestRemote(ctx), { commands: commandsRemote })
   remote.$host = { ...remote.$host, capabilities: opts.capabilities ?? COMMAND_CAPABILITIES }
   const listeners = new Set<() => void>()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     listeners.add(listener)
     return () => { listeners.delete(listener) }
   } } })

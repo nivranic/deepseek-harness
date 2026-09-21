@@ -15,7 +15,7 @@ const answer = (revision: number) => ({ ok: true as const, value: {
 } })
 function bench() {
   const remote = {
-    $host: { home: undefined, isLoopback: true, capabilities } as Context['remote']['$host'],
+    $host: { home: undefined, platform: undefined, isLoopback: true, capabilities } as Context['remote']['$host'],
     settings: {
       describe: vi.fn(async () => answer(1)),
       mutate: vi.fn(async () => ({ ok: true as const, value: row(2) })),
@@ -24,7 +24,9 @@ function bench() {
   const ctx = { remote } as unknown as Context
   const mirror = new SettingsDescribeMirror(ctx)
   const scope = new SettingsScopeController(ctx, { namespace: 'fixture', decode: value => value }, mirror, 'host', new SettingsSchemaService(new Context()))
-  const replace = (ids: string[] = capabilities) => { remote.$host = { home: undefined, isLoopback: true, capabilities: ids } }
+  const replace = (ids: string[] = capabilities) => {
+    remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ids }
+  }
   return { remote, mirror, scope, replace }
 }
 
@@ -103,7 +105,7 @@ it('does not apply a retained settings gesture to a replacement Host before its 
 
 it('distinguishes pending discovery from an admitted Host that lacks Settings support', async () => {
   const { remote, mirror, scope, replace } = bench()
-  remote.$host = { home: undefined, isLoopback: true }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true }
   await mirror.ensure()
   expect(mirror.getSnapshot()).toMatchObject({ status: 'loading', view: undefined })
   expect(scope.getSnapshot().status).toBe('loading')

@@ -32,7 +32,7 @@ import { followSnapshot, pageThrough } from './remote/history.client.ts'
 
 const AVAILABLE_STREAM_CONNECTION = {
   generation: {
-    getSnapshot: () => ({ id: 1, host: { home: '/h', capabilities: ['session.control.v1', 'session.follow.v1'] } }),
+    getSnapshot: () => ({ id: 1, host: { home: '/h', platform: 'linux', capabilities: ['session.control.v1', 'session.follow.v1'] } }),
     subscribe: () => () => {},
   },
 }
@@ -193,7 +193,7 @@ export class FakeApiClient {
     payload => Promise.resolve(ok({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
 
   /** Remote namespaces bound to this fake's programmable unary slots and stream pumps. */
-  host: SessionRemotes['$host'] = { home: undefined, isLoopback: true,
+  host: SessionRemotes['$host'] = { home: undefined, platform: undefined, isLoopback: true,
     capabilities: ['subagent.catalog.v1', 'subagent.prompt.v1', 'subagent.interrupt.v1'] }
 
   sessionRemotes(): RuntimeRemotes {

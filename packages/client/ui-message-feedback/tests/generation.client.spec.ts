@@ -16,7 +16,7 @@ const listResult = (version: string) => ({ ok: true, value: { ok: true, value: {
 const putResult = (version: string) => ({ ok: true, value: { ok: true, value: item(version) } })
 
 function bench(capabilities: readonly string[] = CAPS) {
-  let host: RemoteHostFacts = { home: undefined, isLoopback: true, capabilities }
+  let host: RemoteHostFacts = { home: undefined, platform: undefined, isLoopback: true, capabilities }
   const list = vi.fn(async () => listResult('initial'))
   const put = vi.fn(async () => putResult('written'))
   const remove = vi.fn(async () => ({ ok: true, value: { ok: true, value: { absent: true } } }))

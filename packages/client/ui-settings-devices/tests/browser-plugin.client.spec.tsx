@@ -25,12 +25,12 @@ async function bench(capabilities: string[] = ['device.list.v1']) {
   const locale = new LocaleRuntime(ctx)
   ctx.provide('locale', locale)
   const listeners = new Set<() => void>()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => {
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
     listeners.add(listener)
     return () => { listeners.delete(listener) }
   } } })
   class RemoteService extends Service {
-    $host = { home: undefined, isLoopback: true, capabilities }
+    $host = { home: undefined, platform: undefined, isLoopback: true, capabilities }
     constructor(serviceCtx: Context) {
       super(serviceCtx, 'remote')
     }

@@ -1,10 +1,11 @@
 /** Registers the target-neutral Conversation assembly, shell, input, and docks. */
 import type { Context } from '@deepseek-ai/cordis'
+import type { ConnectionHandle, ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import z from '@deepseek-ai/schemastery'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import { IconPaperclipOutline16 } from '@deepseek-ai/dsh-client-ui-primitives'
 import { createSnapshotStore, type BoundActions } from '@deepseek-ai/dsh-client-store'
-import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
+import { resolveSlotLabel, type HostObservable } from '@deepseek-ai/dsh-client-ui-slots'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 // Type-only service and declaration merges used by this assembly.
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -24,7 +25,6 @@ import type { IConversation } from './service.ts'
 import { ComposerBlockRegistry } from './input/blocks.ts'
 import type { ComposerBlock } from './contract/composer-blocks.ts'
 import { InputHub } from './input/hub.ts'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import { createComposerControlSource } from './input/control-capabilities.ts'
 import { ComposerSubmissionPolicy } from './input/submission-policy.ts'
 import { queueDockEntry } from './queue/QueueDock.tsx'
@@ -140,6 +140,13 @@ export function apply(ctx: Context, config: Config = Config({})): void {
     subscribe: (listener: () => void) => ctx.on('connection/reset', listener),
   }
   const connection = ctx.get('connection') as ConnectionHandle
+  // The running-location chip (section 10) reads Host facts off the established
+  // generation; undefined while no generation is ready.
+  const hostFacts: HostObservable<ConnectionHostInfo | undefined> = {
+    getSnapshot: () => connection.generation.getSnapshot()?.host,
+    subscribe: (listener: () => void) => connection.generation.subscribe(listener),
+  }
+
   let disposed = false
   ctx.effect(() => () => { disposed = true }, 'conversation: control lifetime')
   const controlCapability = (id: SessionId | undefined) => createComposerControlSource({
@@ -333,7 +340,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
     },
     store: conversationStore,
     inject: (sessionId: SessionId, actions: BoundActions<typeof conversationStore>): ConversationSessionHeaderInjected => ({
-      hooks: { conversationViews },
+      hooks: { conversationViews, hostFacts },
       open: (id) => { workspaceNavigation.openSession(id) },
       selectView: (view) => {
         activateView(sessionId, view)

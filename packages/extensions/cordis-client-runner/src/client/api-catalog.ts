@@ -535,7 +535,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConnectionHostInfo',
-    declaration: 'export interface ConnectionHostInfo {\n    readonly home: string;\n}',
+    declaration: 'export interface ConnectionHostInfo {\n    readonly home: string;\n    readonly platform: string;\n}',
   },
   {
     name: 'ConnectionLoop',
@@ -739,7 +739,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteHostFacts',
-    declaration: 'export interface RemoteHostFacts extends Omit<ConnectionHostInfo, \'home\'> {\n    readonly home: string | undefined;\n    readonly isLoopback: boolean;\n}',
+    declaration: 'export interface RemoteHostFacts extends Omit<ConnectionHostInfo, \'home\' | \'platform\'> {\n    readonly home: string | undefined;\n    readonly platform: string | undefined;\n    readonly isLoopback: boolean;\n}',
   },
   {
     name: 'RemoteInteractionReplyScope',
@@ -751,7 +751,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemotePreparationFacts',
-    declaration: 'export type RemotePreparationFacts = Omit<ConnectionHostInfo, \'home\' | \'apiProtocolVersion\'> & {\n    readonly apiProtocolVersion: RemoteProtocolVersion;\n    readonly interactionReplyScope?: RemoteInteractionReplyScope;\n};',
+    declaration: 'export type RemotePreparationFacts = Omit<ConnectionHostInfo, \'home\' | \'apiProtocolVersion\' | \'platform\'> & {\n    readonly apiProtocolVersion: RemoteProtocolVersion;\n    readonly interactionReplyScope?: RemoteInteractionReplyScope;\n};',
   },
   {
     name: 'RemoteProtocolVersion',

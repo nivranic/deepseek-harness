@@ -14,9 +14,9 @@ const SID = 'session-1' as SessionId
 
 async function bench(options: { declareConversation?: boolean } = {}) {
   const runtime = await SlotTestRuntime.create()
-  runtime.ctx.provide('connection', { generation: { subscribe: () => () => {} } })
+  runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   const remote = new TestRemote(runtime.ctx)
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
   runtime.ctx.provide('uiWorkspace', {
     openWorkspace: vi.fn(async (_workspaceId: unknown, beforeOpen: (id: SessionId) => void) => {
       beforeOpen(SID)

@@ -38,7 +38,7 @@ const SELECT: PermissionSelect = {
 
 async function bench() {
   const ctx = new Context()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry)
   const locale = new LocaleRuntime(ctx)
   locale.setLocale('en')

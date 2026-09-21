@@ -20,7 +20,7 @@ import { LOCALE_SETTINGS_NAMESPACE, LocaleSettingsSchema } from '../src/locale-s
 /** Boot the plugin over a stub Host settings document. */
 async function bench(preference?: string) {
   const ctx = new Context()
-  ctx.provide('connection', { generation: { subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
+  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry).await()
   let stored = preference
   let revision = 0
@@ -43,7 +43,7 @@ async function bench(preference?: string) {
   })
   // The settings transport and the forwarded-event port the plugin injects.
   const remote = new TestRemote(ctx, { settings: { describe: describeRpc, mutate } })
-  remote.$host = { home: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   await ctx.plugin({ inject: [...inject], apply }).await()
   return { ctx, locale: ctx.get('locale') as LocaleRuntime }

@@ -19,7 +19,7 @@ async function bench() {
   const pickDirectory = vi.fn(async (): Promise<string | null> => '/tmp/picked')
   const captureDirectoryOperations = vi.fn((_signal?: AbortSignal) => ({ pickDirectory }))
   ctx.provide('uiWorkspace', { pickDirectory, captureDirectoryOperations } as never)
-  const remote = { $host: { home: undefined, isLoopback: true, capabilities: ['directory-picker.native.v1'] } }
+  const remote = { $host: { home: undefined, platform: undefined, isLoopback: true, capabilities: ['directory-picker.native.v1'] } }
   ctx.provide('remote', remote as never)
   const slots = ctx.get('slots') as SlotRegistry
   const declare = () => slots.register({

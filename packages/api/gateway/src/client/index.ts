@@ -126,9 +126,11 @@ export interface ClientRemote extends TypertClientRemote {
 }
 
 /** The admitted generation's Host facts exposed on `ctx.remote.$host`. */
-export interface RemoteHostFacts extends Omit<ConnectionHostInfo, 'home'> {
+export interface RemoteHostFacts extends Omit<ConnectionHostInfo, 'home' | 'platform'> {
   /** Host home directory from the ready frame, undefined before it. */
   readonly home: string | undefined
+  /** Host Node.js platform from the ready frame, undefined before it. */
+  readonly platform: string | undefined
   /** Whether the carrier connects to the local Host. */
   readonly isLoopback: boolean
 }
@@ -232,7 +234,7 @@ class ClientRemoteService extends Service implements ClientRemote {
     const host = this.connection.generation.getSnapshot()?.host
     if (this.hostFacts === undefined || this.hostGeneration !== host) {
       this.hostGeneration = host
-      this.hostFacts = { ...host, home: host?.home, isLoopback: this.connection.isLoopback }
+      this.hostFacts = { ...host, home: host?.home, platform: host?.platform, isLoopback: this.connection.isLoopback }
     }
     return this.hostFacts
   }

@@ -111,7 +111,7 @@ async function bench(locale: 'zh' | 'en' = 'zh', supported = true) {
     },
   }
   const remote = Object.assign(new TestRemote(ctx), { session: sessionRemote })
-  remote.$host = { home: undefined, isLoopback: true, descriptor: hostDescriptor(supported) }
+  remote.$host = { home: undefined, platform: undefined, isLoopback: true, descriptor: hostDescriptor(supported) }
   ctx.reflect.provide('remote.session', sessionRemote)
   const blocks = new Map<SessionId, { reason: string } | undefined>()
   ctx.provide('conversation', {
@@ -177,7 +177,7 @@ async function bench(locale: 'zh' | 'en' = 'zh', supported = true) {
   return {
     ctx, fiber, mint, calls, remote,
     setSupported(value: boolean) {
-      remote.$host = { home: undefined, isLoopback: true, descriptor: hostDescriptor(value) }
+      remote.$host = { home: undefined, platform: undefined, isLoopback: true, descriptor: hostDescriptor(value) }
       ctx.emit('connection/reset')
     },
     contribution: () => contribution!,
