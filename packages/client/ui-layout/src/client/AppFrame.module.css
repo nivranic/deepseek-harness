@@ -3,6 +3,11 @@
   display: grid;
   grid-template-rows: 100%;
   height: 100%;
+  /* Notched-device safe areas (spec §8): the columns and every overlay
+     anchored to this frame sit inside the four insets, so the Dynamic
+     Island, Home Indicator, and landscape edges never cover content. */
+  padding: var(--dsw-safe-area-top, 0px) var(--dsw-safe-area-right, 0px)
+    var(--dsw-safe-area-bottom, 0px) var(--dsw-safe-area-left, 0px);
   overflow: hidden;
   background: var(--dsw-alias-bg-base);
   /* Collapse/expand animates the tracks on the deepsuite sider curve
@@ -49,8 +54,8 @@
    over the centre. */
 .handle {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: var(--dsw-safe-area-top, 0px);
+  bottom: var(--dsw-safe-area-bottom, 0px);
   width: 8px;
   margin-left: -4px;
   cursor: col-resize;
@@ -113,9 +118,11 @@
  */
 .frame[data-sidebar-overlay] .sidebarCol {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
+  /* Inset anchoring: absolute children resolve against the frame's padding
+     box, so the drawer adds the safe-area edges on top of that origin. */
+  top: var(--dsw-safe-area-top, 0px);
+  bottom: var(--dsw-safe-area-bottom, 0px);
+  left: var(--dsw-safe-area-left, 0px);
   z-index: 15;
   width: 280px; /* SIDEBAR_OVERLAY_WIDTH */
   box-shadow: var(--ds-shadow-overlay, 0 12px 32px rgba(0, 0, 0, 0.24));

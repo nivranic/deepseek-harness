@@ -1589,7 +1589,7 @@
         "PLATFORM_VERIFICATION.md",
         "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。",
+      "remaining": "安全区已落地（§8 Safe Area）：页面 viewport 声明 viewport-fit=cover，ui-theme 在 :root 定义 --dsw-safe-area-{top,right,bottom,left}=env(safe-area-inset-*, 0px)，AppFrame 壳层以四边 padding 收进 Dynamic Island/Home Indicator/横屏边缘，手机档悬浮抽屉与拖拽手柄按同一变量锚定（packages/client/ui-layout、ui-theme、apps/web；六项源级 pin 测试）。虚拟键盘、旋转与 Foldable 尚未落地；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
