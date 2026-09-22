@@ -760,7 +760,10 @@ describe('remaining branches', () => {
     const resynced = session.resync() // bumps the generation
     repairPull.resolve(history(plainTurn(SessionSeq(0), 0, '旧', '页'))) // repair result: stale, dropped
     await resynced
-    expect(eventSeqs(session)).toEqual(plainTurn(SessionSeq(6), 1, 'c', 'd').map(event => event.seq))
+    // The resync reopened from the held tail (§25): the replacement window is
+    // contiguous with it, so the held prefix survives and the stale repair
+    // page never lands.
+    expect(eventSeqs(session)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
   })
 
   it('successful cancel leaves no promptError', async ({ mock, start }) => {
@@ -832,6 +835,20 @@ describe('resync', () => {
     expect(publications[0]?.entries.map(entry => entry.event.seq)).toEqual([10, 11, 12, 13, 14, 15])
     expect(publications[1]?.entries.map(entry => entry.event.seq)).toEqual([10, 11, 12, 13, 14, 15, 16, 17])
     off()
+  })
+
+  it('merges a fromSeq resume suffix so a reconnect keeps the held window', async ({ mock, start }) => {
+    const session = await sessionBench(mock, start, SID)
+    mock.stream(FOLLOW, followScript(history(plainTurn(SessionSeq(0), 0, '初', '窗'))))
+    await session.open()
+    const requests: SessionFollowRequest[] = []
+    mock.stream(FOLLOW, async ([request], stream) => {
+      requests.push(request as SessionFollowRequest)
+      stream.push(followSnapshot(historyValue([...plainTurn(SessionSeq(6), 1, '续', '传')]), request as SessionFollowRequest))
+    })
+    await session.resync()
+    expect(requests[0]?.fromSeq).toBe(5)
+    expect(eventSeqs(session)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
   })
 
   it('rebuilds the window without clearing control state', async ({ mock, start }) => {

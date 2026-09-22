@@ -584,7 +584,7 @@ describe('Session Client stream adapters', () => {
 
     expect(remote.followRequests).toEqual([
       { address: ADDRESS, assistantStream: true, maxMessages: 50 },
-      { address: ADDRESS, assistantStream: true, maxMessages: 50 },
+      { address: ADDRESS, assistantStream: true, maxMessages: 50, fromSeq: 2 },
     ])
     expect(remote.pageRequests).toEqual([])
     expect(changes.map(change => change.type)).toEqual(['replace', 'append', 'replace'])
@@ -615,7 +615,7 @@ describe('Session Client stream adapters', () => {
     await vi.waitFor(() => { expect(remote.followRequests).toHaveLength(2) })
     expect(remote.followRequests).toEqual([
       { address: ADDRESS, assistantStream: true },
-      { address: ADDRESS, assistantStream: true },
+      { address: ADDRESS, assistantStream: true, fromSeq: 0 },
     ])
     expect(remote.pageRequests).toEqual([])
     await stream.dispose()

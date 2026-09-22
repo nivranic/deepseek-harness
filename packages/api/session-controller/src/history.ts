@@ -112,7 +112,8 @@ export class SessionHistoryController {
 
   /**
    * Follow events appended after an initial cursor on one durable address.
-   * @param request - durable address and last committed sequence already held by the caller.
+   * @param request - durable address, optional window bound, and last committed
+   * sequence already held by the caller (`fromSeq`, specification §25).
    * @param signal - stream cancellation owned by the Remote carrier.
    * @returns a complete opening snapshot followed by gap-free durable events and opted-in assistant frames.
    */
@@ -181,6 +182,19 @@ export class SessionHistoryController {
       const cursor = source.cursor
       snapshotCursor = cursor
       const page = paginate(events, undefined, request.maxMessages ?? DEFAULT_MAX_MESSAGES)
+      // A covered fromSeq resumes from the next seq (specification §25): the
+      // suffix stays gap-free only while the published window reaches it, and
+      // an at-cursor value would publish an empty page, so both fall back to
+      // the complete window.
+      const windowStart = page.events[0]?.seq ?? 0
+      const resumeFrom = request.fromSeq !== undefined
+        && request.fromSeq < cursor
+        && request.fromSeq >= windowStart - 1
+        ? request.fromSeq
+        : undefined
+      const records = pageRecords(resumeFrom === undefined
+        ? page.events
+        : page.events.filter(entry => entry.seq > resumeFrom))
       const assistantStream = request.assistantStream === true
         ? this.assistantStreams.get(target)?.snapshot() ?? { revision: 0 }
         : undefined
@@ -193,7 +207,7 @@ export class SessionHistoryController {
         type: 'snapshot',
         header: wireHeader(source.header),
         cursor,
-        records: pageRecords(page.events),
+        records,
         hasMore: page.hasMore,
         projections: source.projections === undefined
           ? { asOfSeq: cursor, values: {} }
@@ -323,6 +337,12 @@ function validateFollowRequest(request: SessionFollowRequest): void {
   if (request.maxMessages !== undefined
     && (!Number.isSafeInteger(request.maxMessages) || request.maxMessages <= 0)) {
     throw new RemoteError('gateway/bad-request', 'maxMessages must be a positive safe integer', {})
+  }
+  if (request.fromSeq !== undefined
+    && (!Number.isSafeInteger(request.fromSeq)
+      || request.fromSeq < 0
+      || Object.is(request.fromSeq, -0))) {
+    throw new RemoteError('gateway/bad-request', 'fromSeq must be a non-negative safe integer', {})
   }
 }
 

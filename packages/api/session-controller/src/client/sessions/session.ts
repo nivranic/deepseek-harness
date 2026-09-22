@@ -88,6 +88,8 @@ export class Session implements SessionFace {
   // ---- Window and derived state (all private; the snapshot is the only read API) ----
   private baseSeq = SessionLogOffset(0)
   private hasMore = false
+  /** The in-flight opening resumed past the held window; its first replace merges (§25). */
+  private resumeWindow = false
   private openState: OpenState = 'cold'
   private openError: RemoteFailure | null = null
   private openPromise: Promise<void> | null = null
@@ -665,7 +667,17 @@ export class Session implements SessionFace {
     })
     this.events = events
     try {
-      await events.open({ maxMessages: PAGE_MESSAGES })
+      // A rebuild after address replacement keeps its held window, so the
+      // fresh opening resumes past the last held durable entry (§25) and its
+      // first replace merges the suffix instead of replacing wholesale.
+      const heldTail = this.eventSource.getSnapshot().entries
+        .filter(entry => entry.type !== 'transient')
+        .at(-1)
+      this.resumeWindow = heldTail !== undefined
+      await events.open({
+        maxMessages: PAGE_MESSAGES,
+        ...(heldTail === undefined ? {} : { fromSeq: heldTail.event.seq }),
+      })
       if (generation !== this.openGeneration || this.events !== events) return
       this.openState = 'open'
     } catch (error) {
@@ -682,14 +694,18 @@ export class Session implements SessionFace {
   /** Apply one contiguous journal update already reconciled by the Remote stream. */
   private acceptEventChange(change: SessionJournalChange): void {
     switch (change.type) {
-      case 'replace':
+      case 'replace': {
+        const resumed = change.resumed === true || this.resumeWindow
+        this.resumeWindow = false
         this.installWindow(
           change.entries,
           change.hasMore,
           change.page.projections === undefined ? undefined : projectionsBaseline(change.page.projections),
           change.page.assistantStream,
+          resumed,
         )
         return
+      }
       case 'prepend':
         this.prependWindow(change.entries, change.hasMore)
         return
@@ -707,16 +723,32 @@ export class Session implements SessionFace {
     hasMore: boolean,
     projections?: ProjectionsBaseline,
     assistantStream?: SessionAssistantStreamBaseline,
+    resumed = false,
   ): void {
     // A durable gap-repair page has no assistant baseline. Clearing transient
     // attempts makes a held notification reopen follow once for an atomic
     // page/baseline pair instead of applying it to an unrelated repair cut.
     const visible = this.assistantStream.replace(entries, assistantStream)
-    this.baseSeq = SessionLogOffset(entries[0]?.event.seq ?? 0)
+    // A §25 resume opens with only the suffix beyond the last held entry.
+    // Keep the held durable prefix — a reconnect never shrinks the published
+    // window — while process-local presentation restarts from the new opening
+    // baseline: held transient rows are dropped, so a settled or abandoned
+    // attempt cannot leave stale live rows behind. Anything else — first
+    // opening, full re-download, or an incoherent suffix — still replaces the
+    // window wholesale.
+    const heldDurable = resumed
+      ? this.eventSource.getSnapshot().entries.filter(entry => entry.type !== 'transient')
+      : []
+    const heldTail = heldDurable.at(-1)
+    const first = visible[0]
+    const resumeSuffix = heldTail !== undefined && first !== undefined
+      && first.event.seq === heldTail.event.seq + 1
+    const windowEntries = resumeSuffix ? [...heldDurable, ...visible] : visible
+    this.baseSeq = SessionLogOffset((resumeSuffix ? heldDurable[0] : entries[0])?.event.seq ?? 0)
     this.hasMore = hasMore
     if (visible.some(entry => entry.event.type === 'turn/start')) this.firstPromptPendingTurn = false
     if (projections !== undefined) this.projections.seed(projections)
-    this.eventSource.replace(visible, hasMore)
+    this.eventSource.replace(windowEntries, hasMore)
     for (const entry of visible) this.observeSubmissionEvent(entry.event)
     this.notifier.markDirty()
   }

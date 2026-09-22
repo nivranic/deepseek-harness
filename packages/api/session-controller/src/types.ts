@@ -481,6 +481,14 @@ export interface SessionPageRequest {
 export interface SessionFollowRequest {
   readonly address: SessionAddress
   readonly maxMessages?: number
+  /**
+   * Inclusive durable seq the caller already holds (specification §25): the
+   * opening snapshot omits records at or before it while the loaded window
+   * still covers it, so a reconnect resumes from the next seq instead of
+   * re-downloading the session tail. Uncovered, at-cursor, or absent values
+   * keep the complete opening window.
+   */
+  readonly fromSeq?: number
   /** Include process-local assistant presentation frames for the Web client. */
   readonly assistantStream?: true
 }

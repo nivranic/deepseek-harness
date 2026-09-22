@@ -3221,10 +3221,11 @@
       "acceptanceProven": false,
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
-        "ARCHITECTURE_DECISIONS.md",
-        "COMPATIBILITY_MATRIX.md"
+        "IMPLEMENTATION_STATUS.md",
+        "packages/api/session-controller/README.md",
+        "packages/api/gateway/README.md"
       ],
-      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。",
+      "remaining": "Follow 续传已按第 25 节落地：session.follow 询问新增可选 fromSeq（非负安全整数，边界 fail-loud），Host 在已发布窗口仍覆盖该切割点时从 opening snapshot 省略已覆盖尾部（恰在 cursor、超出 cursor 或受消息数限制的切割回退完整快照）；客户端重连与领域 resync 均携带最后已应用条目的含端 seq 重开 follow（engine resumeRequest 钩子 + doOpen 直传），后缀经 assistant baseline 重建后合并到已持有持久窗口之后——续传不缩小已发布窗口、不保留过期瞬态行——resumed 标记区分续传与整体替换。规格示例（revision 201 → 断线 → 从 202 请求）即此路径。多 Host 显式 active Host 与 §26/§28 的 Handoff/切换语义仍待后续增量。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

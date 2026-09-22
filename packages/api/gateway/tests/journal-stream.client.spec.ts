@@ -465,7 +465,7 @@ describe('RemoteJournalStream', () => {
 
     expect(fixture.changes.map(change => change.type)).toEqual(['replace', 'append', 'replace'])
     expect(fixture.changes[2]).toMatchObject({
-      type: 'replace', page: { marker: 'replacement' }, entries: entries(0, 1, 2, 3, 4),
+      type: 'replace', page: { marker: 'replacement' }, entries: entries(0, 1, 2, 3, 4), resumed: true,
     })
     expect(fixture.followRequests).toEqual([{ limit: 5 }, { limit: 5 }])
     expect(fixture.pageCursors).toEqual([])
@@ -512,6 +512,7 @@ describe('RemoteJournalStream', () => {
         page: page('replacement', [0, 1, 2, 3]),
         entries: entries(0, 1, 2, 3),
         hasMore: false,
+        resumed: true,
       },
     ])
     expect(fixture.pageCursors).toEqual([3])
@@ -580,7 +581,7 @@ describe('RemoteJournalStream', () => {
     gap.resolve({ type: 'entry', entry: { seq: 4 } })
     await vi.waitFor(() => { expect(fixture.changes).toHaveLength(2) })
     expect(fixture.changes.at(-1)).toMatchObject({
-      type: 'replace', page: { marker: 'replacement' }, entries: entries(0, 1, 2, 3, 4),
+      type: 'replace', page: { marker: 'replacement' }, entries: entries(0, 1, 2, 3, 4), resumed: true,
     })
     await fixture.journal.dispose()
   })
@@ -636,6 +637,7 @@ describe('RemoteJournalStream', () => {
         page: page('replacement', [0, 1, 2, 3, 4, 5]),
         entries: entries(0, 1, 2, 3, 4, 5),
         hasMore: false,
+        resumed: true,
       },
     ])
     await fixture.journal.dispose()

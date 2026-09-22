@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Follow 续传（§25）
+
+[当前来源记录](artifacts/upstream-first/follow-resume-source.json)落地第 25 节：session.follow 询问新增可选 fromSeq（非负安全整数，边界 fail-loud），Host 在已发布窗口仍覆盖该切割点时从 opening snapshot 省略已覆盖尾部，恰在 cursor、超出 cursor 或受消息数限制的切割回退完整快照；客户端重连与领域 resync 均携带最后已应用条目的含端 seq 重开 follow（RemoteJournalStream 新增 resumeRequest 钩子适配换代 opening 请求，域 resync 直传），换代 replace 变更标记 resumed，域据此把后缀合并到已持有持久窗口之后——续传不缩小已发布窗口、不保留过期瞬态行，assistant 呈现随新 opening baseline 重建；缺口修复仍走完整 tail page。规格示例（revision 201 → 断线 → 从 202 请求）即此路径。cordis catalog、doc graphs、event-producer-consumer 双语行随 wire 变更再生。测试 1627 项（另 2 项为本机已核对的 Windows 环境类预存失败：media-references symlink EPERM、workspace-controller exhausted-carrier-retries 时序）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+
 ## 审批信息表面（§38）
 
-[当前来源记录](artifacts/upstream-first/approval-facts-source.json)落地第 38 节：user-approval 询问新增可选 Host 评定风险档（ApprovalRisk 四档，随 approval/asked 会话事件持久化），沙箱升权按所请求模式推导（workspace-write=moderate、danger-full-access=high）；浏览器 ApprovalPanel 在决定区旁以事实行列出操作、Host（host facts 的 descriptor.displayName 回退 platform）、工作区、风险档、权限提升原因，命令预览成为关联 Tool 详情 slot 的标题（fact.*/risk.* 双语 locale 键），值缺失的行整行隐藏。client slot catalog、tool-cordis api-catalog、persistence 与 event-producer-consumer 目录随 wire 变更再生。测试 431 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+[历史来源记录](artifacts/upstream-first/approval-facts-source.json)落地第 38 节：user-approval 询问新增可选 Host 评定风险档（ApprovalRisk 四档，随 approval/asked 会话事件持久化），沙箱升权按所请求模式推导（workspace-write=moderate、danger-full-access=high）；浏览器 ApprovalPanel 在决定区旁以事实行列出操作、Host（host facts 的 descriptor.displayName 回退 platform）、工作区、风险档、权限提升原因，命令预览成为关联 Tool 详情 slot 的标题（fact.*/risk.* 双语 locale 键），值缺失的行整行隐藏。client slot catalog、tool-cordis api-catalog、persistence 与 event-producer-consumer 目录随 wire 变更再生。测试 431 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
 
 ## 指令风险分级（§37）
 

@@ -28,6 +28,8 @@ export type RemoteJournalChange<Page, Entry, Notification = never> =
     readonly page: Page
     readonly entries: readonly Entry[]
     readonly hasMore: boolean
+    /** The page opened a replacement generation that resumed past the caller's last held entry. */
+    readonly resumed?: true
   }
   | {
     readonly type: 'prepend'
@@ -117,7 +119,7 @@ export abstract class RemoteJournalStream<
     this.stream = remote.$stream<RemoteJournalFrame<Entry, Cursor, Page, Notification>>({
       name: options.name,
       ...(options.available === undefined ? {} : { available: options.available }),
-      open: signal => this.follow(this.initialRequest, signal),
+      open: signal => this.follow(this.openingRequest(), signal),
       ended: accepted => accepted
         ? new RemoteStreamCarrierError(`${options.name} ended without a terminal result`)
         : protocolViolation(
@@ -139,6 +141,23 @@ export abstract class RemoteJournalStream<
     request: PageRequest,
     signal: AbortSignal,
   ): AsyncIterable<RemoteJournalFrame<Entry, Cursor, Page, Notification>>
+
+  /**
+   * Adapt the opening request for one reconnect (specification §25 resume).
+   * @param initial - request used to open the journal window.
+   * @param _cursor - inclusive cursor of the last entry this client applied.
+   * @returns request for the replacement physical generation; the initial
+   * request by default, so journal streams without resume support re-download
+   * the opening window as before.
+   */
+  protected resumeRequest(initial: PageRequest, _cursor: Cursor): PageRequest { return initial }
+
+  /** Opening request for one physical generation; a reconnect carries the last applied cursor. */
+  private openingRequest(): PageRequest {
+    return this.hasResumeCursor
+      ? this.resumeRequest(this.initialRequest, this.currentCursor())
+      : this.initialRequest
+  }
 
   /**
    * Read one journal page through the addressed domain source.
@@ -266,7 +285,7 @@ export abstract class RemoteJournalStream<
     resumed: boolean,
   ): void {
     const opening = this.opening(initial, resumed)
-    this.replaceFromOpening(opening.page, opening.cursor)
+    this.replaceFromOpening(opening.page, opening.cursor, resumed)
   }
 
   private opening(
@@ -289,7 +308,7 @@ export abstract class RemoteJournalStream<
   }
 
   /** Publish a generation's opening page without issuing a second Remote call. */
-  private replaceFromOpening(page: Page, cursor: Cursor): void {
+  private replaceFromOpening(page: Page, cursor: Cursor, resumed: boolean): void {
     this.assertPageThrough(page, cursor)
     const entries = [...this.options.entries(page)]
     this.assertPage(entries)
@@ -302,6 +321,7 @@ export abstract class RemoteJournalStream<
       page,
       entries,
       hasMore: this.options.hasMore(page),
+      ...(resumed ? { resumed: true as const } : {}),
     })
   }
 

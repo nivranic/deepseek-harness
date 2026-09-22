@@ -37,6 +37,12 @@ export {
 /** Pagination fields bound to an already-addressed Session journal. */
 export type ClientSessionPageRequest = Omit<SessionPageRequest, 'address' | 'throughSeq'>
 
+/** Follow-opening fields: pagination plus the §25 reconnect resume cut. */
+type ClientSessionFollowRequest = ClientSessionPageRequest & {
+  /** Inclusive durable seq already held; the reconnect opening omits records at or before it. */
+  readonly fromSeq?: number
+}
+
 /** Complete generated `ctx.remote.session` namespace. */
 export type SessionRemote = ClientRemote['session']
 
@@ -53,6 +59,8 @@ export type SessionJournalChange =
     readonly page: SessionJournalPage
     readonly entries: readonly SessionEventLikeEntry[]
     readonly hasMore: boolean
+    /** Replace only: the page opened a generation that resumed past the last held entry. */
+    readonly resumed?: true
   }
   | { readonly type: 'append'; readonly entry: SessionLiveEventEntry }
   | { readonly type: 'assistant-stream'; readonly frame: SessionAssistantStreamFrame }
@@ -139,7 +147,7 @@ export class SessionEventStream extends RemoteJournalStream<
   SessionJournalPage,
   SessionHistoryRecord,
   number,
-  ClientSessionPageRequest,
+  ClientSessionFollowRequest,
   SessionAssistantStreamFrame
 > {
   /**
@@ -172,7 +180,7 @@ export class SessionEventStream extends RemoteJournalStream<
 
   /** @inheritdoc */
   protected override async * follow(
-    request: ClientSessionPageRequest,
+    request: ClientSessionFollowRequest,
     signal: AbortSignal,
   ): AsyncIterable<RemoteJournalFrame<
     SessionHistoryRecord, number, SessionJournalPage, SessionAssistantStreamFrame
@@ -182,6 +190,7 @@ export class SessionEventStream extends RemoteJournalStream<
       address: this.address,
       assistantStream: true,
       ...(request.maxMessages === undefined ? {} : { maxMessages: request.maxMessages }),
+      ...(request.fromSeq === undefined ? {} : { fromSeq: request.fromSeq }),
     }, signal)) {
       if (frame.type === 'snapshot') {
         for (const record of frame.records) assertSessionWireEvent(record.event)
@@ -219,6 +228,18 @@ export class SessionEventStream extends RemoteJournalStream<
       assertSessionWireEvent(frame.event)
       yield { type: 'entry', entry: frame }
     }
+  }
+
+  /**
+   * @inheritdoc
+   * A reconnect reopens from the inclusive seq of the last applied entry, so
+   * the Host omits the already-held tail (specification §25).
+   */
+  protected override resumeRequest(
+    initial: ClientSessionPageRequest,
+    cursor: number,
+  ): ClientSessionFollowRequest {
+    return { ...initial, fromSeq: cursor }
   }
 
   /** @inheritdoc */

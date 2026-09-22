@@ -1,4 +1,5 @@
 import { Context } from '@deepseek-ai/cordis'
+import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { createScope } from '@deepseek-ai/dsh-scope'
 import SessionStore, { SESSION_FORMAT_VERSION, SessionId, SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent, SessionHeader, SurfaceIntent } from '@deepseek-ai/dsh-session'
@@ -7,6 +8,7 @@ import { snapshotSubagentDescriptor } from '@deepseek-ai/dsh-subagent'
 import { subagentIdentityProjectionDefinition } from '@deepseek-ai/dsh-subagent/src/projection.ts'
 import { describe, expect, it, vi } from 'vitest'
 import { SessionHistoryController } from '../src/history.ts'
+import type { SessionFollowFrame } from '../src/types.ts'
 import { installSessionReadTestServices, testSessionPersistence } from './test-remote.ts'
 
 const signal = (): AbortSignal => new AbortController().signal
@@ -59,6 +61,12 @@ function cold(
       events,
     }),
   }) as never)
+}
+
+function snapshotSeqs(result: IteratorResult<SessionFollowFrame, undefined>): number[] {
+  const frame = result.value
+  if (frame?.type !== 'snapshot') throw new Error('expected a snapshot frame')
+  return frame.records.map(record => record.event.seq)
 }
 
 interface Deferred<T> {
@@ -362,6 +370,60 @@ describe('SessionHistoryController', () => {
     await expect(iterator.next()).resolves.toMatchObject({ done: true })
   })
 
+  it('omits the covered tail from a fromSeq follow opening', async () => {
+    const { ctx, transport } = await setup()
+    const session = ctx.sessions.create(SessionId('resume-covered'), { meta: { cwd: '/workspace' } })
+    append(session, 'turn/start', { turn: 1 })
+    append(session, 'turn/end', { turn: 1, reason: { kind: 'completed' } })
+    append(session, 'turn/start', { turn: 2 })
+    append(session, 'turn/end', { turn: 2, reason: { kind: 'completed' } })
+    const abort = new AbortController()
+    const iterator = transport.follow({
+      address: { kind: 'session', sessionId: session.id },
+      fromSeq: 2,
+    }, abort.signal)[Symbol.asyncIterator]()
+    const opening = await iterator.next()
+    expect(opening).toMatchObject({ done: false, value: { type: 'snapshot', cursor: 3 } })
+    expect(snapshotSeqs(opening)).toEqual([3])
+    abort.abort()
+    await expect(iterator.next()).resolves.toMatchObject({ done: true })
+  })
+
+  it('keeps the complete window for at-cursor, beyond-cursor, and uncovered fromSeq values', async () => {
+    const { ctx, transport } = await setup()
+    const session = ctx.sessions.create(SessionId('resume-fallback'), { meta: { cwd: '/workspace' } })
+    append(session, 'turn/start', { turn: 1 })
+    append(session, 'turn/end', { turn: 1, reason: { kind: 'completed' } })
+    append(session, 'turn/start', { turn: 2 })
+    append(session, 'turn/end', { turn: 2, reason: { kind: 'completed' } })
+    for (const fromSeq of [3, 4]) {
+      const abort = new AbortController()
+      const iterator = transport.follow({
+        address: { kind: 'session', sessionId: session.id },
+        fromSeq,
+      }, abort.signal)[Symbol.asyncIterator]()
+      const opening = await iterator.next()
+      expect(snapshotSeqs(opening)).toEqual([0, 1, 2, 3])
+      abort.abort()
+      await iterator.next()
+    }
+    // A message-bounded window cannot serve a cut below its start.
+    const bounded = ctx.sessions.create(SessionId('resume-bounded'), { meta: { cwd: '/workspace' } })
+    append(bounded, 'user/message', createUserMessage({ content: [{ type: 'text', text: 'one' }], source: { kind: 'user' } }), { surfaceOp: 'append' })
+    append(bounded, 'turn/start', { turn: 1 })
+    append(bounded, 'user/message', createUserMessage({ content: [{ type: 'text', text: 'two' }], source: { kind: 'user' } }), { surfaceOp: 'append' })
+    const abort = new AbortController()
+    const iterator = transport.follow({
+      address: { kind: 'session', sessionId: bounded.id },
+      maxMessages: 1,
+      fromSeq: 0,
+    }, abort.signal)[Symbol.asyncIterator]()
+    const opening = await iterator.next()
+    expect(snapshotSeqs(opening)).toEqual([2])
+    abort.abort()
+    await iterator.next()
+  })
+
   it('publishes an empty projection baseline when the query has no registry', async () => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)
@@ -515,6 +577,10 @@ describe('SessionHistoryController', () => {
     }, signal())).rejects.toMatchObject({ code: 'SESSION_QUERY_CORRUPT_SESSION' })
     for (const maxMessages of [0, 0.5]) {
       const iterator = transport.follow({ address, maxMessages }, signal())[Symbol.asyncIterator]()
+      await expect(iterator.next()).rejects.toMatchObject({ code: 'gateway/bad-request' })
+    }
+    for (const fromSeq of [-2, -0, 0.5]) {
+      const iterator = transport.follow({ address, fromSeq }, signal())[Symbol.asyncIterator]()
       await expect(iterator.next()).rejects.toMatchObject({ code: 'gateway/bad-request' })
     }
   })
