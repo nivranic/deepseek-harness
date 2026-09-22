@@ -13,7 +13,10 @@ import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { LlmAttemptId } from '@deepseek-ai/dsh-llm'
 import { RemoteStreamCarrierError } from '@deepseek-ai/dsh-api-gateway/client'
 import { SESSION_FORMAT_VERSION, SessionSeq } from '@deepseek-ai/dsh-session/types'
+import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
+import type { SessionHistoryRecord } from '../src/types.ts'
 import { ClientSessions, SessionCreateError } from '../src/client/sessions/service.ts'
+import { decodeSessionViewLocation, encodeSessionViewLocation } from '../src/client/view-location.ts'
 import { scopeOf } from '../src/client/scope.ts'
 import type { SessionFollowFrame } from '../src/types.ts'
 import {
@@ -50,6 +53,22 @@ type FeedRow = {
   running?: boolean
   blank?: boolean
   projections?: Record<string, unknown>
+}
+
+function fakeDescriptor(hostId: string): HostDescriptor {
+  return {
+    hostId: hostId as HostDescriptor['hostId'],
+    displayName: 'Fixture Host',
+    productVersion: '0.0.0-fixture',
+    apiProtocolVersion: 1,
+    sessionFormatVersion: SESSION_FORMAT_VERSION,
+    platform: 'linux',
+    arch: 'x64',
+    runtimeMode: 'full',
+    capabilities: ['session.follow.v1'],
+    transports: ['websocket'],
+    serverTime: 0,
+  }
 }
 
 async function feedList(b: Bench, rows: FeedRow[]): Promise<void> {
@@ -1146,4 +1165,73 @@ describe('coverage tails (branch duals)', () => {
     expect(b.svc.scope(sid('c'))).toBeUndefined()
   })
 
+})
+
+describe('view-location handoff (§26)', () => {
+  const record = (seq: number): SessionHistoryRecord => ({
+    type: 'event',
+    event: { type: 'turn/start', seq, time: seq + 1, data: { turn: seq + 1 } },
+  })
+
+  it('round-trips a view location and rejects malformed payloads', () => {
+    const encoded = encodeSessionViewLocation({
+      hostId: 'host-a' as HostDescriptor['hostId'],
+      sessionId: sid('s1'),
+      anchorSeq: SessionSeq(41),
+    })
+    expect(decodeSessionViewLocation(encoded)).toEqual({
+      hostId: 'host-a',
+      sessionId: 's1',
+      anchorSeq: 41,
+    })
+    expect(encoded.startsWith('dsh-session-view.v1.')).toBe(true)
+    for (const bad of [
+      '',
+      'dsh-session-view.v2.abcd',
+      'dsh-session-view.v1.!!!',
+      encodeSessionViewLocation({ hostId: 'h' as HostDescriptor['hostId'], sessionId: sid(''), anchorSeq: SessionSeq(0) })
+        .replace(/.$/u, ''),
+      'dsh-session-view.v1.' + btoa('{"hostId":"h","sessionId":"s","anchorSeq":-1}').replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', ''),
+      'dsh-session-view.v1.' + btoa('{"hostId":"h","sessionId":"s","anchorSeq":0.5}').replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', ''),
+      'dsh-session-view.v1.' + btoa('{"hostId":"h","sessionId":"s"}').replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', ''),
+    ]) {
+      expect(() => decodeSessionViewLocation(bad)).toThrow(/session view location/)
+    }
+  })
+
+  it('captures and reopens a view location on the same Host', async () => {
+    const b = bench()
+    Object.assign(b.api.host, { descriptor: fakeDescriptor('host-a') })
+    await feedList(b, [{ id: 's1' }])
+    b.api.onHistory = () => Promise.resolve(ok({
+      records: [record(0), record(1), record(2), record(3)],
+      hasMore: false,
+    } as never))
+
+    const encoded = b.svc.encodeViewLocation(sid('s1'), SessionSeq(2))
+    const session = await b.svc.openViewLocation(encoded)
+
+    expect(session.getSnapshot().openState).toBe('open')
+    expect(b.svc.list.getSnapshot().current).toBe(sid('s1'))
+    expect(b.api.followStarts).toEqual([sid('s1')])
+  })
+
+  it('fails loud when the payload targets another Host or none is admitted', async () => {
+    const b = bench()
+    Object.assign(b.api.host, { descriptor: fakeDescriptor('host-b') })
+    await feedList(b, [{ id: 's1' }])
+    const encoded = encodeSessionViewLocation({
+      hostId: 'host-a' as HostDescriptor['hostId'],
+      sessionId: sid('s1'),
+      anchorSeq: SessionSeq(0),
+    })
+    await expect(b.svc.openViewLocation(encoded)).rejects.toThrow(
+      'view location targets Host host-a but Host host-b is connected',
+    )
+    expect(b.api.followStarts).toEqual([])
+
+    const bare = bench()
+    await expect(bare.svc.openViewLocation(encoded)).rejects.toThrow('no Host is admitted yet')
+    expect(() => bare.svc.encodeViewLocation(sid('s1'), SessionSeq(0))).toThrow('no Host is admitted yet')
+  })
 })

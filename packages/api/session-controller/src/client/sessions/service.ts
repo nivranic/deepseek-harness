@@ -15,6 +15,14 @@
  * survives frozen (read-only view) until the stage moves on.
  */
 import type { Context, Fiber } from '@deepseek-ai/cordis'
+import type { HostDescriptor, HostId } from '@deepseek-ai/dsh-api-host-description/types'
+
+declare module '@deepseek-ai/dsh-client-connection/client' {
+  interface ConnectionHostInfo {
+    /** Validated discovery for this generation; absent in assemblies without Host discovery. */
+    readonly descriptor?: HostDescriptor
+  }
+}
 import type { SubagentAddress } from '@deepseek-ai/dsh-subagent/client'
 import { SessionSeq, type SessionId } from '@deepseek-ai/dsh-session/types'
 import { workspaceTitleOf } from '@deepseek-ai/dsh-util-workspace-path'
@@ -31,6 +39,7 @@ import type { SessionFace } from '../contract/session.ts'
 import type { AgentContext, ISessions } from '../contract/sessions.ts'
 import { createScope, scopeOf as scopeTagOf } from '../scope.ts'
 import { SessionManager } from './manager.ts'
+import { decodeSessionViewLocation, encodeSessionViewLocation } from '../view-location.ts'
 import type { SessionRemotes } from './remotes.ts'
 import type { SessionListPhase, SessionSearchResultItem, SubagentCatalogSnapshot } from './manager.ts'
 import type { Session } from './session.ts'
@@ -220,7 +229,7 @@ export class ClientSessions implements ISessions {
    */
   constructor(
     private readonly rootCtx: Context,
-    remote: SessionRemotes,
+    private readonly remote: SessionRemotes,
   ) {
     this.selection = createSnapshotStore<SessionSelection>(
       {},
@@ -269,6 +278,54 @@ export class ClientSessions implements ISessions {
    */
   open(id: SessionId): void {
     this.manager.select(id)
+  }
+
+  /**
+   * Capture the connected Host, one Session, and a durable anchor as a §26
+   * view-location handoff payload (transfer the viewing position, never the runtime).
+   * @param sessionId - session whose position is handed off.
+   * @param anchorSeq - inclusive durable seq the receiving UI reveals.
+   * @returns the encoded payload safe for links, clipboards, and QR codes.
+   */
+  encodeViewLocation(sessionId: SessionId, anchorSeq: SessionSeq): string {
+    return encodeSessionViewLocation({
+      hostId: this.requireConnectedHostId('capture a view location'),
+      sessionId,
+      anchorSeq,
+    })
+  }
+
+  /**
+   * Open the session named by a §26 view-location payload on the connected
+   * Host and reveal its anchor through the jump loader. The payload targets
+   * exactly one Host: a different connected Host, or none yet admitted, fails
+   * loud instead of leaking the request to the wrong Host.
+   * @param encoded - payload produced by {@link ClientSessions.encodeViewLocation}.
+   * @returns the opened Session with the anchor position revealed.
+   */
+  async openViewLocation(encoded: string): Promise<Session> {
+    const location = decodeSessionViewLocation(encoded)
+    const hostId = this.requireConnectedHostId('open a view location')
+    if (hostId !== location.hostId) {
+      throw new Error(
+        `view location targets Host ${location.hostId} but Host ${hostId} is connected`,
+      )
+    }
+    await this.manager.refreshList()
+    this.open(location.sessionId)
+    const session = this.manager.get(location.sessionId)
+    await session.open()
+    await session.loadThrough(location.anchorSeq)
+    return session
+  }
+
+  /** Read the admitted generation's Host identity or fail loud for the named operation. */
+  private requireConnectedHostId(operation: string): HostId {
+    const descriptor = this.remote.$host.descriptor
+    if (descriptor === undefined) {
+      throw new Error(`cannot ${operation}: no Host is admitted yet`)
+    }
+    return descriptor.hostId
   }
 
   /**

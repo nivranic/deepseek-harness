@@ -19,6 +19,9 @@
       "path": "../gateway/tsconfig.client.json"
     },
     {
+      "path": "../host-description"
+    },
+    {
       "path": "../../attachment/attachment"
     },
     {

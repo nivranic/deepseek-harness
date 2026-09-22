@@ -24,6 +24,8 @@ export type {
   SessionRemote,
 } from './transport.ts'
 export { createScope, scopeOf } from './scope.ts'
+export { decodeSessionViewLocation, encodeSessionViewLocation } from './view-location.ts'
+export type { SessionViewLocation } from './view-location.ts'
 export type { AgentContext, AgentScopeHandle } from './scope.ts'
 export { SessionCreateError, SessionForkError } from './sessions/service.ts'
 export type { SessionBinding, SessionListState, SessionSummary } from './sessions/service.ts'

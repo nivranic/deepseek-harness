@@ -3307,10 +3307,10 @@
       "acceptanceProven": false,
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
-        "ARCHITECTURE_DECISIONS.md",
-        "COMPATIBILITY_MATRIX.md"
+        "IMPLEMENTATION_STATUS.md",
+        "packages/api/session-controller/README.md"
       ],
-      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。",
+      "remaining": "Handoff 第一阶段已按第 26 节落地：查看位置载荷（dsh-session-view.v1 前缀 base64url，解析边界 fail-loud）携带 Host 身份、SessionId 与含端持久锚点；ClientSessions.encodeViewLocation 在连接 Host 上捕获载荷，openViewLocation 校验载荷恰好指向当前连接的 Host（不同 Host/未准入即拒绝，绝不外泄请求）后选会话、打开并经轮次跳转加载器揭示锚点——只转移查看位置，不迁移执行 runtime（§27 语义由架构排除，§11 行已落档）。配套 §25 fromSeq 续传（前一增量）提供重开基础。多 Host 显式 active Host 与切换期 Composer 禁用（§28）仍待后续增量；跨设备真实 QR/链接投放通道属外壳工作，未含本增量。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
