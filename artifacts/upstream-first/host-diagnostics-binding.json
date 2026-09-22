@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-diagnostics-source.json",
+    "sha256": "f9e86ac5ff6fb2fb4004de3f5d469c86e88e2aab6ef803eeb90a5fbdaab127d4"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "260f1c505c7f4b57e38f75621b5bac5dac741636f91780151c22c46c46fd4e6f"
+  },
+  "helper": {
+    "path": ".artifacts/check-host-diagnostics-binding.mjs",
+    "sha256": "de33b712301b2814d1723ee882edf29ac8051bcf3b2648dcce5d99fa8f8948e8"
+  }
+}

@@ -4486,10 +4486,10 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "IMPLEMENTATION_STATUS.md",
+        "packages/api/host-diagnostics/README.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "§41 已按可落地部分落地：新包 api/host-diagnostics（能力 host.diagnostics.v1=view，经 web-app profile 组合）的 health() 区分存活与就绪——六组件（process/runtime/sessionStore/pluginState/connection/modelProvider）各携带状态与指名被探测服务的 detail，ready 派生自核心组件（connection 被排除：CLI/desktop-pipe 无载体 profile 仍是 Host）；health 基于存在性，能看部分故障的 degraded 探测与崩溃记录接缝随 §43 support bundle 保持开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4587,10 +4587,11 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "IMPLEMENTATION_STATUS.md",
+        "packages/api/host-diagnostics/README.md",
+        "docs/subsystems/host-diagnostics.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "§42 载荷已落地：describe() 组合统一诊断快照——productVersion/apiProtocolVersion/sessionFormatVersion/hostId/platform/arch/runtimeMode/nodeVersion/transports/capabilities（描述符）、plugins（plugin-inventory 行）、migrations（已发布 session-format 迁移链 name/from/to）、crash/lastErrors（记录接缝落地前如实为空）与 health 快照；构造即脱敏——字段集为非秘密事实枚举，无 API key/bearer/配对秘密/原始凭据通道（键集断言测试固化）。SHA 字段未含（构建注入接缝未定）；§43 support bundle（producer/sanitizer/manifest/checksum/collector 四平台同候选）与 §44 分类型 telemetry 仍开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

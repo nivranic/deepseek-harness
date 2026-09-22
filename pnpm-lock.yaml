@@ -947,6 +947,30 @@ importers:
         specifier: workspace:^
         version: link:../../typert/registry
 
+  packages/api/host-diagnostics:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-api-gateway':
+        specifier: workspace:^
+        version: link:../gateway
+      '@deepseek-ai/dsh-api-host-description':
+        specifier: workspace:^
+        version: link:../host-description
+      '@deepseek-ai/dsh-session-format-v0-to-v1':
+        specifier: workspace:^
+        version: link:../../session/session-format-v0-to-v1
+      '@deepseek-ai/dsh-session-format-v1-to-v2':
+        specifier: workspace:^
+        version: link:../../session/session-format-v1-to-v2
+      '@deepseek-ai/dsh-session-format-v2-to-v3':
+        specifier: workspace:^
+        version: link:../../session/session-format-v2-to-v3
+      '@deepseek-ai/dsh-typert-protocol':
+        specifier: workspace:^
+        version: link:../../typert/protocol
+
   packages/api/remotes:
     dependencies:
       '@deepseek-ai/dsh-deque':
@@ -977,6 +1001,9 @@ importers:
       '@deepseek-ai/dsh-api-host-description':
         specifier: workspace:^
         version: link:../host-description
+      '@deepseek-ai/dsh-api-host-diagnostics':
+        specifier: workspace:^
+        version: link:../host-diagnostics
       '@deepseek-ai/dsh-api-session-controller':
         specifier: workspace:^
         version: link:../session-controller
@@ -1849,6 +1876,9 @@ importers:
       '@deepseek-ai/dsh-api-host-description':
         specifier: workspace:^
         version: link:../../api/host-description
+      '@deepseek-ai/dsh-api-host-diagnostics':
+        specifier: workspace:^
+        version: link:../../api/host-diagnostics
       '@deepseek-ai/dsh-api-remotes':
         specifier: workspace:^
         version: link:../../api/remotes

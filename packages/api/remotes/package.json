@@ -88,6 +88,7 @@
     "zod": "^4.4.3",
     "@deepseek-ai/dsh-command-feedback": "workspace:^",
     "@deepseek-ai/dsh-api-host-description": "workspace:^",
+    "@deepseek-ai/dsh-api-host-diagnostics": "workspace:^",
     "@deepseek-ai/dsh-client-ui-deliverables": "workspace:^"
   }
 }

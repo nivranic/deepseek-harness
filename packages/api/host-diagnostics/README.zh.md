@@ -1,0 +1,47 @@
+---
+description: "Host 诊断接缝：第 41 节 health/readiness 快照与第 42 节构造即脱敏的跨平台诊断载荷。"
+kind: "package-reference"
+---
+# @deepseek-ai/dsh-api-host-diagnostics
+
+[English](README.md) | 中文
+
+## 概述
+
+一个 Typert Remote owner（`ctx.hostDiagnostics`，能力 `host.diagnostics.v1`，权限 `view`）承载规格的诊断切片。`health()` 回答第 41 节的存活/就绪区分：六个组件——process、runtime、sessionStore、pluginState、connection、modelProvider——各携带状态与指名被探测服务的 detail，以及派生的 `ready` 判定（connection 被排除：无载体的 profile 同样是 Host）。`describe()` 组合第 42 节载荷——描述符事实、插件清单行、已发布迁移链与 health 快照——以构造方式脱敏：字段集只枚举非秘密事实，任何 API key、bearer、配对秘密或原始凭据都无法到达它。
+
+## 目录
+
+- [Model Experience](#model-experience)
+- [已知限制与暂缓事项](#known-limitations-and-deferred-work)
+- [开发备注](#dev-note)
+
+-----
+
+<a id="model-experience"></a>
+## Model Experience
+
+None（无）——本包只应答 health 与诊断读取，不注册 prompt、工具或会话事件。
+
+#### KV Cache effect
+
+None；health 与诊断读取不会改变任何模型请求。
+
+## 已知限制与暂缓事项
+
+<a id="known-limitations-and-deferred-work"></a>
+
+- **Health 基于存在性**——`down` 指名缺失的 owner 服务；能看到部分故障的组件探测（`degraded`）与 crash/last-error 记录接缝随 support-bundle 增量（§43）保持开放。
+- **尚无客户端表面**——载荷的消费方（设置、支持收集）随各自增量落地；本接缝与其 wire 即契约。
+
+<a id="dev-note"></a>
+### 开发备注
+
+<details>
+<summary>维护者工作上下文——点击展开</summary>
+
+探测是对可选组合服务的 `ctx.get()` 查找：`sessionPersistence`、`loader`、`llm`、`webServer`、`pluginInventory`（§42 行）与 `hostDescription`（描述符事实；缺失 owner 时 `describe` 以 `gateway/service-unavailable` 大声失败）。迁移表是从 session-format 包静态导入的已发布链——不做构建期内省，无需保持同步。
+
+</details>
+
+**Runtime invariant:** 不发布 companion。插件 apply 时 Remote owner 自行注册。

@@ -1181,6 +1181,25 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'hostDiagnostics',
+    summary: 'Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.',
+    description: 'Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.',
+    methods: [
+      {
+        signature: '@Remote(\'health\') health(): HealthSnapshot',
+        description: 'Evaluate the six §41 health components. Answering IS the process and runtime proof; the remaining components probe their owning services, so a `down` names the missing owner instead of guessing a cause.',
+        parameters: [],
+        returns: 'the health snapshot with the derived readiness verdict.',
+      },
+      {
+        signature: '@Remote(\'describe\') async describe(signal?: AbortSignal): Promise<DiagnosticsSnapshot>',
+        description: 'Compose the §42 diagnostics payload: the Host descriptor facts, the Loader inventory, the released migration chain, and the health snapshot.',
+        parameters: [{ name: 'signal', description: 'optional request cancellation; a cancelled inventory read aborts the composition.' }],
+        returns: 'the sanitized diagnostics snapshot.',
+      },
+    ],
+  },
+  {
     key: 'inspector',
     summary: 'Shared Host/Client service façade over the realm\'s source publisher.',
     description: 'Shared Host/Client service façade over the realm\'s source publisher.',
@@ -4041,6 +4060,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type CompactionTrigger = \'pressure\' | \'context-overflow\';',
   },
   {
+    name: 'ComponentHealth',
+    declaration: 'export type ComponentHealth = \'up\' | \'degraded\' | \'down\';',
+  },
+  {
     name: 'CompositionRowEnablement',
     declaration: 'export type CompositionRowEnablement = boolean | \'conditional\';',
   },
@@ -4235,6 +4258,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'DeviceView',
     declaration: 'export interface DeviceView {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n    readonly platform?: string;\n    readonly lastSeenAt?: number;\n    readonly revokedAt?: number;\n}',
+  },
+  {
+    name: 'DiagnosticsMigration',
+    declaration: 'export interface DiagnosticsMigration {\n    readonly name: string;\n    readonly fromVersion: number;\n    readonly toVersion: number;\n}',
+  },
+  {
+    name: 'DiagnosticsPlugin',
+    declaration: 'export interface DiagnosticsPlugin {\n    readonly moduleName: string;\n    readonly enabled: boolean;\n    readonly fiberPhase: string;\n}',
+  },
+  {
+    name: 'DiagnosticsSnapshot',
+    declaration: 'export interface DiagnosticsSnapshot {\n    readonly productVersion: string;\n    readonly apiProtocolVersion: number;\n    readonly sessionFormatVersion: number;\n    readonly hostId: HostId;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: string;\n    readonly nodeVersion: string;\n    readonly transports: readonly string[];\n    readonly capabilities: readonly string[];\n    readonly plugins: readonly DiagnosticsPlugin[];\n    readonly migrations: readonly DiagnosticsMigration[];\n    readonly crash: readonly string[];\n    readonly lastErrors: readonly string[];\n    readonly health: HealthSnapshot;\n}',
   },
   {
     name: 'DiffCallView',
@@ -4503,6 +4538,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'GrantRecord',
     declaration: 'export interface GrantRecord {\n    readonly kind: \'grant\';\n    readonly payload: unknown;\n}',
+  },
+  {
+    name: 'HealthComponent',
+    declaration: 'export interface HealthComponent {\n    readonly state: ComponentHealth;\n    readonly detail: string;\n}',
+  },
+  {
+    name: 'HealthSnapshot',
+    declaration: 'export interface HealthSnapshot {\n    readonly process: HealthComponent;\n    readonly runtime: HealthComponent;\n    readonly sessionStore: HealthComponent;\n    readonly pluginState: HealthComponent;\n    readonly connection: HealthComponent;\n    readonly modelProvider: HealthComponent;\n    readonly ready: boolean;\n}',
   },
   {
     name: 'HostDescriptor',

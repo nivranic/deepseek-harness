@@ -618,6 +618,15 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The gateway-owned device-facing access seam: one-time pairing issuance, device grants, and revocation over Typert Remote; permission execution stays with the interaction-reply seam.',
   },
   {
+    key: 'hostDiagnostics',
+    pkg: 'api-host-diagnostics',
+    title: 'Host diagnostics seam',
+    mode: 'seam',
+    implementations: [],
+    consumers: ['web-app'],
+    note: 'The section 41 health/readiness snapshot and the section 42 sanitized cross-platform diagnostics payload over Typert Remote; presence-based probes name the composed owner per component.',
+  },
+  {
     key: 'jobs',
     pkg: 'jobs',
     title: 'Background job registry',

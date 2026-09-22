@@ -14,6 +14,7 @@ import { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-command-f
 import { MESSAGE_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-message-feedback/capabilities'
 import { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
 import { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-host-plugin-inventory/capabilities'
+import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-host-diagnostics/capabilities'
 import { COMMAND_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-commands/capabilities'
 import { LLM_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-llm/capabilities'
 import { AGENT_PRESET_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-agent-presets/capabilities'
@@ -392,7 +393,8 @@ describe('Device permission declarations cover every business capability', () =>
     SETTINGS_REMOTE_CAPABILITIES, CREDENTIAL_REMOTE_CAPABILITIES, WORKSPACE_FILES_REMOTE_CAPABILITIES,
     FILE_UPLOAD_REMOTE_CAPABILITIES, PRESENTED_FILE_REMOTE_CAPABILITIES, SESSION_REFERENCE_REMOTE_CAPABILITIES,
     DYNAMIC_CORDIS_REMOTE_CAPABILITIES, SESSION_FEEDBACK_REMOTE_CAPABILITIES, MESSAGE_FEEDBACK_REMOTE_CAPABILITIES,
-    GOAL_REMOTE_CAPABILITIES, PLUGIN_INVENTORY_REMOTE_CAPABILITIES, COMMAND_REMOTE_CAPABILITIES,
+    GOAL_REMOTE_CAPABILITIES, PLUGIN_INVENTORY_REMOTE_CAPABILITIES, HOST_DIAGNOSTICS_REMOTE_CAPABILITIES,
+    COMMAND_REMOTE_CAPABILITIES,
     LLM_REMOTE_CAPABILITIES, AGENT_PRESET_REMOTE_CAPABILITIES, SUBAGENT_REMOTE_CAPABILITIES,
   ]
   it('declares a section 21 permission on every capability these namespaces advertise', () => {

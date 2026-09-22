@@ -132,6 +132,11 @@
     - id: device-trust
       name: '@deepseek-ai/dsh-api-device-trust'
 
+    # Host-diagnostics seam: section 41 health/readiness and the section 42
+    # sanitized diagnostics payload over Typert Remote.
+    - id: host-diagnostics
+      name: '@deepseek-ai/dsh-api-host-diagnostics'
+
     - id: cordis-host-runner
       name: '@deepseek-ai/dsh-cordis-host-runner'
 

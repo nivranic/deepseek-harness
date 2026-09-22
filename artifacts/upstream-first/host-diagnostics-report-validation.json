@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Host diagnostics; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-diagnostics-source.json",
+    "sha256": "f9e86ac5ff6fb2fb4004de3f5d469c86e88e2aab6ef803eeb90a5fbdaab127d4"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "260f1c505c7f4b57e38f75621b5bac5dac741636f91780151c22c46c46fd4e6f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/host-diagnostics-binding.json",
+    "sha256": "2ab3c7500a777dfb0b0f82cad736497abef6e05083aab27c0d4b219f785f4f25"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-host-diagnostics-reports.mjs",
+      "sha256": "d8e80a0326e1cd804f06b382005d5b91f27086728310513ae18853a746a5f622"
+    },
+    {
+      "path": ".artifacts/capture-host-diagnostics-validation.mjs",
+      "sha256": "e6de71106dfa5d8c14677afd7401425d3bbeead74de47fbfcc0ff5bd01a37f41"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b3ee5ff8a645b51e970954fc0cc8016e144635d5618b41ab51cba39b4ba993e7"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "77463b04152a9020309172ec90fa73b393ca4f001248b791ba8fd7633851c8e1"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/host-diagnostics-binding.log",
+      "sha256": "10b3eeb3de76dd4e0e8957bcfe0167603c8b03d0735b185229cd38593ca2d128"
+    },
+    {
+      "path": ".artifacts/host-diagnostics-audit-tests.log",
+      "sha256": "fb5599da8fa4f5a84ac6b15437570968365dc3d515d3333071ea7e96881c9b37"
+    },
+    {
+      "path": ".artifacts/host-diagnostics-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/host-diagnostics-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/host-diagnostics-report-generation.log",
+      "sha256": "32bce446ec607e1c4f1b4c87b0b5f972ef988447cd2eba022bdcefd0e105d936"
+    }
+  ]
+}

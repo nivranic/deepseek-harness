@@ -2190,6 +2190,21 @@
       "doc": "docs/subsystems/device-trust.md",
       "symbol": "RenameDeviceRequest",
       "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "ComponentHealth",
+      "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "DiagnosticsMigration",
+      "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "DiagnosticsPlugin",
+      "source": "packages/api/host-diagnostics/src/types.ts"
     }
   ]
 }
