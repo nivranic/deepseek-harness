@@ -138,7 +138,9 @@ export function ConversationSessionHeader({
               {host !== undefined && (
                 <span className={css.headerHost} data-conversation-running-location="">
                   <span className={css.headerHostDot} aria-hidden="true" />
-                  {t('session.runningLocation', { platform: host.platform })}
+                  {host.descriptor !== undefined
+                    ? t('session.runningLocationNamed', { name: host.descriptor.displayName, platform: host.platform })
+                    : t('session.runningLocation', { platform: host.platform })}
                 </span>
               )}
               {renderSlot('conversation.session.header.utilities', {})}

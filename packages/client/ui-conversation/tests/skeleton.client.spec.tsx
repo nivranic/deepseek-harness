@@ -482,6 +482,18 @@ describe('ConversationRoot resident composer', () => {
     expect(b.slotCalls).toContain('conversation.session.header.leading')
   })
 
+  it('names the running Host when discovery provided a display name', () => {
+    const b = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: {
+        home: '/home/u',
+        platform: 'win32',
+        descriptor: { hostId: 'h1' as never, displayName: 'Workstation', capabilities: [] } as never,
+      },
+    })
+    const chip = b.view.container.querySelector('[data-conversation-running-location]')
+    expect(chip?.textContent).toBe('运行位置 Workstation · win32')
+  })
+
   it('keeps intermediate subagent breadcrumbs at the compact title size', () => {
     const b = mount(sessionSnapshotOf(), undefined, undefined, {
       summaryOrigin: 'subagent',

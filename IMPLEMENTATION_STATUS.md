@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 运行位置设备命名（§10 收尾）与 §11 第一原则
+
+[当前来源记录](artifacts/upstream-first/host-naming-source.json)接入第 10 节设备命名：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布（host-preparation 返回它、remote-events 就绪合并展开它、ConnectionHostInfo 经既有声明合并持有可选 descriptor），会话 header 的运行位置 chip 因此在有名字时显示「运行位置 {name} · {platform}」，无 Host-discovery 面的组装回退纯 platform 键——零 wire、服务与夹具改动，一个渲染分支、一对 locale 键、一项骨架用例。§10 traceability 行记命名落地（权限档显示仍开放）；§11 第一原则行如实落档：架构与呈现共同持守——任何设备打开 Session 都是拥有该 Host 的查看端，架构中不存在执行迁移路径，顶栏显式标示执行所在；Follow/Handoff 与多 Host 仍开放。测试 450 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+
 ## 设计语言收口（§9）
 
-[当前来源记录](artifacts/upstream-first/design-language-source.json)把第 9 节收口为单一 token 层并加机械执行：ui-theme design-platform.css 本就声明语义 alias 家族、typography/radius/spacing/ease/duration 原语与深浅两套主题块，本增量新增 design-language 审计——遍历每个 client 包 src 样式表，剥离注释、url() 数据 URI 色板、var() 回退值与 mask-image 透明度渐变后，断言声明中无裸 hex 色值；仍保留字面量的五个文件（ui-workspace Rows 与 ui-primitives HoverCard 的固定暗面、InputBar 静态白发送箭头、JsonTree 语法色板、web pre-theme 启动页）均在文件内注明理由并收敛于审计同步校验的具名允许清单。FileCard removeFailed 的裸 #fff 改为 inverted-label token；手机顶栏状态圆点补 corner-shape: round 配对（既有 corner-shape 跨包审计要求）。测试 127 项（含两项审计用例）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。局限：真机 platform-native 视觉矩阵与验收仍开放（本机无硬件）。
+[历史来源记录](artifacts/upstream-first/design-language-source.json)把第 9 节收口为单一 token 层并加机械执行：ui-theme design-platform.css 本就声明语义 alias 家族、typography/radius/spacing/ease/duration 原语与深浅两套主题块，本增量新增 design-language 审计——遍历每个 client 包 src 样式表，剥离注释、url() 数据 URI 色板、var() 回退值与 mask-image 透明度渐变后，断言声明中无裸 hex 色值；仍保留字面量的五个文件（ui-workspace Rows 与 ui-primitives HoverCard 的固定暗面、InputBar 静态白发送箭头、JsonTree 语法色板、web pre-theme 启动页）均在文件内注明理由并收敛于审计同步校验的具名允许清单。FileCard removeFailed 的裸 #fff 改为 inverted-label token；手机顶栏状态圆点补 corner-shape: round 配对（既有 corner-shape 跨包审计要求）。测试 127 项（含两项审计用例）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。局限：真机 platform-native 视觉矩阵与验收仍开放（本机无硬件）。
 
 ## 手机顶栏（§10 第二个表面）
 
