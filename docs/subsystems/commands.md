@@ -39,6 +39,8 @@ interface CommandDefinition {
   readonly name: string
   /** Human-readable summary used in discovery UI. */
   readonly description: string
+  /** Host-assessed risk tier (specification §37); the Host owns the classification, clients display it. */
+  readonly risk: CommandRisk
   /** Optional free-form input hint advertised to capable clients. */
   readonly input?: CommandInputDescriptor
   /**
@@ -105,6 +107,8 @@ interface CommandDescriptor {
   readonly name: string
   /** Human-readable summary used in discovery UI. */
   readonly description: string
+  /** Host-assessed risk tier shown by capable clients beside the description. */
+  readonly risk: CommandRisk
   /** Optional free-form input hint advertised to capable clients. */
   readonly input?: CommandInputDescriptor
 }

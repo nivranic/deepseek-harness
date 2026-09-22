@@ -22,6 +22,7 @@ import type {
   CommandExecution,
   CommandInputDescriptor,
   CommandResult,
+  CommandRisk,
   CommandSubmitAttachment,
 } from './types.ts'
 
@@ -66,6 +67,8 @@ export interface CommandDefinition {
   readonly name: string
   /** Human-readable summary used in discovery UI. */
   readonly description: string
+  /** Host-assessed risk tier (specification §37); the Host owns the classification, clients display it. */
+  readonly risk: CommandRisk
   /** Optional free-form input hint advertised to capable clients. */
   readonly input?: CommandInputDescriptor
   /**
@@ -208,10 +211,15 @@ function normalizeDefinition(definition: CommandDefinition): RegisteredCommand {
       ...('attachments' in rawInput && rawInput.attachments === true) ? { attachments: true } : {},
     })
   }
+  const RISKS: readonly CommandRisk[] = ['low', 'moderate', 'high', 'critical']
+  if (!RISKS.includes(definition.risk)) {
+    throw new TypeError(`command "${definition.name}" risk must be one of ${RISKS.join(', ')}`)
+  }
   const normalized = Object.freeze({
     ...definition.definitionId === undefined ? {} : { definitionId: definition.definitionId },
     name: definition.name,
     description: definition.description,
+    risk: definition.risk,
     ...input === undefined ? {} : { input },
     ...definition.recordInput === undefined ? {} : { recordInput: definition.recordInput },
     handler: definition.handler,
@@ -220,6 +228,7 @@ function normalizeDefinition(definition: CommandDefinition): RegisteredCommand {
     ...normalized.definitionId === undefined ? {} : { definitionId: normalized.definitionId },
     name: normalized.name,
     description: normalized.description,
+    risk: normalized.risk,
     ...normalized.input === undefined ? {} : { input: normalized.input },
   })
   return { definition: normalized, descriptor }

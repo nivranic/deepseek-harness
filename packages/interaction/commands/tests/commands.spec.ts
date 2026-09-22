@@ -11,6 +11,7 @@ function command(name: string, text = `ran:${name}`): CommandDefinition {
   return {
     name,
     description: `command ${name}`,
+    risk: 'low',
     handler: () => ({ kind: 'success', text }),
   }
 }
@@ -61,6 +62,7 @@ describe('CommandRuntime', () => {
       definitionId: CommandDefinitionId('example/inspect'),
       name: 'inspect',
       description: 'Inspect state',
+      risk: 'low',
       input: { hint: '<target>' },
       handler: () => ({ kind: 'success' }),
     }
@@ -71,6 +73,7 @@ describe('CommandRuntime', () => {
       definitionId: CommandDefinitionId('example/inspect'),
       name: 'inspect',
       description: 'Inspect state',
+      risk: 'low',
       input: { hint: '<target>' },
     }])
     expect(Object.isFrozen(listed)).toBe(true)
@@ -174,11 +177,19 @@ describe('CommandRuntime', () => {
     } as unknown as CommandDefinition)).toThrow('command "input-type" input hint must be a string')
   })
 
+  it('rejects out-of-vocabulary risk tiers at the registry boundary (specification §37)', async () => {
+    const ctx = await mount()
+    expect(() => ctx.commands.register({
+      ...command('risk-tier'),
+      risk: 'extreme',
+    } as unknown as CommandDefinition)).toThrow('command "risk-tier" risk must be one of low, moderate, high, critical')
+  })
+
   it('passes exact invocation context and detaches valid handler results', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
     const seen = vi.fn(() => ({ kind: 'success' as const, text: 'ok' }))
-    ctx.commands.register({ name: 'run', description: 'Run it', handler: seen })
+    ctx.commands.register({ name: 'run', description: 'Run it', risk: 'low', handler: seen })
     const controller = new AbortController()
 
     const execution = await ctx.commands.execute(agent, '/run  untouched ', [], controller.signal)
@@ -203,6 +214,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'wait',
       description: 'Wait',
+      risk: 'low',
       handler: () => new Promise((resolve) => { release = resolve }),
     })
     const running = new AbortController()
@@ -226,6 +238,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'reject',
       description: 'Reject',
+      risk: 'low',
       handler: () => Promise.reject(new Error('handler rejected')),
     })
     await expect(ctx.commands.execute(agent, '/reject', [], new AbortController().signal))
@@ -234,6 +247,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'reject-value',
       description: 'Reject a non-Error value',
+      risk: 'low',
       // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- exercise untyped plugin normalization
       handler: () => Promise.reject('not an Error'),
     })
@@ -244,6 +258,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'reject-hostile',
       description: 'Reject an unrenderable value',
+      risk: 'low',
       // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- exercise hostile plugin normalization
       handler: () => Promise.reject(hostile),
     })
@@ -261,6 +276,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'self-abort',
       description: 'Abort before returning',
+      risk: 'low',
       handler: () => {
         controller.abort('aborted in handler')
         return { kind: 'success' }
@@ -276,6 +292,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'denied',
       description: 'Denied',
+      risk: 'low',
       handler: () => ({ kind: 'error', text: 'not now' }),
     })
     const execution = await ctx.commands.execute(agent, '/denied', [], new AbortController().signal)
@@ -285,6 +302,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'silent',
       description: 'No output',
+      risk: 'low',
       handler: () => ({ kind: 'success' }),
     })
     const silent = await ctx.commands.execute(agent, '/silent', [], new AbortController().signal)
@@ -332,6 +350,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'linked',
       description: 'Link outcome',
+      risk: 'low',
       handler: () => ({ kind: 'success', text: 'linked', sourceEventSeq: source.seq }),
     })
 
@@ -351,6 +370,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'private',
       description: 'Record privately',
+      risk: 'low',
       recordInput: false,
       handler: seen,
     })
@@ -379,7 +399,7 @@ describe('CommandRuntime', () => {
   it('logs command/done kind error for an expected error result', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
-    ctx.commands.register({ name: 'denied', description: 'Denied', handler: () => ({ kind: 'error', text: 'not now' }) })
+    ctx.commands.register({ name: 'denied', description: 'Denied', risk: 'low', handler: () => ({ kind: 'error', text: 'not now' }) })
     await ctx.commands.execute(agent, '/denied', [], new AbortController().signal)
     expect(lifecycleOf(agent)).toMatchObject([
       { type: 'command/run', data: { name: 'denied' } },
@@ -393,6 +413,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'boom',
       description: 'Throw',
+      risk: 'low',
       handler: () => { throw new Error('handler exploded') },
     })
     await expect(ctx.commands.execute(agent, '/boom', [], new AbortController().signal))
@@ -409,6 +430,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'hang',
       description: 'Hang',
+      risk: 'low',
       handler: () => new Promise(() => undefined),
     })
     const controller = new AbortController()
@@ -464,6 +486,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({
       name: 'broken',
       description: 'Broken',
+      risk: 'low',
       handler: () => output as never,
     })
     await expect(ctx.commands.execute(agent, '/broken', [], new AbortController().signal)).rejects.toThrow(expected)
@@ -512,6 +535,7 @@ describe('command attachments', () => {
     return {
       name: 'vision',
       description: 'accepts attachments',
+      risk: 'low',
       input: { hint: '<objective>', attachments: true },
       handler,
     }

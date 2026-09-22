@@ -9,6 +9,10 @@
 export const zh = {
   'section.add': '添加',
   'section.commands': '指令',
+  'risk.low': '低风险',
+  'risk.moderate': '中风险',
+  'risk.high': '高风险',
+  'risk.critical': '极高风险',
   'label.goal': '目标',
   'label.plan': '计划',
   'label.feedback': '反馈',
@@ -45,6 +49,10 @@ export type CommandKey = keyof typeof zh
 export const en = {
   'section.add': 'Add',
   'section.commands': 'Commands',
+  'risk.low': 'Low risk',
+  'risk.moderate': 'Moderate risk',
+  'risk.high': 'High risk',
+  'risk.critical': 'Critical risk',
   'label.goal': 'Goal',
   'label.plan': 'Plan',
   'label.feedback': 'Feedback',

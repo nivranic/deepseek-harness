@@ -258,6 +258,7 @@ export class PermissionPresetService extends Service {
         definitionId: CommandDefinitionId('@deepseek-ai/dsh-permission-presets'),
         name: 'permission',
         description: 'Switch the permission preset (sandbox mode + approval policy)',
+        risk: 'high' as const,
         input: { hint: '<preset>' },
         // No settlement text labels its value with this command's own name: a
         // surface that renders `name · text` (the web command row) would

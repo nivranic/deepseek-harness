@@ -29,12 +29,13 @@ kind: "package-reference"
 
 ### 注册命令
 
-插件通过 `ctx.commands.register()` 注册命令，提供小写名称、发现界面中的说明、可选的 `input` 提示和处理器。可选的品牌类型字段 `definitionId` 为适配器提供带插件命名空间的稳定定义标识，它独立于显示文案和每次执行的 `commandId`。有效描述符只携带被选中定义的标识，作用域覆盖不会继承被遮蔽注册项的标识。
+插件通过 `ctx.commands.register()` 注册命令，提供小写名称、发现界面中的说明、必填的 Host 评定 `risk` 档位（`low`、`moderate`、`high`、`critical`——Host 层拥有分级，客户端只展示，规格 §37）、可选的 `input` 提示和处理器。可选的品牌类型字段 `definitionId` 为适配器提供带插件命名空间的稳定定义标识，它独立于显示文案和每次执行的 `commandId`。有效描述符只携带被选中定义的标识，作用域覆盖不会继承被遮蔽注册项的标识。
 
 ```text
 ctx.commands.register({
   name: 'plan',
   description: 'Enter plan mode',
+  risk: 'low',
   input: { hint: '<message>' },
   handler: ({ agent, rawInput }) => {
     // Runs directly against the agent; no model message is created.

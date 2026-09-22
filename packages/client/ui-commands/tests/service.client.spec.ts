@@ -27,13 +27,13 @@ const sid = (k: string): SessionId => k as SessionId
 const proj = (id: string): ClientSessionContext => ({ sessionId: sid(id) })
 
 const S1_CMDS: CommandDescriptor[] = [
-  { name: 'plan', description: 'bare kind' },
-  { name: 'goal', description: 'leadingInput kind', input: { hint: 'goal text' } },
+  { name: 'plan', description: 'bare kind', risk: 'low' },
+  { name: 'goal', description: 'leadingInput kind', risk: 'low', input: { hint: 'goal text' } },
 ]
 
 const S2_CMDS: CommandDescriptor[] = [
   ...S1_CMDS,
-  { name: 'attach', description: 'scoped shadow', input: { hint: 'path' } },
+  { name: 'attach', description: 'scoped shadow', risk: 'low', input: { hint: 'path' } },
 ]
 
 type ExecuteValue = { matched: boolean; commandId?: string; result?: CommandResult }
@@ -224,13 +224,13 @@ describe('candidates', () => {
     const { source, listCalls } = await bench()
     const list = await source.candidates(proj('s1'), req('g'))
     expect(listCalls).toEqual([{ sessionId: sid('s1') }])
-    expect(list).toEqual([{ name: 'goal', description: 'leadingInput kind', hint: 'goal text' }])
+    expect(list).toEqual([{ name: 'goal', description: 'leadingInput kind', tag: 'command:risk.low', hint: 'goal text' }])
   })
 
   it('ranks rows through the shared name ranker: prefixes first, then alignment, then source order', async () => {
     const commands: CommandDescriptor[] = [
-      { name: 'z_a_b', description: '' },
-      { name: 'abc', description: '' },
+      { name: 'z_a_b', description: '', risk: 'low' },
+      { name: 'abc', description: '', risk: 'low' },
     ]
     const { source } = await bench({ commands: () => Promise.resolve({ commands }) })
     const names = async (query: string) => (await source.candidates(proj('s1'), req(query))).map(c => c.name)
@@ -272,9 +272,9 @@ describe('candidates', () => {
   it('localizes canonical built-in and contribution descriptions on every candidate request', async () => {
     let locale = 'zh'
     const commands: CommandDescriptor[] = [
-      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-compact'), name: 'compact', description: 'Compact older conversation history' },
-      { name: 'goal', description: 'scoped goal override' },
-      { name: 'custom', description: 'plugin-authored copy' },
+      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-compact'), name: 'compact', description: 'Compact older conversation history', risk: 'low' },
+      { name: 'goal', description: 'scoped goal override', risk: 'low' },
+      { name: 'custom', description: 'plugin-authored copy', risk: 'low' },
     ]
     const { command, source } = await bench({
       commands: () => Promise.resolve({ commands }),
@@ -309,13 +309,13 @@ describe('candidates', () => {
   describe('menu presentation (design doc for #3567)', () => {
     /** First-party definitions plus an unrelated command, in Host registration order. */
     const SHIPPED: CommandDescriptor[] = [
-      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-compact'), name: 'compact', description: 'Compact older conversation history' },
-      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-session-log-export'), name: 'export', description: 'Download this Session log as a ZIP archive' },
-      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-feedback'), name: 'feedback', description: 'Record feedback about this session', input: { hint: '<text>' } },
-      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-goal'), name: 'goal', description: 'Set or view the goal for a long-running task', input: { hint: '<objective>', attachments: true } },
-      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-permission-presets'), name: 'permission', description: 'Switch the permission preset (sandbox mode + approval policy)', input: { hint: '<preset>' } },
-      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-plan-mode'), name: 'plan', description: 'Enter or leave plan mode', input: { hint: '[off|message]', attachments: true } },
-      { name: 'deploy', description: 'third-party command' },
+      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-compact'), name: 'compact', description: 'Compact older conversation history', risk: 'low' },
+      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-session-log-export'), name: 'export', description: 'Download this Session log as a ZIP archive', risk: 'low' },
+      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-feedback'), name: 'feedback', description: 'Record feedback about this session', risk: 'low', input: { hint: '<text>' } },
+      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-goal'), name: 'goal', description: 'Set or view the goal for a long-running task', risk: 'low', input: { hint: '<objective>', attachments: true } },
+      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-permission-presets'), name: 'permission', description: 'Switch the permission preset (sandbox mode + approval policy)', risk: 'low', input: { hint: '<preset>' } },
+      { definitionId: CommandDefinitionId('@deepseek-ai/dsh-plan-mode'), name: 'plan', description: 'Enter or leave plan mode', risk: 'low', input: { hint: '[off|message]', attachments: true } },
+      { name: 'deploy', description: 'third-party command', risk: 'low' },
     ]
     const Glyph = () => null
     const fileContribution = (run = vi.fn()): CommandContribution => ({
@@ -350,6 +350,7 @@ describe('candidates', () => {
         name: 'goal',
         label: 'command:label.goal',
         description: 'command:description.goal',
+        tag: 'command:risk.low',
         icon: IconGoalOutline16,
         hint: '<objective>',
         section: 'command:section.add',
@@ -357,14 +358,14 @@ describe('candidates', () => {
       expect(rows[0]).toEqual({ name: 'file', label: 'command:label.file', icon: Glyph, section: 'command:section.add' })
       expect(rows[6]).toMatchObject({ name: 'model', label: '模型', description: '选择本会话使用的模型', icon: Glyph })
       // A third-party command keeps its catalog text and gets no glyph.
-      expect(rows[8]).toEqual({ name: 'deploy', description: 'third-party command', section: 'command:section.commands' })
+      expect(rows[8]).toEqual({ name: 'deploy', description: 'third-party command', tag: 'command:risk.low', section: 'command:section.commands' })
     })
 
     it('a same-name override keeps its own presentation even when it copies the first-party description', async () => {
-      const commands: CommandDescriptor[] = [{ name: 'goal', description: en['description.goal'], input: { hint: 'x' } }]
+      const commands: CommandDescriptor[] = [{ name: 'goal', description: en['description.goal'], risk: 'low', input: { hint: 'x' } }]
       const { source } = await bench({ commands: () => Promise.resolve({ commands }) })
       const [row] = await source.candidates(proj('s1'), req(''))
-      expect(row).toEqual({ name: 'goal', description: en['description.goal'], hint: 'x', section: 'command:section.add' })
+      expect(row).toEqual({ name: 'goal', description: en['description.goal'], tag: 'command:risk.low', hint: 'x', section: 'command:section.add' })
       expect(source.matchSpace!(proj('s1'), '/目标')).toBeUndefined()
       expect(await source.matchEnter!(proj('s1'), '/目标 x', new AbortController().signal, { attachments: 0 })).toBeUndefined()
       expect(source.matchSpace!(proj('s1'), '/goal')).toHaveProperty('claim.name', 'goal')
@@ -728,7 +729,7 @@ describe('matchEnter envelope policy (images)', () => {
   const signal = () => new AbortController().signal
   const IMG_CMDS: CommandDescriptor[] = [
     ...S1_CMDS,
-    { name: 'vision', description: 'image-accepting leadingInput', input: { hint: 'describe', attachments: true } },
+    { name: 'vision', description: 'image-accepting leadingInput', risk: 'low', input: { hint: 'describe', attachments: true } },
   ]
   const png: SubmitAttachment = { type: 'image', mediaType: 'image/png', data: 'AA==' }
 
@@ -978,7 +979,7 @@ describe('directory invalidation events', () => {
         return Promise.resolve({
           commands: round === 1
             ? S1_CMDS
-            : [{ name: 'fresh', description: '', input: { hint: 'h' } }],
+            : [{ name: 'fresh', description: '', risk: 'low', input: { hint: 'h' } }],
         })
       },
     })
@@ -998,7 +999,7 @@ describe('directory invalidation events', () => {
         return Promise.resolve({
           commands: round === 1
             ? S1_CMDS
-            : [{ name: 'fresh', description: '', input: { hint: 'h' } }],
+            : [{ name: 'fresh', description: '', risk: 'low', input: { hint: 'h' } }],
         })
       },
     })
@@ -1097,7 +1098,7 @@ describe('Host command generations', () => {
     expect(listener).toHaveBeenCalledTimes(1)
     await expect(rows).resolves.toEqual([])
     await rejected
-    old.resolve({ commands: [{ name: 'stale', description: '' }] })
+    old.resolve({ commands: [{ name: 'stale', description: '', risk: 'low' }] })
     current.resolve({ commands: S1_CMDS })
     await b.warm(proj('s1'))
     expect(b.source.matchSpace!(proj('s1'), '/goal')).toBeDefined()

@@ -4154,7 +4154,7 @@
         "SECURITY_STATUS.md",
         "packages/interaction/commands/README.md"
       ],
-      "remaining": "需要 Host 输出和执行策略一致的风险等级，不能从已有 capability 准入推断风险分级完成。",
+      "remaining": "风险等级已按第 37 节落地：CommandDefinition/CommandDescriptor 新增必填 Host 评定 risk 档位（low/moderate/high/critical，注册边界对词表外值 fail-loud），Host 命令层拥有分级——/permission=high（可切 danger-full-access）、/compact、/goal、/export=moderate、/plan、/feedback=low；描述符经既有 catalog wire 到达客户端，composer 菜单行以 locale 键（risk.* 四档双语）渲染尾部徽章（ui-input-trigger 通用 tag 座位），客户端只展示不做判断。§38 审批 UI 的 Risk 行自此有数据源；完整审批信息（操作/目标/Host/Workspace/权限提升/命令预览）仍待审批表面逐项呈现。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

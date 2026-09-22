@@ -137,7 +137,7 @@ describe('Session file uploads', () => {
     expect(uploads.resolve(agent, 'missing' as FileUploadReceiptId)).toBeUndefined()
     const commandHandler = vi.fn((_invocation: unknown) => ({ kind: 'success' as const }))
     ctx.commands.register({
-      name: 'files', description: 'Use staged files', input: { hint: '<task>', attachments: true },
+      name: 'files', description: 'Use staged files', risk: 'low', input: { hint: '<task>', attachments: true },
       handler: commandHandler,
     })
     await ctx.commands.execute(

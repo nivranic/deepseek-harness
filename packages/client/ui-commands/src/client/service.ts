@@ -227,6 +227,8 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       rows.push({
         name: c.name,
         ...(builtinRowFace(c, this.t) ?? { description: c.description }),
+        // Specification §37: the Host owns the tier, the client only displays it.
+        tag: this.t(`risk.${c.risk}`),
         ...(c.input !== undefined ? { hint: c.input.hint } : {}),
       })
     }

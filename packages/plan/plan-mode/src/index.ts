@@ -227,6 +227,7 @@ export class PlanModeController extends Service {
         definitionId: brandString<CommandDefinitionId>('@deepseek-ai/dsh-plan-mode'),
         name: 'plan',
         description: 'Enter or leave plan mode',
+        risk: 'low' as const,
         input: { hint: '[off|message]', attachments: true },
         handler: ({ agent, rawInput, attachments }) => {
           const message = rawInput.trim()

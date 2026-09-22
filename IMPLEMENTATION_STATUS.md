@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 指令风险分级（§37）
+
+[当前来源记录](artifacts/upstream-first/command-risk-source.json)落地第 37 节：CommandDefinition/CommandDescriptor 新增必填 Host 评定 risk 档位（low/moderate/high/critical，注册边界对词表外值 fail-loud），Host 命令层拥有分级、客户端只展示——/permission=high（可切 danger-full-access）、/compact、/goal、/export=moderate、/plan、/feedback=low；描述符经既有 catalog wire 到达客户端，composer 菜单行以 ui-input-trigger 新增的通用 tag 座位渲染尾部徽章（risk.* 四档双语 locale 键），徽章不截断描述。§38 审批 UI 的 Risk 行自此有数据源，完整审批信息表面仍开放。type-equiv 双语文档块、cordis/doc/persistence 目录随 wire 变更再生。测试 593 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+
 ## 运行位置设备命名（§10 收尾）与 §11 第一原则
 
-[当前来源记录](artifacts/upstream-first/host-naming-source.json)接入第 10 节设备命名：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布（host-preparation 返回它、remote-events 就绪合并展开它、ConnectionHostInfo 经既有声明合并持有可选 descriptor），会话 header 的运行位置 chip 因此在有名字时显示「运行位置 {name} · {platform}」，无 Host-discovery 面的组装回退纯 platform 键——零 wire、服务与夹具改动，一个渲染分支、一对 locale 键、一项骨架用例。§10 traceability 行记命名落地（权限档显示仍开放）；§11 第一原则行如实落档：架构与呈现共同持守——任何设备打开 Session 都是拥有该 Host 的查看端，架构中不存在执行迁移路径，顶栏显式标示执行所在；Follow/Handoff 与多 Host 仍开放。测试 450 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+[历史来源记录](artifacts/upstream-first/host-naming-source.json)接入第 10 节设备命名：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布（host-preparation 返回它、remote-events 就绪合并展开它、ConnectionHostInfo 经既有声明合并持有可选 descriptor），会话 header 的运行位置 chip 因此在有名字时显示「运行位置 {name} · {platform}」，无 Host-discovery 面的组装回退纯 platform 键——零 wire、服务与夹具改动，一个渲染分支、一对 locale 键、一项骨架用例。§10 traceability 行记命名落地（权限档显示仍开放）；§11 第一原则行如实落档：架构与呈现共同持守——任何设备打开 Session 都是拥有该 Host 的查看端，架构中不存在执行迁移路径，顶栏显式标示执行所在；Follow/Handoff 与多 Host 仍开放。测试 450 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
 
 ## 设计语言收口（§9）
 

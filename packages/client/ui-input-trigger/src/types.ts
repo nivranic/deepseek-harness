@@ -57,6 +57,11 @@ export interface InputTriggerCandidate {
    */
   readonly label?: string
   readonly description?: string
+  /**
+   * Source-owned trailing badge on the row (for example a Host-assessed risk
+   * tier, specification §37); already-localized text the row renders as-is.
+   */
+  readonly tag?: string
   /** Reference glyph token, or an icon component from the shared icon set. */
   readonly icon?: InputTriggerCandidateIcon | ComponentType<IconProps>
   readonly hint?: string

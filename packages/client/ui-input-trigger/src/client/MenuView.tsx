@@ -180,6 +180,7 @@ export function MenuView({ menu, headers, onPick, onCrumb, onHover, onDismiss, t
                           <span className={css.itemAlias}>{item.name}</span>
                         )}
                         {item.description !== undefined && <span className={css.itemDescription}>{item.description}</span>}
+                        {item.tag !== undefined && <span className={css.itemTag} aria-label={item.tag}>{item.tag}</span>}
                         {item.drill === true && (
                           <span className={css.trailing}>
                             {/* Visual hint only: Tab drills the highlighted row (the

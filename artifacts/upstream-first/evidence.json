@@ -5,43 +5,167 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "efd23dc065e7139437cea1956288c8d39c6b38236ced0ee497b9e095540004a0"
+      "sha256": "e0c42767bd3fd1583003e04869a87b91ed81830d21c7bd5c110ca620e1b326f8"
+    },
+    {
+      "path": "apps/web/tests/commands-capabilities.e2e.ts",
+      "sha256": "938079a70aece95238ea33704f46bcd9ee6414c2ec9e18137b82da6785c7fa1a"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "4a0937ff2261de3c6df084f34c8f17ca15b41baf336f0bc5a7f66a6f9495e524"
+      "sha256": "82528922cefcf72681a31397187cb71224a581a9b3d9cc2e7f8b5db510053b87"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "ff10bdf215ac76853cf8028e412dcbca329fd25f9cd79f7d0d1268ac753e16d6"
+      "sha256": "a6b317d78afcb54dc71a336be90f9bb4d08f485b27e4371eeaaef6dd4fd000d5"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "1a65a53072bce25c3c1a93efc275a40e3c843b1f19aa5fd9c8151b2df32f2478"
+      "sha256": "2abe0acb8bba34654022855435c9c6c5afdd081052716262dcca0c76f1bf031f"
     },
     {
-      "path": "packages/client/ui-conversation/README.i18n.yaml",
-      "sha256": "bbc587a31a74284bf8508cfab33eb45b93bd61785f7d6c37a17a9e200b5f0166"
+      "path": "docs/event-producer-consumer.i18n.yaml",
+      "sha256": "c7211b2e06ede67d9b94f92013c71a3d05e09bf8eccee9be2965fa5f0d40451c"
     },
     {
-      "path": "packages/client/ui-conversation/README.md",
-      "sha256": "92e9cb06e0c70890e438edfde0f1aadcf572ffb28510aed79a57634f58ffa49f"
+      "path": "docs/event-producer-consumer.md",
+      "sha256": "2a1e28bab101de441b65681026e1e7727380765c1feb23f84d44f18a0d066a31"
     },
     {
-      "path": "packages/client/ui-conversation/README.zh.md",
-      "sha256": "52cc0f6fa5868f0f1615f58fcfc137cd779ed17c52366dc14d5a7ae33d60e1ff"
+      "path": "docs/persistence-catalog.i18n.yaml",
+      "sha256": "7420f433173c01a4c4632e60eafb9757b6d1fb112370f3ddd6f43a34eda8e3c3"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/locales.ts",
-      "sha256": "13e63af3acef8daa580d3d3c3a4e6bc350e21c6e4383e584d3e72d27b33aafcf"
+      "path": "docs/persistence-catalog.md",
+      "sha256": "fdd251d8f66d48861157408b008ecd81b26d9b7f1ab303f319468efcab0370c6"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/skeleton/ConversationSession.tsx",
-      "sha256": "9d36ba8063c04ef4b61712e58a533a085a3059b48c77b60e6c8c4becf0401e09"
+      "path": "docs/subsystems/commands.i18n.yaml",
+      "sha256": "44bd1ebf815aab5318c87ab863ed2fb2b54bc07e4ce39b74e8f5ffe7a96ab684"
     },
     {
-      "path": "packages/client/ui-conversation/tests/skeleton.client.spec.tsx",
-      "sha256": "76ecc41485481595baaa20f2840e7718a0d94e94db92f1319cdb0a4deef1bfe0"
+      "path": "docs/subsystems/commands.md",
+      "sha256": "f94f3dc4155560520c25258d87cef35d12ca042b83b22c305083cff07bbadf6a"
+    },
+    {
+      "path": "docs/subsystems/commands.zh.md",
+      "sha256": "7422ccfb91f50c1712bd1d597c1a6bf18871c17d8222dc8a8198bb54535bc8ba"
+    },
+    {
+      "path": "packages/api/session-controller/tests/commands-upload-file.host.spec.ts",
+      "sha256": "735431d8bd92f645086377fff2ca6511cc5308330bcf406423dd197e38b7f3d2"
+    },
+    {
+      "path": "packages/client/connection/src/client/fixture.ts",
+      "sha256": "faf5442a66a9c38739edd97402a872ba5cc4fbdf1d9b8c1206288696fbcd5fcb"
+    },
+    {
+      "path": "packages/client/ui-commands/src/client/locales.ts",
+      "sha256": "791fe503527763b3402f9ba0ef9f8a141cc6f31ecb72988702f2b7e692c8c6dd"
+    },
+    {
+      "path": "packages/client/ui-commands/src/client/service.ts",
+      "sha256": "2807ba0dc69c11ffed2176a8ecb02fe7f304e10be6da9caadcee4d7b1bee784f"
+    },
+    {
+      "path": "packages/client/ui-commands/tests/directory.client.spec.ts",
+      "sha256": "3c3e28a3fd60dea67e29f4868418c78ace3ee449264f5e71a1566487fd77a713"
+    },
+    {
+      "path": "packages/client/ui-commands/tests/service.client.spec.ts",
+      "sha256": "1d9ffbdbcbf05b43fc9d2e3fe350b5fa09bd08a2f72f8a00c2f95e4c0842843f"
+    },
+    {
+      "path": "packages/client/ui-input-trigger/src/client/MenuView.module.css",
+      "sha256": "dee42965fca52a1347352e2c1d1187736a5f2b306eae081953a5c0470485f8fb"
+    },
+    {
+      "path": "packages/client/ui-input-trigger/src/client/MenuView.tsx",
+      "sha256": "503ea04fda08d7d979589b508a2cc13c4004dfed48cc189f01467e047ac52da1"
+    },
+    {
+      "path": "packages/client/ui-input-trigger/src/types.ts",
+      "sha256": "057d151039d0dba6739f90f23593d1cc53a0c505df47e9b78b382fcf0b757b42"
+    },
+    {
+      "path": "packages/client/ui-input-trigger/tests/menu-view.client.spec.tsx",
+      "sha256": "ae9aebf14b8c9e5dbfe1f8b367f48dd41cf69fb54d2392fdcf82500d5261466e"
+    },
+    {
+      "path": "packages/compaction/command-compact/src/index.ts",
+      "sha256": "b4561710c52b8278dfd035af6aab6730b444c070c0f20810ab6fc4c40adb5aab"
+    },
+    {
+      "path": "packages/compaction/command-compact/tests/command-compact.spec.ts",
+      "sha256": "8ec9b73151069eb04764613197615eaafc4023baa83ce88bb0a17b1e4eda9afc"
+    },
+    {
+      "path": "packages/compaction/command-compact/tests/loader-composition.spec.ts",
+      "sha256": "11ebe5016712e106b8749882a09d2163c4d4d7fc9880aa25ec7b0069c770c0ef"
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "c774f218be8b69bea5c3749561b0b21c1e101367a000f7ffa1a33c4981ef38e1"
+    },
+    {
+      "path": "packages/feedback/command-feedback/src/index.ts",
+      "sha256": "f58f5b6fd6123c6edcb7c62c6cbb8132e19a21483be05587fcf7927f27d4b457"
+    },
+    {
+      "path": "packages/feedback/command-feedback/tests/command-feedback.spec.ts",
+      "sha256": "3baa7b8ba685687f9cc387b46fdd8c54262b6cb8b8899fdc7b09557bcbc28b32"
+    },
+    {
+      "path": "packages/goal/command-goal/src/index.ts",
+      "sha256": "2e2fa2c266fedbb7d90a0b6c54b148a00ad9348d32537562ee93b8620427a996"
+    },
+    {
+      "path": "packages/goal/command-goal/tests/command-goal.spec.ts",
+      "sha256": "a56e040d8c2d263c58fcd6ca66e61888de3a9e975a10583e9333676adceb40bf"
+    },
+    {
+      "path": "packages/interaction/commands/README.i18n.yaml",
+      "sha256": "ec2e05bc0b867c92de3e00ea7fb62b749a10b9cf0e852f23029d2c9ef5665bd9"
+    },
+    {
+      "path": "packages/interaction/commands/README.md",
+      "sha256": "e6360fb78dca29709839b6bf6d7071d55d5ecd52e18d578bfabc6d4673953de1"
+    },
+    {
+      "path": "packages/interaction/commands/README.zh.md",
+      "sha256": "2432232b5065cfb70d3bb0a677e6104182e4552839939d31dba6265e7f853b1a"
+    },
+    {
+      "path": "packages/interaction/commands/src/index.ts",
+      "sha256": "a5e7a7c769c989d1ddc9c3dc3d4376244f64e6ecacda718946b8d0306c803c8b"
+    },
+    {
+      "path": "packages/interaction/commands/src/types.ts",
+      "sha256": "ae9f04b044e072dcc8a83bb8724a209dcdd15dc3c3fcc6edaee554d01799c7a8"
+    },
+    {
+      "path": "packages/interaction/commands/tests/commands.spec.ts",
+      "sha256": "076a48bba3fa0b57895cb172c010c7ae844cdec99f8f4ca83ead4a5f015a19cb"
+    },
+    {
+      "path": "packages/interaction/permission-presets/src/index.ts",
+      "sha256": "7a6cae6b8fe8d159f843540fcfde8ce203271ff9e2d6572d3c8c5241135a1cc1"
+    },
+    {
+      "path": "packages/plan/plan-mode/src/index.ts",
+      "sha256": "e650d82d5207ebf576b41adc6a373ca91028d8021ddf62a240f746c2928cfaff"
+    },
+    {
+      "path": "packages/plan/plan-mode/tests/plan-mode.spec.ts",
+      "sha256": "bfea5e8b8799271b97f2a113eeef8f411ec7b2e3eaadc884b91fc119bd45197c"
+    },
+    {
+      "path": "packages/session-query/session-log-export/src/index.ts",
+      "sha256": "f1b8f93b5e5e9e5307df482d8a9cd21a62a64305c38d7dda5a5557c2d49aeae6"
+    },
+    {
+      "path": "packages/session-query/session-log-export/tests/loader-composition.host.spec.ts",
+      "sha256": "cfe1bc4d88fb592e71c50da3047ff940905c9fb8634aca95d17b1cda2f27a13c"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -6396,6 +6520,42 @@
     },
     {
       "status": "PASS",
+      "command": "Command-plane suites incl. ui-input-trigger: 593 passed (tier validation, badge render, catalog tag expectations)",
+      "log": ".artifacts/command-risk-tests.log",
+      "sourceRecord": "artifacts/upstream-first/command-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/command-risk-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/command-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/command-risk-lint.log",
+      "sourceRecord": "artifacts/upstream-first/command-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the bilingual commands docs update (type-equiv blocks regenerated)",
+      "log": ".artifacts/command-risk-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/command-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 37 risk-tier note",
+      "log": ".artifacts/command-risk-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/command-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/command-risk-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/command-risk-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7126,7 +7286,163 @@
       ]
     }
   },
+  "commandRisk": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/command-risk-source.json",
+    "scope": "Command risk tiers (specification section 37): CommandDefinition and CommandDescriptor gain a REQUIRED Host-assessed risk (low/moderate/high/critical; the registry rejects out-of-vocabulary values at the boundary). The Host command layer owns the classification and clients only display it: /permission=high (can switch to danger-full-access), /compact /goal /export=moderate (context rewrite, goal steering, data egress), /plan /feedback=low. The descriptor rides the existing catalog wire (pre-release: no wire compatibility promise) and the composer menu renders a trailing badge through ui-input-trigger's new generic tag seat (localized risk.* keys, bilingual); the badge never truncates the description. Section 38's approval Risk row now has a data source; the remaining approval-information surface stays open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "limitations": [
+      "The risk badge is menu-row display only; section 38's full approval-information surface (operation, target, workspace, escalation, command preview) remains open.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 38 approval-information surface (operation/target/host/workspace/risk/escalation/preview rows) now has its risk data source; section 10 remainder (overflow menu entries once a toolbar set exists, permission-tier display); iOS client adoption (no Swift client surface yet); cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "hostNaming": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/command-risk-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/host-naming-source.json",
     "scope": "Running-location device naming (specification section 10 remainder) plus the section 11 first-principle traceability entry. The validated host.describe descriptor — display name included — already rides the established Connection generation (host-preparation returns it in the preparation facts; remote-events spreads them into the ready merge; ConnectionHostInfo declares the optional descriptor through the existing declaration merge), so the conversation-header chip names the Host when discovery provided one: 「运行位置 {name} · {platform}」 falls back to the platform-only key in assemblies without a Host-discovery face. No wire, service, or fixture change; one render branch, one locale key pair, one skeleton case. The section 10 traceability row records naming landed with the permission-tier display still open; the section 11 row now states the first principle held by architecture and presentation together — every device opening a Session is a viewing client of the owning Host, no execution-migration path exists, and the top bar makes the execution Host explicit — with Follow/Handoff and multi-Host remaining the open product line",
@@ -14009,7 +14325,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/host-naming-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/command-risk-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -14492,7 +14808,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "1a65a53072bce25c3c1a93efc275a40e3c843b1f19aa5fd9c8151b2df32f2478"
+        "sha256": "2abe0acb8bba34654022855435c9c6c5afdd081052716262dcca0c76f1bf031f"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

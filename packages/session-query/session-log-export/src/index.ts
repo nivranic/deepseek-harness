@@ -80,6 +80,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     definitionId: brandString<CommandDefinitionId>('@deepseek-ai/dsh-session-log-export'),
     name: 'export',
     description: 'Download this Session log as a ZIP archive',
+    risk: 'moderate' as const,
     handler: invocation => Promise.resolve(invocation.rawInput.trim() === ''
       ? REQUESTED
       : { kind: 'error', text: 'The Web /export command does not accept a path.' }),

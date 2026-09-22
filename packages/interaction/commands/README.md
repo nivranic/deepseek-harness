@@ -29,12 +29,13 @@ Compose this service when an interactive UI should let users drive agent-side be
 
 ### Registering a command
 
-A plugin registers a command with `ctx.commands.register()`: a lowercase name, a discovery description, an optional `input` hint, and a handler. An optional branded `definitionId` gives the definition a stable, plugin-namespaced identity for adapters; it is independent of display copy and execution `commandId`. The effective descriptor carries only the selected definition's identity, so a scoped override never inherits the shadowed registration's identity.
+A plugin registers a command with `ctx.commands.register()`: a lowercase name, a discovery description, a required Host-assessed `risk` tier (`low`, `moderate`, `high`, or `critical` — the Host layer owns the classification and clients only display it, specification §37), an optional `input` hint, and a handler. An optional branded `definitionId` gives the definition a stable, plugin-namespaced identity for adapters; it is independent of display copy and execution `commandId`. The effective descriptor carries only the selected definition's identity, so a scoped override never inherits the shadowed registration's identity.
 
 ```text
 ctx.commands.register({
   name: 'plan',
   description: 'Enter plan mode',
+  risk: 'low',
   input: { hint: '<message>' },
   handler: ({ agent, rawInput }) => {
     // Runs directly against the agent; no model message is created.

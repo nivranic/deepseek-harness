@@ -165,6 +165,7 @@ describe('@deepseek-ai/dsh-command-compact registration', () => {
       definitionId: '@deepseek-ai/dsh-command-compact',
       name: 'compact',
       description: 'Compact older conversation history',
+      risk: 'moderate',
     })
 
     await test.plugin.dispose()

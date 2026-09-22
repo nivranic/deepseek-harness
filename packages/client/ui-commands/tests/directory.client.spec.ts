@@ -24,13 +24,13 @@ function deferred<T>() {
 }
 
 const CMDS: CommandDescriptor[] = [
-  { name: 'plan', description: 'plan mode' },
-  { name: 'goal', description: 'set goal', input: { hint: 'goal text' } },
+  { name: 'plan', description: 'plan mode', risk: 'low' },
+  { name: 'goal', description: 'set goal', risk: 'moderate', input: { hint: 'goal text' } },
 ]
 
 const S2_CMDS: CommandDescriptor[] = [
   ...CMDS,
-  { name: 'attach', description: 'attach a file', input: { hint: 'path' } },
+  { name: 'attach', description: 'attach a file', risk: 'low', input: { hint: 'path' } },
 ]
 
 /** Directory over per-key pull queues: each fetch appends a hand-settled deferred. */
@@ -55,12 +55,13 @@ function bench() {
 
 describe('status and resolve (per key)', () => {
   it('resolves bilingual aliases by definition identity and retains exact-name priority', async () => {
-    const goal = {
+    const goal: CommandDescriptor = {
       definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-goal'),
       name: 'objective',
       description: 'Reworded description.',
+      risk: 'moderate',
     }
-    const exact = { name: 'goal', description: 'independent exact-name entry' }
+    const exact: CommandDescriptor = { name: 'goal', description: 'independent exact-name entry', risk: 'low' }
     const { dir, pull } = bench()
     const refreshed = dir.refresh(S1)
     pull(S1, 0).resolve([goal])
@@ -126,7 +127,7 @@ describe('epoch guard (per key)', () => {
     pull(S1, 1).resolve(CMDS)
     await second
     expect(dir.resolve(S1, 'plan')).toBeDefined()
-    pull(S1, 0).resolve([{ name: 'stale', description: 'old world' }])
+    pull(S1, 0).resolve([{ name: 'stale', description: 'old world', risk: 'low' }])
     await first
     expect(dir.resolve(S1, 'stale')).toBeUndefined()
     expect(dir.resolve(S1, 'plan')).toBeDefined()
@@ -170,7 +171,7 @@ describe('invalidateAll (commands-changed soft)', () => {
     expect(dir.status(S1)).toBe('ready')
     expect(dir.resolve(S2, 'attach')).toBeDefined()
 
-    pull(S1, 1).resolve([{ name: 'fresh', description: 'new world' }])
+    pull(S1, 1).resolve([{ name: 'fresh', description: 'new world', risk: 'low' }])
     await Promise.resolve()
     await Promise.resolve()
     expect(dir.resolve(S1, 'fresh')).toBeDefined()
@@ -228,7 +229,7 @@ describe('resetSession (preset-change hard)', () => {
     expect(countOf(S1)).toBe(2)
     expect(countOf(S2)).toBe(1)
 
-    pull(S1, 1).resolve([{ name: 'fresh', description: 'new composition' }])
+    pull(S1, 1).resolve([{ name: 'fresh', description: 'new composition', risk: 'low' }])
     await Promise.resolve()
     await Promise.resolve()
     expect(dir.resolve(S1, 'fresh')).toBeDefined()
@@ -335,7 +336,7 @@ describe('ensureReady (per key)', () => {
     const { dir, pull } = bench()
     const wait = dir.ensureReady(S1, signal())
     void dir.refresh(S1) // supersedes pull #0 with pull #1
-    pull(S1, 0).resolve([{ name: 'stale', description: 'loser' }])
+    pull(S1, 0).resolve([{ name: 'stale', description: 'loser', risk: 'low' }])
     pull(S1, 1).resolve(CMDS)
     await expect(wait).resolves.toEqual(CMDS)
   })

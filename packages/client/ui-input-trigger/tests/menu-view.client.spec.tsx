@@ -134,6 +134,23 @@ describe('MenuView', () => {
     expect(screen.getAllByText('添加')).toHaveLength(1)
   })
 
+  it('renders a candidate tag as a trailing badge beside the description', () => {
+    mount(openState({
+      groups: [{
+        source: 'command',
+        status: 'ready',
+        items: [
+          { name: 'permission', label: '权限', description: '切换权限预设', tag: '高风险', section: '指令' },
+        ],
+      }],
+    }))
+    const option = screen.getByRole('option')
+    expect(option?.textContent).toBe('权限permission切换权限预设高风险')
+    const badge = option?.querySelector('span[class*="itemTag"]')
+    expect(badge?.textContent).toBe('高风险')
+    expect(badge?.getAttribute('aria-label')).toBe('高风险')
+  })
+
   it('keeps an opted-out source title hidden while its candidates are pending', () => {
     mount(openState({
       groups: [{ source: 'reference', showGroupTitle: false, status: 'pending', items: [] }],

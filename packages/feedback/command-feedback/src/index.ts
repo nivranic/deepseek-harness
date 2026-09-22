@@ -121,6 +121,7 @@ export function apply(ctx: Context): void {
     definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-feedback'),
     name: 'feedback',
     description: 'Record feedback about this session',
+    risk: 'low' as const,
     input: { hint: '<text>' },
     recordInput: false,
     handler: executeFeedbackCommand,

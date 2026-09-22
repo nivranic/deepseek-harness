@@ -53,6 +53,12 @@ export interface CommandExecution {
   readonly result: CommandResult
 }
 
+/**
+ * Host-assessed risk tier of one command (specification §37): the Host
+ * command layer owns the classification; clients only display it.
+ */
+export type CommandRisk = 'low' | 'moderate' | 'high' | 'critical'
+
 /** Handler-free immutable command view returned to UI adapters. */
 export interface CommandDescriptor {
   /** Stable plugin-owned identity; absent for definitions without identity-based client behavior. */
@@ -61,6 +67,8 @@ export interface CommandDescriptor {
   readonly name: string
   /** Human-readable summary used in discovery UI. */
   readonly description: string
+  /** Host-assessed risk tier shown by capable clients beside the description. */
+  readonly risk: CommandRisk
   /** Optional free-form input hint advertised to capable clients. */
   readonly input?: CommandInputDescriptor
 }

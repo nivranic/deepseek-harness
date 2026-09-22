@@ -14,7 +14,7 @@ it('presents an unknown command rejection without replacing its diagnostic', asy
   let runs = 0
   let requests = 0
   try {
-    scaffold.ctx.commands.register({ name: 'proof', description: 'Command rejection probe', handler: () => {
+    scaffold.ctx.commands.register({ name: 'proof', description: 'Command rejection probe', risk: 'low', handler: () => {
       runs++
       return { kind: 'success' }
     } })
@@ -64,7 +64,7 @@ it('withdraws Host commands while preserving local commands and a pending submis
   const output = '.artifacts/commands-capability-browser'
   try {
     scaffold = await launchWebScaffold()
-    scaffold.ctx.commands.register({ name: 'proof', description: 'Command capability probe', input: { hint: 'retained text' }, handler: () => {
+    scaffold.ctx.commands.register({ name: 'proof', description: 'Command capability probe', risk: 'low', input: { hint: 'retained text' }, handler: () => {
       runs++
       return { kind: 'success' }
     } })
