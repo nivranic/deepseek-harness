@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import type { Context } from '@deepseek-ai/cordis'
 import type { SessionListState, SessionSnapshot } from '@deepseek-ai/dsh-api-session-controller/client'
-import type { ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
+import type { ConnectionHostInfo, ConnectionState } from '@deepseek-ai/dsh-client-connection/client'
 import type { WorkspaceSnapshot, WorkspaceView } from '@deepseek-ai/dsh-api-workspace-controller/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import {
@@ -131,6 +131,8 @@ function mount(
     viewTabs?: ViewTab[]
     /** Host facts the header's running-location chip reads; absent while no generation is ready. */
     headerHostFacts?: ConnectionHostInfo
+    /** Connection recovery state; a defined non-ready value gates the composer (§28). */
+    connectionState?: ConnectionState
   } = {},
 ) {
   const root = sid('root')
@@ -324,6 +326,7 @@ function mount(
     useProjection: (() => undefined),
     useSessionManagement: select => select(options.sessionManagement ?? true),
     useComposerBlock: select => select(options.composerBlock),
+    useConnectionState: select => select(options.connectionState),
     useInput,
     inputActions,
     renderSlot,
@@ -431,6 +434,42 @@ describe('ConversationRoot resident composer', () => {
     const seat = (key: string) => b.seatOwners.filter(call => call.key === key).at(-1)?.owner
     expect(seat('conversation.input.model')).toEqual({ locked: false })
     expect(seat('conversation.input.plan')).toEqual({ locked: true })
+  })
+
+  it('gates the composer with a per-state reason through a Host transition (§28)', () => {
+    // A switch, loss, or re-authentication window refuses input with its own
+    // reason; the ready state and a not-yet-started loop leave it live.
+    const b = mount(sessionSnapshotOf(), undefined, undefined, { connectionState: 'reconnecting' })
+    const box = b.view.getByRole('textbox')
+    expect(box.getAttribute('aria-disabled')).toBe('true')
+    expect(box.getAttribute('data-placeholder')).toBe('正在重连 Host…')
+
+    b.view.unmount()
+    for (const state of ['connecting', 'offline', 'authenticating', 'host-not-ready', 'auth-expired', 'device-revoked', 'identity-changed', 'incompatible', 'fatal'] as const) {
+      const gated = mount(sessionSnapshotOf(), undefined, undefined, { connectionState: state })
+      const gatedBox = gated.view.getByRole('textbox')
+      expect(gatedBox.getAttribute('aria-disabled')).toBe('true')
+      expect(gatedBox.getAttribute('data-placeholder')).not.toBe('')
+      gated.view.unmount()
+    }
+
+    b.view.unmount()
+    const ready = mount(sessionSnapshotOf(), undefined, undefined, { connectionState: 'ready' })
+    expect(ready.view.getByRole('textbox').getAttribute('aria-disabled')).not.toBe('true')
+    ready.view.unmount()
+    const idle = mount(sessionSnapshotOf(), undefined, undefined, {})
+    expect(idle.view.getByRole('textbox').getAttribute('aria-disabled')).not.toBe('true')
+  })
+
+  it('keeps a feature-raised block above the connection gate', () => {
+    // The feature block names the exact session-local reason the user must
+    // clear; the transition reason would hide it.
+    const b = mount(sessionSnapshotOf(), undefined, undefined, {
+      composerBlock: { reason: 'select a model first' },
+      connectionState: 'connecting',
+    })
+    const box = b.view.getByRole('textbox')
+    expect(box.getAttribute('data-placeholder')).toBe('select a model first')
   })
 
   it('lets the no-workspace posture win over a block', () => {

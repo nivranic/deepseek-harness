@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Composer connection gate; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/composer-gate-source.json",
+    "sha256": "d0fc5671905e76eb196a8df9b427723477ce5a63a077c7ab0ecbbb9ca879651e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1e6ee25c9e6c64f53816ffd9946516b20b18bbbb4efa52622b00fabda25c7229"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/composer-gate-binding.json",
+    "sha256": "2ce08f5d3033da9bdc3fcfda45abc82f9df2d87130738b8e5c02416b353d6813"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-composer-gate-reports.mjs",
+      "sha256": "600864a5dc67f811af65084d700e67e5ee5f5b75bf5ef1b9631cf608f0a09c52"
+    },
+    {
+      "path": ".artifacts/capture-composer-gate-validation.mjs",
+      "sha256": "0884fc13ae4d43675523d3269e6ede17da99626a1a6567a730462a53d8c75151"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "2023e25405f0000b6807cde3b4c13b796a8fbd1d13ba59ca0731ac39d19c3af4"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7ec25def7b0843a4e2320a904ff9f9158dcb2813c0e7a3572e3dc5f2f54c53fe"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/composer-gate-binding.log",
+      "sha256": "f71c9bf26298e3b3a6c2499b9632e574b1f4123c6d1b59a2c8ff9c06b7afc150"
+    },
+    {
+      "path": ".artifacts/composer-gate-audit-tests.log",
+      "sha256": "5296a9cbffeda026e3dff95bad8409a23812e4a4d703b0d5f8ccbd28fab7a6f3"
+    },
+    {
+      "path": ".artifacts/composer-gate-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/composer-gate-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/composer-gate-report-generation.log",
+      "sha256": "32bce446ec607e1c4f1b4c87b0b5f972ef988447cd2eba022bdcefd0e105d936"
+    }
+  ]
+}

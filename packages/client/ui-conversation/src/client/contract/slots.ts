@@ -4,7 +4,7 @@ import type { FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-att
 import type { SessionSnapshot } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { FileUploadReceiptId } from '@deepseek-ai/dsh-client-file-upload/client'
 import type { WorkspaceSnapshot } from '@deepseek-ai/dsh-api-workspace-controller/client'
-import type { ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
+import type { ConnectionHostInfo, ConnectionState } from '@deepseek-ai/dsh-client-connection/client'
 import type {
   MaybeSnapshotSelectorHook, ObservableSnapshot, SnapshotSelectorHook,
 } from '@deepseek-ai/dsh-client-store'
@@ -270,6 +270,8 @@ export interface ConversationInjected {
   hooks: {
     composerBlock: ObservableSnapshot<ComposerBlock | undefined>
     sessionManagement: ObservableSnapshot<boolean>
+    /** Connection recovery state; a defined non-ready value gates the composer (§28). */
+    connectionState: ObservableSnapshot<ConnectionState | undefined>
   }
 }
 

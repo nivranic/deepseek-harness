@@ -71,7 +71,7 @@ const LAYOUT_CHILDREN = {
 
 async function bench(nodes: ToolResultNode[]) {
   const runtime = await SlotTestRuntime.create()
-  runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
+  runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} }, state: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   new TestRemote(runtime.ctx, {
     session: {},
   })

@@ -67,6 +67,7 @@ async function bench(opts?: { blank?: boolean; generationHost?: ConnectionHostIn
       getSnapshot: () => opts?.generationHost === undefined ? undefined : { id: 1, host: opts.generationHost },
       subscribe: () => () => {},
     },
+    state: { getSnapshot: () => undefined, subscribe: () => () => {} },
   })
   const remote = new TestRemote(runtime.ctx)
   remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
@@ -98,7 +99,7 @@ async function bench(opts?: { blank?: boolean; generationHost?: ConnectionHostIn
 describe('resident composer', () => {
   it('renders the locked view state while no session exists at all', async () => {
     const runtime = await SlotTestRuntime.create()
-    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
+    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} }, state: { getSnapshot: () => undefined, subscribe: () => () => {} } })
     const remote = new TestRemote(runtime.ctx)
     remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
@@ -134,7 +135,7 @@ describe('resident composer', () => {
 
   it('keeps the complete Hero tree mounted when the first Workspace session appears', async () => {
     const runtime = await SlotTestRuntime.create()
-    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
+    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} }, state: { getSnapshot: () => undefined, subscribe: () => () => {} } })
     const remote = new TestRemote(runtime.ctx)
     remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {
@@ -208,7 +209,7 @@ describe('resident composer', () => {
 describe('prompt rejection through the assembled composer', () => {
   it('renders the promptError alert strip and keeps the draft in the machine', async () => {
     const runtime = await SlotTestRuntime.create()
-    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
+    runtime.ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} }, state: { getSnapshot: () => undefined, subscribe: () => () => {} } })
     const remote = new TestRemote(runtime.ctx)
     remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.control.v1', 'session.manage.v1'] }
     runtime.ctx.provide('uiWorkspace', {

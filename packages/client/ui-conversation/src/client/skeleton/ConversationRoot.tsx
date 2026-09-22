@@ -131,6 +131,7 @@ function WidthHandle(props: {
 export function ConversationRoot({
   sessionId, useSession, useSessions, useSessionPendingInteraction,
   useWorkspaces, useConversation, useInput, useComposerBlock, useSessionManagement,
+  useConnectionState,
   renderSlot, renderSlotChain, selectWorkspace, t,
 }: ConversationRootProps) {
   const sessionManagement = useSessionManagement(value => value)
@@ -149,6 +150,12 @@ export function ConversationRoot({
   // A plugin this package cannot import (ui-model-selection) says this session cannot
   // send; its reason is already localized by whoever raised it.
   const composerBlock = useComposerBlock(block => block)
+  // A Host transition (switch, loss, re-authenticating) refuses input with its
+  // own reason (§28); undefined — no recovery loop — leaves the composer alone.
+  const connectionState = useConnectionState(state => state)
+  const connectionGate = connectionState !== undefined && connectionState !== 'ready'
+    ? t(`connection.gate.${connectionState}`)
+    : undefined
 
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pendingWorkspaceId, setPendingWorkspaceId] = useState<WorkspaceId | undefined>()
@@ -325,8 +332,11 @@ export function ConversationRoot({
   const inert = sessionId === undefined || (hero && chipTitle === undefined)
   // A raised block is the same inert posture with the blocker's own reason:
   // one disabled textarea, never a second tree. The no-workspace state wins
-  // when both hold — picking a workspace is the earlier prerequisite.
-  const blocked = !inert && composerBlock !== undefined
+  // when both hold — picking a workspace is the earlier prerequisite. A
+  // feature-raised block outranks the connection gate: it names the exact
+  // session-local reason the user must clear.
+  const blocking = composerBlock ?? (connectionGate === undefined ? undefined : { reason: connectionGate })
+  const blocked = !inert && blocking !== undefined
   const inputBar = renderSlot('conversation.composer.bar', {
     variant: hero ? 'hero' : 'composer',
     ...(inert
@@ -340,7 +350,7 @@ export function ConversationRoot({
         // `blocked`, not `disabled`: the bar refuses input either way, but a
         // block keeps the model seat live because choosing a model is how the
         // user clears it.
-        ? { blocked: composerBlock, placeholder: composerBlock.reason }
+        ? { blocked: blocking, placeholder: blocking.reason }
         : hero ? { placeholder: t('placeholder.hero') } : {}),
   })
 

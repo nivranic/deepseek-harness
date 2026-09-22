@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/composer-gate-source.json",
+    "sha256": "d0fc5671905e76eb196a8df9b427723477ce5a63a077c7ab0ecbbb9ca879651e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1e6ee25c9e6c64f53816ffd9946516b20b18bbbb4efa52622b00fabda25c7229"
+  },
+  "helper": {
+    "path": ".artifacts/check-composer-gate-binding.mjs",
+    "sha256": "1b303ae2c6e7fe31a6652770eddbf5a77debd1f4f355cc2911124f0ca7aabea2"
+  }
+}

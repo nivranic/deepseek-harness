@@ -3473,10 +3473,10 @@
       "acceptanceProven": false,
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
-        "ARCHITECTURE_DECISIONS.md",
-        "COMPATIBILITY_MATRIX.md"
+        "IMPLEMENTATION_STATUS.md",
+        "packages/client/ui-conversation/README.md"
       ],
-      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。",
+      "remaining": "§28 已按可落地部分推进：切换期 Composer 禁用已落地为连接门禁——ui-conversation 订阅 connection.state，任一非就绪过渡状态（connecting/reconnecting/authenticating/offline/host-not-ready）下 composer 以既有 blocked 惰性姿态拒绝输入并显示各状态本地化原因（connection.gate.* 双语键），功能 block 优先于门禁；跨 Host 请求外泄由单一代次绑定结构性排除（UI 的 Host 展示派生自当前 connection 世代，host-naming 增量已落地 ● 名称 chip），§26 载荷级守卫再加一层。多 Host 名册（Work PC/Home PC/MacBook/Linux Server 的保存与切换动作）需要可重定向的连接接缝与产品外壳投放，仍开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

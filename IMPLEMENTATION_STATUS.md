@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Composer 连接门禁（§28）
+
+[当前来源记录](artifacts/upstream-first/composer-gate-source.json)落地第 28 节可落地部分：ui-conversation 本就注入 connection 服务，ConversationRoot 新增一个注入 hook——恢复循环状态 observable——任一已定义非就绪 ConnectionState（connecting/reconnecting/authenticating/offline/host-not-ready/auth-expired/device-revoked/identity-changed/incompatible/fatal）使 composer 采用既有 blocked 惰性姿态并显示各状态本地化原因（connection.gate.* 双语键），不会有 prompt 被发往 UI 尚未准备好服务的 Host；ready 与循环未启动保持可用，功能 block 优先于门禁（指明用户必须清除的会话本地原因）。跨 Host 请求外泄由单一代次绑定结构性排除（Host 展示派生自当前世代），§26 载荷级守卫再加一层。多 Host 名册与切换动作需要可重定向连接接缝与外壳投放，仍开放。ui-tool 三处测试台的 connection stub 补齐 state 成员（generation 之外的第二个 observable）。测试 5592 项（另 2 项为本机已核对 Windows 环境类预存失败：ui-deliverables symlink、pdf-license 打包产物）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+
 ## 查看位置 Handoff（§26 第一阶段）
 
-[当前来源记录](artifacts/upstream-first/view-location-source.json)落地第 26 节第一阶段：查看位置载荷（dsh-session-view.v1 前缀 base64url，解析边界对一切语法偏差 fail-loud，ASCII-only 保证浏览器安全编解码）携带 Host 身份（解析边界铸造 HostId 品牌）、SessionId 与含端持久锚点；ClientSessions.encodeViewLocation 在已准入 Host 上捕获载荷（未准入大声失败），openViewLocation 校验载荷恰好指向当前连接的 Host——指向别的 Host 或未准入即在任何请求外泄之前拒绝——随后刷新列表、选中会话、打开并经既有轮次跳转加载器揭示锚点。只转移查看位置，绝不迁移执行 runtime（§27 由架构排除，§11 行已落档）。跨设备投放通道（QR/链接/分享）属外壳工作，保持开放。测试 1630 项（另 2 项为本机已核对的 Windows 环境类预存失败，与上一增量一致）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+[历史来源记录](artifacts/upstream-first/view-location-source.json)落地第 26 节第一阶段：查看位置载荷（dsh-session-view.v1 前缀 base64url，解析边界对一切语法偏差 fail-loud，ASCII-only 保证浏览器安全编解码）携带 Host 身份（解析边界铸造 HostId 品牌）、SessionId 与含端持久锚点；ClientSessions.encodeViewLocation 在已准入 Host 上捕获载荷（未准入大声失败），openViewLocation 校验载荷恰好指向当前连接的 Host——指向别的 Host 或未准入即在任何请求外泄之前拒绝——随后刷新列表、选中会话、打开并经既有轮次跳转加载器揭示锚点。只转移查看位置，绝不迁移执行 runtime（§27 由架构排除，§11 行已落档）。跨设备投放通道（QR/链接/分享）属外壳工作，保持开放。测试 1630 项（另 2 项为本机已核对的 Windows 环境类预存失败，与上一增量一致）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
 
 ## Follow 续传（§25）
 

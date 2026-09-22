@@ -287,6 +287,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
       hooks: {
         sessionManagement,
         composerBlock: sessionId === undefined ? ABSENT_BLOCK : composerBlocks.storeFor(sessionId),
+        connectionState: connection.state,
       },
       selectWorkspace: workspaceId => workspaceNavigation.openWorkspace(workspaceId, (nextId) => {
         if (sessionId !== undefined && nextId !== sessionId) {
