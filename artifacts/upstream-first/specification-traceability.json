@@ -4649,10 +4649,11 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "IMPLEMENTATION_STATUS.md",
+        "packages/api/host-diagnostics/README.md",
+        "docs/subsystems/host-diagnostics.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "§43 五要素已按可落地部分落地：producer（service.supportBundle() 以刚组合的 §42 快照为种子条目）、sanitizer（闭合条目词汇 + 任意深度递归拒绝 api-key/bearer/secret/password/credential 形状键 + 重复路径拒绝）、manifest（逐条目路径 + 规范化序列化 SHA-256）、checksum（对有序 manifest 行的链式 SHA-256）、collector validation（重算全部摘要，篡改/计数不符/乱序/链断均大声失败）；输入顺序不外泄——四平台同一候选产出字节一致 bundle（确定性测试固化）。G2-SUPPORT 遗留的会话日志/设置导出等内容条目与四平台真机同候选实测仍开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

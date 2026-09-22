@@ -6,5 +6,5 @@ import type { TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
 
 /** Live host-diagnostics operations supported by the composed Remote owner. */
 export const HOST_DIAGNOSTICS_REMOTE_CAPABILITIES = [
-  { id: 'host.diagnostics.v1', methods: ['health', 'describe'], requiredPermission: 'view' },
+  { id: 'host.diagnostics.v1', methods: ['health', 'describe', 'supportBundle'], requiredPermission: 'view' },
 ] as const satisfies readonly TypertRemoteCapability[]

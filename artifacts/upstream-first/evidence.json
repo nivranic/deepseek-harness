@@ -5,129 +5,89 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "b3ee5ff8a645b51e970954fc0cc8016e144635d5618b41ab51cba39b4ba993e7"
+      "sha256": "578132ed4cf5a70235b8aa2baca1a3330819f2aee8f93af816d6b4ebada5fdc8"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "2ea9ba73d743975f23ef8110f075377b2c1c1b2addf7acd0c0ec20d46055ccae"
+      "sha256": "4f6d590250ec7c5a6a45620d7a0973b31a38a92d90884a9f53218d20e507bc09"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "a182dbf940d91ab45fdc0386bc719ad8b7bba78e3858251bc4a1a8a8714b7a3f"
+      "sha256": "b8059f6c2e9a26722c3e23aaaecedde0d824a4ae1c6fced18b58d00f54d652b2"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "260f1c505c7f4b57e38f75621b5bac5dac741636f91780151c22c46c46fd4e6f"
+      "sha256": "82d6b71eb8345ef39e11471310ca3b76b8e35bc28bb61ee529cace2504da2bd4"
     },
     {
-      "path": "docs/capability-seams.i18n.yaml",
-      "sha256": "b5f0a7a7d0a94afc0831568a3e331e3560c494ed490a8bc6cd3a2d44af17c370"
+      "path": "docs/subsystems/host-diagnostics.i18n.yaml",
+      "sha256": "2fc3fd610edaf6298a1c0106f51775efd7b5dad4be8c6b0d7f36bd8d62758370"
     },
     {
-      "path": "docs/capability-seams.md",
-      "sha256": "80bed39c8968dc13d6dfac295fd00251e98ef60ad82d55341768e580d6f9c2e2"
+      "path": "docs/subsystems/host-diagnostics.md",
+      "sha256": "800cabbe5722b33b7835a4b09670af9edeedb8c9fcbd899843af3ee0c319c9cc"
     },
     {
-      "path": "docs/capability-seams.zh.md",
-      "sha256": "c65d52be84fad04fcfcc225cd616d8ec06589f56cbf4f5a9a420e1963db68841"
+      "path": "docs/subsystems/host-diagnostics.zh.md",
+      "sha256": "4a816f7fc0ac0a7c4465b5c5584e80327b6cc42e4a61246a0fce588a386c7bad"
     },
     {
-      "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "d646b7b82450fdf7450e0acb639b128525efea2768d29be64b868c75bf94ecbc"
+      "path": "packages/api/host-diagnostics/README.i18n.yaml",
+      "sha256": "926fd41f10db0a09d8894b4a527cfdc1f3e243c1746169745d2319c890156db8"
     },
     {
-      "path": "docs/config-catalog.md",
-      "sha256": "742a18e47b02bcdc5af1a723a0e094aef57609e56c2ea3cbd29771386522a2a0"
+      "path": "packages/api/host-diagnostics/README.md",
+      "sha256": "63f02090ec4ba31a04aba65d2735f4a509cf4992ce287135fecff785dc48fe44"
     },
     {
-      "path": "docs/config-catalog.zh.md",
-      "sha256": "0517f665266689ca73cb3a6ae49201206dc929324dc61dc74b7699790fbbddf1"
+      "path": "packages/api/host-diagnostics/README.zh.md",
+      "sha256": "31aec704d7d7de2787d4b7cd7f1f44fe2531a8386668b940d7f17742d048ea67"
     },
     {
-      "path": "docs/subsystems/README.i18n.yaml",
-      "sha256": "24b90f5ec7571ada6cb55a8b2495695a675ac46b011f2c4998bcd5c506fb6958"
+      "path": "packages/api/host-diagnostics/package.json",
+      "sha256": "86b87fbf112621d4d23363ac91d8cf28238f539d058df1f2e951329f2d74bde0"
     },
     {
-      "path": "docs/subsystems/README.md",
-      "sha256": "464264fb9837475708d40bd6d983f2c6d4795b806400069e35e3f7150691d3ba"
+      "path": "packages/api/host-diagnostics/src/capabilities.ts",
+      "sha256": "256050d67db4b5db5fdac28bac73f8b20c176d9b068d817ad1c212dc6fc72abe"
     },
     {
-      "path": "docs/subsystems/README.zh.md",
-      "sha256": "56d44ace2216c548f062d4a12e395913cca3db87090860690c1970b5d37f1093"
+      "path": "packages/api/host-diagnostics/src/index.ts",
+      "sha256": "7cad9f087ef8d7cc1d3c5b8f61569c45984c7bfb49c03c27414830b03a9550af"
     },
     {
-      "path": "packages/api/remotes/package.json",
-      "sha256": "958be05e5d2ec091c168ca0618242887faf70cb15bca42c4a4bca9091ad75609"
+      "path": "packages/api/host-diagnostics/src/types.ts",
+      "sha256": "ff75adeb2f8339dd27b1ed640d393f3d58ddedb9032d49ddfbd9c053fce8d541"
     },
     {
-      "path": "packages/api/remotes/tests/host-preparation.client.spec.ts",
-      "sha256": "7a8947b8058c3cb5ba35f47505d304dfcd82d9f07c92722c3f815da97bf0fe01"
+      "path": "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
+      "sha256": "7d167bc34283f52e8fb59d4d0c529c74cde0181ea3a1655112aa94c12298b34a"
     },
     {
-      "path": "packages/api/remotes/tsconfig.client.json",
-      "sha256": "4b13b0c9faeabcc77f44a3ee97c44bb7f583f8debc80862b16c1a4958e72a5bf"
-    },
-    {
-      "path": "packages/bundle/web-app/cordis.patch.yml",
-      "sha256": "477fd0278785de5f89f5b909490f6c4f18b83c207775b4ff6720d5e1b07df2aa"
-    },
-    {
-      "path": "packages/bundle/web-app/package.json",
-      "sha256": "2b8e3f1e08f80d37fb70643a32f655a20f1751d07b4882f81e7ebf454e62b9c4"
+      "path": "packages/api/host-diagnostics/tsconfig.host.json",
+      "sha256": "dd6739e08ed36fe078495307acc5b4d062140be7f402f2d0da9a9c83d3db312b"
     },
     {
       "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "f4899f989da5c62c36e011d15d0b0b49fdec58f5e83deac60f8048b621d412e4"
+      "sha256": "b610246a1bf29055632ddf13e8d91027277f221ef77fa100c35ed4d6e2f869dd"
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "40657411cbf07435774a79eda6823b32f73467ffc0118894c7cffb9a79181714"
+      "sha256": "9a02812b374ae86a1113e090bd40abc669d604e473d9a55591b34275515644ca"
     },
     {
       "path": "scripts/gen-cordis-catalog.ts",
-      "sha256": "13f0f515e0a4968b01ca07fcb1e542bb77a977e7e7b9179c61d6e5da86976e80"
-    },
-    {
-      "path": "scripts/gen-doc-graphs.ts",
-      "sha256": "77fadad7096776fbc0e6de6c1dcd9a13bcc0211f42585312b2a21f225d737e87"
+      "sha256": "bd703b06d27120b7ba93b5f66989eef78961b0e5e5073033db4d6b61634af8b2"
     },
     {
       "path": "scripts/type-equiv.manifest.json",
-      "sha256": "ad105cf6f3f9d94bbac3e79d97a20c31e259e9716de34a3d057f0e36c737fff5"
-    },
-    {
-      "path": "scripts/verify-package-readme-model-experience.ts",
-      "sha256": "194f99c71905f967dd23d210c2772d3d4a8a41c204de28dd6ae8d4609b589da3"
-    },
-    {
-      "path": "tsconfig.base.json",
-      "sha256": "b861749522160c120b7749632ef50699de848465b0ef412206d320c69bcfe093"
-    },
-    {
-      "path": "tsconfig.host.json",
-      "sha256": "448c898ab7c7bb8c8cdea476ef3544e96417c8039b2a4849892187d7cde4e4e0"
+      "sha256": "9ed64d0b2753a810b524c90874185a64495661811c522d6ca62c39cd71d9b553"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "packages/api/host-diagnostics/src/capabilities.ts",
-      "sha256": "c14ff9e9d1d74c9be86787e49dd243d4435aa658f5fecd7f98aeaf087f5412f1"
-    },
-    {
-      "path": "packages/api/host-diagnostics/src/client.ts",
-      "sha256": "2d0ebbd3814717f57704c2b7da7922826117b5296475e1ab25de28302ebb00a3"
-    },
-    {
-      "path": "packages/api/host-diagnostics/src/index.ts",
-      "sha256": "3f131a5e2c0757742ebbde17b113385c6f24571937d458741edada02417bf01f"
-    },
-    {
-      "path": "packages/api/host-diagnostics/src/types.ts",
-      "sha256": "be3bb6a963299060433b3678fafbc3072b79876e46b81fb0be65ccfd5b54c2ba"
-    },
-    {
-      "path": "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
-      "sha256": "e937bf111d16ca419992efba4346f135cb254fd4f11f240d6619dd2c51cda7de"
+      "path": "packages/api/host-diagnostics/src/support-bundle.ts",
+      "sha256": "ba262e101bc19732e23098f98101957a4612970527a2b823e27ac939fb023873"
     }
   ],
   "validationStatus": "PASS",
@@ -6703,6 +6663,42 @@
     },
     {
       "status": "PASS",
+      "command": "Support-bundle suites (host-diagnostics 10 incl. determinism, sanitizer depth, tamper, and producer cases) plus affected owners (remotes pin, host-description): 140 passed, 0 failed",
+      "log": ".artifacts/support-bundle-tests.log",
+      "sourceRecord": "artifacts/upstream-first/support-bundle-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/support-bundle-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/support-bundle-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/support-bundle-lint.log",
+      "sourceRecord": "artifacts/upstream-first/support-bundle-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the §43 README/subsystem sections and catalog regens",
+      "log": ".artifacts/support-bundle-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/support-bundle-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 43 note",
+      "log": ".artifacts/support-bundle-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/support-bundle-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/support-bundle-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/support-bundle-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7433,7 +7429,169 @@
       ]
     }
   },
+  "supportBundle": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/support-bundle-source.json",
+    "scope": "Support bundle (specification section 43): the five required elements land on the host-diagnostics seam. Producer — supportBundle() seeds the bundle with the just-composed §42 diagnostics entry and validates its own artifact before returning. Sanitizer — a closed entry-kind vocabulary plus a recursive scan that refuses secret-shaped keys (api-key/bearer/secret/password/credential) at any depth and confirms JSON safety, so nothing outside the allowlist enters. Manifest — one row per entry: stable bundle path plus the SHA-256 of its canonical key-sorted serialization. Checksum — one chained SHA-256 over the ordered manifest rows. Collector validation — recomputes every digest, refuses count mismatch, missing entries, tampering, unsorted manifests, and chain breaks. Input order never leaks (entries and manifest sort by path), so four platforms running the same candidate produce byte-identical bundles; determinism is pinned by a test. The wire types live on the ./types outlet with JsonValue content (typert refuses unconstrained unknown at the Remote boundary)",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "limitations": [
+      "The v1 bundle carries the diagnostics entry only; G2-SUPPORT session-log and settings-export content entries and four-platform real-device same-candidate verification remain open.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 44 typed telemetry toggles (session telemetry, provider metadata, relay metadata, device-trust metadata, crash diagnostics as separate switches, default off) build on this seam; bundle content entries beyond diagnostics (session logs, settings exports) and four-platform real-device same-candidate runs remain open; degraded-capable probes + crash/last-error recorder seam open; section 28 multi-Host roster (saved-hosts list, switching action, retargetable connection seam) remains open; section 38 background/sleep + durable confirmation + cross-client recovery remain open; section 10 remainder (overflow menu entries once a toolbar set exists, permission-tier display); file matrix hardening (§34/§35); iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "hostDiagnostics": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/support-bundle-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/host-diagnostics-source.json",
     "scope": "Host diagnostics (specification sections 41 and 42): new package @deepseek-ai/dsh-api-host-diagnostics composing one Typert Remote owner (ctx.hostDiagnostics, capability host.diagnostics.v1=view, mounted in the web-app profile). health() answers the section 41 liveness/readiness distinction — six components (process, runtime, sessionStore, pluginState, connection, modelProvider), each with a state and a detail naming the probed service, plus the derived ready verdict that excludes connection because a carrier-less profile (CLI, desktop pipe) is still a Host; probes are presence-based ctx.get() lookups so a down names the missing owner instead of guessing a cause. describe() composes the section 42 cross-platform payload — descriptor facts (productVersion, protocol, session format, hostId, platform, arch, runtimeMode, transports, capabilities), plugin inventory rows, the released session-format migration chain by name and version pair, honest empty crash/lastErrors until the recorder seam lands, and the health snapshot — sanitized by construction: the field set is the enumeration of non-secret facts, pinned by a key-set test, with no API key, bearer, pairing secret, or raw credential channel anywhere. The host-preparation vocabulary pin covers the new capability source; cordis/doc/config catalogs, capability graphs, and the subsystem page pair regenerate bilingual",
@@ -15268,7 +15426,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/host-diagnostics-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/support-bundle-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -15751,7 +15909,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "260f1c505c7f4b57e38f75621b5bac5dac741636f91780151c22c46c46fd4e6f"
+        "sha256": "82d6b71eb8345ef39e11471310ca3b76b8e35bc28bb61ee529cace2504da2bd4"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

@@ -1,5 +1,6 @@
 /** §41 health vocabulary and the §42 cross-platform diagnostics payload. */
 import type { HostId } from '@deepseek-ai/dsh-api-host-description/types'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 
 /** One §41 health component's evaluated state; `degraded` is reserved for probe seams that can see partial failure. */
 export type ComponentHealth = 'up' | 'degraded' | 'down'
@@ -64,4 +65,28 @@ export interface DiagnosticsSnapshot {
   readonly crash: readonly string[]
   readonly lastErrors: readonly string[]
   readonly health: HealthSnapshot
+}
+
+/** One §43 bundle entry kind; the closed set is the sanitizer's allowlist. */
+export type SupportBundleEntryKind = 'diagnostics' | 'session-headers'
+
+/** One sanitized bundle entry: JSON-safe content plus its stable bundle path. */
+export interface SupportBundleEntry {
+  readonly kind: SupportBundleEntryKind
+  readonly path: string
+  readonly content: JsonValue
+}
+
+/** One manifest row: the entry's bundle path and the SHA-256 of its serialized bytes. */
+export interface SupportBundleManifestEntry {
+  readonly path: string
+  readonly sha256: string
+}
+
+/** The §43 support bundle: sanitized entries, their manifest, and the chained checksum. */
+export interface SupportBundle {
+  readonly manifest: readonly SupportBundleManifestEntry[]
+  /** SHA-256 over the ordered manifest rows' `path:sha256` lines. */
+  readonly checksum: string
+  readonly entries: readonly SupportBundleEntry[]
 }

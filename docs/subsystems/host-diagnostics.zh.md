@@ -35,6 +35,20 @@ interface DiagnosticsPlugin {
 }
 ```
 
+## Support Bundle
+
+第 43 节 bundle 是确定性工件：条目按键序规范序列化后取 SHA-256 进 manifest，链式校验和覆盖有序 manifest 行，collector 重算全部摘要并对篡改大声失败；脱敏器对任意深度的秘密形状键递归拒绝。
+
+```ts type-equiv
+/** The §43 support bundle: sanitized entries, their manifest, and the chained checksum. */
+interface SupportBundle {
+  readonly manifest: readonly SupportBundleManifestEntry[]
+  /** SHA-256 over the ordered manifest rows' `path:sha256` lines. */
+  readonly checksum: string
+  readonly entries: readonly SupportBundleEntry[]
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -66,6 +80,14 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
  * @returns the sanitized diagnostics snapshot.
  */
 @Remote('describe') async describe(signal?: AbortSignal): Promise<DiagnosticsSnapshot>
+
+/**
+ * Produce one §43 support bundle seeded with the just-composed §42
+ * diagnostics entry; the collector validates the same artifact.
+ * @param signal - optional request cancellation passed to the composition.
+ * @returns the sealed, self-checksummed bundle.
+ */
+@Remote('supportBundle') async supportBundle(signal?: AbortSignal): Promise<SupportBundle>
 ```
 
 Source: [`packages/api/host-diagnostics/src/index.ts`](../../packages/api/host-diagnostics/src/index.ts)

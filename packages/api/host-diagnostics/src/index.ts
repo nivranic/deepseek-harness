@@ -16,6 +16,8 @@ import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
+import { buildSupportBundle, diagnosticsBundleEntry, validateSupportBundle } from './support-bundle.ts'
+import type { SupportBundle } from './types.ts'
 import type {
   DiagnosticsMigration,
   DiagnosticsPlugin,
@@ -26,6 +28,7 @@ import type {
 
 export type * from './types.ts'
 export { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
+export { buildSupportBundle, diagnosticsBundleEntry, sanitizeSupportBundleEntry, validateSupportBundle } from './support-bundle.ts'
 
 /** The released session-format migration chain this build knows, by name and version pair. */
 const MIGRATIONS: readonly DiagnosticsMigration[] = Object.freeze([
@@ -118,6 +121,20 @@ export class HostDiagnosticsService extends TypertRemoteService {
       lastErrors: [],
       health: this.health(),
     }
+  }
+
+  /**
+   * Produce one §43 support bundle seeded with the just-composed §42
+   * diagnostics entry; the collector validates the same artifact.
+   * @param signal - optional request cancellation passed to the composition.
+   * @returns the sealed, self-checksummed bundle.
+   */
+  @Remote('supportBundle')
+  async supportBundle(signal?: AbortSignal): Promise<SupportBundle> {
+    const snapshot = await this.describe(signal)
+    const bundle = buildSupportBundle([diagnosticsBundleEntry(snapshot)])
+    validateSupportBundle(bundle)
+    return bundle
   }
 
   /** Inventory rows as §42 plugin facts; without the inventory owner the list is empty, not guessed. */

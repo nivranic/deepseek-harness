@@ -1197,6 +1197,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'signal', description: 'optional request cancellation; a cancelled inventory read aborts the composition.' }],
         returns: 'the sanitized diagnostics snapshot.',
       },
+      {
+        signature: '@Remote(\'supportBundle\') async supportBundle(signal?: AbortSignal): Promise<SupportBundle>',
+        description: 'Produce one §43 support bundle seeded with the just-composed §42 diagnostics entry; the collector validates the same artifact.',
+        parameters: [{ name: 'signal', description: 'optional request cancellation passed to the composition.' }],
+        returns: 'the sealed, self-checksummed bundle.',
+      },
     ],
   },
   {
@@ -6142,6 +6148,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SubprocessTerminalSpawnSpec',
     declaration: 'export interface SubprocessTerminalSpawnSpec {\n    argv: readonly string[];\n    cwd: string;\n    env?: Record<string, string> | undefined;\n    rows: number;\n    cols: number;\n    graceMs: number;\n    signal?: AbortSignal | undefined;\n}',
+  },
+  {
+    name: 'SupportBundle',
+    declaration: 'export interface SupportBundle {\n    readonly manifest: readonly SupportBundleManifestEntry[];\n    readonly checksum: string;\n    readonly entries: readonly SupportBundleEntry[];\n}',
+  },
+  {
+    name: 'SupportBundleEntry',
+    declaration: 'export interface SupportBundleEntry {\n    readonly kind: SupportBundleEntryKind;\n    readonly path: string;\n    readonly content: JsonValue;\n}',
+  },
+  {
+    name: 'SupportBundleEntryKind',
+    declaration: 'export type SupportBundleEntryKind = \'diagnostics\' | \'session-headers\';',
+  },
+  {
+    name: 'SupportBundleManifestEntry',
+    declaration: 'export interface SupportBundleManifestEntry {\n    readonly path: string;\n    readonly sha256: string;\n}',
   },
   {
     name: 'SurfaceEvent',

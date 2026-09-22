@@ -2205,6 +2205,11 @@
       "doc": "docs/subsystems/host-diagnostics.md",
       "symbol": "DiagnosticsPlugin",
       "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "SupportBundle",
+      "source": "packages/api/host-diagnostics/src/types.ts"
     }
   ]
 }

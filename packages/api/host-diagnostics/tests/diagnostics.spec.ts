@@ -5,7 +5,7 @@ import { sessionFormatV0ToV1 } from '@deepseek-ai/dsh-session-format-v0-to-v1'
 import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
-import { HostDiagnosticsService } from '../src/index.ts'
+import { HostDiagnosticsService, buildSupportBundle, validateSupportBundle } from '../src/index.ts'
 
 const descriptor = (): HostDescriptor => ({
   hostId: 'host-1' as HostDescriptor['hostId'],
@@ -132,5 +132,62 @@ describe('HostDiagnosticsService', () => {
       code: 'gateway/service-unavailable',
       details: { endpoint: 'hostDiagnostics/describe' },
     })
+  })
+})
+
+describe('Support bundle (§43)', () => {
+  it('produces a deterministic, collector-valid bundle with chained checksums', () => {
+    const entry = { kind: 'diagnostics' as const, path: 'diagnostics.json', content: { b: 2, a: 1 } }
+    const other = { kind: 'session-headers' as const, path: 'headers.json', content: { rows: [] } }
+    const first = buildSupportBundle([entry, other])
+    const second = buildSupportBundle([other, entry])
+    // Input order never leaks: entries and manifest sort by path.
+    expect(second).toEqual(first)
+    expect(first.manifest.map(row => row.path)).toEqual(['diagnostics.json', 'headers.json'])
+    expect(first.checksum).toMatch(/^[0-9a-f]{64}$/u)
+    expect(() => { validateSupportBundle(first) }).not.toThrow()
+    expect(() => { validateSupportBundle(second) }).not.toThrow()
+  })
+
+  it('refuses secret-shaped keys at any depth, duplicate paths, and open kinds', () => {
+    expect(() => buildSupportBundle([
+      { kind: 'diagnostics', path: 'leak.json', content: { health: { apiKey: 'x' } } },
+    ])).toThrow(/secret-shaped key "apiKey"/u)
+    expect(() => buildSupportBundle([
+      { kind: 'diagnostics', path: 'a.json', content: {} },
+      { kind: 'diagnostics', path: 'a.json', content: {} },
+    ])).toThrow(/duplicated/u)
+    expect(() => buildSupportBundle([
+      { kind: 'logs' as 'diagnostics', path: 'a.json', content: {} },
+    ])).toThrow(/closed vocabulary/u)
+  })
+
+  it('collector validation fails loud on tampered entries and checksums', () => {
+    const bundle = buildSupportBundle([
+      { kind: 'diagnostics', path: 'diagnostics.json', content: { ready: true } },
+    ])
+    const tamperedEntry = {
+      ...bundle,
+      entries: [{ ...bundle.entries[0]!, content: { ready: false } }],
+    }
+    expect(() => { validateSupportBundle(tamperedEntry) }).toThrow(/fails its checksum/u)
+    const tamperedChain = { ...bundle, checksum: '0'.repeat(64) }
+    expect(() => { validateSupportBundle(tamperedChain) }).toThrow(/chained checksum/u)
+    const short = { ...bundle, manifest: [] }
+    expect(() => { validateSupportBundle(short) }).toThrow(/disagree in count/u)
+  })
+
+  it('the service bundles its own §42 snapshot as a collector-valid artifact', async () => {
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('sessionPersistence', {})
+      ctx.provide('loader', {})
+      ctx.provide('llm', {})
+    })
+    const bundle = await service.supportBundle()
+    expect(bundle.entries).toHaveLength(1)
+    expect(bundle.entries[0]?.kind).toBe('diagnostics')
+    expect(bundle.entries[0]?.path).toBe('diagnostics.json')
+    expect(() => { validateSupportBundle(bundle) }).not.toThrow()
+    expect(JSON.stringify(bundle)).not.toMatch(/api[-_]?key|bearer|secret|credential/iu)
   })
 })

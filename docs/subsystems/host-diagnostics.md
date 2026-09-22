@@ -35,6 +35,20 @@ interface DiagnosticsPlugin {
 }
 ```
 
+## Support Bundle
+
+The section 43 bundle is a deterministic artifact: entries serialize canonically (key-sorted) into per-entry SHA-256 manifest rows, a chained checksum covers the ordered rows, and the collector recomputes every digest and fails loud on tampering; the sanitizer recursively refuses secret-shaped keys at any depth.
+
+```ts type-equiv
+/** The §43 support bundle: sanitized entries, their manifest, and the chained checksum. */
+interface SupportBundle {
+  readonly manifest: readonly SupportBundleManifestEntry[]
+  /** SHA-256 over the ordered manifest rows' `path:sha256` lines. */
+  readonly checksum: string
+  readonly entries: readonly SupportBundleEntry[]
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -66,6 +80,14 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
  * @returns the sanitized diagnostics snapshot.
  */
 @Remote('describe') async describe(signal?: AbortSignal): Promise<DiagnosticsSnapshot>
+
+/**
+ * Produce one §43 support bundle seeded with the just-composed §42
+ * diagnostics entry; the collector validates the same artifact.
+ * @param signal - optional request cancellation passed to the composition.
+ * @returns the sealed, self-checksummed bundle.
+ */
+@Remote('supportBundle') async supportBundle(signal?: AbortSignal): Promise<SupportBundle>
 ```
 
 Source: [`packages/api/host-diagnostics/src/index.ts`](../../packages/api/host-diagnostics/src/index.ts)

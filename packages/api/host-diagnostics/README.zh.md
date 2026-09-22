@@ -12,6 +12,7 @@ kind: "package-reference"
 
 ## 目录
 
+- [Support Bundle](#support-bundle)
 - [Model Experience](#model-experience)
 - [已知限制与暂缓事项](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
@@ -19,6 +20,10 @@ kind: "package-reference"
 -----
 
 <a id="model-experience"></a>
+## Support Bundle
+
+`supportBundle()` 产出第 43 节工件：经脱敏的条目（任意深度的递归秘密形状扫描拒绝 api-key/bearer/secret/password/credential 键）、按规范化键序序列化的逐条 SHA-256 manifest、对有序 manifest 行的链式校验和，以及重算每个摘要并对篡改大声失败的 collector 校验——输入顺序绝不外泄，四个平台运行同一候选产出字节一致的 bundle。
+
 ## Model Experience
 
 None（无）——本包只应答 health 与诊断读取，不注册 prompt、工具或会话事件。
@@ -27,11 +32,12 @@ None（无）——本包只应答 health 与诊断读取，不注册 prompt、�
 
 None；health 与诊断读取不会改变任何模型请求。
 
+
 ## 已知限制与暂缓事项
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Health 基于存在性**——`down` 指名缺失的 owner 服务；能看到部分故障的组件探测（`degraded`）与 crash/last-error 记录接缝随 support-bundle 增量（§43）保持开放。
+- **Health 基于存在性**——`down` 指名缺失的 owner 服务；能看到部分故障的组件探测（`degraded`）与 crash/last-error 记录接缝随 bundle 内容增量保持开放。
 - **尚无客户端表面**——载荷的消费方（设置、支持收集）随各自增量落地；本接缝与其 wire 即契约。
 
 <a id="dev-note"></a>

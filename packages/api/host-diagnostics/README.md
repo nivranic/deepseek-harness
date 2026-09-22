@@ -12,6 +12,7 @@ One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`
 
 ## Table of Contents
 
+- [Support Bundle](#support-bundle)
 - [Model Experience](#model-experience)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
@@ -19,6 +20,10 @@ One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`
 -----
 
 <a id="model-experience"></a>
+## Support Bundle
+
+`supportBundle()` produces the section 43 artifact: sanitized entries (a recursive secret-shape scan at any depth refuses api-key/bearer/secret/password/credential keys), a per-entry SHA-256 manifest over canonical key-sorted serialization, a chained checksum over the ordered manifest rows, and collector validation that recomputes every digest and fails loud on tampering — input order never leaks, so four platforms running the same candidate produce byte-identical bundles.
+
 ## Model Experience
 
 None, as this package answers health and diagnostics reads and registers no prompt, tool, or session event.
@@ -27,11 +32,12 @@ None, as this package answers health and diagnostics reads and registers no prom
 
 None; health and diagnostics reads do not alter a model request.
 
+
 ## Known Limitations and Deferred Work
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Health is presence-based** — a `down` names the missing owning service; component probes that can see partial failure (`degraded`) and a crash/last-error recorder seam remain open with the support-bundle increment (§43).
+- **Health is presence-based** — a `down` names the missing owning service; component probes that can see partial failure (`degraded`) and a crash/last-error recorder seam remain open with the bundle-content increment.
 - **No client surface yet** — the payload's consumers (settings, support collection) land with their increments; the seam and its wire are the contract.
 
 <a id="dev-note"></a>
