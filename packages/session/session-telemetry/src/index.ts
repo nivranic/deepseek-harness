@@ -136,6 +136,64 @@ export interface SessionTelemetrySink {
  */
 export type SessionTelemetrySharingStatus = 'full' | 'feedback-only' | 'disabled'
 
+/** The five telemetry data kinds the section 44 consent record switches independently. */
+export type TelemetryDataKind =
+  | 'sessionTelemetry'
+  | 'providerMetadata'
+  | 'relayMetadata'
+  | 'deviceTrustMetadata'
+  | 'crashDiagnostics'
+
+/**
+ * Section 44 typed telemetry consent: one boolean per data kind, never one
+ * master switch hiding the kinds. Every kind defaults to off; a deployment
+ * opts in per kind.
+ */
+export interface TelemetryConsent {
+  readonly sessionTelemetry: boolean
+  readonly providerMetadata: boolean
+  readonly relayMetadata: boolean
+  readonly deviceTrustMetadata: boolean
+  readonly crashDiagnostics: boolean
+}
+
+/** The section 44 default: every telemetry kind stays off until a deployment opts in. */
+export const TELEMETRY_CONSENT_OFF: TelemetryConsent = Object.freeze({
+  sessionTelemetry: false,
+  providerMetadata: false,
+  relayMetadata: false,
+  deviceTrustMetadata: false,
+  crashDiagnostics: false,
+})
+
+/**
+ * Test one data kind against a consent record.
+ * @param consent - the deployment's resolved per-kind switches.
+ * @param kind - the data kind about to leave the process.
+ * @returns whether the kind may leave; absent kinds stay off.
+ */
+export function telemetryKindAllowed(consent: Partial<TelemetryConsent>, kind: TelemetryDataKind): boolean {
+  return consent[kind] === true
+}
+
+/**
+ * Resolve partial config against the all-off default; unknown keys never leak in.
+ * @param partial - deployment-supplied per-kind switches; absent kinds and any
+ * value other than `true` resolve to off.
+ * @returns the complete consent record with every kind decided.
+ */
+export function resolveTelemetryConsent(partial: Partial<TelemetryConsent> | undefined): TelemetryConsent {
+  return partial === undefined
+    ? TELEMETRY_CONSENT_OFF
+    : {
+      sessionTelemetry: partial.sessionTelemetry === true,
+      providerMetadata: partial.providerMetadata === true,
+      relayMetadata: partial.relayMetadata === true,
+      deviceTrustMetadata: partial.deviceTrustMetadata === true,
+      crashDiagnostics: partial.crashDiagnostics === true,
+    }
+}
+
 /**
  * Loadable form of the backend contract: one implementation per context —
  * the cordis `Service` registration under the `telemetry` key throws on a
@@ -151,6 +209,12 @@ export abstract class SessionTelemetryBackend extends Service implements Session
    * Deployment-selected sharing mode, independent of SDK delivery.
    */
   abstract readonly sharing: SessionTelemetrySharingStatus
+
+  /**
+   * Section 44 per-kind consent, resolved from deployment config; every kind
+   * defaults off and no master switch may hide the kinds.
+   */
+  abstract readonly consent: TelemetryConsent
 
   /**
    * See {@link SessionTelemetrySink.emit} — that declaration is the contract's one home.

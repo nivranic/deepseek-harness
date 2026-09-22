@@ -21,10 +21,13 @@ import { Session, type SessionEvent } from '@deepseek-ai/dsh-session'
 import {
   SessionTelemetryBackend,
   SessionTelemetryCoordinator,
+  TELEMETRY_CONSENT_OFF,
+  resolveTelemetryConsent,
   type SessionTelemetrySink,
   type SessionTelemetryRecord,
   type SessionTelemetrySeverity,
   type SessionTelemetrySharingStatus,
+  type TelemetryConsent,
 } from '@deepseek-ai/dsh-session-telemetry'
 import { APP_IDENTITY } from '@deepseek-ai/dsh-llm'
 import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
@@ -93,13 +96,20 @@ function sharingStatusFor(mode: SessionTelemetryMode): SessionTelemetrySharingSt
 }
 
 /**
- * Plugin configuration: one sharing policy, two verbatim SDK option objects,
- * and one DSH-owned shutdown bound. Uploading modes validate their endpoint
- * and shutdown deadline at plugin load; `DISABLED` reads neither.
+ * Plugin configuration: one sharing policy, the section 44 per-kind consent
+ * record, two verbatim SDK option objects, and one DSH-owned shutdown bound.
+ * Uploading modes validate their endpoint and shutdown deadline at plugin
+ * load; `DISABLED` reads neither.
  */
 export interface Config {
   /** Defaults to `FEEDBACK_ONLY`: capture session history only when feedback is explicitly submitted. */
   mode?: SessionTelemetryMode
+  /**
+   * Section 44 per-kind telemetry consent: one boolean per data kind, every
+   * kind defaulting to off, no master switch. Resolved once at load into the
+   * backend's `consent` field; {@link mode} remains the upload policy.
+   */
+  consent?: Partial<TelemetryConsent>
   /**
    * Passed verbatim to the SDK's OTLP/HTTP log exporter — the complete
    * `OTLPExporterNodeConfigBase` shape (`headers`, `timeoutMillis`,
@@ -128,6 +138,13 @@ export interface Config {
  */
 export const Config: z<Config> = z.object({
   mode: z.union(Object.values(SessionTelemetryMode)).default(DEFAULT_TELEMETRY_MODE),
+  consent: z.object({
+    sessionTelemetry: z.boolean().default(false),
+    providerMetadata: z.boolean().default(false),
+    relayMetadata: z.boolean().default(false),
+    deviceTrustMetadata: z.boolean().default(false),
+    crashDiagnostics: z.boolean().default(false),
+  }).default(TELEMETRY_CONSENT_OFF),
   exporter: z.any(),
   processor: z.any(),
   shutdownTimeoutMillis: z.number(),
@@ -160,11 +177,13 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   private readonly provider: LoggerProvider | undefined
   private readonly shutdownTimeoutMillis: number
   override readonly sharing: SessionTelemetrySharingStatus
+  override readonly consent: TelemetryConsent
 
   constructor(ctx: Context, config: Config) {
     const mode = resolveMode(config.mode)
     super(ctx)
     this.sharing = sharingStatusFor(mode)
+    this.consent = resolveTelemetryConsent(config.consent)
     if (mode === SessionTelemetryMode.DISABLED) {
       this.provider = undefined
       this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS

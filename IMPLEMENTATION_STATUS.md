@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 分类型 Telemetry 同意（§44）
+
+[当前来源记录](artifacts/upstream-first/telemetry-consent-source.json)落地第 44 节可落地部分：dsh-session-telemetry 新增分类型同意词汇——TelemetryDataKind 五类（sessionTelemetry/providerMetadata/relayMetadata/deviceTrustMetadata/crashDiagnostics）、TelemetryConsent 逐类布尔记录、TELEMETRY_CONSENT_OFF 冻结全关默认、telemetryKindAllowed 生产者判断与 resolveTelemetryConsent 解析（缺省与任何非 true 值一律关）；SessionTelemetryBackend 新增 abstract consent 与既有 sharing 并列。dsh-session-telemetry-otel 的 Config 增 consent（schemastery 逐字段布尔校验、缺省全关、非布尔值加载即拒），两种模式下均在构造时解析并经 ctx.sessionTelemetry.consent 暴露，mode/sharing 仍是上传策略。各数据类别生产者接线（provider/relay/deviceTrust/crash 出口调用 gate）与崩溃记录器保持开放。测试 87 项（seam 32 含词汇 4 例、otel 45 含解析 5 例）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+
 ## Support Bundle（§43）
 
-[当前来源记录](artifacts/upstream-first/support-bundle-source.json)落地第 43 节五要素：producer（service.supportBundle() 以刚组合的 §42 诊断条目为种子并自校验后返回）；sanitizer（闭合条目词汇 + 任意深度递归拒绝 api-key/bearer/secret/password/credential 形状键 + JSON 安全确认，词表外内容绝不入 bundle）；manifest（逐条目稳定路径 + 规范化键序序列化的 SHA-256）；checksum（对有序 manifest 行的链式 SHA-256）；collector validation（重算全部摘要，计数不符/条目缺失/篡改/乱序/链断均大声失败）。输入顺序绝不外泄——条目与 manifest 按路径排序，四平台运行同一候选产出字节一致 bundle（确定性测试固化）。wire 类型位于 ./types 出口、内容为 JsonValue（typert 拒绝 Remote 边界上的无约束 unknown）。测试 140 项（含确定性、脱敏深度、篡改、producer 四类新用例）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。§44 分类型 telemetry 开关以此接缝为基础；G2-SUPPORT 会话日志/设置导出内容条目与四平台真机同候选实测保持开放。
+[历史来源记录](artifacts/upstream-first/support-bundle-source.json)落地第 43 节五要素：producer（service.supportBundle() 以刚组合的 §42 诊断条目为种子并自校验后返回）；sanitizer（闭合条目词汇 + 任意深度递归拒绝 api-key/bearer/secret/password/credential 形状键 + JSON 安全确认，词表外内容绝不入 bundle）；manifest（逐条目稳定路径 + 规范化键序序列化的 SHA-256）；checksum（对有序 manifest 行的链式 SHA-256）；collector validation（重算全部摘要，计数不符/条目缺失/篡改/乱序/链断均大声失败）。输入顺序绝不外泄——条目与 manifest 按路径排序，四平台运行同一候选产出字节一致 bundle（确定性测试固化）。wire 类型位于 ./types 出口、内容为 JsonValue（typert 拒绝 Remote 边界上的无约束 unknown）。测试 140 项（含确定性、脱敏深度、篡改、producer 四类新用例）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。§44 分类型 telemetry 开关以此接缝为基础；G2-SUPPORT 会话日志/设置导出内容条目与四平台真机同候选实测保持开放。
 
 ## Host 诊断（§41/§42）
 

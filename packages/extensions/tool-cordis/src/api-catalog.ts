@@ -2076,6 +2076,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
+        signature: 'abstract readonly consent: TelemetryConsent',
+        description: 'Section 44 per-kind consent, resolved from deployment config; every kind defaults off and no master switch may hide the kinds.',
+        parameters: [],
+      },
+      {
         signature: 'abstract emit(record: SessionTelemetryRecord): void',
         description: 'See SessionTelemetrySink.emit — that declaration is the contract\'s one home.',
         parameters: [{ name: 'record', description: 'the logical record to report; owned by the backend after the call.' }],
@@ -6244,6 +6249,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TeamWaitResult',
     declaration: 'export interface TeamWaitResult {\n    readonly timedOut: boolean;\n}',
+  },
+  {
+    name: 'TelemetryConsent',
+    declaration: 'export interface TelemetryConsent {\n    readonly sessionTelemetry: boolean;\n    readonly providerMetadata: boolean;\n    readonly relayMetadata: boolean;\n    readonly deviceTrustMetadata: boolean;\n    readonly crashDiagnostics: boolean;\n}',
   },
   {
     name: 'TerminalBackend',

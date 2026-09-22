@@ -5,91 +5,78 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "578132ed4cf5a70235b8aa2baca1a3330819f2aee8f93af816d6b4ebada5fdc8"
+      "sha256": "6a4c56e50581a71f162c1cf86c29883abd3bffaa7c5b93c3cd626658fb65098a"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "4f6d590250ec7c5a6a45620d7a0973b31a38a92d90884a9f53218d20e507bc09"
+      "sha256": "3e5b60d548455156adf4b6ebf14e9d0dbfb9c0eb1e969dd0acade21ae3be3b8c"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "b8059f6c2e9a26722c3e23aaaecedde0d824a4ae1c6fced18b58d00f54d652b2"
+      "sha256": "8dcd1970dd22ba014190dac10e8a7db44bd0c376051c4e9a59e59fc49b9e629c"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "82d6b71eb8345ef39e11471310ca3b76b8e35bc28bb61ee529cace2504da2bd4"
+      "sha256": "60882ac3777588c6acf5dcf6bab942502e2f0edf6ffe287386a911c883030644"
     },
     {
-      "path": "docs/subsystems/host-diagnostics.i18n.yaml",
-      "sha256": "2fc3fd610edaf6298a1c0106f51775efd7b5dad4be8c6b0d7f36bd8d62758370"
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "d2c3eb40335d974ee28f6f4587747d1d010093c0dc114013471727e5d0c11fa2"
     },
     {
-      "path": "docs/subsystems/host-diagnostics.md",
-      "sha256": "800cabbe5722b33b7835a4b09670af9edeedb8c9fcbd899843af3ee0c319c9cc"
+      "path": "docs/config-catalog.md",
+      "sha256": "6614c06ed900a23582f32bb03348c341436ab1de092918cf6000324b942ef8d5"
     },
     {
-      "path": "docs/subsystems/host-diagnostics.zh.md",
-      "sha256": "4a816f7fc0ac0a7c4465b5c5584e80327b6cc42e4a61246a0fce588a386c7bad"
-    },
-    {
-      "path": "packages/api/host-diagnostics/README.i18n.yaml",
-      "sha256": "926fd41f10db0a09d8894b4a527cfdc1f3e243c1746169745d2319c890156db8"
-    },
-    {
-      "path": "packages/api/host-diagnostics/README.md",
-      "sha256": "63f02090ec4ba31a04aba65d2735f4a509cf4992ce287135fecff785dc48fe44"
-    },
-    {
-      "path": "packages/api/host-diagnostics/README.zh.md",
-      "sha256": "31aec704d7d7de2787d4b7cd7f1f44fe2531a8386668b940d7f17742d048ea67"
-    },
-    {
-      "path": "packages/api/host-diagnostics/package.json",
-      "sha256": "86b87fbf112621d4d23363ac91d8cf28238f539d058df1f2e951329f2d74bde0"
-    },
-    {
-      "path": "packages/api/host-diagnostics/src/capabilities.ts",
-      "sha256": "256050d67db4b5db5fdac28bac73f8b20c176d9b068d817ad1c212dc6fc72abe"
-    },
-    {
-      "path": "packages/api/host-diagnostics/src/index.ts",
-      "sha256": "7cad9f087ef8d7cc1d3c5b8f61569c45984c7bfb49c03c27414830b03a9550af"
-    },
-    {
-      "path": "packages/api/host-diagnostics/src/types.ts",
-      "sha256": "ff75adeb2f8339dd27b1ed640d393f3d58ddedb9032d49ddfbd9c053fce8d541"
-    },
-    {
-      "path": "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
-      "sha256": "7d167bc34283f52e8fb59d4d0c529c74cde0181ea3a1655112aa94c12298b34a"
-    },
-    {
-      "path": "packages/api/host-diagnostics/tsconfig.host.json",
-      "sha256": "dd6739e08ed36fe078495307acc5b4d062140be7f402f2d0da9a9c83d3db312b"
+      "path": "docs/config-catalog.zh.md",
+      "sha256": "6bac12f2017b7a1b97e7a1ef79517b55fafe9d2fbf0ddbfc4e9b4dbd0891e5b4"
     },
     {
       "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "b610246a1bf29055632ddf13e8d91027277f221ef77fa100c35ed4d6e2f869dd"
+      "sha256": "3359c542068f0a07b8fbd7d95ab6e883ba9de8f17a68938e3fe7c9a5af3337d1"
     },
     {
-      "path": "pnpm-lock.yaml",
-      "sha256": "9a02812b374ae86a1113e090bd40abc669d604e473d9a55591b34275515644ca"
+      "path": "packages/session/session-telemetry-otel/README.i18n.yaml",
+      "sha256": "c0b4df7b68b29aff13f7183ccdd8617837cbc7b8e5222a518fb233a1afedc20b"
     },
     {
-      "path": "scripts/gen-cordis-catalog.ts",
-      "sha256": "bd703b06d27120b7ba93b5f66989eef78961b0e5e5073033db4d6b61634af8b2"
+      "path": "packages/session/session-telemetry-otel/README.md",
+      "sha256": "0a6abd3302bb4109efde7bcb51ee69f983db383a2df0b60fca1f99a97454d036"
     },
     {
-      "path": "scripts/type-equiv.manifest.json",
-      "sha256": "9ed64d0b2753a810b524c90874185a64495661811c522d6ca62c39cd71d9b553"
+      "path": "packages/session/session-telemetry-otel/README.zh.md",
+      "sha256": "9b209b1bbbc069ecdab1f368fbf649408cd033bef269b8e700dd538f60f503e2"
+    },
+    {
+      "path": "packages/session/session-telemetry-otel/src/index.ts",
+      "sha256": "cb97d83b8ea7e301b39bea537622a9e703e1721e2b550a9b73a6ac8f886bd4ef"
+    },
+    {
+      "path": "packages/session/session-telemetry-otel/tests/otel.spec.ts",
+      "sha256": "1991abde1a28a9b738ce401efa774ca28ec6412d2f4ca9d4cbc8cadcfd75504b"
+    },
+    {
+      "path": "packages/session/session-telemetry/README.i18n.yaml",
+      "sha256": "14cbfc7e92ebace0966e7c308e5b2ca001856633320c49ddc29c32b81c4c74e4"
+    },
+    {
+      "path": "packages/session/session-telemetry/README.md",
+      "sha256": "7ea3aab74cae400bd5caf4b346c6323ae48152e0aef4fee19ff0012f3a7b0337"
+    },
+    {
+      "path": "packages/session/session-telemetry/README.zh.md",
+      "sha256": "db733670e43f1609f44df24256dcfc73ace761f09b24a36ce555213b0b92922b"
+    },
+    {
+      "path": "packages/session/session-telemetry/src/index.ts",
+      "sha256": "3d7502690e16f09ca0d0f9df7ee43c3c82bce2d802e1c67b48b8bef5055c8377"
+    },
+    {
+      "path": "packages/session/session-telemetry/tests/telemetry.spec.ts",
+      "sha256": "55fb57f65ff0a8ad6e5884295ec167510d5353a882a1532accfed594a5672bab"
     }
   ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "packages/api/host-diagnostics/src/support-bundle.ts",
-      "sha256": "ba262e101bc19732e23098f98101957a4612970527a2b823e27ac939fb023873"
-    }
-  ],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -6699,6 +6686,42 @@
     },
     {
       "status": "PASS",
+      "command": "Telemetry-consent suites (seam vocabulary default-off, per-kind gate, fail-closed resolution; otel schema resolution, disabled-mode resolution, service exposure): 87 passed, 0 failed",
+      "log": ".artifacts/telemetry-consent-tests.log",
+      "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/telemetry-consent-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/telemetry-consent-lint.log",
+      "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the §44 README consent sections and config-catalog regeneration",
+      "log": ".artifacts/telemetry-consent-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 44 note",
+      "log": ".artifacts/telemetry-consent-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/telemetry-consent-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7429,7 +7452,170 @@
       ]
     }
   },
+  "telemetryConsent": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json",
+    "scope": "Typed telemetry consent (specification section 44): a five-kind consent vocabulary lands on the session-telemetry seam and its only backend. The seam owns TelemetryDataKind (sessionTelemetry, providerMetadata, relayMetadata, deviceTrustMetadata, crashDiagnostics), the per-kind TelemetryConsent boolean record, the frozen TELEMETRY_CONSENT_OFF default, telemetryKindAllowed as the strict-true gate producers call before one of these kinds leaves the process, and resolveTelemetryConsent which resolves partial config against the all-off default (anything but boolean true stays off). SessionTelemetryBackend gains abstract consent beside sharing. The OpenTelemetry backend surfaces Config.consent (schemastery validates each kind as boolean, absent kinds default off, non-boolean values are refused at load), resolves it in both modes at construction, and exposes it through ctx.sessionTelemetry.consent while mode/sharing remain the upload policy",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "limitations": [
+      "The consent record is resolved and exposed but only the sessionTelemetry producer path exists; per-kind exits for provider metadata, relay metadata, device-trust metadata, and crash diagnostics call for their producers to adopt the gate.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "per-kind producer wiring remains: provider/relay/device-trust/crash exits must call telemetryKindAllowed before their kind leaves, and the crash/last-error recorder stays open; bundle content entries beyond diagnostics (session logs, settings exports) and four-platform real-device same-candidate runs remain open; degraded-capable probes seam open; section 28 multi-Host roster (saved-hosts list, switching action, retargetable connection seam) remains open; section 38 background/sleep + durable confirmation + cross-client recovery remain open; section 10 remainder (overflow menu entries once a toolbar set exists, permission-tier display); file matrix hardening (§34/§35); iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "supportBundle": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/telemetry-consent-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/support-bundle-source.json",
     "scope": "Support bundle (specification section 43): the five required elements land on the host-diagnostics seam. Producer — supportBundle() seeds the bundle with the just-composed §42 diagnostics entry and validates its own artifact before returning. Sanitizer — a closed entry-kind vocabulary plus a recursive scan that refuses secret-shaped keys (api-key/bearer/secret/password/credential) at any depth and confirms JSON safety, so nothing outside the allowlist enters. Manifest — one row per entry: stable bundle path plus the SHA-256 of its canonical key-sorted serialization. Checksum — one chained SHA-256 over the ordered manifest rows. Collector validation — recomputes every digest, refuses count mismatch, missing entries, tampering, unsorted manifests, and chain breaks. Input order never leaks (entries and manifest sort by path), so four platforms running the same candidate produce byte-identical bundles; determinism is pinned by a test. The wire types live on the ./types outlet with JsonValue content (typert refuses unconstrained unknown at the Remote boundary)",
@@ -15426,7 +15612,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/support-bundle-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/telemetry-consent-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -15909,7 +16095,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "82d6b71eb8345ef39e11471310ca3b76b8e35bc28bb61ee529cace2504da2bd4"
+        "sha256": "60882ac3777588c6acf5dcf6bab942502e2f0edf6ffe287386a911c883030644"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

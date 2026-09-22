@@ -18,9 +18,13 @@ import SessionStore, {
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import {
   SessionTelemetryCoordinator,
+  TELEMETRY_CONSENT_OFF,
+  resolveTelemetryConsent,
+  telemetryKindAllowed,
   type SessionTelemetrySink,
   type SessionTelemetryCapture,
   type SessionTelemetryRecord,
+  type TelemetryConsent,
 } from '../src/index.ts'
 
 declare module '@deepseek-ai/dsh-session/types' {
@@ -676,5 +680,43 @@ describe('SessionTelemetryCoordinator lifecycle and containment', () => {
       step: 2,
     })
     expect(record.body).toEqual({ name, message })
+  })
+})
+
+describe('section 44 telemetry consent vocabulary', () => {
+  it('defaults every data kind to off in a frozen record', () => {
+    expect(TELEMETRY_CONSENT_OFF).toEqual({
+      sessionTelemetry: false,
+      providerMetadata: false,
+      relayMetadata: false,
+      deviceTrustMetadata: false,
+      crashDiagnostics: false,
+    })
+    expect(Object.isFrozen(TELEMETRY_CONSENT_OFF)).toBe(true)
+  })
+
+  it('gates each kind independently on strict true', () => {
+    const consent = { sessionTelemetry: true, crashDiagnostics: true }
+    expect(telemetryKindAllowed(consent, 'sessionTelemetry')).toBe(true)
+    expect(telemetryKindAllowed(consent, 'crashDiagnostics')).toBe(true)
+    expect(telemetryKindAllowed(consent, 'providerMetadata')).toBe(false)
+    expect(telemetryKindAllowed(consent, 'relayMetadata')).toBe(false)
+    expect(telemetryKindAllowed(consent, 'deviceTrustMetadata')).toBe(false)
+  })
+
+  it('resolves absent config to the all-off default', () => {
+    expect(resolveTelemetryConsent(undefined)).toEqual(TELEMETRY_CONSENT_OFF)
+    expect(resolveTelemetryConsent({})).toEqual(TELEMETRY_CONSENT_OFF)
+  })
+
+  it('resolves a partial record per kind and fails closed on non-true values', () => {
+    expect(resolveTelemetryConsent({ relayMetadata: true })).toEqual({
+      ...TELEMETRY_CONSENT_OFF,
+      relayMetadata: true,
+    })
+    // Direct construction can bypass the runtime config schema; anything but
+    // boolean true stays off rather than coercing truthy strings or 1.
+    const hostile = { sessionTelemetry: 'yes', providerMetadata: 1 } as unknown as Partial<TelemetryConsent>
+    expect(resolveTelemetryConsent(hostile)).toEqual(TELEMETRY_CONSENT_OFF)
   })
 })

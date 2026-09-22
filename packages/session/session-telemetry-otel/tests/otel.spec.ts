@@ -21,6 +21,7 @@ import SessionStore, { SESSION_FORMAT_VERSION, Session, SessionId, SessionLogOff
 import MessageFeedbackService from '@deepseek-ai/dsh-message-feedback'
 import JsonlPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import OpenTelemetrySessionBackend, { Config, DEFAULT_TELEMETRY_MODE, SessionTelemetryMode } from '../src/index.ts'
+import { TELEMETRY_CONSENT_OFF, type TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 
 interface Capture {
   headers: import('node:http').IncomingHttpHeaders
@@ -803,6 +804,46 @@ describe('OpenTelemetrySessionBackend config fails loud', () => {
 
     new OpenTelemetrySessionBackend(ctx, config)
     expect(transportRead).not.toHaveBeenCalled()
+    await ctx.fiber.dispose()
+  })
+})
+
+describe('OpenTelemetrySessionBackend consent resolution', () => {
+  it('defaults every kind to off through the schema and direct construction', () => {
+    expect(Config({}).consent).toEqual(TELEMETRY_CONSENT_OFF)
+    expect(Config({ consent: {} }).consent).toEqual(TELEMETRY_CONSENT_OFF)
+    const ctx = new Context()
+    void ctx.plugin(SessionStore)
+    const backend = new OpenTelemetrySessionBackend(ctx, { mode: SessionTelemetryMode.DISABLED })
+    expect(backend.consent).toEqual(TELEMETRY_CONSENT_OFF)
+  })
+
+  it('fills absent kinds with off when a deployment opts in per kind', () => {
+    expect(Config({ consent: { sessionTelemetry: true } }).consent).toEqual({
+      ...TELEMETRY_CONSENT_OFF,
+      sessionTelemetry: true,
+    })
+  })
+
+  it('rejects non-boolean consent values at load', () => {
+    expect(() => Config({ consent: { sessionTelemetry: 'yes' } as unknown as Partial<TelemetryConsent> })).toThrow()
+  })
+
+  it('resolves consent in disabled mode too', () => {
+    const ctx = new Context()
+    void ctx.plugin(SessionStore)
+    const backend = new OpenTelemetrySessionBackend(ctx, {
+      mode: SessionTelemetryMode.DISABLED,
+      consent: { crashDiagnostics: true },
+    })
+    expect(backend.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, crashDiagnostics: true })
+  })
+
+  it('exposes the resolved record through the registered service', async () => {
+    const { url } = await mockCollector()
+    const { ctx, fiber } = await boot(url)
+    expect(ctx.sessionTelemetry.consent).toEqual(TELEMETRY_CONSENT_OFF)
+    await fiber.dispose()
     await ctx.fiber.dispose()
   })
 })

@@ -4719,10 +4719,11 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "IMPLEMENTATION_STATUS.md",
+        "packages/session/session-telemetry/README.md",
+        "packages/session/session-telemetry-otel/README.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "§44 已按可落地部分落地：dsh-session-telemetry 增分类型同意词汇——TelemetryDataKind 五类（sessionTelemetry/providerMetadata/relayMetadata/deviceTrustMetadata/crashDiagnostics）、TelemetryConsent 逐类布尔记录、TELEMETRY_CONSENT_OFF 全关冻结默认、telemetryKindAllowed 生产者判断与 resolveTelemetryConsent 解析（非 true 一律关）；SessionTelemetryBackend 新增 abstract consent 与 sharing 并列；dsh-session-telemetry-otel Config 增 consent（schemastery 逐字段布尔校验、缺省全关、非布尔加载即拒）并在两种模式下构造解析、经 ctx.sessionTelemetry.consent 暴露，mode/sharing 仍是上传策略。各数据类别生产者接线（provider/relay/deviceTrust/crash 出口调用 gate）与崩溃记录器仍开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
