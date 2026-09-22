@@ -5,167 +5,127 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "e0c42767bd3fd1583003e04869a87b91ed81830d21c7bd5c110ca620e1b326f8"
-    },
-    {
-      "path": "apps/web/tests/commands-capabilities.e2e.ts",
-      "sha256": "938079a70aece95238ea33704f46bcd9ee6414c2ec9e18137b82da6785c7fa1a"
+      "sha256": "c88d349038c4d2d84beb32c80c433833075209962e50706dbcb918e679b4eda5"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "82528922cefcf72681a31397187cb71224a581a9b3d9cc2e7f8b5db510053b87"
+      "sha256": "7a6acbd76445f0a3c224eee45dfd70f9e77fca038fc58bb6682f424d7678fff4"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "a6b317d78afcb54dc71a336be90f9bb4d08f485b27e4371eeaaef6dd4fd000d5"
+      "sha256": "4070a2108da83a1580c8db4d4e22573ab845a3e10862e5c8be8f75dfa7db24ea"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "2abe0acb8bba34654022855435c9c6c5afdd081052716262dcca0c76f1bf031f"
+      "sha256": "f7107e8bf6a26f45583ea62b03ea273df9412d0293bbbea927f41e5319be3750"
     },
     {
       "path": "docs/event-producer-consumer.i18n.yaml",
-      "sha256": "c7211b2e06ede67d9b94f92013c71a3d05e09bf8eccee9be2965fa5f0d40451c"
+      "sha256": "11eb6f7dd5e9f1a3594e6a745470434c04d9b6266a2c16d60a9997ef55cd75b7"
     },
     {
       "path": "docs/event-producer-consumer.md",
-      "sha256": "2a1e28bab101de441b65681026e1e7727380765c1feb23f84d44f18a0d066a31"
+      "sha256": "f098711617014c19eea33c3bc499c4136a9d9d9e009cfd9fd03e599c1935dc2e"
+    },
+    {
+      "path": "docs/event-producer-consumer.zh.md",
+      "sha256": "99968152f2353c556a791a97495dab1169074f52113f30d79e5f9711618b0453"
     },
     {
       "path": "docs/persistence-catalog.i18n.yaml",
-      "sha256": "7420f433173c01a4c4632e60eafb9757b6d1fb112370f3ddd6f43a34eda8e3c3"
+      "sha256": "c57e94328aa55e6d8557d37a57d8c5cc8147572b866b400ca5a130ae35325202"
     },
     {
       "path": "docs/persistence-catalog.md",
-      "sha256": "fdd251d8f66d48861157408b008ecd81b26d9b7f1ab303f319468efcab0370c6"
+      "sha256": "507b2b94fa5dee244dd9dfd9fa97e64d8b13c216c4ee4afc1c44414928662aa3"
     },
     {
-      "path": "docs/subsystems/commands.i18n.yaml",
-      "sha256": "44bd1ebf815aab5318c87ab863ed2fb2b54bc07e4ce39b74e8f5ffe7a96ab684"
+      "path": "docs/persistence-catalog.zh.md",
+      "sha256": "1136eb976ab62de17fdb50e6d6dd2eaf92b349b67a4792b4a0da30461b358bb8"
     },
     {
-      "path": "docs/subsystems/commands.md",
-      "sha256": "f94f3dc4155560520c25258d87cef35d12ca042b83b22c305083cff07bbadf6a"
+      "path": "packages/client/ui-approval/README.i18n.yaml",
+      "sha256": "bd2415448a570b54eb1e68ece58f8e5b6a8620e4a260c670bc89619d6b6f72ce"
     },
     {
-      "path": "docs/subsystems/commands.zh.md",
-      "sha256": "7422ccfb91f50c1712bd1d597c1a6bf18871c17d8222dc8a8198bb54535bc8ba"
+      "path": "packages/client/ui-approval/README.md",
+      "sha256": "7cc1ae8c7467f2cbce217824b10cf1a7f02a27049da5aa4ab9c7ea2875d8d04b"
     },
     {
-      "path": "packages/api/session-controller/tests/commands-upload-file.host.spec.ts",
-      "sha256": "735431d8bd92f645086377fff2ca6511cc5308330bcf406423dd197e38b7f3d2"
+      "path": "packages/client/ui-approval/README.zh.md",
+      "sha256": "b44929ad6c55e294a10c9518dcab712634e1bbf905bfbcb36fd5c597c3be6b3f"
     },
     {
-      "path": "packages/client/connection/src/client/fixture.ts",
-      "sha256": "faf5442a66a9c38739edd97402a872ba5cc4fbdf1d9b8c1206288696fbcd5fcb"
+      "path": "packages/client/ui-approval/package.json",
+      "sha256": "949f666c58e6b996e07384b9199a2cb29c2280f68d2f33757781d35678a49482"
     },
     {
-      "path": "packages/client/ui-commands/src/client/locales.ts",
-      "sha256": "791fe503527763b3402f9ba0ef9f8a141cc6f31ecb72988702f2b7e692c8c6dd"
+      "path": "packages/client/ui-approval/src/client/ApprovalPanel.module.css",
+      "sha256": "e03f36dd9e27d08add2e764303715f7c29ab409892a8c34351f22e67c671b5f0"
     },
     {
-      "path": "packages/client/ui-commands/src/client/service.ts",
-      "sha256": "2807ba0dc69c11ffed2176a8ecb02fe7f304e10be6da9caadcee4d7b1bee784f"
+      "path": "packages/client/ui-approval/src/client/ApprovalPanel.tsx",
+      "sha256": "d3ff8a4ccf7de13ae2db3112ba66469f874c07fa28eaa86153b1f0e018bc538a"
     },
     {
-      "path": "packages/client/ui-commands/tests/directory.client.spec.ts",
-      "sha256": "3c3e28a3fd60dea67e29f4868418c78ace3ee449264f5e71a1566487fd77a713"
+      "path": "packages/client/ui-approval/src/client/contract/slots.ts",
+      "sha256": "17bfae0a644dd5a3039597667f44ed0f8a65f1e5c30c7e3f4a82d5377c056c56"
     },
     {
-      "path": "packages/client/ui-commands/tests/service.client.spec.ts",
-      "sha256": "1d9ffbdbcbf05b43fc9d2e3fe350b5fa09bd08a2f72f8a00c2f95e4c0842843f"
+      "path": "packages/client/ui-approval/src/client/index.ts",
+      "sha256": "a70f8122f19df4d9eabb5640f947008a9a1c7f8e87a475fe310fc07d948a7d02"
     },
     {
-      "path": "packages/client/ui-input-trigger/src/client/MenuView.module.css",
-      "sha256": "dee42965fca52a1347352e2c1d1187736a5f2b306eae081953a5c0470485f8fb"
+      "path": "packages/client/ui-approval/src/client/locales.ts",
+      "sha256": "16d522724c28dfc87c8d64bc9e630e36c2270dd01f1197934721916c68c4e5a8"
     },
     {
-      "path": "packages/client/ui-input-trigger/src/client/MenuView.tsx",
-      "sha256": "503ea04fda08d7d979589b508a2cc13c4004dfed48cc189f01467e047ac52da1"
+      "path": "packages/client/ui-approval/tests/ui-approval.client.spec.tsx",
+      "sha256": "8868b3f15dd1fd39c874688941fda1e437be90b2c2645b1b06b7bb3877af9ed5"
     },
     {
-      "path": "packages/client/ui-input-trigger/src/types.ts",
-      "sha256": "057d151039d0dba6739f90f23593d1cc53a0c505df47e9b78b382fcf0b757b42"
-    },
-    {
-      "path": "packages/client/ui-input-trigger/tests/menu-view.client.spec.tsx",
-      "sha256": "ae9aebf14b8c9e5dbfe1f8b367f48dd41cf69fb54d2392fdcf82500d5261466e"
-    },
-    {
-      "path": "packages/compaction/command-compact/src/index.ts",
-      "sha256": "b4561710c52b8278dfd035af6aab6730b444c070c0f20810ab6fc4c40adb5aab"
-    },
-    {
-      "path": "packages/compaction/command-compact/tests/command-compact.spec.ts",
-      "sha256": "8ec9b73151069eb04764613197615eaafc4023baa83ce88bb0a17b1e4eda9afc"
-    },
-    {
-      "path": "packages/compaction/command-compact/tests/loader-composition.spec.ts",
-      "sha256": "11ebe5016712e106b8749882a09d2163c4d4d7fc9880aa25ec7b0069c770c0ef"
+      "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
+      "sha256": "3a33e463ab0eecb0adf7b4e773ce80afc494ad1edcfbd64546a226be7ab146a1"
     },
     {
       "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "c774f218be8b69bea5c3749561b0b21c1e101367a000f7ffa1a33c4981ef38e1"
+      "sha256": "29a9121915f06af6f056f6df96a7b96ada7c9320103b8f70254d79fd2fac02f0"
     },
     {
-      "path": "packages/feedback/command-feedback/src/index.ts",
-      "sha256": "f58f5b6fd6123c6edcb7c62c6cbb8132e19a21483be05587fcf7927f27d4b457"
+      "path": "packages/interaction/user-approval/README.i18n.yaml",
+      "sha256": "244cb32be3751dbbea5ede159340ce6cdd2703b318840c264c85909fe255c177"
     },
     {
-      "path": "packages/feedback/command-feedback/tests/command-feedback.spec.ts",
-      "sha256": "3baa7b8ba685687f9cc387b46fdd8c54262b6cb8b8899fdc7b09557bcbc28b32"
+      "path": "packages/interaction/user-approval/README.md",
+      "sha256": "ddfd81f90c5e36342b04dd750900001b73aeba27ae3ad1faccbe11acd35f4bc8"
     },
     {
-      "path": "packages/goal/command-goal/src/index.ts",
-      "sha256": "2e2fa2c266fedbb7d90a0b6c54b148a00ad9348d32537562ee93b8620427a996"
+      "path": "packages/interaction/user-approval/README.zh.md",
+      "sha256": "11572c9c0861dedd9704ffd8bb8ee1411af74ed51b1ff7b1673a1507e3f972ab"
     },
     {
-      "path": "packages/goal/command-goal/tests/command-goal.spec.ts",
-      "sha256": "a56e040d8c2d263c58fcd6ca66e61888de3a9e975a10583e9333676adceb40bf"
+      "path": "packages/interaction/user-approval/src/types.ts",
+      "sha256": "997df0960930de9b278136d32ed0267d6d66179325b995116d47214d7f5bb695"
     },
     {
-      "path": "packages/interaction/commands/README.i18n.yaml",
-      "sha256": "ec2e05bc0b867c92de3e00ea7fb62b749a10b9cf0e852f23029d2c9ef5665bd9"
+      "path": "packages/sandbox/sandbox/README.i18n.yaml",
+      "sha256": "8a308e89eac5b782a681e2f4ba26d39a46d6b788ae496c772fa4763ccc50a629"
     },
     {
-      "path": "packages/interaction/commands/README.md",
-      "sha256": "e6360fb78dca29709839b6bf6d7071d55d5ecd52e18d578bfabc6d4673953de1"
+      "path": "packages/sandbox/sandbox/README.md",
+      "sha256": "23ec005cf0a9d34a6dc177eed5525f04c781f0fe737a7fea621bc7af984177ab"
     },
     {
-      "path": "packages/interaction/commands/README.zh.md",
-      "sha256": "2432232b5065cfb70d3bb0a677e6104182e4552839939d31dba6265e7f853b1a"
+      "path": "packages/sandbox/sandbox/README.zh.md",
+      "sha256": "9b3e7b2f01f46f862bcbdc44f68e2105837773d169cc77d21b14676d48a48eba"
     },
     {
-      "path": "packages/interaction/commands/src/index.ts",
-      "sha256": "a5e7a7c769c989d1ddc9c3dc3d4376244f64e6ecacda718946b8d0306c803c8b"
+      "path": "packages/sandbox/sandbox/src/escalation.ts",
+      "sha256": "a0f7e6f11fbcda0e616cc42230745c8317d55734049bfb1f4d9ee6c0ebdd3153"
     },
     {
-      "path": "packages/interaction/commands/src/types.ts",
-      "sha256": "ae9f04b044e072dcc8a83bb8724a209dcdd15dc3c3fcc6edaee554d01799c7a8"
-    },
-    {
-      "path": "packages/interaction/commands/tests/commands.spec.ts",
-      "sha256": "076a48bba3fa0b57895cb172c010c7ae844cdec99f8f4ca83ead4a5f015a19cb"
-    },
-    {
-      "path": "packages/interaction/permission-presets/src/index.ts",
-      "sha256": "7a6cae6b8fe8d159f843540fcfde8ce203271ff9e2d6572d3c8c5241135a1cc1"
-    },
-    {
-      "path": "packages/plan/plan-mode/src/index.ts",
-      "sha256": "e650d82d5207ebf576b41adc6a373ca91028d8021ddf62a240f746c2928cfaff"
-    },
-    {
-      "path": "packages/plan/plan-mode/tests/plan-mode.spec.ts",
-      "sha256": "bfea5e8b8799271b97f2a113eeef8f411ec7b2e3eaadc884b91fc119bd45197c"
-    },
-    {
-      "path": "packages/session-query/session-log-export/src/index.ts",
-      "sha256": "f1b8f93b5e5e9e5307df482d8a9cd21a62a64305c38d7dda5a5557c2d49aeae6"
-    },
-    {
-      "path": "packages/session-query/session-log-export/tests/loader-composition.host.spec.ts",
-      "sha256": "cfe1bc4d88fb592e71c50da3047ff940905c9fb8634aca95d17b1cda2f27a13c"
+      "path": "pnpm-lock.yaml",
+      "sha256": "177458cd2faf64722237c36a997e73f4f2f410e4e826306765d8e662f7fabefa"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -6556,6 +6516,42 @@
     },
     {
       "status": "PASS",
+      "command": "Approval-plane suites (ui-approval 16, user-approval, sandbox escalation+vocabulary, acp approval, ui-session, ui-user-questions, connection fixture, remotes, tools, scope, tool-fs, tool-bash, tool-pwsh): 431 passed",
+      "log": ".artifacts/approval-facts-tests.log",
+      "sourceRecord": "artifacts/upstream-first/approval-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/approval-facts-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/approval-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/approval-facts-lint.log",
+      "sourceRecord": "artifacts/upstream-first/approval-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the bilingual approval/sandbox/ui-approval docs update (client slot catalog, api-catalog, persistence and event graphs regenerated)",
+      "log": ".artifacts/approval-facts-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/approval-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 38 approval-surface note",
+      "log": ".artifacts/approval-facts-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/approval-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/approval-facts-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/approval-facts-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7286,7 +7282,164 @@
       ]
     }
   },
+  "approvalFacts": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/approval-facts-source.json",
+    "scope": "Approval information surface (specification section 38): the approval ask carries an optional Host-assessed risk tier (ApprovalRisk low/moderate/high/critical on ApprovalRequestEvent and the approval/asked session event; a sandbox escalation derives it from the requested mode — workspace-write=moderate, danger-full-access=high), and the browser ApprovalPanel lists the section-38 facts beside the decision — operation, host (connection host-facts descriptor displayName falling back to platform), workspace (the workspace containing the session), risk (only when the asker classified a tier; an escalation always does), permission-escalation reason, and the command-preview heading over the correlated Tool detail. Rows without data are hidden; no placeholder values are invented. Locale keys fact.*/risk.* are bilingual; client-cordis slot catalog, tool-cordis api-catalog, persistence and event-producer-consumer docs regenerated for the wire change",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "limitations": [
+      "The fact rows render only what the asker and client state provide; hooks-driven asks carry no risk tier and approval persistence/background paths remain open.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 38 background/sleep, durable confirmation, and cross-client recovery paths remain open; section 10 remainder (overflow menu entries once a toolbar set exists, permission-tier display); section 9 follow/handoff view-location transfer (sections 23-29); diagnostics slice (sections 41-44); file matrix hardening (sections 34/35); iOS client adoption (no Swift client surface yet); cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "commandRisk": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/approval-facts-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/command-risk-source.json",
     "scope": "Command risk tiers (specification section 37): CommandDefinition and CommandDescriptor gain a REQUIRED Host-assessed risk (low/moderate/high/critical; the registry rejects out-of-vocabulary values at the boundary). The Host command layer owns the classification and clients only display it: /permission=high (can switch to danger-full-access), /compact /goal /export=moderate (context rewrite, goal steering, data egress), /plan /feedback=low. The descriptor rides the existing catalog wire (pre-release: no wire compatibility promise) and the composer menu renders a trailing badge through ui-input-trigger's new generic tag seat (localized risk.* keys, bilingual); the badge never truncates the description. Section 38's approval Risk row now has a data source; the remaining approval-information surface stays open",
@@ -14325,7 +14478,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/command-risk-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/approval-facts-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -14808,7 +14961,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "2abe0acb8bba34654022855435c9c6c5afdd081052716262dcca0c76f1bf031f"
+        "sha256": "f7107e8bf6a26f45583ea62b03ea273df9412d0293bbbea927f41e5319be3750"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

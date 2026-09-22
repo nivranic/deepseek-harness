@@ -1,8 +1,11 @@
 /** Approval composer and optional correlated-detail contracts. */
+import type { ApprovalRisk } from '@deepseek-ai/dsh-user-approval/types'
+import type { ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import type { ToolCallId } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import type {
-  PropsLocale, PropsRenderSlots, PropsRuntime,
+  InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime,
 } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ApprovalKey } from '../locales.ts'
 
@@ -48,6 +51,14 @@ export interface ApprovalDetailOwnerProps {
   callId: ToolCallId
 }
 
+/** Facts injected into the approval panel by its own registration. */
+export interface ApprovalPanelInjected {
+  readonly hooks: {
+    /** Established generation's Host facts; undefined while no generation is ready. */
+    readonly hostFacts: ObservableSnapshot<ConnectionHostInfo | undefined>
+  }
+}
+
 /** Client-visible fields of an approval request projected through Remote Events. */
 export interface ApprovalPresentationRequest {
   /** Tool requesting the decision. */
@@ -56,6 +67,8 @@ export interface ApprovalPresentationRequest {
   readonly callId?: ToolCallId
   /** Human-readable reason supplied by the requester. */
   readonly reason?: string
+  /** Host-assessed risk tier of the action under approval, when the asker classified one. */
+  readonly risk?: ApprovalRisk
   /** Cancellation projected from the Host waterfall. */
   readonly signal?: AbortSignal
 }
@@ -77,6 +90,8 @@ export class PendingApproval {
   readonly callId: ToolCallId | undefined
   /** Human-readable reason supplied by the asker. */
   readonly reason: string | undefined
+  /** Host-assessed risk tier, when the asker classified one. */
+  readonly risk: ApprovalRisk | undefined
   /** Result returned by the Remote Event listener to the Host waterfall. */
   readonly result: Promise<ApprovalDecision>
 
@@ -98,6 +113,7 @@ export class PendingApproval {
     this.toolName = request.toolName
     this.callId = request.callId
     this.reason = request.reason
+    this.risk = request.risk
     const completion = Promise.withResolvers<ApprovalDecision>()
     this.result = completion.promise
     this.#resolve = completion.resolve
@@ -163,5 +179,6 @@ export class PendingApproval {
 export type ApprovalComposerProps =
   PropsRuntime<'conversation.composer'>
   & PropsRenderSlots<'conversation.approval.detail'>
+  & InjectFace<ApprovalPanelInjected>
   & { matched: PendingApproval }
   & PropsLocale<'approval'>

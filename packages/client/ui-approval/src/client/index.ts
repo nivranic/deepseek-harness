@@ -1,14 +1,17 @@
 /** Browser approval consumer over the existing scoped Remote Event waterfall. */
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
+import type { ConnectionHandle, ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ComposerChainProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { PendingInteractionPublisher } from '@deepseek-ai/dsh-client-ui-session/client'
 import type { TypertClientEventListener } from '@deepseek-ai/dsh-typert-protocol'
+import type { HostObservable } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { ApprovalPanel } from './ApprovalPanel.tsx'
 import { PendingApproval } from './contract/slots.ts'
+import type { ApprovalPanelInjected } from './contract/slots.ts'
 import { en, zh } from './locales.ts'
 
 export type {
@@ -21,7 +24,7 @@ export type {
 export type { ApprovalKey } from './locales.ts'
 
 /** Required services: Agent scopes, Remote Events, Session UI, Slot registry, and copy. */
-export const inject = ['sessions', 'remote', 'uiSession', 'slots', 'locale']
+export const inject = ['sessions', 'remote', 'uiSession', 'slots', 'locale', 'connection']
 
 const NS = 'approval'
 
@@ -47,6 +50,7 @@ async function answerApproval(
       ? {}
       : { callId: request.callId }),
     ...(request.reason === undefined ? {} : { reason: request.reason }),
+    ...(request.risk === undefined ? {} : { risk: request.risk }),
     ...(request.signal === undefined ? {} : { signal: request.signal }),
   })
   const completed = Promise.withResolvers<void>()
@@ -77,11 +81,19 @@ export function apply(ctx: ClientContext): void {
   const registerPendingInteraction = ctx.uiSession.registerPendingInteraction<PendingApproval>(
     () => 0,
   )
+  const connection = ctx.get('connection') as ConnectionHandle
+  // The approval fact block (specification §38) names the execution Host;
+  // undefined while no generation is ready.
+  const hostFacts: HostObservable<ConnectionHostInfo | undefined> = {
+    getSnapshot: () => connection.generation.getSnapshot()?.host,
+    subscribe: (listener: () => void) => connection.generation.subscribe(listener),
+  }
   ctx.slots.inject('conversation.composer', () => ctx.slots.register({
     name: 'conversation.composer',
     priority: 1,
     select: ({ pendingInteraction }: ComposerChainProps): PendingApproval | null =>
       pendingInteraction instanceof PendingApproval ? pendingInteraction : null,
+    inject: (): ApprovalPanelInjected => ({ hooks: { hostFacts } }),
     locale: NS,
     children: {
       'conversation.approval.detail': { kind: 'single', scope: 'session' },

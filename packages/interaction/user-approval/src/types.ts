@@ -31,6 +31,14 @@ export function ApprovalRequestId(id: string): ApprovalRequestId {
  */
 export type ApprovalOutcome = 'allowed-once' | 'rejected' | 'cancelled' | 'unavailable'
 
+/**
+ * Host-assessed risk tier of the action under approval (specification §38,
+ * same four-tier vocabulary as §37 command risk): the asking Host layer owns
+ * the classification — for example a sandbox escalation derives it from the
+ * requested mode — and the presenting client only displays it.
+ */
+export type ApprovalRisk = 'low' | 'moderate' | 'high' | 'critical'
+
 declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
     /**
@@ -39,13 +47,15 @@ declare module '@deepseek-ai/dsh-session/types' {
      * it with the `approval/decided` that always follows; `toolName` is the
      * tool the question is about, `callId` the exact tool call when the asker
      * had one, `reason` the asker's human-readable explanation (e.g. a hook's
-     * permission-decision reason).
+     * permission-decision reason), `risk` the asker's Host-assessed tier when
+     * it classified one.
      */
     'approval/asked': {
       id: ApprovalRequestId
       toolName: string
       callId?: ToolCallId
       reason?: string
+      risk?: ApprovalRisk
     }
     /**
      * The outcome of a prior `approval/asked` (same `id`) — log-only audit.
@@ -69,6 +79,8 @@ export interface ApprovalRequestEvent {
   readonly callId?: ToolCallId
   /** Human-readable reason supplied by the asker. */
   readonly reason?: string
+  /** Host-assessed risk tier of the action under approval, when the asker classified one. */
+  readonly risk?: ApprovalRisk
   /** Cancellation lifetime of the pending request. */
   readonly signal?: AbortSignal
 }

@@ -49,7 +49,7 @@ The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-a
 
 ### Requesting a decision
 
-`request(req)` names the agent, tool, optional call id and reason, and an abort signal. It requires an open turn: an idle or between-turn caller throws before auditing anything. Aborting withdraws the question — the request settles `cancelled` and a late answer is discarded. A failure that prevents either audit append from committing rejects instead of returning an unlogged decision.
+`request(req)` names the agent, tool, optional call id and reason, an optional Host-assessed risk tier (specification §38 — a sandbox escalation derives it from the requested mode), and an abort signal. It requires an open turn: an idle or between-turn caller throws before auditing anything. Aborting withdraws the question — the request settles `cancelled` and a late answer is discarded. A failure that prevents either audit append from committing rejects instead of returning an unlogged decision.
 
 ### What the model and user see
 
@@ -153,7 +153,7 @@ These limits define when the seam is a poor fit or needs special composition car
 
 - **Requests are valid only inside an open turn** — an idle or between-turn caller throws before auditing; a durable out-of-turn approval workflow is deferred.
 - **Only one-shot grants exist** — the outcome vocabulary has `allowed-once` but no `allow-always`, remembered rule, revocation, or grant store; session policy is only `ask` / `never`.
-- **The request carries no tool arguments** — an answerer sees the tool name, reason, and optional call id; the ACP machine channel requires a call id and delegates requests without one.
+- **The request carries no tool arguments** — an answerer sees the tool name, reason, risk tier, and optional call id; the ACP machine channel requires a call id and delegates requests without one.
 - **No built-in answerer** — headless or incompletely composed deployments resolve `unavailable` and fail closed; the service itself never prompts a human.
 
 <a id="dev-note"></a>

@@ -77,6 +77,9 @@ function setupPlugin(): PluginBench {
       return () => {}
     },
   } as never)
+  ctx.provide('connection', {
+    generation: { getSnapshot: () => undefined, subscribe: () => () => {} },
+  } as never)
   ctx.provide('sessions', { scopeOf } as never)
   ctx.provide('uiSession', { registerPendingInteraction } as never)
   ctx.provide('slots', { inject: injectSlot, register } as never)
@@ -312,15 +315,33 @@ function panelProps(
     waiting: 'Waiting',
     'detail.aria': 'Approval details',
     escalation: `Tool ${pending.toolName} asks`,
+    'fact.operation': 'Operation',
+    'fact.host': 'Host',
+    'fact.workspace': 'Workspace',
+    'fact.risk': 'Risk',
+    'fact.escalation': 'Permission escalation',
+    'fact.preview': 'Command preview',
+    'risk.low': 'Low risk',
+    'risk.moderate': 'Moderate risk',
+    'risk.high': 'High risk',
+    'risk.critical': 'Critical risk',
     reject: 'Reject',
     allowOnce: 'Allow once',
   }
   return {
     matched: pending,
     renderSlot,
+    useHostFacts: (selector: (host: unknown) => unknown) => selector(hostFacts),
+    useWorkspaces: (selector: (state: unknown) => unknown) => selector(workspaceState),
+    sessionId: id('s1'),
     t: (key: string) => messages[key] ?? key,
   } as unknown as ApprovalComposerProps
 }
+
+/** The fact block's host share; undefined means no established generation. */
+let hostFacts: unknown = undefined
+/** The fact block's workspace share; items keyed by sessionIds. */
+let workspaceState: unknown = { items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null }
 
 describe('ApprovalPanel', () => {
   it('renders fallback copy without detail and returns rejection', async () => {
@@ -357,6 +378,37 @@ describe('ApprovalPanel', () => {
     await expect(pending.result).resolves.toBe('allowed-once')
   })
 
+  it('names every section-38 fact beside the decision and hides rows without data', () => {
+    hostFacts = { home: '/home/u', platform: 'win32', descriptor: { displayName: 'Workstation' } }
+    workspaceState = {
+      items: [{ sessionIds: [id('s1')], title: 'project' }],
+      archivedSessionIds: [], state: 'idle', phase: 'ready', error: null,
+    }
+    const pending = new PendingApproval(id('s1'), {
+      toolName: 'bash',
+      reason: 'escalate sandbox to danger-full-access: run the installer',
+      risk: 'high',
+    })
+    const { container } = render(<ApprovalPanel {...panelProps(pending)} />)
+    const facts = container.querySelector('[data-approval-facts]')
+    expect(facts?.textContent).toBe(
+      'Operationbash'
+      + 'HostWorkstation'
+      + 'Workspaceproject'
+      + 'RiskHigh risk'
+      + 'Permission escalationescalate sandbox to danger-full-access: run the installer',
+    )
+    cleanup()
+
+    hostFacts = undefined
+    workspaceState = { items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null }
+    const bare = new PendingApproval(id('s1'), { toolName: 'bash' })
+    const bareView = render(<ApprovalPanel {...panelProps(bare)} />)
+    const bareFacts = bareView.container.querySelector('[data-approval-facts]')
+    // Only the operation row survives without generation, workspace, tier, or reason.
+    expect(bareFacts?.textContent).toBe('Operationbash')
+  })
+
   it('re-enables actions when answering fails', async () => {
     const pending = new PendingApproval(id('s1'), { toolName: 'bash' })
     vi.spyOn(pending, 'answer').mockRejectedValue(new Error('transport closed'))
@@ -374,7 +426,7 @@ describe('ApprovalPanel', () => {
 
 describe('package entries', () => {
   it('declares its service edges and keeps the Host half inert', () => {
-    expect(inject).toEqual(['sessions', 'remote', 'uiSession', 'slots', 'locale'])
+    expect(inject).toEqual(['sessions', 'remote', 'uiSession', 'slots', 'locale', 'connection'])
     expect(() => { nodeApply() }).not.toThrow()
   })
 })

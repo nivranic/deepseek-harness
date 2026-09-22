@@ -4225,9 +4225,11 @@
       "owner": "Interaction、Session 与恢复",
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
-        "docs/defensive-patterns.md"
+        "packages/client/ui-approval/README.md",
+        "packages/interaction/user-approval/README.md",
+        "packages/sandbox/sandbox/README.md"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
+      "remaining": "审批信息表面已按第 38 节落地：user-approval 请求事件新增可选 Host 评定 risk 档（ApprovalRisk 四档），沙箱升权询问按所请求模式推导档位（workspace-write=moderate、danger-full-access=high）；ui-approval 面板在决定区旁以事实行列出操作、Host（连接 host facts 的 descriptor displayName 回退 platform）、工作区（包含该会话的工作区标题）、风险档（仅当询问方给出档位；升权询问必给）、权限提升原因，并以 locale 键 fact.*/risk.* 双语渲染，命令预览为关联 Tool 详情 slot 的标题；值缺失的行整行隐藏，绝不编造占位值。回答竞争、断线和重启已有证据；后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

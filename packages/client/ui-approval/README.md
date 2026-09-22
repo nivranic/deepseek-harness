@@ -10,6 +10,8 @@ English | [中文](README.zh.md)
 
 Browser approval presentation over the Agent-scoped Remote Event waterfall. The plugin publishes each pending request through `ctx.uiSession`, takes over the Conversation composer, optionally renders correlated Tool detail, and returns the user's decision to the waiting Host request. Use it when a browser must collect approval for a waiting Host operation.
 
+Beside the decision, the panel lists the section-38 facts — operation, host (from the connection's host facts), workspace, risk tier, permission-escalation reason, and the command-preview heading over the correlated Tool detail. Absent rows are hidden; the risk row appears only when the asker classified a tier.
+
 ## Table of Contents
 
 - [Model Experience](#model-experience)
@@ -32,6 +34,7 @@ None; approval request and response rendering does not alter a model request.
 <a id="known-limitations-and-deferred-work"></a>
 
 - **The panel exposes transient decisions only** — it supports allow-once and reject; persistent permission policy remains owned by Host-side approval packages.
+- **Fact rows follow the asker's data** — host and workspace resolve from client state and may stay hidden while the connection handshake or the workspace list is pending; the panel never invents placeholder values.
 
 
 <a id="dev-note"></a>

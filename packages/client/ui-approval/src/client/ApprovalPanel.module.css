@@ -53,6 +53,38 @@
   line-height: 24px;
 }
 
+/* Specification §38 fact block: one quiet label/value pair per named fact;
+   only rows with data render. */
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.factRow {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.factLabel {
+  flex: none;
+  width: 96px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.factValue {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
 .command {
   color: var(--dsw-alias-label-tertiary);
   font-family: var(--ds-font-family-code);

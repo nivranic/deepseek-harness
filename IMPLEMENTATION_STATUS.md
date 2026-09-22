@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 审批信息表面（§38）
+
+[当前来源记录](artifacts/upstream-first/approval-facts-source.json)落地第 38 节：user-approval 询问新增可选 Host 评定风险档（ApprovalRisk 四档，随 approval/asked 会话事件持久化），沙箱升权按所请求模式推导（workspace-write=moderate、danger-full-access=high）；浏览器 ApprovalPanel 在决定区旁以事实行列出操作、Host（host facts 的 descriptor.displayName 回退 platform）、工作区、风险档、权限提升原因，命令预览成为关联 Tool 详情 slot 的标题（fact.*/risk.* 双语 locale 键），值缺失的行整行隐藏。client slot catalog、tool-cordis api-catalog、persistence 与 event-producer-consumer 目录随 wire 变更再生。测试 431 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+
 ## 指令风险分级（§37）
 
-[当前来源记录](artifacts/upstream-first/command-risk-source.json)落地第 37 节：CommandDefinition/CommandDescriptor 新增必填 Host 评定 risk 档位（low/moderate/high/critical，注册边界对词表外值 fail-loud），Host 命令层拥有分级、客户端只展示——/permission=high（可切 danger-full-access）、/compact、/goal、/export=moderate、/plan、/feedback=low；描述符经既有 catalog wire 到达客户端，composer 菜单行以 ui-input-trigger 新增的通用 tag 座位渲染尾部徽章（risk.* 四档双语 locale 键），徽章不截断描述。§38 审批 UI 的 Risk 行自此有数据源，完整审批信息表面仍开放。type-equiv 双语文档块、cordis/doc/persistence 目录随 wire 变更再生。测试 593 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
+[历史来源记录](artifacts/upstream-first/command-risk-source.json)落地第 37 节：CommandDefinition/CommandDescriptor 新增必填 Host 评定 risk 档位（low/moderate/high/critical，注册边界对词表外值 fail-loud），Host 命令层拥有分级、客户端只展示——/permission=high（可切 danger-full-access）、/compact、/goal、/export=moderate、/plan、/feedback=low；描述符经既有 catalog wire 到达客户端，composer 菜单行以 ui-input-trigger 新增的通用 tag 座位渲染尾部徽章（risk.* 四档双语 locale 键），徽章不截断描述。§38 审批 UI 的 Risk 行自此有数据源，完整审批信息表面仍开放。type-equiv 双语文档块、cordis/doc/persistence 目录随 wire 变更再生。测试 593 项、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
 
 ## 运行位置设备命名（§10 收尾）与 §11 第一原则
 

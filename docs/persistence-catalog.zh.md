@@ -143,13 +143,15 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
  * it with the `approval/decided` that always follows; `toolName` is the
  * tool the question is about, `callId` the exact tool call when the asker
  * had one, `reason` the asker's human-readable explanation (e.g. a hook's
- * permission-decision reason).
+ * permission-decision reason), `risk` the asker's Host-assessed tier when
+ * it classified one.
  */
 'approval/asked': {
   id: ApprovalRequestId
   toolName: string
   callId?: ToolCallId
   reason?: string
+  risk?: ApprovalRisk
 }
 ```
 

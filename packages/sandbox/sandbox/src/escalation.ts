@@ -102,10 +102,10 @@ export type EscalationOutcome = 'allowed-once' | 'rejected' | 'cancelled' | 'una
 export interface EscalationApprover<A = object, C = string> {
   /**
    * Ask the human to approve one action, resolving to a closed outcome.
-   * @param req - the audit-self-contained request (agent, tool, call id, reason, optional signal).
+   * @param req - the audit-self-contained request (agent, tool, call id, reason, risk tier, optional signal).
    * @returns the human's decision as a closed {@link EscalationOutcome}.
    */
-  request(req: { agent: A; toolName: string; callId: C; reason: string; signal?: AbortSignal }): Promise<EscalationOutcome>
+  request(req: { agent: A; toolName: string; callId: C; reason: string; risk: 'moderate' | 'high'; signal?: AbortSignal }): Promise<EscalationOutcome>
 }
 
 /**
@@ -169,12 +169,15 @@ export async function approveEscalation<A, C>(request: EscalationRequest, approv
     throw new Error(`sandbox escalation to "${mode}" requires approval, but the call has no agent to route it through`)
   }
   // Self-contained for the audit trail: approval/asked stores this reason,
-  // and the target mode is part of the grant's identity.
+  // and the target mode is part of the grant's identity. The risk tier is
+  // derived from the requested mode (specification §38): full access is the
+  // high tier; a workspace grant is moderate.
   const outcome = await approval.approver.request({
     agent: approval.agent,
     toolName: approval.toolName,
     callId: approval.callId,
     reason: `escalate sandbox to ${mode}: ${justification}`,
+    risk: mode === 'danger-full-access' ? 'high' : 'moderate',
     ...approval.signal ? { signal: approval.signal } : {},
   })
   switch (outcome) {

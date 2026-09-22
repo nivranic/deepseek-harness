@@ -141,19 +141,21 @@ Source: [`packages/preset/agent-presets/src/session.ts:28`](../packages/preset/a
  * it with the `approval/decided` that always follows; `toolName` is the
  * tool the question is about, `callId` the exact tool call when the asker
  * had one, `reason` the asker's human-readable explanation (e.g. a hook's
- * permission-decision reason).
+ * permission-decision reason), `risk` the asker's Host-assessed tier when
+ * it classified one.
  */
 'approval/asked': {
   id: ApprovalRequestId
   toolName: string
   callId?: ToolCallId
   reason?: string
+  risk?: ApprovalRisk
 }
 ```
 
 Types: [ToolCallId](subsystems/core.md)
 
-Source: [`packages/interaction/user-approval/src/types.ts:44`](../packages/interaction/user-approval/src/types.ts)
+Source: [`packages/interaction/user-approval/src/types.ts:53`](../packages/interaction/user-approval/src/types.ts)
 
 <a id="approvaldecided--log-only"></a>
 
@@ -171,7 +173,7 @@ Source: [`packages/interaction/user-approval/src/types.ts:44`](../packages/inter
 }
 ```
 
-Source: [`packages/interaction/user-approval/src/types.ts:55`](../packages/interaction/user-approval/src/types.ts)
+Source: [`packages/interaction/user-approval/src/types.ts:65`](../packages/interaction/user-approval/src/types.ts)
 
 <a id="approvalpolicy--log-only"></a>
 
