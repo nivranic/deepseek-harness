@@ -4489,7 +4489,7 @@
         "IMPLEMENTATION_STATUS.md",
         "packages/api/host-diagnostics/README.md"
       ],
-      "remaining": "§41 已按可落地部分落地：新包 api/host-diagnostics（能力 host.diagnostics.v1=view，经 web-app profile 组合）的 health() 区分存活与就绪——六组件（process/runtime/sessionStore/pluginState/connection/modelProvider）各携带状态与指名被探测服务的 detail，ready 派生自核心组件（connection 被排除：CLI/desktop-pipe 无载体 profile 仍是 Host）；health 基于存在性，能看部分故障的 degraded 探测仍保持开放；crash/last-error 记录器已随后续增量落地（pid 安全启动标记识别未干净关闭 + agent 错误 relay 填充有上限环形记录）。",
+      "remaining": "§41 已按可落地部分落地：新包 api/host-diagnostics（能力 host.diagnostics.v1=view，经 web-app profile 组合）的 health() 区分存活与就绪——六组件（process/runtime/sessionStore/pluginState/connection/modelProvider）各携带状态与指名被探测服务的 detail，ready 派生自核心组件（connection 被排除：CLI/desktop-pipe 无载体 profile 仍是 Host）；health 已升级降级探测：已组合 owner 深探测——失败插件 fiber 使 pluginState 降级（ready 保持）、无已注册提供方使 modelProvider 降级并拉低 ready、inventory 读取抛错以错误类别降级（health 转为 async 并转发 signal）；无部分故障信号的组件（sessionStore/connection）保持存在性；crash/last-error 记录器已随后续增量落地（pid 安全启动标记识别未干净关闭 + agent 错误 relay 填充有上限环形记录）。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

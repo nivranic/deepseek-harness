@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Degraded-capable probes; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/degraded-probes-source.json",
+    "sha256": "f879ef7260c06ad029da0647e3302011af53518a75c292336cf2fc89b57a3770"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8fba09997cc1414c65d4d307e925ab0462aad03dcce48a3104b6cac3280b3254"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/degraded-probes-binding.json",
+    "sha256": "056cc40d26f8fe75a155d086670de20ca4b94b78ea37d9ba595197cdd079def4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-degraded-probes-reports.mjs",
+      "sha256": "4763bd0e8634a3f2403f62f7f6946d2c06c2418ca226521e78380d904b87f276"
+    },
+    {
+      "path": ".artifacts/capture-degraded-probes-validation.mjs",
+      "sha256": "ec5272b57a67482253658ce0a7dc79e204a93c1a2b5d54df13c003b7b62f9ed8"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "9fb1f880c04bc6116a318f614be38d73aa575fd4eb2fe17e8c66a047e649b47b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "b496962ef5a23d0a0112eda842018351eae7b9878e09f6d1616a9c74fdbc4379"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/degraded-probes-binding.log",
+      "sha256": "a7d9cbcc4b02387351ada6b3596b7c1fe3c389565b36a5a4ee57c47a8d23852d"
+    },
+    {
+      "path": ".artifacts/degraded-probes-audit-tests.log",
+      "sha256": "45afe52cedc94382243a052458ff8904ac80998bf72d2dc5009c9656e292dd18"
+    },
+    {
+      "path": ".artifacts/degraded-probes-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/degraded-probes-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/degraded-probes-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

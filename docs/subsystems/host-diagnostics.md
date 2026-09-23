@@ -6,7 +6,7 @@ Wire types of the host-diagnostics seam: the section 41 health/readiness snapsho
 
 ## Health and readiness
 
-Section 41 distinguishes liveness (the process answering) from readiness (whether Agent requests are acceptable). Health is presence-based in this first cut: every component names the service it probed, so a `down` is a missing owner, not a guessed cause. Readiness excludes the connection component — a profile without a network carrier (CLI, desktop pipe) is still a Host.
+Section 41 distinguishes liveness (the process answering) from readiness (whether Agent requests are acceptable). Health probes degrade where a partial-failure signal exists: composed owners are read deeper — failed plugin fibers degrade pluginState (readiness holds), a provider-less LLM owner degrades modelProvider and drops readiness, and a throwing inventory read degrades with the error class; every component still names the service it probed, so a `down` is a missing owner, not a guessed cause. Readiness excludes the connection component — a profile without a network carrier (CLI, desktop pipe) is still a Host.
 
 ```ts type-equiv
 /** One §41 health component's evaluated state; `degraded` is reserved for probe seams that can see partial failure. */
@@ -67,10 +67,16 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
 /**
  * Evaluate the six §41 health components. Answering IS the process and
  * runtime proof; the remaining components probe their owning services, so a
- * `down` names the missing owner instead of guessing a cause.
+ * `down` names the missing owner instead of guessing a cause. Composed
+ * owners are probed deeper: a loader with failed plugin fibers reports
+ * `degraded` without dropping readiness, an LLM owner with no registered
+ * provider reports `degraded` and drops readiness (no Agent request can
+ * run), and an inventory read that itself throws reports `degraded` naming
+ * the error class.
+ * @param signal - optional request cancellation for the inventory probe.
  * @returns the health snapshot with the derived readiness verdict.
  */
-@Remote('health') health(): HealthSnapshot
+@Remote('health') async health(signal?: AbortSignal): Promise<HealthSnapshot>
 
 /**
  * Compose the §42 diagnostics payload: the Host descriptor facts, the

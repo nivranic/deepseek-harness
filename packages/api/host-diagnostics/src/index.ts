@@ -44,8 +44,13 @@ interface InventoryOwner {
   list(signal?: AbortSignal): Promise<{ readonly entries: readonly {
     readonly moduleName: string
     readonly enabled: boolean
-    readonly fiberPhase: string
+    readonly fiberPhase: string | null
   }[] }>
+}
+
+/** Optional LLM owner shape the diagnostics service probes for provider readiness. */
+interface ModelProviderOwner {
+  listProviders(): readonly unknown[]
 }
 
 /** Optional settings-seam owner shape the diagnostics service reads for bundle rows. */
@@ -94,14 +99,20 @@ export class HostDiagnosticsService extends TypertRemoteService {
   /**
    * Evaluate the six §41 health components. Answering IS the process and
    * runtime proof; the remaining components probe their owning services, so a
-   * `down` names the missing owner instead of guessing a cause.
+   * `down` names the missing owner instead of guessing a cause. Composed
+   * owners are probed deeper: a loader with failed plugin fibers reports
+   * `degraded` without dropping readiness, an LLM owner with no registered
+   * provider reports `degraded` and drops readiness (no Agent request can
+   * run), and an inventory read that itself throws reports `degraded` naming
+   * the error class.
+   * @param signal - optional request cancellation for the inventory probe.
    * @returns the health snapshot with the derived readiness verdict.
    */
   @Remote('health')
-  health(): HealthSnapshot {
+  async health(signal?: AbortSignal): Promise<HealthSnapshot> {
     const sessionStore = presence(this.ctx.get('sessionPersistence'), 'sessionPersistence')
-    const pluginState = presence(this.ctx.get('loader'), 'loader')
-    const modelProvider = presence(this.ctx.get('llm'), 'llm')
+    const pluginState = await this.pluginHealth(signal)
+    const modelProvider = this.modelProviderHealth()
     // A profile without a network carrier (CLI, desktop pipe) is a legitimate
     // deployment, so an absent webserver reports down without affecting
     // readiness.
@@ -114,9 +125,35 @@ export class HostDiagnosticsService extends TypertRemoteService {
       connection,
       modelProvider,
       ready: sessionStore.state === 'up'
-        && pluginState.state === 'up'
+        && pluginState.state !== 'down'
         && modelProvider.state === 'up',
     }
+  }
+
+  /** Loader presence plus a failed-fiber probe: degraded is partial, readiness keeps holding. */
+  private async pluginHealth(signal?: AbortSignal): Promise<HealthComponent> {
+    const loader = this.ctx.get('loader') as object | undefined
+    if (loader === undefined) return presence(undefined, 'loader')
+    const inventory = this.ctx.get('pluginInventory') as InventoryOwner | undefined
+    if (inventory === undefined) return presence(loader, 'loader')
+    try {
+      const snapshot = await inventory.list(signal)
+      const failed = snapshot.entries.filter(entry => entry.fiberPhase === 'failed').length
+      return failed > 0
+        ? { state: 'degraded', detail: `${failed} plugin fiber(s) failed` }
+        : { state: 'up', detail: 'loader is composed' }
+    } catch (error) {
+      return { state: 'degraded', detail: `pluginInventory read failed (${error instanceof Error ? error.name : 'Error'})` }
+    }
+  }
+
+  /** LLM presence plus a provider probe: without a provider no Agent request can run. */
+  private modelProviderHealth(): HealthComponent {
+    const llm = this.ctx.get('llm') as ModelProviderOwner | undefined
+    if (llm === undefined) return presence(undefined, 'llm')
+    return llm.listProviders().length === 0
+      ? { state: 'degraded', detail: 'no model provider is registered' }
+      : { state: 'up', detail: 'llm is composed' }
   }
 
   /**
@@ -152,7 +189,7 @@ export class HostDiagnosticsService extends TypertRemoteService {
       migrations: MIGRATIONS,
       crash: this.recorder.crash,
       lastErrors: this.recorder.lastErrors,
-      health: this.health(),
+      health: await this.health(signal),
     }
   }
 
@@ -207,7 +244,8 @@ export class HostDiagnosticsService extends TypertRemoteService {
     return snapshot.entries.map(entry => ({
       moduleName: entry.moduleName,
       enabled: entry.enabled,
-      fiberPhase: entry.fiberPhase,
+      // The inventory projects disposed fibers as null; the §42 row names the phase.
+      fiberPhase: entry.fiberPhase ?? 'disposed',
     }))
   }
 }

@@ -5,67 +5,58 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "286a606055f76b43806312b142a572f07b50814345e5585d52450be1776b2757"
+      "sha256": "9fb1f880c04bc6116a318f614be38d73aa575fd4eb2fe17e8c66a047e649b47b"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "353e3b655163821bbbb40d502e6e8c4b2e2239656fe0e189ca9a2b056e336b39"
+      "sha256": "ebd9b7d46b26fccf6551cda291158fcf1f833a470467c703e9248cacf8ed8f5a"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "44289e0d0304a86f00533f111c3599ff661cc8225d902aa0a11735467e8adae1"
+      "sha256": "db6a6b45bc79e3f6307c80ff6df64045777514803e780b7ba973e4c5446e4df2"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "11cedf79ada7585928e6b44c0fbf03e5a43309a88961b2b86493bf367c9b9edc"
+      "sha256": "8fba09997cc1414c65d4d307e925ab0462aad03dcce48a3104b6cac3280b3254"
     },
     {
-      "path": "packages/client/connection/README.i18n.yaml",
-      "sha256": "3aa56eedf74fd5a553e21509a58ca924cd62b69b665df53e220b187b540fb6d0"
+      "path": "docs/subsystems/host-diagnostics.i18n.yaml",
+      "sha256": "57929e918ddb2b9a1d897146878c1c150fed41fc81b76684990ecfe67bc8562d"
     },
     {
-      "path": "packages/client/connection/README.md",
-      "sha256": "8cab0ae5462af2c88bcd1ece1355a19a650ceb466b5315e069e21bf33123c817"
+      "path": "docs/subsystems/host-diagnostics.md",
+      "sha256": "66cbbc65038dbbd24f873e55a17a9551f196d7e66cf9f84d22786bed9d65e004"
     },
     {
-      "path": "packages/client/connection/README.zh.md",
-      "sha256": "22ab6d86f967fb8f7e90cbfbfb3a8ce0b637a19dcc5875a67f9b5d8f375cab4e"
+      "path": "docs/subsystems/host-diagnostics.zh.md",
+      "sha256": "60da5e9360bdf2f17a7cbdcf96f1a70594b79b8d33717ee733247f33413e9a7b"
     },
     {
-      "path": "packages/client/connection/package.json",
-      "sha256": "e049da4030ba1897f29e954b2e5df7d04be5c52ad8c46c78bbc48fe53c4af12f"
+      "path": "packages/api/host-diagnostics/README.i18n.yaml",
+      "sha256": "6855f513f68fb1b900fd163abb364d02214ad997fa6e5da0e733689876313b6b"
     },
     {
-      "path": "packages/client/connection/src/client/index.ts",
-      "sha256": "8dd1f7db9b34a85a861295ab822dc3f4a7aa139dcab392966a027ac7a3b4d5c0"
+      "path": "packages/api/host-diagnostics/README.md",
+      "sha256": "54b7cc13be8fd22ab052e246de705c972c4ab0173cdb9776bb84dca437cf9a04"
     },
     {
-      "path": "packages/client/connection/tests/generation.client.spec.ts",
-      "sha256": "d85fcffa7d68f8eef021ec17060d4140d42b7bf5ea623bf17ee907f9d27d0359"
+      "path": "packages/api/host-diagnostics/README.zh.md",
+      "sha256": "cd2a03e4bdc898ec54c00bb15b63e44623e442aa6e3d6348e207b762fb7df440"
     },
     {
-      "path": "packages/client/connection/tsconfig.client.json",
-      "sha256": "cf77dd0bdd38846b6da2183d8b6115e5fcd3375bd4530a5681695528ae57c865"
+      "path": "packages/api/host-diagnostics/src/index.ts",
+      "sha256": "294c70117de774c9cfa9174366d8057113ade2b1c9176142a6e5e5c2b494836e"
     },
     {
-      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-      "sha256": "23b8760377049fb0a1abeec6b9b93dd3b663a46a82988914541437c61a23637f"
+      "path": "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
+      "sha256": "4ca2977b52a3c63f38c38963597e2c5097d8f45df762d81064d01d147420bb8b"
     },
     {
-      "path": "pnpm-lock.yaml",
-      "sha256": "7e4b6fe1d03d0b2ab9bbecab88aeb13d9fc46bdc37430163537a597e8061d501"
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "2e89706265ef50d330273a80a86303f4d88630f9b2ef71b63ba816c0041bab91"
     }
   ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "packages/client/connection/src/client/saved-hosts.ts",
-      "sha256": "2b0e156b0696de64b6f75faff8a3d0e8fc51bd63069aa8b0e2aed9bf40c761b2"
-    },
-    {
-      "path": "packages/client/connection/tests/saved-hosts.client.spec.ts",
-      "sha256": "44e3af756795f20d9ba4d97a7d8b96bf21d9b49cb1dbf15e07b2f54629c6ae27"
-    }
-  ],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -6891,6 +6882,42 @@
     },
     {
       "status": "PASS",
+      "command": "Degraded-probe suites (host-diagnostics 29: provider-less degradation dropping readiness, failed-fiber degradation keeping readiness, inventory-absent unchanged and throwing-inventory degradation, describe carrying the probed health): 29 passed, 0 failed",
+      "log": ".artifacts/degraded-probes-tests.log",
+      "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/degraded-probes-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/degraded-probes-lint.log",
+      "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the probe README/subsystem updates and catalog regeneration",
+      "log": ".artifacts/degraded-probes-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 41 probe note",
+      "log": ".artifacts/degraded-probes-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/degraded-probes-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7621,7 +7648,176 @@
       ]
     }
   },
+  "degradedProbes": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json",
+    "scope": "Degraded-capable probes (specification section 41): health() becomes async with the request signal forwarded and probes composed owners deeper where a partial-failure signal exists. pluginHealth reads the optional plugin inventory — failed plugin fibers degrade pluginState with the count in the detail while readiness keeps holding (partial capability loss is not unavailability), and an inventory read that itself throws degrades naming only the error class. modelProviderHealth reads the LLM owner through a local ModelProviderOwner structural interface — zero registered providers degrades modelProvider and drops readiness, because no Agent request can run. The ready verdict becomes sessionStore up AND pluginState not down AND modelProvider up; components without a partial-failure signal (sessionStore, connection) stay presence-based, and a down still names the missing owner rather than guessing a cause",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "limitations": [
+      "Components without a partial-failure signal (sessionStore, connection) stay presence-based; deeper degradation there waits on owner-side health surfaces.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 38 background/sleep + durable confirmation + cross-client recovery remain open; section 10 remainder (overflow menu entries once a toolbar set exists, permission-tier display); file matrix hardening (§34/§35); saved-hosts roster UI and the switch action need the retargetable connection endpoint seam plus shell placement; provider/relay/device-trust/crash telemetry exits wire to telemetryKindAllowed as their producers land; four-platform real-device same-candidate bundle runs remain open; iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "savedHosts": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/degraded-probes-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/saved-hosts-source.json",
     "scope": "Saved-Host roster foundation (specification section 28): dsh-client-connection gains client/saved-hosts.ts — SavedHostsStore upserts by hostId, orders most-recently-connected first, caps at MAX_SAVED_HOSTS=8, and notifies subscribers; a SavedHostsPersistence seam persists the roster (browserSavedHostsPersistence guards localStorage and yields none without storage, so such compositions keep an in-page roster), and the durable boundary validates every persisted row structurally, dropping corrupt rows instead of failing boot. The connection plugin records the identity facts of every descriptor-bearing established generation (a local ConnectionHostInfo descriptor declaration merge, type-identical to the remotes host-preparation merge; descriptor-less generations record nothing) with the page origin or the in-process fallback, and exposes the roster on ConnectionHandle.savedHosts. The active Host stays the generation-bound running-location chip; the roster UI and the switch action remain open behind the retargetable endpoint seam",
@@ -16611,7 +16807,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/saved-hosts-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/degraded-probes-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -17094,7 +17290,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "11cedf79ada7585928e6b44c0fbf03e5a43309a88961b2b86493bf367c9b9edc"
+        "sha256": "8fba09997cc1414c65d4d307e925ab0462aad03dcce48a3104b6cac3280b3254"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

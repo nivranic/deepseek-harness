@@ -6,7 +6,7 @@ Host 诊断接缝的 wire 类型：第 41 节 health/readiness 快照与第 42 �
 
 ## Health 与 readiness
 
-第 41 节区分存活（进程应答）与就绪（是否可接受 Agent 请求）。本第一版 health 基于存在性：每个组件指名它探测的服务，`down` 即缺失的 owner，而不是猜测的故障原因。readiness 不包含 connection 组件——无网络载体的 profile（CLI、desktop pipe）同样是 Host。
+第 41 节区分存活（进程应答）与就绪（是否可接受 Agent 请求）。health 在有部分故障信号处降级探测：已组合 owner 深读——失败插件 fiber 使 pluginState 降级（readiness 保持）、无提供方的 LLM owner 使 modelProvider 降级并拉低 ready、inventory 读取抛错以错误类别降级；每个组件仍指名它探测的服务，`down` 即缺失的 owner，而不是猜测的故障原因。readiness 不包含 connection 组件——无网络载体的 profile（CLI、desktop pipe）同样是 Host。
 
 ```ts type-equiv
 /** One §41 health component's evaluated state; `degraded` is reserved for probe seams that can see partial failure. */
@@ -67,10 +67,16 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
 /**
  * Evaluate the six §41 health components. Answering IS the process and
  * runtime proof; the remaining components probe their owning services, so a
- * `down` names the missing owner instead of guessing a cause.
+ * `down` names the missing owner instead of guessing a cause. Composed
+ * owners are probed deeper: a loader with failed plugin fibers reports
+ * `degraded` without dropping readiness, an LLM owner with no registered
+ * provider reports `degraded` and drops readiness (no Agent request can
+ * run), and an inventory read that itself throws reports `degraded` naming
+ * the error class.
+ * @param signal - optional request cancellation for the inventory probe.
  * @returns the health snapshot with the derived readiness verdict.
  */
-@Remote('health') health(): HealthSnapshot
+@Remote('health') async health(signal?: AbortSignal): Promise<HealthSnapshot>
 
 /**
  * Compose the §42 diagnostics payload: the Host descriptor facts, the

@@ -70,14 +70,14 @@ function bench(install?: (ctx: Context) => void): Bench {
 }
 
 describe('HostDiagnosticsService', () => {
-  it('reports every component up and ready when the core owners are composed', () => {
+  it('reports every component up and ready when the core owners are composed', async () => {
     const { service } = bench((ctx: Context) => {
       ctx.provide('sessionPersistence', {})
       ctx.provide('loader', {})
-      ctx.provide('llm', {})
+      ctx.provide('llm', { listProviders: () => [{ provider: 'deepseek-official' }] })
       ctx.provide('webServer', {})
     })
-    const health = service.health()
+    const health = await service.health()
     expect(health.process.state).toBe('up')
     expect(health.runtime.state).toBe('up')
     expect(health.sessionStore).toEqual({ state: 'up', detail: 'sessionPersistence is composed' })
@@ -87,13 +87,13 @@ describe('HostDiagnosticsService', () => {
     expect(health.ready).toBe(true)
   })
 
-  it('keeps readiness true without a webserver — a carrier-less profile is still a Host', () => {
+  it('keeps readiness true without a webserver — a carrier-less profile is still a Host', async () => {
     const { service } = bench((ctx: Context) => {
       ctx.provide('sessionPersistence', {})
       ctx.provide('loader', {})
-      ctx.provide('llm', {})
+      ctx.provide('llm', { listProviders: () => [{ provider: 'deepseek-official' }] })
     })
-    const health = service.health()
+    const health = await service.health()
     expect(health.connection).toEqual({
       state: 'down',
       detail: 'webServer is not composed',
@@ -101,9 +101,9 @@ describe('HostDiagnosticsService', () => {
     expect(health.ready).toBe(true)
   })
 
-  it('names the missing owner per component and drops readiness with it', () => {
+  it('names the missing owner per component and drops readiness with it', async () => {
     const { service } = bench()
-    const health = service.health()
+    const health = await service.health()
     expect(health.sessionStore).toEqual({ state: 'down', detail: 'sessionPersistence is not composed' })
     expect(health.pluginState.state).toBe('down')
     expect(health.modelProvider.state).toBe('down')
@@ -114,7 +114,7 @@ describe('HostDiagnosticsService', () => {
     const { service } = bench((ctx: Context) => {
       ctx.provide('sessionPersistence', {})
       ctx.provide('loader', {})
-      ctx.provide('llm', {})
+      ctx.provide('llm', { listProviders: () => [{ provider: 'deepseek-official' }] })
       ctx.provide('pluginInventory', {
         list: async () => ({
           entries: [
@@ -148,7 +148,7 @@ describe('HostDiagnosticsService', () => {
     const { service } = bench((ctx: Context) => {
       ctx.provide('sessionPersistence', {})
       ctx.provide('loader', {})
-      ctx.provide('llm', {})
+      ctx.provide('llm', { listProviders: () => [{ provider: 'deepseek-official' }] })
     })
     const snapshot = await service.describe()
     expect(Object.keys(snapshot).sort()).toEqual([
@@ -246,7 +246,7 @@ describe('Crash and last-error recorder (§42)', () => {
     const { ctx, service } = bench((ctx: Context) => {
       ctx.provide('sessionPersistence', { list: async () => [] })
       ctx.provide('loader', {})
-      ctx.provide('llm', {})
+      ctx.provide('llm', { listProviders: () => [{ provider: 'deepseek-official' }] })
     })
     ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 1, step: 1, error: new Error('boom') })
     const bundle = await service.supportBundle()
@@ -303,7 +303,7 @@ describe('Support bundle (§43)', () => {
     const { service } = bench((ctx: Context) => {
       ctx.provide('sessionPersistence', { list: async () => [] })
       ctx.provide('loader', {})
-      ctx.provide('llm', {})
+      ctx.provide('llm', { listProviders: () => [{ provider: 'deepseek-official' }] })
     })
     const bundle = await service.supportBundle()
     expect(bundle.entries).toHaveLength(1)
@@ -425,5 +425,63 @@ describe('Settings-export bundle entry (§43)', () => {
     const entry = settingsExportBundleEntry(rows)
     expect((entry.content as { namespaces: { ns: string }[] }).namespaces.map(row => row.ns)).toEqual(['aaa', 'zzz'])
     expect(settingsExportBundleEntry([...rows].reverse()).content).toEqual(entry.content)
+  })
+})
+
+describe('Degraded-capable probes (§41)', () => {
+  it('degrades the model provider and drops readiness when no provider is registered', async () => {
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('sessionPersistence', {})
+      ctx.provide('loader', {})
+      ctx.provide('llm', { listProviders: () => [] })
+    })
+    const health = await service.health()
+    expect(health.modelProvider).toEqual({ state: 'degraded', detail: 'no model provider is registered' })
+    expect(health.ready).toBe(false)
+  })
+
+  it('degrades plugin state on failed fibers without dropping readiness', async () => {
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('sessionPersistence', {})
+      ctx.provide('loader', {})
+      ctx.provide('llm', { listProviders: () => [{ provider: 'deepseek-official' }] })
+      ctx.provide('pluginInventory', {
+        list: async () => ({
+          entries: [
+            { moduleName: '@deepseek-ai/dsh-llm', enabled: true, fiberPhase: 'active' },
+            { moduleName: '@fixture/broken', enabled: true, fiberPhase: 'failed' },
+          ],
+        }),
+      })
+    })
+    const health = await service.health()
+    expect(health.pluginState).toEqual({ state: 'degraded', detail: '1 plugin fiber(s) failed' })
+    expect(health.ready).toBe(true)
+  })
+
+  it('a loader without the inventory stays up unchanged; a throwing inventory read degrades', async () => {
+    const plain = await bench((ctx: Context) => {
+      ctx.provide('loader', {})
+    }).service.health()
+    expect(plain.pluginState).toEqual({ state: 'up', detail: 'loader is composed' })
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('loader', {})
+      ctx.provide('pluginInventory', {
+        list: async () => { throw new TypeError('inventory exploded') },
+      })
+    })
+    const health = await service.health()
+    expect(health.pluginState).toEqual({ state: 'degraded', detail: 'pluginInventory read failed (TypeError)' })
+  })
+
+  it('describe() carries the probed health with the signal forwarded', async () => {
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('sessionPersistence', {})
+      ctx.provide('loader', {})
+      ctx.provide('llm', { listProviders: () => [] })
+    })
+    const snapshot = await service.describe()
+    expect(snapshot.health.modelProvider.state).toBe('degraded')
+    expect(snapshot.health.ready).toBe(false)
   })
 })

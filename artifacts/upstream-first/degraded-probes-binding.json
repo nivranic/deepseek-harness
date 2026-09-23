@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/degraded-probes-source.json",
+    "sha256": "f879ef7260c06ad029da0647e3302011af53518a75c292336cf2fc89b57a3770"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8fba09997cc1414c65d4d307e925ab0462aad03dcce48a3104b6cac3280b3254"
+  },
+  "helper": {
+    "path": ".artifacts/check-degraded-probes-binding.mjs",
+    "sha256": "a23682028beb8f93f50af24f272fe3452dda8809fbf1c70201499533aab96fee"
+  }
+}

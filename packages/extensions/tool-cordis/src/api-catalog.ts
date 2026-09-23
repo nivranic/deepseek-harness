@@ -1186,9 +1186,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     description: 'Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.',
     methods: [
       {
-        signature: '@Remote(\'health\') health(): HealthSnapshot',
-        description: 'Evaluate the six §41 health components. Answering IS the process and runtime proof; the remaining components probe their owning services, so a `down` names the missing owner instead of guessing a cause.',
-        parameters: [],
+        signature: '@Remote(\'health\') async health(signal?: AbortSignal): Promise<HealthSnapshot>',
+        description: 'Evaluate the six §41 health components. Answering IS the process and runtime proof; the remaining components probe their owning services, so a `down` names the missing owner instead of guessing a cause. Composed owners are probed deeper: a loader with failed plugin fibers reports `degraded` without dropping readiness, an LLM owner with no registered provider reports `degraded` and drops readiness (no Agent request can run), and an inventory read that itself throws reports `degraded` naming the error class.',
+        parameters: [{ name: 'signal', description: 'optional request cancellation for the inventory probe.' }],
         returns: 'the health snapshot with the derived readiness verdict.',
       },
       {

@@ -37,7 +37,7 @@ None; health and diagnostics reads do not alter a model request.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Health is presence-based** — a `down` names the missing owning service; component probes that can see partial failure (`degraded`) remain open.
+- **Degraded probes cover partial failure where a signal exists** — failed plugin fibers and a provider-less LLM owner degrade; components without a partial-failure signal (sessionStore, connection) stay presence-based.
 - **Crash and last-error recording is always on** — a pid-safe boot marker under `$DSH_HOME` turns an unclean previous shutdown into a durable capped crash log, and the agent error relay fills a process-local capped ring; facts carry identity and text only.
 - **No client surface yet** — the payload's consumers (settings, support collection) land with their increments; the seam and its wire are the contract.
 

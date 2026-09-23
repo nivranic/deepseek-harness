@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 降级探测（§41 接缝闭合）
+
+[当前来源记录](artifacts/upstream-first/degraded-probes-source.json)把 §41 health 从纯存在性升级为降级探测：health() 转 async 并接受 signal——已组合的 loader 深读 pluginInventory，失败 fiber 计数 >0 时 pluginState 降级（detail 指名数量，ready 保持——部分能力损失不等于不可服务）；llm 组合后 listProviders() 为空时 modelProvider 降级并拉低 ready（无提供方即无法接受 Agent 请求，detail 'no model provider is registered'）；inventory 读取抛错以错误类别降级（只取 error.name，不泄配置）。ready 判定改为 sessionStore up && pluginState 非 down && modelProvider up；sessionStore/connection 无部分故障信号，保持存在性。本地结构类型 ModelProviderOwner（listProviders）+ InventoryOwner fiberPhase 扩为 string|null 对齐真实投影（null 投影为 'disposed' 行）。测试 29 项（新 4：无提供方降级+ready 拉低、失败 fiber 降级+ready 保持、无 inventory 不变/抛错降级、describe 携带探测结果）。
+
 ## Saved-Hosts 名册基础（§28）
 
-[当前来源记录](artifacts/upstream-first/saved-hosts-source.json)落地 §28 名册基础：dsh-client-connection 新增 client/saved-hosts.ts——SavedHostsStore（hostId 键 upsert、lastConnectedAt 降序、上限 MAX_SAVED_HOSTS=8、subscribe 通知）经 SavedHostsPersistence 持久化（browserSavedHostsPersistence 守卫 localStorage，缺省回退进程内），durable 边界 parseRow 逐行结构校验、损坏行丢弃不崩启动；apply() 在每次已建立世代发布时经本地 ConnectionHostInfo descriptor 声明合并（与 remotes host-preparation 同型，HostDescriptor 类型一致）记录身份事实（origin 取页面 origin、缺省 'in-process'），无描述符世代不记录；ConnectionHandle 暴露 savedHosts。active Host 展示沿用运行位置 chip。测试 203 项（新 7：upsert 排序、上限、跨存储生命周期、损坏行丢弃、remove/订阅、适配器、世代记录集成）。名册 UI 与切换动作仍需可重定向连接端点接缝，开放。
+[历史来源记录](artifacts/upstream-first/saved-hosts-source.json)落地 §28 名册基础：dsh-client-connection 新增 client/saved-hosts.ts——SavedHostsStore（hostId 键 upsert、lastConnectedAt 降序、上限 MAX_SAVED_HOSTS=8、subscribe 通知）经 SavedHostsPersistence 持久化（browserSavedHostsPersistence 守卫 localStorage，缺省回退进程内），durable 边界 parseRow 逐行结构校验、损坏行丢弃不崩启动；apply() 在每次已建立世代发布时经本地 ConnectionHostInfo descriptor 声明合并（与 remotes host-preparation 同型，HostDescriptor 类型一致）记录身份事实（origin 取页面 origin、缺省 'in-process'），无描述符世代不记录；ConnectionHandle 暴露 savedHosts。active Host 展示沿用运行位置 chip。测试 203 项（新 7：upsert 排序、上限、跨存储生命周期、损坏行丢弃、remove/订阅、适配器、世代记录集成）。名册 UI 与切换动作仍需可重定向连接端点接缝，开放。
 
 ## SessionTelemetry 出口接线（§44 默认关闭生效）
 
