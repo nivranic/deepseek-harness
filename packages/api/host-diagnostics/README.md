@@ -8,7 +8,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`, permission `view`) for the diagnostics slice. `health()` answers the section 41 liveness/readiness distinction: six components — process, runtime, sessionStore, pluginState, connection, modelProvider — each with a state and a detail naming the probed service, plus the derived `ready` verdict (connection is excluded: a carrier-less profile is still a Host). `describe()` composes the section 42 payload — descriptor facts, plugin inventory rows, the released migration chain, and the health snapshot — sanitized by construction, the field set enumerates non-secret facts only — no API key, bearer, pairing secret, or raw credential can reach it.
+One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`, permission `view`) owns the diagnostics slice. `health()` answers the section 41 liveness/readiness distinction: six components (process, runtime, sessionStore, pluginState, connection, modelProvider), each with a state and a detail naming the probed service, plus the `ready` verdict — connection excluded: a carrier-less profile is still a Host. `describe()` composes the section 42 payload — descriptor facts, plugin inventory rows, the migration chain, recorded crash and last-error facts, and the health snapshot — sanitized by construction: only non-secret facts are enumerated, so no API key, bearer, pairing secret, or raw credential can reach it.
 
 ## Table of Contents
 
@@ -37,7 +37,8 @@ None; health and diagnostics reads do not alter a model request.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Health is presence-based** — a `down` names the missing owning service; component probes that can see partial failure (`degraded`) and a crash/last-error recorder seam remain open with the bundle-content increment.
+- **Health is presence-based** — a `down` names the missing owning service; component probes that can see partial failure (`degraded`) remain open with the bundle-content increment.
+- **Crash and last-error recording is always on** — a pid-safe boot marker under `$DSH_HOME` turns an unclean previous shutdown into a durable capped crash log, and the agent error relay fills a process-local capped ring; facts carry identity and text only.
 - **No client surface yet** — the payload's consumers (settings, support collection) land with their increments; the seam and its wire are the contract.
 
 <a id="dev-note"></a>

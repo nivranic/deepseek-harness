@@ -9,6 +9,7 @@
     "src/capabilities.ts",
     "src/client.ts",
     "src/index.ts",
+    "src/recorder.ts",
     "src/support-bundle.ts",
     "src/types.ts"
   ],
@@ -36,6 +37,12 @@
     },
     {
       "path": "../host-description"
+    },
+    {
+      "path": "../../core/agent"
+    },
+    {
+      "path": "../../util/home-paths"
     }
   ]
 }

@@ -5,78 +5,95 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "6a4c56e50581a71f162c1cf86c29883abd3bffaa7c5b93c3cd626658fb65098a"
+      "sha256": "0f41334168b97a8f5daf698e491416796154a5b17fe102e6a690599cc556047e"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "3e5b60d548455156adf4b6ebf14e9d0dbfb9c0eb1e969dd0acade21ae3be3b8c"
+      "sha256": "3e43d4eb3833a764271728ad682eeed56abfa901eaffb53ddf8035ea4ddbb1a6"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "8dcd1970dd22ba014190dac10e8a7db44bd0c376051c4e9a59e59fc49b9e629c"
+      "sha256": "2204adfa45f2d1ba6562ce2af3dd21cf65526de40e424c5e590ce6ccf819b8d1"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "60882ac3777588c6acf5dcf6bab942502e2f0edf6ffe287386a911c883030644"
+      "sha256": "3b81e95966bd145751f011957dc4af5d32b5bcee10aa12545ac8c129794ecf22"
     },
     {
-      "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "d2c3eb40335d974ee28f6f4587747d1d010093c0dc114013471727e5d0c11fa2"
+      "path": "docs/event-producer-consumer.i18n.yaml",
+      "sha256": "04e5c3c96ce4f8562b7d3a94e290dbcc3d2c3b2d75ebae65ce256c7e74ba59b1"
     },
     {
-      "path": "docs/config-catalog.md",
-      "sha256": "6614c06ed900a23582f32bb03348c341436ab1de092918cf6000324b942ef8d5"
+      "path": "docs/event-producer-consumer.md",
+      "sha256": "26d29256da2e54dd421fc411eb5e72c3dc24e31e2a3889e19276715d932478da"
     },
     {
-      "path": "docs/config-catalog.zh.md",
-      "sha256": "6bac12f2017b7a1b97e7a1ef79517b55fafe9d2fbf0ddbfc4e9b4dbd0891e5b4"
+      "path": "docs/event-producer-consumer.zh.md",
+      "sha256": "ff4ef5dc1e5ced49a9810f5cfc810f4b69c55e5c3ad53a01e174a33637cd82ed"
+    },
+    {
+      "path": "docs/subsystems/host-diagnostics.i18n.yaml",
+      "sha256": "e85f8a8ea2ba914b8e7fc08a4f503ec39cd2dbbbbe4b32e4132d3b346107cc12"
+    },
+    {
+      "path": "docs/subsystems/host-diagnostics.md",
+      "sha256": "ff61cd0b66e6767e7cdb8181e99ef8fd40d16b642b019639ba6f862d4fffcdd9"
+    },
+    {
+      "path": "docs/subsystems/host-diagnostics.zh.md",
+      "sha256": "860e0de65b08d6ad36e763b4b9217aafa2bcdb759e12671fc4095d1009f3854d"
+    },
+    {
+      "path": "packages/api/host-diagnostics/README.i18n.yaml",
+      "sha256": "3af97f9c50b78fbe4b8ca99dbdad235892b5f849118972272af2b367f4582769"
+    },
+    {
+      "path": "packages/api/host-diagnostics/README.md",
+      "sha256": "38cabb6a411ce64d0659129a0bed8c5e92142fd90dc0782e23da72a94c2dd662"
+    },
+    {
+      "path": "packages/api/host-diagnostics/README.zh.md",
+      "sha256": "0af9040e057deefbbb39231f62f0c1ca6757594638adfddd08efa41707604735"
+    },
+    {
+      "path": "packages/api/host-diagnostics/package.json",
+      "sha256": "741c242a258dfc1599a449448c6bf0f7d0552b620c4ceff915aec21eee8c1610"
+    },
+    {
+      "path": "packages/api/host-diagnostics/src/index.ts",
+      "sha256": "cf5ee6ab28c4c8c0f96f74576c5985d351b4ce04f4be8d392ac0e16d558aceef"
+    },
+    {
+      "path": "packages/api/host-diagnostics/src/types.ts",
+      "sha256": "9837f81ab1a6d3707be99d60cc9582e5d706eb2ef037e909ef6e6dc9a6344f2b"
+    },
+    {
+      "path": "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
+      "sha256": "3bdc34223774d5cd9595899b389cbc5e33635257c68ad941d9cb86b664d75602"
+    },
+    {
+      "path": "packages/api/host-diagnostics/tsconfig.host.json",
+      "sha256": "dfdd433d2d47e89ff88f1133cd6aae8568f37f59ca7fcc50a90644becd1a363c"
+    },
+    {
+      "path": "packages/api/host-diagnostics/tsconfig.json",
+      "sha256": "34636d1aaac1302322cb1d583e639c02a9792113b17d4c390df1f047114491e7"
     },
     {
       "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "3359c542068f0a07b8fbd7d95ab6e883ba9de8f17a68938e3fe7c9a5af3337d1"
+      "sha256": "515f27a548ac7b60e3b3834998c65883008bac4f1da84ab3203875f754d3cc67"
     },
     {
-      "path": "packages/session/session-telemetry-otel/README.i18n.yaml",
-      "sha256": "c0b4df7b68b29aff13f7183ccdd8617837cbc7b8e5222a518fb233a1afedc20b"
-    },
-    {
-      "path": "packages/session/session-telemetry-otel/README.md",
-      "sha256": "0a6abd3302bb4109efde7bcb51ee69f983db383a2df0b60fca1f99a97454d036"
-    },
-    {
-      "path": "packages/session/session-telemetry-otel/README.zh.md",
-      "sha256": "9b209b1bbbc069ecdab1f368fbf649408cd033bef269b8e700dd538f60f503e2"
-    },
-    {
-      "path": "packages/session/session-telemetry-otel/src/index.ts",
-      "sha256": "cb97d83b8ea7e301b39bea537622a9e703e1721e2b550a9b73a6ac8f886bd4ef"
-    },
-    {
-      "path": "packages/session/session-telemetry-otel/tests/otel.spec.ts",
-      "sha256": "1991abde1a28a9b738ce401efa774ca28ec6412d2f4ca9d4cbc8cadcfd75504b"
-    },
-    {
-      "path": "packages/session/session-telemetry/README.i18n.yaml",
-      "sha256": "14cbfc7e92ebace0966e7c308e5b2ca001856633320c49ddc29c32b81c4c74e4"
-    },
-    {
-      "path": "packages/session/session-telemetry/README.md",
-      "sha256": "7ea3aab74cae400bd5caf4b346c6323ae48152e0aef4fee19ff0012f3a7b0337"
-    },
-    {
-      "path": "packages/session/session-telemetry/README.zh.md",
-      "sha256": "db733670e43f1609f44df24256dcfc73ace761f09b24a36ce555213b0b92922b"
-    },
-    {
-      "path": "packages/session/session-telemetry/src/index.ts",
-      "sha256": "3d7502690e16f09ca0d0f9df7ee43c3c82bce2d802e1c67b48b8bef5055c8377"
-    },
-    {
-      "path": "packages/session/session-telemetry/tests/telemetry.spec.ts",
-      "sha256": "55fb57f65ff0a8ad6e5884295ec167510d5353a882a1532accfed594a5672bab"
+      "path": "pnpm-lock.yaml",
+      "sha256": "78c6391a63a9c1af4d28cfb3f2eae982319f142c188cac6e5eb56e2269b7ccd6"
     }
   ],
-  "candidateUntrackedSourceChanges": [],
+  "candidateUntrackedSourceChanges": [
+    {
+      "path": "packages/api/host-diagnostics/src/recorder.ts",
+      "sha256": "fb600d556518c9432ab8e6be6d4b06d6f8df3babcaf989941b80663a53ed2478"
+    }
+  ],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -6722,6 +6739,42 @@
     },
     {
       "status": "PASS",
+      "command": "Recorder suites (host-diagnostics 18: relay recording, ring cap, crash detection, concurrent-run pid, unparsable marker, clean-dispose marker removal, durable capped log, bundle-valid facts; tool-cordis catalog 11): 29 passed, 0 failed",
+      "log": ".artifacts/recorder-tests.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/recorder-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/recorder-lint.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the recorder sections, catalog/doc-graph regens, and the agent/error consumer row",
+      "log": ".artifacts/recorder-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 41/42 recorder notes",
+      "log": ".artifacts/recorder-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/recorder-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7452,7 +7505,171 @@
       ]
     }
   },
+  "diagnosticsRecorder": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json",
+    "scope": "Crash and last-error recorder (specification sections 41/42): the honestly-empty recording seam closes. DiagnosticsRecorder is always on, owned by the service constructor. A pid-safe boot marker under $DSH_HOME (diagnostics-crash.marker) detects an unclean previous shutdown at boot — a live pid is a concurrent run, not a crash; an unparsable marker still proves the run never cleaned up and falls back to the file mtime — and appends capped facts (8) to a durable diagnostics-crash-log.json that survives restarts. The agent error relay (agent/error) fills a process-local ring (10) of normalized facts (time/name/message/agentId/turn/step; non-Error values normalize to Error/String). describe() promotes crash/lastErrors from string[] to the structured DiagnosticsCrashFact/DiagnosticsErrorFact wire types on the ./types outlet; sanitized by construction stands — facts carry identity and text only, and the §43 bundle validator accepts snapshots carrying them. Cordis ctx.effect semantics are pinned: the effect body runs at registration, the returned function is the cleanup",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "limitations": [
+      "Crash detection is boot-marker based: a hard kill between marker write and the next boot is detected, but a recycled pid colliding with a live process is honestly missed; the crash log is bounded at 8 facts.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "per-kind producer wiring remains: provider/relay/device-trust/crash exits must call telemetryKindAllowed before their kind leaves (the recorder fills the local crash/lastErrors source; the leaving exits are still to be wired); bundle content entries beyond diagnostics (session logs, settings exports) and four-platform real-device same-candidate runs remain open; degraded-capable probes seam open; section 28 multi-Host roster (saved-hosts list, switching action, retargetable connection seam) remains open; section 38 background/sleep + durable confirmation + cross-client recovery remain open; section 10 remainder (overflow menu entries once a toolbar set exists, permission-tier display); file matrix hardening (§34/§35); iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "telemetryConsent": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/diagnostics-recorder-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/telemetry-consent-source.json",
     "scope": "Typed telemetry consent (specification section 44): a five-kind consent vocabulary lands on the session-telemetry seam and its only backend. The seam owns TelemetryDataKind (sessionTelemetry, providerMetadata, relayMetadata, deviceTrustMetadata, crashDiagnostics), the per-kind TelemetryConsent boolean record, the frozen TELEMETRY_CONSENT_OFF default, telemetryKindAllowed as the strict-true gate producers call before one of these kinds leaves the process, and resolveTelemetryConsent which resolves partial config against the all-off default (anything but boolean true stays off). SessionTelemetryBackend gains abstract consent beside sharing. The OpenTelemetry backend surfaces Config.consent (schemastery validates each kind as boolean, absent kinds default off, non-boolean values are refused at load), resolves it in both modes at construction, and exposes it through ctx.sessionTelemetry.consent while mode/sharing remain the upload policy",
@@ -15612,7 +15829,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/telemetry-consent-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/diagnostics-recorder-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -16095,7 +16312,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "60882ac3777588c6acf5dcf6bab942502e2f0edf6ffe287386a911c883030644"
+        "sha256": "3b81e95966bd145751f011957dc4af5d32b5bcee10aa12545ac8c129794ecf22"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

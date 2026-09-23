@@ -1193,7 +1193,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: '@Remote(\'describe\') async describe(signal?: AbortSignal): Promise<DiagnosticsSnapshot>',
-        description: 'Compose the §42 diagnostics payload: the Host descriptor facts, the Loader inventory, the released migration chain, and the health snapshot.',
+        description: 'Compose the §42 diagnostics payload: the Host descriptor facts, the Loader inventory, the released migration chain, the recorder\'s crash and last-error facts, and the health snapshot.',
         parameters: [{ name: 'signal', description: 'optional request cancellation; a cancelled inventory read aborts the composition.' }],
         returns: 'the sanitized diagnostics snapshot.',
       },
@@ -4271,6 +4271,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface DeviceView {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n    readonly platform?: string;\n    readonly lastSeenAt?: number;\n    readonly revokedAt?: number;\n}',
   },
   {
+    name: 'DiagnosticsCrashFact',
+    declaration: 'export interface DiagnosticsCrashFact {\n    readonly pid: number;\n    readonly runStartedAt: number;\n}',
+  },
+  {
+    name: 'DiagnosticsErrorFact',
+    declaration: 'export interface DiagnosticsErrorFact {\n    readonly time: number;\n    readonly name: string;\n    readonly message: string;\n    readonly agentId: string;\n    readonly turn: number;\n    readonly step: number;\n}',
+  },
+  {
     name: 'DiagnosticsMigration',
     declaration: 'export interface DiagnosticsMigration {\n    readonly name: string;\n    readonly fromVersion: number;\n    readonly toVersion: number;\n}',
   },
@@ -4280,7 +4288,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'DiagnosticsSnapshot',
-    declaration: 'export interface DiagnosticsSnapshot {\n    readonly productVersion: string;\n    readonly apiProtocolVersion: number;\n    readonly sessionFormatVersion: number;\n    readonly hostId: HostId;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: string;\n    readonly nodeVersion: string;\n    readonly transports: readonly string[];\n    readonly capabilities: readonly string[];\n    readonly plugins: readonly DiagnosticsPlugin[];\n    readonly migrations: readonly DiagnosticsMigration[];\n    readonly crash: readonly string[];\n    readonly lastErrors: readonly string[];\n    readonly health: HealthSnapshot;\n}',
+    declaration: 'export interface DiagnosticsSnapshot {\n    readonly productVersion: string;\n    readonly apiProtocolVersion: number;\n    readonly sessionFormatVersion: number;\n    readonly hostId: HostId;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: string;\n    readonly nodeVersion: string;\n    readonly transports: readonly string[];\n    readonly capabilities: readonly string[];\n    readonly plugins: readonly DiagnosticsPlugin[];\n    readonly migrations: readonly DiagnosticsMigration[];\n    readonly crash: readonly DiagnosticsCrashFact[];\n    readonly lastErrors: readonly DiagnosticsErrorFact[];\n    readonly health: HealthSnapshot;\n}',
   },
   {
     name: 'DiffCallView',

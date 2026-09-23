@@ -24,7 +24,7 @@ interface DiagnosticsMigration {
 
 ## 构造即脱敏的载荷
 
-第 42 节载荷以构造方式脱敏：字段集即非秘密事实的枚举——任何 API key、bearer、配对秘密或原始凭据都无法到达它。crash 与 last-error 尚无记录接缝，在它落地前这两个数组保持为空。
+第 42 节载荷以构造方式脱敏：字段集即非秘密事实的枚举——任何 API key、bearer、配对秘密或原始凭据都无法到达它。crash 与 last-error 记录常开：`$DSH_HOME` 下 pid 安全的启动标记把上一次未干净关闭识别为持久且有上限的 crash 日志（pid 仍在运行属并发运行而非 crash），agent 错误 relay 填充进程本地且有上限的规范化事实环形记录。
 
 ```ts type-equiv
 /** One §42 plugin row: inventory facts only, never configuration values. */
@@ -74,7 +74,8 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
 
 /**
  * Compose the §42 diagnostics payload: the Host descriptor facts, the
- * Loader inventory, the released migration chain, and the health snapshot.
+ * Loader inventory, the released migration chain, the recorder's crash and
+ * last-error facts, and the health snapshot.
  * @param signal - optional request cancellation; a cancelled inventory read
  * aborts the composition.
  * @returns the sanitized diagnostics snapshot.

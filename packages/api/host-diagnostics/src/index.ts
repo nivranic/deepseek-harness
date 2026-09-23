@@ -16,6 +16,7 @@ import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
+import { DiagnosticsRecorder } from './recorder.ts'
 import { buildSupportBundle, diagnosticsBundleEntry, validateSupportBundle } from './support-bundle.ts'
 import type { SupportBundle } from './types.ts'
 import type {
@@ -55,8 +56,11 @@ function presence(owner: unknown, serviceName: string): HealthComponent {
 
 /** Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts. */
 export class HostDiagnosticsService extends TypertRemoteService {
+  private readonly recorder: DiagnosticsRecorder
+
   constructor(ctx: Context) {
     super(ctx, 'hostDiagnostics', { namespace: 'hostDiagnostics', capabilities: HOST_DIAGNOSTICS_REMOTE_CAPABILITIES })
+    this.recorder = new DiagnosticsRecorder(ctx)
   }
 
   /**
@@ -89,7 +93,8 @@ export class HostDiagnosticsService extends TypertRemoteService {
 
   /**
    * Compose the §42 diagnostics payload: the Host descriptor facts, the
-   * Loader inventory, the released migration chain, and the health snapshot.
+   * Loader inventory, the released migration chain, the recorder's crash and
+   * last-error facts, and the health snapshot.
    * @param signal - optional request cancellation; a cancelled inventory read
    * aborts the composition.
    * @returns the sanitized diagnostics snapshot.
@@ -117,8 +122,8 @@ export class HostDiagnosticsService extends TypertRemoteService {
       capabilities: descriptor.capabilities,
       plugins,
       migrations: MIGRATIONS,
-      crash: [],
-      lastErrors: [],
+      crash: this.recorder.crash,
+      lastErrors: this.recorder.lastErrors,
       health: this.health(),
     }
   }

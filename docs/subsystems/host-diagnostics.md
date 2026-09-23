@@ -24,7 +24,7 @@ interface DiagnosticsMigration {
 
 ## Sanitized payload
 
-The section 42 payload is sanitized by construction: the field set is the enumeration of non-secret facts — no API key, bearer, pairing secret, or raw credential can reach it. Crash and last-error recording has no seam yet, so those arrays stay empty until it lands.
+The section 42 payload is sanitized by construction: the field set is the enumeration of non-secret facts — no API key, bearer, pairing secret, or raw credential can reach it. Crash and last-error recording is always on: a pid-safe boot marker under `$DSH_HOME` turns an unclean previous shutdown into a durable capped crash log (a live pid is a concurrent run, not a crash), and the agent error relay fills a process-local capped ring of normalized facts.
 
 ```ts type-equiv
 /** One §42 plugin row: inventory facts only, never configuration values. */
@@ -74,7 +74,8 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
 
 /**
  * Compose the §42 diagnostics payload: the Host descriptor facts, the
- * Loader inventory, the released migration chain, and the health snapshot.
+ * Loader inventory, the released migration chain, the recorder's crash and
+ * last-error facts, and the health snapshot.
  * @param signal - optional request cancellation; a cancelled inventory read
  * aborts the composition.
  * @returns the sanitized diagnostics snapshot.

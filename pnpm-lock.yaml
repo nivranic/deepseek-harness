@@ -952,12 +952,18 @@ importers:
       '@deepseek-ai/cordis':
         specifier: workspace:^
         version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
       '@deepseek-ai/dsh-api-gateway':
         specifier: workspace:^
         version: link:../gateway
       '@deepseek-ai/dsh-api-host-description':
         specifier: workspace:^
         version: link:../host-description
+      '@deepseek-ai/dsh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
       '@deepseek-ai/dsh-session-format-v0-to-v1':
         specifier: workspace:^
         version: link:../../session/session-format-v0-to-v1

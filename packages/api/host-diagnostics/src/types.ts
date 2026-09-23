@@ -43,6 +43,22 @@ export interface DiagnosticsPlugin {
   readonly fiberPhase: string
 }
 
+/** One detected unclean shutdown: the run holding `pid` started at `runStartedAt` and never reached clean disposal; pid 0 means unknown. */
+export interface DiagnosticsCrashFact {
+  readonly pid: number
+  readonly runStartedAt: number
+}
+
+/** One normalized agent error recorded for diagnostics: identity and text only, no payload or stack. */
+export interface DiagnosticsErrorFact {
+  readonly time: number
+  readonly name: string
+  readonly message: string
+  readonly agentId: string
+  readonly turn: number
+  readonly step: number
+}
+
 /**
  * §42 cross-platform diagnostics payload. Sanitized by construction: the
  * field set is this enumeration of non-secret facts — no API keys, bearers,
@@ -61,9 +77,10 @@ export interface DiagnosticsSnapshot {
   readonly capabilities: readonly string[]
   readonly plugins: readonly DiagnosticsPlugin[]
   readonly migrations: readonly DiagnosticsMigration[]
-  /** Crash and last-error recording has no seam yet; the arrays stay empty until it lands. */
-  readonly crash: readonly string[]
-  readonly lastErrors: readonly string[]
+  /** Detected unclean shutdowns, oldest first within the durable log's cap. */
+  readonly crash: readonly DiagnosticsCrashFact[]
+  /** The newest agent errors, oldest first within the process-local cap. */
+  readonly lastErrors: readonly DiagnosticsErrorFact[]
   readonly health: HealthSnapshot
 }
 

@@ -1,11 +1,17 @@
-/** §41 health/readiness and §42 sanitized diagnostics payload over the Host owner. */
+/** §41 health/readiness, §42 sanitized payload with crash/last-error recording, and the §43 bundle over the Host owner. */
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
-import { describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
+import type { Agent } from '@deepseek-ai/dsh-agent'
 import { sessionFormatV0ToV1 } from '@deepseek-ai/dsh-session-format-v0-to-v1'
 import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
 import { HostDiagnosticsService, buildSupportBundle, validateSupportBundle } from '../src/index.ts'
+import type { DiagnosticsErrorFact } from '../src/index.ts'
+import { MAX_CRASH_FACTS, MAX_LAST_ERROR_FACTS } from '../src/recorder.ts'
 
 const descriptor = (): HostDescriptor => ({
   hostId: 'host-1' as HostDescriptor['hostId'],
@@ -24,14 +30,42 @@ const descriptor = (): HostDescriptor => ({
 interface Bench {
   readonly ctx: Context
   readonly service: HostDiagnosticsService
+  readonly home: string
+}
+
+const homes: string[] = []
+afterAll(() => {
+  for (const home of homes.splice(0)) rmSync(home, { recursive: true, force: true })
+})
+
+/** A pid far outside any live process's range, so the boot scan reads it as a dead run. */
+const DEAD_PID = 4_194_303
+
+function freshHome(): string {
+  const home = mkdtempSync(join(tmpdir(), 'dsh-diagnostics-home-'))
+  homes.push(home)
+  return home
+}
+
+function boot(install: ((ctx: Context) => void) | undefined, home: string, provideDescription = true): Bench {
+  // The recorder resolves $DSH_HOME at construction; pin the bench's home for
+  // that window so marker state never touches ~/.dsh or leak between tests.
+  const previous = process.env.DSH_HOME
+  process.env.DSH_HOME = home
+  try {
+    const ctx = new Context()
+    if (provideDescription) ctx.provide('hostDescription', { describe: descriptor })
+    install?.(ctx)
+    const service = new HostDiagnosticsService(ctx)
+    return { ctx, service, home }
+  } finally {
+    if (previous === undefined) delete process.env.DSH_HOME
+    else process.env.DSH_HOME = previous
+  }
 }
 
 function bench(install?: (ctx: Context) => void): Bench {
-  const ctx = new Context()
-  ctx.provide('hostDescription', { describe: descriptor })
-  install?.(ctx)
-  const service = new HostDiagnosticsService(ctx)
-  return { ctx, service }
+  return boot(install, freshHome())
 }
 
 describe('HostDiagnosticsService', () => {
@@ -126,12 +160,99 @@ describe('HostDiagnosticsService', () => {
   })
 
   it('fails loud when the host description owner is not composed', async () => {
-    const ctx = new Context()
-    const service = new HostDiagnosticsService(ctx)
+    const { service } = boot(undefined, freshHome(), false)
     await expect(service.describe()).rejects.toMatchObject({
       code: 'gateway/service-unavailable',
       details: { endpoint: 'hostDiagnostics/describe' },
     })
+  })
+})
+
+describe('Crash and last-error recorder (§42)', () => {
+  it('records normalized agent errors into the ring from the agent error relay', async () => {
+    const { ctx, service } = bench()
+    ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 3, step: 2, error: new TypeError('boom') })
+    ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 4, step: 1, error: 'plain failure' })
+    const snapshot = await service.describe()
+    const anyTime = expect.any(Number) as number
+    expect(snapshot.lastErrors).toEqual([
+      { time: anyTime, name: 'TypeError', message: 'boom', agentId: 'agent-1', turn: 3, step: 2 },
+      { time: anyTime, name: 'Error', message: 'plain failure', agentId: 'agent-1', turn: 4, step: 1 },
+    ] satisfies DiagnosticsErrorFact[])
+  })
+
+  it('keeps only the newest MAX_LAST_ERROR_FACTS errors', async () => {
+    const { ctx, service } = bench()
+    for (let index = 0; index < MAX_LAST_ERROR_FACTS + 3; index++) {
+      ctx.emit('agent/error', { agent: { id: `agent-${index}` } as Agent, turn: 1, step: 1, error: new Error(`e${index}`) })
+    }
+    const snapshot = await service.describe()
+    expect(snapshot.lastErrors).toHaveLength(MAX_LAST_ERROR_FACTS)
+    expect(snapshot.lastErrors[0]?.agentId).toBe('agent-3')
+    expect(snapshot.lastErrors.at(-1)?.message).toBe(`e${MAX_LAST_ERROR_FACTS + 2}`)
+  })
+
+  it('detects an unclean previous shutdown at boot and persists the crash log', async () => {
+    const home = freshHome()
+    writeFileSync(join(home, 'diagnostics-crash.marker'), `${JSON.stringify({ pid: DEAD_PID, runStartedAt: 123 })}\n`)
+    const { service } = boot(undefined, home)
+    const snapshot = await service.describe()
+    expect(snapshot.crash).toEqual([{ pid: DEAD_PID, runStartedAt: 123 }])
+    expect(JSON.parse(readFileSync(join(home, 'diagnostics-crash-log.json'), 'utf8'))).toEqual([{ pid: DEAD_PID, runStartedAt: 123 }])
+    const marker = JSON.parse(readFileSync(join(home, 'diagnostics-crash.marker'), 'utf8')) as { pid: number }
+    expect(marker.pid).toBe(process.pid)
+  })
+
+  it('treats a marker whose pid still lives as a concurrent run, not a crash', async () => {
+    const home = freshHome()
+    writeFileSync(join(home, 'diagnostics-crash.marker'), `${JSON.stringify({ pid: process.pid, runStartedAt: 123 })}\n`)
+    const { service } = boot(undefined, home)
+    expect((await service.describe()).crash).toEqual([])
+  })
+
+  it('an unparsable marker still records an unclean shutdown with the file mtime', async () => {
+    const home = freshHome()
+    writeFileSync(join(home, 'diagnostics-crash.marker'), 'not-json')
+    const { service } = boot(undefined, home)
+    const crash = (await service.describe()).crash
+    expect(crash).toHaveLength(1)
+    expect(crash[0]?.pid).toBe(0)
+    expect(crash[0]?.runStartedAt).toBeGreaterThan(0)
+  })
+
+  it('clean disposal removes the boot marker so the next boot records no crash', async () => {
+    const home = freshHome()
+    const first = boot(undefined, home)
+    await first.ctx.fiber.dispose()
+    expect(existsSync(join(home, 'diagnostics-crash.marker'))).toBe(false)
+    const second = boot(undefined, home)
+    expect((await second.service.describe()).crash).toEqual([])
+  })
+
+  it('keeps the durable crash log capped at MAX_CRASH_FACTS across boots', async () => {
+    const home = freshHome()
+    const full = Array.from({ length: MAX_CRASH_FACTS }, (_, index) => ({ pid: 4_000_000 + index, runStartedAt: index }))
+    writeFileSync(join(home, 'diagnostics-crash-log.json'), JSON.stringify(full))
+    writeFileSync(join(home, 'diagnostics-crash.marker'), `${JSON.stringify({ pid: DEAD_PID, runStartedAt: 123 })}\n`)
+    const { service } = boot(undefined, home)
+    const crash = (await service.describe()).crash
+    expect(crash).toHaveLength(MAX_CRASH_FACTS)
+    expect(crash[0]).toEqual({ pid: 4_000_001, runStartedAt: 1 })
+    expect(crash.at(-1)).toEqual({ pid: DEAD_PID, runStartedAt: 123 })
+  })
+
+  it('a snapshot carrying recorder facts stays bundle-valid and sanitized', async () => {
+    const { ctx, service } = bench((ctx: Context) => {
+      ctx.provide('sessionPersistence', {})
+      ctx.provide('loader', {})
+      ctx.provide('llm', {})
+    })
+    ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 1, step: 1, error: new Error('boom') })
+    const bundle = await service.supportBundle()
+    expect(() => { validateSupportBundle(bundle) }).not.toThrow()
+    const serialized = JSON.stringify(bundle)
+    expect(serialized).toContain('boom')
+    expect(serialized).not.toMatch(/api[-_]?key|bearer|secret|credential|password/iu)
   })
 })
 
