@@ -9,7 +9,8 @@ import { sessionFormatV0ToV1 } from '@deepseek-ai/dsh-session-format-v0-to-v1'
 import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
-import { HostDiagnosticsService, buildSupportBundle, validateSupportBundle } from '../src/index.ts'
+import { HostDiagnosticsService, buildSupportBundle, sessionHeadersBundleEntry, validateSupportBundle } from '../src/index.ts'
+import type { SessionHeaderRow } from '../src/index.ts'
 import type { DiagnosticsErrorFact } from '../src/index.ts'
 import { MAX_CRASH_FACTS, MAX_LAST_ERROR_FACTS } from '../src/recorder.ts'
 
@@ -243,7 +244,7 @@ describe('Crash and last-error recorder (§42)', () => {
 
   it('a snapshot carrying recorder facts stays bundle-valid and sanitized', async () => {
     const { ctx, service } = bench((ctx: Context) => {
-      ctx.provide('sessionPersistence', {})
+      ctx.provide('sessionPersistence', { list: async () => [] })
       ctx.provide('loader', {})
       ctx.provide('llm', {})
     })
@@ -300,7 +301,7 @@ describe('Support bundle (§43)', () => {
 
   it('the service bundles its own §42 snapshot as a collector-valid artifact', async () => {
     const { service } = bench((ctx: Context) => {
-      ctx.provide('sessionPersistence', {})
+      ctx.provide('sessionPersistence', { list: async () => [] })
       ctx.provide('loader', {})
       ctx.provide('llm', {})
     })
@@ -310,5 +311,64 @@ describe('Support bundle (§43)', () => {
     expect(bundle.entries[0]?.path).toBe('diagnostics.json')
     expect(() => { validateSupportBundle(bundle) }).not.toThrow()
     expect(JSON.stringify(bundle)).not.toMatch(/api[-_]?key|bearer|secret|credential/iu)
+  })
+})
+
+describe('Session-headers bundle entry (§43)', () => {
+  interface ListedSession {
+    readonly header: {
+      readonly id: string
+      readonly createdAt: number
+      readonly cwd?: string
+      readonly parentSession?: string
+      readonly isSeeded: boolean
+    }
+    readonly revision: string
+    readonly eventCount?: number
+    readonly sizeBytes?: number
+  }
+
+  const listing = (): ListedSession[] => [
+    { header: { id: 's-2', createdAt: 200, cwd: '/w/b', isSeeded: true }, revision: 'r2', eventCount: 4, sizeBytes: 512 },
+    { header: { id: 's-1', createdAt: 100, parentSession: 's-0', isSeeded: false }, revision: 'r1' },
+  ]
+
+  it('adds a session-headers entry with id-sorted rows when a store holds sessions', async () => {
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('sessionPersistence', { list: async () => listing() })
+    })
+    const bundle = await service.supportBundle()
+    expect(bundle.entries.map(entry => entry.path)).toEqual(['diagnostics.json', 'session-headers.json'])
+    expect(bundle.entries[1]?.kind).toBe('session-headers')
+    expect(bundle.entries[1]?.content).toEqual({
+      sessions: [
+        { id: 's-1', createdAt: 100, parentSession: 's-0', isSeeded: false, revision: 'r1' },
+        { id: 's-2', createdAt: 200, cwd: '/w/b', isSeeded: true, eventCount: 4, sizeBytes: 512, revision: 'r2' },
+      ],
+    })
+    expect(() => { validateSupportBundle(bundle) }).not.toThrow()
+    expect(JSON.stringify(bundle)).not.toMatch(/api[-_]?key|bearer|secret|credential|password/iu)
+  })
+
+  it('keeps the bundle diagnostics-only without a store and with an empty store', async () => {
+    const withoutStore = await bench().service.supportBundle()
+    expect(withoutStore.entries).toHaveLength(1)
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('sessionPersistence', { list: async () => [] })
+    })
+    const empty = await service.supportBundle()
+    expect(empty.entries).toHaveLength(1)
+    expect(empty.entries[0]?.path).toBe('diagnostics.json')
+  })
+
+  it('store listing order never leaks — rows sort by id', () => {
+    const rows: SessionHeaderRow[] = [
+      { id: 'z-1', createdAt: 1, isSeeded: false, revision: 'a' },
+      { id: 'a-1', createdAt: 2, isSeeded: false, revision: 'b' },
+    ]
+    const entry = sessionHeadersBundleEntry(rows)
+    expect((entry.content as { sessions: { id: string }[] }).sessions.map(row => row.id)).toEqual(['a-1', 'z-1'])
+    const again = sessionHeadersBundleEntry([...rows].reverse())
+    expect(again.content).toEqual(entry.content)
   })
 })

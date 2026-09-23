@@ -1199,7 +1199,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: '@Remote(\'supportBundle\') async supportBundle(signal?: AbortSignal): Promise<SupportBundle>',
-        description: 'Produce one §43 support bundle seeded with the just-composed §42 diagnostics entry; the collector validates the same artifact.',
+        description: 'Produce one §43 support bundle: the just-composed §42 diagnostics entry, plus the session-headers entry when a session store is composed and holds at least one session; the collector validates the same artifact.',
         parameters: [{ name: 'signal', description: 'optional request cancellation passed to the composition.' }],
         returns: 'the sealed, self-checksummed bundle.',
       },

@@ -22,7 +22,7 @@ One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`
 <a id="model-experience"></a>
 ## Support Bundle
 
-`supportBundle()` produces the section 43 artifact: sanitized entries (a recursive secret-shape scan at any depth refuses api-key/bearer/secret/password/credential keys), a per-entry SHA-256 manifest over canonical key-sorted serialization, a chained checksum over the ordered manifest rows, and collector validation that recomputes every digest and fails loud on tampering — input order never leaks, so four platforms running the same candidate produce byte-identical bundles.
+`supportBundle()` produces the section 43 artifact: sanitized entries (a recursive secret-shape scan at any depth refuses api-key/bearer/secret/password/credential keys), a per-entry SHA-256 manifest over canonical key-sorted serialization, a chained checksum over the ordered manifest rows, and collector validation that recomputes every digest and fails loud on tampering — input order never leaks, so four platforms running the same candidate produce byte-identical bundles. The v1 artifact carries two entry kinds: the §42 diagnostics snapshot, and — when a session store is composed and holds at least one session — `session-headers.json`, one row per stored session (header facts and store counts, never event content), sorted by id.
 
 ## Model Experience
 
@@ -37,7 +37,7 @@ None; health and diagnostics reads do not alter a model request.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Health is presence-based** — a `down` names the missing owning service; component probes that can see partial failure (`degraded`) remain open with the bundle-content increment.
+- **Health is presence-based** — a `down` names the missing owning service; component probes that can see partial failure (`degraded`) remain open.
 - **Crash and last-error recording is always on** — a pid-safe boot marker under `$DSH_HOME` turns an unclean previous shutdown into a durable capped crash log, and the agent error relay fills a process-local capped ring; facts carry identity and text only.
 - **No client surface yet** — the payload's consumers (settings, support collection) land with their increments; the seam and its wire are the contract.
 

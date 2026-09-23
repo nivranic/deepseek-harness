@@ -22,7 +22,7 @@ kind: "package-reference"
 <a id="model-experience"></a>
 ## Support Bundle
 
-`supportBundle()` 产出第 43 节工件：经脱敏的条目（任意深度的递归秘密形状扫描拒绝 api-key/bearer/secret/password/credential 键）、按规范化键序序列化的逐条 SHA-256 manifest、对有序 manifest 行的链式校验和，以及重算每个摘要并对篡改大声失败的 collector 校验——输入顺序绝不外泄，四个平台运行同一候选产出字节一致的 bundle。
+`supportBundle()` 产出第 43 节工件：经脱敏的条目（任意深度的递归秘密形状扫描拒绝 api-key/bearer/secret/password/credential 键）、按规范化键序序列化的逐条 SHA-256 manifest、对有序 manifest 行的链式校验和，以及重算每个摘要并对篡改大声失败的 collector 校验——输入顺序绝不外泄，四个平台运行同一候选产出字节一致的 bundle。 v1 工件携带两种条目：第 42 节诊断快照，以及——当会话存储已组合且持有至少一个会话时——`session-headers.json`，每个存储会话一行（头部事实与存储计数，绝不含事件内容），按 id 排序。
 
 ## Model Experience
 
@@ -37,7 +37,7 @@ None；health 与诊断读取不会改变任何模型请求。
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Health 基于存在性**——`down` 指名缺失的 owner 服务；能看到部分故障的组件探测（`degraded`）随 bundle 内容增量保持开放。
+- **Health 基于存在性**——`down` 指名缺失的 owner 服务；能看到部分故障的组件探测（`degraded`）保持开放。
 - **Crash 与 last-error 记录常开**——`$DSH_HOME` 下 pid 安全的启动标记把上一次未干净关闭识别为持久且有上限的 crash 日志，agent 错误 relay 填充进程本地且有上限的环形记录；事实只携带身份与文本。
 - **尚无客户端表面**——载荷的消费方（设置、支持收集）随各自增量落地；本接缝与其 wire 即契约。
 

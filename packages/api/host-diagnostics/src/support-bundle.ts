@@ -127,3 +127,32 @@ export function validateSupportBundle(bundle: SupportBundle): void {
 export function diagnosticsBundleEntry(snapshot: DiagnosticsSnapshot): SupportBundleEntry {
   return sanitizeSupportBundleEntry('diagnostics', 'diagnostics.json', JSON.parse(JSON.stringify(snapshot)) as JsonValue)
 }
+
+/** One session-headers bundle row: stored-session header facts and store counts, never event content. */
+export interface SessionHeaderRow {
+  readonly id: string
+  readonly createdAt: number
+  /** Absolute working directory the session was created in, when the header carries one. */
+  readonly cwd?: string
+  /** The session this one was forked from, when the header names one. */
+  readonly parentSession?: string
+  readonly isSeeded: boolean
+  /** Logical event count, when the store can provide it cheaply. */
+  readonly eventCount?: number
+  /** Physical artifact byte size, when the store can provide it cheaply. */
+  readonly sizeBytes?: number
+  /** Opaque store change token for this session. */
+  readonly revision: string
+}
+
+/**
+ * The session-headers producer entry: one row per stored session, header
+ * facts and store counts only, sorted by id so store listing order never
+ * leaks into the artifact.
+ * @param rows - header rows mapped from the session store's listing.
+ * @returns the bundle entry candidate.
+ */
+export function sessionHeadersBundleEntry(rows: readonly SessionHeaderRow[]): SupportBundleEntry {
+  const sorted = [...rows].sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))
+  return sanitizeSupportBundleEntry('session-headers', 'session-headers.json', JSON.parse(JSON.stringify({ sessions: sorted })) as JsonValue)
+}

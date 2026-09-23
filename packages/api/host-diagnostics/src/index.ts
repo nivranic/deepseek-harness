@@ -17,7 +17,7 @@ import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { DiagnosticsRecorder } from './recorder.ts'
-import { buildSupportBundle, diagnosticsBundleEntry, validateSupportBundle } from './support-bundle.ts'
+import { buildSupportBundle, diagnosticsBundleEntry, sessionHeadersBundleEntry, validateSupportBundle } from './support-bundle.ts'
 import type { SupportBundle } from './types.ts'
 import type {
   DiagnosticsMigration,
@@ -29,7 +29,8 @@ import type {
 
 export type * from './types.ts'
 export { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
-export { buildSupportBundle, diagnosticsBundleEntry, sanitizeSupportBundleEntry, validateSupportBundle } from './support-bundle.ts'
+export { buildSupportBundle, diagnosticsBundleEntry, sanitizeSupportBundleEntry, sessionHeadersBundleEntry, validateSupportBundle } from './support-bundle.ts'
+export type { SessionHeaderRow } from './support-bundle.ts'
 
 /** The released session-format migration chain this build knows, by name and version pair. */
 const MIGRATIONS: readonly DiagnosticsMigration[] = Object.freeze([
@@ -45,6 +46,22 @@ interface InventoryOwner {
     readonly enabled: boolean
     readonly fiberPhase: string
   }[] }>
+}
+
+/** Optional session-store owner shape the diagnostics service reads for bundle rows. */
+interface SessionStoreOwner {
+  list(signal?: AbortSignal): Promise<readonly {
+    readonly header: {
+      readonly id: string
+      readonly createdAt: number
+      readonly cwd?: string
+      readonly parentSession?: string
+      readonly isSeeded: boolean
+    }
+    readonly revision: string
+    readonly eventCount?: number
+    readonly sizeBytes?: number
+  }[]>
 }
 
 /** One presence probe result for an optionally composed Host service. */
@@ -129,15 +146,31 @@ export class HostDiagnosticsService extends TypertRemoteService {
   }
 
   /**
-   * Produce one §43 support bundle seeded with the just-composed §42
-   * diagnostics entry; the collector validates the same artifact.
+   * Produce one §43 support bundle: the just-composed §42 diagnostics entry,
+   * plus the session-headers entry when a session store is composed and holds
+   * at least one session; the collector validates the same artifact.
    * @param signal - optional request cancellation passed to the composition.
    * @returns the sealed, self-checksummed bundle.
    */
   @Remote('supportBundle')
   async supportBundle(signal?: AbortSignal): Promise<SupportBundle> {
     const snapshot = await this.describe(signal)
-    const bundle = buildSupportBundle([diagnosticsBundleEntry(snapshot)])
+    const store = this.ctx.get('sessionPersistence') as SessionStoreOwner | undefined
+    const snapshots = store === undefined ? [] : await store.list(signal)
+    const candidates = [diagnosticsBundleEntry(snapshot)]
+    if (snapshots.length > 0) {
+      candidates.push(sessionHeadersBundleEntry(snapshots.map(listed => ({
+        id: listed.header.id,
+        createdAt: listed.header.createdAt,
+        isSeeded: listed.header.isSeeded,
+        revision: listed.revision,
+        ...(listed.header.cwd !== undefined ? { cwd: listed.header.cwd } : {}),
+        ...(listed.header.parentSession !== undefined ? { parentSession: listed.header.parentSession } : {}),
+        ...(listed.eventCount !== undefined ? { eventCount: listed.eventCount } : {}),
+        ...(listed.sizeBytes !== undefined ? { sizeBytes: listed.sizeBytes } : {}),
+      }))))
+    }
+    const bundle = buildSupportBundle(candidates)
     validateSupportBundle(bundle)
     return bundle
   }

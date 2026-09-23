@@ -4653,7 +4653,7 @@
         "packages/api/host-diagnostics/README.md",
         "docs/subsystems/host-diagnostics.md"
       ],
-      "remaining": "§43 五要素已按可落地部分落地：producer（service.supportBundle() 以刚组合的 §42 快照为种子条目）、sanitizer（闭合条目词汇 + 任意深度递归拒绝 api-key/bearer/secret/password/credential 形状键 + 重复路径拒绝）、manifest（逐条目路径 + 规范化序列化 SHA-256）、checksum（对有序 manifest 行的链式 SHA-256）、collector validation（重算全部摘要，篡改/计数不符/乱序/链断均大声失败）；输入顺序不外泄——四平台同一候选产出字节一致 bundle（确定性测试固化）。G2-SUPPORT 遗留的会话日志/设置导出等内容条目与四平台真机同候选实测仍开放。",
+      "remaining": "§43 五要素已按可落地部分落地：producer（service.supportBundle() 以刚组合的 §42 快照为种子条目）、sanitizer（闭合条目词汇 + 任意深度递归拒绝 api-key/bearer/secret/password/credential 形状键 + 重复路径拒绝）、manifest（逐条目路径 + 规范化序列化 SHA-256）、checksum（对有序 manifest 行的链式 SHA-256）、collector validation（重算全部摘要，篡改/计数不符/乱序/链断均大声失败）；输入顺序不外泄——四平台同一候选产出字节一致 bundle（确定性测试固化）。内容条目已落第一项：session-headers（会话存储已组合且持有会话时附 session-headers.json——每会话一行头部事实与存储计数、绝不携带事件内容、按 id 排序保证确定性）；设置导出条目与四平台真机同候选实测仍开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

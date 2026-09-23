@@ -37,7 +37,7 @@ interface DiagnosticsPlugin {
 
 ## Support Bundle
 
-The section 43 bundle is a deterministic artifact: entries serialize canonically (key-sorted) into per-entry SHA-256 manifest rows, a chained checksum covers the ordered rows, and the collector recomputes every digest and fails loud on tampering; the sanitizer recursively refuses secret-shaped keys at any depth.
+The section 43 bundle is a deterministic artifact: entries serialize canonically (key-sorted) into per-entry SHA-256 manifest rows, a chained checksum covers the ordered rows, and the collector recomputes every digest and fails loud on tampering; the sanitizer recursively refuses secret-shaped keys at any depth. The v1 artifact carries the §42 diagnostics entry plus `session-headers.json` when a session store is composed and holds sessions — one row per session (header facts and store counts, never event content), sorted by id.
 
 ```ts type-equiv
 /** The §43 support bundle: sanitized entries, their manifest, and the chained checksum. */
@@ -83,8 +83,9 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
 @Remote('describe') async describe(signal?: AbortSignal): Promise<DiagnosticsSnapshot>
 
 /**
- * Produce one §43 support bundle seeded with the just-composed §42
- * diagnostics entry; the collector validates the same artifact.
+ * Produce one §43 support bundle: the just-composed §42 diagnostics entry,
+ * plus the session-headers entry when a session store is composed and holds
+ * at least one session; the collector validates the same artifact.
  * @param signal - optional request cancellation passed to the composition.
  * @returns the sealed, self-checksummed bundle.
  */
