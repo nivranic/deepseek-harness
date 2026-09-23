@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/telemetry-gate-source.json",
+    "sha256": "f10be1ee590c58f5fd485669c81c6c3cb215db5405487704427471dc62ed9225"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7075a8f3aa5c1888e0793a370afa8e74b8b9226c7fd2f139585456e956fe0b2e"
+  },
+  "helper": {
+    "path": ".artifacts/check-telemetry-gate-binding.mjs",
+    "sha256": "507d3444b553576c31e095378831e8ae97374288d58c7db2b7d8cfb7becf7c36"
+  }
+}

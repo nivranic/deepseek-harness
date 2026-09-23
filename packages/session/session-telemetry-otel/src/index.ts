@@ -23,6 +23,7 @@ import {
   SessionTelemetryCoordinator,
   TELEMETRY_CONSENT_OFF,
   resolveTelemetryConsent,
+  telemetryKindAllowed,
   type SessionTelemetrySink,
   type SessionTelemetryRecord,
   type SessionTelemetrySeverity,
@@ -55,6 +56,7 @@ export enum SessionTelemetryMode {
 export const DEFAULT_TELEMETRY_MODE = SessionTelemetryMode.FEEDBACK_ONLY
 
 const DISABLED_FEEDBACK_WARNING = 'OpenTelemetry session upload is DISABLED; this feedback is not uploaded through OpenTelemetry'
+const CONSENT_WITHHELD_WARNING = 'OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry'
 const NON_CANONICAL_EVENT_WARNING = 'session telemetry ignored an event absent from the canonical session log'
 
 /** Only this Session's explicit feedback authorizes replay; fork seeds do not. */
@@ -166,9 +168,11 @@ const SEVERITY: Record<SessionTelemetrySeverity, { severityNumber: SeverityNumbe
 
 /**
  * The backend plugin — the only entry a deployment loads. It always registers
- * the `sessionTelemetry` service (duplicate load throws). `FEEDBACK_ONLY` wires the SDK
- * pipeline and on-demand {@link SessionTelemetryCoordinator}; `DISABLED` constructs no
- * SDK state and listens only to warn when recorded feedback stays local.
+ * the `sessionTelemetry` service (duplicate load throws). `FEEDBACK_ONLY` with the
+ * sessionTelemetry consent kind opted in wires the SDK pipeline and on-demand
+ * {@link SessionTelemetryCoordinator}; `DISABLED`, or the kind withheld by the
+ * section 44 default-off consent, constructs no SDK state and listens only to
+ * warn when recorded feedback stays local.
  */
 export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   static inject = ['sessions']
@@ -189,6 +193,16 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
       ctx.on('session/event', (session, event) => {
         if (isFeedback(session, event)) ctx.logger.warn(DISABLED_FEEDBACK_WARNING)
+      })
+      return
+    }
+    if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) {
+      // §44 默认关闭: the deployment never opted this kind in, so no SDK
+      // state exists and feedback stays local; sharing keeps naming the mode.
+      this.provider = undefined
+      this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
+      ctx.on('session/event', (session, event) => {
+        if (isFeedback(session, event)) ctx.logger.warn(CONSENT_WITHHELD_WARNING)
       })
       return
     }

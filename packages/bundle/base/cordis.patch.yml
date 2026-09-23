@@ -185,6 +185,11 @@
       name: '@deepseek-ai/dsh-session-telemetry-otel'
       config:
         mode: !!js process.env.DSH_TELEMETRY_MODE || 'FEEDBACK_ONLY'
+        # §44 default-off: session telemetry stays local until the deployment
+        # opts the kind in (DSH_TELEMETRY_CONSENT=1); the other kinds have no
+        # producers yet and stay off regardless.
+        consent:
+          sessionTelemetry: !!js process.env.DSH_TELEMETRY_CONSENT === '1'
         shutdownTimeoutMillis: 3000
         exporter:
           url: !!js process.env.DSH_TELEMETRY_OTLP_URL ?? 'https://harness-telemetry.deepseeksvc.com/v1/logs'

@@ -2166,7 +2166,7 @@ export enum SessionTelemetryMode {
 
 Depends on: `BatchLogRecordProcessorOptions` (`@opentelemetry/sdk-logs`) · `OTLPExporterNodeConfigBase` (`@opentelemetry/otlp-exporter-base`) · [`TelemetryConsent`](../packages/session/session-telemetry/src/index.ts)
 
-Source: [`packages/session/session-telemetry-otel/src/index.ts:104`](../packages/session/session-telemetry-otel/src/index.ts)
+Source: [`packages/session/session-telemetry-otel/src/index.ts:106`](../packages/session/session-telemetry-otel/src/index.ts)
 
 <a id="deepseek-aidsh-session-title"></a>
 

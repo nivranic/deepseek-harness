@@ -49,7 +49,7 @@ Every backend discloses its deployment mode through `sharing`: `full`, `feedback
 
 <a id="per-kind-consent"></a>
 
-Backends also expose `consent`: the section 44 record with one boolean per telemetry data kind — `sessionTelemetry`, `providerMetadata`, `relayMetadata`, `deviceTrustMetadata`, and `crashDiagnostics`. Every kind defaults to off and there is no master switch; a deployment opts in per kind through backend config. `telemetryKindAllowed(consent, kind)` is the check a producer runs before one of these kinds leaves the process, while `sharing` remains the upload policy.
+Backends also expose `consent`: the section 44 record with one boolean per telemetry data kind — `sessionTelemetry`, `providerMetadata`, `relayMetadata`, `deviceTrustMetadata`, and `crashDiagnostics`. Every kind defaults to off and there is no master switch; a deployment opts in per kind through backend config. `telemetryKindAllowed(consent, kind)` is the check a producer runs before one of these kinds leaves the process, while `sharing` remains the upload policy. The OpenTelemetry backend enforces the `sessionTelemetry` kind: with it off (the default) the backend constructs no SDK pipeline and feedback stays local.
 
 ### Redacting records
 

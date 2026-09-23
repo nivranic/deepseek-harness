@@ -101,11 +101,14 @@ async function mockCollector(
   return { url: `http://127.0.0.1:${address.port}/v1/logs`, captures }
 }
 
+// §44 default-off: the wire tier opts the sessionTelemetry kind in explicitly;
+// every other suite boots through here and expects uploads to flow.
 async function boot(url: string) {
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
     mode: SessionTelemetryMode.FEEDBACK_ONLY,
+    consent: { sessionTelemetry: true },
     exporter: { url, headers: { authorization: 'Bearer test-token' } },
   })
   return { ctx, fiber }
@@ -259,6 +262,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     await ctx.plugin(SessionStore)
     const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
       mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { sessionTelemetry: true },
       exporter: { url },
       processor: { scheduledDelayMillis: 10 },
     })
@@ -294,6 +298,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     await ctx.plugin(SessionStore)
     const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
       mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { sessionTelemetry: true },
       exporter: { url, timeoutMillis: 60_000 },
       processor: { scheduledDelayMillis: 10, exportTimeoutMillis: 60_000 },
       shutdownTimeoutMillis: 50,
@@ -326,6 +331,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     // exporter rather than silently rebuilding url/headers only.
     const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
       mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { sessionTelemetry: true },
       exporter: { url, compression: 'gzip' },
     } as Config)
     const session = ctx.sessions.create(SessionId('gzip'), { meta: {} })
@@ -364,6 +370,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     await ctx.plugin(SessionStore)
     const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
       mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { sessionTelemetry: true },
       exporter: { url },
     })
     ctx.on('session-telemetry/record', (_record, next) => {
@@ -401,6 +408,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
     const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
       mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { sessionTelemetry: true },
       exporter: { url },
     })
     const session = ctx.sessions.create(SessionId('no-feedback'), { meta: {} })
@@ -460,7 +468,9 @@ describe('OpenTelemetrySessionBackend wire', () => {
 
     const gatedCtx = new Context()
     await gatedCtx.plugin(SessionStore)
-    const gated = await gatedCtx.plugin(OpenTelemetrySessionBackend, { mode: SessionTelemetryMode.FEEDBACK_ONLY, exporter: { url } })
+    const gated = await gatedCtx.plugin(OpenTelemetrySessionBackend, {
+      mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true }, exporter: { url },
+    })
     expect(gatedCtx.sessionTelemetry.sharing).toBe('feedback-only')
     await gated.dispose()
 
@@ -486,6 +496,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     try {
       await ctx.plugin(SessionStore)
       new OpenTelemetrySessionBackend(ctx, {
+        consent: { sessionTelemetry: true },
         exporter: { url },
         processor: { scheduledDelayMillis: 1 },
       })
@@ -512,7 +523,8 @@ describe('OpenTelemetrySessionBackend route and feedback', () => {
     try {
       await ctx.plugin(SessionStore)
       await ctx.plugin(OpenTelemetrySessionBackend, {
-        mode: SessionTelemetryMode.FEEDBACK_ONLY, exporter: { url }, processor: { scheduledDelayMillis: 1 },
+        mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true },
+        exporter: { url }, processor: { scheduledDelayMillis: 1 },
       })
       const session = ctx.sessions.create(SessionId('text-feedback'))
       if (provider !== undefined) session.append('request/header', { header: { config: { provider, model: 'm' } }, reason: 'initial' })
@@ -538,7 +550,9 @@ describe('OpenTelemetrySessionBackend route and feedback', () => {
     recordFeedback(donor, { text: 'old feedback is not a submission' })
     const restored = ctx.sessions.create(donor.id, { seed: donor.snapshotEvents(), meta: donor.header })
     try {
-      const first = await ctx.plugin(OpenTelemetrySessionBackend, { mode: SessionTelemetryMode.FEEDBACK_ONLY, exporter: { url } })
+      const first = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true }, exporter: { url },
+      })
       const session = ctx.sessions.create(SessionId('ordinary'))
       session.append('turn/start', { turn: 1 })
       for (const provider of ['mock', 'deepseek-official']) {
@@ -551,7 +565,9 @@ describe('OpenTelemetrySessionBackend route and feedback', () => {
       const opened = ctx.sessions.create(SessionId('opened'), { seed: donor.snapshotEvents() })
       ctx.emit('session/created', opened)
       await first.dispose()
-      await ctx.plugin(OpenTelemetrySessionBackend, { mode: SessionTelemetryMode.FEEDBACK_ONLY, exporter: { url } })
+      await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true }, exporter: { url },
+      })
     } finally {
       await ctx.fiber.dispose()
     }
@@ -567,7 +583,8 @@ describe('OpenTelemetrySessionBackend route and feedback', () => {
       await ctx.plugin(JsonlPersistence, { root, compression: 'none' })
       await ctx.plugin(MessageFeedbackService, { maxNoteBytes: 1024 })
       await ctx.plugin(OpenTelemetrySessionBackend, {
-        mode: SessionTelemetryMode.FEEDBACK_ONLY, exporter: { url }, processor: { scheduledDelayMillis: 1 },
+        mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true },
+        exporter: { url }, processor: { scheduledDelayMillis: 1 },
       })
       const session = ctx.sessions.create(SessionId('live-ratings'))
       const handle = await ctx.sessionPersistence.create(session.header)
@@ -638,7 +655,10 @@ describe('OpenTelemetrySessionBackend route and feedback', () => {
       await ctx.plugin(SessionStore)
       await ctx.plugin(JsonlPersistence, { root, compression: 'none' })
       await ctx.plugin(MessageFeedbackService, { maxNoteBytes: 1024 })
-      await ctx.plugin(OpenTelemetrySessionBackend, { mode, exporter: { url }, processor: { scheduledDelayMillis: 1 } })
+      await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode, consent: { sessionTelemetry: true },
+        exporter: { url }, processor: { scheduledDelayMillis: 1 },
+      })
       const parent = Session.create(SessionId('cold-parent'))
       parent.append('request/header', { header: { config: { provider: 'mock', model: 'm' } }, reason: 'initial' })
       const message = createAssistantMessage({ content: [{ type: 'text', text: 'inherited answer' }], source: { provider: 'mock', model: 'm' } })
@@ -689,7 +709,10 @@ describe('OpenTelemetrySessionBackend route and feedback', () => {
       await ctx.plugin(SessionStore)
       await ctx.plugin(JsonlPersistence, { root, compression: 'none' })
       await ctx.plugin(MessageFeedbackService, { maxNoteBytes: 1024 })
-      await ctx.plugin(OpenTelemetrySessionBackend, { mode, exporter: { url }, processor: { scheduledDelayMillis: 1 } })
+      await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode, consent: { sessionTelemetry: true },
+        exporter: { url }, processor: { scheduledDelayMillis: 1 },
+      })
       const session = Session.create(SessionId('cold-feedback'))
       if (provider !== undefined) session.append('request/header', { header: { config: { provider, model: 'm' } }, reason: 'initial' })
       const message = createAssistantMessage({ content: [{ type: 'text', text: 'answer' }], source: { provider: provider ?? 'mock', model: 'm' } })
@@ -764,7 +787,10 @@ describe('OpenTelemetrySessionBackend config fails loud', () => {
   ])('rejects %j at plugin load', async (config, message) => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)
-    await expect(ctx.plugin(OpenTelemetrySessionBackend, config as Config)).rejects.toThrow(message)
+    // §44 default-off: transport misconfiguration is only reachable with the
+    // sessionTelemetry kind opted in; the withheld path reads no transport.
+    const optingIn = { consent: { sessionTelemetry: true }, ...config } as Config
+    await expect(ctx.plugin(OpenTelemetrySessionBackend, optingIn)).rejects.toThrow(message)
   })
 
   it.each(['INVALID', 'FULL'])('rejects direct mode %s before reading transport config', async (mode) => {
@@ -842,8 +868,53 @@ describe('OpenTelemetrySessionBackend consent resolution', () => {
   it('exposes the resolved record through the registered service', async () => {
     const { url } = await mockCollector()
     const { ctx, fiber } = await boot(url)
-    expect(ctx.sessionTelemetry.consent).toEqual(TELEMETRY_CONSENT_OFF)
+    expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, sessionTelemetry: true })
     await fiber.dispose()
+    await ctx.fiber.dispose()
+  })
+
+  it('withholds the pipeline when the sessionTelemetry kind is off despite FEEDBACK_ONLY', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    const warnings: string[] = []
+    ctx.logger.warn = (message: string) => { warnings.push(message) }
+    const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+      mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      exporter: { url },
+    })
+    expect(ctx.sessionTelemetry.sharing).toBe('feedback-only')
+    expect(ctx.sessionTelemetry.consent.sessionTelemetry).toBe(false)
+    const session = ctx.sessions.create(SessionId('withheld'), { meta: { cwd: '/tmp/w' } })
+    recordFeedback(session, { text: 'explicit report' })
+    await fiber.dispose()
+    await ctx.fiber.dispose()
+    expect(captures).toHaveLength(0)
+    expect(warnings).toContain('OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry')
+  })
+
+  it('does not read transport config when the kind is withheld', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    const transportRead = vi.fn(() => {
+      throw new Error('transport config was read')
+    })
+    const backend = new OpenTelemetrySessionBackend(ctx, {
+      mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { providerMetadata: true },
+      get exporter() {
+        return transportRead()
+      },
+      get processor() {
+        return transportRead()
+      },
+      get shutdownTimeoutMillis() {
+        return transportRead()
+      },
+    })
+    expect(backend.consent.providerMetadata).toBe(true)
+    expect(backend.consent.sessionTelemetry).toBe(false)
+    expect(transportRead).not.toHaveBeenCalled()
     await ctx.fiber.dispose()
   })
 })
@@ -865,7 +936,9 @@ describe('dsh-session-telemetry-otel real-load-path guard', () => {
     const unwrapped = loader.unwrapExports(module) as Parameters<Context['plugin']>[0]
     const ctx = new Context()
     await ctx.plugin(SessionStore)
-    const fiber = await ctx.plugin(unwrapped, { mode: SessionTelemetryMode.FEEDBACK_ONLY, exporter: { url } })
+    const fiber = await ctx.plugin(unwrapped, {
+      mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true }, exporter: { url },
+    })
     expect(ctx.sessionTelemetry).toBeInstanceOf(OpenTelemetrySessionBackend)
     await fiber.dispose()
   })
