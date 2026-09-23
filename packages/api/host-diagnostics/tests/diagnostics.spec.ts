@@ -9,8 +9,8 @@ import { sessionFormatV0ToV1 } from '@deepseek-ai/dsh-session-format-v0-to-v1'
 import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
-import { HostDiagnosticsService, buildSupportBundle, sessionHeadersBundleEntry, validateSupportBundle } from '../src/index.ts'
-import type { SessionHeaderRow } from '../src/index.ts'
+import { HostDiagnosticsService, buildSupportBundle, sessionHeadersBundleEntry, settingsExportBundleEntry, validateSupportBundle } from '../src/index.ts'
+import type { SessionHeaderRow, SettingsExportRow } from '../src/index.ts'
 import type { DiagnosticsErrorFact } from '../src/index.ts'
 import { MAX_CRASH_FACTS, MAX_LAST_ERROR_FACTS } from '../src/recorder.ts'
 
@@ -370,5 +370,60 @@ describe('Session-headers bundle entry (§43)', () => {
     expect((entry.content as { sessions: { id: string }[] }).sessions.map(row => row.id)).toEqual(['a-1', 'z-1'])
     const again = sessionHeadersBundleEntry([...rows].reverse())
     expect(again.content).toEqual(entry.content)
+  })
+})
+
+describe('Settings-export bundle entry (§43)', () => {
+  const descriptors = (): {
+    readonly ns: string
+    readonly revision: number
+    readonly applies: 'live' | 'restart'
+    readonly value: unknown
+    readonly secrets?: readonly string[]
+  }[] => [
+    // redactSecrets already stripped apiKey from value; secrets only names it.
+    { ns: 'llm', revision: 7, applies: 'live', value: { model: 'deepseek-chat' }, secrets: ['apiKey'] },
+    { ns: 'appearance', revision: 2, applies: 'restart', value: { theme: 'dark' } },
+  ]
+
+  it('adds an ns-sorted settings-export entry with the seam-stripped values', async () => {
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('settings', {
+        describe: (options?: { readonly redactSecrets?: boolean }) => {
+          if (options?.redactSecrets !== true) throw new Error('bundle producer must pass redactSecrets')
+          return descriptors()
+        },
+      })
+    })
+    const bundle = await service.supportBundle()
+    expect(bundle.entries.map(entry => entry.path)).toEqual(['diagnostics.json', 'settings-export.json'])
+    expect(bundle.entries[1]?.content).toEqual({
+      namespaces: [
+        { ns: 'appearance', revision: 2, applies: 'restart', value: { theme: 'dark' }, redacted: [] },
+        { ns: 'llm', revision: 7, applies: 'live', value: { model: 'deepseek-chat' }, redacted: ['apiKey'] },
+      ],
+    })
+    expect(() => { validateSupportBundle(bundle) }).not.toThrow()
+  })
+
+  it('keeps the bundle diagnostics-only without the settings seam', async () => {
+    const bundle = await bench().service.supportBundle()
+    expect(bundle.entries).toHaveLength(1)
+  })
+
+  it('refuses a row whose value still carries a secret-shaped key after redaction', () => {
+    expect(() => settingsExportBundleEntry([
+      { ns: 'leaky', revision: 1, applies: 'live', value: { apiKey: 'sk-live' }, redacted: [] },
+    ])).toThrow(/secret-shaped key "apiKey"/u)
+  })
+
+  it('registration order never leaks — rows sort by ns', () => {
+    const rows: SettingsExportRow[] = [
+      { ns: 'zzz', revision: 1, applies: 'live', value: {}, redacted: [] },
+      { ns: 'aaa', revision: 1, applies: 'live', value: {}, redacted: [] },
+    ]
+    const entry = settingsExportBundleEntry(rows)
+    expect((entry.content as { namespaces: { ns: string }[] }).namespaces.map(row => row.ns)).toEqual(['aaa', 'zzz'])
+    expect(settingsExportBundleEntry([...rows].reverse()).content).toEqual(entry.content)
   })
 })

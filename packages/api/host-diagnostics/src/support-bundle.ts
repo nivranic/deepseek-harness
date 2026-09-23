@@ -14,7 +14,7 @@ function serializeEntry(entry: SupportBundleEntry): string {
 const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
 
 /** The closed entry-kind vocabulary as a runtime set for unknown-kind inputs. */
-const ENTRY_KINDS: ReadonlySet<string> = new Set(['diagnostics', 'session-headers'])
+const ENTRY_KINDS: ReadonlySet<string> = new Set(['diagnostics', 'session-headers', 'settings-export'])
 
 /** Keys the sanitizer refuses regardless of entry kind: secret-shaped channels never enter a bundle. */
 const FORBIDDEN_KEY_PATTERN = /api[-_]?key|bearer|secret|password|credential/iu
@@ -155,4 +155,32 @@ export interface SessionHeaderRow {
 export function sessionHeadersBundleEntry(rows: readonly SessionHeaderRow[]): SupportBundleEntry {
   const sorted = [...rows].sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))
   return sanitizeSupportBundleEntry('session-headers', 'session-headers.json', JSON.parse(JSON.stringify({ sessions: sorted })) as JsonValue)
+}
+
+/** One settings-export bundle row: one namespace's resolved value with secret-role fields already stripped by the settings seam. */
+export interface SettingsExportRow {
+  /** The registered settings namespace. */
+  readonly ns: string
+  /** Monotonic revision of the raw user section the value was read at. */
+  readonly revision: number
+  /** The owner's declared effect timing. */
+  readonly applies: 'live' | 'restart'
+  /** The resolved value; secret-role fields are absent (the seam stripped them before this row). */
+  readonly value: unknown
+  /** Names of the fields the seam stripped as secret-role; names only, never values. */
+  readonly redacted: readonly string[]
+}
+
+/**
+ * The settings-export producer entry: one row per registered settings
+ * namespace, secret-role fields stripped by the seam (`redactSecrets`) before
+ * this row exists, sorted by namespace so registration order never leaks into
+ * the deterministic artifact. The withheld-field enumeration rides under
+ * `redacted` because the bundle sanitizer refuses secret-shaped keys.
+ * @param rows - namespace rows mapped from the settings seam's describe output.
+ * @returns the bundle entry candidate.
+ */
+export function settingsExportBundleEntry(rows: readonly SettingsExportRow[]): SupportBundleEntry {
+  const sorted = [...rows].sort((left, right) => (left.ns < right.ns ? -1 : left.ns > right.ns ? 1 : 0))
+  return sanitizeSupportBundleEntry('settings-export', 'settings-export.json', JSON.parse(JSON.stringify({ namespaces: sorted })) as JsonValue)
 }

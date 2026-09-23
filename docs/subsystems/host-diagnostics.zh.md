@@ -37,7 +37,7 @@ interface DiagnosticsPlugin {
 
 ## Support Bundle
 
-第 43 节 bundle 是确定性工件：条目按键序规范序列化后取 SHA-256 进 manifest，链式校验和覆盖有序 manifest 行，collector 重算全部摘要并对篡改大声失败；脱敏器对任意深度的秘密形状键递归拒绝。 v1 工件携带第 42 节诊断条目，并在会话存储已组合且持有会话时附 `session-headers.json`——每个会话一行（头部事实与存储计数，绝不含事件内容），按 id 排序。
+第 43 节 bundle 是确定性工件：条目按键序规范序列化后取 SHA-256 进 manifest，链式校验和覆盖有序 manifest 行，collector 重算全部摘要并对篡改大声失败；脱敏器对任意深度的秘密形状键递归拒绝。 工件携带第 42 节诊断条目；会话存储已组合且持有会话时附 `session-headers.json`——每个会话一行（头部事实与存储计数，绝不含事件内容），按 id 排序；settings 接缝已组合且注册命名空间时附 `settings-export.json`——每个命名空间一行，携带接缝脱敏后的解析值（`redactSecrets`），被剥离字段名枚举在 `redacted` 下（脱敏器拒绝秘密形状键，枚举不能挂在含 secret 的键名下），按命名空间排序。
 
 ```ts type-equiv
 /** The §43 support bundle: sanitized entries, their manifest, and the chained checksum. */
@@ -84,8 +84,10 @@ Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.
 
 /**
  * Produce one §43 support bundle: the just-composed §42 diagnostics entry,
- * plus the session-headers entry when a session store is composed and holds
- * at least one session; the collector validates the same artifact.
+ * the session-headers entry when a session store is composed and holds at
+ * least one session, and the settings-export entry when the settings seam
+ * is composed and registers at least one namespace; the collector validates
+ * the same artifact.
  * @param signal - optional request cancellation passed to the composition.
  * @returns the sealed, self-checksummed bundle.
  */

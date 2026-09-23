@@ -85,7 +85,7 @@ export interface DiagnosticsSnapshot {
 }
 
 /** One §43 bundle entry kind; the closed set is the sanitizer's allowlist. */
-export type SupportBundleEntryKind = 'diagnostics' | 'session-headers'
+export type SupportBundleEntryKind = 'diagnostics' | 'session-headers' | 'settings-export'
 
 /** One sanitized bundle entry: JSON-safe content plus its stable bundle path. */
 export interface SupportBundleEntry {

@@ -22,7 +22,7 @@ kind: "package-reference"
 <a id="model-experience"></a>
 ## Support Bundle
 
-`supportBundle()` 产出第 43 节工件：经脱敏的条目（任意深度的递归秘密形状扫描拒绝 api-key/bearer/secret/password/credential 键）、按规范化键序序列化的逐条 SHA-256 manifest、对有序 manifest 行的链式校验和，以及重算每个摘要并对篡改大声失败的 collector 校验——输入顺序绝不外泄，四个平台运行同一候选产出字节一致的 bundle。 v1 工件携带两种条目：第 42 节诊断快照，以及——当会话存储已组合且持有至少一个会话时——`session-headers.json`，每个存储会话一行（头部事实与存储计数，绝不含事件内容），按 id 排序。
+`supportBundle()` 产出第 43 节工件：经脱敏的条目（任意深度的递归秘密形状扫描拒绝 api-key/bearer/secret/password/credential 键）、按规范化键序序列化的逐条 SHA-256 manifest、对有序 manifest 行的链式校验和，以及重算每个摘要并对篡改大声失败的 collector 校验——输入顺序绝不外泄，四个平台运行同一候选产出字节一致的 bundle。 工件的内容条目：第 42 节诊断快照；`session-headers.json`——当会话存储已组合且持有至少一个会话时——每个存储会话一行（头部事实与存储计数，绝不含事件内容），按 id 排序；以及 `settings-export.json`——当 settings 接缝已组合且注册命名空间时——每个命名空间一行，携带接缝脱敏后的解析值（`redactSecrets`），按命名空间排序。
 
 ## Model Experience
 

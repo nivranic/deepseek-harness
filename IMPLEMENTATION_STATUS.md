@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Settings-Export Bundle 条目（§43 G2-SUPPORT 第二项）
+
+[当前来源记录](artifacts/upstream-first/settings-entry-source.json)落地 §43 内容条目第二项：supportBundle() 在 settings 接缝已组合且注册至少一个命名空间时附加 settings-export.json 条目——service 经本地 SettingsOwner 结构类型调用 describe({ redactSecrets: true })（wire 表面强制传入，测试台断言漏传即抛），settingsExportBundleEntry 按 ns 排序映射 SettingsExportRow（ns/revision/applies/value/redacted），闭集 ENTRY_KINDS 增 'settings-export'。双重防线：接缝先行剥离 role('secret') 字段（值不进入行），脱敏器递归秘密形状键扫描再兜底——脱敏后仍残留秘密形状键的行使整条目大声失败（防御测试固化）；被剥离字段名只能枚举在 redacted 键下（脱敏器拒绝任何含 secret 的键名，枚举不能挂在秘密形状键下）。exactOptionalPropertyTypes 行构造照例仅展开已定义成员；secrets 数组缺省回退空数组。测试 25 项（新增 4：ns 排序+redacted 枚举、无接缝仅诊断、脱敏残留防御、注册顺序不外泄）。README/subsystem 双语、cordis-surface/api-catalog 再生，doc-sync 36。四平台真机同候选实测保持开放。
+
 ## Session-Headers Bundle 条目（§43 G2-SUPPORT 第一项）
 
-[当前来源记录](artifacts/upstream-first/session-headers-entry-source.json)落地 §43 内容条目第一项：supportBundle() 在会话存储（sessionPersistence）已组合且持有至少一个会话时附加 session-headers.json 条目——sessionHeadersBundleEntry 以 id 排序映射 SessionHeaderRow（id/createdAt/cwd?/parentSession?/isSeeded/eventCount?/sizeBytes?/revision，仅头部事实与存储计数，绝不携带事件内容），列表顺序绝不外泄；service 经本地 SessionStoreOwner 结构类型读取 list(signal)（InventoryOwner 先例，可选组合——无存储或空存储时 bundle 保持仅诊断条目）。闭集 ENTRY_KINDS 早已预留 'session-headers'，脱敏器递归秘密形状扫描与 canonical 序列化照常覆盖新条目（键集全部通过，含事实快照的 bundle 仍过 collector 校验，测试固化）。exactOptionalPropertyTypes 下行构造仅展开已定义成员（显式 undefined 不可赋入可选属性）。测试 21 项（新增 3：有条目+排序+脱敏、无存储/空存储仅诊断、列表顺序不外泄确定性）。README/subsystem 双语 Support Bundle 段、cordis-surface/api-catalog 再生，doc-sync 36。设置导出条目与四平台真机同候选实测保持开放。
+[历史来源记录](artifacts/upstream-first/session-headers-entry-source.json)落地 §43 内容条目第一项：supportBundle() 在会话存储（sessionPersistence）已组合且持有至少一个会话时附加 session-headers.json 条目——sessionHeadersBundleEntry 以 id 排序映射 SessionHeaderRow（id/createdAt/cwd?/parentSession?/isSeeded/eventCount?/sizeBytes?/revision，仅头部事实与存储计数，绝不携带事件内容），列表顺序绝不外泄；service 经本地 SessionStoreOwner 结构类型读取 list(signal)（InventoryOwner 先例，可选组合——无存储或空存储时 bundle 保持仅诊断条目）。闭集 ENTRY_KINDS 早已预留 'session-headers'，脱敏器递归秘密形状扫描与 canonical 序列化照常覆盖新条目（键集全部通过，含事实快照的 bundle 仍过 collector 校验，测试固化）。exactOptionalPropertyTypes 下行构造仅展开已定义成员（显式 undefined 不可赋入可选属性）。测试 21 项（新增 3：有条目+排序+脱敏、无存储/空存储仅诊断、列表顺序不外泄确定性）。README/subsystem 双语 Support Bundle 段、cordis-surface/api-catalog 再生，doc-sync 36。设置导出条目与四平台真机同候选实测保持开放。
 
 ## Crash/Last-Error 记录器（§41/§42 接缝闭合）
 

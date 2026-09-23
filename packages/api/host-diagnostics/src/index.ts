@@ -17,7 +17,7 @@ import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { DiagnosticsRecorder } from './recorder.ts'
-import { buildSupportBundle, diagnosticsBundleEntry, sessionHeadersBundleEntry, validateSupportBundle } from './support-bundle.ts'
+import { buildSupportBundle, diagnosticsBundleEntry, sessionHeadersBundleEntry, settingsExportBundleEntry, validateSupportBundle } from './support-bundle.ts'
 import type { SupportBundle } from './types.ts'
 import type {
   DiagnosticsMigration,
@@ -29,8 +29,8 @@ import type {
 
 export type * from './types.ts'
 export { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
-export { buildSupportBundle, diagnosticsBundleEntry, sanitizeSupportBundleEntry, sessionHeadersBundleEntry, validateSupportBundle } from './support-bundle.ts'
-export type { SessionHeaderRow } from './support-bundle.ts'
+export { buildSupportBundle, diagnosticsBundleEntry, sanitizeSupportBundleEntry, sessionHeadersBundleEntry, settingsExportBundleEntry, validateSupportBundle } from './support-bundle.ts'
+export type { SessionHeaderRow, SettingsExportRow } from './support-bundle.ts'
 
 /** The released session-format migration chain this build knows, by name and version pair. */
 const MIGRATIONS: readonly DiagnosticsMigration[] = Object.freeze([
@@ -46,6 +46,17 @@ interface InventoryOwner {
     readonly enabled: boolean
     readonly fiberPhase: string
   }[] }>
+}
+
+/** Optional settings-seam owner shape the diagnostics service reads for bundle rows. */
+interface SettingsOwner {
+  describe(options?: { readonly redactSecrets?: boolean }): readonly {
+    readonly ns: string
+    readonly revision: number
+    readonly applies: 'live' | 'restart'
+    readonly value: unknown
+    readonly secrets?: readonly string[]
+  }[]
 }
 
 /** Optional session-store owner shape the diagnostics service reads for bundle rows. */
@@ -147,8 +158,10 @@ export class HostDiagnosticsService extends TypertRemoteService {
 
   /**
    * Produce one §43 support bundle: the just-composed §42 diagnostics entry,
-   * plus the session-headers entry when a session store is composed and holds
-   * at least one session; the collector validates the same artifact.
+   * the session-headers entry when a session store is composed and holds at
+   * least one session, and the settings-export entry when the settings seam
+   * is composed and registers at least one namespace; the collector validates
+   * the same artifact.
    * @param signal - optional request cancellation passed to the composition.
    * @returns the sealed, self-checksummed bundle.
    */
@@ -157,7 +170,18 @@ export class HostDiagnosticsService extends TypertRemoteService {
     const snapshot = await this.describe(signal)
     const store = this.ctx.get('sessionPersistence') as SessionStoreOwner | undefined
     const snapshots = store === undefined ? [] : await store.list(signal)
+    const settings = this.ctx.get('settings') as SettingsOwner | undefined
+    const descriptors = settings === undefined ? [] : settings.describe({ redactSecrets: true })
     const candidates = [diagnosticsBundleEntry(snapshot)]
+    if (descriptors.length > 0) {
+      candidates.push(settingsExportBundleEntry(descriptors.map(descriptor => ({
+        ns: descriptor.ns,
+        revision: descriptor.revision,
+        applies: descriptor.applies,
+        value: descriptor.value,
+        redacted: descriptor.secrets ?? [],
+      }))))
+    }
     if (snapshots.length > 0) {
       candidates.push(sessionHeadersBundleEntry(snapshots.map(listed => ({
         id: listed.header.id,
