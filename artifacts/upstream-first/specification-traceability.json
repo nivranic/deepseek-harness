@@ -1883,7 +1883,7 @@
         "PLATFORM_VERIFICATION.md",
         "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "运行位置已落地（§10）：ready frame 携带 Host Node.js platform（网关与客户端严格解析，pre-release 无 wire 兼容承诺），Connection generation 暴露 ConnectionHostInfo，会话页 strict header 的 utilities 行以 locale 键显示「运行位置 <platform>」chip——generation 未就绪即消失，手机端不会误以为命令在本机执行（§11 第一原则的呈现面）；Kotlin Link 契约镜像同步。手机顶栏已落地：strict header 新增 leading 座位，ui-sidebar 在其中注册仅手机媒体查询显示的「← 会话」返回按钮（打开载有会话列表的抽屉），运行位置 chip 携带已建立 generation 的状态圆点（Host ●）；overflow 菜单（⋮）仍开放——其条目取决于尚不存在的工具栏集合，如实不预造。设备命名已接入：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布，运行位置 chip 在有名字时显示「运行位置 {name} · {platform}」（无 discovery 面的组装回退纯 platform）；权限档显示（workspace-write 档位）仍开放；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
+      "remaining": "运行位置已落地（§10）：ready frame 携带 Host Node.js platform（网关与客户端严格解析，pre-release 无 wire 兼容承诺），Connection generation 暴露 ConnectionHostInfo，会话页 strict header 的 utilities 行以 locale 键显示「运行位置 <platform>」chip——generation 未就绪即消失，手机端不会误以为命令在本机执行（§11 第一原则的呈现面）；Kotlin Link 契约镜像同步。手机顶栏已落地：strict header 新增 leading 座位，ui-sidebar 在其中注册仅手机媒体查询显示的「← 会话」返回按钮（打开载有会话列表的抽屉），运行位置 chip 携带已建立 generation 的状态圆点（Host ●）；overflow 菜单（⋮）仍开放——其条目取决于尚不存在的工具栏集合，如实不预造。设备命名已接入：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布，运行位置 chip 在有名字时显示「运行位置 {name} · {platform}」（无 discovery 面的组装回退纯 platform）；权限档显示已落地：permissions 投影有值时运行位置 chip 追加本地化档位（内建档位本地化、Host 自定义档位人性化名称，无投影/草稿态不追加）；溢出菜单（⋮）条目仍需工具栏集合；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

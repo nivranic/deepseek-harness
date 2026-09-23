@@ -10,6 +10,7 @@ import type {
 import { conversationPhase } from '../contract/snapshot.ts'
 import { resolveActiveView } from '../view-selection.ts'
 import css from './ConversationRoot.module.css'
+import { permissionTierLabel } from './PermissionSelect.tsx'
 
 /** Full props composed from the strict session body contract. */
 export type ConversationSessionProps = ConversationSessionSlotProps
@@ -57,7 +58,7 @@ function equalBreadcrumbs(left: readonly Breadcrumb[], right: readonly Breadcrum
  * @returns the hidden blank-session header or visible title and tabs.
  */
 export function ConversationSessionHeader({
-  sessionId, useSession, useSessions, useConversation, useConversationViews, useHostFacts, useStore,
+  sessionId, useSession, useSessions, useConversation, useConversationViews, useHostFacts, useProjection, useStore,
   renderSlot, open, selectView, t,
 }: ConversationSessionHeaderProps) {
   const tabs = useConversationViews(value => value)
@@ -67,6 +68,9 @@ export function ConversationSessionHeader({
   const session = useSession(s => s)
   const conversation = useConversation(s => s)
   const host = useHostFacts(value => value)
+  // Section 10's running-location chip carries the current permission tier;
+  // a permission-less Host or Draft leaves the chip as Host facts alone.
+  const permissions = useProjection('permissions')
   const hideChrome = session.blank && conversationPhase(session, conversation) === 'blank'
 
   return (
@@ -141,6 +145,7 @@ export function ConversationSessionHeader({
                   {host.descriptor !== undefined
                     ? t('session.runningLocationNamed', { name: host.descriptor.displayName, platform: host.platform })
                     : t('session.runningLocation', { platform: host.platform })}
+                  {permissions !== undefined && ` · ${permissionTierLabel(permissions.currentValue, t)}`}
                 </span>
               )}
               {renderSlot('conversation.session.header.utilities', {})}

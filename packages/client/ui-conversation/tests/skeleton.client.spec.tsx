@@ -131,6 +131,8 @@ function mount(
     viewTabs?: ViewTab[]
     /** Host facts the header's running-location chip reads; absent while no generation is ready. */
     headerHostFacts?: ConnectionHostInfo
+    /** Permissions projection the header's running-location chip appends as the tier. */
+    permissionsProjection?: string
     /** Connection recovery state; a defined non-ready value gates the composer (§28). */
     connectionState?: ConnectionState
   } = {},
@@ -213,7 +215,9 @@ function mount(
           useResource={useResource}
           useSessionPendingInteraction={useSessionPendingInteraction}
           useWorkspaces={props.useWorkspaces}
-          useProjection={(() => undefined)}
+          useProjection={(key: string) => key === 'permissions' && options.permissionsProjection !== undefined
+            ? { options: [], currentValue: options.permissionsProjection }
+            : undefined}
           useInput={useInput}
           inputActions={inputActions}
           useStore={bindSnapshotSelector(store)}
@@ -531,6 +535,32 @@ describe('ConversationRoot resident composer', () => {
     })
     const chip = b.view.container.querySelector('[data-conversation-running-location]')
     expect(chip?.textContent).toBe('运行位置 Workstation · win32')
+  })
+
+  it('appends the permission tier to the running-location chip (§10)', () => {
+    const b = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: {
+        home: '/home/u',
+        platform: 'win32',
+        descriptor: { hostId: 'h1' as never, displayName: 'Workstation', capabilities: [] } as never,
+      },
+      permissionsProjection: 'workspace-write',
+    })
+    const chip = b.view.container.querySelector('[data-conversation-running-location]')
+    expect(chip?.textContent).toBe('运行位置 Workstation · win32 · 工作区内修改')
+
+    const custom = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+      permissionsProjection: 'corp-strict-tier',
+    })
+    expect(custom.view.container.querySelector('[data-conversation-running-location]')?.textContent)
+      .toBe('运行位置 linux · Corp Strict Tier')
+
+    const none = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+    })
+    expect(none.view.container.querySelector('[data-conversation-running-location]')?.textContent)
+      .toBe('运行位置 linux')
   })
 
   it('keeps intermediate subagent breadcrumbs at the compact title size', () => {

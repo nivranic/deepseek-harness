@@ -76,6 +76,20 @@ function permissionLabel(
   return displayName(name)
 }
 
+/**
+ * Localized permission-tier label for the running-location chip (section 10):
+ * built-in presets localize, host-configured presets keep their humanized name.
+ * @param value - the permissions projection's current preset value.
+ * @param t - locale resolver carrying the access.preset.* keys.
+ * @returns the display label for the tier.
+ */
+export function permissionTierLabel(value: string, t: ComposerBarProps['t']): string {
+  if (value === 'read-only') return t('access.preset.readOnly')
+  if (value === 'workspace-write') return t('access.preset.workspaceWrite')
+  if (value === FULL_ACCESS) return t('access.preset.fullAccess')
+  return displayName(value)
+}
+
 export interface PermissionSelectProps {
   value: PermissionSelectValue | undefined
   locked: boolean

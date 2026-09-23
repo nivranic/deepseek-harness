@@ -5,55 +5,43 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "9fb1f880c04bc6116a318f614be38d73aa575fd4eb2fe17e8c66a047e649b47b"
+      "sha256": "498d0d1428e5a645653c4425b1d9ee8e58982baeaa0aa71259337ba44ac2c216"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "ebd9b7d46b26fccf6551cda291158fcf1f833a470467c703e9248cacf8ed8f5a"
+      "sha256": "fee8f92420b6191f0fc08537e1c69690311878fe634143e6341d8263255f5ed3"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "db6a6b45bc79e3f6307c80ff6df64045777514803e780b7ba973e4c5446e4df2"
+      "sha256": "2d4468f2ce0cd125b4ba91d5a233e4f79b304ecf2ae26d4f50d60925d197a6e2"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "8fba09997cc1414c65d4d307e925ab0462aad03dcce48a3104b6cac3280b3254"
+      "sha256": "c7967a0a7d935df8f5f19a1d1d4c5659365cbb448587e1732dc3856574a5e9a3"
     },
     {
-      "path": "docs/subsystems/host-diagnostics.i18n.yaml",
-      "sha256": "57929e918ddb2b9a1d897146878c1c150fed41fc81b76684990ecfe67bc8562d"
+      "path": "packages/client/ui-conversation/README.i18n.yaml",
+      "sha256": "473170039b543c838a891f2a8a84d15ca10a5ecd9f87989d67b4f58194069e2c"
     },
     {
-      "path": "docs/subsystems/host-diagnostics.md",
-      "sha256": "66cbbc65038dbbd24f873e55a17a9551f196d7e66cf9f84d22786bed9d65e004"
+      "path": "packages/client/ui-conversation/README.md",
+      "sha256": "0b223110849c75098168f3d4b3551fbfc1c348da42c1e919af04ec866b635443"
     },
     {
-      "path": "docs/subsystems/host-diagnostics.zh.md",
-      "sha256": "60da5e9360bdf2f17a7cbdcf96f1a70594b79b8d33717ee733247f33413e9a7b"
+      "path": "packages/client/ui-conversation/README.zh.md",
+      "sha256": "97226420f03b1790646bd7a6acd943ad45265ae3bb2e8fd06f86cef6e981466e"
     },
     {
-      "path": "packages/api/host-diagnostics/README.i18n.yaml",
-      "sha256": "6855f513f68fb1b900fd163abb364d02214ad997fa6e5da0e733689876313b6b"
+      "path": "packages/client/ui-conversation/src/client/skeleton/ConversationSession.tsx",
+      "sha256": "164f990f1b003150d797872540a30357b5c5f6e323a5011a17739eab1a188f71"
     },
     {
-      "path": "packages/api/host-diagnostics/README.md",
-      "sha256": "54b7cc13be8fd22ab052e246de705c972c4ab0173cdb9776bb84dca437cf9a04"
+      "path": "packages/client/ui-conversation/src/client/skeleton/PermissionSelect.tsx",
+      "sha256": "56fc3545a65ffff363a776a4b56f97468ffdb0b5ead9fffbc18738356942bd8c"
     },
     {
-      "path": "packages/api/host-diagnostics/README.zh.md",
-      "sha256": "cd2a03e4bdc898ec54c00bb15b63e44623e442aa6e3d6348e207b762fb7df440"
-    },
-    {
-      "path": "packages/api/host-diagnostics/src/index.ts",
-      "sha256": "294c70117de774c9cfa9174366d8057113ade2b1c9176142a6e5e5c2b494836e"
-    },
-    {
-      "path": "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
-      "sha256": "4ca2977b52a3c63f38c38963597e2c5097d8f45df762d81064d01d147420bb8b"
-    },
-    {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "2e89706265ef50d330273a80a86303f4d88630f9b2ef71b63ba816c0041bab91"
+      "path": "packages/client/ui-conversation/tests/skeleton.client.spec.tsx",
+      "sha256": "c898822a23164a5cc0fdc5ae3bcd6b58abd1757883da10bd2719014d0b4b2438"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -6918,6 +6906,42 @@
     },
     {
       "status": "PASS",
+      "command": "Permission-tier suites (ui-conversation 453: built-in tier localization appended to the named chip, host-configured tier humanized, absent projection leaves the chip unchanged): 453 passed, 0 failed",
+      "log": ".artifacts/permission-tier-chip-tests.log",
+      "sourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/permission-tier-chip-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/permission-tier-chip-lint.log",
+      "sourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the chip sentence updates and pairing re-record",
+      "log": ".artifacts/permission-tier-chip-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 10 tier note",
+      "log": ".artifacts/permission-tier-chip-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/permission-tier-chip-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7648,7 +7672,177 @@
       ]
     }
   },
+  "permissionTierChip": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json",
+    "scope": "Running-location permission tier (specification section 10, third line): the strict Session header's running-location chip appends the localized permission tier when the Host-computed permissions projection has a value. The header reads the projection through ui-session's session-standard useProjection merge — no slot-contract change. permissionTierLabel (exported from PermissionSelect) localizes the three built-in presets through the existing access.preset.* bilingual keys and falls back to the humanized display name for host-configured presets; the projection is an object whose currentValue carries the tier, and a permission-less Host (key absence) or a Draft leaves the chip as Host facts alone. With this, the phone's cannot-mistake-where-it-runs defense is threefold: the running-location chip (name + platform + tier), the section 28 composer connection gate, and the single-generation binding",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "limitations": [
+      "The tier reads the permissions projection's currentValue as a display fact only; preset switching itself stays in the composer's PermissionSelect.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 10 overflow-menu (⋮) entries wait on a toolbar set existing; section 38 background/sleep + durable confirmation + cross-client recovery remain open; file matrix hardening (§34/§35); saved-hosts roster UI and the switch action need the retargetable connection endpoint seam plus shell placement; provider/relay/device-trust/crash telemetry exits wire to telemetryKindAllowed as their producers land; four-platform real-device same-candidate bundle runs remain open; iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "degradedProbes": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/permission-tier-chip-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/degraded-probes-source.json",
     "scope": "Degraded-capable probes (specification section 41): health() becomes async with the request signal forwarded and probes composed owners deeper where a partial-failure signal exists. pluginHealth reads the optional plugin inventory — failed plugin fibers degrade pluginState with the count in the detail while readiness keeps holding (partial capability loss is not unavailability), and an inventory read that itself throws degrades naming only the error class. modelProviderHealth reads the LLM owner through a local ModelProviderOwner structural interface — zero registered providers degrades modelProvider and drops readiness, because no Agent request can run. The ready verdict becomes sessionStore up AND pluginState not down AND modelProvider up; components without a partial-failure signal (sessionStore, connection) stay presence-based, and a down still names the missing owner rather than guessing a cause",
@@ -16807,7 +17001,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/degraded-probes-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/permission-tier-chip-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -17290,7 +17484,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "8fba09997cc1414c65d4d307e925ab0462aad03dcce48a3104b6cac3280b3254"
+        "sha256": "c7967a0a7d935df8f5f19a1d1d4c5659365cbb448587e1732dc3856574a5e9a3"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
