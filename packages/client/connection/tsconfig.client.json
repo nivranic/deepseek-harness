@@ -13,6 +13,7 @@
     "src/client/index.ts",
     "src/client/random-uuid.ts",
     "src/client/rpc.ts",
+    "src/client/saved-hosts.ts",
     "src/loopback-hostname.ts",
     "src/recovery-config.ts",
     "src/rpc.ts"
@@ -23,6 +24,9 @@
     },
     {
       "path": "../../../vendor/schemastery"
+    },
+    {
+      "path": "../../api/host-description"
     },
     {
       "path": "../../attachment/attachment"

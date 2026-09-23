@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Saved-Hosts 名册基础（§28）
+
+[当前来源记录](artifacts/upstream-first/saved-hosts-source.json)落地 §28 名册基础：dsh-client-connection 新增 client/saved-hosts.ts——SavedHostsStore（hostId 键 upsert、lastConnectedAt 降序、上限 MAX_SAVED_HOSTS=8、subscribe 通知）经 SavedHostsPersistence 持久化（browserSavedHostsPersistence 守卫 localStorage，缺省回退进程内），durable 边界 parseRow 逐行结构校验、损坏行丢弃不崩启动；apply() 在每次已建立世代发布时经本地 ConnectionHostInfo descriptor 声明合并（与 remotes host-preparation 同型，HostDescriptor 类型一致）记录身份事实（origin 取页面 origin、缺省 'in-process'），无描述符世代不记录；ConnectionHandle 暴露 savedHosts。active Host 展示沿用运行位置 chip。测试 203 项（新 7：upsert 排序、上限、跨存储生命周期、损坏行丢弃、remove/订阅、适配器、世代记录集成）。名册 UI 与切换动作仍需可重定向连接端点接缝，开放。
+
 ## SessionTelemetry 出口接线（§44 默认关闭生效）
 
-[当前来源记录](artifacts/upstream-first/telemetry-gate-source.json)把 §44 的默认关闭落到唯一现存出口：OpenTelemetry 后端构造时以 telemetryKindAllowed(consent, 'sessionTelemetry') 门控 SDK 管线——关闭（缺省即关）走与 DISABLED 同构的 withheld 路径（不构建 provider、不读任何 transport 配置、反馈留在本地并以指名类别的告警提示），sharing 仍由 mode 命名（部署选择的共享策略）而 consent 决定该类别是否离开。base bundle 增 DSH_TELEMETRY_CONSENT=1 显式开启（env 缺省=关）；wire/route/egress/fail-loud 测试台全部显式 opt-in（transport 误配只在 opt-in 后可达，与 DISABLED 不读 transport 同构）。测试 51 项（otel 2 新：withheld 路径零外发+告警指名类别、withheld 不读 transport 配置）+ base 2。README 四处双语同步（otel consent 行改为强制语义、seam 记录后端执行情况）。provider/relay/deviceTrust/crash 的遥测出口随各自生产者落地。
+[历史来源记录](artifacts/upstream-first/telemetry-gate-source.json)把 §44 的默认关闭落到唯一现存出口：OpenTelemetry 后端构造时以 telemetryKindAllowed(consent, 'sessionTelemetry') 门控 SDK 管线——关闭（缺省即关）走与 DISABLED 同构的 withheld 路径（不构建 provider、不读任何 transport 配置、反馈留在本地并以指名类别的告警提示），sharing 仍由 mode 命名（部署选择的共享策略）而 consent 决定该类别是否离开。base bundle 增 DSH_TELEMETRY_CONSENT=1 显式开启（env 缺省=关）；wire/route/egress/fail-loud 测试台全部显式 opt-in（transport 误配只在 opt-in 后可达，与 DISABLED 不读 transport 同构）。测试 51 项（otel 2 新：withheld 路径零外发+告警指名类别、withheld 不读 transport 配置）+ base 2。README 四处双语同步（otel consent 行改为强制语义、seam 记录后端执行情况）。provider/relay/deviceTrust/crash 的遥测出口随各自生产者落地。
 
 ## Settings-Export Bundle 条目（§43 G2-SUPPORT 第二项）
 

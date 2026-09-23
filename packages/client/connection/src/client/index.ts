@@ -9,6 +9,7 @@ import {
   type ConnectionState,
 } from './connection.ts'
 import { createFixtureConnectionRpc } from './fixture.ts'
+import { SavedHostsStore, browserSavedHostsPersistence, type SavedHost } from './saved-hosts.ts'
 import { createWebConnectionRpc, type RpcFetch, type RpcStreamOpen } from './rpc.ts'
 import { isLoopbackHostname } from '../loopback-hostname.ts'
 import type { ClientConnectionRpc } from '../rpc.ts'
@@ -26,6 +27,8 @@ declare module '@deepseek-ai/cordis' {
 }
 
 // ---- Browser-safe protocol and shared value re-exports ----
+export { SavedHostsStore, browserSavedHostsPersistence, MAX_SAVED_HOSTS } from './saved-hosts.ts'
+export type { SavedHost, SavedHostsPersistence } from './saved-hosts.ts'
 export type {
   MessageId,
   RpcRequest, RpcResponse, RpcResult,
@@ -130,6 +133,12 @@ export interface ConnectionHandle {
   readonly state: ConnectionStateSource
   /** Generic logical RPC channels over the same Connection transport. */
   readonly rpc: ClientConnectionRpc
+  /**
+   * §28 saved-Host roster: identity facts of every admitted Host with a
+   * descriptor, recorded on each established generation, most recent first.
+   * The active Host is whichever row matches the current generation.
+   */
+  readonly savedHosts: SavedHostsStore
   /** Reset retry progression and replace the current attempt immediately. */
   reconnect(): void
   /**
@@ -201,11 +210,13 @@ export function apply(ctx: Context): void {
   let generationId = 0
   let generation: ConnectionGeneration | undefined
   let state: ConnectionState | undefined
+  const savedHosts = new SavedHostsStore(browserSavedHostsPersistence())
   const generationListeners = new Set<() => void>()
   const stateListeners = new Set<() => void>()
   const publishGeneration = (next: ConnectionGeneration | undefined): void => {
     if (Object.is(generation, next)) return
     generation = next
+    if (next !== undefined) recordSavedHost(next.host)
     for (const listener of [...generationListeners]) {
       try {
         listener()
@@ -233,6 +244,18 @@ export function apply(ctx: Context): void {
     publishGeneration(undefined)
     publishState(undefined)
   }
+  const recordSavedHost = (host: ConnectionGeneration['host']): void => {
+    const descriptor = host.descriptor
+    if (descriptor === undefined) return
+    const row: SavedHost = {
+      hostId: descriptor.hostId,
+      displayName: descriptor.displayName,
+      platform: host.platform,
+      origin: pageLocation?.origin ?? 'in-process',
+      lastConnectedAt: Date.now(),
+    }
+    savedHosts.record(row)
+  }
   const handle: ConnectionHandle = {
     isLoopback: transport?.ownsHost === true || pageLocation === undefined || isLoopbackHostname(pageLocation.hostname),
     generation: {
@@ -250,6 +273,7 @@ export function apply(ctx: Context): void {
       },
     },
     rpc,
+    savedHosts,
     reconnect() {
       owner?.controller.reconnect()
     },

@@ -531,7 +531,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConnectionHandle',
-    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly state: ConnectionStateSource;\n    readonly rpc: ClientConnectionRpc;\n    reconnect(): void;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionRecoveryConfig): ConnectionLoop;\n}',
+    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly state: ConnectionStateSource;\n    readonly rpc: ClientConnectionRpc;\n    readonly savedHosts: SavedHostsStore;\n    reconnect(): void;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionRecoveryConfig): ConnectionLoop;\n}',
   },
   {
     name: 'ConnectionHostInfo',
@@ -772,6 +772,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'RemoteStreamOptions',
     declaration: 'export interface RemoteStreamOptions<Item> {\n    readonly name: string;\n    readonly available?: (host: ConnectionHostInfo) => boolean;\n    readonly open: (signal: AbortSignal) => AsyncIterable<Item>;\n    readonly ended: (accepted: boolean) => Error;\n    readonly carrierFailed?: (error: RemoteStreamCarrierError) => void;\n}',
+  },
+  {
+    name: 'SavedHost',
+    declaration: 'export interface SavedHost {\n    readonly hostId: string;\n    readonly displayName: string | undefined;\n    readonly platform: string | undefined;\n    readonly origin: string;\n    readonly lastConnectedAt: number;\n}',
+  },
+  {
+    name: 'SavedHostsPersistence',
+    declaration: 'export interface SavedHostsPersistence {\n    read(): string | undefined;\n    write(value: string): void;\n}',
+  },
+  {
+    name: 'SavedHostsStore',
+    declaration: 'export class SavedHostsStore {\n    constructor(private readonly persistence?: SavedHostsPersistence);\n    list(): readonly SavedHost[];\n    record(host: SavedHost): void;\n    remove(hostId: string): void;\n    subscribe(listener: () => void): () => void;\n}',
   },
   {
     name: 'ScopeOf',
