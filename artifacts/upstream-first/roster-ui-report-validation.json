@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Roster UI presentation and selection persistence; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/roster-ui-source.json",
+    "sha256": "3c69badcd0c276411c87b6b4fbb72058a4c8f311b2ef354945b6e2c5209a5008"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "83bf37f0c1beeff573fa75445b5c0cde07e6dda83fd6f475a6426f7b8e68cd10"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/roster-ui-binding.json",
+    "sha256": "799a1936a19b0fd9ae86d99972a544e618ac8077ed1379fe6dfcbafaf89e3d08"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-roster-ui-reports.mjs",
+      "sha256": "49f8aa6a4a4031d99453bfca17a55c75c4b3d24dcdfc2c85b4d25cd174cbb72f"
+    },
+    {
+      "path": ".artifacts/capture-roster-ui-validation.mjs",
+      "sha256": "a38d4652608c7c97b6c2ed05aa4807b200c556715a31b01d933b67308234521b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c8eebf0d1ca1fed104c3ad2e558767e82edacd6014ec7990b4c1a2db786d1fe2"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ffabe055afc29dfb54e67ccce65023723653782b7f9635b929a12cdb771d3592"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/roster-ui-binding.log",
+      "sha256": "b797a5da754527319f6b0d0e2f18e5fb143e5e43a60e0d673fb844141100652f"
+    },
+    {
+      "path": ".artifacts/roster-ui-audit-tests.log",
+      "sha256": "134dada4c9fcbf92be343ce73b05a12e49d7e2521a203cdb7d2a705c576e5f1e"
+    },
+    {
+      "path": ".artifacts/roster-ui-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/roster-ui-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/roster-ui-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

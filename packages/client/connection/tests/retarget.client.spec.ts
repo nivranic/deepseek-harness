@@ -99,3 +99,52 @@ describe('switchToSavedHost', () => {
     expect(retarget).not.toHaveBeenCalled()
   })
 })
+
+describe('boot selection persistence', () => {
+  type StorageGlobal = { localStorage?: Storage }
+
+  afterEach(() => {
+    delete (globalThis as StorageGlobal).localStorage
+  })
+
+  function stubStorage(rows: unknown, selected: string | undefined): void {
+    const store = new Map<string, string>([
+      ['dsh-saved-hosts.v1', `${JSON.stringify(rows)}
+`],
+      ...selected === undefined ? [] : [['dsh-selected-host.v1', selected] as const],
+    ])
+    ;(globalThis as StorageGlobal).localStorage = {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value) },
+      removeItem: (key: string) => { store.delete(key) },
+      clear: () => { store.clear() },
+      key: () => null,
+      get length() { return store.size },
+    }
+  }
+
+  const ROSTER = [{
+    hostId: 'h-boot', displayName: 'Workstation', platform: 'win32',
+    origin: 'https://workstation.local:8787', lastConnectedAt: 1,
+  }]
+
+  it('applies the persisted selection before any loop runs', async () => {
+    stubStorage(ROSTER, 'h-boot')
+    const ctx = new Context()
+    contexts.add(ctx)
+    ;(globalThis as BrowserGlobal).location = { hostname: 'localhost', search: '?fixture' }
+    await ctx.plugin({ apply, inject: [] })
+    const connection = ctx.get('connection') as ConnectionHandle
+    expect(connection.targetOrigin()).toBe('https://workstation.local:8787')
+  })
+
+  it('keeps the page Host when the row is missing or in-process', async () => {
+    stubStorage([{ ...ROSTER[0], hostId: 'other', origin: 'in-process' }], 'h-boot')
+    const ctx = new Context()
+    contexts.add(ctx)
+    ;(globalThis as BrowserGlobal).location = { hostname: 'localhost', search: '?fixture' }
+    await ctx.plugin({ apply, inject: [] })
+    const connection = ctx.get('connection') as ConnectionHandle
+    expect(connection.targetOrigin()).toBeUndefined()
+  })
+})

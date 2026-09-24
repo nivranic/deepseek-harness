@@ -59,6 +59,8 @@ API Gateway Client 把内部 `$events` 逻辑流注册为唯一 generation sourc
 
 `switchToSavedHost(connection, hostId)` 组合切换动作：名册行的 origin 流入 `retarget` 并返回该行供呈现；未知 hostId 或 `in-process` 行不改动连接。
 
+`browserSelectedHostPersistence()` 以 `dsh-selected-host.v1` 持久化选中的 hostId（守卫 localStorage、校验非空串）；`apply()` 在任何载体建立前把持久化选中应用为初始选择——行缺失或 `in-process` 保持页面 Host，此时无循环运行，应用是纯赋值而非重连。
+
 `ctx.connection.reconnect()` 会中断活动工作、重置序列，并立即开始 retry 1。浏览器 `offline` 会中断活动工作、发布 `offline` 并暂停自动尝试；下一次 `online` 转换会重置序列并从 500ms 档开始。只有 ready 项会发布 `ready`。Gateway mux 不拥有独立重试调度。
 
 generation owner 可把失败尝试分类为 `incompatible`、`fatal`、`device-revoked`（Host 已撤销此设备授权；重新配对后再重连）或 `identity-changed`（Host 已不再识别此设备身份或密钥——重新配对或 Host 重置；重新配对后再重连）。这四种状态撤回就绪状态，并暂停自动尝试，直到手动重连或浏览器网络状态变化。分类在 source 清理结束后执行；取消错误不能覆盖已请求的重连或离线状态。未分类的失败继续持续恢复。Connection 拥有调度，Gateway 拥有应用错误分类。

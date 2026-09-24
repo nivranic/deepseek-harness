@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 名册 UI 呈现与选中持久化（§28）
+
+[当前来源记录](artifacts/upstream-first/roster-ui-source.json)补齐第 28 节名册的用户面：新包 dsh-client-ui-settings-hosts 在 Web Settings 注册 hosts 区（order 15，settings.hosts 双语词典）——行呈现 SavedHost 身份（displayName 缺省 hostId、selected/platform/in-process Tag、origin 等宽、lastConnectedAt 本地化），未选中且非 in-process 行暴露切换按钮（经 switchToSavedHost，成功提示 switchedTo），选中态旁有回本页 Host 按钮（retarget(undefined)），忘记走 savedHosts.remove；section 全部经活读取器（rows/selectedOrigin/subscribe）呈现，名册通知或刷新即重读。跨会话选中持久化落在 dsh-client-connection：SelectedHostPersistence 接口 + browserSelectedHostPersistence（key dsh-selected-host.v1，守卫 localStorage、非空串校验），apply() 在任何载体建立前把持久化选中应用为初始 selectedOrigin（行缺失或 in-process 保持页面 Host；此时无循环运行，纯赋值不重连），UI 切换成功即 write、回本页即 clear。测试 ui-settings-hosts 12（组件 7：行呈现/切换通知/回本页/空态；插件 5：host 入口 inert、face 持久化断言、miss 不触碰）+ connection retarget 8（新 2：启动正例定向持久化 origin、缺行/in-process 不动）。开放：选择读取器是轮询非观察、跨源 Host 仍需自身配对、无排序编辑。
+
 ## 名册切换动作与流载体采纳（§28 组合）
 
-[当前来源记录](artifacts/upstream-first/roster-switch-source.json)把第 28 节切换从接缝补成动作：connection 侧 switchToSavedHost(connection, hostId) 组合切换——名册行 origin 流入 retarget、返回该行供呈现，未知 hostId 或 in-process 行（无 origin 可定向）不动连接；Gateway 流载体采纳同源选择——RemoteStreamMuxClient 构造接受 resolveBaseUrl，每次物理 WebSocket 尝试以 connection.targetOrigin() 构建 URL（逐次连接重读、https→wss、未选回退页面 origin，remoteStreamUrl 导出为纯函数），ClientRemoteService 实例化时接线，Host 切换自此同时重定向单次 HTTP 调用与流载体。测试 connection 209（新 2：切换命中返回行+retarget 恰一次、未知/in-process 不动）+ gateway 461（新 3：页面 origin wss、选中 base 覆盖、无页面回退内部 base）。名册 UI 呈现（settings/连接页列表）与跨会话选中持久化保持开放。
+[历史来源记录](artifacts/upstream-first/roster-switch-source.json)把第 28 节切换从接缝补成动作：connection 侧 switchToSavedHost(connection, hostId) 组合切换——名册行 origin 流入 retarget、返回该行供呈现，未知 hostId 或 in-process 行（无 origin 可定向）不动连接；Gateway 流载体采纳同源选择——RemoteStreamMuxClient 构造接受 resolveBaseUrl，每次物理 WebSocket 尝试以 connection.targetOrigin() 构建 URL（逐次连接重读、https→wss、未选回退页面 origin，remoteStreamUrl 导出为纯函数），ClientRemoteService 实例化时接线，Host 切换自此同时重定向单次 HTTP 调用与流载体。测试 connection 209（新 2：切换命中返回行+retarget 恰一次、未知/in-process 不动）+ gateway 461（新 3：页面 origin wss、选中 base 覆盖、无页面回退内部 base）。名册 UI 呈现（settings/连接页列表）与跨会话选中持久化保持开放。
 
 ## 可重定向连接端点（§28 切换接缝）
 

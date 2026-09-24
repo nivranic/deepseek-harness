@@ -59,6 +59,8 @@ An ended `$events` stream, a Remote stream error, a non-ready opening item, or a
 
 `switchToSavedHost(connection, hostId)` composes the switch: the roster row's origin flows into `retarget` and the row returns for presentation; an unknown hostId or an `in-process` row leaves the connection untouched.
 
+`browserSelectedHostPersistence()` stores the selected hostId under `dsh-selected-host.v1` (localStorage-guarded, non-empty-string validated); `apply()` applies a persisted selection as the initial selection before any carrier exists — a missing or `in-process` row keeps the page Host, and with no loop running the apply is a pure assignment, never a reconnect.
+
 `ctx.connection.reconnect()` interrupts active work, resets the sequence, and starts retry 1 immediately. Browser `offline` aborts active work, publishes `offline`, and suspends automatic attempts; the next `online` transition resets the sequence and starts at the 500ms tier. Only a ready item publishes `ready`. Gateway mux owns no independent retry schedule.
 
 The generation owner may classify a failed attempt as `incompatible`, `fatal`, `device-revoked` (the Host revoked this device grant; pair again before reconnecting), or `identity-changed` (the Host no longer recognizes this device identity or key — a re-pair or Host reset; pair again before reconnecting). These states withdraw readiness and suspend automatic attempts until manual reconnect or a browser network transition. Classification happens after source cleanup; cancellation errors cannot replace the requested reconnect or offline state. Unclassified failures retain continuous recovery. Connection owns scheduling; the Gateway owns application-error classification.

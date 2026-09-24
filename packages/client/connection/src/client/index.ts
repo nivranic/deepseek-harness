@@ -9,7 +9,7 @@ import {
   type ConnectionState,
 } from './connection.ts'
 import { createFixtureConnectionRpc } from './fixture.ts'
-import { SavedHostsStore, browserSavedHostsPersistence, type SavedHost } from './saved-hosts.ts'
+import { SavedHostsStore, browserSavedHostsPersistence, browserSelectedHostPersistence, type SavedHost } from './saved-hosts.ts'
 import { createWebConnectionRpc, type RpcFetch, type RpcStreamOpen } from './rpc.ts'
 import { isLoopbackHostname } from '../loopback-hostname.ts'
 import type { ClientConnectionRpc } from '../rpc.ts'
@@ -27,8 +27,11 @@ declare module '@deepseek-ai/cordis' {
 }
 
 // ---- Browser-safe protocol and shared value re-exports ----
-export { SavedHostsStore, browserSavedHostsPersistence, MAX_SAVED_HOSTS } from './saved-hosts.ts'
-export type { SavedHost, SavedHostsPersistence } from './saved-hosts.ts'
+export {
+  SavedHostsStore, browserSavedHostsPersistence, browserSelectedHostPersistence, MAX_SAVED_HOSTS,
+  switchToSavedHost, type SavedHost, type SavedHostsPersistence,
+  type SavedHostSwitchTarget, type SelectedHostPersistence,
+} from './saved-hosts.ts'
 export type {
   MessageId,
   RpcRequest, RpcResponse, RpcResult,
@@ -219,6 +222,15 @@ export function apply(ctx: Context): void {
   let generationSource: ConnectionGenerationSource | undefined
   let owner: ConnectionOwner | undefined
   let selectedOrigin: string | undefined
+  const savedHosts = new SavedHostsStore(browserSavedHostsPersistence())
+  // Apply the cross-session selection before any carrier exists: a row that is
+  // missing or recorded in-process keeps the page Host; no loop runs yet, so
+  // applying is a pure assignment, never a reconnect.
+  const selectedHostId = browserSelectedHostPersistence()?.read()
+  if (selectedHostId !== undefined) {
+    const row = savedHosts.list().find(item => item.hostId === selectedHostId)
+    if (row !== undefined && row.origin !== 'in-process') selectedOrigin = row.origin
+  }
   const rpc = fixtureRpc ?? transport?.rpc ?? createWebConnectionRpc(
     transport?.fetch, transport?.openStream, () => owner?.controller.captureAuthenticationFailure(),
     () => selectedOrigin,
@@ -226,7 +238,6 @@ export function apply(ctx: Context): void {
   let generationId = 0
   let generation: ConnectionGeneration | undefined
   let state: ConnectionState | undefined
-  const savedHosts = new SavedHostsStore(browserSavedHostsPersistence())
   const generationListeners = new Set<() => void>()
   const stateListeners = new Set<() => void>()
   const publishGeneration = (next: ConnectionGeneration | undefined): void => {

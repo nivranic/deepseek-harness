@@ -166,3 +166,34 @@ export function switchToSavedHost(target: SavedHostSwitchTarget, hostId: string)
   target.retarget(row.origin)
   return row
 }
+
+const SELECTED_KEY = 'dsh-selected-host.v1'
+
+/** Durable sink for the cross-session Host selection; corrupt contents drop at parse. */
+export interface SelectedHostPersistence {
+  /** @returns the persisted selected hostId, when one exists. */
+  read(): string | undefined
+  /** @param value - selected hostId to persist. */
+  write(value: string): void
+  /** Remove the persisted selection; the next boot stays on the page Host. */
+  clear(): void
+}
+
+/**
+ * localStorage-backed selection persistence; compositions without storage get none.
+ * @returns the persistence adapter, or undefined when no storage exists.
+ */
+export function browserSelectedHostPersistence(): SelectedHostPersistence | undefined {
+  const storage = (globalThis as { readonly localStorage?: Storage }).localStorage
+  if (storage === undefined) return undefined
+  return {
+    read: () => parseSelectedHostId(storage.getItem(SELECTED_KEY) ?? undefined),
+    write: (value) => { storage.setItem(SELECTED_KEY, value) },
+    clear: () => { storage.removeItem(SELECTED_KEY) },
+  }
+}
+
+/** Durable-boundary validation: only a non-empty hostId string survives a read. */
+function parseSelectedHostId(raw: string | undefined): string | undefined {
+  return typeof raw === 'string' && raw.length > 0 ? raw : undefined
+}
