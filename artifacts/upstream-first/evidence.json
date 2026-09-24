@@ -5,73 +5,73 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "20d16b9929c6a30fe7a3efc4a15326aab4721c3bab2a6516da8c25a0125b5a44"
+      "sha256": "7e42c4fc9f221dd4f492439b821c8c717b13b5b6080d0c18847f6c6aace646d0"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "163a5c67bda7a5ee62aa00fa65968af62a2875ae84f6236775af28b1a3a3f14e"
+      "sha256": "be16569586899dcf463943ed1663aaec3253f01c2efca3ba3d4962790c3d6120"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "d67628ef1a2b451bfb14b969f667387140760443eb8588eb153cf58d3212de32"
+      "sha256": "582b4560181ecd94ed5ce44568ae0c92c595d5ee54531ab769d5ffe98130c75e"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "cddbd0bc8fcb0268865fa7c24957e59aea8adbd2ef47881d6c309422ce60c450"
+      "sha256": "c444657d782ab8b3eccaafd17b6c65176284135fce0819a7a8ab53bcba585c5c"
     },
     {
       "path": "packages/client/ui-sidebar-documentpreview/README.i18n.yaml",
-      "sha256": "5f9e0966ab3ea20539262711ec1c88269ac8ca4032d25ca6c2b27218d51f0490"
+      "sha256": "79d94807ba7d6c2a54cb6af6908969dae4dd29ad1ed7842590b7a1750ad8e173"
     },
     {
       "path": "packages/client/ui-sidebar-documentpreview/README.md",
-      "sha256": "00a5453bdcc4d01dcb4cc81925412a79b420497eba4c75f01f3b103f8a7b0328"
+      "sha256": "087c24002981436f14d39ced0767f0316297e60598dae5599faa9675d52fe813"
     },
     {
       "path": "packages/client/ui-sidebar-documentpreview/README.zh.md",
-      "sha256": "8f5bbe630008ef5bf338ba667a3450d0e34884933ce61c63d02aad67d32cb459"
+      "sha256": "8c65ee2e4f0c9b237e5af290b717dae7249f5233175710c7fbb0961bdace0f06"
     },
     {
       "path": "packages/client/ui-sidebar-documentpreview/src/client/index.ts",
-      "sha256": "d29a4ea33e9e4debf08db0a98bde51efa4be048ceb7f691a08d1d6893201f2aa"
+      "sha256": "f041cfe26d88f444a222159250e6eff440d0b878fb274e4407a3f7d98d0f3f14"
     },
     {
       "path": "packages/client/ui-sidebar-documentpreview/tests/apply.client.spec.ts",
-      "sha256": "fc184e1279d6e9ea6e3ab47cc4d6c2784283d27b6222713807bef870eeca4a99"
+      "sha256": "8e5c223413051abab96274f4ff431ae1857c0483083191f997fdbc9370ca69aa"
     },
     {
       "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
-      "sha256": "48dedf5416e5d4d628c6310c27275019c2dfb292adfd2385feb91d4e57038fdc"
+      "sha256": "5b77956c32c757d0937108bc876d9964cb474410565f40b02e5886795e9d603d"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/DiffBody.tsx",
-      "sha256": "cd0ca9d9094a9afb5f02ba7952dde7cc9e21f59b8e9153d267ae8bf30f5cf01b"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/BinaryBody.tsx",
+      "sha256": "5e4774d23d93b3799970a71f62839c2acb69fa000ec49236caea50d8d062ccf4"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/index.ts",
-      "sha256": "237e597691f9949c441edd2384d685863cbeab9a700ab7d20e6cce82c8e00d8d"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/bytes.ts",
+      "sha256": "3bdfb7818890a1af2ef7abda473585b653c2b08bbec5ebf9fb9b0ebce53ef7bc"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/locales.ts",
-      "sha256": "4729ac166f2bbd6500bfa2972c6197846b31c1ebd781e791a3f795e279fa9997"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/index.ts",
+      "sha256": "46473988d22fc6311c0351628ed83313d391d3ad2d5f72b9c25d2c32ad6f6daf"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/parse.ts",
-      "sha256": "63229d75157b1ea4fbb38d8b96d4b6d21405bfd3e8f070c2c84aef0722fdad20"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/locales.ts",
+      "sha256": "2913e52f40311ebead7269995c6fa5e262abe488c1a121caeddf0b3a3de029b2"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
-      "sha256": "cda3b0e01a92e7717f324fc0bd638996bf9bac06396f6d8a1aa6bd22f654531d"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/binary-body.client.spec.tsx",
+      "sha256": "0b16cec5c3d02381037babe77b85df151746e938b219ee9fc6f0f5a528e38e67"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-parse.client.spec.ts",
-      "sha256": "1618b444e2498d1c2d342a8c6ded923e7b2594c86c6f0a5fb0c324a4322af019"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/binary-bytes.client.spec.ts",
+      "sha256": "431c8865b6a3332f50887e89d343a0a2199ae503fefd180d87968d2516390b8a"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-registration.client.spec.ts",
-      "sha256": "dbf9422f84d2e517deb99961b990787b6a63469d6c37aa628ffd67cb44bde632"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/binary-registration.client.spec.ts",
+      "sha256": "e3a4558843514df6c09ba0b18bd09c70c4a7823b7b3f45e98b257808536f130b"
     }
   ],
   "validationStatus": "PASS",
@@ -7043,6 +7043,42 @@
     },
     {
       "status": "PASS",
+      "command": "Binary-fact-card suites (documentpreview 296 across 37 spec files; the pnpm-pack license-bundle spec stays excluded locally as Windows-host-blocked and CI-owned; new 10: formatter 5 covering empty input, partial rows, row splitting with offsets, the display bound, and size formatting; body 3 covering the size heading with hex rows, the remainder note past the cap, and the zero-byte empty state; registration 2 covering the builtin definition and full registration/disposal): 296 passed, 0 failed",
+      "log": ".artifacts/binary-fact-card-tests.log",
+      "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/binary-fact-card-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/binary-fact-card-lint.log",
+      "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the renderer-list README update, translation pairing re-record, and client slot-catalog regeneration",
+      "log": ".artifacts/binary-fact-card-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 35 presentation-matrix note",
+      "log": ".artifacts/binary-fact-card-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/binary-fact-card-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7773,7 +7809,180 @@
       ]
     }
   },
+  "binaryFactCard": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json",
+    "scope": "Binary fact card (specification section 35 presentation matrix): ui-sidebar-documentpreview gains a builtin binary renderer claiming 32 known binary suffixes (archives, executables, libraries, fonts, databases) in bytes-complete mode — bytes.ts is a pure formatter (hexRowsOf cuts a leading window at 16 bytes per row bounded by a 256-byte display cap, formatByteCount renders binary-precise thousands with no fraction), and BinaryBody presents the fact card: the heading states the byte count beside the not-as-text notice and appends the unshown remainder past the cap, the body shows the leading bytes as offset-addressed hex rows, and a zero-byte file renders its explicit empty state. The card never sniffs content — unknown extensions keep the plain-text path where the Host workspace-file/not-text refusal stays the authority, and the maxFileBytes cap still rejects oversized files instead of truncating. Images keep their existing renderer; content-based MIME inference and the interrupted-transfer recovery matrix stay open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "limitations": [
+      "The card is suffix-keyed and never sniffs content; unknown extensions still present the Host not-text refusal through the plain-text path.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 10 overflow-menu (⋮) entries wait on a toolbar set existing; section 35 remainder — content-based MIME inference beyond the suffix card plus the interrupted-transfer recovery matrix; section 34 remainder — syntax highlight, split diff (Desktop), large-file virtualization, copy and open-file actions; saved-hosts roster UI and the switch action need the retargetable connection endpoint seam plus shell placement; provider/relay/device-trust/crash telemetry exits wire to telemetryKindAllowed as their producers land; four-platform real-device same-candidate bundle runs remain open; iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "unifiedDiffPreview": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/binary-fact-card-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json",
     "scope": "Unified diff preview (specification section 34 first slice): ui-sidebar-documentpreview gains a builtin diff renderer claiming .diff/.patch through the document preview registry (text-pages mode, no wrap declaration). parseUnifiedDiff is a pure parser over the accumulated text emitting a closed row vocabulary — preamble (file headers and any body line without a hunk prefix stays visible instead of being numbered), hunk (both start positions, missing counts mean one line), context/add/del (source line numbers in the matching gutter), and note (backslash notes such as a missing trailing newline carry no numbers). DiffBody renders the rows with two line-number gutters (absent positions stay empty), hunk headers on their own band, added and removed rows tinted, a localized empty state for a row-less file, and the streaming eof flag while pages load; the renderer declares no source-line anchor, so a pending line navigation waits until the reader switches renderer. The phone default unified presentation IS this shared renderer; split diff, syntax highlight, large-file virtualization, and the copy/open-file actions stay open, and the section 35 binary/unknown-MIME presentation card remains open",
@@ -17445,7 +17654,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/binary-fact-card-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -17928,7 +18137,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "cddbd0bc8fcb0268865fa7c24957e59aea8adbd2ef47881d6c309422ce60c450"
+        "sha256": "c444657d782ab8b3eccaafd17b6c65176284135fce0819a7a8ab53bcba585c5c"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

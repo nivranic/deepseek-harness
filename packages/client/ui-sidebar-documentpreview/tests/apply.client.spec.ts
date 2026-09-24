@@ -23,6 +23,8 @@ import { HtmlBody } from '../src/client/html/HtmlBody.tsx'
 import { HTML_BODY_ID } from '../src/client/html/index.ts'
 import { ImageBody } from '../src/client/image/ImageBody.tsx'
 import { IMAGE_BODY_ID } from '../src/client/image/index.ts'
+import { BinaryBody } from '../src/client/binary/BinaryBody.tsx'
+import { BINARY_BODY_ID } from '../src/client/binary/index.ts'
 import { PdfBody } from '../src/client/pdf/PdfBody.tsx'
 import { PDF_BODY_ID } from '../src/client/pdf/index.ts'
 import { CodeBody } from '../src/client/code/CodeBody.tsx'
@@ -87,8 +89,8 @@ describe('ui-sidebar-documentpreview apply', () => {
     [['workspace-files.read-text.v1'], [], []],
     [['workspace-files.stat.v1'], [], []],
     [['workspace-files.stat.v1', 'workspace-files.read-text.v1'], ['unknown', 'png', 'html', 'md', 'diff'], [PLAIN_BODY_ID, MARKDOWN_BODY_ID, '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/diff']],
-    [['workspace-files.stat.v1', 'workspace-files.read-all.v1'], ['png'], [IMAGE_BODY_ID, PDF_BODY_ID]],
-    [['workspace-files.stat.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1'], ['png', 'html'], [HTML_BODY_ID, IMAGE_BODY_ID, PDF_BODY_ID]],
+    [['workspace-files.stat.v1', 'workspace-files.read-all.v1'], ['png', 'zip'], [IMAGE_BODY_ID, PDF_BODY_ID, BINARY_BODY_ID]],
+    [['workspace-files.stat.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1'], ['png', 'html', 'zip'], [HTML_BODY_ID, IMAGE_BODY_ID, PDF_BODY_ID, BINARY_BODY_ID]],
   ])('admits file types and renderer choices for %j', async (capabilities, suffixes, ids) => {
     const h = await boot(capabilities)
     for (const suffix of ['unknown', 'png', 'html', 'md']) {
@@ -133,12 +135,12 @@ describe('ui-sidebar-documentpreview apply', () => {
 
   it('notifies file entry consumers when a renderer adds or removes an admitted suffix', async () => {
     const h = await boot(['workspace-files.stat.v1', 'workspace-files.read-all.v1'])
-    const address = sessionFileAddress(SESSION, 'custom.bin')
+    const address = sessionFileAddress(SESSION, 'custom.blob')
     expect(h.tabs.candidates(address)).toEqual([])
     const changed = vi.fn()
     const stop = h.tabs.subscribe(changed)
     const release = h.ctx.documentPreviews.register({
-      id: 'custom-binary', extensions: ['bin'], loading: 'bytes-complete', title: () => 'custom',
+      id: 'custom-binary', extensions: ['blob'], loading: 'bytes-complete', title: () => 'custom',
     })
     expect(changed).toHaveBeenCalledOnce()
     expect(h.tabs.candidates(address).map(item => item.kind)).toEqual(['text'])
@@ -169,6 +171,7 @@ describe('ui-sidebar-documentpreview apply', () => {
       ['sidebar.right.tab.document', PDF_BODY_ID, 'sidebarPdf', PdfBody],
       ['sidebar.right.tab.document', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code', 'sidebarCodePreview', CodeBody],
       ['sidebar.right.tab.document', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/diff', 'sidebarDiffPreview', DiffBody],
+      ['sidebar.right.tab.document', BINARY_BODY_ID, 'sidebarBinaryPreview', BinaryBody],
     ])
     expect(registered[0]?.store).toBeDefined()
     expect(typeof registered[0]?.inject).toBe('function')

@@ -2411,6 +2411,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     slotInject: '{ hooks: { tabInfo: SlotHookFactory<\'sidebar.right.tab.document\', UseSidebarRightTabInfo> } }',
     declaredBy: 'an entry in \'sidebar.right.pane.tab\' (client-ui-sidebar-documentpreview), so it exists while that entry is mounted',
     occupants: [
+      'client-ui-sidebar-documentpreview BinaryBody',
       'client-ui-sidebar-documentpreview CodeBody',
       'client-ui-sidebar-documentpreview DiffBody',
       'client-ui-sidebar-documentpreview HtmlBody',

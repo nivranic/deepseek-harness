@@ -39,6 +39,7 @@ import { apply as registerImage } from './image/index.ts'
 import { apply as registerPdf } from './pdf/index.ts'
 import { apply as registerCode } from './code/index.ts'
 import { apply as registerDiff } from './diff/index.ts'
+import { apply as registerBinary } from './binary/index.ts'
 
 // Values stay package-private unless another package needs them; the plugin
 // surface is `apply`, `inject`, and the store factory another registration may
@@ -156,4 +157,5 @@ export function apply(ctx: ClientContext): void {
   registerPdf(ctx)
   registerCode(ctx)
   registerDiff(ctx)
+  registerBinary(ctx)
 }

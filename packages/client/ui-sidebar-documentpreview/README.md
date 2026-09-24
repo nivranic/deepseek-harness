@@ -1,5 +1,5 @@
 ---
-description: "Document previews in the right Sidebar: shared file loading and controls, selectable Markdown, code, diff, image, PDF and HTML renderers, and plain-text fallback."
+description: "Document previews in the right Sidebar: shared file loading and controls, selectable Markdown, code, diff, image, PDF, HTML and binary renderers, and plain-text fallback."
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Preview readable files in the right Sidebar and choose among registered renderers without opening another tab. Markdown, code, and unified diffs receive accumulated text pages; PDF, HTML, and common images receive complete bytes; unknown file extensions use plain text. The tab owns loading, file status, renderer selection, wrap, and reload, while document bodies register through the same metadata registry and child slot. The Sidebar tab kind is `text`.
+Preview readable files in the right Sidebar and choose among registered renderers without opening another tab. Markdown, code, and unified diffs receive accumulated text pages; PDF, HTML, common images, and known binary formats receive complete bytes; unknown file extensions use plain text. The tab owns loading, file status, renderer selection, wrap, and reload, while document bodies register through the same metadata registry and child slot. The Sidebar tab kind is `text`.
 
 ## Table of Contents
 
@@ -55,7 +55,9 @@ PNG, JPEG, GIF, WebP, BMP, ICO, and SVG render through Blob URLs in an `<img>` s
 
 Shared copy comes from `sidebarDocumentPreview`; each builtin renderer owns its localized labels.
 
-Initial reads, additional pages, and HTML/PDF/image preparation share a loading indicator that respects reduced-motion preferences. Loaded pages stay visible while another page loads. PDF pages form one vertical, width-fitted sequence and render lazily near the viewport. Code previews show source line numbers by default without including them in copied text; plain text uses the same font size and line height as code. Diff previews render `.diff`/`.patch` as one unified sequence — file headers stay as preamble, hunk headers carry both start positions, context, added, and removed rows keep their source line numbers in two gutters, and a body line without a hunk prefix stays visible as preamble instead of being numbered; the renderer declares no wrap preference and exposes no source-line anchor, so a pending line navigation waits until the reader switches renderer. Split-diff presentation stays open. Code sits on the pane's own background rather than the chat card's fill; its banner is adjacent to a full-height inner scrollport, so both scrollbars begin below the copy control.
+Initial reads, additional pages, and HTML/PDF/image preparation share a loading indicator that respects reduced-motion preferences. Loaded pages stay visible while another page loads. PDF pages form one vertical, width-fitted sequence and render lazily near the viewport. Code previews show source line numbers by default without including them in copied text; plain text uses the same font size and line height as code. Diff previews render `.diff`/`.patch` as one unified sequence — file headers stay as preamble, hunk headers carry both start positions, context, added, and removed rows keep their source line numbers in two gutters, and a body line without a hunk prefix stays visible as preamble instead of being numbered; the renderer declares no wrap preference and exposes no source-line anchor, so a pending line navigation waits until the reader switches renderer. Split-diff presentation stays open.
+
+Known binary suffixes (archives, executables, libraries, fonts, databases — 32 suffixes) claim a builtin complete-byte fact card instead of the plain-text failure: the heading states the byte count beside the not-as-text notice and adds the unshown remainder past the 256-byte display bound, the body shows the leading bytes as offset-addressed hex rows (16 per row), and a zero-byte file presents its explicit empty state. The card never sniffs content: unknown extensions keep the plain-text path, where the Host's `workspace-file/not-text` refusal remains the authority, and the `maxFileBytes` cap still rejects oversized files rather than truncating them. Code sits on the pane's own background rather than the chat card's fill; its banner is adjacent to a full-height inner scrollport, so both scrollbars begin below the copy control.
 
 <a id="navigation"></a>
 ## Navigation

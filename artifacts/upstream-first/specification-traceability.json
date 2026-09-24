@@ -4005,7 +4005,7 @@
         "artifacts/upstream-first/file-upload-capability-source.json",
         "artifacts/upstream-first/upload-home-replay-source.json"
       ],
-      "remaining": "Host 侧读取矩阵已齐：read 文本分页（maxBytes/maxLines/maxFileBytes 拒绝不截断、NUL 二进制标记、symlink 全拒）、readBytes 0 起字节窗口（Range）、stat 版本与字节数、list 上限截断、changes 观察（packages/api/workspace-files）；§34 共享 unified diff 渲染器已落地（见第 34 节行）。仍未完成：客户端 binary/unknown MIME 呈现卡（现落纯文本渲染器收到 workspace-file/not-text 失败行）、image 之外的 MIME 推断、部分下载/中断传输的客户端恢复矩阵与真机验证。",
+      "remaining": "Host 侧读取矩阵已齐：read 文本分页（maxBytes/maxLines/maxFileBytes 拒绝不截断、NUL 二进制标记、symlink 全拒）、readBytes 0 起字节窗口（Range）、stat 版本与字节数、list 上限截断、changes 观察（packages/api/workspace-files）；§34 共享 unified diff 渲染器已落地（见第 34 节行）。客户端呈现矩阵新增已知二进制后缀（32 个：压缩包/可执行/库/字体/数据库）的 builtin 完整字节事实卡：字节数+非文本提示、超 256 字节展示上限的余量标注、带偏移的十六进制行、0 字节显式空态，不做内容嗅探——未知扩展名仍走纯文本路径由 Host not-text 拒绝权威判定，maxFileBytes 上限照常拒绝超大文件（packages/client/ui-sidebar-documentpreview/src/client/binary/；格式化 5 例 + 渲染 3 例 + 注册 2 例测试）。仍未完成：image 之外的 MIME 内容推断、部分下载/中断传输的客户端恢复矩阵与真机验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
