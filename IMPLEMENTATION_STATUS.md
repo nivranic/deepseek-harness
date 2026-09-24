@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 持久化确认与跨端恢复（§15/§16/§38 余项）
+
+[当前来源记录](artifacts/upstream-first/durable-retained-answers-source.json)落地交互可靠性余项的持久化确认：dsh-api-gateway 客户端新增 client/retained-answers.ts——RetainedAnswersStore 经 browserRetainedAnswersPersistence（守卫 localStorage，缺省回退进程内）把保留的回答持久化在 dsh-retained-answers.v1（上限最近 32 条，插入序最旧先出），durable 边界逐行结构校验（scope/revision/outcome 线形词汇精确复刻，损坏行与损坏整档丢弃不崩启动）；ClientRemoteEvents 构造时以落盘种子 unanswered，retain/remove 五个镜像点（开帧清扫、取消帧、保留不匹配、retain、确认）与内存同步。页面刷新/应用重启后，Host 待处理快照仍以相同 scope+id+revision 列出该交互时自动重放已确认的回答、不重新询问用户（防重复询问与确认丢失）；卸载不清落盘，交给下一次开帧清扫在 scope 不符/快照缺 id 时修剪。跨端恢复由网关既有接入重投递（新流获得全部未决交互）承接，首答胜出 interaction-closed 不变。测试 139 项（新 5：跨重启回放不重开监听器+确认清落盘、损坏整档/坏行/非行三种丢弃重问、scope 变化清扫落盘+重新作答）。真实多设备四平台实机矩阵仍开放。
+
 ## 运行位置权限档（§10 第三行）
 
-[当前来源记录](artifacts/upstream-first/permission-tier-chip-source.json)落地 §10 运行位置的第三行：strict Session header 的运行位置 chip 在 Host 计算的 permissions 投影有值时追加本地化权限档——permissionTierLabel（PermissionSelect 导出）内建三档（read-only/workspace-write/danger-full-access）走 access.preset.* 双语键，Host 自定义档位回退人性化名称（kebab→Title Case）；header 经 ui-session 合并的 useProjection('permissions') 读取（会话作用域标准 kit，无契约变更），投影对象以 currentValue 携带档位，无投影的 Host 或草稿态 chip 保持仅 Host 事实。手机端不会误以为命令在手机执行的防线齐备：运行位置 chip（名字+平台+档位）、§28 连接门禁、单世代绑定。测试 453 项（新 1 例三断言：内建档位本地化、自定义档位人性化、无投影不追加）。溢出菜单（⋮）条目仍需工具栏集合，开放。
+[历史来源记录](artifacts/upstream-first/permission-tier-chip-source.json)落地 §10 运行位置的第三行：strict Session header 的运行位置 chip 在 Host 计算的 permissions 投影有值时追加本地化权限档——permissionTierLabel（PermissionSelect 导出）内建三档（read-only/workspace-write/danger-full-access）走 access.preset.* 双语键，Host 自定义档位回退人性化名称（kebab→Title Case）；header 经 ui-session 合并的 useProjection('permissions') 读取（会话作用域标准 kit，无契约变更），投影对象以 currentValue 携带档位，无投影的 Host 或草稿态 chip 保持仅 Host 事实。手机端不会误以为命令在手机执行的防线齐备：运行位置 chip（名字+平台+档位）、§28 连接门禁、单世代绑定。测试 453 项（新 1 例三断言：内建档位本地化、自定义档位人性化、无投影不追加）。溢出菜单（⋮）条目仍需工具栏集合，开放。
 
 ## 降级探测（§41 接缝闭合）
 

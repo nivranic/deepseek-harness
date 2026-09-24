@@ -78,7 +78,7 @@ Host 进程重启会丢弃待处理调用。Client 重连时移除旧投递；�
 <a id="client-service-clientremote-ctx-key-remote"></a>
 ## Client 服务：`ClientRemote`（ctx key：`remote`）
 
-协议 2 的 ready 帧包含 `pendingInteractionIds`，列出为该连接代次排队的待处理交互 id。HTTP 传输失败时，Client 在内存中保留已完成的回答，仅在应用提供的 `interactionReplyScope`、待处理 id 和 revision 均相同时重发。缺少 scope 或待处理 id 快照时禁用保留；scope 变化时必须重新作答。成功确认、`interaction-closed`、取消、业务错误，或下一次 ready 快照中没有该 id，都会清除回答。迟到确认只能清除其发送的那份保留回答。发送前复制监听器结果；未完成的监听器仍在断连时中止，委托结果不保留。Client 卸载或页面刷新会丢失保留的回答。此重试不提供授权或持久化回执，也无法区分确认丢失与其他 Client 的回答胜出。
+协议 2 的 ready 帧包含 `pendingInteractionIds`，列出为该连接代次排队的待处理交互 id。HTTP 传输失败时，Client 保留已完成的回答，仅在应用提供的 `interactionReplyScope`、待处理 id 和 revision 均相同时重发。缺少 scope 或待处理 id 快照时禁用保留；scope 变化时必须重新作答。成功确认、`interaction-closed`、取消、业务错误，或下一次 ready 快照中没有该 id，都会清除回答。迟到确认只能清除其发送的那份保留回答。发送前复制监听器结果；未完成的监听器仍在断连时中止，委托结果不保留。浏览器组合将保留的回答持久化在 `dsh-retained-answers.v1`（上限为最近 32 条），因此页面刷新或应用重启后，只要 Host 的待处理快照仍以相同 scope 和 revision 列出该 id，保留的回答无需重新询问即可重放；损坏的落盘记录在解析时丢弃，卸载留下的记录交由下一次清扫处理。此重试不提供授权或持久化回执，也无法区分确认丢失与其他 Client 的回答胜出。
 
 `$prepare` 的可选第二个回调在传输层派发前，依据已准入连接代次的信息检查每个端点。拒绝只影响该操作。领域流可通过 `available` 等待符合条件的 Host，而不打开流；取消会释放连接代次观察订阅。
 

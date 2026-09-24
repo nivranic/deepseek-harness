@@ -15,6 +15,7 @@ import type {
 import { randomUUID } from '@deepseek-ai/dsh-util-crypto'
 import { encodeRemotePayload, type RemoteProtocolVersion } from '../protocol.ts'
 import type { RemotePreparationFacts, RemoteInteractionReplyScope } from './preparation.ts'
+import { RetainedAnswersStore, type RetainedAnswerRecord } from './retained-answers.ts'
 import {
   REMOTE_EVENT_RESULT_ENDPOINT,
   REMOTE_EVENT_STREAM_ENDPOINT,
@@ -32,11 +33,7 @@ import {
   type RemoteEventResult,
 } from '../stream-protocol.ts'
 
-interface RetainedRemoteAnswer {
-  readonly scope: RemoteInteractionReplyScope
-  readonly revision: number
-  readonly outcome: RemoteEventResult['outcome']
-}
+type RetainedRemoteAnswer = RetainedAnswerRecord
 
 /** Open the Gateway-internal forwarded-event stream on the selected carrier. */
 export type RemoteEventStreamOpener = (
@@ -81,15 +78,21 @@ export class ClientRemoteEvents {
    * @param connection - Connection carrier used for HTTP result calls.
    * @param openStream - selected in-process or WebSocket stream opener.
    * @param prepare - application discovery before attaching the event stream.
+   * @param retainedAnswers - durable retained-answer store seeded into replay state.
    */
   constructor(
     private readonly ownerCtx: Context,
     private readonly connection: ConnectionHandle,
     private readonly openStream: RemoteEventStreamOpener,
     private readonly prepare: (signal: AbortSignal, progress?: ConnectionGenerationProgress) => Promise<RemotePreparationFacts>,
+    retainedAnswers?: RetainedAnswersStore,
   ) {
+    this.retainedAnswers = retainedAnswers
+    for (const [id, record] of retainedAnswers?.snapshot() ?? []) this.unanswered.set(id, record)
     this.unregisterGeneration = connection.registerGenerationSource(this.runGeneration)
   }
+
+  private readonly retainedAnswers: RetainedAnswersStore | undefined
 
   /**
    * Register one typed Remote Event listener in its calling fiber.
@@ -170,7 +173,7 @@ export class ClientRemoteEvents {
           replyScope = opening.pendingInteractionIds === undefined ? undefined : facts.interactionReplyScope
           const pendingIds = new Set(opening.pendingInteractionIds)
           for (const [id, answer] of this.unanswered) {
-            if (replyScope === undefined || answer.scope !== replyScope || !pendingIds.has(id)) this.unanswered.delete(id)
+            if (replyScope === undefined || answer.scope !== replyScope || !pendingIds.has(id)) this.dropRetained(id)
           }
           const { interactionReplyScope: _scope, ...hostFacts } = facts
           ready({ ...hostFacts, home: opening.host.home, platform: opening.host.platform })
@@ -184,7 +187,7 @@ export class ClientRemoteEvents {
             { stream: REMOTE_EVENT_STREAM_ENDPOINT }, { cause: error })
         }
         if (frame.type === 'cancel') {
-          this.unanswered.delete(frame.eventId)
+          this.dropRetained(frame.eventId)
           active.get(frame.eventId)?.abort(new Error('client api: Remote event was cancelled by the Host'))
           continue
         }
@@ -234,7 +237,7 @@ export class ClientRemoteEvents {
       await this.sendAnswer(frame, clientId, saved.outcome, signal, version, saved)
       return
     }
-    this.unanswered.delete(frame.eventId)
+    this.dropRetained(frame.eventId)
     const adapter = this.ownerCtx.typert.contexts.getClient('agent')
     let target: Context | undefined
     try {
@@ -260,6 +263,7 @@ export class ClientRemoteEvents {
     if (scope !== undefined && frame.interaction !== undefined && reply.kind !== 'next') {
       retained = { scope, revision: frame.interaction.revision, outcome: reply }
       this.unanswered.set(frame.eventId, retained)
+      this.retainedAnswers?.retain(frame.eventId, retained)
     }
     await this.sendAnswer(frame, clientId, reply, signal, version, retained)
   }
@@ -285,11 +289,17 @@ export class ClientRemoteEvents {
       signal,
     )
     if (retained !== undefined && this.unanswered.get(frame.eventId) === retained) {
-      this.unanswered.delete(frame.eventId)
+      this.dropRetained(frame.eventId)
     }
     if (!response.ok && response.error.code !== 'interaction-closed') {
       throw new RemoteError(response.error.code as never, response.error.message, response.error.details as never)
     }
+  }
+
+  /** Forget one retained answer in memory and in the durable store together. */
+  private dropRetained(id: RemoteEventId): void {
+    this.unanswered.delete(id)
+    this.retainedAnswers?.remove(id)
   }
 
   private async dispatchWaterfall(

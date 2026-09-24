@@ -31,7 +31,14 @@ import {
 } from './stream-client.ts'
 import { ClientRemoteEvents } from './remote-events.ts'
 import { ClientRemotePreparation, type RemotePreparation, type RemoteAdmission } from './preparation.ts'
+import { RetainedAnswersStore, browserRetainedAnswersPersistence } from './retained-answers.ts'
 export type { RemotePreparation, RemotePreparationFacts, RemoteAdmission, RemoteInteractionReplyScope } from './preparation.ts'
+export {
+  RetainedAnswersStore,
+  browserRetainedAnswersPersistence,
+  MAX_RETAINED_ANSWERS,
+} from './retained-answers.ts'
+export type { RetainedAnswerRecord, RetainedAnswersPersistence } from './retained-answers.ts'
 import {
   RemoteStream,
   type RemoteStreamOptions,
@@ -175,6 +182,7 @@ class ClientRemoteService extends Service implements ClientRemote {
       connection,
       (endpoint, payload, signal) => this.openRemoteStream(endpoint, payload, signal),
       (signal, progress) => this.preparation.run(signal, progress),
+      new RetainedAnswersStore(browserRetainedAnswersPersistence()),
     )
     if (connection.rpc.open === undefined) this.streams.start()
     let disposed = false

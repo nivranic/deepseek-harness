@@ -552,6 +552,22 @@ function approvalFrame(eventId: string, agentId: string, prompt: string): object
   }
 }
 
+type BrowserStorageGlobal = { localStorage?: Storage }
+
+/** In-memory localStorage stand-in exposing the retained-answers record for assertions. */
+function stubLocalStorage(): Storage & { readonly recorded: () => string | undefined } {
+  const rows = new Map<string, string>()
+  return {
+    getItem: (key: string) => rows.get(key) ?? null,
+    setItem: (key: string, value: string) => { rows.set(key, value) },
+    removeItem: (key: string) => { rows.delete(key) },
+    clear: () => { rows.clear() },
+    key: () => null,
+    get length() { return rows.size },
+    recorded: () => rows.get('dsh-retained-answers.v1'),
+  }
+}
+
 describe('Client Remote transport readiness', () => {
   it('recognizes cross-bundle HTTP failures without class identity or message inference', () => {
     const error = { isDSHConnectionHttpError: true, status: 403, message: 'Host refused the request' }
@@ -2345,6 +2361,125 @@ describe('Client Typert API', () => {
     await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(2) })
     expect(listener).toHaveBeenCalledTimes(2)
     await client.dispose()
+  })
+
+  it('replays a durably retained answer across a client restart without reopening its listener', async () => {
+    const storage = stubLocalStorage()
+    ;(globalThis as BrowserStorageGlobal).localStorage = storage
+    const firstCall = vi.fn<ConnectionHandle['rpc']['call']>()
+      .mockRejectedValueOnce(new Error('answer lost before restart'))
+    try {
+      const first = await eventBench(firstCall, 2, [])
+      const target = first.ctx.extend()
+      first.ctx.typert.contexts.registerClient('agent', {
+        identity: candidate => candidate === target ? agentId('agent-restart') : undefined,
+        resolve: id => id === 'agent-restart' ? target : undefined,
+      })
+      target.remote.$on('fixture/approval', async () => 'allowed' as const)
+      const frame = { ...approvalFrame('event-restart', 'agent-restart', 'respond'), interaction: {
+        requestId: 'event-restart', sessionId: 'session-1', type: 'approval',
+        requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1,
+      } }
+      first.carrier.emit(frame)
+      await expect(first.run.done).rejects.toThrow('answer lost before restart')
+      expect(JSON.parse(storage.recorded() ?? '[]')).toHaveLength(1)
+      await first.client.dispose()
+      await first.ctx.fiber.dispose()
+
+      const secondCall = vi.fn<ConnectionHandle['rpc']['call']>()
+        .mockResolvedValue({ ok: true, value: undefined })
+      const second = await eventBench(secondCall, 2, ['event-restart'])
+      const replacement = second.ctx.extend()
+      second.ctx.typert.contexts.registerClient('agent', {
+        identity: candidate => candidate === replacement ? agentId('agent-restart') : undefined,
+        resolve: id => id === 'agent-restart' ? replacement : undefined,
+      })
+      const reasked = vi.fn(async () => 'unavailable' as const)
+      replacement.remote.$on('fixture/approval', reasked)
+      second.carrier.emit(frame)
+      await vi.waitFor(() => { expect(secondCall).toHaveBeenCalledTimes(1) })
+      expect(reasked).not.toHaveBeenCalled()
+      expect(secondCall.mock.calls[0]?.[2]).toMatchObject({ args: {
+        outcome: { kind: 'result', value: 'allowed' },
+      } })
+      await vi.waitFor(() => { expect(JSON.parse(storage.recorded() ?? '[]')).toEqual([]) })
+      await second.client.dispose()
+      await second.ctx.fiber.dispose()
+    } finally {
+      delete (globalThis as BrowserStorageGlobal).localStorage
+    }
+  })
+
+  it.each(['{"corrupt":', '[["event-corrupt", {"scope": 42}]]', '[null]'])
+  ('asks again when the durable record is corrupt %#', async (corrupt) => {
+    const storage = stubLocalStorage()
+    storage.setItem('dsh-retained-answers.v1', corrupt)
+    ;(globalThis as BrowserStorageGlobal).localStorage = storage
+    const call = vi.fn<ConnectionHandle['rpc']['call']>()
+      .mockResolvedValue({ ok: true, value: undefined })
+    try {
+      const { ctx, client, carrier } = await eventBench(call, 2, ['event-corrupt'])
+      const target = ctx.extend()
+      ctx.typert.contexts.registerClient('agent', {
+        identity: candidate => candidate === target ? agentId('agent-corrupt') : undefined,
+        resolve: id => id === 'agent-corrupt' ? target : undefined,
+      })
+      const listener = vi.fn(async () => 'allowed' as const)
+      target.remote.$on('fixture/approval', listener)
+      const frame = { ...approvalFrame('event-corrupt', 'agent-corrupt', 'respond'), interaction: {
+        requestId: 'event-corrupt', sessionId: 'session-1', type: 'approval',
+        requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1,
+      } }
+      carrier.emit(frame)
+      await vi.waitFor(() => { expect(call).toHaveBeenCalledTimes(1) })
+      expect(listener).toHaveBeenCalledTimes(1)
+      expect(call.mock.calls[0]?.[2]).toMatchObject({ args: {
+        outcome: { kind: 'result', value: 'allowed' },
+      } })
+      await vi.waitFor(() => { expect(JSON.parse(storage.recorded() ?? '[]')).toEqual([]) })
+      await client.dispose()
+    } finally {
+      delete (globalThis as BrowserStorageGlobal).localStorage
+    }
+  })
+
+  it('clears the durable record when the pending snapshot answers a different Host scope', async () => {
+    let scope = 'host-a' as RemoteInteractionReplyScope
+    const storage = stubLocalStorage()
+    ;(globalThis as BrowserStorageGlobal).localStorage = storage
+    const call = vi.fn<ConnectionHandle['rpc']['call']>()
+      .mockRejectedValueOnce(new Error('old reply lost'))
+      .mockResolvedValue({ ok: true, value: undefined })
+    try {
+      const b = await eventBench(call, 2, [], () => ({
+        apiProtocolVersion: 2,
+        interactionReplyScope: scope,
+      }))
+      const target = b.ctx.extend()
+      b.ctx.typert.contexts.registerClient('agent', {
+        identity: candidate => candidate === target ? agentId('agent-scope') : undefined,
+        resolve: id => id === 'agent-scope' ? target : undefined,
+      })
+      const listener = vi.fn(async () => 'allowed' as const)
+      target.remote.$on('fixture/approval', listener)
+      const frame = { ...approvalFrame('event-scope', 'agent-scope', 'respond'), interaction: {
+        requestId: 'event-scope', sessionId: 'session-1', type: 'approval',
+        requiredPermission: 'approval.respond', createdAt: 100, status: 'pending', revision: 1,
+      } }
+      b.carrier.emit(frame)
+      await expect(b.run.done).rejects.toThrow('old reply lost')
+      expect(JSON.parse(storage.recorded() ?? '[]')).toHaveLength(1)
+      scope = 'host-b' as RemoteInteractionReplyScope
+      b.carrier.pendingInteractionIds = ['event-scope']
+      const replacement = b.generation.start()
+      await replacement.ready
+      await vi.waitFor(() => { expect(JSON.parse(storage.recorded() ?? '[]')).toEqual([]) })
+      b.carrier.emit(frame)
+      await vi.waitFor(() => { expect(listener).toHaveBeenCalledTimes(2) })
+      await b.client.dispose()
+    } finally {
+      delete (globalThis as BrowserStorageGlobal).localStorage
+    }
   })
 
   it.each([null, 'event-1', [''], [1], ['event-1', 'event-1']])

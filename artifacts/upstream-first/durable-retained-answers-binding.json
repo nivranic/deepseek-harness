@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/durable-retained-answers-source.json",
+    "sha256": "d47e701b323ea8ee6bf485484c093e720cc28eed7efaa474c59a4c08fe21952b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d8238feefca0b8d78bbadaa9066ca5166ea639d823012a3d2fa856d0a7d7596d"
+  },
+  "helper": {
+    "path": ".artifacts/check-durable-retained-answers-binding.mjs",
+    "sha256": "2b1b7352e2f267f298bd336fa4ea5ee372c74c9671b513690b24d9469a6f711d"
+  }
+}
