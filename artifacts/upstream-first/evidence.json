@@ -5,53 +5,73 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "33e802a2698d2b912c1cbc9312fb71fb3bea76d20b5b17aeec59da2d71ad1fd3"
+      "sha256": "20d16b9929c6a30fe7a3efc4a15326aab4721c3bab2a6516da8c25a0125b5a44"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "87df49b2f6f6829326266973704d1c9c8f784144dfe002e9e36f66a7ab68e4b0"
+      "sha256": "163a5c67bda7a5ee62aa00fa65968af62a2875ae84f6236775af28b1a3a3f14e"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "725291ef1fb5dc799fca3fca9aef6cec55698f7ea5e261a8a65a5a892078ee36"
+      "sha256": "d67628ef1a2b451bfb14b969f667387140760443eb8588eb153cf58d3212de32"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "d8238feefca0b8d78bbadaa9066ca5166ea639d823012a3d2fa856d0a7d7596d"
+      "sha256": "cddbd0bc8fcb0268865fa7c24957e59aea8adbd2ef47881d6c309422ce60c450"
     },
     {
-      "path": "packages/api/gateway/README.i18n.yaml",
-      "sha256": "b13d4ce4490b4ebba0468f9cb7ac52cfa0daf59f95b47de04be615626ced47be"
+      "path": "packages/client/ui-sidebar-documentpreview/README.i18n.yaml",
+      "sha256": "5f9e0966ab3ea20539262711ec1c88269ac8ca4032d25ca6c2b27218d51f0490"
     },
     {
-      "path": "packages/api/gateway/README.md",
-      "sha256": "d94bec90f66c1df2c8044c6353a5d102ea40f17dfd42a24007d11005ee32cf19"
+      "path": "packages/client/ui-sidebar-documentpreview/README.md",
+      "sha256": "00a5453bdcc4d01dcb4cc81925412a79b420497eba4c75f01f3b103f8a7b0328"
     },
     {
-      "path": "packages/api/gateway/README.zh.md",
-      "sha256": "814de2b561062a3b6b37ac0bb02edbfe8769065c45d694c8c5ded7b2db220a76"
+      "path": "packages/client/ui-sidebar-documentpreview/README.zh.md",
+      "sha256": "8f5bbe630008ef5bf338ba667a3450d0e34884933ce61c63d02aad67d32cb459"
     },
     {
-      "path": "packages/api/gateway/src/client/index.ts",
-      "sha256": "ed7bb517970641f2dec0aa4220417897068af4974b6c8a582bd0fd7649d97a5b"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/index.ts",
+      "sha256": "d29a4ea33e9e4debf08db0a98bde51efa4be048ceb7f691a08d1d6893201f2aa"
     },
     {
-      "path": "packages/api/gateway/src/client/remote-events.ts",
-      "sha256": "787046a9c104ad8600f73cf3f1b94af462bbe690875e138ac6ceca316915bf40"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/apply.client.spec.ts",
+      "sha256": "fc184e1279d6e9ea6e3ab47cc4d6c2784283d27b6222713807bef870eeca4a99"
     },
     {
-      "path": "packages/api/gateway/tests/gateway.client.spec.ts",
-      "sha256": "6bd4f93714e860be92620148727c24d6e99d2b296d8014b94443a07378587ae1"
-    },
-    {
-      "path": "packages/api/gateway/tsconfig.client.json",
-      "sha256": "5974f17da31ad66f1ea4077fdf3dd754c753466975a2f96afb78be027c7304a9"
+      "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
+      "sha256": "48dedf5416e5d4d628c6310c27275019c2dfb292adfd2385feb91d4e57038fdc"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "packages/api/gateway/src/client/retained-answers.ts",
-      "sha256": "5010dedcdfc9cbb81b10029caf075d6ec228fd704ac133aa22ec8d786dc6fa9d"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/DiffBody.tsx",
+      "sha256": "cd0ca9d9094a9afb5f02ba7952dde7cc9e21f59b8e9153d267ae8bf30f5cf01b"
+    },
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/index.ts",
+      "sha256": "237e597691f9949c441edd2384d685863cbeab9a700ab7d20e6cce82c8e00d8d"
+    },
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/locales.ts",
+      "sha256": "4729ac166f2bbd6500bfa2972c6197846b31c1ebd781e791a3f795e279fa9997"
+    },
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/parse.ts",
+      "sha256": "63229d75157b1ea4fbb38d8b96d4b6d21405bfd3e8f070c2c84aef0722fdad20"
+    },
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
+      "sha256": "cda3b0e01a92e7717f324fc0bd638996bf9bac06396f6d8a1aa6bd22f654531d"
+    },
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-parse.client.spec.ts",
+      "sha256": "1618b444e2498d1c2d342a8c6ded923e7b2594c86c6f0a5fb0c324a4322af019"
+    },
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-registration.client.spec.ts",
+      "sha256": "dbf9422f84d2e517deb99961b990787b6a63469d6c37aa628ffd67cb44bde632"
     }
   ],
   "validationStatus": "PASS",
@@ -6987,6 +7007,42 @@
     },
     {
       "status": "PASS",
+      "command": "Unified-diff-preview suites (documentpreview 286 across 34 spec files; the pnpm-pack license-bundle spec is excluded locally — its subprocess entrypoint is Windows-blocked on this host and the packed-artifact gate stays CI-owned; new 14: parser 8 covering hunk headers with and without counts, gutter numbering across types and hunks, notes, preamble defaults, and empty text; body 4 covering gutters, added/removed marks, the streaming flag, and the empty state; registration 2 covering the builtin definition and full registration/disposal): 286 passed, 0 failed",
+      "log": ".artifacts/unified-diff-preview-tests.log",
+      "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/unified-diff-preview-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/unified-diff-preview-lint.log",
+      "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the renderer-list README update, translation pairing re-record, and client slot-catalog regeneration",
+      "log": ".artifacts/unified-diff-preview-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 34/35 unified-diff and host-matrix notes",
+      "log": ".artifacts/unified-diff-preview-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/unified-diff-preview-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7717,7 +7773,179 @@
       ]
     }
   },
+  "unifiedDiffPreview": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json",
+    "scope": "Unified diff preview (specification section 34 first slice): ui-sidebar-documentpreview gains a builtin diff renderer claiming .diff/.patch through the document preview registry (text-pages mode, no wrap declaration). parseUnifiedDiff is a pure parser over the accumulated text emitting a closed row vocabulary — preamble (file headers and any body line without a hunk prefix stays visible instead of being numbered), hunk (both start positions, missing counts mean one line), context/add/del (source line numbers in the matching gutter), and note (backslash notes such as a missing trailing newline carry no numbers). DiffBody renders the rows with two line-number gutters (absent positions stay empty), hunk headers on their own band, added and removed rows tinted, a localized empty state for a row-less file, and the streaming eof flag while pages load; the renderer declares no source-line anchor, so a pending line navigation waits until the reader switches renderer. The phone default unified presentation IS this shared renderer; split diff, syntax highlight, large-file virtualization, and the copy/open-file actions stay open, and the section 35 binary/unknown-MIME presentation card remains open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "limitations": [
+      "The renderer presents one unified sequence only; split diff, syntax highlighting, large-file virtualization, and the copy/open-file actions stay open.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 10 overflow-menu (⋮) entries wait on a toolbar set existing; section 35 client binary/unknown-MIME presentation card (today a binary lands in the plain-text renderer and presents the workspace-file/not-text failure line) plus the interrupted-transfer recovery matrix; section 34 remainder — syntax highlight, split diff (Desktop), large-file virtualization, copy and open-file actions; saved-hosts roster UI and the switch action need the retargetable connection endpoint seam plus shell placement; provider/relay/device-trust/crash telemetry exits wire to telemetryKindAllowed as their producers land; four-platform real-device same-candidate bundle runs remain open; iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "durableRetainedAnswers": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/unified-diff-preview-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/durable-retained-answers-source.json",
     "scope": "Durable retained answers (specification sections 15/16/38 remainder): dsh-api-gateway client gains client/retained-answers.ts — RetainedAnswersStore persists retained interaction answers through browserRetainedAnswersPersistence (localStorage guarded, in-page fallback without storage) under dsh-retained-answers.v1, capped at the most recent 32 with oldest-first eviction; the durable boundary validates every persisted entry structurally (scope, revision, and the exact wire outcome vocabulary), dropping corrupt rows or whole corrupt payloads instead of failing boot. ClientRemoteEvents seeds its replay state from the store at construction and mirrors every retain and removal (opening-frame sweep, cancel frame, retained-mismatch delete, retain, acknowledgement) so a page reload or app relaunch replays a confirmed answer without re-asking while the Host pending snapshot still lists its id at the same scope and revision; disposal leaves records to the next sweep instead of deleting them. Cross-client recovery rides the gateway attach-time re-delivery of pending interactions and the unchanged first-answer-wins interaction-closed semantics. Real multi-device matrix runs stay open",
@@ -17217,7 +17445,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/durable-retained-answers-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/unified-diff-preview-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -17700,7 +17928,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "d8238feefca0b8d78bbadaa9066ca5166ea639d823012a3d2fa856d0a7d7596d"
+        "sha256": "cddbd0bc8fcb0268865fa7c24957e59aea8adbd2ef47881d6c309422ce60c450"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

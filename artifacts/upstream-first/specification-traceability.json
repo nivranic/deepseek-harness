@@ -3920,7 +3920,7 @@
         "artifacts/upstream-first/file-upload-capability-source.json",
         "artifacts/upstream-first/upload-home-replay-source.json"
       ],
-      "remaining": "上传/读取回放只证明局部路径；大文件、Range、中断、二进制、MIME 和共享 Diff 矩阵未完成。",
+      "remaining": "共享 Diff viewer 已落地第一切片：ui-sidebar-documentpreview 新增 builtin diff 渲染器（.diff/.patch，text-pages 模式，无换行声明）——parseUnifiedDiff 纯解析器输出闭集行类型（preamble/hunk/context/add/del/note，缺 hunk 前缀的正文行作前导可见不编号），DiffBody 以两列行号槽渲染 hunk 头两侧起始行号、上下文与增删行着色，手机端默认 unified 即此共享渲染器（packages/client/ui-sidebar-documentpreview/src/client/diff/；解析 8 例 + 渲染 4 例 + 注册 2 例测试）。仍未完成：语法高亮、split diff（Desktop 可选）、大文件虚拟化、copy 与 open file 动作、以及与 §35 binary/unknown-MIME 呈现卡的联动。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4005,7 +4005,7 @@
         "artifacts/upstream-first/file-upload-capability-source.json",
         "artifacts/upstream-first/upload-home-replay-source.json"
       ],
-      "remaining": "上传/读取回放只证明局部路径；大文件、Range、中断、二进制、MIME 和共享 Diff 矩阵未完成。",
+      "remaining": "Host 侧读取矩阵已齐：read 文本分页（maxBytes/maxLines/maxFileBytes 拒绝不截断、NUL 二进制标记、symlink 全拒）、readBytes 0 起字节窗口（Range）、stat 版本与字节数、list 上限截断、changes 观察（packages/api/workspace-files）；§34 共享 unified diff 渲染器已落地（见第 34 节行）。仍未完成：客户端 binary/unknown MIME 呈现卡（现落纯文本渲染器收到 workspace-file/not-text 失败行）、image 之外的 MIME 推断、部分下载/中断传输的客户端恢复矩阵与真机验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

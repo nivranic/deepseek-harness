@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 共享 Unified Diff 预览（§34 第一切片）
+
+[当前来源记录](artifacts/upstream-first/unified-diff-preview-source.json)落地第 34 节共享 Diff viewer 第一切片：ui-sidebar-documentpreview 新增 builtin diff 渲染器（.diff/.patch、text-pages 模式、不声明换行）——parseUnifiedDiff 纯解析器把累计文本解析为闭集行类型（preamble/hunk/context/add/del/note；hunk 头正则携带两侧起始行号，缺省计数按 1 行，缺 hunk 前缀的正文行作前导行可见而不编号，反斜杠注记行不带行号），DiffBody 以两列行号槽（旧/新各一，缺位留空）渲染 hunk 头、上下文与增删行着色，空文件呈现 locale 空态；注册经 DocumentPreviewRegistry（builtin 带宽，长后缀优先），apply 序列接入主注册表，client slot-catalog 随 keyed 席位再生。手机端默认 unified 即此共享渲染器；split diff、语法高亮、大文件虚拟化、copy/open file 动作保持开放。测试 286 项（包内新 14：解析 8 + 渲染 4 + 注册 2；pnpm-pack license 门在 Windows 本机排除、CI 持有）。§35 的 binary/unknown-MIME 呈现卡仍开放。
+
 ## 持久化确认与跨端恢复（§15/§16/§38 余项）
 
-[当前来源记录](artifacts/upstream-first/durable-retained-answers-source.json)落地交互可靠性余项的持久化确认：dsh-api-gateway 客户端新增 client/retained-answers.ts——RetainedAnswersStore 经 browserRetainedAnswersPersistence（守卫 localStorage，缺省回退进程内）把保留的回答持久化在 dsh-retained-answers.v1（上限最近 32 条，插入序最旧先出），durable 边界逐行结构校验（scope/revision/outcome 线形词汇精确复刻，损坏行与损坏整档丢弃不崩启动）；ClientRemoteEvents 构造时以落盘种子 unanswered，retain/remove 五个镜像点（开帧清扫、取消帧、保留不匹配、retain、确认）与内存同步。页面刷新/应用重启后，Host 待处理快照仍以相同 scope+id+revision 列出该交互时自动重放已确认的回答、不重新询问用户（防重复询问与确认丢失）；卸载不清落盘，交给下一次开帧清扫在 scope 不符/快照缺 id 时修剪。跨端恢复由网关既有接入重投递（新流获得全部未决交互）承接，首答胜出 interaction-closed 不变。测试 139 项（新 5：跨重启回放不重开监听器+确认清落盘、损坏整档/坏行/非行三种丢弃重问、scope 变化清扫落盘+重新作答）。真实多设备四平台实机矩阵仍开放。
+[历史来源记录](artifacts/upstream-first/durable-retained-answers-source.json)落地交互可靠性余项的持久化确认：dsh-api-gateway 客户端新增 client/retained-answers.ts——RetainedAnswersStore 经 browserRetainedAnswersPersistence（守卫 localStorage，缺省回退进程内）把保留的回答持久化在 dsh-retained-answers.v1（上限最近 32 条，插入序最旧先出），durable 边界逐行结构校验（scope/revision/outcome 线形词汇精确复刻，损坏行与损坏整档丢弃不崩启动）；ClientRemoteEvents 构造时以落盘种子 unanswered，retain/remove 五个镜像点（开帧清扫、取消帧、保留不匹配、retain、确认）与内存同步。页面刷新/应用重启后，Host 待处理快照仍以相同 scope+id+revision 列出该交互时自动重放已确认的回答、不重新询问用户（防重复询问与确认丢失）；卸载不清落盘，交给下一次开帧清扫在 scope 不符/快照缺 id 时修剪。跨端恢复由网关既有接入重投递（新流获得全部未决交互）承接，首答胜出 interaction-closed 不变。测试 139 项（新 5：跨重启回放不重开监听器+确认清落盘、损坏整档/坏行/非行三种丢弃重问、scope 变化清扫落盘+重新作答）。真实多设备四平台实机矩阵仍开放。
 
 ## 运行位置权限档（§10 第三行）
 

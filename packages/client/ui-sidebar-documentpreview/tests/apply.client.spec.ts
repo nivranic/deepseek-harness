@@ -26,6 +26,7 @@ import { IMAGE_BODY_ID } from '../src/client/image/index.ts'
 import { PdfBody } from '../src/client/pdf/PdfBody.tsx'
 import { PDF_BODY_ID } from '../src/client/pdf/index.ts'
 import { CodeBody } from '../src/client/code/CodeBody.tsx'
+import { DiffBody } from '../src/client/diff/DiffBody.tsx'
 import { en, zh } from '../src/client/locales.ts'
 import type { textFace } from '../src/client/face.ts'
 import type { TextStore } from '../src/client/store.ts'
@@ -85,7 +86,7 @@ describe('ui-sidebar-documentpreview apply', () => {
     [[], [], []],
     [['workspace-files.read-text.v1'], [], []],
     [['workspace-files.stat.v1'], [], []],
-    [['workspace-files.stat.v1', 'workspace-files.read-text.v1'], ['unknown', 'png', 'html', 'md'], [PLAIN_BODY_ID, MARKDOWN_BODY_ID, '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code']],
+    [['workspace-files.stat.v1', 'workspace-files.read-text.v1'], ['unknown', 'png', 'html', 'md', 'diff'], [PLAIN_BODY_ID, MARKDOWN_BODY_ID, '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/diff']],
     [['workspace-files.stat.v1', 'workspace-files.read-all.v1'], ['png'], [IMAGE_BODY_ID, PDF_BODY_ID]],
     [['workspace-files.stat.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1'], ['png', 'html'], [HTML_BODY_ID, IMAGE_BODY_ID, PDF_BODY_ID]],
   ])('admits file types and renderer choices for %j', async (capabilities, suffixes, ids) => {
@@ -167,6 +168,7 @@ describe('ui-sidebar-documentpreview apply', () => {
       ['sidebar.right.tab.document', IMAGE_BODY_ID, 'sidebarImage', ImageBody],
       ['sidebar.right.tab.document', PDF_BODY_ID, 'sidebarPdf', PdfBody],
       ['sidebar.right.tab.document', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/code', 'sidebarCodePreview', CodeBody],
+      ['sidebar.right.tab.document', '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/diff', 'sidebarDiffPreview', DiffBody],
     ])
     expect(registered[0]?.store).toBeDefined()
     expect(typeof registered[0]?.inject).toBe('function')

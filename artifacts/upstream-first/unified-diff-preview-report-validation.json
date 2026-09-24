@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Unified diff preview; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/unified-diff-preview-source.json",
+    "sha256": "95d5283afb3c0a8194d3a15ebbf20022e9a15d2d556008be7b76fcfbcf8f897e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "cddbd0bc8fcb0268865fa7c24957e59aea8adbd2ef47881d6c309422ce60c450"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/unified-diff-preview-binding.json",
+    "sha256": "34d61a1f03581749c89a1fd30d9ae787f2fa395bb029184f461a88b376b2de81"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-unified-diff-preview-reports.mjs",
+      "sha256": "c907fcfb19a136906bf56bfdeda3196259be01a474fd3ad10d28cb7e6a91819c"
+    },
+    {
+      "path": ".artifacts/capture-unified-diff-preview-validation.mjs",
+      "sha256": "8c7dd63c3003d4da1c6ee6df9b912e7d64b9f97b7ab8d5eac00ce36f35b113ce"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "20d16b9929c6a30fe7a3efc4a15326aab4721c3bab2a6516da8c25a0125b5a44"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "163a5c67bda7a5ee62aa00fa65968af62a2875ae84f6236775af28b1a3a3f14e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/unified-diff-preview-binding.log",
+      "sha256": "d59c72ed9461ad21149a7e1e4b8c48f72683b51161e491db19a190eb9a145cb6"
+    },
+    {
+      "path": ".artifacts/unified-diff-preview-audit-tests.log",
+      "sha256": "f2030f0234d0186008c20fae207341d7ee7bbb9cc7e10b5e93978e6039f04f2e"
+    },
+    {
+      "path": ".artifacts/unified-diff-preview-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/unified-diff-preview-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/unified-diff-preview-report-generation.log",
+      "sha256": "304142619dca56563615e738a3fe21961ef9d5f37153092c05036c5ec94afca9"
+    }
+  ]
+}
