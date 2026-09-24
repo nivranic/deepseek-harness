@@ -29,12 +29,14 @@ export type RpcStreamOpen = (
  * @param doFetch - transport override; defaults to the page's global fetch.
  * @param openStream - optional worker-local Gateway stream carrier.
  * @param captureAuthenticationFailure - capture a generation-scoped HTTP 401 reporter before dispatch.
+ * @param resolveBaseUrl - explicit selected base for every call; `undefined` keeps the page origin.
  * @returns caller that owns request correlation and response-envelope validation.
  */
 export function createWebConnectionRpc(
   doFetch?: RpcFetch,
   openStream?: RpcStreamOpen,
   captureAuthenticationFailure?: () => (() => void) | undefined,
+  resolveBaseUrl?: () => string | undefined,
 ): ClientConnectionRpc {
   const send: RpcFetch = doFetch ?? ((input, init) => globalThis.fetch(input, init))
   return {
@@ -49,7 +51,7 @@ export function createWebConnectionRpc(
       }
       const reportAuthenticationFailure = captureAuthenticationFailure?.()
       signal?.throwIfAborted()
-      const url = new URL(`${channel}/${endpoint}`, resolveBase())
+      const url = new URL(`${channel}/${endpoint}`, resolveBaseUrl?.() ?? resolveBase())
       const init: RequestInit = {
         method: 'POST',
         headers: { 'content-type': 'application/json' },

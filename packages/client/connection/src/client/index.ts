@@ -142,6 +142,20 @@ export interface ConnectionHandle {
   /** Reset retry progression and replace the current attempt immediately. */
   reconnect(): void
   /**
+   * §28 switch seam: the selected cross-origin Host base, when one was set.
+   * @returns the absolute origin the browser HTTP carrier targets, or undefined for the page origin.
+   */
+  targetOrigin(): string | undefined
+  /**
+   * §28 switch seam: select the Host base every browser HTTP call targets and
+   * replace the current connection attempt. An absolute http(s) URL is reduced
+   * to its origin; anything else fails loudly. `undefined` returns to the page
+   * origin. Injected transports (`__DSH_TRANSPORT__`) and fixture benches own
+   * their carrier, so the selection only redirects the browser HTTP path here.
+   * @param origin - absolute http(s) URL of the selected Host, or undefined.
+   */
+  retarget(origin: string | undefined): void
+  /**
    * Register the sole source defining Host generations. The source reports
    * ready only after its incremental listeners are attached.
    * @param source - long-lived generation source owned by the push carrier.
@@ -204,8 +218,10 @@ export function apply(ctx: Context): void {
   const recovery = resolveConnectionConfig((globalThis as ClientTransportGlobal).__DSH_CONNECTION_RECOVERY__)
   let generationSource: ConnectionGenerationSource | undefined
   let owner: ConnectionOwner | undefined
+  let selectedOrigin: string | undefined
   const rpc = fixtureRpc ?? transport?.rpc ?? createWebConnectionRpc(
     transport?.fetch, transport?.openStream, () => owner?.controller.captureAuthenticationFailure(),
+    () => selectedOrigin,
   )
   let generationId = 0
   let generation: ConnectionGeneration | undefined
@@ -277,6 +293,11 @@ export function apply(ctx: Context): void {
     reconnect() {
       owner?.controller.reconnect()
     },
+    targetOrigin: () => selectedOrigin,
+    retarget(origin) {
+      selectedOrigin = origin === undefined ? undefined : httpOriginOf(origin)
+      owner?.controller.reconnect()
+    },
     registerGenerationSource(source) {
       if (generationSource !== undefined) {
         throw new Error('connection: a generation source is already registered')
@@ -321,4 +342,18 @@ export function apply(ctx: Context): void {
     },
   }
   ctx.provide('connection', handle)
+}
+
+/** Reduce one absolute http(s) URL to its origin; anything else fails loudly. */
+function httpOriginOf(value: string): string {
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    throw new TypeError(`connection: retarget requires an absolute http(s) URL, got ${JSON.stringify(value)}`)
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    throw new TypeError(`connection: retarget requires an http(s) URL, got ${JSON.stringify(value)}`)
+  }
+  return url.origin
 }

@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 可重定向连接端点（§28 切换接缝）
+
+[当前来源记录](artifacts/upstream-first/retargetable-endpoint-source.json)落地第 28 节名册切换的前置接缝：dsh-client-connection 的 createWebConnectionRpc 增第 4 参 resolveBaseUrl——显式选择基址，缺省回退页面 origin（一次调用内即时重读，切换后无需重建 rpc）；ConnectionHandle 增 targetOrigin()（读当前选择）与 retarget(origin)（绝对 http(s) URL 经 new URL 校验并归约为 origin，非绝对或非 http(s) 值大声 TypeError；设置后替换当前连接尝试，undefined 回到页面 origin）。注入式传输（__DSH_TRANSPORT__）与 fixture 台持有自己载体，该选择只重定向浏览器 HTTP 路径——worker 流载体与名册 UI 的装配（选中 Host 进 retarget）保持开放。ConnectionHandle 声明随 inspect-catalog 再生。测试 207 项（新 4：选中 origin 定向、未选回退页面 origin、无解析器保持原状、handle 校验/存取/清除）。
+
 ## 二进制事实卡（§35 呈现矩阵）
 
-[当前来源记录](artifacts/upstream-first/binary-fact-card-source.json)落地第 35 节客户端呈现矩阵的 binary/zero-byte 项：ui-sidebar-documentpreview 新增 builtin 二进制渲染器（32 个已知二进制后缀：压缩包/可执行/库/字体/数据库，bytes-complete 模式）——bytes.ts 纯格式化（hexRowsOf 以 16 字节/行、256 字节展示上限切首块，formatByteCount 千分位无小数），BinaryBody 事实卡在"不以文本预览"提示旁给出字节数、超上限附未展示余量、带文件偏移的十六进制行，0 字节文件呈现显式空态；不做内容嗅探——未知扩展名仍走纯文本路径，由 Host 的 workspace-file/not-text 拒绝权威判定，maxFileBytes 上限对超大文件的拒绝照常生效（拒绝而非截断）。image 渲染器既有；MIME 内容推断与部分下载/中断传输恢复矩阵仍开放。测试 296 项（包内新 10：格式化 5 + 渲染 3 + 注册 2；pnpm-pack license 门在 Windows 本机排除、CI 持有）。
+[历史来源记录](artifacts/upstream-first/binary-fact-card-source.json)落地第 35 节客户端呈现矩阵的 binary/zero-byte 项：ui-sidebar-documentpreview 新增 builtin 二进制渲染器（32 个已知二进制后缀：压缩包/可执行/库/字体/数据库，bytes-complete 模式）——bytes.ts 纯格式化（hexRowsOf 以 16 字节/行、256 字节展示上限切首块，formatByteCount 千分位无小数），BinaryBody 事实卡在"不以文本预览"提示旁给出字节数、超上限附未展示余量、带文件偏移的十六进制行，0 字节文件呈现显式空态；不做内容嗅探——未知扩展名仍走纯文本路径，由 Host 的 workspace-file/not-text 拒绝权威判定，maxFileBytes 上限对超大文件的拒绝照常生效（拒绝而非截断）。image 渲染器既有；MIME 内容推断与部分下载/中断传输恢复矩阵仍开放。测试 296 项（包内新 10：格式化 5 + 渲染 3 + 注册 2；pnpm-pack license 门在 Windows 本机排除、CI 持有）。
 
 ## 共享 Unified Diff 预览（§34 第一切片）
 

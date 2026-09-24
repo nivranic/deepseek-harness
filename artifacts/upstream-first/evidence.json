@@ -5,73 +5,49 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "7e42c4fc9f221dd4f492439b821c8c717b13b5b6080d0c18847f6c6aace646d0"
+      "sha256": "9ce9bc7cd1f5212a0720d6de3362fd21e18501c2b362027188a40fd7eda22e16"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "be16569586899dcf463943ed1663aaec3253f01c2efca3ba3d4962790c3d6120"
+      "sha256": "38650a6320b774e8fd9ac44fe43942c15bf030a092b11af77b5d5be8c08ea159"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "582b4560181ecd94ed5ce44568ae0c92c595d5ee54531ab769d5ffe98130c75e"
+      "sha256": "f70a7dae6e1a13087f83af61e77e7d33cbf86e471d8f9fb0a04f9d4ac5f0ee84"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "c444657d782ab8b3eccaafd17b6c65176284135fce0819a7a8ab53bcba585c5c"
+      "sha256": "55dc2534853feedae1732b38d06345c55fbf43ab8448e07ccb2372c1e7764137"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/README.i18n.yaml",
-      "sha256": "79d94807ba7d6c2a54cb6af6908969dae4dd29ad1ed7842590b7a1750ad8e173"
+      "path": "packages/client/connection/README.i18n.yaml",
+      "sha256": "84fd8aed75bd7327849c6d36220343fe6745f922454680651cc1410dc73293df"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/README.md",
-      "sha256": "087c24002981436f14d39ced0767f0316297e60598dae5599faa9675d52fe813"
+      "path": "packages/client/connection/README.md",
+      "sha256": "8848b8bf24ad9f6eb725b10a8173dea77ff2d81638e35f3f5c219f30a6990de5"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/README.zh.md",
-      "sha256": "8c65ee2e4f0c9b237e5af290b717dae7249f5233175710c7fbb0961bdace0f06"
+      "path": "packages/client/connection/README.zh.md",
+      "sha256": "c36a238065d8b4d81c4efce8d6dd351ccb7fb68e5b52e78c086d0a8af63a1714"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/index.ts",
-      "sha256": "f041cfe26d88f444a222159250e6eff440d0b878fb274e4407a3f7d98d0f3f14"
+      "path": "packages/client/connection/src/client/index.ts",
+      "sha256": "9aff940e3d491c4cede5d87551739bd5b6e905ee2744c1325b21e434e1e570ed"
     },
     {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/apply.client.spec.ts",
-      "sha256": "8e5c223413051abab96274f4ff431ae1857c0483083191f997fdbc9370ca69aa"
+      "path": "packages/client/connection/src/client/rpc.ts",
+      "sha256": "4c9b226f10bb9c98b419698047cbb188e6febd7ec8965f2ae7d0f2f6c71782e9"
     },
     {
-      "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
-      "sha256": "5b77956c32c757d0937108bc876d9964cb474410565f40b02e5886795e9d603d"
+      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
+      "sha256": "cbb30a12bef75a3fb17847df68a8f6223ce31df54c054d59e460fb86ab9c9fb7"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/BinaryBody.tsx",
-      "sha256": "5e4774d23d93b3799970a71f62839c2acb69fa000ec49236caea50d8d062ccf4"
-    },
-    {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/bytes.ts",
-      "sha256": "3bdfb7818890a1af2ef7abda473585b653c2b08bbec5ebf9fb9b0ebce53ef7bc"
-    },
-    {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/index.ts",
-      "sha256": "46473988d22fc6311c0351628ed83313d391d3ad2d5f72b9c25d2c32ad6f6daf"
-    },
-    {
-      "path": "packages/client/ui-sidebar-documentpreview/src/client/binary/locales.ts",
-      "sha256": "2913e52f40311ebead7269995c6fa5e262abe488c1a121caeddf0b3a3de029b2"
-    },
-    {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/binary-body.client.spec.tsx",
-      "sha256": "0b16cec5c3d02381037babe77b85df151746e938b219ee9fc6f0f5a528e38e67"
-    },
-    {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/binary-bytes.client.spec.ts",
-      "sha256": "431c8865b6a3332f50887e89d343a0a2199ae503fefd180d87968d2516390b8a"
-    },
-    {
-      "path": "packages/client/ui-sidebar-documentpreview/tests/binary-registration.client.spec.ts",
-      "sha256": "e3a4558843514df6c09ba0b18bd09c70c4a7823b7b3f45e98b257808536f130b"
+      "path": "packages/client/connection/tests/retarget.client.spec.ts",
+      "sha256": "a5125b8f7a47e3ace85741d5be9081b9554518c1cb334b07f69ae88868889cfa"
     }
   ],
   "validationStatus": "PASS",
@@ -7079,6 +7055,42 @@
     },
     {
       "status": "PASS",
+      "command": "Retargetable-endpoint suites (connection 207: selected absolute origin targeting, page-origin fallback while unselected, no-resolver passthrough, and handle validation/store/clear with loud TypeError on relative and non-http URLs): 207 passed, 0 failed",
+      "log": ".artifacts/retargetable-endpoint-tests.log",
+      "sourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository typecheck",
+      "log": ".artifacts/retargetable-endpoint-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Repository lint",
+      "log": ".artifacts/retargetable-endpoint-lint.log",
+      "sourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Documentation gates (36) after the switch-seam README contract (Summary kept under the word budget), translation pairing re-record, and inspect-catalog regeneration",
+      "log": ".artifacts/retargetable-endpoint-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Specification traceability after the section 28 seam note",
+      "log": ".artifacts/retargetable-endpoint-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "verify-audit --require-gate0",
+      "log": ".artifacts/retargetable-endpoint-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -7809,7 +7821,181 @@
       ]
     }
   },
+  "retargetableEndpoint": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json",
+    "scope": "Retargetable connection endpoint (specification section 28 switch seam, the prerequisite the roster UI waits on): createWebConnectionRpc gains a fourth optional resolveBaseUrl parameter — an explicit selected base re-read on every call, so a switch applies without rebuilding the RPC, with undefined falling back to the page origin exactly as before. ConnectionHandle gains targetOrigin() (read the selection) and retarget(origin) (one absolute http(s) URL is validated through new URL and reduced to its origin; anything else throws TypeError loudly; the selection replaces the current connection attempt like reconnect, and undefined returns to the page origin). Injected transports (__DSH_TRANSPORT__) and fixture benches own their carrier, so the selection redirects the browser HTTP path only — worker stream-carrier adoption and the roster UI wiring stay open. The ConnectionHandle declaration regenerates through gen-cordis-inspect-catalog",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "limitations": [
+      "The selection redirects the browser HTTP carrier only; injected transports, fixture benches, and the worker-local stream carrier keep their own base until they adopt the seam.",
+      "The complete Upstream-First objective remains active."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "section 28 roster UI and the switch action now have their seam: compose the selected saved Host origin into connection.retarget, adopt the same selection in the worker stream carrier, and place the roster in the shell; section 10 overflow-menu (⋮) entries wait on a toolbar set existing; section 35 remainder — content-based MIME inference beyond the suffix card plus the interrupted-transfer recovery matrix; section 34 remainder — syntax highlight, split diff (Desktop), large-file virtualization, copy and open-file actions; provider/relay/device-trust/crash telemetry exits wire to telemetryKindAllowed as their producers land; four-platform real-device same-candidate bundle runs remain open; iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "binaryFactCard": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/retargetable-endpoint-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/binary-fact-card-source.json",
     "scope": "Binary fact card (specification section 35 presentation matrix): ui-sidebar-documentpreview gains a builtin binary renderer claiming 32 known binary suffixes (archives, executables, libraries, fonts, databases) in bytes-complete mode — bytes.ts is a pure formatter (hexRowsOf cuts a leading window at 16 bytes per row bounded by a 256-byte display cap, formatByteCount renders binary-precise thousands with no fraction), and BinaryBody presents the fact card: the heading states the byte count beside the not-as-text notice and appends the unshown remainder past the cap, the body shows the leading bytes as offset-addressed hex rows, and a zero-byte file renders its explicit empty state. The card never sniffs content — unknown extensions keep the plain-text path where the Host workspace-file/not-text refusal stays the authority, and the maxFileBytes cap still rejects oversized files instead of truncating. Images keep their existing renderer; content-based MIME inference and the interrupted-transfer recovery matrix stay open",
@@ -17654,7 +17840,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/binary-fact-card-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/retargetable-endpoint-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -18137,7 +18323,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "c444657d782ab8b3eccaafd17b6c65176284135fce0819a7a8ab53bcba585c5c"
+        "sha256": "55dc2534853feedae1732b38d06345c55fbf43ab8448e07ccb2372c1e7764137"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

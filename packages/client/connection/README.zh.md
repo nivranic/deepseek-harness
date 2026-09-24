@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-本包承载浏览器到 Host 的 Remote 调用、精确 Fetch 响应与 connection generation。Client 插件挂载 `ctx.connection`，其中包含当前页面的 loopback 状态、通用 RPC、当前 generation 及其 Host 信息、可观察的恢复状态、立即重连命令，以及单一 generation source 的注册点。source 报告 ready 后 generation 才可见；source 结束、失败、被撤回或显式 stop 都会清空它，再由 `ConnectionController` 执行重试策略。第 28 节的已存 Host 名册（`connection.savedHosts`）记录每个携带描述符的已建立世代的身份事实——最近优先、有上限、在可用时持久化到 `localStorage`。
+本包承载浏览器到 Host 的 Remote 调用、精确 Fetch 响应与 connection generation。Client 插件挂载 `ctx.connection`，其中包含当前页面的 loopback 状态、通用 RPC、当前 generation 及其 Host 信息、可观察的恢复状态、立即重连命令，以及单一 generation source 的注册点。source 报告 ready 后 generation 才可见；source 结束、失败、被撤回或显式 stop 都会清空它，再由 `ConnectionController` 执行重试策略。第 28 节的已存 Host 名册（`connection.savedHosts`）按最近优先且有上限地记录携带描述符的已建立世代身份事实。显式切换接缝选择浏览器 HTTP 调用的目标 Host 基址。
 
 ## 目录
 
@@ -54,6 +54,8 @@ generation source 通过进度回调在 Host 访问验证期间报告 `authentic
 API Gateway Client 把内部 `$events` 逻辑流注册为唯一 generation source，与有无 `$on` 订阅无关。Host 在 API Remotes source factory 同步挂好所有增量 listener 后，先发送唯一 `{ type: 'ready', clientId, host: { home, platform } }` 项，再发送事件。`ConnectionController` 仅在收到该 ready 项后发布 generation 并调用 `onConnected`，因此 baseline 不会跑在增量 listener 前面。
 
 `$events` 结束、Remote 流报错、收到非 ready 首项或畸形事件项，都会使当前 generation 失效。默认情况下，挂起的握手在 3 秒后记录 Host 响应缓慢告警，在 15 秒后记录就绪超时并中止，包含等待物理 socket 的时间。取消后，source 必须停止投递、释放资源并结束，替换 source 才能启动；已取消 source 迟到的 ready 不能发布 generation。浏览器报告网络可用时，Controller 发布 `reconnecting`，并在 500ms、1s、2s、4s、8s 与 10s 上限内采用 50%–100% 抖动重试，达到终档后继续尝试直到恢复。每次重试都要求 Gateway 替换一次物理 WebSocket，再重开 `$events`。[持续恢复决策](../../../.agents/notes/implemented/bug-fix/2026-09-05-continuous-client-recovery.zh.md)规定握手期限与重试策略。
+
+`ctx.connection.retarget(origin)` 把一个绝对 http(s) URL 校验并归约为 origin，使每次浏览器 HTTP 调用都以该 origin 为目标——解析器逐次调用重读，切换无需重建 RPC——并如同 `reconnect()` 一样替换当前连接尝试；`undefined` 回到页面 origin，`targetOrigin()` 读取当前选择。注入式传输（`__DSH_TRANSPORT__`）与 fixture 测试台持有自己的载体，因此该选择只重定向浏览器 HTTP 路径。
 
 `ctx.connection.reconnect()` 会中断活动工作、重置序列，并立即开始 retry 1。浏览器 `offline` 会中断活动工作、发布 `offline` 并暂停自动尝试；下一次 `online` 转换会重置序列并从 500ms 档开始。只有 ready 项会发布 `ready`。Gateway mux 不拥有独立重试调度。
 
