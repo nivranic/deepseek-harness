@@ -1,7 +1,7 @@
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { Fiber } from '@deepseek-ai/cordis'
-import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import {
   apply as applyConnection,
@@ -25,7 +25,30 @@ import { apply, inject, RemoteStream, carrierFailure } from '../src/client/index
 import {
   RemoteStreamCarrierError,
   RemoteStreamMuxClient,
+  remoteStreamUrl,
 } from '../src/client/stream-client.ts'
+import { REMOTE_STREAM_MUX_PATH } from '../src/stream-protocol.ts'
+
+type LocationGlobal = { location?: { origin?: string } }
+
+describe('remoteStreamUrl', () => {
+  afterEach(() => { delete (globalThis as LocationGlobal).location })
+
+  it('uses the page origin and flips https to wss', () => {
+    ;(globalThis as LocationGlobal).location = { origin: 'https://page.local' }
+    expect(remoteStreamUrl()).toBe(`wss://page.local${REMOTE_STREAM_MUX_PATH}`)
+  })
+
+  it('prefers the selected base over the page origin and keeps ws for http', () => {
+    ;(globalThis as LocationGlobal).location = { origin: 'https://page.local' }
+    expect(remoteStreamUrl(() => 'http://desk.local:8787')).toBe(`ws://desk.local:8787${REMOTE_STREAM_MUX_PATH}`)
+  })
+
+  it('falls back to the internal base without a page or selection', () => {
+    delete (globalThis as LocationGlobal).location
+    expect(remoteStreamUrl(() => undefined)).toBe(`ws://dsh.internal${REMOTE_STREAM_MUX_PATH}`)
+  })
+})
 
 type FixtureApprovalOutcome = 'allowed' | 'unavailable'
 const fixtureContextTag = Symbol('fixture-context-tag')
@@ -323,6 +346,7 @@ async function benchFiber(
     registerGenerationSource: generation.register,
     start,
     reconnect: () => {},
+    targetOrigin: () => undefined,
   } as unknown as ConnectionHandle)
   const client = ctx.plugin({ inject, apply })
   await client
@@ -426,6 +450,7 @@ async function loaderReadinessBench(
     rpc: carrier === 'web' ? { call } : { call, open: () => unexpectedInProcessStream() },
     registerGenerationSource: generation.register,
     start,
+    targetOrigin: () => undefined,
   } as unknown as ConnectionHandle)
   ctx.provide('loader', { await: () => readiness })
   const client = ctx.plugin({ inject, apply })
@@ -605,6 +630,7 @@ describe('Client Remote transport readiness', () => {
       },
       registerGenerationSource: generation.register,
       start: () => ({ stop: () => {} }),
+      targetOrigin: () => undefined,
     } as unknown as ConnectionHandle
     const withdraw = ctx.provide('connection', handle)
     const client = ctx.plugin({ inject, apply })

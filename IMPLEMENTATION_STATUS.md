@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 名册切换动作与流载体采纳（§28 组合）
+
+[当前来源记录](artifacts/upstream-first/roster-switch-source.json)把第 28 节切换从接缝补成动作：connection 侧 switchToSavedHost(connection, hostId) 组合切换——名册行 origin 流入 retarget、返回该行供呈现，未知 hostId 或 in-process 行（无 origin 可定向）不动连接；Gateway 流载体采纳同源选择——RemoteStreamMuxClient 构造接受 resolveBaseUrl，每次物理 WebSocket 尝试以 connection.targetOrigin() 构建 URL（逐次连接重读、https→wss、未选回退页面 origin，remoteStreamUrl 导出为纯函数），ClientRemoteService 实例化时接线，Host 切换自此同时重定向单次 HTTP 调用与流载体。测试 connection 209（新 2：切换命中返回行+retarget 恰一次、未知/in-process 不动）+ gateway 461（新 3：页面 origin wss、选中 base 覆盖、无页面回退内部 base）。名册 UI 呈现（settings/连接页列表）与跨会话选中持久化保持开放。
+
 ## 可重定向连接端点（§28 切换接缝）
 
-[当前来源记录](artifacts/upstream-first/retargetable-endpoint-source.json)落地第 28 节名册切换的前置接缝：dsh-client-connection 的 createWebConnectionRpc 增第 4 参 resolveBaseUrl——显式选择基址，缺省回退页面 origin（一次调用内即时重读，切换后无需重建 rpc）；ConnectionHandle 增 targetOrigin()（读当前选择）与 retarget(origin)（绝对 http(s) URL 经 new URL 校验并归约为 origin，非绝对或非 http(s) 值大声 TypeError；设置后替换当前连接尝试，undefined 回到页面 origin）。注入式传输（__DSH_TRANSPORT__）与 fixture 台持有自己载体，该选择只重定向浏览器 HTTP 路径——worker 流载体与名册 UI 的装配（选中 Host 进 retarget）保持开放。ConnectionHandle 声明随 inspect-catalog 再生。测试 207 项（新 4：选中 origin 定向、未选回退页面 origin、无解析器保持原状、handle 校验/存取/清除）。
+[历史来源记录](artifacts/upstream-first/retargetable-endpoint-source.json)落地第 28 节名册切换的前置接缝：dsh-client-connection 的 createWebConnectionRpc 增第 4 参 resolveBaseUrl——显式选择基址，缺省回退页面 origin（一次调用内即时重读，切换后无需重建 rpc）；ConnectionHandle 增 targetOrigin()（读当前选择）与 retarget(origin)（绝对 http(s) URL 经 new URL 校验并归约为 origin，非绝对或非 http(s) 值大声 TypeError；设置后替换当前连接尝试，undefined 回到页面 origin）。注入式传输（__DSH_TRANSPORT__）与 fixture 台持有自己载体，该选择只重定向浏览器 HTTP 路径——worker 流载体与名册 UI 的装配（选中 Host 进 retarget）保持开放。ConnectionHandle 声明随 inspect-catalog 再生。测试 207 项（新 4：选中 origin 定向、未选回退页面 origin、无解析器保持原状、handle 校验/存取/清除）。
 
 ## 二进制事实卡（§35 呈现矩阵）
 

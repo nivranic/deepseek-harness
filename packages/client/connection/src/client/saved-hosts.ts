@@ -141,3 +141,28 @@ export class SavedHostsStore {
 function sortRows(rows: readonly SavedHost[]): readonly SavedHost[] {
   return [...rows].sort((left, right) => right.lastConnectedAt - left.lastConnectedAt)
 }
+
+/** What a switch action needs: the roster rows plus the connection's retarget seam. */
+export interface SavedHostSwitchTarget {
+  /** §28 roster rows, most recent first. */
+  readonly savedHosts: { list(): readonly SavedHost[] }
+  /** §28 switch seam: select the Host base and replace the current attempt. */
+  retarget(origin: string | undefined): void
+}
+
+/**
+ * Switch the connection to one saved Host: the row's origin becomes the
+ * selected base through `retarget`, and the row is returned for presentation.
+ * An unknown hostId or an `in-process` row leaves the connection untouched —
+ * the in-page fallback has no origin to target, and any other malformed origin
+ * fails loudly inside `retarget` itself.
+ * @param target - connection handle carrying the roster and the switch seam.
+ * @param hostId - roster key of the Host to switch to.
+ * @returns the switched saved Host, or undefined when no switchable row matches.
+ */
+export function switchToSavedHost(target: SavedHostSwitchTarget, hostId: string): SavedHost | undefined {
+  const row = target.savedHosts.list().find(item => item.hostId === hostId)
+  if (row === undefined || row.origin === 'in-process') return undefined
+  target.retarget(row.origin)
+  return row
+}

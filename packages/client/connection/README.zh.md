@@ -57,6 +57,8 @@ API Gateway Client 把内部 `$events` 逻辑流注册为唯一 generation sourc
 
 `ctx.connection.retarget(origin)` 把一个绝对 http(s) URL 校验并归约为 origin，使每次浏览器 HTTP 调用都以该 origin 为目标——解析器逐次调用重读，切换无需重建 RPC——并如同 `reconnect()` 一样替换当前连接尝试；`undefined` 回到页面 origin，`targetOrigin()` 读取当前选择。注入式传输（`__DSH_TRANSPORT__`）与 fixture 测试台持有自己的载体，因此该选择只重定向浏览器 HTTP 路径。
 
+`switchToSavedHost(connection, hostId)` 组合切换动作：名册行的 origin 流入 `retarget` 并返回该行供呈现；未知 hostId 或 `in-process` 行不改动连接。
+
 `ctx.connection.reconnect()` 会中断活动工作、重置序列，并立即开始 retry 1。浏览器 `offline` 会中断活动工作、发布 `offline` 并暂停自动尝试；下一次 `online` 转换会重置序列并从 500ms 档开始。只有 ready 项会发布 `ready`。Gateway mux 不拥有独立重试调度。
 
 generation owner 可把失败尝试分类为 `incompatible`、`fatal`、`device-revoked`（Host 已撤销此设备授权；重新配对后再重连）或 `identity-changed`（Host 已不再识别此设备身份或密钥——重新配对或 Host 重置；重新配对后再重连）。这四种状态撤回就绪状态，并暂停自动尝试，直到手动重连或浏览器网络状态变化。分类在 source 清理结束后执行；取消错误不能覆盖已请求的重连或离线状态。未分类的失败继续持续恢复。Connection 拥有调度，Gateway 拥有应用错误分类。

@@ -3,6 +3,8 @@ import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createWebConnectionRpc, type RpcFetch } from '../src/client/rpc.ts'
 import { apply, type ConnectionHandle } from '../src/client/index.ts'
+import { switchToSavedHost } from '../src/client/saved-hosts.ts'
+import type { SavedHost } from '../src/client/saved-hosts.ts'
 
 type BrowserGlobal = { location?: { hostname: string; search: string; origin?: string } }
 
@@ -68,5 +70,32 @@ describe('retargetable endpoint', () => {
     expect(() => { connection.retarget('workstation') }).toThrow(TypeError)
     expect(() => { connection.retarget('ftp://workstation.local') }).toThrow(TypeError)
     expect(connection.targetOrigin()).toBeUndefined()
+  })
+})
+
+describe('switchToSavedHost', () => {
+  const row = (hostId: string, origin: string): SavedHost => ({
+    hostId, displayName: hostId, platform: 'win32', origin, lastConnectedAt: 1,
+  })
+
+  it('targets the saved row origin and returns the row', () => {
+    const retarget = vi.fn<(origin: string | undefined) => void>()
+    const target = {
+      savedHosts: { list: () => [row('h1', 'https://one.local:8787'), row('h2', 'https://two.local')] },
+      retarget,
+    }
+    expect(switchToSavedHost(target, 'h2')).toMatchObject({ hostId: 'h2', origin: 'https://two.local' })
+    expect(retarget).toHaveBeenCalledExactlyOnceWith('https://two.local')
+  })
+
+  it('leaves the connection untouched for unknown hosts and in-process rows', () => {
+    const retarget = vi.fn<(origin: string | undefined) => void>()
+    const target = {
+      savedHosts: { list: () => [row('local', 'in-process')] },
+      retarget,
+    }
+    expect(switchToSavedHost(target, 'missing')).toBeUndefined()
+    expect(switchToSavedHost(target, 'local')).toBeUndefined()
+    expect(retarget).not.toHaveBeenCalled()
   })
 })

@@ -165,7 +165,7 @@ class ClientRemoteService extends Service implements ClientRemote {
   private readonly connection: ConnectionHandle
   private readonly namespaces = new Map<string, RemoteNamespaceHandle>()
   private hostFacts: RemoteHostFacts | undefined
-  private readonly streams = new RemoteStreamMuxClient()
+  private readonly streams = new RemoteStreamMuxClient(() => this.connection.targetOrigin())
   private readonly events: ClientRemoteEvents
   private readonly preparation: ClientRemotePreparation
   private hostGeneration: ConnectionHostInfo | undefined

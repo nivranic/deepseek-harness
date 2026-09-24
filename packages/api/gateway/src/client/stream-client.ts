@@ -41,6 +41,13 @@ export class RemoteStreamMuxClient {
   private running = false
   private disposed = false
 
+  /**
+   * @param resolveBaseUrl - explicit selected base for every physical attempt;
+   *   `undefined` keeps the page origin. Re-read per connect, so a switch applies
+   *   to the next attempt without rebuilding the mux.
+   */
+  constructor(private readonly resolveBaseUrl?: () => string | undefined) {}
+
   /** Ensure a physical attempt exists, following the current attempt once if needed. */
   start(): void {
     if (this.disposed) return
@@ -140,7 +147,7 @@ export class RemoteStreamMuxClient {
   }
 
   private connect(): Promise<WebSocket> {
-    const socket = new WebSocket(remoteStreamUrl())
+    const socket = new WebSocket(remoteStreamUrl(this.resolveBaseUrl))
     const connecting = new Promise<WebSocket>((resolve, reject) => {
       let settled = false
       const rejectCandidate = (error: Error): void => {
@@ -301,9 +308,16 @@ class StreamInbox {
   }
 }
 
-function remoteStreamUrl(): string {
+/**
+ * Build the physical Remote-stream WebSocket URL. An explicit selected base
+ * wins; without one the page origin (or the internal base outside a browser)
+ * applies. `https` flips to `wss`, everything else to `ws`.
+ * @param resolveBaseUrl - optional selected-base resolver, re-read per connect.
+ * @returns the absolute WebSocket URL.
+ */
+export function remoteStreamUrl(resolveBaseUrl?: () => string | undefined): string {
   const location = (globalThis as { location?: { origin?: string } }).location
-  const base = location?.origin !== undefined && location.origin !== 'null' ? location.origin : INTERNAL_BASE
+  const base = resolveBaseUrl?.() ?? (location?.origin !== undefined && location.origin !== 'null' ? location.origin : INTERNAL_BASE)
   const url = new URL(REMOTE_STREAM_MUX_PATH, base)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
   return url.href
