@@ -182,8 +182,8 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
 
 /**
  * Redeem one pairing code with the device's freshly generated Ed25519 key.
- * The grant is durable before the code is consumed: a failed store write
- * leaves the code redeemable instead of burning it.
+ * A code admits one redemption at a time. The claim becomes permanent
+ * after durability; a failed store write releases it for a later retry.
  * @param request - the single-use code, a device name, and the base64 SPKI
  * DER public key.
  * @returns the created grant identity.
@@ -237,7 +237,8 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
  * that replays an already-accepted one — a timestamp older than the grant's
  * durable high-water mark, or a nonce this process or the persisted
  * last-admission pair has already seen — is refused as replay before the
- * grant records the new high-water mark. The Gateway resolves one
+ * grant records the new high-water mark. The storage update rechecks
+ * revocation and replay state against earlier queued writes. The Gateway resolves one
  * admission per Remote event stream open and derives the client's reply
  * permissions from the returned set.
  * @param request - the device's signed admission message.

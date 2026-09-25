@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Native pairing; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-pairing-source.json",
+    "sha256": "915b6c99bf87ab2a55950141d13b2426c777df0fbd5155c15de1ffb62152b2d8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8ef9e2e7a6d5ef2fd1b6fa62e6562be38120e9c4b39cadc3b2b597b284620029"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-pairing-binding.json",
+    "sha256": "4348fccf313e17efbe9c7393539612c08ec31d9bb47abd73e185d63d37644f1b"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-pairing-reports.mjs",
+      "sha256": "32f457c8ee378793ee3625e3d7d8dc90f7498a8d512e915c40bc20fa92ec5464"
+    },
+    {
+      "path": ".artifacts/capture-native-pairing-validation.mjs",
+      "sha256": "0c526cfca0de1b721a95d0108ed725f21e47cfa0364650cfdc081813a6343619"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f073e0251a6f619f967d151306beb5eca9a5071364bb70c3a1ca387635380e37"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "36b473f4d2633660c4b837bc7db49aa0ef4bb365cf1b8422f975f46e8f0c8e98"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-pairing-binding.log",
+      "sha256": "6d3be09ce5cdc636a32f1b2221860cd7c52a3fcbe2e6b2c9d9cb24d0e4192427"
+    },
+    {
+      "path": ".artifacts/native-pairing-audit-tests.log",
+      "sha256": "26d871d64e4358caacebf840fb0d4553a31d76dfb0e0954e607a3a4784a53199"
+    },
+    {
+      "path": ".artifacts/native-pairing-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/native-pairing-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-pairing-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

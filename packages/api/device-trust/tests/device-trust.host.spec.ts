@@ -1,11 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { generateKeyPairSync, sign as edSign } from 'node:crypto'
 import { Context } from '@deepseek-ai/cordis'
 import { remoteErrorOf, type TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
-import Storage from '@deepseek-ai/dsh-storage'
+import Storage, { type KvUnit } from '@deepseek-ai/dsh-storage'
 import {
   apply as storageJsonApply, Config as storageJsonConfig, inject as storageJsonInject, name as storageJsonName,
 } from '@deepseek-ai/dsh-storage-json'
@@ -38,15 +38,27 @@ const codeOf = (error: unknown): string => {
 }
 
 const roots: string[] = []
+const contexts: Context[] = []
 
 /** Boot the full storage stack plus the service over one json root. */
-async function boot(config: Partial<Config> = {}, root?: string): Promise<DeviceTrustService> {
+async function boot(
+  config: Partial<Config> = {},
+  root?: string,
+  wrapUnit?: (unit: KvUnit) => KvUnit,
+): Promise<DeviceTrustService> {
   const ctx = new Context()
+  contexts.push(ctx)
   const storageRoot = root ?? await mkdtemp(join(tmpdir(), 'device-trust-'))
   if (root === undefined) roots.push(storageRoot)
   await ctx.plugin(Storage)
   const jsonBackend = { name: storageJsonName, inject: storageJsonInject, apply: storageJsonApply, Config: storageJsonConfig }
   await ctx.plugin(jsonBackend, { root: storageRoot })
+  if (wrapUnit !== undefined) {
+    const kv = ctx.storage.backend.get('json').kv
+    if (kv === undefined) throw new Error('test json backend must provide kv')
+    const open = kv.open.bind(kv)
+    vi.spyOn(kv, 'open').mockImplementation(async (...args) => wrapUnit(await open(...args)))
+  }
   await ctx.plugin({ name: storageDomainName, inject: storageDomainInject, apply: storageDomainApply, Config: storageDomainConfig }, { backend: 'json' })
   await ctx.plugin(DeviceTrustService, config)
   return ctx.deviceTrust
@@ -59,6 +71,7 @@ async function bootWithContext(config: Partial<Config> = {}, root?: string): Pro
 }
 
 afterEach(async () => {
+  for (const ctx of contexts.splice(0).reverse()) await ctx.fiber.dispose()
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
 
@@ -118,16 +131,64 @@ describe('device-trust pairing issuance', () => {
     }
   })
 
-  it('keeps a failed grant write from consuming the code', async () => {
+  it('keeps an invalid key from consuming the code', async () => {
     const service = await boot()
     const issuance = service.issuePairing('viewer')
-    // A closed service cannot write durably; the code must stay redeemable
-    // by the failure-ordering contract, so a plain validation failure is the
-    // observable half of the guarantee tested here (key invalid before put).
     await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: 'short' }))
       .rejects.toMatchObject({ code: 'device/key-invalid' })
     const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(9) })
     expect(grant.role).toBe('viewer')
+  })
+
+  it('redeems a concurrently presented code for exactly one durable device', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-pairing-race-'))
+    roots.push(root)
+    const service = await boot({}, root)
+    const { code } = service.issuePairing('controller')
+    const outcomes = await Promise.allSettled([
+      service.redeemPairing({ code, deviceName: 'first', devicePublicKey: spkiB64(21) }),
+      service.redeemPairing({ code, deviceName: 'second', devicePublicKey: spkiB64(22) }),
+    ])
+    expect(outcomes[0]?.status).toBe('fulfilled')
+    expect(outcomes[1]).toMatchObject({ status: 'rejected', reason: { code: 'device/pairing-invalid' } })
+    const restarted = await boot({}, root)
+    expect(restarted.listDevices()).toMatchObject([{ deviceName: 'first', role: 'controller' }])
+    expect(restarted.listDevices()).toHaveLength(1)
+  })
+
+  it('releases a failed durability claim for retry while rejecting overlapping redemption', async () => {
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const diskFailure = new Error('test medium rejected write')
+    const root = await mkdtemp(join(tmpdir(), 'device-pairing-write-'))
+    roots.push(root)
+    const service = await boot({}, root, (unit) => {
+      vi.spyOn(unit, 'putRecord').mockImplementationOnce(async () => {
+        entered.resolve(undefined)
+        await release.promise
+        throw diskFailure
+      })
+      return unit
+    })
+    const { code } = service.issuePairing('viewer')
+    const request = { code, deviceName: 'retry', devicePublicKey: spkiB64(23) }
+    const first = service.redeemPairing(request).catch((error: unknown) => error)
+    try {
+      await entered.promise
+      const overlap = service.redeemPairing({ ...request, deviceName: 'overlap' }).catch((error: unknown) => error)
+      // Release after starting the overlap: both calls see the same pending write.
+      release.resolve(undefined)
+      expect(await first).toBe(diskFailure)
+      expect(await overlap).toMatchObject({ code: 'device/pairing-invalid' })
+      expect(service.listDevices()).toHaveLength(0)
+      await expect(service.redeemPairing(request)).resolves.toMatchObject({ role: 'viewer' })
+      const restarted = await boot({}, root)
+      expect(restarted.listDevices()).toMatchObject([{ deviceName: 'retry' }])
+      expect(restarted.listDevices()).toHaveLength(1)
+    } finally {
+      release.resolve(undefined)
+      await first
+    }
   })
 })
 

@@ -114,7 +114,7 @@ interface PendingPairing {
   readonly pairingId: PairingCodeId
   readonly role: DeviceRole
   readonly expiresAt: number
-  redeemed: boolean
+  claimed: boolean
 }
 
 /** Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain. */
@@ -184,14 +184,14 @@ export class DeviceTrustService extends TypertRemoteService {
     const code = `dsh-pair-${randomUUID()}${randomUUID().slice(0, 8)}`
     const assigned = role ?? this.resolved.defaultRole
     const expiresAt = Date.now() + this.resolved.pairingTtlMs
-    this.pairings.set(code, { pairingId, role: assigned, expiresAt, redeemed: false })
+    this.pairings.set(code, { pairingId, role: assigned, expiresAt, claimed: false })
     return { pairingId, code, role: assigned, expiresAt }
   }
 
   /**
    * Redeem one pairing code with the device's freshly generated Ed25519 key.
-   * The grant is durable before the code is consumed: a failed store write
-   * leaves the code redeemable instead of burning it.
+   * A code admits one redemption at a time. The claim becomes permanent
+   * after durability; a failed store write releases it for a later retry.
    * @param request - the single-use code, a device name, and the base64 SPKI
    * DER public key.
    * @returns the created grant identity.
@@ -201,7 +201,7 @@ export class DeviceTrustService extends TypertRemoteService {
   @Remote('redeemPairing')
   async redeemPairing(request: RedeemPairingRequest): Promise<RedeemPairingResult> {
     const pending = this.pairings.get(request.code)
-    if (pending === undefined || pending.redeemed) {
+    if (pending === undefined || pending.claimed) {
       throw new RemoteError('device/pairing-invalid', 'pairing code is unknown or already redeemed', { code: request.code })
     }
     if (Date.now() > pending.expiresAt) {
@@ -220,12 +220,18 @@ export class DeviceTrustService extends TypertRemoteService {
     const { fingerprint } = decodeDeviceKey(request.devicePublicKey)
     const pairedAt = Date.now()
     const deviceId = DeviceId(`device-${randomUUID()}`)
-    await this.table().put(deviceId, {
+    const record: DeviceGrantRecord = {
       deviceName, role: pending.role,
       devicePublicKey: request.devicePublicKey, keyFingerprint: fingerprint, pairedAt,
       ...platform === undefined ? {} : { platform },
-    })
-    pending.redeemed = true
+    }
+    pending.claimed = true
+    try {
+      await this.table().put(deviceId, record)
+    } catch (error) {
+      pending.claimed = false
+      throw error
+    }
     return { deviceId, role: pending.role, keyFingerprint: fingerprint, pairedAt }
   }
 

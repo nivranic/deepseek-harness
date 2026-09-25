@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 配对码并发兑换与持久化失败重试（§21、§70）
+
+[当前来源记录](artifacts/upstream-first/native-pairing-source.json)记录原生 Remote 接入前的一次性配对前提：配对码在等待授权写盘前独占，重叠兑换立即拒绝；写盘成功后保持消费状态，写盘失败后允许在原有效期内重试。修复前两个回归用例均允许重复兑换，修复后存储重开只读到唯一授权。
+
+Gateway 与 Device Trust 498 项测试通过；lint 调整后的 Device Trust 29 项复验通过。真实 Host/Chrome 经 Gateway HTTP RPC 两次提交每个配对码，只获得一份授权，再以该授权签名事件流和回复，完成已有 Question 录制回放。并发写入与介质失败的确定性证据来自单元屏障，不把 HTTP 调度当作竞态证明。类型、构建、lint 和 36 项文档门禁通过。TLS 原生入口、强制设备准入载体、原生调用格式采用及真机验收仍开放。
+
 ## 设备准入、撤销与回复归属（§15、§21、§22）
 
-[当前来源记录](artifacts/upstream-first/device-admission-lifecycle-source.json)记录设备准入与撤销的完整等待期：存储提交重新检查撤销，单个或全部撤销先入队时后续准入拒绝；Gateway 在等待设备准入之前订阅撤销，防止已撤销身份迟到注册，并停止投递排队帧。设备流的每条交互回复必须重新签名且身份与流一致；无证明、其他设备及向匿名流附加设备身份均拒绝，错误签名不消费投递，校验期间取消或撤销不结算交互。
+[历史来源记录](artifacts/upstream-first/device-admission-lifecycle-source.json)记录设备准入与撤销的完整等待期：存储提交重新检查撤销，单个或全部撤销先入队时后续准入拒绝；Gateway 在等待设备准入之前订阅撤销，防止已撤销身份迟到注册，并停止投递排队帧。设备流的每条交互回复必须重新签名且身份与流一致；无证明、其他设备及向匿名流附加设备身份均拒绝，错误签名不消费投递，校验期间取消或撤销不结算交互。
 
 修复前分别保存 2 个存储竞态、4 个回复身份和 1 个流注册窗口失败；修复后 Gateway/Device Trust 496 项测试通过，lint 调整后 2 个取消/撤销用例再次通过。真实隔离 Host/Chrome 通过已有 Question 录制夹具完成刷新与只读回放：三种无效回复保持待答，原设备签名只产生一次工具结果并正常结束回合。类型、构建、lint、36 项文档门禁及最终 JSDoc/目录检查通过。JSON Schema 的设备身份拒绝 details 有标准校验器正反例；重新投影分类夹具发现并补齐 Kotlin/Swift 缺少的三个设备分类，Kotlin 9 项契约测试通过，Swift 仅验证源码/夹具一致而未运行。原生加密 Remote 入口、平台采用及物理设备验收仍开放。
 

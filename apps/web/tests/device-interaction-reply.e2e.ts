@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { chromium, type Browser } from 'playwright'
 import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
+import type { RedeemPairingResult } from '@deepseek-ai/dsh-api-device-trust'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
 import { connectFreshWorkspace, newEnglishPage, writeComposerDraft } from './support.ts'
@@ -16,14 +17,33 @@ const EXPECTED = fileURLToPath(new URL('./expected/device-interaction-reply.expe
 it.skipIf(MODE === 'record')('requires the stream device signature before a recorded Question can settle', async () => {
   const scaffold = await launchWebScaffold({ replayFixture: FIXTURE, paceMs: 15, compareReplaySession: true })
   let browser: Browser | undefined
+  const failures: unknown[] = []
   const events: SessionEvent[] = []
   scaffold.ctx.on('session/event', (_session, event) => { events.push(event) })
   const pair = async () => {
     const keys = generateKeyPairSync('ed25519')
     const code = scaffold.ctx.deviceTrust.issuePairing('controller').code
-    const grant = await scaffold.ctx.deviceTrust.redeemPairing({
+    const request = {
       code, deviceName: 'reply-test', devicePublicKey: keys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
-    })
+    }
+    const redeem = async () => {
+      const response = await scaffold.hostFetch('/api/deviceTrust/redeemPairing', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'client-request', rpcId: randomUUID(), method: 'deviceTrust/redeemPairing',
+          payload: { apiProtocolVersion: 2, args: { request } } }),
+      })
+      expect(response.status).toBe(200)
+      return await response.json() as { result:
+        { ok: true; value: RedeemPairingResult } | { ok: false; error: { code: string } } }
+    }
+    const replies = await Promise.all([redeem(), redeem()])
+    const granted = replies.filter(reply => reply.result.ok)
+    const rejected = replies.filter(reply => !reply.result.ok)
+    expect(granted).toHaveLength(1)
+    expect(rejected).toMatchObject([{ result: { ok: false, error: { code: 'device/pairing-invalid' } } }])
+    const result = granted[0]?.result
+    if (result?.ok !== true) throw new Error('pairing must produce one grant')
+    const grant = result.value
     return () => {
       const timestamp = Date.now()
       const nonce = randomUUID()
@@ -98,10 +118,14 @@ it.skipIf(MODE === 'record')('requires the stream device signature before a reco
     expect(events.filter(event => event.type === 'tool/result')).toHaveLength(1)
     await compareOrRefreshGolden(EXPECTED, [
       '# Device-owned Question reply', '', ...rejections.map(line => `- ${line}`),
+      '- Each code presented twice over Gateway RPC: exactly one device grant; the duplicate is rejected',
       '- Matching device: accepted; exactly one Tool settlement; recorded turn completes with DONE',
     ].join('\n'), MODE)
+  } catch (error) {
+    failures.push(error)
   } finally {
-    await browser?.close()
-    await scaffold.close()
+    await browser?.close().catch((error: unknown) => { failures.push(error) })
+    await scaffold.close().catch((error: unknown) => { failures.push(error) })
   }
+  if (failures.length > 0) throw new AggregateError(failures, 'Device pairing and reply scenario failed')
 })

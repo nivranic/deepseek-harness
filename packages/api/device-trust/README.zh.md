@@ -24,7 +24,7 @@ kind: "package-reference"
 
 在 Host 组合中加载 `@deepseek-ai/dsh-api-device-trust` 以暴露 `ctx.deviceTrust`。Remote 面携带七个能力门控方法（`deviceTrust/issuePairing`、`deviceTrust/redeemPairing`、`deviceTrust/admitDevice`、`deviceTrust/listDevices`、`deviceTrust/revokeDevice`、`deviceTrust/revokeAllDevices`、`deviceTrust/renameDevice`）；能力声明 `device-pair.issue.v1`、`device-pair.redeem.v1`、`device.admit.v1`、`device.list.v1`、`device.revoke.v1`、`device.revoke-all.v1`、`device.rename.v1`，因此未准备好的 Host 未声明时 Client 拒绝这些操作。issue、list、revoke、revoke-all 与 rename 声明 `requiredPermission: device.admin`：持有该权限的设备标识 Gateway 请求可调用它们；redeem 与 admit 保持未声明，因为它们先于任何设备身份。
 
-配对码是带过期的一次性机密（`pairingTtlMs`，默认五分钟）：第二次兑换以 `device/pairing-invalid` 失败，过期后兑换以 `device/pairing-expired` 失败，非 base64 Ed25519 SPKI DER 的公钥以 `device/key-invalid` 失败。兑换登记公钥的 SHA-256 指纹；列表返回不含密钥材料的视图。撤销保留授权在列表中并记录撤销时间——后续准入必须将其视为拒绝。
+配对码是带过期的一次性机密（`pairingTtlMs`，默认五分钟）：并发或后续重复兑换以 `device/pairing-invalid` 失败，过期后兑换以 `device/pairing-expired` 失败，非 base64 Ed25519 SPKI DER 的公钥以 `device/key-invalid` 失败。兑换登记公钥的 SHA-256 指纹；列表返回不含密钥材料的视图。撤销保留授权在列表中并记录撤销时间——后续准入必须将其视为拒绝。
 
 角色使用第 21 节表格命名（`viewer`、`collaborator`、`controller`、`owner`），并恰好持有该表格的权限列（经 `DEVICE_ROLE_PERMISSIONS`：`view`、`prompt.send`、`question.respond`、`approval.respond`、`device.admin`）；从不授予表外能力或权限。Host 默认角色来自 `defaultRole`（默认 `viewer`）。
 

@@ -10,9 +10,9 @@ Status: implemented
 
 ## 决策
 
-授权现存于 `device_trust` 存储域（`packages/api/device-trust/src/spec.ts`）：`defineDomain` 声明以 `DeviceId` 为键的 `grants` 表，`single` 布局（授权集在每次仪式步骤整体重写），版本 1，非法记录采用默认拒绝策略——未通过 zod schema 的已存授权使整个 open 拒绝而不是跳过，因为静默丢失一条撤销是安全洞，不是缓存未命中。`DeviceTrustService` 注入 `storageDomain`，在 `[Service.init]` 打开域并以 `ctx.effect` 关闭，读取来自域内存表的同步状态，而写入（`put`、`update`）先落盘。待定配对码刻意保持进程内：一次性过期机密不得在重启后存活，仪式重启后重新签发即可。兑换只在持久 `put` 完成后才标记码值已消费，因此存储写入失败时码值保持可兑换；撤销以原子 `update` 执行，其变换在队列槽位上的记录已撤销时抛出 `device/already-revoked`，写链的 `missing-key` 映射为 `device/not-found`。
+授权现存于 `device_trust` 存储域（`packages/api/device-trust/src/spec.ts`）：`defineDomain` 声明以 `DeviceId` 为键的 `grants` 表，`single` 布局（授权集在每次仪式步骤整体重写），版本 1，非法记录采用默认拒绝策略——未通过 zod schema 的已存授权使整个 open 拒绝而不是跳过，因为静默丢失一条撤销是安全洞，不是缓存未命中。`DeviceTrustService` 注入 `storageDomain`，在 `[Service.init]` 打开域并以 `ctx.effect` 关闭，读取来自域内存表的同步状态，而写入（`put`、`update`）先落盘。待定配对码刻意保持进程内：一次性过期机密不得在重启后存活，仪式重启后重新签发即可。兑换在等待持久 `put` 之前独占配对码，因此并发兑换不能建立第二份授权。持久化成功使占用永久生效；写入失败释放占用，允许后续在原有效期内重试。竞争请求会生成不同设备 id，因此仅靠存储队列不能实现配对码的一次性要求。撤销以原子 `update` 执行，其变换在队列槽位上的记录已撤销时抛出 `device/already-revoked`，写链的 `missing-key` 映射为 `device/not-found`。
 
-两个行为测试固定持久化契约：授权（含撤销状态）在同一 json 根上跨 Host 重启存活；待定码值不跨重启存活。
+测试重新打开 JSON 存储以核对授权及撤销的持久性，拒绝并发兑换，并在介质写入失败后重试同一码值。Web 已录制 Question 场景经 Gateway RPC 两次提交每个配对码，再使用唯一授权签名事件流及回复。待定码值不跨 Host 重启存活。
 
 ## 备选方案
 
