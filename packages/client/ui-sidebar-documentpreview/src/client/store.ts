@@ -37,6 +37,8 @@ export interface TextTabState {
   mode?: DocumentLoadMode
   /** Full byte result used by complete-file renderers. */
   complete?: DocumentFileBytes
+  /** A windowed transfer's progress; held across an interruption so the reader sees what resume keeps. */
+  transfer?: { readonly received: number; readonly size: number | undefined }
   /** The file version the loaded pages belong to; absent before the first page. */
   version: string | undefined
   /** Metadata version observed when this tab began its current read generation. */
@@ -90,6 +92,7 @@ type TextActions = {
   selected: (draft: TextState, tabId: TabId, rendererId: string | undefined) => void
   loading: (draft: TextState, tabId: TabId, mode?: DocumentLoadMode, observedVersion?: string) => void
   complete: (draft: TextState, tabId: TabId, file: DocumentFileBytes) => void
+  transferProgress: (draft: TextState, tabId: TabId, received: number, size: number | undefined) => void
   page: (draft: TextState, tabId: TabId, page: WorkspaceFileText) => void
   failed: (draft: TextState, tabId: TabId, failure: RemoteFailure) => void
   reset: (draft: TextState, tabId: TabId) => void
@@ -127,6 +130,7 @@ export function createTextStore(): EngineStoreHandle<TextState, TextActions> {
         if (state.version === undefined && !state.loading) state.observedVersion = observedVersion
         state.loading = true
         state.failure = undefined
+        delete state.transfer
         if (mode !== undefined) state.mode = mode
       },
       /** @param d - draft. @param tabId - owning tab. @param file - complete byte result for this view. */
@@ -137,6 +141,19 @@ export function createTextStore(): EngineStoreHandle<TextState, TextActions> {
         state.eof = true
         state.loading = false
         state.failure = undefined
+        delete state.transfer
+      },
+      /**
+       * Record one settled window of a windowed complete-byte transfer. The
+       * progress survives an interruption, so the failed state can say how much
+       * a resume keeps.
+       * @param d - draft state.
+       * @param tabId - the tab being drawn.
+       * @param received - bytes received across the whole attempt.
+       * @param size - the complete file size when the Host reports it.
+       */
+      transferProgress: (d, tabId: TabId, received: number, size: number | undefined) => {
+        bucket(d, tabId).transfer = { received, size }
       },
       /**
        * Keep one page. A page from a newer file version invalidates the pages
@@ -174,6 +191,7 @@ export function createTextStore(): EngineStoreHandle<TextState, TextActions> {
         const state = bucket(d, tabId)
         state.pages = {}
         delete state.complete
+        delete state.transfer
         state.eof = false
         state.version = undefined
         state.observedVersion = undefined

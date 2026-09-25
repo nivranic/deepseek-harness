@@ -6,8 +6,9 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import { sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
-import { createReadPage, documentFileBytes, hostFileOf } from '../src/client/rpc.ts'
-import type { ReadWorkspaceFilePage, WorkspaceFilesReadRemote } from '../src/client/index.ts'
+import { createReadByteWindow, createReadPage, documentFileBytes, hostFileOf } from '../src/client/rpc.ts'
+import type { ReadDocumentByteWindow, ReadWorkspaceFilePage, WorkspaceFilesReadRemote } from '../src/client/rpc.ts'
+import { TRANSFER_WINDOW_BYTES } from '../src/client/bytes/transfer.ts'
 import { ADDRESS, FILE, PATH, SESSION, page } from './fixtures.client.ts'
 
 describe('hostFileOf', () => {
@@ -34,9 +35,20 @@ describe('createReadPage', () => {
   it('binds the paged read to the Remote with the offset as the only range', async () => {
     const read = vi.fn<WorkspaceFilesReadRemote['workspaceFiles']['read']>(() => Promise.resolve(page(4, ['d'], true)))
     const signal = new AbortController().signal
-    const readPage: ReadWorkspaceFilePage = createReadPage({ workspaceFiles: { read } })
+    const readPage: ReadWorkspaceFilePage = createReadPage({ workspaceFiles: { read, readBytes: vi.fn() } })
     await expect(readPage(SESSION, PATH, 4, signal)).resolves.toEqual(page(4, ['d'], true))
     expect(read).toHaveBeenCalledWith(SESSION, PATH, { offset: 4 }, signal)
+  })
+})
+
+describe('createReadByteWindow', () => {
+  it('binds the window read at the transfer window size', async () => {
+    const value = { absolutePath: '/workspace/a.bin', version: 'v1', bytes: 3, offset: 4, data: 'AAH/', eof: false }
+    const readBytes = vi.fn<WorkspaceFilesReadRemote['workspaceFiles']['readBytes']>(() => Promise.resolve({ ok: true, value }))
+    const signal = new AbortController().signal
+    const readWindow: ReadDocumentByteWindow = createReadByteWindow({ workspaceFiles: { read: vi.fn(), readBytes } })
+    await expect(readWindow(FILE, 4, signal)).resolves.toEqual({ ok: true, value })
+    expect(readBytes).toHaveBeenCalledWith(SESSION, PATH, { offset: 4, length: TRANSFER_WINDOW_BYTES }, signal)
   })
 })
 

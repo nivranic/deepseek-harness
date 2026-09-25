@@ -76,7 +76,7 @@ export type TextPreviewProps =
  */
 export function TextPreview({
   useTabInfo, useResource, useStore, actions, loadPage, reloadPages,
-  loadAll, reloadAll, useDocumentPreviews, renderSlot, t,
+  loadAll, reloadAll, resumeAll, useDocumentPreviews, renderSlot, t,
 }: TextPreviewProps): ReactNode {
   const { tab } = useTabInfo()
   const { navigation, signal } = tab
@@ -297,6 +297,13 @@ export function TextPreview({
         {!hasContent && current?.failure === undefined && (
           <LoadingIndicator className={css.statusLine} label={t('loading')} />
         )}
+        {mode === 'bytes-complete' && current?.failure === undefined && current?.transfer !== undefined && (
+          // A windowed transfer announces each settled window, so an
+          // interruption later shows how much a resume keeps.
+          <p className={css.statusLine} data-textpreview-transfer={current.transfer.received}>
+            {t('transfer.progress', { received: String(current.transfer.received) })}
+          </p>
+        )}
         {content !== undefined && renderSlot('sidebar.right.tab.document', {
           resourceAddress: tab.contentId, content, wrap: state.wrap, scrollportRef: bindScrollport,
         }, {
@@ -323,6 +330,24 @@ export function TextPreview({
             <div className={css.empty} data-textpreview-failed={current.failure.code}>
               <FileTypeIcon kind={classifyFileType(name)} size={36} className={css.emptyIcon} />
               <p className={css.emptyLine}>{failureLine(t, current.failure)}</p>
+              {current.transfer !== undefined && current.transfer.received > 0 && (
+                // A windowed transfer interrupted mid-file keeps its received
+                // prefix; resume continues from the first missing byte.
+                <p className={css.emptyLine} data-textpreview-interrupted={current.transfer.received}>
+                  {t('transfer.interrupted', { received: String(current.transfer.received) })}
+                </p>
+              )}
+              {current.transfer !== undefined && current.transfer.received > 0 && (
+                <button
+                  type="button"
+                  className={css.retry}
+                  data-textpreview-resume
+                  onClick={() => { resumeAll(tab.id, file, signal, meta.value?.version) }}
+                >
+                  <IconRefreshOutline16 size={14} />
+                  {t('transfer.resume')}
+                </button>
+              )}
               <button
                 type="button"
                 className={css.retry}

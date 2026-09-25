@@ -26,6 +26,9 @@ export const zh = {
   'error.notRegularFile': '该路径不是普通文件，没有可显示的内容。',
   'error.unavailable': '读取失败：{message}',
   retry: '重试',
+  'transfer.progress': '已接收 {received} 字节…',
+  'transfer.interrupted': '传输在 {received} 字节处中断，已接收的部分保留。',
+  'transfer.resume': '从断点继续',
 } satisfies Record<string, string>
 
 /** Text-preview dictionary key union. */
@@ -51,4 +54,7 @@ export const en = {
   'error.notRegularFile': 'Not a regular file, nothing to display.',
   'error.unavailable': 'Read failed: {message}',
   retry: 'Retry',
+  'transfer.progress': 'Received {received} bytes…',
+  'transfer.interrupted': 'Transfer interrupted after {received} bytes; the received part is kept.',
+  'transfer.resume': 'Resume from interruption',
 } satisfies Record<SidebarDocumentPreviewKey, string>

@@ -25,7 +25,7 @@ import type { TextPreviewInjected } from './TextPreview.tsx'
 import { TextTitle } from './TextTitle.tsx'
 import { TEXTPREVIEW_ID, textDefinition } from './definition.ts'
 import { textFace } from './face.ts'
-import { createReadPage } from './rpc.ts'
+import { createReadByteWindow, createReadPage } from './rpc.ts'
 import { createTextStore } from './store.ts'
 import { en, zh } from './locales.ts'
 import { admittedDocumentPreviews } from './document/admission.ts'
@@ -110,10 +110,16 @@ export function apply(ctx: ClientContext): void {
       const dispose = ctx.effect(function* () {
         yield () => { lifetime.abort() }
         const store = createTextStore()
+        // The windowed read exists only where the Host advertises it; without
+        // the capability complete-byte loads stay one `readAll` call.
+        const readWindow = capabilities.includes('workspace-files.read-bytes.v1')
+          ? createReadByteWindow(ctx.remote)
+          : undefined
         const face = textFace(
           createReadPage(ctx.remote),
           (file, signal) => ctx.remote.workspaceFiles.readAll(file.sessionId, file.path, signal),
           lifetime.signal,
+          readWindow,
         )
         const source = admittedDocumentPreviews(previews, capabilities)
         yield ctx.sidebarRightTabs.register({

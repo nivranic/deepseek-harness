@@ -8,8 +8,9 @@
  */
 import type { RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { WorkspaceFileBytes, WorkspaceFileRange, WorkspaceFileText } from '@deepseek-ai/dsh-api-workspace-files/types'
+import type { WorkspaceByteRange, WorkspaceFileBytes, WorkspaceFileRange, WorkspaceFileText } from '@deepseek-ai/dsh-api-workspace-files/types'
 import { parseFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
+import { TRANSFER_WINDOW_BYTES, decodeBase64Bytes } from './bytes/transfer.ts'
 
 /** The slice of the Client Remote this package calls. */
 export interface WorkspaceFilesReadRemote {
@@ -28,6 +29,20 @@ export interface WorkspaceFilesReadRemote {
       range: WorkspaceFileRange,
       signal?: AbortSignal,
     ): Promise<RemoteResult<WorkspaceFileText>>
+    /**
+     * Read one byte window.
+     * @param sessionId - the session whose workspace resolves `path`.
+     * @param path - workspace path, absolute or relative to the workspace root.
+     * @param range - 0-based byte window; a length above the configured cap is refused.
+     * @param signal - cancels the call.
+     * @returns the window, or the failure the Host declares.
+     */
+    readBytes(
+      sessionId: SessionId,
+      path: string,
+      range: WorkspaceByteRange,
+      signal?: AbortSignal,
+    ): Promise<RemoteResult<WorkspaceFileBytes>>
   }
 }
 
@@ -81,11 +96,8 @@ export function createReadPage(remote: WorkspaceFilesReadRemote): ReadWorkspaceF
   return (sessionId, path, offset, signal) => remote.workspaceFiles.read(sessionId, path, { offset }, signal)
 }
 
-/** Complete document bytes borrowed read-only by renderers; copy before transferring to a Worker. */
-export type DocumentFileBytes = Omit<WorkspaceFileBytes, 'data'> & { readonly data: Uint8Array<ArrayBuffer> }
-
 /**
- * Read a complete file through the Host endpoint.
+ * Read one complete file through the Host endpoint.
  * @param file - Session and path decoded from the tab address.
  * @param signal - owning tab lifetime.
  * @returns complete wire bytes, including declared failures.
@@ -93,10 +105,38 @@ export type DocumentFileBytes = Omit<WorkspaceFileBytes, 'data'> & { readonly da
 export type ReadDocumentBytes = (file: SessionFile, signal: AbortSignal) => Promise<RemoteResult<WorkspaceFileBytes>>
 
 /**
+ * The window read one transfer attempt performs, injected so the face stays
+ * host-free: the next missing byte onward, one window at a time.
+ * @param file - Session and path decoded from the tab address.
+ * @param offset - first byte the window must return.
+ * @param signal - owning tab lifetime.
+ * @returns the window, or the failure the Host declares.
+ */
+export type ReadDocumentByteWindow = (
+  file: SessionFile,
+  offset: number,
+  signal: AbortSignal,
+) => Promise<RemoteResult<WorkspaceFileBytes>>
+
+/**
+ * Bind the windowed read to one Remote face at the transfer window size.
+ * @param remote - the Client Remote carrying the `workspaceFiles` namespace.
+ * @returns the window read the transfer performs.
+ */
+export function createReadByteWindow(remote: WorkspaceFilesReadRemote): ReadDocumentByteWindow {
+  return (file, offset, signal) => remote.workspaceFiles.readBytes(
+    file.sessionId, file.path, { offset, length: TRANSFER_WINDOW_BYTES }, signal,
+  )
+}
+
+/** Complete document bytes borrowed read-only by renderers; copy before transferring to a Worker. */
+export type DocumentFileBytes = Omit<WorkspaceFileBytes, 'data'> & { readonly data: Uint8Array<ArrayBuffer> }
+
+/**
  * Decode one successful Remote byte result for document renderers.
  * @param file - Host byte result with base64 data.
  * @returns the same metadata with native bytes; malformed base64 throws.
  */
 export function documentFileBytes(file: WorkspaceFileBytes): DocumentFileBytes {
-  return { ...file, data: Uint8Array.from(atob(file.data), character => character.charCodeAt(0)) }
+  return { ...file, data: decodeBase64Bytes(file.data) }
 }

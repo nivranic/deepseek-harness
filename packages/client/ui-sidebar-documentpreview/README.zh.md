@@ -47,6 +47,8 @@ tab 使用 `fileAddressFor` 构造的 Session 地址，携带相对或绝对路�
 - 资源快照仅包含 `status`、`value` 和 `failure`；`value` 是 `WorkspaceFileStat` 元数据。提供方可用后，内容读取无需等待首个元数据帧。观察失败优先于 Preview 的变更提示显示；两者都不会自动替换已加载内容。
 - **文本页** —— 纯文本、Markdown 和代码通过 inject 回调调用 `remote.workspaceFiles.read(sessionId, path, { offset }, signal)`。首次挂载读取第一页；滚动到正文末尾或点击 **加载更多** 会读取下一页，直到 `eof`。owner 以 `{ kind: 'text', text, pages, eof }` 提供累计前缀，包含源码偏移和行数。Markdown 和代码增量渲染此前缀，不把每页当成独立文档。第一页之后到达的更新版本页会使读取从头开始，避免混合版本。尚无内容时，失败会以文件类型图标、说明与重试按钮填满正文；较晚的失败保留已有内容并在其下提供重试。
 - **完整字节** —— PDF、HTML 和常见图片通过 inject 回调调用 `remote.workspaceFiles.readAll(sessionId, path, signal)`。`rpc.ts` 将线路上的 base64 解码为 `data: Uint8Array<ArrayBuffer>`，供 `{ kind: 'bytes', data }` 使用。Host 的 `maxFileBytes` 上限拒绝超大文件，不截断。PDF 在传给 worker 前复制保留的字节，使 Preview 缓冲区仍可使用。字节仅保存在临时视图状态中，绝不进入持久布局或 Session JSONL。加载模式变化会淘汰先前结果。
+- **中断传输恢复** —— Host 声明 `workspace-files.read-bytes.v1` 时，完整字节读取按固定 1 MiB 的 `readBytes` 窗口进行（`bytes/transfer.ts`），每个落定的窗口更新已接收字节进度行。已接收字节后的失败保留前缀，正文提供「从断点继续」，从第一个缺失字节续传而不重读；未收到任何字节的失败只提供从头重试。传输期间 Host 版本变化会从零重启，破坏窗口契约大声失败，tab 退役或世代替换后不再写入。无该能力时，完整字节读取保持单次 `readAll` 调用。
+
 - **重新载入** —— 仅当前 Preview tab 通过自己的 Remote 回调重读，保留滚动偏好并淘汰旧请求。变更提示将读取版本及起读时的观察版本与后续 `resource.value.version` 比较；刷新前已观察到的版本不会被当成新变化。读取既不刷新共享元数据，也不清除其它 tab 的提示。
 
 HTML 以贴合正文四边的 Blob iframe 运行，沙箱属性严格为 `sandbox="allow-scripts"`，不含 `allow-same-origin`；脚本无法访问父应用的源或文件读取接口。渲染器通过普通 inject 回调调用 `remote.workspaceFiles.readRelated`，加载直接声明的相对 `.js` 经典脚本和 `.css` 样式表；固定安全上限为单个资源 4 MiB、总计 32 MiB、64 个不同资源。Host 代码解析关联路径，`rpc.ts` 解码返回的字节。在渲染器内部，base64 仅用于把 iframe 引导载荷嵌入脚本文本。`<base href>` 将依赖解析交给浏览器，HTTPS 资源也由浏览器处理。本地模块 import、CSS `url()`/`@import` 和动态 `fetch` 不使用 Host 文件访问。读取失败、无效 UTF-8 或超出上限都使预览失败，不发布部分资源包。替换或卸载文档会释放其 Blob URL。
@@ -64,7 +66,7 @@ PNG、JPEG、GIF、WebP、BMP、ICO 和 SVG 通过 Blob URL 在 `<img>` 静态�
 
 `ctx.sidebarRight.openResource(address, { params: { line } })` 通过 `file` 参数携带 1 起算的源码行号。在 `text-pages` 模式下，owner 顺序加载到该行或 EOF。纯文本与代码渲染器提供源码行锚点；Markdown 不提供。所选渲染器没有锚点时，导航保持待处理；用户切换到纯文本或代码后执行。代码导航直接滚动内部源码视口。字节模式渲染器不消费源码行导航。每个完成的导航 revision 只响应一次。不带 `revealIfOpened: false` 打开同一文件时聚焦已有 tab，并送达新 revision。
 
-已准入 Host 必须声明文件元数据及所选加载方式：文本分页要求 `workspace-files.stat.v1` 与 `workspace-files.read-text.v1`，完整字节要求前者与 `workspace-files.read-all.v1`。每个渲染器可通过 `requiredCapabilities` 声明额外操作；HTML 要求 `workspace-files.read-related.v1`。不受支持的渲染器不会出现在选项中，也不能认领文件。仅支持完整字节的 Host 可预览匹配的图片或 PDF，但不会将未知文件作为纯文本提供。列目录与变更观察能力分别判断。连接替换会取消旧读取、清空注册所属的内容 store，并用新元数据重新打开保留的 tab。旧 HTML 读取器拒绝保留回调与迟到的关联文件结果；注册释放也取消活动中的依赖读取。
+已准入 Host 必须声明文件元数据及所选加载方式：文本分页要求 `workspace-files.stat.v1` 与 `workspace-files.read-text.v1`，完整字节要求前者与 `workspace-files.read-all.v1`。每个渲染器可通过 `requiredCapabilities` 声明额外操作；HTML 要求 `workspace-files.read-related.v1`。不受支持的渲染器不会出现在选项中，也不能认领文件。仅支持完整字节的 Host 可预览匹配的图片或 PDF，但不会将未知文件作为纯文本提供。`workspace-files.read-bytes.v1` 额外启用带续传的窗口化传输。列目录与变更观察能力分别判断。连接替换会取消旧读取、清空注册所属的内容 store，并用新元数据重新打开保留的 tab。旧 HTML 读取器拒绝保留回调与迟到的关联文件结果；注册释放也取消活动中的依赖读取。
 
 <a id="model-experience"></a>
 ## 模型体验
