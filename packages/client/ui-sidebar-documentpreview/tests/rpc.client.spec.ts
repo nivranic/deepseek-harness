@@ -1,3 +1,4 @@
+import { createReadHead } from '../src/client/rpc.ts'
 /**
  * The address-to-read translation: a `dsh-resource://file/session/<id>/<path>`
  * address names the session the read runs under and the workspace-relative path
@@ -63,5 +64,17 @@ describe('documentFileBytes', () => {
 
   it('rejects malformed wire base64', () => {
     expect(() => documentFileBytes({ absolutePath: '/workspace/a.bin', version: 'v1', offset: 0, data: '!!!', eof: true })).toThrow()
+  })
+})
+
+
+describe('createReadHead', () => {
+  it('requests only the first 64 bytes under the addressed Session', async () => {
+    const readBytes = vi.fn<WorkspaceFilesReadRemote['workspaceFiles']['readBytes']>().mockResolvedValue({
+      ok: true, value: { absolutePath: '/a', version: 'v1', offset: 0, data: '', eof: true },
+    })
+    const signal = new AbortController().signal
+    await createReadHead({ workspaceFiles: { read: vi.fn(), readBytes } })(FILE, signal)
+    expect(readBytes).toHaveBeenCalledExactlyOnceWith(SESSION, PATH, { offset: 0, length: 64 }, signal)
   })
 })

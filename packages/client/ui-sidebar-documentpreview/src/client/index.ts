@@ -25,7 +25,7 @@ import type { TextPreviewInjected } from './TextPreview.tsx'
 import { TextTitle } from './TextTitle.tsx'
 import { TEXTPREVIEW_ID, textDefinition } from './definition.ts'
 import { textFace } from './face.ts'
-import { createReadByteWindow, createReadPage } from './rpc.ts'
+import { createReadByteWindow, createReadHead, createReadPage } from './rpc.ts'
 import { createTextStore } from './store.ts'
 import { en, zh } from './locales.ts'
 import { admittedDocumentPreviews } from './document/admission.ts'
@@ -120,6 +120,7 @@ export function apply(ctx: ClientContext): void {
           (file, signal) => ctx.remote.workspaceFiles.readAll(file.sessionId, file.path, signal),
           lifetime.signal,
           readWindow,
+          readWindow === undefined ? undefined : createReadHead(ctx.remote),
         )
         const source = admittedDocumentPreviews(previews, capabilities)
         yield ctx.sidebarRightTabs.register({

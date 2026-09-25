@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 未知扩展名 MIME 内容推断（§35）
+
+[当前来源记录](artifacts/upstream-first/mime-inference-source.json)记录未知扩展名的有界文件头读取：Host 声明 read-bytes 能力时读取前 64 字节，PNG/JPEG/GIF/WebP/BMP/ICO 选择图片查看器，ZIP 选择二进制事实卡；文件名匹配及显式查看器选择优先，失败、无匹配和不完整签名落定后回退纯文本，不推断 HTML/SVG。读取世代与 tab/Host 生命周期丢弃迟到响应，重新加载重新推断，完整字节再次确认签名，并将图片 MIME 类型传给 Blob。修复了已有 Host 名册对 Connection 运行时导入缺少客户端模块声明的问题。
+
+本轮证据为 348 项定向测试、Host/Client 类型检查、lint、36 项文档门禁、6 项需求追踪检查和 Gate 0；真实隔离 Host 与已安装 Chrome 的文档预览场景完成预期刷新及只读回放，未知扩展名 PNG 的解码宽度为 1 像素。广域 GUI 为 5876 通过、5 失败、1 跳过：其中 Settings 名册预期和 Diff hunk 滚动条变量随后已修复，对应 28 项定向测试通过；宿主定向复测为 50 通过、1 失败、1 跳过，唯一失败为创建 symlink 的 EPERM；未重跑整个 GUI 套件。该证据不代表真实模型或四平台同候选验收，完整目标仍未完成。
+
 ## 完整字节中断传输恢复矩阵（§35）
 
-[当前来源记录](artifacts/upstream-first/interrupted-transfer-source.json)落地第 35 节客户端恢复矩阵：Host 声明 workspace-files.read-bytes.v1 时，Preview 完整字节读取从单次 readAll 改为固定 1 MiB readBytes 窗口序列——bytes/transfer.ts 提供纯函数件（base64 窗口解码、按到达序拼装、窗口常量≤Host 默认 2 MiB 上限），face 以读取世代驱动循环；每个落定窗口经 store 的 transferProgress 更新已接收字节进度行。矩阵语义：已接收字节后的失败保留前缀（TabReads.interrupted 持有窗口块/字节数/基版本），正文呈现「传输在 N 字节处中断」+「从断点继续」（resumeAll 从第一个缺失字节续传不重读）；未收到字节的失败只有从头重试；传输期间 Host 版本变化从零重启（禁止拼接两个版本）；窗口契约破坏（offset 不符、空窗口非 eof）大声 gateway/internal；tab 退役或世代/模式替换后 settlement 不写。UI 进度行与中断横幅走 sidebarDocumentPreview 双语词典（transfer.progress/interrupted/resume）。无 read-bytes 能力的 Host 保持单次 readAll 路径。测试 313（新 17：纯函数 6+face 矩阵 8+UI 2+rpc 绑定 1）。真机同候选验证与 MIME 内容推断仍开放。
+[历史来源记录](artifacts/upstream-first/interrupted-transfer-source.json)落地第 35 节客户端恢复矩阵：Host 声明 workspace-files.read-bytes.v1 时，Preview 完整字节读取从单次 readAll 改为固定 1 MiB readBytes 窗口序列——bytes/transfer.ts 提供纯函数件（base64 窗口解码、按到达序拼装、窗口常量≤Host 默认 2 MiB 上限），face 以读取世代驱动循环；每个落定窗口经 store 的 transferProgress 更新已接收字节进度行。矩阵语义：已接收字节后的失败保留前缀（TabReads.interrupted 持有窗口块/字节数/基版本），正文呈现「传输在 N 字节处中断」+「从断点继续」（resumeAll 从第一个缺失字节续传不重读）；未收到字节的失败只有从头重试；传输期间 Host 版本变化从零重启（禁止拼接两个版本）；窗口契约破坏（offset 不符、空窗口非 eof）大声 gateway/internal；tab 退役或世代/模式替换后 settlement 不写。UI 进度行与中断横幅走 sidebarDocumentPreview 双语词典（transfer.progress/interrupted/resume）。无 read-bytes 能力的 Host 保持单次 readAll 路径。测试 313（新 17：纯函数 6+face 矩阵 8+UI 2+rpc 绑定 1）。真机同候选验证与 MIME 内容推断仍开放。
 
 ## 名册 UI 呈现与选中持久化（§28）
 

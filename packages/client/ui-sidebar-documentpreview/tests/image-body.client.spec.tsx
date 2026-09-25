@@ -46,6 +46,15 @@ function props(path = 'asset.png', data: Uint8Array<ArrayBuffer> = new Uint8Arra
 }
 
 describe('ImageBody', () => {
+  it('uses inferred media type for an unknown filename and releases its Blob', async () => {
+    const input = props('photo.unknown')
+    const view = render(<ImageBody {...input} content={{ kind: 'bytes', data: new Uint8Array([137, 80]), mediaType: 'image/png' }} />)
+    await screen.findByRole('img', { hidden: true })
+    expect(create.mock.calls[0]?.[0].type).toBe('image/png')
+    view.unmount()
+    expect(revoke).toHaveBeenCalledTimes(1)
+  })
+
   it.each([
     ['png', 'image/png'],
     ['jpg', 'image/jpeg'],

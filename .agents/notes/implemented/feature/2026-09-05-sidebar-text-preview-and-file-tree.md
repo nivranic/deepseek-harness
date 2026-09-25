@@ -12,6 +12,8 @@ Each answer carries product rules that code alone does not explain: why a text f
 
 ## Decision
 
+Unknown-extension inference belongs to the preview owner, before any renderer loads content. A bounded 64-byte read recognizes only inert image signatures and ZIP headers; sniffing text as HTML or SVG would implicitly activate another rendering policy. Registered filename matches and manual choices remain authoritative. A settled no-match result prevents retry loops, read generations discard late headers, and complete bytes reconfirm the signature so a replacement file cannot inherit the earlier header classification. Automatic reload restarts inference; mode changes preserve settled classification and retire pending inspection. Hosts without bounded reads retain plain-text admission.
+
 Three tab types ship with the Sidebar: the **guide** (`ui-sidebar-right`), the **document preview** (`ui-sidebar-documentpreview`), and the **file tree** (`ui-sidebar-files`). Each registers a static definition into `ctx.sidebarRightTabs` and a body into the keyed `sidebar.right.pane.tab` seat under the definition's `id`, inside its own `ctx.effect`, so the type exists exactly as long as its plugin. The guide and the tree are page types opened by kind; the document preview is a viewer that claims Session-scoped `file` resource addresses at the lowest band. A type's controls live in its own body; the pane's tab strip carries only the panel's actions. Copy is locale-owned in each package's namespace (`sidebarRight`, `sidebarDocumentPreview`, `sidebarFiles`).
 
 ### The guide

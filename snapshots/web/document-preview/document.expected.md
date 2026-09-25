@@ -46,3 +46,8 @@
 
 - Viewer: Plain text
 - Text: UNKNOWN_SUFFIX | Plain fallback.
+
+## Unknown image suffix
+
+- Viewer: Image
+- Decoded image width: 1

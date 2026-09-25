@@ -129,6 +129,15 @@ export function createReadByteWindow(remote: WorkspaceFilesReadRemote): ReadDocu
   )
 }
 
+/**
+ * Bind a bounded file-header read for unknown-extension inference.
+ * @param remote - admitted Host with the read-bytes capability.
+ * @returns a reader of at most the first 64 bytes.
+ */
+export function createReadHead(remote: WorkspaceFilesReadRemote): ReadDocumentBytes {
+  return (file, signal) => remote.workspaceFiles.readBytes(file.sessionId, file.path, { offset: 0, length: 64 }, signal)
+}
+
 /** Complete document bytes borrowed read-only by renderers; copy before transferring to a Worker. */
 export type DocumentFileBytes = Omit<WorkspaceFileBytes, 'data'> & { readonly data: Uint8Array<ArrayBuffer> }
 

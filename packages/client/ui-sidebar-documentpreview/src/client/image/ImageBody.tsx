@@ -28,10 +28,10 @@ type ImageSource =
   | {
     readonly kind: 'ready'
     readonly data: Uint8Array<ArrayBuffer>
-    readonly mediaType: ImageMediaType
+    readonly mediaType: string
     readonly url: string
   }
-  | { readonly kind: 'failed'; readonly data: Uint8Array<ArrayBuffer>; readonly mediaType: ImageMediaType }
+  | { readonly kind: 'failed'; readonly data: Uint8Array<ArrayBuffer>; readonly mediaType: string }
 
 /**
  * Resolve a supported filename to the media type assigned to its Blob.
@@ -52,7 +52,7 @@ export function imageMediaType(path: string): ImageMediaType | undefined {
  */
 export function ImageBody({ content, resourceAddress, t }: ImageBodyProps): ReactNode {
   const path = useMemo(() => hostFileOf(resourceAddress).path, [resourceAddress])
-  const mediaType = imageMediaType(path)
+  const mediaType = (content.kind === 'bytes' ? content.mediaType : undefined) ?? imageMediaType(path)
   const data = content.kind === 'bytes' ? content.data : undefined
   const [source, setSource] = useState<ImageSource>()
 

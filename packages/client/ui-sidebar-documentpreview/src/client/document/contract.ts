@@ -16,7 +16,7 @@ export interface DocumentTextPage {
  */
 export type DocumentContent =
   | { readonly kind: 'text'; readonly text: string; readonly pages: readonly DocumentTextPage[]; readonly eof: boolean }
-  | { readonly kind: 'bytes'; readonly data: Uint8Array<ArrayBuffer> }
+  | { readonly kind: 'bytes'; readonly data: Uint8Array<ArrayBuffer>; readonly mediaType?: string }
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface SlotMap {

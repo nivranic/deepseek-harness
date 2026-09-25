@@ -124,6 +124,7 @@ describe.skipIf(MODE === 'record')('web e2e: document preview through Files', ()
       writeFile(join(cwd, 'local.css'), '#local-result { color: rgb(12, 34, 56); }'),
       writeFile(outsideScript, 'document.getElementById("outside-result").textContent="OUTSIDE_JS_OK";'),
       writeFile(join(cwd, 'tiny.png'), TINY_PNG),
+      writeFile(join(cwd, 'photo.unknown'), TINY_PNG),
       writeFile(join(cwd, 'large.svg'), [
         '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">',
         '<script>parent.document.documentElement.setAttribute("data-image-preview-escape","true")</script>',
@@ -460,6 +461,13 @@ describe.skipIf(MODE === 'record')('web e2e: document preview through Files', ()
     const fallback = (await plainLines.allTextContents()).map(line => line.trim())
     expect(fallback).toEqual(['UNKNOWN_SUFFIX', 'Plain fallback.'])
     sections.push(['## Unknown suffix', '', `- Viewer: ${await viewer.innerText()}`, `- Text: ${fallback.join(' | ')}`].join('\n'))
+    await openFile('photo.unknown')
+    await expect.poll(() => viewer.innerText()).toBe('Image')
+    const inferredImage = preview.getByRole('img', { name: 'Image preview: photo.unknown', exact: true })
+    await inferredImage.waitFor({ state: 'visible', timeout: 15_000 })
+    expect(await inferredImage.evaluate(node => (node as HTMLImageElement).naturalWidth)).toBe(1)
+    await successShot(page, 'inferred-image')
+    sections.push(['## Unknown image suffix', '', `- Viewer: ${await viewer.innerText()}`, '- Decoded image width: 1'].join('\n'))
     expect(tripwire.pageErrors).toEqual([])
     expect(tripwire.warnings).toEqual([])
     await compareOrRefreshGolden(EXPECTED, sections.join('\n\n'), MODE)

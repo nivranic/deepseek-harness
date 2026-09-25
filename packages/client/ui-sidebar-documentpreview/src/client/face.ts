@@ -25,9 +25,18 @@ import type { TransferWindow } from './bytes/transfer.ts'
 import { assembleTransfer, decodeTransferWindow } from './bytes/transfer.ts'
 import type { TextStore } from './store.ts'
 import type { DocumentLoadMode } from './document/registry.ts'
+import { sniffDocument } from './document/sniff.ts'
 
 /** The preview's injected business face, as the body receives it. */
 export interface TextInjected {
+  /**
+   * Inspect an unknown file's header; absence means the Host lacks bounded byte reads.
+   * A new inspection retires previous reads and clears loaded contents.
+   * @param tabId - owning tab.
+   * @param file - addressed file.
+   * @param signal - tab lifetime.
+   */
+  readonly sniff?: (tabId: TabId, file: SessionFile, signal: AbortSignal) => void
   /**
    * Read one page into the store. A page of a newer file version than the pages
    * held, arriving past the first line, is not kept: the tab's pages are dropped
@@ -104,6 +113,7 @@ interface TabReads {
  * @param readWindow - optional windowed byte read; when present, complete-byte
  * loads run window by window and an interrupted attempt resumes from its first
  * missing byte instead of restarting.
+ * @param readHead - optional bounded prefix read for content-type inference.
  * @returns the Slot `inject` factory: bound actions in, face out. The slot's session id is unused because the address carries its own.
  */
 export function textFace(
@@ -111,6 +121,7 @@ export function textFace(
   readAll: ReadDocumentBytes,
   lifetime?: AbortSignal,
   readWindow?: ReadDocumentByteWindow,
+  readHead?: ReadDocumentBytes,
 ): (sessionId: SessionId, actions: BoundActions<TextStore>) => TextInjected {
   return (_sessionId: SessionId, actions: BoundActions<TextStore>): TextInjected => {
     const tabs = new Map<TabId, TabReads>()
@@ -134,7 +145,7 @@ export function textFace(
         reads.generation++
         reads.version = undefined
         reads.interrupted = undefined
-        actions.reset(tabId)
+        actions.reset(tabId, true)
       }
       return reads
     }
@@ -273,11 +284,39 @@ export function textFace(
       reads.generation += 1
       reads.version = undefined
       reads.interrupted = undefined
-      actions.reset(tabId)
+      actions.reset(tabId, true)
       if (mode === 'text-pages') loadPage(tabId, file, 1, signal, observedVersion)
       else loadAll(tabId, file, signal, observedVersion)
     }
     return {
+      ...readHead === undefined ? {} : {
+        sniff: (tabId: TabId, file: SessionFile, signal: AbortSignal): void => {
+          signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
+          if (signal.aborted) return
+          const reads = readsOf(tabId, signal)
+          const generation = ++reads.generation
+          reads.version = undefined
+          reads.interrupted = undefined
+          actions.reset(tabId)
+          actions.sniffing(tabId)
+          void readHead(file, signal).then((result) => {
+            if (signal.aborted || reads.generation !== generation) return
+            let match
+            if (result.ok && result.value.offset === 0) {
+              let data: Uint8Array
+              try {
+                data = documentFileBytes(result.value).data
+              } catch {
+                // Malformed header bytes cannot select a renderer; ordinary reads report failures.
+                actions.sniffed(tabId, undefined)
+                return
+              }
+              match = sniffDocument(data)
+            }
+            actions.sniffed(tabId, match)
+          })
+        },
+      },
       loadPage, reloadPages: restart, loadAll,
       reloadAll: (tabId, file, signal, observedVersion) => { restart(tabId, file, signal, observedVersion, 'bytes-complete') },
       resumeAll: (tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string): void => {

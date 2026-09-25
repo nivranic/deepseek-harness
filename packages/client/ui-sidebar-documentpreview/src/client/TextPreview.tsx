@@ -27,6 +27,8 @@ import type { DocumentContent } from './document/contract.ts'
 import { matchingDocumentPreviews } from './document/registry.ts'
 import type { DocumentPreviewDefinition } from './document/registry.ts'
 import { PLAIN_BODY_ID } from './text/index.ts'
+import { IMAGE_BODY_ID } from './image/index.ts'
+import { BINARY_BODY_ID } from './binary/index.ts'
 import { loadedPages, lastLineLoaded, scrollToLine } from './text/lines.ts'
 import css from './TextPreview.module.css'
 
@@ -76,7 +78,7 @@ export type TextPreviewProps =
  */
 export function TextPreview({
   useTabInfo, useResource, useStore, actions, loadPage, reloadPages,
-  loadAll, reloadAll, resumeAll, useDocumentPreviews, renderSlot, t,
+  loadAll, reloadAll, resumeAll, sniff, useDocumentPreviews, renderSlot, t,
 }: TextPreviewProps): ReactNode {
   const { tab } = useTabInfo()
   const { navigation, signal } = tab
@@ -85,11 +87,17 @@ export function TextPreview({
   const file = useMemo(() => hostFileOf(tab.contentId), [tab.contentId])
   const state = useStore(s => s.byTab[tab.id])
   const definitions = useDocumentPreviews(value => value)
+  const matched = useMemo(() => matchingDocumentPreviews(definitions, file.path), [definitions, file.path])
+  const unknownExtension = matched.length === 0
+  const signature = state?.sniff?.status === 'done' ? state.sniff.match : undefined
   const candidates = useMemo(() => {
-    const matched = matchingDocumentPreviews(definitions, file.path)
+    const inferredId = signature?.kind === 'image' ? IMAGE_BODY_ID : signature?.kind === 'binary' ? BINARY_BODY_ID : undefined
+    const inferred = unknownExtension ? definitions.find(definition => definition.id === inferredId) : undefined
+    const preferred = inferred === undefined ? matched : [inferred]
     const fallback = definitions.find(definition => definition.id === PLAIN_BODY_ID)
-    return fallback === undefined ? matched : [...matched, fallback]
-  }, [definitions, file.path])
+    return fallback === undefined ? preferred : [...preferred, fallback]
+  }, [definitions, matched, unknownExtension, signature])
+  const inspecting = sniff !== undefined && unknownExtension && state?.rendererId === undefined && state?.sniff?.status !== 'done'
   const selected = candidates.find(candidate => candidate.id === state?.rendererId) ?? candidates[0]
   const mode = selected?.loading
   const current = (state?.mode ?? 'text-pages') === mode ? state : undefined
@@ -122,12 +130,16 @@ export function TextPreview({
 
   // First mount reads the first page; a body coming back to a tab with content
   // reads nothing, because the store outlives the body.
-  const started = current !== undefined
+  const started = current !== undefined && (current.loading || current.failure !== undefined || hasContent)
   useEffect(() => {
+    if (inspecting) {
+      if (canRead && state?.sniff === undefined) sniff(tab.id, file, signal)
+      return
+    }
     if (started || !canRead || mode === undefined) return
     if (mode === 'text-pages') loadPage(tab.id, file, 1, signal, meta.value?.version)
     else loadAll(tab.id, file, signal, meta.value?.version)
-  }, [started, tab.id, file, signal, loadPage, loadAll, canRead, mode, meta.value?.version])
+  }, [started, tab.id, file, signal, loadPage, loadAll, canRead, mode, meta.value?.version, inspecting, sniff, state?.sniff])
 
   // Come back where the reader was once there is content to scroll: on a remount,
   // after a reload rebuilt the content, or after the selected renderer changed.
@@ -143,7 +155,7 @@ export function TextPreview({
   // restores the reader's place instead.
   useEffect(() => {
     const body = scrollportRef.current
-    if (current === undefined || body === null || current.revision === navigation.revision) return
+    if (inspecting || current === undefined || body === null || current.revision === navigation.revision) return
     if (line === undefined || mode !== 'text-pages') {
       actions.navigated(tab.id, navigation.revision)
       return
@@ -162,16 +174,19 @@ export function TextPreview({
     actions.scrolled(tab.id, body.scrollTop)
   }, [
     navigation.revision, line, loadedThrough, current?.eof, current?.loading, current?.failure, started,
-    selected?.id, mode, file, canRead, meta.value?.version,
+    selected?.id, mode, file, canRead, meta.value?.version, inspecting,
   ])
 
   const content = useMemo((): DocumentContent | undefined => {
     if (mode === 'bytes-complete') {
-      return current?.complete === undefined ? undefined : { kind: 'bytes', data: current.complete.data }
+      return current?.complete === undefined ? undefined : {
+        kind: 'bytes', data: current.complete.data,
+        ...signature === undefined ? {} : { mediaType: signature.mediaType },
+      }
     }
     if (current === undefined || loaded.length === 0) return undefined
     return { kind: 'text', pages: loaded, text: loaded.filter(page => page.lines > 0).map(page => page.text).join('\n'), eof: current.eof }
-  }, [mode, loaded, current?.complete, current?.eof])
+  }, [mode, loaded, current?.complete, current?.eof, signature])
 
   if (state === undefined || selected === undefined) {
     return (
@@ -193,6 +208,10 @@ export function TextPreview({
   }
   const reload = (): void => {
     if (!canRead) return
+    if (unknownExtension && sniff !== undefined && state.rendererId === undefined) {
+      sniff(tab.id, file, signal)
+      return
+    }
     if (mode === 'text-pages') reloadPages(tab.id, file, signal, meta.value?.version)
     else reloadAll(tab.id, file, signal, meta.value?.version)
   }

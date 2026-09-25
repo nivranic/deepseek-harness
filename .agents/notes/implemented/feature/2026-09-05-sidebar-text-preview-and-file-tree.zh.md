@@ -12,6 +12,8 @@ Status: implemented
 
 ## Decision
 
+未知扩展名推断由预览所有者负责，在渲染器加载内容之前执行。有界的 64 字节读取只识别惰性图片签名和 ZIP 文件头；将文本推断为 HTML 或 SVG 会隐式启用另一种呈现策略。已注册的文件名匹配及用户手动选择仍具有优先权。已完成的无匹配结果避免重试循环，读取世代丢弃迟到的文件头，完整字节再次确认签名，防止替换后的文件沿用先前分类。自动选择模式下重新加载会重新推断；加载模式切换保留已完成的分类，并清除尚未完成的识别状态。不支持有界读取的 Host 保持纯文本准入。
+
 Sidebar 随包交付三个 tab 类型：**引导页**（`ui-sidebar-right`）、**文档预览**（`ui-sidebar-documentpreview`）与**文件树**（`ui-sidebar-files`）。每个类型都在自己的 `ctx.effect` 里把静态定义注册进 `ctx.sidebarRightTabs`、把体注册进 keyed 坑位 `sidebar.right.pane.tab`（键 = 定义的 `id`），因此类型的寿命恰等于其插件。引导页与文件树是按 kind 打开的页类型；文档预览是以最低档认领 Session 作用域 `file` 资源地址的查看器。类型的控件住在自己的体里；pane 的 tab 条只承载面板自身的动作。文案由各包的命名空间（`sidebarRight`、`sidebarDocumentPreview`、`sidebarFiles`）以 locale 方式持有。
 
 ### 引导页
