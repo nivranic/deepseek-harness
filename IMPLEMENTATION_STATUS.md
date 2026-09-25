@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 设备准入、撤销与回复归属（§15、§21、§22）
+
+[当前来源记录](artifacts/upstream-first/device-admission-lifecycle-source.json)记录设备准入与撤销的完整等待期：存储提交重新检查撤销，单个或全部撤销先入队时后续准入拒绝；Gateway 在等待设备准入之前订阅撤销，防止已撤销身份迟到注册，并停止投递排队帧。设备流的每条交互回复必须重新签名且身份与流一致；无证明、其他设备及向匿名流附加设备身份均拒绝，错误签名不消费投递，校验期间取消或撤销不结算交互。
+
+修复前分别保存 2 个存储竞态、4 个回复身份和 1 个流注册窗口失败；修复后 Gateway/Device Trust 496 项测试通过，lint 调整后 2 个取消/撤销用例再次通过。真实隔离 Host/Chrome 通过已有 Question 录制夹具完成刷新与只读回放：三种无效回复保持待答，原设备签名只产生一次工具结果并正常结束回合。类型、构建、lint、36 项文档门禁及最终 JSDoc/目录检查通过。JSON Schema 的设备身份拒绝 details 有标准校验器正反例；重新投影分类夹具发现并补齐 Kotlin/Swift 缺少的三个设备分类，Kotlin 9 项契约测试通过，Swift 仅验证源码/夹具一致而未运行。原生加密 Remote 入口、平台采用及物理设备验收仍开放。
+
 ## Web 主机书签与同源访问（§28、§71）
 
-[当前来源记录](artifacts/upstream-first/browser-host-origin-source.json)记录 Web 书签动作遵守本地载体的 Origin 防线：跨源行只提供独立主机页面，不提供无法完成的页内切换；普通 Web 的 Connection 服务拒绝跨源书签选择，不改变当前连接与存储。启动时清除无法使用的持久化选择，仍保留书签，并正常恢复页面 Host。同源选择、底层 retarget 及显式 fixture/注入式载体的归属保持明确。
+[历史来源记录](artifacts/upstream-first/browser-host-origin-source.json)记录 Web 书签动作遵守本地载体的 Origin 防线：跨源行只提供独立主机页面，不提供无法完成的页内切换；普通 Web 的 Connection 服务拒绝跨源书签选择，不改变当前连接与存储。启动时清除无法使用的持久化选择，仍保留书签，并正常恢复页面 Host。同源选择、底层 retarget 及显式 fixture/注入式载体的归属保持明确。
 
 本轮 Connection/Hosts 239 项定向测试、类型、完整构建、lint、36 项文档门禁、需求追踪和 Gate 0 通过。真实双 Host 与 Chrome 分别授权后，目标 RPC 直接调用为 200 且结果成功，而浏览器跨源请求即使带 credentials include，CDP 观察到的预检仍为 403。正式浏览器两项场景完成快照刷新与只读回放，覆盖隐藏跨源切换、保留页面链接及无效启动选择恢复。未更改 Cookie、CORS 或 localhost 防线；§71 原生加密 Remote Connection Source、强制设备身份、配对及物理平台采用仍开放。临时探针的包解析/预检观察以及正式场景的共享浏览器上下文均在封存前修正并复验。
 

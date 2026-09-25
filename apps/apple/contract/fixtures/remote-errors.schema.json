@@ -1345,6 +1345,24 @@
                 "role",
                 "required"
               ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "reason": {
+                  "readOnly": true,
+                  "type": "string",
+                  "const": "device-identity"
+                }
+              },
+              "required": [
+                "endpoint",
+                "reason"
+              ]
             }
           ]
         }

@@ -17,8 +17,8 @@ Phase 7 此前只在 Remote 事件流打开时准入设备：设备角色只门�
 把分类放在能力层、分发到每个 Remote 服务，由网关按请求执行。
 
 - `TypertRemoteCapability` 新增可选 `requiredPermission: RemoteCapabilityPermission`（view/prompt.send/question.respond/approval.respond/device.admin——第 21 节表格列，现为 typert-protocol 词汇，协议层不引入 device-trust 依赖）。
-- 版本化请求信封可在 `args` 旁携带签名准入——`{apiProtocolVersion, args, device: {deviceId, timestamp, signature}}`；`decodeRemoteRequest` 像其他元数据一样剥离该保留第三键，版本 1 永不携带（设备使用当前编解码）。签名与流打开同为 `deviceId\n 时间戳` 的 Ed25519 形式。
-- 网关经 `ctx.deviceTrust` 验证（同一 cheapest-first 阶梯）并解析端点的所属能力：角色缺少已声明权限、或能力未声明，均在派发前以 `gateway/permission-denied`（`details.role` + `details.required` / `reason: 'undeclared'`）拒绝。匿名请求从不走此路径；`$events` 与 `$events/result` 维持既有的第 15 节流准入治理。
+- 版本化信封在 `args` 旁携带 `{deviceId, timestamp, nonce, signature}`，签名与重放规则由[nonce 准入](2026-09-21-admission-nonce-ledger.zh.md)统一规定；设备使用当前请求编解码。
+- 网关经 `ctx.deviceTrust` 验证（同一 cheapest-first 阶梯）并解析端点的所属能力：角色缺少已声明权限、或能力未声明，均在派发前以 `gateway/permission-denied`（`details.role` + `details.required` / `reason: 'undeclared'`）拒绝。匿名浏览器业务请求不走设备准入；`$events` 持有流身份，`$events/result` 必须证明该身份后再执行第 15 节的投递、版本、revision 与权限检查。
 - 首批声明：device-trust 的 issue/list/revoke 声明 `device.admin`（redeem 与 admit 保持未声明——它们先于任何设备身份）；host 的 describe/negotiate 声明 `view`（每个角色都持有，与诊断层只读姿态一致）。业务服务在各自增量中采纳声明；在此之前设备对其 fail-closed——这是刻意的安全姿态而非疏漏。
 
 ## 考虑过的替代方案
@@ -30,5 +30,5 @@ Phase 7 此前只在 Remote 事件流打开时准入设备：设备角色只门�
 ## 后果
 
 - `gateway/permission-denied` 的 details 扩为联合（HTTP 故障 | 带 role+required/undeclared 的设备拒绝）；错误信封 schema 重新生成。
-- 重放姿态不变：接受窗口约束签名跨端点复用；nonce 账本保持延期并如实记录。
+- 设备交互回复每次重新签名；缺失证明、不同设备或对匿名流附加设备身份以 `gateway/permission-denied`（`reason: device-identity`）拒绝。错误签名不消费投递，校验期间取消或撤销阻止结算。
 - 测试：网关 446 项，含八项按请求准入用例（角色持有准入、角色拒绝、owner 调 admin 能力、未声明拒绝、字段畸形、服务缺失、过期时间戳、匿名不变）及保留信封键的编解码测试。

@@ -70,6 +70,14 @@ class EnvelopeSchemaTest {
     }
 
     @Test
+    fun deviceReplyIdentityRefusalsRequireTheirEndpointAndKnownReason() {
+        val details = mapOf("endpoint" to "\$events/result", "reason" to "device-identity")
+        assertTrue(schema.validate(envelope("gateway/permission-denied", "identity refused", details)).isEmpty())
+        assertTrue(schema.validate(envelope("gateway/permission-denied", "identity refused", details - "endpoint")).isNotEmpty())
+        assertTrue(schema.validate(envelope("gateway/permission-denied", "identity refused", details + ("reason" to "unrecognized"))).isNotEmpty())
+    }
+
+    @Test
     fun missingMessageIsRejected() {
         val node = mapper.createObjectNode()
         node.put("code", "gateway/host-not-ready")

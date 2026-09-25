@@ -1381,6 +1381,137 @@ describe('Typert Gateway device admission', () => {
     return { deviceId: device.deviceId, timestamp, nonce, signature: device.key.sign(`${device.deviceId}\n${String(timestamp)}\n${nonce}`) }
   }
 
+  it.each(['missing', 'other-device', 'wrong-signature', 'browser-stream'] as const)(
+    'rejects a %s device reply without consuming the delivery', async (kind) => {
+      const ctx = await setupDevices()
+      const source = new RemoteEventSourceProbe()
+      const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+      const device = await pairDevice(ctx, 'controller')
+      const other = await pairDevice(ctx, 'controller')
+      const client = await openEventClient(ctx, 'events-result-owner', 2, kind === 'browser-stream' ? undefined : admissionOf(device))
+      const pending = pendingInvocation(ctx.extend(), undefined, 'owner-only', agentId('agent-1'), {
+        sessionId: 'session-1' as RemoteInteractionSessionId, type: 'approval', requiredPermission: 'approval.respond',
+      })
+      // A failing assertion still lets source teardown reject the pending invocation without an unhandled rejection.
+      const outcome = pending.outcome.catch((error: unknown) => error)
+      try {
+        source.push(pending.dispatch)
+        await vi.waitFor(() => { expect(deliveredInvocation(client)).toBeDefined() })
+        const frame = deliveredInvocation(client) as RemoteEventInvocationFrame
+        const supplied = kind === 'missing' ? undefined : kind === 'other-device' ? admissionOf(other) : admissionOf(device)
+        if (kind === 'wrong-signature' && supplied !== undefined) supplied.signature = admissionOf(other).signature
+        await expect(sendEventResult(client, frame, { kind: 'result', value: 'forged' }, 2, undefined, supplied))
+          .rejects.toMatchObject({ code: kind === 'wrong-signature' ? 'device/key-invalid' : 'gateway/permission-denied' })
+        expect(pending.resolve).not.toHaveBeenCalled()
+        expect(pending.reject).not.toHaveBeenCalled()
+        await sendEventResult(client, frame, { kind: 'result', value: 'owner' }, 2, undefined,
+          kind === 'browser-stream' ? undefined : admissionOf(device))
+        await expect(outcome).resolves.toEqual({ kind: 'result', value: 'owner' })
+      } finally {
+        client.socket.close()
+        await unregister()
+      }
+    },
+  )
+
+  it('refuses readiness when revocation happens after admission commits but before stream registration', async () => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const device = await pairDevice(ctx, 'controller')
+    const admitted = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const original = ctx.deviceTrust.admitDevice.bind(ctx.deviceTrust)
+    const admission = vi.spyOn(ctx.deviceTrust, 'admitDevice').mockImplementation(async (request) => {
+      const result = await original(request)
+      admitted.resolve(undefined)
+      await release.promise
+      return result
+    })
+    try {
+      const stream = await ctx.typertGateway.wireStream.open('$events', { apiProtocolVersion: 2, args: { device: admissionOf(device) } }, new AbortController().signal)
+      const first = stream[Symbol.asyncIterator]().next()
+      const result = first.then(value => ({ value }), (error: unknown) => ({ error }))
+      await admitted.promise
+      await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+      release.resolve(undefined)
+      expect(await result).toMatchObject({ error: { code: 'device/already-revoked' } })
+    } finally {
+      release.resolve(undefined)
+      admission.mockRestore()
+      await unregister()
+    }
+  })
+
+  it('drops queued device frames immediately after revocation', async () => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const device = await pairDevice(ctx, 'viewer')
+    const stream = await ctx.typertGateway.wireStream.open('$events', { apiProtocolVersion: 2, args: { device: admissionOf(device) } }, new AbortController().signal)
+    const iterator = stream[Symbol.asyncIterator]()
+    try {
+      expect((await iterator.next()).value).toMatchObject({ type: 'ready' })
+      source.push({ event: 'fixture/notice', args: ['first'] })
+      source.push({ event: 'fixture/notice', args: ['queued'] })
+      expect((await iterator.next()).value).toMatchObject({ type: 'emit', args: ['first'] })
+      await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+      expect(await iterator.next()).toEqual({ done: true, value: undefined })
+    } finally {
+      await iterator.return?.()
+      await unregister()
+    }
+  })
+
+  it.each(['cancel', 'revoke'] as const)('does not settle a signed reply after %s during admission', async (action) => {
+    const ctx = await setupDevices()
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const device = await pairDevice(ctx, 'controller')
+    const client = await openEventClient(ctx, 'events-pending-reply', 2, admissionOf(device))
+    const pending = pendingInvocation(ctx.extend())
+    const outcome = pending.outcome.catch((error: unknown) => error)
+    const admitted = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const original = ctx.deviceTrust.admitDevice.bind(ctx.deviceTrust)
+    const admission = vi.spyOn(ctx.deviceTrust, 'admitDevice').mockImplementation(async (request) => {
+      const result = await original(request)
+      admitted.resolve(undefined)
+      await release.promise
+      return result
+    })
+    try {
+      source.push(pending.dispatch)
+      await vi.waitFor(() => { expect(deliveredInvocation(client)).toBeDefined() })
+      const frame = deliveredInvocation(client) as RemoteEventInvocationFrame
+      const abort = new AbortController()
+      const handler = ctx.connection.createSharedFetchHandler('/api')
+      const reply = handler.fetch(new Request(`${client.origin}/api/$events/result`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, signal: abort.signal,
+        body: JSON.stringify({ type: 'client-request', rpcId: 'pending-reply', method: '$events/result', payload: {
+          apiProtocolVersion: 2, device: admissionOf(device), args: {
+            clientId: client.clientId, eventId: frame.eventId, outcome: { kind: 'result', value: 'late' },
+          },
+        } }),
+      }))
+      await admitted.promise
+      if (action === 'cancel') abort.abort()
+      else await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+      release.resolve(undefined)
+      expect(await (await reply).json()).toMatchObject({ result: {
+        ok: false, error: { code: action === 'cancel' ? 'gateway/cancelled' : 'interaction-closed' },
+      } })
+      expect(pending.resolve).not.toHaveBeenCalled()
+      expect(pending.reject).not.toHaveBeenCalled()
+    } finally {
+      release.resolve(undefined)
+      admission.mockRestore()
+      client.socket.close()
+      await unregister()
+      await outcome
+    }
+  })
+
   it('derives reply permissions from the admitted role matrix', { timeout: 30_000 }, async () => {
     const ctx = await setupDevices({ interactionReplyPermissions: { approval: true, question: true } })
     const source = new RemoteEventSourceProbe()
@@ -1420,19 +1551,19 @@ describe('Typert Gateway device admission', () => {
       const questionFrame = byPrompt(`answer-${role}`)
 
       if (mayApprove) {
-        await sendEventResult(client, approvalFrame, { kind: 'result', value: 'allowed' }, 2)
+        await sendEventResult(client, approvalFrame, { kind: 'result', value: 'allowed' }, 2, undefined, admissionOf(device))
         await expect(approval.outcome).resolves.toEqual({ kind: 'result', value: 'allowed' })
       } else {
         unsettledOutcomes.push(expect(approval.outcome).rejects.toThrow('forwarded Remote event source was removed'))
-        await expect(sendEventResult(client, approvalFrame, { kind: 'result', value: 'allowed' }, 2))
+        await expect(sendEventResult(client, approvalFrame, { kind: 'result', value: 'allowed' }, 2, undefined, admissionOf(device)))
           .rejects.toMatchObject({ code: 'gateway/permission-denied' })
       }
       if (mayAnswer) {
-        await sendEventResult(client, questionFrame, { kind: 'result', value: 'answered' }, 2)
+        await sendEventResult(client, questionFrame, { kind: 'result', value: 'answered' }, 2, undefined, admissionOf(device))
         await expect(question.outcome).resolves.toEqual({ kind: 'result', value: 'answered' })
       } else {
         unsettledOutcomes.push(expect(question.outcome).rejects.toThrow('forwarded Remote event source was removed'))
-        await expect(sendEventResult(client, questionFrame, { kind: 'result', value: 'answered' }, 2))
+        await expect(sendEventResult(client, questionFrame, { kind: 'result', value: 'answered' }, 2, undefined, admissionOf(device)))
           .rejects.toMatchObject({ code: 'gateway/permission-denied' })
       }
       client.socket.close()
@@ -1674,6 +1805,7 @@ async function sendEventResult(
     },
   version: 1 | 2 = 1,
   revision: number | null = frame.interaction?.revision ?? null,
+  device?: Parameters<typeof openEventClient>[3],
 ): Promise<void> {
   const rpcId = `remote-event-result-${client.streamId}`
   const response = await fetch(`${client.origin}/api/$events/result`, {
@@ -1685,6 +1817,7 @@ async function sendEventResult(
       method: '$events/result',
       payload: {
         ...(version === 2 ? { apiProtocolVersion: 2 } : {}),
+        ...(device === undefined ? {} : { device }),
         args: { clientId: client.clientId, eventId: frame.eventId, outcome,
           ...(revision === null ? {} : { interactionRevision: revision }),
         },

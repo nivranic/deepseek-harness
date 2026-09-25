@@ -100,7 +100,7 @@ interface RegisteredRemoteEventSource {
   readonly host: RemoteEventHostInfo
 }
 
-/** Signed device admission fields from a Remote event stream open payload. */
+/** Signed device admission fields decoded from a stream open or request envelope. */
 interface DeviceAdmissionWire {
   readonly deviceId: string
   readonly timestamp: number
@@ -248,15 +248,6 @@ export class TypertGatewayService extends Service implements TypertGateway {
     ])
     ctx.on('internal/service', () => {
       this.srcClaims = undefined
-    })
-    // Section 22: revoking a device must immediately end its still-open
-    // admitted Remote event streams; device-trust announces the identities.
-    ctx.on('deviceTrust/grantsRevoked', (revocation) => {
-      for (const client of [...this.remoteEventClients.values()]) {
-        if (client.deviceId !== undefined && revocation.deviceIds.includes(client.deviceId)) {
-          this.removeRemoteEventClient(client)
-        }
-      }
     })
     ctx.inject(['connection'], (connectionCtx) => {
       connectionCtx.connection.rpc.intercept(
@@ -470,10 +461,12 @@ export class TypertGatewayService extends Service implements TypertGateway {
     signal: AbortSignal,
   ): Promise<ConnectionRpcResult> {
     let version: RemoteProtocolVersion
+    let device: unknown
     try {
       const decoded = decodeRemoteRequest(endpoint, payload)
       payload = decoded.payload
       version = decoded.version
+      device = decoded.device
       if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) return rpcFailure(this.diagnosticsOnlyRejection(endpoint))
       if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_RESULT_ENDPOINT) {
         await this.admitRpcDevice(endpoint, decoded.device)
@@ -482,12 +475,18 @@ export class TypertGatewayService extends Service implements TypertGateway {
       return rpcFailure(error)
     }
     if (endpoint === REMOTE_EVENT_RESULT_ENDPOINT) {
+      const checkCancellation = (): void => {
+        if (signal.aborted) throw remoteCancelled(endpoint, signal.reason)
+      }
       try {
+        checkCancellation()
         const result = parseRemoteEventResultPayload(payload)
         const client = this.remoteEventClients.get(result.clientId)
         if (client === undefined) {
           throw new RemoteError('interaction-closed', 'Interaction delivery is no longer active', { eventId: result.eventId })
         }
+        await this.admitEventResult(client, device)
+        checkCancellation()
         this.receiveRemoteEventResult(client, result, version)
         return { ok: true, value: undefined }
       } catch (error) {
@@ -546,29 +545,36 @@ export class TypertGatewayService extends Service implements TypertGateway {
         'forwarded Remote event source is unavailable',
       )
     }
-    const lifetime = AbortSignal.any([signal, registration.lifetime.signal])
-    let clientId = randomUUID() as RemoteEventClientId
-    while (this.remoteEventClients.has(clientId)) clientId = randomUUID() as RemoteEventClientId
-    const client: RemoteEventClient = {
-      version,
-      id: clientId,
-      queue: new RemoteEventQueue(),
-      deliveries: new Map(),
-      replyPermissions: device === undefined
-        ? this.interactionReplyPermissions
-        : await this.admitDeviceClient(device),
-      ...device === undefined ? {} : { deviceId: device.deviceId as DeviceId },
-    }
-    this.remoteEventClients.set(clientId, client)
-    for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)
+    let client: RemoteEventClient | undefined
+    const revocation = new AbortController()
+    const stopRevocation = device === undefined ? undefined : this.ctx.on('deviceTrust/grantsRevoked', ({ revokedAt, deviceIds }) => {
+      if (!deviceIds.includes(device.deviceId as DeviceId)) return
+      revocation.abort(new RemoteError('device/already-revoked', 'device grant was revoked during its Remote event stream', {
+        deviceId: device.deviceId, revokedAt,
+      }))
+      if (client !== undefined) this.removeRemoteEventClient(client)
+    })
+    const lifetime = AbortSignal.any([signal, registration.lifetime.signal, revocation.signal])
     try {
+      lifetime.throwIfAborted()
+      const replyPermissions = device === undefined ? this.interactionReplyPermissions : await this.admitDeviceClient(device)
+      lifetime.throwIfAborted()
+      let clientId = randomUUID() as RemoteEventClientId
+      while (this.remoteEventClients.has(clientId)) clientId = randomUUID() as RemoteEventClientId
+      client = {
+        version, id: clientId, queue: new RemoteEventQueue(), deliveries: new Map(), replyPermissions,
+        ...device === undefined ? {} : { deviceId: device.deviceId as DeviceId },
+      }
+      this.remoteEventClients.set(clientId, client)
+      for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)
       yield { ...REMOTE_EVENT_STREAM_READY, clientId, host: registration.host,
         ...(version === 2 ? { pendingInteractionIds: [...client.deliveries.values()]
           .filter(pending => pending.interaction !== undefined).map(pending => pending.id) } : {}),
       }
       yield* client.queue.iterate(lifetime)
     } finally {
-      this.removeRemoteEventClient(client)
+      stopRevocation?.()
+      if (client !== undefined) this.removeRemoteEventClient(client)
     }
   }
 
@@ -729,6 +735,20 @@ export class TypertGatewayService extends Service implements TypertGateway {
     } else if (pending.deliveries.size === 0) {
       this.settleRemoteEvent(pending, { kind: 'next' })
     }
+  }
+
+  /** Device-owned deliveries require a fresh proof from that same device on every reply. */
+  private async admitEventResult(client: RemoteEventClient, value: unknown): Promise<void> {
+    if (client.deviceId === undefined && value === undefined) return
+    const reject = (): never => {
+      throw new RemoteError('gateway/permission-denied', 'Remote event result does not prove its delivery device identity', {
+        endpoint: REMOTE_EVENT_RESULT_ENDPOINT, reason: 'device-identity',
+      })
+    }
+    if (client.deviceId === undefined || value === undefined) reject()
+    const device = parseDeviceAdmission(value)
+    if (device.deviceId !== client.deviceId) reject()
+    await this.admitDeviceClient(device)
   }
 
   private removeRemoteEventDelivery(pending: PendingRemoteEvent, client: RemoteEventClient): void {
@@ -1200,7 +1220,10 @@ class RemoteEventQueue {
     signal.addEventListener('abort', abort, { once: true })
     try {
       while (true) {
-        while (this.frames.size > 0) yield this.frames.popFront() as RemoteEventWireFrame
+        while (this.frames.size > 0) {
+          if (signal.aborted) return
+          yield this.frames.popFront() as RemoteEventWireFrame
+        }
         if (this.closed || signal.aborted) return
         await new Promise<void>((resolve) => { this.waiter = resolve })
         this.waiter = undefined

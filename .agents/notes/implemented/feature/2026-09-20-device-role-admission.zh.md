@@ -17,8 +17,8 @@ Phase 7 第一增量落地了设备信任接缝，角色为三个（`viewer`、`
 把角色词表精确对齐第 21 节表格，并通过 Remote 事件流打开时的一次签名准入实现按 client 的替代。
 
 - `DeviceRole` 变为 `'viewer' | 'collaborator' | 'controller' | 'owner'`；新的 `src/permissions.ts` 导出 `DEVICE_ROLE_PERMISSIONS`，把每个角色恰好映射到表格的列——`view`、`prompt.send`、`question.respond`、`approval.respond`、`device.admin`。第一版不做算术 RBAC，符合规格"第一版不要做复杂 RBAC"。持久 zod schema 随之改变；预发布阶段，旧的 `admin` 存储记录使域 open 拒绝（权威数据）。
-- `admitDevice`（`device.admit.v1`）验证一次签名准入：对 UTF-8 的 `deviceId + "\n" + timestamp` 做 base64 Ed25519，按代价从低到高检查——授权存在（`device/not-found`）、撤销（`device/already-revoked`）、时间戳窗口 `admissionWindowMs` 默认五分钟（`device/admission-expired`，归 `authentication` 类：重新签名后重试）、然后签名（`device/key-invalid`）。返回身份、角色与权限集。
-- 网关的 Remote 事件流打开把准入接受为流的参数——`args: {}` 保持匿名，`args: { device: { deviceId, timestamp, signature } }` 标识设备。`device` 放在 `args` 内（而非 `apiProtocolVersion` 旁）保持了版本 2 信封契约：`decodeRemoteRequest` 只对恰好两键的形状剥离元数据。被准入 client 的 `replyPermissions` 改为其角色的权限集；回复时既有的第 15 节检查（`gateway/permission-denied`、不结算、不消费投递、不执行工具）无需改动。device-trust 服务经 `ctx.get` 惰性解析：未组合它的部署不广播设备能力，呈现身份时以 `gateway/service-unavailable` 大声失败而非静默降级为匿名默认。
+- `admitDevice`（`device.admit.v1`）经[nonce 准入规则](2026-09-21-admission-nonce-ledger.zh.md)验证授权、时间戳、签名与重放记录，返回身份、角色与权限。持久化提交重新检查当前撤销状态；在准入提交前排队的单个或全部撤销使准入以 `device/already-revoked` 失败。
+- Remote 事件流以 `args.device` 携带签名准入，空 `args` 保留本地浏览器身份。Gateway 在等待准入前订阅撤销，注册前复查生命周期；活动流撤销后不再发送排队帧。该订阅随流或准入失败一起释放。未组合 device-trust 时，呈现身份以 `gateway/service-unavailable` 拒绝。设备回复的逐请求证明由[按请求设备准入](2026-09-21-per-request-device-admission.zh.md)规定。
 
 ## 考虑过的替代方案
 
@@ -28,6 +28,6 @@ Phase 7 第一增量落地了设备信任接缝，角色为三个（`viewer`、`
 
 ## 后果
 
-- 撤销在设备下次流打开时生效而非连接中途；按请求的业务 RPC 签名保持延期。接受窗口是重放卫生而非 nonce 账本——包 README 如实记录该限制。
+- 撤销覆盖准入等待、流注册及活动流。回复权限仍由流准入时的角色决定；签名检查、取消或撤销失败均发生在消费投递之前。
 - 网关新增对 `@deepseek-ai/dsh-api-device-trust` 的类型依赖（peer+dev），经 `tsconfig.base.json` paths 解析；host 程序新增 device-trust 项目引用。
-- 测试：device-trust 18 项（每角色与每失败码的准入套件）、网关流 49 项（真实 WebSocket 传输上的四角色 × approval/question 矩阵、错误密钥、已撤销、字段畸形、服务缺失）——两包共 455 项。
+- 定向测试覆盖四角色权限、撤销提交队列、准入后注册窗口、撤销后的排队帧及设备回复生命周期；真实 Web 组合的录制 Question 验证错误身份不结算、原设备签名可完成交互。

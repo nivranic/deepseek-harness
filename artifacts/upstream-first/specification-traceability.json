@@ -2408,9 +2408,12 @@
         "IMPLEMENTATION_STATUS.md",
         "docs/defensive-patterns.md",
         "artifacts/upstream-first/interaction-permission-source.json",
-        "artifacts/upstream-first/device-trust-durable-source.json"
+        "artifacts/upstream-first/device-trust-durable-source.json",
+        "packages/api/device-trust/tests/device-trust.host.spec.ts",
+        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+        "apps/web/tests/device-interaction-reply.e2e.ts"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；requiredPermission 已在 Host 网关权威执行（无对应权限的 Remote 客户端回复被 403 gateway/permission-denied 拒绝、PendingInteraction 不结算、Remote event 投递不消费、底层 Tool 不执行，approval 与 question 两方向均有正反向 fixture 测试 packages/api/gateway/tests/gateway-stream.host.spec.ts）。Device Trust 角色化已接线：设备在 Remote 事件流打开时以签名准入（args.device：deviceId+时间戳+Ed25519 签名，device/admission-expired 归 authentication 类）验证，client 回复权限改为其第 21 节角色权限集，viewer/collaborator/controller/owner 四角色 × approval/question 矩阵有双向测试。持久化确认已落地：网关在流接入时向新 Client 重投递全部未决交互（packages/api/gateway/src/index.ts deliverRemoteEvent），Client 侧保留的回答经 dsh-retained-answers.v1（上限最近 32 条、durable 边界逐行校验、损坏丢弃）跨页面刷新/应用重启持久，重启后 Host 待处理快照仍以相同 scope+id+revision 列出时自动重放不重新询问（重启回放、损坏重问、scope 变化清扫落盘均有测试 packages/api/gateway/tests/gateway.client.spec.ts）；后台/休眠的断连-唤醒路径由既有重连代次循环+接入重投递覆盖。真实多设备四平台矩阵与完整审批信息字段的实机验证仍待完成。",
+      "remaining": "已有回答竞争、断线和重启证据；requiredPermission 已在 Host 网关权威执行（无对应权限的 Remote 客户端回复被 403 gateway/permission-denied 拒绝、PendingInteraction 不结算、Remote event 投递不消费、底层 Tool 不执行，approval 与 question 两方向均有正反向 fixture 测试 packages/api/gateway/tests/gateway-stream.host.spec.ts）。Device Trust 角色化已接线：设备在 Remote 事件流打开时以签名准入（args.device：deviceId+时间戳+Ed25519 签名，device/admission-expired 归 authentication 类）验证，client 回复权限改为其第 21 节角色权限集，viewer/collaborator/controller/owner 四角色 × approval/question 矩阵有双向测试。持久化确认已落地：网关在流接入时向新 Client 重投递全部未决交互（packages/api/gateway/src/index.ts deliverRemoteEvent），Client 侧保留的回答经 dsh-retained-answers.v1（上限最近 32 条、durable 边界逐行校验、损坏丢弃）跨页面刷新/应用重启持久，重启后 Host 待处理快照仍以相同 scope+id+revision 列出时自动重放不重新询问（重启回放、损坏重问、scope 变化清扫落盘均有测试 packages/api/gateway/tests/gateway.client.spec.ts）；后台/休眠的断连-唤醒路径由既有重连代次循环+接入重投递覆盖。真实多设备四平台矩阵与完整审批信息字段的实机验证仍待完成。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。原生加密 Remote Connection Source 与物理平台采用仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2906,9 +2909,12 @@
       "candidateEvidence": [
         "SECURITY_STATUS.md",
         "ARCHITECTURE_DECISIONS.md",
-        "packages/api/device-trust"
+        "packages/api/device-trust",
+        "packages/api/device-trust/tests/device-trust.host.spec.ts",
+        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+        "apps/web/tests/device-interaction-reply.e2e.ts"
       ],
-      "remaining": "Pair（一次性过期码 + Ed25519 SPKI 兑换）、Role（第 21 节四角色恰好持有表格权限列）、Revoke、签名准入（流打开）与远端执行授权均已实现：能力层新增 requiredPermission 词汇（typert-protocol RemoteCapabilityPermission = view/prompt.send/question.respond/approval.respond/device.admin），版本化请求信封可携带签名设备准入，网关按请求验证（同一 cheapest-first 阶梯）并按所属能力声明门控端点——未声明能力对设备 fail-closed（gateway/permission-denied reason undeclared），匿名请求不受影响；device-trust 的 issue/list/revoke 声明 device.admin，host 的 describe/negotiate 声明 view（packages/api/gateway 446 项测试含八项按请求准入套件）。安全存储于 Host 侧凭据链、nonce 账本已落地（准入消息扩展为 deviceId\n timestamp\n nonce 三段式，进程内每设备 seen-nonce 账本两倍窗口视界过期 + 授权持久化 lastAdmittedAt/lastAdmittedNonce 高水位跨重启拒绝重放，device/replay-detected 分类 authentication，Kotlin/Swift 契约镜像与 schema 全部重生成——顺带修复了 deviceRoleAdmission 增量遗留的苹果夹具/守卫计数漂移）、session-controller 已采纳（capabilities.ts：只读集合=view、会话变更集合=prompt.send；session.manage 拆出 session.list、model.select 拆出 model.catalog 使只读与变更权限可分开声明）；workspace-controller 亦已采纳（follow=view、manage/sessions=prompt.send、目录选择器 pick/browse=view 与 createDirectory=prompt.send，无混合集合故无拆分）；其余全部业务归属方已随第三批采纳完成声明闭环——settings/credentials（读与文档/目录操作=view、写入=prompt.send）、workspace-files（全部只读=view）、presented-file（desktop/open/reveal=view）、session-reference（候选发现=view）、plugin-inventory（list=view）、llm（提供方目录与模型发现=view）、agent-presets（catalog=view、select/manage=prompt.send）、commands（catalog=view、execute=prompt.send）、message-feedback（list=view、put/delete=prompt.send）、command-feedback（record=prompt.send）、goal（get=view、变更=prompt.send）、subagent（catalog=view、prompt/中断=prompt.send）、file-upload（stage=prompt.send）、dynamic-cordis（inventory/client-code/inspect 握手=view、运行生命周期与失败报告/调用=prompt.send）；jobs 为 Host 侧生产者无 Remote 能力面，无需声明。host-preparation 规格新增闭环测试断言二十个来源的每个能力都声明第 21 节词汇内权限，device-trust 自身测试钉住 issue/list/revoke=device.admin 与配对引导端点（redeem/admit）刻意不声明；跨端设备客户端采用已落地：Android LinkWire 每个业务 RPC 信封携带 payload.device、每个流打开携带 args.device（四键 deviceId/timestamp/nonce/signature，配对密钥对三段式 deviceId\n timestamp\n nonce 签名、每次调用全新 nonce）；link-fixture-host 经可测的 link-admission 追踪器（四键形状/窗口/签名/重放账本）在 /api 与 /link/stream 强制准入，模拟器 lane 以真实配对外壳取得两条面共五次服务端验证、五个不同 nonce 的实证，重放以 device/replay-detected 拒绝；保留既有 local Host/Origin 防线。",
+      "remaining": "Pair（一次性过期码 + Ed25519 SPKI 兑换）、Role（第 21 节四角色恰好持有表格权限列）、Revoke、签名准入（流打开）与远端执行授权均已实现：能力层新增 requiredPermission 词汇（typert-protocol RemoteCapabilityPermission = view/prompt.send/question.respond/approval.respond/device.admin），版本化请求信封可携带签名设备准入，网关按请求验证（同一 cheapest-first 阶梯）并按所属能力声明门控端点——未声明能力对设备 fail-closed（gateway/permission-denied reason undeclared），匿名请求不受影响；device-trust 的 issue/list/revoke 声明 device.admin，host 的 describe/negotiate 声明 view（packages/api/gateway 446 项测试含八项按请求准入套件）。安全存储于 Host 侧凭据链、nonce 账本已落地（准入消息扩展为 deviceId\n timestamp\n nonce 三段式，进程内每设备 seen-nonce 账本两倍窗口视界过期 + 授权持久化 lastAdmittedAt/lastAdmittedNonce 高水位跨重启拒绝重放，device/replay-detected 分类 authentication，Kotlin/Swift 契约镜像与 schema 全部重生成——顺带修复了 deviceRoleAdmission 增量遗留的苹果夹具/守卫计数漂移）、session-controller 已采纳（capabilities.ts：只读集合=view、会话变更集合=prompt.send；session.manage 拆出 session.list、model.select 拆出 model.catalog 使只读与变更权限可分开声明）；workspace-controller 亦已采纳（follow=view、manage/sessions=prompt.send、目录选择器 pick/browse=view 与 createDirectory=prompt.send，无混合集合故无拆分）；其余全部业务归属方已随第三批采纳完成声明闭环——settings/credentials（读与文档/目录操作=view、写入=prompt.send）、workspace-files（全部只读=view）、presented-file（desktop/open/reveal=view）、session-reference（候选发现=view）、plugin-inventory（list=view）、llm（提供方目录与模型发现=view）、agent-presets（catalog=view、select/manage=prompt.send）、commands（catalog=view、execute=prompt.send）、message-feedback（list=view、put/delete=prompt.send）、command-feedback（record=prompt.send）、goal（get=view、变更=prompt.send）、subagent（catalog=view、prompt/中断=prompt.send）、file-upload（stage=prompt.send）、dynamic-cordis（inventory/client-code/inspect 握手=view、运行生命周期与失败报告/调用=prompt.send）；jobs 为 Host 侧生产者无 Remote 能力面，无需声明。host-preparation 规格新增闭环测试断言二十个来源的每个能力都声明第 21 节词汇内权限，device-trust 自身测试钉住 issue/list/revoke=device.admin 与配对引导端点（redeem/admit）刻意不声明；跨端设备客户端采用已落地：Android LinkWire 每个业务 RPC 信封携带 payload.device、每个流打开携带 args.device（四键 deviceId/timestamp/nonce/signature，配对密钥对三段式 deviceId\n timestamp\n nonce 签名、每次调用全新 nonce）；link-fixture-host 经可测的 link-admission 追踪器（四键形状/窗口/签名/重放账本）在 /api 与 /link/stream 强制准入，模拟器 lane 以真实配对外壳取得两条面共五次服务端验证、五个不同 nonce 的实证，重放以 device/replay-detected 拒绝；保留既有 local Host/Origin 防线。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。原生加密 Remote Connection Source 与物理平台采用仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2979,9 +2985,12 @@
       "owner": "Device Trust、凭据与本地认证",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "ARCHITECTURE_DECISIONS.md"
+        "ARCHITECTURE_DECISIONS.md",
+        "packages/api/device-trust/tests/device-trust.host.spec.ts",
+        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+        "apps/web/tests/device-interaction-reply.e2e.ts"
       ],
-      "remaining": "本节清单全部落地：revoke one（revokeDevice）、revoke all（revokeAllDevices，返回共享撤销时间与数量）、rename（renameDevice，不动身份/密钥/角色）、last seen（列表暴露持久化 lastSeenAt=最后接受准入时间）、platform（配对请求携带客户端声明的平台标签，Android 发送 android，夹具接受）、key fingerprint、pairedAt、role 均在 DeviceView 列表（packages/api/device-trust）。设备撤销后立即断开已有流已实现并测试：device-trust 派发类型化事件 deviceTrust/grantsRevoked（撤销时间+身份列表），网关为每个已准入 Remote 事件流 client 记录 deviceId，事件到达即终止该流（gateway-stream 测试以流 end 帧断言）。安全存储于 Host 侧凭据链；重放防护见 nonce 账本记录；降级威胁审查与远端执行授权见 §21 记录；管理 UI 已落地：Web 设置新增「设备」分区（packages/client/ui-settings-devices），消费 deviceTrust/listDevices 呈现 platform/lastSeenAt/指纹/角色/已撤销标记，行内 rename、需确认的单项 revoke 与全部 revoke（完成后报告数量），remote.deviceTrust 客户端命名空间挂入 api-remotes 并以 device.list.v1 门控注册；保留既有 local Host/Origin 防线。",
+      "remaining": "本节清单全部落地：revoke one（revokeDevice）、revoke all（revokeAllDevices，返回共享撤销时间与数量）、rename（renameDevice，不动身份/密钥/角色）、last seen（列表暴露持久化 lastSeenAt=最后接受准入时间）、platform（配对请求携带客户端声明的平台标签，Android 发送 android，夹具接受）、key fingerprint、pairedAt、role 均在 DeviceView 列表（packages/api/device-trust）。设备撤销后立即断开已有流已实现并测试：device-trust 派发类型化事件 deviceTrust/grantsRevoked（撤销时间+身份列表），网关为每个已准入 Remote 事件流 client 记录 deviceId，事件到达即终止该流（gateway-stream 测试以流 end 帧断言）。安全存储于 Host 侧凭据链；重放防护见 nonce 账本记录；降级威胁审查与远端执行授权见 §21 记录；管理 UI 已落地：Web 设置新增「设备」分区（packages/client/ui-settings-devices），消费 deviceTrust/listDevices 呈现 platform/lastSeenAt/指纹/角色/已撤销标记，行内 rename、需确认的单项 revoke 与全部 revoke（完成后报告数量），remote.deviceTrust 客户端命名空间挂入 api-remotes 并以 device.list.v1 门控注册；保留既有 local Host/Origin 防线。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。原生加密 Remote Connection Source 与物理平台采用仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -8035,9 +8044,12 @@
       "owner": "Device Trust、凭据与本地认证",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "ARCHITECTURE_DECISIONS.md"
+        "ARCHITECTURE_DECISIONS.md",
+        "packages/api/device-trust/tests/device-trust.host.spec.ts",
+        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+        "apps/web/tests/device-interaction-reply.e2e.ts"
       ],
-      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。",
+      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。原生加密 Remote Connection Source 与物理平台采用仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

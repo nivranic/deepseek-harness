@@ -305,6 +305,21 @@ describe('device-trust signed admission', () => {
     return { deviceId: grant.deviceId, key }
   }
 
+  it.each(['one', 'all'] as const)('rejects admission queued behind revoke %s before either write settles', async (kind) => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'controller')
+    const timestamp = Date.now()
+    const nonce = 'queued-after-revoke'
+    const revoke = kind === 'one' ? service.revokeDevice({ deviceId }) : service.revokeAllDevices()
+    const admission = service.admitDevice({ deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) })
+    const outcomes = await Promise.allSettled([revoke, admission])
+    expect(outcomes[0]?.status).toBe('fulfilled')
+    expect(outcomes[1]).toMatchObject({ status: 'rejected', reason: { code: 'device/already-revoked' } })
+    const view = service.listDevices().find(item => item.deviceId === deviceId)
+    expect(view?.revokedAt).toBeGreaterThan(0)
+    expect(view?.lastSeenAt).toBeUndefined()
+  })
+
   it('returns the section 21 permission set for every role', async () => {
     const service = await boot()
     const table = [

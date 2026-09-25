@@ -351,7 +351,8 @@ export class DeviceTrustService extends TypertRemoteService {
    * that replays an already-accepted one — a timestamp older than the grant's
    * durable high-water mark, or a nonce this process or the persisted
    * last-admission pair has already seen — is refused as replay before the
-   * grant records the new high-water mark. The Gateway resolves one
+   * grant records the new high-water mark. The storage update rechecks
+   * revocation and replay state against earlier queued writes. The Gateway resolves one
    * admission per Remote event stream open and derives the client's reply
    * permissions from the returned set.
    * @param request - the device's signed admission message.
@@ -415,6 +416,11 @@ export class DeviceTrustService extends TypertRemoteService {
     }
     this.rememberNonce(request.deviceId, request.nonce)
     const recorded = await this.table().update(request.deviceId, (current): DeviceGrantRecord => {
+      if (current.revokedAt !== undefined) {
+        throw new RemoteError('device/already-revoked', 'device grant was revoked before admission committed', {
+          deviceId: request.deviceId, revokedAt: current.revokedAt,
+        })
+      }
       if (current.lastAdmittedAt !== undefined && request.timestamp < current.lastAdmittedAt) {
         throw new RemoteError('device/replay-detected', 'admission timestamp is older than the last accepted admission', {
           deviceId: request.deviceId, reason: 'timestamp-regressed',

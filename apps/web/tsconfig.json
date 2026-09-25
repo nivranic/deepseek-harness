@@ -70,6 +70,7 @@
     "tests/plugin-config.e2e.ts",
     "tests/settings-chrome.e2e.ts",
     "tests/hosts-settings.e2e.ts",
+    "tests/device-interaction-reply.e2e.ts",
     "tests/diff-preview.e2e.ts",
     "tests/models-settings.e2e.ts",
     "tests/models-settings-recovery.e2e.ts",

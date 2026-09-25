@@ -44,7 +44,7 @@ kind: "package-reference"
 <a id="known-limitations-and-deferred-work"></a>
 
 - 授权存于持久的 `device_trust` 存储域（组合的 json 后端上的 single 布局）：授权在 Host 重启后存活，非法存储记录使 open 拒绝，存储写入失败时配对码保持可兑换。待定配对码按设计保持进程内——一次性过期机密不得在重启后存活。
-- 准入在每次 Remote 事件流打开时验证一次；撤销在设备下次重连时生效，按请求的业务 RPC 签名保持延期。接受窗口是重放卫生，不是防重放的 nonce 账本。
+- 准入提交在同一存储更新内重新检查撤销及 nonce 高水位，排在撤销之后的请求不能获准。Gateway 从流准入等待开始观察撤销，并要求设备交互回复携带原设备的新签名；[Gateway README](../gateway/README.zh.md)拥有流与回复规则。
 - `device/*` 失败码在共享呈现词表中除 `device/admission-expired`（authentication：重新签名后重试）外保持刻意未分类；配对仪式码尚不具备跨 Client 语义。
 - 此处不开放任何非 localhost 准入：LAN TLS/pinning 决策之前 localhost 防线保持关闭。
 

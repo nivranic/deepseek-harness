@@ -61,6 +61,7 @@
     "apps/web/tests/plugin-config.e2e.ts",
     "apps/web/tests/settings-chrome.e2e.ts",
     "apps/web/tests/hosts-settings.e2e.ts",
+    "apps/web/tests/device-interaction-reply.e2e.ts",
     "apps/web/tests/diff-preview.e2e.ts",
     "apps/web/tests/models-settings.e2e.ts",
     "apps/web/tests/models-settings-recovery.e2e.ts",

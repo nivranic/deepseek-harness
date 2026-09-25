@@ -43,7 +43,7 @@ No direct effect; device-trust operations do not alter model requests.
 <a id="known-limitations-and-deferred-work"></a>
 
 - Grants live in the durable `device_trust` storage domain (single layout over the composed json backend): they survive Host restarts, an invalid stored record rejects the open, and a failed store write leaves a pairing code redeemable. Pending pairing codes stay process-local by design — a one-time expiring secret must not survive a restart.
-- Admission is verified once per Remote event stream open; a revocation takes effect at the device's next reconnect, and per-request business-RPC signatures stay deferred. The acceptance window is replay hygiene, not a replay-proof nonce ledger.
+- Admission commit rechecks revocation and the nonce high-water mark in the same storage update; a request queued behind revocation cannot be admitted. Gateway observes revocation from stream admission onward and requires fresh device-owned reply signatures; the [Gateway README](../gateway/README.md) owns stream and reply rules.
 - The `device/*` failure codes stay deliberately unclassified in the shared presentation vocabulary except `device/admission-expired` (authentication: re-sign and retry); the pairing ceremony codes carry no cross-Client semantics yet.
 - No non-localhost admission opens here: the localhost line stays closed until the LAN TLS/pinning decision.
 

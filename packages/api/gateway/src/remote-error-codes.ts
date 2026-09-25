@@ -36,6 +36,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       | TypertGatewayHttpFaultDetails
       | { readonly endpoint: string; readonly role: string; readonly reason: 'undeclared' }
       | { readonly endpoint: string; readonly role: string; readonly required: string }
+      | { readonly endpoint: string; readonly reason: 'device-identity' }
     /** The HTTP carrier returned 503 for this request; it does not invalidate an otherwise ready generation. */
     'gateway/host-not-ready': TypertGatewayHttpFaultDetails
     /**

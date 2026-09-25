@@ -68,5 +68,8 @@ describe('Remote failure envelope schema', () => {
     expect(validate({ code: 'external/new', message: 'Opaque', details: { untouched: [1, 2] } })).toBe(true)
     expect(validate({ code: 'gateway/bad-request', message: '', details: { issues: [{ code: 'invalid_type', message: '', path: ['field', 0] }] } })).toBe(true)
     expect(validate({ code: 'gateway/bad-request', message: '', details: { issues: [{ code: 'invalid_type', message: '', path: [false] }] } })).toBe(false)
+    expect(validate({ code: 'gateway/permission-denied', message: '', details: { endpoint: '$events/result', reason: 'device-identity' } })).toBe(true)
+    expect(validate({ code: 'gateway/permission-denied', message: '', details: { reason: 'device-identity' } })).toBe(false)
+    expect(validate({ code: 'gateway/permission-denied', message: '', details: { endpoint: '$events/result', reason: 'unrecognized' } })).toBe(false)
   })
 })
