@@ -2,8 +2,7 @@
 
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { createElement } from 'react'
-import type { ConnectionHandle, SavedHost } from '@deepseek-ai/dsh-client-connection/client'
-import { browserSelectedHostPersistence, switchToSavedHost } from '@deepseek-ai/dsh-client-connection/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
@@ -32,7 +31,6 @@ export function apply(ctx: ClientContext): void {
 
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
-  const selectedHostPersistence = browserSelectedHostPersistence()
   ctx.slots.inject('settings.section', () => {
     const injectFace: HostsSettingsSectionInjected = {
       hooks: {
@@ -43,19 +41,9 @@ export function apply(ctx: ClientContext): void {
         selectedOrigin: connection.target,
       },
       pageOrigin: typeof location === 'undefined' ? undefined : location.origin,
-      switchTo: (hostId: string): SavedHost | undefined => {
-        const row = switchToSavedHost(connection, hostId)
-        if (row !== undefined) selectedHostPersistence?.write(hostId)
-        return row
-      },
-      useLocalHost: () => {
-        connection.retarget(undefined)
-        selectedHostPersistence?.clear()
-      },
-      forget: (hostId: string) => {
-        connection.savedHosts.remove(hostId)
-        if (selectedHostPersistence?.read() === hostId) selectedHostPersistence.clear()
-      },
+      switchTo: hostId => connection.selectSavedHost(hostId),
+      useLocalHost: () => { connection.usePageHost() },
+      forget: (hostId) => { connection.forgetSavedHost(hostId) },
       formatTime: epochMs => new Intl.DateTimeFormat(ctx.locale.getSnapshot().active, { dateStyle: 'medium', timeStyle: 'short' }).format(epochMs),
     }
     // Keep the component identity stable across Slot renders.

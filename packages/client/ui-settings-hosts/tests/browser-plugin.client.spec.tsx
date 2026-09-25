@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
@@ -8,7 +8,7 @@ import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
 import { usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-test-runtime'
 import { apply, inject, NS } from '../src/client/index.ts'
 import type { HostsSettingsSectionInjected } from '../src/client/HostsSettingsSection.tsx'
-import type { SavedHost } from '@deepseek-ai/dsh-client-connection/client'
+import { apply as connectionApply, type ConnectionHandle, type SavedHost } from '@deepseek-ai/dsh-client-connection/client'
 import { apply as hostApply } from '../src/index.ts'
 
 usePinnedBrowserLanguages('zh-CN')
@@ -22,35 +22,32 @@ const ROWS: readonly SavedHost[] = [{
   lastConnectedAt: 1,
 }]
 
-type BrowserStorage = { localStorage?: Storage }
-
 async function bench(selected?: string) {
   const ctx = new Context()
+  onTestFinished(async () => { await ctx.fiber.dispose() })
   await ctx.plugin(SlotRegistry).await()
   ctx.provide('locale', new LocaleRuntime(ctx))
-  const storage = new Map<string, string>()
-  ;(globalThis as BrowserStorage).localStorage = {
-    getItem: (key: string) => storage.get(key) ?? null,
-    setItem: (key: string, value: string) => { storage.set(key, value) },
-    removeItem: (key: string) => { storage.delete(key) },
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+  onTestFinished(() => {
+    if (previous === undefined) Reflect.deleteProperty(globalThis, 'localStorage')
+    else Object.defineProperty(globalThis, 'localStorage', previous)
+  })
+  const storage = new Map<string, string>([['dsh-saved-hosts.v1', JSON.stringify(ROWS)]])
+  const adapter: Storage = {
+    getItem: key => storage.get(key) ?? null,
+    setItem: (key, value) => { storage.set(key, value) },
+    removeItem: (key) => { storage.delete(key) },
     clear: () => { storage.clear() },
     key: () => null,
     get length() { return storage.size },
   }
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: adapter })
   if (selected !== undefined) storage.set('dsh-selected-host.v1', selected)
-  const retarget = vi.fn<(origin: string | undefined) => void>()
-  const remove = vi.fn<(hostId: string) => void>()
-  ctx.provide('connection', {
-    savedHosts: {
-      list: () => ROWS,
-      remove,
-      subscribe: () => () => {},
-    },
-    targetOrigin: () => undefined,
-    target: { getSnapshot: () => undefined, subscribe: () => () => {} },
-    retarget,
-  })
-  return { ctx, slots: ctx.get('slots') as SlotRegistry, retarget, remove, storage }
+  await ctx.plugin({ apply: connectionApply, inject: [] }).await()
+  const connection = ctx.get('connection') as ConnectionHandle
+  const retarget = vi.spyOn(connection, 'retarget')
+  const remove = vi.spyOn(connection.savedHosts, 'remove')
+  return { ctx, slots: ctx.get('slots') as SlotRegistry, connection, retarget, remove, storage }
 }
 
 function declare(slots: SlotRegistry): () => void {
@@ -61,7 +58,6 @@ function declare(slots: SlotRegistry): () => void {
 }
 
 describe('ui-settings-hosts browser plugin', () => {
-  afterEach(() => { delete (globalThis as BrowserStorage).localStorage })
 
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
@@ -120,33 +116,7 @@ describe('ui-settings-hosts browser plugin', () => {
     expect(b.remove).toHaveBeenCalledExactlyOnceWith('h-1')
     expect(b.storage.has('dsh-selected-host.v1')).toBe(false)
     expect(b.retarget).not.toHaveBeenCalled()
+    expect(b.connection.targetOrigin()).toBe(ROWS[0]!.origin)
     await b.ctx.fiber.dispose()
-  })
-})
-
-describe('connection boot applies the persisted selection', () => {
-  it('targets the saved row origin without a loop running', async () => {
-    ;(globalThis as BrowserStorage).localStorage = {
-      getItem: (key: string) => key === 'dsh-selected-host.v1' ? 'h-boot' : null,
-      setItem: () => {},
-      removeItem: () => {},
-      clear: () => {},
-      key: () => null,
-      get length() { return 1 },
-    }
-    const roster = new Map([['dsh-saved-hosts.v1', JSON.stringify([['h-boot', {
-      scope: 'host:h-boot', revision: 1, outcome: { kind: 'result', value: 1 },
-    }]]) + '\n']])
-    void roster
-    // The roster write above models the wrong shape on purpose: the boot
-    // selection reads SavedHost rows, so a missing row keeps the page Host.
-    const { apply: applyConnection } = await import('@deepseek-ai/dsh-client-connection/client')
-    const ctx = new Context()
-    ;(globalThis as { location?: { hostname: string; search: string } }).location = { hostname: 'localhost', search: '?fixture' }
-    await ctx.plugin({ apply: applyConnection, inject: [] }).await()
-    const connection = ctx.get('connection') as { targetOrigin(): string | undefined }
-    expect(connection.targetOrigin()).toBeUndefined()
-    await ctx.fiber.dispose()
-    delete (globalThis as { location?: object }).location
   })
 })

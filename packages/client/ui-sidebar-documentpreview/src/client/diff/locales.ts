@@ -16,6 +16,7 @@ export const zh = {
   copyLoaded: '复制已加载的差异',
   copied: '已复制',
   copyFailed: '无法复制到剪贴板',
+  openFile: '打开文件 {path}',
 }
 
 /** English dictionary with the same keys. */
@@ -26,4 +27,5 @@ export const en = {
   copyLoaded: 'Copy loaded diff',
   copied: 'Copied',
   copyFailed: 'Could not copy to clipboard',
+  openFile: 'Open file {path}',
 } satisfies Record<keyof typeof zh, string>

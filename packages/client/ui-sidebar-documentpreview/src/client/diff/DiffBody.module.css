@@ -39,6 +39,36 @@
   display: flex;
   min-width: 100%;
   align-items: stretch;
+  min-height: 1.6em;
+}
+
+.rows {
+  position: relative;
+}
+
+.virtualRow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.fileLink {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fileLink:hover {
+  text-decoration: underline;
+}
+
+.fileLink:focus-visible {
+  box-shadow: 0 0 0 2px var(--dsw-alias-state-business-primary);
 }
 
 .gutter {

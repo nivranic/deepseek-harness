@@ -29,16 +29,16 @@ kind: "package-reference"
 
 ### 切换 Host
 
-在 Settings 打开**主机**区。每行给出 Host 名称、平台标签（如有）、origin 与上次连接时间。某行的**切换**经 `switchToSavedHost` 路由——行 origin 流入 `connection.retarget`，hostId 持久化在 `dsh-selected-host.v1`，下次刷新在任何循环运行前应用该选择。选中行获得「已选择」标记并失去切换动作；**回到本页 Host** 同时清除选择与持久化 id。**忘记**移除书签及其持久化选择，但不会断开当前 Host。选择行不代表授权或连接建立成功。跨源行提供主机页面链接；首次授权需要使用该 Host 当前的启动链接。
+在 Settings 打开**主机**区。每行给出 Host 名称、平台标签（如有）、origin 与上次连接时间。某行的**切换**经 `connection.selectSavedHost` 路由——行 origin 流入 `connection.retarget`，hostId 持久化在 `dsh-selected-host.v1`，下次刷新在任何循环运行前应用该选择。选中行获得「已选择」标记并失去切换动作；**回到本页 Host** 同时清除选择与持久化 id。**忘记**移除书签及其持久化选择，但不会断开当前 Host。选择行不代表授权或连接建立成功。跨源行提供主机页面链接；首次授权需要使用该 Host 当前的启动链接。
 
 -----
 
 <a id="understand-the-implementation"></a>
 ## 理解实现
 
-一个 React 区加其注册；全部数据为本地。
+一个 React 区加其注册；全部数据为本地。功能包只导入 Connection 类型，选择、回本页 Host 与忘记均调用注入服务；Connection 拥有选择持久化。
 
-- **注入面** —— 框架选择器钩子观察已保存名册与 `connection.target`。外部选择立即更新本区。切换使用 [`switchToSavedHost`](../connection/README.zh.md)；未知 id 不改变连接与持久化。
+- **注入面** —— 框架选择器钩子观察已保存名册与 `connection.target`。外部选择立即更新本区。切换使用 [`connection.selectSavedHost`](../connection/README.zh.md)；未知 id 不改变连接与持久化。
 - **持久化** —— 选择经 `browserSelectedHostPersistence` 落在 `dsh-selected-host.v1`；Connection 插件在任何载体或循环存在之前的启动期应用持久化 id，因此应用是纯赋值。行缺失或 in-process 时保持本页 Host。
 
 -----

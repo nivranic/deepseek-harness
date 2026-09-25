@@ -16,6 +16,8 @@ Connection 独立于获准世代持有所选 origin 的可观察状态。重定�
 
 跨源行解释授权要求，并提供不保存启动凭据的主机页面链接。首次授权需要目标 Host 当前的启动链接。[浏览器认证决策](2026-08-24-browser-token-authentication.zh.md)继续拥有 token 与 cookie；[Host 描述符决策](2026-09-16-host-description-and-capabilities.zh.md)继续拥有接入与操作能力。
 
+选择动作与持久化属于注入的 Connection 服务。Settings 导入其类型，并委托 `selectSavedHost`、`usePageHost` 与 `forgetSavedHost`。这遵守功能包不得导入其他插件 Client 运行时的规则，也让存储策略与启动选择由同一模块负责。
+
 ## 考虑过的替代方案
 
 **在名册通知或显式刷新时重读所选 origin。** 选择可能早于接入，也可能连接失败，没有名册事件触发刷新。独立观察的目标可以表示此时用户的选择。
@@ -23,6 +25,8 @@ Connection 独立于获准世代持有所选 origin 的可观察状态。重定�
 **忘记选中书签时断开连接。** 移除书签不等于撤销授权，也不表示要求中断当前工作。回到本页 Host 保持为独立动作。
 
 **将页面链接视为授权链接。** 已保存 origin 不包含启动凭据。宣称它能授权浏览器会错误描述现有认证协议。
+
+**在 Settings 导入 Connection 运行时辅助函数。** 将该运行时声明为 loader external 可以让构建解析成功，但仍违反功能包组合规则。注入服务方法提供既有操作，不增加运行时导入，也不复制持久化策略。
 
 ## 结果
 

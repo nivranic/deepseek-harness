@@ -3479,7 +3479,7 @@
         "packages/client/ui-settings-hosts/tests/observation.client.spec.tsx",
         "apps/web/tests/hosts-settings.e2e.ts"
       ],
-      "remaining": "Connection 通过 target.getSnapshot/subscribe 发布所选 origin；Settings 使用框架钩子同步观察目标与名册，不需轮询或刷新。retarget 先校验、退出旧世代，再通知选择改变；建立世代时记录实际所选 origin，注入载体记录 in-process。名册保持最近连接优先、上限 8，持久化 origin 校验，浏览器存储异常回退内存。忘记当前书签清除持久化选择但不断开当前连接；返回本页 Host 是独立动作。跨源行说明需要目标 Host 当前启动链接授权，并提供不携带凭据的页面链接；Selected 只表示选择，不宣称已连接。原有 Composer 非就绪门禁、世代绑定的 active Host chip、单次调用及流载体共同 retarget 保持生效。Connection/Hosts 237 项定向测试及真实隔离 Host/Chrome 的同源选择、返回、忘记与提示快照通过。仍开放：名册编辑/排序、真实跨源配对与连接集成、物理平台同候选验收；不授予整节 PASS。",
+      "remaining": "Connection 通过 target.getSnapshot/subscribe 发布所选 origin；Settings 使用框架钩子同步观察目标与名册，不需轮询或刷新。retarget 先校验、退出旧世代，再通知选择改变；建立世代时记录实际所选 origin，注入载体记录 in-process。名册保持最近连接优先、上限 8，持久化 origin 校验，浏览器存储异常回退内存。忘记当前书签清除持久化选择但不断开当前连接；返回本页 Host 是独立动作。跨源行说明需要目标 Host 当前启动链接授权，并提供不携带凭据的页面链接；Selected 只表示选择，不宣称已连接。原有 Composer 非就绪门禁、世代绑定的 active Host chip、单次调用及流载体共同 retarget 保持生效。Connection/Hosts 当前 236 项定向测试及真实隔离 Host/Chrome 的同源选择、返回、忘记与提示快照通过。仍开放：名册编辑/排序、真实跨源配对与连接集成、物理平台同候选验收；不授予整节 PASS。 本轮由 Connection 公共服务统一选择/返回/忘记书签与持久化，Settings 只消费注入服务，移除违规 runtime external；真实 Connection 与 Slot 组合测试及最新构建上的 Hosts 浏览器回放通过。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3924,9 +3924,11 @@
         "artifacts/upstream-first/upload-home-replay-source.json",
         "packages/client/ui-sidebar-documentpreview/tests/diff-boundaries.client.spec.ts",
         "packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
-        "apps/web/tests/diff-preview.e2e.ts"
+        "apps/web/tests/diff-preview.e2e.ts",
+        "packages/client/ui-sidebar-documentpreview/tests/diff-files.client.spec.ts",
+        "packages/client/ui-sidebar-documentpreview/tests/diff-syntax.client.spec.ts"
       ],
-      "remaining": "共享 unified Diff 查看器支持 .diff/.patch，按 hunk 声明的旧/新行数编号，零长度侧、后续文件头、Git 文件分隔及不安全数值坐标均有边界测试；增删行显示符号和主题色，hunk 样式正确绑定。复制取累计补丁原文，不包含显示行号，部分内容显式使用 Copy loaded diff；权限拒绝及文件替换后的迟到反馈有组件覆盖。真实隔离 Host/Chrome 在桌面与 375px 视口验证显示与复制，并由渲染器滚动区完成 64→101 行分页；预期刷新及只读回放通过。这些是浏览器与 keyless 记录模型证据，不是四平台真机验收。仍开放：源码语法高亮、Desktop split diff（可选）、大文件虚拟化、open file 动作，以及 binary/unknown-MIME 呈现联动。",
+      "remaining": "共享 unified Diff 已支持 hunk 行号、主题语义与原文复制；本轮复用 Shiki 对旧/新 hunk 片段分别高亮并观察懒加载语法，复用 diff 库解码 Git 文件名，以 TanStack Virtual 限制挂载行数。打开文件绑定补丁资源原属 Session，导航前复查原 Host 与插件存活；未知后缀 ZIP 复用 MIME 推断和二进制事实卡。文档预览 372 项测试、后续元数据 8 项测试及真实隔离 Host/Chrome 回放覆盖 TS/Python、键盘焦点与 Enter、64→101 行分页及复制全部已加载原文。虚拟化不限制累计文本/token 内存。仍开放：可选 Desktop split Diff、同候选四平台真机验收；375px 视口不等于手机真机，不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

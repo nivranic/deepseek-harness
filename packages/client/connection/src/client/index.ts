@@ -9,7 +9,9 @@ import {
   type ConnectionState,
 } from './connection.ts'
 import { createFixtureConnectionRpc } from './fixture.ts'
-import { SavedHostsStore, browserSavedHostsPersistence, browserSelectedHostPersistence, type SavedHost } from './saved-hosts.ts'
+import {
+  SavedHostsStore, browserSavedHostsPersistence, browserSelectedHostPersistence, switchToSavedHost, type SavedHost,
+} from './saved-hosts.ts'
 import { createWebConnectionRpc, type RpcFetch, type RpcStreamOpen } from './rpc.ts'
 import { isLoopbackHostname } from '../loopback-hostname.ts'
 import type { ClientConnectionRpc } from '../rpc.ts'
@@ -152,6 +154,19 @@ export interface ConnectionHandle {
    * The active Host is whichever row matches the current generation.
    */
   readonly savedHosts: SavedHostsStore
+  /**
+   * Select a routable bookmark and persist its identity after retargeting.
+   * @param hostId - saved Host identity.
+   * @returns the selected row, or undefined for an absent or in-process bookmark.
+   */
+  selectSavedHost(hostId: string): SavedHost | undefined
+  /** Return to the page Host and clear the persisted selection. */
+  usePageHost(): void
+  /**
+   * Remove a bookmark and its persisted selection without stopping the active connection.
+   * @param hostId - saved Host identity to forget.
+   */
+  forgetSavedHost(hostId: string): void
   /** Reset retry progression and replace the current attempt immediately. */
   reconnect(): void
   /**
@@ -239,7 +254,8 @@ export function apply(ctx: Context): void {
   // Apply the cross-session selection before any carrier exists: a row that is
   // missing or recorded in-process keeps the page Host; no loop runs yet, so
   // applying is a pure assignment, never a reconnect.
-  const selectedHostId = browserSelectedHostPersistence()?.read()
+  const selectedHostPersistence = browserSelectedHostPersistence()
+  const selectedHostId = selectedHostPersistence?.read()
   if (selectedHostId !== undefined) {
     const row = savedHosts.list().find(item => item.hostId === selectedHostId)
     if (row !== undefined && row.origin !== 'in-process') selectedOrigin = row.origin
@@ -328,6 +344,19 @@ export function apply(ctx: Context): void {
       owner?.controller.reconnect()
     },
     targetOrigin: () => selectedOrigin,
+    selectSavedHost(hostId) {
+      const row = switchToSavedHost(handle, hostId)
+      if (row !== undefined) selectedHostPersistence?.write(hostId)
+      return row
+    },
+    usePageHost() {
+      handle.retarget(undefined)
+      selectedHostPersistence?.clear()
+    },
+    forgetSavedHost(hostId) {
+      savedHosts.remove(hostId)
+      if (selectedHostPersistence?.read() === hostId) selectedHostPersistence.clear()
+    },
     retarget(origin) {
       const next = origin === undefined ? undefined : httpOriginOf(origin)
       const changed = selectedOrigin !== next

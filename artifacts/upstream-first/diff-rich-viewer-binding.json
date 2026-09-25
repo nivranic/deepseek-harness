@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diff-rich-viewer-source.json",
+    "sha256": "e62fba1835e82ed91a2f96d382e7c806cb05435ebe3e739bf31b2e7c59653236"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "01bbd599741cd1cda95273ddfc54dcf6e6745d17937d91401e07f2df6b163c65"
+  },
+  "helper": {
+    "path": ".artifacts/check-diff-rich-viewer-binding.mjs",
+    "sha256": "4acb7cd2831b64e980de481c76d3e13bce40166554f5a8fbc1ca00417c21f5e7"
+  }
+}

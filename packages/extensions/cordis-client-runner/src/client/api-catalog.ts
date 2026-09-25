@@ -531,7 +531,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConnectionHandle',
-    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly state: ConnectionStateSource;\n    readonly target: ConnectionTargetState;\n    readonly rpc: ClientConnectionRpc;\n    readonly savedHosts: SavedHostsStore;\n    reconnect(): void;\n    targetOrigin(): string | undefined;\n    retarget(origin: string | undefined): void;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionRecoveryConfig): ConnectionLoop;\n}',
+    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly state: ConnectionStateSource;\n    readonly target: ConnectionTargetState;\n    readonly rpc: ClientConnectionRpc;\n    readonly savedHosts: SavedHostsStore;\n    selectSavedHost(hostId: string): SavedHost | undefined;\n    usePageHost(): void;\n    forgetSavedHost(hostId: string): void;\n    reconnect(): void;\n    targetOrigin(): string | undefined;\n    retarget(origin: string | undefined): void;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionRecoveryConfig): ConnectionLoop;\n}',
   },
   {
     name: 'ConnectionHostInfo',

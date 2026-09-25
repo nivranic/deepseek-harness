@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Diff rich viewer; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diff-rich-viewer-source.json",
+    "sha256": "e62fba1835e82ed91a2f96d382e7c806cb05435ebe3e739bf31b2e7c59653236"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "01bbd599741cd1cda95273ddfc54dcf6e6745d17937d91401e07f2df6b163c65"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/diff-rich-viewer-binding.json",
+    "sha256": "a8528225e189809d2067427f4d9f1c09711eb2279ae0a678044c0055cc10dba7"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-diff-rich-viewer-reports.mjs",
+      "sha256": "0da28c9b3d546ff8f9431bd5e48069fd29bae608301e789f654fc4c2ec9112d5"
+    },
+    {
+      "path": ".artifacts/capture-diff-rich-viewer-validation.mjs",
+      "sha256": "945e4aefa4f32770af0f74cca9881318ea505b515c3121b5663aba5287f7d7b2"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "2573b524a47e52ec9597fd435e6ae5a888ab5352508331787cd050cc1c839263"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "b94e727943d973e0dc789373b2b8c52d1bee585e91b9fd50a51de2ea680f896a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/diff-rich-viewer-binding.log",
+      "sha256": "e99609b610121833f9067ed530a78ec613268ae014503f08cd96c1ec84ae69e9"
+    },
+    {
+      "path": ".artifacts/diff-rich-viewer-audit-tests.log",
+      "sha256": "e31eb905a671a40e36b8bb5c6ff4e057463437ddc9f74af72a8e7acdd1fa9f2a"
+    },
+    {
+      "path": ".artifacts/diff-rich-viewer-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/diff-rich-viewer-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/diff-rich-viewer-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

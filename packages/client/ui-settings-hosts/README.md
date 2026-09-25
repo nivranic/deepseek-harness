@@ -29,16 +29,16 @@ The section is always available: the roster is local page state, so it registers
 
 ### Switching Hosts
 
-Open the **Hosts** section in Settings. Each row names the Host, tags its platform when known, and shows the origin together with the last-connected time. **Switch** on one row routes through `switchToSavedHost` — the row origin flows into `connection.retarget` and the hostId persists under `dsh-selected-host.v1`, so the next reload applies the selection before any loop runs. The selected row gains the Selected tag and loses its switch action; **Back to the page Host** clears the selection and the persisted id together. **Forget** removes the bookmark and its persisted selection without disconnecting the active Host. Selecting a row does not prove that authentication or connection establishment has succeeded. Cross-origin rows link to the Host page; first-time authorization requires that Host’s current launch link.
+Open the **Hosts** section in Settings. Each row names the Host, tags its platform when known, and shows the origin together with the last-connected time. **Switch** on one row routes through `connection.selectSavedHost` — the row origin flows into `connection.retarget` and the hostId persists under `dsh-selected-host.v1`, so the next reload applies the selection before any loop runs. The selected row gains the Selected tag and loses its switch action; **Back to the page Host** clears the selection and the persisted id together. **Forget** removes the bookmark and its persisted selection without disconnecting the active Host. Selecting a row does not prove that authentication or connection establishment has succeeded. Cross-origin rows link to the Host page; first-time authorization requires that Host’s current launch link.
 
 -----
 
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 
-One React section plus its registration; all data is local.
+One React section plus its registration; all data is local. The feature imports Connection types only and invokes the injected service for selection, page-Host return and forgetting; Connection owns selection persistence.
 
-- **The face** — framework selector hooks observe the saved roster and `connection.target`. External selections update the section immediately. Switching uses [`switchToSavedHost`](../connection/README.md); an unknown id leaves the connection and persistence unchanged.
+- **The face** — framework selector hooks observe the saved roster and `connection.target`. External selections update the section immediately. Switching uses [`connection.selectSavedHost`](../connection/README.md); an unknown id leaves the connection and persistence unchanged.
 - **Persistence** — the selection rides `dsh-selected-host.v1` through `browserSelectedHostPersistence`; the Connection plugin applies a persisted id at boot before any carrier or loop exists, so applying is a pure assignment. A missing or in-process row keeps the page Host.
 
 -----

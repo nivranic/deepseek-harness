@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /** Diff row rendering: gutters, hunk headers, added/removed marks, and the empty state. */
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { DiffBody, type DiffBodyProps } from '../src/client/diff/DiffBody.tsx'
@@ -9,8 +9,18 @@ import { en } from '../src/client/diff/locales.ts'
 const translations: ReadonlyMap<string, string> = new Map(Object.entries(en))
 
 const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
+beforeEach(() => {
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.hasAttribute('data-diff-scrollport') ? 400 : 21
+  })
+  vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(800)
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    return new DOMRect(0, 0, 800, this.hasAttribute('data-diff-scrollport') ? 400 : 21)
+  })
+})
 afterEach(() => {
   cleanup()
+  vi.restoreAllMocks()
   if (originalClipboard === undefined) Reflect.deleteProperty(navigator, 'clipboard')
   else Object.defineProperty(navigator, 'clipboard', originalClipboard)
 })
@@ -27,8 +37,11 @@ function props(text: string, eof = true): DiffBodyProps {
     sessionId: 'd1' as SessionId,
     useTabInfo: () => ({ tab: { signal: new AbortController().signal } }),
     useResource: () => ({ value: undefined }),
+    useGrammars: select => select(0),
+    useFileOpeners: select => select([]),
+    canOpenFile: () => false,
     scrollportRef: () => {},
-    t: key => translations.get(key) ?? key,
+    t: (key, params) => Object.entries(params ?? {}).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, String(value)), translations.get(key) ?? key),
   } as DiffBodyProps
 }
 
@@ -63,6 +76,40 @@ describe('DiffBody', () => {
   it('renders the localized empty state for a file with no rows', () => {
     render(<DiffBody {...props('')} />)
     expect(screen.getByText(en.empty)).toBeDefined()
+  })
+
+  it('keeps mounted rows bounded and reaches distant source lines by scrolling', async () => {
+    const text = ['@@ -1,10000 +1,10000 @@', ...Array.from({ length: 10000 }, (_, index) => ` line ${index + 1}`)].join('\n')
+    const view = render(<DiffBody {...props(text)} />)
+    expect(view.container.querySelector('[data-diff-preview]')?.getAttribute('data-diff-total-rows')).toBe('10001')
+    const mounted = view.container.querySelectorAll('[data-diff-row]').length
+    expect(mounted).toBeGreaterThan(0)
+    expect(mounted).toBeLessThan(40)
+    const scrollport = view.container.querySelector<HTMLElement>('[data-diff-scrollport]')!
+    scrollport.scrollTop = 2100
+    fireEvent.scroll(scrollport)
+    await waitFor(() => { expect(view.container.querySelector('[data-diff-index="100"]')).not.toBeNull() })
+    expect(view.container.querySelector('[data-diff-index="1"]')).toBeNull()
+    expect(view.container.querySelectorAll('[data-diff-row]').length).toBeLessThan(40)
+  })
+
+  it('opens the patch target in its own Session and rechecks admission before dispatch', () => {
+    const openResource = vi.fn()
+    const canOpenFile = vi.fn(() => true)
+    const initial = props('--- a/x.ts\n+++ b/x.ts\n@@ -1 +1 @@\n-old\n+new')
+    const tabInfo = initial.useTabInfo()
+    const given: DiffBodyProps = {
+      ...initial,
+      useTabInfo: () => ({ ...tabInfo, tab: { ...tabInfo.tab, actions: { ...tabInfo.tab.actions, openResource } } }),
+      canOpenFile,
+    }
+    render(<DiffBody {...given} />)
+    const button = screen.getByRole('button', { name: 'Open file x.ts' })
+    fireEvent.click(button)
+    expect(openResource).toHaveBeenCalledExactlyOnceWith('dsh-resource://file/session/d1/x.ts')
+    canOpenFile.mockReturnValue(false)
+    fireEvent.click(button)
+    expect(openResource).toHaveBeenCalledTimes(1)
   })
 })
 

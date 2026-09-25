@@ -22,6 +22,8 @@ Markdown and code reuse the incremental primitives with cumulative paged text. H
 
 Unified diff source numbering consumes the old and new counts declared by each hunk. This distinguishes subsequent file headers from deleted or added source that itself starts with dashes or plus signs. Zero-length sides have no numbered rows; unsafe numeric coordinates and excess input remain visible without invented positions. Row signs and theme colors convey additions and deletions. Copy uses the accumulated source text, not the rendered gutters or reconstructed rows, and labels a partial prefix explicitly. Clipboard feedback belongs to the current content and resource address; replacement or disposal suppresses late results.
 
+Diff file metadata uses the maintained `diff` parser on preambles only, preserving Git quoted paths without applying its strict whole-hunk validation to a partially loaded preview. The tolerant row parser still owns displayed source positions. Shiki highlights old and new fragments independently through the shared primitive grammar registry; a framework observable updates lazy grammars. TanStack Virtual bounds mounted rows while the Preview owner retains paging and scroll restoration. File actions derive the Session from the original resource address and use the tab navigation API. Viewer availability is observed, and callbacks reject after Host replacement, tab cancellation or plugin disposal. Binary targets retain the existing MIME and byte renderer selection.
+
 ## Alternatives considered
 
 **Methods attached to an Iterator or its values.** This conflates observation with commands and repeats capability identity in data frames. Frames carry data and failures; explicit Preview RPC callbacks perform reads.
@@ -41,6 +43,10 @@ Unified diff source numbering consumes the old and new counts declared by each h
 **Recognize every dash-prefixed file header regardless of hunk position.** Source lines can contain the same prefixes. Declared hunk extents distinguish those lines without discarding patch text; an explicit Git file separator also closes an incomplete hunk.
 
 **Copy rendered row text.** Display gutters and signs are presentation data, and row parsing removes patch prefixes. The retained loaded text is the copy source; no whole-file read is implied by copying a partial preview.
+
+**Parse every loaded prefix as a complete patch.** Strict hunk validation rejects a valid prefix whose remaining body has not loaded. Parsing only file metadata with the maintained library preserves quoted filename handling while the display parser accepts partial content.
+
+**Open through the currently selected Session.** Selection can differ from a retained preview address. Address-derived Session identity preserves file authorization and avoids silently opening a same-named file in another workspace.
 
 ## Consequences
 
