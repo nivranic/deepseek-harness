@@ -8055,9 +8055,10 @@
         "apps/android/README.md",
         "apps/web/tests/android-companion-question.e2e.ts",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/FileLinkCredentialsStoreTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelSetTest.kt"
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelSetTest.kt",
+        "apps/web/tests/android-credential-recovery.e2e.ts"
       ],
-      "remaining": "Native Remote 的固定 TLS 指纹、新设备证明、角色、撤销与重放防护已有 Host/JVM/Android 候选证据。重新配对使用独立模型生命周期、内存暂存、原子加密文件替换及不可取消的采纳；旧 Host 授权不自动撤销。仍需损坏凭据与 Keystore 失效恢复、完整远端执行授权审查、Swift 采用及物理平台资格验收；不授予整节 PASS。",
+      "remaining": "Native Remote 的固定 TLS 指纹、新设备证明、角色、撤销与重放防护已有 Host/JVM/Android 候选证据。重新配对使用独立模型生命周期、内存暂存、原子加密文件替换及不可取消的采纳；旧 Host 授权不自动撤销。Android 已验证格式损坏、密文篡改与缺失密钥时的文件保留及显式重新配对；仍需硬件密钥永久失效、完整远端执行授权审查、Swift 采用及物理平台资格验收；不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

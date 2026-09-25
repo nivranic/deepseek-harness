@@ -163,6 +163,58 @@ class NativeCompanionAcceptanceTest {
                                 waitFor(hasTestTag("native-repair"))
                                 compose.onNodeWithText("配对载荷（二维码内容）").assertDoesNotExist()
                             }
+                            "damageCredentials" -> {
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                check(stored.isFile)
+                                when (command.getValue("damage").jsonPrimitive.content) {
+                                    "malformed" -> stored.writeText("{invalid credential document", Charsets.UTF_8)
+                                    "ciphertext" -> {
+                                        val document = Json.parseToJsonElement(stored.readText()).jsonObject
+                                        val sealed = Base64.decode(document.getValue("signingKeyBase64").jsonPrimitive.content, Base64.NO_WRAP)
+                                        sealed[sealed.lastIndex] = (sealed.last().toInt() xor 1).toByte()
+                                        stored.writeText(JsonObject(document + ("signingKeyBase64" to
+                                            JsonPrimitive(Base64.encodeToString(sealed, Base64.NO_WRAP)))).toString(), Charsets.UTF_8)
+                                    }
+                                    "missing-key" -> java.security.KeyStore.getInstance("AndroidKeyStore").apply {
+                                        load(null); deleteEntry("dsh-link-credentials")
+                                    }
+                                    else -> error("unsupported credential damage")
+                                }
+                                value = JsonPrimitive(MessageDigest.getInstance("SHA-256").digest(stored.readBytes())
+                                    .joinToString("") { "%02x".format(it.toInt() and 255) })
+                            }
+                            "assertCredentialRecovery" -> {
+                                waitFor(hasText("已有凭据无法用于当前原生连接，请重新配对。原凭据文件未删除。"))
+                                compose.onNodeWithText("已有凭据无法用于当前原生连接，请重新配对。原凭据文件未删除。").assertIsDisplayed()
+                                compose.onNodeWithTag("native-repair").assertDoesNotExist()
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                val digest = MessageDigest.getInstance("SHA-256").digest(stored.readBytes())
+                                    .joinToString("") { "%02x".format(it.toInt() and 255) }
+                                stage = "preserved-damaged-document"
+                                check(digest == command.getValue("digest").jsonPrimitive.content)
+                                if (command.getValue("damage").jsonPrimitive.content == "missing-key") {
+                                    stage = "read-does-not-create-key"
+                                    check(!java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+                                        .containsAlias("dsh-link-credentials"))
+                                }
+                            }
+                            "assertSessionListReady" -> {
+                                lateinit var model: CompanionViewModel
+                                compose.runOnIdle { model = androidx.lifecycle.ViewModelProvider(compose.activity)[CompanionViewModel::class.java] }
+                                try { compose.waitUntil(20_000) { model.session.listState.value !in setOf("idle", "loading") } }
+                                finally {
+                                    stage = when (model.session.listState.value) {
+                                        "ready" -> "session-list-ready"
+                                        "idle" -> "session-list-idle"
+                                        "loading" -> "session-list-loading"
+                                        "failed:native HTTPS request failed" -> "session-list-transport"
+                                        "failed:native HTTPS response interrupted" -> "session-list-response-interrupted"
+                                        "failed:Job was cancelled", "failed:DeferredCoroutine was cancelled" -> "session-list-cancelled"
+                                        else -> "session-list-failed"
+                                    }
+                                }
+                                check(model.session.listState.value == "ready")
+                            }
                             "close" -> runBlocking { CompanionRuntime.wire.closeAndAwait() }
                             else -> error("unsupported UI command")
                         }

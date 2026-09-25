@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 凭据损坏与缺失密钥恢复（§13、§14、§21、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/android-credential-recovery-source.json)约束 Android 凭据解密只读取已有 Keystore 密钥。缺失密钥不会在启动读取时被重新生成；只有显式且通过验证的配对在保存替代身份时允许初始化密钥。凭据 JSON 损坏、密文篡改与密钥缺失均保留原文件，显示可见恢复提示，不自动兑换新授权。
+
+真实 Android 34 的修复前案例证明读取会静默创建密钥；修复后六项真实 Host 回放通过，包括三种损坏各自的重新配对与再次进程重启、签名 Session list，以及既有 Question、文件分页、身份替换和撤销回归。Host 类型、lint、文档 17/17 与 36/36、逐节追踪通过。本轮没有重新执行未改动的 core/contract 单元套件。首次组合回放曾有三项 Session 列表就绪等待失败；补充固定诊断阶段后，单独回放及相同并行文档负载下六项回放均通过，但首次原因尚未确认，保留为待查项。
+
+隔离应用删除密钥的故障注入不等于硬件密钥永久失效验收；跨 Host、推送、工件/Handoff、原生诊断、Swift、物理设备和发布资格仍开放。Phase 10 继续进行中，completeRc 为 false，仅本地封存。
+
 ## Android 重新配对与身份原子替换（§13、§14、§21、§28、§35、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/android-repairing-source.json)提供显式重新配对入口。旧模型先停止请求及观察，进程传输与已保存身份继续保留；替代身份在内存中验证，只有成功后才原子替换 Keystore 加密文件并采纳新连接。提交开始后的采纳不可取消，Activity 重建对齐已提交代际；取消可通过新的空缓存模型恢复原身份，不取消 Host 任务或自动撤销旧授权。
+[历史来源记录](artifacts/upstream-first/android-repairing-source.json)提供显式重新配对入口。旧模型先停止请求及观察，进程传输与已保存身份继续保留；替代身份在内存中验证，只有成功后才原子替换 Keystore 加密文件并采纳新连接。提交开始后的采纳不可取消，Activity 重建对齐已提交代际；取消可通过新的空缓存模型恢复原身份，不取消 Host 任务或自动撤销旧授权。
 
 221 项 core 测试实际执行通过，涵盖模型请求/流清理屏障、凭据原子替换与失败保留。真实 Host 的三项只读回放通过；安装的 Android 34 应用验证错误指纹不改旧凭据、取消后重新读取、成功替换后 Activity 重建及进程重启，授权数保持为两份且可读取既有 DONE 会话。恢复按钮与拒绝提示已由 Compose 同步截图核对。类型、lint、文档 17/17 与 36/36、逐节追踪通过。
 

@@ -20,7 +20,7 @@ class AndroidKeystoreCipher(
 ) : CredentialsCipher {
     override fun seal(plain: ByteArray): ByteArray {
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, key())
+        cipher.init(Cipher.ENCRYPT_MODE, key(createIfMissing = true))
         val sealed = cipher.doFinal(plain)
         return cipher.iv + sealed
     }
@@ -29,14 +29,15 @@ class AndroidKeystoreCipher(
         val iv = sealed.copyOfRange(0, IV_BYTES)
         val body = sealed.copyOfRange(IV_BYTES, sealed.size)
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(TAG_BITS, iv))
+        cipher.init(Cipher.DECRYPT_MODE, key(createIfMissing = false), GCMParameterSpec(TAG_BITS, iv))
         return cipher.doFinal(body)
     }
 
-    /** The keystore-resident key, generated on first use. */
-    private fun key(): SecretKey {
+    /** Reading an identity never creates a key; only an explicit save may initialize one. */
+    private fun key(createIfMissing: Boolean): SecretKey {
         val store = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         (store.getKey(alias, null) as? SecretKey)?.let { return it }
+        check(createIfMissing) { "credential encryption key is unavailable; pair again" }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
         generator.init(
             KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)

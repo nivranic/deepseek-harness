@@ -28,6 +28,8 @@ Observation recovery uses the shared failure classification rather than retrying
 
 Android re-pairing separates model lifetime from process transport lifetime. Retiring a `CompanionModelSet` awaits its requests and observations without cancelling Host tasks. Replacement credentials are verified in memory before the encrypted file is atomically replaced; unsupported atomic replacement fails without an in-place overwrite. Local commit and transport adoption are non-cancellable so Activity recreation cannot restore a different identity from the one held by the process. The ViewModel reconciles the committed generation and creates fresh models. A failed or cancelled attempt retains the previous identity; the Host may retain a redeemed grant that needs operator revocation.
 
+Android credential decryption only reads an existing Keystore key. Creating a key during restoration cannot recover ciphertext sealed by the missing key and would mutate storage during a rejected read. Malformed documents, modified ciphertext, and missing keys therefore preserve the encrypted file and require explicit pairing. Saving a verified replacement may initialize a missing key; it does not silently delete an existing inaccessible key or revoke a Host grant.
+
 ## Alternatives considered
 
 - **Allow Mobile through local Web cookies or relaxed Origin checks.** Rejected: that changes local browser authority and does not authenticate a device key.
