@@ -13,9 +13,13 @@ DeepSeek Harness 的下游 Android 薄壳。设备首先是 Remote Companion：�
 
 schema 在测试期直接从协议包复制，因此 Kotlin 列始终校验当前候选字节。分类投影通过 `node scripts/gen-remote-failure-classes-json.mjs`（先 `pnpm run build:lib`）重新生成；已提交的产物由测试校验，漂移即失败。
 
-`core` 模块是迁入的纯 JVM 领域：Lite 折叠（loop、chat、stores、tool registry）、Link 配对/线协议栈（Noise、签名、pinning、诊断）、Handoff 快照、支持导出与 push/relay 客户端。37 个测试类用 `gradlew :core:test` 在 JVM 上运行，不需要 Android SDK。`app` 模块承载 Compose 表面（聊天屏、通知、Keystore cipher、支持扫描器胶水）；构建它需要"已知限制"中说明的支持扫描器 AAR 链。
+`core` 模块是迁入的纯 JVM 领域：Lite 折叠（loop、chat、stores、tool registry）、Link 配对/线协议栈（Noise、签名、pinning、诊断）、Handoff 快照、支持导出与 push/relay 客户端。测试类用 `gradlew :core:test` 在 JVM 上运行，不需要 Android SDK。`app` 模块承载 Compose 表面（聊天屏、通知、Keystore cipher、支持扫描器胶水）；构建它需要"已知限制"中说明的支持扫描器 AAR 链。
 
 在本目录用 Gradle wrapper 运行测试（Windows 用 `gradlew.bat :contract:test :core:test`，其他平台用 `./gradlew :contract:test :core:test`）；首次运行会下载 Gradle 发行版与依赖。
+
+core 的 `gateway/NativeGatewayClient` 通过 `WireDriving` 实现当前固定指纹 Native Remote 协议：操作员签发的 `dsh-native-pairing` 版本 1、API 2 Connection RPC，以及共享的 `/api/remote.mux` WebSocket。每次分派签署新的设备准入，只有兑换不签名。配对在保存凭据前核验返回的设备公钥指纹、授予角色及协商后的 Host 身份。Session writer 版本与 API 协商分开观察。凭据带有 `transportFormat: native-gateway-v1`；恢复拒绝旧 Link 身份但不删除它。部署方提供超时与每流缓冲上限；溢出使对应流失败，不静默丢值。
+
+Host 集成场景为 [android-gateway.e2e.ts](../web/tests/android-gateway.e2e.ts)。以 `gradlew.bat :core:nativeGatewayClasspath`（或 `./gradlew :core:nativeGatewayClasspath`）准备 Kotlin 驱动，再使用仓库的 `vitest.web.config.ts` 运行该场景，将 `DSH_ANDROID_JAVA` 指向 Java 17。驱动通过 stdin 接收临时配对数据，不使用命令行参数。它对实际 Host profile 验证错误指纹拒绝、单次兑换、确认信息不匹配、结构化权限拒绝、并发事件/业务流、取消、撤销、恢复及等待关闭。`CompanionRuntime` 尚未选用此 core 传输；声明 Android 应用兼容前仍需完成外壳采用与业务模型迁移。
 
 ## 理解实现
 

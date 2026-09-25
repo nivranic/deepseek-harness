@@ -39,3 +39,12 @@ tasks.register<JavaExec>("nativeAcceptance") {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("ai.deepseek.dsh.link.LinkNativeAcceptance")
 }
+
+// The Host integration runner launches the compiled Kotlin driver directly;
+// pairing secrets travel through its private stdin pipe, never task arguments.
+tasks.register("nativeGatewayClasspath") {
+    dependsOn(tasks.named("testClasses"))
+    val output = layout.buildDirectory.file("native-gateway-classpath.txt")
+    outputs.file(output)
+    doLast { output.get().asFile.writeText(sourceSets["test"].runtimeClasspath.asPath) }
+}

@@ -22,6 +22,8 @@ The Settings pairing consumer reads authenticated listener metadata and uses the
 
 Settings renders its modal through a document-body portal, independent of the sidebar that owns its trigger. This prevents phone drawer visibility and transforms from hiding pairing controls. Phone-width navigation uses a horizontal scroll row, while the content retains vertical scrolling for QR details and copy controls. A real browser resize and an ancestor-visibility component regression exercise this ownership.
 
+The [Kotlin core consumer](../../../../apps/android/README.md) uses this source through the existing `WireDriving` abstraction. It pins TLS before HTTP bytes, negotiates API 2 independently of the Session writer, and places device proofs beside ordinary arguments but inside the reserved event-stream arguments. Host identity, granted role, and key fingerprint must match before credentials are saved; a failed post-redemption check preserves the prior local identity but can leave a Host grant requiring operator revocation. A credential-format marker prevents interpreting legacy Link identities as current grants. One mux owns bounded logical-stream queues and closes them with its client; reconnect creates new proofs and stream generations. The actual Android shell remains a separate adoption step.
+
 ## Alternatives considered
 
 - **Allow Mobile through local Web cookies or relaxed Origin checks.** Rejected: that changes local browser authority and does not authenticate a device key.
@@ -31,4 +33,4 @@ Settings renders its modal through a document-body portal, independent of the si
 
 ## Consequences
 
-The Host source can be mounted through a normal profile composition without enabling a network listener in shipped defaults. Tests cover persistent and concurrent identity creation, renewal without key rotation, invalid stored identity, wrong pins, unsigned requests, replay, insufficient permission, browser-header rejection, request bounds, and teardown. Gateway tests cover revocation during admission and during business-stream iteration. Native client framing, Relay/discovery integration, and physical-device acceptance remain separate work; legacy fixture success proves none of them. Certificate renewal requires listener restart before expiry.
+The Host source can be mounted through a normal profile composition without enabling a network listener in shipped defaults. Tests cover persistent and concurrent identity creation, renewal without key rotation, invalid stored identity, wrong pins, unsigned requests, replay, insufficient permission, browser-header rejection, request bounds, and teardown. Gateway tests cover revocation during admission and during business-stream iteration. Android shell and Swift client adoption, Relay/discovery integration, and physical-device acceptance remain separate work; legacy fixture success proves none of them. Certificate renewal requires listener restart before expiry.

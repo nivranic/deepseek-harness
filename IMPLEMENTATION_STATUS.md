@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android Kotlin Gateway 传输接入（§13、§14、§21、§28、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/android-gateway-source.json)验证 Kotlin core 直接使用现有 Native Remote 入口：解析版本 1 操作员配对载荷，在发送 HTTP 前固定 Host SPKI，通过当前一次性兑换注册 Ed25519 设备身份，再核验角色、公钥指纹和 Host 身份。API 2 Connection RPC 与共享 mux 均发送新设备证明；Session writer 版本不冒充客户端协议版本。凭据带独立格式标记，旧 Link 身份不会被当作新授权，拒绝核验保留先前本地身份。
+
+200 项 core JVM 测试实际执行通过；未改动 contract 的 9 项为 Gradle up-to-date，未声称重跑。独立 JVM 驱动对真实 Host profile 验证错误 pin、重复兑换、角色和 Host 确认失败、权限拒绝、事件/业务并行流、取消、吊销、恢复以及关闭后进程退出。类型、lint、36 项文档门禁及逐节追踪通过。Android 外壳仍选择旧 LinkClient，业务模型、原生诊断、Swift、真机和平台发布验收仍开放，completeRc 保持 false。
+
 ## 操作员配对展示与手机设置可达性（§7、§20、§21、§28、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/native-pairing-presentation-source.json)把操作员配对接入设备设置页：按 TLS 元数据和配对签发能力显示入口；原生元数据 Remote 要求 device.admin。操作者输入使用实际监听端口的 HTTPS origin 并选择角色，默认 viewer；地址通过校验后才调用现有 Device Trust 签发器。二维码与可复制 JSON 携带 dsh-native-pairing 版本 1、Host 身份及名称、SPKI 指纹、一次性码、角色与到期时间。组件仅在内存保留载荷，过期、关闭、编辑或切换 Host 清除展示；关闭或重新生成不会提前撤销尚未过期的码。
+[历史来源记录](artifacts/upstream-first/native-pairing-presentation-source.json)把操作员配对接入设备设置页：按 TLS 元数据和配对签发能力显示入口；原生元数据 Remote 要求 device.admin。操作者输入使用实际监听端口的 HTTPS origin 并选择角色，默认 viewer；地址通过校验后才调用现有 Device Trust 签发器。二维码与可复制 JSON 携带 dsh-native-pairing 版本 1、Host 身份及名称、SPKI 指纹、一次性码、角色与到期时间。组件仅在内存保留载荷，过期、关闭、编辑或切换 Host 清除展示；关闭或重新生成不会提前撤销尚未过期的码。
 
 真实 Host/Chrome 经设置页签发、固定指纹 TLS 兑换并完成录制 Question；桌面与 390px 布局验证复制按钮在弹层内可达、页面无横向溢出。手机回归在修复前确认设置弹层继承侧栏的隐藏状态；弹层改用 document-body portal，手机导航改为横向滚动行。245 项定向测试通过；独立 185 项覆盖运行对 Native Remote 和新增配对面板/地址模块达到四类 100%，不泛指所有改动模块。最终类型、构建、lint、36 项文档门禁和 16 项 hygiene 通过。设置外壳旧夹具的无版本信封断言及遗漏 Devices/Hosts 的快照已按真实协议 2 修正，并经刷新和只读回放核验。Android/Swift 实际采用、真机扫码、发现/Relay、签名及跨平台发布验收仍开放，completeRc 保持 false。
 

@@ -39,6 +39,7 @@ object LinkPayloadParsing {
             endpoint = string("endpoint") ?: return null,
             pinnedFingerprint = string("pinnedFingerprint") ?: return null,
             signingKeyBase64 = string("signingKeyBase64") ?: return null,
+            transportFormat = string("transportFormat"),
         )
     }
 }

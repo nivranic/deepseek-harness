@@ -5,253 +5,65 @@
   "candidateTrackedChanges": [
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.i18n.yaml",
-      "sha256": "cad4daaf3c31491df736eba4223cac77cec6a36d63c0f5fe987554b0fd6a8c20"
+      "sha256": "ddb806da1dd39afa3c2f961dc6fc39d68d504887ec06c27534f771daa3487749"
     },
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.md",
-      "sha256": "db1a28008172a91c0d483303fa4e7e9becef757c97a00468fefee0d8b69e5e20"
+      "sha256": "7801f637ab82f2d07925316f0076316c14ef5550fb28c2273e7251e75cc25930"
     },
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.zh.md",
-      "sha256": "508f9881afddf0475f70706233b2a22107c24e083acb9db3b397c2c3ec62e8af"
+      "sha256": "3e1b2ecd283c8a47d7c025499ade76a8f48a3aa53352d9e4091bf3fba45ff694"
     },
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "8f14f53eae29dce810722bef6425e8f31d327a1d9c19e83031c20f53ee3850f1"
+      "sha256": "d27a4d7219110fc72c70f5f191838e0c0200c9df195c577fd6fa79199baf3842"
     },
     {
-      "path": "apps/web/tests/expected/native-remote-question.expected.md",
-      "sha256": "759da3b6afe6d75226f8b00a1a85203a26cb9332969d5582c3c2d39360d9ef61"
+      "path": "apps/android/README.i18n.yaml",
+      "sha256": "4e3c723c0b9b5e903016a3df2ae019344d811195852e901e76fc7d221e9d27a8"
     },
     {
-      "path": "apps/web/tests/expected/settings-chrome/dialog-en.expected.md",
-      "sha256": "ef5eaa979988a88320c1a91ddd335ac74186eb0417a2722077543fd274c28364"
+      "path": "apps/android/README.md",
+      "sha256": "f5f3c64e1bb5746e84e9f32b6ff6b79df4f59862d2a597efecdcf6e959486883"
     },
     {
-      "path": "apps/web/tests/expected/settings-chrome/dialog.expected.md",
-      "sha256": "fb61ddfd6fa00902ccb8fec29f75a2c9c481667140492556cf364d02d02c00fb"
+      "path": "apps/android/README.zh.md",
+      "sha256": "a482b00fe6c78325ad504d6eae2d2b6b928fdbe587d359d61c06e4ce3425f40a"
     },
     {
-      "path": "apps/web/tests/native-remote-question.e2e.ts",
-      "sha256": "4f3ad69add4904efbf7d69b31ec0af9d5931ff37cc7dd7b162922d92375a06d7"
+      "path": "apps/android/core/build.gradle.kts",
+      "sha256": "cd05cc8b73815325c2b0a3f2d9c83735cfb8adb8f144f7a979d16329fcaf926b"
     },
     {
-      "path": "apps/web/tests/settings-chrome.e2e.ts",
-      "sha256": "a7028d5c1afbb0f206ebb708dfc243a1ae29a25fbc8722fb02555bbb1e9efb1e"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkCredentials.kt",
+      "sha256": "5974ca43ba3e9f49131f88882276d033678b3e391cdaccc1e0a5bbdd2a7174aa"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkPayloadParsing.kt",
+      "sha256": "fd1a26d6d19042c94c465eebdbcdccf641d610b580bfc85802f1ed07a6010c97"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "sha256": "850cf88842912879fe7820b814d13ec77f018703e8ba3ffd6b427261d5bdc6a1"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "621733e89b641b4a7a6dde1ddf19c64095ae66f11ef5cb349df490a8f194498f"
+      "sha256": "d54f06bb8386999c8ab083ca04a5004eab64a484bda6b2925b260e8b39b61a0d"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "e2ff2bb44e00d4606e98fa097daaf5d6fd2a62ae4805493064816a04ba2eaeda"
+      "sha256": "a34371238f272f0dd10ed3b6783bc82e457fd0cd69833ac29daff08785cdcbe2"
     },
     {
-      "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "c92f7b0aafb918cdf4d60fe3ae3bd2ca1e076820c7e4ab30997d1f7a7eaf1b1d"
-    },
-    {
-      "path": "docs/config-catalog.md",
-      "sha256": "411fae98b228e5db09c4e5a20ecb8ae91f983e68811f91e0e8986085e3815040"
-    },
-    {
-      "path": "docs/config-catalog.zh.md",
-      "sha256": "80f6a5cbceafa5391e9fee5a4bf65b6d3276087c54de7ca459bdd9eb1215cebb"
-    },
-    {
-      "path": "docs/subsystems/typert.i18n.yaml",
-      "sha256": "9f1ff6265815d5bdb5e9c5d325f70efec2677efbe374857bb72eeb7ac95ca85d"
-    },
-    {
-      "path": "docs/subsystems/typert.md",
-      "sha256": "e7d44dd63dc47f68043cd719fe46aad619b68d1e33cb6f852de23b76f2c58d42"
-    },
-    {
-      "path": "docs/subsystems/typert.zh.md",
-      "sha256": "b7f7b3ad887d877bbbbfa64f50b34755df5bba6fde405085b3d3c7eda6b1ac8d"
-    },
-    {
-      "path": "packages/api/native-remote/README.i18n.yaml",
-      "sha256": "c2a52041e0452768718bb4084a7dd57bb87173f31b1b758cb4cdb2f06044735f"
-    },
-    {
-      "path": "packages/api/native-remote/README.md",
-      "sha256": "dccca36871cc4d0e91796aeda2037708b83b9dd67cd604d32841ad613c46a4d9"
-    },
-    {
-      "path": "packages/api/native-remote/README.zh.md",
-      "sha256": "067d2bb2d1509b679d713f077aa95301ea2f87b49e757b82ff4c96d2968bbe2a"
-    },
-    {
-      "path": "packages/api/native-remote/package.json",
-      "sha256": "9389d8b12846a9675cade3ae4754cda353b590003d99ea36b0d84e350cfdce48"
-    },
-    {
-      "path": "packages/api/native-remote/src/index.ts",
-      "sha256": "9ae6e90ce1414dd5d8f83fa09b0f113aeae92a703750a28e06bc8b06a4fe0696"
-    },
-    {
-      "path": "packages/api/native-remote/tests/transport.host.spec.ts",
-      "sha256": "81fff4577507b9deb4d3b91d38530fb6fb04a673f8aa3a5f8d4077ef9d1aba8b"
-    },
-    {
-      "path": "packages/api/native-remote/tsconfig.json",
-      "sha256": "e76f398905078a729ad88d17fa0136006da60a4ca8c4d401f82ed67eaa9bf097"
-    },
-    {
-      "path": "packages/api/remotes/README.i18n.yaml",
-      "sha256": "f4960e978f537da1a7dac1551f76143fe4c95eef7a1cd3a42aaff30df66922a3"
-    },
-    {
-      "path": "packages/api/remotes/README.md",
-      "sha256": "ae827c55a547f256e1d298f0ee4359688f01f31279a051e5697261e333f43d76"
-    },
-    {
-      "path": "packages/api/remotes/README.zh.md",
-      "sha256": "ed219954766508937ed2a2c6fbb7cb673b408f2ec7a0dee251c23049408a6c5f"
-    },
-    {
-      "path": "packages/api/remotes/package.json",
-      "sha256": "e4835cee649f2abb9c015012b16871f40fde5b06c79506edb76c382703abc94e"
-    },
-    {
-      "path": "packages/api/remotes/src/client/host-preparation.ts",
-      "sha256": "d38bb819dcec7a5551172bccba79771def4cdab06a957f53a9fb035f7b6f57cd"
-    },
-    {
-      "path": "packages/api/remotes/src/client/index.ts",
-      "sha256": "1879d3a0a8247d94a11dd26c101e074662fd3109cf2c2bd8b9853681cc57af3f"
-    },
-    {
-      "path": "packages/api/remotes/tests/host-preparation.client.spec.ts",
-      "sha256": "d7b1d86fbfea0061f4b3bd08e95b794f632d646bdfb61b68845a1d9ce0086ac7"
-    },
-    {
-      "path": "packages/api/remotes/tsconfig.client.json",
-      "sha256": "b85581063b69327acbcd16c4caccd65d39807acc15cf9a0623c994bfedb3a693"
-    },
-    {
-      "path": "packages/api/remotes/tsconfig.host.json",
-      "sha256": "ad2468b904dbf5ea5b945c3739c6bbf0a63bb03d08eafe7677e229dd1493558e"
-    },
-    {
-      "path": "packages/client/tsdown.client.ts",
-      "sha256": "37379b9fe79310e2569fc2d0e0a36fbde3f86762bf8919f87b05e0482aba7f2d"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/README.i18n.yaml",
-      "sha256": "53cb9c6c9a2c63dec93c06297ec8aac838c76ac003900897975322080fc87210"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/README.md",
-      "sha256": "1644a729d8daa557530702d589b1e156a3f2a2d2393636f0048a32964c194e22"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/README.zh.md",
-      "sha256": "9243d3b26dcffb6af2913fa3070606efdfd0bf3172575f115d59a22bcc55cf96"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/package.json",
-      "sha256": "112f3f2eff79a30674c96d7a6b9e7882d225be475f2cbdaaed5351e0acc245d8"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.module.css",
-      "sha256": "fe18215771df2322e5933542d414293d1c61e92ef1753971569431839f9b9d77"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.tsx",
-      "sha256": "44dcedb858a45cb63483f6df5ca8feb87c59b950a45687f299c55c648f0c2a10"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/src/client/index.ts",
-      "sha256": "96f3dc0800558f3754d72b3ac67acbe606ce10f7cc2945191087b0a63615e69a"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/src/client/locales.ts",
-      "sha256": "aae753b28d02d0652b509b8ea59f74f656d057b38a1fcf02afbc9ffdec9d9934"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/tests/browser-plugin.client.spec.tsx",
-      "sha256": "17871258d65cb380a598f305a736753d41aca2840d8be6b751c2d68a294e2fdc"
-    },
-    {
-      "path": "packages/client/ui-settings-general/README.i18n.yaml",
-      "sha256": "13da78792dba181858fa00eb43d2894f2b2b315f39085d0d9b121cba6d518289"
-    },
-    {
-      "path": "packages/client/ui-settings-general/README.md",
-      "sha256": "e9de041eca4d48cc71e41beaf5763c4b0b215c40196ab72d5b640d217bbfef2e"
-    },
-    {
-      "path": "packages/client/ui-settings-general/README.zh.md",
-      "sha256": "9ab5a35e7f8ce3ddb29e1cc0f9d44908ab97b2d52353c51621f72bb40695a47a"
-    },
-    {
-      "path": "packages/client/ui-settings-general/package.json",
-      "sha256": "25f833c9e561b70d06b5fb4c37eed476f487dc71d4b62668873f3bd35b5ea9f8"
-    },
-    {
-      "path": "packages/client/ui-settings-general/src/client/SettingsRoot.module.css",
-      "sha256": "538c924a952e82d4d986ef5b3c963b49cc085bca546bf1ec69298851e2003d13"
-    },
-    {
-      "path": "packages/client/ui-settings-general/src/client/SettingsRoot.tsx",
-      "sha256": "8e28447226999a7d51ae3654c6a57d94aa9cce0c9c2206645a82211f542ed310"
-    },
-    {
-      "path": "packages/client/ui-settings-general/tests/settings-root.client.spec.tsx",
-      "sha256": "17c9354cf5ff168cd77c8f5ab84107be1904fbe7a08c586ec95f094a5d949f52"
-    },
-    {
-      "path": "packages/client/ui-settings-general/tests/shell.client.spec.ts",
-      "sha256": "7cdfdcf9e0fbbef8857ddfac5a2c9781f65401546080d530190504095af1263b"
-    },
-    {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "84c331ecec006f192a7b14845668e41103318aec1d13bf836d261670d58ff342"
-    },
-    {
-      "path": "pnpm-lock.yaml",
-      "sha256": "b7a0c27611c2256d5928056c346df4ea5465547858c10e4781457eaefe0881fb"
-    },
-    {
-      "path": "scripts/gen-cordis-catalog.ts",
-      "sha256": "8b4e19ca08a54d1f60d5a1a059754539a807acc718a094c1621919e207ebc351"
-    },
-    {
-      "path": "scripts/type-equiv.manifest.json",
-      "sha256": "2ddd92f921285e900aacf47248c1d1cd07eecc942fa0ae5ef3d78c62b294704b"
-    },
-    {
-      "path": "tsconfig.base.json",
-      "sha256": "1fa54033a16e569bd236c1af726fc1b4e94ec2ff6f7147bcffe169db660e2380"
+      "path": "tsconfig.host.json",
+      "sha256": "f06148736d5db209071da0429a7b8e9e3e70b4cca20dd2cde104a038c70af52f"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "packages/api/native-remote/src/capabilities.ts",
-      "sha256": "3a161bc94fcd0e60e257d5e0869fbeabd3524de84d12e5420652e9b4f78c1da6"
-    },
-    {
-      "path": "packages/api/native-remote/src/types.ts",
-      "sha256": "0134204cccfa1a046188b10a79164bae76053a842fbb52976dea4352aa2d0aa7"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/src/client/PairingPanel.tsx",
-      "sha256": "686265d0a3b33dcbcaf95e4e13926863c4dfe87d987c3bd76d9fcd0115eb8dd5"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/src/client/pairing-origin.ts",
-      "sha256": "ded28d79b7fe1cc71378f33c2cc1997ecad7fa3e295cc547edfb347cec7f2f59"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/tests/pairing-origin.client.spec.ts",
-      "sha256": "88002ffbdaedb1778c0c2083bcc6ae058bf98823e097fdba7fb0c7c97350bb35"
-    },
-    {
-      "path": "packages/client/ui-settings-devices/tests/pairing-panel.client.spec.tsx",
-      "sha256": "792fc7ae6ac1e6798787749415f3c1ccae9d9850c1678563cc27d088c5808279"
+      "path": "apps/web/tests/android-gateway.e2e.ts",
+      "sha256": "2aa56b2661c051969757012336fd67ebeccbbc0cefd0c5cdea72e37c2771859e"
     }
   ],
   "validationStatus": "PASS",
@@ -8045,6 +7857,48 @@
     },
     {
       "status": "PASS",
+      "command": "Gradle :core:test :contract:test :core:nativeGatewayClasspath --offline (core 200 executed; contract 9 up-to-date)",
+      "log": ".artifacts/android-gateway-jvm-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-gateway-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "Actual Kotlin process to shipped Host: pinned pairing, acknowledgements, RPC, mux, revocation, restoration and close",
+      "log": ".artifacts/android-gateway-host-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-gateway-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -b tsconfig.host.json tsconfig.client.json",
+      "log": ".artifacts/android-gateway-types-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-gateway-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx scripts/run-oxlint.ts .",
+      "log": ".artifacts/android-gateway-lint-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-gateway-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx scripts/run-gates.ts doc-sync (36 gates)",
+      "log": ".artifacts/android-gateway-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/android-gateway-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs (6 tests)",
+      "log": ".artifacts/android-gateway-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/android-gateway-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/android-gateway-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/android-gateway-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -8775,7 +8629,186 @@
       ]
     }
   },
+  "androidGateway": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/android-gateway-source.json",
+    "scope": "Sections 13, 14, 21, 28, 70 and 71: current Native Remote pairing and API-2 Connection RPC/mux consumption in the production Kotlin core, verified against the actual Host profile. Android shell selection and domain migration remain open.",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "limitations": [
+      "Core JVM tests execute 200 cases in 38 suites with no skips or failures, including 12 new native protocol cases. Contract tests retain the Gradle up-to-date result for their unchanged 9 cases; no fresh execution of those 9 is claimed.",
+      "A real JVM process uses the production Kotlin client against the shipped Host profile: wrong pin sends no redeemable request, single use and acknowledgement checks reject, prior credentials survive rejected acknowledgements, viewer calls are permission checked, event/business streams run concurrently, cancellation is isolated, revocation reaches both surfaces, restored revoked grants refuse, and awaited close permits process exit.",
+      "The shared core transport is not selected by CompanionRuntime. Legacy shell domain models and diagnostics still require migration; no Android UI, emulator, physical device, QR camera, release signing or Swift adoption is claimed.",
+      "This library has no model call or UI-visible wiring in the app. No recorded-session snapshot or live model acceptance is claimed. Native lifecycle stress and platform qualification remain separate acceptance work.",
+      "Host/Client types, lint, 36 documentation gates and traceability checks pass. An initially misclassified Host integration test caused TypeScript source-tree emission; its compiler face is corrected and 680 generated untracked outputs were removed after checking paired TypeScript sources."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Select NativeGatewayClient in CompanionRuntime, replace legacy app pairing, qualify secure credential restoration, and migrate interaction/session/workspace consumers against the current Gateway. The actual Kotlin core now talks to Host, while the Android shell still selects LinkClient.",
+        "Swift adoption, native diagnostics, discovery/Relay, physical devices, signing and released N/N-1/N-2 interoperability remain open.",
+        "Continue all unresolved specification acceptance rows; completeRc remains false. Remote publication and CI dispatch remain blocked by automatic approval pending fresh user authorization."
+      ]
+    }
+  },
   "nativePairingPresentation": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/android-gateway-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json",
     "scope": "Sections 7, 20, 21, 28, 70 and 71: capability-gated operator pairing in Devices settings, public administrator-only TLS metadata, transient single-use QR/JSON, role/address validation and generation/expiry cleanup. Body-portaled Settings and phone navigation keep pairing actions reachable when the sidebar drawer closes.",
@@ -20973,7 +21006,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/android-gateway-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -21456,7 +21489,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "e2ff2bb44e00d4606e98fa097daaf5d6fd2a62ae4805493064816a04ba2eaeda"
+        "sha256": "a34371238f272f0dd10ed3b6783bc82e457fd0cd69833ac29daff08785cdcbe2"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

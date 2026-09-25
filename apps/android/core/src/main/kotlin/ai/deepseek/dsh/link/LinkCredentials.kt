@@ -20,6 +20,8 @@ data class LinkCredentials(
     val pinnedFingerprint: String,
     /** Base64 of the Ed25519 private key's 32 raw bytes. */
     val signingKeyBase64: String,
+    /** Native Gateway credentials are distinct from historical Link identities. */
+    val transportFormat: String? = null,
 ) {
     /** The raw private key bytes, or null when the stored form is not base64. */
     val signingKeyRaw: ByteArray?
@@ -96,6 +98,7 @@ class FileLinkCredentialsStore(
             put("endpoint", endpoint)
             put("pinnedFingerprint", pinnedFingerprint)
             put("signingKeyBase64", signingKeyBase64)
+            transportFormat?.let { put("transportFormat", it) }
         }
         return json.encodeToString(element)
     }
