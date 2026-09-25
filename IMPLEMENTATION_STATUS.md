@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Web 主机书签与同源访问（§28、§71）
+
+[当前来源记录](artifacts/upstream-first/browser-host-origin-source.json)记录 Web 书签动作遵守本地载体的 Origin 防线：跨源行只提供独立主机页面，不提供无法完成的页内切换；普通 Web 的 Connection 服务拒绝跨源书签选择，不改变当前连接与存储。启动时清除无法使用的持久化选择，仍保留书签，并正常恢复页面 Host。同源选择、底层 retarget 及显式 fixture/注入式载体的归属保持明确。
+
+本轮 Connection/Hosts 239 项定向测试、类型、完整构建、lint、36 项文档门禁、需求追踪和 Gate 0 通过。真实双 Host 与 Chrome 分别授权后，目标 RPC 直接调用为 200 且结果成功，而浏览器跨源请求即使带 credentials include，CDP 观察到的预检仍为 403。正式浏览器两项场景完成快照刷新与只读回放，覆盖隐藏跨源切换、保留页面链接及无效启动选择恢复。未更改 Cookie、CORS 或 localhost 防线；§71 原生加密 Remote Connection Source、强制设备身份、配对及物理平台采用仍开放。临时探针的包解析/预检观察以及正式场景的共享浏览器上下文均在封存前修正并复验。
+
 ## Diff 高亮、虚拟化与文件导航（§34）
 
-[当前来源记录](artifacts/upstream-first/diff-rich-viewer-source.json)记录按 hunk 分离旧/新文本的共享 Shiki 高亮、懒加载语法观察与渲染器滚动区内的行虚拟化。文件头解码复用 diff 库；打开文件绑定补丁原属 Session，并拒绝 Host 替换或插件销毁后的导航。二进制与未知扩展名跳转复用文件预览的 MIME 推断及事实卡。虚拟化限制挂载 DOM，不宣称限制已加载文本或 token 内存；split diff 仍为可选未实现项。
+[历史来源记录](artifacts/upstream-first/diff-rich-viewer-source.json)记录按 hunk 分离旧/新文本的共享 Shiki 高亮、懒加载语法观察与渲染器滚动区内的行虚拟化。文件头解码复用 diff 库；打开文件绑定补丁原属 Session，并拒绝 Host 替换或插件销毁后的导航。二进制与未知扩展名跳转复用文件预览的 MIME 推断及事实卡。虚拟化限制挂载 DOM，不宣称限制已加载文本或 token 内存；split diff 仍为可选未实现项。
 
 §28 同轮修正 Hosts 的服务归属：书签选择、返回本页与忘记书签的持久化归 Connection 公共服务，Settings 只消费注入服务，移除违规 runtime external。文档预览 372 项定向测试及 Connection/Hosts 236 项测试通过；元数据后续边界修正 8 项通过。类型、完整构建、lint、36 项文档门禁、包依赖与 NodeNext 检查通过。最新构建上的 Diff 和 Hosts 两项真实隔离 Host/Chrome 回放通过，覆盖桌面和 375px 视口、TS/懒加载 Python 高亮、键盘导航、ZIP 未知后缀事实卡、复制原文与 64→101 行加载。真实跨源认证、真机平台、硬件及签名验收仍开放；既有 Windows pdf-license-bundle 子进程用例按文件排除。
 

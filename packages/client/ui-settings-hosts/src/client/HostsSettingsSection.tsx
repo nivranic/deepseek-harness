@@ -65,7 +65,7 @@ function HostRow(
         </p>
       )}
       <div className={css.actions}>
-        {!selected && !inProcess && (
+        {!selected && !inProcess && row.origin === pageOrigin && (
           <button type="button" data-host-switch onClick={() => { onSwitch(row.hostId) }}>{t('switch')}</button>
         )}
         <button type="button" data-host-forget onClick={() => { onForget(row.hostId) }}>{t('forget')}</button>

@@ -147,4 +147,43 @@ describe('boot selection persistence', () => {
     const connection = ctx.get('connection') as ConnectionHandle
     expect(connection.targetOrigin()).toBeUndefined()
   })
+
+  it('keeps a served page on its own Host when storage selected a different origin', async () => {
+    stubStorage(ROSTER, 'h-boot')
+    ;(globalThis as BrowserGlobal).location = { hostname: 'localhost', search: '', origin: 'http://localhost' }
+    const ctx = new Context()
+    contexts.add(ctx)
+    await ctx.plugin({ apply, inject: [] })
+    const connection = ctx.get('connection') as ConnectionHandle
+    expect(connection.targetOrigin()).toBeUndefined()
+    expect(connection.savedHosts.list()).toEqual(ROSTER)
+    expect(globalThis.localStorage.getItem('dsh-selected-host.v1')).toBeNull()
+  })
+
+  it('restores a same-origin served-page bookmark before connecting', async () => {
+    stubStorage(ROSTER, 'h-boot')
+    ;(globalThis as BrowserGlobal).location = { hostname: 'workstation.local', search: '', origin: 'https://workstation.local:8787' }
+    const ctx = new Context()
+    contexts.add(ctx)
+    await ctx.plugin({ apply, inject: [] })
+    const connection = ctx.get('connection') as ConnectionHandle
+    expect(connection.targetOrigin()).toBe('https://workstation.local:8787')
+    expect(globalThis.localStorage.getItem('dsh-selected-host.v1')).toBe('h-boot')
+  })
+
+  it('rejects cross-origin selection without retiring the selected page Host or changing storage', async () => {
+    const local = { ...ROSTER[0], hostId: 'page', origin: 'http://localhost' }
+    stubStorage([...ROSTER, local], 'page')
+    ;(globalThis as BrowserGlobal).location = { hostname: 'localhost', search: '', origin: 'http://localhost' }
+    const ctx = new Context()
+    contexts.add(ctx)
+    await ctx.plugin({ apply, inject: [] })
+    const connection = ctx.get('connection') as ConnectionHandle
+    const retarget = vi.spyOn(connection, 'retarget')
+    expect(connection.selectSavedHost('h-boot')).toBeUndefined()
+    expect(retarget).not.toHaveBeenCalled()
+    expect(connection.targetOrigin()).toBe('http://localhost')
+    expect(globalThis.localStorage.getItem('dsh-selected-host.v1')).toBe('page')
+    expect(connection.savedHosts.list()).toHaveLength(2)
+  })
 })

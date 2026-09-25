@@ -75,7 +75,7 @@ describe('HostsSettingsSection', () => {
 
   it('selects a row, then hides its action notice after an external target change', () => {
     const h = bench()
-    render(<HostsSettingsSection {...h.props} />)
+    render(<HostsSettingsSection {...h.props} pageOrigin="https://work.local" />)
     fireEvent.click(screen.getByRole('button', { name: en.switch }))
     expect(h.face.switchTo).toHaveBeenCalledExactlyOnceWith('work')
     expect(screen.getByText(en.switchedTo.replace('{name}', 'Workstation'))).toBeDefined()
@@ -105,12 +105,15 @@ describe('HostsSettingsSection', () => {
     expect(screen.getByText(en.empty)).toBeDefined()
   })
 
-  it('links only cross-origin routable Hosts to browser authorization', () => {
+  it('offers a separate page instead of an in-page switch for cross-origin Hosts', () => {
     const h = bench([...ROWS, { ...ROWS[0]!, hostId: 'page', origin: 'https://page.local' }])
     render(<HostsSettingsSection {...h.props} />)
     const link = screen.getByRole<HTMLAnchorElement>('link', { name: en.openHost })
     expect(link.href).toBe('https://work.local/')
     expect(link.rel).toBe('noopener noreferrer')
     expect(link.target).toBe('_blank')
+    expect(document.querySelector('[data-host-id="work"] [data-host-switch]')).toBeNull()
+    expect(document.querySelector('[data-host-id="page"] [data-host-switch]')).not.toBeNull()
+    expect(screen.getByText(en.pairingHint)).toBeDefined()
   })
 })

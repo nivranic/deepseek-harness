@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The **Hosts** section shows every Host this page has reached, straight from the local saved-Host roster: display name, platform, origin, and last-connected time. One click switches the connection to a saved Host through the section 28 seam — unary calls and the stream carrier both retarget — and the switch persists across page reloads; returning to the page Host clears the selection at any time. The selected row is marked, its switch action hides, and in-page rows carry no origin to target, so they never offer a switch.
+The **Hosts** section shows the page’s saved Hosts: display name, platform, origin and last-connected time. Same-origin bookmarks support persisted in-page selection; other origins open in their own Host pages and offer no in-page switch. In-page sessions have no routable origin.
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ The section is always available: the roster is local page state, so it registers
 
 ### Switching Hosts
 
-Open the **Hosts** section in Settings. Each row names the Host, tags its platform when known, and shows the origin together with the last-connected time. **Switch** on one row routes through `connection.selectSavedHost` — the row origin flows into `connection.retarget` and the hostId persists under `dsh-selected-host.v1`, so the next reload applies the selection before any loop runs. The selected row gains the Selected tag and loses its switch action; **Back to the page Host** clears the selection and the persisted id together. **Forget** removes the bookmark and its persisted selection without disconnecting the active Host. Selecting a row does not prove that authentication or connection establishment has succeeded. Cross-origin rows link to the Host page; first-time authorization requires that Host’s current launch link.
+Open **Hosts** in Settings. **Switch** on a same-origin row calls `connection.selectSavedHost`; the selected row is marked, and **Back to the page Host** clears the selection and persisted id. **Forget** removes a bookmark and its persisted selection without disconnecting the active Host. Cross-origin rows offer a separate page link only; use that Host’s current launch link if its page requires authorization. Authorization does not grant the current page cross-origin API access.
 
 -----
 
@@ -39,7 +39,7 @@ Open the **Hosts** section in Settings. Each row names the Host, tags its platfo
 One React section plus its registration; all data is local. The feature imports Connection types only and invokes the injected service for selection, page-Host return and forgetting; Connection owns selection persistence.
 
 - **The face** — framework selector hooks observe the saved roster and `connection.target`. External selections update the section immediately. Switching uses [`connection.selectSavedHost`](../connection/README.md); an unknown id leaves the connection and persistence unchanged.
-- **Persistence** — the selection rides `dsh-selected-host.v1` through `browserSelectedHostPersistence`; the Connection plugin applies a persisted id at boot before any carrier or loop exists, so applying is a pure assignment. A missing or in-process row keeps the page Host.
+- **Persistence** — Connection restores same-origin selections before the carrier starts, clearing unusable persisted selections while retaining bookmarks; the [Connection README](../connection/README.md) owns storage rules.
 
 -----
 
@@ -65,7 +65,7 @@ None; this package neither assembles nor sends a provider request.
 <a id="known-limitations-and-deferred-work"></a>
 
 - Browser storage can be unavailable or full; the live selection remains usable, but a reload may lose the change.
-- A cross-origin Host additionally needs its own browser-trust pairing before calls succeed; switching only redirects the carriers.
+- The local Web carrier does not support in-page cross-origin connections. Native Remote access requires a separate Connection Source with Device Trust.
 - No roster editing beyond Forget; sorting stays most-recent-first.
 
 <a id="dev-note"></a>

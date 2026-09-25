@@ -14,7 +14,7 @@ Connection owns an observable selected origin independently of its admitted gene
 
 The roster is a bookmark collection. Forgetting a selected bookmark clears its persisted selection but leaves the active connection running. Restricted or full browser storage cannot prevent in-memory selection. Restored bookmarks validate their origins before becoming routable targets.
 
-Cross-origin rows explain authorization and link to the Host page without storing launch credentials. First-time authorization requires the target Host’s current launch link. The [browser authentication decision](2026-08-24-browser-token-authentication.md) retains token and cookie ownership; the [Host descriptor decision](2026-09-16-host-description-and-capabilities.md) retains admission and operation-capability ownership.
+Cross-origin rows offer a separate Host page without launch credentials or an in-page switch. The target page can still require its current launch link; that grants no cross-origin access to the original page. Served-Web `selectSavedHost` refuses cross-origin bookmarks without changing the connection or storage, and boot clears unusable persisted selections while retaining bookmarks. Low-level retargeting remains available to explicit carrier compositions. The [browser trust decision](2026-07-28-api-browser-trust-boundary.md) and [browser authentication decision](2026-08-24-browser-token-authentication.md) retain Origin checks and cookie ownership; page authorization does not replace Remote Device Trust.
 
 Selection actions and persistence belong to the injected Connection service. Settings imports its types and delegates to `selectSavedHost`, `usePageHost` and `forgetSavedHost`. This preserves the feature-package rule against importing another plugin’s Client runtime and keeps storage policy at the same owner as boot selection.
 
@@ -30,6 +30,6 @@ Selection actions and persistence belong to the injected Connection service. Set
 
 ## Consequences
 
-Settings reflects external selections without polling and keeps bookmark actions separate from connection lifetime. A selection can remain visible while authentication or transport establishment fails. Cross-origin authorization guidance does not establish browser trust, CORS support or physical-platform interoperability.
+Settings reflects external selections without polling and separates bookmark actions from connection lifetime. Local Web refuses cross-origin CORS preflight even after the browser independently authorizes both Hosts. Separate-page access preserves that defense; native Remote access and physical-platform acceptance remain separate.
 
-Connection tests cover endpoint recording, observer ordering and containment, invalid origins and unavailable storage. Settings tests cover framework subscriptions, selection persistence and forgetting without disconnecting. The browser scenario owns the rendered selection and authorization-guidance snapshot; physical-platform and cross-origin connection acceptance remain separate.
+Connection tests cover endpoint recording, observer containment, unavailable storage and same-origin versus cross-origin selection recovery. Settings covers framework subscriptions and bookmark actions; the real two-Host browser scenario confirms preflight remains 403 after independent authorization and an unusable persisted selection cannot block page-Host recovery.

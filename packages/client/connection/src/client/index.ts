@@ -156,8 +156,9 @@ export interface ConnectionHandle {
   readonly savedHosts: SavedHostsStore
   /**
    * Select a routable bookmark and persist its identity after retargeting.
+   * The served Web carrier accepts only its page origin; other Hosts need their own page.
    * @param hostId - saved Host identity.
-   * @returns the selected row, or undefined for an absent or in-process bookmark.
+   * @returns the selected row, or undefined for an absent, in-process or unsupported-origin bookmark.
    */
   selectSavedHost(hostId: string): SavedHost | undefined
   /** Return to the page Host and clear the persisted selection. */
@@ -251,14 +252,17 @@ export function apply(ctx: Context): void {
   let owner: ConnectionOwner | undefined
   let selectedOrigin: string | undefined
   const savedHosts = new SavedHostsStore(browserSavedHostsPersistence())
-  // Apply the cross-session selection before any carrier exists: a row that is
-  // missing or recorded in-process keeps the page Host; no loop runs yet, so
-  // applying is a pure assignment, never a reconnect.
+  const browserHttp = httpPageOrigin !== undefined && fixtureRpc === undefined && transport === undefined
+  const canSelectBookmark = (row: SavedHost | undefined): row is SavedHost => row !== undefined
+    && row.origin !== 'in-process' && (!browserHttp || row.origin === httpPageOrigin)
+  // A served page cannot authorize cross-origin RPC. Keep its bookmarks but
+  // discard unsupported persisted selections before any connection starts.
   const selectedHostPersistence = browserSelectedHostPersistence()
   const selectedHostId = selectedHostPersistence?.read()
   if (selectedHostId !== undefined) {
     const row = savedHosts.list().find(item => item.hostId === selectedHostId)
-    if (row !== undefined && row.origin !== 'in-process') selectedOrigin = row.origin
+    if (canSelectBookmark(row)) selectedOrigin = row.origin
+    else selectedHostPersistence?.clear()
   }
   const rpc = fixtureRpc ?? transport?.rpc ?? createWebConnectionRpc(
     transport?.fetch, transport?.openStream, () => owner?.controller.captureAuthenticationFailure(),
@@ -345,6 +349,7 @@ export function apply(ctx: Context): void {
     },
     targetOrigin: () => selectedOrigin,
     selectSavedHost(hostId) {
+      if (!canSelectBookmark(savedHosts.list().find(row => row.hostId === hostId))) return undefined
       const row = switchToSavedHost(handle, hostId)
       if (row !== undefined) selectedHostPersistence?.write(hostId)
       return row

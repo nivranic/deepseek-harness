@@ -14,7 +14,7 @@ Connection 独立于获准世代持有所选 origin 的可观察状态。重定�
 
 名册是一组书签。忘记选中书签会清除其持久化选择，但当前连接继续运行。浏览器存储受限或已满不能妨碍内存中的选择。恢复的书签在成为可路由目标前校验 origin。
 
-跨源行解释授权要求，并提供不保存启动凭据的主机页面链接。首次授权需要目标 Host 当前的启动链接。[浏览器认证决策](2026-08-24-browser-token-authentication.zh.md)继续拥有 token 与 cookie；[Host 描述符决策](2026-09-16-host-description-and-capabilities.zh.md)继续拥有接入与操作能力。
+跨源行提供不含启动凭据的独立主机页面链接，不提供页内切换。目标页仍可能需要当前启动链接授权；这不会授予原页面跨源访问权限。普通 Web 的 `selectSavedHost` 拒绝跨源书签且不改变连接或存储，启动时清除不可用的持久化选择但保留书签。底层 retarget 继续服务显式载体组合。[浏览器信任决策](2026-07-28-api-browser-trust-boundary.zh.md)与[浏览器认证决策](2026-08-24-browser-token-authentication.zh.md)继续拥有 Origin 检查及 cookie；Remote Device Trust 不由页面授权替代。
 
 选择动作与持久化属于注入的 Connection 服务。Settings 导入其类型，并委托 `selectSavedHost`、`usePageHost` 与 `forgetSavedHost`。这遵守功能包不得导入其他插件 Client 运行时的规则，也让存储策略与启动选择由同一模块负责。
 
@@ -30,6 +30,6 @@ Connection 独立于获准世代持有所选 origin 的可观察状态。重定�
 
 ## 结果
 
-Settings 无需轮询即可反映外部选择，并将书签动作与连接生命周期分开。授权或传输建立失败时，选择仍可显示。跨源授权提示不代表已建立浏览器信任、CORS 支持或物理平台互操作。
+Settings 无需轮询即可反映外部选择，并将书签动作与连接生命周期分开。本地 Web 不响应跨源 CORS 预检；即使同一浏览器分别授权两台 Host，原页面仍无法调用目标 Host 的 API。独立页面访问保留此防线，原生 Remote 接入与物理平台验收保持独立。
 
-Connection 测试覆盖端点记录、观察者顺序与异常隔离、无效 origin 和不可用存储。Settings 测试覆盖框架订阅、选择持久化及忘记而不断连。浏览器场景拥有渲染后的选择与授权提示快照；物理平台与跨源连接验收仍独立进行。
+Connection 测试覆盖端点记录、观察者异常隔离、不可用存储及同源/跨源选择恢复。Settings 覆盖框架订阅与书签操作；真实双 Host 浏览器场景确认独立授权后预检仍为 403，并验证无效持久化选择不会阻止页面 Host 恢复。

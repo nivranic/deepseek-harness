@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/browser-host-origin-source.json",
+    "sha256": "8dcf68d891dc37337e634085f2c551da5292bc79f0baf93d1d7f1321dc36fa1f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a6d64f7cdcc0975c634802368825d426501fab10a8e186b40cf1358a917149c4"
+  },
+  "helper": {
+    "path": ".artifacts/check-browser-host-origin-binding.mjs",
+    "sha256": "0a2fa96fcddd7628528b86d00d612f3995bf1f8aece9d9d2134c2b8b8ac41389"
+  }
+}

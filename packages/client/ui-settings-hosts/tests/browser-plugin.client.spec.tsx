@@ -18,7 +18,7 @@ const ROWS: readonly SavedHost[] = [{
   hostId: 'h-1',
   displayName: 'Workstation',
   platform: 'win32',
-  origin: 'https://workstation.local:8787',
+  origin: location.origin,
   lastConnectedAt: 1,
 }]
 
@@ -82,7 +82,7 @@ describe('ui-settings-hosts browser plugin', () => {
     expect(face.hooks.savedHosts.getSnapshot()).toEqual(ROWS)
     expect(face.hooks.selectedOrigin.getSnapshot()).toBeUndefined()
     expect(face.switchTo('h-1')).toMatchObject({ hostId: 'h-1' })
-    expect(b.retarget).toHaveBeenCalledExactlyOnceWith('https://workstation.local:8787')
+    expect(b.retarget).toHaveBeenCalledExactlyOnceWith(location.origin)
     expect(b.storage.get('dsh-selected-host.v1')).toBe('h-1')
 
     face.useLocalHost()
