@@ -4,102 +4,86 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
+      "path": ".agents/notes/implemented/architecture/2026-09-08-document-preview-operations.i18n.yaml",
+      "sha256": "276456155cc921fb10103fb7b75ef08ce333087cc8affe4b092fbb5e746cd5ec"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-08-document-preview-operations.md",
+      "sha256": "095d4b3cc13720cde089816a11d4328aae72d2ccba8430b2302f3c02b0ec93b3"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-08-document-preview-operations.zh.md",
+      "sha256": "f62a1368874dec592878e0754bddfced59ab72f9c445fa0f66ad7cab960db2a5"
+    },
+    {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "794c010cc6b153240b2d1730a25f9f43ba656e82dcc14a43dd2d80d073f09ddf"
+      "sha256": "a9ef22d2f6dc16ebabcddee7a8a7fdbb4dc7bf62940fe10d4a887ebbf05a5a07"
     },
     {
       "path": "apps/web/tsconfig.json",
-      "sha256": "f369c9171a0410c969d30c34a3926ea63a37e260e08d18b2775c11f1536e91d7"
+      "sha256": "746252c10639a2a40d125ad2ccafa9c48a77998d100367ea26bd66e96877bc04"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "0dcbaf7fd7a5d2f376aa62637cb0c8b2159eb397bb93b67d522e7ec494b8e943"
+      "sha256": "a81122d5d9b0e0d7c7c2fbcee1f770e4e89831cf9642a163aafee65a2ce56ba5"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "2d81cd3bebe0f5eb126c5c1c105694bdf04a85fe7a799d0679456b48381db03c"
+      "sha256": "e21286edad2af44e3b2a51bb07e347d6e43b2ebc8197de7f91455a8590926c2c"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "0a3259cf24c0e6b1828603141ef4fc22af4e740db1479a28001cd27ec18df87a"
+      "sha256": "54bdd43883fcae8308b2e682331fd881abb5ed3e70628c16c68e6fc4e2238081"
     },
     {
-      "path": "packages/client/connection/README.i18n.yaml",
-      "sha256": "0c08041aaef5c410ce45d45673b41fd31def11a7b71cc4e0a13ab473dc7239ae"
+      "path": "packages/client/ui-sidebar-documentpreview/README.i18n.yaml",
+      "sha256": "a2c9f89d4f23ceea320da6ecca0b2a1504650c9daa397be29cd33f158d6383d4"
     },
     {
-      "path": "packages/client/connection/README.md",
-      "sha256": "5ae43b13745544b55c92377efeab9893563f07cc5a4fcdde3c0951d9141538ed"
+      "path": "packages/client/ui-sidebar-documentpreview/README.md",
+      "sha256": "c0a8d3eeb44a2873d83255b28874a5d2561490ba896ca4f5c71148eeea4944e3"
     },
     {
-      "path": "packages/client/connection/README.zh.md",
-      "sha256": "45786fef07133a062da379741fc7835db9bae433b0964bfb8ef91fddeea19ea2"
+      "path": "packages/client/ui-sidebar-documentpreview/README.zh.md",
+      "sha256": "d09db8c51596867572c0b6d4b3a1f620cf91476bc68ad3b2a70b64300b9c5ec6"
     },
     {
-      "path": "packages/client/connection/src/client/index.ts",
-      "sha256": "91d4b0cdc131feb2ad5c8f078388fbd87998468580fe582570ea66487bfa71ec"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/DiffBody.module.css",
+      "sha256": "110101867dcce1e482fa373334df4e6814862a864e4c32a64ee34fd027e83ee4"
     },
     {
-      "path": "packages/client/connection/src/client/saved-hosts.ts",
-      "sha256": "93413cb48f2c3f88f5694cef1ef1a918bc1d0ccbc5b54fdb63cabe6cd7ac8972"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/DiffBody.tsx",
+      "sha256": "b5f0717d96928a98bac5a003879b02f8b0c9e6e9e1f5fa99c44ab2b2f3005ad3"
     },
     {
-      "path": "packages/client/ui-settings-hosts/README.i18n.yaml",
-      "sha256": "3072d60f6013f9787bcc1b38d3c2f6ef1c72d61c674e799b80811d4b4fbd0b69"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/locales.ts",
+      "sha256": "1d012ee30c5249bd3e3cc372a13ec966c583c527c22b0d49379798c7ba39d630"
     },
     {
-      "path": "packages/client/ui-settings-hosts/README.md",
-      "sha256": "e2083c332af28caed5d083f2f0dcf969df963061b8460fb91bb284b3005551a0"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/parse.ts",
+      "sha256": "28eb19be6daa03d14605a26193e02822668458ad41a14fcec2b730baa737bedd"
     },
     {
-      "path": "packages/client/ui-settings-hosts/README.zh.md",
-      "sha256": "1a41b90fb215d3c6914f49fe2f6faad6bc7dcb446791fd442ff12ff2bcaa89a5"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
+      "sha256": "bdb242fa8fbcb4d39a263a1a135d04a69d41fe0c3549681f03b6fb1e5a82a140"
     },
     {
-      "path": "packages/client/ui-settings-hosts/src/client/HostsSettingsSection.tsx",
-      "sha256": "bf598506110c475acd756896cfe6ea05ce1d548c2954a5cfee2ac234a999b43c"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/index.ts",
-      "sha256": "f16bf8d6b3ab6978ce2bc63683a7b4384c75801dd9e328fc6425f609c83208be"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/locales.ts",
-      "sha256": "1c2c7f99b654fc4cc21f4210c25db7b7524e4f33a785bbc1057363b98d310471"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx",
-      "sha256": "a50425601c602f06c2c90a001362d589ab25e7e634b797e6fc487df5db008301"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/components.client.spec.tsx",
-      "sha256": "28775e8b9f666b4be5b023d022a2a6e94635282c78d4369c8a98f1bcaf071471"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-      "sha256": "ffcf16a9fb1cfa715fa5f68a38eb9295cb97e72649a21e116315ca672f71ed22"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-parse.client.spec.ts",
+      "sha256": "a6bc663266934a969e776552711ed774591f44f23d89beb68d5cdf41ce4b9279"
     },
     {
       "path": "tsconfig.host.json",
-      "sha256": "a0e6c44bf8b4248d242b7fd095bf4e69bce59458c76ee438d6b1218980a62c5b"
+      "sha256": "510652dd32f6eb95a2fb2b8fab4f49a054912d8d15e7b6f51d2a3e62fa0fcb6f"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/hosts-settings.e2e.ts",
-      "sha256": "0be0d95a534a192163bc8a147aaf645229c745d192dbdcf270cb540fcc4b211d"
+      "path": "apps/web/tests/diff-preview.e2e.ts",
+      "sha256": "c70e9f1fd19cc38cb66ca7c83a583f2b33305c6eb9e3c241e30ef458d610ef03"
     },
     {
-      "path": "packages/client/connection/tests/saved-hosts-storage.client.spec.ts",
-      "sha256": "70063876606740cc28821d344fcf7f145d79da46177c093e50983c98e9ee8bab"
-    },
-    {
-      "path": "packages/client/connection/tests/selection-observer.client.spec.ts",
-      "sha256": "20b1efc77caaf30fade5d3e9d56722b62f2d9daa3df351dd3753062f3061734f"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/observation.client.spec.tsx",
-      "sha256": "0b5051543b52bdbc8ceaf218dcaf53c39b805b90be6cc06cb6e8f06d61779a98"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-boundaries.client.spec.ts",
+      "sha256": "820875c13facaa4fd39baa3d523be76340ee1ca4c35bb7e2cb3e3113152b594c"
     }
   ],
   "validationStatus": "PASS",
@@ -7371,6 +7355,66 @@
     },
     {
       "status": "PASS",
+      "command": "pnpm exec vitest run <43 document-preview test files; excludes Windows pdf-license-bundle>",
+      "log": ".artifacts/diff-readable-copy-tests.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm exec vitest run packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
+      "log": ".artifacts/diff-readable-copy-copy-final.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node node_modules/typescript/bin/tsc -b tsconfig.host.json tsconfig.client.json",
+      "log": ".artifacts/diff-readable-copy-types-final.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run build",
+      "log": ".artifacts/diff-readable-copy-build.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/diff-readable-copy-lint-final.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx scripts/run-gates.ts doc-sync",
+      "log": ".artifacts/diff-readable-copy-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs",
+      "log": ".artifacts/diff-readable-copy-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/diff-readable-copy-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "DSH_SNAPSHOT=refresh pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/diff-preview.e2e.ts",
+      "log": ".artifacts/diff-readable-copy-web-refresh.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "DSH_SNAPSHOT=replay pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/diff-preview.e2e.ts",
+      "log": ".artifacts/diff-readable-copy-web-replay.log",
+      "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -8101,7 +8145,189 @@
       ]
     }
   },
+  "diffReadableCopy": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json",
+    "scope": "Section 34 unified Diff hunk extents, file-header separation, semantic row styles and raw patch clipboard actions. The copy label names a loaded prefix before EOF; failed clipboard permission and stale asynchronous feedback are contained. Real isolated Host/Chrome evidence covers desktop and 375px viewport, raw clipboard text and 64-to-101-line pagination. Before-state archive recovery verifies existing files and batches Git blob reads instead of launching Git once per file.",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "limitations": [
+      "The document-preview package passes 360 tests in 43 files; the existing Windows pdf-license-bundle subprocess case is excluded by explicit file selection. A final focused copy test rerun covers the subsequent test-only lint correction.",
+      "The browser test uses a real isolated Host, installed Chrome and a keyless recorded model. A 375px browser viewport is not physical-phone acceptance. No full-GUI, full-browser, live-provider or four-platform acceptance is claimed.",
+      "Syntax highlighting, virtualization, changed-file opening, optional split Diff, remaining multi-Host work and physical-platform/hardware/signing checks stay open. Full Upstream-First objective remains incomplete."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Section 34 syntax highlighting, large-file virtualization, open-file actions and optional desktop split Diff. Section 28 roster editing/order and real cross-origin integration; Section 10 overflow actions when toolbar contributions exist; same-candidate physical platforms remain open.",
+        "section 35 remainder — same-candidate real-device bundle runs; section 28 remainder: the selection reader is polled rather than observed, cross-origin Hosts still need their own browser-trust pairing, and no roster editing or reordering exists; section 10 overflow-menu (⋮) entries wait on a toolbar set existing; section 34 remainder — syntax highlight, split diff (Desktop), large-file virtualization, copy and open-file actions; provider/relay/device-trust/crash telemetry exits wire to telemetryKindAllowed as their producers land; iOS client adoption; cross-release interop waits for real published versions; macOS, physical devices, signing, and the orientation matrix stay hard-blocked on hardware; DEEPSEEK_API_KEY_EXTERNAL absent for e2e",
+        "Continue the N-2 diagnostics-only tier, the responsive browser matrix, and the scanner AAR chain (Go + Android NDK) that gates :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated Android shell",
+        "Build the support-scanner AAR chain (Go + Android NDK via scripts/build-mobile-support-scanner.py from native/support-scanner) to unblock :app:assembleDebug and the emulator lane; wire Gateway contract consumption into the migrated shell; continue the swift-contract CI recovery, the N-2 diagnostics-only tier and the responsive browser matrix",
+        "Re-dispatch ci.yml so the swift-contract lane re-runs with the Package.swift trailing-comma fix carried by this increment; continue Android shell migration onto the contract module, the N-2 diagnostics-only tier, and the responsive browser matrix; Device Trust roles remain the designed replacement for the deployment-wide interactionReplyPermissions switch",
+        "Wire the macOS swift-contract CI job evidence into the report once the lane runs; add payload validation in Swift only when a maintained validator exists; continue Android shell migration, Phase 4 permissions, N-2 tier and the responsive matrix",
+        "Adopt the classification in the remaining client surfaces behind locale dictionaries; design the N-2 diagnostics-only version tier over the stream protocol; add the Swift column and multi-version evidence",
+        "Migrate the Android thin shell (UI, Keystore, notifications, share, deep links) from the historical android-application-source onto this contract module; then emulator and physical-device lanes",
+        "Add the Swift column and multi-version N/N-1/N-2 consumption evidence",
+        "Route remaining client presentation switches through the shared classification behind locale-owned dictionaries; project RemoteFailureClass to Swift and Kotlin from this single source; then qualify multi-version behavior",
+        "Qualify the formal remote-error envelope beyond local Node consumption: released TS/Web and Desktop clients, Swift/Kotlin validators, multi-version N/N-1/N-2 behavior, and tuple-cardinality support or continued explicit rejection",
+        "Complete section 45 cross-platform semantic consumption and consistent Client presentation; the finite recognition schema alone does not close runtime or plugin vocabularies",
+        "Provide complete portable wire/details schemas and actual TS/Swift/Kotlin multi-version compatibility evidence without weakening unknown-code handling",
+        "Complete actual multi-version/multi-language compatibility and section 17 mutation semantics while preserving explicit legacy behavior",
+        "Continue unresolved Phase 2 and Phase 4–12 installation, recovery, shared responsive UI, diagnostics, Device Trust, Remote, native, Lite and same-candidate release qualification"
+      ]
+    }
+  },
   "hostSelectionObserver": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/diff-readable-copy-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/host-selection-observer-source.json",
     "scope": "Section 28 selected Host observations: Connection owns an observable target distinct from admitted generation; Settings consumes framework selector hooks and labels selection without asserting readiness. Retargeted browser generations record the selected endpoint. Storage denial and malformed saved origins cannot break startup. Forget removes a bookmark and persisted selection without disconnecting. Cross-origin guidance requires the target Host current launch link and never stores credentials. Real isolated Host and Chrome verify same-origin selection, return, bookmark removal and authorization guidance.",
@@ -19010,7 +19236,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/host-selection-observer-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/diff-readable-copy-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -19493,7 +19719,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "0a3259cf24c0e6b1828603141ef4fc22af4e740db1479a28001cd27ec18df87a"
+        "sha256": "54bdd43883fcae8308b2e682331fd881abb5ed3e70628c16c68e6fc4e2238081"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

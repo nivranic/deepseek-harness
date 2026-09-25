@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Diff 行语义与补丁复制（§34）
+
+[当前来源记录](artifacts/upstream-first/diff-readable-copy-source.json)记录 unified Diff 的 hunk 行数约束、跨文件头区分、零长度侧和安全数值校验；增删行样式接入主题色并带符号，hunk 背景与行号正确显示。复制直接使用累计补丁原文，未完整加载时明确标为复制已加载内容；剪贴板权限失败显示失败，文件替换与销毁抑制迟到反馈。
+
+本轮文档预览包 360 项测试通过（显式排除既有 Windows pdf-license-bundle 子进程用例），测试 lint 修正后又完成复制组件定向复验；Host/Client 类型检查、完整构建、lint、36 项文档门禁、需求追踪和 Gate 0 通过。真实隔离 Host 与已安装 Chrome 在桌面及 375px 视口完成快照刷新和只读回放，验证文件头、增删行、剪贴板原文及 64→101 行滚动加载；视口模拟不等于手机真机验收。语法高亮、虚拟化、打开变更文件与可选 split diff 仍开放。中断的修改前归档已逐项校验并补齐，批量 Git blob 读取复用 1197 项、写入 4610 项，共 5807 项。
+
 ## 主机选择观察与书签归属（§28）
 
-[当前来源记录](artifacts/upstream-first/host-selection-observer-source.json)记录 Connection 独立于获准世代发布所选 origin，Settings 经框架钩子同步观察选择与名册；切换先退出旧世代，再通知新选择，已建立浏览器世代记录实际目标 origin。浏览器存储受限或配额不足不妨碍内存选择，恢复的名册校验 origin 并遵守数量上限。忘记当前书签清除持久化选择但不断连，回本页 Host 是独立动作；跨源行提示用目标 Host 当前启动链接授权，并提供不携带凭据的页面链接。已选择不等于已连接。
+[历史来源记录](artifacts/upstream-first/host-selection-observer-source.json)记录 Connection 独立于获准世代发布所选 origin，Settings 经框架钩子同步观察选择与名册；切换先退出旧世代，再通知新选择，已建立浏览器世代记录实际目标 origin。浏览器存储受限或配额不足不妨碍内存选择，恢复的名册校验 origin 并遵守数量上限。忘记当前书签清除持久化选择但不断连，回本页 Host 是独立动作；跨源行提示用目标 Host 当前启动链接授权，并提供不携带凭据的页面链接。已选择不等于已连接。
 
 本轮 237 项定向测试、Host/Client 类型检查、完整构建、lint、36 项文档门禁、6 项追踪检查和 Gate 0 通过；真实隔离 Host 与已安装 Chrome 完成同源选择、回本页、忘记书签、跨源提示的快照刷新及只读回放。跨源示例书签未被连接；不宣称跨源配对、CORS、在线模型或四平台同候选验收通过。名册编辑与排序、真实跨源集成及物理平台验收保持开放，完整目标未完成。
 

@@ -19,11 +19,12 @@ export type DiffRow =
 
 /**
  * Parse accumulated unified-diff text into display rows. Lines before the first
- * hunk header stay visible as preamble (`---`/`+++` file headers included); a
+ * hunk header or after its declared extents stay visible as preamble; a
  * body line without a hunk prefix — a truncated or malformed hunk — is shown as
  * preamble too rather than dropped or numbered. `\`-prefixed notes such as the
  * missing trailing newline carry no line numbers. The closed vocabulary ends at
- * these six row types.
+ * these six row types. Git file separators end an incomplete hunk. Unsafe
+ * numeric coordinates stay visible without source line numbers.
  * @param text - unified-diff text; pages join with `\n` and carry no trailing terminator.
  * @returns the parsed rows, empty for empty text.
  */
@@ -32,36 +33,62 @@ export function parseUnifiedDiff(text: string): readonly DiffRow[] {
   const rows: DiffRow[] = []
   let oldLine = 0
   let newLine = 0
-  let inHunk = false
+  let oldRemaining = 0
+  let newRemaining = 0
+  let noteAllowed = false
   for (const line of text.split('\n')) {
     const header = HUNK_HEADER.exec(line)
     if (header !== null) {
-      oldLine = Number(header[1])
-      newLine = Number(header[3])
-      inHunk = true
-      rows.push({ type: 'hunk', text: line, oldStart: oldLine, newStart: newLine })
+      const oldStart = Number(header[1])
+      const newStart = Number(header[3])
+      const oldCount = Number(header[2] ?? 1)
+      const newCount = Number(header[4] ?? 1)
+      noteAllowed = false
+      oldRemaining = 0
+      newRemaining = 0
+      if ([oldStart, newStart, oldCount, newCount, oldStart + oldCount, newStart + newCount].every(Number.isSafeInteger)) {
+        oldLine = oldStart
+        newLine = newStart
+        oldRemaining = oldCount
+        newRemaining = newCount
+        rows.push({ type: 'hunk', text: line, oldStart, newStart })
+      } else {
+        rows.push({ type: 'preamble', text: line })
+      }
       continue
     }
-    if (inHunk && line.startsWith(' ')) {
+    if (line.startsWith('diff --git ')) {
+      oldRemaining = 0
+      newRemaining = 0
+    }
+    if (oldRemaining > 0 && newRemaining > 0 && line.startsWith(' ')) {
       rows.push({ type: 'context', text: line.slice(1), oldLine: oldLine, newLine })
       oldLine += 1
       newLine += 1
+      oldRemaining -= 1
+      newRemaining -= 1
+      noteAllowed = true
       continue
     }
-    if (inHunk && line.startsWith('-')) {
+    if (oldRemaining > 0 && line.startsWith('-')) {
       rows.push({ type: 'del', text: line.slice(1), oldLine })
       oldLine += 1
+      oldRemaining -= 1
+      noteAllowed = true
       continue
     }
-    if (inHunk && line.startsWith('+')) {
+    if (newRemaining > 0 && line.startsWith('+')) {
       rows.push({ type: 'add', text: line.slice(1), newLine })
       newLine += 1
+      newRemaining -= 1
+      noteAllowed = true
       continue
     }
-    if (inHunk && line.startsWith('\\')) {
+    if (noteAllowed && line.startsWith('\\')) {
       rows.push({ type: 'note', text: line })
       continue
     }
+    noteAllowed = false
     rows.push({ type: 'preamble', text: line })
   }
   return rows

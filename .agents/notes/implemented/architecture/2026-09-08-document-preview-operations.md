@@ -20,6 +20,8 @@ Readable files use `dsh-resource://file/session/<sessionId>/<path>`. The path ma
 
 Markdown and code reuse the incremental primitives with cumulative paged text. HTML, PDF, and images read complete `Uint8Array<ArrayBuffer>` data; Host transport remains base64. Published buffers are borrowed read-only and never persist into layout or Session JSON. PDF.js runs in an owned Worker with version-matched bundled font and decoder data, and copies input before transfer to preserve Preview's retained buffer. HTML runs in a Blob iframe with `sandbox="allow-scripts"`, without same-origin, popup, form, download, or top-navigation privileges. The browser retains its normal external-network rules. Bounded static local JS/CSS reads stay in the parent; the opaque frame creates its own asset Blobs, because it cannot load parent-origin Blobs. PNG, JPEG, GIF, WebP, BMP, ICO, and SVG use image-specific Blob URLs in an `<img>` static-image context. They retain intrinsic CSS-pixel dimensions; auto margins centre images smaller than the shared scroller, while larger dimensions extend its horizontal or vertical scroll range. The renderer provides no zoom or drag-to-pan. SVG markup never enters the application DOM or an iframe, so scripts remain inert and cannot reach the parent page. Replacing HTML or an image revokes its root Blob URL.
 
+Unified diff source numbering consumes the old and new counts declared by each hunk. This distinguishes subsequent file headers from deleted or added source that itself starts with dashes or plus signs. Zero-length sides have no numbered rows; unsafe numeric coordinates and excess input remain visible without invented positions. Row signs and theme colors convey additions and deletions. Copy uses the accumulated source text, not the rendered gutters or reconstructed rows, and labels a partial prefix explicitly. Clipboard feedback belongs to the current content and resource address; replacement or disposal suppresses late results.
+
 ## Alternatives considered
 
 **Methods attached to an Iterator or its values.** This conflates observation with commands and repeats capability identity in data frames. Frames carry data and failures; explicit Preview RPC callbacks perform reads.
@@ -35,6 +37,10 @@ Markdown and code reuse the incremental primitives with cumulative paged text. H
 **A local server, virtual host, or `file:` iframe.** These require extra hosting or filesystem authority. The preview is for static generated pages, not a complete application runtime; modules, dynamic filesystem requests, and arbitrary nested asset graphs are outside its support.
 
 **Sanitize SVG into the application DOM or an iframe.** A sanitizer would add a second SVG parser and an evolving active-content policy before placing untrusted markup in an interactive document. The `<img>` static-image context preserves native SVG rendering and intrinsic dimensions without giving the markup a script-capable DOM.
+
+**Recognize every dash-prefixed file header regardless of hunk position.** Source lines can contain the same prefixes. Declared hunk extents distinguish those lines without discarding patch text; an explicit Git file separator also closes an incomplete hunk.
+
+**Copy rendered row text.** Display gutters and signs are presentation data, and row parsing removes patch prefixes. The retained loaded text is the copy source; no whole-file read is implied by copying a partial preview.
 
 ## Consequences
 

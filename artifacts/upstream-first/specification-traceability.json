@@ -3921,9 +3921,12 @@
       "owner": "共享 Diff、文件与 Artifact",
       "candidateEvidence": [
         "artifacts/upstream-first/file-upload-capability-source.json",
-        "artifacts/upstream-first/upload-home-replay-source.json"
+        "artifacts/upstream-first/upload-home-replay-source.json",
+        "packages/client/ui-sidebar-documentpreview/tests/diff-boundaries.client.spec.ts",
+        "packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
+        "apps/web/tests/diff-preview.e2e.ts"
       ],
-      "remaining": "共享 Diff viewer 已落地第一切片：ui-sidebar-documentpreview 新增 builtin diff 渲染器（.diff/.patch，text-pages 模式，无换行声明）——parseUnifiedDiff 纯解析器输出闭集行类型（preamble/hunk/context/add/del/note，缺 hunk 前缀的正文行作前导可见不编号），DiffBody 以两列行号槽渲染 hunk 头两侧起始行号、上下文与增删行着色，手机端默认 unified 即此共享渲染器（packages/client/ui-sidebar-documentpreview/src/client/diff/；解析 8 例 + 渲染 4 例 + 注册 2 例测试）。仍未完成：语法高亮、split diff（Desktop 可选）、大文件虚拟化、copy 与 open file 动作、以及与 §35 binary/unknown-MIME 呈现卡的联动。",
+      "remaining": "共享 unified Diff 查看器支持 .diff/.patch，按 hunk 声明的旧/新行数编号，零长度侧、后续文件头、Git 文件分隔及不安全数值坐标均有边界测试；增删行显示符号和主题色，hunk 样式正确绑定。复制取累计补丁原文，不包含显示行号，部分内容显式使用 Copy loaded diff；权限拒绝及文件替换后的迟到反馈有组件覆盖。真实隔离 Host/Chrome 在桌面与 375px 视口验证显示与复制，并由渲染器滚动区完成 64→101 行分页；预期刷新及只读回放通过。这些是浏览器与 keyless 记录模型证据，不是四平台真机验收。仍开放：源码语法高亮、Desktop split diff（可选）、大文件虚拟化、open file 动作，以及 binary/unknown-MIME 呈现联动。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

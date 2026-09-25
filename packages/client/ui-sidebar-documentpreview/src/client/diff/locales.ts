@@ -12,10 +12,18 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const zh = {
   title: '差异',
   empty: '空的差异文件',
+  copy: '复制差异',
+  copyLoaded: '复制已加载的差异',
+  copied: '已复制',
+  copyFailed: '无法复制到剪贴板',
 }
 
 /** English dictionary with the same keys. */
 export const en = {
   title: 'Diff',
   empty: 'Empty diff file',
+  copy: 'Copy diff',
+  copyLoaded: 'Copy loaded diff',
+  copied: 'Copied',
+  copyFailed: 'Could not copy to clipboard',
 } satisfies Record<keyof typeof zh, string>

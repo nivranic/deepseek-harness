@@ -21,8 +21,8 @@ describe('parseUnifiedDiff', () => {
     expect(rows[0]).toEqual({ type: 'hunk', text: '@@ -3,7 +3,8 @@ function run() {', oldStart: 3, newStart: 3 })
   })
 
-  it('treats a missing count as one line and numbers both gutters across types', () => {
-    const rows = parseUnifiedDiff('@@ -10 +12 @@\n context\n-gone\n+fresh\n keep')
+  it('numbers both gutters within the explicit line counts', () => {
+    const rows = parseUnifiedDiff('@@ -10,3 +12,3 @@\n context\n-gone\n+fresh\n keep')
     expect(rows.slice(1)).toEqual([
       { type: 'context', text: 'context', oldLine: 10, newLine: 12 },
       { type: 'del', text: 'gone', oldLine: 11 },
