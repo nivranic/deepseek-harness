@@ -68,6 +68,14 @@ export interface ConnectionGenerationState {
   subscribe(listener: () => void): () => void
 }
 
+/** Selected browser HTTP origin; readiness and admitted identity belong to generation. */
+export interface ConnectionTargetState {
+  /** @returns the selected origin, or undefined for the page Host. */
+  getSnapshot(): string | undefined
+  /** @param listener - target-change observer. @returns its subscription disposer. */
+  subscribe(listener: () => void): () => void
+}
+
 /** Observable recovery lifecycle of the owned Connection loop. */
 export interface ConnectionStateSource {
   /** Current state, or undefined before the loop starts and after it stops. */
@@ -134,6 +142,8 @@ export interface ConnectionHandle {
   readonly generation: ConnectionGenerationState
   /** Current recovery lifecycle for connection-specific consumers. */
   readonly state: ConnectionStateSource
+  /** Selected origin observations, published after the previous generation is retired. */
+  readonly target: ConnectionTargetState
   /** Generic logical RPC channels over the same Connection transport. */
   readonly rpc: ClientConnectionRpc
   /**
@@ -215,6 +225,9 @@ function watchBrowserNetwork(controller: ConnectionController): () => void {
  */
 export function apply(ctx: Context): void {
   const pageLocation = typeof location === 'undefined' ? undefined : location
+  const pageOrigin = pageLocation?.origin
+  const httpPageOrigin = pageOrigin?.startsWith('http://') === true || pageOrigin?.startsWith('https://') === true
+    ? pageOrigin : undefined
   const fixture = pageLocation !== undefined && new URLSearchParams(pageLocation.search).has('fixture')
   const fixtureRpc = fixture ? createFixtureConnectionRpc() : undefined
   const transport = (globalThis as ClientTransportGlobal).__DSH_TRANSPORT__
@@ -240,6 +253,7 @@ export function apply(ctx: Context): void {
   let state: ConnectionState | undefined
   const generationListeners = new Set<() => void>()
   const stateListeners = new Set<() => void>()
+  const targetListeners = new Set<() => void>()
   const publishGeneration = (next: ConnectionGeneration | undefined): void => {
     if (Object.is(generation, next)) return
     generation = next
@@ -278,7 +292,9 @@ export function apply(ctx: Context): void {
       hostId: descriptor.hostId,
       displayName: descriptor.displayName,
       platform: host.platform,
-      origin: pageLocation?.origin ?? 'in-process',
+      origin: fixtureRpc !== undefined || transport?.rpc !== undefined
+        ? 'in-process'
+        : selectedOrigin ?? httpPageOrigin ?? 'in-process',
       lastConnectedAt: Date.now(),
     }
     savedHosts.record(row)
@@ -290,6 +306,13 @@ export function apply(ctx: Context): void {
       subscribe: (listener) => {
         generationListeners.add(listener)
         return () => { generationListeners.delete(listener) }
+      },
+    },
+    target: {
+      getSnapshot: () => selectedOrigin,
+      subscribe: (listener) => {
+        targetListeners.add(listener)
+        return () => { targetListeners.delete(listener) }
       },
     },
     state: {
@@ -306,8 +329,18 @@ export function apply(ctx: Context): void {
     },
     targetOrigin: () => selectedOrigin,
     retarget(origin) {
-      selectedOrigin = origin === undefined ? undefined : httpOriginOf(origin)
+      const next = origin === undefined ? undefined : httpOriginOf(origin)
+      const changed = selectedOrigin !== next
+      selectedOrigin = next
       owner?.controller.reconnect()
+      if (!changed) return
+      for (const listener of [...targetListeners]) {
+        try {
+          listener()
+        } catch (error) {
+          console.error('[connection] target listener threw:', error)
+        }
+      }
     },
     registerGenerationSource(source) {
       if (generationSource !== undefined) {

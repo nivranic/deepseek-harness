@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 主机选择观察与书签归属（§28）
+
+[当前来源记录](artifacts/upstream-first/host-selection-observer-source.json)记录 Connection 独立于获准世代发布所选 origin，Settings 经框架钩子同步观察选择与名册；切换先退出旧世代，再通知新选择，已建立浏览器世代记录实际目标 origin。浏览器存储受限或配额不足不妨碍内存选择，恢复的名册校验 origin 并遵守数量上限。忘记当前书签清除持久化选择但不断连，回本页 Host 是独立动作；跨源行提示用目标 Host 当前启动链接授权，并提供不携带凭据的页面链接。已选择不等于已连接。
+
+本轮 237 项定向测试、Host/Client 类型检查、完整构建、lint、36 项文档门禁、6 项追踪检查和 Gate 0 通过；真实隔离 Host 与已安装 Chrome 完成同源选择、回本页、忘记书签、跨源提示的快照刷新及只读回放。跨源示例书签未被连接；不宣称跨源配对、CORS、在线模型或四平台同候选验收通过。名册编辑与排序、真实跨源集成及物理平台验收保持开放，完整目标未完成。
+
 ## 未知扩展名 MIME 内容推断（§35）
 
-[当前来源记录](artifacts/upstream-first/mime-inference-source.json)记录未知扩展名的有界文件头读取：Host 声明 read-bytes 能力时读取前 64 字节，PNG/JPEG/GIF/WebP/BMP/ICO 选择图片查看器，ZIP 选择二进制事实卡；文件名匹配及显式查看器选择优先，失败、无匹配和不完整签名落定后回退纯文本，不推断 HTML/SVG。读取世代与 tab/Host 生命周期丢弃迟到响应，重新加载重新推断，完整字节再次确认签名，并将图片 MIME 类型传给 Blob。修复了已有 Host 名册对 Connection 运行时导入缺少客户端模块声明的问题。
+[历史来源记录](artifacts/upstream-first/mime-inference-source.json)记录未知扩展名的有界文件头读取：Host 声明 read-bytes 能力时读取前 64 字节，PNG/JPEG/GIF/WebP/BMP/ICO 选择图片查看器，ZIP 选择二进制事实卡；文件名匹配及显式查看器选择优先，失败、无匹配和不完整签名落定后回退纯文本，不推断 HTML/SVG。读取世代与 tab/Host 生命周期丢弃迟到响应，重新加载重新推断，完整字节再次确认签名，并将图片 MIME 类型传给 Blob。修复了已有 Host 名册对 Connection 运行时导入缺少客户端模块声明的问题。
 
 本轮证据为 348 项定向测试、Host/Client 类型检查、lint、36 项文档门禁、6 项需求追踪检查和 Gate 0；真实隔离 Host 与已安装 Chrome 的文档预览场景完成预期刷新及只读回放，未知扩展名 PNG 的解码宽度为 1 像素。广域 GUI 为 5876 通过、5 失败、1 跳过：其中 Settings 名册预期和 Diff hunk 滚动条变量随后已修复，对应 28 项定向测试通过；宿主定向复测为 50 通过、1 失败、1 跳过，唯一失败为创建 symlink 的 EPERM；未重跑整个 GUI 套件。该证据不代表真实模型或四平台同候选验收，完整目标仍未完成。
 

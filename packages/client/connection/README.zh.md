@@ -55,9 +55,9 @@ API Gateway Client 把内部 `$events` 逻辑流注册为唯一 generation sourc
 
 `$events` 结束、Remote 流报错、收到非 ready 首项或畸形事件项，都会使当前 generation 失效。默认情况下，挂起的握手在 3 秒后记录 Host 响应缓慢告警，在 15 秒后记录就绪超时并中止，包含等待物理 socket 的时间。取消后，source 必须停止投递、释放资源并结束，替换 source 才能启动；已取消 source 迟到的 ready 不能发布 generation。浏览器报告网络可用时，Controller 发布 `reconnecting`，并在 500ms、1s、2s、4s、8s 与 10s 上限内采用 50%–100% 抖动重试，达到终档后继续尝试直到恢复。每次重试都要求 Gateway 替换一次物理 WebSocket，再重开 `$events`。[持续恢复决策](../../../.agents/notes/implemented/bug-fix/2026-09-05-continuous-client-recovery.zh.md)规定握手期限与重试策略。
 
-`ctx.connection.retarget(origin)` 把一个绝对 http(s) URL 校验并归约为 origin，使每次浏览器 HTTP 调用都以该 origin 为目标——解析器逐次调用重读，切换无需重建 RPC——并如同 `reconnect()` 一样替换当前连接尝试；`undefined` 回到页面 origin，`targetOrigin()` 读取当前选择。注入式传输（`__DSH_TRANSPORT__`）与 fixture 测试台持有自己的载体，因此该选择只重定向浏览器 HTTP 路径。
+`ctx.connection.retarget(origin)` 把一个绝对 http(s) URL 校验并归约为 origin，使每次浏览器 HTTP 调用都以该 origin 为目标——解析器逐次调用重读，切换无需重建 RPC——并如同 `reconnect()` 一样替换当前连接尝试；`undefined` 回到页面 origin，`targetOrigin()` 读取当前选择。`connection.target` 通过 `getSnapshot` 与 `subscribe` 暴露同一值；选择改变后，在旧世代退出时通知，单个观察者失败不妨碍后续观察者。已建立的浏览器世代记录所选 origin，未显式选择时使用 HTTP 页面 origin；注入式与 fixture 载体记录 `in-process`。注入式传输（`__DSH_TRANSPORT__`）与 fixture 测试台持有自己的载体，因此该选择只重定向浏览器 HTTP 路径。
 
-`switchToSavedHost(connection, hostId)` 组合切换动作：名册行的 origin 流入 `retarget` 并返回该行供呈现；未知 hostId 或 `in-process` 行不改动连接。
+`switchToSavedHost(connection, hostId)` 组合切换动作：名册行的 origin 流入 `retarget` 并返回该行供呈现；未知 hostId 或 `in-process` 行不改动连接。浏览器存储访问或配额失败时，名册与选择保留在内存。恢复的行必须使用规范 HTTP(S) origin 或 `in-process`，并遵守名册数量上限。
 
 `browserSelectedHostPersistence()` 以 `dsh-selected-host.v1` 持久化选中的 hostId（守卫 localStorage、校验非空串）；`apply()` 在任何载体建立前把持久化选中应用为初始选择——行缺失或 `in-process` 保持页面 Host，此时无循环运行，应用是纯赋值而非重连。
 

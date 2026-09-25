@@ -29,7 +29,7 @@ The section is always available: the roster is local page state, so it registers
 
 ### Switching Hosts
 
-Open the **Hosts** section in Settings. Each row names the Host, tags its platform when known, and shows the origin together with the last-connected time. **Switch** on one row routes through `switchToSavedHost` — the row origin flows into `connection.retarget` and the hostId persists under `dsh-selected-host.v1`, so the next reload applies the selection before any loop runs. The switched row gains the Current tag and loses its switch action; **Back to the page Host** clears the selection and the persisted id together. **Forget** removes one roster row; the connection never targets a forgotten Host.
+Open the **Hosts** section in Settings. Each row names the Host, tags its platform when known, and shows the origin together with the last-connected time. **Switch** on one row routes through `switchToSavedHost` — the row origin flows into `connection.retarget` and the hostId persists under `dsh-selected-host.v1`, so the next reload applies the selection before any loop runs. The selected row gains the Selected tag and loses its switch action; **Back to the page Host** clears the selection and the persisted id together. **Forget** removes the bookmark and its persisted selection without disconnecting the active Host. Selecting a row does not prove that authentication or connection establishment has succeeded. Cross-origin rows link to the Host page; first-time authorization requires that Host’s current launch link.
 
 -----
 
@@ -38,7 +38,7 @@ Open the **Hosts** section in Settings. Each row names the Host, tags its platfo
 
 One React section plus its registration; all data is local.
 
-- **The face** — `HostsSettingsSectionInjected` exposes live readers (`rows`, `selectedOrigin`) rather than one fetched snapshot: the section re-renders on roster notifications, its own actions, and the refresh control. Switching composes the shared [`switchToSavedHost`](../connection/README.md) orchestration and writes the persistence on success only; an unknown id never touches the connection or the storage.
+- **The face** — framework selector hooks observe the saved roster and `connection.target`. External selections update the section immediately. Switching uses [`switchToSavedHost`](../connection/README.md); an unknown id leaves the connection and persistence unchanged.
 - **Persistence** — the selection rides `dsh-selected-host.v1` through `browserSelectedHostPersistence`; the Connection plugin applies a persisted id at boot before any carrier or loop exists, so applying is a pure assignment. A missing or in-process row keeps the page Host.
 
 -----
@@ -64,7 +64,7 @@ None; this package neither assembles nor sends a provider request.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- The selection reader is polled, not observed: a switch made outside this section appears after the next roster notification or refresh, not immediately.
+- Browser storage can be unavailable or full; the live selection remains usable, but a reload may lose the change.
 - A cross-origin Host additionally needs its own browser-trust pairing before calls succeed; switching only redirects the carriers.
 - No roster editing beyond Forget; sorting stays most-recent-first.
 

@@ -35,8 +35,14 @@ export function apply(ctx: ClientContext): void {
   const selectedHostPersistence = browserSelectedHostPersistence()
   ctx.slots.inject('settings.section', () => {
     const injectFace: HostsSettingsSectionInjected = {
-      rows: () => connection.savedHosts.list(),
-      selectedOrigin: () => connection.targetOrigin(),
+      hooks: {
+        savedHosts: {
+          getSnapshot: () => connection.savedHosts.list(),
+          subscribe: listener => connection.savedHosts.subscribe(listener),
+        },
+        selectedOrigin: connection.target,
+      },
+      pageOrigin: typeof location === 'undefined' ? undefined : location.origin,
       switchTo: (hostId: string): SavedHost | undefined => {
         const row = switchToSavedHost(connection, hostId)
         if (row !== undefined) selectedHostPersistence?.write(hostId)
@@ -46,12 +52,13 @@ export function apply(ctx: ClientContext): void {
         connection.retarget(undefined)
         selectedHostPersistence?.clear()
       },
-      forget: (hostId: string) => { connection.savedHosts.remove(hostId) },
-      subscribe: listener => connection.savedHosts.subscribe(listener),
+      forget: (hostId: string) => {
+        connection.savedHosts.remove(hostId)
+        if (selectedHostPersistence?.read() === hostId) selectedHostPersistence.clear()
+      },
       formatTime: epochMs => new Intl.DateTimeFormat(ctx.locale.getSnapshot().active, { dateStyle: 'medium', timeStyle: 'short' }).format(epochMs),
     }
-    // A stable component identity keeps roster state across re-renders; the
-    // live readers above re-read on every notification or refresh click.
+    // Keep the component identity stable across Slot renders.
     const HostsSection = (props: HostsSettingsSectionProps) => createElement(HostsSettingsSection, props)
     return ctx.slots.register({
       name: 'settings.section',

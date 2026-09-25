@@ -1,29 +1,27 @@
-import { useEffect, useState, type ReactNode } from 'react'
-import type { SavedHost } from '@deepseek-ai/dsh-client-connection/client'
+import { useState, type ReactNode } from 'react'
+import type { ConnectionHandle, SavedHost } from '@deepseek-ai/dsh-client-connection/client'
 import { Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import css from './HostsSettingsSection.module.css'
 
-/**
- * Registration-side connection face used by the section. Roster and selection
- * are local page state, so every member is a live reader rather than one
- * fetched snapshot; the section re-renders on roster notifications and after
- * its own actions.
- */
+/** The framework binds roster and target observations into selector hooks. */
 export interface HostsSettingsSectionInjected {
-  /** Current roster rows, most recent first. */
-  readonly rows: () => readonly SavedHost[]
-  /** The §28 selection reader; `undefined` means the page Host. */
-  readonly selectedOrigin: () => string | undefined
-  /** Switch to one saved Host; the row returns on success. */
+  readonly hooks: {
+    readonly savedHosts: {
+      readonly getSnapshot: ConnectionHandle['savedHosts']['list']
+      readonly subscribe: ConnectionHandle['savedHosts']['subscribe']
+    }
+    readonly selectedOrigin: ConnectionHandle['target']
+  }
+  /** HTTP origin of the containing page, when this is a Web carrier. */
+  readonly pageOrigin: string | undefined
+  /** Select a saved Host and persist its id after a successful selection. */
   readonly switchTo: (hostId: string) => SavedHost | undefined
   /** Return to the page Host and clear the persisted selection. */
   readonly useLocalHost: () => void
-  /** Forget one roster row; absent ids leave the roster unchanged. */
+  /** Forget a roster row without stopping its current connection. */
   readonly forget: (hostId: string) => void
-  /** Roster change notifications for live re-render. */
-  readonly subscribe: (listener: () => void) => () => void
-  /** Localized wall-clock text for one epoch-ms value, per the active locale. */
+  /** Localized wall-clock text in the active locale. */
   readonly formatTime: (epochMs: number) => string
 }
 
@@ -37,9 +35,10 @@ type Translate = HostsSettingsSectionProps['t']
 
 /** One saved-Host row: identity, origin, timing, and its actions. */
 function HostRow(
-  { row, selected, formatTime, t, onSwitch, onForget }: {
+  { row, selected, pageOrigin, formatTime, t, onSwitch, onForget }: {
     readonly row: SavedHost
     readonly selected: boolean
+    readonly pageOrigin: string | undefined
     readonly formatTime: (epochMs: number) => string
     readonly t: Translate
     readonly onSwitch: (hostId: string) => void
@@ -59,6 +58,12 @@ function HostRow(
         <span className={css.origin}>{row.origin}</span>
         <span>{t('lastConnectedAt', { time: formatTime(row.lastConnectedAt) })}</span>
       </div>
+      {!inProcess && row.origin !== pageOrigin && (
+        <p className={css.status}>
+          {t('pairingHint')}{' '}
+          <a href={row.origin} target="_blank" rel="noopener noreferrer">{t('openHost')}</a>
+        </p>
+      )}
       <div className={css.actions}>
         {!selected && !inProcess && (
           <button type="button" data-host-switch onClick={() => { onSwitch(row.hostId) }}>{t('switch')}</button>
@@ -71,18 +76,14 @@ function HostRow(
 
 /** The saved-Host roster settings section: the section 28 switching surface. */
 export function HostsSettingsSection(
-  { t, rows, selectedOrigin, switchTo, useLocalHost, forget, subscribe, formatTime }: HostsSettingsSectionProps,
+  { t, useSavedHosts, useSelectedOrigin, pageOrigin, switchTo, useLocalHost, forget, formatTime }: HostsSettingsSectionProps,
 ): ReactNode {
-  const [, setTick] = useState(0)
-  const [notice, setNotice] = useState<string | undefined>(undefined)
-  useEffect(() => subscribe(() => { setTick(value => value + 1) }), [subscribe])
-
-  const list = rows()
-  const selected = selectedOrigin()
+  const [notice, setNotice] = useState<{ origin: string; name: string } | undefined>(undefined)
+  const list = useSavedHosts(value => value)
+  const selected = useSelectedOrigin(value => value)
   const onSwitch = (hostId: string): void => {
     const row = switchTo(hostId)
-    setNotice(row === undefined ? undefined : t('switchedTo', { name: row.displayName ?? row.hostId }))
-    setTick(value => value + 1)
+    setNotice(row === undefined ? undefined : { origin: row.origin, name: row.displayName ?? row.hostId })
   }
 
   return (
@@ -90,7 +91,6 @@ export function HostsSettingsSection(
       <div className={css.heading}>
         <div className={css.headingRow}>
           <h3>{t('title')}</h3>
-          <button type="button" data-hosts-refresh onClick={() => { setTick(value => value + 1) }}>{t('refresh')}</button>
         </div>
         <p className={css.subtitle}>{t('subtitle')}</p>
       </div>
@@ -99,12 +99,12 @@ export function HostsSettingsSection(
         : (
           <div className={css.actions}>
             <p className={css.status} role="status">{selected}</p>
-            <button type="button" data-hosts-use-local onClick={() => { useLocalHost(); setNotice(undefined); setTick(value => value + 1) }}>
+            <button type="button" data-hosts-use-local onClick={() => { useLocalHost(); setNotice(undefined) }}>
               {t('useLocal')}
             </button>
           </div>
         )}
-      {notice !== undefined && <p className={css.status} role="status">{notice}</p>}
+      {notice !== undefined && notice.origin === selected && <p className={css.status} role="status">{t('switchedTo', { name: notice.name })}</p>}
       {list.length === 0 && <p className={css.status}>{t('empty')}</p>}
       {list.length > 0 && (
         <ul className={css.hosts}>
@@ -113,6 +113,7 @@ export function HostsSettingsSection(
               key={row.hostId}
               row={row}
               selected={row.origin === selected}
+              pageOrigin={pageOrigin}
               formatTime={formatTime}
               t={t}
               onSwitch={onSwitch}

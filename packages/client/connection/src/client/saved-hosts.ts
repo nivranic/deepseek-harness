@@ -41,11 +41,11 @@ export interface SavedHostsPersistence {
  * @returns the persistence adapter, or undefined when no storage exists.
  */
 export function browserSavedHostsPersistence(): SavedHostsPersistence | undefined {
-  const storage = (globalThis as { readonly localStorage?: Storage }).localStorage
+  const storage = browserStorage()
   if (storage === undefined) return undefined
   return {
-    read: () => storage.getItem(STORAGE_KEY) ?? undefined,
-    write: (value) => { storage.setItem(STORAGE_KEY, value) },
+    read: () => readStorage(storage, STORAGE_KEY),
+    write: (value) => { writeStorage(storage, STORAGE_KEY, value) },
   }
 }
 
@@ -57,6 +57,16 @@ function parseRow(value: unknown): SavedHost | undefined {
   if (displayName !== undefined && typeof displayName !== 'string') return undefined
   if (platform !== undefined && typeof platform !== 'string') return undefined
   if (typeof origin !== 'string' || origin.length === 0) return undefined
+  if (origin !== 'in-process') {
+    let url: URL
+    try {
+      url = new URL(origin)
+    } catch {
+      // Persisted origins outside URL syntax cannot be connection targets.
+      return undefined
+    }
+    if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.origin !== origin) return undefined
+  }
   if (typeof lastConnectedAt !== 'number' || !Number.isFinite(lastConnectedAt)) return undefined
   return { hostId, displayName, platform, origin, lastConnectedAt }
 }
@@ -83,7 +93,7 @@ export class SavedHostsStore {
         const saved = parseRow(row)
         if (saved !== undefined) rows.push(saved)
       }
-      this.rows = sortRows(rows)
+      this.rows = sortRows(rows).slice(0, MAX_SAVED_HOSTS)
     } catch {
       // Only the persisted roster's own JSON can fail here; a corrupt roster starts empty.
     }
@@ -133,7 +143,13 @@ export class SavedHostsStore {
   }
 
   private changed(): void {
-    for (const listener of [...this.listeners]) listener()
+    for (const listener of [...this.listeners]) {
+      try {
+        listener()
+      } catch (error) {
+        console.error('[connection] saved-Host listener threw:', error)
+      }
+    }
   }
 }
 
@@ -184,16 +200,47 @@ export interface SelectedHostPersistence {
  * @returns the persistence adapter, or undefined when no storage exists.
  */
 export function browserSelectedHostPersistence(): SelectedHostPersistence | undefined {
-  const storage = (globalThis as { readonly localStorage?: Storage }).localStorage
+  const storage = browserStorage()
   if (storage === undefined) return undefined
   return {
-    read: () => parseSelectedHostId(storage.getItem(SELECTED_KEY) ?? undefined),
-    write: (value) => { storage.setItem(SELECTED_KEY, value) },
-    clear: () => { storage.removeItem(SELECTED_KEY) },
+    read: () => parseSelectedHostId(readStorage(storage, SELECTED_KEY)),
+    write: (value) => { writeStorage(storage, SELECTED_KEY, value) },
+    clear: () => { writeStorage(storage, SELECTED_KEY, undefined) },
   }
 }
 
 /** Durable-boundary validation: only a non-empty hostId string survives a read. */
 function parseSelectedHostId(raw: string | undefined): string | undefined {
   return typeof raw === 'string' && raw.length > 0 ? raw : undefined
+}
+
+
+/** Storage may be unavailable to an embedded or restricted browser origin. */
+function browserStorage(): Storage | undefined {
+  try {
+    return (globalThis as { readonly localStorage?: Storage }).localStorage
+  } catch {
+    // A denied localStorage getter leaves the roster in memory.
+    return undefined
+  }
+}
+
+/** Read failures do not prevent connection startup. */
+function readStorage(storage: Storage, key: string): string | undefined {
+  try {
+    return storage.getItem(key) ?? undefined
+  } catch {
+    // Storage permission may be revoked after obtaining the Storage object.
+    return undefined
+  }
+}
+
+/** Storage denial and exhausted quota leave the live in-memory selection usable. */
+function writeStorage(storage: Storage, key: string, value: string | undefined): void {
+  const write = value === undefined ? () => { storage.removeItem(key) } : () => { storage.setItem(key, value) }
+  try {
+    write()
+  } catch {
+    // Browser storage is optional; its permission and quota failures are not connection failures.
+  }
 }

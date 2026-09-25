@@ -29,7 +29,7 @@ kind: "package-reference"
 
 ### 切换 Host
 
-在 Settings 打开**主机**区。每行给出 Host 名称、平台标签（如有）、origin 与上次连接时间。某行的**切换**经 `switchToSavedHost` 路由——行 origin 流入 `connection.retarget`，hostId 持久化在 `dsh-selected-host.v1`，下次刷新在任何循环运行前应用该选择。被切换的行获得「当前」标记并失去切换动作；**回到本页 Host** 同时清除选择与持久化 id。**忘记**移除一行名册；连接不会再定向到被忘记的 Host。
+在 Settings 打开**主机**区。每行给出 Host 名称、平台标签（如有）、origin 与上次连接时间。某行的**切换**经 `switchToSavedHost` 路由——行 origin 流入 `connection.retarget`，hostId 持久化在 `dsh-selected-host.v1`，下次刷新在任何循环运行前应用该选择。选中行获得「已选择」标记并失去切换动作；**回到本页 Host** 同时清除选择与持久化 id。**忘记**移除书签及其持久化选择，但不会断开当前 Host。选择行不代表授权或连接建立成功。跨源行提供主机页面链接；首次授权需要使用该 Host 当前的启动链接。
 
 -----
 
@@ -38,7 +38,7 @@ kind: "package-reference"
 
 一个 React 区加其注册；全部数据为本地。
 
-- **注入面** —— `HostsSettingsSectionInjected` 暴露活读取器（`rows`、`selectedOrigin`）而非一次取回的快照：本区在名册通知、自身动作与刷新控件上重渲染。切换组合共享的 [`switchToSavedHost`](../connection/README.zh.md) 编排，仅在成功时写持久化；未知 id 绝不触碰连接与存储。
+- **注入面** —— 框架选择器钩子观察已保存名册与 `connection.target`。外部选择立即更新本区。切换使用 [`switchToSavedHost`](../connection/README.zh.md)；未知 id 不改变连接与持久化。
 - **持久化** —— 选择经 `browserSelectedHostPersistence` 落在 `dsh-selected-host.v1`；Connection 插件在任何载体或循环存在之前的启动期应用持久化 id，因此应用是纯赋值。行缺失或 in-process 时保持本页 Host。
 
 -----
@@ -64,7 +64,7 @@ kind: "package-reference"
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- 选择读取器是轮询而非观察：本区之外的切换要等下一次名册通知或刷新才可见，不是立即。
+- 浏览器存储可能不可用或已满；当前选择仍可使用，但刷新可能丢失改动。
 - 跨源 Host 在调用成功前还需要自己的浏览器信任配对；切换只重定向载体。
 - 除「忘记」外无名册编辑；排序保持最近优先。
 

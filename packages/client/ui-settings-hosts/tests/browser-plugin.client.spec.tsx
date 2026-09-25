@@ -47,6 +47,7 @@ async function bench(selected?: string) {
       subscribe: () => () => {},
     },
     targetOrigin: () => undefined,
+    target: { getSnapshot: () => undefined, subscribe: () => () => {} },
     retarget,
   })
   return { ctx, slots: ctx.get('slots') as SlotRegistry, retarget, remove, storage }
@@ -82,8 +83,8 @@ describe('ui-settings-hosts browser plugin', () => {
     expect(resolveSlotLabel(entry.options.label)).toBe('主机')
 
     const face = (entry.inject as unknown as () => HostsSettingsSectionInjected)()
-    expect(face.rows()).toEqual(ROWS)
-    expect(face.selectedOrigin()).toBeUndefined()
+    expect(face.hooks.savedHosts.getSnapshot()).toEqual(ROWS)
+    expect(face.hooks.selectedOrigin.getSnapshot()).toBeUndefined()
     expect(face.switchTo('h-1')).toMatchObject({ hostId: 'h-1' })
     expect(b.retarget).toHaveBeenCalledExactlyOnceWith('https://workstation.local:8787')
     expect(b.storage.get('dsh-selected-host.v1')).toBe('h-1')
@@ -106,6 +107,19 @@ describe('ui-settings-hosts browser plugin', () => {
     expect(face.switchTo('missing')).toBeUndefined()
     expect(b.retarget).not.toHaveBeenCalled()
     expect(b.storage.has('dsh-selected-host.v1')).toBe(false)
+    await b.ctx.fiber.dispose()
+  })
+
+  it('forgets the persisted selection without replacing the live connection', async () => {
+    const b = await bench('h-1')
+    declare(b.slots)
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const entry = b.slots.entries('settings.section')[0]!
+    const face = (entry.inject as unknown as () => HostsSettingsSectionInjected)()
+    face.forget('h-1')
+    expect(b.remove).toHaveBeenCalledExactlyOnceWith('h-1')
+    expect(b.storage.has('dsh-selected-host.v1')).toBe(false)
+    expect(b.retarget).not.toHaveBeenCalled()
     await b.ctx.fiber.dispose()
   })
 })
