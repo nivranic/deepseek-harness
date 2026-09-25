@@ -267,10 +267,10 @@ class CompanionModelTest {
     fun inboxCollectsDeduplicatesAndAnswers() = runTest {
         val wire = FakeWire()
         val model = InteractionModel(wire, TestScope())
-        model.collect(wire("""{"type":"ready","clientId":"host-client-1","host":{"home":"/home/test"}}"""))
-        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"sessionId":"s1","title":"Run command","reason":"Needs shell"}}"""))
-        model.collect(wire("""{"type":"waterfall","event":"user-questions/request","eventId":"e2","agentId":"a1","request":{"sessionId":"s1","text":"Pick one"}}"""))
-        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{}}"""))
+        model.collect(wire("""{"type":"ready","clientId":"host-client-1","host":{"home":"/home/test"},"pendingInteractionIds":[]}"""))
+        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"sessionId":"s1","title":"Run command","reason":"Needs shell","toolName":"Run command"},"interaction":{"requestId":"e1","sessionId":"s1","type":"approval","requiredPermission":"approval.respond","status":"pending","revision":1,"createdAt":1}}"""))
+        model.collect(wire("""{"type":"waterfall","event":"user-questions/request","eventId":"e2","agentId":"a1","request":{"sessionId":"s1","text":"Pick one","questions":[{"id":"q1","question":"Pick one","detail":"Pick one","options":[{"label":"A"},{"label":"B"}]}]},"interaction":{"requestId":"e2","sessionId":"s1","type":"question","requiredPermission":"question.respond","status":"pending","revision":1,"createdAt":1}}"""))
+        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"toolName":"Run"},"interaction":{"requestId":"e1","sessionId":"s1","type":"approval","requiredPermission":"approval.respond","status":"pending","revision":1,"createdAt":1}}"""))
         assertEquals("host-client-1", model.clientId.value)
         assertEquals(2, model.inbox.value.size)
         assertEquals("Run command", model.inbox.value[0].title)
@@ -287,7 +287,7 @@ class CompanionModelTest {
 
         model.collect(wire("""{"type":"cancel","eventId":"e2"}"""))
         assertEquals(0, model.inbox.value.size)
-        model.collect(wire("""{"type":"ready","clientId":"host-client-2","host":{"home":"/home/test"}}"""))
+        model.collect(wire("""{"type":"ready","clientId":"host-client-2","host":{"home":"/home/test"},"pendingInteractionIds":[]}"""))
         assertEquals("host-client-2", model.clientId.value)
     }
 
@@ -299,7 +299,7 @@ class CompanionModelTest {
 
             override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
                 attempts += 1
-                emit(wire("""{"type":"ready","clientId":"host-client-$attempts","host":{"home":"/home/test"}}"""))
+                emit(wire("""{"type":"ready","clientId":"host-client-$attempts","host":{"home":"/home/test"},"pendingInteractionIds":[]}"""))
                 if (attempts == 1) throw IOException("carrier lost")
                 awaitCancellation()
             }
@@ -307,7 +307,7 @@ class CompanionModelTest {
         val model = InteractionModel(reconnecting, this, reconnectDelayMillis = 1)
         model.startWatching()
         runCurrent()
-        assertEquals("host-client-1", model.clientId.value)
+        assertEquals("", model.clientId.value)
         advanceTimeBy(1)
         runCurrent()
         assertEquals(2, attempts)
@@ -440,7 +440,7 @@ class CompanionModelTest {
     fun interactionAnswerWaitsForTheHostReadyIdentity() = runTest {
         val wire = FakeWire()
         val model = InteractionModel(wire, this)
-        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"title":"Run"}}"""))
+        model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"title":"Run","toolName":"Run"},"interaction":{"requestId":"e1","sessionId":"s1","type":"approval","requiredPermission":"approval.respond","status":"pending","revision":1,"createdAt":1}}"""))
         model.answer(model.inbox.value.single(), allowedOnce = true)
         assertTrue(wire.calls.isEmpty())
         assertEquals("Remote Event stream is not ready.", model.lastRefusal.value)
@@ -455,16 +455,16 @@ class CompanionModelTest {
         }
         val model = FilesModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.start()
-        wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
+        wire.emit(wire("""{"type":"baseline","value":{"items":[{"workspaceId":"w1","title":"Harness","sessionIds":["s1"]}],"archivedSessionIds":[]}}"""))
         advanceUntilIdle()
-        assertEquals(listOf(WorkspaceRow("w1", "Harness")), model.workspaces.value)
+        assertEquals(listOf(WorkspaceRow("w1", "Harness", listOf("s1"))), model.workspaces.value)
         assertEquals("w1", model.selectedWorkspace.value)
 
         model.list()
         model.openEntry("lib")
         model.list()
         val call = wire.calls.last { it.first == "workspaceFiles/list" }
-        assertEquals("w1", (call.second["workspaceId"] as WireValue.StringValue).value)
+        assertEquals("s1", (call.second["workspaceFileScopeId"] as WireValue.StringValue).value)
         assertEquals("lib", (call.second["path"] as WireValue.StringValue).value)
         assertEquals(2, model.entries.value.size)
         assertTrue(model.entries.value[1].isDirectory)
@@ -535,11 +535,11 @@ class StateFlowProjectionTest {
         val model = InteractionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.inbox.test {
             assertEquals(0, awaitItem().size)
-            model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"sessionId":"s1","title":"Run command"}}"""))
+            model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"sessionId":"s1","title":"Run command","toolName":"Run command"},"interaction":{"requestId":"e1","sessionId":"s1","type":"approval","requiredPermission":"approval.respond","status":"pending","revision":1,"createdAt":1}}"""))
             awaitItem().also { assertEquals(1, it.size) }
-            model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{}}"""))
+            model.collect(wire("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"a1","request":{"toolName":"Run"},"interaction":{"requestId":"e1","sessionId":"s1","type":"approval","requiredPermission":"approval.respond","status":"pending","revision":1,"createdAt":1}}"""))
             expectNoEvents()
-            model.collect(wire("""{"type":"ready","clientId":"host-client-1","host":{"home":"/home/test"}}"""))
+            model.collect(wire("""{"type":"ready","clientId":"host-client-1","host":{"home":"/home/test"},"pendingInteractionIds":["e1"]}"""))
             val pending = model.inbox.value[0]
             model.answer(pending, allowedOnce = true)
             awaitItem().also { assertEquals(0, it.size) }
@@ -602,54 +602,66 @@ class ArtifactReadTest {
 
 class PagedReadTest {
     @Test
-    fun readsPagesWhenTheHostReportsTooLarge() = runTest {
+    fun readsHostLinePagesWithoutMixingByteAndCharacterCounts() = runTest {
         val wire = FakeWire()
-        val page = "x".repeat(65536)
-        wire.stubSequence(
-            "workspaceFiles/read",
-            listOf(
-                { throw ai.deepseek.dsh.link.LinkClientException.Refused("file-too-large", "256 KiB cap") },
-                { wire("""{"content":"$page","truncated":true,"size":65537,"mediaType":"text/plain"}""") },
-                { wire("""{"content":"尾","truncated":false,"size":65537,"mediaType":"text/plain"}""") },
-            ),
-        )
-        val model = FilesModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
-        model.start()
-        wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
+        wire.stubSequence("workspaceFiles/read", listOf(
+            { wire("""{"offset":1,"text":"头\n第二行","lines":2,"eof":false,"version":"v1","bytes":99}""") },
+            { wire("""{"offset":3,"text":"尾","lines":1,"eof":true,"version":"v1","bytes":99}""") },
+        ))
+        val model = FilesModel(wire, backgroundScope)
+        model.selectSession("s1")
         model.readFile("big.log")
-
-        val first = model.openFile.value!!
-        assertEquals(65536, first.loadedUnits)
-        assertEquals(65537, first.totalUnits)
-        assertTrue(first.hasMore)
-
+        assertEquals(2, model.openFile.value!!.loadedLines)
+        assertEquals(99L, model.openFile.value!!.totalBytes)
+        assertTrue(model.openFile.value!!.hasMore)
         model.loadMore()
-        val second = model.openFile.value!!
-        assertEquals(65537, second.loadedUnits)
-        assertEquals("尾", second.text.takeLast(1))
-        assertEquals(false, second.hasMore)
-
+        assertEquals(3, model.openFile.value!!.loadedLines)
+        assertEquals("头\n第二行\n尾", model.openFile.value!!.text)
+        assertFalse(model.openFile.value!!.hasMore)
         val reads = wire.calls.filter { it.first == "workspaceFiles/read" }
-        assertEquals(3, reads.size)
-        assertEquals(null, reads[0].second["offset"])
-        assertEquals(0.0, (reads[1].second["offset"] as WireValue.NumberValue).value)
-        assertEquals(65536.0, (reads[1].second["limit"] as WireValue.NumberValue).value)
-        assertEquals(65536.0, (reads[2].second["offset"] as WireValue.NumberValue).value)
-        assertEquals("big.log", (reads[0].second["path"] as WireValue.StringValue).value)
+        assertEquals(2, reads.size)
+        assertEquals("s1", (reads[0].second["workspaceFileScopeId"] as WireValue.StringValue).value)
+        assertEquals(3.0, ((reads[1].second["range"] as WireValue.ObjectValue).entries["offset"] as WireValue.NumberValue).value)
     }
 
     @Test
-    fun binaryRefusalSurfacesTheChineseMessage() = runTest {
+    fun changedFileLeavesThePreviouslyLoadedPrefixUntouched() = runTest {
         val wire = FakeWire()
-        wire.stub("workspaceFiles/read") {
-            throw ai.deepseek.dsh.link.LinkClientException.Refused("file-binary", "not text")
-        }
-        val model = FilesModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
-        model.start()
-        wire.emit(wire("""{"type":"snapshot","records":[{"id":"w1","title":"Harness"}]}"""))
-        model.readFile("logo.png")
-        assertEquals("二进制文件，无法文本预览", model.openFileError.value)
-        assertEquals(null, model.openFile.value)
+        wire.stubSequence("workspaceFiles/read", listOf(
+            { wire("""{"offset":1,"text":"before","lines":1,"eof":false,"version":"v1"}""") },
+            { wire("""{"offset":2,"text":"after","lines":1,"eof":true,"version":"v2"}""") },
+        ))
+        val model = FilesModel(wire, backgroundScope)
+        model.selectSession("s1")
+        model.readFile("file.txt")
+        model.loadMore()
+        assertEquals("before", model.openFile.value!!.text)
+        assertTrue(model.openFileError.value!!.contains("file changed"))
+    }
+
+    @Test
+    fun closingFileDiscardsALateReadResult() = runTest {
+        val response = CompletableDeferred<WireValue>()
+        val wire = FakeWire()
+        wire.stub("workspaceFiles/read") { response.await() }
+        val model = FilesModel(wire, backgroundScope)
+        model.selectSession("s1")
+        val read = async { model.readFile("file.txt") }
+        runCurrent()
+        model.closeFile()
+        response.complete(wire("""{"offset":1,"text":"late","lines":1,"eof":true,"version":"v1"}"""))
+        read.await()
+        assertNull(model.openFile.value)
+    }
+
+    @Test
+    fun noSessionCannotBecomeAWorkspaceFileScope() = runTest {
+        val wire = FakeWire()
+        val model = FilesModel(wire, backgroundScope)
+        model.select("arbitrary-workspace")
+        model.list()
+        model.readFile("file.txt")
+        assertTrue(wire.calls.isEmpty())
     }
 }
 

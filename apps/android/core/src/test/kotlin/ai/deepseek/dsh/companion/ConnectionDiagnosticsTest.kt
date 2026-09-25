@@ -82,7 +82,8 @@ class ConnectionDiagnosticsTest {
         val first = CompletableDeferred<Unit>()
         val end = CompletableDeferred<Unit>()
         val source = wire { flow {
-            first.await(); emit(WireValue.NullValue)
+            first.await(); emit(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("baseline"),
+                "value" to WireValue.ObjectValue(mapOf("items" to WireValue.ArrayValue(emptyList()))))))
             end.await(); throw LinkClientException.BadWire("private frame")
         } }
         val files = FilesModel(source, backgroundScope)

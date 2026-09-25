@@ -69,7 +69,13 @@ class NativeGatewayClient private constructor(
     /** Last successful negotiated observation; refresh never grants business permissions. */
     fun hostDescription(): NativeHostDescription? = observedHost
 
-    override suspend fun refreshHostDescription() { describe() }
+    override suspend fun refreshHostDescription() {
+        try { describe() }
+        catch (_: LinkClientException) {
+            // Foreground observation failure leaves the last successful facts unchanged;
+            // business operations still receive the Host's current signed-admission decision.
+        }
+    }
 
     /** Negotiate API 2 and check the pinned Host identity before exposing business operations. */
     suspend fun describe(): NativeHostDescription = negotiation.withLock {
@@ -184,6 +190,9 @@ class NativeGatewayClient private constructor(
         val id = UUID.randomUUID().toString()
         val body = synchronized(lock) { requireOpen(); NativeGatewayProtocol.request(id, method, args, identity) }
         val request = Request.Builder().url(endpoint + "/api/" + method)
+            // Signed mutations cannot be replayed after an ambiguous idle-socket failure.
+            // End each HTTP connection; the separately owned mux stays persistent.
+            .header("Connection", "close")
             .post(body.toRequestBody("application/json".toMediaType())).build()
         val bytes = execute(request)
         return NativeGatewayProtocol.response(bytes, id)
@@ -202,7 +211,7 @@ class NativeGatewayClient private constructor(
         try {
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    finish(Result.failure(LinkClientException.Carrier(0, "native HTTPS request failed")))
+                    finish(Result.failure(LinkClientException.Carrier(0, "native HTTPS request failed").apply { initCause(e) }))
                 }
                 override fun onResponse(call: Call, response: Response) {
                     val result = runCatching {

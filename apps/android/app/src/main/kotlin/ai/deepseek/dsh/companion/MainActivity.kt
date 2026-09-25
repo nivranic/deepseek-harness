@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -34,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
@@ -80,9 +86,9 @@ fun CompanionTheme(content: @Composable () -> Unit) {
 
 /** A raised card: the baseline's single surface treatment. */
 @Composable
-fun RaisedCard(content: @Composable () -> Unit) {
+fun RaisedCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -141,6 +147,8 @@ object CompanionRuntime {
         streamCallTimeoutMillis = 0,
     )
 
+    private val nativeConfig = ai.deepseek.dsh.gateway.NativeGatewayConfig(linkTransportConfig, bufferedFramesPerStream = 64)
+
     /** Fails any pre-pairing call loud. */
     private class UnpairedWire : WireDriving {
         override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
@@ -157,6 +165,9 @@ object CompanionRuntime {
     @Volatile var restored: Boolean = false
         private set
 
+    @Volatile var restoreNeedsPairing: Boolean = false
+        private set
+
     val wire: WireDriving get() = switchingWire
 
     /** Where the credentials file lives; MainActivity sets it at launch. */
@@ -168,16 +179,24 @@ object CompanionRuntime {
     suspend fun restore(directory: java.io.File): Boolean {
         restoreDirectory = directory
         val store = credentialsStore(directory)
-        var candidate: ai.deepseek.dsh.link.LinkClient? = null
+        var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
         return try {
             withContext(Dispatchers.IO) {
-                candidate = ai.deepseek.dsh.link.LinkClient.restore(store, linkTransportConfig)
+                candidate = ai.deepseek.dsh.gateway.NativeGatewayClient.restore(store, nativeConfig)
             }
-            val client = candidate ?: return false
+            val client = candidate ?: run {
+                restoreNeedsPairing = java.io.File(directory, "link-credentials.json").exists() ||
+                    java.io.File(directory, "native-gateway-credentials.json").exists()
+                return false
+            }
             candidate = null
-            switchingWire.replaceAndAwait(LinkWireDriving(client))
+            switchingWire.replaceAndAwait(client)
             restored = true
+            restoreNeedsPairing = false
             true
+        } catch (_: ai.deepseek.dsh.link.LinkClientException) {
+            restoreNeedsPairing = true
+            false
         } finally {
             candidate?.closeAndAwait()
         }
@@ -185,36 +204,25 @@ object CompanionRuntime {
 
     private fun credentialsStore(directory: java.io.File): ai.deepseek.dsh.link.FileLinkCredentialsStore =
         ai.deepseek.dsh.link.FileLinkCredentialsStore(
-            java.io.File(directory, "link-credentials.json"),
+            java.io.File(directory, "native-gateway-credentials.json"),
             AndroidKeystoreCipher(),
         )
 
     /** Pair with a scanned payload; returns the failure message, or null. */
     suspend fun pair(payloadText: String, deviceName: String): String? {
-        var candidate: ai.deepseek.dsh.link.LinkClient? = null
         return try {
-            val payload = ai.deepseek.dsh.link.LinkPayloadParsing.pairingPayload(payloadText)
-                ?: error("配对载荷无法识别")
+            val payload = ai.deepseek.dsh.gateway.NativePairing.parse(payloadText)
             val directory = restoreDirectory ?: error("no restore directory configured")
             val store = credentialsStore(directory)
-            val client = ai.deepseek.dsh.link.LinkClient(
-                baseUrl = payload.endpoint,
-                pinnedFingerprint = payload.spkiFingerprint,
-                store = store,
-                transportConfig = linkTransportConfig,
-            )
-            candidate = client
-            client.pair(payload, deviceName)
-            candidate = null
-            switchingWire.replaceAndAwait(LinkWireDriving(client))
+            val client = ai.deepseek.dsh.gateway.NativeGatewayClient.pair(payload, deviceName, store, nativeConfig)
+            switchingWire.replaceAndAwait(client)
             restored = true
+            restoreNeedsPairing = false
             null
         } catch (failure: CancellationException) {
             throw failure
         } catch (failure: Exception) {
             failure.message
-        } finally {
-            candidate?.closeAndAwait()
         }
     }
 }
@@ -296,10 +304,13 @@ fun PairingScreen(model: CompanionViewModel) {
     var failure by remember { mutableStateOf<String?>(null) }
     var pairing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("配对到宿主", style = MaterialTheme.typography.titleLarge)
-        Text("在 Windows 宿主的设置页点击“配对新设备”，把二维码下方的内容粘贴到这里。", style = MaterialTheme.typography.bodySmall)
-        OutlinedTextField(value = payload, onValueChange = { payload = it }, label = { Text("配对载荷（二维码内容）") }, modifier = Modifier.fillMaxWidth())
+        Text(androidx.compose.ui.res.stringResource(R.string.native_pairing_help), style = MaterialTheme.typography.bodySmall)
+        if (CompanionRuntime.restoreNeedsPairing) {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_pairing_restore_required), color = MaterialTheme.colorScheme.error)
+        }
+        OutlinedTextField(value = payload, onValueChange = { payload = it }, label = { Text("配对载荷（二维码内容）") }, maxLines = 5, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = deviceName, onValueChange = { deviceName = it }, label = { Text("设备名称") }, modifier = Modifier.fillMaxWidth())
         Button(
             onClick = {
@@ -334,7 +345,7 @@ fun SessionsTab(model: CompanionViewModel) {
                 items(sessions) { row ->
                     RaisedCard {
                         Text(row.title, style = MaterialTheme.typography.bodyLarge)
-                        Button(onClick = { scope.launch { model.session.openSession(row.id) } }) { Text("打开") }
+                        Button(modifier = Modifier.testTag("session-open-${row.id}"), onClick = { scope.launch { model.session.openSession(row.id) } }) { Text("打开") }
                     }
                 }
             } else {
@@ -368,13 +379,57 @@ fun ApprovalsTab(model: CompanionViewModel) {
             RaisedCard {
                 Text(pending.title, style = MaterialTheme.typography.bodyLarge)
                 if (pending.detail.isNotEmpty()) Text(pending.detail, style = MaterialTheme.typography.bodySmall)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = true) } }) { Text("允许一次") }
-                    Button(onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = false) } }) { Text("拒绝") }
-                }
+                if (pending.kind == PendingInteraction.Kind.APPROVAL) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = true) } }) { Text("允许一次") }
+                        Button(onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = false) } }) { Text("拒绝") }
+                    }
+                } else QuestionAnswers(pending, model.interactions)
             }
         }
     }
+}
+
+@Composable
+private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel) {
+    val scope = rememberCoroutineScope()
+    val answering by model.answering.collectAsStateWithLifecycle()
+    var selections by remember(pending.id, pending.revision) { mutableStateOf<Map<String, List<String>>>(emptyMap()) }
+    var custom by remember(pending.id, pending.revision) { mutableStateOf<Map<String, String>>(emptyMap()) }
+    for (question in pending.questions) {
+        Text(question.question, style = MaterialTheme.typography.titleSmall)
+        question.detail?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        for (option in question.options) {
+            val selected = option.label in selections[question.id].orEmpty()
+            val choose = {
+                val previous = selections[question.id].orEmpty()
+                selections = selections + (question.id to if (question.multiSelect)
+                    (if (selected) previous - option.label else previous + option.label) else listOf(option.label))
+                if (!question.multiSelect) custom = custom - question.id
+            }
+            val choiceModifier = if (question.multiSelect)
+                Modifier.toggleable(value = selected, role = Role.Checkbox, onValueChange = { choose() })
+            else Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = { choose() })
+            Row(choiceModifier.fillMaxWidth()) {
+                if (question.multiSelect) androidx.compose.material3.Checkbox(checked = selected, onCheckedChange = null)
+                else androidx.compose.material3.RadioButton(selected = selected, onClick = null)
+                Column(Modifier.weight(1f)) {
+                    Text(option.label)
+                    option.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                }
+            }
+        }
+        OutlinedTextField(value = custom[question.id].orEmpty(), onValueChange = { value ->
+            custom = custom + (question.id to value)
+            if (!question.multiSelect && value.isNotBlank()) selections = selections - question.id
+        }, label = { Text(androidx.compose.ui.res.stringResource(R.string.native_answer_custom)) }, modifier = Modifier.fillMaxWidth())
+    }
+    Button(enabled = !answering && pending.questions.all { selections[it.id].orEmpty().isNotEmpty() || !custom[it.id].isNullOrBlank() },
+        onClick = { scope.launch {
+            model.answerQuestions(pending, pending.questions.map {
+                CompanionQuestionAnswer(it.id, selections[it.id].orEmpty(), custom[it.id])
+            })
+        } }) { Text(androidx.compose.ui.res.stringResource(R.string.native_answer_submit)) }
 }
 
 @Composable
@@ -446,12 +501,14 @@ fun FilesTab(model: CompanionViewModel) {
     val scope = rememberCoroutineScope()
     val directory by model.files.directory.collectAsStateWithLifecycle()
     val entries by model.files.entries.collectAsStateWithLifecycle()
-    val selected by model.files.selectedWorkspace.collectAsStateWithLifecycle()
+    val selected by model.files.selectedSession.collectAsStateWithLifecycle()
+    val openSession by model.session.open.collectAsStateWithLifecycle()
     val openFile by model.files.openFile.collectAsStateWithLifecycle()
     val openFileError by model.files.openFileError.collectAsStateWithLifecycle()
     // The workspace list arrives over the follow stream; without this start
     // the tab renders entries of a stream nobody opened.
     LaunchedEffect(model.paired) { if (model.paired) model.files.start() }
+    LaunchedEffect(openSession?.sessionId) { openSession?.let { model.files.selectSession(it.sessionId) } }
     LaunchedEffect(model.paired, selected) { model.files.list() }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -465,29 +522,33 @@ fun FilesTab(model: CompanionViewModel) {
         openFileError?.let { error ->
             Text(error, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
         }
-        openFile?.let { file ->
-            RaisedCard {
+        val file = openFile
+        if (file != null) {
+            Column(Modifier.weight(1f).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(file.path, style = MaterialTheme.typography.titleSmall)
+                    Text(file.path, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
                     Text(file.mediaType, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                     Button(onClick = { model.files.closeFile() }) { Text("关闭") }
                 }
                 Text(
-                    "${file.loadedUnits}/${file.totalUnits} 单位",
+                    androidx.compose.ui.res.stringResource(R.string.loaded_file_lines, file.loadedLines),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary,
                 )
-                Text(file.text, style = MaterialTheme.typography.bodySmall)
+                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
+                    Text(file.text, Modifier.testTag("file-content"), style = MaterialTheme.typography.bodySmall)
+                }
                 if (file.hasMore) {
                     Button(onClick = { scope.launch { model.files.loadMore() } }) { Text("加载更多") }
                 }
             }
-        }
-        LazyColumn(Modifier.weight(1f)) {
+        } else LazyColumn(Modifier.weight(1f)) {
             items(entries) { entry ->
-                RaisedCard {
+                RaisedCard(Modifier.testTag("file-entry-${entry.name}")) {
                     Text(if (entry.isDirectory) "📁 ${entry.name}" else "📄 ${entry.name}")
-                    if (!entry.isDirectory) {
+                    if (entry.isDirectory) {
+                        Button(onClick = { model.files.openEntry(entry.name); scope.launch { model.files.list() } }) { Text(androidx.compose.ui.res.stringResource(R.string.native_open_directory)) }
+                    } else {
                         Button(onClick = { scope.launch { model.files.readFile(entry.name) } }) { Text("查看") }
                     }
                 }

@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.atomic.AtomicReference
 
 /** The wire surface the companion models drive — the Kotlin mirror of the
- * Swift `CompanionWireDriving`; tests drive a fake, the app a LinkClient. */
+ * Swift `CompanionWireDriving`; the app selects the pinned Native Gateway client. */
 interface WireDriving : AutoCloseable {
     /** Stateless and unpaired wires have no local Link metadata owner. */
     fun diagnosticSnapshot(): ai.deepseek.dsh.link.LinkDiagnosticSnapshot? = null

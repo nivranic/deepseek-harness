@@ -44,13 +44,15 @@ fun pushBody(): String = "打开应用，经安全连接查看详情。"
  * Parse one `$events` forward frame into a minimized push. Approval and
  * question titles and texts never ride the push — only the session and
  * event references are extracted from the Host's waterfall frame. Only
- * approval/request and user-questions/request create a push; agentId owns
- * its session attribution. Other frames and empty identities project nothing.
+ * approval/request and user-questions/request create a push; the Host interaction
+ * record owns its Session attribution. Other frames and empty identities project nothing.
  */
 fun pushFromForward(frame: WireValue): CompanionPush? {
     if (WireShape.string(frame, "type") != "waterfall") return null
     val eventName = WireShape.string(frame, "event") ?: return null
-    val sessionId = WireShape.string(frame, "agentId")?.takeIf { it.isNotEmpty() } ?: return null
+    WireShape.string(frame, "agentId")?.takeIf { it.isNotEmpty() } ?: return null
+    val interaction = WireShape.objectValue(frame, "interaction") ?: return null
+    val sessionId = WireShape.string(interaction, "sessionId")?.takeIf { it.isNotEmpty() } ?: return null
     val eventId = WireShape.string(frame, "eventId")?.takeIf { it.isNotEmpty() } ?: return null
     return when (eventName) {
         "approval/request" -> CompanionPush.ApprovalWaiting(sessionId, eventId)

@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 原生伴随端交互与文件分页（§13、§14、§21、§28、§35、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/android-native-companion-source.json)验证 Android 外壳选择 NativeGatewayClient，使用独立 Keystore 加密凭据文件，保留旧 Link 文件。Question 回复携带交互修订号、正确 Session 归属及结构化选项/自定义答案；文件使用 Session 范围，根目录路径为点号，并按行分页及核验版本。单次 HTTP 调用不复用空闲连接、不自动重放已签名修改，共享 mux 继续持有长连接。
+
+210 项 core 测试实际执行通过；真实 Host 的三项场景覆盖 Kotlin 传输、JVM 模型和隔离安装的 Android 34 Compose 应用。模拟器完成配对、Question 回答、DONE 会话投影和文件翻页：Host 每页上限 1000 行，点击加载更多后界面 1001 行文本哈希匹配。类型、lint、17 项文档快检、36 项文档门禁及逐节追踪通过。共享 Session 录制输入保持原样；验收信息通过临时 socket 传递，不进入命令参数或日志。
+
+工件和 Handoff 仍有退役调用，原生诊断、跨进程恢复、持久保留答案、Swift、Relay/发现及物理设备和发布资格仍开放，completeRc 为 false。远端发布与 CI dispatch 继续受自动批准拒绝限制，本增量仅本地封存。
+
 ## Android Kotlin Gateway 传输接入（§13、§14、§21、§28、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/android-gateway-source.json)验证 Kotlin core 直接使用现有 Native Remote 入口：解析版本 1 操作员配对载荷，在发送 HTTP 前固定 Host SPKI，通过当前一次性兑换注册 Ed25519 设备身份，再核验角色、公钥指纹和 Host 身份。API 2 Connection RPC 与共享 mux 均发送新设备证明；Session writer 版本不冒充客户端协议版本。凭据带独立格式标记，旧 Link 身份不会被当作新授权，拒绝核验保留先前本地身份。
+[历史来源记录](artifacts/upstream-first/android-gateway-source.json)验证 Kotlin core 直接使用现有 Native Remote 入口：解析版本 1 操作员配对载荷，在发送 HTTP 前固定 Host SPKI，通过当前一次性兑换注册 Ed25519 设备身份，再核验角色、公钥指纹和 Host 身份。API 2 Connection RPC 与共享 mux 均发送新设备证明；Session writer 版本不冒充客户端协议版本。凭据带独立格式标记，旧 Link 身份不会被当作新授权，拒绝核验保留先前本地身份。
 
 200 项 core JVM 测试实际执行通过；未改动 contract 的 9 项为 Gradle up-to-date，未声称重跑。独立 JVM 驱动对真实 Host profile 验证错误 pin、重复兑换、角色和 Host 确认失败、权限拒绝、事件/业务并行流、取消、吊销、恢复以及关闭后进程退出。类型、lint、36 项文档门禁及逐节追踪通过。Android 外壳仍选择旧 LinkClient，业务模型、原生诊断、Swift、真机和平台发布验收仍开放，completeRc 保持 false。
 

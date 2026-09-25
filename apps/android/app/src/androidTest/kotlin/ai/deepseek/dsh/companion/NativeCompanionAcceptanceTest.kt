@@ -1,0 +1,116 @@
+package ai.deepseek.dsh.companion
+
+import android.net.LocalServerSocket
+import android.graphics.Bitmap
+import android.util.Base64
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.GrantPermissionRule
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.*
+import org.junit.Rule
+import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.security.MessageDigest
+
+/** Private ADB socket drives the installed Activity; no pairing text enters instrumentation output. */
+class NativeCompanionAcceptanceTest {
+    @get:Rule(order = 0) val notifications = GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
+    @get:Rule(order = 1) val compose = createAndroidComposeRule<MainActivity>()
+
+    private fun waitFor(matcher: SemanticsMatcher) {
+        compose.waitUntil(20_000) { compose.onAllNodes(matcher).fetchSemanticsNodes(false).isNotEmpty() }
+    }
+
+    @Test fun pairAnswerAndReadPages() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        check(instrumentation.targetContext.packageName.endsWith(".nativeacceptance"))
+        val name = requireNotNull(InstrumentationRegistry.getArguments().getString("dshSocket"))
+        require(name.matches(Regex("dsh-native-[a-f0-9-]+")))
+        var paired = false
+        var failed = false
+        LocalServerSocket(name).use { server ->
+            server.accept().use { socket ->
+                socket.soTimeout = 120_000
+                val input = socket.inputStream.bufferedReader(Charsets.UTF_8)
+                val output = socket.outputStream.bufferedWriter(Charsets.UTF_8)
+                output.write("{\"ready\":true}\n"); output.flush()
+                while (true) {
+                    val command = input.readLine()?.let { Json.parseToJsonElement(it).jsonObject } ?: break
+                    val id = command.getValue("id").jsonPrimitive.content
+                    val op = command.getValue("op").jsonPrimitive.content
+                    var value: JsonElement = JsonNull
+                    var type = "ok"
+                    var stage = op
+                    try {
+                        when (op) {
+                            "pair" -> {
+                                waitFor(hasText("配对载荷（二维码内容）"))
+                                compose.onNodeWithText("配对载荷（二维码内容）").performTextInput(command.getValue("payload").toString())
+                                compose.onNodeWithText("设备名称").performScrollTo().performTextInput("Android acceptance")
+                                compose.onNodeWithText("配对", substring = false).performScrollTo().performClick()
+                                waitFor(hasText("审批"))
+                                paired = true
+                            }
+                            "watchInteractions" -> {
+                                compose.onNodeWithText("审批").performClick()
+                                compose.waitForIdle()
+                            }
+                            "answerQuestion" -> {
+                                waitFor(hasText("Blue"))
+                                compose.onNodeWithText("Blue").performScrollTo().performClick()
+                                compose.onNodeWithText("自定义回答").performScrollTo().performTextInput(command.getValue("custom").jsonPrimitive.content)
+                                compose.onNodeWithText("提交回答").performScrollTo().performClick()
+                                compose.waitUntil(20_000) { compose.onAllNodesWithText("提交回答").fetchSemanticsNodes(false).isEmpty() }
+                            }
+                            "observeSession" -> {
+                                compose.onNodeWithText("会话", substring = false).performClick()
+                                val tag = "session-open-" + command.getValue("sessionId").jsonPrimitive.content
+                                waitFor(hasTestTag(tag))
+                                compose.onNodeWithTag(tag).performScrollTo().performClick()
+                                compose.onNode(hasText("DONE", substring = true)).performScrollTo()
+                                value = buildJsonObject { put("done", true) }
+                            }
+                            "readModelFile" -> {
+                                compose.onNodeWithText("文件").performClick()
+                                val tag = "file-entry-" + command.getValue("path").jsonPrimitive.content
+                                waitFor(hasTestTag(tag))
+                                stage = "directory-entry"
+                                compose.onNodeWithTag(tag).performScrollTo()
+                                compose.onNode(hasText("查看") and hasAnyAncestor(hasTestTag(tag))).performClick()
+                                waitFor(hasTestTag("file-content"))
+                                stage = "first-file-page"
+                                compose.onNodeWithText("已加载 1000 行").assertExists()
+                                compose.onNodeWithText("加载更多").performClick()
+                                waitFor(hasText("已加载 1001 行"))
+                                stage = "complete-file-text"
+                                val text = compose.onNodeWithTag("file-content").fetchSemanticsNode().config[SemanticsProperties.Text].single().text
+                                val digest = MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
+                                value = buildJsonObject { put("lines", 1001); put("digest", digest) }
+                            }
+                            "screenshot" -> {
+                                check(paired)
+                                val bytes = ByteArrayOutputStream()
+                                instrumentation.uiAutomation.takeScreenshot().apply { compress(Bitmap.CompressFormat.PNG, 100, bytes); recycle() }
+                                value = JsonPrimitive(Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                            }
+                            "close" -> runBlocking { CompanionRuntime.wire.closeAndAwait() }
+                            else -> error("unsupported UI command")
+                        }
+                    } catch (_: Throwable) {
+                        // Compose exceptions can embed the pairing field in the semantics tree.
+                        failed = true
+                        type = "error"
+                        value = buildJsonObject { put("code", "android-ui-operation-failed"); put("operation", stage) }
+                    }
+                    output.write(buildJsonObject { put("id", id); put("type", type); put("value", value) }.toString())
+                    output.newLine(); output.flush()
+                    if (failed || op == "close") break
+                }
+            }
+        }
+        check(!failed) { "Native companion UI operation failed; private driver has the operation name" }
+    }
+}

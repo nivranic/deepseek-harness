@@ -20,14 +20,26 @@ class InteractionEventCompatibilityTest {
         fields["sessionId"] = JsonPrimitive("ignored-top-level")
         fields["request"] = JsonObject(fields.getValue("request").jsonObject +
             ("sessionId" to JsonPrimitive("ignored-request")))
+        val kind = if (event == "user-questions/request") "question" else "approval"
+        fields["interaction"] = JsonObject(fields.getValue("interaction").jsonObject + mapOf(
+            "sessionId" to JsonPrimitive("host-session"), "type" to JsonPrimitive(kind),
+            "requiredPermission" to JsonPrimitive("$kind.respond"),
+        ))
+        if (kind == "question") fields["request"] = Json.parseToJsonElement(
+            """{"questions":[{"id":"q1","question":"Pick one","options":[{"label":"A"}]}]}""",
+        )
         for ((name, value) in overrides) {
             if (value == null) fields.remove(name) else fields[name] = JsonPrimitive(value)
+        }
+        if (overrides["type"] == "ready") {
+            fields["clientId"] = JsonPrimitive("client")
+            fields["pendingInteractionIds"] = kotlinx.serialization.json.JsonArray(emptyList())
         }
         return WireValue.fromJsonElement(JsonObject(fields))
     }
 
     @Test
-    fun knownForwardsUseHostAgentIdentity() = runTest {
+    fun knownForwardsUseHostInteractionSessionIdentity() = runTest {
         for ((event, kind) in listOf(
             "approval/request" to PendingInteraction.Kind.APPROVAL,
             "user-questions/request" to PendingInteraction.Kind.QUESTION,
@@ -36,10 +48,10 @@ class InteractionEventCompatibilityTest {
             val input = frame(event)
             model.collect(input)
             assertEquals(kind, model.inbox.value.single().kind, event)
-            assertEquals("host-agent", model.inbox.value.single().sessionId, event)
+            assertEquals("host-session", model.inbox.value.single().sessionId, event)
             val expected = if (kind == PendingInteraction.Kind.APPROVAL)
-                CompanionPush.ApprovalWaiting("host-agent", "event-approval-1")
-            else CompanionPush.QuestionWaiting("host-agent", "event-approval-1")
+                CompanionPush.ApprovalWaiting("host-session", "event-approval-1")
+            else CompanionPush.QuestionWaiting("host-session", "event-approval-1")
             assertEquals(expected, pushFromForward(input), event)
         }
     }

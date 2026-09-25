@@ -20,13 +20,13 @@ class CompanionPushTest {
         val model = PushModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.startWatching()
         // The frame carries title and text; the push must not carry them.
-        wire.emit(wireOf("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"s1","title":"Run rm -rf","text":"prompt text"}"""))
-        wire.emit(wireOf("""{"type":"waterfall","event":"user-questions/request","eventId":"e2","agentId":"s1","text":"Which file?"}"""))
+        wire.emit(wireOf("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"s1","title":"Run rm -rf","text":"prompt text","interaction":{"sessionId":"s1"}}"""))
+        wire.emit(wireOf("""{"type":"waterfall","event":"user-questions/request","eventId":"e2","agentId":"s1","text":"Which file?","interaction":{"sessionId":"s1"}}"""))
         // A re-forward of the same event deduplicates by kind and event id.
-        wire.emit(wireOf("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"s1"}"""))
+        wire.emit(wireOf("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"s1","interaction":{"sessionId":"s1"}}"""))
         // Frames without push-worthy events project nothing.
         wire.emit(wireOf("""{"event":"session/updated","agentId":"s1"}"""))
-        wire.emit(wireOf("""{"type":"waterfall","event":"approval/request","eventId":"e3"}"""))
+        wire.emit(wireOf("""{"type":"waterfall","event":"approval/request","eventId":"e3","interaction":{"sessionId":"s1"}}"""))
         advanceUntilIdle()
 
         assertEquals(

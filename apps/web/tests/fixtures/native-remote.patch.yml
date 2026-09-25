@@ -14,3 +14,6 @@
         websocketHeartbeatIntervalMs: 2000
         certificateLifetimeDays: 365
         certificateRenewBeforeDays: 30
+- id: workspace-files
+  config:
+    maxLines: 1000

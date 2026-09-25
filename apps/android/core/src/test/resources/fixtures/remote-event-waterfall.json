@@ -7,5 +7,14 @@
     "toolName": "bash",
     "reason": "Run the requested command?",
     "sessionId": "session-1"
+  },
+  "interaction": {
+    "requestId": "event-approval-1",
+    "sessionId": "session-1",
+    "type": "approval",
+    "requiredPermission": "approval.respond",
+    "status": "pending",
+    "revision": 1,
+    "createdAt": 1
   }
 }

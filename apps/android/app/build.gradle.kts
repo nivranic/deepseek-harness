@@ -128,6 +128,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Device acceptance owns separate storage from the installed companion.
+            if (providers.gradleProperty("dshNativeAcceptance").isPresent) applicationIdSuffix = ".nativeacceptance"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
