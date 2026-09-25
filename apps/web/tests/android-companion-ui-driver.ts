@@ -17,9 +17,10 @@ const exec = promisify(execFile)
  * @param adb - Android platform-tools executable.
  * @param target - emulator serial; physical devices are refused.
  * @param hostPort - test-owned native Host TLS port, reversed into the emulator.
+ * @param resetData - clear this isolated application's test data; false preserves credentials for restart acceptance.
  * @returns command access and awaited instrumentation/forward retirement.
  */
-export async function startAndroidCompanionUiDriver(adb: string, target: string, hostPort: number) {
+export async function startAndroidCompanionUiDriver(adb: string, target: string, hostPort: number, resetData = true) {
   if (!/^emulator-\d+$/.test(target)) throw new Error('UI acceptance requires an explicit emulator')
   const args = ['-s', target]
   const leasePath = join(tmpdir(), `dsh-native-acceptance-${target}.lock`)
@@ -34,7 +35,7 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
   const run = (...command: string[]) => exec(adb, [...args, ...command], { windowsHide: true })
   let port: number
   try {
-    await run('shell', 'pm', 'clear', 'com.deepseek.harness.companion.nativeacceptance')
+    if (resetData) await run('shell', 'pm', 'clear', 'com.deepseek.harness.companion.nativeacceptance')
     await run('reverse', `tcp:${hostPort}`, `tcp:${hostPort}`)
     const forward = await run('forward', 'tcp:0', `localabstract:${socketName}`)
     port = Number(forward.stdout.trim())
@@ -110,7 +111,12 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
         })
         socket!.write(JSON.stringify({ ...command, id }) + '\n')
       }),
-      stop: async () => { const code = await exited; await cleanup(); return passed && code === 0 ? 0 : 1 },
+      stop: async () => {
+        const code = await exited
+        try { await run('shell', 'am', 'force-stop', 'com.deepseek.harness.companion.nativeacceptance') }
+        finally { await cleanup() }
+        return passed && code === 0 ? 0 : 1
+      },
       kill: async () => {
         socket?.destroy()
         if (child.exitCode === null) {

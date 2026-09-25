@@ -18,9 +18,12 @@ object NativeGatewayDriver {
         val modelScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         var interactions: InteractionModel? = null
         val streams = mutableMapOf<String, Job>()
+        val input = System.`in`.bufferedReader(Charsets.UTF_8)
+        val output = System.out.bufferedWriter(Charsets.UTF_8)
         suspend fun stopModels() { interactions?.stopWatchingAndAwait(); interactions = null }
-        fun output(id: String, type: String, value: JsonElement = JsonNull) = synchronized(System.out) {
-            println(buildJsonObject { put("id", id); put("type", type); put("value", value) })
+        fun output(id: String, type: String, value: JsonElement = JsonNull) = synchronized(output) {
+            output.write(buildJsonObject { put("id", id); put("type", type); put("value", value) }.toString())
+            output.newLine(); output.flush()
         }
         fun failure(id: String, error: Throwable) = output(id, "error", buildJsonObject {
             put("code", (error as? LinkClientException.Refused)?.code ?: error.javaClass.simpleName)
@@ -31,7 +34,7 @@ object NativeGatewayDriver {
         })
         try {
             while (true) {
-                val line = withContext(Dispatchers.IO) { readlnOrNull() } ?: break
+                val line = withContext(Dispatchers.IO) { input.readLine() } ?: break
                 val command = Json.parseToJsonElement(line).jsonObject
                 val id = command.text("id")
                 try {
@@ -101,6 +104,14 @@ object NativeGatewayDriver {
                             }
                             check(model.inbox.value.isEmpty())
                             output(id, "ok")
+                        }
+                        "interactionStatus" -> {
+                            val snapshot = checkNotNull(interactions).connectionSnapshot
+                            output(id, "ok", buildJsonObject {
+                                put("state", snapshot.state.wire)
+                                put("attempts", snapshot.attempts)
+                                put("failure", snapshot.lastFailure?.wire ?: "none")
+                            })
                         }
                         "readModelFile" -> {
                             val model = FilesModel(client!!, modelScope)

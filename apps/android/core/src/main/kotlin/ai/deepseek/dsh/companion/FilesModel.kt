@@ -60,12 +60,7 @@ class FilesModel(
             } catch (error: CancellationException) { throw error }
             catch (error: Exception) {
                 followOwner.interrupted(generation, error)
-                if (error is LinkClientException.BadWire) return@launch
-                if (error is LinkClientException.Refused) {
-                    val classified = GatewayFailurePresenter.present(GatewayFailureEnvelope.from(error)).failureClass
-                    if (classified !in setOf(ai.deepseek.dsh.contract.RemoteFailureClass.TRANSPORT,
-                            ai.deepseek.dsh.contract.RemoteFailureClass.HOST_STATE)) return@launch
-                }
+                if (!canReconnectObservation(error)) return@launch
             }
             if (isActive && followOwner.isCurrent(generation)) { followOwner.retrying(generation); delay(reconnectDelayMillis) }
         }

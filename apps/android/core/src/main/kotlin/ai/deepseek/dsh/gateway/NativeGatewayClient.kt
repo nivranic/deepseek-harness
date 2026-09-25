@@ -154,7 +154,7 @@ class NativeGatewayClient private constructor(
                 LinkClientException.Carrier(0, "native mux closed"))
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) = settled(owner,
-                LinkClientException.Carrier(response?.code ?: 0, "native mux interrupted"))
+                LinkClientException.Carrier(response?.code ?: 0, "native mux interrupted").apply { initCause(t) })
         })
         return owner
     }
@@ -219,6 +219,9 @@ class NativeGatewayClient private constructor(
                             if (!it.isSuccessful) throw LinkClientException.Carrier(it.code, "native HTTPS request refused")
                             it.body.string()
                         }
+                    }.recoverCatching { error ->
+                        if (error is IOException) throw LinkClientException.Carrier(0, "native HTTPS response interrupted").apply { initCause(error) }
+                        throw error
                     }
                     finish(result)
                 }

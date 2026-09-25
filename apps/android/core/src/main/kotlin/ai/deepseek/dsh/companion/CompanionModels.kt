@@ -440,6 +440,7 @@ class SessionModel(
                     throw failure
                 } catch (failure: Exception) {
                     followOwner.interrupted(generation, failure)
+                    if (!canReconnectObservation(failure)) return@launch
                 }
                 if (isActive && followOwner.isCurrent(generation)) {
                     followOwner.retrying(generation)

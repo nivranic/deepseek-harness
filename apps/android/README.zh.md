@@ -27,6 +27,8 @@ Host 传输场景为 [android-gateway.e2e.ts](../web/tests/android-gateway.e2e.t
 
 ## 理解实现
 
+Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Host 故障后重连。撤销、权限、兼容性、未知拒绝、无效响应及证书失败会停止自动恢复。审批页呈现拒绝，保留失败的答案供显式重试，并在事件客户端未就绪时禁用回答。恢复不会重放业务修改。模拟器场景关闭并停止应用，在不同进程中恢复加密身份而不增加授权，随后验证录制的 Question 及文件分页。
+
 | 文件 | 职责 |
 |---|---|
 | `contract/src/main/kotlin/ai/deepseek/dsh/contract/RemoteFailureClass.kt` | 镜像 TypeScript union 的封闭呈现类枚举 |

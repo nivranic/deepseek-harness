@@ -1,4 +1,5 @@
 <resources>
+    <string name="native_retry_connection">重新连接</string>
     <string name="native_open_directory">打开</string>
     <string name="loaded_file_lines">已加载 %1$d 行</string>
     <string name="native_pairing_help">请在 Host 设置的设备页生成配对信息，并将二维码下方的 JSON 粘贴到这里。旧 Link 凭据需要重新配对，原文件会保留。</string>

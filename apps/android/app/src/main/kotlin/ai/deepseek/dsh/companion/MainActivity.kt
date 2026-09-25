@@ -374,15 +374,28 @@ fun ApprovalsTab(model: CompanionViewModel) {
     LaunchedEffect(model.paired) { model.interactions.startWatching() }
     val scope = rememberCoroutineScope()
     val inbox by model.interactions.inbox.collectAsStateWithLifecycle()
+    val streamFailure by model.interactions.streamFailure.collectAsStateWithLifecycle()
+    val lastRefusal by model.interactions.lastRefusal.collectAsStateWithLifecycle()
+    val clientId by model.interactions.clientId.collectAsStateWithLifecycle()
+    val answering by model.interactions.answering.collectAsStateWithLifecycle()
     LazyColumn(Modifier.fillMaxSize()) {
+        streamFailure?.let { message -> item {
+            RaisedCard {
+                Text(message, color = MaterialTheme.colorScheme.error)
+                Button(onClick = { model.interactions.startWatching() }) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.native_retry_connection))
+                }
+            }
+        } }
+        lastRefusal?.let { message -> item { Text(message, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
         items(inbox) { pending ->
             RaisedCard {
                 Text(pending.title, style = MaterialTheme.typography.bodyLarge)
                 if (pending.detail.isNotEmpty()) Text(pending.detail, style = MaterialTheme.typography.bodySmall)
                 if (pending.kind == PendingInteraction.Kind.APPROVAL) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = true) } }) { Text("允许一次") }
-                        Button(onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = false) } }) { Text("拒绝") }
+                        Button(enabled = !answering && clientId.isNotEmpty(), onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = true) } }) { Text("允许一次") }
+                        Button(enabled = !answering && clientId.isNotEmpty(), onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = false) } }) { Text("拒绝") }
                     }
                 } else QuestionAnswers(pending, model.interactions)
             }
@@ -394,6 +407,7 @@ fun ApprovalsTab(model: CompanionViewModel) {
 private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel) {
     val scope = rememberCoroutineScope()
     val answering by model.answering.collectAsStateWithLifecycle()
+    val clientId by model.clientId.collectAsStateWithLifecycle()
     var selections by remember(pending.id, pending.revision) { mutableStateOf<Map<String, List<String>>>(emptyMap()) }
     var custom by remember(pending.id, pending.revision) { mutableStateOf<Map<String, String>>(emptyMap()) }
     for (question in pending.questions) {
@@ -424,7 +438,7 @@ private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel
             if (!question.multiSelect && value.isNotBlank()) selections = selections - question.id
         }, label = { Text(androidx.compose.ui.res.stringResource(R.string.native_answer_custom)) }, modifier = Modifier.fillMaxWidth())
     }
-    Button(enabled = !answering && pending.questions.all { selections[it.id].orEmpty().isNotEmpty() || !custom[it.id].isNullOrBlank() },
+    Button(enabled = !answering && clientId.isNotEmpty() && pending.questions.all { selections[it.id].orEmpty().isNotEmpty() || !custom[it.id].isNullOrBlank() },
         onClick = { scope.launch {
             model.answerQuestions(pending, pending.questions.map {
                 CompanionQuestionAnswer(it.id, selections[it.id].orEmpty(), custom[it.id])

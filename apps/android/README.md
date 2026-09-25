@@ -27,6 +27,8 @@ The recorded [companion scenario](../web/tests/android-companion-question.e2e.ts
 
 ## Understand the implementation
 
+Session, Workspace, and interaction observations reconnect only after transport failures or classified temporary Host failures. Revocation, permission, compatibility, unknown refusals, invalid responses, and certificate failures stop automatic recovery. The approval screen presents the refusal, keeps failed answers for explicit retry, and disables answers while no event client is ready. Recovery never replays a business mutation. The emulator scenario closes and stops the application, restores the encrypted identity in a different process without another grant, and then exercises the recorded Question and file pages.
+
 | File | Role |
 |---|---|
 | `contract/src/main/kotlin/ai/deepseek/dsh/contract/RemoteFailureClass.kt` | The closed presentation-class enum mirroring the TypeScript union |

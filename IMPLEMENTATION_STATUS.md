@@ -1,6 +1,6 @@
 # 新版 Agent 实施状态
 
-状态：IN_PROGRESS。Phase 0、1 / Gate 0 已完成，Phase 2、3、4、5、7、8 正在实施。采用新 Upstream-First 规格，在隔离分支继续收敛到官方实现；旧 Gate 的历史 PASS 不迁移为新方案 PASS。[Git 基线](UPSTREAM_BASELINE.md)、[差异审计](UPSTREAM_DELTA.md)和[机器回执](artifacts/upstream-first/evidence.json)共同限定本状态。
+状态：IN_PROGRESS。Phase 0、1 / Gate 0 已完成，Phase 2、3、4、5、7、8、10 正在实施。采用新 Upstream-First 规格，在隔离分支继续收敛到官方实现；旧 Gate 的历史 PASS 不迁移为新方案 PASS。[Git 基线](UPSTREAM_BASELINE.md)、[差异审计](UPSTREAM_DELTA.md)和[机器回执](artifacts/upstream-first/evidence.json)共同限定本状态。
 
 | Phase | 工作 | 状态 | 当前结果或下一步 |
 |---|---|---|---|
@@ -11,10 +11,10 @@
 | 4 | Interaction Reliability | IN_PROGRESS | 版本、过期、Host 重启、回答丢包、Question 答案竞争、取消/重试交错及页面刷新已验证；后台恢复、权限执行及变更确认语义仍待完成 |
 | 5 | Responsive Shared Client | IN_PROGRESS | 配对设置已验证桌面/390px 布局；完整浏览器、方向与真机矩阵待完成 |
 | 6 | Diagnostics | NOT_STARTED | health/readiness/support |
-| 7 | Device Trust | IN_PROGRESS | 一次性配对、角色、撤销及操作员设置入口已验证；原生 secure store 与真机采用待完成 |
-| 8 | Remote Transport | IN_PROGRESS | 独立 TLS 入口及签名 Gateway 调用已验证，本地 Web 防线保留；原生采用、发现与 Relay 待完成 |
+| 7 | Device Trust | IN_PROGRESS | 一次性配对、角色、撤销、操作员入口及 Android Keystore 跨进程恢复已验证；其他平台 secure store 与真机采用待完成 |
+| 8 | Remote Transport | IN_PROGRESS | 独立 TLS 入口、签名 Gateway 调用及 Android 采用已验证，本地 Web 防线保留；其他原生平台、发现与 Relay 待完成 |
 | 9 | Follow/Attach/Handoff/Multi Host | NOT_STARTED | 先实现查看位置转移 |
-| 10 | Thin Native Companions | NOT_STARTED | Apple/Android 依赖前述稳定 Contract |
+| 10 | Thin Native Companions | IN_PROGRESS | Android 已验证配对、重启恢复、Question、Session、文件分页及撤销提示；Apple、工件/Handoff、原生诊断和真机验收待完成 |
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 观察流恢复与跨进程身份（§13、§14、§21、§28、§35、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/android-native-lifecycle-source.json)把 Session、Workspace 和交互观察收敛到共享失败分类：仅传输及暂时性 Host 故障自动重连；永久、未知、内部、未配对、无效响应和证书失败停止自动恢复。业务修改不自动重放，回答失败保留卡片供显式重试；审批页显示拒绝并在事件客户端未就绪时禁用回答。
+
+216 项 core 测试实际执行通过，修复前永久撤销在五秒内触发六次尝试的回归已由虚拟时间证明。真实 Host 的三项只读回放覆盖撤销后的模型终止，以及 Android 34 应用停止后在不同进程中恢复 Keystore 身份：没有新增授权，恢复后完成 Question、DONE 会话和两页文件校验。撤销后的分类提示与重连按钮通过实际可见性断言和 Compose 同步截图核对。类型、lint、文档 17/17 与 36/36、逐节追踪通过。
+
+Phase 10 总表校正为进行中。重新连接不会恢复已撤销授权；完整重新配对、凭据损坏、推送/前后台恢复、原生诊断、工件/Handoff、Swift 与物理设备及发布资格仍开放。completeRc 为 false，仅本地封存。
+
 ## Android 原生伴随端交互与文件分页（§13、§14、§21、§28、§35、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/android-native-companion-source.json)验证 Android 外壳选择 NativeGatewayClient，使用独立 Keystore 加密凭据文件，保留旧 Link 文件。Question 回复携带交互修订号、正确 Session 归属及结构化选项/自定义答案；文件使用 Session 范围，根目录路径为点号，并按行分页及核验版本。单次 HTTP 调用不复用空闲连接、不自动重放已签名修改，共享 mux 继续持有长连接。
+[历史来源记录](artifacts/upstream-first/android-native-companion-source.json)验证 Android 外壳选择 NativeGatewayClient，使用独立 Keystore 加密凭据文件，保留旧 Link 文件。Question 回复携带交互修订号、正确 Session 归属及结构化选项/自定义答案；文件使用 Session 范围，根目录路径为点号，并按行分页及核验版本。单次 HTTP 调用不复用空闲连接、不自动重放已签名修改，共享 mux 继续持有长连接。
 
 210 项 core 测试实际执行通过；真实 Host 的三项场景覆盖 Kotlin 传输、JVM 模型和隔离安装的 Android 34 Compose 应用。模拟器完成配对、Question 回答、DONE 会话投影和文件翻页：Host 每页上限 1000 行，点击加载更多后界面 1001 行文本哈希匹配。类型、lint、17 项文档快检、36 项文档门禁及逐节追踪通过。共享 Session 录制输入保持原样；验收信息通过临时 socket 传递，不进入命令参数或日志。
 

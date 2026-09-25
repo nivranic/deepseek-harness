@@ -66,7 +66,7 @@ class ConnectionDiagnosticsTest {
         assertEquals(ConnectionState.STOPPED, model.connectionSnapshot.state)
     }
 
-    @Test fun interactionEofRetriesAndRefusalHasAFixedCategory() = runTest {
+    @Test fun interactionEofRetriesButUnknownRefusalStopsWithAFixedCategory() = runTest {
         var calls = 0
         val model = InteractionModel(wire { flow {
             if (++calls > 1) throw LinkClientException.Refused("private-code", "private message")
@@ -74,7 +74,7 @@ class ConnectionDiagnosticsTest {
         model.startWatching(); runCurrent()
         assertEquals(ConnectionSnapshot(ConnectionState.RECONNECTING, 1, 1, null), model.connectionSnapshot)
         advanceTimeBy(100); runCurrent()
-        assertEquals(ConnectionSnapshot(ConnectionState.RECONNECTING, 2, 2, ConnectionFailure.REFUSED), model.connectionSnapshot)
+        assertEquals(ConnectionSnapshot(ConnectionState.ENDED, 2, 2, ConnectionFailure.REFUSED), model.connectionSnapshot)
         model.stopWatchingAndAwait()
     }
 

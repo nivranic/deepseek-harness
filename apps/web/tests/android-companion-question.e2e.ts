@@ -38,11 +38,21 @@ for (const carrier of ['jvm', 'android'] as const) {
         : await startAndroidCompanionUiDriver(process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', info.port)
       const host = scaffold.ctx.hostDescription.describe()
       const issuance = scaffold.ctx.deviceTrust.issuePairing('collaborator')
-      expect((await driver.request({ op: 'pair', payload: {
+      const paired = await driver.request({ op: 'pair', payload: {
         kind: 'dsh-native-pairing', version: 1, endpoint: `https://127.0.0.1:${info.port}`,
         hostId: host.hostId, displayName: host.displayName, spkiFingerprint: info.spkiFingerprint,
         code: issuance.code, expiresAt: issuance.expiresAt, role: issuance.role,
-      } })).type).toBe('ok')
+      } })
+      expect(paired.type).toBe('ok')
+      if (carrier === 'android') {
+        expect((await driver.request({ op: 'close' })).type).toBe('ok')
+        expect(await driver.stop()).toBe(0)
+        driver = await startAndroidCompanionUiDriver(process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', info.port, false)
+        const restored = await driver.request({ op: 'assertRestored' })
+        expect(restored.type).toBe('ok')
+        expect(restored.value).not.toBe(paired.value)
+        expect(scaffold.ctx.deviceTrust.listDevices()).toHaveLength(1)
+      }
       // Node closes idle HTTP keep-alive sockets before the human replies; signed mutations are never retried.
       if (carrier === 'jvm') await delay(8000)
       expect((await driver.request({ op: 'watchInteractions' })).type).toBe('ok')
@@ -64,8 +74,8 @@ for (const carrier of ['jvm', 'android'] as const) {
       expect(events.filter(event => event.type === 'tool/result')).toHaveLength(1)
       expect(await driver.request({ op: 'observeSession', sessionId })).toMatchObject({ type: 'ok', value: { done: true } })
       const content = Array.from({ length: 1001 }, (_, i) => `line ${i + 1} 中文`).join('\n')
-      await writeFile(join(scaffold.workspaceCwd, 'workspace', 'native-lines.txt'), content)
-      expect(await driver.request({ op: 'readModelFile', sessionId, path: 'native-lines.txt' })).toMatchObject({ type: 'ok', value: {
+      await writeFile(join(scaffold.workspaceCwd, 'workspace', 'native-lines-中文.txt'), content)
+      expect(await driver.request({ op: 'readModelFile', sessionId, path: 'native-lines-中文.txt' })).toMatchObject({ type: 'ok', value: {
         lines: 1001, digest: createHash('sha256').update(content).digest('hex'),
       } })
       if (carrier === 'android') {
@@ -74,16 +84,25 @@ for (const carrier of ['jvm', 'android'] as const) {
         const folder = fileURLToPath(new URL('../../../.artifacts/screenshots/android-native-companion/', import.meta.url))
         await mkdir(folder, { recursive: true })
         await writeFile(join(folder, 'android-file-pagination.png'), Buffer.from(shot.value as string, 'base64'))
+        await scaffold.ctx.deviceTrust.revokeDevice({ deviceId: scaffold.ctx.deviceTrust.listDevices()[0]!.deviceId })
+        expect((await driver.request({ op: 'expectRefusal' })).type).toBe('ok')
+        const refused = await driver.request({ op: 'screenshot' })
+        expect(refused.type).toBe('ok')
+        await writeFile(join(folder, 'android-revoked-observation.png'), Buffer.from(refused.value as string, 'base64'))
       }
       expect((await driver.request({ op: 'close' })).type).toBe('ok')
       expect(await driver.stop()).toBe(0)
-      await compareOrRefreshGolden(EXPECTED, [
+      const expected = carrier === 'android'
+        ? fileURLToPath(new URL('./expected/android-companion-restart.expected.md', import.meta.url)) : EXPECTED
+      await compareOrRefreshGolden(expected, [
         '# Android companion models through Native Remote', '',
         '- Kotlin pairs as collaborator over pinned TLS and observes a protocol-2 event generation.',
+        ...carrier === 'android' ? ['- A different application process restores the Keystore-encrypted identity without another pairing grant.'] : [],
         '- InteractionModel submits Blue and custom accessibility text with the delivered revision.',
         '- The Host settles exactly one Question tool result and completes the recorded turn.',
         '- SessionModel folds the durable snapshot and exposes the DONE assistant row.',
         '- FilesModel reads 1001 UTF-8 lines through the Session-derived scope without mixing file versions.',
+        ...carrier === 'android' ? ['- Host revocation produces the classified refusal and an explicit reconnect control in the Activity.'] : [],
         '- Awaited model and transport retirement permits the JVM process to exit.',
       ].join('\n'), MODE)
     } catch (error) {

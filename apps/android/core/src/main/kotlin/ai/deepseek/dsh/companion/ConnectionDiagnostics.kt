@@ -7,6 +7,21 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
+/** Automatic recovery belongs only to read-only observations with a classified temporary failure. */
+internal fun canReconnectObservation(error: Exception): Boolean = when (error) {
+    is LinkClientException.Refused -> GatewayFailurePresenter.present(GatewayFailureEnvelope.from(error)).action == GatewayFailureAction.RETRY_LATER
+    is LinkClientException.Carrier, is IOException -> generateSequence<Throwable>(error) { it.cause }.none {
+        it is java.security.cert.CertificateException || it is javax.net.ssl.SSLPeerUnverifiedException
+    }
+    else -> false
+}
+
+/** Present known Gateway refusals without exposing their implementation message in ordinary UI. */
+internal fun observationFailureText(error: Exception): String = when (error) {
+    is LinkClientException.Refused -> GatewayFailurePresenter.present(GatewayFailureEnvelope.from(error)).text
+    else -> error.message ?: "connection observation failed"
+}
+
 /** An open subscription has received a decoded frame; it does not establish Host health or authorization. */
 enum class ConnectionState(val wire: String) {
     IDLE("idle"), OPENING("opening"), OPEN("open"), RECONNECTING("reconnecting"),

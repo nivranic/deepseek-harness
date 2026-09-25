@@ -26,6 +26,7 @@ class InteractionModel(
     private val scope: CoroutineScope,
     private val reconnectDelayMillis: Long = 1000,
 ) {
+    init { require(reconnectDelayMillis > 0) }
     private val _inbox = MutableStateFlow<List<PendingInteraction>>(emptyList())
     val inbox: StateFlow<List<PendingInteraction>> = _inbox
     private val _answering = MutableStateFlow(false)
@@ -34,12 +35,14 @@ class InteractionModel(
     val clientId: StateFlow<String> = _clientId
     private val _lastRefusal = MutableStateFlow<String?>(null)
     val lastRefusal: StateFlow<String?> = _lastRefusal
+    private val _streamFailure = MutableStateFlow<String?>(null)
+    val streamFailure: StateFlow<String?> = _streamFailure
     private val answerLock = Mutex()
     private val watchOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = watchOwner.connectionSnapshot
 
     fun startWatching() = watchOwner.replaceAsync(create = { generation -> watch(generation) },
-        publish = { _clientId.value = "" }, invalidate = { _clientId.value = "" })
+        publish = { _clientId.value = ""; _streamFailure.value = null }, invalidate = { _clientId.value = "" })
 
     fun stopWatching() { watchOwner.stop { _clientId.value = "" } }
     suspend fun stopWatchingAndAwait() { watchOwner.stopAndAwait { _clientId.value = "" } }
@@ -52,13 +55,15 @@ class InteractionModel(
                 wire.stream("\$events").collect { frame ->
                     if (!watchOwner.isCurrent(generation)) return@collect
                     collect(frame)
+                    _streamFailure.value = null
                     watchOwner.received(generation)
                 }
                 watchOwner.interrupted(generation, null)
             } catch (error: CancellationException) { throw error }
             catch (error: Exception) {
                 watchOwner.interrupted(generation, error)
-                if (error is LinkClientException.BadWire) { _clientId.value = ""; return@launch }
+                if (watchOwner.isCurrent(generation)) _streamFailure.value = observationFailureText(error)
+                if (!canReconnectObservation(error)) return@launch
             } finally {
                 if (watchOwner.isCurrent(generation)) _clientId.value = ""
             }
@@ -157,7 +162,7 @@ class InteractionModel(
                 "outcome" to WireValue.ObjectValue(mapOf("kind" to WireValue.StringValue("result"), "value" to value))))
             _inbox.update { cards -> cards.filterNot { it.id == pending.id && it.revision == pending.revision } }
         } catch (error: CancellationException) { throw error }
-        catch (error: Exception) { _lastRefusal.value = error.message }
+        catch (error: Exception) { _lastRefusal.value = observationFailureText(error) }
         finally { _answering.value = false; answerLock.unlock() }
     }
 

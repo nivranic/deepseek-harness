@@ -4,6 +4,7 @@ import android.net.LocalServerSocket
 import android.graphics.Bitmap
 import android.util.Base64
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
@@ -53,6 +54,13 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithText("配对", substring = false).performScrollTo().performClick()
                                 waitFor(hasText("审批"))
                                 paired = true
+                                value = JsonPrimitive(android.os.Process.myPid())
+                            }
+                            "assertRestored" -> {
+                                waitFor(hasText("审批"))
+                                compose.onNodeWithText("配对载荷（二维码内容）").assertDoesNotExist()
+                                paired = true
+                                value = JsonPrimitive(android.os.Process.myPid())
                             }
                             "watchInteractions" -> {
                                 compose.onNodeWithText("审批").performClick()
@@ -93,8 +101,14 @@ class NativeCompanionAcceptanceTest {
                             "screenshot" -> {
                                 check(paired)
                                 val bytes = ByteArrayOutputStream()
-                                instrumentation.uiAutomation.takeScreenshot().apply { compress(Bitmap.CompressFormat.PNG, 100, bytes); recycle() }
+                                compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, bytes)
                                 value = JsonPrimitive(Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                            }
+                            "expectRefusal" -> {
+                                compose.onNodeWithText("审批").performClick()
+                                waitFor(hasText("本地数据已过期，刷新后重试"))
+                                compose.onNodeWithText("本地数据已过期，刷新后重试").assertIsDisplayed()
+                                compose.onNodeWithText("重新连接").assertIsDisplayed().assertIsEnabled()
                             }
                             "close" -> runBlocking { CompanionRuntime.wire.closeAndAwait() }
                             else -> error("unsupported UI command")

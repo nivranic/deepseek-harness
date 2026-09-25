@@ -48,9 +48,13 @@ it.skipIf(!process.env.DSH_ANDROID_JAVA)('pairs the Kotlin client and shares sig
     expect((await command({ op: 'call', method: 'session/list', args: { _request: {} } })).type).toBe('ok')
     const liveWorkspace = send({ op: 'open', endpoint: 'workspace/follow', args: {} })
     expect((await next(liveWorkspace)).type).toBe('item')
+    expect((await command({ op: 'watchInteractions' })).type).toBe('ok')
     await scaffold.ctx.deviceTrust.revokeDevice({ deviceId: devices[0]!.deviceId })
     expect(await next(events)).toMatchObject({ type: 'end' })
     expect(await next(liveWorkspace)).toMatchObject({ type: 'error', value: { code: 'device/already-revoked' } })
+    await expect.poll(() => command({ op: 'interactionStatus' }), { timeout: 5000 }).toMatchObject({
+      type: 'ok', value: { state: 'ended', attempts: 2, failure: 'refused' },
+    })
     expect(await command({ op: 'call', method: 'session/list', args: { _request: {} } }))
       .toMatchObject({ type: 'error', value: { code: 'device/already-revoked' } })
     expect((await command({ op: 'close' })).type).toBe('ok')
