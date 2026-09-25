@@ -84,7 +84,28 @@ for (const carrier of ['jvm', 'android'] as const) {
         const folder = fileURLToPath(new URL('../../../.artifacts/screenshots/android-native-companion/', import.meta.url))
         await mkdir(folder, { recursive: true })
         await writeFile(join(folder, 'android-file-pagination.png'), Buffer.from(shot.value as string, 'base64'))
-        await scaffold.ctx.deviceTrust.revokeDevice({ deviceId: scaffold.ctx.deviceTrust.listDevices()[0]!.deviceId })
+        const originalId = scaffold.ctx.deviceTrust.listDevices()[0]!.deviceId
+        const replacement = scaffold.ctx.deviceTrust.issuePairing('collaborator')
+        const replacementPayload = {
+          kind: 'dsh-native-pairing', version: 1, endpoint: `https://127.0.0.1:${info.port}`,
+          hostId: host.hostId, displayName: host.displayName, spkiFingerprint: info.spkiFingerprint,
+          code: replacement.code, expiresAt: replacement.expiresAt, role: replacement.role,
+        }
+        expect((await driver.request({ op: 'rejectRepairAndCancel', sessionId,
+          payload: { ...replacementPayload, spkiFingerprint: '0'.repeat(64) }, path: 'native-lines-中文.txt' })).type).toBe('ok')
+        expect(scaffold.ctx.deviceTrust.listDevices()).toHaveLength(1)
+        expect((await driver.request({ op: 'repair', payload: replacementPayload })).type).toBe('ok')
+        expect(scaffold.ctx.deviceTrust.listDevices()).toHaveLength(2)
+        expect((await driver.request({ op: 'recreate' })).type).toBe('ok')
+        expect((await driver.request({ op: 'close' })).type).toBe('ok')
+        expect(await driver.stop()).toBe(0)
+        driver = await startAndroidCompanionUiDriver(process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', info.port, false)
+        expect((await driver.request({ op: 'assertRestored' })).type).toBe('ok')
+        expect(scaffold.ctx.deviceTrust.listDevices()).toHaveLength(2)
+        expect(await driver.request({ op: 'observeSession', sessionId })).toMatchObject({ type: 'ok', value: { done: true } })
+        const active = scaffold.ctx.deviceTrust.listDevices().find(device => device.deviceId !== originalId)
+        expect(active !== undefined).toBe(true)
+        await scaffold.ctx.deviceTrust.revokeDevice({ deviceId: active!.deviceId })
         expect((await driver.request({ op: 'expectRefusal' })).type).toBe('ok')
         const refused = await driver.request({ op: 'screenshot' })
         expect(refused.type).toBe('ok')
@@ -103,6 +124,9 @@ for (const carrier of ['jvm', 'android'] as const) {
         '- SessionModel folds the durable snapshot and exposes the DONE assistant row.',
         '- FilesModel reads 1001 UTF-8 lines through the Session-derived scope without mixing file versions.',
         ...carrier === 'android' ? ['- Host revocation produces the classified refusal and an explicit reconnect control in the Activity.'] : [],
+        ...carrier === 'android' ? ['- Rejected re-pairing preserves credential bytes; cancellation resumes the original identity with fresh models.',
+          '- Successful re-pairing commits a new identity, clears cached view state, and reads the existing Host Session.',
+          '- Activity recreation and another process restart retain the replacement identity without a third device grant.'] : [],
         '- Awaited model and transport retirement permits the JVM process to exit.',
       ].join('\n'), MODE)
     } catch (error) {

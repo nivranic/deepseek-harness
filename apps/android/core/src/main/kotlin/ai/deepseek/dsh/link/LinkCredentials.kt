@@ -38,8 +38,6 @@ interface LinkCredentialsStoring {
     fun clear()
 }
 
-/** One JSON file in a caller-owned directory; the app passes its files
- * directory. Writes replace atomically enough for a single identity. */
 /** The at-rest boundary for the signing key: seal it before it hits disk
  * and open it on the way back. The app injects the AndroidKeyStore-backed
  * implementation; tests inject fakes; the plain one is the no-op. */
@@ -58,8 +56,8 @@ object PlainCredentialsCipher : CredentialsCipher {
 
 /** One JSON file in a caller-owned directory; the app passes its files
  * directory. The signing key never lands on disk as stored — the cipher's
- * sealed form rides in its place. Writes replace atomically enough for a
- * single identity. */
+ * sealed form rides in its place. Replacement requires an atomic move;
+ * a failed commit leaves the prior identity untouched. */
 class FileLinkCredentialsStore(
     private val file: java.io.File,
     private val cipher: CredentialsCipher = PlainCredentialsCipher,
@@ -72,15 +70,16 @@ class FileLinkCredentialsStore(
     }.getOrNull()
 
     override fun save(credentials: LinkCredentials) {
-        file.parentFile?.mkdirs()
         val sealed = java.util.Base64.getEncoder()
             .encodeToString(cipher.seal(java.util.Base64.getDecoder().decode(credentials.signingKeyBase64)))
         val text = credentials.copy(signingKeyBase64 = sealed).toJson()
-        val temporary = java.io.File(file.parentFile, file.name + ".tmp")
-        temporary.writeText(text, Charsets.UTF_8)
-        if (!temporary.renameTo(file)) {
-            file.writeText(text, Charsets.UTF_8)
-            temporary.delete()
+        val target = file.toPath().toAbsolutePath()
+        java.nio.file.Files.createDirectories(target.parent)
+        val temporary = java.nio.file.Files.createTempFile(target.parent, file.name + "-", ".tmp")
+        AutoCloseable { java.nio.file.Files.deleteIfExists(temporary) }.use {
+            java.nio.file.Files.write(temporary, text.toByteArray(Charsets.UTF_8))
+            java.nio.file.Files.move(temporary, target, java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING)
         }
     }
 

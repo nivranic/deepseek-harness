@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 重新配对与身份原子替换（§13、§14、§21、§28、§35、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/android-repairing-source.json)提供显式重新配对入口。旧模型先停止请求及观察，进程传输与已保存身份继续保留；替代身份在内存中验证，只有成功后才原子替换 Keystore 加密文件并采纳新连接。提交开始后的采纳不可取消，Activity 重建对齐已提交代际；取消可通过新的空缓存模型恢复原身份，不取消 Host 任务或自动撤销旧授权。
+
+221 项 core 测试实际执行通过，涵盖模型请求/流清理屏障、凭据原子替换与失败保留。真实 Host 的三项只读回放通过；安装的 Android 34 应用验证错误指纹不改旧凭据、取消后重新读取、成功替换后 Activity 重建及进程重启，授权数保持为两份且可读取既有 DONE 会话。恢复按钮与拒绝提示已由 Compose 同步截图核对。类型、lint、文档 17/17 与 36/36、逐节追踪通过。
+
+本轮验证同 Host 更换设备身份，不授予跨 Host 名册、凭据损坏/Keystore 失效、推送、工件/Handoff、原生诊断、Swift 或物理设备资格。Phase 10 继续进行中，completeRc 为 false，仅本地封存。
+
 ## Android 观察流恢复与跨进程身份（§13、§14、§21、§28、§35、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/android-native-lifecycle-source.json)把 Session、Workspace 和交互观察收敛到共享失败分类：仅传输及暂时性 Host 故障自动重连；永久、未知、内部、未配对、无效响应和证书失败停止自动恢复。业务修改不自动重放，回答失败保留卡片供显式重试；审批页显示拒绝并在事件客户端未就绪时禁用回答。
+[历史来源记录](artifacts/upstream-first/android-native-lifecycle-source.json)把 Session、Workspace 和交互观察收敛到共享失败分类：仅传输及暂时性 Host 故障自动重连；永久、未知、内部、未配对、无效响应和证书失败停止自动恢复。业务修改不自动重放，回答失败保留卡片供显式重试；审批页显示拒绝并在事件客户端未就绪时禁用回答。
 
 216 项 core 测试实际执行通过，修复前永久撤销在五秒内触发六次尝试的回归已由虚拟时间证明。真实 Host 的三项只读回放覆盖撤销后的模型终止，以及 Android 34 应用停止后在不同进程中恢复 Keystore 身份：没有新增授权，恢复后完成 Question、DONE 会话和两页文件校验。撤销后的分类提示与重连按钮通过实际可见性断言和 Compose 同步截图核对。类型、lint、文档 17/17 与 36/36、逐节追踪通过。
 

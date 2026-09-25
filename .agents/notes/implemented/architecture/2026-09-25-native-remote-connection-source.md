@@ -26,6 +26,8 @@ The [Kotlin core consumer](../../../../apps/android/README.md) uses this source 
 
 Observation recovery uses the shared failure classification rather than retrying every exception. Only transport and temporary Host-state failures may reopen read-only Session, Workspace, and interaction streams; a permanent or unknown refusal stops until explicit action. Certificate failures keep their causes so they cannot become generic reconnect loops. Replies remain explicit mutations with no automatic retry. An Android process restart reopens the Keystore-encrypted grant and proves usable signed requests without another redemption; application credentials are independent of the test driver's lifetime.
 
+Android re-pairing separates model lifetime from process transport lifetime. Retiring a `CompanionModelSet` awaits its requests and observations without cancelling Host tasks. Replacement credentials are verified in memory before the encrypted file is atomically replaced; unsupported atomic replacement fails without an in-place overwrite. Local commit and transport adoption are non-cancellable so Activity recreation cannot restore a different identity from the one held by the process. The ViewModel reconciles the committed generation and creates fresh models. A failed or cancelled attempt retains the previous identity; the Host may retain a redeemed grant that needs operator revocation.
+
 ## Alternatives considered
 
 - **Allow Mobile through local Web cookies or relaxed Origin checks.** Rejected: that changes local browser authority and does not authenticate a device key.

@@ -5,6 +5,7 @@ import ai.deepseek.dsh.link.WireValue
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,18 +49,26 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /** The single-activity companion shell: pairing first, then the seven-tab
  * surface (nativization plan chapters 52 and 60 — Minimal Neumorphic only). */
 class MainActivity : ComponentActivity() {
+    private val model: CompanionViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycleScope.launch {
             CompanionRuntime.restore(filesDir)
+            if (isFinishing || isDestroyed) return@launch
+            model.reconcileRuntime()
             if (!isFinishing && !isDestroyed) {
                 setContent {
                     CompanionTheme {
-                        CompanionApp()
+                        CompanionApp(model)
                     }
                 }
             }
@@ -103,17 +112,55 @@ class CompanionViewModel : ViewModel() {
     var paired by mutableStateOf(CompanionRuntime.restored)
         private set
 
-    val session = SessionModel(CompanionRuntime.wire, viewModelScope)
-    val interactions = InteractionModel(CompanionRuntime.wire, viewModelScope)
-    val files = FilesModel(CompanionRuntime.wire, viewModelScope)
-    val subagents = SubagentsModel(CompanionRuntime.wire, viewModelScope)
-    val pushes = PushModel(CompanionRuntime.wire, viewModelScope)
+    private val transition = Mutex()
+    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope))
+    var generation by mutableStateOf(CompanionRuntime.generation)
+        private set
+    var pairingRequested by mutableStateOf(false)
+        private set
+    val session get() = models.session
+    val interactions get() = models.interactions
+    val files get() = models.files
+    val subagents get() = models.subagents
+    val pushes get() = models.pushes
 
-    /** Pair with a scanned payload; returns the failure message, or null. */
-    suspend fun pair(payloadText: String, deviceName: String): String? =
-        CompanionRuntime.pair(payloadText, deviceName).also {
-            if (it == null) paired = true
+    /** Hide and retire the current connection's models while retaining its stored identity and transport. */
+    suspend fun beginPairing() = transition.withLock {
+        if (!paired || pairingRequested) return@withLock
+        pairingRequested = true
+        models.closeAndAwait()
+    }
+
+    /** Resume observations with fresh models; no credential is deleted or redeemed. */
+    suspend fun cancelPairing() = transition.withLock {
+        if (!paired || !pairingRequested) return@withLock
+        models.closeAndAwait()
+        publishModels()
+    }
+
+    /** Reconcile a durable identity adopted during an Activity recreation. */
+    suspend fun reconcileRuntime() = transition.withLock {
+        if (CompanionRuntime.restored && generation != CompanionRuntime.generation) {
+            models.closeAndAwait()
+            publishModels()
         }
+    }
+
+    private fun publishModels() {
+        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope)
+        generation = CompanionRuntime.generation
+        paired = CompanionRuntime.restored
+        pairingRequested = false
+    }
+
+    /** Pair with a scanned payload; returns the failure, or null after adoption. */
+    suspend fun pair(payloadText: String, deviceName: String): Exception? = transition.withLock {
+        if (paired && !pairingRequested) return@withLock null
+        models.closeAndAwait()
+        CompanionRuntime.pair(payloadText, deviceName).also {
+            if (it == null) publishModels()
+        }
+    }
 
     /** Capture each live owner once without opening subscriptions or loading credentials. */
     fun supportSnapshot() = SupportLocalSnapshot(
@@ -127,10 +174,7 @@ class CompanionViewModel : ViewModel() {
     )
 
     override fun onCleared() {
-        session.close()
-        interactions.stopWatching()
-        files.stop()
-        pushes.stopWatching()
+        models.close()
     }
 }
 
@@ -138,6 +182,9 @@ class CompanionViewModel : ViewModel() {
  * swaps it after restore or successful pairing. View-model teardown stops
  * model streams without closing this process-lifetime transport. */
 object CompanionRuntime {
+    private val transition = Mutex()
+    @Volatile var generation: Long = 0
+        private set
     private val linkTransportConfig = ai.deepseek.dsh.link.LinkTransportConfig(
         connectTimeoutMillis = 10_000,
         writeTimeoutMillis = 30_000,
@@ -176,22 +223,24 @@ object CompanionRuntime {
     /** Rebuild the client from persisted credentials so relaunch skips
      * pairing; returns true when a usable identity existed. The signing key
      * opens through the keystore-held AES key. */
-    suspend fun restore(directory: java.io.File): Boolean {
+    suspend fun restore(directory: java.io.File): Boolean = transition.withLock {
         restoreDirectory = directory
+        if (restored) return@withLock true
         val store = credentialsStore(directory)
         var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
-        return try {
+        try {
             withContext(Dispatchers.IO) {
                 candidate = ai.deepseek.dsh.gateway.NativeGatewayClient.restore(store, nativeConfig)
             }
             val client = candidate ?: run {
                 restoreNeedsPairing = java.io.File(directory, "link-credentials.json").exists() ||
                     java.io.File(directory, "native-gateway-credentials.json").exists()
-                return false
+                return@withLock false
             }
             candidate = null
             switchingWire.replaceAndAwait(client)
             restored = true
+            generation++
             restoreNeedsPairing = false
             true
         } catch (_: ai.deepseek.dsh.link.LinkClientException) {
@@ -208,30 +257,46 @@ object CompanionRuntime {
             AndroidKeystoreCipher(),
         )
 
-    /** Pair with a scanned payload; returns the failure message, or null. */
-    suspend fun pair(payloadText: String, deviceName: String): String? {
-        return try {
+    /** Pair with a scanned payload; returns the failure, or null after adoption. */
+    suspend fun pair(payloadText: String, deviceName: String): Exception? = transition.withLock {
+        var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
+        val staged = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
+        try {
             val payload = ai.deepseek.dsh.gateway.NativePairing.parse(payloadText)
             val directory = restoreDirectory ?: error("no restore directory configured")
             val store = credentialsStore(directory)
-            val client = ai.deepseek.dsh.gateway.NativeGatewayClient.pair(payload, deviceName, store, nativeConfig)
-            switchingWire.replaceAndAwait(client)
-            restored = true
-            restoreNeedsPairing = false
+            val client = ai.deepseek.dsh.gateway.NativeGatewayClient.pair(payload, deviceName, staged, nativeConfig)
+            candidate = client
+            currentCoroutineContext().ensureActive()
+            // Once the verified identity is durable, adoption completes even if the Activity is replaced.
+            withContext(NonCancellable) {
+                withContext(Dispatchers.IO) { store.save(checkNotNull(staged.load())) }
+                candidate = null
+                switchingWire.replaceAndAwait(client)
+                restored = true
+                restoreNeedsPairing = false
+                generation++
+            }
             null
         } catch (failure: CancellationException) {
             throw failure
         } catch (failure: Exception) {
-            failure.message
+            failure
+        } finally {
+            staged.clear()
+            candidate?.closeAndAwait()
         }
     }
 }
 
 @Composable
 fun CompanionApp(model: CompanionViewModel = viewModel()) {
-    var tab by remember { mutableStateOf(0) }
+    var tab by remember(model.generation) { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
+    val active = model.paired && !model.pairingRequested
+    val pushes = model.pushes
     val context = androidx.compose.ui.platform.LocalContext.current
-    HostDescriptionObserver(CompanionRuntime.wire, model.paired)
+    HostDescriptionObserver(CompanionRuntime.wire, active)
     // The chapter-70 runtime grant: Android 13+ asks for POST_NOTIFICATIONS
     // at runtime — once per process while the grant is missing — and the
     // answer lands in the projection the push chain reads.
@@ -248,18 +313,18 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     // The chapter-70 push chain: each forward the live stream delivers
     // becomes one minimized local notification; details stay behind the
     // secure link the app opens into.
-    LaunchedEffect(model.paired) {
-        if (!model.paired) return@LaunchedEffect
-        model.pushes.startWatching()
+    LaunchedEffect(active, pushes) {
+        if (!active) return@LaunchedEffect
+        pushes.startWatching()
         try {
-            model.pushes.pushes.collect { latest ->
+            pushes.pushes.collect { latest ->
                 latest.lastOrNull()?.let { PushNotifications.present(context, it) }
             }
         } finally {
-            model.pushes.stopWatching()
+            pushes.stopWatching()
         }
     }
-    if (!model.paired) {
+    if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             SupportExportAction(model::supportSnapshot)
             PairingScreen(model)
@@ -271,6 +336,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
             NavigationBar {
                 tabs.forEachIndexed { index, label ->
                     NavigationBarItem(
+                        modifier = Modifier.testTag("native-tab-$index"),
                         selected = tab == index,
                         onClick = { tab = index },
                         icon = { Text(label.first().toString()) },
@@ -281,7 +347,12 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
-            SupportExportAction(model::supportSnapshot)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.weight(1f)) { SupportExportAction(model::supportSnapshot) }
+                Button(modifier = Modifier.testTag("native-repair"), onClick = { scope.launch { model.beginPairing() } }) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.native_repair))
+                }
+            }
             when (tab) {
                 0 -> SessionsTab(model)
                 1 -> ApprovalsTab(model)
@@ -303,10 +374,12 @@ fun PairingScreen(model: CompanionViewModel) {
     var deviceName by remember { mutableStateOf("") }
     var failure by remember { mutableStateOf<String?>(null) }
     var pairing by remember { mutableStateOf(false) }
+    val genericFailure = androidx.compose.ui.res.stringResource(R.string.native_pairing_failed)
     val scope = rememberCoroutineScope()
     Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("配对到宿主", style = MaterialTheme.typography.titleLarge)
         Text(androidx.compose.ui.res.stringResource(R.string.native_pairing_help), style = MaterialTheme.typography.bodySmall)
+        if (model.paired) Text(androidx.compose.ui.res.stringResource(R.string.native_repair_help), style = MaterialTheme.typography.bodySmall)
         if (CompanionRuntime.restoreNeedsPairing) {
             Text(androidx.compose.ui.res.stringResource(R.string.native_pairing_restore_required), color = MaterialTheme.colorScheme.error)
         }
@@ -316,13 +389,16 @@ fun PairingScreen(model: CompanionViewModel) {
             onClick = {
                 pairing = true
                 scope.launch {
-                    failure = model.pair(payload, deviceName)
-                    pairing = false
+                    try { failure = model.pair(payload, deviceName)?.let { it.message ?: genericFailure } }
+                    finally { pairing = false }
                 }
             },
             enabled = payload.isNotEmpty() && deviceName.isNotEmpty() && !pairing,
         ) { Text("配对") }
-        failure?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        if (model.paired) Button(enabled = !pairing, onClick = { scope.launch { model.cancelPairing() } }) {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_pairing_cancel))
+        }
+        failure?.let { Text(it, Modifier.testTag("pairing-error"), color = MaterialTheme.colorScheme.error) }
     }
 }
 

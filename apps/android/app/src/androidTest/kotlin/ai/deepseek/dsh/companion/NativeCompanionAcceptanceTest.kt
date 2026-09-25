@@ -13,13 +13,23 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Assume.assumeTrue
+import org.junit.rules.ExternalResource
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 
 /** Private ADB socket drives the installed Activity; no pairing text enters instrumentation output. */
 class NativeCompanionAcceptanceTest {
-    @get:Rule(order = 0) val notifications = GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
-    @get:Rule(order = 1) val compose = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order = 0) val optIn = object : ExternalResource() {
+        override fun before() {
+            val name = InstrumentationRegistry.getArguments().getString("dshSocket")
+            assumeTrue("Requires the private Native Remote acceptance driver", name != null)
+            require(name!!.matches(Regex("dsh-native-[a-f0-9-]+")))
+            check(InstrumentationRegistry.getInstrumentation().targetContext.packageName.endsWith(".nativeacceptance"))
+        }
+    }
+    @get:Rule(order = 1) val notifications = GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
+    @get:Rule(order = 2) val compose = createAndroidComposeRule<MainActivity>()
 
     private fun waitFor(matcher: SemanticsMatcher) {
         compose.waitUntil(20_000) { compose.onAllNodes(matcher).fetchSemanticsNodes(false).isNotEmpty() }
@@ -63,7 +73,7 @@ class NativeCompanionAcceptanceTest {
                                 value = JsonPrimitive(android.os.Process.myPid())
                             }
                             "watchInteractions" -> {
-                                compose.onNodeWithText("审批").performClick()
+                                compose.onNodeWithTag("native-tab-1").performClick()
                                 compose.waitForIdle()
                             }
                             "answerQuestion" -> {
@@ -74,15 +84,19 @@ class NativeCompanionAcceptanceTest {
                                 compose.waitUntil(20_000) { compose.onAllNodesWithText("提交回答").fetchSemanticsNodes(false).isEmpty() }
                             }
                             "observeSession" -> {
-                                compose.onNodeWithText("会话", substring = false).performClick()
+                                stage = "session-navigation"
+                                compose.onNodeWithTag("native-tab-0").performClick()
                                 val tag = "session-open-" + command.getValue("sessionId").jsonPrimitive.content
+                                stage = "session-list-entry"
                                 waitFor(hasTestTag(tag))
                                 compose.onNodeWithTag(tag).performScrollTo().performClick()
+                                stage = "session-done-projection"
+                                waitFor(hasText("DONE", substring = true))
                                 compose.onNode(hasText("DONE", substring = true)).performScrollTo()
                                 value = buildJsonObject { put("done", true) }
                             }
                             "readModelFile" -> {
-                                compose.onNodeWithText("文件").performClick()
+                                compose.onNodeWithTag("native-tab-4").performClick()
                                 val tag = "file-entry-" + command.getValue("path").jsonPrimitive.content
                                 waitFor(hasTestTag(tag))
                                 stage = "directory-entry"
@@ -100,15 +114,54 @@ class NativeCompanionAcceptanceTest {
                             }
                             "screenshot" -> {
                                 check(paired)
+                                compose.onNodeWithText("配对载荷（二维码内容）").assertDoesNotExist()
                                 val bytes = ByteArrayOutputStream()
                                 compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, bytes)
                                 value = JsonPrimitive(Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
                             }
                             "expectRefusal" -> {
-                                compose.onNodeWithText("审批").performClick()
+                                compose.onNodeWithTag("native-tab-1").performClick()
                                 waitFor(hasText("本地数据已过期，刷新后重试"))
                                 compose.onNodeWithText("本地数据已过期，刷新后重试").assertIsDisplayed()
                                 compose.onNodeWithText("重新连接").assertIsDisplayed().assertIsEnabled()
+                            }
+                            "rejectRepairAndCancel" -> {
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                val before = stored.readBytes()
+                                compose.onNodeWithTag("native-repair").performClick()
+                                waitFor(hasText("配对载荷（二维码内容）"))
+                                compose.onNodeWithText("配对载荷（二维码内容）").performTextInput(command.getValue("payload").toString())
+                                compose.onNodeWithText("设备名称").performScrollTo().performTextInput("Android replacement")
+                                compose.onNodeWithText("配对", substring = false).performScrollTo().performClick()
+                                waitFor(hasTestTag("pairing-error"))
+                                check(before.contentEquals(stored.readBytes())) { "Rejected replacement changed stored identity" }
+                                compose.onNodeWithText("取消").performScrollTo().performClick()
+                                waitFor(hasTestTag("native-repair"))
+                                compose.onNodeWithTag("file-content").assertDoesNotExist()
+                                compose.onNodeWithTag("native-tab-0").performClick()
+                                val session = "session-open-" + command.getValue("sessionId").jsonPrimitive.content
+                                waitFor(hasTestTag(session))
+                                compose.onNodeWithTag(session).performScrollTo().performClick()
+                                compose.onNodeWithTag("native-tab-4").performClick()
+                                val entry = "file-entry-" + command.getValue("path").jsonPrimitive.content
+                                waitFor(hasTestTag(entry))
+                            }
+                            "repair" -> {
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                val before = stored.readBytes()
+                                compose.onNodeWithTag("native-repair").performClick()
+                                waitFor(hasText("配对载荷（二维码内容）"))
+                                compose.onNodeWithText("配对载荷（二维码内容）").performTextInput(command.getValue("payload").toString())
+                                compose.onNodeWithText("设备名称").performScrollTo().performTextInput("Android replacement")
+                                compose.onNodeWithText("配对", substring = false).performScrollTo().performClick()
+                                waitFor(hasTestTag("native-repair"))
+                                check(!before.contentEquals(stored.readBytes())) { "Successful replacement did not commit identity" }
+                                compose.onNodeWithTag("file-content").assertDoesNotExist()
+                            }
+                            "recreate" -> {
+                                compose.activityRule.scenario.recreate()
+                                waitFor(hasTestTag("native-repair"))
+                                compose.onNodeWithText("配对载荷（二维码内容）").assertDoesNotExist()
                             }
                             "close" -> runBlocking { CompanionRuntime.wire.closeAndAwait() }
                             else -> error("unsupported UI command")

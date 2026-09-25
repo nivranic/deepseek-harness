@@ -3478,7 +3478,7 @@
           "text": "---"
         }
       ],
-      "verificationStatus": "NOT_STARTED",
+      "verificationStatus": "IN_PROGRESS",
       "acceptanceProven": false,
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
@@ -3486,9 +3486,13 @@
         "packages/client/ui-conversation/README.md",
         "packages/client/connection/tests/selection-observer.client.spec.ts",
         "packages/client/ui-settings-hosts/tests/observation.client.spec.tsx",
-        "apps/web/tests/hosts-settings.e2e.ts"
+        "apps/web/tests/hosts-settings.e2e.ts",
+        "apps/android/README.md",
+        "apps/web/tests/android-companion-question.e2e.ts",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/FileLinkCredentialsStoreTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelSetTest.kt"
       ],
-      "remaining": "Connection 独立发布所选 origin 与获准世代，框架钩子同步观察目标及名册；旧世代先退出再通知选择，活动 Host 与 Composer 非就绪保护保留。选择/返回/忘记与持久化归 Connection 服务，忘记书签不断连。普通 Web 只接受同源书签选择；跨源行提供独立页面，启动时清除不可用持久化选择且保留书签。真实双 Host 各自授权后直接 RPC 成功，但 Chrome 跨源预检仍为 403，验证本地 Origin 防线不因 Cookie 授权改变。当前 239 项定向测试、两项真实浏览器快照/恢复场景通过。仍开放：原生加密 Remote Connection Source 与 Device Trust 集成、可选名册编辑/排序、同候选物理平台验收；不授予整节 PASS。",
+      "remaining": "Web 名册、Host 选择与同源限制沿用已有证据；独立 TLS Native Remote 与 Device Trust 已由 Kotlin 和隔离 Android 应用采用。Android 重新配对先停止旧模型，在内存验证后原子替换本地身份；失败取消可用原身份重新观察，成功后创建空缓存模型。仍需跨两个真实 Host 的替换验收、原生持久名册、Swift 采用、可选编辑/排序及同候选物理平台验收；不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -8039,7 +8043,7 @@
           "text": "---"
         }
       ],
-      "verificationStatus": "NOT_STARTED",
+      "verificationStatus": "IN_PROGRESS",
       "acceptanceProven": false,
       "owner": "Device Trust、凭据与本地认证",
       "candidateEvidence": [
@@ -8047,9 +8051,13 @@
         "ARCHITECTURE_DECISIONS.md",
         "packages/api/device-trust/tests/device-trust.host.spec.ts",
         "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "apps/web/tests/device-interaction-reply.e2e.ts"
+        "apps/web/tests/device-interaction-reply.e2e.ts",
+        "apps/android/README.md",
+        "apps/web/tests/android-companion-question.e2e.ts",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/FileLinkCredentialsStoreTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelSetTest.kt"
       ],
-      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。原生加密 Remote Connection Source 与物理平台采用仍待完成。",
+      "remaining": "Native Remote 的固定 TLS 指纹、新设备证明、角色、撤销与重放防护已有 Host/JVM/Android 候选证据。重新配对使用独立模型生命周期、内存暂存、原子加密文件替换及不可取消的采纳；旧 Host 授权不自动撤销。仍需损坏凭据与 Keystore 失效恢复、完整远端执行授权审查、Swift 采用及物理平台资格验收；不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

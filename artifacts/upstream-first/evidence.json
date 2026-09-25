@@ -5,95 +5,67 @@
   "candidateTrackedChanges": [
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.i18n.yaml",
-      "sha256": "92936fcbcf12476a981b90a38ae704ab846d9cd464521c0fe02051d0877330d2"
+      "sha256": "259b98066698e27934b5da68c6dd44210e626eaad9c396bfb5d06c0698e2ad10"
     },
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.md",
-      "sha256": "2923e5c0fbb2d6f74e84b312be170263d53b1702270a544c2698f10fcaee7362"
+      "sha256": "cb849d7f6354a8ae03bd18d188bf5443372081d27b304d4505dc97f5503e71f0"
     },
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.zh.md",
-      "sha256": "a92c9b7855495d154055bfa85f77b8ecd453295e50bd4dc3765e1217ef1413c9"
+      "sha256": "5b57b5063806c3468b902c2694dfd272879d9d5e911cc742e14c2cd3cf7edd92"
     },
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "de222a867cb261257e5f34b8c60e4e6d897a79c96b863e445dc92b9185f5ba6e"
+      "sha256": "b52110c0746eec7b38224633a7e51b41205fa432c48223f80e2d35977e1cf660"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "3b15ad951eecde4f5be69ecd09931acc504a9403d7fb23150fb4616eefa0a791"
+      "sha256": "7f13fae88f60ee16e2d98a64b2247177ae355e931c664e79afc06433a0fb3f91"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "165b23d93b3235f755efa0ddebf1369c51fb8823f72b8c455101b9efb1d6fcb2"
+      "sha256": "16af97fa9b66a5c0dbc3143927638d6bb10a01f68bd1604af8757ec71c368e29"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "83a476afaacc5978ee6036481dcaa33d01a257993f4fa758644e8c0593c28115"
+      "sha256": "ef72623fb14cf0a8533624dd07a499bbda5cc5c2dcb818b6d2f0145f5a2e9afb"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "a8df0e29e0e571d0ac1351751b2c6b896f92ab0c84991229ac66b5aed1fa3b32"
+      "sha256": "46bd5cdc9927f26eab8e030f97d6234eb32e403c6e44cca6693d30c3c1e91507"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "8564879393265c1294c22411bac371d29a622251af064edc8c151a9a5d96072c"
+      "sha256": "62065e349dfdc13156805c5d0757a5e5b5e7e5be4547cefc8d2030b4b53a20f9"
     },
     {
       "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "2302e0443328ba13f97d776a7bca289b8abd5ae6ad1a991df40f765323904cf6"
+      "sha256": "5f2f92268c6cb831d2df503be05221f199b4692341200c584fa06edc55c0d10c"
     },
     {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-      "sha256": "c7d4475a13616a46084a5964133e6f2ab59a96a12cc899a64f3c07e65d2ac975"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/ConnectionDiagnostics.kt",
-      "sha256": "af62e4ab42c66024419bfaad0750b6d6a78b9a420f602701b2689ecbb3e61e99"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/FilesModel.kt",
-      "sha256": "ddf12bcf23e75f8b679ce0cadf19aa3358d4fac73a2cca56a674a5435202ddf8"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/InteractionModel.kt",
-      "sha256": "1650151f2394ed23e6f3aef6457870801477e628bd4b92bfcc76c9898c5230ac"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt",
-      "sha256": "039c7cc1f2e6aa33bc8020608285226fb432d2f88630471811d7fcb11c1d790a"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/ConnectionDiagnosticsTest.kt",
-      "sha256": "e1d123e36b8f8b705647fdb566fcaf3569a134cf9f86157d73726d1d9553907a"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeInteractionModelTest.kt",
-      "sha256": "9b128c68c7b5f8964023ae2c64db068a6d75cf11f2f04cc684c73fc9aa98fd02"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDriver.kt",
-      "sha256": "b708fdf5495d987aed2b94e4c503e7bc61f06ae77067584a7d42cd70122c60b3"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkCredentials.kt",
+      "sha256": "58cc5a0a4653c2493a241e5cb1c403b0e9eadd03dc17930ad0bb057815d7acdb"
     },
     {
       "path": "apps/web/tests/android-companion-question.e2e.ts",
-      "sha256": "0d43728d1153c7fd7260fe54c0f3d2f1a10ee8e6a8685f5916d0ae88ad26bd34"
+      "sha256": "667cbaab47f9b076cfe7a33f6fb0372a4fe0f62eca892e291259c57b933c7a93"
     },
     {
-      "path": "apps/web/tests/android-companion-ui-driver.ts",
-      "sha256": "6c31bc3b44e4784e1b2e4cc83f87290fadea2e5805c13c50cfad703d4774a2ca"
-    },
-    {
-      "path": "apps/web/tests/android-gateway.e2e.ts",
-      "sha256": "233f459bbd5c61c4b8269c70e9770e91a2ab04bcd22b54b969618d7956dd6444"
+      "path": "apps/web/tests/expected/android-companion-restart.expected.md",
+      "sha256": "f8eee544fc60c133c20c11f8280c0e8e87359cd6da7ad54ea9e98c49960f26ec"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "887a8971427c1333c0b1a33976afd7cd6d9d44b80a28dca0854f7823a4c85609"
+      "sha256": "1a7936f3a27f25409cf731d4d78ee17e25929202c5789546dc8e91a2a0f82093"
+    },
+    {
+      "path": "artifacts/upstream-first/specification-traceability.json",
+      "sha256": "8ca6b262b249727a16c281be8f1b934ed92313f9a1e36c7a5c9e3af0ff9e985c"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "7746df8c571b483aa00fb74230f476c8953e5189cdf7948c521534354f507f82"
+      "sha256": "9e5d3eb9480a53bb7c1694f3507c84fde0c90b492852c61c572153805f28415b"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -8062,6 +8034,72 @@
     },
     {
       "status": "PASS",
+      "command": "gradlew :core:test :core:nativeGatewayClasspath :app:assembleDebug :app:assembleDebugAndroidTest -PdshNativeAcceptance --offline",
+      "log": ".artifacts/android-repairing-core-app.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew :core:test :core:nativeGatewayClasspath :app:assembleDebug :app:assembleDebugAndroidTest -PdshNativeAcceptance --offline (final production app)",
+      "log": ".artifacts/android-repairing-core-app-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew :app:assembleDebugAndroidTest -PdshNativeAcceptance --offline (streamed UI synchronization)",
+      "log": ".artifacts/android-repairing-projection-build.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest web: android-gateway and android-companion-question; JVM plus Android 34; DSH_SNAPSHOT=replay",
+      "log": ".artifacts/android-repairing-host-projection-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -p tsconfig.host.json --noEmit",
+      "log": ".artifacts/android-repairing-types-host.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -p tsconfig.client.json --noEmit",
+      "log": ".artifacts/android-repairing-types-client.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/android-repairing-lint.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs",
+      "log": ".artifacts/android-repairing-doc-quick.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/android-repairing-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs",
+      "log": ".artifacts/android-repairing-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/android-repairing-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/android-repairing-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -8792,7 +8830,191 @@
       ]
     }
   },
+  "androidRepairing": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/android-repairing-source.json",
+    "scope": "Sections 13, 14, 21, 28, 35, 70 and 71: Android explicit re-pairing with retired model lifetime, staged verification, atomic local identity replacement and Activity/process recovery.",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "limitations": [
+      "Core executes 221 tests in 43 suites with no failures, errors or skips. The unchanged contract module is not freshly executed. Model retirement barrier tests await UI-originated requests and stream cleanup; credential tests cover replacement, cipher failure and failed-move cleanup.",
+      "Three real-Host cases pass in final read-only replay. Android wrong-pin replacement leaves stored credential bytes and Host grant count unchanged; cancellation recreates empty models and reads through the original identity.",
+      "Successful same-Host replacement changes the encrypted identity, creates fresh models, survives Activity recreation and another process restart, and reads the existing DONE Session without a third device grant. Host revocation applies to the replacement grant and renders the classified refusal.",
+      "Local commit and adoption cannot be interrupted by Activity cancellation once the commit starts. Cancellation before commit preserves the previous identity; successful redemption followed by another failure can leave a Host grant for explicit operator revocation. No Host task or prior device grant is implicitly cancelled.",
+      "The private instrumentation case skips before Activity launch without its socket argument and requires an isolated package when opted in. Pairing payloads stay on the private socket and are excluded from screenshots and failure output. Screenshots were visually reviewed.",
+      "Host/Client types, lint, 17 quick documentation gates, 36 doc-sync gates and six traceability cases pass. Emulator, keyless replay and debug APK evidence do not qualify physical devices, live model providers, distinct-Host replacement or signed releases."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Qualify corrupted credentials, Keystore invalidation, replacement between distinct Hosts, push/foreground reconnection and durable answer retention. A same-Host identity replacement does not qualify a native multi-Host roster.",
+        "Artifact descriptor/range access belongs to the retained Phase 9 design; retired session/artifact and session/handoff calls remain. Lite-to-Full import remains Phase 11 and cannot substitute for view-location handoff.",
+        "Native diagnostics, Swift adoption, discovery/Relay, physical devices, release signing and N/N-1/N-2 interoperability remain open.",
+        "Continue all unresolved specification acceptance rows; completeRc=false. Remote publication and CI dispatch remain blocked by automatic approval pending fresh user authorization."
+      ]
+    }
+  },
   "androidNativeLifecycle": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/android-repairing-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/android-native-lifecycle-source.json",
     "scope": "Sections 13, 14, 21, 28, 35, 70 and 71: classified read-only observation recovery, visible interaction refusal, and real Android process restart using the existing Keystore identity; Phase 10 status reflects verified in-progress adoption.",
@@ -21533,7 +21755,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/android-native-lifecycle-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/android-repairing-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -22016,7 +22238,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "7746df8c571b483aa00fb74230f476c8953e5189cdf7948c521534354f507f82"
+        "sha256": "9e5d3eb9480a53bb7c1694f3507c84fde0c90b492852c61c572153805f28415b"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
