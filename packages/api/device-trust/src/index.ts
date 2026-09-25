@@ -4,8 +4,8 @@
  * durable grant store over the storage-domain seam, signed admission, and
  * revocation. The audit decision 2026-09-20-link-access-takeover-audit names
  * this seam the single owner of device-facing access; permission execution
- * stays with the section 15 seam, which consumes each admission's section 21
- * permission set, and no non-localhost admission opens here.
+ * stays with Gateway, which consumes each admission's section 21 permission
+ * set. The native-remote package owns the separate encrypted listener.
  * @module @deepseek-ai/dsh-api-device-trust
  */
 

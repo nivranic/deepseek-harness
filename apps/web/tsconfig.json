@@ -71,6 +71,8 @@
     "tests/settings-chrome.e2e.ts",
     "tests/hosts-settings.e2e.ts",
     "tests/device-interaction-reply.e2e.ts",
+    "tests/native-remote-question.e2e.ts",
+    "tests/native-remote-support.ts",
     "tests/diff-preview.e2e.ts",
     "tests/models-settings.e2e.ts",
     "tests/models-settings-recovery.e2e.ts",

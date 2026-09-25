@@ -6,6 +6,7 @@ import {
   RemoteStreamMuxServer,
   type RemoteStreamFailureMapper,
   type RemoteStreamOpener,
+  type RemoteStreamMuxLimits,
 } from '../src/stream-server.ts'
 
 interface RunningMux {
@@ -25,6 +26,30 @@ afterEach(async () => {
 })
 
 describe('Remote stream mux server carrier lifecycle', () => {
+  it('rejects an oversized complete message before opening a stream', async () => {
+    const open = vi.fn(async (_endpoint: string, _payload: unknown, signal: AbortSignal) => waitForAbort(signal))
+    const entry = await startMux(open, 2000, { maxPayloadBytes: 256, maxStreamsPerConnection: 2 })
+    const client = await connect(entry.url)
+    const closed = once(client, 'close')
+    client.send(openFrame('x'.repeat(300)))
+    await closed
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('closes the carrier and drains admitted streams when its logical-stream bound is exceeded', async () => {
+    const returned = vi.fn()
+    const open = vi.fn(async (_endpoint: string, _payload: unknown, signal: AbortSignal) => cleanlyCancelled(signal, returned))
+    const entry = await startMux(open, 2000, { maxPayloadBytes: 4096, maxStreamsPerConnection: 1 })
+    const client = await connect(entry.url)
+    client.send(openFrame('first'))
+    await vi.waitFor(() => { expect(open).toHaveBeenCalledOnce() })
+    const closed = once(client, 'close')
+    client.send(openFrame('second'))
+    await closed
+    await vi.waitFor(() => { expect(returned).toHaveBeenCalledOnce() })
+    expect(open).toHaveBeenCalledOnce()
+  })
+
   it('sends WebSocket Ping control frames without application messages', async () => {
     const entry = await startMux(async (_endpoint, _payload, signal) => waitForAbort(signal), 20)
     const client = await connect(entry.url)
@@ -234,8 +259,8 @@ const mapFailure: RemoteStreamFailureMapper = error => ({
   details: {},
 })
 
-async function startMux(open: RemoteStreamOpener, heartbeatIntervalMs = 2_000): Promise<RunningMux> {
-  const mux = new RemoteStreamMuxServer(open, mapFailure, heartbeatIntervalMs)
+async function startMux(open: RemoteStreamOpener, heartbeatIntervalMs = 2_000, limits?: RemoteStreamMuxLimits): Promise<RunningMux> {
+  const mux = new RemoteStreamMuxServer(open, mapFailure, heartbeatIntervalMs, limits)
   const http = createServer()
   http.on('upgrade', (request, socket, head) => { mux.handleUpgrade(request, socket, head) })
   await new Promise<void>((resolve, reject) => {

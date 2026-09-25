@@ -35,6 +35,8 @@ fetch 拒绝或响应正文中断抛出带结构标记的 `ConnectionTransportEr
 
 -----
 
+`createRpcFetchHandler` 仅提供 Connection envelope 解析，`bridgeConnectionHttp` 以有界请求体和断连取消适配 Node HTTP 或 HTTPS 请求。载体或分派器必须自行执行授权。原生 TLS 入口把该编解码器与 Gateway 设备准入组合，不能访问本地精确 Fetch 注册表。
+
 <a id="browser-authentication-and-request-trust"></a>
 ## 浏览器认证与请求信任
 

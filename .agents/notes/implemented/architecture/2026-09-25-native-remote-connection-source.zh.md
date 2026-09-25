@@ -1,0 +1,30 @@
+# Agent Note: 原生设备通过现有 Gateway 上的独立 TLS 入口接入
+
+Status: implemented
+
+[English](2026-09-25-native-remote-connection-source.md) | 中文
+
+## 问题
+
+本地 Web 的 Cookie 与 Host/Origin 检查不能认证原生设备。若放松浏览器防护来复用监听器，就会把网络可达性当作本地浏览器权限。独立 Link 分派器则会复制 Gateway 的权限及交互归属。[接管决策](2026-09-20-link-access-takeover-audit.zh.md)因此要求在开放原生访问前提供加密 Connection 入口。
+
+## 决策
+
+[原生 Remote](../../../../packages/api/native-remote/README.zh.md) 是按需启用的 Host 插件，要求显式配置接口及资源限制。它只通过 TLS 1.2 或更新版本提供 Connection RPC envelope 与 Gateway mux。入口拒绝浏览器 Origin 和 Fetch Metadata 头，不提供浏览器资源、Cookie 权限、CORS 或本地精确 Fetch 路由。既有本地 Web 认证继续由 Connection 负责。
+
+Gateway 负责设备适配器。除现有的一次性配对兑换外，每次一元操作及逻辑流都要求新的设备证明。能力权限与设备回复归属检查保留在分派器中。物理 mux 连接不授予业务权限。设备业务流在等待准入前订阅撤销，并保留到迭代器关闭，避免迟到的准入注册已撤销流，也防止授权失效后继续投递缓冲值。
+
+凭据 provider 负责 `api-native-remote/tls-identity` grant。入口以维护中的 `@peculiar/x509` 库生成自签名 P-256 证书，在开始监听前持久化，并在启动时使用同一私钥续期。原生客户端在发送 HTTP 字节前，通过带外分发的小写 SHA-256 SPKI 指纹确认 Host。这样身份不依赖变化的 IP 地址或证书续期。存储材料无效或不匹配时启动拒绝，不静默替换已配对身份。
+
+库的解析器与 ASN.1 声明必须解析到同一 schema registry。限定版本的 pnpm override 使 `@peculiar/x509@2.1.0` 使用与声明一致的 `@peculiar/asn1-schema@2.9.5`；复用已有 2.9.4 解析器会丢失 `SubjectPublicKeyInfo` 元数据。升级库时需重新评估该覆盖。编译后的依赖在普通 Node 和仓库仅启用 ESM 的 TypeScript 启动方式下可用，不需要启用 CommonJS 转换 hook。
+
+## 备选方案
+
+- **让 Mobile 使用本地 Web Cookie 或放松 Origin 检查。** 否决：这会改变本地浏览器权限，也没有认证设备密钥。
+- **恢复退役的 Link 服务器。** 否决：既有 Gateway 已负责参数校验、权限、流和回复。
+- **手写 ASN.1 或要求 OpenSSL 可执行文件。** 否决：维护中的 JavaScript 库能在受支持 Node 主机上生成证书，无需额外安装平台工具。
+- **仅以公共 CA 主机名作为 Host 身份。** 在本地原生配对中否决：部署地址可能变化，而既有原生固定指纹模型识别 Host 密钥。TLS 仍负责加密，指纹负责认证对端。
+
+## 后果
+
+Host 入口可经普通 profile 组合挂载，出厂默认配置不开放网络监听器。测试覆盖身份持久化与并发创建、不换密钥的续期、无效存储身份、错误指纹、未签名请求、重放、权限不足、浏览器请求头拒绝、请求限制和关闭。Gateway 测试覆盖准入期间及业务流迭代期间的撤销。原生客户端帧格式、操作者配对展示、Relay/发现集成和真机验收仍是独立工作，旧夹具通过不能证明这些能力。证书续期要求在过期前重启监听器。

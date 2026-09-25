@@ -250,7 +250,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/api/gateway/src/index.ts:138`](../packages/api/gateway/src/index.ts)
+Source: [`packages/api/gateway/src/index.ts:140`](../packages/api/gateway/src/index.ts)
 
 <a id="deepseek-aidsh-api-host-description"></a>
 
@@ -276,6 +276,48 @@ export type HostTransport = 'http' | 'websocket' | 'desktop-pipe'
 ```
 
 Source: [`packages/api/host-description/src/index.ts:17`](../packages/api/host-description/src/index.ts)
+
+<a id="deepseek-aidsh-api-native-remote"></a>
+
+## `@deepseek-ai/dsh-api-native-remote`
+
+Requires: `credentials` · `typertGateway` · `deviceTrust`
+
+```ts config-catalog
+/** Explicit deployment bounds for the opt-in listener. */
+export interface Config extends CertificateConfig {
+  /** Literal listen address; all-interface binds require an explicit choice. */
+  readonly host: '127.0.0.1' | '0.0.0.0' | '::1' | '::'
+  /** TCP port; zero requests an OS-assigned port. */
+  readonly port: number
+  /** Maximum simultaneous TCP connections, including TLS handshakes. */
+  readonly maxConnections: number
+  /** Maximum complete buffered HTTP RPC body in bytes. */
+  readonly maxRequestBodyBytes: number
+  /** Maximum complete incoming WebSocket message in bytes. */
+  readonly maxWebSocketMessageBytes: number
+  /** Maximum live logical streams on one WebSocket. */
+  readonly maxStreamsPerConnection: number
+  /** Deadline for receiving a complete HTTP request. */
+  readonly requestTimeoutMs: number
+  /** Deadline for receiving HTTP request headers; must not exceed requestTimeoutMs. */
+  readonly headersTimeoutMs: number
+  /** Deadline for completing the TLS handshake. */
+  readonly handshakeTimeoutMs: number
+  /** WebSocket Ping interval; the mux terminates unresponsive connections. */
+  readonly websocketHeartbeatIntervalMs: number
+}
+
+/** Certificate lifetime choices; renewal leaves the private key unchanged. */
+export interface CertificateConfig {
+  /** Validity of each generated certificate, in days. */
+  readonly certificateLifetimeDays: number
+  /** Renew at listener startup when fewer than this many valid days remain. */
+  readonly certificateRenewBeforeDays: number
+}
+```
+
+Source: [`packages/api/native-remote/src/index.ts:15`](../packages/api/native-remote/src/index.ts)
 
 <a id="deepseek-aidsh-api-session-controller"></a>
 
@@ -461,7 +503,7 @@ export interface ConnectionRecoveryConfig {
 }
 ```
 
-Source: [`packages/client/connection/src/index.ts:72`](../packages/client/connection/src/index.ts)
+Source: [`packages/client/connection/src/index.ts:73`](../packages/client/connection/src/index.ts)
 
 <a id="deepseek-aidsh-client-hmr"></a>
 

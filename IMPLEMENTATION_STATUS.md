@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 原生 Remote TLS 入口与设备准入（§21、§28、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/native-remote-tls-source.json)记录独立、显式启用的 TLS Connection Source。凭据提供者持久化 P-256 身份，启动续期保持 SPKI；客户端须在发送 HTTP 字节前核对配对指纹。入口拒绝 Origin 和 Fetch Metadata，Cookie 不授予权限。RPC 编解码和 mux 复用 Connection/Gateway，除一次性配对兑换外，每次调用及逻辑流均需设备签名，角色权限、回复归属和撤销仍由 Gateway 执行。默认配置不开放监听器。
+
+Native Remote、Gateway、Device Trust 与 Connection 在补测前通过 752 项；最终 Gateway 与 Native Remote 定向覆盖通过 503 项，Gateway 主模块、mux 及两个新原生实现文件的四类覆盖均为 100%。真实 Host/Chrome 刷新和两项只读回放通过：测试原生客户端经固定 SPKI 的 TLS 执行配对、事件流和 Question 回复，本地 Web 场景也通过；浏览器普通控制 RPC 仍走本地入口。类型、构建、lint、36 项文档门禁与 16 项 hygiene 通过。ESM-only 源启动探针使用内存凭据，不充当持久化验收。操作员配对展示、Android/Swift 协议采用、持续运行中的证书续期、发现/Relay、真机及跨平台发布验收仍开放，completeRc 保持 false。
+
 ## 配对码并发兑换与持久化失败重试（§21、§70）
 
-[当前来源记录](artifacts/upstream-first/native-pairing-source.json)记录原生 Remote 接入前的一次性配对前提：配对码在等待授权写盘前独占，重叠兑换立即拒绝；写盘成功后保持消费状态，写盘失败后允许在原有效期内重试。修复前两个回归用例均允许重复兑换，修复后存储重开只读到唯一授权。
+[历史来源记录](artifacts/upstream-first/native-pairing-source.json)记录原生 Remote 接入前的一次性配对前提：配对码在等待授权写盘前独占，重叠兑换立即拒绝；写盘成功后保持消费状态，写盘失败后允许在原有效期内重试。修复前两个回归用例均允许重复兑换，修复后存储重开只读到唯一授权。
 
 Gateway 与 Device Trust 498 项测试通过；lint 调整后的 Device Trust 29 项复验通过。真实 Host/Chrome 经 Gateway HTTP RPC 两次提交每个配对码，只获得一份授权，再以该授权签名事件流和回复，完成已有 Question 录制回放。并发写入与介质失败的确定性证据来自单元屏障，不把 HTTP 调度当作竞态证明。类型、构建、lint 和 36 项文档门禁通过。TLS 原生入口、强制设备准入载体、原生调用格式采用及真机验收仍开放。
 

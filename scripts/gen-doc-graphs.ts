@@ -237,6 +237,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Associates generated Remote descriptors with live Cordis services, resolves registered identities, and exposes unary calls through the shared Connection RPC carrier.',
   },
   {
+    key: 'nativeRemote',
+    pkg: 'api-native-remote',
+    title: 'Native TLS Connection source',
+    mode: 'core',
+    note: 'Opt-in encrypted listener using persistent Host pins and Gateway device admission; local Web authentication remains separate.',
+  },
+  {
     key: 'hostDescription',
     pkg: 'api-host-description',
     title: 'Host discovery',

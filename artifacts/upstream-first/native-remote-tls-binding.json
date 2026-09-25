@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-remote-tls-source.json",
+    "sha256": "0e031a95a7877f8a312015f08216d88aff96903b71305b79f8eff914c2f8dd34"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3a70bdf07fc78844fd03bb2d42724db9e4732f425a239e2d4914e03e80d844d8"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-remote-tls-binding.mjs",
+    "sha256": "985202b52528f016b329d4a1043a59813d020a5e7a82416291ed27e0e2f70872"
+  }
+}

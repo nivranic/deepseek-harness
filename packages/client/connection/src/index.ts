@@ -41,7 +41,8 @@ export {
   rpcResultSchema,
   serverResponseSchema,
 } from './rpc-schema.ts'
-export { HostConnectionService } from './rpc-host.ts'
+export { HostConnectionService, createRpcFetchHandler } from './rpc-host.ts'
+export { bridge as bridgeConnectionHttp } from './http-bridge.ts'
 
 export { API_PATH } from './api-path.ts'
 

@@ -68,6 +68,8 @@ None; this package neither assembles nor sends a provider request.
 - The local Web carrier does not support in-page cross-origin connections. Native Remote access requires a separate Connection Source with Device Trust.
 - No roster editing beyond Forget; sorting stays most-recent-first.
 
+No runtime invariant companion is published: this section renders Connection-owned roster and selection state without maintaining an independent Host projection.
+
 <a id="dev-note"></a>
 ### Dev Note
 

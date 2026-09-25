@@ -162,7 +162,7 @@ export class HostConnectionService extends Service implements HostConnectionHand
     handler: ConnectionRpcHandler,
   ): () => Promise<void> {
     assertChannel(channel)
-    const fetchHandler = rpcFetchHandler(channel, handler)
+    const fetchHandler = createRpcFetchHandler(channel, handler)
     const route: WebRoute = {
       kind: 'prefix',
       path: channel,
@@ -193,7 +193,7 @@ export class HostConnectionService extends Service implements HostConnectionHand
     }
     const interceptor: ConnectionRpcInterceptor = {
       matches,
-      fetchHandler: rpcFetchHandler(channel, handler),
+      fetchHandler: createRpcFetchHandler(channel, handler),
     }
     return owner.effect(() => {
       if (this.interceptors.has(channel)) {
@@ -207,7 +207,14 @@ export class HostConnectionService extends Service implements HostConnectionHand
   }
 }
 
-function rpcFetchHandler(
+/**
+ * Decode Connection RPC envelopes without exposing the Host's route registry.
+ * The carrier or supplied dispatcher must authorize every operation; this codec does not authenticate.
+ * @param channel - absolute RPC path prefix, without a trailing slash.
+ * @param handler - authorized endpoint dispatcher.
+ * @returns buffered Fetch handler validating JSON, paths, and request correlation.
+ */
+export function createRpcFetchHandler(
   channel: string,
   handler: ConnectionRpcHandler,
 ): ConnectionFetchHandler {

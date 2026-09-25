@@ -1,0 +1,55 @@
+{
+  "name": "@deepseek-ai/dsh-api-native-remote",
+  "description": "Opt-in TLS Connection source with device-authenticated Gateway dispatch",
+  "version": "0.1.5-rc.2",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/api/native-remote"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@deepseek-ai/dsh-client-connection": "workspace:^",
+    "@deepseek-ai/schemastery": "workspace:^",
+    "@peculiar/x509": "2.1.0",
+    "reflect-metadata": "0.2.2",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "workspace:^",
+    "@deepseek-ai/dsh-api-device-trust": "workspace:^",
+    "@deepseek-ai/dsh-api-gateway": "workspace:^",
+    "@deepseek-ai/dsh-credentials": "workspace:^"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "workspace:^",
+    "@deepseek-ai/dsh-api-device-trust": "workspace:^",
+    "@deepseek-ai/dsh-api-gateway": "workspace:^",
+    "@deepseek-ai/dsh-credentials": "workspace:^",
+    "@deepseek-ai/dsh-credentials-local": "workspace:^",
+    "@deepseek-ai/dsh-storage": "workspace:^",
+    "@deepseek-ai/dsh-storage-json": "workspace:^",
+    "@deepseek-ai/dsh-storage-domain": "workspace:^",
+    "@deepseek-ai/dsh-typert-registry": "workspace:^",
+    "ws": "^8.21.0",
+    "@types/ws": "^8.18.1"
+  }
+}

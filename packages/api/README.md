@@ -29,6 +29,7 @@ The packages below provide the Remote layer; the package READMEs own the exhaust
 | [`host-description/`](host-description/README.md) | Describes authenticated Host identity, independent versions, and live capabilities. | `ctx.hostDescription` / `ctx.remote.host` |
 | [`remotes/`](remotes/README.md) | Chooses which Host capabilities and events the Client can consume. | — |
 | [`gateway/`](gateway/README.md) | Carries typed unary calls, multiplexed streams, and forwarded Host events. | `ctx.typertGateway` / `ctx.remote` |
+| [`native-remote/`](native-remote/README.md) | Opt-in TLS listener with pinned Host identity and signed Gateway device access. | `ctx.nativeRemote` |
 | [`session-controller/`](session-controller/README.md) | Owns Session commands, history streams, live control state, and Agent/Session identity policy. | `ctx.sessionController` / `ctx.remote.session` |
 | [`settings-controller/`](settings-controller/README.md) | Owns the configuration-surface reads and writes over the settings-domain seams. | `ctx.settingsController`, `ctx.credentialsController` / `ctx.remote.settings`, `ctx.remote.credentials` |
 | [`workspace-controller/`](workspace-controller/README.md) | Owns Workspace mutations and the complete Client Workspace projection. | `ctx.workspaceController` / `ctx.remote.workspace` |

@@ -4,6 +4,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type { ConnectionRpcHandler } from '@deepseek-ai/dsh-client-connection'
 import type { RemoteEventHostInfo, RemoteInteractionOrigin } from './stream-protocol.ts'
 
 /** One Remote method request after a carrier has decoded its envelope. */
@@ -125,6 +126,17 @@ export type TypertGatewayErrorCode =
 export interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
+
+  /**
+   * Native carrier adapter requiring device identity for every operation except
+   * one-time pairing redemption. Local browser cookies cannot authorize it.
+   */
+  readonly deviceConnection: {
+    /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+    readonly rpc: ConnectionRpcHandler
+    /** Open device-owned streams; device grants remain revocable throughout iteration. */
+    readonly stream: TypertGatewayWireStream
+  }
 
   /**
    * Read explicit capability ids from active Remote bindings whose required

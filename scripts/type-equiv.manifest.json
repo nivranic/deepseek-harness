@@ -2210,6 +2210,11 @@
       "doc": "docs/subsystems/host-diagnostics.md",
       "symbol": "SupportBundle",
       "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "NativeRemoteInfo",
+      "source": "packages/api/native-remote/src/index.ts"
     }
   ]
 }

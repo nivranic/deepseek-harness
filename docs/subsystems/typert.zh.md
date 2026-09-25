@@ -188,6 +188,17 @@ interface TypertGateway {
   readonly wireStream: TypertGatewayWireStream
 
   /**
+   * Native carrier adapter requiring device identity for every operation except
+   * one-time pairing redemption. Local browser cookies cannot authorize it.
+   */
+  readonly deviceConnection: {
+    /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+    readonly rpc: ConnectionRpcHandler
+    /** Open device-owned streams; device grants remain revocable throughout iteration. */
+    readonly stream: TypertGatewayWireStream
+  }
+
+  /**
    * Read explicit capability ids from active Remote bindings whose required
    * methods are available. Withdrawn strict definitions are not advertised.
    * This describes operations, not a caller's authorization to invoke them.
@@ -218,6 +229,25 @@ interface TypertGateway {
    * @returns a cancellation-aware iterable over the business results.
    */
   stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
+}
+```
+
+<a id="native-tls-source"></a>
+## 原生 TLS 入口
+
+[原生 Remote Connection](../../packages/api/native-remote/README.zh.md) 挂载独立、按需启用的 TLS 监听器。Gateway deviceConnection 要求 RPC 和逻辑流携带签名身份，唯一例外是一次性配对兑换。设备业务流在准入及迭代期间持续观察授权撤销。NativeRemoteInfo 仅向本地操作者提供配置的 bindHost、实际 port 与 SPKI 指纹，不暴露私钥材料。
+
+### NativeRemoteInfo
+
+```ts type-equiv
+/** Local operator facts for constructing an out-of-band pairing payload. */
+interface NativeRemoteInfo {
+  /** Configured literal interface; an all-interface address is not a pairing destination. */
+  readonly bindHost: Config['host']
+  /** Actual TCP port, including an OS-assigned value. */
+  readonly port: number
+  /** Pin the leaf certificate's SPKI, independently of its DNS name or issuing CA. */
+  readonly spkiFingerprint: string
 }
 ```
 
@@ -352,6 +382,23 @@ Read-only Remote namespace for Host facts and explicitly declared capabilities.
 ```
 
 Source: [`packages/api/host-description/src/index.ts`](../../packages/api/host-description/src/index.ts)
+
+<a id="ctxnativeremote--nativeremoteservice"></a>
+
+### `ctx.nativeRemote` — `NativeRemoteService`
+
+A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.
+
+```ts cordis-catalog
+/**
+ * Read the bound port and certificate pin for the local operator.
+ * @returns public identity facts, without certificate or private-key material.
+ * @throws while the listener is not ready or has been disposed.
+ */
+describe(): NativeRemoteInfo
+```
+
+Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)
 
 <a id="ctxtypert--typertregistry"></a>
 

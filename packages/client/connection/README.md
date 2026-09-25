@@ -35,6 +35,8 @@ Invalid RPC envelopes return only each validation issue’s `code`, `message` an
 
 -----
 
+`createRpcFetchHandler` exposes only Connection envelope parsing, and `bridgeConnectionHttp` adapts Node HTTP or HTTPS requests with bounded bodies and disconnect cancellation. A carrier or its dispatcher must supply authorization. The native TLS source uses this codec with Gateway device admission and cannot reach the local exact Fetch registry.
+
 <a id="browser-authentication-and-request-trust"></a>
 ## Browser authentication and request trust
 

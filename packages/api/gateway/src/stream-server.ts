@@ -21,9 +21,17 @@ export type RemoteStreamFailureMapper = (error: unknown) => RemoteStreamFailure
 
 const MAX_MISSED_HEARTBEATS = 2
 
+/** Validated resource limits supplied by a carrier exposed to native devices. */
+export interface RemoteStreamMuxLimits {
+  /** Maximum bytes in one complete incoming WebSocket message. */
+  readonly maxPayloadBytes: number
+  /** Maximum simultaneously open logical streams on one WebSocket. */
+  readonly maxStreamsPerConnection: number
+}
+
 /** Own the no-server WebSocket acceptor and every active logical stream. */
 export class RemoteStreamMuxServer {
-  private readonly server = new WebSocketServer({ noServer: true })
+  private readonly server: WebSocketServer
   private readonly connections = new Set<Promise<void>>()
   private readonly missedHeartbeats = new WeakMap<WebSocket, number>()
   private heartbeatTimer: NodeJS.Timeout | undefined
@@ -32,12 +40,16 @@ export class RemoteStreamMuxServer {
    * @param open - Gateway stream dispatcher.
    * @param failure - Gateway error-to-wire mapper.
    * @param heartbeatIntervalMs - interval between WebSocket Ping control frames.
+   * @param limits - carrier resource limits; omission preserves local WebSocket defaults.
    */
   constructor(
     private readonly open: RemoteStreamOpener,
     private readonly failure: RemoteStreamFailureMapper,
     private readonly heartbeatIntervalMs: number,
-  ) {}
+    private readonly limits?: RemoteStreamMuxLimits,
+  ) {
+    this.server = new WebSocketServer({ noServer: true, ...limits === undefined ? {} : { maxPayload: limits.maxPayloadBytes } })
+  }
 
   /**
    * Upgrade one trusted request and begin serving its logical streams.
@@ -50,7 +62,7 @@ export class RemoteStreamMuxServer {
       this.missedHeartbeats.set(websocket, 0)
       websocket.on('pong', () => { this.missedHeartbeats.set(websocket, 0) })
       this.startHeartbeat()
-      const connection = new RemoteStreamMuxConnection(websocket, this.open, this.failure)
+      const connection = new RemoteStreamMuxConnection(websocket, this.open, this.failure, this.limits?.maxStreamsPerConnection)
       const done = connection.run()
       this.connections.add(done)
       void done.then(() => { this.connections.delete(done) })
@@ -107,6 +119,7 @@ class RemoteStreamMuxConnection {
     private readonly socket: WebSocket,
     private readonly open: RemoteStreamOpener,
     private readonly failure: RemoteStreamFailureMapper,
+    private readonly maxStreams?: number,
   ) {}
 
   async run(): Promise<void> {
@@ -139,6 +152,9 @@ class RemoteStreamMuxConnection {
     }
     if (this.streams.has(message.streamId)) {
       throw new Error(`api gateway: duplicate Remote stream id ${JSON.stringify(message.streamId)}`)
+    }
+    if (this.maxStreams !== undefined && this.streams.size >= this.maxStreams) {
+      throw new Error('api gateway: Remote stream limit reached')
     }
     const abort = new AbortController()
     const active: ActiveStream = {

@@ -41,6 +41,8 @@ import {
   RemoteStreamMuxServer,
   rejectRemoteStreamUpgrade,
 } from './stream-server.ts'
+export { RemoteStreamMuxServer } from './stream-server.ts'
+export { REMOTE_STREAM_MUX_PATH } from './stream-protocol.ts'
 import {
   REMOTE_EVENT_STREAM_ENDPOINT,
   REMOTE_EVENT_STREAM_READY,
@@ -225,6 +227,15 @@ export class TypertGatewayService extends Service implements TypertGateway {
   readonly wireStream: TypertGatewayWireStream = {
     open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal),
     failure: error => rpcError(error),
+  }
+
+  /** Device-authenticated carrier; pairing redemption alone may precede identity. */
+  readonly deviceConnection: TypertGateway['deviceConnection'] = {
+    rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true),
+    stream: {
+      open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true),
+      failure: error => rpcError(error),
+    },
   }
 
   private srcClaims: ReadonlySet<string> | undefined
@@ -459,6 +470,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     endpoint: string,
     payload: unknown,
     signal: AbortSignal,
+    requireDevice = false,
   ): Promise<ConnectionRpcResult> {
     let version: RemoteProtocolVersion
     let device: unknown
@@ -467,9 +479,12 @@ export class TypertGatewayService extends Service implements TypertGateway {
       payload = decoded.payload
       version = decoded.version
       device = decoded.device
+      if (requireDevice && device === undefined && endpoint !== 'deviceTrust/redeemPairing') {
+        throw this.deviceIdentityRequired(endpoint)
+      }
       if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) return rpcFailure(this.diagnosticsOnlyRejection(endpoint))
       if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_RESULT_ENDPOINT) {
-        await this.admitRpcDevice(endpoint, decoded.device)
+        await this.admitRpcDevice(endpoint, parseDeviceAdmission(decoded.device))
       }
     } catch (error) {
       return rpcFailure(error)
@@ -500,17 +515,64 @@ export class TypertGatewayService extends Service implements TypertGateway {
     endpoint: string,
     payload: unknown,
     signal: AbortSignal,
+    requireDevice = false,
   ): Promise<AsyncIterable<unknown>> {
     const decoded = decodeRemoteRequest(endpoint, payload)
     if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) throw this.diagnosticsOnlyRejection(endpoint)
     payload = decoded.payload
-    if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_STREAM_ENDPOINT) {
-      await this.admitRpcDevice(endpoint, decoded.device)
-    }
     if (endpoint === REMOTE_EVENT_STREAM_ENDPOINT) {
+      const args: unknown = isObject(payload) ? Reflect.get(payload, 'args') : undefined
+      if (requireDevice && (!isObject(args) || Reflect.get(args, 'device') === undefined)) {
+        throw this.deviceIdentityRequired(endpoint)
+      }
       return this.openRemoteEvents(payload, signal, decoded.version)
     }
+    if (decoded.device !== undefined) {
+      return this.openDeviceBusinessStream(endpoint, payload, parseDeviceAdmission(decoded.device), signal)
+    }
+    if (requireDevice) throw this.deviceIdentityRequired(endpoint)
     return this.stream(remoteRequest(endpoint, payload, signal))
+  }
+
+  private deviceIdentityRequired(endpoint: string): RemoteError {
+    return new RemoteError('gateway/permission-denied', 'Remote operation requires a signed device identity', {
+      endpoint, reason: 'device-identity',
+    })
+  }
+
+  /** Admission and revocation belong to iterator lifetime, including time spent opening the business stream. */
+  private async *openDeviceBusinessStream(
+    endpoint: string,
+    payload: unknown,
+    device: DeviceAdmissionWire,
+    signal: AbortSignal,
+  ): AsyncGenerator {
+    const revoked = new AbortController()
+    const stop = this.ctx.on('deviceTrust/grantsRevoked', ({ revokedAt, deviceIds }) => {
+      if (!deviceIds.includes(device.deviceId as DeviceId)) return
+      revoked.abort(new RemoteError('device/already-revoked', 'Device grant was revoked during its Remote stream', {
+        deviceId: device.deviceId, revokedAt,
+      }))
+    })
+    const lifetime = AbortSignal.any([signal, revoked.signal])
+    const checkCancellation = (): void => {
+      if (lifetime.aborted) throw remoteCancelled(endpoint, lifetime.reason)
+    }
+    try {
+      checkCancellation()
+      await this.admitRpcDevice(endpoint, device)
+      checkCancellation()
+      const source = await this.stream(remoteRequest(endpoint, payload, lifetime))
+      for await (const value of source) {
+        checkCancellation()
+        yield value
+      }
+    } catch (error) {
+      if (revoked.signal.aborted) throw revoked.signal.reason
+      throw error
+    } finally {
+      stop()
+    }
   }
 
   private async *openRemoteEvents(
@@ -791,10 +853,9 @@ export class TypertGatewayService extends Service implements TypertGateway {
    * requests never take this path. Failures throw; the RPC path folds them
    * through its envelope and the stream path surfaces them as the open error.
    * @param endpoint - canonical Remote endpoint the device wants to invoke.
-   * @param deviceValue - the envelope's `device` field.
+   * @param device - the envelope's validated `device` field.
    */
-  private async admitRpcDevice(endpoint: string, deviceValue: unknown): Promise<void> {
-    const device = parseDeviceAdmission(deviceValue)
+  private async admitRpcDevice(endpoint: string, device: DeviceAdmissionWire): Promise<void> {
     const deviceTrust = this.ctx.get('deviceTrust')
     if (deviceTrust === undefined) {
       throw new TypertGatewayError(

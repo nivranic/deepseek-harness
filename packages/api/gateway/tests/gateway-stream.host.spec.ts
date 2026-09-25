@@ -83,7 +83,9 @@ function browserCookie(ctx: Context): string {
 }
 
 class FeedService extends Service {
-  readonly typertRemote = bindTypertRemote(this, 'feed')
+  readonly typertRemote = bindTypertRemote(this, 'feed', {
+    capabilities: [{ id: 'fixture-feed.follow.v1', methods: ['follow', 'sync'], requiredPermission: 'view' }],
+  })
   readonly signals: AbortSignal[] = []
   returns = 0
 
@@ -426,6 +428,42 @@ describe('Typert Remote streams', () => {
     } finally {
       await unregister()
       vi.useRealTimers()
+    }
+  })
+
+  it('settles once when the deadline passes before broadcast to multiple Clients', async () => {
+    const { ctx } = await setup(false, { interactionTimeoutMs: { approval: 100 } })
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const clients: AsyncIterator<unknown>[] = []
+    try {
+      for (let i = 0; i < 2; i++) {
+        const stream = await ctx.typertGateway.wireStream.open('$events', { apiProtocolVersion: 2, args: {} }, new AbortController().signal)
+        const client = stream[Symbol.asyncIterator]()
+        clients.push(client)
+        await client.next()
+      }
+      const pending = pendingInvocation(ctx.extend(), undefined, 'ship', agentId('agent-1'), {
+        sessionId: 'session-1' as RemoteInteractionSessionId, type: 'approval', requiredPermission: 'approval.respond',
+      })
+      const outcome = expect(pending.outcome).rejects.toMatchObject({ code: 'interaction-expired' })
+      // Simulate a clock jump between creation and the first delivery in one broadcast.
+      const clock = vi.spyOn(Date, 'now').mockReturnValueOnce(1_000).mockReturnValue(1_100)
+      try {
+        source.push(pending.dispatch)
+        await outcome
+        source.push({ event: 'fixture/notice', args: ['after expiry'] })
+        for (const client of clients) {
+          expect((await client.next()).value).toMatchObject({ type: 'emit', args: ['after expiry'] })
+        }
+        expect(pending.reject).toHaveBeenCalledTimes(1)
+        expect(pending.resolve).not.toHaveBeenCalled()
+      } finally {
+        clock.mockRestore()
+      }
+    } finally {
+      await unregister()
+      for (const client of clients) await client.return?.()
     }
   })
 
@@ -864,8 +902,8 @@ describe('Typert Remote streams', () => {
     await unregister()
   })
 
-  it.each([1, 2] as const)('rejects a reply without the required permission and keeps the interaction unsettled (protocol %s)', async (version) => {
-    const { ctx } = await setup(true, { interactionReplyPermissions: { approval: false, question: true } })
+  it.each([1, 2] as const)('rejects replies disabled by Host policy and keeps the interactions unsettled (protocol %s)', async (version) => {
+    const { ctx } = await setup(true, { interactionReplyPermissions: { approval: false, question: false } })
     const source = new RemoteEventSourceProbe()
     const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
     const agent = ctx.extend()
@@ -892,20 +930,22 @@ describe('Typert Remote streams', () => {
     expect(questionFrame).toBeDefined()
 
     const unsettled = expect(approval.outcome).rejects.toThrow('forwarded Remote event source was removed')
+    const questionUnsettled = expect(question.outcome).rejects.toThrow('forwarded Remote event source was removed')
     await expect(sendEventResult(client, approvalFrame, {
       kind: 'result', value: 'allowed',
     }, version)).rejects.toMatchObject({ code: 'gateway/permission-denied' })
     expect(approval.resolve).not.toHaveBeenCalled()
     expect(approval.reject).not.toHaveBeenCalled()
 
-    await sendEventResult(client, questionFrame, {
+    await expect(sendEventResult(client, questionFrame, {
       kind: 'result', value: 'answered',
-    }, version)
-    await expect(question.outcome).resolves.toEqual({ kind: 'result', value: 'answered' })
+    }, version)).rejects.toMatchObject({ code: 'gateway/permission-denied' })
+    expect(question.resolve).not.toHaveBeenCalled()
     expect(approval.resolve).not.toHaveBeenCalled()
     client.socket.close()
     await unregister()
     await unsettled
+    await questionUnsettled
   })
 
   it.each([1, 2] as const)('accepts one answer and reports interaction-closed to the loser over protocol %s', async (version) => {
@@ -1381,6 +1421,121 @@ describe('Typert Gateway device admission', () => {
     return { deviceId: device.deviceId, timestamp, nonce, signature: device.key.sign(`${device.deviceId}\n${String(timestamp)}\n${nonce}`) }
   }
 
+  async function setupDeviceFeed(): Promise<{ ctx: Context; service: FeedService }> {
+    const ctx = await setupDevices()
+    await ctx.plugin(FeedService)
+    ctx.typert.register({
+      package: '@fixture/feed', face: 'host', schemas: [],
+      model: { services: [], events: [], objects: [] }, invocations: descriptors(),
+    })
+    const receiver = ctx.get('feed') as unknown as FeedService & { [symbols.original]?: FeedService }
+    return { ctx, service: receiver[symbols.original] ?? receiver }
+  }
+
+  it.each(['$events', 'feed/follow'])('requires device identity on the native %s stream', async (endpoint) => {
+    const ctx = await setupDevices()
+    const stream = ctx.typertGateway.deviceConnection.stream.open(
+      endpoint, { apiProtocolVersion: 2, args: {} }, new AbortController().signal,
+    )
+    await expect(stream)
+      .rejects.toMatchObject({ code: 'gateway/permission-denied', details: { endpoint, reason: 'device-identity' } })
+  })
+
+  it('stops a pending business-stream read when its device is revoked', async () => {
+    const { ctx, service } = await setupDeviceFeed()
+    const device = await pairDevice(ctx, 'viewer')
+    const stream = await ctx.typertGateway.deviceConnection.stream.open('feed/follow', {
+      apiProtocolVersion: 2, args: { label: 'native' }, device: admissionOf(device),
+    }, new AbortController().signal)
+    const iterator = stream[Symbol.asyncIterator]()
+    try {
+      expect((await iterator.next()).value).toBe('native:ready')
+      const rejected = expect(iterator.next()).rejects.toMatchObject({ code: 'device/already-revoked' })
+      await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+      await rejected
+      expect(service.signals[0]?.aborted).toBe(true)
+      expect(service.returns).toBe(1)
+    } finally {
+      await iterator.return?.()
+    }
+  })
+
+  it('keeps event and business streams alive when a different device is revoked', async () => {
+    const { ctx } = await setupDeviceFeed()
+    const device = await pairDevice(ctx, 'viewer')
+    const other = await pairDevice(ctx, 'viewer')
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+    const events = (await ctx.typertGateway.deviceConnection.stream.open('$events', {
+      apiProtocolVersion: 2, args: { device: admissionOf(device) },
+    }, new AbortController().signal))[Symbol.asyncIterator]()
+    const feed = (await ctx.typertGateway.deviceConnection.stream.open('feed/sync', {
+      apiProtocolVersion: 2, args: { label: 'native' }, device: admissionOf(device),
+    }, new AbortController().signal))[Symbol.asyncIterator]()
+    try {
+      await events.next()
+      expect((await feed.next()).value).toBe('native:one')
+      await ctx.deviceTrust.revokeDevice({ deviceId: other.deviceId })
+      expect((await feed.next()).value).toBe('native:two')
+      expect((await feed.next()).done).toBe(true)
+      source.push({ event: 'fixture/changed', args: ['still connected'] })
+      expect((await events.next()).value).toMatchObject({ type: 'emit', args: ['still connected'] })
+    } finally {
+      await unregister()
+      await events.return?.()
+      await feed.return?.()
+    }
+  })
+
+  it('does not emit a buffered business value after device revocation', async () => {
+    const { ctx } = await setupDeviceFeed()
+    const device = await pairDevice(ctx, 'viewer')
+    const stream = await ctx.typertGateway.deviceConnection.stream.open('feed/sync', {
+      apiProtocolVersion: 2, args: { label: 'native' }, device: admissionOf(device),
+    }, new AbortController().signal)
+    const iterator = stream[Symbol.asyncIterator]()
+    try {
+      expect((await iterator.next()).value).toBe('native:one')
+      await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+      await expect(iterator.next()).rejects.toMatchObject({ code: 'device/already-revoked' })
+    } finally {
+      await iterator.return?.()
+    }
+  })
+
+  it.each(['revoke', 'cancel'] as const)('does not open a business stream after %s during admission', async (action) => {
+    const { ctx, service } = await setupDeviceFeed()
+    const device = await pairDevice(ctx, 'viewer')
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const original = ctx.deviceTrust.admitDevice.bind(ctx.deviceTrust)
+    const spy = vi.spyOn(ctx.deviceTrust, 'admitDevice').mockImplementation(async (request) => {
+      const admitted = await original(request)
+      entered.resolve(undefined)
+      await release.promise
+      return admitted
+    })
+    const abort = new AbortController()
+    const stream = await ctx.typertGateway.deviceConnection.stream.open('feed/follow', {
+      apiProtocolVersion: 2, args: { label: 'late' }, device: admissionOf(device),
+    }, abort.signal)
+    const iterator = stream[Symbol.asyncIterator]()
+    const first = iterator.next().catch((error: unknown) => error)
+    try {
+      await entered.promise
+      if (action === 'revoke') await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+      else abort.abort()
+      release.resolve(undefined)
+      expect(await first).toMatchObject({ code: action === 'revoke' ? 'device/already-revoked' : 'gateway/cancelled' })
+      expect(service.signals).toHaveLength(0)
+    } finally {
+      release.resolve(undefined)
+      await first
+      await iterator.return?.()
+      spy.mockRestore()
+    }
+  })
+
   it.each(['missing', 'other-device', 'wrong-signature', 'browser-stream'] as const)(
     'rejects a %s device reply without consuming the delivery', async (kind) => {
       const ctx = await setupDevices()
@@ -1636,10 +1791,14 @@ describe('Typert Gateway device admission', () => {
 
   it('rejects a device identity when the device-trust service is absent', async () => {
     const { ctx } = await setup(true)
+    const source = new RemoteEventSourceProbe()
+    const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
     const failure = await openEventFailure(ctx, 'events-no-trust', {
       deviceId: 'device-1', timestamp: Date.now(), nonce: 'nonce-absent', signature: 'c2lnbmF0dXJl',
     })
     expect(failure.code).toBe('gateway/service-unavailable')
+    expect(failure.message).toContain('device-trust service')
+    await unregister()
   })
 })
 

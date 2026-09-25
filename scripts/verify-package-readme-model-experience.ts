@@ -44,6 +44,9 @@ const NO_MODEL_EXPERIENCE_SECTION: Readonly<Record<string, string>> = {
  * blocks. A package moves on or off this list with its context behavior.
  */
 const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
+  'packages/api/native-remote': {
+    kind: 'none', reason: 'The native TLS carrier transports existing Gateway calls and registers no model context.',
+  },
   'packages/api/host-description': {
     kind: 'none', reason: 'Authenticated Host discovery returns metadata to Clients and registers no model context.',
   },

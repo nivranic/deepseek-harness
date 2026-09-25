@@ -7,6 +7,7 @@ settings:
 overrides:
   '@deepseek-ai/cosmokit': link:vendor/cosmokit
   '@deepseek-ai/schemastery': link:vendor/schemastery
+  '@peculiar/x509@2.1.0>@peculiar/asn1-schema': 2.9.5
 
 patchedDependencies:
   '@electron/osx-sign@1.3.3': 280e7b2816caf01423097d24e79107a66afeb563a348630ce9928ae8499a5861
@@ -595,6 +596,9 @@ importers:
       '@deepseek-ai/cordis-plugin-group':
         specifier: workspace:^
         version: link:../../vendor/group
+      '@deepseek-ai/dsh-api-native-remote':
+        specifier: workspace:^
+        version: link:../../packages/api/native-remote
       '@deepseek-ai/dsh-client-modules':
         specifier: workspace:^
         version: link:../../packages/client/modules
@@ -979,6 +983,58 @@ importers:
       '@deepseek-ai/dsh-util-values':
         specifier: workspace:^
         version: link:../../util/values
+
+  packages/api/native-remote:
+    dependencies:
+      '@deepseek-ai/dsh-client-connection':
+        specifier: workspace:^
+        version: link:../../client/connection
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+      '@peculiar/x509':
+        specifier: 2.1.0
+        version: 2.1.0
+      reflect-metadata:
+        specifier: 0.2.2
+        version: 0.2.2
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-api-device-trust':
+        specifier: workspace:^
+        version: link:../device-trust
+      '@deepseek-ai/dsh-api-gateway':
+        specifier: workspace:^
+        version: link:../gateway
+      '@deepseek-ai/dsh-credentials':
+        specifier: workspace:^
+        version: link:../../credentials/credentials
+      '@deepseek-ai/dsh-credentials-local':
+        specifier: workspace:^
+        version: link:../../credentials/credentials-local
+      '@deepseek-ai/dsh-storage':
+        specifier: workspace:^
+        version: link:../../storage/storage
+      '@deepseek-ai/dsh-storage-domain':
+        specifier: workspace:^
+        version: link:../../storage/storage-domain
+      '@deepseek-ai/dsh-storage-json':
+        specifier: workspace:^
+        version: link:../../storage/storage-json
+      '@deepseek-ai/dsh-typert-registry':
+        specifier: workspace:^
+        version: link:../../typert/registry
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
+      ws:
+        specifier: ^8.21.0
+        version: 8.21.0
 
   packages/api/remotes:
     dependencies:
@@ -13816,8 +13872,56 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@peculiar/asn1-asym-key@2.9.5':
+    resolution: {integrity: sha512-U3Q2bUWYNVpfk+oOhPl/+OSHxXaBTQBwMf93jJ7oPi/sbmcY5CnARdjGMwLoXT/ggWSryo5t7A7o3/Gfz0U2WA==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-cms@2.9.5':
+    resolution: {integrity: sha512-4Ivz0fsyFofe0bslNsYcGN9+iETdHX4v+BFwIPr+K/BAt61sHXECP63ff9FntU9zcfVQELJFdUG9so44OjUlBQ==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-csr@2.9.5':
+    resolution: {integrity: sha512-9dO6PcoJeI+1xJ4rG7eINMa6f9Ix/QdRs5UGZ0D7v/R3TzmsbVr5cqAgfYw4xgS9U54ouHYqEz0bIZBbM/UY1g==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-ecc@2.9.5':
+    resolution: {integrity: sha512-OD+HLlcV7wCL64w0rheX/C0J31DbJce0nf8ulv3UNftQ617JEZE3sQ4cMN6PotXWlJ1M5GQx90G3bywtdKOstw==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-pfx@2.9.5':
+    resolution: {integrity: sha512-btcH7lbcD4410qnjHvv7F0kEuMNKbX8CFAZSs9CDPWHKzT1byLPHYeR40AnUw9z4CzsijMY0daBFYUvVx75sdA==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-pkcs8@2.9.5':
+    resolution: {integrity: sha512-c7UghAGQdBfAHL9JdwcJkAc/lDJKNXfCdYXPXlf8BZdD/fVJjJnXKHxX4gyLhkFTvnGhME7caieSgc2ROtqYTQ==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-pkcs9@2.9.5':
+    resolution: {integrity: sha512-4R/zMgLSHbQIZRBwP1KzX6iuNHmW3xFWwu9TS9A00N60fmQqp9DkkqnQFyd0mAYMQTrQefuzQ/yP4U8sOLGUgQ==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-rsa@2.9.5':
+    resolution: {integrity: sha512-kHwBLVMkm9ljlM521ovS7y4z4mr8xuHTdNyyoPlDvckBwFKSgs9HqKBryLBeqHqL2YpIgl+Vspl7kzNGG2phzA==}
+    engines: {node: '>=14'}
+
   '@peculiar/asn1-schema@2.9.4':
     resolution: {integrity: sha512-GjzePcT9Iw8NzeOPf73iNS9xM+TBhd/FilAfP+RQGkTMQJTVWtytN3JHJACCjf/ABNau5S7mS3g+DcuxmRgYEg==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-schema@2.9.5':
+    resolution: {integrity: sha512-Ez3wLKVjaxdsLcgeWN4OE31QkM7oBOgKuuBJxldRYAkfYw2C+8zJPcSd/SThnbhszsEOlAmoaS5kIIkN29fGKQ==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-x509-attr@2.9.5':
+    resolution: {integrity: sha512-PlbL1a74RZiry7puPCZ5hdk/puvivxYJPbjadr2i7DBjHCJFEKCfTRPKL3DILeZFtzJjn95J5EBtSc4/TB9/6Q==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-x509-post-quantum@2.9.5':
+    resolution: {integrity: sha512-CTznDkboSgwRpXSFhta+Pe5cQ12JtojdMrmOZTWYkBSvbW/1R5pflPIHkpSlaILIfGcAaxIVpXq880xCfJYzow==}
+    engines: {node: '>=14'}
+
+  '@peculiar/asn1-x509@2.9.5':
+    resolution: {integrity: sha512-NP3ecvN6zTDlwCvogIWL7MJN9AZNuskkIbnlhrlkB97Mn2EqirBUQ8GKzsOmdAL3pRvjGu1Uk/a4DNfiZrWxhw==}
     engines: {node: '>=14'}
 
   '@peculiar/json-schema@1.1.12':
@@ -13830,6 +13934,10 @@ packages:
   '@peculiar/webcrypto@1.7.1':
     resolution: {integrity: sha512-ODOov0sGMJMf3jPonOkgGqPknTsu+DdQ7kD++gz8aI+aFMOMHFbWAA2taqXXVTdP+OTOQR/znGvSpmkeI0WTYQ==}
     engines: {node: '>=14.18.0'}
+
+  '@peculiar/x509@2.1.0':
+    resolution: {integrity: sha512-IYbg1R03CSQGWwl24kGyqrdVtixNSbRaDvBg1r5wyYjTP+VwPQkka1BzTgU5+vxiuwqg04OxdvdJ1xYYFIdUSA==}
+    engines: {node: '>=20.0.0'}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -17538,6 +17646,9 @@ packages:
     resolution: {integrity: sha512-J8rn6v4DBb2nnFqkqwy6/NnTYMcgLA+sLr0iIO41qpv0n+ngb7ksag2tMRl0inb1bbO/esUwzW1vbJi7K0sI0g==}
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
 
+  reflect-metadata@0.2.2:
+    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
+
   regex-recursion@6.0.2:
     resolution: {integrity: sha512-0YCaSCq2VRIebiaUviZNs0cBz1kg5kVS2UKUfNIx8YVs1cN3AV7NTctO5FOKBA+UT2BPJIWZauYHPqJODG50cg==}
 
@@ -18063,6 +18174,9 @@ packages:
       unrun:
         optional: true
 
+  tslib@1.14.1:
+    resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
+
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
@@ -18070,6 +18184,10 @@ packages:
     resolution: {integrity: sha512-X8EX+XV4QR5xCsrgxaED954zTDfY8KqlDtskKEL0cHhyS/P8b4IFOvGDQpsC9Q1XnLq915wEfwwY/zzskCtmhg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
+
+  tsyringe@4.10.0:
+    resolution: {integrity: sha512-axr3IdNuVIxnaK5XGEUFTu3YmAQ6lllgrvqfEoR16g/HGnYY/6We4oWENtAnzK6/LpJ2ur9PAb80RBt7/U4ugw==}
+    engines: {node: '>= 6.0.0'}
 
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
@@ -20448,8 +20566,100 @@ snapshots:
   '@oxlint/binding-win32-x64-msvc@1.76.0':
     optional: true
 
+  '@peculiar/asn1-asym-key@2.9.5':
+    dependencies:
+      '@peculiar/asn1-pkcs8': 2.9.5
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-cms@2.9.5':
+    dependencies:
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-x509-attr': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-csr@2.9.5':
+    dependencies:
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-ecc@2.9.5':
+    dependencies:
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-pfx@2.9.5':
+    dependencies:
+      '@peculiar/asn1-cms': 2.9.5
+      '@peculiar/asn1-pkcs8': 2.9.5
+      '@peculiar/asn1-rsa': 2.9.5
+      '@peculiar/asn1-schema': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-pkcs8@2.9.5':
+    dependencies:
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-pkcs9@2.9.5':
+    dependencies:
+      '@peculiar/asn1-cms': 2.9.5
+      '@peculiar/asn1-pfx': 2.9.5
+      '@peculiar/asn1-pkcs8': 2.9.5
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-x509-attr': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-rsa@2.9.5':
+    dependencies:
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
   '@peculiar/asn1-schema@2.9.4':
     dependencies:
+      '@peculiar/utils': 2.0.3
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-schema@2.9.5':
+    dependencies:
+      '@peculiar/utils': 2.0.3
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-x509-attr@2.9.5':
+    dependencies:
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-x509-post-quantum@2.9.5':
+    dependencies:
+      '@peculiar/asn1-asym-key': 2.9.5
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      asn1js: 3.0.10
+      tslib: 2.8.1
+
+  '@peculiar/asn1-x509@2.9.5':
+    dependencies:
+      '@peculiar/asn1-schema': 2.9.5
       '@peculiar/utils': 2.0.3
       asn1js: 3.0.10
       tslib: 2.8.1
@@ -20469,6 +20679,20 @@ snapshots:
       '@peculiar/utils': 2.0.3
       tslib: 2.8.1
       webcrypto-core: 1.9.2
+
+  '@peculiar/x509@2.1.0':
+    dependencies:
+      '@peculiar/asn1-cms': 2.9.5
+      '@peculiar/asn1-csr': 2.9.5
+      '@peculiar/asn1-ecc': 2.9.5
+      '@peculiar/asn1-pkcs9': 2.9.5
+      '@peculiar/asn1-rsa': 2.9.5
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-x509-post-quantum': 2.9.5
+      pvtsutils: 1.3.6
+      tslib: 2.8.1
+      tsyringe: 4.10.0
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -24581,6 +24805,8 @@ snapshots:
     dependencies:
       '@eslint-community/regexpp': 4.12.2
 
+  reflect-metadata@0.2.2: {}
+
   regex-recursion@6.0.2:
     dependencies:
       regex-utilities: 2.3.0
@@ -25216,6 +25442,8 @@ snapshots:
       - oxc-resolver
       - vue-tsc
 
+  tslib@1.14.1: {}
+
   tslib@2.8.1: {}
 
   tsx@4.22.4:
@@ -25223,6 +25451,10 @@ snapshots:
       esbuild: 0.28.1
     optionalDependencies:
       fsevents: 2.3.3
+
+  tsyringe@4.10.0:
+    dependencies:
+      tslib: 1.14.1
 
   tunnel-agent@0.6.0:
     dependencies:
@@ -25602,7 +25834,7 @@ snapshots:
 
   webcrypto-core@1.9.2:
     dependencies:
-      '@peculiar/asn1-schema': 2.9.4
+      '@peculiar/asn1-schema': 2.9.5
       '@peculiar/json-schema': 1.1.12
       '@peculiar/utils': 2.0.3
       asn1js: 3.0.10

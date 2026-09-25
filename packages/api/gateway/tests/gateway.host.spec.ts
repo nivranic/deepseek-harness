@@ -432,6 +432,33 @@ class InheritedMethodBase extends Service {
 class InheritedMethodService extends InheritedMethodBase {}
 
 describe('TypertGatewayService', () => {
+  it('supports direct construction with omitted optional reply permissions', async () => {
+    const ctx = new Context()
+    try {
+      await ctx.plugin(TypertRegistry)
+      await ctx.plugin({ inject: ['typert'], apply(scope) { new TypertGatewayService(scope, {}) } })
+      await ctx.plugin(GoalService)
+      await expect(ctx.typertGateway.invoke({ namespace: 'goals', method: 'passthrough', args: { value: 'direct' } }))
+        .resolves.toBe('direct')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it.each([
+    [{ service: 'other' }, 'gateway/provider-mismatch'],
+    [{ implementation: 'missing' }, 'gateway/method-unavailable'],
+  ] as const)('rejects inconsistent capability reflection: %j', async (override, code) => {
+    const ctx = await setupGateway()
+    try {
+      await ctx.plugin(GoalService, [{ id: 'fixture.echo.v1', methods: ['passthrough'] }])
+      registerStrict(ctx, [{ ...passthroughDescriptor(), ...override }])
+      expect(() => ctx.typertGateway.capabilities()).toThrow(expect.objectContaining({ code }))
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('advertises only declared method sets and withdraws them with the Service', async () => {
     const ctx = await setupGateway()
     try {
@@ -1795,6 +1822,65 @@ describe('Typert Gateway per-request device admission', () => {
     }
   })
 
+  it('requires a device on the native adapter while preserving trusted-local calls', async () => {
+    const { ctx, handler } = await setupTrust()
+    const signal = new AbortController().signal
+    try {
+      for (const endpoint of ['host/describe', 'vault/grant', 'deviceTrust/issuePairing', 'deviceTrust/admitDevice', '$events/result']) {
+        await expect(ctx.typertGateway.deviceConnection.rpc(endpoint, { apiProtocolVersion: 2, args: {} }, signal))
+          .resolves.toMatchObject({ ok: false, error: {
+            code: 'gateway/permission-denied', details: { endpoint, reason: 'device-identity' },
+          } })
+      }
+      await expect(handler('host/describe', { args: {} }, signal)).resolves.toMatchObject({ ok: true })
+      const viewer = await pairDevice(ctx, 'viewer')
+      await expect(ctx.typertGateway.deviceConnection.rpc('host/describe', deviceEnvelope(viewer, {}), signal))
+        .resolves.toMatchObject({ ok: true })
+      await expect(ctx.typertGateway.deviceConnection.rpc('vault/grant', deviceEnvelope(viewer, {}), signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied', details: { required: 'device.admin' } } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('allows only one-time redemption to bootstrap an unsigned native device', async () => {
+    const { ctx } = await setupTrust()
+    try {
+      const key = ed25519()
+      const issuance = ctx.deviceTrust.issuePairing('viewer')
+      const payload = { apiProtocolVersion: 2, args: { request: {
+        code: issuance.code, deviceName: 'native', devicePublicKey: key.publicKeyB64,
+      } } }
+      const rpc = ctx.typertGateway.deviceConnection.rpc
+      await expect(rpc('deviceTrust/redeemPairing', payload, new AbortController().signal))
+        .resolves.toMatchObject({ ok: true, value: { role: 'viewer' } })
+      await expect(rpc('deviceTrust/redeemPairing', payload, new AbortController().signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'device/pairing-invalid' } })
+      expect(ctx.deviceTrust.listDevices()).toHaveLength(1)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('rejects legacy unsigned metadata and replay on the native adapter', async () => {
+    const { ctx } = await setupTrust()
+    try {
+      const owner = await pairDevice(ctx, 'owner')
+      const payload = deviceEnvelope(owner, {})
+      const legacy = { ...payload, apiProtocolVersion: undefined }
+      Reflect.deleteProperty(legacy, 'apiProtocolVersion')
+      const rpc = ctx.typertGateway.deviceConnection.rpc
+      const signal = new AbortController().signal
+      await expect(rpc('vault/grant', legacy, signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied' } })
+      await expect(rpc('vault/grant', payload, signal)).resolves.toMatchObject({ ok: true })
+      await expect(rpc('vault/grant', payload, signal))
+        .resolves.toMatchObject({ ok: false, error: { code: 'device/replay-detected' } })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('refuses a replayed per-request envelope', async () => {
     const { ctx, handler } = await setupTrust()
     try {
@@ -1831,11 +1917,11 @@ describe('Typert Gateway per-request device admission', () => {
     }
   })
 
-  it('refuses device-identified requests on undeclared capabilities', async () => {
+  it.each(['goals/passthrough', 'unknown'])('refuses device-identified requests on undeclared capability %s', async (endpoint) => {
     const { ctx, handler } = await setupTrust()
     try {
       const device = await pairDevice(ctx, 'owner')
-      await expect(handler('goals/passthrough', deviceEnvelope(device, { value: 'x' }), new AbortController().signal))
+      await expect(handler(endpoint, deviceEnvelope(device, { value: 'x' }), new AbortController().signal))
         .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied', details: { role: 'owner', reason: 'undeclared' } } })
     } finally {
       await ctx.fiber.dispose()

@@ -56,6 +56,8 @@ flowchart LR
   pkg_typert_loader["typert-loader"]
   pkg_api_gateway["api-gateway"]
   svc_typertGateway["ctx.typertGateway<br/>Typert Host invocation gateway"]
+  pkg_api_native_remote["api-native-remote"]
+  svc_nativeRemote["ctx.nativeRemote<br/>Native TLS Connection source"]
   pkg_api_host_description["api-host-description"]
   svc_hostDescription["ctx.hostDescription<br/>Host discovery"]
   pkg_api_remotes["api-remotes"]
@@ -242,6 +244,7 @@ flowchart LR
   pkg_api_gateway --> svc_typertGateway
   pkg_api_host_description --> svc_hostDescription
   pkg_api_host_diagnostics --> svc_hostDiagnostics
+  pkg_api_native_remote --> svc_nativeRemote
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
   pkg_api_session_controller --> svc_sessionSkillCatalog
@@ -510,6 +513,7 @@ flowchart LR
 | `ctx.invariants` | `core` | [`invariants`](../packages/runtime-diagnostics/invariants) | - | [`session`](../packages/core/session), [`agent`](../packages/core/agent), [`scope`](../packages/core/scope), [`agent-loop`](../packages/core/agent-loop) | - | Companion subpaths register owner-local checks; the service owns selection, uniqueness, child fibers, and package-attributed failures. |
 | `ctx.typert` | `core` | [`typert-registry`](../packages/typert/registry) | - | [`typert-loader`](../packages/typert/loader), [`api-gateway`](../packages/api/gateway) | - | Plugins register live zod contributions directly or through dsh-typert-loader; the API gateway consumes invocation descriptors and providers, while other runtime consumers query schemas and reflection metadata at their own edges. |
 | `ctx.typertGateway` | `core` | [`api-gateway`](../packages/api/gateway) | - | - | - | Associates generated Remote descriptors with live Cordis services, resolves registered identities, and exposes unary calls through the shared Connection RPC carrier. |
+| `ctx.nativeRemote` | `core` | [`api-native-remote`](../packages/api/native-remote) | - | - | - | Opt-in encrypted listener using persistent Host pins and Gateway device admission; local Web authentication remains separate. |
 | `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | Reports persistent Host identity, independent version fields, and explicit capabilities from live Remote bindings through the existing authenticated API. |
 | `ctx.presentedFiles` | `core` | [`client-ui-deliverables`](../packages/client/ui-deliverables) | - | [`api-remotes`](../packages/api/remotes) | - | Exposes desktop metadata and native actions for persisted delivery declarations, retaining Session filesystem validation and configured native policy. |
 | `ctx.sessionPersistence` | `seam` | [`session-persistence`](../packages/session/session-persistence) | [`session-persistence-jsonl`](../packages/session/session-persistence-jsonl) | [`agent-loop`](../packages/core/agent-loop), [`tool-bash`](../packages/shell/tool-bash), [`hooks-claude-code`](../packages/hooks/hooks-claude-code), [`hooks-codex`](../packages/hooks/hooks-codex), [`session-query`](../packages/session-query/session-query), [`session-query-sqlite`](../packages/session-query/session-query-sqlite), [`message-feedback`](../packages/feedback/message-feedback) | - | The JSONL backend persists the SessionEvent vocabulary as one artifact per Session. |

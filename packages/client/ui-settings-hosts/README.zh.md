@@ -68,6 +68,8 @@ kind: "package-reference"
 - 页内跨源连接不受本地 Web 载体支持。原生 Remote 必须通过独立 Connection Source 与 Device Trust 接入。
 - 除「忘记」外无名册编辑；排序保持最近优先。
 
+不发布运行时不变式伴生入口：本区展示 Connection 管理的名册与选择状态，不维护独立的 Host 投影。
+
 <a id="dev-note"></a>
 ### 开发备注
 

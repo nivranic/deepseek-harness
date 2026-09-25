@@ -1439,6 +1439,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'nativeRemote',
+    summary: 'A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.',
+    description: 'A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.',
+    methods: [
+      {
+        signature: 'describe(): NativeRemoteInfo',
+        description: 'Read the bound port and certificate pin for the local operator.',
+        parameters: [],
+        returns: 'public identity facts, without certificate or private-key material.',
+        throws: ['while the listener is not ready or has been disposed.'],
+      },
+    ],
+  },
+  {
     key: 'permissionPresets',
     summary: 'Owns the deployment\'s permission presets and their write path.',
     description: 'Owns the deployment\'s permission presets and their write path. Requires a confining `ctx.shell` executor and `ctx.approval`; unmatched knob values are reported as CUSTOM_PRESET, not an error.',
@@ -2859,6 +2873,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'readonly wireStream: TypertGatewayWireStream = { open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal), failure: error => rpcError(error), }',
         description: 'Carrier adapter shared by the WebSocket mux and local Host transports.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly deviceConnection: TypertGateway[\'deviceConnection\'] = { rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true), stream: { open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true), failure: error => rpcError(error), }, }',
+        description: 'Device-authenticated carrier; pairing redemption alone may precede identity.',
         parameters: [],
       },
       {
@@ -4971,6 +4990,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ModelReasoningEffort {\n    readonly id: string;\n    readonly name: string;\n    readonly description?: string;\n}',
   },
   {
+    name: 'NativeRemoteInfo',
+    declaration: 'export interface NativeRemoteInfo {\n    readonly bindHost: Config[\'host\'];\n    readonly port: number;\n    readonly spkiFingerprint: string;\n}',
+  },
+  {
     name: 'ObjectJsonSchema',
     declaration: 'export type ObjectJsonSchema = JsonSchemaNode & {\n    type: \'object\';\n};',
   },
@@ -6501,6 +6524,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TypertEventModel',
     declaration: 'export interface TypertEventModel extends TypertDocumentation {\n    readonly name: string;\n    readonly mode?: string;\n    readonly signature: string;\n}',
+  },
+  {
+    name: 'TypertGateway',
+    declaration: 'export interface TypertGateway {\n    readonly wireStream: TypertGatewayWireStream;\n    readonly deviceConnection: {\n        readonly rpc: ConnectionRpcHandler;\n        readonly stream: TypertGatewayWireStream;\n    };\n    capabilities(): readonly string[];\n    registerRemoteEvents(source: TypertRemoteEventSource, host: RemoteEventHostInfo): () => Promise<void>;\n    invoke(request: InvokeRemoteRequest): Promise<unknown>;\n    stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>;\n}',
   },
   {
     name: 'TypertGatewayBinding',
