@@ -4,9 +4,15 @@
     - button "General":
       - img
       - text: General
+    - button "Devices":
+      - img
+      - text: Devices
     - button "Models":
       - img
       - text: Models
+    - button "Hosts":
+      - img
+      - text: Hosts
     - button "Plugins":
       - img
       - text: Plugins

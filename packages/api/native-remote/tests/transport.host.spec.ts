@@ -12,7 +12,7 @@ import Storage from '@deepseek-ai/dsh-storage'
 import * as JsonStorage from '@deepseek-ai/dsh-storage-json'
 import * as StorageDomain from '@deepseek-ai/dsh-storage-domain'
 import { LocalCredentialProvider } from '@deepseek-ai/dsh-credentials-local'
-import DeviceTrust, { DeviceId } from '@deepseek-ai/dsh-api-device-trust'
+import DeviceTrust, { DeviceId, type DeviceRole } from '@deepseek-ai/dsh-api-device-trust'
 import Gateway from '@deepseek-ai/dsh-api-gateway'
 import Typert from '@deepseek-ai/dsh-typert-registry'
 import { bindTypertRemote, Remote } from '@deepseek-ai/dsh-typert-protocol'
@@ -98,9 +98,9 @@ async function post(info: NativeRemoteInfo, endpoint: string, payload: unknown, 
   })
 }
 
-async function paired(ctx: Context, info: NativeRemoteInfo) {
+async function paired(ctx: Context, info: NativeRemoteInfo, role: DeviceRole = 'viewer') {
   const keys = generateKeyPairSync('ed25519')
-  const issuance = ctx.deviceTrust.issuePairing('viewer')
+  const issuance = ctx.deviceTrust.issuePairing(role)
   const response = await post(info, 'deviceTrust/redeemPairing', { apiProtocolVersion: 2, args: { request: {
     code: issuance.code, deviceName: 'native-test', devicePublicKey: keys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
   } } })
@@ -119,6 +119,19 @@ async function paired(ctx: Context, info: NativeRemoteInfo) {
 }
 
 describe('native encrypted Connection source', () => {
+  it('exposes public pairing metadata only to device administrators', async () => {
+    const { ctx, info, fiber } = await bootNative()
+    expect(ctx.typertGateway.capabilities()).toContain('native-remote.info.v1')
+    for (const role of ['viewer', 'owner'] as const) {
+      const device = await paired(ctx, info, role)
+      const response = await post(info, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: device.admission() })
+      const result = JSON.parse(response.body) as { result: unknown }
+      if (role === 'owner') expect(result.result).toEqual({ ok: true, value: info })
+      else expect(result.result).toMatchObject({ ok: false, error: { code: 'gateway/permission-denied' } })
+    }
+    await fiber.dispose()
+    expect(ctx.typertGateway.capabilities()).not.toContain('native-remote.info.v1')
+  })
   it.each([
     [{ headersTimeoutMs: 6000 }, 'headersTimeoutMs must not exceed requestTimeoutMs'],
     [{ certificateRenewBeforeDays: 7 }, 'certificateRenewBeforeDays must be shorter than certificateLifetimeDays'],

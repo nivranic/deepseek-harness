@@ -35,9 +35,8 @@ const CHILD_SPECS = {
 const CHILD_NAMES = Object.keys(CHILD_SPECS) as Array<keyof typeof CHILD_SPECS>
 
 /**
- * Section ids the web-app roster registers, in nav order: this package, then
- * ui-settings-models, ui-settings-hosts, and ui-settings-plugins. The fixture Host does not
- * advertise an Agent Preset catalog.
+ * Section membership from the web-app roster. Hosts and Plugins share order 15,
+ * so their relative order follows registration. The fixture Host advertises no Agent Preset catalog.
  */
 const PRODUCT_SECTIONS: readonly string[] = ['general', 'models', 'hosts', 'plugins']
 /** Onboarding steps the web-app roster registers, in coordinator order; both come from ui-settings-models. */
@@ -61,7 +60,7 @@ describe('ui-settings-general shell', () => {
     const c = await start()
     const { sections } = injectedOf(c).hooks
     const product = sections.getSnapshot()
-    expect(product.map(row => row.id)).toEqual(PRODUCT_SECTIONS)
+    expect(product.map(row => row.id).sort()).toEqual([...PRODUCT_SECTIONS].sort())
     expect(product[0]).toEqual({ id: 'general', order: 0, label: expect.any(String) as string })
     c.ctx.slots.register({ name: 'settings.section', id: 'z', order: 1_000, label: 'Z' } as never, () => null)
     // No order and no label: both projection defaults apply, and order 0 sorts among the product rows.

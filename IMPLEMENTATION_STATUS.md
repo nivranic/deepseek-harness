@@ -1,6 +1,6 @@
 # 新版 Agent 实施状态
 
-状态：IN_PROGRESS。Phase 0、1 / Gate 0 已完成，Phase 2、3、4 正在实施。采用新 Upstream-First 规格，在隔离分支继续收敛到官方实现；旧 Gate 的历史 PASS 不迁移为新方案 PASS。[Git 基线](UPSTREAM_BASELINE.md)、[差异审计](UPSTREAM_DELTA.md)和[机器回执](artifacts/upstream-first/evidence.json)共同限定本状态。
+状态：IN_PROGRESS。Phase 0、1 / Gate 0 已完成，Phase 2、3、4、5、7、8 正在实施。采用新 Upstream-First 规格，在隔离分支继续收敛到官方实现；旧 Gate 的历史 PASS 不迁移为新方案 PASS。[Git 基线](UPSTREAM_BASELINE.md)、[差异审计](UPSTREAM_DELTA.md)和[机器回执](artifacts/upstream-first/evidence.json)共同限定本状态。
 
 | Phase | 工作 | 状态 | 当前结果或下一步 |
 |---|---|---|---|
@@ -9,10 +9,10 @@
 | 2 | Desktop Convergence | IN_PROGRESS | 官方 unsigned Windows 安装包已构建，实际打包应用的设置/主题/托盘/恢复/退出通过；插件安装、安装/更新/系统登录、macOS 与其余迁移待完成 |
 | 3 | Contract Stabilization | IN_PROGRESS | checkpoint/Storage、Host 发现、协议 2/1 与主要能力 UI 已验证；Prompt 去重、普通 Session 目标取消及条件重命名已验证；其他变更幂等、其余入口、完整兼容、错误体系及转换待完成 |
 | 4 | Interaction Reliability | IN_PROGRESS | 版本、过期、Host 重启、回答丢包、Question 答案竞争、取消/重试交错及页面刷新已验证；后台恢复、权限执行及变更确认语义仍待完成 |
-| 5 | Responsive Shared Client | NOT_STARTED | 官方 UI、locale 与浏览器矩阵 |
+| 5 | Responsive Shared Client | IN_PROGRESS | 配对设置已验证桌面/390px 布局；完整浏览器、方向与真机矩阵待完成 |
 | 6 | Diagnostics | NOT_STARTED | health/readiness/support |
-| 7 | Device Trust | NOT_STARTED | Pair、角色、撤销、secure store |
-| 8 | Remote Transport | NOT_STARTED | 受信任 Carrier，保留 local auth |
+| 7 | Device Trust | IN_PROGRESS | 一次性配对、角色、撤销及操作员设置入口已验证；原生 secure store 与真机采用待完成 |
+| 8 | Remote Transport | IN_PROGRESS | 独立 TLS 入口及签名 Gateway 调用已验证，本地 Web 防线保留；原生采用、发现与 Relay 待完成 |
 | 9 | Follow/Attach/Handoff/Multi Host | NOT_STARTED | 先实现查看位置转移 |
 | 10 | Thin Native Companions | NOT_STARTED | Apple/Android 依赖前述稳定 Contract |
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
@@ -22,9 +22,15 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 操作员配对展示与手机设置可达性（§7、§20、§21、§28、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/native-pairing-presentation-source.json)把操作员配对接入设备设置页：按 TLS 元数据和配对签发能力显示入口；原生元数据 Remote 要求 device.admin。操作者输入使用实际监听端口的 HTTPS origin 并选择角色，默认 viewer；地址通过校验后才调用现有 Device Trust 签发器。二维码与可复制 JSON 携带 dsh-native-pairing 版本 1、Host 身份及名称、SPKI 指纹、一次性码、角色与到期时间。组件仅在内存保留载荷，过期、关闭、编辑或切换 Host 清除展示；关闭或重新生成不会提前撤销尚未过期的码。
+
+真实 Host/Chrome 经设置页签发、固定指纹 TLS 兑换并完成录制 Question；桌面与 390px 布局验证复制按钮在弹层内可达、页面无横向溢出。手机回归在修复前确认设置弹层继承侧栏的隐藏状态；弹层改用 document-body portal，手机导航改为横向滚动行。245 项定向测试通过；独立 185 项覆盖运行对 Native Remote 和新增配对面板/地址模块达到四类 100%，不泛指所有改动模块。最终类型、构建、lint、36 项文档门禁和 16 项 hygiene 通过。设置外壳旧夹具的无版本信封断言及遗漏 Devices/Hosts 的快照已按真实协议 2 修正，并经刷新和只读回放核验。Android/Swift 实际采用、真机扫码、发现/Relay、签名及跨平台发布验收仍开放，completeRc 保持 false。
+
 ## 原生 Remote TLS 入口与设备准入（§21、§28、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/native-remote-tls-source.json)记录独立、显式启用的 TLS Connection Source。凭据提供者持久化 P-256 身份，启动续期保持 SPKI；客户端须在发送 HTTP 字节前核对配对指纹。入口拒绝 Origin 和 Fetch Metadata，Cookie 不授予权限。RPC 编解码和 mux 复用 Connection/Gateway，除一次性配对兑换外，每次调用及逻辑流均需设备签名，角色权限、回复归属和撤销仍由 Gateway 执行。默认配置不开放监听器。
+[历史来源记录](artifacts/upstream-first/native-remote-tls-source.json)记录独立、显式启用的 TLS Connection Source。凭据提供者持久化 P-256 身份，启动续期保持 SPKI；客户端须在发送 HTTP 字节前核对配对指纹。入口拒绝 Origin 和 Fetch Metadata，Cookie 不授予权限。RPC 编解码和 mux 复用 Connection/Gateway，除一次性配对兑换外，每次调用及逻辑流均需设备签名，角色权限、回复归属和撤销仍由 Gateway 执行。默认配置不开放监听器。
 
 Native Remote、Gateway、Device Trust 与 Connection 在补测前通过 752 项；最终 Gateway 与 Native Remote 定向覆盖通过 503 项，Gateway 主模块、mux 及两个新原生实现文件的四类覆盖均为 100%。真实 Host/Chrome 刷新和两项只读回放通过：测试原生客户端经固定 SPKI 的 TLS 执行配对、事件流和 Question 回复，本地 Web 场景也通过；浏览器普通控制 RPC 仍走本地入口。类型、构建、lint、36 项文档门禁与 16 项 hygiene 通过。ESM-only 源启动探针使用内存凭据，不充当持久化验收。操作员配对展示、Android/Swift 协议采用、持续运行中的证书续期、发现/Relay、真机及跨平台发布验收仍开放，completeRc 保持 false。
 

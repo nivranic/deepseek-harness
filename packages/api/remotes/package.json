@@ -89,6 +89,7 @@
     "@deepseek-ai/dsh-command-feedback": "workspace:^",
     "@deepseek-ai/dsh-api-host-description": "workspace:^",
     "@deepseek-ai/dsh-api-host-diagnostics": "workspace:^",
-    "@deepseek-ai/dsh-client-ui-deliverables": "workspace:^"
+    "@deepseek-ai/dsh-client-ui-deliverables": "workspace:^",
+    "@deepseek-ai/dsh-api-native-remote": "workspace:^"
   }
 }

@@ -690,6 +690,7 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   TypertContribution: 'invariants.md',
   TypertRemoteEventSource: 'typert.md',
   NativeRemoteInfo: 'typert.md',
+  NativePairingPayload: 'typert.md',
   RemoteEventHostInfo: 'typert.md',
   HostDescriptor: 'typert.md',
   HostId: 'typert.md',

@@ -52,6 +52,8 @@ ready 帧延迟时显示**等待 Host 就绪**与进度点，说明仍在等待�
 <a id="understand-the-implementation"></a>
 ## 理解实现
 
+设置对话框通过 portal 挂载到 document body，因此侧栏隐藏或变换不会隐藏已打开的对话框。小于 600 CSS 像素时，导航改为可横向滚动的一行，内容使用对话框的可用宽度；内容滚动区保证较长分区及其操作仍可触达。
+
 <details>
 <summary>实现细节——点击展开</summary>
 

@@ -4,218 +4,254 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
+      "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.i18n.yaml",
+      "sha256": "cad4daaf3c31491df736eba4223cac77cec6a36d63c0f5fe987554b0fd6a8c20"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.md",
+      "sha256": "db1a28008172a91c0d483303fa4e7e9becef757c97a00468fefee0d8b69e5e20"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.zh.md",
+      "sha256": "508f9881afddf0475f70706233b2a22107c24e083acb9db3b397c2c3ec62e8af"
+    },
+    {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "77fa450afb3ba416531cf992443da18b1941cd4b2ddc80cf2043c23a3766b8ad"
+      "sha256": "8f14f53eae29dce810722bef6425e8f31d327a1d9c19e83031c20f53ee3850f1"
     },
     {
-      "path": "apps/web/package.json",
-      "sha256": "884ccfdbc81d8ca05066b88ed3ef486960e30c1bd8452d6c35cbe4e1b0576b38"
+      "path": "apps/web/tests/expected/native-remote-question.expected.md",
+      "sha256": "759da3b6afe6d75226f8b00a1a85203a26cb9332969d5582c3c2d39360d9ef61"
     },
     {
-      "path": "apps/web/tsconfig.json",
-      "sha256": "9d2a870e5b8203d55e4924c2735e3d6d9631067d296722f21d1c1b4da2de0e21"
+      "path": "apps/web/tests/expected/settings-chrome/dialog-en.expected.md",
+      "sha256": "ef5eaa979988a88320c1a91ddd335ac74186eb0417a2722077543fd274c28364"
+    },
+    {
+      "path": "apps/web/tests/expected/settings-chrome/dialog.expected.md",
+      "sha256": "fb61ddfd6fa00902ccb8fec29f75a2c9c481667140492556cf364d02d02c00fb"
+    },
+    {
+      "path": "apps/web/tests/native-remote-question.e2e.ts",
+      "sha256": "4f3ad69add4904efbf7d69b31ec0af9d5931ff37cc7dd7b162922d92375a06d7"
+    },
+    {
+      "path": "apps/web/tests/settings-chrome.e2e.ts",
+      "sha256": "a7028d5c1afbb0f206ebb708dfc243a1ae29a25fbc8722fb02555bbb1e9efb1e"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "0c1e470d3a80a352915de155e614a993fc1f43c7efb95e4ad3059cad71c45b66"
+      "sha256": "621733e89b641b4a7a6dde1ddf19c64095ae66f11ef5cb349df490a8f194498f"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "3a70bdf07fc78844fd03bb2d42724db9e4732f425a239e2d4914e03e80d844d8"
-    },
-    {
-      "path": "docs/capability-seams.i18n.yaml",
-      "sha256": "cbe3ee46186857777667e878e789b95a78ba2c4658483f6c928d715251ad8675"
-    },
-    {
-      "path": "docs/capability-seams.md",
-      "sha256": "f1fa70b101f22e0dcfb398a0a129342f465cb6f36d8eeb79d9d8d686def8ed55"
-    },
-    {
-      "path": "docs/capability-seams.zh.md",
-      "sha256": "f4eb404519f02031fb085f62baaad5048a2f1be1550d5ee09d5233ec725bb223"
+      "sha256": "e2ff2bb44e00d4606e98fa097daaf5d6fd2a62ae4805493064816a04ba2eaeda"
     },
     {
       "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "de273a44b9d888f9058a4d4f808b0bd0cd9cb4e4368a3033e22a7a0c644da10e"
+      "sha256": "c92f7b0aafb918cdf4d60fe3ae3bd2ca1e076820c7e4ab30997d1f7a7eaf1b1d"
     },
     {
       "path": "docs/config-catalog.md",
-      "sha256": "0fed95d1154ed14580781aeacf2d0ea1b845ededf39e52d236eca0afac9edeff"
+      "sha256": "411fae98b228e5db09c4e5a20ecb8ae91f983e68811f91e0e8986085e3815040"
     },
     {
       "path": "docs/config-catalog.zh.md",
-      "sha256": "e99244f9addc02e77da7d99c161c5add915afd45c7a318d149deeaec112fabaa"
+      "sha256": "80f6a5cbceafa5391e9fee5a4bf65b6d3276087c54de7ca459bdd9eb1215cebb"
     },
     {
       "path": "docs/subsystems/typert.i18n.yaml",
-      "sha256": "c59bf99decc953dc907ad5661001beb3f075a13a62b96d1d036beedfaf61f089"
+      "sha256": "9f1ff6265815d5bdb5e9c5d325f70efec2677efbe374857bb72eeb7ac95ca85d"
     },
     {
       "path": "docs/subsystems/typert.md",
-      "sha256": "4ba8c100f4f21191092cc557b7e029bd1c8c97e81ae1718a2184ce3513003305"
+      "sha256": "e7d44dd63dc47f68043cd719fe46aad619b68d1e33cb6f852de23b76f2c58d42"
     },
     {
       "path": "docs/subsystems/typert.zh.md",
-      "sha256": "0936aec482fa21ae46bdc1077e4aed0697db5f832ff1f05c8417ec0bd135dd46"
+      "sha256": "b7f7b3ad887d877bbbbfa64f50b34755df5bba6fde405085b3d3c7eda6b1ac8d"
     },
     {
-      "path": "packages/api/README.i18n.yaml",
-      "sha256": "0f3fdb25eca62fb3d9e3a896a4cbe81c47ad874e1f1c94a30b23a699f7d19a26"
+      "path": "packages/api/native-remote/README.i18n.yaml",
+      "sha256": "c2a52041e0452768718bb4084a7dd57bb87173f31b1b758cb4cdb2f06044735f"
     },
     {
-      "path": "packages/api/README.md",
-      "sha256": "0f1dfa3c1616a826915872f449c872a422173b43364c20b5afc9eea6f9f0876a"
+      "path": "packages/api/native-remote/README.md",
+      "sha256": "dccca36871cc4d0e91796aeda2037708b83b9dd67cd604d32841ad613c46a4d9"
     },
     {
-      "path": "packages/api/README.zh.md",
-      "sha256": "e456b588212bf603d785de69e296e3186bc9472d3aed23564356b845e10b2a7e"
+      "path": "packages/api/native-remote/README.zh.md",
+      "sha256": "067d2bb2d1509b679d713f077aa95301ea2f87b49e757b82ff4c96d2968bbe2a"
     },
     {
-      "path": "packages/api/device-trust/README.i18n.yaml",
-      "sha256": "0987c973eb62fd705062dac574d916ea57c942f0f5b323bdd8fdfa61416026f7"
+      "path": "packages/api/native-remote/package.json",
+      "sha256": "9389d8b12846a9675cade3ae4754cda353b590003d99ea36b0d84e350cfdce48"
     },
     {
-      "path": "packages/api/device-trust/README.md",
-      "sha256": "1f7a4ea93b4c40b43495ae65cd3ca8e19730e3873d36aad074816cc3d1aa14f6"
+      "path": "packages/api/native-remote/src/index.ts",
+      "sha256": "9ae6e90ce1414dd5d8f83fa09b0f113aeae92a703750a28e06bc8b06a4fe0696"
     },
     {
-      "path": "packages/api/device-trust/README.zh.md",
-      "sha256": "2905b20529999b116d37472564d57d2d2e939caaf8ff9ac4d8fe89aac257fd85"
+      "path": "packages/api/native-remote/tests/transport.host.spec.ts",
+      "sha256": "81fff4577507b9deb4d3b91d38530fb6fb04a673f8aa3a5f8d4077ef9d1aba8b"
     },
     {
-      "path": "packages/api/device-trust/src/index.ts",
-      "sha256": "f4494722cade6673372aa77135725b14284801d86cef92514c54f38776bddac8"
+      "path": "packages/api/native-remote/tsconfig.json",
+      "sha256": "e76f398905078a729ad88d17fa0136006da60a4ca8c4d401f82ed67eaa9bf097"
     },
     {
-      "path": "packages/api/gateway/README.i18n.yaml",
-      "sha256": "ffb7386c477e1b1da5ab0f04519ef58c10667a791628e096e11c4b571b00d7a1"
+      "path": "packages/api/remotes/README.i18n.yaml",
+      "sha256": "f4960e978f537da1a7dac1551f76143fe4c95eef7a1cd3a42aaff30df66922a3"
     },
     {
-      "path": "packages/api/gateway/README.md",
-      "sha256": "bd6fc65a08efb588a540099bf3294544ace7f9ce4c48bdac8fc75b09a832601a"
+      "path": "packages/api/remotes/README.md",
+      "sha256": "ae827c55a547f256e1d298f0ee4359688f01f31279a051e5697261e333f43d76"
     },
     {
-      "path": "packages/api/gateway/README.zh.md",
-      "sha256": "c6dff36fd248487404f9ffc94a6b14b15f82e677b46d03c91fad88c6ff34c448"
+      "path": "packages/api/remotes/README.zh.md",
+      "sha256": "ed219954766508937ed2a2c6fbb7cb673b408f2ec7a0dee251c23049408a6c5f"
     },
     {
-      "path": "packages/api/gateway/src/index.ts",
-      "sha256": "8b0ca8e8c21f35d2f49e8b5a398dc7bcac39b2045f37d464c89364e46292c408"
+      "path": "packages/api/remotes/package.json",
+      "sha256": "e4835cee649f2abb9c015012b16871f40fde5b06c79506edb76c382703abc94e"
     },
     {
-      "path": "packages/api/gateway/src/stream-server.ts",
-      "sha256": "2cac90a8fbec825251cdfc6e36fcda2778453a72e5e94884da4095376811217d"
+      "path": "packages/api/remotes/src/client/host-preparation.ts",
+      "sha256": "d38bb819dcec7a5551172bccba79771def4cdab06a957f53a9fb035f7b6f57cd"
     },
     {
-      "path": "packages/api/gateway/src/types.ts",
-      "sha256": "c882990612aed51fa73428b58cc285ed2b451014da0bb638368d805798cde9bc"
+      "path": "packages/api/remotes/src/client/index.ts",
+      "sha256": "1879d3a0a8247d94a11dd26c101e074662fd3109cf2c2bd8b9853681cc57af3f"
     },
     {
-      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-      "sha256": "0039e59401bb88fa65ce26498eb8bec84f7efce762dedc52ce972571bda78949"
+      "path": "packages/api/remotes/tests/host-preparation.client.spec.ts",
+      "sha256": "d7b1d86fbfea0061f4b3bd08e95b794f632d646bdfb61b68845a1d9ce0086ac7"
     },
     {
-      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
-      "sha256": "b38ee8243592b1ff01c7e5fe6738980325ba6049c8793bd6ca4d48021934a3a3"
+      "path": "packages/api/remotes/tsconfig.client.json",
+      "sha256": "b85581063b69327acbcd16c4caccd65d39807acc15cf9a0623c994bfedb3a693"
     },
     {
-      "path": "packages/api/gateway/tests/stream-server.host.spec.ts",
-      "sha256": "4ed38af84456ee3de71fb24329d359f159c2801a57f230c604939415c56eead0"
+      "path": "packages/api/remotes/tsconfig.host.json",
+      "sha256": "ad2468b904dbf5ea5b945c3739c6bbf0a63bb03d08eafe7677e229dd1493558e"
     },
     {
-      "path": "packages/client/connection/README.i18n.yaml",
-      "sha256": "19d93d5d834970f83a0ef844f23b63fb4e06d15308c3b0dea881d16c308eb164"
+      "path": "packages/client/tsdown.client.ts",
+      "sha256": "37379b9fe79310e2569fc2d0e0a36fbde3f86762bf8919f87b05e0482aba7f2d"
     },
     {
-      "path": "packages/client/connection/README.md",
-      "sha256": "e7afdbe896b360a6d87f15a57fcc827c08b2b43ea668e70510ad9c54aa6b9514"
+      "path": "packages/client/ui-settings-devices/README.i18n.yaml",
+      "sha256": "53cb9c6c9a2c63dec93c06297ec8aac838c76ac003900897975322080fc87210"
     },
     {
-      "path": "packages/client/connection/README.zh.md",
-      "sha256": "3e911308e0b2b73a83ccb3fd2c7049e5313283eb393bc921996771424b2523ac"
+      "path": "packages/client/ui-settings-devices/README.md",
+      "sha256": "1644a729d8daa557530702d589b1e156a3f2a2d2393636f0048a32964c194e22"
     },
     {
-      "path": "packages/client/connection/src/index.ts",
-      "sha256": "a08505e0d6fce43d561100b89f476ae90dd8a769dc5e84e2b8cf8ae12a3b38c4"
+      "path": "packages/client/ui-settings-devices/README.zh.md",
+      "sha256": "9243d3b26dcffb6af2913fa3070606efdfd0bf3172575f115d59a22bcc55cf96"
     },
     {
-      "path": "packages/client/connection/src/rpc-host.ts",
-      "sha256": "0442056d46d227af71600024fc0264fd57af3a8b17829ea674ec54e405f75615"
+      "path": "packages/client/ui-settings-devices/package.json",
+      "sha256": "112f3f2eff79a30674c96d7a6b9e7882d225be475f2cbdaaed5351e0acc245d8"
     },
     {
-      "path": "packages/client/ui-settings-hosts/README.i18n.yaml",
-      "sha256": "3cf9f2b051745d86ccb08a791fcf163fa66be41a42d377bf644c2effc5ba6ce1"
+      "path": "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.module.css",
+      "sha256": "fe18215771df2322e5933542d414293d1c61e92ef1753971569431839f9b9d77"
     },
     {
-      "path": "packages/client/ui-settings-hosts/README.md",
-      "sha256": "99ca7fb2956d58e689a86e8c43fc9b744bbe2d9057f106490957ecd4ab3c2f6b"
+      "path": "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.tsx",
+      "sha256": "44dcedb858a45cb63483f6df5ca8feb87c59b950a45687f299c55c648f0c2a10"
     },
     {
-      "path": "packages/client/ui-settings-hosts/README.zh.md",
-      "sha256": "45a30287910e51a899b7b1a903a9e4c7f5d61511e230f9b03f5ac9ada7b21b13"
+      "path": "packages/client/ui-settings-devices/src/client/index.ts",
+      "sha256": "96f3dc0800558f3754d72b3ac67acbe606ce10f7cc2945191087b0a63615e69a"
+    },
+    {
+      "path": "packages/client/ui-settings-devices/src/client/locales.ts",
+      "sha256": "aae753b28d02d0652b509b8ea59f74f656d057b38a1fcf02afbc9ffdec9d9934"
+    },
+    {
+      "path": "packages/client/ui-settings-devices/tests/browser-plugin.client.spec.tsx",
+      "sha256": "17871258d65cb380a598f305a736753d41aca2840d8be6b751c2d68a294e2fdc"
+    },
+    {
+      "path": "packages/client/ui-settings-general/README.i18n.yaml",
+      "sha256": "13da78792dba181858fa00eb43d2894f2b2b315f39085d0d9b121cba6d518289"
+    },
+    {
+      "path": "packages/client/ui-settings-general/README.md",
+      "sha256": "e9de041eca4d48cc71e41beaf5763c4b0b215c40196ab72d5b640d217bbfef2e"
+    },
+    {
+      "path": "packages/client/ui-settings-general/README.zh.md",
+      "sha256": "9ab5a35e7f8ce3ddb29e1cc0f9d44908ab97b2d52353c51621f72bb40695a47a"
+    },
+    {
+      "path": "packages/client/ui-settings-general/package.json",
+      "sha256": "25f833c9e561b70d06b5fb4c37eed476f487dc71d4b62668873f3bd35b5ea9f8"
+    },
+    {
+      "path": "packages/client/ui-settings-general/src/client/SettingsRoot.module.css",
+      "sha256": "538c924a952e82d4d986ef5b3c963b49cc085bca546bf1ec69298851e2003d13"
+    },
+    {
+      "path": "packages/client/ui-settings-general/src/client/SettingsRoot.tsx",
+      "sha256": "8e28447226999a7d51ae3654c6a57d94aa9cce0c9c2206645a82211f542ed310"
+    },
+    {
+      "path": "packages/client/ui-settings-general/tests/settings-root.client.spec.tsx",
+      "sha256": "17c9354cf5ff168cd77c8f5ab84107be1904fbe7a08c586ec95f094a5d949f52"
+    },
+    {
+      "path": "packages/client/ui-settings-general/tests/shell.client.spec.ts",
+      "sha256": "7cdfdcf9e0fbbef8857ddfac5a2c9781f65401546080d530190504095af1263b"
     },
     {
       "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "e8e44d3f7b1afc4a3614e6d1f1a668a9c1cc62a1d0eb58dbcc6525bc4ecbf289"
+      "sha256": "84c331ecec006f192a7b14845668e41103318aec1d13bf836d261670d58ff342"
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "4553f107e66a0e3a62da6c0cc0f8144194aa60befbade81bbaba0eea1510c33a"
-    },
-    {
-      "path": "pnpm-workspace.yaml",
-      "sha256": "a414cb4cb64cff82b2c0af40af20c25f838df292d2a8958e7fcb0159573b30fd"
+      "sha256": "b7a0c27611c2256d5928056c346df4ea5465547858c10e4781457eaefe0881fb"
     },
     {
       "path": "scripts/gen-cordis-catalog.ts",
-      "sha256": "6ae189e06fe858ebb8e4535c52e5769fa877362248c55d26ce01e95fd2453a49"
-    },
-    {
-      "path": "scripts/gen-doc-graphs.ts",
-      "sha256": "e758ab8275bbde59cda1ba72a9ba76d77b6c0883a863d712796f3830e25f6ec0"
+      "sha256": "8b4e19ca08a54d1f60d5a1a059754539a807acc718a094c1621919e207ebc351"
     },
     {
       "path": "scripts/type-equiv.manifest.json",
-      "sha256": "4a95d77b128a25204b85f76151efa8af43d88d00a8cba14839b1e4577c21d541"
-    },
-    {
-      "path": "scripts/verify-package-readme-model-experience.ts",
-      "sha256": "d56cf7b28818c96a78010a5c0f7cfc9a82c0b260b9b45f961e9aa25a186895de"
+      "sha256": "2ddd92f921285e900aacf47248c1d1cd07eecc942fa0ae5ef3d78c62b294704b"
     },
     {
       "path": "tsconfig.base.json",
-      "sha256": "42c475377d5aaac65d2f41c78b6fbbac77d2b8e48efb0887969cbc209e1bdbf9"
-    },
-    {
-      "path": "tsconfig.host.json",
-      "sha256": "91660bfa04fbf5310a6aed3e37a044b57765aa4394be5f35ffe0ce0b497816d7"
+      "sha256": "1fa54033a16e569bd236c1af726fc1b4e94ec2ff6f7147bcffe169db660e2380"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/native-remote-question.e2e.ts",
-      "sha256": "ce43ca9ec1ef40e7cdc24bfbd777931bad7f593bab581833fd0e1338344818e4"
+      "path": "packages/api/native-remote/src/capabilities.ts",
+      "sha256": "3a161bc94fcd0e60e257d5e0869fbeabd3524de84d12e5420652e9b4f78c1da6"
     },
     {
-      "path": "apps/web/tests/native-remote-support.ts",
-      "sha256": "3ab7ffa082430a8d538a98e4ab736360929fc1d0e3612192e066d87851121faf"
+      "path": "packages/api/native-remote/src/types.ts",
+      "sha256": "0134204cccfa1a046188b10a79164bae76053a842fbb52976dea4352aa2d0aa7"
     },
     {
-      "path": "packages/api/native-remote/src/index.ts",
-      "sha256": "92ba36f0117bd996057e12efb6a6375f34b05c1910126489f0b008627bd5072c"
+      "path": "packages/client/ui-settings-devices/src/client/PairingPanel.tsx",
+      "sha256": "686265d0a3b33dcbcaf95e4e13926863c4dfe87d987c3bd76d9fcd0115eb8dd5"
     },
     {
-      "path": "packages/api/native-remote/src/tls-identity.ts",
-      "sha256": "9883b5729087729c91c8fafaf122b7b4301061402d416dce937b6d494b590c1f"
+      "path": "packages/client/ui-settings-devices/src/client/pairing-origin.ts",
+      "sha256": "ded28d79b7fe1cc71378f33c2cc1997ecad7fa3e295cc547edfb347cec7f2f59"
     },
     {
-      "path": "packages/api/native-remote/tests/tls-identity.host.spec.ts",
-      "sha256": "0ada2bc1a57a1dd8811eef01c96d91fcb782479e93db2d8af10e68a4b345c7a0"
+      "path": "packages/client/ui-settings-devices/tests/pairing-origin.client.spec.ts",
+      "sha256": "88002ffbdaedb1778c0c2083bcc6ae058bf98823e097fdba7fb0c7c97350bb35"
     },
     {
-      "path": "packages/api/native-remote/tests/transport.host.spec.ts",
-      "sha256": "a2ab35e73056aa5fe03d6e354dfca184875899be96553599a8742b8e10869bf0"
+      "path": "packages/client/ui-settings-devices/tests/pairing-panel.client.spec.tsx",
+      "sha256": "792fc7ae6ac1e6798787749415f3c1ccae9d9850c1678563cc27d088c5808279"
     }
   ],
   "validationStatus": "PASS",
@@ -7931,6 +7967,84 @@
     },
     {
       "status": "PASS",
+      "command": "vitest Settings general/devices, Native Remote and Remotes (14 files, 245 tests)",
+      "log": ".artifacts/native-pairing-presentation-tests-final.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest Native Remote, Devices and Remotes with explicit Native Remote and new pairing panel/origin coverage (185 tests; 100% four metrics)",
+      "log": ".artifacts/native-pairing-presentation-coverage-final.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -b tsconfig.host.json tsconfig.client.json after final browser fixture corrections",
+      "log": ".artifacts/native-pairing-presentation-types-complete.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run build after settings portal and phone layout correction",
+      "log": ".artifacts/native-pairing-presentation-build-sealed.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/native-pairing-presentation-lint-complete.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx scripts/run-gates.ts doc-sync",
+      "log": ".artifacts/native-pairing-presentation-doc-sync-sealed.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx scripts/run-gates.ts hygiene",
+      "log": ".artifacts/native-pairing-presentation-hygiene-final.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm install --frozen-lockfile --offline",
+      "log": ".artifacts/native-pairing-presentation-frozen-install.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest.web native-remote-question DSH_SNAPSHOT=refresh with desktop/390px pairing settings (real Host/Chrome)",
+      "log": ".artifacts/native-pairing-presentation-web-refresh-sealed.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest.web settings-chrome DSH_SNAPSHOT=refresh (11 cases; changed goldens reviewed)",
+      "log": ".artifacts/native-pairing-presentation-settings-refresh.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest.web native-remote-question, device-interaction-reply and settings-chrome DSH_SNAPSHOT=replay (3 files, 13 cases)",
+      "log": ".artifacts/native-pairing-presentation-web-replay-final.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs",
+      "log": ".artifacts/native-pairing-presentation-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/native-pairing-presentation-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -8661,7 +8775,185 @@
       ]
     }
   },
+  "nativePairingPresentation": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json",
+    "scope": "Sections 7, 20, 21, 28, 70 and 71: capability-gated operator pairing in Devices settings, public administrator-only TLS metadata, transient single-use QR/JSON, role/address validation and generation/expiry cleanup. Body-portaled Settings and phone navigation keep pairing actions reachable when the sidebar drawer closes.",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "limitations": [
+      "245 targeted tests pass across 14 files. The separate 185-test coverage run proves 100% statements, branches, functions and lines for Native Remote source and the new pairing panel/origin modules, not every changed frontend module.",
+      "Real Host/Chrome issues the chosen role through Settings, reads the transient payload, redeems it over pinned TLS and completes a recorded Question. Desktop and 390px layouts prove copy reachability and no horizontal page overflow; screenshots mask codes, QR contents and Host identity.",
+      "The pre-fix browser observes an inherited hidden ancestor after the phone sidebar transition; the corresponding component regression fails before the body portal fix. An unrelated stale Settings fixture assumed an unversioned request and omitted Devices/Hosts navigation; it is synchronized to observed protocol-2 behavior without changing authorization.",
+      "Closing, editing or regenerating hides the QR but does not revoke an unexpired issued code. The UI does not discover reachable addresses, enable a listener, observe redemption, or persist the code in browser storage. Device Trust owns expiry, roles and single use.",
+      "No live model call, actual Android/Swift client adoption, physical-device QR scan, or release/signing/platform acceptance is claimed. Full Upstream-First objective remains incomplete; no push or CI dispatch is claimed."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Actual Android and Swift clients must adopt the versioned dsh-native-pairing payload, Connection envelopes, signed Gateway operations and WebSocket mux. The operator UI and Host TLS source are implemented, while legacy Link fixtures are not product adoption.",
+        "Discovery, Relay, native secure-storage/runtime qualification, physical devices, platform signing and released N/N-1/N-2 interoperability remain open. Continue the unresolved specification acceptance rows; optional roster editing/reordering and split Diff remain separate.",
+        "All report sections and Phase 2 through 12 acceptance that are not independently proven remain open; completeRc stays false. Remote publication and CI dispatch remain blocked by automatic approval pending fresh user authorization."
+      ]
+    }
+  },
   "nativeRemoteTls": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/native-pairing-presentation-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/native-remote-tls-source.json",
     "scope": "Sections 21, 28, 70 and 71: opt-in native TLS Connection Source on the existing Gateway, durable SPKI identity, signed per-operation device admission and revocation, bounded RPC/mux transport, and real Host/Chrome recorded Question over pinned TLS. No shipped default listener or native app adoption.",
@@ -20681,7 +20973,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/native-remote-tls-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/native-pairing-presentation-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -21164,7 +21456,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "3a70bdf07fc78844fd03bb2d42724db9e4732f425a239e2d4914e03e80d844d8"
+        "sha256": "e2ff2bb44e00d4606e98fa097daaf5d6fd2a62ae4805493064816a04ba2eaeda"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

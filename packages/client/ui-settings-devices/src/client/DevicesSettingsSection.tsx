@@ -5,9 +5,12 @@ import { Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { TagTone } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import css from './DevicesSettingsSection.module.css'
+import { PairingPanel, type PairingActions } from './PairingPanel.tsx'
 
 /** Registration-side Remote face used by the section. */
 export interface DevicesSettingsSectionInjected {
+  /** Present only when this Host exposes native TLS metadata and pairing issuance. */
+  pairing?: PairingActions
   /** Read the current grant list. */
   list: () => Promise<readonly DeviceView[]>
   /** Rename one grant; a fresh list follows from the caller's refresh. */
@@ -174,7 +177,10 @@ function DeviceRow(
 }
 
 /** The Devices settings section: the section 22 management surface. */
-export function DevicesSettingsSection({ t, list, rename, revoke, revokeAll, formatTime }: DevicesSettingsSectionProps): ReactNode {
+export function DevicesSettingsSection({
+  t, list, rename, revoke, revokeAll, formatTime, pairing,
+}: DevicesSettingsSectionProps): ReactNode {
+  const [pairingOpen, setPairingOpen] = useState(false)
   const [view, setView] = useState<ViewState>({ status: 'loading' })
   const [confirmingAll, setConfirmingAll] = useState(false)
   const [busyAll, setBusyAll] = useState(false)
@@ -235,6 +241,10 @@ export function DevicesSettingsSection({ t, list, rename, revoke, revokeAll, for
         </div>
         <p className={css.subtitle}>{t('subtitle')}</p>
       </div>
+      {pairing !== undefined && (pairingOpen
+        ? <PairingPanel actions={pairing} t={t} formatTime={formatTime}
+          failureCopy={error => failureCopy(error, t)} close={() => { setPairingOpen(false) }} />
+        : <div className={css.actions}><button type="button" onClick={() => { setPairingOpen(true) }}>{t('pairing.add')}</button></div>)}
       {revokedCount !== undefined && (
         <p className={css.status} role="status">{t('revokeAllDone', { count: String(revokedCount) })}</p>
       )}

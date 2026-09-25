@@ -18,6 +18,10 @@ The credentials provider owns the `api-native-remote/tls-identity` grant. The so
 
 The library's parser and ASN.1 declarations must resolve the same schema registry. A version-scoped pnpm override makes `@peculiar/x509@2.1.0` use `@peculiar/asn1-schema@2.9.5`, matching its declarations; reusing the existing 2.9.4 parser loses `SubjectPublicKeyInfo` metadata. Reassess this override with a library upgrade. The compiled dependency works under plain Node and the repository's ESM-only TypeScript launcher without enabling a CommonJS transform hook.
 
+The Settings pairing consumer reads authenticated listener metadata and uses the existing Device Trust issuer. It validates the operator-entered HTTPS origin against the actual listener port before issuance and carries the selected role into the grant. The versioned QR payload contains public Host identity and a short-lived single-use code, never a private key or durable bearer token. Component lifetime and connection-generation checks prevent stale issuance from appearing after close or Host replacement; expiry and input edits hide the payload. Browser storage and diagnostics do not own the code. Native metadata requires device.admin; advertised capability presence alone grants no authority.
+
+Settings renders its modal through a document-body portal, independent of the sidebar that owns its trigger. This prevents phone drawer visibility and transforms from hiding pairing controls. Phone-width navigation uses a horizontal scroll row, while the content retains vertical scrolling for QR details and copy controls. A real browser resize and an ancestor-visibility component regression exercise this ownership.
+
 ## Alternatives considered
 
 - **Allow Mobile through local Web cookies or relaxed Origin checks.** Rejected: that changes local browser authority and does not authenticate a device key.
@@ -27,4 +31,4 @@ The library's parser and ASN.1 declarations must resolve the same schema registr
 
 ## Consequences
 
-The Host source can be mounted through a normal profile composition without enabling a network listener in shipped defaults. Tests cover persistent and concurrent identity creation, renewal without key rotation, invalid stored identity, wrong pins, unsigned requests, replay, insufficient permission, browser-header rejection, request bounds, and teardown. Gateway tests cover revocation during admission and during business-stream iteration. Native client framing, operator pairing presentation, Relay/discovery integration, and physical-device acceptance remain separate work; legacy fixture success proves none of them. Certificate renewal requires listener restart before expiry.
+The Host source can be mounted through a normal profile composition without enabling a network listener in shipped defaults. Tests cover persistent and concurrent identity creation, renewal without key rotation, invalid stored identity, wrong pins, unsigned requests, replay, insufficient permission, browser-header rejection, request bounds, and teardown. Gateway tests cover revocation during admission and during business-stream iteration. Native client framing, Relay/discovery integration, and physical-device acceptance remain separate work; legacy fixture success proves none of them. Certificate renewal requires listener restart before expiry.

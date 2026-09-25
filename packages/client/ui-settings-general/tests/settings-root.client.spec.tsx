@@ -129,6 +129,17 @@ function openPanel() {
 }
 
 describe('SettingsRoot trigger', () => {
+  it('keeps the dialog operable when its sidebar container becomes hidden', () => {
+    const { view } = mount()
+    openPanel()
+    view.container.style.visibility = 'hidden'
+    const dialog = screen.getByRole('dialog')
+    expect(view.container.contains(dialog)).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    view.unmount()
+    expect(document.querySelector('[role="dialog"]')).toBeNull()
+  })
   it.each([
     { column: 'expanded English', wide: true, dictionary: en, name: 'Settings' },
     { column: 'collapsed English', wide: false, dictionary: en, name: 'Settings' },

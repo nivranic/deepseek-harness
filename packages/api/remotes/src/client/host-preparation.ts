@@ -8,6 +8,7 @@ import { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-command-f
 import { DYNAMIC_CORDIS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-cordis-host-runner/capabilities'
 import { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-host-plugin-inventory/capabilities'
 import { DEVICE_TRUST_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-device-trust/capabilities'
+import { NATIVE_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-native-remote/capabilities'
 import { FILE_UPLOAD_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-file-upload/capabilities'
 import { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
 import { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
@@ -135,6 +136,7 @@ export const admitHostOperation: RemoteAdmission = (endpoint, facts) => {
     ['dynamicCordisRunner', DYNAMIC_CORDIS_REMOTE_CAPABILITIES],
     ['pluginInventory', PLUGIN_INVENTORY_REMOTE_CAPABILITIES],
     ['deviceTrust', DEVICE_TRUST_REMOTE_CAPABILITIES],
+    ['nativeRemote', NATIVE_REMOTE_CAPABILITIES],
     ['fileUploads', FILE_UPLOAD_REMOTE_CAPABILITIES],
     ['subagents', SUBAGENT_REMOTE_CAPABILITIES],
     ['settings', SETTINGS_REMOTE_CAPABILITIES],

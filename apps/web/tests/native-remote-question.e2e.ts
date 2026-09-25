@@ -1,12 +1,13 @@
 /** Recorded Question over an opt-in profile TLS source, with a test-native client carrying the browser event bridge. */
 import { generateKeyPairSync, randomUUID, sign } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { chromium, type Browser } from 'playwright'
+import { chromium, type Browser, type Page } from 'playwright'
 import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type { RedeemPairingResult } from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
+import type { NativePairingPayload } from '@deepseek-ai/dsh-api-native-remote/types'
 import { NativeTestClient } from './native-remote-support.ts'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
@@ -27,11 +28,40 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
   const failures: unknown[] = []
   const events: SessionEvent[] = []
   scaffold.ctx.on('session/event', (_session, event) => { events.push(event) })
-  const pair = async () => {
+  const pair = async (operator: Page) => {
     const keys = generateKeyPairSync('ed25519')
-    const code = scaffold.ctx.deviceTrust.issuePairing('controller').code
+    await operator.getByRole('button', { name: 'Add device', exact: true }).click()
+    const panel = operator.getByRole('group', { name: 'Pair a new device', exact: true })
+    const info = scaffold.ctx.nativeRemote.describe()
+    await panel.getByLabel('Reachable HTTPS address', { exact: true }).fill(`https://127.0.0.1:${info.port}`)
+    await panel.getByLabel('Granted role', { exact: true }).selectOption('controller')
+    await panel.getByRole('button', { name: 'Generate pairing information', exact: true }).click()
+    const input = panel.getByLabel('Single-use pairing information', { exact: true })
+    await input.waitFor()
+    const pairing = JSON.parse(await input.inputValue()) as NativePairingPayload
+    expect(pairing.kind).toBe('dsh-native-pairing')
+    expect(pairing.version).toBe(1)
+    expect(pairing.spkiFingerprint === info.spkiFingerprint).toBe(true)
+    expect(pairing.hostId === scaffold.ctx.hostDescription.describe().hostId).toBe(true)
+    expect(pairing.role).toBe('controller')
+    expect(pairing.expiresAt > Date.now()).toBe(true)
+    expect(await panel.locator('svg').count()).toBe(1)
+    expect(await operator.evaluate(code => Object.keys(localStorage)
+      .some(key => localStorage.getItem(key)?.includes(code) === true), pairing.code)).toBe(false)
+    const shots = fileURLToPath(new URL('../../../.artifacts/screenshots/native-pairing-presentation/', import.meta.url))
+    await mkdir(shots, { recursive: true })
+    // Pairing secrets and Host identity are never written into the visual artifact.
+    const dialog = operator.getByRole('dialog', { name: 'Settings', exact: true })
+    const copyButton = panel.getByRole('button', { name: 'Copy pairing information', exact: true })
+    await copyButton.scrollIntoViewIfNeeded()
+    const copyBox = await copyButton.boundingBox()
+    const dialogBox = await dialog.boundingBox()
+    expect(copyBox !== null && dialogBox !== null && copyBox.y + copyBox.height <= dialogBox.y + dialogBox.height).toBe(true)
+    expect(await operator.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await dialog.screenshot({ path: `${shots}/operator-${operator.viewportSize()!.width}-${MODE}-${process.pid}.png`,
+      mask: [panel.locator('svg'), input, panel.getByText(/^Host:/u), panel.getByText(/^Host identity fingerprint:/u)] })
     const request = {
-      code, deviceName: 'reply-test', devicePublicKey: keys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
+      code: pairing.code, deviceName: 'reply-test', devicePublicKey: keys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
     }
     const redeem = async () => {
       const response = await native.post('/api/deviceTrust/redeemPairing', JSON.stringify({
@@ -50,6 +80,8 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
     const result = granted[0]?.result
     if (result?.ok !== true) throw new Error('pairing must produce one grant')
     const grant = result.value
+    await panel.getByRole('button', { name: 'Close pairing information', exact: true }).click()
+    expect(await operator.getByLabel('Single-use pairing information', { exact: true }).count()).toBe(0)
     return () => {
       const timestamp = Date.now()
       const nonce = randomUUID()
@@ -59,10 +91,29 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
     }
   }
   try {
-    const ownAdmission = await pair()
-    const otherAdmission = await pair()
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
+    const operator = await newEnglishPage(browser)
+    await operator.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
+    await operator.getByRole('button', { name: 'Settings', exact: true }).click()
+    await operator.getByRole('dialog', { name: 'Settings', exact: true }).getByRole('button', { name: 'Devices', exact: true }).click()
+    const ownAdmission = await pair(operator)
+    await operator.setViewportSize({ width: 390, height: 844 })
+    await operator.locator('[data-sidebar-overlay]').waitFor({ state: 'attached' })
+    await operator.locator('[data-sidebar-overlay]').evaluate(async (frame) => {
+      await Promise.all(frame.getAnimations({ subtree: true }).filter(animation => animation instanceof CSSTransition)
+        .map(animation => animation.finished.catch(() => undefined)))
+    })
+    const hiddenAncestor = await operator.locator('[role="dialog"]').evaluate((dialog) => {
+      for (let parent = dialog.parentElement; parent !== null; parent = parent.parentElement) {
+        const style = getComputedStyle(parent)
+        if (style.display === 'none' || style.visibility === 'hidden') return parent.className
+      }
+      return null
+    })
+    expect(hiddenAncestor).toBeNull()
+    const otherAdmission = await pair(operator)
+    await operator.close()
     const page = await newEnglishPage(browser)
     await page.routeWebSocket('**/api/remote.mux', async (socket) => {
       const server = await native.mux()
@@ -142,6 +193,9 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
       '- Each code presented twice over Gateway RPC: exactly one device grant; the duplicate is rejected',
       '- Matching device: accepted; exactly one Tool settlement; recorded turn completes with DONE',
       '- Pairing, event stream, and reply cross the separately mounted TLS source after SPKI verification',
+      '- Settings issues the selected role after reading authenticated TLS metadata; its QR and copyable payload contain the same single-use code',
+      '- Closing removes the pairing payload; no code is persisted in browser localStorage',
+      '- Desktop and 390px layouts keep copy reachable inside Settings without horizontal page overflow',
     ].join('\n'), MODE)
   } catch (error) {
     failures.push(error)

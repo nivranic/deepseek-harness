@@ -22,6 +22,12 @@ import { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabili
 import { admitHostOperation, createHostPreparation } from '../src/client/host-preparation.ts'
 
 describe('Workspace Files operation capability admission', () => {
+  it('requires the mounted native listener capability before reading its pairing metadata', () => {
+    expect(() => { admitHostOperation('nativeRemote/describe', { apiProtocolVersion: 2, capabilities: [] }) })
+      .toThrow(expect.objectContaining({ code: 'host/capability-unavailable' }))
+    expect(() => { admitHostOperation('nativeRemote/describe', { apiProtocolVersion: 2, capabilities: ['native-remote.info.v1'] }) })
+      .not.toThrow()
+  })
   const operations = [
     ['stat', 'workspace-files.stat.v1'], ['list', 'workspace-files.list.v1'],
     ['read', 'workspace-files.read-text.v1'], ['readBytes', 'workspace-files.read-bytes.v1'],

@@ -8,8 +8,13 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { bridgeConnectionHttp, createRpcFetchHandler } from '@deepseek-ai/dsh-client-connection'
 import { REMOTE_STREAM_MUX_PATH, RemoteStreamMuxServer } from '@deepseek-ai/dsh-api-gateway'
+import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import { loadTlsIdentity, type CertificateConfig } from './tls-identity.ts'
+import { NATIVE_REMOTE_CAPABILITIES } from './capabilities.ts'
+import type { NativeRemoteInfo } from './types.ts'
+
+export type { NativeRemoteInfo, NativePairingPayload } from './types.ts'
 
 /** Explicit deployment bounds for the opt-in listener. */
 export interface Config extends CertificateConfig {
@@ -35,19 +40,9 @@ export interface Config extends CertificateConfig {
   readonly websocketHeartbeatIntervalMs: number
 }
 
-/** Local operator facts for constructing an out-of-band pairing payload. */
-export interface NativeRemoteInfo {
-  /** Configured literal interface; an all-interface address is not a pairing destination. */
-  readonly bindHost: Config['host']
-  /** Actual TCP port, including an OS-assigned value. */
-  readonly port: number
-  /** Pin the leaf certificate's SPKI, independently of its DNS name or issuing CA. */
-  readonly spkiFingerprint: string
-}
-
 declare module '@deepseek-ai/cordis' {
   interface Context {
-    /** Opt-in native TLS listener; its metadata is local operator state. */
+    /** Opt-in native TLS listener; public metadata is available to device administrators. */
     nativeRemote: NativeRemoteService
   }
 }
@@ -60,7 +55,7 @@ function browserRequest(request: IncomingMessage): boolean {
 }
 
 /** A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes. */
-export class NativeRemoteService extends Service {
+export class NativeRemoteService extends TypertRemoteService {
   static inject = ['credentials', 'typertGateway', 'deviceTrust']
   static Config: z<Config> = z.object({
     host: z.union([z.const('127.0.0.1'), z.const('0.0.0.0'), z.const('::1'), z.const('::')]).required(),
@@ -79,7 +74,7 @@ export class NativeRemoteService extends Service {
    * @param config - validated listener and certificate bounds.
    */
   constructor(ctx: Context, private readonly config: Config) {
-    super(ctx, 'nativeRemote')
+    super(ctx, 'nativeRemote', { namespace: 'nativeRemote', capabilities: NATIVE_REMOTE_CAPABILITIES })
     if (config.headersTimeoutMs > config.requestTimeoutMs) {
       throw new Error('native-remote: headersTimeoutMs must not exceed requestTimeoutMs')
     }
@@ -93,6 +88,7 @@ export class NativeRemoteService extends Service {
    * @returns public identity facts, without certificate or private-key material.
    * @throws while the listener is not ready or has been disposed.
    */
+  @Remote('describe')
   describe(): NativeRemoteInfo {
     if (this.info === undefined) throw new Error('native-remote: listener is not ready')
     return { ...this.info }

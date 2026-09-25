@@ -317,7 +317,7 @@ export interface CertificateConfig {
 }
 ```
 
-来源： [`packages/api/native-remote/src/index.ts:15`](../packages/api/native-remote/src/index.ts)
+来源： [`packages/api/native-remote/src/index.ts:20`](../packages/api/native-remote/src/index.ts)
 
 <a id="deepseek-aidsh-api-session-controller"></a>
 

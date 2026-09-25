@@ -51,6 +51,8 @@ Host 发现会在首次 `host/describe` 请求检查 Host 访问权限前报告 
 
 -----
 
+原生监听元数据命名空间挂载为 `remote.nativeRemote`，调用前要求 `native-remote.info.v1` 能力。导入桩不会挂载 TLS 监听器，Host 必须显式组合 Native Remote。设备设置将该公开元数据与 Device Trust 签发组合，不引入另一套权限或凭据归属。
+
 <a id="forwarded-host-events"></a>
 ## 转发的 Host 事件
 

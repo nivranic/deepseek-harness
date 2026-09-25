@@ -9,6 +9,7 @@ import { RemoteError, usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-
 import { apply, inject, NS } from '../src/client/index.ts'
 import type { DevicesSettingsSectionInjected } from '../src/client/DevicesSettingsSection.tsx'
 import { apply as hostApply } from '../src/index.ts'
+import type { NativeRemoteInfo, DeviceRole } from '@deepseek-ai/dsh-api-remotes/client'
 
 usePinnedBrowserLanguages('zh-CN')
 afterEach(cleanup)
@@ -30,7 +31,8 @@ async function bench(capabilities: string[] = ['device.list.v1']) {
     return () => { listeners.delete(listener) }
   } } })
   class RemoteService extends Service {
-    $host = { home: undefined, platform: undefined, isLoopback: true, capabilities }
+    $host = { home: undefined, platform: undefined, isLoopback: true, capabilities,
+      descriptor: { hostId: 'host-fixture', displayName: 'Fixture Host' } }
     constructor(serviceCtx: Context) {
       super(serviceCtx, 'remote')
     }
@@ -43,17 +45,25 @@ async function bench(capabilities: string[] = ['device.list.v1']) {
     .mockResolvedValue({ ok: true, value: undefined })
   const revokeAll = vi.fn<() => Promise<MutationResult>>()
     .mockResolvedValue({ ok: true, value: { revokedAt: 1, count: 2 } })
+  const info = vi.fn<() => Promise<{ ok: true; value: NativeRemoteInfo }>>().mockResolvedValue({
+    ok: true, value: { bindHost: '0.0.0.0', port: 8443, spkiFingerprint: 'a'.repeat(64) },
+  })
+  const issue = vi.fn<(role: DeviceRole) => Promise<MutationResult>>().mockImplementation(async role => ({
+    ok: true, value: { pairingId: 'fixture', code: 'fixture-code', expiresAt: 999999, role },
+  }))
+  ctx.provide('remote.nativeRemote', { describe: info })
   ctx.provide('remote.deviceTrust', {
     listDevices: list,
     renameDevice: rename,
     revokeDevice: revoke,
     revokeAllDevices: revokeAll,
+    issuePairing: issue,
   })
   const replace = (next = capabilities) => {
     remote.$host = { ...remote.$host, capabilities: next }
     for (const listener of listeners) listener()
   }
-  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list, rename, revoke, revokeAll, replace, listeners }
+  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list, rename, revoke, revokeAll, replace, listeners, info, issue }
 }
 
 function declare(slots: SlotRegistry): () => void {
@@ -64,12 +74,52 @@ function declare(slots: SlotRegistry): () => void {
 }
 
 describe('ui-settings-devices browser plugin', () => {
+  it('combines authenticated Host facts and issuance after validating the native address', async () => {
+    const b = await bench(['device.list.v1', 'device-pair.issue.v1', 'native-remote.info.v1'])
+    try {
+      declare(b.slots)
+      await b.ctx.plugin({ inject: [...inject], apply })
+      const entry = b.slots.entries('settings.section')[0]!
+      const face = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+      await expect(face.pairing!.create('http://host.test:8443', 'owner')).resolves.toBeUndefined()
+      expect(b.issue).not.toHaveBeenCalled()
+      await expect(face.pairing!.create('https://host.test:8443/', 'collaborator')).resolves.toEqual({
+        kind: 'dsh-native-pairing', version: 1, endpoint: 'https://host.test:8443', hostId: 'host-fixture',
+        displayName: 'Fixture Host', spkiFingerprint: 'a'.repeat(64), code: 'fixture-code', role: 'collaborator', expiresAt: 999999,
+      })
+      expect(b.issue).toHaveBeenCalledOnce()
+      expect(b.issue).toHaveBeenCalledWith('collaborator')
+    } finally {
+      await b.ctx.fiber.dispose()
+    }
+  })
+
+  it('does not issue a code after Host replacement during metadata lookup', async () => {
+    const b = await bench(['device.list.v1', 'device-pair.issue.v1', 'native-remote.info.v1'])
+    try {
+      declare(b.slots)
+      await b.ctx.plugin({ inject: [...inject], apply })
+      const entry = b.slots.entries('settings.section')[0]!
+      const face = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+      const gate = Promise.withResolvers<{ ok: true; value: NativeRemoteInfo }>()
+      b.info.mockReturnValueOnce(gate.promise)
+      const pending = face.pairing!.create('https://host.test:8443', 'owner')
+      const refused = expect(pending).rejects.toThrow('connection changed')
+      b.replace()
+      gate.resolve({ ok: true, value: { bindHost: '0.0.0.0', port: 8443, spkiFingerprint: 'a'.repeat(64) } })
+      await refused
+      expect(b.issue).not.toHaveBeenCalled()
+    } finally {
+      await b.ctx.fiber.dispose()
+    }
+  })
+
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
   })
 
   it('declares only the services used by the Settings Remote contribution', () => {
-    expect(inject).toEqual(['slots', 'locale', 'remote', 'remote.deviceTrust', 'connection'])
+    expect(inject).toEqual(['slots', 'locale', 'remote', 'remote.deviceTrust', 'remote.nativeRemote', 'connection'])
   })
 
   it('registers a localized section without reading the Remote eagerly', async () => {
@@ -85,6 +135,7 @@ describe('ui-settings-devices browser plugin', () => {
     expect(b.list).not.toHaveBeenCalled()
 
     const injected = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+    expect(injected.pairing).toBeUndefined()
     await expect(injected.list()).resolves.toEqual(EMPTY)
     expect(b.list).toHaveBeenCalledOnce()
     await expect(injected.revokeAll()).resolves.toBe(2)

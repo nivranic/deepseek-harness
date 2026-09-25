@@ -38,7 +38,8 @@ describe('web e2e: settings modal and General preferences', () => {
 
   beforeAll(async () => {
     scaffold = await launchWebScaffold({})
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     // Chinese browser: the shared page asserts the localized settings surface
     // the client derives from it (the English default has its own spec below).
     page = await browser.newPage({ viewport: { width: 1680, height: 1000 }, locale: ZH_BROWSER_LOCALE })
@@ -69,12 +70,13 @@ describe('web e2e: settings modal and General preferences', () => {
     const openDocument = dialog.getByRole('button', { name: '打开配置文件' })
     await openDocument.waitFor({ timeout: 10_000 })
     let openRequests = 0
+    let openPayload: unknown
     await page.route('**/api/settings/openSettingsDocument', async (route) => {
       const envelope = route.request().postDataJSON() as {
         rpcId: string
-        payload: { args: Record<string, never> }
+        payload: unknown
       }
-      expect(envelope.payload).toEqual({ args: {} })
+      openPayload = envelope.payload
       openRequests += 1
       await route.fulfill({
         status: 200,
@@ -86,10 +88,14 @@ describe('web e2e: settings modal and General preferences', () => {
         }),
       })
     })
-    await openDocument.click()
-    await expect.poll(() => openRequests, { timeout: 5_000 }).toBe(1)
-    await expect.poll(() => openDocument.isEnabled(), { timeout: 5_000 }).toBe(true)
-    await page.unroute('**/api/settings/openSettingsDocument')
+    try {
+      await openDocument.click()
+      await expect.poll(() => openRequests, { timeout: 5_000 }).toBe(1)
+      expect(openPayload).toEqual({ apiProtocolVersion: 2, args: {} })
+      await expect.poll(() => openDocument.isEnabled(), { timeout: 5_000 }).toBe(true)
+    } finally {
+      await page.unroute('**/api/settings/openSettingsDocument')
+    }
     // Golden of the freshly opened dialog (default zh, General active).
     const snapshot = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(DIALOG_EXPECTED, snapshot, MODE)

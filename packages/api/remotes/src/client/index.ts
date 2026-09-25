@@ -9,6 +9,7 @@ import llmRemote from '@deepseek-ai/dsh-llm/remote'
 import dynamicRemote from '@deepseek-ai/dsh-cordis-host-runner/remote'
 import pluginInventoryRemote from '@deepseek-ai/dsh-host-plugin-inventory/remote'
 import deviceTrustRemote from '@deepseek-ai/dsh-api-device-trust/remote'
+import nativeRemote from '@deepseek-ai/dsh-api-native-remote/remote'
 import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
 import messageFeedbackRemote from '@deepseek-ai/dsh-message-feedback/remote'
 import sessionFeedbackRemote from '@deepseek-ai/dsh-command-feedback/remote'
@@ -52,6 +53,9 @@ export type {} from '@deepseek-ai/dsh-llm/remote'
 export type {} from '@deepseek-ai/dsh-host-plugin-inventory/remote'
 export type {} from '@deepseek-ai/dsh-api-device-trust/remote'
 export type { DeviceId, DeviceView, DeviceRole } from '@deepseek-ai/dsh-api-device-trust/types'
+export type { PairingIssuance } from '@deepseek-ai/dsh-api-device-trust/types'
+export type { NativeRemoteInfo, NativePairingPayload } from '@deepseek-ai/dsh-api-native-remote/types'
+export type {} from '@deepseek-ai/dsh-api-native-remote/remote'
 export type {} from '@deepseek-ai/dsh-message-feedback/remote'
 export type {} from '@deepseek-ai/dsh-command-feedback/remote'
 export type {} from '@deepseek-ai/dsh-client-file-upload/remote'
@@ -179,7 +183,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
   try {
     for (const contribution of [
       agentPresetsRemote, commandsRemote, settingsControllerRemote, goalsRemote, llmRemote, dynamicRemote,
-      hostDescriptionRemote, pluginInventoryRemote, deviceTrustRemote, messageFeedbackRemote, sessionFeedbackRemote,
+      hostDescriptionRemote, pluginInventoryRemote, deviceTrustRemote, nativeRemote, messageFeedbackRemote, sessionFeedbackRemote,
       fileUploadsRemote, presentedFilesRemote, sessionReferencesRemote,
       subagentsRemote, sessionRemote, workspaceRemote, workspaceFilesRemote,
     ]) {

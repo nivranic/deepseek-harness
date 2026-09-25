@@ -51,6 +51,8 @@ Host discovery reports `authenticating` before its first `host/describe` request
 
 -----
 
+The native listener metadata namespace is mounted as `remote.nativeRemote`, with `native-remote.info.v1` admission before calls. Importing the stub does not mount a TLS listener; the Host must explicitly compose Native Remote. Device settings combine that public metadata with Device Trust issuance without introducing another permission or credential owner.
+
 <a id="forwarded-host-events"></a>
 ## Forwarded Host events
 

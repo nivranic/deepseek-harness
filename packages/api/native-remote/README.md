@@ -26,7 +26,9 @@ Native devices can reach a Host over a separate TLS listener while local Web ret
 
 Mount `@deepseek-ai/dsh-api-native-remote` in a named `dsh` profile's composition beside credentials, Device Trust, and Gateway. The package is a plugin, not a bundle or standalone launcher. No shipped profile enables the listener by default. Declare every listener limit in configuration; the [configuration catalog](../../../docs/config-catalog.md) lists accepted fields.
 
-The local operator reads `ctx.nativeRemote.describe()` for the actual port and lowercase SHA-256 SPKI fingerprint. An all-interface bind address is not a destination: the operator supplies the reachable address separately. Pairing distributes that pin and a one-time Device Trust code out of band. The native client must check the certificate pin before sending HTTP bytes; a matching certificate hostname or successful TLS handshake alone does not establish the Host identity.
+The operator reads `ctx.nativeRemote.describe()` for the actual port and lowercase SHA-256 SPKI fingerprint. The same facts are available through `nativeRemote/describe` with capability `native-remote.info.v1`; native callers require `device.admin`, while local Web retains its existing authentication. An all-interface bind address is not a destination: the operator supplies the reachable address separately. Pairing distributes that pin and a one-time Device Trust code out of band. The native client must check the certificate pin before sending HTTP bytes; a matching certificate hostname or successful TLS handshake alone does not establish the Host identity.
+
+The [Devices settings section](../../client/ui-settings-devices/README.md) displays the one-time payload as a QR and selectable JSON after the operator supplies a reachable HTTPS origin with the listener port. Its `dsh-native-pairing` version 1 format carries the endpoint, Host identity and label, SPKI pin, code, assigned role, and expiry; it is distinct from the legacy Link fixture. Closing or regenerating the display does not revoke an unexpired code. Device Trust still enforces expiry and single use.
 
 RPC uses Connection's `client-request` envelope at `/api/<endpoint>`. `deviceTrust/redeemPairing` is the sole unsigned operation; every other call carries versioned Gateway metadata with a fresh signed device admission. The shared `/api/remote.mux` WebSocket requires a signed admission for each logical stream, including `$events`. Cookies confer no authority. Requests carrying Origin or Fetch Metadata headers are rejected, and the source does not implement CORS.
 
@@ -70,7 +72,7 @@ No direct effect; the invoked capabilities own model-visible changes.
 
 The package provides the Host transport, with these adoption limits:
 
-- Operator pairing presentation and native client adoption are separate consumers. The legacy Android fixture protocol is not this Gateway protocol.
+- Native client adoption is separate from the operator pairing presentation. The legacy Android fixture protocol is not this Gateway protocol.
 - Certificate renewal runs at listener startup, not continuously while the process stays running. Restart the listener before certificate expiry.
 - The source does not serve local download/upload Fetch routes, browser assets, discovery, or relay access.
 - No runtime invariant companion is published: admission and key consistency are enforced at their owning operations, with no independent projection maintained here.

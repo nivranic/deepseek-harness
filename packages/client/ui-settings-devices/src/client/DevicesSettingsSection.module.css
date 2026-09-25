@@ -83,6 +83,7 @@
 }
 
 .actions button,
+.pairing button,
 .renameRow button {
   border: 0.5px solid var(--dsw-alias-border-l3);
   border-radius: 6px;
@@ -92,6 +93,56 @@
   font: inherit;
   font-size: 12px;
   cursor: pointer;
+}
+
+.pairing {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 10px;
+  min-width: 0;
+}
+
+.pairing h4,
+.pairingResult p {
+  margin: 0;
+}
+
+.pairingField,
+.pairingResult {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.pairing input,
+.pairing select,
+.pairing textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 6px;
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+}
+
+.pairing textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.pairingResult svg {
+  max-width: 100%;
+  height: auto;
+  align-self: flex-start;
 }
 
 .danger {

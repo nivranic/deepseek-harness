@@ -2214,7 +2214,12 @@
     {
       "doc": "docs/subsystems/typert.md",
       "symbol": "NativeRemoteInfo",
-      "source": "packages/api/native-remote/src/index.ts"
+      "source": "packages/api/native-remote/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "NativePairingPayload",
+      "source": "packages/api/native-remote/src/types.ts"
     }
   ]
 }

@@ -52,6 +52,8 @@ The onboarding ledger projects in ascending order and mounts exactly one step at
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 
+The Settings dialog portals to the document body, so hiding or transforming the sidebar cannot hide an open dialog. Below 600 CSS pixels, navigation becomes a horizontally scrollable row and the content uses the available dialog width; the content scroll area keeps long sections and their actions reachable.
+
 <details>
 <summary>Implementation internals — click to expand</summary>
 

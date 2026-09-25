@@ -2,7 +2,7 @@
 
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { createElement } from 'react'
-import type { DeviceId } from '@deepseek-ai/dsh-api-remotes/client'
+import type { DeviceId, DeviceRole, NativePairingPayload } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
@@ -10,6 +10,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { DevicesSettingsSection, type DevicesSettingsSectionInjected, type DevicesSettingsSectionProps } from './DevicesSettingsSection.tsx'
 import { en, zh, type DevicesLocaleKey } from './locales.ts'
+import { nativePairingOrigin } from './pairing-origin.ts'
 
 export type { DevicesSettingsSectionInjected, DevicesSettingsSectionProps } from './DevicesSettingsSection.tsx'
 export type { DevicesLocaleKey } from './locales.ts'
@@ -25,7 +26,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const NS = 'settings.devices'
 
 /** Services required by the Settings registration and generated Remote face. */
-export const inject = ['slots', 'locale', 'remote', 'remote.deviceTrust', 'connection']
+export const inject = ['slots', 'locale', 'remote', 'remote.deviceTrust', 'remote.nativeRemote', 'connection']
 
 /** Contribute the Devices management section to Settings. */
 export function apply(ctx: ClientContext): void {
@@ -39,6 +40,7 @@ export function apply(ctx: ClientContext): void {
       remove?.()
       remove = undefined
       const host = ctx.remote.$host
+      const descriptor = host.descriptor
       if (host.capabilities?.includes('device.list.v1') !== true) return
       const controller = new AbortController()
       const current = (): boolean => !controller.signal.aborted && ctx.remote.$host === host
@@ -59,6 +61,19 @@ export function apply(ctx: ClientContext): void {
         return result.value
       }
       const injectFace: DevicesSettingsSectionInjected = {
+        ...descriptor !== undefined && host.capabilities.includes('native-remote.info.v1') && host.capabilities.includes('device-pair.issue.v1') ? {
+          pairing: {
+            create: async (input: string, role: DeviceRole): Promise<NativePairingPayload | undefined> => {
+              const info = await settle(() => ctx.remote.nativeRemote.describe())
+              const endpoint = nativePairingOrigin(input, info.port)
+              if (endpoint === undefined) return undefined
+              const issuance = await settle(() => ctx.remote.deviceTrust.issuePairing(role))
+              return { kind: 'dsh-native-pairing', version: 1, endpoint,
+                hostId: descriptor.hostId, displayName: descriptor.displayName,
+                spkiFingerprint: info.spkiFingerprint, code: issuance.code, role: issuance.role, expiresAt: issuance.expiresAt }
+            },
+          },
+        } : {},
         list: () => settle(() => ctx.remote.deviceTrust.listDevices()),
         rename: async (deviceId: DeviceId, deviceName: string) => {
           await settle(() => ctx.remote.deviceTrust.renameDevice({ deviceId, deviceName }))

@@ -235,3 +235,40 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+@media (max-width: 599.5px) {
+  .panel {
+    flex-direction: column;
+    max-width: calc(100vw - 24px);
+    height: calc(100dvh - 24px);
+    border-radius: 20px;
+  }
+
+  .nav {
+    width: 100%;
+    padding: 14px 12px 0;
+    gap: 10px;
+  }
+
+  .navList {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .navCell {
+    flex: none;
+  }
+
+  .content {
+    min-height: 0;
+  }
+
+  .header {
+    height: 48px;
+    padding-top: 10px;
+  }
+
+  .options {
+    padding: 0 16px 16px;
+  }
+}

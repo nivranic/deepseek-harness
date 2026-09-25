@@ -1444,7 +1444,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     description: 'A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.',
     methods: [
       {
-        signature: 'describe(): NativeRemoteInfo',
+        signature: '@Remote(\'describe\') describe(): NativeRemoteInfo',
         description: 'Read the bound port and certificate pin for the local operator.',
         parameters: [],
         returns: 'public identity facts, without certificate or private-key material.',
@@ -4991,7 +4991,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'NativeRemoteInfo',
-    declaration: 'export interface NativeRemoteInfo {\n    readonly bindHost: Config[\'host\'];\n    readonly port: number;\n    readonly spkiFingerprint: string;\n}',
+    declaration: 'export interface NativeRemoteInfo {\n    readonly bindHost: \'127.0.0.1\' | \'0.0.0.0\' | \'::1\' | \'::\';\n    readonly port: number;\n    readonly spkiFingerprint: string;\n}',
   },
   {
     name: 'ObjectJsonSchema',

@@ -95,6 +95,9 @@
     },
     {
       "path": "../../client/ui-deliverables/tsconfig.host.json"
+    },
+    {
+      "path": "../native-remote"
     }
   ]
 }

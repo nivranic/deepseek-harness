@@ -50,6 +50,8 @@
       "@deepseek-ai/dsh-api-session-controller/capabilities": ["./packages/api/session-controller/src/capabilities.ts"],
       "@deepseek-ai/dsh-api-gateway": ["./packages/api/gateway/src/index.ts"],
       "@deepseek-ai/dsh-api-native-remote": ["./packages/api/native-remote/src/index.ts"],
+      "@deepseek-ai/dsh-api-native-remote/types": ["./packages/api/native-remote/src/types.ts"],
+      "@deepseek-ai/dsh-api-native-remote/capabilities": ["./packages/api/native-remote/src/capabilities.ts"],
       "@deepseek-ai/dsh-api-gateway/client": ["./packages/api/gateway/src/client/index.ts"],
       "@deepseek-ai/dsh-api-gateway/types": ["./packages/api/gateway/src/types.ts"],
       "@deepseek-ai/dsh-api-gateway/protocol": ["./packages/api/gateway/src/protocol.ts"],

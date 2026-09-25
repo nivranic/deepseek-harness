@@ -235,19 +235,45 @@ interface TypertGateway {
 <a id="native-tls-source"></a>
 ## Native TLS source
 
-[Native Remote Connection](../../packages/api/native-remote/README.md) mounts a separate, opt-in TLS listener. Gateway deviceConnection requires signed identities for RPC and logical streams, except one-time pairing redemption. Device-owned business streams observe grant revocation throughout admission and iteration. NativeRemoteInfo exposes only the configured bindHost, actual port, and SPKI fingerprint to the local operator; it never exposes private-key material.
+[Native Remote Connection](../../packages/api/native-remote/README.md) mounts a separate, opt-in TLS listener. Gateway deviceConnection requires signed identities for RPC and logical streams, except one-time pairing redemption. Device-owned business streams observe grant revocation throughout admission and iteration. NativeRemoteInfo exposes only the configured bindHost, actual port, and SPKI fingerprint to authenticated operators and device administrators; it never exposes private-key material.
 
 ### NativeRemoteInfo
 
 ```ts type-equiv
-/** Local operator facts for constructing an out-of-band pairing payload. */
+/** Public listener facts available to an authenticated device administrator. */
 interface NativeRemoteInfo {
   /** Configured literal interface; an all-interface address is not a pairing destination. */
-  readonly bindHost: Config['host']
+  readonly bindHost: '127.0.0.1' | '0.0.0.0' | '::1' | '::'
   /** Actual TCP port, including an OS-assigned value. */
   readonly port: number
-  /** Pin the leaf certificate's SPKI, independently of its DNS name or issuing CA. */
+  /** Lowercase SHA-256 of the certificate SPKI, independently of its DNS name or issuing CA. */
   readonly spkiFingerprint: string
+}
+```
+
+### NativePairingPayload
+
+```ts type-equiv
+/** Single-use pairing information displayed by an authenticated Host operator. */
+interface NativePairingPayload {
+  /** Distinguishes Gateway pairing from the retired Link fixture format. */
+  readonly kind: 'dsh-native-pairing'
+  /** Pairing payload format, independent of the Gateway API and Session formats. */
+  readonly version: 1
+  /** Operator-supplied reachable HTTPS origin of the native listener. */
+  readonly endpoint: string
+  /** Persistent Host identity to confirm after device admission. */
+  readonly hostId: HostId
+  /** Operator-visible Host label, never an identity check. */
+  readonly displayName: string
+  /** Certificate SPKI pin to verify before sending the pairing secret. */
+  readonly spkiFingerprint: string
+  /** Single-use secret; keep out of storage, diagnostics, and logs. */
+  readonly code: string
+  /** Host-enforced expiration, in epoch milliseconds. */
+  readonly expiresAt: number
+  /** Role selected by the operator and fixed by Device Trust issuance. */
+  readonly role: DeviceRole
 }
 ```
 
@@ -395,7 +421,7 @@ A separately configured HTTPS listener with no browser assets, cookies, or local
  * @returns public identity facts, without certificate or private-key material.
  * @throws while the listener is not ready or has been disposed.
  */
-describe(): NativeRemoteInfo
+@Remote('describe') describe(): NativeRemoteInfo
 ```
 
 Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)

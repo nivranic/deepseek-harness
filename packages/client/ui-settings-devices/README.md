@@ -33,6 +33,10 @@ Every Remote callback preserves the original `RemoteError`, including codes unkn
 
 Open the **Devices** section in Settings. Each row names the device, tags its role, and shows its platform label when the client declared one, the paired time, the last-admission time (or "Never admitted" before the first admission), and the leading 16 hex digits of the key fingerprint. **Rename** opens an inline editor; an empty name is rejected locally without a Host call, and saving trims the name before sending `renameDevice`. **Revoke** asks for an inline confirmation first; a confirmed revoke stops the grant immediately — its open streams are terminated Host-side — and the section re-reads the roster.
 
+### Pairing a new device
+
+**Add device** appears only when the authenticated Host advertises native TLS metadata and pairing issuance. Configure the opt-in listener first, then enter its reachable HTTPS origin with its actual port and select a role; viewer is the default. Generate the QR or copy the selectable payload to a compatible native client. The display shows the Host identity, full SPKI fingerprint, granted role, and expiration. Codes remain in component memory only and disappear when expired, closed, edited, or replaced by another Host. Closing or regenerating does not revoke an unexpired code; Device Trust owns expiration and single use.
+
 ### Revoking every device
 
 **Revoke all** appears while at least one active grant exists and asks for its own confirmation. A completed revoke-all reports how many grants it revoked, and the refreshed roster keeps past grants visible as revoked.
@@ -53,7 +57,7 @@ The browser plugin registers one localized `settings.section` contribution with 
 
 ### Remote calls
 
-All four operations go through one guarded `settle` helper: the connection generation is checked before the call and after the await, so a generation change mid-flight (or its transport failure) surfaces as a "connection changed" rejection that never reaches the replacement Host. `formatTime` formats epoch-ms values with `Intl.DateTimeFormat` under the locale service's active locale, so timestamps follow language switches without a component re-render contract.
+Device operations and pairing metadata/issuance go through one guarded `settle` helper: the connection generation is checked before the call and after the await, so a generation change mid-flight (or its transport failure) surfaces as a "connection changed" rejection that never reaches the replacement Host. `formatTime` formats epoch-ms values with `Intl.DateTimeFormat` under the locale service's active locale, so timestamps follow language switches without a component re-render contract.
 
 ### Rendering
 
@@ -93,7 +97,7 @@ None; this package neither assembles nor sends a provider request.
 These limits define the freshness and reach of the devices view; they are current package constraints.
 
 - **One roster per Settings mount or mutation** — the section does not subscribe to grant changes and does not automatically refetch after reconnect; a revoke performed on another device appears here only after a manual refresh or a local mutation.
-- **Pairing issuance is out of scope** — `issuePairing` belongs to an onboarding flow, not a management surface; adding a pairing entry point is deliberate follow-up work.
+- **Native client adoption remains separate** — the pairing payload targets Gateway RPC and mux, not the legacy Link fixture client. The UI does not enable listeners, discover reachable addresses, or observe redemption automatically.
 
 <a id="dev-note"></a>
 ### Dev Note
@@ -105,4 +109,4 @@ None.
 
 </details>
 
-**Runtime invariant:** No companion is published. This package owns a read-only-except-explicit-revocation Settings contribution.
+**Runtime invariant:** No companion is published. This package projects Host-owned grants and explicitly requested mutations; it maintains no independent durable authority.
