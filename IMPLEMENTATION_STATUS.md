@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 输入加密持久化与进程恢复（§13、§17、§18、§67）
+
+[当前来源记录](artifacts/upstream-first/android-input-persistence-source.json)将 Session 草稿、原待确认请求、Question 答案与最后会话位置按 Host id、固定指纹及设备授权独立加密保存。显式提交先等待保存，写入失败阻止 RPC；新的编辑与原发送意图分别保留，明确确认或对应 Host 回执只清理已接受版本。只读恢复不自动提交输入。
+
+251 项 core 测试与 4 项真实 Host 回放场景通过。模拟器在保存后强制停止应用，不同进程恢复 Question 选择与自定义答案、last Session、原请求 id 和新草稿，未增加 Host 修改或设备授权。密文损坏和输入密钥缺失保留原文件，读取不新建密钥；用户显式恢复会先保留字节一致副本再提交空输入。截图已核对，类型、lint、文档 17/17 与 36/36、逐节追踪通过。
+
+存储使用版本 1、1 MiB 上限和强制同目录原子替换。真实 Host 的跨进程丢确认重试尚未单独验收，身份复用及回执清理由 core 测试覆盖；突然断电、备份保留策略、跨 Host 体验和硬件密钥永久失效仍开放。原传输与提交生命周期说明保留，新决策单独拥有本地格式和恢复。契约单元套件本轮未重跑；工件/Handoff、推送、诊断、Swift、物理设备与发布资格仍开放，completeRc 为 false。
+
 ## Android 输入保留与显式提交生命周期（§13、§17、§18、§67）
 
-[当前来源记录](artifacts/upstream-first/android-input-retention-source.json)将 Session 草稿与 Question 输入交给连接模型持有。未改动 prompt 的显式重试沿用 requestId，只有明确成功确认才清除提交版本；迟到确认不会覆盖请求期间的新编辑。交互标识和修订号隔离答案，取消、关闭快照或新修订移除过期输入；重新配对不会采纳另一身份的输入。
+[历史来源记录](artifacts/upstream-first/android-input-retention-source.json)将 Session 草稿与 Question 输入交给连接模型持有。未改动 prompt 的显式重试沿用 requestId，只有明确成功确认才清除提交版本；迟到确认不会覆盖请求期间的新编辑。交互标识和修订号隔离答案，取消、关闭快照或新修订移除过期输入；重新配对不会采纳另一身份的输入。
 
 234 项 core 测试通过。真实 Android 用例复现了清除失败提示导致回复协程被界面作用域取消；显式提交改由模型作用域持有，卡片使用稳定键，连接模型退役仍会取消并等待请求退出。修复后的真实 Host 用例验证切页、Activity 重建、失败回复和显式重试，只结算一次 Question；失败发送保留输入并显示未确认提示，恢复传输没有自动发送。另两项 JVM/Android 回归验证文件分页、重新配对、凭据跨进程恢复和撤销。截图已目视核对，Host 类型、lint、文档 17/17 与 36/36、逐节追踪通过。
 

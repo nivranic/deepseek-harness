@@ -21,15 +21,15 @@ class InputRetentionTest {
         val model = SessionModel(wire, backgroundScope)
         model.openSession("first")
         model.updateDraft("first", "中文 draft")
-        val original = model.drafts.value.getValue("first")
+        val original = model.input.value.drafts.getValue("first")
         assertFalse(model.sendDraft())
-        assertEquals(original, model.drafts.value["first"])
+        assertEquals(original, model.input.value.drafts["first"])
         assertEquals(ConnectionFailure.TRANSPORT, model.sendFailure.value?.category)
         advanceTimeBy(10_000)
         assertEquals(1, wire.calls.size)
         wire.stub("session/prompt") { accepted() }
         assertTrue(model.sendDraft())
-        assertTrue(model.drafts.value.isEmpty())
+        assertTrue(model.input.value.drafts.isEmpty())
         assertNull(model.sendFailure.value)
         assertEquals(listOf(original.requestId, original.requestId), wire.calls.map { WireShape.string(request(it), "requestId") })
     }
@@ -49,8 +49,8 @@ class InputRetentionTest {
         reply.complete(accepted())
         assertTrue(submission.await())
         assertEquals("first", WireShape.string(request(wire.calls.single()), "sessionId"))
-        assertEquals("new edit", model.drafts.value["first"]?.text)
-        assertEquals("different Session", model.drafts.value["second"]?.text)
+        assertEquals("new edit", model.input.value.drafts["first"]?.text)
+        assertEquals("different Session", model.input.value.drafts["second"]?.text)
     }
 
     @Test fun `cancelled and duplicate submissions do not clear or replay input`() = runTest {
@@ -66,7 +66,7 @@ class InputRetentionTest {
         submission.cancelAndJoin()
         assertTrue(submission.isCancelled)
         assertFalse(model.sending.value)
-        assertEquals("keep me", model.drafts.value["first"]?.text)
+        assertEquals("keep me", model.input.value.drafts["first"]?.text)
         advanceTimeBy(10_000)
         assertEquals(1, wire.calls.size)
     }
@@ -84,7 +84,7 @@ class InputRetentionTest {
         assertEquals(ConnectionFailure.INVALID_RESPONSE, model.sendFailure.value?.category)
         assertFalse(model.sendDraft())
         assertEquals(GatewayFailureEnvelope("gateway/permission-denied", "Host detail", details), model.sendFailure.value?.refusal)
-        assertEquals("retain", model.drafts.value["first"]?.text)
+        assertEquals("retain", model.input.value.drafts["first"]?.text)
     }
 
     @Test fun `Question choices and custom text survive a refused reply and a new event client`() = runTest {
@@ -95,15 +95,15 @@ class InputRetentionTest {
         val pending = model.inbox.value.single()
         val answer = CompanionQuestionAnswer("color", listOf("Blue"), "custom text")
         model.updateAnswer(pending, answer)
-        model.answerQuestions(pending, model.drafts.value.getValue(pending.questionDraftKey))
+        model.answerQuestions(pending, model.input.value.answers.getValue(pending.questionDraftKey))
         model.stopWatching()
         model.collect(ready()); model.collect(question())
-        assertEquals(listOf(answer), model.drafts.value[pending.questionDraftKey])
+        assertEquals(listOf(answer), model.input.value.answers[pending.questionDraftKey])
         advanceTimeBy(10_000)
         assertEquals(1, wire.calls.size)
         wire.stub("\$events/result") { WireValue.NullValue }
-        model.answerQuestions(pending, model.drafts.value.getValue(pending.questionDraftKey))
-        assertTrue(model.drafts.value.isEmpty())
+        model.answerQuestions(pending, model.input.value.answers.getValue(pending.questionDraftKey))
+        assertTrue(model.input.value.answers.isEmpty())
         assertTrue(model.inbox.value.isEmpty())
         assertEquals(2, wire.calls.size)
     }
@@ -116,16 +116,16 @@ class InputRetentionTest {
         val answer = CompanionQuestionAnswer("color", listOf("Blue"))
         model.updateAnswer(first, answer)
         model.collect(question(2))
-        assertTrue(model.drafts.value.isEmpty())
+        assertTrue(model.input.value.answers.isEmpty())
         model.updateAnswer(first, answer)
-        assertTrue(model.drafts.value.isEmpty())
+        assertTrue(model.input.value.answers.isEmpty())
         model.updateAnswer(model.inbox.value.single(), answer)
         model.collect(value("""{"type":"cancel","eventId":"event"}"""))
-        assertTrue(model.drafts.value.isEmpty())
+        assertTrue(model.input.value.answers.isEmpty())
         model.collect(question(3))
         model.updateAnswer(model.inbox.value.single(), answer)
         model.collect(ready(""))
-        assertTrue(model.drafts.value.isEmpty())
+        assertTrue(model.input.value.answers.isEmpty())
         assertTrue(wire.calls.isEmpty())
     }
 
@@ -140,7 +140,7 @@ class InputRetentionTest {
         assertTrue(sending.isCancelled)
         val replacement = CompanionModelSet(wire, backgroundScope)
         replacement.session.openSession("same-id")
-        assertTrue(replacement.session.drafts.value.isEmpty())
+        assertTrue(replacement.session.input.value.drafts.isEmpty())
         assertFalse(replacement.session.sendDraft())
         assertEquals(1, wire.calls.size)
         replacement.closeAndAwait()
@@ -162,7 +162,7 @@ class InputRetentionTest {
         assertFalse(submission.isCancelled)
         assertEquals(1, wire.calls.size)
         reply.complete(accepted()); submission.join()
-        assertTrue(model.drafts.value.isEmpty())
+        assertTrue(model.input.value.drafts.isEmpty())
     }
 
     @Test fun `UI caller disposal does not cancel a Question reply or lose its retained answers`() = runTest {
@@ -180,11 +180,11 @@ class InputRetentionTest {
         }
         ui.cancelAndJoin()
         assertTrue(model.answering.value)
-        assertEquals(listOf(answer), model.drafts.value[pending.questionDraftKey])
+        assertEquals(listOf(answer), model.input.value.answers[pending.questionDraftKey])
         assertFalse(submission.isCancelled)
         reply.complete(WireValue.NullValue); submission.join()
         assertTrue(model.inbox.value.isEmpty())
-        assertTrue(model.drafts.value.isEmpty())
+        assertTrue(model.input.value.answers.isEmpty())
         assertNull(model.replyFailure.value)
     }
 }

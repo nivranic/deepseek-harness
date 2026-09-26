@@ -5,73 +5,85 @@
   "candidateTrackedChanges": [
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.i18n.yaml",
-      "sha256": "12909c9e48f31901810b0bd522d854a31121974e21efe23f97083a92325bede4"
+      "sha256": "088109f5374027ca910f5abd3ccee7e82223b9de65d85cb1d6bcf0ed0fda6cdf"
     },
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.md",
-      "sha256": "34914181e851cdc8c4ffdf1d2f92b01308be0cdda642986a5dce7b222c578a81"
+      "sha256": "37abfde9a40e2f284357d8a2c3a93162a9e04c7b7859d0161a72186864eaf80f"
     },
     {
       "path": ".agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.zh.md",
-      "sha256": "3ff4416904ff46121c7c2217374a3a162bb56843999ace6c0018dd762879a2cd"
+      "sha256": "bb1b920a17dbeef0c16c3f202a004b187a28793296c395345869908860a34406"
     },
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "49f4d6415397b60022ef61a96b9c04f8451ccd429b0b549b177f5cf4016b53eb"
+      "sha256": "8c9b2e565355eb17fd71fbae37f899cb9cbb8e35b86920091735f3bb29d7b905"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "43ca6d8f16950e8a3b9b47a74e9ca7e48e60a7e5190755240ccfc87f4aa781c6"
+      "sha256": "94b9876ed92a47e104b30cc1a1db4c2a23760411a131db8138923b4933447c8e"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "48a9df84399ea7ae99ecf028f8692f3a392a3abf189690126a626efeef9b6a65"
+      "sha256": "68418778970042351502e63932f090ca53ddd651db88e106505e31fcd2261aa1"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "69af2f99f756dea8eee1337f049bdb4d1da092f36097e0ee2a655571d08309eb"
+      "sha256": "85fcb2383b3cf77293b43ef565590f63f1a95fdc8fea106f02c692775a2e92f9"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "17c91d89b24e70cfb038d01ee759b56f25ac6c0436cf2642fd70bb573f50d974"
+      "sha256": "418bc9289c052add7e647a5fb8cb0b99da7c7a30b8428d0687ae3b327efa99b1"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "0009a04f7f5982ffe0a23215ae171d594c7ee834b9809e23c7dc05b1116fb784"
+      "sha256": "48a089fd0ff1aafd554464623c40006bac8548ff8e54666ccf2c53d98327a1be"
     },
     {
       "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "9e03731ae28d9211370650bb3df36231ea6ed8b6a6cc5d21df91ec4a5ab7c238"
+      "sha256": "7a301c85edaa4f583c917b3af2b03935fefd20a927c8296ec29ae09cdca03818"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModelSet.kt",
+      "sha256": "c148923b7c91fb681b608e948e1e47990fb55a8902b5ea52d1448c6b6c99bd38"
     },
     {
       "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-      "sha256": "f999ef6c3a5c41954b1c42486e4d613780db43a29c97b37fe48c4e6f2eed9dc5"
+      "sha256": "d9c359a1cc13c028679cac04213c48db74cfd4c755956a97c1c8f3469827bd65"
     },
     {
       "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/InteractionModel.kt",
-      "sha256": "62d853538e47854d18dcf073bb434c8fcb8ca4df82dad31190025dd082e95128"
+      "sha256": "7b482f6c34ef450fbbca1f6189140f0224a27d758e366cc052b40960ff5eaca1"
     },
     {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelTest.kt",
-      "sha256": "a60b84c7ab85217c09d93cf05a35ef6e943057a91cd6c87ad2a6d0e0f45542e7"
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
+      "sha256": "1c0dac6a8f2ebb1283b878bcf9e88d232df27d90b69acfe96e22d97993ab3c0a"
+    },
+    {
+      "path": "apps/web/tests/android-input-retention.e2e.ts",
+      "sha256": "e5fe2297dc5835cd85e88cbccb66119406a0c0fdfbef595f38b062c70b578106"
+    },
+    {
+      "path": "apps/web/tests/expected/android-input-retention.expected.md",
+      "sha256": "cb4d5cd3219c0869269e060e690a69d4c1cc82305dbd1d36f3e43b4a9197b0f7"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "78d86d5775a0c9f5fd364846eb2173536f74fbec463f0a31d070ffef4515338c"
+      "sha256": "5d39f7f4f5edba75b1876eca62d33691703e785b032955be91e385e3232faea2"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "033b881e948c07a1fd28792c2c190f69a00e8e37e70b8be9c1eb62ec7cdcd7b2"
+      "sha256": "2ad6c8975a7abb8754a818aefe1315b46716cbd143e4bcd0e695e8a3f4fc82f5"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "f22335ae14371eecd96d5f2ccdcfe492fa1d0b06c627fbc9de6da17b13cc5308"
+      "sha256": "e8e64fcc367657bb79c301fccdd415d151045760f57d895c8eebe2158ccaeee5"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/android-input-retention.e2e.ts",
-      "sha256": "2aebeaffb1692a9ec851f13a3e764740701c94ef7b8a6af3318f67756d181c46"
+      "path": "apps/web/tests/android-input-persistence.e2e.ts",
+      "sha256": "7873e3b0f8a0aef5ae9ac7cd20fb849b03c63ecfdbd47ee310f1297ce37a9db2"
     }
   ],
   "validationStatus": "PASS",
@@ -8291,6 +8303,66 @@
     },
     {
       "status": "PASS",
+      "command": "gradlew :core:test :core:nativeGatewayClasspath :app:assembleDebug :app:assembleDebugAndroidTest -PdshNativeAcceptance; 251 core tests in 47 suites",
+      "log": ".artifacts/android-input-persistence-acceptance-build.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew :app:assembleDebugAndroidTest -PdshNativeAcceptance; final private recovery driver",
+      "log": ".artifacts/android-input-persistence-recovery-driver.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.web.config.ts apps/web/tests/android-input-persistence.e2e.ts; DSH_SNAPSHOT=refresh; process death and encrypted recovery",
+      "log": ".artifacts/android-input-persistence-recovery-fixed.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.web.config.ts apps/web/tests/android-input-persistence.e2e.ts apps/web/tests/android-input-retention.e2e.ts apps/web/tests/android-companion-question.e2e.ts; DSH_SNAPSHOT=replay; four native Host cases",
+      "log": ".artifacts/android-input-persistence-host-regression.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -p tsconfig.host.json --noEmit",
+      "log": ".artifacts/android-input-persistence-types.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx/esm scripts/run-oxlint.ts .",
+      "log": ".artifacts/android-input-persistence-lint.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/android-input-persistence-doc-quick.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/android-input-persistence-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs; six tests",
+      "log": ".artifacts/android-input-persistence-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/android-input-persistence-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -9021,7 +9093,198 @@
       ]
     }
   },
+  "androidInputPersistence": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/android-input-persistence-source.json",
+    "scope": "Sections 13, 17, 18 and 67: encrypted principal-scoped Android input; persist-before-dispatch checkpoints; original pending prompt identity independent of newer edits; process restart restores Question inputs and last Session without automatic submission; explicit byte-preserving recovery.",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "limitations": [
+      "Core executes 251 tests in 47 suites with no failures, errors or skips; the unchanged contract suite is not freshly executed in this increment.",
+      "Encrypted format v1 separates Host id, fingerprint and device grant; bounded strict decoding rejects corruption or a transplanted principal. Atomic same-directory replacement is mandatory. App storage is capped at 1 MiB; unreadable bytes are never silently replaced.",
+      "A shared process-owned input state coalesces writes; explicit prompt and Question submissions flush before RPC. Pending original text/request identity survive newer composer edits. Positive acknowledgements and matching user-message receipts clear only accepted input. Read-only restoration never submits input.",
+      "The Android recorded scenario force-stops after saved checkpoints and verifies different process ids, restored Question choices/custom text, last Session, pending request id and newer composer text without automatic Host mutations or another device grant.",
+      "The same scenario damages ciphertext and removes the input Keystore key in the isolated application. Restoration preserves original bytes, exposes recovery, and does not recreate a key; explicit recovery stores a byte-identical backup before committing empty input. Hardware-backed permanent invalidation and sudden power loss remain unqualified.",
+      "Four replayed native Host cases pass across three scenario files, including the new restoration case and existing input-retention plus JVM/Android Question/file/re-pairing regression. Screenshot reviewed. Real Host lost-ack prompt retry after process death is not claimed; focused core tests cover that identity and acknowledgement behavior.",
+      "Host types, lint, 17 quick documentation gates, 36 doc-sync gates and six traceability cases pass. The transport/model-lifetime Agent Note stays active and links the separate durable-input decision. Whole-section acceptance and completeRc remain false.",
+      "Debug emulator and keyless model replay do not qualify live providers, physical devices, cross-Host UX, signed release, Swift, Artifact/Handoff, push recovery or native diagnostics. Remote publication and CI dispatch retain their separate approval blocker."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Qualify lost-acknowledgement prompt retry on the real Host after process death; core cases cover deduplication identity and receipt reconciliation. Qualify sudden power loss and encrypted backup retention policy.",
+        "Qualify distinct-Host switching, foreground/push recovery, hardware-backed permanent key invalidation and full native permission behavior.",
+        "Artifact descriptor/range access and view-location Handoff remain open; retired session/artifact and session/handoff calls are not native production acceptance.",
+        "Native diagnostics, Swift adoption, discovery/Relay, physical devices, release signing and N/N-1/N-2 interoperability remain open.",
+        "Continue unresolved specification acceptance rows; completeRc=false. Remote publication and CI dispatch retain the earlier separate approval blocker."
+      ]
+    }
+  },
   "androidInputRetention": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/android-input-persistence-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/android-input-retention-source.json",
     "scope": "Sections 13, 17, 18 and 67: model-owned native input and explicit mutation lifetime; stable prompt retry identity; acknowledgement-safe draft retirement; Question revision retirement; UI recreation and failed-submission recovery.",
@@ -22512,7 +22775,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/android-input-retention-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/android-input-persistence-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -22995,7 +23258,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "f22335ae14371eecd96d5f2ccdcfe492fa1d0b06c627fbc9de6da17b13cc5308"
+        "sha256": "e8e64fcc367657bb79c301fccdd415d151045760f57d895c8eebe2158ccaeee5"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

@@ -152,8 +152,11 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("native-tab-0").performClick()
                                 val tag = "session-open-" + command.getValue("sessionId").jsonPrimitive.content
                                 stage = "session-list-entry"
-                                waitFor(hasTestTag(tag))
-                                compose.onNodeWithTag(tag).performScrollTo().performClick()
+                                if (companionModel().session.open.value?.sessionId != command.getValue("sessionId").jsonPrimitive.content) {
+                                    if (companionModel().session.open.value != null) compose.onNodeWithTag("session-return-list").performClick()
+                                    waitFor(hasTestTag(tag))
+                                    compose.onNodeWithTag(tag).performScrollTo().performClick()
+                                }
                                 stage = "session-done-projection"
                                 waitFor(hasText("DONE", substring = true))
                                 compose.onNode(hasText("DONE", substring = true)).performScrollTo()
@@ -203,9 +206,7 @@ class NativeCompanionAcceptanceTest {
                                 waitFor(hasTestTag("native-repair"))
                                 compose.onNodeWithTag("file-content").assertDoesNotExist()
                                 compose.onNodeWithTag("native-tab-0").performClick()
-                                val session = "session-open-" + command.getValue("sessionId").jsonPrimitive.content
-                                waitFor(hasTestTag(session))
-                                compose.onNodeWithTag(session).performScrollTo().performClick()
+                                compose.waitUntil(20_000) { companionModel().session.open.value?.sessionId == command.getValue("sessionId").jsonPrimitive.content }
                                 compose.onNodeWithTag("native-tab-4").performClick()
                                 val entry = "file-entry-" + command.getValue("path").jsonPrimitive.content
                                 waitFor(hasTestTag(entry))
@@ -301,7 +302,75 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithText("发送").assertIsNotEnabled()
                                 compose.onNodeWithText("停止").assertIsNotEnabled()
                             }
-                            "close" -> runBlocking { CompanionRuntime.wire.closeAndAwait() }
+                            "inputCheckpoint" -> {
+                                val inputs = companionModel().inputs
+                                runBlocking { inputs.flush() }
+                                check(inputs.persistence.value == InputPersistenceStatus.SAVED)
+                                value = JsonPrimitive(android.os.Process.myPid())
+                            }
+                            "pendingPrompt" -> {
+                                val pending = companionModel().inputs.state.value.pendingPrompts.values.single()
+                                check(pending.draft.text == command.getValue("text").jsonPrimitive.content)
+                                value = JsonPrimitive(pending.draft.requestId)
+                            }
+                            "replacePromptDraft" -> compose.onNodeWithTag("session-draft")
+                                .performTextReplacement(command.getValue("text").jsonPrimitive.content)
+                            "retryPendingPrompt" -> {
+                                val model = companionModel().session
+                                val requestId = command.getValue("requestId").jsonPrimitive.content
+                                lateinit var job: kotlinx.coroutines.Job
+                                compose.runOnIdle { job = model.retryPrompt(requestId) }
+                                compose.waitUntil(30_000) { job.isCompleted }
+                                check(requestId !in model.input.value.pendingPrompts)
+                            }
+                            "damageInputs" -> {
+                                runBlocking { companionModel().inputs.flush() }
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-input")
+                                    .listFiles()!!.single { it.extension == "state" }
+                                when (command.getValue("damage").jsonPrimitive.content) {
+                                    "ciphertext" -> {
+                                        val bytes = stored.readBytes()
+                                        bytes[bytes.lastIndex] = (bytes.last().toInt() xor 1).toByte()
+                                        stored.writeBytes(bytes)
+                                    }
+                                    "missing-key" -> java.security.KeyStore.getInstance("AndroidKeyStore").apply {
+                                        load(null); deleteEntry("dsh-native-input")
+                                    }
+                                    else -> error("unsupported input damage")
+                                }
+                                value = JsonPrimitive(MessageDigest.getInstance("SHA-256").digest(stored.readBytes())
+                                    .joinToString("") { "%02x".format(it.toInt() and 255) })
+                            }
+                            "assertInputRecovery" -> {
+                                waitFor(hasTestTag("input-restore-failed"))
+                                compose.onNodeWithTag("input-restore-failed").assertIsDisplayed()
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-input")
+                                    .listFiles()!!.single { it.extension == "state" }
+                                val digest = MessageDigest.getInstance("SHA-256").digest(stored.readBytes())
+                                    .joinToString("") { "%02x".format(it.toInt() and 255) }
+                                check(digest == command.getValue("digest").jsonPrimitive.content)
+                                if (command.getValue("damage").jsonPrimitive.content == "missing-key") {
+                                    check(!java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.containsAlias("dsh-native-input"))
+                                }
+                            }
+                            "recoverInputs" -> {
+                                stage = "input-recovery-action"
+                                compose.onNodeWithTag("input-start-fresh").performClick()
+                                stage = "input-recovery-saved"
+                                compose.waitUntil(20_000) { companionModel().inputs.persistence.value == InputPersistenceStatus.SAVED }
+                                val files = java.io.File(instrumentation.targetContext.filesDir, "native-input").listFiles()!!
+                                stage = "input-recovery-preserved-bytes"
+                                check(files.filter { it.name.contains(".unavailable-") }.any { backup ->
+                                    MessageDigest.getInstance("SHA-256").digest(backup.readBytes())
+                                        .joinToString("") { "%02x".format(it.toInt() and 255) } == command.getValue("digest").jsonPrimitive.content
+                                })
+                                stage = "input-recovery-empty-state"
+                                check(companionModel().inputs.state.value == CompanionInputSnapshot())
+                            }
+                            "close" -> runBlocking {
+                                if (CompanionRuntime.inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) CompanionRuntime.inputs.flush()
+                                CompanionRuntime.wire.closeAndAwait()
+                            }
                             else -> error("unsupported UI command")
                         }
                     } catch (_: Throwable) {

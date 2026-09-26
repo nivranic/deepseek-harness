@@ -226,6 +226,7 @@ class SessionModel(
     private val wire: WireDriving,
     private val scope: CoroutineScope,
     private val reconnectDelayMillis: Long = 1_000,
+    private val inputs: CompanionInputState = CompanionInputState.memory(),
 ) {
     private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
     val sessions: StateFlow<List<SessionRow>> = _sessions
@@ -237,20 +238,19 @@ class SessionModel(
     private val _open = MutableStateFlow<OpenSession?>(null)
     val open: StateFlow<OpenSession?> = _open
 
-    private val _drafts = MutableStateFlow<Map<String, SessionDraft>>(emptyMap())
-    val drafts: StateFlow<Map<String, SessionDraft>> = _drafts
+    val input: StateFlow<CompanionInputSnapshot> = inputs.state
     private val _sendFailure = MutableStateFlow<PromptSubmissionFailure?>(null)
     val sendFailure: StateFlow<PromptSubmissionFailure?> = _sendFailure
     private val sendLock = Mutex()
 
     /** Keep each Session's text independently; an unchanged retry reuses its request id. */
     fun updateDraft(sessionId: String, text: String) {
-        _drafts.update { current ->
-            when {
-                text.isEmpty() -> current - sessionId
-                current[sessionId]?.text == text -> current
-                else -> current + (sessionId to SessionDraft(text, "companion-${java.util.UUID.randomUUID()}"))
-            }
+        inputs.update { current ->
+            current.copy(drafts = when {
+                text.isEmpty() -> current.drafts - sessionId
+                current.drafts[sessionId]?.text == text -> current.drafts
+                else -> current.drafts + (sessionId to SessionDraft(text, "companion-${java.util.UUID.randomUUID()}"))
+            })
         }
         if (_sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
     }
@@ -258,14 +258,37 @@ class SessionModel(
     /** Only a positive Host acknowledgement clears the exact submitted draft; newer edits survive. */
     suspend fun sendDraft(): Boolean {
         val sessionId = _open.value?.sessionId ?: return false
-        val draft = _drafts.value[sessionId] ?: return false
-        val accepted = submitPrompt(sessionId, draft.text, emptyList(), draft.requestId)
-        if (accepted) _drafts.update { current -> if (current[sessionId] == draft) current - sessionId else current }
-        return accepted
+        val draft = input.value.drafts[sessionId] ?: return false
+        return submitPrompt(sessionId, draft.text, emptyList(), draft.requestId, retainIntent = true)
     }
 
     /** Start an explicit UI submission in model lifetime so tab disposal cannot cancel its acknowledgement. */
     fun submitDraft(): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) { sendDraft() }
+
+    /** Retry the persisted original intent explicitly, even when the composer contains newer edits. */
+    fun retryPrompt(requestId: String): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        val pending = input.value.pendingPrompts[requestId] ?: return@launch
+        submitPrompt(pending.sessionId, pending.draft.text, emptyList(), requestId, retainIntent = true)
+    }
+
+    /** Forget local input without withdrawing anything the Host may already have accepted. */
+    fun discardPending(requestId: String) {
+        if (_sending.value) return
+        inputs.update { current ->
+            val pending = current.pendingPrompts[requestId] ?: return@update current
+            current.copy(pendingPrompts = current.pendingPrompts - requestId,
+                drafts = if (current.drafts[pending.sessionId]?.requestId == requestId) current.drafts - pending.sessionId else current.drafts)
+        }
+    }
+
+    /** Restore only a read-only observation; the saved draft is never submitted here. */
+    suspend fun restoreSelection() { input.value.lastSessionId?.let { openSession(it) } }
+
+    /** Return to the list explicitly; model retirement itself must preserve the saved viewing position. */
+    suspend fun returnToList() {
+        closeAndAwait()
+        if (inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) inputs.update { it.copy(lastSessionId = null) }
+    }
 
     private val _sending = MutableStateFlow(false)
     val sending: StateFlow<Boolean> = _sending
@@ -357,6 +380,7 @@ class SessionModel(
 
     /** Open one session: fold its follow stream from a fresh snapshot. */
     suspend fun openSession(sessionId: String) {
+        if (inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) inputs.update { it.copy(lastSessionId = sessionId) }
         replaceFollow(
             sessionId,
             mapOf(
@@ -419,11 +443,16 @@ class SessionModel(
         return submitPrompt(session.sessionId, text, images, "companion-${java.util.UUID.randomUUID()}")
     }
 
-    private suspend fun submitPrompt(sessionId: String, text: String, images: List<Pair<String, String>>, requestId: String): Boolean {
+    private suspend fun submitPrompt(sessionId: String, text: String, images: List<Pair<String, String>>, requestId: String,
+                                     retainIntent: Boolean = false): Boolean {
         if ((text.isEmpty() && images.isEmpty()) || !sendLock.tryLock()) return false
         _sending.value = true
         _sendFailure.value = null
         try {
+            if (retainIntent) {
+                inputs.update { it.copy(pendingPrompts = it.pendingPrompts + (requestId to PendingPrompt(sessionId, SessionDraft(text, requestId)))) }
+                inputs.flush()
+            }
             val content = buildList {
                 add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("text"), "text" to WireValue.StringValue(text))))
                 for ((base64, mediaType) in images) {
@@ -454,6 +483,7 @@ class SessionModel(
             if (WireShape.boolean(acknowledgement, "accepted") != true) {
                 throw ai.deepseek.dsh.link.LinkClientException.BadWire("invalid prompt acknowledgement")
             }
+            if (retainIntent) acknowledgePrompt(sessionId, requestId)
             return true
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -510,12 +540,31 @@ class SessionModel(
         val kind = WireShape.string(frame, "type") ?: ""
         val newState = if (kind == "snapshot") {
             val records = WireShape.array(frame, "records") ?: emptyList()
+            records.forEach { acknowledgeRecordedPrompt(current.sessionId, it) }
             foldDomain(JsonArray(records.map { it.toJsonElement() }))
         } else {
+            acknowledgeRecordedPrompt(current.sessionId, frame)
             foldInto(current.state, JsonArray(listOf(frame.toJsonElement())))
         }
         _open.value = current.copy(state = newState)
         if (!followOwner.isCurrent(generation)) _open.value = null
+    }
+
+    private fun acknowledgeRecordedPrompt(sessionId: String, record: WireValue) {
+        if (WireShape.string(record, "type") != "event") return
+        val event = WireShape.objectValue(record, "event") ?: return
+        if (WireShape.string(event, "type") != "user/message") return
+        val data = WireShape.objectValue(event, "data") ?: return
+        val source = WireShape.objectValue(data, "source") ?: return
+        if (WireShape.string(source, "kind") != "user") return
+        val requestId = WireShape.string(source, "rpcId") ?: return
+        if (input.value.pendingPrompts[requestId]?.sessionId == sessionId) acknowledgePrompt(sessionId, requestId)
+    }
+
+    private fun acknowledgePrompt(sessionId: String, requestId: String) = inputs.update { current ->
+        if (current.pendingPrompts[requestId]?.sessionId != sessionId) return@update current
+        current.copy(pendingPrompts = current.pendingPrompts - requestId,
+            drafts = if (current.drafts[sessionId]?.requestId == requestId) current.drafts - sessionId else current.drafts)
     }
 }
 

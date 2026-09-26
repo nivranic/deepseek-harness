@@ -1,4 +1,15 @@
 <resources>
+    <string name="native_input_saving">正在保存本地输入…</string>
+    <string name="native_input_save_failed">本地输入尚未保存，请重试。提交前必须保存成功。</string>
+    <string name="native_input_retry_save">重试保存</string>
+    <string name="native_input_restore_failed">无法恢复本地输入，原文件已保留。可以保留副本并新建空白输入。</string>
+    <string name="native_input_start_fresh">保留副本并新建</string>
+    <string name="native_input_recovery_failed">新建失败，原文件仍保留。请稍后重试。</string>
+    <string name="native_session_return_list">会话列表</string>
+    <string name="native_prompt_unconfirmed">待确认的发送</string>
+    <string name="native_prompt_retry">重试这条发送</string>
+    <string name="native_prompt_discard">丢弃本地输入</string>
+    <string name="native_prompt_discard_notice">丢弃本地输入不会撤回 Host 已收到的内容。</string>
     <string name="native_prompt_failed">发送未确认，输入已保留。可在恢复连接后显式重试。</string>
     <string name="native_sessions_refresh">刷新</string>
     <string name="native_sessions_retry">重试</string>

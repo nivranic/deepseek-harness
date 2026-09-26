@@ -6,4 +6,4 @@
 - A Session draft survives tab replacement and Activity recreation.
 - A failed prompt submission keeps the exact text and displays a visible unconfirmed-send message.
 - Restoring transport does not submit the retained draft.
-- Input is currently model-owned; process-death persistence remains unqualified.
+- This scenario covers UI lifetime; process restoration is exercised by android-input-persistence.

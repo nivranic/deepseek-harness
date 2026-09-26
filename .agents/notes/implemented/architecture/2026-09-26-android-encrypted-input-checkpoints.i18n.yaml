@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.md
+2026-09-26-android-encrypted-input-checkpoints.md: 39470ac0d8f76f1b35ab0ac4c740885d5623a2bb
+2026-09-26-android-encrypted-input-checkpoints.zh.md: 19b8ae7447c3c49eb612eb59284aea67d1b85d77

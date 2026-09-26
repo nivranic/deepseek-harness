@@ -25,6 +25,7 @@ class InteractionModel(
     private val wire: WireDriving,
     private val scope: CoroutineScope,
     private val reconnectDelayMillis: Long = 1000,
+    private val inputs: CompanionInputState = CompanionInputState.memory(),
 ) {
     init { require(reconnectDelayMillis > 0) }
     private val _inbox = MutableStateFlow<List<PendingInteraction>>(emptyList())
@@ -39,8 +40,7 @@ class InteractionModel(
     val replyFailure: StateFlow<InteractionReplyFailure?> = _replyFailure
     private val _streamFailure = MutableStateFlow<String?>(null)
     val streamFailure: StateFlow<String?> = _streamFailure
-    private val _drafts = MutableStateFlow<Map<QuestionDraftKey, List<CompanionQuestionAnswer>>>(emptyMap())
-    val drafts: StateFlow<Map<QuestionDraftKey, List<CompanionQuestionAnswer>>> = _drafts
+    val input: StateFlow<CompanionInputSnapshot> = inputs.state
     private val answerLock = Mutex()
     private val watchOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = watchOwner.connectionSnapshot
@@ -49,9 +49,9 @@ class InteractionModel(
     fun updateAnswer(pending: PendingInteraction, answer: CompanionQuestionAnswer) {
         if (_inbox.value.none { it.questionDraftKey == pending.questionDraftKey }) return
         require(pending.kind == PendingInteraction.Kind.QUESTION && pending.questions.any { it.id == answer.id })
-        _drafts.update { drafts ->
-            val previous = drafts[pending.questionDraftKey].orEmpty()
-            drafts + (pending.questionDraftKey to (previous.filterNot { it.id == answer.id } + answer))
+        inputs.update { current ->
+            val previous = current.answers[pending.questionDraftKey].orEmpty()
+            current.copy(answers = current.answers + (pending.questionDraftKey to (previous.filterNot { it.id == answer.id } + answer)))
         }
     }
 
@@ -102,14 +102,14 @@ class InteractionModel(
                 val client = string(frame, "clientId")
                 val pending = strings(WireShape.array(frame, "pendingInteractionIds") ?: invalid("pending interactions"))
                 _inbox.update { cards -> cards.filter { it.id in pending } }
-                _drafts.update { drafts -> drafts.filterKeys { it.interactionId in pending } }
+                retireAnswers { drafts -> drafts.filterKeys { it.interactionId in pending } }
                 _clientId.value = client
                 return
             }
             "cancel" -> {
                 val id = WireShape.string(frame, "eventId") ?: return
                 _inbox.update { cards -> cards.filterNot { it.id == id } }
-                _drafts.update { drafts -> drafts.filterKeys { it.interactionId != id } }
+                retireAnswers { drafts -> drafts.filterKeys { it.interactionId != id } }
                 return
             }
             "waterfall" -> Unit
@@ -141,7 +141,7 @@ class InteractionModel(
             if (cards.any { it.id == id && it.revision == pending.revision }) cards
             else cards.filterNot { it.id == id } + pending
         }
-        _drafts.update { drafts -> drafts.filterKeys { it.interactionId != id || it == pending.questionDraftKey } }
+        retireAnswers { drafts -> drafts.filterKeys { it.interactionId != id || it == pending.questionDraftKey } }
     }
 
     /** A boolean approval never substitutes for structured Question answers. */
@@ -168,13 +168,10 @@ class InteractionModel(
                 if (custom != null) put("custom", WireValue.StringValue(custom))
             })
         }
-        if (_inbox.value.any { it.questionDraftKey == pending.questionDraftKey }) {
-            _drafts.update { it + (pending.questionDraftKey to answers.map { answer -> answer.copy(selected = answer.selected.toList()) }) }
-        }
-        submit(pending, WireValue.ObjectValue(mapOf("answers" to WireValue.ArrayValue(encoded))))
+        submit(pending, WireValue.ObjectValue(mapOf("answers" to WireValue.ArrayValue(encoded))), answers)
     }
 
-    private suspend fun submit(pending: PendingInteraction, value: WireValue) {
+    private suspend fun submit(pending: PendingInteraction, value: WireValue, answers: List<CompanionQuestionAnswer>? = null) {
         if (!answerLock.tryLock()) return
         _answering.value = true
         _lastRefusal.value = null
@@ -186,11 +183,21 @@ class InteractionModel(
                 _lastRefusal.value = "Interaction is no longer pending."
                 return
             }
+            if (answers != null) {
+                inputs.update { current -> current.copy(answers = current.answers +
+                    (pending.questionDraftKey to answers.map { answer -> answer.copy(selected = answer.selected.toList()) })) }
+                inputs.flush()
+            }
+            if (_clientId.value != client) { _lastRefusal.value = "Remote Event stream is not ready."; return }
+            if (_inbox.value.none { it.questionDraftKey == pending.questionDraftKey }) {
+                _lastRefusal.value = "Interaction is no longer pending."
+                return
+            }
             wire.call("\$events/result", mapOf("clientId" to WireValue.StringValue(client),
                 "eventId" to WireValue.StringValue(pending.id), "interactionRevision" to WireValue.NumberValue(pending.revision.toDouble()),
                 "outcome" to WireValue.ObjectValue(mapOf("kind" to WireValue.StringValue("result"), "value" to value))))
             _inbox.update { cards -> cards.filterNot { it.id == pending.id && it.revision == pending.revision } }
-            _drafts.update { it - pending.questionDraftKey }
+            retireAnswers { it - pending.questionDraftKey }
         } catch (error: CancellationException) {
             _replyFailure.value = InteractionReplyFailure(ConnectionFailure.CANCELLED, null)
             throw error
@@ -201,6 +208,12 @@ class InteractionModel(
             _lastRefusal.value = observationFailureText(error)
         }
         finally { _answering.value = false; answerLock.unlock() }
+    }
+
+    private fun retireAnswers(transform: (Map<QuestionDraftKey, List<CompanionQuestionAnswer>>) -> Map<QuestionDraftKey, List<CompanionQuestionAnswer>>) {
+        if (inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) {
+            inputs.update { it.copy(answers = transform(it.answers)) }
+        }
     }
 
     private fun parseQuestions(request: WireValue): List<CompanionQuestion> {

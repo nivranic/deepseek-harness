@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.flow
  * the process-owned transport remains available for cancellation of a pairing change.
  * A replacement receives new models rather than cached data from the previous connection.
  */
-class CompanionModelSet(wire: WireDriving, parent: CoroutineScope) {
+class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
+                        val inputs: CompanionInputState = CompanionInputState.memory()) {
     private val lifetime = SupervisorJob(parent.coroutineContext[Job])
     private val scope = CoroutineScope(parent.coroutineContext + lifetime)
     private val ownedWire = object : WireDriving {
@@ -26,8 +27,8 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope) {
         }
     }
 
-    val session = SessionModel(ownedWire, scope)
-    val interactions = InteractionModel(ownedWire, scope)
+    val session = SessionModel(ownedWire, scope, inputs = inputs)
+    val interactions = InteractionModel(ownedWire, scope, inputs = inputs)
     val files = FilesModel(ownedWire, scope)
     val subagents = SubagentsModel(ownedWire, scope)
     val pushes = PushModel(ownedWire, scope)

@@ -47,6 +47,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.NonCancellable
@@ -113,7 +115,7 @@ class CompanionViewModel : ViewModel() {
         private set
 
     private val transition = Mutex()
-    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope))
+    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs))
     var generation by mutableStateOf(CompanionRuntime.generation)
         private set
     var pairingRequested by mutableStateOf(false)
@@ -123,6 +125,9 @@ class CompanionViewModel : ViewModel() {
     val files get() = models.files
     val subagents get() = models.subagents
     val pushes get() = models.pushes
+    val inputs get() = models.inputs
+    var inputRecoveryFailed by mutableStateOf(false)
+        private set
 
     /** Hide and retire the current connection's models while retaining its stored identity and transport. */
     suspend fun beginPairing() = transition.withLock {
@@ -147,10 +152,33 @@ class CompanionViewModel : ViewModel() {
     }
 
     private fun publishModels() {
-        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope)
+        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs)
         generation = CompanionRuntime.generation
         paired = CompanionRuntime.restored
         pairingRequested = false
+        inputRecoveryFailed = false
+    }
+
+    /** Explicit local recovery never submits a prompt or an interaction reply. */
+    fun recoverInputs() = viewModelScope.launch {
+        transition.withLock {
+            if (inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) return@withLock
+            inputRecoveryFailed = false
+            try {
+                inputs.startFresh()
+                models.closeAndAwait()
+                publishModels()
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: InputPersistenceException) { inputRecoveryFailed = true }
+        }
+    }
+
+    fun retryInputSave() = viewModelScope.launch {
+        try { inputs.flush() }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: InputPersistenceException) {
+            // The persistence state already exposes the failed checkpoint; this does not retry a Host mutation.
+        }
     }
 
     /** Pair with a scanned payload; returns the failure, or null after adoption. */
@@ -206,6 +234,9 @@ object CompanionRuntime {
     }
 
     private val switchingWire = SwitchableWireDriving(UnpairedWire())
+    private val inputScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Volatile var inputs: CompanionInputState = CompanionInputState.memory()
+        private set
 
     /** True once a stored identity rebuilt the client at launch or a
      * pairing succeeded in this process. */
@@ -227,27 +258,40 @@ object CompanionRuntime {
         restoreDirectory = directory
         if (restored) return@withLock true
         val store = credentialsStore(directory)
+        val staged = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
         var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
+        var candidateInputs: CompanionInputState? = null
         try {
+            val credentials = withContext(Dispatchers.IO) { store.load() }
+            if (credentials != null) staged.save(credentials)
             withContext(Dispatchers.IO) {
-                candidate = ai.deepseek.dsh.gateway.NativeGatewayClient.restore(store, nativeConfig)
+                candidate = ai.deepseek.dsh.gateway.NativeGatewayClient.restore(staged, nativeConfig)
             }
             val client = candidate ?: run {
                 restoreNeedsPairing = java.io.File(directory, "link-credentials.json").exists() ||
                     java.io.File(directory, "native-gateway-credentials.json").exists()
                 return@withLock false
             }
-            candidate = null
-            switchingWire.replaceAndAwait(client)
-            restored = true
-            generation++
-            restoreNeedsPairing = false
+            val restoredInputs = restoreInputs(directory, checkNotNull(credentials))
+            candidateInputs = restoredInputs
+            withContext(NonCancellable) {
+                candidate = null
+                switchingWire.replaceAndAwait(client)
+                inputs.retireAndAwait()
+                inputs = restoredInputs
+                candidateInputs = null
+                restored = true
+                generation++
+                restoreNeedsPairing = false
+            }
             true
         } catch (_: ai.deepseek.dsh.link.LinkClientException) {
             restoreNeedsPairing = true
             false
         } finally {
-            candidate?.closeAndAwait()
+            staged.clear()
+            try { candidate?.closeAndAwait() }
+            finally { candidateInputs?.retireAndAwait() }
         }
     }
 
@@ -257,22 +301,37 @@ object CompanionRuntime {
             AndroidKeystoreCipher(),
         )
 
+    private suspend fun restoreInputs(directory: java.io.File, credentials: ai.deepseek.dsh.link.LinkCredentials): CompanionInputState =
+        CompanionInputState.restore(FileCompanionInputStore(
+            java.io.File(directory, "native-input"),
+            CompanionInputPrincipal(credentials.hostId, credentials.pinnedFingerprint, credentials.deviceId),
+            AndroidKeystoreCipher("dsh-native-input"), maxBytes = 1_048_576,
+        ), inputScope)
+
     /** Pair with a scanned payload; returns the failure, or null after adoption. */
     suspend fun pair(payloadText: String, deviceName: String): Exception? = transition.withLock {
         var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
+        var candidateInputs: CompanionInputState? = null
         val staged = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
         try {
+            if (inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) inputs.flush()
             val payload = ai.deepseek.dsh.gateway.NativePairing.parse(payloadText)
             val directory = restoreDirectory ?: error("no restore directory configured")
             val store = credentialsStore(directory)
             val client = ai.deepseek.dsh.gateway.NativeGatewayClient.pair(payload, deviceName, staged, nativeConfig)
             candidate = client
+            val credentials = checkNotNull(staged.load())
+            val replacementInputs = restoreInputs(directory, credentials)
+            candidateInputs = replacementInputs
             currentCoroutineContext().ensureActive()
             // Once the verified identity is durable, adoption completes even if the Activity is replaced.
             withContext(NonCancellable) {
-                withContext(Dispatchers.IO) { store.save(checkNotNull(staged.load())) }
+                withContext(Dispatchers.IO) { store.save(credentials) }
                 candidate = null
                 switchingWire.replaceAndAwait(client)
+                inputs.retireAndAwait()
+                inputs = replacementInputs
+                candidateInputs = null
                 restored = true
                 restoreNeedsPairing = false
                 generation++
@@ -284,7 +343,8 @@ object CompanionRuntime {
             failure
         } finally {
             staged.clear()
-            candidate?.closeAndAwait()
+            try { candidate?.closeAndAwait() }
+            finally { candidateInputs?.retireAndAwait() }
         }
     }
 }
@@ -353,6 +413,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                     Text(androidx.compose.ui.res.stringResource(R.string.native_repair))
                 }
             }
+            InputPersistenceNotice(model)
             when (tab) {
                 0 -> SessionsTab(model)
                 1 -> ApprovalsTab(model)
@@ -362,6 +423,27 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 5 -> ArtifactsTab(model)
                 else -> SubagentsTab(model)
             }
+        }
+    }
+}
+
+@Composable
+private fun InputPersistenceNotice(model: CompanionViewModel) {
+    val status by model.inputs.persistence.collectAsStateWithLifecycle()
+    when (status) {
+        InputPersistenceStatus.MEMORY_ONLY, InputPersistenceStatus.SAVED -> Unit
+        InputPersistenceStatus.SAVING -> Text(androidx.compose.ui.res.stringResource(R.string.native_input_saving),
+            Modifier.testTag("input-saving").padding(horizontal = 16.dp))
+        InputPersistenceStatus.WRITE_FAILED -> Row(Modifier.padding(horizontal = 16.dp)) {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_input_save_failed), Modifier.weight(1f), color = MaterialTheme.colorScheme.error)
+            Button(onClick = { model.retryInputSave() }) { Text(androidx.compose.ui.res.stringResource(R.string.native_input_retry_save)) }
+        }
+        InputPersistenceStatus.RESTORE_FAILED -> Column(Modifier.padding(horizontal = 16.dp).testTag("input-restore-failed")) {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_input_restore_failed), color = MaterialTheme.colorScheme.error)
+            Button(onClick = { model.recoverInputs() }, modifier = Modifier.testTag("input-start-fresh")) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_input_start_fresh))
+            }
+            if (model.inputRecoveryFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_input_recovery_failed), color = MaterialTheme.colorScheme.error)
         }
     }
 }
@@ -408,11 +490,16 @@ fun SessionsTab(model: CompanionViewModel) {
     val sessions by model.session.sessions.collectAsStateWithLifecycle()
     val listState by model.session.listState.collectAsStateWithLifecycle()
     val open by model.session.open.collectAsStateWithLifecycle()
-    val drafts by model.session.drafts.collectAsStateWithLifecycle()
+    val input by model.session.input.collectAsStateWithLifecycle()
+    val persistence by model.inputs.persistence.collectAsStateWithLifecycle()
+    val editable = persistence != InputPersistenceStatus.RESTORE_FAILED
     val sendFailure by model.session.sendFailure.collectAsStateWithLifecycle()
-    val draft = open?.sessionId?.let { drafts[it]?.text }.orEmpty()
+    val draft = open?.sessionId?.let { input.drafts[it]?.text }.orEmpty()
     val sending by model.session.sending.collectAsStateWithLifecycle()
-    LaunchedEffect(model.paired) { model.session.loadSessions() }
+    LaunchedEffect(model.session) {
+        model.session.loadSessions()
+        if (model.session.open.value == null) model.session.restoreSelection()
+    }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth()) {
             Text(
@@ -428,6 +515,9 @@ fun SessionsTab(model: CompanionViewModel) {
                 Text(androidx.compose.ui.res.stringResource(if (listState is SessionListState.Failed)
                     R.string.native_sessions_retry else R.string.native_sessions_refresh))
             }
+            if (open != null) Button(modifier = Modifier.testTag("session-return-list"), onClick = {
+                scope.launch { model.session.returnToList() }
+            }) { Text(androidx.compose.ui.res.stringResource(R.string.native_session_return_list)) }
         }
         if (open == null) when (val state = listState) {
             SessionListState.Idle -> Unit
@@ -445,6 +535,21 @@ fun SessionsTab(model: CompanionViewModel) {
                     }
                 }
             } else {
+                items(input.pendingPrompts.values.filter { it.sessionId == open?.sessionId }, key = { "pending-" + it.draft.requestId }) { pending ->
+                    RaisedCard {
+                        Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_unconfirmed))
+                        Text(pending.draft.text)
+                        Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_discard_notice), style = MaterialTheme.typography.bodySmall)
+                        Row {
+                            Button(enabled = !sending && editable, onClick = { model.session.retryPrompt(pending.draft.requestId) }) {
+                                Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_retry))
+                            }
+                            Button(enabled = !sending && editable, onClick = { model.session.discardPending(pending.draft.requestId) }) {
+                                Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_discard))
+                            }
+                        }
+                    }
+                }
                 items(open!!.state.items) { item ->
                     RaisedCard {
                         Text(item.kind, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
@@ -460,10 +565,10 @@ fun SessionsTab(model: CompanionViewModel) {
         }
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = draft, onValueChange = { text -> open?.sessionId?.let { model.session.updateDraft(it, text) } },
-                label = { Text("发消息给宿主…") }, enabled = open != null, modifier = Modifier.weight(1f).testTag("session-draft"))
+                label = { Text("发消息给宿主…") }, enabled = open != null && editable, modifier = Modifier.weight(1f).testTag("session-draft"))
             Button(onClick = {
                 model.session.submitDraft()
-            }, enabled = open != null && draft.isNotEmpty() && !sending) { Text("发送") }
+            }, enabled = open != null && editable && draft.isNotEmpty() && !sending) { Text("发送") }
             Button(enabled = open != null, onClick = { scope.launch { model.session.cancelActive() } }) { Text("停止") }
         }
     }
@@ -482,7 +587,7 @@ private fun sessionListFailureText(failure: SessionListState.Failed): String {
 
 @Composable
 fun ApprovalsTab(model: CompanionViewModel) {
-    LaunchedEffect(model.paired) { model.interactions.startWatching() }
+    LaunchedEffect(model.interactions) { model.interactions.startWatching() }
     val inbox by model.interactions.inbox.collectAsStateWithLifecycle()
     val streamFailure by model.interactions.streamFailure.collectAsStateWithLifecycle()
     val lastRefusal by model.interactions.lastRefusal.collectAsStateWithLifecycle()
@@ -507,18 +612,20 @@ fun ApprovalsTab(model: CompanionViewModel) {
                         Button(enabled = !answering && clientId.isNotEmpty(), onClick = { model.interactions.submitApproval(pending, allowedOnce = true) }) { Text("允许一次") }
                         Button(enabled = !answering && clientId.isNotEmpty(), onClick = { model.interactions.submitApproval(pending, allowedOnce = false) }) { Text("拒绝") }
                     }
-                } else QuestionAnswers(pending, model.interactions)
+                } else QuestionAnswers(pending, model.interactions, model.inputs)
             }
         }
     }
 }
 
 @Composable
-private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel) {
+private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel, inputs: CompanionInputState) {
     val answering by model.answering.collectAsStateWithLifecycle()
     val clientId by model.clientId.collectAsStateWithLifecycle()
-    val drafts by model.drafts.collectAsStateWithLifecycle()
-    val answers = drafts[pending.questionDraftKey].orEmpty().associateBy { it.id }
+    val input by model.input.collectAsStateWithLifecycle()
+    val persistence by inputs.persistence.collectAsStateWithLifecycle()
+    val editable = persistence != InputPersistenceStatus.RESTORE_FAILED
+    val answers = input.answers[pending.questionDraftKey].orEmpty().associateBy { it.id }
     for (question in pending.questions) {
         val answer = answers[question.id] ?: CompanionQuestionAnswer(question.id, emptyList())
         Text(question.question, style = MaterialTheme.typography.titleSmall)
@@ -531,8 +638,8 @@ private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel
                 model.updateAnswer(pending, answer.copy(selected = selectedLabels, custom = if (question.multiSelect) answer.custom else null))
             }
             val choiceModifier = if (question.multiSelect)
-                Modifier.toggleable(value = selected, role = Role.Checkbox, onValueChange = { choose() })
-            else Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = { choose() })
+                Modifier.toggleable(value = selected, enabled = editable, role = Role.Checkbox, onValueChange = { choose() })
+            else Modifier.selectable(selected = selected, enabled = editable, role = Role.RadioButton, onClick = { choose() })
             Row(choiceModifier.fillMaxWidth()) {
                 if (question.multiSelect) androidx.compose.material3.Checkbox(checked = selected, onCheckedChange = null)
                 else androidx.compose.material3.RadioButton(selected = selected, onClick = null)
@@ -542,12 +649,12 @@ private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel
                 }
             }
         }
-        OutlinedTextField(value = answer.custom.orEmpty(), onValueChange = { value ->
+        OutlinedTextField(value = answer.custom.orEmpty(), enabled = editable, onValueChange = { value ->
             model.updateAnswer(pending, answer.copy(custom = value,
                 selected = if (!question.multiSelect && value.isNotBlank()) emptyList() else answer.selected))
         }, label = { Text(androidx.compose.ui.res.stringResource(R.string.native_answer_custom)) }, modifier = Modifier.fillMaxWidth())
     }
-    Button(enabled = !answering && clientId.isNotEmpty() && pending.questions.all {
+    Button(enabled = editable && !answering && clientId.isNotEmpty() && pending.questions.all {
         answers[it.id]?.let { answer -> answer.selected.isNotEmpty() || !answer.custom.isNullOrBlank() } == true
     },
         onClick = {
