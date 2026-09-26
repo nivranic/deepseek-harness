@@ -9,6 +9,7 @@ public enum RemoteFailureClasses {
         "gateway/authentication-required": .authentication,
         "device/admission-expired": .authentication,
         "device/replay-detected": .authentication,
+        "device/admission-capacity": .hostState,
         "device/key-invalid": .authentication,
         "device/not-found": .unavailable,
         "device/already-revoked": .conflict,

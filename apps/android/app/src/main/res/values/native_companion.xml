@@ -1,4 +1,12 @@
 <resources>
+    <string name="native_sessions_refresh">刷新</string>
+    <string name="native_sessions_retry">重试</string>
+    <string name="native_sessions_loading">正在加载会话…</string>
+    <string name="native_sessions_empty">暂无会话</string>
+    <string name="native_sessions_transport_failed">连接 Host 失败，请检查连接后重试。</string>
+    <string name="native_sessions_invalid_response">Host 返回的会话数据无效。</string>
+    <string name="native_sessions_pair_required">请先重新配对，再加载会话。</string>
+    <string name="native_sessions_failed">会话加载失败，请重试或重新配对。</string>
     <string name="native_repair">重新配对</string>
     <string name="native_pairing_cancel">取消</string>
     <string name="native_pairing_failed">配对失败，请重试。</string>

@@ -18,7 +18,7 @@ const exec = promisify(execFile)
  * @param target - emulator serial; physical devices are refused.
  * @param hostPort - test-owned native Host TLS port, reversed into the emulator.
  * @param resetData - clear this isolated application's test data; false preserves credentials for restart acceptance.
- * @returns command access and awaited instrumentation/forward retirement.
+ * @returns command access, controlled Host reachability, and awaited instrumentation/forward retirement.
  */
 export async function startAndroidCompanionUiDriver(adb: string, target: string, hostPort: number, resetData = true) {
   if (!/^emulator-\d+$/.test(target)) throw new Error('UI acceptance requires an explicit emulator')
@@ -91,6 +91,7 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
     })
     let sequence = 0
     let retired = false
+    let hostReachable = true
     const cleanup = async () => {
       if (retired) return
       retired = true
@@ -98,10 +99,17 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
       try {
         await run('forward', '--remove', `tcp:${port}`)
       } finally {
-        try { await run('reverse', '--remove', `tcp:${hostPort}`) } finally { await release() }
+        try { if (hostReachable) await run('reverse', '--remove', `tcp:${hostPort}`) } finally { await release() }
       }
     }
     return {
+      setHostReachable: async (reachable: boolean) => {
+        if (retired) throw new Error('Android UI driver is retired')
+        if (reachable === hostReachable) return
+        if (reachable) await run('reverse', `tcp:${hostPort}`, `tcp:${hostPort}`)
+        else await run('reverse', '--remove', `tcp:${hostPort}`)
+        hostReachable = reachable
+      },
       request: (command: object): Promise<DriverFrame> => new Promise((resolve, reject) => {
         const id = String(++sequence)
         const timer = setTimeout(() => { pending.delete(id); reject(new Error('Android UI command timed out')) }, 40_000)

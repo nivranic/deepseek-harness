@@ -42,6 +42,12 @@
       "x-typescript-details": "{ readonly ref: string }"
     },
     {
+      "const": "device/admission-capacity",
+      "description": "The bounded replay ledger cannot admit another nonce until existing receipts expire.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{\n      readonly deviceId: string\n      readonly limit: number\n      readonly retryAt: number\n    }"
+    },
+    {
       "const": "device/admission-expired",
       "description": "The signed admission timestamp fell outside the acceptance window.",
       "x-source": "packages/api/device-trust/src/types.ts",
@@ -79,7 +85,7 @@
     },
     {
       "const": "device/replay-detected",
-      "description": "The admission replays one already accepted: a regressed timestamp or a reused nonce.",
+      "description": "The timestamp is below the durable replay floor, or the nonce was already consumed.",
       "x-source": "packages/api/device-trust/src/types.ts",
       "x-typescript-details": "{\n      readonly deviceId: string\n      readonly reason: 'timestamp-regressed' | 'nonce-reuse'\n    }"
     },

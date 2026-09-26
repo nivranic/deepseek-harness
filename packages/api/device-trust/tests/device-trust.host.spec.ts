@@ -12,7 +12,7 @@ import {
 import {
   apply as storageDomainApply, Config as storageDomainConfig, inject as storageDomainInject, name as storageDomainName,
 } from '@deepseek-ai/dsh-storage-domain'
-import DeviceTrustService, { DeviceId } from '../src/index.ts'
+import DeviceTrustService, { DeviceId, deviceGrantRecord, deviceTrustDomainSpec } from '../src/index.ts'
 import type { Config } from '../src/index.ts'
 import type { DeviceId as DeviceIdType } from '../src/types.ts'
 
@@ -45,6 +45,7 @@ async function boot(
   config: Partial<Config> = {},
   root?: string,
   wrapUnit?: (unit: KvUnit) => KvUnit,
+  prepareDomain?: (ctx: Context) => Promise<void>,
 ): Promise<DeviceTrustService> {
   const ctx = new Context()
   contexts.push(ctx)
@@ -60,6 +61,7 @@ async function boot(
     vi.spyOn(kv, 'open').mockImplementation(async (...args) => wrapUnit(await open(...args)))
   }
   await ctx.plugin({ name: storageDomainName, inject: storageDomainInject, apply: storageDomainApply, Config: storageDomainConfig }, { backend: 'json' })
+  await prepareDomain?.(ctx)
   await ctx.plugin(DeviceTrustService, config)
   return ctx.deviceTrust
 }
@@ -469,7 +471,35 @@ describe('device-trust signed admission', () => {
     }
   })
 
-  it('rejects a replayed admission by nonce and by regressed timestamp', async () => {
+  it('admits fresh proofs delivered out of timestamp order', async () => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'collaborator')
+    const timestamp = Date.now()
+    for (const [time, nonce] of [[timestamp, 'later-proof'], [timestamp - 1, 'earlier-proof']] as const) {
+      await expect(service.admitDevice({ deviceId, timestamp: time, nonce,
+        signature: key.sign(`${deviceId}\n${time}\n${nonce}`),
+      })).resolves.toMatchObject({ role: 'collaborator' })
+    }
+  })
+
+  it('rejects every same-timestamp replay after restart', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-all-nonces-'))
+    roots.push(root)
+    const { service: first, ctx } = await bootWithContext({}, root)
+    const { deviceId, key } = await paired(first, 'viewer')
+    const timestamp = Date.now()
+    const proofs = ['first-proof', 'last-proof'].map(nonce => ({ deviceId, timestamp, nonce,
+      signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`),
+    }))
+    for (const proof of proofs) await first.admitDevice(proof)
+    await ctx.fiber.dispose()
+    const second = await boot({}, root)
+    for (const proof of proofs) {
+      await expect(second.admitDevice(proof)).rejects.toSatisfy((error: unknown) => codeOf(error) === 'device/replay-detected')
+    }
+  })
+
+  it('rejects nonce reuse at the same or a different signed timestamp', async () => {
     const service = await boot()
     const { deviceId, key } = await paired(service, 'collaborator')
     const first = Date.now()
@@ -483,7 +513,7 @@ describe('device-trust signed admission', () => {
       expect(codeOf(error)).toBe('device/replay-detected')
     }
     try {
-      await service.admitDevice({ deviceId, timestamp: first - 1, nonce: 'nonce-2', signature: key.sign(message(first - 1, 'nonce-2')) })
+      await service.admitDevice({ deviceId, timestamp: first - 1, nonce: 'nonce-1', signature: key.sign(message(first - 1, 'nonce-1')) })
       expect.unreachable()
     } catch (error) {
       expect(codeOf(error)).toBe('device/replay-detected')
@@ -492,7 +522,7 @@ describe('device-trust signed admission', () => {
     expect(advanced.role).toBe('collaborator')
   })
 
-  it('keeps the timestamp high-water mark and the last nonce across a restart', async () => {
+  it('keeps consumed nonces across restart while admitting an unseen older proof', async () => {
     const root = await mkdtemp(join(tmpdir(), 'device-trust-replay-'))
     roots.push(root)
     const first = await boot({}, root)
@@ -507,13 +537,148 @@ describe('device-trust signed admission', () => {
     } catch (error) {
       expect(codeOf(error)).toBe('device/replay-detected')
     }
-    try {
-      await second.admitDevice({ deviceId, timestamp: timestamp - 1, nonce: 'nonce-2', signature: key.sign(`${deviceId}\n${timestamp - 1}\nnonce-2`) })
-      expect.unreachable()
-    } catch (error) {
-      expect(codeOf(error)).toBe('device/replay-detected')
-    }
+    await expect(second.admitDevice({ deviceId, timestamp: timestamp - 1, nonce: 'nonce-2',
+      signature: key.sign(`${deviceId}\n${timestamp - 1}\nnonce-2`),
+    })).resolves.toMatchObject({ role: 'viewer' })
+    expect(second.listDevices()[0]?.lastSeenAt).toBe(timestamp)
     const resumed = await second.admitDevice({ deviceId, timestamp: timestamp + 1, nonce: 'nonce-3', signature: key.sign(`${deviceId}\n${timestamp + 1}\nnonce-3`) })
     expect(resumed.role).toBe('viewer')
+  })
+
+  it('commits only one of two simultaneous copies of a proof', async () => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'viewer')
+    const timestamp = Date.now()
+    const nonce = 'simultaneous-proof'
+    const proof = { deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) }
+    const results = await Promise.allSettled([service.admitDevice(proof), service.admitDevice(proof)])
+    expect(results.filter(result => result.status === 'fulfilled')).toHaveLength(1)
+    expect(results.find(result => result.status === 'rejected')).toMatchObject({
+      reason: { code: 'device/replay-detected', details: { reason: 'nonce-reuse' } },
+    })
+  })
+
+  it('does not consume a nonce when its durable write fails', async () => {
+    let failWrite = false
+    const service = await boot({}, undefined, (unit) => {
+      const put = unit.putRecord.bind(unit)
+      vi.spyOn(unit, 'putRecord').mockImplementation(async (...args) => {
+        if (failWrite) throw new Error('fixture admission write failed')
+        return put(...args)
+      })
+      return unit
+    })
+    const { deviceId, key } = await paired(service, 'viewer')
+    const timestamp = Date.now()
+    const nonce = 'retry-failed-commit'
+    const proof = { deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) }
+    failWrite = true
+    await expect(service.admitDevice(proof)).rejects.toThrow('fixture admission write failed')
+    failWrite = false
+    await expect(service.admitDevice(proof)).resolves.toMatchObject({ role: 'viewer' })
+    await expect(service.admitDevice(proof)).rejects.toMatchObject({ code: 'device/replay-detected' })
+  })
+
+  it('refuses capacity without evicting live receipts and admits again after expiry', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(10_000)
+    try {
+      const service = await boot({ admissionWindowMs: 1_000, maxAdmissionNonces: 2 })
+      const { deviceId, key } = await paired(service, 'viewer')
+      const proof = (timestamp: number, nonce: string) => ({ deviceId, timestamp, nonce,
+        signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`),
+      })
+      const first = proof(10_000, 'first')
+      await service.admitDevice(first)
+      await service.admitDevice(proof(10_000, 'second'))
+      const third = proof(10_500, 'third')
+      await expect(service.admitDevice(third)).rejects.toMatchObject({
+        code: 'device/admission-capacity', details: { limit: 2, retryAt: 11_001 },
+      })
+      await expect(service.admitDevice(first)).rejects.toMatchObject({ code: 'device/replay-detected' })
+      clock.mockReturnValue(11_001)
+      await expect(service.admitDevice(third)).resolves.toMatchObject({ role: 'viewer' })
+    } finally { clock.mockRestore() }
+  })
+
+  it('keeps retired proofs rejected after restart, window expansion and clock rollback', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(10_000)
+    try {
+      const root = await mkdtemp(join(tmpdir(), 'device-trust-floor-'))
+      roots.push(root)
+      const { service, ctx } = await bootWithContext({ admissionWindowMs: 1_000 }, root)
+      const { deviceId, key } = await paired(service, 'viewer')
+      const proof = (timestamp: number, nonce: string) => ({ deviceId, timestamp, nonce,
+        signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`),
+      })
+      const old = proof(10_000, 'old')
+      await service.admitDevice(old)
+      clock.mockReturnValue(11_001)
+      await service.admitDevice(proof(11_001, 'current'))
+      await ctx.fiber.dispose()
+      const restarted = await boot({ admissionWindowMs: 5_000 }, root)
+      await expect(restarted.admitDevice(old)).rejects.toMatchObject({
+        code: 'device/replay-detected', details: { reason: 'timestamp-regressed' },
+      })
+      clock.mockReturnValue(10_000)
+      await expect(restarted.admitDevice(proof(10_000, 'unused'))).rejects.toMatchObject({
+        code: 'device/replay-detected', details: { reason: 'timestamp-regressed' },
+      })
+    } finally { clock.mockRestore() }
+  })
+
+  it('rejects the prior device storage domain version', async () => {
+    await expect(boot({}, undefined, undefined, async (ctx) => {
+      const domain = await ctx.storageDomain.open({ ...deviceTrustDomainSpec, version: 1 })
+      await domain.table('grants').put(DeviceId('old-format'), {
+        deviceName: 'old format', role: 'viewer', devicePublicKey: spkiB64(7), keyFingerprint: 'a'.repeat(64), pairedAt: 1,
+        admissionFloor: 0, admissionNonces: [],
+      })
+      await domain.close()
+    })).rejects.toThrow(/version/)
+  })
+
+  it('rechecks expiry after waiting behind a durable grant update', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(10_000)
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    let blockWrite = false
+    try {
+      const service = await boot({ admissionWindowMs: 1_000 }, undefined, (unit) => {
+        const put = unit.putRecord.bind(unit)
+        vi.spyOn(unit, 'putRecord').mockImplementation(async (...args) => {
+          if (blockWrite) {
+            blockWrite = false
+            entered.resolve(undefined)
+            await release.promise
+          }
+          return put(...args)
+        })
+        return unit
+      })
+      const { deviceId, key } = await paired(service, 'viewer')
+      blockWrite = true
+      const rename = service.renameDevice({ deviceId, deviceName: 'renamed' })
+      await entered.promise
+      const nonce = 'waiting-proof'
+      const admission = service.admitDevice({ deviceId, timestamp: 10_000, nonce,
+        signature: key.sign(`${deviceId}\n10000\n${nonce}`),
+      }).catch((error: unknown) => error)
+      clock.mockReturnValue(11_001)
+      release.resolve(undefined)
+      await rename
+      expect(await admission).toMatchObject({ code: 'device/admission-expired' })
+      expect(service.listDevices()[0]?.lastSeenAt).toBeUndefined()
+    } finally { release.resolve(undefined); clock.mockRestore() }
+  })
+
+  it('rejects duplicate hashes and receipts below the stored replay floor', () => {
+    const grant = {
+      deviceName: 'fixture', role: 'viewer', devicePublicKey: spkiB64(9), keyFingerprint: 'a'.repeat(64), pairedAt: 1,
+      admissionFloor: 100, admissionNonces: [{ nonceHash: 'b'.repeat(64), timestamp: 101 }],
+    }
+    expect(deviceGrantRecord.safeParse(grant).success).toBe(true)
+    const repeated = { ...grant, admissionNonces: [...grant.admissionNonces, ...grant.admissionNonces] }
+    expect(deviceGrantRecord.safeParse(repeated).success).toBe(false)
+    expect(deviceGrantRecord.safeParse({ ...grant, admissionFloor: 102 }).success).toBe(false)
   })
 })

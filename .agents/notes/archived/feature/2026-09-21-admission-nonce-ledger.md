@@ -1,6 +1,7 @@
 # Agent Note: Device admission carries a replay nonce ledger
 
 Status: implemented
+Archived: 2026-09-26
 
 English | [中文](2026-09-21-admission-nonce-ledger.zh.md)
 

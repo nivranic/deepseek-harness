@@ -17,7 +17,7 @@ Phase 7 第一增量落地了设备信任接缝，角色为三个（`viewer`、`
 把角色词表精确对齐第 21 节表格，并通过 Remote 事件流打开时的一次签名准入实现按 client 的替代。
 
 - `DeviceRole` 变为 `'viewer' | 'collaborator' | 'controller' | 'owner'`；新的 `src/permissions.ts` 导出 `DEVICE_ROLE_PERMISSIONS`，把每个角色恰好映射到表格的列——`view`、`prompt.send`、`question.respond`、`approval.respond`、`device.admin`。第一版不做算术 RBAC，符合规格"第一版不要做复杂 RBAC"。持久 zod schema 随之改变；预发布阶段，旧的 `admin` 存储记录使域 open 拒绝（权威数据）。
-- `admitDevice`（`device.admit.v1`）经[nonce 准入规则](2026-09-21-admission-nonce-ledger.zh.md)验证授权、时间戳、签名与重放记录，返回身份、角色与权限。持久化提交重新检查当前撤销状态；在准入提交前排队的单个或全部撤销使准入以 `device/already-revoked` 失败。
+- `admitDevice`（`device.admit.v1`）经[nonce 准入规则](../bug-fix/2026-09-26-durable-unordered-device-admission.zh.md)验证授权、时间戳、签名与重放记录，返回身份、角色与权限。持久化提交重新检查当前撤销状态；在准入提交前排队的单个或全部撤销使准入以 `device/already-revoked` 失败。
 - Remote 事件流以 `args.device` 携带签名准入，空 `args` 保留本地浏览器身份。Gateway 在等待准入前订阅撤销，注册前复查生命周期；活动流撤销后不再发送排队帧。该订阅随流或准入失败一起释放。未组合 device-trust 时，呈现身份以 `gateway/service-unavailable` 拒绝。设备回复的逐请求证明由[按请求设备准入](2026-09-21-per-request-device-admission.zh.md)规定。
 
 ## 考虑过的替代方案

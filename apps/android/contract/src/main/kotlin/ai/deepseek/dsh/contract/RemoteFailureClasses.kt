@@ -16,6 +16,7 @@ object RemoteFailureClasses {
         "gateway/authentication-required" to RemoteFailureClass.AUTHENTICATION,
         "device/admission-expired" to RemoteFailureClass.AUTHENTICATION,
         "device/replay-detected" to RemoteFailureClass.AUTHENTICATION,
+        "device/admission-capacity" to RemoteFailureClass.HOST_STATE,
         "device/key-invalid" to RemoteFailureClass.AUTHENTICATION,
         "device/not-found" to RemoteFailureClass.UNAVAILABLE,
         "device/already-revoked" to RemoteFailureClass.CONFLICT,

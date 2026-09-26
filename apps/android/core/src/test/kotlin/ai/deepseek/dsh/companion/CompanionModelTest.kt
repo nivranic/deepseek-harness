@@ -199,7 +199,7 @@ class CompanionModelTest {
         }
         val model = SessionModel(wire, TestScope())
         model.loadSessions()
-        assertEquals("ready", model.listState.value)
+        assertEquals(SessionListState.Ready, model.listState.value)
         assertEquals(listOf(SessionRow("s1", "Refactor", 100.0), SessionRow("s2", "Notes", null)), model.sessions.value)
     }
 
@@ -503,10 +503,10 @@ class StateFlowProjectionTest {
         }
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.listState.test {
-            assertEquals("idle", awaitItem())
+            assertEquals(SessionListState.Idle, awaitItem())
             model.loadSessions()
-            assertEquals("loading", awaitItem())
-            assertEquals("ready", awaitItem())
+            assertEquals(SessionListState.Loading, awaitItem())
+            assertEquals(SessionListState.Ready, awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
         assertEquals(1, model.sessions.value.size)

@@ -33,8 +33,8 @@ print("PASS mirror equals the generated projection (\(mirror.count) codes)")
 
 let schema = try JSONSerialization.jsonObject(with: readFixture("remote-errors.schema.json")) as! [String: Any]
 let branches = schema["anyOf"] as! [[String: Any]]
-guard branches.count == 92 else {
-    checkFailure("expected 91 known branches plus the opaque unknown branch, found \(branches.count)")
+guard branches.count == 93 else {
+    checkFailure("expected 92 known branches plus the opaque unknown branch, found \(branches.count)")
 }
 let known = branches.dropLast().map {
     (($0["properties"] as! [String: Any])["code"] as! [String: Any])["const"] as! String
@@ -52,9 +52,9 @@ print("PASS unclassified codes resolve to unknown")
 
 let unknownBranch = branches.last!
 let excluded = (((unknownBranch["properties"] as! [String: Any])["code"] as! [String: Any])["not"] as! [String: Any])["enum"] as! [String]
-guard excluded.count == 91 else {
+guard excluded.count == 92 else {
     checkFailure("the opaque unknown branch must exclude every known code, found \(excluded.count)")
 }
-print("PASS opaque unknown branch excludes all 91 known codes")
+print("PASS opaque unknown branch excludes all 92 known codes")
 
 exit(0)

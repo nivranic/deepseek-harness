@@ -32,12 +32,25 @@ export const deviceGrantRecord = z.object({
   pairedAt: z.number().int().nonnegative(),
   /** Client-declared platform label, e.g. `android`; absent when unnamed. */
   platform: z.string().min(1).optional(),
-  /** Epoch ms of the newest accepted admission; the replay high-water mark. */
+  /** Epoch ms of the newest accepted admission, for device-list observations. */
   lastAdmittedAt: z.number().int().nonnegative().optional(),
-  /** Nonce of the newest accepted admission; exact-replay guard across restarts. */
-  lastAdmittedNonce: z.string().min(1).optional(),
+  /** Nondecreasing lower timestamp bound; discarded receipts cannot become valid after clock or window changes. */
+  admissionFloor: z.number().int().nonnegative(),
+  /** Consumed nonce hashes whose signed timestamps remain at or above the floor. */
+  admissionNonces: z.array(z.object({
+    nonceHash: z.string().regex(/^[0-9a-f]{64}$/),
+    timestamp: z.number().int().nonnegative(),
+  })),
   /** Epoch ms when the grant was revoked; absent while active. */
   revokedAt: z.number().int().nonnegative().optional(),
+}).superRefine((record, ctx) => {
+  const hashes = new Set<string>()
+  record.admissionNonces.forEach((entry, index) => {
+    if (hashes.has(entry.nonceHash) || entry.timestamp < record.admissionFloor) {
+      ctx.addIssue({ code: 'custom', path: ['admissionNonces', index], message: 'duplicate or retired nonce receipt' })
+    }
+    hashes.add(entry.nonceHash)
+  })
 })
 
 /** One stored grant record, inferred from {@link deviceGrantRecord}. */
@@ -46,7 +59,7 @@ export type DeviceGrantRecord = z.infer<typeof deviceGrantRecord>
 /** The device_trust domain spec: durable, schema-validated, rejecting open. */
 export const deviceTrustDomainSpec = defineDomain({
   name: 'device_trust',
-  version: 1,
+  version: 2,
   layout: 'single',
   tables: { grants: domainTable<DeviceId, DeviceGrantRecord>(deviceGrantRecord) },
 })

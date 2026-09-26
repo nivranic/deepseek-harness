@@ -80,6 +80,8 @@ export interface Config {
    * `device/admission-expired`.
    */
   admissionWindowMs?: number
+  /** Maximum retained nonce hashes per device inside the admission window (default 4096); full ledgers refuse admission. */
+  maxAdmissionNonces?: number
 }
 
 /** Fixed 12-byte SubjectPublicKeyInfo header before one raw Ed25519 key. */
@@ -130,6 +132,7 @@ export class DeviceTrustService extends TypertRemoteService {
       z.const('owner'),
     ]).default('viewer'),
     admissionWindowMs: z.number().step(1).min(1).default(300_000),
+    maxAdmissionNonces: z.number().step(1).min(1).default(4096),
   })
 
   /**
@@ -137,14 +140,12 @@ export class DeviceTrustService extends TypertRemoteService {
    * not survive a Host restart, and the ceremony simply reissues after one.
    */
   private readonly pairings = new Map<string, PendingPairing>()
-  /**
-   * Recently admitted nonces per device, expiring at twice the admission
-   * window: outside that horizon an admission can no longer pass the window
-   * check, so the ledger entry is dead weight. Process-local on purpose —
-   * the durable grant's high-water mark covers cross-restart exact replay.
-   */
-  private readonly recentNonces = new Map<DeviceId, Map<string, number>>()
-  private readonly resolved: { pairingTtlMs: number; defaultRole: DeviceRole; admissionWindowMs: number }
+  private readonly resolved: {
+    pairingTtlMs: number
+    defaultRole: DeviceRole
+    admissionWindowMs: number
+    maxAdmissionNonces: number
+  }
   private grants?: KvTable<DeviceId, DeviceGrantRecord>
 
   constructor(ctx: Context, config: Config = {}) {
@@ -153,6 +154,7 @@ export class DeviceTrustService extends TypertRemoteService {
       pairingTtlMs: config.pairingTtlMs ?? 300_000,
       defaultRole: config.defaultRole ?? 'viewer',
       admissionWindowMs: config.admissionWindowMs ?? 300_000,
+      maxAdmissionNonces: config.maxAdmissionNonces ?? 4096,
     }
   }
 
@@ -223,6 +225,7 @@ export class DeviceTrustService extends TypertRemoteService {
     const record: DeviceGrantRecord = {
       deviceName, role: pending.role,
       devicePublicKey: request.devicePublicKey, keyFingerprint: fingerprint, pairedAt,
+      admissionFloor: 0, admissionNonces: [],
       ...platform === undefined ? {} : { platform },
     }
     pending.claimed = true
@@ -354,18 +357,17 @@ export class DeviceTrustService extends TypertRemoteService {
    * exist and be active, the signed timestamp must sit inside the admission
    * window, and the Ed25519 signature over `deviceId + "\n" + timestamp +
    * "\n" + nonce` (UTF-8) must verify against the paired key. An admission
-   * that replays an already-accepted one — a timestamp older than the grant's
-   * durable high-water mark, or a nonce this process or the persisted
-   * last-admission pair has already seen — is refused as replay before the
-   * grant records the new high-water mark. The storage update rechecks
-   * revocation and replay state against earlier queued writes. The Gateway resolves one
-   * admission per Remote event stream open and derives the client's reply
+   * with a consumed nonce or a timestamp below the durable replay floor is
+   * refused. Fresh proofs may arrive out of timestamp order. The storage
+   * update rechecks revocation, expiry, nonce consumption, and capacity
+   * against earlier queued writes before recording the nonce hash. The Gateway
+   * resolves one admission per Remote event stream open and derives the client's reply
    * permissions from the returned set.
    * @param request - the device's signed admission message.
    * @returns the admitted identity, role, and permissions.
    * @throws RemoteError `device/not-found`, `device/already-revoked`,
    * `device/admission-expired`, `device/key-invalid`, `device/replay-detected`,
-   * or `gateway/bad-request`.
+   * `device/admission-capacity`, or `gateway/bad-request`.
    */
   @Remote('admitDevice')
   async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission> {
@@ -410,34 +412,42 @@ export class DeviceTrustService extends TypertRemoteService {
         reason: 'signature-mismatch',
       })
     }
-    if (grant.lastAdmittedAt !== undefined && request.timestamp < grant.lastAdmittedAt) {
-      throw new RemoteError('device/replay-detected', 'admission timestamp is older than the last accepted admission', {
-        deviceId: request.deviceId, reason: 'timestamp-regressed',
-      })
-    }
-    if (this.recentNonce(request.deviceId, request.nonce)) {
-      throw new RemoteError('device/replay-detected', 'admission nonce was already used', {
-        deviceId: request.deviceId, reason: 'nonce-reuse',
-      })
-    }
-    this.rememberNonce(request.deviceId, request.nonce)
+    const nonceHash = sha256Hex(Buffer.from(request.nonce, 'utf8'))
     const recorded = await this.table().update(request.deviceId, (current): DeviceGrantRecord => {
       if (current.revokedAt !== undefined) {
         throw new RemoteError('device/already-revoked', 'device grant was revoked before admission committed', {
           deviceId: request.deviceId, revokedAt: current.revokedAt,
         })
       }
-      if (current.lastAdmittedAt !== undefined && request.timestamp < current.lastAdmittedAt) {
-        throw new RemoteError('device/replay-detected', 'admission timestamp is older than the last accepted admission', {
+      const now = Date.now()
+      if (Math.abs(now - request.timestamp) > this.resolved.admissionWindowMs) {
+        throw new RemoteError('device/admission-expired', 'signed admission expired before its storage commit', {
+          deviceId: request.deviceId, timestamp: request.timestamp, admissionWindowMs: this.resolved.admissionWindowMs,
+        })
+      }
+      const admissionFloor = Math.max(current.admissionFloor, now - this.resolved.admissionWindowMs)
+      if (request.timestamp < admissionFloor) {
+        throw new RemoteError('device/replay-detected', 'admission timestamp is below the persisted replay floor', {
           deviceId: request.deviceId, reason: 'timestamp-regressed',
         })
       }
-      if (current.lastAdmittedAt === request.timestamp && current.lastAdmittedNonce === request.nonce) {
+      const admissionNonces = current.admissionNonces.filter(entry => entry.timestamp >= admissionFloor)
+      if (admissionNonces.some(entry => entry.nonceHash === nonceHash)) {
         throw new RemoteError('device/replay-detected', 'admission nonce was already used', {
           deviceId: request.deviceId, reason: 'nonce-reuse',
         })
       }
-      return { ...current, lastAdmittedAt: request.timestamp, lastAdmittedNonce: request.nonce }
+      if (admissionNonces.length >= this.resolved.maxAdmissionNonces) {
+        throw new RemoteError('device/admission-capacity', 'device admission nonce ledger is full', {
+          deviceId: request.deviceId, limit: this.resolved.maxAdmissionNonces,
+          retryAt: admissionNonces.reduce((earliest, entry) => Math.min(earliest, entry.timestamp), Infinity)
+            + this.resolved.admissionWindowMs + 1,
+        })
+      }
+      return {
+        ...current, lastAdmittedAt: Math.max(current.lastAdmittedAt ?? 0, request.timestamp), admissionFloor,
+        admissionNonces: [...admissionNonces, { nonceHash, timestamp: request.timestamp }],
+      }
     })
     return {
       deviceId: request.deviceId,
@@ -446,33 +456,6 @@ export class DeviceTrustService extends TypertRemoteService {
       permissions: [...DEVICE_ROLE_PERMISSIONS[recorded.role]],
       admittedAt: Date.now(),
     }
-  }
-
-  /** Whether this process already admitted `nonce` for the device inside the ledger horizon. */
-  private recentNonce(deviceId: DeviceId, nonce: string): boolean {
-    const ledger = this.recentNonces.get(deviceId)
-    if (ledger === undefined) return false
-    const seenAt = ledger.get(nonce)
-    if (seenAt === undefined) return false
-    if (Date.now() > seenAt) {
-      ledger.delete(nonce)
-      return false
-    }
-    return true
-  }
-
-  /** Record `nonce` for the device, dropping entries whose horizon has passed. */
-  private rememberNonce(deviceId: DeviceId, nonce: string): void {
-    const horizon = Date.now() + 2 * this.resolved.admissionWindowMs
-    let ledger = this.recentNonces.get(deviceId)
-    if (ledger === undefined) {
-      ledger = new Map()
-      this.recentNonces.set(deviceId, ledger)
-    }
-    for (const [entry, expiresAt] of ledger) {
-      if (Date.now() > expiresAt) ledger.delete(entry)
-    }
-    ledger.set(nonce, horizon)
   }
 }
 

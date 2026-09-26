@@ -39,6 +39,7 @@ export const REMOTE_FAILURE_CLASSES: Readonly<Record<string, RemoteFailureClass>
   'gateway/authentication-required': 'authentication',
   'device/admission-expired': 'authentication',
   'device/replay-detected': 'authentication',
+  'device/admission-capacity': 'host-state',
   'device/key-invalid': 'authentication',
   'device/not-found': 'unavailable',
   'device/already-revoked': 'conflict',

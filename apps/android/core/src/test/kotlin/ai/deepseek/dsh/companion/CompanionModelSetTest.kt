@@ -29,8 +29,9 @@ class CompanionModelSetTest {
         runCurrent(); assertTrue(entered.isCompleted)
         val retiring = async { models.closeAndAwait() }
         runCurrent(); assertTrue(cleanup.isCompleted); assertFalse(retiring.isCompleted)
-        release.complete(Unit); retiring.await(); load.await()
-        models.session.loadSessions()
+        release.complete(Unit); retiring.await()
+        assertFailsWith<CancellationException> { load.await() }
+        assertFailsWith<CancellationException> { models.session.loadSessions() }
         assertEquals(1, calls)
         assertFalse(transportClosed)
     }

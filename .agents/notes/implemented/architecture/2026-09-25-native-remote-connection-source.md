@@ -30,6 +30,8 @@ Android re-pairing separates model lifetime from process transport lifetime. Ret
 
 Android credential decryption only reads an existing Keystore key. Creating a key during restoration cannot recover ciphertext sealed by the missing key and would mutate storage during a rejected read. Malformed documents, modified ciphertext, and missing keys therefore preserve the encrypted file and require explicit pairing. Saving a verified replacement may initialize a missing key; it does not silently delete an existing inaccessible key or revoke a Host grant.
 
+Session-list reads expose a closed state type. Explicit reads serialize through model-owned request lifetime, cancellation returns to idle, and failures retain their fixed category and original Gateway envelope. The UI keeps previously loaded rows while presenting the failure and an explicit retry control; replacing the paired identity still creates fresh models. Diagnostics use the typed category without copying exception messages into test output. A list failure cannot trigger a business mutation or enable the composer without an open Session.
+
 ## Alternatives considered
 
 - **Allow Mobile through local Web cookies or relaxed Origin checks.** Rejected: that changes local browser authority and does not authenticate a device key.

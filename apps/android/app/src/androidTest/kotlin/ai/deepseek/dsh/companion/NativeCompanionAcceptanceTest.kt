@@ -35,6 +35,12 @@ class NativeCompanionAcceptanceTest {
         compose.waitUntil(20_000) { compose.onAllNodes(matcher).fetchSemanticsNodes(false).isNotEmpty() }
     }
 
+    private fun companionModel(): CompanionViewModel {
+        lateinit var model: CompanionViewModel
+        compose.runOnIdle { model = androidx.lifecycle.ViewModelProvider(compose.activity)[CompanionViewModel::class.java] }
+        return model
+    }
+
     @Test fun pairAnswerAndReadPages() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         check(instrumentation.targetContext.packageName.endsWith(".nativeacceptance"))
@@ -199,21 +205,43 @@ class NativeCompanionAcceptanceTest {
                                 }
                             }
                             "assertSessionListReady" -> {
-                                lateinit var model: CompanionViewModel
-                                compose.runOnIdle { model = androidx.lifecycle.ViewModelProvider(compose.activity)[CompanionViewModel::class.java] }
-                                try { compose.waitUntil(20_000) { model.session.listState.value !in setOf("idle", "loading") } }
+                                val model = companionModel()
+                                try { compose.waitUntil(20_000) {
+                                    model.session.listState.value !in setOf(SessionListState.Idle, SessionListState.Loading)
+                                } }
                                 finally {
-                                    stage = when (model.session.listState.value) {
-                                        "ready" -> "session-list-ready"
-                                        "idle" -> "session-list-idle"
-                                        "loading" -> "session-list-loading"
-                                        "failed:native HTTPS request failed" -> "session-list-transport"
-                                        "failed:native HTTPS response interrupted" -> "session-list-response-interrupted"
-                                        "failed:Job was cancelled", "failed:DeferredCoroutine was cancelled" -> "session-list-cancelled"
-                                        else -> "session-list-failed"
+                                    stage = when (val state = model.session.listState.value) {
+                                        SessionListState.Ready -> "session-list-ready"
+                                        SessionListState.Idle -> "session-list-idle"
+                                        SessionListState.Loading -> "session-list-loading"
+                                        is SessionListState.Failed -> {
+                                            val refusal = state.refusal
+                                            if (refusal?.code == "device/replay-detected") {
+                                                when (refusal.details?.let { WireShape.string(it, "reason") }) {
+                                                    "timestamp-regressed" -> "session-list-replay-timestamp-regressed"
+                                                    "nonce-reuse" -> "session-list-replay-nonce-reuse"
+                                                    else -> "session-list-replay-other"
+                                                }
+                                            } else "session-list-failed-" + state.category.wire
+                                        }
                                     }
                                 }
-                                check(model.session.listState.value == "ready")
+                                check(model.session.listState.value == SessionListState.Ready)
+                            }
+                            "refreshSessions" -> compose.onNodeWithTag("session-list-refresh").performClick()
+                            "assertSessionListFailure" -> {
+                                waitFor(hasTestTag("session-list-error"))
+                                compose.onNodeWithTag("session-list-error").assertIsDisplayed()
+                                compose.onNodeWithTag("session-list-refresh").assertIsEnabled()
+                                val state = companionModel().session.listState.value as SessionListState.Failed
+                                value = JsonPrimitive(state.category.wire)
+                            }
+                            "assertNoSessionSend" -> {
+                                waitFor(hasText("暂无会话"))
+                                compose.onNodeWithText("暂无会话").assertIsDisplayed()
+                                compose.onNodeWithTag("session-list-error").assertDoesNotExist()
+                                compose.onNodeWithText("发送").assertIsNotEnabled()
+                                compose.onNodeWithText("停止").assertIsNotEnabled()
                             }
                             "close" -> runBlocking { CompanionRuntime.wire.closeAndAwait() }
                             else -> error("unsupported UI command")

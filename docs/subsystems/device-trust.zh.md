@@ -234,18 +234,17 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
  * exist and be active, the signed timestamp must sit inside the admission
  * window, and the Ed25519 signature over `deviceId + "\n" + timestamp +
  * "\n" + nonce` (UTF-8) must verify against the paired key. An admission
- * that replays an already-accepted one — a timestamp older than the grant's
- * durable high-water mark, or a nonce this process or the persisted
- * last-admission pair has already seen — is refused as replay before the
- * grant records the new high-water mark. The storage update rechecks
- * revocation and replay state against earlier queued writes. The Gateway resolves one
- * admission per Remote event stream open and derives the client's reply
+ * with a consumed nonce or a timestamp below the durable replay floor is
+ * refused. Fresh proofs may arrive out of timestamp order. The storage
+ * update rechecks revocation, expiry, nonce consumption, and capacity
+ * against earlier queued writes before recording the nonce hash. The Gateway
+ * resolves one admission per Remote event stream open and derives the client's reply
  * permissions from the returned set.
  * @param request - the device's signed admission message.
  * @returns the admitted identity, role, and permissions.
  * @throws RemoteError `device/not-found`, `device/already-revoked`,
  * `device/admission-expired`, `device/key-invalid`, `device/replay-detected`,
- * or `gateway/bad-request`.
+ * `device/admission-capacity`, or `gateway/bad-request`.
  */
 @Remote('admitDevice') async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission>
 ```

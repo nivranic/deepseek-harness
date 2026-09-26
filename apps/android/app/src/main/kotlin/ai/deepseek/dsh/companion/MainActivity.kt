@@ -407,15 +407,33 @@ fun SessionsTab(model: CompanionViewModel) {
     val scope = rememberCoroutineScope()
     var draft by remember { mutableStateOf("") }
     val sessions by model.session.sessions.collectAsStateWithLifecycle()
+    val listState by model.session.listState.collectAsStateWithLifecycle()
     val open by model.session.open.collectAsStateWithLifecycle()
     val sending by model.session.sending.collectAsStateWithLifecycle()
     LaunchedEffect(model.paired) { model.session.loadSessions() }
     Column(Modifier.fillMaxSize()) {
-        Text(
-            open?.let { "已打开会话 ${it.sessionId}" } ?: "会话",
-            Modifier.padding(16.dp),
-            style = MaterialTheme.typography.titleMedium,
-        )
+        Row(Modifier.fillMaxWidth()) {
+            Text(
+                open?.let { "已打开会话 ${it.sessionId}" } ?: "会话",
+                Modifier.weight(1f).padding(16.dp),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (open == null) Button(
+                modifier = Modifier.testTag("session-list-refresh").padding(horizontal = 16.dp),
+                enabled = listState != SessionListState.Loading,
+                onClick = { scope.launch { model.session.loadSessions() } },
+            ) {
+                Text(androidx.compose.ui.res.stringResource(if (listState is SessionListState.Failed)
+                    R.string.native_sessions_retry else R.string.native_sessions_refresh))
+            }
+        }
+        if (open == null) when (val state = listState) {
+            SessionListState.Idle -> Unit
+            SessionListState.Loading -> Text(androidx.compose.ui.res.stringResource(R.string.native_sessions_loading), Modifier.padding(16.dp))
+            SessionListState.Ready -> if (sessions.isEmpty()) Text(androidx.compose.ui.res.stringResource(R.string.native_sessions_empty), Modifier.padding(16.dp))
+            is SessionListState.Failed -> Text(sessionListFailureText(state),
+                Modifier.testTag("session-list-error").padding(16.dp), color = MaterialTheme.colorScheme.error)
+        }
         LazyColumn(Modifier.weight(1f)) {
             if (open == null) {
                 items(sessions) { row ->
@@ -434,15 +452,27 @@ fun SessionsTab(model: CompanionViewModel) {
             }
         }
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(value = draft, onValueChange = { draft = it }, label = { Text("发消息给宿主…") }, modifier = Modifier.weight(1f))
+            OutlinedTextField(value = draft, onValueChange = { draft = it }, label = { Text("发消息给宿主…") },
+                enabled = open != null, modifier = Modifier.weight(1f))
             Button(onClick = {
                 val text = draft
                 draft = ""
                 scope.launch { model.session.send(text) }
-            }, enabled = draft.isNotEmpty() && !sending) { Text("发送") }
-            Button(onClick = { scope.launch { model.session.cancelActive() } }) { Text("停止") }
+            }, enabled = open != null && draft.isNotEmpty() && !sending) { Text("发送") }
+            Button(enabled = open != null, onClick = { scope.launch { model.session.cancelActive() } }) { Text("停止") }
         }
     }
+}
+
+@Composable
+private fun sessionListFailureText(failure: SessionListState.Failed): String {
+    failure.refusal?.let { return GatewayFailurePresenter.present(it).text }
+    return androidx.compose.ui.res.stringResource(when (failure.category) {
+        ConnectionFailure.TRANSPORT -> R.string.native_sessions_transport_failed
+        ConnectionFailure.INVALID_RESPONSE -> R.string.native_sessions_invalid_response
+        ConnectionFailure.UNPAIRED -> R.string.native_sessions_pair_required
+        ConnectionFailure.REFUSED, ConnectionFailure.CANCELLED, ConnectionFailure.INTERNAL -> R.string.native_sessions_failed
+    })
 }
 
 @Composable

@@ -230,8 +230,9 @@ class SessionModel(
     private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
     val sessions: StateFlow<List<SessionRow>> = _sessions
 
-    private val _listState = MutableStateFlow("idle")
-    val listState: StateFlow<String> = _listState
+    private val listRequest = Mutex()
+    private val _listState = MutableStateFlow<SessionListState>(SessionListState.Idle)
+    val listState: StateFlow<SessionListState> = _listState
 
     private val _open = MutableStateFlow<OpenSession?>(null)
     val open: StateFlow<OpenSession?> = _open
@@ -301,9 +302,9 @@ class SessionModel(
         )
     }
 
-    /** Load the session list through `session/list`. */
-    suspend fun loadSessions() {
-        _listState.value = "loading"
+    /** Serialize explicit reads through `session/list`; cancellation leaves no failure and no request retries itself. */
+    suspend fun loadSessions() = listRequest.withLock {
+        _listState.value = SessionListState.Loading
         try {
             val value = wire.call("session/list", mapOf("_request" to WireValue.ObjectValue(emptyMap())))
             _sessions.value = (WireShape.array(value, "items") ?: emptyList()).mapNotNull { row ->
@@ -314,9 +315,13 @@ class SessionModel(
                     updatedAt = WireShape.number(row, "updatedAt"),
                 )
             }
-            _listState.value = "ready"
+            _listState.value = SessionListState.Ready
+        } catch (cancelled: CancellationException) {
+            _listState.value = SessionListState.Idle
+            throw cancelled
         } catch (failure: Exception) {
-            _listState.value = "failed:${failure.message}"
+            _listState.value = SessionListState.Failed(ConnectionFailure.from(failure),
+                (failure as? ai.deepseek.dsh.link.LinkClientException.Refused)?.let(GatewayFailureEnvelope::from))
         }
     }
 

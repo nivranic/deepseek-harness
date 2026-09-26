@@ -234,6 +234,47 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "device/admission-capacity"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "limit": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "retryAt": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "deviceId",
+            "limit",
+            "retryAt"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The bounded replay ledger cannot admit another nonce until existing receipts expire."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "device/admission-expired"
         },
         "message": {
@@ -478,7 +519,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The admission replays one already accepted: a regressed timestamp or a reused nonce."
+      "description": "The timestamp is below the durable replay floor, or the nonce was already consumed."
     },
     {
       "type": "object",
@@ -3334,6 +3375,7 @@
               "agent-preset/not-found",
               "agent-preset/read-only",
               "credential/rejected",
+              "device/admission-capacity",
               "device/admission-expired",
               "device/already-revoked",
               "device/key-invalid",

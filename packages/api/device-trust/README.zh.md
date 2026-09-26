@@ -28,7 +28,9 @@ kind: "package-reference"
 
 角色使用第 21 节表格命名（`viewer`、`collaborator`、`controller`、`owner`），并恰好持有该表格的权限列（经 `DEVICE_ROLE_PERMISSIONS`：`view`、`prompt.send`、`question.respond`、`approval.respond`、`device.admin`）；从不授予表外能力或权限。Host 默认角色来自 `defaultRole`（默认 `viewer`）。
 
-`admitDevice` 验证一次签名准入：签名是设备以配对密钥对 `deviceId + "\n" + timestamp + "\n" + nonce` 的 UTF-8 字节生成的 base64 Ed25519，时间戳必须落在接受窗口内（`admissionWindowMs`，默认五分钟），且每个请求携带全新 nonce。检查按代价从低到高执行——未知设备（`device/not-found`）、已撤销授权（`device/already-revoked`）、过期或超前时间戳（`device/admission-expired`）、然后是签名（`device/key-invalid`）——重放的准入以 `device/replay-detected` 拒绝，判断先于授权记录新的高水位：时间戳早于授权持久化的 `lastAdmittedAt`，或 nonce 已在本进程见过、或等于持久化的 `lastAdmittedNonce`。持久化高水位对跨 Host 重启生效；进程内 nonce 账本在两倍接受窗口后过期——超过该视界后，重放的准入本就无法通过窗口检查。网关在每次 Remote 事件流打开与每个设备标识请求上各解析一次准入，并从返回的角色集派生该 client 的回复权限与端点的权限门控。
+`admitDevice` 使用配对密钥验证对 `deviceId + "\n" + timestamp + "\n" + nonce` 的 UTF-8 字节生成的 base64 Ed25519 签名。每个请求携带全新 nonce，时间戳必须落在 `admissionWindowMs` 内（默认五分钟）。未知设备、已撤销授权、过期时间戳与无效签名均在持久化准入前失败。全新证明允许按时间戳乱序到达。串行存储更新重新检查撤销与有效期；nonce 哈希已消耗或时间戳低于持久化淘汰下界时，以 `device/replay-detected` 拒绝，并在返回前持久化获准的哈希。全部保留记录跨 Host 重启生效。`lastAdmittedAt` 仅为展示记录最新获准时间戳。
+
+`maxAdmissionNonces` 限制每台设备保留的哈希数（默认 4096）。账本满时以 `device/admission-capacity` 拒绝（`host-state`，详情为 `deviceId`、`limit`、`retryAt`），不会驱逐仍有效的记录；记录过期后，后续显式请求可获准。单调不减的淘汰下界防止时钟回拨或窗口扩大使已丢弃证明重新有效。`device_trust` 域要求版本 2，无迁移地拒绝版本 1。[准入决定](../../../.agents/notes/implemented/bug-fix/2026-09-26-durable-unordered-device-admission.zh.md)记录设计理由与重放先到达的限制。
 
 <a id="model-experience"></a>
 ## 模型体验
@@ -44,7 +46,7 @@ kind: "package-reference"
 <a id="known-limitations-and-deferred-work"></a>
 
 - 授权存于持久的 `device_trust` 存储域（组合的 json 后端上的 single 布局）：授权在 Host 重启后存活，非法存储记录使 open 拒绝，存储写入失败时配对码保持可兑换。待定配对码按设计保持进程内——一次性过期机密不得在重启后存活。
-- 准入提交在同一存储更新内重新检查撤销及 nonce 高水位，排在撤销之后的请求不能获准。Gateway 从流准入等待开始观察撤销，并要求设备交互回复携带原设备的新签名；[Gateway README](../gateway/README.zh.md)拥有流与回复规则。
+- 准入提交在同一存储更新内重新检查撤销、有效期、nonce 消耗记录与容量，排在撤销之后的请求不能获准。Gateway 从流准入等待开始观察撤销，并要求设备交互回复携带原设备的新签名；[Gateway README](../gateway/README.zh.md)拥有流与回复规则。
 - 共享呈现把 `device/admission-expired` 与 `device/key-invalid` 分类为 authentication，把 `device/not-found` 分类为 unavailable，把 `device/already-revoked` 分类为 conflict。其他配对失败保留其所有者定义的错误码。
 - 本服务不打开网络监听器。[原生 Remote Connection](../native-remote/README.zh.md) 提供按需启用的加密设备入口，不放松本地 Web 认证。
 

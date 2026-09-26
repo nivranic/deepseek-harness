@@ -27,6 +27,8 @@ The recorded [companion scenario](../web/tests/android-companion-question.e2e.ts
 
 ## Understand the implementation
 
+The Session list displays loading, empty, and failed states. Refresh and retry are explicit reads; requests serialize, cancellation returns to idle, and failures retain the last successful rows plus a fixed diagnostic category and any Gateway refusal envelope. The [list recovery scenario](../web/tests/android-session-list.e2e.ts) disconnects only its Host port forward, restores it for a manual retry, and then revokes the device grant. Send and stop remain disabled until a Session is open.
+
 Re-pairing retires the current connection's model requests and streams while retaining its transport and saved identity. Verification stages credentials in memory; only a verified replacement atomically replaces the encrypted file and adopts the new transport. Cancellation before this commit preserves the old identity. Once commit starts, adoption finishes despite Activity cancellation, and a recreated Activity reconciles the committed generation. Success or cancellation publishes fresh models with empty Session and file selections. Host tasks keep running; old device grants require explicit revocation on the Host.
 
 Malformed credentials, tampered ciphertext, or a missing Keystore key leave the file intact and present the pairing recovery screen. Reading credentials never initializes a missing key. Explicit verified pairing can create one while saving the replacement identity; restart then restores that identity without another grant. The [recovery scenario](../web/tests/android-credential-recovery.e2e.ts) modifies only the isolated acceptance application's storage. Hardware-backed permanent key invalidation remains unqualified.

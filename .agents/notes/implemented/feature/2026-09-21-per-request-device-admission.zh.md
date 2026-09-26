@@ -17,7 +17,7 @@ Phase 7 此前只在 Remote 事件流打开时准入设备：设备角色只门�
 把分类放在能力层、分发到每个 Remote 服务，由网关按请求执行。
 
 - `TypertRemoteCapability` 新增可选 `requiredPermission: RemoteCapabilityPermission`（view/prompt.send/question.respond/approval.respond/device.admin——第 21 节表格列，现为 typert-protocol 词汇，协议层不引入 device-trust 依赖）。
-- 版本化信封在 `args` 旁携带 `{deviceId, timestamp, nonce, signature}`，签名与重放规则由[nonce 准入](2026-09-21-admission-nonce-ledger.zh.md)统一规定；设备使用当前请求编解码。
+- 版本化信封在 `args` 旁携带 `{deviceId, timestamp, nonce, signature}`，签名与重放规则由[nonce 准入](../bug-fix/2026-09-26-durable-unordered-device-admission.zh.md)统一规定；设备使用当前请求编解码。
 - 网关经 `ctx.deviceTrust` 验证（同一 cheapest-first 阶梯）并解析端点的所属能力：角色缺少已声明权限、或能力未声明，均在派发前以 `gateway/permission-denied`（`details.role` + `details.required` / `reason: 'undeclared'`）拒绝。匿名浏览器业务请求不走设备准入；`$events` 持有流身份，`$events/result` 必须证明该身份后再执行第 15 节的投递、版本、revision 与权限检查。
 - 首批声明：device-trust 的 issue/list/revoke 声明 `device.admin`（redeem 与 admit 保持未声明——它们先于任何设备身份）；host 的 describe/negotiate 声明 `view`（每个角色都持有，与诊断层只读姿态一致）。业务服务在各自增量中采纳声明；在此之前设备对其 fail-closed——这是刻意的安全姿态而非疏漏。
 

@@ -203,7 +203,7 @@ private class AcceptanceRun(
         val semantics = corpus.list
         val mark = wire.mark()
         sessionModel.loadSessions()
-        accept(sessionModel.listState.value == "ready", "SessionModel did not reach the ready list state")
+        accept(sessionModel.listState.value == ai.deepseek.dsh.companion.SessionListState.Ready, "SessionModel did not reach the ready list state")
         accept(
             sessionModel.sessions.value.map { it.id } == semantics.expectedSessionIds,
             "SessionModel session/list did not match the corpus output",

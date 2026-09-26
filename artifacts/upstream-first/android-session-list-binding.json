@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-session-list-source.json",
+    "sha256": "d623438adaad2d1e8507a2bd09bbdded210826073f005a34f289b0f88684ae35"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6291a302a6b4b4b097a25776b94a69969cac54dbd4b435de77d5f8c1480669ff"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-session-list-binding.mjs",
+    "sha256": "910154d23f7860aace8fd644aa2c246f4afde79d176eda4db407e9a5b8262304"
+  }
+}

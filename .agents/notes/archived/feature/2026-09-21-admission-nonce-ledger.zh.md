@@ -1,6 +1,7 @@
 # Agent Note: 设备准入携带重放 nonce 账本
 
 Status: implemented
+Archived: 2026-09-26
 
 [English](2026-09-21-admission-nonce-ledger.md) | 中文
 

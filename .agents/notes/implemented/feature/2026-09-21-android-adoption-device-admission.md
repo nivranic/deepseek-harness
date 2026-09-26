@@ -16,7 +16,7 @@ The nonce ledger hardened the Host, but no client signed admissions: the Android
 
 Every business call now carries the four-key admission. `DeviceAdmission.create` signs the three-line form `deviceId\ntimestamp\nnonce` with the paired Ed25519 key and a fresh UUID nonce per call. `LinkRequestEnvelope` renders it as `payload.device` beside `args` — the Link wire's mirror of the gateway's versioned request envelope — and `stream()` places it as `args.device`, mirroring the gateway's stream-open placement. `currentIdentity()` centralizes the paired-identity load the carrier headers already used. Pairing and `/link/describe` stay admission-free: they precede or do not need a business identity.
 
-The fixture host verifies what the gateway enforces, through a testable tracker (`link-admission.mjs`): four-key shape, acceptance window, signature against the pairing-registered key, and the replay ledger — per-device seen nonces with per-entry lazy expiry at two windows plus the last-admitted timestamp/nonce pair, refusing `device/replay-detected` for a reused nonce at any timestamp and for a regressed timestamp. The tracker is process-local by design; the product gateway owns durability. `/api` and `/link/stream` now REQUIRE the admission, so the lane cannot pass on an unsigned call.
+The legacy Link fixture host verifies its own admission policy through a testable tracker (`link-admission.mjs`): four-key shape, acceptance window, signature against the pairing-registered key, and the replay ledger — per-device seen nonces with per-entry lazy expiry at two windows plus the last-admitted timestamp/nonce pair, refusing `device/replay-detected` for a reused nonce at any timestamp and for a regressed timestamp. The tracker is process-local and retains its historical timestamp ordering; it does not qualify the [native Host's durable unordered admission](../bug-fix/2026-09-26-durable-unordered-device-admission.md). `/api` and `/link/stream` now REQUIRE the admission, so the lane cannot pass on an unsigned call.
 
 ## Evidence
 
@@ -32,5 +32,5 @@ The fixture host verifies what the gateway enforces, through a testable tracker 
 ## Consequences
 
 - A captured Link request body is dead as a replay: the nonce ledger refuses it on the next presentation, and each retry needs a fresh nonce signed by the paired key.
-- The fixture's replay ledger is process-local; a fixture restart forgets seen nonces (the lane instrument does not claim the gateway's durable high-water semantics).
+- The fixture's replay ledger is process-local; a fixture restart forgets seen nonces (the lane instrument does not claim the native Host's durable replay semantics).
 - iOS adoption remains open; the Swift mirror of this client surface does not exist yet.

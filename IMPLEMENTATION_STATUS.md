@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android Session 列表恢复与持久化乱序准入（§13、§21、§70、§71）
+
+[当前来源记录](artifacts/upstream-first/android-session-list-source.json)将 Android Session 列表读取建模为封闭状态。显式读取串行执行，取消返回空闲并传播取消；失败保留已有列表、固定诊断分类及完整 Gateway 拒绝。页面显示加载、空列表和失败提示，提供显式刷新/重试；未打开 Session 时禁用发送与停止。
+
+225 项 core 测试、9 项 contract 测试及 547 项设备准入/Gateway/协议测试通过，涵盖取消清理、排队顺序、拒绝保留、不自动重试和持久化防重放。七项真实 Host 回放通过；新增场景移除自己的 Host 端口转发，验证可见传输失败，恢复连接并手动重试后列表恢复，再验证真实设备撤销拒绝。两种失败截图已经目视核对。Host 类型、lint、文档 17/17 与 36/36、逐节追踪通过。
+
+诊断 APK 在旧 Host 产物上直接观测到 timestamp-regressed。确定性测试复现全新证明乱序误拒绝与同一时间戳早期证明在重启后的漏拦。Host 改为持久化窗口内完整 nonce 哈希记录，允许全新证明乱序到达；单调淘汰下界防止旧证明复活，容量满显式拒绝且不驱逐有效记录。device_trust 域版本 2 拒绝旧格式，未迁移用户数据。新 Host 七项回放通过，但不据此解释全部历史瞬时故障。中断后的模拟器和检查已按实况恢复，未完成的检查重新执行。跨 Host、草稿/答案保留、工件/Handoff、推送、原生诊断、Swift、物理设备和发布资格仍开放，completeRc 为 false。
+
 ## Android 凭据损坏与缺失密钥恢复（§13、§14、§21、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/android-credential-recovery-source.json)约束 Android 凭据解密只读取已有 Keystore 密钥。缺失密钥不会在启动读取时被重新生成；只有显式且通过验证的配对在保存替代身份时允许初始化密钥。凭据 JSON 损坏、密文篡改与密钥缺失均保留原文件，显示可见恢复提示，不自动兑换新授权。
+[历史来源记录](artifacts/upstream-first/android-credential-recovery-source.json)约束 Android 凭据解密只读取已有 Keystore 密钥。缺失密钥不会在启动读取时被重新生成；只有显式且通过验证的配对在保存替代身份时允许初始化密钥。凭据 JSON 损坏、密文篡改与密钥缺失均保留原文件，显示可见恢复提示，不自动兑换新授权。
 
 真实 Android 34 的修复前案例证明读取会静默创建密钥；修复后六项真实 Host 回放通过，包括三种损坏各自的重新配对与再次进程重启、签名 Session list，以及既有 Question、文件分页、身份替换和撤销回归。Host 类型、lint、文档 17/17 与 36/36、逐节追踪通过。本轮没有重新执行未改动的 core/contract 单元套件。首次组合回放曾有三项 Session 列表就绪等待失败；补充固定诊断阶段后，单独回放及相同并行文档负载下六项回放均通过，但首次原因尚未确认，保留为待查项。
 

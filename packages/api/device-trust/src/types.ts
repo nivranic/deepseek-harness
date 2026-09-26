@@ -49,8 +49,10 @@ export interface DeviceGrant {
   readonly platform?: string
   /** Epoch ms of the newest accepted admission; absent before the first. */
   readonly lastAdmittedAt?: number
-  /** Nonce of the newest accepted admission; exact-replay guard across restarts. */
-  readonly lastAdmittedNonce?: string
+  /** Nondecreasing lower timestamp bound for replay receipts. */
+  readonly admissionFloor: number
+  /** Consumed nonce hashes retained across Host restarts. */
+  readonly admissionNonces: readonly { readonly nonceHash: string; readonly timestamp: number }[]
   /** Epoch ms when the grant was revoked; absent while active. */
   readonly revokedAt?: number
 }
@@ -171,10 +173,16 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       readonly timestamp: number
       readonly admissionWindowMs: number
     }
-    /** The admission replays one already accepted: a regressed timestamp or a reused nonce. */
+    /** The timestamp is below the durable replay floor, or the nonce was already consumed. */
     'device/replay-detected': {
       readonly deviceId: string
       readonly reason: 'timestamp-regressed' | 'nonce-reuse'
+    }
+    /** The bounded replay ledger cannot admit another nonce until existing receipts expire. */
+    'device/admission-capacity': {
+      readonly deviceId: string
+      readonly limit: number
+      readonly retryAt: number
     }
   }
 }

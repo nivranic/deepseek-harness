@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-android-adoption-device-admission.md
-2026-09-21-android-adoption-device-admission.md: ac54ebd01ad93b08ac555a1c834d7bf542dfef62
-2026-09-21-android-adoption-device-admission.zh.md: 177a48fd29e9080271c64e27ce9b6d3959f5e0af
+2026-09-21-android-adoption-device-admission.md: a1dcd5201031389cc0176a4620d4e1c6f317a2ef
+2026-09-21-android-adoption-device-admission.zh.md: 5f7563f3c3594185bbc202ae655161bc2b42a2bc

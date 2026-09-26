@@ -202,6 +202,8 @@ export interface Config {
    * `device/admission-expired`.
    */
   admissionWindowMs?: number
+  /** Maximum retained nonce hashes per device inside the admission window (default 4096); full ledgers refuse admission. */
+  maxAdmissionNonces?: number
 }
 
 /**

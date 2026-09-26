@@ -38,11 +38,11 @@ class EnvelopeSchemaTest {
     @Test
     fun schemaDeclaresNinetyOneKnownBranchesPlusOneOpaqueUnknownBranch() {
         val branches = schema.schemaNode["anyOf"]
-        assertEquals(92, branches.size(), "expected 91 known branches plus the opaque unknown branch")
+        assertEquals(93, branches.size(), "expected 92 known branches plus the opaque unknown branch")
         val knownCodes = (0 until branches.size() - 1).map { branches[it]["properties"]["code"]["const"].asText() }
-        assertEquals(91, knownCodes.toSet().size)
+        assertEquals(92, knownCodes.toSet().size)
         val unknown = branches[branches.size() - 1]
-        assertEquals(91, unknown["properties"]["code"]["not"]["enum"].size())
+        assertEquals(92, unknown["properties"]["code"]["not"]["enum"].size())
     }
 
     @Test

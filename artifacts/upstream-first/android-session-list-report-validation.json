@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android Session-list recovery and durable unordered device admission; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-session-list-source.json",
+    "sha256": "d623438adaad2d1e8507a2bd09bbdded210826073f005a34f289b0f88684ae35"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6291a302a6b4b4b097a25776b94a69969cac54dbd4b435de77d5f8c1480669ff"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-session-list-binding.json",
+    "sha256": "b52d0191e29f2cbe46e1d5eac991101b6320e8bac6383d07265dfbe5431f527e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-session-list-reports.mjs",
+      "sha256": "c5c0985e4890922cdd4a229c6730fd010cf6b122591d7799bddb03eaa84e2534"
+    },
+    {
+      "path": ".artifacts/capture-android-session-list-validation.mjs",
+      "sha256": "f81aec414774c1b0a82211a58ecd0123f15ce7daa1a38498f8e506b36af60b2d"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "dad6625089bcef60ccf5164e39a68af16c5e59d2f7d58dd6c3e337008bb0ddd6"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "caef4dd95eb4fcb01fc553f980817d862c4eb269e300ee7c364f13bff0d558a7"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-session-list-binding.log",
+      "sha256": "b311d91b9dadd90140ab56495714cc727eb9411847e87ca3cd3bc89ac7f0dfff"
+    },
+    {
+      "path": ".artifacts/android-session-list-audit-tests.log",
+      "sha256": "7d2be235ecb57a28da6fccb17b1dee81336de439e8ae96618aea1d6fd9d4f76b"
+    },
+    {
+      "path": ".artifacts/android-session-list-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-session-list-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-session-list-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}
