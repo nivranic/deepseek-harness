@@ -8,12 +8,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -227,6 +230,7 @@ class SessionModel(
     private val scope: CoroutineScope,
     private val reconnectDelayMillis: Long = 1_000,
     private val inputs: CompanionInputState = CompanionInputState.memory(),
+    private val historyLimits: NativeHistoryLimits = NativeHistoryLimits(pageMessages = 50, maxBufferedBytes = 8_388_608),
 ) {
     private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
     val sessions: StateFlow<List<SessionRow>> = _sessions
@@ -295,6 +299,45 @@ class SessionModel(
 
     private val followOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
+    private var followGeneration = 0L
+    private val journal = NativeSessionJournal(wire, scope, historyLimits) { generation, id, records, replacement ->
+        if (followOwner.isCurrent(generation)) {
+            val current = _open.value
+            if (current?.sessionId == id) {
+                records.forEach { acknowledgeRecordedPrompt(id, it) }
+                val values = JsonArray(records.map { it.toJsonElement() })
+                _open.value = current.copy(state = if (replacement) foldDomain(values) else foldInto(current.state, values))
+            }
+        }
+    }
+    val history: StateFlow<NativeHistoryState> = journal.state
+    private val _viewAnchor = MutableStateFlow<NativeViewAnchor?>(null)
+    val viewAnchor: StateFlow<NativeViewAnchor?> = _viewAnchor
+    private val viewRequest = AtomicReference<Deferred<Unit>?>(null)
+
+    /** Load one older message-aligned page without moving the current Host or submitting input. */
+    suspend fun loadOlderHistory(): Boolean = journal.loadOlder()
+
+    /** Reveal a shared location on the selected trusted Host; mismatches reject before opening a stream. */
+    suspend fun openViewLocation(location: NativeViewLocation, selectedHostId: String?) {
+        NativeViewLocations.requireHost(location, selectedHostId)
+        openSession(location.sessionId)
+        val generation = followGeneration
+        val request = scope.async(start = CoroutineStart.LAZY) {
+            val ready = history.first { it.ready || it.failure != null }
+            if (!ready.ready || !followOwner.isCurrent(generation) || !journal.loadThrough(location.anchorSeq) || !followOwner.isCurrent(generation)) {
+                throw ai.deepseek.dsh.link.LinkClientException.BadWire("Session view anchor is unavailable")
+            }
+            _viewAnchor.value = NativeViewAnchor(generation, location.anchorSeq)
+        }
+        viewRequest.getAndSet(request)?.cancel()
+        request.start()
+        try { request.await() }
+        finally {
+            viewRequest.compareAndSet(request, null)
+            withContext(NonCancellable) { request.cancelAndJoin() }
+        }
+    }
 
     /** The fold state of the open session, when one is. */
     val state: DomainState get() = _open.value?.state ?: DomainState()
@@ -418,17 +461,34 @@ class SessionModel(
 
     /** Request follow shutdown without suspending synchronous UI disposal. */
     fun close() {
+        viewRequest.getAndSet(null)?.cancel()
+        journal.close()
+        _viewAnchor.value = null
         followOwner.stop { _open.value = null }
     }
 
     /** Close the open session after its follow stream has fully stopped. */
     suspend fun closeAndAwait() {
+        val view = viewRequest.getAndSet(null)
+        view?.cancel()
+        val reads = journal.close()
+        _viewAnchor.value = null
         followOwner.stopAndAwait { _open.value = null }
+        withContext(NonCancellable) { reads.joinAll(); view?.join() }
     }
 
     private suspend fun replaceFollow(sessionId: String, payload: Map<String, WireValue>) {
         followOwner.replace(
-            create = { generation -> follow(payload, generation) },
+            create = { generation ->
+                viewRequest.getAndSet(null)?.cancel()
+                val request = payload.getValue("request") as WireValue.ObjectValue
+                val target = request.entries.getValue("address") as WireValue.ObjectValue
+                followGeneration = generation
+                _viewAnchor.value = null
+                journal.reset(generation, sessionId, target)
+                follow(payload + ("request" to WireValue.ObjectValue(request.entries +
+                    ("maxMessages" to WireValue.NumberValue(historyLimits.pageMessages.toDouble())))), generation)
+            },
             publish = { _open.value = OpenSession(sessionId, DomainState()) },
             invalidate = { _open.value = null },
         )
@@ -518,10 +578,12 @@ class SessionModel(
                             foldFrame(frame, generation)
                         }
                     }
+                    if (!received) journal.observationFailed(ai.deepseek.dsh.link.LinkClientException.BadWire("Session follow ended before snapshot"), generation)
                     followOwner.interrupted(generation, null)
                 } catch (failure: CancellationException) {
                     throw failure
                 } catch (failure: Exception) {
+                    journal.observationFailed(failure, generation)
                     followOwner.interrupted(generation, failure)
                     if (!canReconnectObservation(failure)) return@launch
                 }
@@ -532,22 +594,9 @@ class SessionModel(
             }
     }
 
-    /** A snapshot generation resets and replays its records; any other
-     * frame is one live event entry folded onto the current state. */
+    /** The journal validates and merges snapshots, live events, and backward pages before folding. */
     private fun foldFrame(frame: WireValue, generation: Long) {
-        if (!followOwner.isCurrent(generation)) return
-        val current = _open.value ?: return
-        val kind = WireShape.string(frame, "type") ?: ""
-        val newState = if (kind == "snapshot") {
-            val records = WireShape.array(frame, "records") ?: emptyList()
-            records.forEach { acknowledgeRecordedPrompt(current.sessionId, it) }
-            foldDomain(JsonArray(records.map { it.toJsonElement() }))
-        } else {
-            acknowledgeRecordedPrompt(current.sessionId, frame)
-            foldInto(current.state, JsonArray(listOf(frame.toJsonElement())))
-        }
-        _open.value = current.copy(state = newState)
-        if (!followOwner.isCurrent(generation)) _open.value = null
+        journal.accept(frame, generation)
     }
 
     private fun acknowledgeRecordedPrompt(sessionId: String, record: WireValue) {

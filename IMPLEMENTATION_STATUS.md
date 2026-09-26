@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 查看位置 Handoff 与历史分页（§25、§26、§67）
+
+[当前来源记录](artifacts/upstream-first/android-view-location-source.json)接入 Web v1 查看位置格式：载荷只标识 Host、Session 和持久锚点，导入先匹配当前可信 Host，不从载荷选择身份。Session 页可复制第一条可见持久记录，并显式导入位置；不会新建 Session、提交 prompt 或调用旧运行时迁移接口。
+
+原生历史窗口在固定快照截止点向前分页，并保留同时到达的实时事件。默认每次 50 条消息、保留序列化记录字节上限 8 MiB；不自动下载全部历史。代际检查拒绝旧页面，取消读取在清理完毕前仍受持有，模型退出等待其结束。读取或上限失败保留当前窗口并显示重试；重复打开相同锚点使用新的导航代际。
+
+真实 Host 的 88 轮预置历史验证了错误 Host 不开流、失败页面显式重试、初始窗口外的锚点显示及 Android 复制结果由 Web 解码。输入恢复、多 Host 和两种丢确认重试另有回归；这些证据不代表真实模型或物理设备验收。Android 重连仍完整开窗，深链接、平台分享、Swift、原生诊断、工件读取与发布资格仍开放，completeRc 为 false。
+
 ## Android 已保存 Host 目录与安全切换（§17、§18、§28、§29、§67）
 
-[当前来源记录](artifacts/upstream-first/android-host-roster-source.json)补齐 Android 的多 Host 加密目录。Host id 与 TLS 指纹确定稳定条目，设备授权可替换；凭据与当前选择在同一文档原子提交。切换先隐藏业务操作并退出模型，再保存输入、准备目标并不可取消地提交与采纳。提交前失败保留旧选择；提交后旧资源退出失败则显示已提交身份但禁用操作，要求重启。
+[历史来源记录](artifacts/upstream-first/android-host-roster-source.json)补齐 Android 的多 Host 加密目录。Host id 与 TLS 指纹确定稳定条目，设备授权可替换；凭据与当前选择在同一文档原子提交。切换先隐藏业务操作并退出模型，再保存输入、准备目标并不可取消地提交与采纳。提交前失败保留旧选择；提交后旧资源退出失败则显示已提交身份但禁用操作，要求重启。
 
 双真实 Host 使用相同 Session id，A→B→A 恢复各自草稿，进程重启恢复所选 Host 而不自动发送。显式发送只到当前 Host，原 Host 保留自己的输入且两端各复用一份授权。core 覆盖 Question、待确认请求和草稿的主体隔离，以及取消、保存失败、加密与原子替换拒绝。旧原生凭据需显式导入并保留原文件；损坏目录不回退旧身份，需先备份重建。
 

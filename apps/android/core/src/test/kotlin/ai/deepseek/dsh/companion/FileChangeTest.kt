@@ -34,7 +34,7 @@ class FileChangeTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s1")
-        wire.emit(wireOf("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.emit(wireOf("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         wire.emit(toolCallEvent(1, "c1", "write", """{"file_path":"notes.md","content":"第一行\n第二行\n"}"""))
         wire.emit(toolResultEvent(2, "c1"))
         wire.emit(toolCallEvent(3, "c2", "edit", """{"file_path":"notes.md","old_string":"第二行","new_string":"第二行（改）"}"""))
@@ -82,7 +82,7 @@ class FileChangeTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s1")
-        wire.emit(wireOf("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.emit(wireOf("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         wire.emit(toolCallEvent(1, "c1", "write", """{"file_path":"empty.txt","content":""}"""))
         wire.emit(toolResultEvent(2, "c1"))
         wire.emit(

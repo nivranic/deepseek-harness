@@ -1,4 +1,14 @@
 <resources>
+    <string name="native_history_load_older">加载更早记录</string>
+    <string name="native_history_loading">正在加载历史…</string>
+    <string name="native_history_failed">历史记录加载失败，已加载内容保留。请重试，或返回列表后重新打开。</string>
+    <string name="native_view_copy">复制查看位置</string>
+    <string name="native_view_copied">查看位置已复制</string>
+    <string name="native_view_open">打开查看位置</string>
+    <string name="native_view_opening">正在定位…</string>
+    <string name="native_view_payload">粘贴查看位置</string>
+    <string name="native_view_help">在当前 Host 打开同一 Session 的历史位置；任务仍在原 Host 运行。</string>
+    <string name="native_view_failed">无法打开查看位置。请确认格式、当前 Host 和历史记录是否可用。</string>
     <string name="native_host_current">当前 Host：%1$s</string>
     <string name="native_host_choose">切换 Host</string>
     <string name="native_host_switching">正在切换 Host…</string>

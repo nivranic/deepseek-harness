@@ -157,6 +157,40 @@ class NativeCompanionAcceptanceTest {
                             "assertEmptyPromptDraft" -> {
                                 check(compose.onNodeWithTag("session-draft").fetchSemanticsNode().config[SemanticsProperties.EditableText].text.isEmpty())
                             }
+                            "openViewLocation", "rejectViewLocation" -> {
+                                val before = companionModel().session.open.value?.sessionId
+                                val attempts = companionModel().session.connectionSnapshot.attempts
+                                compose.onNodeWithTag("native-tab-0").performClick()
+                                compose.onNodeWithTag("session-view-import").performClick()
+                                compose.onNodeWithTag("session-view-payload").performTextInput(command.getValue("payload").jsonPrimitive.content)
+                                compose.onNodeWithTag("session-view-confirm").performClick()
+                                if (op == "rejectViewLocation") {
+                                    waitFor(hasTestTag("session-view-error"))
+                                    if (command["unchanged"]?.jsonPrimitive?.boolean == true) {
+                                        check(companionModel().session.open.value?.sessionId == before)
+                                        check(companionModel().session.connectionSnapshot.attempts == attempts)
+                                    }
+                                    compose.onNodeWithTag("session-view-cancel").performClick()
+                                } else {
+                                    compose.waitUntil(20_000) { compose.onAllNodesWithTag("session-view-payload").fetchSemanticsNodes(false).isEmpty() }
+                                    val seq = command.getValue("anchor").jsonPrimitive.long
+                                    stage = "view-anchor-visible"
+                                    waitFor(hasTestTag("session-event-$seq"))
+                                    compose.onNodeWithTag("session-event-$seq").assertIsDisplayed()
+                                    check(companionModel().session.viewAnchor.value?.seq == seq)
+                                }
+                            }
+                            "scrollSessionToLatest" -> {
+                                val seq = companionModel().session.state.items.last().seq
+                                compose.onNodeWithTag("session-rows").performScrollToNode(hasTestTag("session-event-$seq"))
+                                compose.onNodeWithTag("session-event-$seq").assertIsDisplayed()
+                            }
+                            "copyViewLocation" -> {
+                                compose.onNodeWithTag("session-view-copy").performClick()
+                                compose.waitForIdle()
+                                val clipboard = instrumentation.targetContext.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                value = JsonPrimitive(clipboard.primaryClip!!.getItemAt(0).text.toString())
+                            }
                             "failPromptDraft" -> {
                                 compose.onNodeWithText("发送").performClick()
                                 waitFor(hasTestTag("session-send-error"))

@@ -208,7 +208,7 @@ class CompanionModelTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s1")
-        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.emit(wire("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         wire.emit(event(1, "user/message", """{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}"""))
         wire.emit(event(2, "assistant/message", """{"turn":1,"step":1,"message":{"id":"m2","role":"assistant","content":[{"type":"text","text":"已处理。"}],"source":{"kind":"model","provider":"deepseek","model":"deepseek-chat"}},"usage":{"inputTokens":10,"outputTokens":5,"totalTokens":15}}"""))
         wire.emit(event(3, "turn/end", """{"turn":1,"reason":{"kind":"completed"}}"""))
@@ -228,10 +228,10 @@ class CompanionModelTest {
             override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
                 attempts += 1
                 if (attempts == 1) {
-                    emit(wire("""{"type":"snapshot","cursor":1,"records":[{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600001,"data":{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}}}]}"""))
+                    emit(wire("""{"type":"snapshot","hasMore":false,"cursor":1,"records":[{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600001,"data":{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}}}]}"""))
                     throw IOException("carrier lost")
                 }
-                emit(wire("""{"type":"snapshot","cursor":2,"records":[{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600001,"data":{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}}},{"type":"event","event":{"type":"assistant/message","seq":2,"time":1759017600002,"data":{"turn":1,"step":1,"message":{"id":"m2","role":"assistant","content":[{"type":"text","text":"已恢复"}],"source":{"kind":"model","provider":"deepseek","model":"deepseek-chat"}},"usage":{"inputTokens":1,"outputTokens":1,"totalTokens":2}}}}]}"""))
+                emit(wire("""{"type":"snapshot","hasMore":false,"cursor":2,"records":[{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600001,"data":{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}}},{"type":"event","event":{"type":"assistant/message","seq":2,"time":1759017600002,"data":{"turn":1,"step":1,"message":{"id":"m2","role":"assistant","content":[{"type":"text","text":"已恢复"}],"source":{"kind":"model","provider":"deepseek","model":"deepseek-chat"}},"usage":{"inputTokens":1,"outputTokens":1,"totalTokens":2}}}}]}"""))
                 awaitCancellation()
             }
         }
@@ -252,7 +252,7 @@ class CompanionModelTest {
         wire.stub("session/prompt") { wire("""{"accepted":true}""") }
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s9")
-        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.emit(wire("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         assertTrue(model.send(text = "看这张截图", images = listOf("iVBORw0KGgo=" to "image/png")))
         val call = wire.calls.first { it.first == "session/prompt" }
         val request = (call.second["request"] as WireValue.ObjectValue).entries
@@ -521,7 +521,7 @@ class StateFlowProjectionTest {
             assertEquals(null, awaitItem())
             model.openSession("s1")
             awaitItem().also { assertEquals(0, it?.state?.items?.size) }
-            wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+            wire.emit(wire("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
             wire.emit(event(1, "user/message", """{"id":"m1","role":"user","content":[{"type":"text","text":"你好"}],"source":{"kind":"user"}}"""))
             awaitItem().also { assertEquals(1, it?.state?.items?.size) }
             wire.emit(event(2, "turn/end", """{"turn":1,"reason":{"kind":"completed"}}"""))
@@ -556,7 +556,7 @@ class ArtifactReadTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s9")
-        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.emit(wire("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         val bytes = java.util.Base64.getEncoder().encodeToString("# 报告".toByteArray())
         wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"迁移报告","format":"text","data":"$bytes","truncated":false,"size":7}""") }
         val read = model.readArtifact("art-1")
@@ -575,7 +575,7 @@ class ArtifactReadTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s9")
-        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.emit(wire("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         wire.stub("session/artifact") { wire("""{"id":"art-1","kind":"report","title":"R","format":"bytes","data":"MjM0NQ==","truncated":true,"size":10}""") }
         val read = model.readArtifact("art-1", offset = 2, limit = 4)
         assertEquals(ai.deepseek.dsh.link.LinkArtifactFormat.BYTES, read?.format)
@@ -594,7 +594,7 @@ class ArtifactReadTest {
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         assertEquals(null, model.readArtifact("art-1"))
         model.openSession("s9")
-        wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
+        wire.emit(wire("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         wire.stub("session/artifact") { throw ai.deepseek.dsh.link.LinkClientException.Refused("artifact-error", "Artifact is not referenced by this session.") }
         assertEquals(null, model.readArtifact("art-2"))
         assertEquals(true, model.artifactBytes.isEmpty())

@@ -101,7 +101,8 @@ class CompanionInputPersistenceTest {
             val model = SessionModel(wire, backgroundScope, inputs = inputs)
             model.restoreSelection(); runCurrent()
             val record = """{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600000,"data":{"id":"message","role":"user","content":[{"type":"text","text":"already received"}],"source":{"kind":"user","rpcId":"receipt-id"}}}}"""
-            wire.emit(value(if (snapshot) """{"type":"snapshot","cursor":1,"records":[$record]}""" else record))
+            if (!snapshot) wire.emit(value("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
+            wire.emit(value(if (snapshot) """{"type":"snapshot","hasMore":false,"cursor":1,"records":[$record]}""" else record))
             runCurrent()
             assertTrue(model.input.value.pendingPrompts.isEmpty())
             assertTrue(model.input.value.drafts.isEmpty())
@@ -118,8 +119,10 @@ class CompanionInputPersistenceTest {
         val wire = FakeWire()
         val model = SessionModel(wire, backgroundScope, inputs = inputs)
         model.openSession("other"); runCurrent()
+        wire.emit(value("""{"type":"snapshot","hasMore":false,"cursor":0,"records":[]}"""))
         wire.emit(value("""{"type":"event","event":{"type":"user/message","seq":1,"time":1759017600000,"data":{"content":[],"source":{"kind":"user","rpcId":"receipt-id"}}}}"""))
         runCurrent()
+        assertEquals(1, model.state.items.size)
         assertEquals(draft, model.input.value.drafts["original"])
         assertEquals(1, model.input.value.pendingPrompts.size)
     }

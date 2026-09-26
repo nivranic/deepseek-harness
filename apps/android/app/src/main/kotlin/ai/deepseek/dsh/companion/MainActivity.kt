@@ -20,6 +20,9 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -557,11 +560,25 @@ fun SessionsTab(model: CompanionViewModel) {
     val sendFailure by model.session.sendFailure.collectAsStateWithLifecycle()
     val draft = open?.sessionId?.let { input.drafts[it]?.text }.orEmpty()
     val sending by model.session.sending.collectAsStateWithLifecycle()
+    val history by model.session.history.collectAsStateWithLifecycle()
+    val anchor by model.session.viewAnchor.collectAsStateWithLifecycle()
+    val timeline = rememberLazyListState()
+    var revealed by remember(model.session) { mutableStateOf<NativeViewAnchor?>(null) }
+    LaunchedEffect(model.session, anchor, open?.state?.items?.firstOrNull()?.seq) {
+        val target = anchor ?: run { revealed = null; return@LaunchedEffect }
+        if (target == revealed) return@LaunchedEffect
+        val index = open?.state?.items?.indexOfFirst { it.seq == target.seq } ?: -1
+        if (index >= 0) {
+            timeline.scrollToItem(index + input.pendingPrompts.values.count { it.sessionId == open?.sessionId })
+            revealed = target
+        }
+    }
     LaunchedEffect(model.session) {
         model.session.loadSessions()
         if (model.session.open.value == null) model.session.restoreSelection()
     }
     Column(Modifier.fillMaxSize()) {
+        SessionViewLocationActions(model, timeline)
         Row(Modifier.fillMaxWidth()) {
             Text(
                 open?.let { "已打开会话 ${it.sessionId}" } ?: "会话",
@@ -587,7 +604,15 @@ fun SessionsTab(model: CompanionViewModel) {
             is SessionListState.Failed -> Text(sessionListFailureText(state),
                 Modifier.testTag("session-list-error").padding(16.dp), color = MaterialTheme.colorScheme.error)
         }
-        LazyColumn(Modifier.weight(1f).testTag("session-rows")) {
+        if (open != null) {
+            if (history.hasMore) Button(modifier = Modifier.testTag("session-load-older"), enabled = !history.loading,
+                onClick = { scope.launch { model.session.loadOlderHistory() } }) {
+                Text(androidx.compose.ui.res.stringResource(if (history.loading) R.string.native_history_loading else R.string.native_history_load_older))
+            }
+            if (history.failure != null) Text(androidx.compose.ui.res.stringResource(R.string.native_history_failed),
+                Modifier.testTag("session-history-error"), color = MaterialTheme.colorScheme.error)
+        }
+        LazyColumn(Modifier.weight(1f).testTag("session-rows"), state = timeline) {
             if (open == null) {
                 items(sessions) { row ->
                     RaisedCard {
@@ -611,8 +636,8 @@ fun SessionsTab(model: CompanionViewModel) {
                         }
                     }
                 }
-                items(open!!.state.items) { item ->
-                    RaisedCard {
+                items(open!!.state.items, key = { "event-${it.seq}" }) { item ->
+                    RaisedCard(Modifier.testTag("session-event-${item.seq}")) {
                         Text(item.kind, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                         if (item.text.isNotEmpty()) Text(item.text)
                     }
@@ -633,6 +658,79 @@ fun SessionsTab(model: CompanionViewModel) {
             Button(enabled = open != null, onClick = { scope.launch { model.session.cancelActive() } }) { Text("停止") }
         }
     }
+}
+
+@Composable
+private fun SessionViewLocationActions(model: CompanionViewModel, timeline: LazyListState) {
+    val session = model.session
+    val open by session.open.collectAsStateWithLifecycle()
+    val host by CompanionRuntime.hostState.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    var showImport by remember(session) { mutableStateOf(false) }
+    var encoded by remember(session) { mutableStateOf("") }
+    var importing by remember(session) { mutableStateOf(false) }
+    var importJob by remember(session) { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var importGeneration by remember(session) { mutableStateOf(0L) }
+    var failed by remember(session) { mutableStateOf(false) }
+    var copied by remember(session) { mutableStateOf(false) }
+    val copyLabel = androidx.compose.ui.res.stringResource(R.string.native_view_copy)
+    val visibleAnchor = timeline.layoutInfo.visibleItemsInfo.firstNotNullOfOrNull { row ->
+        (row.key as? String)?.takeIf { it.startsWith("event-") }?.removePrefix("event-")?.toLongOrNull()
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(enabled = host.status == NativeHostStatus.READY && visibleAnchor != null,
+            modifier = Modifier.testTag("session-view-copy"), onClick = {
+                val current = open ?: return@Button
+                val selected = host.selected ?: return@Button
+                val visible = visibleAnchor ?: return@Button
+                val payload = NativeViewLocations.encode(NativeViewLocation(selected.hostId, current.sessionId, visible))
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(copyLabel, payload))
+                copied = true
+            }) { Text(copyLabel) }
+        Button(enabled = host.status == NativeHostStatus.READY, modifier = Modifier.testTag("session-view-import"),
+            onClick = { failed = false; copied = false; showImport = true }) {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_view_open))
+        }
+    }
+    if (copied) Text(androidx.compose.ui.res.stringResource(R.string.native_view_copied), Modifier.padding(horizontal = 16.dp))
+    if (showImport) AlertDialog(
+        onDismissRequest = { importGeneration++; importJob?.cancel(); importing = false; showImport = false; encoded = "" },
+        title = { Text(androidx.compose.ui.res.stringResource(R.string.native_view_open)) },
+        text = {
+            Column {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_view_help))
+                OutlinedTextField(value = encoded, onValueChange = { encoded = it }, enabled = !importing,
+                    label = { Text(androidx.compose.ui.res.stringResource(R.string.native_view_payload)) },
+                    modifier = Modifier.testTag("session-view-payload"), maxLines = 4)
+                if (failed) Text(androidx.compose.ui.res.stringResource(R.string.native_view_failed),
+                    Modifier.testTag("session-view-error"), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        confirmButton = {
+            Button(enabled = encoded.isNotEmpty() && !importing, modifier = Modifier.testTag("session-view-confirm"), onClick = {
+                importing = true
+                failed = false
+                val generation = ++importGeneration
+                importJob = scope.launch {
+                    try {
+                        val location = NativeViewLocations.decode(encoded, maxCharacters = 4096)
+                        session.openViewLocation(location, host.selected?.hostId)
+                        if (generation == importGeneration) { showImport = false; encoded = "" }
+                    } catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { if (generation == importGeneration) failed = true }
+                    finally { if (generation == importGeneration) importing = false }
+                }
+            }) { Text(androidx.compose.ui.res.stringResource(if (importing) R.string.native_view_opening else R.string.native_view_open)) }
+        },
+        dismissButton = {
+            Button(modifier = Modifier.testTag("session-view-cancel"),
+                onClick = { importGeneration++; importJob?.cancel(); importing = false; showImport = false; encoded = "" }) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_pairing_cancel))
+            }
+        },
+    )
 }
 
 @Composable

@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-26-android-native-view-location.md
+2026-09-26-android-native-view-location.md: 144eb346229e5078e6744526f4b9b9d81ca58c16
+2026-09-26-android-native-view-location.zh.md: c4a810b9dd7c0a89a3f26d37d93e34335ab872c4
