@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android saved Host catalog and explicit selection; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-host-roster-source.json",
+    "sha256": "ca95c9ec29c356eaad472da9850bea1abb7b6b041bad62d496e5e3f9f6b4ce56"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3f0d7e4d0967954def8bc94f5c75a00e57e6f965064d83181f69a85f4197c7eb"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-host-roster-binding.json",
+    "sha256": "4ad5029c7428c58860dbd2e84091cb34392ef8afbd32bb5902196133d6bd862b"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-host-roster-reports.mjs",
+      "sha256": "f2c783233fb3c9cdf56118e6e2dbe991578fd741b0ee93cb0cdbfaf54157f002"
+    },
+    {
+      "path": ".artifacts/capture-android-host-roster-validation.mjs",
+      "sha256": "4d2e867347fa9425ae92aadfaa7bfb5b420d886ca8db6c79732f446204635c93"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f213759e16994ad41af0d100bd3c4e7253f5bc4e8aeb63dc29d50fb1cf0bc5dc"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a6809fe9a01ac2516a5ed48edd389872d2e6c26d76eb1b20ae52851b4d48fc4c"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-host-roster-binding.log",
+      "sha256": "b0b5fc36c4d8ae89a6aa08979b5245644464c29832862c21dcd750c2014ba87b"
+    },
+    {
+      "path": ".artifacts/android-host-roster-audit-tests.log",
+      "sha256": "aa5350427616a94a7bacd7fa0f5677343884b480456c0b84a9002f98e129497c"
+    },
+    {
+      "path": ".artifacts/android-host-roster-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-host-roster-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-host-roster-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

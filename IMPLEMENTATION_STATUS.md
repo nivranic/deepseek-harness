@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 已保存 Host 目录与安全切换（§17、§18、§28、§29、§67）
+
+[当前来源记录](artifacts/upstream-first/android-host-roster-source.json)补齐 Android 的多 Host 加密目录。Host id 与 TLS 指纹确定稳定条目，设备授权可替换；凭据与当前选择在同一文档原子提交。切换先隐藏业务操作并退出模型，再保存输入、准备目标并不可取消地提交与采纳。提交前失败保留旧选择；提交后旧资源退出失败则显示已提交身份但禁用操作，要求重启。
+
+双真实 Host 使用相同 Session id，A→B→A 恢复各自草稿，进程重启恢复所选 Host 而不自动发送。显式发送只到当前 Host，原 Host 保留自己的输入且两端各复用一份授权。core 覆盖 Question、待确认请求和草稿的主体隔离，以及取消、保存失败、加密与原子替换拒绝。旧原生凭据需显式导入并保留原文件；损坏目录不回退旧身份，需先备份重建。
+
+本轮保留物理设备、硬件密钥永久失效、突然断电、Swift、Session 其他位置元数据、后台/推送、原生诊断、工件/Handoff 和发布资格的未验收状态。TLS 与输入保存决策继续拥有独立职责；目录决策记录部分替代。类型、lint、文档与逐节追踪有独立证据；Session writer 为 V3，completeRc 为 false。
+
 ## Android 丢确认重试与 HTTP 断开清理（§13、§17、§18、§67）
 
-[当前来源记录](artifacts/upstream-first/android-prompt-retry-source.json)补齐真实 Host 已准入、Android 未收到确认便退出的验证。显式重试沿用已保存 requestId，只产生一次 inbox 插入、用户消息和模型回复；已有日志回执时则恢复观察并清理待确认项，不再发送 prompt RPC。两条路径都保留新草稿，第三个进程再次验证清理结果已保存，且无需新增设备授权。
+[历史来源记录](artifacts/upstream-first/android-prompt-retry-source.json)补齐真实 Host 已准入、Android 未收到确认便退出的验证。显式重试沿用已保存 requestId，只产生一次 inbox 插入、用户消息和模型回复；已有日志回执时则恢复观察并清理待确认项，不再发送 prompt RPC。两条路径都保留新草稿，第三个进程再次验证清理结果已保存，且无需新增设备授权。
 
 本轮复现并修复共享 HTTP 桥接的退出挂起：客户端先关闭，处理函数迟到返回时向已关闭响应写入，会等待已经错过的 drain/close。桥接现在取消迟到响应体，在响应块和背压等待处检查断开状态并清理剩余内容。确定性回归在旧实现上观察到关闭后写入；25 项定向测试通过。最终两个原生场景经实际 Loader 产物通过，另一次三场景回放包含此前的加密输入恢复；两张截图已核对。
 

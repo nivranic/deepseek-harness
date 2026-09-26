@@ -1,4 +1,12 @@
 <resources>
+    <string name="native_host_current">当前 Host：%1$s</string>
+    <string name="native_host_choose">切换 Host</string>
+    <string name="native_host_switching">正在切换 Host…</string>
+    <string name="native_host_import">导入之前保存的 Host</string>
+    <string name="native_host_restore_failed">无法读取已保存的 Host，原文件已保留。请保留副本并重新建立目录。</string>
+    <string name="native_host_start_fresh">保留副本并新建 Host 目录</string>
+    <string name="native_host_retirement_failed">Host 选择已保存，但旧连接未能完整退出。请重启应用后继续。</string>
+    <string name="native_host_operation_failed">Host 操作未完成，请检查当前 Host 后重试。</string>
     <string name="native_input_saving">正在保存本地输入…</string>
     <string name="native_input_save_failed">本地输入尚未保存，请重试。提交前必须保存成功。</string>
     <string name="native_input_retry_save">重试保存</string>
@@ -19,10 +27,10 @@
     <string name="native_sessions_invalid_response">Host 返回的会话数据无效。</string>
     <string name="native_sessions_pair_required">请先重新配对，再加载会话。</string>
     <string name="native_sessions_failed">会话加载失败，请重试或重新配对。</string>
-    <string name="native_repair">重新配对</string>
+    <string name="native_repair">添加或重新配对</string>
     <string name="native_pairing_cancel">取消</string>
     <string name="native_pairing_failed">配对失败，请重试。</string>
-    <string name="native_repair_help">成功后替换此设备的本地连接；原 Host 的任务继续运行。旧设备授权可在 Host 设备页撤销。</string>
+    <string name="native_repair_help">成功后切换到此 Host，其他已保存的 Host 仍可选择。同一 Host 重新配对会替换本机保存的设备授权；旧授权可在 Host 设备页撤销。</string>
     <string name="native_retry_connection">重新连接</string>
     <string name="native_open_directory">打开</string>
     <string name="loaded_file_lines">已加载 %1$d 行</string>

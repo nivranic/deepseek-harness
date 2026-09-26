@@ -18,9 +18,12 @@ const exec = promisify(execFile)
  * @param target - emulator serial; physical devices are refused.
  * @param hostPort - test-owned native Host TLS port, reversed into the emulator.
  * @param resetData - clear this isolated application's test data; false preserves credentials for restart acceptance.
+ * @param additionalHostPorts - other test-owned Host TLS ports used by saved-Host switching.
  * @returns command access, controlled Host reachability, and awaited instrumentation/forward retirement.
  */
-export async function startAndroidCompanionUiDriver(adb: string, target: string, hostPort: number, resetData = true) {
+export async function startAndroidCompanionUiDriver(
+  adb: string, target: string, hostPort: number, resetData = true, additionalHostPorts: readonly number[] = [],
+) {
   if (!/^emulator-\d+$/.test(target)) throw new Error('UI acceptance requires an explicit emulator')
   const args = ['-s', target]
   const leasePath = join(tmpdir(), `dsh-native-acceptance-${target}.lock`)
@@ -34,15 +37,25 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
   const socketName = `dsh-native-${randomUUID()}`
   const run = (...command: string[]) => exec(adb, [...args, ...command], { windowsHide: true })
   let port: number
-  let reverseInstalled = false
+  const reversed = new Set<number>()
+  const removeReverses = async () => {
+    const results = await Promise.allSettled([...reversed].map(async (value) => {
+      await run('reverse', '--remove', `tcp:${value}`)
+      reversed.delete(value)
+    }))
+    const failures = results.filter(item => item.status === 'rejected').map(item => item.reason as unknown)
+    if (failures.length) throw new AggregateError(failures, 'Android reverse forwarding cleanup failed')
+  }
   try {
     if (resetData) await run('shell', 'pm', 'clear', 'com.deepseek.harness.companion.nativeacceptance')
-    await run('reverse', `tcp:${hostPort}`, `tcp:${hostPort}`)
-    reverseInstalled = true
+    for (const value of new Set([hostPort, ...additionalHostPorts])) {
+      await run('reverse', `tcp:${value}`, `tcp:${value}`)
+      reversed.add(value)
+    }
     const forward = await run('forward', 'tcp:0', `localabstract:${socketName}`)
     port = Number(forward.stdout.trim())
   } catch (error) {
-    try { if (reverseInstalled) await run('reverse', '--remove', `tcp:${hostPort}`) } finally { await release() }
+    try { await removeReverses() } finally { await release() }
     throw error
   }
   const child = spawn(adb, [...args, 'shell', 'am', 'instrument', '-w', '-e', 'class',
@@ -101,15 +114,20 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
       try {
         await run('forward', '--remove', `tcp:${port}`)
       } finally {
-        try { if (hostReachable) await run('reverse', '--remove', `tcp:${hostPort}`) } finally { await release() }
+        try { await removeReverses() } finally { await release() }
       }
     }
     return {
       setHostReachable: async (reachable: boolean) => {
         if (retired) throw new Error('Android UI driver is retired')
         if (reachable === hostReachable) return
-        if (reachable) await run('reverse', `tcp:${hostPort}`, `tcp:${hostPort}`)
-        else await run('reverse', '--remove', `tcp:${hostPort}`)
+        if (reachable) {
+          await run('reverse', `tcp:${hostPort}`, `tcp:${hostPort}`)
+          reversed.add(hostPort)
+        } else {
+          await run('reverse', '--remove', `tcp:${hostPort}`)
+          reversed.delete(hostPort)
+        }
         hostReachable = reachable
       },
       request: (command: object): Promise<DriverFrame> => new Promise((resolve, reject) => {
@@ -139,7 +157,7 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
   } catch (error) {
     socket?.destroy(); child.kill(); await exited
     try { await run('forward', '--remove', `tcp:${port}`) }
-    finally { try { await run('reverse', '--remove', `tcp:${hostPort}`) } finally { await release() } }
+    finally { try { await removeReverses() } finally { await release() } }
     throw error
   }
 }

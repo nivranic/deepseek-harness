@@ -151,8 +151,11 @@ class NativeCompanionAcceptanceTest {
                             }
                             "assertPromptDraft" -> {
                                 compose.onNodeWithTag("native-tab-0").performClick()
-                                waitFor(hasTestTag("session-draft"))
+                                waitFor(hasTestTag("session-draft") and isEnabled() and hasText(command.getValue("text").jsonPrimitive.content))
                                 compose.onNodeWithTag("session-draft").assertTextContains(command.getValue("text").jsonPrimitive.content)
+                            }
+                            "assertEmptyPromptDraft" -> {
+                                check(compose.onNodeWithTag("session-draft").fetchSemanticsNode().config[SemanticsProperties.EditableText].text.isEmpty())
                             }
                             "failPromptDraft" -> {
                                 compose.onNodeWithText("发送").performClick()
@@ -171,8 +174,10 @@ class NativeCompanionAcceptanceTest {
                                     compose.onNodeWithTag(tag).performScrollTo().performClick()
                                 }
                                 stage = "session-done-projection"
-                                waitFor(hasText("DONE", substring = true))
-                                compose.onNode(hasText("DONE", substring = true)).performScrollTo()
+                                val model = companionModel().session
+                                compose.waitUntil(20_000) { model.open.value?.state?.items?.any { it.text.contains("DONE") } == true }
+                                compose.onNodeWithTag("session-rows").performScrollToNode(hasText("DONE", substring = true))
+                                compose.onNode(hasText("DONE", substring = true)).assertIsDisplayed()
                                 value = buildJsonObject { put("done", true) }
                             }
                             "readModelFile" -> {
@@ -206,7 +211,7 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithText("重新连接").assertIsDisplayed().assertIsEnabled()
                             }
                             "rejectRepairAndCancel" -> {
-                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-hosts.enc")
                                 val before = stored.readBytes()
                                 compose.onNodeWithTag("native-repair").performClick()
                                 waitFor(hasText("配对载荷（二维码内容）"))
@@ -225,7 +230,7 @@ class NativeCompanionAcceptanceTest {
                                 waitFor(hasTestTag(entry))
                             }
                             "repair" -> {
-                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-hosts.enc")
                                 val before = stored.readBytes()
                                 compose.onNodeWithTag("native-repair").performClick()
                                 waitFor(hasText("配对载荷（二维码内容）"))
@@ -242,19 +247,17 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithText("配对载荷（二维码内容）").assertDoesNotExist()
                             }
                             "damageCredentials" -> {
-                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-hosts.enc")
                                 check(stored.isFile)
                                 when (command.getValue("damage").jsonPrimitive.content) {
                                     "malformed" -> stored.writeText("{invalid credential document", Charsets.UTF_8)
                                     "ciphertext" -> {
-                                        val document = Json.parseToJsonElement(stored.readText()).jsonObject
-                                        val sealed = Base64.decode(document.getValue("signingKeyBase64").jsonPrimitive.content, Base64.NO_WRAP)
+                                        val sealed = stored.readBytes()
                                         sealed[sealed.lastIndex] = (sealed.last().toInt() xor 1).toByte()
-                                        stored.writeText(JsonObject(document + ("signingKeyBase64" to
-                                            JsonPrimitive(Base64.encodeToString(sealed, Base64.NO_WRAP)))).toString(), Charsets.UTF_8)
+                                        stored.writeBytes(sealed)
                                     }
                                     "missing-key" -> java.security.KeyStore.getInstance("AndroidKeyStore").apply {
-                                        load(null); deleteEntry("dsh-link-credentials")
+                                        load(null); deleteEntry("dsh-native-hosts")
                                     }
                                     else -> error("unsupported credential damage")
                                 }
@@ -262,10 +265,10 @@ class NativeCompanionAcceptanceTest {
                                     .joinToString("") { "%02x".format(it.toInt() and 255) })
                             }
                             "assertCredentialRecovery" -> {
-                                waitFor(hasText("已有凭据无法用于当前原生连接，请重新配对。原凭据文件未删除。"))
-                                compose.onNodeWithText("已有凭据无法用于当前原生连接，请重新配对。原凭据文件未删除。").assertIsDisplayed()
+                                waitFor(hasText("无法读取已保存的 Host，原文件已保留。请保留副本并重新建立目录。"))
+                                compose.onNodeWithText("无法读取已保存的 Host，原文件已保留。请保留副本并重新建立目录。").assertIsDisplayed()
                                 compose.onNodeWithTag("native-repair").assertDoesNotExist()
-                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-hosts.enc")
                                 val digest = MessageDigest.getInstance("SHA-256").digest(stored.readBytes())
                                     .joinToString("") { "%02x".format(it.toInt() and 255) }
                                 stage = "preserved-damaged-document"
@@ -273,8 +276,56 @@ class NativeCompanionAcceptanceTest {
                                 if (command.getValue("damage").jsonPrimitive.content == "missing-key") {
                                     stage = "read-does-not-create-key"
                                     check(!java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-                                        .containsAlias("dsh-link-credentials"))
+                                        .containsAlias("dsh-native-hosts"))
                                 }
+                            }
+                            "recoverHostCatalog" -> {
+                                compose.onNodeWithTag("native-host-start-fresh").performClick()
+                                waitFor(hasText("配对载荷（二维码内容）"))
+                                val backups = instrumentation.targetContext.filesDir.listFiles()!!.filter {
+                                    it.name.startsWith("native-hosts.enc.unavailable-")
+                                }
+                                check(backups.any { file -> MessageDigest.getInstance("SHA-256").digest(file.readBytes())
+                                    .joinToString("") { "%02x".format(it.toInt() and 255) } == command.getValue("digest").jsonPrimitive.content })
+                            }
+                            "prepareLegacyImport" -> {
+                                val directory = instrumentation.targetContext.filesDir
+                                val catalogFile = java.io.File(directory, "native-hosts.enc")
+                                val catalog = FileNativeHostStore(catalogFile, AndroidKeystoreCipher("dsh-native-hosts"), 1_048_576).load()!!
+                                val legacyFile = java.io.File(directory, "native-gateway-credentials.json")
+                                ai.deepseek.dsh.link.FileLinkCredentialsStore(legacyFile, AndroidKeystoreCipher()).save(catalog.selected()!!)
+                                check(catalogFile.delete())
+                                value = JsonPrimitive(MessageDigest.getInstance("SHA-256").digest(legacyFile.readBytes())
+                                    .joinToString("") { "%02x".format(it.toInt() and 255) })
+                            }
+                            "importLegacyHost" -> {
+                                waitFor(hasTestTag("native-host-import"))
+                                compose.onNodeWithTag("native-repair").assertDoesNotExist()
+                                check(CompanionRuntime.hostState.value.status == NativeHostStatus.EMPTY)
+                                compose.onNodeWithTag("native-host-import").performClick()
+                                waitFor(hasTestTag("native-repair"))
+                                val legacyFile = java.io.File(instrumentation.targetContext.filesDir, "native-gateway-credentials.json")
+                                check(MessageDigest.getInstance("SHA-256").digest(legacyFile.readBytes())
+                                    .joinToString("") { "%02x".format(it.toInt() and 255) } == command.getValue("digest").jsonPrimitive.content)
+                                paired = true
+                            }
+                            "selectHost" -> {
+                                val hostId = command.getValue("hostId").jsonPrimitive.content
+                                val selected = CompanionRuntime.hostState.value.hosts.single { it.hostId == hostId }
+                                compose.onNodeWithTag("native-host-chooser").performClick()
+                                compose.onNodeWithTag("native-host-select-${selected.key.value}").performScrollTo().performClick()
+                                compose.waitUntil(20_000) { CompanionRuntime.hostState.value.let {
+                                    it.status == NativeHostStatus.READY && it.selected?.hostId == hostId
+                                } }
+                                waitFor(hasTestTag("native-repair"))
+                                compose.onNodeWithTag("native-host-current").assertTextEquals("当前 Host：${selected.name}")
+                            }
+                            "assertCurrentHost" -> {
+                                val state = CompanionRuntime.hostState.value
+                                check(state.status == NativeHostStatus.READY)
+                                check(state.selected!!.hostId == command.getValue("hostId").jsonPrimitive.content)
+                                check(state.hosts.size == command.getValue("count").jsonPrimitive.int)
+                                compose.onNodeWithTag("native-host-current").assertTextEquals("当前 Host：${state.selected!!.name}")
                             }
                             "assertSessionListReady" -> {
                                 val model = companionModel()

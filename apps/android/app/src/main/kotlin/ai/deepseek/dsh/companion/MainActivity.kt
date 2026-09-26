@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
@@ -120,6 +121,10 @@ class CompanionViewModel : ViewModel() {
         private set
     var pairingRequested by mutableStateOf(false)
         private set
+    var switching by mutableStateOf(false)
+        private set
+    var hostOperationFailed by mutableStateOf(false)
+        private set
     val session get() = models.session
     val interactions get() = models.interactions
     val files get() = models.files
@@ -159,6 +164,29 @@ class CompanionViewModel : ViewModel() {
         inputRecoveryFailed = false
     }
 
+    /** Disable business UI before draining its producers, then rebuild against the resulting identity. */
+    private fun changeHost(operation: suspend () -> Unit) = viewModelScope.launch {
+        transition.withLock {
+            switching = true
+            hostOperationFailed = false
+            try {
+                models.closeAndAwait()
+                operation()
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { hostOperationFailed = true }
+            finally {
+                withContext(NonCancellable) {
+                    publishModels()
+                    switching = false
+                }
+            }
+        }
+    }
+
+    fun selectHost(key: NativeHostKey) = changeHost { CompanionRuntime.selectHost(key) }
+    fun recoverHosts() = changeHost { CompanionRuntime.recoverHosts() }
+    fun importLegacyHost() = changeHost { CompanionRuntime.importLegacy() }
+
     /** Explicit local recovery never submits a prompt or an interaction reply. */
     fun recoverInputs() = viewModelScope.launch {
         transition.withLock {
@@ -185,8 +213,15 @@ class CompanionViewModel : ViewModel() {
     suspend fun pair(payloadText: String, deviceName: String): Exception? = transition.withLock {
         if (paired && !pairingRequested) return@withLock null
         models.closeAndAwait()
-        CompanionRuntime.pair(payloadText, deviceName).also {
-            if (it == null) publishModels()
+        val priorGeneration = CompanionRuntime.generation
+        try {
+            CompanionRuntime.pair(payloadText, deviceName).also {
+                if (it == null) publishModels()
+            }
+        } finally {
+            if (generation != CompanionRuntime.generation && priorGeneration != CompanionRuntime.generation) {
+                withContext(NonCancellable) { publishModels() }
+            }
         }
     }
 
@@ -211,95 +246,58 @@ class CompanionViewModel : ViewModel() {
  * model streams without closing this process-lifetime transport. */
 object CompanionRuntime {
     private val transition = Mutex()
-    @Volatile var generation: Long = 0
-        private set
-    private val linkTransportConfig = ai.deepseek.dsh.link.LinkTransportConfig(
-        connectTimeoutMillis = 10_000,
-        writeTimeoutMillis = 30_000,
-        unaryReadTimeoutMillis = 30_000,
-        unaryCallTimeoutMillis = 60_000,
-        streamReadTimeoutMillis = 0,
-        streamCallTimeoutMillis = 0,
-    )
-
-    private val nativeConfig = ai.deepseek.dsh.gateway.NativeGatewayConfig(linkTransportConfig, bufferedFramesPerStream = 64)
-
-    /** Fails any pre-pairing call loud. */
-    private class UnpairedWire : WireDriving {
-        override suspend fun call(method: String, args: Map<String, WireValue>): WireValue =
-            throw IllegalStateException("not paired")
-
-        override fun stream(endpoint: String, payload: Map<String, WireValue>): kotlinx.coroutines.flow.Flow<WireValue> =
-            throw IllegalStateException("not paired")
-    }
-
-    private val switchingWire = SwitchableWireDriving(UnpairedWire())
     private val inputScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    @Volatile var inputs: CompanionInputState = CompanionInputState.memory()
+    private val nativeConfig = ai.deepseek.dsh.gateway.NativeGatewayConfig(
+        ai.deepseek.dsh.link.LinkTransportConfig(
+            connectTimeoutMillis = 10_000, writeTimeoutMillis = 30_000,
+            unaryReadTimeoutMillis = 30_000, unaryCallTimeoutMillis = 60_000,
+            streamReadTimeoutMillis = 0, streamCallTimeoutMillis = 0,
+        ), bufferedFramesPerStream = 64,
+    )
+    private var controller: CompanionHostController? = null
+    private val emptyState = kotlinx.coroutines.flow.MutableStateFlow(NativeHostState())
+    private val emptyInputs = CompanionInputState.memory()
+    private val unpairedWire = object : WireDriving {
+        override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = error("not paired")
+        override fun stream(endpoint: String, payload: Map<String, WireValue>): kotlinx.coroutines.flow.Flow<WireValue> = error("not paired")
+    }
+    val hostState: kotlinx.coroutines.flow.StateFlow<NativeHostState> get() = controller?.state ?: emptyState
+    val generation: Long get() = hostState.value.generation
+    val restored: Boolean get() = hostState.value.status == NativeHostStatus.READY
+    val inputs: CompanionInputState get() = controller?.inputs ?: emptyInputs
+    val wire: WireDriving get() = controller?.wire ?: unpairedWire
+    var restoreDirectory: java.io.File? = null
+        private set
+    var legacyImportAvailable by mutableStateOf(false)
+        private set
+    var restoreNeedsPairing by mutableStateOf(false)
         private set
 
-    /** True once a stored identity rebuilt the client at launch or a
-     * pairing succeeded in this process. */
-    @Volatile var restored: Boolean = false
-        private set
-
-    @Volatile var restoreNeedsPairing: Boolean = false
-        private set
-
-    val wire: WireDriving get() = switchingWire
-
-    /** Where the credentials file lives; MainActivity sets it at launch. */
-    @Volatile var restoreDirectory: java.io.File? = null
-
-    /** Rebuild the client from persisted credentials so relaunch skips
-     * pairing; returns true when a usable identity existed. The signing key
-     * opens through the keystore-held AES key. */
+    /** Restore the encrypted catalog once; legacy single-Host credentials require explicit import. */
     suspend fun restore(directory: java.io.File): Boolean = transition.withLock {
         restoreDirectory = directory
-        if (restored) return@withLock true
-        val store = credentialsStore(directory)
-        val staged = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
-        var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
-        var candidateInputs: CompanionInputState? = null
-        try {
-            val credentials = withContext(Dispatchers.IO) { store.load() }
-            if (credentials != null) staged.save(credentials)
-            withContext(Dispatchers.IO) {
-                candidate = ai.deepseek.dsh.gateway.NativeGatewayClient.restore(staged, nativeConfig)
-            }
-            val client = candidate ?: run {
-                restoreNeedsPairing = java.io.File(directory, "link-credentials.json").exists() ||
-                    java.io.File(directory, "native-gateway-credentials.json").exists()
-                return@withLock false
-            }
-            val restoredInputs = restoreInputs(directory, checkNotNull(credentials))
-            candidateInputs = restoredInputs
-            withContext(NonCancellable) {
-                candidate = null
-                switchingWire.replaceAndAwait(client)
-                inputs.retireAndAwait()
-                inputs = restoredInputs
-                candidateInputs = null
-                restored = true
-                generation++
-                restoreNeedsPairing = false
-            }
-            true
-        } catch (_: ai.deepseek.dsh.link.LinkClientException) {
-            restoreNeedsPairing = true
-            false
-        } finally {
-            staged.clear()
-            try { candidate?.closeAndAwait() }
-            finally { candidateInputs?.retireAndAwait() }
-        }
+        val owner = controller ?: CompanionHostController(
+            FileNativeHostStore(java.io.File(directory, "native-hosts.enc"), AndroidKeystoreCipher("dsh-native-hosts"), 1_048_576),
+            { credentials ->
+                val staged = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
+                try {
+                    staged.save(credentials)
+                    checkNotNull(ai.deepseek.dsh.gateway.NativeGatewayClient.restore(staged, nativeConfig))
+                } finally { staged.clear() }
+            },
+            { credentials -> restoreInputs(directory, credentials) },
+        ).also { controller = it }
+        owner.restore()
+        refreshLegacyAvailability(directory)
+        restored
     }
 
-    private fun credentialsStore(directory: java.io.File): ai.deepseek.dsh.link.FileLinkCredentialsStore =
-        ai.deepseek.dsh.link.FileLinkCredentialsStore(
-            java.io.File(directory, "native-gateway-credentials.json"),
-            AndroidKeystoreCipher(),
-        )
+    private fun refreshLegacyAvailability(directory: java.io.File) {
+        legacyImportAvailable = hostState.value.status == NativeHostStatus.EMPTY &&
+            !java.io.File(directory, "native-hosts.enc").exists() && java.io.File(directory, "native-gateway-credentials.json").isFile
+        restoreNeedsPairing = hostState.value.status == NativeHostStatus.EMPTY &&
+            java.io.File(directory, "link-credentials.json").exists()
+    }
 
     private suspend fun restoreInputs(directory: java.io.File, credentials: ai.deepseek.dsh.link.LinkCredentials): CompanionInputState =
         CompanionInputState.restore(FileCompanionInputStore(
@@ -308,43 +306,55 @@ object CompanionRuntime {
             AndroidKeystoreCipher("dsh-native-input"), maxBytes = 1_048_576,
         ), inputScope)
 
-    /** Pair with a scanned payload; returns the failure, or null after adoption. */
+    suspend fun selectHost(key: NativeHostKey) = transition.withLock { checkNotNull(controller).select(key) }
+
+    suspend fun recoverHosts() = transition.withLock {
+        checkNotNull(controller).startFresh()
+        refreshLegacyAvailability(checkNotNull(restoreDirectory))
+    }
+
+    /** Import only the native-format single-Host identity; preserve the original file on every outcome. */
+    suspend fun importLegacy() = transition.withLock {
+        check(legacyImportAvailable)
+        val staged = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
+        var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
+        try {
+            val credentials = withContext(Dispatchers.IO) {
+                ai.deepseek.dsh.link.FileLinkCredentialsStore(
+                    java.io.File(checkNotNull(restoreDirectory), "native-gateway-credentials.json"), AndroidKeystoreCipher(),
+                ).load()
+            } ?: throw NativeHostException()
+            staged.save(credentials)
+            withContext(Dispatchers.IO) { candidate = ai.deepseek.dsh.gateway.NativeGatewayClient.restore(staged, nativeConfig) }
+            val client = candidate ?: throw NativeHostException()
+            candidate = null
+            checkNotNull(controller).remember(credentials, client)
+        } finally {
+            staged.clear()
+            withContext(NonCancellable) { candidate?.closeAndAwait() }
+            refreshLegacyAvailability(checkNotNull(restoreDirectory))
+        }
+    }
+
+    /** Pairing verifies a new grant before the catalog controller takes ownership. */
     suspend fun pair(payloadText: String, deviceName: String): Exception? = transition.withLock {
         var candidate: ai.deepseek.dsh.gateway.NativeGatewayClient? = null
-        var candidateInputs: CompanionInputState? = null
         val staged = ai.deepseek.dsh.link.MemoryLinkCredentialsStore()
         try {
             if (inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) inputs.flush()
             val payload = ai.deepseek.dsh.gateway.NativePairing.parse(payloadText)
-            val directory = restoreDirectory ?: error("no restore directory configured")
-            val store = credentialsStore(directory)
             val client = ai.deepseek.dsh.gateway.NativeGatewayClient.pair(payload, deviceName, staged, nativeConfig)
             candidate = client
             val credentials = checkNotNull(staged.load())
-            val replacementInputs = restoreInputs(directory, credentials)
-            candidateInputs = replacementInputs
-            currentCoroutineContext().ensureActive()
-            // Once the verified identity is durable, adoption completes even if the Activity is replaced.
-            withContext(NonCancellable) {
-                withContext(Dispatchers.IO) { store.save(credentials) }
-                candidate = null
-                switchingWire.replaceAndAwait(client)
-                inputs.retireAndAwait()
-                inputs = replacementInputs
-                candidateInputs = null
-                restored = true
-                restoreNeedsPairing = false
-                generation++
-            }
+            candidate = null
+            checkNotNull(controller).remember(credentials, client)
             null
-        } catch (failure: CancellationException) {
-            throw failure
-        } catch (failure: Exception) {
-            failure
-        } finally {
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { failure }
+        finally {
             staged.clear()
-            try { candidate?.closeAndAwait() }
-            finally { candidateInputs?.retireAndAwait() }
+            withContext(NonCancellable) { candidate?.closeAndAwait() }
+            restoreDirectory?.let(::refreshLegacyAvailability)
         }
     }
 }
@@ -353,7 +363,8 @@ object CompanionRuntime {
 fun CompanionApp(model: CompanionViewModel = viewModel()) {
     var tab by remember(model.generation) { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
-    val active = model.paired && !model.pairingRequested
+    val hosts by CompanionRuntime.hostState.collectAsStateWithLifecycle()
+    val active = model.paired && !model.pairingRequested && !model.switching && hosts.status == NativeHostStatus.READY
     val pushes = model.pushes
     val context = androidx.compose.ui.platform.LocalContext.current
     HostDescriptionObserver(CompanionRuntime.wire, active)
@@ -387,7 +398,10 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             SupportExportAction(model::supportSnapshot)
-            PairingScreen(model)
+            NativeHostControls(model, hosts)
+            if (!model.switching && hosts.status !in setOf(NativeHostStatus.RESTORE_FAILED, NativeHostStatus.RETIREMENT_FAILED)) {
+                PairingScreen(model)
+            }
         }
         return
     }
@@ -407,6 +421,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            NativeHostControls(model, hosts)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Column(Modifier.weight(1f)) { SupportExportAction(model::supportSnapshot) }
                 Button(modifier = Modifier.testTag("native-repair"), onClick = { scope.launch { model.beginPairing() } }) {
@@ -424,6 +439,52 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 else -> SubagentsTab(model)
             }
         }
+    }
+}
+
+@Composable
+private fun NativeHostControls(model: CompanionViewModel, hosts: NativeHostState) {
+    var expanded by remember { mutableStateOf(false) }
+    val busy = model.switching || hosts.status == NativeHostStatus.SWITCHING
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        hosts.selected?.let { selected ->
+            Text(androidx.compose.ui.res.stringResource(R.string.native_host_current, selected.name),
+                Modifier.testTag("native-host-current"), style = MaterialTheme.typography.titleMedium)
+            Text(selected.endpoint, style = MaterialTheme.typography.bodySmall)
+        }
+        if (busy) Text(androidx.compose.ui.res.stringResource(R.string.native_host_switching), Modifier.testTag("native-host-switching"))
+        if (hosts.hosts.size > 1 && !model.pairingRequested) {
+            Button(enabled = !busy && hosts.status == NativeHostStatus.READY, onClick = { expanded = !expanded },
+                modifier = Modifier.testTag("native-host-chooser")) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_host_choose))
+            }
+            if (expanded) Column(Modifier.verticalScroll(rememberScrollState()).heightIn(max = 200.dp)) {
+                hosts.hosts.forEach { host ->
+                    Button(enabled = !busy && host.key != hosts.active && hosts.status == NativeHostStatus.READY,
+                        modifier = Modifier.testTag("native-host-select-${host.key.value}"),
+                        onClick = { expanded = false; model.selectHost(host.key) }) {
+                        Column { Text(host.name); Text(host.endpoint, style = MaterialTheme.typography.bodySmall) }
+                    }
+                }
+            }
+        }
+        if (hosts.status == NativeHostStatus.RESTORE_FAILED) {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_host_restore_failed), Modifier.testTag("native-host-restore-failed"),
+                color = MaterialTheme.colorScheme.error)
+            Button(enabled = !busy, onClick = { model.recoverHosts() }, modifier = Modifier.testTag("native-host-start-fresh")) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_host_start_fresh))
+            }
+        }
+        if (hosts.status == NativeHostStatus.RETIREMENT_FAILED) {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_host_retirement_failed), color = MaterialTheme.colorScheme.error)
+        }
+        if (CompanionRuntime.legacyImportAvailable) {
+            Button(enabled = !busy, onClick = { model.importLegacyHost() }, modifier = Modifier.testTag("native-host-import")) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_host_import))
+            }
+        }
+        if (model.hostOperationFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_host_operation_failed),
+            Modifier.testTag("native-host-operation-failed"), color = MaterialTheme.colorScheme.error)
     }
 }
 
@@ -526,7 +587,7 @@ fun SessionsTab(model: CompanionViewModel) {
             is SessionListState.Failed -> Text(sessionListFailureText(state),
                 Modifier.testTag("session-list-error").padding(16.dp), color = MaterialTheme.colorScheme.error)
         }
-        LazyColumn(Modifier.weight(1f)) {
+        LazyColumn(Modifier.weight(1f).testTag("session-rows")) {
             if (open == null) {
                 items(sessions) { row ->
                     RaisedCard {
