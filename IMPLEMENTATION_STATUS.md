@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 输入保留与显式提交生命周期（§13、§17、§18、§67）
+
+[当前来源记录](artifacts/upstream-first/android-input-retention-source.json)将 Session 草稿与 Question 输入交给连接模型持有。未改动 prompt 的显式重试沿用 requestId，只有明确成功确认才清除提交版本；迟到确认不会覆盖请求期间的新编辑。交互标识和修订号隔离答案，取消、关闭快照或新修订移除过期输入；重新配对不会采纳另一身份的输入。
+
+234 项 core 测试通过。真实 Android 用例复现了清除失败提示导致回复协程被界面作用域取消；显式提交改由模型作用域持有，卡片使用稳定键，连接模型退役仍会取消并等待请求退出。修复后的真实 Host 用例验证切页、Activity 重建、失败回复和显式重试，只结算一次 Question；失败发送保留输入并显示未确认提示，恢复传输没有自动发送。另两项 JVM/Android 回归验证文件分页、重新配对、凭据跨进程恢复和撤销。截图已目视核对，Host 类型、lint、文档 17/17 与 36/36、逐节追踪通过。
+
+本轮输入仍只由模型持有，跨进程输入持久化、未确认请求身份恢复及 last Session 恢复尚未完成。契约单元套件未重新执行；凭据进程重启回归不能当作草稿重启恢复证据。跨 Host、工件/Handoff、推送、原生诊断、Swift、物理设备与发布资格仍开放，completeRc 为 false。
+
 ## Android Session 列表恢复与持久化乱序准入（§13、§21、§70、§71）
 
-[当前来源记录](artifacts/upstream-first/android-session-list-source.json)将 Android Session 列表读取建模为封闭状态。显式读取串行执行，取消返回空闲并传播取消；失败保留已有列表、固定诊断分类及完整 Gateway 拒绝。页面显示加载、空列表和失败提示，提供显式刷新/重试；未打开 Session 时禁用发送与停止。
+[历史来源记录](artifacts/upstream-first/android-session-list-source.json)将 Android Session 列表读取建模为封闭状态。显式读取串行执行，取消返回空闲并传播取消；失败保留已有列表、固定诊断分类及完整 Gateway 拒绝。页面显示加载、空列表和失败提示，提供显式刷新/重试；未打开 Session 时禁用发送与停止。
 
 225 项 core 测试、9 项 contract 测试及 547 项设备准入/Gateway/协议测试通过，涵盖取消清理、排队顺序、拒绝保留、不自动重试和持久化防重放。七项真实 Host 回放通过；新增场景移除自己的 Host 端口转发，验证可见传输失败，恢复连接并手动重试后列表恢复，再验证真实设备撤销拒绝。两种失败截图已经目视核对。Host 类型、lint、文档 17/17 与 36/36、逐节追踪通过。
 

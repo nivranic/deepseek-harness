@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-input-retention-source.json",
+    "sha256": "a247b176a3f9dd48c8bfbc04163770193dc2e3d24cd4dfff74bd1d4aba0b5d0a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f22335ae14371eecd96d5f2ccdcfe492fa1d0b06c627fbc9de6da17b13cc5308"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-input-retention-binding.mjs",
+    "sha256": "70f2b209136fb1ac2800f2d06a09d37d644d6334666e8f065bfe1515215cb89a"
+  }
+}

@@ -32,10 +32,13 @@ Android credential decryption only reads an existing Keystore key. Creating a ke
 
 Session-list reads expose a closed state type. Explicit reads serialize through model-owned request lifetime, cancellation returns to idle, and failures retain their fixed category and original Gateway envelope. The UI keeps previously loaded rows while presenting the failure and an explicit retry control; replacing the paired identity still creates fresh models. Diagnostics use the typed category without copying exception messages into test output. A list failure cannot trigger a business mutation or enable the composer without an open Session.
 
+Android input belongs to the connection's models instead of a tab's Compose state. Session keys separate drafts, while interaction identity and revision separate Question answers. A prompt request id follows one draft intent through explicit retries; a positive acknowledgement clears only that version, preserving edits made while the request was pending. Failed or cancelled requests retain input. Host cancellation, a closed-interaction snapshot, or a newer revision removes obsolete answers. Re-pairing creates fresh models and cannot adopt another identity's input. Explicit submissions run in model scope and interaction cards use stable keys, so error-message recomposition and tab disposal cannot cancel acknowledgement waits; model retirement still cancels and drains requests. This ownership covers UI replacement and Activity recreation; process-death persistence remains open.
+
 ## Alternatives considered
 
 - **Allow Mobile through local Web cookies or relaxed Origin checks.** Rejected: that changes local browser authority and does not authenticate a device key.
 - **Restore the retired Link server.** Rejected: the existing Gateway already owns argument validation, permissions, streams, and replies.
+- **Clear input on click or keep it only in a composable.** Rejected: a lost acknowledgement or tab disposal would lose user input. Automatic mutation retry would also hide an ambiguous outcome; explicit retry preserves the prompt's Host deduplication id.
 - **Generate ASN.1 by hand or require an OpenSSL executable.** Rejected: a maintained JavaScript library provides certificate generation across the supported Node hosts without a second platform installation requirement.
 - **Use a public-CA hostname as the sole Host identity.** Rejected for local native pairing: deployment addresses can change, while the established native pin model identifies the Host's key. TLS still encrypts traffic; the pin authenticates its peer.
 

@@ -1,4 +1,5 @@
 <resources>
+    <string name="native_prompt_failed">发送未确认，输入已保留。可在恢复连接后显式重试。</string>
     <string name="native_sessions_refresh">刷新</string>
     <string name="native_sessions_retry">重试</string>
     <string name="native_sessions_loading">正在加载会话…</string>

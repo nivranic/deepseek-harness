@@ -35,17 +35,39 @@ class InteractionModel(
     val clientId: StateFlow<String> = _clientId
     private val _lastRefusal = MutableStateFlow<String?>(null)
     val lastRefusal: StateFlow<String?> = _lastRefusal
+    private val _replyFailure = MutableStateFlow<InteractionReplyFailure?>(null)
+    val replyFailure: StateFlow<InteractionReplyFailure?> = _replyFailure
     private val _streamFailure = MutableStateFlow<String?>(null)
     val streamFailure: StateFlow<String?> = _streamFailure
+    private val _drafts = MutableStateFlow<Map<QuestionDraftKey, List<CompanionQuestionAnswer>>>(emptyMap())
+    val drafts: StateFlow<Map<QuestionDraftKey, List<CompanionQuestionAnswer>>> = _drafts
     private val answerLock = Mutex()
     private val watchOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = watchOwner.connectionSnapshot
+
+    /** Edit one answer without dispatching it; stale cards cannot recreate retired input. */
+    fun updateAnswer(pending: PendingInteraction, answer: CompanionQuestionAnswer) {
+        if (_inbox.value.none { it.questionDraftKey == pending.questionDraftKey }) return
+        require(pending.kind == PendingInteraction.Kind.QUESTION && pending.questions.any { it.id == answer.id })
+        _drafts.update { drafts ->
+            val previous = drafts[pending.questionDraftKey].orEmpty()
+            drafts + (pending.questionDraftKey to (previous.filterNot { it.id == answer.id } + answer))
+        }
+    }
 
     fun startWatching() = watchOwner.replaceAsync(create = { generation -> watch(generation) },
         publish = { _clientId.value = ""; _streamFailure.value = null }, invalidate = { _clientId.value = "" })
 
     fun stopWatching() { watchOwner.stop { _clientId.value = "" } }
     suspend fun stopWatchingAndAwait() { watchOwner.stopAndAwait { _clientId.value = "" } }
+
+    /** UI disposal does not cancel a reply; retiring the connection's model set still does. */
+    fun submitQuestions(pending: PendingInteraction, answers: List<CompanionQuestionAnswer>): Job =
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { answerQuestions(pending, answers) }
+
+    /** Start one explicit approval in the same lifetime as the other connection-owned mutations. */
+    fun submitApproval(pending: PendingInteraction, allowedOnce: Boolean): Job =
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { answer(pending, allowedOnce) }
 
     private fun watch(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
         while (isActive && watchOwner.isCurrent(generation)) {
@@ -80,12 +102,14 @@ class InteractionModel(
                 val client = string(frame, "clientId")
                 val pending = strings(WireShape.array(frame, "pendingInteractionIds") ?: invalid("pending interactions"))
                 _inbox.update { cards -> cards.filter { it.id in pending } }
+                _drafts.update { drafts -> drafts.filterKeys { it.interactionId in pending } }
                 _clientId.value = client
                 return
             }
             "cancel" -> {
                 val id = WireShape.string(frame, "eventId") ?: return
                 _inbox.update { cards -> cards.filterNot { it.id == id } }
+                _drafts.update { drafts -> drafts.filterKeys { it.interactionId != id } }
                 return
             }
             "waterfall" -> Unit
@@ -117,6 +141,7 @@ class InteractionModel(
             if (cards.any { it.id == id && it.revision == pending.revision }) cards
             else cards.filterNot { it.id == id } + pending
         }
+        _drafts.update { drafts -> drafts.filterKeys { it.interactionId != id || it == pending.questionDraftKey } }
     }
 
     /** A boolean approval never substitutes for structured Question answers. */
@@ -143,6 +168,9 @@ class InteractionModel(
                 if (custom != null) put("custom", WireValue.StringValue(custom))
             })
         }
+        if (_inbox.value.any { it.questionDraftKey == pending.questionDraftKey }) {
+            _drafts.update { it + (pending.questionDraftKey to answers.map { answer -> answer.copy(selected = answer.selected.toList()) }) }
+        }
         submit(pending, WireValue.ObjectValue(mapOf("answers" to WireValue.ArrayValue(encoded))))
     }
 
@@ -150,6 +178,7 @@ class InteractionModel(
         if (!answerLock.tryLock()) return
         _answering.value = true
         _lastRefusal.value = null
+        _replyFailure.value = null
         try {
             val client = _clientId.value
             if (client.isEmpty()) { _lastRefusal.value = "Remote Event stream is not ready."; return }
@@ -161,8 +190,16 @@ class InteractionModel(
                 "eventId" to WireValue.StringValue(pending.id), "interactionRevision" to WireValue.NumberValue(pending.revision.toDouble()),
                 "outcome" to WireValue.ObjectValue(mapOf("kind" to WireValue.StringValue("result"), "value" to value))))
             _inbox.update { cards -> cards.filterNot { it.id == pending.id && it.revision == pending.revision } }
-        } catch (error: CancellationException) { throw error }
-        catch (error: Exception) { _lastRefusal.value = observationFailureText(error) }
+            _drafts.update { it - pending.questionDraftKey }
+        } catch (error: CancellationException) {
+            _replyFailure.value = InteractionReplyFailure(ConnectionFailure.CANCELLED, null)
+            throw error
+        }
+        catch (error: Exception) {
+            _replyFailure.value = InteractionReplyFailure(ConnectionFailure.from(error),
+                (error as? LinkClientException.Refused)?.let(GatewayFailureEnvelope::from))
+            _lastRefusal.value = observationFailureText(error)
+        }
         finally { _answering.value = false; answerLock.unlock() }
     }
 

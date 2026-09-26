@@ -2198,9 +2198,12 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
+        "apps/web/tests/android-input-retention.e2e.ts"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。跨进程输入持久化及 last Session 恢复仍待完成，本节不因此取得完整 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2561,9 +2564,12 @@
         "artifacts/upstream-first/cancel-target-source.json",
         "artifacts/upstream-first/rename-revision-source.json",
         "artifacts/upstream-first/subagent-prompt-idempotency-source.json",
-        "artifacts/upstream-first/subagent-interrupt-target-source.json"
+        "artifacts/upstream-first/subagent-interrupt-target-source.json",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
+        "apps/web/tests/android-input-retention.e2e.ts"
       ],
-      "remaining": "clientMutationId 是建议字段。普通与子 Agent Prompt 复用既有 requestId；交互、普通 Session 按轮次取消、子 Agent 按轮次中断和条件重命名分别有定向证据。旧 cancel/interrupt 接口、模型发起的祖先中断、设备撤销、handoff 及其他写操作仍需按各自语义核验；不声明全局持久化回执或整节完成。",
+      "remaining": "clientMutationId 是建议字段。普通与子 Agent Prompt 复用既有 requestId；交互、普通 Session 按轮次取消、子 Agent 按轮次中断和条件重命名分别有定向证据。旧 cancel/interrupt 接口、模型发起的祖先中断、设备撤销、handoff 及其他写操作仍需按各自语义核验；不声明全局持久化回执或整节完成。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。跨进程输入持久化及 last Session 恢复仍待完成，本节不因此取得完整 PASS。",
       "evidenceLimit": "本节已开始按操作审查。各来源记录分别限定持久化、重试、恢复和实机证据；候选证据不授予整节 PASS。"
     },
     {
@@ -2664,9 +2670,12 @@
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
         "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "packages/client/connection"
+        "packages/client/connection",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
+        "apps/web/tests/android-input-retention.e2e.ts"
       ],
-      "remaining": "规格的十个状态全部落地并有对应 UX，变更身份确认为第十一个状态收口：connecting/authenticating/ready/offline/reconnecting/host-not-ready/auth-expired/device-revoked/identity-changed/incompatible/fatal（packages/client/connection/src/client/connection.ts；device-revoked 与 identity-changed 由网关 client 的 classifyFailure 映射 device/already-revoked 与 device/not-found+device/key-invalid（本次修复了 device-revoked 此前无生产方分类器、状态不可达的缺陷）；SettingsRoot 以 locale 键呈现两类重配对指引并暂停自动重试，§15/§21 的签名准入提供触发源）。完整多版本/多语言矩阵与闭合错误语义仍待验证。",
+      "remaining": "规格的十个状态全部落地并有对应 UX，变更身份确认为第十一个状态收口：connecting/authenticating/ready/offline/reconnecting/host-not-ready/auth-expired/device-revoked/identity-changed/incompatible/fatal（packages/client/connection/src/client/connection.ts；device-revoked 与 identity-changed 由网关 client 的 classifyFailure 映射 device/already-revoked 与 device/not-found+device/key-invalid（本次修复了 device-revoked 此前无生产方分类器、状态不可达的缺陷）；SettingsRoot 以 locale 键呈现两类重配对指引并暂停自动重试，§15/§21 的签名准入提供触发源）。完整多版本/多语言矩阵与闭合错误语义仍待验证。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。跨进程输入持久化及 last Session 恢复仍待完成，本节不因此取得完整 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -7790,9 +7799,12 @@
       "owner": "Interaction、Session 与恢复",
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
-        "docs/defensive-patterns.md"
+        "docs/defensive-patterns.md",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
+        "apps/web/tests/android-input-retention.e2e.ts"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
+      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。跨进程输入持久化及 last Session 恢复仍待完成，本节不因此取得完整 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

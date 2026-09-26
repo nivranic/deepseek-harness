@@ -249,10 +249,11 @@ class CompanionModelTest {
     @Test
     fun sendCarriesTheRequestEnvelopeAndImages() = runTest {
         val wire = FakeWire()
+        wire.stub("session/prompt") { wire("""{"accepted":true}""") }
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
         model.openSession("s9")
         wire.emit(wire("""{"type":"snapshot","cursor":0,"records":[]}"""))
-        model.send(text = "看这张截图", images = listOf("iVBORw0KGgo=" to "image/png"))
+        assertTrue(model.send(text = "看这张截图", images = listOf("iVBORw0KGgo=" to "image/png")))
         val call = wire.calls.first { it.first == "session/prompt" }
         val request = (call.second["request"] as WireValue.ObjectValue).entries
         assertEquals("s9", (request["sessionId"] as WireValue.StringValue).value)

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android input retention and model-owned explicit submissions; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-input-retention-source.json",
+    "sha256": "a247b176a3f9dd48c8bfbc04163770193dc2e3d24cd4dfff74bd1d4aba0b5d0a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f22335ae14371eecd96d5f2ccdcfe492fa1d0b06c627fbc9de6da17b13cc5308"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-input-retention-binding.json",
+    "sha256": "11d0a54ee780eaa20048d0c2eb765fb3730aedb73808cba6a5646218c0cda217"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-input-retention-reports.mjs",
+      "sha256": "50dc4f9db69ee825e49db5bdeba90ef3a791a731416ba4a482cd44b534baccfd"
+    },
+    {
+      "path": ".artifacts/capture-android-input-retention-validation.mjs",
+      "sha256": "367f0cb3fd2d89cfb2d6738fc6f0922298af0bcc6318d16a34e9936824903c8e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "49f4d6415397b60022ef61a96b9c04f8451ccd429b0b549b177f5cf4016b53eb"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "951cbd87e9ad38d018d01fb51f972aff0fdeda3e6199d654831b554c3759cfd2"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-input-retention-binding.log",
+      "sha256": "4d79c417ace9dec7fea2ff1321787e65e0316418b4be7c717181170a17ec978a"
+    },
+    {
+      "path": ".artifacts/android-input-retention-audit-tests.log",
+      "sha256": "0aa4d6846564e0835cdf310f51d29b821c1309becd6ed7ee782724f34da9aa58"
+    },
+    {
+      "path": ".artifacts/android-input-retention-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-input-retention-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-input-retention-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

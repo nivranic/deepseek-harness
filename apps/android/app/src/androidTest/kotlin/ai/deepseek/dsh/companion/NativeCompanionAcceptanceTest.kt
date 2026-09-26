@@ -89,6 +89,64 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithText("提交回答").performScrollTo().performClick()
                                 compose.waitUntil(20_000) { compose.onAllNodesWithText("提交回答").fetchSemanticsNodes(false).isEmpty() }
                             }
+                            "fillQuestionDraft" -> {
+                                waitFor(hasText("Blue"))
+                                compose.onNodeWithText("Blue").performScrollTo().performClick()
+                                compose.onNodeWithText("自定义回答").performScrollTo().performTextInput(command.getValue("custom").jsonPrimitive.content)
+                            }
+                            "assertQuestionDraft" -> {
+                                compose.onNodeWithTag("native-tab-1").performClick()
+                                waitFor(hasText("Blue"))
+                                compose.onNodeWithText("Blue").performScrollTo().assertIsOn()
+                                compose.onNodeWithText("自定义回答").performScrollTo().assertTextContains(command.getValue("custom").jsonPrimitive.content)
+                                waitFor(hasText("提交回答") and isEnabled())
+                            }
+                            "submitQuestionDraft" -> {
+                                compose.onNodeWithText("提交回答").performScrollTo().performClick()
+                                try {
+                                    compose.waitUntil(20_000) { compose.onAllNodesWithText("提交回答").fetchSemanticsNodes(false).isEmpty() }
+                                } finally {
+                                    val model = companionModel().interactions
+                                    val failure = model.replyFailure.value
+                                    stage = when (failure?.refusal?.code) {
+                                        "interaction-closed" -> "reply-interaction-closed"
+                                        "revision-conflict" -> "reply-revision-conflict"
+                                        "gateway/input-invalid" -> "reply-input-invalid"
+                                        "gateway/permission-denied" -> "reply-permission-denied"
+                                        "device/replay-detected" -> "reply-proof-replayed"
+                                        else -> when {
+                                            failure != null -> "reply-" + failure.category.wire
+                                            model.answering.value -> "reply-pending"
+                                            model.clientId.value.isEmpty() -> "reply-no-client"
+                                            model.inbox.value.isEmpty() -> "reply-completed"
+                                            model.lastRefusal.value != null -> "reply-local-refusal"
+                                            else -> "reply-unsettled"
+                                        }
+                                    }
+                                }
+                            }
+                            "failQuestionDraft" -> {
+                                compose.onNodeWithText("提交回答").performScrollTo().performClick()
+                                val model = companionModel().interactions
+                                compose.waitUntil(30_000) { model.lastRefusal.value != null && !model.answering.value }
+                                compose.onNodeWithText("提交回答").assertExists()
+                                compose.onNodeWithText("自定义回答").performScrollTo().assertTextContains(command.getValue("custom").jsonPrimitive.content)
+                            }
+                            "switchSessionTab" -> compose.onNodeWithTag("native-tab-0").performClick()
+                            "fillPromptDraft" -> {
+                                compose.onNodeWithTag("session-draft").performTextInput(command.getValue("text").jsonPrimitive.content)
+                            }
+                            "assertPromptDraft" -> {
+                                compose.onNodeWithTag("native-tab-0").performClick()
+                                waitFor(hasTestTag("session-draft"))
+                                compose.onNodeWithTag("session-draft").assertTextContains(command.getValue("text").jsonPrimitive.content)
+                            }
+                            "failPromptDraft" -> {
+                                compose.onNodeWithText("发送").performClick()
+                                waitFor(hasTestTag("session-send-error"))
+                                compose.onNodeWithTag("session-send-error").assertIsDisplayed()
+                                compose.onNodeWithTag("session-draft").assertTextContains(command.getValue("text").jsonPrimitive.content)
+                            }
                             "observeSession" -> {
                                 stage = "session-navigation"
                                 compose.onNodeWithTag("native-tab-0").performClick()

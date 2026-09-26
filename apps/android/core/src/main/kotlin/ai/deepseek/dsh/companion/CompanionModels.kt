@@ -237,6 +237,36 @@ class SessionModel(
     private val _open = MutableStateFlow<OpenSession?>(null)
     val open: StateFlow<OpenSession?> = _open
 
+    private val _drafts = MutableStateFlow<Map<String, SessionDraft>>(emptyMap())
+    val drafts: StateFlow<Map<String, SessionDraft>> = _drafts
+    private val _sendFailure = MutableStateFlow<PromptSubmissionFailure?>(null)
+    val sendFailure: StateFlow<PromptSubmissionFailure?> = _sendFailure
+    private val sendLock = Mutex()
+
+    /** Keep each Session's text independently; an unchanged retry reuses its request id. */
+    fun updateDraft(sessionId: String, text: String) {
+        _drafts.update { current ->
+            when {
+                text.isEmpty() -> current - sessionId
+                current[sessionId]?.text == text -> current
+                else -> current + (sessionId to SessionDraft(text, "companion-${java.util.UUID.randomUUID()}"))
+            }
+        }
+        if (_sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
+    }
+
+    /** Only a positive Host acknowledgement clears the exact submitted draft; newer edits survive. */
+    suspend fun sendDraft(): Boolean {
+        val sessionId = _open.value?.sessionId ?: return false
+        val draft = _drafts.value[sessionId] ?: return false
+        val accepted = submitPrompt(sessionId, draft.text, emptyList(), draft.requestId)
+        if (accepted) _drafts.update { current -> if (current[sessionId] == draft) current - sessionId else current }
+        return accepted
+    }
+
+    /** Start an explicit UI submission in model lifetime so tab disposal cannot cancel its acknowledgement. */
+    fun submitDraft(): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) { sendDraft() }
+
     private val _sending = MutableStateFlow(false)
     val sending: StateFlow<Boolean> = _sending
 
@@ -380,12 +410,19 @@ class SessionModel(
         )
     }
 
-    /** Submit one user prompt in queue mode; the host promotes any inline
-     * image bytes to durable references during admission. */
-    suspend fun send(text: String, images: List<Pair<String, String>> = emptyList()) {
-        val session = _open.value ?: return
-        if (text.isEmpty() && images.isEmpty()) return
+    /** Submit a new user intent in queue mode; the Host promotes inline image bytes to durable references.
+     * Returns true only after a positive acknowledgement; failures remain in [sendFailure].
+     * UI retries use [sendDraft] to retain the existing request identity.
+     */
+    suspend fun send(text: String, images: List<Pair<String, String>> = emptyList()): Boolean {
+        val session = _open.value ?: return false
+        return submitPrompt(session.sessionId, text, images, "companion-${java.util.UUID.randomUUID()}")
+    }
+
+    private suspend fun submitPrompt(sessionId: String, text: String, images: List<Pair<String, String>>, requestId: String): Boolean {
+        if ((text.isEmpty() && images.isEmpty()) || !sendLock.tryLock()) return false
         _sending.value = true
+        _sendFailure.value = null
         try {
             val content = buildList {
                 add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("text"), "text" to WireValue.StringValue(text))))
@@ -401,21 +438,32 @@ class SessionModel(
                     )
                 }
             }
-            wire.call(
+            val acknowledgement = wire.call(
                 "session/prompt",
                 mapOf(
                     "request" to WireValue.ObjectValue(
                         mapOf(
-                            "requestId" to WireValue.StringValue("companion-${java.util.UUID.randomUUID()}"),
-                            "sessionId" to WireValue.StringValue(session.sessionId),
+                            "requestId" to WireValue.StringValue(requestId),
+                            "sessionId" to WireValue.StringValue(sessionId),
                             "mode" to WireValue.StringValue("queue"),
                             "content" to WireValue.ArrayValue(content),
                         ),
                     ),
                 ),
             )
+            if (WireShape.boolean(acknowledgement, "accepted") != true) {
+                throw ai.deepseek.dsh.link.LinkClientException.BadWire("invalid prompt acknowledgement")
+            }
+            return true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            _sendFailure.value = PromptSubmissionFailure(sessionId, ConnectionFailure.from(failure),
+                (failure as? ai.deepseek.dsh.link.LinkClientException.Refused)?.let(GatewayFailureEnvelope::from))
+            return false
         } finally {
             _sending.value = false
+            sendLock.unlock()
         }
     }
 

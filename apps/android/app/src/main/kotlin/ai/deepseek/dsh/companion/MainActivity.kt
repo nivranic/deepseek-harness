@@ -405,10 +405,12 @@ fun PairingScreen(model: CompanionViewModel) {
 @Composable
 fun SessionsTab(model: CompanionViewModel) {
     val scope = rememberCoroutineScope()
-    var draft by remember { mutableStateOf("") }
     val sessions by model.session.sessions.collectAsStateWithLifecycle()
     val listState by model.session.listState.collectAsStateWithLifecycle()
     val open by model.session.open.collectAsStateWithLifecycle()
+    val drafts by model.session.drafts.collectAsStateWithLifecycle()
+    val sendFailure by model.session.sendFailure.collectAsStateWithLifecycle()
+    val draft = open?.sessionId?.let { drafts[it]?.text }.orEmpty()
     val sending by model.session.sending.collectAsStateWithLifecycle()
     LaunchedEffect(model.paired) { model.session.loadSessions() }
     Column(Modifier.fillMaxSize()) {
@@ -451,13 +453,16 @@ fun SessionsTab(model: CompanionViewModel) {
                 }
             }
         }
+        sendFailure?.takeIf { it.sessionId == open?.sessionId }?.let { failure ->
+            val detail = failure.refusal?.let { GatewayFailurePresenter.present(it).text }
+                ?: androidx.compose.ui.res.stringResource(R.string.native_prompt_failed)
+            Text(detail, Modifier.testTag("session-send-error").padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
+        }
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(value = draft, onValueChange = { draft = it }, label = { Text("发消息给宿主…") },
-                enabled = open != null, modifier = Modifier.weight(1f))
+            OutlinedTextField(value = draft, onValueChange = { text -> open?.sessionId?.let { model.session.updateDraft(it, text) } },
+                label = { Text("发消息给宿主…") }, enabled = open != null, modifier = Modifier.weight(1f).testTag("session-draft"))
             Button(onClick = {
-                val text = draft
-                draft = ""
-                scope.launch { model.session.send(text) }
+                model.session.submitDraft()
             }, enabled = open != null && draft.isNotEmpty() && !sending) { Text("发送") }
             Button(enabled = open != null, onClick = { scope.launch { model.session.cancelActive() } }) { Text("停止") }
         }
@@ -478,7 +483,6 @@ private fun sessionListFailureText(failure: SessionListState.Failed): String {
 @Composable
 fun ApprovalsTab(model: CompanionViewModel) {
     LaunchedEffect(model.paired) { model.interactions.startWatching() }
-    val scope = rememberCoroutineScope()
     val inbox by model.interactions.inbox.collectAsStateWithLifecycle()
     val streamFailure by model.interactions.streamFailure.collectAsStateWithLifecycle()
     val lastRefusal by model.interactions.lastRefusal.collectAsStateWithLifecycle()
@@ -494,14 +498,14 @@ fun ApprovalsTab(model: CompanionViewModel) {
             }
         } }
         lastRefusal?.let { message -> item { Text(message, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-        items(inbox) { pending ->
+        items(inbox, key = { it.id }) { pending ->
             RaisedCard {
                 Text(pending.title, style = MaterialTheme.typography.bodyLarge)
                 if (pending.detail.isNotEmpty()) Text(pending.detail, style = MaterialTheme.typography.bodySmall)
                 if (pending.kind == PendingInteraction.Kind.APPROVAL) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(enabled = !answering && clientId.isNotEmpty(), onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = true) } }) { Text("允许一次") }
-                        Button(enabled = !answering && clientId.isNotEmpty(), onClick = { scope.launch { model.interactions.answer(pending, allowedOnce = false) } }) { Text("拒绝") }
+                        Button(enabled = !answering && clientId.isNotEmpty(), onClick = { model.interactions.submitApproval(pending, allowedOnce = true) }) { Text("允许一次") }
+                        Button(enabled = !answering && clientId.isNotEmpty(), onClick = { model.interactions.submitApproval(pending, allowedOnce = false) }) { Text("拒绝") }
                     }
                 } else QuestionAnswers(pending, model.interactions)
             }
@@ -511,21 +515,20 @@ fun ApprovalsTab(model: CompanionViewModel) {
 
 @Composable
 private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel) {
-    val scope = rememberCoroutineScope()
     val answering by model.answering.collectAsStateWithLifecycle()
     val clientId by model.clientId.collectAsStateWithLifecycle()
-    var selections by remember(pending.id, pending.revision) { mutableStateOf<Map<String, List<String>>>(emptyMap()) }
-    var custom by remember(pending.id, pending.revision) { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val drafts by model.drafts.collectAsStateWithLifecycle()
+    val answers = drafts[pending.questionDraftKey].orEmpty().associateBy { it.id }
     for (question in pending.questions) {
+        val answer = answers[question.id] ?: CompanionQuestionAnswer(question.id, emptyList())
         Text(question.question, style = MaterialTheme.typography.titleSmall)
         question.detail?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         for (option in question.options) {
-            val selected = option.label in selections[question.id].orEmpty()
+            val selected = option.label in answer.selected
             val choose = {
-                val previous = selections[question.id].orEmpty()
-                selections = selections + (question.id to if (question.multiSelect)
-                    (if (selected) previous - option.label else previous + option.label) else listOf(option.label))
-                if (!question.multiSelect) custom = custom - question.id
+                val selectedLabels = if (question.multiSelect)
+                    (if (selected) answer.selected - option.label else answer.selected + option.label) else listOf(option.label)
+                model.updateAnswer(pending, answer.copy(selected = selectedLabels, custom = if (question.multiSelect) answer.custom else null))
             }
             val choiceModifier = if (question.multiSelect)
                 Modifier.toggleable(value = selected, role = Role.Checkbox, onValueChange = { choose() })
@@ -539,17 +542,19 @@ private fun QuestionAnswers(pending: PendingInteraction, model: InteractionModel
                 }
             }
         }
-        OutlinedTextField(value = custom[question.id].orEmpty(), onValueChange = { value ->
-            custom = custom + (question.id to value)
-            if (!question.multiSelect && value.isNotBlank()) selections = selections - question.id
+        OutlinedTextField(value = answer.custom.orEmpty(), onValueChange = { value ->
+            model.updateAnswer(pending, answer.copy(custom = value,
+                selected = if (!question.multiSelect && value.isNotBlank()) emptyList() else answer.selected))
         }, label = { Text(androidx.compose.ui.res.stringResource(R.string.native_answer_custom)) }, modifier = Modifier.fillMaxWidth())
     }
-    Button(enabled = !answering && clientId.isNotEmpty() && pending.questions.all { selections[it.id].orEmpty().isNotEmpty() || !custom[it.id].isNullOrBlank() },
-        onClick = { scope.launch {
-            model.answerQuestions(pending, pending.questions.map {
-                CompanionQuestionAnswer(it.id, selections[it.id].orEmpty(), custom[it.id])
+    Button(enabled = !answering && clientId.isNotEmpty() && pending.questions.all {
+        answers[it.id]?.let { answer -> answer.selected.isNotEmpty() || !answer.custom.isNullOrBlank() } == true
+    },
+        onClick = {
+            model.submitQuestions(pending, pending.questions.map {
+                answers.getValue(it.id)
             })
-        } }) { Text(androidx.compose.ui.res.stringResource(R.string.native_answer_submit)) }
+        }) { Text(androidx.compose.ui.res.stringResource(R.string.native_answer_submit)) }
 }
 
 @Composable
