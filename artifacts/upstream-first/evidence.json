@@ -4,78 +4,98 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
+      "path": ".agents/notes/implemented/architecture/2026-09-26-android-native-view-location.i18n.yaml",
+      "sha256": "3251b9f737222000face3ad2c28eea599fbb0400460bad87aa726004aa58faf8"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-26-android-native-view-location.md",
+      "sha256": "05eea9035d15794ed42d3454099a00144aebedd1ff54876a960cf380891fa6a0"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-26-android-native-view-location.zh.md",
+      "sha256": "62cae7773896ba843230e097b937cfa643cf16eae91013b23c654d8d82531df1"
+    },
+    {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "ad8f2799c672320b3eeae400180f748cf84523f0c0bdc8b98a1ec15daebeb8d4"
+      "sha256": "3df540fd52aa65c2335ba74bf0b25fc8b5c976c8041728f65a3cddea5ed23b2d"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "4b62a4fec6af02288854b491d36b09dd463de328bb716b6d5030e37deb382416"
+      "sha256": "71e1e6a5ad8855d6dc46ebcbcd9f21083b121b6e75f7f5d017bcbf5f287fee59"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "8a862c2c88878121004b7b2bbad71bb521ac716a1730c1d6d03223987fb960d1"
+      "sha256": "a4e8252e15200cdaadad1b3717aa049bb59fcafb91ce414ce1ca2db1aa410118"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "1a54ac6f5eb45d9a396ab2d83a99adebda8e1a1c1e7b264a92d802f5a4ffce8e"
+      "sha256": "b0ac3d708990bfe92274d47c607eea70b051714f469aa7271e3c1c21d93be668"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "d871f2ba400e9d70ba28ebbbedb01589e5e48febe982309a2f4e6910933e7020"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "a909a17386aa858d6ca9c74af337faa6345c5be8f5cc44ee711300d02c8521ac"
-    },
-    {
-      "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "0d5f56475cc260f30bc6318b153cda89ee5a7c031cbbb414f823f2c6de865673"
+      "sha256": "13d4cc514b05946e01ca4e1f887518f76b6a4b1ac24b9cfe53389dbcc044563f"
     },
     {
       "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-      "sha256": "ec0dc99d307e8deab3d0d18ce467f64886051353fb0658bd4607c2cfa4d8982f"
+      "sha256": "52069d225753b09cef4ca5300faef5bfcb255e13c826276eb17e3f637f6f7b09"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeSessionJournal.kt",
+      "sha256": "fe4aa62961c32f3afb3c3b8111f8dbd933938bcbf04063da8f88fc84ab363570"
     },
     {
       "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/ArtifactFoldTest.kt",
-      "sha256": "440518876e6e574edc5cdf30a4ca4a0715d6d5c19df17741d042112eee76cd04"
+      "sha256": "9e8cbf1a4c34e567567bb0555897ac2c28246d4abd4ae0fbec16278f830fab3f"
     },
     {
       "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputPersistenceTest.kt",
-      "sha256": "64210143adb6ed01e866708b7b7894c1b67e9fe7a55ab6f5c6d38ff15c5030ed"
+      "sha256": "3ce058a51054d550c837259b06aee6eb2337f645641497bd3146bc98443710ac"
     },
     {
       "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelTest.kt",
-      "sha256": "c24b074a84c44ed3ed94c8530904e0e7e8ec2b0b6645214375746f094a2cfa11"
+      "sha256": "2eb62b615c103c8ca41dccec3abbd6e5da3039dc5c85b35ae52e8bfede5b6676"
     },
     {
       "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/ConnectionDiagnosticsTest.kt",
-      "sha256": "8a0613d58f66856197422e77f17c7d546efc040425d664db168d7aeb2ea6c1ca"
+      "sha256": "3ccf74c17dd83c64cf1d57a6a42ec6f32c2572b3550c3f9355692058ec7a4ba9"
     },
     {
       "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/FileChangeTest.kt",
-      "sha256": "7573a91df73d1d0f252edc3ce88f91a16ac14296ca9789ebcb27fd71afcc2e77"
+      "sha256": "87623907530119ff9e9adc2f25d013e37f0ec9b54adc681b84bf7e3335660b43"
+    },
+    {
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeSessionJournalTest.kt",
+      "sha256": "46c6e6dcb182cb4df75a0cd7fffb604ac79133930679829b1b6cb6d916bb5aa2"
+    },
+    {
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationModelTest.kt",
+      "sha256": "e70d2e57c9895a23d795add574f63d4da51d30ff81cab93252c26d93c10abac6"
     },
     {
       "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/SessionDiagnosticsTest.kt",
-      "sha256": "84d2facd328ba2a8546e27e50a50cf2e16f06809949a90a9b42477545a47af6d"
+      "sha256": "4e89059cbe502e05b71fd43a6a6868d5a24ada1dc34ddf386e6005d2e0334d89"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "63d16fb3a39e57050793e353992be652b74e9f9f9ff60f867e11836994fe70b7"
+      "sha256": "c9b27264df2c4e7e88fbf78816f58b9667f4e1512a4741415b16e9f415b12ef9"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "c94f51e7907357a81fd06610a391213e74181d6f8fc8beee70d7876637b57e15"
+      "sha256": "db12b1503e266ac4c337abd8035540fdb852c7d78e0358028e37cf121d52beed"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "b55ad8cae1871e3710ba20484c247f18e0b99111e20f8c7d45a0057502d266e3"
+      "sha256": "6782d1bee567b33f3fb19c1d7ab2b42e9da228fabce5c3072b7d61b4a187e69c"
+    },
+    {
+      "path": "tsconfig.host.json",
+      "sha256": "e4ef11459ea8c845797ba3cad9f5ffda2257d7fad6bbc4478bc7ad21c68197f4"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/android-view-location.e2e.ts",
-      "sha256": "1e36aa59c53a97095586c8080e735d4fba6e64dcf92881e1d7ba56246ffe4092"
+      "path": "apps/web/tests/android-cursor-resume.e2e.ts",
+      "sha256": "f1dfd9b17f241db8ee436b42a8194f74c789d88904c617f5c8cb4fdfab20aa59"
     }
   ],
   "validationStatus": "PASS",
@@ -8535,6 +8555,66 @@
     },
     {
       "status": "PASS",
+      "command": "gradlew :core:test; XML reports: 288 tests, 53 suites, no failures or skips",
+      "log": ".artifacts/android-cursor-resume-core-results.json",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew -PdshNativeAcceptance :core:test :app:assembleDebug :app:assembleDebugAndroidTest",
+      "log": ".artifacts/android-cursor-resume-build.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest web: Android covered and uncovered cursor recovery; two passed",
+      "log": ".artifacts/android-cursor-resume-native-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest web: view location, input persistence, saved Host and both admitted-prompt recovery branches; five passed",
+      "log": ".artifacts/android-cursor-resume-regressions.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -p tsconfig.host.json --noEmit; includes the new Android cursor scenario",
+      "log": ".artifacts/android-cursor-resume-types-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx/esm scripts/run-oxlint.ts .",
+      "log": ".artifacts/android-cursor-resume-lint-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/android-cursor-resume-doc-quick-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/android-cursor-resume-doc-sync-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs; six tests",
+      "log": ".artifacts/android-cursor-resume-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/android-cursor-resume-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -9265,7 +9345,202 @@
       ]
     }
   },
+  "androidCursorResume": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json",
+    "scope": "Sections 25 and 67: Android in-memory retained-cursor follow resumption, identity and overlap validation, bounded delta and full-window recovery, stale-page retirement and real Host logical stream interruption without mutation replay",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "64fa63152b93b6898f95f4bda8eb6857dbb19848",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "limitations": [
+      "Android core executes 288 tests across 53 suites without failures or skips. Nine new cases cover delta and overlap retention, server-window fallback, fresh-owner cursor omission, identity and contradiction rejection, byte limits, cancelled-page retirement and observation failure without falsely reporting OPEN.",
+      "The same in-memory journal sends its last held durable sequence on follow retries. Header identity is validated against the selected Session. Deltas retain earlier history and its hasMore state; identical overlapping windows preserve the earlier prefix. A window that no longer covers the cursor replaces the held rows. Failures retain the previous view; reconnect never replays input mutations.",
+      "Two final real Host scenarios serve an 88-turn generated Session to the installed isolated Android application. Each loads an older page before a controlled logical interruption. A covered cursor returns three new records; sixty newly appended messages force a fifty-message latest-window fallback. Android displays the final row and keeps unsent text and one device grant. No prompt, creation, cancellation, reply or runtime Handoff call occurs.",
+      "The test wrapper holds the first Host stream immediately after its snapshot and returns before asking the underlying iterator for another frame. This proves logical follow interruption, not physical network loss, foreground recovery, push delivery or live-model qualification. Both screenshots were visually inspected.",
+      "Five real Host regression cases cover view-location Handoff, encrypted input/process recovery, saved Host switching and both admitted-prompt recovery branches against the same APK. The existing artifact replacement fixture clears old replay frames and asserts the new observation is OPEN.",
+      "The first real Host run failed because the new fixture omitted awaiting the Gateway stream Promise; the fixture was repaired and included explicitly in tsconfig.host.json. The first documentation run rejected CRLF Agent Note tokens; edited prose was restored to LF and paired hashes were re-recorded. Final types, lint, 17 quick doc gates, 36 doc-sync gates, six traceability cases and Gate 0 pass.",
+      "Paging remains bounded by 50 messages per request and 8 MiB of serialized retained records by default; this is not a total-heap bound. Snapshots and pages refold the held window, while live records fold incrementally. A process restart or new model has no persisted cursor/window to reuse.",
+      "The current native view-location decision was extended in place. Native raw-event presentation, deep links, platform sharing, Swift, Artifact access, diagnostics, physical-device and release qualification remain open. Session writer is V3; completeRc=false."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Qualify persisted native viewing windows and positions, physical network loss, foreground recovery and push recovery; a cursor alone is not a resumable view.",
+        "Qualify deep links, platform share routing, Swift view-location and cursor adoption, and same-candidate physical-device interoperability.",
+        "Artifact descriptor/range access remains open; the retired session/artifact method is not native production acceptance. Dormant Lite Handoff is not the application viewing-location path.",
+        "Native diagnostics, discovery/Relay, full Session metadata, hardware-key invalidation, sudden power loss and release signing remain open.",
+        "Continue unresolved specification acceptance rows; completeRc=false. Remote publication and CI dispatch retain the earlier separate approval blocker."
+      ]
+    }
+  },
   "androidViewLocation": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/android-cursor-resume-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/android-view-location-source.json",
     "scope": "Sections 25, 26 and 67: Android Web-compatible view-location import/export, bounded fixed-cut history pagination, stale-read rejection and quiescent retirement, repeated-anchor reveal and real Host interoperability without prompt submission or runtime migration",
@@ -23524,7 +23799,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/android-view-location-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/android-cursor-resume-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -24007,7 +24282,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "b55ad8cae1871e3710ba20484c247f18e0b99111e20f8c7d45a0057502d266e3"
+        "sha256": "6782d1bee567b33f3fb19c1d7ab2b42e9da228fabce5c3072b7d61b4a187e69c"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

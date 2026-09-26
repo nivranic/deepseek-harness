@@ -38,10 +38,20 @@ class NativeSessionJournal(
     private var sessionId = ""
     private var address: WireValue.ObjectValue? = null
     private var window: Window? = null
+    private var awaitingSnapshot = true
+    private var requestedCursor: Long? = null
     private var page: Deferred<Boolean>? = null
     private val reads = ConcurrentHashMap.newKeySet<Deferred<Boolean>>()
     private val mutableState = MutableStateFlow(NativeHistoryState())
     val state: StateFlow<NativeHistoryState> = mutableState
+
+    /** Resume only records retained by this owner; every new transport must begin with a snapshot. */
+    fun beginFollow(generation: Long): Long? = synchronized(lock) {
+        if (generation != owner || address == null) return@synchronized null
+        awaitingSnapshot = true
+        requestedCursor = window?.records?.lastOrNull()?.let(::sequence)
+        requestedCursor
+    }
 
     /** Invalidate old requests before the next follow generation is published. */
     fun reset(generation: Long, id: String, target: WireValue.ObjectValue) = synchronized(lock) {
@@ -68,6 +78,8 @@ class NativeSessionJournal(
         page?.cancel()
         page = null
         window = null
+        awaitingSnapshot = true
+        requestedCursor = null
         mutableState.value = NativeHistoryState()
     }
 
@@ -76,18 +88,24 @@ class NativeSessionJournal(
         if (generation != owner || address == null) return@synchronized
         when (WireShape.string(frame, "type")) {
             "snapshot" -> {
+                val header = WireShape.objectValue(frame, "header") ?: invalid("snapshot header is missing")
+                if (WireShape.string(header, "id") != sessionId) invalid("snapshot belongs to another Session")
                 val cut = integer(frame, "cursor", minimum = -1)
                 val records = records(frame)
                 val more = WireShape.boolean(frame, "hasMore") ?: invalid("snapshot hasMore is missing")
                 validateRecords(records)
                 if (records.isNotEmpty() && sequence(records.last()) != cut || more && records.isEmpty()) invalid("snapshot cursor differs")
-                val bytes = measure(records)
+                val next = mergeSnapshot(cut, records, more)
+                val bytes = measure(next.records)
                 checkLimit(bytes)
                 epoch++
                 page?.cancel(); page = null
-                window = Window(cut, records, more, bytes)
+                window = next.copy(bytes = bytes)
+                awaitingSnapshot = false
+                requestedCursor = null
             }
             "event" -> {
+                if (awaitingSnapshot) invalid("live event precedes snapshot")
                 val previous = window ?: invalid("live event precedes snapshot")
                 val last = previous.records.lastOrNull()?.let(::sequence) ?: previous.cut
                 if (sequence(frame) != last + 1) invalid("live event is not contiguous")
@@ -103,6 +121,24 @@ class NativeSessionJournal(
         } else state.value.copy(ready = true, hasMore = current.hasMore)
         val replacement = WireShape.string(frame, "type") == "snapshot"
         publish(owner, sessionId, if (replacement) current.records else listOf(frame), replacement)
+    }
+
+    private fun mergeSnapshot(cut: Long, records: List<WireValue>, more: Boolean): Window {
+        val replacement = Window(cut, records, more, 0)
+        val cursor = requestedCursor ?: return replacement
+        val previous = window ?: return replacement
+        if (cut < cursor) invalid("snapshot cursor moved backwards")
+        val first = records.firstOrNull()?.let(::sequence) ?: invalid("resumed snapshot has no records")
+        if (first > cursor + 1) return replacement
+        val oldFirst = sequence(previous.records.first())
+        for (record in records) {
+            val seq = sequence(record)
+            if (seq >= oldFirst && seq <= cursor && record != previous.records[(seq - oldFirst).toInt()]) {
+                invalid("snapshot contradicts retained Session records")
+            }
+        }
+        val prefix = previous.records.takeWhile { sequence(it) < first }
+        return Window(cut, prefix + records, if (prefix.isEmpty()) more else previous.hasMore, 0)
     }
 
     /** Load one previous page; concurrent callers share the owned read and its outcome. */

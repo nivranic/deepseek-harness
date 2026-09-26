@@ -40,12 +40,12 @@ class ConnectionDiagnosticsTest {
         val wire = wire { flow {
             if (++calls == 1) {
                 first.await()
-                emit(WireValue.fromJsonElement(kotlinx.serialization.json.Json.parseToJsonElement("""{"type":"snapshot","hasMore":false,"cursor":-1,"records":[]}""")))
+                emit(WireValue.fromJsonElement(kotlinx.serialization.json.Json.parseToJsonElement("""{"type":"snapshot","header":{"id":"private-session-id"},"hasMore":false,"cursor":-1,"records":[]}""")))
                 fail.await()
                 throw IOException("private transport address")
             }
             recovered.await()
-            emit(WireValue.fromJsonElement(kotlinx.serialization.json.Json.parseToJsonElement("""{"type":"snapshot","hasMore":false,"cursor":-1,"records":[]}""")))
+            emit(WireValue.fromJsonElement(kotlinx.serialization.json.Json.parseToJsonElement("""{"type":"snapshot","header":{"id":"private-session-id"},"hasMore":false,"cursor":-1,"records":[]}""")))
             awaitCancellation()
         } }
         val model = SessionModel(wire, backgroundScope, reconnectDelayMillis = 100)

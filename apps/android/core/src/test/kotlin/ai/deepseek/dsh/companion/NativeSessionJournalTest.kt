@@ -10,8 +10,8 @@ import kotlin.test.*
 class NativeSessionJournalTest {
     private fun value(json: String) = WireValue.fromJsonElement(Json.parseToJsonElement(json))
     private fun event(seq: Int) = """{"type":"event","event":{"seq":$seq,"type":"user/message","data":{"content":[{"type":"text","text":"message-$seq"}]}}}"""
-    private fun snapshot(start: Int, end: Int, more: Boolean = start > 0) = value(
-        """{"type":"snapshot","cursor":$end,"hasMore":$more,"records":[${(start..end).joinToString(",", transform = ::event)}]}""")
+    private fun snapshot(start: Int, end: Int, more: Boolean = start > 0, id: String = "session") = value(
+        """{"type":"snapshot","header":{"id":"$id"},"cursor":$end,"hasMore":$more,"records":[${(start..end).joinToString(",", transform = ::event)}]}""")
     private fun page(start: Int, end: Int, more: Boolean = start > 0) = value(
         """{"hasMore":$more,"records":[${(start..end).joinToString(",", transform = ::event)}]}""")
     private fun address(id: String = "session") = value("""{"kind":"session","sessionId":"$id"}""") as WireValue.ObjectValue
@@ -47,10 +47,10 @@ class NativeSessionJournalTest {
         wire.stub("session/page") { withContext(NonCancellable) { answer.await() } }
         val published = mutableListOf<Pair<String, Int>>()
         val journal = NativeSessionJournal(wire, backgroundScope, NativeHistoryLimits(2, 65536)) { _, id, rows, _ -> published.add(id to rows.size) }
-        journal.reset(1, "old", address("old")); journal.accept(snapshot(4, 5), 1)
+        journal.reset(1, "old", address("old")); journal.accept(snapshot(4, 5, id = "old"), 1)
         val task = async { journal.loadOlder() }
         runCurrent()
-        journal.reset(2, "new", address("new")); journal.accept(snapshot(0, 0), 2)
+        journal.reset(2, "new", address("new")); journal.accept(snapshot(0, 0, id = "new"), 2)
         answer.complete(page(2, 3)); runCurrent()
         assertFailsWith<CancellationException> { task.await() }
         assertEquals(listOf("old" to 2, "new" to 1), published)

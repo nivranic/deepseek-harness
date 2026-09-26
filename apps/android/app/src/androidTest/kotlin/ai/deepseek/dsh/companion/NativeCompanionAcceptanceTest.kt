@@ -154,6 +154,27 @@ class NativeCompanionAcceptanceTest {
                                 waitFor(hasTestTag("session-draft") and isEnabled() and hasText(command.getValue("text").jsonPrimitive.content))
                                 compose.onNodeWithTag("session-draft").assertTextContains(command.getValue("text").jsonPrimitive.content)
                             }
+                            "loadOlderHistory" -> {
+                                val model = companionModel().session
+                                compose.waitUntil(20_000) { model.history.value.ready }
+                                val before = model.state.items.first().seq
+                                compose.onNodeWithTag("session-load-older").performClick()
+                                compose.waitUntil(20_000) { !model.history.value.loading && model.state.items.first().seq < before }
+                                value = JsonPrimitive(model.state.items.first().seq)
+                            }
+                            "assertSessionWindow" -> {
+                                val model = companionModel().session
+                                val first = command.getValue("first").jsonPrimitive.long
+                                val last = command.getValue("last").jsonPrimitive.long
+                                val attempts = command.getValue("attempts").jsonPrimitive.long
+                                compose.waitUntil(20_000) {
+                                    model.connectionSnapshot.attempts >= attempts && model.history.value.ready &&
+                                        model.state.items.firstOrNull()?.seq == first && model.state.items.lastOrNull()?.seq == last
+                                }
+                                check(model.state.items.map { it.seq } == (first..last).toList())
+                                compose.onNodeWithTag("session-rows").performScrollToNode(hasTestTag("session-event-$last"))
+                                compose.onNodeWithTag("session-event-$last").assertIsDisplayed()
+                            }
                             "assertEmptyPromptDraft" -> {
                                 check(compose.onNodeWithTag("session-draft").fetchSemanticsNode().config[SemanticsProperties.EditableText].text.isEmpty())
                             }

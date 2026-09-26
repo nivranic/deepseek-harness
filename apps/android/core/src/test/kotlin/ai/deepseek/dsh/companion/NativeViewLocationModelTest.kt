@@ -19,7 +19,7 @@ class NativeViewLocationModelTest {
         val model = SessionModel(wire, backgroundScope, inputs = inputs)
         val opening = async { model.openViewLocation(NativeViewLocation("host", "session", 0), "host") }
         runCurrent()
-        wire.emit(value("""{"type":"snapshot","cursor":3,"hasMore":true,"records":[${record(2)},${record(3)}]}"""))
+        wire.emit(value("""{"type":"snapshot","header":{"id":"session"},"cursor":3,"hasMore":true,"records":[${record(2)},${record(3)}]}"""))
         opening.await()
         assertEquals(0L, model.viewAnchor.value?.seq)
         assertEquals(listOf(0L, 1L, 2L, 3L), model.state.items.map { it.seq })
@@ -57,7 +57,7 @@ class NativeViewLocationModelTest {
         }
         val model = SessionModel(wire, backgroundScope)
         model.openSession("session"); runCurrent()
-        wire.emit(value("""{"type":"snapshot","cursor":3,"hasMore":true,"records":[${record(2)},${record(3)}]}"""))
+        wire.emit(value("""{"type":"snapshot","header":{"id":"session"},"cursor":3,"hasMore":true,"records":[${record(2)},${record(3)}]}"""))
         val paging = async { model.loadOlderHistory() }; runCurrent()
         val closing = async { model.closeAndAwait() }; runCurrent()
         assertFalse(closing.isCompleted)
@@ -68,7 +68,7 @@ class NativeViewLocationModelTest {
 
     @Test fun `repeated navigation to the same anchor publishes a new reveal generation`() = runTest {
         val wire = FakeWire()
-        wire.emit(value("""{"type":"snapshot","cursor":0,"hasMore":false,"records":[${record(0)}]}"""))
+        wire.emit(value("""{"type":"snapshot","header":{"id":"session"},"cursor":0,"hasMore":false,"records":[${record(0)}]}"""))
         val model = SessionModel(wire, backgroundScope)
         val location = NativeViewLocation("host", "session", 0)
         model.openViewLocation(location, "host")

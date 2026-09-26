@@ -60,7 +60,7 @@ class SessionDiagnosticsTest {
         assertTrue(wire.calls.isEmpty())
         model.openSession("private-session-id")
         runCurrent()
-        wire.emit(WireValue.fromJsonElement(Json.parseToJsonElement("""{"type":"snapshot","hasMore":false,"cursor":1,"records":[{"type":"event","event":{"seq":1,"type":"user/message","data":{"id":"private-message-id","role":"user","content":[{"type":"text","text":"private-text"}],"source":{"kind":"user"}}}}]}""")))
+        wire.emit(WireValue.fromJsonElement(Json.parseToJsonElement("""{"type":"snapshot","header":{"id":"private-session-id"},"hasMore":false,"cursor":1,"records":[{"type":"event","event":{"seq":1,"type":"user/message","data":{"id":"private-message-id","role":"user","content":[{"type":"text","text":"private-text"}],"source":{"kind":"user"}}}}]}""")))
         runCurrent()
         val captured = model.sessionDiagnostics
         assertEquals(SessionDiagnostics.Selected(SessionProjectionCounts(1, 0, 0, 0, 0, 0)), captured)

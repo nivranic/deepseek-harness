@@ -572,10 +572,14 @@ class SessionModel(
                 followOwner.attempt(generation)
                 var received = false
                 try {
-                    wire.stream("session/follow", payload).collect { frame ->
+                    val cursor = journal.beginFollow(generation)
+                    val request = payload.getValue("request") as WireValue.ObjectValue
+                    val resumed = if (cursor == null) payload else payload + ("request" to
+                        WireValue.ObjectValue(request.entries + ("fromSeq" to WireValue.NumberValue(cursor.toDouble()))))
+                    wire.stream("session/follow", resumed).collect { frame ->
                         if (followOwner.isCurrent(generation)) {
-                            if (!received) { followOwner.received(generation); received = true }
                             foldFrame(frame, generation)
+                            if (!received) { followOwner.received(generation); received = true }
                         }
                     }
                     if (!received) journal.observationFailed(ai.deepseek.dsh.link.LinkClientException.BadWire("Session follow ended before snapshot"), generation)
