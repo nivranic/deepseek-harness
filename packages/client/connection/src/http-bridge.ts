@@ -15,7 +15,8 @@ export const DEFAULT_MAX_REQUEST_BODY_BYTES = 300 * 1024 * 1024
 
 /**
  * Bridge one node:http request to the fetch-shaped handler (client close
- * aborts; response bodies stream out chunk by chunk).
+ * aborts; response bodies stream out chunk by chunk). A disconnected client
+ * cancels a late response body without waiting for another socket event.
  * @param req - incoming node:http request.
  * @param res - node:http response the bridge writes and owns to completion.
  * @param apiHandler - fetch-shaped API carrier the request is dispatched to.
@@ -28,6 +29,7 @@ export async function bridge(
   maxRequestBodyBytes = DEFAULT_MAX_REQUEST_BODY_BYTES,
 ): Promise<void> {
   const abort = new AbortController()
+  const disconnected = (): boolean => res.destroyed || abort.signal.aborted
   // Client-disconnect detection MUST hang off the response, not the request:
   // since Node 16, IncomingMessage 'close' fires as soon as the request body is
   // fully consumed (immediately for a bodyless GET), which would abort a
@@ -81,6 +83,10 @@ export async function bridge(
     } as RequestInit & { duplex: 'half' })
   }
   const response = await apiHandler.fetch(request)
+  if (disconnected()) {
+    await response.body?.cancel(abort.signal.reason)
+    return
+  }
   const requestUnread = bodyMode === 'streaming' && !req.readableEnded
   const responseHeaders = Object.fromEntries(response.headers.entries())
   res.writeHead(response.status, requestUnread ? { ...responseHeaders, connection: 'close' } : responseHeaders)
@@ -90,10 +96,10 @@ export async function bridge(
     return
   }
   for await (const chunk of response.body) {
-    // Backpressure: a false return means the socket buffer is full — wait for drain
-    // instead of buffering unboundedly (slow or suspended consumers). 'close' also
-    // resolves so a mid-wait disconnect can't park this loop forever; the close
-    // handler above aborts the handler stream, which then ends the iteration.
+    if (disconnected()) return
+    // Backpressure pauses writes until drain. A disconnect also completes the
+    // wait and cancels unread body chunks, including a close that happened
+    // before listener registration.
     if (!res.write(chunk)) {
       await new Promise<void>((resolve) => {
         const done = (): void => {
@@ -103,7 +109,9 @@ export async function bridge(
         }
         res.once('drain', done)
         res.once('close', done)
+        if (disconnected()) done()
       })
+      if (disconnected()) return
     }
   }
   res.end()

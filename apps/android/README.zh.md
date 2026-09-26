@@ -29,6 +29,8 @@ Host 传输场景为 [android-gateway.e2e.ts](../web/tests/android-gateway.e2e.t
 
 Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定指纹及设备授权隔离。已保存输入与最后查看的普通 Session 可以跨进程重启恢复；恢复只开启观察。显式提交仍由模型持有，并等待输入保存。失败 prompt 独立保留原文和请求 id，不受新编辑影响。确认及匹配的 Host 回执仅清理已接受意图；关闭或修订后的 Question 移除过期答案。保存失败阻止提交并提供重试。不可读取的输入保持原样，直到用户显式备份并重建。[输入持久化决策](../../.agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.zh.md)拥有格式与恢复语义；[录制场景](../web/tests/android-input-persistence.e2e.ts)验证进程恢复和加密存储损坏。
 
+[丢确认场景](../web/tests/android-prompt-retry.e2e.ts)在真实 Host 准入后暂缓返回结果并终止 Android 进程。显式重试使用已保存的请求身份；已有日志回执时则直接清理待确认项，不再调用 prompt。两条路径都在再次进程重启后保留新文本。
+
 Session 列表显示加载中、空列表和失败状态。刷新与重试都是显式读取；请求串行执行，取消后回到空闲，失败时保留最近成功的列表、固定诊断分类及 Gateway 拒绝 envelope。[列表恢复场景](../web/tests/android-session-list.e2e.ts)只断开自己的 Host 端口转发，恢复后手动重试，再撤销设备授权。打开 Session 前，发送与停止按钮保持禁用。
 
 重新配对会停止当前连接的模型请求和流，同时保留传输与已保存身份。凭据先在内存中验证；只有通过验证的替代身份才会原子替换加密文件并采纳新传输。提交前取消保留旧身份。提交开始后，即使 Activity 取消也会完成采纳，重建的 Activity 会对齐已提交代际。成功后为新主体发布模型；取消则恢复原主体保存的 Session 选择与输入。文件投影从空状态开始。Host 任务继续运行；旧设备授权需在 Host 上显式撤销。

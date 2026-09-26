@@ -34,13 +34,15 @@ export async function startAndroidCompanionUiDriver(adb: string, target: string,
   const socketName = `dsh-native-${randomUUID()}`
   const run = (...command: string[]) => exec(adb, [...args, ...command], { windowsHide: true })
   let port: number
+  let reverseInstalled = false
   try {
     if (resetData) await run('shell', 'pm', 'clear', 'com.deepseek.harness.companion.nativeacceptance')
     await run('reverse', `tcp:${hostPort}`, `tcp:${hostPort}`)
+    reverseInstalled = true
     const forward = await run('forward', 'tcp:0', `localabstract:${socketName}`)
     port = Number(forward.stdout.trim())
   } catch (error) {
-    try { await run('reverse', '--remove', `tcp:${hostPort}`) } finally { await release() }
+    try { if (reverseInstalled) await run('reverse', '--remove', `tcp:${hostPort}`) } finally { await release() }
     throw error
   }
   const child = spawn(adb, [...args, 'shell', 'am', 'instrument', '-w', '-e', 'class',

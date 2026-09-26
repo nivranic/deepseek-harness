@@ -5,6 +5,44 @@ import { describe, expect, it } from 'vitest'
 import { bridge } from '../src/http-bridge.ts'
 
 describe('HTTP bridge abort', () => {
+  it('cancels a late handler body without writing after the client has closed', async () => {
+    const request = Readable.from([]) as unknown as IncomingMessage
+    Object.assign(request, { url: '/api/session/prompt', method: 'POST', headers: {} })
+    const started = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<Response>()
+    const written = Promise.withResolvers<undefined>()
+    let cancelled = false
+    let headersWritten = false
+    const response = Object.assign(new EventEmitter(), {
+      writableEnded: false,
+      destroyed: false,
+      writeHead() { headersWritten = true; return this },
+      write() { written.resolve(undefined); return false },
+      end() { this.writableEnded = true; return this },
+    }) as unknown as ServerResponse
+    const pending = bridge(request, response, {
+      requestBodyMode: () => 'buffered',
+      fetch: async () => { started.resolve(undefined); return release.promise },
+    })
+    await started.promise
+    response.destroyed = true
+    response.emit('close')
+    release.resolve(new Response(new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(new TextEncoder().encode('accepted')); controller.close() },
+      cancel() { cancelled = true },
+    })))
+    try {
+      expect(await Promise.race([pending.then(() => 'completed'), written.promise.then(() => 'wrote-after-close')]))
+        .toBe('completed')
+      expect(headersWritten).toBe(false)
+      expect(cancelled).toBe(true)
+    } finally {
+      // Retire the pre-fix bridge's impossible drain wait after observing its write to the closed response.
+      response.emit('drain')
+      await pending
+    }
+  })
+
   it('destroys a declared-oversize request instead of draining it', async () => {
     const destroyed: true[] = []
     const request = Readable.from([]) as unknown as IncomingMessage
@@ -32,6 +70,65 @@ describe('HTTP bridge abort', () => {
     expect(status).toBe(413)
     expect(headers).toMatchObject({ connection: 'close' })
     expect(destroyed).toHaveLength(1)
+  })
+
+  it('cancels a response that produces its next chunk after the client closes', async () => {
+    const request = Readable.from([]) as unknown as IncomingMessage
+    Object.assign(request, { url: '/api/read', method: 'GET', headers: {} })
+    const headers = Promise.withResolvers<undefined>()
+    let controller!: ReadableStreamDefaultController<Uint8Array>
+    let cancelled = false
+    let writes = 0
+    const response = Object.assign(new EventEmitter(), {
+      writableEnded: false,
+      destroyed: false,
+      writeHead() { headers.resolve(undefined); return this },
+      write() { writes++; return true },
+      end() { this.writableEnded = true; return this },
+    }) as unknown as ServerResponse
+    const pending = bridge(request, response, {
+      requestBodyMode: () => 'buffered',
+      fetch: async () => new Response(new ReadableStream<Uint8Array>({
+        start(value) { controller = value },
+        cancel() { cancelled = true },
+      })),
+    })
+    await headers.promise
+    response.destroyed = true
+    response.emit('close')
+    controller.enqueue(new Uint8Array([1]))
+    await pending
+    expect(writes).toBe(0)
+    expect(cancelled).toBe(true)
+    expect(response.writableEnded).toBe(false)
+  })
+
+  it('cancels unread response chunks when a client closes during backpressure', async () => {
+    const request = Readable.from([]) as unknown as IncomingMessage
+    Object.assign(request, { url: '/api/read', method: 'GET', headers: {} })
+    let cancelled = false
+    let writes = 0
+    const response = Object.assign(new EventEmitter(), {
+      writableEnded: false,
+      destroyed: false,
+      writeHead() { return this },
+      write() {
+        writes++
+        queueMicrotask(() => { response.destroyed = true; response.emit('close') })
+        return false
+      },
+      end() { this.writableEnded = true; return this },
+    }) as unknown as ServerResponse
+    await bridge(request, response, {
+      requestBodyMode: () => 'buffered',
+      fetch: async () => new Response(new ReadableStream<Uint8Array>({
+        start(controller) { controller.enqueue(new Uint8Array([1])); controller.enqueue(new Uint8Array([2])) },
+        cancel() { cancelled = true },
+      })),
+    })
+    expect(writes).toBe(1)
+    expect(cancelled).toBe(true)
+    expect(response.listenerCount('drain')).toBe(0)
   })
 
   it('aborts a pending native picker request when the browser disconnects', async () => {

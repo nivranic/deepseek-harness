@@ -35,7 +35,7 @@ fetch 拒绝或响应正文中断抛出带结构标记的 `ConnectionTransportEr
 
 -----
 
-`createRpcFetchHandler` 仅提供 Connection envelope 解析，`bridgeConnectionHttp` 以有界请求体和断连取消适配 Node HTTP 或 HTTPS 请求。载体或分派器必须自行执行授权。原生 TLS 入口把该编解码器与 Gateway 设备准入组合，不能访问本地精确 Fetch 注册表。
+`createRpcFetchHandler` 仅提供 Connection envelope 解析，`bridgeConnectionHttp` 以有界请求体和断连取消适配 Node HTTP 或 HTTPS 请求。载体或分派器必须自行执行授权。原生 TLS 入口把该编解码器与 Gateway 设备准入组合，不能访问本地精确 Fetch 注册表。 处理函数结束后，已断开的桥接会取消响应体，不向关闭的 socket 写入；响应体迭代或背压期间断开也会清理未读取块，不等待另一个 close 事件。断开不会撤回 Host 已接受的修改，见[响应清理决策](../../../.agents/notes/implemented/bug-fix/2026-09-26-http-disconnect-response-retirement.zh.md)。
 
 <a id="browser-authentication-and-request-trust"></a>
 ## 浏览器认证与请求信任

@@ -136,6 +136,19 @@ class NativeCompanionAcceptanceTest {
                             "fillPromptDraft" -> {
                                 compose.onNodeWithTag("session-draft").performTextInput(command.getValue("text").jsonPrimitive.content)
                             }
+                            "submitPromptDraft" -> compose.onNodeWithText("发送").performClick()
+                            "openSession" -> {
+                                compose.onNodeWithTag("native-tab-0").performClick()
+                                val sessionId = command.getValue("sessionId").jsonPrimitive.content
+                                val model = companionModel().session
+                                if (model.open.value?.sessionId != sessionId) {
+                                    if (model.open.value != null) compose.onNodeWithTag("session-return-list").performClick()
+                                    val tag = "session-open-$sessionId"
+                                    waitFor(hasTestTag(tag))
+                                    compose.onNodeWithTag(tag).performScrollTo().performClick()
+                                }
+                                waitFor(hasTestTag("session-draft") and isEnabled())
+                            }
                             "assertPromptDraft" -> {
                                 compose.onNodeWithTag("native-tab-0").performClick()
                                 waitFor(hasTestTag("session-draft"))
@@ -318,10 +331,15 @@ class NativeCompanionAcceptanceTest {
                             "retryPendingPrompt" -> {
                                 val model = companionModel().session
                                 val requestId = command.getValue("requestId").jsonPrimitive.content
-                                lateinit var job: kotlinx.coroutines.Job
-                                compose.runOnIdle { job = model.retryPrompt(requestId) }
-                                compose.waitUntil(30_000) { job.isCompleted }
+                                check(requestId in model.input.value.pendingPrompts)
+                                compose.onNodeWithText("重试这条发送").performScrollTo().performClick()
+                                compose.waitUntil(30_000) { requestId !in model.input.value.pendingPrompts && !model.sending.value }
                                 check(requestId !in model.input.value.pendingPrompts)
+                            }
+                            "assertNoPendingPrompt" -> {
+                                val model = companionModel().session
+                                compose.waitUntil(20_000) { model.input.value.pendingPrompts.isEmpty() }
+                                compose.onNodeWithText("待确认的发送").assertDoesNotExist()
                             }
                             "damageInputs" -> {
                                 runBlocking { companionModel().inputs.flush() }
