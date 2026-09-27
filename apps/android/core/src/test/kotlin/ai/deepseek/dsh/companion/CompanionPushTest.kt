@@ -18,7 +18,7 @@ class CompanionPushTest {
     fun watchesForwardsIntoMinimizedPushesOverTheWire() = runTest {
         val wire = FakeWire()
         val model = PushModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
-        model.startWatching()
+        model.ensureWatching()
         // The frame carries title and text; the push must not carry them.
         wire.emit(wireOf("""{"type":"waterfall","event":"approval/request","eventId":"e1","agentId":"s1","title":"Run rm -rf","text":"prompt text","interaction":{"sessionId":"s1"}}"""))
         wire.emit(wireOf("""{"type":"waterfall","event":"user-questions/request","eventId":"e2","agentId":"s1","text":"Which file?","interaction":{"sessionId":"s1"}}"""))
@@ -39,6 +39,7 @@ class CompanionPushTest {
         assertEquals("宿主等待审批", pushTitle(model.pushes.value[0]))
         assertEquals("宿主等待答复", pushTitle(model.pushes.value[1]))
         assertEquals("打开应用，经安全连接查看详情。", pushBody())
+        model.stopWatchingAndAwait()
     }
 
     @Test

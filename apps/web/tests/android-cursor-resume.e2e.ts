@@ -55,7 +55,7 @@ for (const recovery of ['covered', 'uncovered'] as const) {
       driver = await startAndroidCompanionUiDriver(process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', info.port)
       const command = async (request: object) => {
         const result = await driver!.request(request)
-        expect(result, stage).toMatchObject({ type: 'ok' })
+        expect(result, `${stage}: ${JSON.stringify(result)}`).toMatchObject({ type: 'ok' })
         return result.value
       }
       const issued = scaffold.ctx.deviceTrust.issuePairing('collaborator')

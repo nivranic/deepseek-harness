@@ -88,7 +88,7 @@ class ConnectionDiagnosticsTest {
         } }
         val files = FilesModel(source, backgroundScope)
         val pushes = PushModel(source, backgroundScope)
-        files.start(); pushes.startWatching(); runCurrent()
+        files.start(); pushes.ensureWatching(); runCurrent()
         assertEquals(ConnectionState.OPENING, files.connectionSnapshot.state)
         assertEquals(ConnectionState.OPENING, pushes.connectionSnapshot.state)
         first.complete(Unit); runCurrent()
@@ -103,46 +103,37 @@ class ConnectionDiagnosticsTest {
         assertEquals(ConnectionState.STOPPED, pushes.connectionSnapshot.state)
     }
 
-    @Test fun filesAndPushReplacementWaitsForRetiredFramesAndStopWaitsForCleanup() = runTest {
-        for (push in listOf(false, true)) {
-            val cleanup = CompletableDeferred<Unit>()
-            val release = CompletableDeferred<Unit>()
-            var calls = 0
-            // Direct collection allows an already queued frame to arrive after cancellation.
-            val source = wire { object : Flow<WireValue> {
-                override suspend fun collect(collector: FlowCollector<WireValue>) {
-                    calls++
-                    try { awaitCancellation() } finally {
-                        withContext(NonCancellable) {
-                            cleanup.complete(Unit); release.await()
-                            collector.emit(WireValue.ObjectValue(mapOf(
-                                "event" to WireValue.StringValue("approval/request"),
-                                "sessionId" to WireValue.StringValue("private-session"),
-                                "eventId" to WireValue.StringValue("private-event"),
-                                "records" to WireValue.ArrayValue(listOf(WireValue.ObjectValue(mapOf("id" to WireValue.StringValue("private-workspace"))))),
-                            )))
-                        }
+    @Test fun filesReplacementWaitsForRetiredFramesAndStopWaitsForCleanup() = runTest {
+        val cleanup = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        var calls = 0
+        // Direct collection allows an already queued frame to arrive after cancellation.
+        val source = wire { object : Flow<WireValue> {
+            override suspend fun collect(collector: FlowCollector<WireValue>) {
+                calls++
+                try { awaitCancellation() } finally {
+                    withContext(NonCancellable) {
+                        cleanup.complete(Unit); release.await()
+                        collector.emit(WireValue.ObjectValue(mapOf(
+                            "records" to WireValue.ArrayValue(listOf(WireValue.ObjectValue(mapOf("id" to WireValue.StringValue("private-workspace"))))),
+                        )))
                     }
                 }
-            } }
-            val files = FilesModel(source, backgroundScope)
-            val pushes = PushModel(source, backgroundScope)
-            fun start() { if (push) pushes.startWatching() else files.start() }
-            fun snapshot() = if (push) pushes.connectionSnapshot else files.connectionSnapshot
-            start(); runCurrent(); start(); runCurrent()
-            assertTrue(cleanup.isCompleted)
-            assertEquals(ConnectionState.OPENING, snapshot().state)
-            assertEquals(1, calls)
-            val stopped = async { if (push) pushes.stopWatchingAndAwait() else files.stopAndAwait() }
-            runCurrent()
-            assertFalse(stopped.isCompleted)
-            assertEquals(ConnectionState.STOPPING, snapshot().state)
-            release.complete(Unit); stopped.await(); runCurrent()
-            assertEquals(ConnectionSnapshot(ConnectionState.STOPPED, 1, 0, null), snapshot())
-            assertEquals(1, calls)
-            assertTrue(files.workspaces.value.isEmpty())
-            assertTrue(pushes.pushes.value.isEmpty())
-        }
+            }
+        } }
+        val files = FilesModel(source, backgroundScope)
+        files.start(); runCurrent(); files.start(); runCurrent()
+        assertTrue(cleanup.isCompleted)
+        assertEquals(ConnectionState.OPENING, files.connectionSnapshot.state)
+        assertEquals(1, calls)
+        val stopped = async { files.stopAndAwait() }
+        runCurrent()
+        assertFalse(stopped.isCompleted)
+        assertEquals(ConnectionState.STOPPING, files.connectionSnapshot.state)
+        release.complete(Unit); stopped.await(); runCurrent()
+        assertEquals(ConnectionSnapshot(ConnectionState.STOPPED, 1, 0, null), files.connectionSnapshot)
+        assertEquals(1, calls)
+        assertTrue(files.workspaces.value.isEmpty())
     }
 
     @Test fun oldObservationCannotChangeReplacementAndSynchronousStopSettles() = runTest {

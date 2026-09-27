@@ -7,7 +7,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -78,50 +78,84 @@ fun pushFromTurnEnd(record: WireValue, openSessionId: String): CompanionPush? {
 }
 
 /**
- * The minimal host-to-companion push chain over the live `$events`
- * stream: each forwarded approval or question becomes one minimized push,
- * deduplicated by kind and event id, in arrival order. Presentation rides
- * the platform notifier; the payload vocabulary is the one the relay will
- * carry (chapter 70).
+ * One Host's live `$events` observation retains deduplicated pushes and notification
+ * consumption across composition changes. Foreground entry may recover a completed
+ * observation; healthy streams continue in the background until the model retires.
  */
 class PushModel(private val wire: WireDriving, private val scope: CoroutineScope) {
+    private val lock = Any()
+    private var ensureAllowed = true
+    private var consumedNotifications = 0
     private val _pushes = MutableStateFlow<List<CompanionPush>>(emptyList())
     val pushes: StateFlow<List<CompanionPush>> = _pushes
 
     private val watchOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = watchOwner.connectionSnapshot
 
-    fun startWatching() {
+    /** Start once, or recover a completed EOF or temporary failure. Stops and permanent failures stay terminal. */
+    fun ensureWatching() = synchronized(lock) {
+        if (!ensureAllowed) return@synchronized
+        ensureAllowed = false
         watchOwner.replaceAsync(create = { generation -> watch(generation) }, publish = {}, invalidate = {})
     }
 
-    private fun watch(generation: Long): Job = scope.launch(start = CoroutineStart.LAZY) {
-        watchOwner.attempt(generation)
-        var received = false
-        try {
-            wire.stream("\$events").collect { frame ->
-                if (watchOwner.isCurrent(generation)) {
-                    if (!received) { watchOwner.received(generation); received = true }
-                    collect(frame)
+    private fun watch(generation: Long): Job {
+        var recoverable = false
+        return scope.launch(start = CoroutineStart.LAZY) {
+            watchOwner.attempt(generation)
+            var received = false
+            try {
+                wire.stream("\$events").collect { frame ->
+                    synchronized(lock) {
+                        if (watchOwner.isCurrent(generation)) {
+                            if (!received) { watchOwner.received(generation); received = true }
+                            collect(frame)
+                        }
+                    }
+                }
+                watchOwner.interrupted(generation, null)
+                recoverable = true
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                watchOwner.interrupted(generation, failure)
+                recoverable = canReconnectObservation(failure)
+            }
+        }.also { job ->
+            job.invokeOnCompletion { failure ->
+                synchronized(lock) {
+                    if (watchOwner.isCurrent(generation)) {
+                        ensureAllowed = failure == null && recoverable && scope.isActive
+                    }
                 }
             }
-            watchOwner.interrupted(generation, null)
-        } catch (failure: CancellationException) {
-            throw failure
-        } catch (failure: Exception) {
-            watchOwner.interrupted(generation, failure)
         }
     }
 
-    fun stopWatching() {
+    /** Retire observation and queued presentation; later foreground entry cannot restart this model. */
+    fun stopWatching() = synchronized(lock) {
+        ensureAllowed = false
+        consumedNotifications = _pushes.value.size
         watchOwner.stop {}
     }
 
-    suspend fun stopWatchingAndAwait() { watchOwner.stopAndAwait {} }
+    /** Retire this observation and wait for all stream cleanup. */
+    suspend fun stopWatchingAndAwait() {
+        stopWatching()
+        watchOwner.stopAndAwait {}
+    }
 
-    fun collect(frame: WireValue) {
+    /** Claim every unconsumed push once, even when platform presentation is unavailable.
+     * @return Pushes in arrival order; a recreated collector receives only new notifications.
+     */
+    fun takePendingNotifications(): List<CompanionPush> = synchronized(lock) {
+        val current = _pushes.value
+        current.drop(consumedNotifications).also { consumedNotifications = current.size }
+    }
+
+    private fun collect(frame: WireValue) {
         val push = pushFromForward(frame) ?: return
         if (_pushes.value.contains(push)) return
-        _pushes.update { current -> current + push }
+        _pushes.value = _pushes.value + push
     }
 }

@@ -437,20 +437,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
             permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
     }
-    // The chapter-70 push chain: each forward the live stream delivers
-    // becomes one minimized local notification; details stay behind the
-    // secure link the app opens into.
-    LaunchedEffect(active, pushes) {
-        if (!active) return@LaunchedEffect
-        pushes.startWatching()
-        try {
-            pushes.pushes.collect { latest ->
-                latest.lastOrNull()?.let { PushNotifications.present(context, it) }
-            }
-        } finally {
-            pushes.stopWatching()
-        }
-    }
+    NativePushObserver(pushes, active) { PushNotifications.present(context, it) }
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             NativeViewLinkCard(viewLinkIntake, retryViewLink)

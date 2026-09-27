@@ -4,94 +4,70 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": ".agents/notes/implemented/architecture/2026-09-26-android-native-view-location.i18n.yaml",
-      "sha256": "bd31a6ef0096655fd5797e5e211c75773dba310a480cba8015ad106a8486ff54"
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.i18n.yaml",
+      "sha256": "66566227df0bf3e88c6c7cc3045b04ffca52cf5ffd32bedff95ab0ab1636df83"
     },
     {
-      "path": ".agents/notes/implemented/architecture/2026-09-26-android-native-view-location.md",
-      "sha256": "025122efca39dcdcb4e2a339a3c0fab6578d54ffb6a0a4722d19af77e7500f45"
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.md",
+      "sha256": "dace2f11f0f6c210b010620154dd026f6145a3b73340c8837dbf57a2bb1c1589"
     },
     {
-      "path": ".agents/notes/implemented/architecture/2026-09-26-android-native-view-location.zh.md",
-      "sha256": "0c4189798c381630711b434fdd42e94aa13a06072c0dc27d51ba5c61d486b67a"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-28-android-share-intake.i18n.yaml",
-      "sha256": "95d8d094b08b4d7990ef22250d7506efe352cc60910d8736924b24689af6a851"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-28-android-share-intake.md",
-      "sha256": "e75032382b4ed180290f6a4ad55e658901398e43d87f6aecc4062023ed6d4663"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md",
-      "sha256": "68c42ca136bd4bf44dd722088ef5aac0dec7068e8ab64cbc8b3f3489aea6e45c"
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.zh.md",
+      "sha256": "15b8395c1d1a232e7b8177b858316c9e9113258de41df5d54e7657204f6ecf58"
     },
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "27b0e505f27498bddd0ced3e797551714e0fb3f9e5dde672ea886b48a2201c07"
+      "sha256": "24afae07f8d9f7dfdae9f2b43ee4b31285d3d8bb13d6c4363b6b78b63bbe7a8d"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "cad624d4abe2931f16fd3eb14467eb10043330f30810fd9856ddc7844ff43127"
+      "sha256": "e250c2bad8b5e5f4c46bca4552ba4dcd314ac60a0d30a9a7eafdd7f4089defdf"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "f46f6c62dadac5408280140601cfebab55833224cbac5fbae827a3420b74c156"
+      "sha256": "814be00c7ce3b549aabf191d114caabf17bfdcb7f0eb0c98bbdd6126d1ef36a3"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "4b357d6c35820ad1d6cf3b7077e205b9a75de59db4910f639c905739d4b3bcfd"
+      "sha256": "26b9ba16a9480c81762046a1d9dbc4a4cd1f98c53dcb46468096b2130ad74d61"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "74c0be4b19a147e075fadf6391bbb630dbd4d9cbfa4f1720f36955e137ce018c"
-    },
-    {
-      "path": "apps/android/app/src/main/AndroidManifest.xml",
-      "sha256": "768c83344e7286ebb7233b986867866459a163df85263757218b58f9baa0753e"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostDescriptionObserver.kt",
-      "sha256": "da6559debd9acb9129dab9c36b0c87aba5cafc144152100aa624c0f940019345"
+      "sha256": "a0f181c3475c53460bfa2429f7e6ef8fdf75eb6567d055b986af41155b7911a8"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "f96c7fcddd824d7e8279cd52b6ef4c7427c19a93798b24098e9106c23b38f526"
+      "sha256": "7a3308bfbe95a96863af0a46ae30cb63a9322526e138af8c686e54a9fb4e46fd"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeShareIntake.kt",
-      "sha256": "9be8cc24bd0dfce31b01bd7886d2714c238da71a5c57ebe2cb8f5e079be96224"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionPush.kt",
+      "sha256": "2a903fa256062af1f3ced9f5eada2de3109b740f3cfec036a13df6cd0450b794"
     },
     {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeViewLocation.kt",
-      "sha256": "7fe26e3589d3fa3d9e58993b511ec2ddf2f8f4a1715521f8568b3f048f4beaf9"
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionPushTest.kt",
+      "sha256": "2415256a0bbd7e51e0bbe864de87baa08e670aafc77c531c3293eb2f6d49b495"
     },
     {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationModelTest.kt",
-      "sha256": "855a0abf661511733a01eadc935bb9e1ab98cd9b96d2a606a420cf67ea807660"
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/ConnectionDiagnosticsTest.kt",
+      "sha256": "bbeb434829330db651f9b99082acfdfe6389b76a86a944595a5e31bb98326a9c"
     },
     {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationTest.kt",
-      "sha256": "8024b64dfe7525b1d2b8cd059de267507dee62db8fda7a6f2d457903de8571a4"
-    },
-    {
-      "path": "apps/web/tests/android-companion-ui-driver.ts",
-      "sha256": "b1aab9fca6d6faac0c8d0208a7e6d5c987f53132945fa46e5ac19e55425ce119"
+      "path": "apps/web/tests/android-cursor-resume.e2e.ts",
+      "sha256": "d321c63c488bdeb8c47d335c52fc7c78fdd699a85c53efccb31a47cf7f17d6e9"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "5bf3143bb7da2204c1cfa5623774414f3cdaba44b03ce1bd437a3d2848608fea"
+      "sha256": "5849487a9834ab69f2842756344034bbeee8b12f94e4f445a5d582f7be379561"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "6dbd7cdf812e34b83f23f1af810f5d7fe3d27baea5b0622ad992d40c6c49f648"
+      "sha256": "f6cc2ef730daa6ee34d43e92090b90da6b1bffa74a635fdf4958ec91a3136b5b"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/android-view-deep-links.e2e.ts",
-      "sha256": "4bbc8a8689ec5247b8c8cf68c3c39c4f500030dc4d2ffc667a99bbd709b4e1cc"
+      "path": "apps/web/tests/android-push-foreground.e2e.ts",
+      "sha256": "3a1ef39e24f5511505d74b862e1c48cb625faf47866fca353bebe37fcbc2f355"
     }
   ],
   "validationStatus": "PASS",
@@ -9595,6 +9571,78 @@
     },
     {
       "status": "PASS",
+      "command": "gradlew -PdshNativeAcceptance :core:test :app:assembleDebug :app:assembleDebugAndroidTest; 427 tests / 68 suites",
+      "log": ".artifacts/android-push-foreground-build-initial.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew -PdshNativeAcceptance :app:assembleDebug :app:assembleDebugAndroidTest; final installed APK artifacts",
+      "log": ".artifacts/android-push-foreground-build-diagnostic.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: adb -s <emulator-serial> shell am instrument -w -e class ai.deepseek.dsh.companion.NativePushObserverLifecycleTest,ai.deepseek.dsh.companion.PushNotificationTargetTest com.deepseek.harness.companion.nativeacceptance.test/androidx.test.runner.AndroidJUnitRunner; 8 installed cases passed",
+      "log": ".artifacts/android-push-foreground-installed-current.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/android-push-foreground.e2e.ts; Android Push foreground recovery on the final installed APKs; 1 files / 1 passed",
+      "log": ".artifacts/android-push-foreground-native-current.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/android-view-deep-links.e2e.ts apps/web/tests/android-share-intake.e2e.ts apps/web/tests/android-input-persistence.e2e.ts apps/web/tests/android-host-roster.e2e.ts apps/web/tests/android-native-diagnostics.e2e.ts apps/web/tests/android-cursor-resume.e2e.ts apps/web/tests/android-companion-question.e2e.ts; Seven-file Android native regression after diagnostic instrumentation; cursor cause remains unclassified; 7 files / 9 passed",
+      "log": ".artifacts/android-push-foreground-regression-diagnostic.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -p tsconfig.host.json --noEmit; all Android acceptance roots",
+      "log": ".artifacts/android-push-foreground-types-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx/esm scripts/run-oxlint.ts .",
+      "log": ".artifacts/android-push-foreground-lint-current.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --check artifacts/upstream-first/write-reports.mjs",
+      "log": ".artifacts/android-push-foreground-syntax.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/android-push-foreground-doc-quick.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/android-push-foreground-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs; six tests",
+      "log": ".artifacts/android-push-foreground-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/android-push-foreground-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -10325,7 +10373,258 @@
       ]
     }
   },
+  "androidPushForeground": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/android-push-foreground-source.json",
+    "scope": "Sections 50 and 64: retain healthy Android same-process background Push observation, recover one ended eligible signed event stream on foreground entry, and consume local notifications once across rotation; permission-granted notification entry is limited to the tested emulator and whole-section acceptance remains open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "limitations": [
+      "The full seven-file topology and a bounded five-sample investigation did not reproduce the original failure. These passes do not establish a cause, environmental classification or fix.",
+      "The existing live signed $events observation remains active while the same Android process is behind HOME. STOP does not retire a healthy producer or detach its notification collector. This is same-process best-effort delivery, not a guaranteed background service or a relay-backed delivery promise.",
+      "Initial lifecycle attachment and subsequent ON_START events share ensureWatching admission. Lifecycle registration replays ON_START for an already started Activity, so an immediately completed stream still receives only one attempt for that entry. OPENING, OPEN and old-task cleanup do not admit replacement work.",
+      "A completed normal EOF or a temporary error accepted by canReconnectObservation becomes eligible for one later foreground recovery. Eligibility uses the original exception and current generation, not only a projected diagnostic category. Permission/protocol/TLS identity failures, cancellation, explicit stop and model retirement remain terminal; there is no background retry timer.",
+      "StreamTransitionOwner retains cancellation-and-join ownership, and retired generations cannot append a late push. Composition disposal only detaches the consumer; it does not stop the ViewModel-owned producer. Lifecycle listener removal is awaited in NonCancellable plus Dispatchers.Main.immediate so instrumentation teardown cancellation cannot violate the Android main-thread requirement.",
+      "takePendingNotifications claims unconsumed pushes once per model, in arrival order. Rotation and healthy foreground round trips cannot re-present retained notifications; events arriving between consumers remain available to the replacement collector. A missing platform notification grant still consumes the presentation attempt. This local consumption state is not durable process-death delivery state.",
+      "The existing minimized notification title/body, channel dsh-link-push, id 70, immutable explicit MainActivity PendingIntent and auto-cancel behavior remain unchanged. The click reopens the application; it carries no precise Host/Session target and introduces no approval action buttons, FCM/APNs protocol or new authorization.",
+      "Core XML reports 427 tests across 68 suites with zero failures, errors or skips. Installed verification passes 8 cases across 2 classes: seven real Activity lifecycle/rotation cases and the existing Android notification/PendingIntent registry case. The registry case does not itself tap a notification.",
+      "The final installed APKs pass the single-file, single-case Android Push foreground E2E, including a normal driver exit with status 0. A real Host approval presents the first notification behind HOME; ending its signed logical event iterator leaves one completed observation, and a real SystemUI row click admits exactly one replacement.",
+      "A second real Host approval reaches the retained healthy producer behind HOME. The second notification click and Activity recreation leave two total observation attempts, two received notifications and no replayed notification, with the same PID, Host key/id/generation, model owners, current Session and complete draft/pending state.",
+      "The fixture establishes one pending prompt through an expected refused user submission before callBaseline. Recovery adds no prompt, approval reply, cancellation, upload, Session creation, handoff or pairing redemption. Both Host approval waits settle as cancelled through fixture-owned AbortSignals.",
+      "Four final screenshots were individually inspected. Both notification images show the minimized Chinese title and body; the recovered Session image retains the edited draft and visible IME without proving that every Host control is visible, and the rotated image shows Host, Session and retained draft. The expected fixture refusal message remains visible.",
+      "The accepted native case holds the same application PID and driver across HOME, waits for CREATED before inspecting the background state, and returns through an actual SystemUI notification-row click. Foreground readiness requires RESUMED, window focus and the application foreground window. GrantPermissionRule pre-grants POST_NOTIFICATIONS and the test checks enabled notification presentation; this does not qualify a permission dialog or denial recovery.",
+      "Fault injection ends only the first signed logical $events iterator through its owned AbortSignal and awaits the original iterator cleanup. It does not simulate physical network loss, a mux disconnection, force-stop/process death or actual Recents. The Session page avoids a competing Interaction event observer. Real Host approval requests produce notifications, and test-owned requests are cancelled and awaited without granting an approval.",
+      "Setup includes one user-triggered prompt that the fixture refuses to establish a real nonempty pending prompt. Zero prompt/reply/upload/creation/cancellation/redemption assertions apply only after callBaseline, during recovery. Both Host approval requests have matching asked and decided(cancelled) events; the fixture AbortSignals cancel those waits without an Android approval operation.",
+      "Push recovery compares the same PID, Host key/id/generation, model owners, current Session and complete draft/pending state. Normal reconciliation of Host-accepted receipts still applies: confirmed pending prompts may be removed and an exactly matching unedited draft may be cleared, while newer edits remain. The tested unaccepted pending prompt and its complete draft remain unchanged during the read-only recovery interval.",
+      "Accepted native runs are recorded individually without summing overlapping tests; 4 final screenshots were inspected and both installed APK hashes match current build artifacts. Full Host typecheck/lint, 17 quick documentation gates, 36 doc-sync gates, six traceability cases and Gate 0 are independently bound. The fixed before archive contains 6865 files.",
+      "Evidence qualifies only the tested Android emulator, same-process foreground recovery and granted-permission notification entry. Whole section 50, section 64, Mobile Release and cross-platform acceptance remain open. Scanner qualification remains same-host/shared-cache with GO-2026-5932 open; Session writer V3 and completeRc=false persist."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "Continue process-death/background delivery, platform relay integration, permission-denied presentation, precise Host/Session notification targets and cross-platform lifecycle qualification. Physical network/mux failures and actual Recents remain unqualified by this logical-stream case.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "androidViewDeepLinks": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/android-push-foreground-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/android-view-deep-links-source.json",
     "scope": "Sections 36, 57 and 64: Android VIEW scheme links reuse the durable Session view location on the current trusted Host, preserve per-Session input and isolate stale delivery authority; Mobile Release, whole-section and cross-platform acceptance remain open",
@@ -28001,7 +28300,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/android-view-deep-links-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/android-push-foreground-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -28484,7 +28783,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "6dbd7cdf812e34b83f23f1af810f5d7fe3d27baea5b0622ad992d40c6c49f648"
+        "sha256": "f6cc2ef730daa6ee34d43e92090b90da6b1bffa74a635fdf4958ec91a3136b5b"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

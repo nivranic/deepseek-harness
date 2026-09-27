@@ -22,9 +22,31 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 同进程后台 Push 与通知前台恢复（§50、§64）
+
+[当前来源记录](artifacts/upstream-first/android-push-foreground-source.json)绑定 Android 在同一进程存活期间的后台 Push 观察与通知返回。HOME 不停止健康的 signed $events 生产流，也不解除通知收集。初次生命周期附着与后续 ON_START 共用 ensureWatching 准入；已经 STARTED 的 Activity 注册监听时补发同一次 ON_START，立即 EOF 或临时错误也不会在一次入口中重复启动。
+
+完整结束的正常 EOF 或 canReconnectObservation 认可的临时异常允许下次前台入口恢复一次。资格根据原始异常及当前 generation 决定，OPENING、OPEN 和旧任务清理中不替换观察；权限、协议、TLS 身份错误、取消、显式 stop 与退休不自动恢复，也没有后台定时重试。StreamTransitionOwner 继续等待原任务清理并隔离迟到结果，Session、Workspace 与 Interaction 的生产流不因本项新增重启规则。
+
+ViewModel 拥有生产流，composition 销毁只解除 consumer。takePendingNotifications 按到达顺序在同一 model 上一次性消费；旋转和健康前后台往返不重发旧通知，两次 consumer 之间到达的新通知由后继 consumer 取出。系统通知权限不足仍消费该次展示尝试；消费位置不代表持久化进程死亡投递。生命周期监听的移除在 NonCancellable 与 Dispatchers.Main.immediate 中执行并等待完成，instrumentation teardown 的取消不会在后台线程直接调用 removeObserver。
+
+本地通知继续使用固定的最小化标题与正文、dsh-link-push channel、id 70、不可变的显式 MainActivity PendingIntent 及点击自动取消。通知点击只重新打开应用，不新增 Host/Session 精确目标、审批动作按钮、FCM/APNs 协议或授权路径。现有输入仍由原 Session 的存储拥有；正常 Host 已接受回执调和可以移除已确认 pending prompt、清空完整匹配且未编辑的草稿，后续新编辑保持不变。
+
+Android core XML 核验为 427 项测试、68 个套件，无失败、错误和跳过。最终诊断构建的已安装 APK 通过 8 项测试：7 项 NativePushObserverLifecycleTest 与 1 项 PushNotificationTargetTest。独立安装态测试与通知栏实际点击的模拟器 E2E 分别记录；通知注册测试自身不执行点击。
+
+最终已安装 APK 的 Push 原生 E2E 通过 1 个文件、1 项测试，并验证 driver 正常退出码为 0。第一次真实通知点击恢复已结束的观察一次；健康后台往返与 Activity 重建后仍为两次观察尝试、两次已接收通知，已消费通知没有重放。本场景通过 GrantPermissionRule 预授予 POST_NOTIFICATIONS 并检查系统通知展示开启，不验收权限弹窗。HOME 往返保留同 PID 和测试通道；返回就绪同时检查 RESUMED、窗口焦点与前台应用窗口。故障只通过独立 AbortSignal 结束第一个 signed 逻辑 $events iterator 并等待清理，不代表物理网络或 mux 中断。Session 页保持没有另一个 Interaction 事件观察，通知由真实 Host approval 请求产生。
+
+场景准备阶段先由用户发送一次 prompt，再由 fixture 拒绝，建立真实的非空 pending prompt。零 prompt、reply、upload、create、cancel 与 redeem 调用的断言只覆盖 callBaseline 后的恢复阶段，不适用于整个场景。两次 Host approval 请求均有 asked 与 decided(cancelled) 配对，取消来自 Host fixture signal，不是 Android 发出的审批操作。身份比较同时覆盖 PID、Host key/id/generation、model 实例、当前 Session 及完整 draft/pending 状态。
+
+[Cursor 调查记录](.artifacts/android-push-foreground-cursor-investigation.json)保留未分类的恢复故障：初次七文件 native-regression 为 1 个文件失败、6 个文件通过，1 项测试失败、8 项通过；covered cursor 在 resumed-window 收到 driver 的 type:error，原始错误内部细节未保留。补充诊断后，同一七文件回归为 7 个文件、9 项测试全部通过，限定的 5 次 covered 单例采样各为 1 项通过、1 项按筛选跳过，未复现首个故障。单例采样不累计为独立覆盖，不代替完整回归，也不证明故障修复或稳定性。原因仍未分类，不归因于环境或 IME；Cursor 调查继续开放，本次交付限于本节列明的 Push 证据。
+
+最终四张截图均已逐张复核：两张通知图显示最小化中文标题与正文；恢复后的 Session 图保留草稿编辑和 IME，不据此认定全部 Host 控件可见；旋转后的图显示 Host、Session 与保留的草稿，fixture 的预期拒绝提示仍在。本增量不验收权限弹窗或拒绝后的恢复、进程死亡后通知投递、实际 Recents、FCM/APNs、通知中的精确 Host/Session 路由或物理设备。现有未被 Host 接受的 pending prompt 和完整草稿在只读恢复区间保持，后续已接受回执仍按正常规则调和。
+
+完整 Host 类型检查、最终 Lint、报告生成器语法检查、17 项文档快速检查、36 项 doc-sync、6 项规格追踪测试及 Gate 0 均通过，各项日志独立绑定。before 归档固定为 6865 文件。§50 的后台与通知子项、§64 的恢复状态只获得本次限定范围内的证据，整节规格、Mobile Release 与跨平台验收继续开放。扫描器保持同机共享缓存资格，GO-2026-5932 未关闭；Session writer 保持 V3、completeRc 为 false，不更新长期记忆或生成交接包。
+
 ## Android 查看位置深链接与单次导航授权（§36、§57、§64）
 
-[当前来源记录](artifacts/upstream-first/android-view-deep-links-source.json)绑定 Android ACTION_VIEW 的只读查看位置入口。dsh-companion://session-view/ 包装现有 dsh-session-view.v1. 载荷；原始 URI 不做 trim、大小写修正或百分号解码，query、fragment、额外路径和畸形载荷被拒绝。裸载荷上限 4096 字符，完整 URI 上限 4125 字符。生产复制按钮使用当前可见持久事件的 seq，原有裸载荷复制入口保留。
+[历史来源记录](artifacts/upstream-first/android-view-deep-links-source.json)绑定 Android ACTION_VIEW 的只读查看位置入口。dsh-companion://session-view/ 包装现有 dsh-session-view.v1. 载荷；原始 URI 不做 trim、大小写修正或百分号解码，query、fragment、额外路径和畸形载荷被拒绝。裸载荷上限 4096 字符，完整 URI 上限 4125 字符。生产复制按钮使用当前可见持久事件的 seq，原有裸载荷复制入口保留。
 
 真正的新 VIEW 投递授权一次导航，不要求第二次确认。当前可信 Host id 必须完全匹配，SESSION_FOLLOW 足以允许 viewer 读取；入口不自动配对、切换 Host、上传、发送 prompt、创建 Session 或迁移运行时。冷启动可以等待本次 Runtime 恢复和能力观察；未配对、Host 不匹配、忙碌、能力失败或缺失、读取失败均终结本次尝试，就绪变化和普通前台刷新不能自动重试，用户明确重试或重新投递相同 URI 才产生新尝试。
 

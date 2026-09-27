@@ -51,6 +51,89 @@ class NativeCompanionAcceptanceTest {
         return model
     }
 
+    /** Background observations cannot wait for a visible Compose root or resume the Activity. */
+    private fun foregroundSnapshot(): JsonObject {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        lateinit var result: JsonObject
+        instrumentation.runOnMainSync {
+            val activity = compose.activity
+            val model = androidx.lifecycle.ViewModelProvider(activity)[CompanionViewModel::class.java]
+            val hosts = CompanionRuntime.hostState.value
+            val inputs = model.inputs.state.value
+            val push = model.pushes.connectionSnapshot
+            fun draft(value: SessionDraft) = buildJsonObject {
+                put("text", value.text); put("requestId", value.requestId)
+                put("attachments", JsonArray(value.attachments.map(::attachmentJson)))
+            }
+            result = buildJsonObject {
+                put("pid", android.os.Process.myPid()); put("lifecycle", activity.lifecycle.currentState.name)
+                put("focused", activity.hasWindowFocus()); put("generation", model.generation)
+                put("hostId", hosts.selected?.hostId?.let(::JsonPrimitive) ?: JsonNull)
+                put("hostKey", hosts.selected?.key?.value?.let(::JsonPrimitive) ?: JsonNull)
+                put("pushOwner", System.identityHashCode(model.pushes)); put("sessionOwner", System.identityHashCode(model.session))
+                put("sessionId", model.session.open.value?.sessionId?.let(::JsonPrimitive) ?: JsonNull)
+                put("push", buildJsonObject {
+                    put("state", push.state.wire); put("attempts", push.attempts); put("interruptions", push.interruptions)
+                    put("lastFailure", push.lastFailure?.wire?.let(::JsonPrimitive) ?: JsonNull)
+                    put("received", model.pushes.pushes.value.size)
+                })
+                put("input", buildJsonObject {
+                    put("drafts", buildJsonObject { inputs.drafts.forEach { (id, value) -> put(id, draft(value)) } })
+                    put("pending", buildJsonObject { inputs.pendingPrompts.forEach { (id, value) -> put(id, buildJsonObject {
+                        put("sessionId", value.sessionId); put("draft", draft(value.draft))
+                    }) } })
+                    put("answerCount", inputs.answers.size)
+                    put("lastSessionId", inputs.lastSessionId?.let(::JsonPrimitive) ?: JsonNull)
+                })
+            }
+        }
+        return JsonObject(result + ("windowPackage" to (instrumentation.uiAutomation.rootInActiveWindow?.packageName
+            ?.toString()?.let(::JsonPrimitive) ?: JsonNull)))
+    }
+
+    private fun pushNotificationSnapshot(): JsonObject {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val manager = context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val owned = manager.activeNotifications.filter { it.id == 70 && it.notification.channelId == "dsh-link-push" }
+        return buildJsonObject {
+            put("enabled", manager.areNotificationsEnabled())
+            put("permission", context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED)
+            put("count", owned.size)
+            put("titles", JsonArray(owned.map { JsonPrimitive(it.notification.extras.getCharSequence(android.app.Notification.EXTRA_TITLE).toString()) }))
+            put("bodies", JsonArray(owned.map { JsonPrimitive(it.notification.extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString()) }))
+            put("postTimes", JsonArray(owned.map { JsonPrimitive(it.postTime) }))
+        }
+    }
+
+    private fun systemNotificationNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return emptyList()
+        if (root.packageName.toString() != "com.android.systemui") return emptyList()
+        fun descend(node: android.view.accessibility.AccessibilityNodeInfo): List<android.view.accessibility.AccessibilityNodeInfo> =
+            listOf(node) + (0 until node.childCount).flatMap { node.getChild(it)?.let(::descend).orEmpty() }
+        return descend(root)
+    }
+
+    /** Click only the notification row containing this acceptance application's label and minimized copy. */
+    private fun clickPushNotification() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val label = context.applicationInfo.loadLabel(context.packageManager).toString()
+        val title = pushTitle(CompanionPush.ApprovalWaiting("fixture", "fixture"))
+        val titleNode = systemNotificationNodes().single { it.text?.toString() == title }
+        fun texts(node: android.view.accessibility.AccessibilityNodeInfo): List<String> =
+            listOfNotNull(node.text?.toString()) + (0 until node.childCount).flatMap { node.getChild(it)?.let(::texts).orEmpty() }
+        var row: android.view.accessibility.AccessibilityNodeInfo? = titleNode
+        repeat(10) {
+            val node = checkNotNull(row)
+            val content = texts(node)
+            if (node.isClickable && label in content && title in content && pushBody() in content) {
+                check(node.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+                return
+            }
+            row = node.parent
+        }
+        error("Owned notification has no clickable system row")
+    }
+
     private fun documentNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
         val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return emptyList()
         if (!root.packageName.toString().endsWith(".documentsui")) return emptyList()
@@ -151,8 +234,22 @@ class NativeCompanionAcceptanceTest {
                     var value: JsonElement = JsonNull
                     var type = "ok"
                     var stage = op
+                    var failureDiagnostics: (() -> JsonObject)? = null
                     try {
                         when (op) {
+                            "foregroundSnapshot" -> value = foregroundSnapshot()
+                            "pushNotificationSnapshot" -> value = pushNotificationSnapshot()
+                            "clearPushNotification" -> {
+                                val manager = instrumentation.targetContext.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                                manager.cancel(70)
+                            }
+                            "systemHome" -> check(instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME))
+                            "openNotificationShade" -> check(instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS))
+                            "notificationShadeReady" -> value = JsonPrimitive(systemNotificationNodes().any {
+                                it.text?.toString() == pushTitle(CompanionPush.ApprovalWaiting("fixture", "fixture"))
+                            })
+                            "clickPushNotification" -> clickPushNotification()
+                            "dismissSystemOverlay" -> check(instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK))
                             "subagentCatalog" -> {
                                 compose.onNodeWithTag("native-tab-6").performClick()
                                 if (command["refresh"]?.jsonPrimitive?.boolean == true) {
@@ -776,12 +873,32 @@ class NativeCompanionAcceptanceTest {
                                 val first = command.getValue("first").jsonPrimitive.long
                                 val last = command.getValue("last").jsonPrimitive.long
                                 val attempts = command.getValue("attempts").jsonPrimitive.long
+                                failureDiagnostics = {
+                                    val snapshot = model.connectionSnapshot
+                                    val history = model.history.value
+                                    val sequences = model.state.items.map { it.seq }
+                                    buildJsonObject {
+                                        put("expectedFirst", first); put("expectedLast", last); put("expectedAttempts", attempts)
+                                        put("first", sequences.firstOrNull()?.let(::JsonPrimitive) ?: JsonNull)
+                                        put("last", sequences.lastOrNull()?.let(::JsonPrimitive) ?: JsonNull)
+                                        put("count", sequences.size); put("attempts", snapshot.attempts)
+                                        put("connection", snapshot.state.wire)
+                                        put("connectionFailure", snapshot.lastFailure?.wire?.let(::JsonPrimitive) ?: JsonNull)
+                                        put("ready", history.ready); put("loading", history.loading)
+                                        put("historyFailure", history.failure?.wire?.let(::JsonPrimitive) ?: JsonNull)
+                                        put("contiguous", sequences.zipWithNext().all { (left, right) -> right == left + 1 })
+                                    }
+                                }
+                                stage = "session-window-ready"
                                 compose.waitUntil(20_000) {
                                     model.connectionSnapshot.attempts >= attempts && model.history.value.ready &&
                                         model.state.items.firstOrNull()?.seq == first && model.state.items.lastOrNull()?.seq == last
                                 }
+                                stage = "session-window-contiguous"
                                 check(model.state.items.map { it.seq } == (first..last).toList())
+                                stage = "session-window-scroll"
                                 compose.onNodeWithTag("session-rows").performScrollToNode(hasTestTag("session-event-$last"))
+                                stage = "session-window-display"
                                 compose.onNodeWithTag("session-event-$last").assertIsDisplayed()
                             }
                             "assertEmptyPromptDraft" -> {
@@ -1267,6 +1384,7 @@ class NativeCompanionAcceptanceTest {
                         value = buildJsonObject {
                             put("code", "android-ui-operation-failed"); put("operation", stage)
                             put("exception", error.javaClass.simpleName)
+                            failureDiagnostics?.let { put("diagnostics", it()) }
                             put("frames", buildJsonArray {
                                 error.stackTrace.take(6).forEach { add("${it.className}.${it.methodName}:${it.lineNumber}") }
                             })
