@@ -22,9 +22,29 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 附件 receipt 失效后的显式恢复
+
+[当前来源记录](artifacts/upstream-first/android-attachment-receipt-recovery-source.json)限定一个小型 SAF 文件在真实 Session 释放后的 receipt 恢复。Host 进程和 durable Session id 保持，fixture 等待目标上传、prompt 与 follow 收束及持久化 flush 成功后，await 自有 AgentHandle.dispose，再通过普通 sessionController.resolveAgent 恢复同 id 的新 Agent/Session 对象。旧 receipt 属于旧 Session 实例，不能用于新实例；这不是 TTL 到期或 Host 进程重启。
+
+真实文件拒绝使用 session/attachment-invalid，details.reason 为 FILE_NOT_STAGED。客户端只按精确 code 和已知字符串 reason 判定 receipt 指引；IMAGE_NOT_STAGED 使用同一语义，其他、缺失或类型错误的 reason 保持原 Gateway 分类和展示。提示只说明附件回执不能用于本次发送，不从错误反推出 Session disposal、过期或重启原因。指引要求显式处理 pending 后移除并重选附件，并明确丢弃仍与原 requestId 相同的草稿时会一并清除草稿，必要时可先复制所需文字。不同的新草稿作为独立意图保留。
+
+本轮完整 Core 测试实际执行 434 项、69 个套件，失败、错误和跳过均为 0，逐份 XML 与构建日志独立绑定。NativeFileDraftTest 覆盖真实 envelope、A/B 草稿隔离、原意图重试、两种 discard 行为及移除/重选后的身份变化；PromptSubmissionFailureTest 覆盖已知原因和回退。两个源文件中的 16 项用例属于完整 Core 总量，不另计一次执行。本轮没有新的独立安装态 18 项 receipt，上一通知权限增量的结果只保留为历史。
+
+独立 Host 生命周期场景补跑为 1 个文件、1 项通过，exitCode 为 0；运行前后的 spec/config SHA-256 一致，verification.log 保留这次记录。原 run.log 保留为观察，两次执行不累计为两个场景；console.info 未显示的原因尚未确认。这项检查不操作 Android，不替代 SAF、客户端指引或安装 APK 的端到端证据。
+
+新 Android receipt 恢复场景为 1 个文件、1 项通过，摘要保存在 native-scroll.log，命令退出码为 0；Files、Photos 与 NotificationPermission 回归为 3 个文件、3 项通过，摘要保存在 native-regression.log，命令退出码为 0，与新场景不重叠。草稿 A 先取得 receipt r1；真实 Session disposal/resume 后，首次显式发送被拒绝并完整保留 pending A。用户把文本编辑为不同的新草稿 B 后，显式 retry 仍发送 A 的原文本、原附件和原 requestId，并再次得到同一拒绝。丢弃 pending A 保留 B；移除 B 中的旧附件得到新 id C，重新通过 SAF 选择同一文件后得到 r2 和新 id D。r2 与 r1 不同，Host 字节/hash 相同，attachmentId 可以因去重保持相同。
+
+本场景只因明确用户操作执行 2 次 fileUploads/upload 和 3 次 session/prompt；前两次 prompt 均被真实拒绝且没有 durable 用户消息，最后一次才以 D 写入 1 条用户消息并等待 turn/end。普通查看、返回列表、Host disposal/resume、编辑、丢弃和移除不自动上传或发送。pending 与 composer 的现有语义未变，没有把新 receipt 填入旧 pending，也没有复用旧 requestId。列表、follow 和配对请求不混入这两个业务调用总量。
+
+四张最终截图已逐张复核。invalid-receipt 的指引完整可读，pending 仅顶部可见；new-draft-and-pending 同时显示完整旧文本 A 和新草稿 B，按钮与 notice 不在截图内，由实际滚动、Displayed/Enabled 和点击断言证明。replacement-ready 显示新草稿与文件卡，receipt 身份由状态证明；sent-replacement 显示单条文件用户消息与空 composer。安装态与构建的 app/test 两份 APK 哈希由真实 driver 对齐；正常 close/stop 与 fixture finally 的收束已通过，清理失败不能记为通过。身份和调用次数由状态、请求与持久事件断言证明。
+
+旧 Cursor 调查继续为 OPEN_UNCLASSIFIED，[既有调查记录](.artifacts/android-push-foreground-cursor-investigation.json)及其 8 份日志保持绑定。后续通过不构成首次 resumed-window 故障的原因分类或修复证明。本项没有修改 cursor 恢复。
+
+最终 Host 类型检查、全量 lint 与生成器语法检查退出码均为 0，输出为空；快速文档检查 17/17、完整 doc-sync 36/36、规格追踪 6 项和 Gate 0 均通过。before 归档固定为 6896 个文件。本轮不覆盖图片完整恢复、混合附件、Host 重启后的失效、自动重传、持久化 provider URI、大文件、断点续传或物理设备，也没有发生时间过期或引入 TTL 机制。其余规格与 Mobile Release 继续开放；扫描器保持同机共享缓存资格，GO-2026-5932 未关闭，Session writer 保持 V3，completeRc 为 false。
+
 ## Android 通知权限与系统设置返回（§50、§64）
 
-[当前来源记录](artifacts/upstream-first/android-notification-permission-source.json)绑定应用级通知权限请求与系统设置返回。CompanionApplication 以 lazy 属性拥有唯一 NotificationGrantController；requested 与 lastAnswer 属于当前进程，不属于 Host、Session、Activity 或 composition，也不写入持久偏好。首次未配对启动仍可请求权限，初次已 STARTED 注册与后续 ON_START 共用 refresh 后 claimRequest 的入口。准入在 launcher 调用前同步占位；重叠 consumer、重建、前台往返及启动失败不重置请求预算。
+[历史来源记录](artifacts/upstream-first/android-notification-permission-source.json)绑定应用级通知权限请求与系统设置返回。CompanionApplication 以 lazy 属性拥有唯一 NotificationGrantController；requested 与 lastAnswer 属于当前进程，不属于 Host、Session、Activity 或 composition，也不写入持久偏好。首次未配对启动仍可请求权限，初次已 STARTED 注册与后续 ON_START 共用 refresh 后 claimRequest 的入口。准入在 launcher 调用前同步占位；重叠 consumer、重建、前台往返及启动失败不重置请求预算。
 
 系统应用级开关是展示权限的真值。回答回调只保留 lastAnswer 并重新查询系统，不能用历史回答覆盖当前开关。应用显示本地化的关闭状态和显式通知设置入口；Intent 只指向当前 applicationId。系统 Activity 不可达或拒绝打开时保留明确错误状态。生命周期 listener 在 NonCancellable 与 Dispatchers.Main.immediate 中移除并等待清理；权限刷新不请求 Host、不重配对、不重启健康 Push。
 

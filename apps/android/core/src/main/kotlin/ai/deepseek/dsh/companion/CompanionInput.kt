@@ -26,7 +26,18 @@ data class SessionImageAttachment(override val receiptId: String, override val a
 data class SessionDraft(val text: String, val requestId: String, val attachments: List<SessionAttachment> = emptyList())
 
 /** A failed prompt keeps its target and complete refusal separate from its diagnostic category. */
-data class PromptSubmissionFailure(val sessionId: String, val category: ConnectionFailure, val refusal: GatewayFailureEnvelope?)
+data class PromptSubmissionFailure(val sessionId: String, val category: ConnectionFailure, val refusal: GatewayFailureEnvelope?) {
+    /** Whether the Host reports a missing staged file or image receipt. */
+    val attachmentReceiptUnavailable: Boolean
+        get() {
+            val envelope = refusal ?: return false
+            if (envelope.code != "session/attachment-invalid") return false
+            return when (envelope.details?.let { WireShape.string(it, "reason") }) {
+                "FILE_NOT_STAGED", "IMAGE_NOT_STAGED" -> true
+                else -> false
+            }
+        }
+}
 
 /** An explicit interaction reply failure retains its Gateway envelope for classification and diagnostics. */
 data class InteractionReplyFailure(val category: ConnectionFailure, val refusal: GatewayFailureEnvelope?)

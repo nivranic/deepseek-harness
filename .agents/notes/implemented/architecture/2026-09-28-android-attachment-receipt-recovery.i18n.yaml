@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-android-attachment-receipt-recovery.md
+2026-09-28-android-attachment-receipt-recovery.md: 59bb2295e99607dd5125f613e1fa36efb33a4c20
+2026-09-28-android-attachment-receipt-recovery.zh.md: 110a2ad1d288ab9a0ae4fce6daf2287eece31b18

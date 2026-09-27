@@ -288,6 +288,21 @@ class NativeCompanionAcceptanceTest {
         }
     }
 
+    private fun attachmentReceiptRefusal(previous: PromptSubmissionFailure? = null): JsonObject {
+        val model = companionModel().session
+        compose.waitUntil(30_000) {
+            val failure = model.sendFailure.value
+            failure != null && failure !== previous && failure.attachmentReceiptUnavailable && !model.sending.value
+        }
+        val envelope = checkNotNull(model.sendFailure.value?.refusal)
+        compose.onNodeWithTag("session-send-error")
+            .assertTextEquals(compose.activity.getString(R.string.native_prompt_attachment_unavailable)).assertIsDisplayed()
+        return buildJsonObject {
+            put("code", envelope.code)
+            put("reason", checkNotNull(envelope.details?.let { WireShape.string(it, "reason") }))
+        }
+    }
+
     @Test fun pairAnswerAndReadPages() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         check(instrumentation.targetContext.packageName.endsWith(".nativeacceptance"))
@@ -1412,6 +1427,60 @@ class NativeCompanionAcceptanceTest {
                             }
                             "replacePromptDraft" -> compose.onNodeWithTag("session-draft")
                                 .performTextReplacement(command.getValue("text").jsonPrimitive.content)
+                            "hidePromptKeyboard" -> {
+                                fun keyboardVisible() = androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)
+                                    ?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime()) == true
+                                if (keyboardVisible()) check(instrumentation.uiAutomation.performGlobalAction(
+                                    android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK))
+                                compose.waitUntil(20_000) { !keyboardVisible() }
+                                compose.onNodeWithTag("session-draft").assertIsDisplayed()
+                            }
+                            "returnToSessionList" -> {
+                                val model = companionModel().session
+                                check(model.open.value != null)
+                                compose.onNodeWithTag("session-return-list").performClick()
+                                compose.waitUntil(20_000) {
+                                    model.open.value == null && model.input.value.lastSessionId == null
+                                }
+                                compose.onNodeWithTag("session-list-refresh").assertIsDisplayed()
+                            }
+                            "awaitAttachmentReady" -> {
+                                val model = companionModel()
+                                compose.waitUntil(20_000) { model.attachments.state.value.phase == NativeFileAttachmentPhase.IDLE }
+                                waitFor(hasTestTag("session-attach") and isEnabled())
+                                compose.onNodeWithTag("session-attach").assertIsEnabled()
+                            }
+                            "assertAttachmentReceiptRefusal" -> value = attachmentReceiptRefusal()
+                            "retryRejectedAttachmentPrompt" -> {
+                                val model = companionModel().session
+                                val requestId = command.getValue("requestId").jsonPrimitive.content
+                                val pending = model.input.value.pendingPrompts.getValue(requestId)
+                                check(model.input.value.pendingPrompts.size == 1)
+                                val previous = model.sendFailure.value
+                                check(previous == null || previous.attachmentReceiptUnavailable)
+                                compose.onNodeWithText(compose.activity.getString(R.string.native_prompt_retry))
+                                    .performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                                value = attachmentReceiptRefusal(previous)
+                                check(model.input.value.pendingPrompts.getValue(requestId) == pending)
+                            }
+                            "assertPendingPromptVisible" -> {
+                                val model = companionModel().session
+                                val pending = model.input.value.pendingPrompts.getValue(command.getValue("requestId").jsonPrimitive.content)
+                                check(model.input.value.pendingPrompts.size == 1)
+                                compose.onNodeWithTag("session-rows").performScrollToIndex(0)
+                                compose.onNode(hasText(pending.draft.text, substring = false) and
+                                    hasAnyAncestor(hasTestTag("session-rows"))).assertIsDisplayed()
+                            }
+                            "discardPendingPrompt" -> {
+                                val model = companionModel().session
+                                val requestId = command.getValue("requestId").jsonPrimitive.content
+                                check(model.input.value.pendingPrompts.keys == setOf(requestId))
+                                compose.onNodeWithText(compose.activity.getString(R.string.native_prompt_discard_notice))
+                                    .performScrollTo().assertIsDisplayed()
+                                compose.onNodeWithText(compose.activity.getString(R.string.native_prompt_discard))
+                                    .performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                                compose.waitUntil(20_000) { requestId !in model.input.value.pendingPrompts }
+                            }
                             "retryPendingPrompt" -> {
                                 val model = companionModel().session
                                 val requestId = command.getValue("requestId").jsonPrimitive.content

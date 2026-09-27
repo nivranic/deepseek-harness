@@ -18,6 +18,9 @@ class NativeFileDraftTest {
     private val directories = mutableListOf<File>()
     private fun value(json: String) = WireValue.fromJsonElement(Json.parseToJsonElement(json))
     private fun accepted() = value("""{"accepted":true}""")
+    private fun fileNotStaged() = LinkClientException.Refused(
+        "session/attachment-invalid", "File was not uploaded for this session.", value("""{"reason":"FILE_NOT_STAGED"}"""),
+    )
     private fun request(call: Pair<String, Map<String, WireValue>>) = call.second.getValue("request")
     private fun content(call: Pair<String, Map<String, WireValue>>) = WireShape.array(request(call), "content")!!
 
@@ -192,23 +195,84 @@ class NativeFileDraftTest {
         restored.retireAndAwait()
     }
 
-    @Test fun `invalid acknowledgements and missing staged files retain the complete pending intent`() = runTest {
+    @Test fun `invalid acknowledgements and missing staged files retain input until its matching intent is discarded`() = runTest {
         val wire = FakeWire().apply {
             stubSequence("session/prompt", listOf(
                 { value("""{"accepted":false}""") },
-                { throw LinkClientException.Refused("FILE_NOT_STAGED", "File receipt expired", WireValue.NullValue) },
+                { throw fileNotStaged() },
             ))
         }
         val model = SessionModel(wire, backgroundScope)
         model.openSession("session")
+        model.updateDraft("session", "retained text")
         model.addAttachment("session", first)
         val original = model.input.value.drafts.getValue("session")
         assertFalse(model.sendDraft())
+        assertEquals(ConnectionFailure.INVALID_RESPONSE, model.sendFailure.value?.category)
+        assertEquals(original, model.input.value.pendingPrompts.getValue(original.requestId).draft)
         model.retryPrompt(original.requestId).join()
+        assertFalse(model.sending.value)
         assertEquals(original, model.input.value.drafts["session"])
         assertEquals(original, model.input.value.pendingPrompts.getValue(original.requestId).draft)
         assertEquals(wire.calls.first(), wire.calls.last())
-        assertEquals("FILE_NOT_STAGED", model.sendFailure.value?.refusal?.code)
+        assertEquals(GatewayFailureEnvelope.from(fileNotStaged()), model.sendFailure.value?.refusal)
+
+        model.discardPending(original.requestId)
+        assertFalse("session" in model.input.value.drafts)
+        assertTrue(model.input.value.pendingPrompts.isEmpty())
+        assertEquals(2, wire.calls.size)
+    }
+
+    @Test fun `refused receipt retry keeps the original intent while discard and reselect preserve a newer draft`() = runTest {
+        val wire = FakeWire().apply { stub("session/prompt") { throw fileNotStaged() } }
+        val model = SessionModel(wire, backgroundScope)
+        model.openSession("session")
+        model.updateDraft("session", "original A")
+        model.addAttachment("session", first)
+        val original = model.input.value.drafts.getValue("session")
+        assertFalse(model.sendDraft())
+        assertFalse(model.sending.value)
+        val pending = PendingPrompt("session", original)
+        assertEquals(mapOf(original.requestId to pending), model.input.value.pendingPrompts)
+        assertEquals(original, model.input.value.drafts["session"])
+        assertEquals(GatewayFailureEnvelope.from(fileNotStaged()), model.sendFailure.value?.refusal)
+        val sent = wire.calls.single()
+        assertEquals(original.requestId, WireShape.string(request(sent), "requestId"))
+        assertEquals("session", WireShape.string(request(sent), "sessionId"))
+        assertEquals(listOf(value("""{"type":"text","text":"original A"}"""),
+            value("""{"type":"file","receiptId":"receipt-first"}""")), content(sent))
+
+        model.updateDraft("session", "newer B")
+        val newer = model.input.value.drafts.getValue("session")
+        assertNotEquals(original.requestId, newer.requestId)
+        assertEquals("newer B", newer.text)
+        assertEquals(listOf(first), newer.attachments)
+        assertNull(model.sendFailure.value)
+        assertEquals(mapOf(original.requestId to pending), model.input.value.pendingPrompts)
+        assertEquals(1, wire.calls.size)
+
+        model.retryPrompt(original.requestId).join()
+        assertEquals(listOf(sent, sent), wire.calls)
+        assertFalse(model.sending.value)
+        assertEquals(GatewayFailureEnvelope.from(fileNotStaged()), model.sendFailure.value?.refusal)
+        assertEquals(mapOf(original.requestId to pending), model.input.value.pendingPrompts)
+        assertEquals(newer, model.input.value.drafts["session"])
+
+        model.discardPending(original.requestId)
+        assertTrue(model.input.value.pendingPrompts.isEmpty())
+        assertEquals(newer, model.input.value.drafts["session"])
+        model.removeAttachment("session", first.receiptId)
+        val removed = model.input.value.drafts.getValue("session")
+        assertEquals("newer B", removed.text)
+        assertTrue(removed.attachments.isEmpty())
+        val reselectedFile = first.copy(receiptId = "receipt-reselected")
+        assertTrue(model.addAttachment("session", reselectedFile))
+        val reselected = model.input.value.drafts.getValue("session")
+        assertEquals("newer B", reselected.text)
+        assertEquals(listOf(reselectedFile), reselected.attachments)
+        assertEquals(4, setOf(original.requestId, newer.requestId, removed.requestId, reselected.requestId).size)
+        assertTrue(model.input.value.pendingPrompts.isEmpty())
+        assertEquals(listOf(sent, sent), wire.calls)
     }
 
     @Test fun `a recorded receipt from another Session cannot clear a retained file intent`() = runTest {

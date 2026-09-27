@@ -717,8 +717,12 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
             }
         }
         sendFailure?.takeIf { it.sessionId == open?.sessionId }?.let { failure ->
-            val detail = failure.refusal?.let { GatewayFailurePresenter.present(it).text }
-                ?: androidx.compose.ui.res.stringResource(R.string.native_prompt_failed)
+            val detail = if (failure.attachmentReceiptUnavailable) {
+                androidx.compose.ui.res.stringResource(R.string.native_prompt_attachment_unavailable)
+            } else {
+                failure.refusal?.let { GatewayFailurePresenter.present(it).text }
+                    ?: androidx.compose.ui.res.stringResource(R.string.native_prompt_failed)
+            }
             Text(detail, Modifier.testTag("session-send-error").padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
         }
         if (open != null && !canControl) MissingNativeCapability(capabilities)

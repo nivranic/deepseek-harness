@@ -82,6 +82,7 @@
     <string name="native_prompt_discard">丢弃本地输入</string>
     <string name="native_prompt_discard_notice">丢弃本地输入不会撤回 Host 已收到的内容。</string>
     <string name="native_prompt_failed">发送未确认，输入已保留。可在恢复连接后显式重试。</string>
+    <string name="native_prompt_attachment_unavailable">附件暂不可用于发送。丢弃旧发送会同时删除未再编辑的对应草稿，可先复制所需文字。然后移除仍保留的旧附件，重新选择后再发送。</string>
     <string name="native_sessions_refresh">刷新</string>
     <string name="native_sessions_retry">重试</string>
     <string name="native_sessions_loading">正在加载会话…</string>
