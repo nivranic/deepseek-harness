@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android Files picker attachments and durable complete prompt intents; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-file-attachments-source.json",
+    "sha256": "47955a9bb18d45d54859cbccf14b05a5b533bb832be1c676f379a4fd37d5a35b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "211ec1e8be7e8761fdb22ac2a72d8aa1d1d5d4398e40a995916909fdc4e327dc"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-file-attachments-binding.json",
+    "sha256": "a309a9d7ed513bd7c10c876ee8d2592646bffe56f7bdf3f51cb11374725a26e4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-file-attachments-reports.mjs",
+      "sha256": "5b8024705a75fb8befef78459e7df40bdb6d02cd35150c7c9299a2683ae9bf5a"
+    },
+    {
+      "path": ".artifacts/capture-android-file-attachments-validation.mjs",
+      "sha256": "d9f57014b36190a74479eef5b94f35c42ebc1b8ffe8d5fcbe28a005b23911315"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a8de52cdf98312b5c0823597f4ccdf26ec0dc4c244df51ba8c206003d4c3d559"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0275683d31f4f0a2037fe2dfdb32a993dbd05af04a2d61129bbe5a0716d2b09d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-file-attachments-binding.log",
+      "sha256": "503162bdf627c11f3f5a590241414e5cd671f6f2915689b23d1e6a1d38dee800"
+    },
+    {
+      "path": ".artifacts/android-file-attachments-audit-tests.log",
+      "sha256": "519690e9408ee4fc5aa96b360fdc50a95b198a9ef0c1336dd24fef23ff5158be"
+    },
+    {
+      "path": ".artifacts/android-file-attachments-gate0-report.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-file-attachments-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-file-attachments-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

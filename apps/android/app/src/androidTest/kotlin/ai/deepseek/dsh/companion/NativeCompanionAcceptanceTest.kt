@@ -50,6 +50,19 @@ class NativeCompanionAcceptanceTest {
         return descend(root)
     }
 
+    private fun clickDocumentNode(node: android.view.accessibility.AccessibilityNodeInfo) {
+        var target: android.view.accessibility.AccessibilityNodeInfo? = node
+        repeat(6) {
+            val current = target ?: error("system document action has no clickable owner")
+            if (current.isClickable) {
+                check(current.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+                return
+            }
+            target = current.parent
+        }
+        error("system document action is not clickable")
+    }
+
     @Test fun pairAnswerAndReadPages() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         check(instrumentation.targetContext.packageName.endsWith(".nativeacceptance"))
@@ -312,6 +325,99 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("session-draft").performTextInput(command.getValue("text").jsonPrimitive.content)
                             }
                             "submitPromptDraft" -> compose.onNodeWithText("发送").performClick()
+                            "openAttachmentPicker" -> {
+                                waitFor(hasTestTag("session-attach") and isEnabled())
+                                compose.onNodeWithTag("session-attach").performClick()
+                                waitFor(hasTestTag("session-attach-file"))
+                                compose.onNodeWithTag("session-attach-file").performClick()
+                                compose.waitUntil(20_000) { documentNodes().isNotEmpty() }
+                                val bytes = ByteArrayOutputStream()
+                                val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+                                try { bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes) } finally { bitmap.recycle() }
+                                value = JsonPrimitive(Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                            }
+                            "finishAttachmentPick" -> {
+                                val filename = command.getValue("filename").jsonPrimitive.content
+                                if (documentNodes().none { it.text?.toString() == filename }) {
+                                    val roots = documentNodes().firstOrNull { it.contentDescription?.toString() in setOf(
+                                        "Show roots", "Show navigation drawer", "Open navigation drawer", "显示根目录", "打开导航抽屉", "显示导航抽屉") }
+                                        ?: error("system document locations action unavailable")
+                                    clickDocumentNode(roots)
+                                    compose.waitUntil(20_000) { documentNodes().any { it.text?.toString() in setOf("Downloads", "下载") } }
+                                    clickDocumentNode(documentNodes().first { it.text?.toString() in setOf("Downloads", "下载") })
+                                }
+                                compose.waitUntil(20_000) { documentNodes().any { it.text?.toString() == filename } }
+                                clickDocumentNode(documentNodes().first { it.text?.toString() == filename })
+                                compose.waitUntil(20_000) { documentNodes().isEmpty() }
+                                waitFor(hasTestTag("session-attach"))
+                            }
+                            "cancelAttachmentPicker" -> {
+                                check(documentNodes().isNotEmpty())
+                                check(instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK))
+                                compose.waitUntil(20_000) { documentNodes().isEmpty() }
+                                waitFor(hasTestTag("session-attach") and isEnabled())
+                            }
+                            "assertAttachments" -> {
+                                val model = companionModel().session
+                                val sessionId = checkNotNull(model.open.value).sessionId
+                                val expected = command.getValue("files").jsonArray.map { file ->
+                                    file.jsonObject.getValue("name").jsonPrimitive.content to file.jsonObject.getValue("bytes").jsonPrimitive.long
+                                }
+                                compose.waitUntil(20_000) {
+                                    model.input.value.drafts[sessionId]?.files.orEmpty().map { it.name to it.bytes } == expected
+                                }
+                                val draft = model.input.value.drafts[sessionId]
+                                val files = draft?.files.orEmpty()
+                                for (file in files) compose.onNodeWithTag("session-attachment-${file.receiptId}").assertExists()
+                                value = buildJsonObject {
+                                    put("requestId", draft?.requestId?.let(::JsonPrimitive) ?: JsonNull)
+                                    put("files", JsonArray(files.map { file -> buildJsonObject {
+                                        put("receiptId", file.receiptId); put("attachmentId", file.attachmentId)
+                                        put("name", file.name); put("bytes", file.bytes)
+                                    } }))
+                                }
+                            }
+                            "assertAttachmentFailure" -> {
+                                val model = companionModel().attachments
+                                val issue = command.getValue("issue").jsonPrimitive.content
+                                compose.waitUntil(20_000) { model.state.value.let {
+                                    it.phase == NativeFileAttachmentPhase.FAILED && it.issue?.name == issue
+                                } }
+                                compose.onNodeWithTag("session-attachment-error").assertIsDisplayed()
+                            }
+                            "removeAttachment" -> {
+                                val receiptId = command.getValue("receiptId").jsonPrimitive.content
+                                compose.onNodeWithTag("session-attachment-remove-$receiptId").performScrollTo().performClick()
+                                compose.waitUntil(20_000) { compose.onAllNodesWithTag("session-attachment-$receiptId").fetchSemanticsNodes(false).isEmpty() }
+                            }
+                            "assertAttachmentInputsEncrypted" -> {
+                                val model = companionModel()
+                                runBlocking { model.inputs.flush() }
+                                check(model.inputs.persistence.value == InputPersistenceStatus.SAVED)
+                                val sessionId = checkNotNull(model.session.open.value).sessionId
+                                val draft = checkNotNull(model.session.input.value.drafts[sessionId])
+                                check(draft.files.isNotEmpty())
+                                val stored = java.io.File(instrumentation.targetContext.filesDir, "native-input")
+                                    .listFiles()!!.filter { it.extension == "state" }
+                                check(stored.isNotEmpty())
+                                val privateValues = (draft.files.flatMap { listOf(it.name, it.receiptId, it.attachmentId) } +
+                                    listOf(draft.text, draft.requestId)).filter(String::isNotEmpty)
+                                for (file in stored) {
+                                    val raw = file.readBytes().toString(Charsets.UTF_8)
+                                    check(privateValues.none(raw::contains))
+                                }
+                            }
+                            "assertAttachmentMessage" -> {
+                                val seq = command.getValue("seq").jsonPrimitive.long
+                                val names = command.getValue("names").jsonArray.map { it.jsonPrimitive.content }
+                                val model = companionModel().session
+                                compose.waitUntil(20_000) { model.state.items.any { item -> item.seq == seq && names.all(item.text::contains) } }
+                                val item = model.state.items.single { it.seq == seq }
+                                compose.onNodeWithTag("session-rows").performScrollToNode(hasTestTag("session-event-$seq"))
+                                compose.onNodeWithTag("session-event-$seq").assertIsDisplayed()
+                                compose.onNodeWithText(item.text).assertIsDisplayed()
+                                value = JsonPrimitive(item.text)
+                            }
                             "openSession" -> {
                                 stage = "open-session-tab"
                                 compose.onNodeWithTag("native-tab-0").performClick()

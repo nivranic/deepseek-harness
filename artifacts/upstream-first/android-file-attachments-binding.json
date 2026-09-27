@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-file-attachments-source.json",
+    "sha256": "47955a9bb18d45d54859cbccf14b05a5b533bb832be1c676f379a4fd37d5a35b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "211ec1e8be7e8761fdb22ac2a72d8aa1d1d5d4398e40a995916909fdc4e327dc"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-file-attachments-binding.mjs",
+    "sha256": "96e9e9c1c173f73de105a1c4a9328df324f504da871e9764c4a87ac6fb1c7233"
+  }
+}

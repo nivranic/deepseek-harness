@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.double
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -92,6 +93,12 @@ internal fun blockText(blocks: JsonArray): String =
                 ref["height"]?.jsonPrimitive?.double ?: 0.0,
                 (ref["name"] as? JsonPrimitive)?.contentOrNullSafe,
             )
+        }
+        if (obj["type"]?.jsonPrimitive?.contentOrNullSafe == "file") {
+            val ref = obj["attachment"] as? JsonObject
+            val name = (ref?.get("name") as? JsonPrimitive)?.contentOrNullSafe
+            val size = (ref?.get("bytes") as? JsonPrimitive)?.doubleOrNull
+            if (name != null && size != null) return@mapNotNull "文件 $name（${numberText(size)} 字节）"
         }
         val nested = obj["content"] as? JsonArray
         if (nested != null) return@mapNotNull blockText(nested)

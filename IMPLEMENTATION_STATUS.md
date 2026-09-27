@@ -22,9 +22,23 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android Files 选择器附件与完整草稿意图（§36、§64）
+
+[当前来源记录](artifacts/upstream-first/android-file-attachments-source.json)绑定 Android Composer 的显式 Files 入口、系统文档选择器与 Host 文件暂存上传。选择票据只消费一次，并绑定原 Host 模型、Session id 与打开世代；离开后重新打开同一 Session 不能恢复旧票据的权限。取消与退役等待内容流关闭和 RPC 清理，迟到回调不能把文件附到另一个目标。已经被 Host 接受的上传可能留下未引用文件，不承诺撤回 Host 存储。
+
+加密输入文档升级为 v2，草稿和待确认发送均保存文本、文件收据、显示元数据及完整 requestId。文本或附件改变时建立新意图；显式重试保留原 Session、收据集合和请求身份，确切确认只清理已提交版本，保留较新编辑。旧 v1 文档严格拒绝且原始字节保留，只能通过显式恢复保留备份并开始空状态；没有自动迁移。上传本身不提交提示词，后续由用户明确发送，持久化恢复也不自动重传。
+
+本地读取最多 512 KiB 文件，草稿最多 8 个文件，编码后的 RPC 参数 JSON 最多 1 MiB。参数预算不包含外层 RPC envelope，Host 独立实施准入和请求大小限制，当前没有 Host 上传限额协商。文件通过有界内存读取与 base64 参数上传，不提供更大文件的流式上传、断点续传或上传幂等保证。
+
+373 项 core 测试、62 个套件无失败、错误或跳过，覆盖文件意图的持久化、请求身份、确切确认、原意图重试、Session 世代失效、取消收尾及输入保存失败。6 项安装态附件选择器测试通过，使用受控来源核对单选、一次消费、取消占位、Session 往返、Host 退役及数量拒绝；这些回调证据与真实 SAF 选择场景分别记录。
+
+最终组合回归为 4 个文件、5 项测试通过，涵盖真实 SAF 附件、输入持久化、两种丢确认重试与持久下载回归。应用和 instrumentation 安装包均与本轮构建的 SHA-256 匹配。中文名二进制及空文件经系统选择器上传，Host 存储的独立 SHA-256 与所选字节一致；超限文件在上传前拒绝。真实进程终止后保持同一设备授权、文本、附件收据及请求身份，恢复不自动上传或发送。显式发送只有一条匹配原请求身份的用户来源消息，完整文本与有序 FileBlock 精确核对；系统上下文快照另按既有回放的来源元数据验证，Android 展示发送文件名。
+
+Photos、Camera、分享入口、更大文件流式传输与 Host 限额协商仍开放。物理及 16-KiB 设备、第三方文档提供方、Host 重启后暂存收据失效的交互恢复与其他平台附件接入仍需对应证据。Session writer 保持 V3，completeRc 为 false；不授予 §36、§64 或整项目完成。
+
 ## Android 持久下载应用接入与系统文档导出（§35、§64）
 
-[当前来源记录](artifacts/upstream-first/android-download-adoption-source.json)绑定 Host 主体所属的 Android 下载模型、Keystore 加密存储和资源下载控件。选择资源只恢复本地检查点；用户显式开始或续传才读取 Host。资源替换与 Host 退役等待旧传输和导出清理后释放文件锁；显式移除只删除本地主体所属内容。聚合字节与条目配额限制应用私有下载存储，完整文件逐段解密写入系统选择器新建的文档，失败或取消清理该目标。
+[历史来源记录](artifacts/upstream-first/android-download-adoption-source.json)绑定 Host 主体所属的 Android 下载模型、Keystore 加密存储和资源下载控件。选择资源只恢复本地检查点；用户显式开始或续传才读取 Host。资源替换与 Host 退役等待旧传输和导出清理后释放文件锁；显式移除只删除本地主体所属内容。聚合字节与条目配额限制应用私有下载存储，完整文件逐段解密写入系统选择器新建的文档，失败或取消清理该目标。
 
 351 项 core 测试、59 个套件无失败、错误或跳过，包含界面协程取消后的状态恢复、文件锁释放、已确认移除、损坏拒绝、配额拒绝及有界导出清理。单 Host 安装态场景已验证下载中断、Android 进程重启后的 PAUSED 恢复、显式续传、完整文件经系统选择器保存及独立目标字节核对；这些证据不授予断电恢复或第三方文档提供方资格。
 

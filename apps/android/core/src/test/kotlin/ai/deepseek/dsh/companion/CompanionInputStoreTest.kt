@@ -18,8 +18,12 @@ class CompanionInputStoreTest {
     private fun directory() = Files.createTempDirectory("companion-input-").toFile().also { roots.add(it) }
     @AfterTest fun cleanup() { roots.forEach { it.deleteRecursively() } }
     private fun snapshot() = CompanionInputSnapshot(
-        drafts = mapOf("session" to SessionDraft("new composer input 中文", "new-intent")),
-        pendingPrompts = mapOf("old-intent" to PendingPrompt("session", SessionDraft("unconfirmed original", "old-intent"))),
+        drafts = mapOf("session" to SessionDraft("new composer input 中文", "new-intent", listOf(
+            SessionFileAttachment("new-receipt", "new-attachment", "空文件.txt", 0),
+            SessionFileAttachment("large-receipt", "large-attachment", "large.bin", 9_007_199_254_740_991L),
+        ))),
+        pendingPrompts = mapOf("old-intent" to PendingPrompt("session", SessionDraft("unconfirmed original", "old-intent",
+            listOf(SessionFileAttachment("old-receipt", "old-attachment", "original.txt", 42))))),
         answers = mapOf(QuestionDraftKey("session", "interaction", 3) to
             listOf(CompanionQuestionAnswer("question", listOf("Blue"), "user custom answer"))),
         lastSessionId = "session",
@@ -43,7 +47,7 @@ class CompanionInputStoreTest {
         }
     }
 
-    @Test fun `encrypted input restores drafts pending identities answers and the selected Session`() {
+    @Test fun `encrypted input restores drafts pending identities file metadata answers and the selected Session`() {
         val folder = directory()
         val cipher = TestCipher()
         val store = FileCompanionInputStore(folder, principal, cipher, 16_384)
@@ -54,6 +58,7 @@ class CompanionInputStoreTest {
         val saved = folder.listFiles()!!.single().readBytes()
         assertFalse(saved.toString(Charsets.UTF_8).contains("new composer input"))
         assertFalse(saved.toString(Charsets.UTF_8).contains("user custom answer"))
+        assertFalse(saved.toString(Charsets.UTF_8).contains("original.txt"))
         val restored = FileCompanionInputStore(folder, principal, cipher, 16_384)
         assertEquals(snapshot(), restored.load())
     }
@@ -135,7 +140,7 @@ class CompanionInputStoreTest {
         val conflict = original.getValue("pendingPrompts").jsonArray.single().jsonObject
         val badPending = JsonArray(listOf(JsonObject(conflict + ("requestId" to JsonPrimitive("new-intent")))))
         val variants = listOf(
-            JsonObject(original + ("version" to JsonPrimitive(2))),
+            JsonObject(original + ("version" to JsonPrimitive(3))),
             JsonObject(original + ("extra" to JsonPrimitive(true))),
             JsonObject(original - "answers"),
             JsonObject(original + ("drafts" to duplicateDraft)),
@@ -148,6 +153,124 @@ class CompanionInputStoreTest {
             assertFails { store.load() }
             assertContentEquals(bytes, file.readBytes())
         }
+    }
+
+    @Test fun `version two requires file arrays on both draft and pending prompt rows`() {
+        val folder = directory()
+        val store = FileCompanionInputStore(folder, principal, PlainCredentialsCipher, 16_384)
+        val draft = SessionDraft("text only", "same-intent")
+        val input = CompanionInputSnapshot(drafts = mapOf("session" to draft),
+            pendingPrompts = mapOf(draft.requestId to PendingPrompt("session", draft)))
+        store.save(input)
+        val file = folder.listFiles()!!.single()
+        val original = Json.parseToJsonElement(file.readText()).jsonObject
+        assertEquals(JsonPrimitive(2), original.getValue("version"))
+        assertEquals(input, store.load())
+        for (collection in listOf("drafts", "pendingPrompts")) {
+            val row = original.getValue(collection).jsonArray.single().jsonObject
+            assertEquals(JsonArray(emptyList()), row.getValue("files"))
+            val variants = listOf(JsonObject(row - "files"), JsonObject(row + ("files" to JsonNull)),
+                JsonObject(row + ("files" to JsonObject(emptyMap()))))
+            for (variant in variants) {
+                val bytes = JsonObject(original + (collection to JsonArray(listOf(variant)))).toString().toByteArray()
+                file.writeBytes(bytes)
+                assertFails { store.load() }
+                assertContentEquals(bytes, file.readBytes())
+            }
+        }
+    }
+
+    @Test fun `file metadata rejects blank identities invalid byte counts and duplicate receipt identities`() {
+        val folder = directory()
+        val store = FileCompanionInputStore(folder, principal, PlainCredentialsCipher, 16_384)
+        store.save(snapshot())
+        val file = folder.listFiles()!!.single()
+        val original = Json.parseToJsonElement(file.readText()).jsonObject
+        for (collection in listOf("drafts", "pendingPrompts")) {
+            val row = original.getValue(collection).jsonArray.single().jsonObject
+            val attachment = row.getValue("files").jsonArray.first().jsonObject
+            val malformed = mutableListOf<JsonElement>(JsonNull,
+                JsonObject(attachment - "receiptId"), JsonObject(attachment + ("extra" to JsonPrimitive(true))))
+            for (field in listOf("receiptId", "attachmentId", "name")) {
+                for (value in listOf(JsonPrimitive(""), JsonPrimitive(" \t"), JsonPrimitive(7), JsonNull)) {
+                    malformed.add(JsonObject(attachment + (field to value)))
+                }
+            }
+            for (value in listOf(JsonPrimitive("42"), JsonPrimitive("invalid"), JsonPrimitive(false), JsonNull,
+                JsonPrimitive(0.5), JsonPrimitive(-1), JsonPrimitive(9_007_199_254_740_992L))) {
+                malformed.add(JsonObject(attachment + ("bytes" to value)))
+            }
+            val fileArrays = malformed.map { JsonArray(listOf(it)) } + listOf(
+                JsonArray(listOf(attachment, attachment)),
+                JsonArray(listOf(attachment, JsonObject(attachment + ("attachmentId" to JsonPrimitive("other-attachment"))))),
+            )
+            for (files in fileArrays) {
+                val variant = JsonObject(row + ("files" to files))
+                val bytes = JsonObject(original + (collection to JsonArray(listOf(variant)))).toString().toByteArray()
+                file.writeBytes(bytes)
+                assertFails { store.load() }
+                assertContentEquals(bytes, file.readBytes())
+            }
+        }
+    }
+
+    @Test fun `one request identity cannot restore a different attachment intent`() {
+        val folder = directory()
+        val store = FileCompanionInputStore(folder, principal, PlainCredentialsCipher, 16_384)
+        val draft = snapshot().drafts.getValue("session")
+        val input = CompanionInputSnapshot(drafts = mapOf("session" to draft),
+            pendingPrompts = mapOf(draft.requestId to PendingPrompt("session", draft)))
+        store.save(input)
+        assertEquals(input, store.load())
+        val file = folder.listFiles()!!.single()
+        val original = Json.parseToJsonElement(file.readText()).jsonObject
+        val row = original.getValue("pendingPrompts").jsonArray.single().jsonObject
+        val files = row.getValue("files").jsonArray
+        val attachment = files.first().jsonObject
+        val changedFiles = listOf(JsonArray(emptyList()), JsonArray(files.reversed())) +
+            listOf("receiptId" to JsonPrimitive("other-receipt"), "attachmentId" to JsonPrimitive("other-attachment"),
+                "name" to JsonPrimitive("renamed.txt"), "bytes" to JsonPrimitive(1)).map { change ->
+                JsonArray(listOf(JsonObject(attachment + change)) + files.drop(1))
+            }
+        for (changed in changedFiles) {
+            val pending = JsonObject(row + ("files" to changed))
+            val bytes = JsonObject(original + ("pendingPrompts" to JsonArray(listOf(pending)))).toString().toByteArray()
+            file.writeBytes(bytes)
+            assertFailsWith<IllegalArgumentException> { store.load() }
+            assertContentEquals(bytes, file.readBytes())
+        }
+    }
+
+    @Test fun `version one input blocks new edits until explicit recovery preserves its encrypted bytes`() = runTest {
+        val folder = directory()
+        val cipher = TestCipher()
+        val store = FileCompanionInputStore(folder, principal, cipher, 16_384)
+        store.save(snapshot())
+        val file = folder.listFiles()!!.single()
+        val original = Json.parseToJsonElement(cipher.open(file.readBytes()).decodeToString()).jsonObject
+        val legacy = JsonObject(original + ("version" to JsonPrimitive(1)) +
+            listOf("drafts", "pendingPrompts").associateWith { collection ->
+                JsonArray(original.getValue(collection).jsonArray.map { JsonObject(it.jsonObject - "files") })
+            })
+        val previous = cipher.seal(legacy.toString().toByteArray())
+        file.writeBytes(previous)
+        assertFailsWith<IllegalArgumentException> { store.load() }
+        assertContentEquals(previous, file.readBytes())
+        val state = CompanionInputState.restore(store, backgroundScope, StandardTestDispatcher(testScheduler))
+        assertEquals(InputPersistenceStatus.RESTORE_FAILED, state.persistence.value)
+        assertFailsWith<InputPersistenceException> { state.update { snapshot() } }
+        assertFailsWith<InputPersistenceException> { state.flush() }
+        assertContentEquals(previous, file.readBytes())
+        state.startFresh()
+        assertEquals(CompanionInputSnapshot(), state.state.value)
+        assertEquals(InputPersistenceStatus.SAVED, state.persistence.value)
+        assertEquals(CompanionInputSnapshot(), store.load())
+        val backup = folder.listFiles()!!.single { it.name.contains(".unavailable-") }
+        assertContentEquals(previous, backup.readBytes())
+        state.update { snapshot() }
+        state.flush()
+        assertEquals(snapshot(), store.load())
+        assertContentEquals(previous, backup.readBytes())
     }
 
     @Test fun `coalesced checkpoints persist the latest complete input without dispatching any mutation`() = runTest {

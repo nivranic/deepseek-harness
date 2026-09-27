@@ -1,7 +1,10 @@
 package ai.deepseek.dsh.companion
 
-/** One explicit prompt intent. Retrying unchanged text retains its Host deduplication identity. */
-data class SessionDraft(val text: String, val requestId: String)
+/** A Host-staged file receipt retained with its display metadata; the receipt remains Session-scoped. */
+data class SessionFileAttachment(val receiptId: String, val attachmentId: String, val name: String, val bytes: Long)
+
+/** One complete prompt intent. Retrying unchanged text and files retains its Host deduplication identity. */
+data class SessionDraft(val text: String, val requestId: String, val files: List<SessionFileAttachment> = emptyList())
 
 /** A failed prompt keeps its target and complete refusal separate from its diagnostic category. */
 data class PromptSubmissionFailure(val sessionId: String, val category: ConnectionFailure, val refusal: GatewayFailureEnvelope?)

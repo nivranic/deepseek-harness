@@ -32,6 +32,8 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
     }
 
     val session = SessionModel(ownedWire, scope, inputs = inputs)
+    val attachments = NativeFileAttachmentsModel(ownedWire, session, inputs, scope,
+        NativeFileAttachmentLimits(maxFileBytes = 524_288, maxEncodedArgsBytes = 1_048_576, maxFiles = 8))
     val interactions = InteractionModel(ownedWire, scope, inputs = inputs)
     val files = FilesModel(ownedWire, scope)
     val downloads = NativeDownloadsModel(ownedWire, downloadFiles, scope, selected = { files.resource.state.value?.target == it })
@@ -39,6 +41,9 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
     val pushes = PushModel(ownedWire, scope)
 
     init {
+        scope.launch { session.open.map { it?.sessionId to session.selectionGeneration }.distinctUntilChanged().collectLatest {
+            attachments.selectSession(it.first)
+        } }
         scope.launch { files.resource.state.map { it?.target }.distinctUntilChanged().collectLatest { downloads.select(it) } }
         scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collect { files.selectSession(it) } }
         scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collectLatest { subagents.selectParent(it) } }
@@ -46,6 +51,7 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
 
     /** Retire model work without closing the process transport or cancelling a Host task. */
     fun close() {
+        attachments.close()
         downloads.close()
         lifetime.cancel()
         session.close()
@@ -58,6 +64,6 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
     /** Wait for model requests and stream cleanup before publishing a different connection's UI state. */
     suspend fun closeAndAwait() {
         close()
-        withContext(NonCancellable) { subagents.closeAndAwait(); downloads.closeAndAwait(); lifetime.join() }
+        withContext(NonCancellable) { attachments.closeAndAwait(); subagents.closeAndAwait(); downloads.closeAndAwait(); lifetime.join() }
     }
 }

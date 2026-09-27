@@ -244,23 +244,59 @@ class SessionModel(
     val sendFailure: StateFlow<PromptSubmissionFailure?> = _sendFailure
     private val sendLock = Mutex()
 
-    /** Keep each Session's text independently; an unchanged retry reuses its request id. */
+    /** Keep each Session's text and files independently; an unchanged intent reuses its request id. */
     fun updateDraft(sessionId: String, text: String) {
         inputs.update { current ->
-            current.copy(drafts = when {
-                text.isEmpty() -> current.drafts - sessionId
-                current.drafts[sessionId]?.text == text -> current.drafts
-                else -> current.drafts + (sessionId to SessionDraft(text, "companion-${java.util.UUID.randomUUID()}"))
-            })
+            replaceDraft(current, sessionId, text, current.drafts[sessionId]?.files.orEmpty())
         }
         if (_sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
+    }
+
+    /** Attach a staged receipt only to the currently open Session; duplicate receipts leave its intent unchanged.
+     * @param sessionId Session that issued the staged receipt.
+     * @param attachment Accepted Host receipt and its display metadata.
+     * @return Whether this receipt was added to the selected Session's draft.
+     */
+    fun addFileAttachment(sessionId: String, attachment: SessionFileAttachment): Boolean {
+        if (_open.value?.sessionId != sessionId) return false
+        var added = false
+        inputs.update { current ->
+            val draft = current.drafts[sessionId]
+            if (_open.value?.sessionId != sessionId || draft?.files?.any { it.receiptId == attachment.receiptId } == true) return@update current
+            added = true
+            replaceDraft(current, sessionId, draft?.text.orEmpty(), draft?.files.orEmpty() + attachment)
+        }
+        if (added && _sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
+        return added
+    }
+
+    /** Remove one selected Session's receipt while preserving its text and remaining files.
+     * @param sessionId Session whose composer owns the receipt.
+     * @param receiptId Receipt to remove from the local draft; this does not delete the Host file.
+     */
+    fun removeFileAttachment(sessionId: String, receiptId: String) {
+        if (_open.value?.sessionId != sessionId) return
+        inputs.update { current ->
+            val draft = current.drafts[sessionId] ?: return@update current
+            if (_open.value?.sessionId != sessionId) return@update current
+            replaceDraft(current, sessionId, draft.text, draft.files.filterNot { it.receiptId == receiptId })
+        }
+        if (_sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
+    }
+
+    private fun replaceDraft(current: CompanionInputSnapshot, sessionId: String, text: String,
+                             files: List<SessionFileAttachment>): CompanionInputSnapshot {
+        val draft = current.drafts[sessionId]
+        if (draft != null && draft.text == text && draft.files == files) return current
+        return current.copy(drafts = if (text.isEmpty() && files.isEmpty()) current.drafts - sessionId
+            else current.drafts + (sessionId to SessionDraft(text, "companion-${java.util.UUID.randomUUID()}", files)))
     }
 
     /** Only a positive Host acknowledgement clears the exact submitted draft; newer edits survive. */
     suspend fun sendDraft(): Boolean {
         val sessionId = _open.value?.sessionId ?: return false
         val draft = input.value.drafts[sessionId] ?: return false
-        return submitPrompt(sessionId, draft.text, emptyList(), draft.requestId, retainIntent = true)
+        return submitPrompt(sessionId, draft, retainIntent = true)
     }
 
     /** Start an explicit UI submission in model lifetime so tab disposal cannot cancel its acknowledgement. */
@@ -269,7 +305,7 @@ class SessionModel(
     /** Retry the persisted original intent explicitly, even when the composer contains newer edits. */
     fun retryPrompt(requestId: String): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
         val pending = input.value.pendingPrompts[requestId] ?: return@launch
-        submitPrompt(pending.sessionId, pending.draft.text, emptyList(), requestId, retainIntent = true)
+        submitPrompt(pending.sessionId, pending.draft, retainIntent = true)
     }
 
     /** Forget local input without withdrawing anything the Host may already have accepted. */
@@ -297,6 +333,8 @@ class SessionModel(
     private val followOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
     private var followGeneration = 0L
+    /** The current Session selection's generation; reconnects preserve it and a null open Session invalidates it. */
+    val selectionGeneration: Long get() = followGeneration
     private val _deliveredFiles = MutableStateFlow<List<NativeDeliveredFile>>(emptyList())
     val deliveredFiles: StateFlow<List<NativeDeliveredFile>> = _deliveredFiles
     private val journal = NativeSessionJournal(wire, scope, historyLimits) { generation, id, records, replacement ->
@@ -452,21 +490,25 @@ class SessionModel(
      */
     suspend fun send(text: String, images: List<Pair<String, String>> = emptyList()): Boolean {
         val session = _open.value ?: return false
-        return submitPrompt(session.sessionId, text, images, "companion-${java.util.UUID.randomUUID()}")
+        return submitPrompt(session.sessionId, SessionDraft(text, "companion-${java.util.UUID.randomUUID()}"), images)
     }
 
-    private suspend fun submitPrompt(sessionId: String, text: String, images: List<Pair<String, String>>, requestId: String,
+    private suspend fun submitPrompt(sessionId: String, draft: SessionDraft, images: List<Pair<String, String>> = emptyList(),
                                      retainIntent: Boolean = false): Boolean {
-        if ((text.isEmpty() && images.isEmpty()) || !sendLock.tryLock()) return false
+        if ((draft.text.isEmpty() && draft.files.isEmpty() && images.isEmpty()) || !sendLock.tryLock()) return false
+        val requestId = draft.requestId
         _sending.value = true
         _sendFailure.value = null
         try {
             if (retainIntent) {
-                inputs.update { it.copy(pendingPrompts = it.pendingPrompts + (requestId to PendingPrompt(sessionId, SessionDraft(text, requestId)))) }
+                inputs.update { it.copy(pendingPrompts = it.pendingPrompts + (requestId to PendingPrompt(sessionId, draft))) }
                 inputs.flush()
             }
             val content = buildList {
-                add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("text"), "text" to WireValue.StringValue(text))))
+                add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("text"), "text" to WireValue.StringValue(draft.text))))
+                for (file in draft.files) {
+                    add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("file"), "receiptId" to WireValue.StringValue(file.receiptId))))
+                }
                 for ((base64, mediaType) in images) {
                     add(
                         WireValue.ObjectValue(
@@ -567,8 +609,8 @@ class SessionModel(
     }
 
     private fun acknowledgePrompt(sessionId: String, requestId: String) = inputs.update { current ->
-        if (current.pendingPrompts[requestId]?.sessionId != sessionId) return@update current
+        val pending = current.pendingPrompts[requestId]?.takeIf { it.sessionId == sessionId } ?: return@update current
         current.copy(pendingPrompts = current.pendingPrompts - requestId,
-            drafts = if (current.drafts[sessionId]?.requestId == requestId) current.drafts - sessionId else current.drafts)
+            drafts = if (current.drafts[sessionId] == pending.draft) current.drafts - sessionId else current.drafts)
     }
 }

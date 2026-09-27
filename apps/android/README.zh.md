@@ -33,7 +33,9 @@ Host 传输场景为 [android-gateway.e2e.ts](../web/tests/android-gateway.e2e.t
 
 子代理页列出当前打开 Session 的子会话。打开子项可读取已保存时间线、加载较早分页或在读取失败后重连；视图不提供消息输入框或停止操作。目录刷新失败保留该父会话的行，切换父会话会退役旧子会话观察。父 Agent 未运行不表示其已保存子会话不可读。[子视图决策](../../.agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.zh.md)拥有取消及替换规则；[已安装场景](../web/tests/android-subagent-timeline.e2e.ts)验证冷子会话读取、分页和父会话选择。
 
-Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定指纹及设备授权隔离。已保存输入与最后查看的普通 Session 可以跨进程重启恢复；恢复只开启观察。显式提交仍由模型持有，并等待输入保存。失败 prompt 独立保留原文和请求 id，不受新编辑影响。确认及匹配的 Host 回执仅清理已接受意图；关闭或修订后的 Question 移除过期答案。保存失败阻止提交并提供重试。不可读取的输入保持原样，直到用户显式备份并重建。[输入持久化决策](../../.agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.zh.md)拥有格式与恢复语义；[录制场景](../web/tests/android-input-persistence.e2e.ts)验证进程恢复和加密存储损坏。
+Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定指纹及设备授权隔离。已保存输入与最后查看的普通 Session 可以跨进程重启恢复；恢复只开启观察。显式提交仍由模型持有，并等待输入保存。失败 prompt 独立保留原始文本/文件完整意图及请求 id，不受新编辑影响。确认及匹配的 Host 回执仅清理已接受意图；关闭或修订后的 Question 移除过期答案。保存失败阻止提交并提供重试。不可读取的输入保持原样，直到用户显式备份并重建。[输入持久化决策](../../.agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.zh.md)拥有格式与恢复语义；[录制场景](../web/tests/android-input-persistence.e2e.ts)验证进程恢复和加密存储损坏。
+
+在 Session 输入区选择 **+ → 文件**，通过 Android 系统文档选择器一次选择一个文件。上传完成后显示可移除的文件名与大小卡片；消息可以只包含文件而不含文本。选择、读取和上传期间禁用发送及待确认消息重试。移除卡片只修改本地草稿。应用限制每份草稿最多 8 个文件、每文件最多 512 KiB；这些是本地限制，不是与 Host 协商的限制。Host 未声明 `file-upload.stage.v1` 时不显示可执行文件上传入口。恢复回执不会自动重新上传或发送。暂存回执过期时，先显式丢弃未确认的原始意图，再重新选择并上传替代文件。[文件附件决定](../../.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md)拥有选择器授权、传输限制、回执生命周期与验证状态。
 
 [丢确认场景](../web/tests/android-prompt-retry.e2e.ts)在真实 Host 准入后暂缓返回结果并终止 Android 进程。显式重试使用已保存的请求身份；已有日志回执时则直接清理待确认项，不再调用 prompt。两条路径都在再次进程重启后保留新文本。
 

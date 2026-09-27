@@ -12,7 +12,7 @@ import kotlinx.serialization.json.*
 /** Local input is isolated from every other Host key and device grant. */
 data class CompanionInputPrincipal(val hostId: String, val fingerprint: String, val deviceId: String)
 
-/** An explicit prompt whose receipt has not yet been observed. Its original text survives newer composer edits. */
+/** An explicit prompt whose receipt has not yet been observed. Its complete original intent survives composer edits. */
 data class PendingPrompt(val sessionId: String, val draft: SessionDraft)
 
 /** Local human input and viewing position; this contains neither credentials nor a copy of the Host transcript. */
@@ -31,7 +31,9 @@ interface CompanionInputStoring {
     fun preserveAndStartFresh()
 }
 
-/** An encrypted, bounded document per principal. Replacement requires an atomic same-directory move. */
+/** An encrypted, bounded v2 document per principal. Older formats are rejected without rewriting their bytes.
+ * Replacement requires an atomic same-directory move.
+ */
 class FileCompanionInputStore(
     directory: File,
     private val principal: CompanionInputPrincipal,
@@ -77,7 +79,7 @@ class FileCompanionInputStore(
     }
 
     private fun encode(snapshot: CompanionInputSnapshot) = buildJsonObject {
-        put("version", 1)
+        put("version", 2)
         put("principal", principalJson)
         put("drafts", JsonArray(snapshot.drafts.map { (sessionId, draft) -> promptJson(sessionId, draft) }))
         put("pendingPrompts", JsonArray(snapshot.pendingPrompts.map { (requestId, pending) ->
@@ -97,21 +99,35 @@ class FileCompanionInputStore(
 
     private fun promptJson(sessionId: String, draft: SessionDraft) = buildJsonObject {
         put("sessionId", sessionId); put("text", draft.text); put("requestId", draft.requestId)
+        put("files", JsonArray(draft.files.map { file -> buildJsonObject {
+            put("receiptId", file.receiptId); put("attachmentId", file.attachmentId)
+            put("name", file.name); put("bytes", file.bytes)
+        } }))
     }
 
     private fun decode(bytes: ByteArray): CompanionInputSnapshot {
         val root = Json.parseToJsonElement(bytes.decodeToString(throwOnInvalidSequence = true)).objectWith(
             "version", "principal", "drafts", "pendingPrompts", "answers", "lastSessionId")
         val version = root.getValue("version") as? JsonPrimitive
-        require(version != null && !version.isString && version.intOrNull == 1) { "unsupported input snapshot version" }
+        require(version != null && !version.isString && version.intOrNull == 2) { "unsupported input snapshot version" }
         require(root.getValue("principal").objectWith("hostId", "fingerprint", "deviceId") == principalJson) {
             "input snapshot belongs to another principal"
         }
         val intents = mutableMapOf<String, PendingPrompt>()
         fun prompt(element: JsonElement): PendingPrompt {
-            val row = element.objectWith("sessionId", "text", "requestId")
+            val row = element.objectWith("sessionId", "text", "requestId", "files")
+            val files = row.array("files").map { raw ->
+                val file = raw.objectWith("receiptId", "attachmentId", "name", "bytes")
+                val bytesValue = file.getValue("bytes") as? JsonPrimitive
+                val size = bytesValue?.longOrNull
+                require(bytesValue != null && !bytesValue.isString && size != null && size in 0..9_007_199_254_740_991L) {
+                    "invalid file attachment size"
+                }
+                SessionFileAttachment(file.text("receiptId"), file.text("attachmentId"), file.text("name"), size)
+            }
+            require(files.map { it.receiptId }.distinct().size == files.size) { "duplicate file receipt" }
             val pending = PendingPrompt(row.text("sessionId"),
-                SessionDraft(row.getValue("text").stringValue(allowEmpty = true), row.text("requestId")))
+                SessionDraft(row.getValue("text").stringValue(allowEmpty = true), row.text("requestId"), files))
             val previous = intents.putIfAbsent(pending.draft.requestId, pending)
             require(previous == null || previous == pending) { "one prompt identity names different input" }
             return pending

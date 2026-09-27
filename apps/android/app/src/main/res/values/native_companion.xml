@@ -136,4 +136,23 @@
     <string name="native_download_save">保存已下载文件…</string>
     <string name="native_download_remove">移除本地下载</string>
     <string name="native_download_remove_help">仅移除此设备保留的下载内容和进度，Host 文件及已保存到其他位置的文件不会改变。</string>
+    <string name="native_capabilities_file_upload">上传文件附件</string>
+    <string name="native_attachment_add">添加附件</string>
+    <string name="native_attachment_plus">+</string>
+    <string name="native_attachment_file">文件</string>
+    <string name="native_attachment_remove">移除</string>
+    <string name="native_attachment_bytes">%1$d 字节</string>
+    <string name="native_attachment_detail">%1$s（%2$d 字节）</string>
+    <string name="native_attachment_selecting">请选择要添加的文件。</string>
+    <string name="native_attachment_reading">正在读取所选文件…</string>
+    <string name="native_attachment_uploading">正在上传文件…</string>
+    <string name="native_attachment_cancel">取消上传</string>
+    <string name="native_attachment_unsupported">Host 尚未声明支持文件上传，请刷新连接能力。</string>
+    <string name="native_attachment_too_large">文件超过单文件限制（%1$d 字节），请选择更小的文件。</string>
+    <string name="native_attachment_too_many">附件数量已达上限，请移除文件后再试。</string>
+    <string name="native_attachment_invalid">所选文件无效，请重新选择。</string>
+    <string name="native_attachment_request_too_large">所选文件无法在本次上传中提交，请选择更小的文件。</string>
+    <string name="native_attachment_source_failed">无法读取所选文件，请检查文件访问权限后重新选择。</string>
+    <string name="native_attachment_upload_failed">文件上传失败，请检查连接后重新选择。</string>
+    <string name="native_attachment_persistence_failed">附件未能保存到本地输入，请重试保存后重新选择。</string>
 </resources>
