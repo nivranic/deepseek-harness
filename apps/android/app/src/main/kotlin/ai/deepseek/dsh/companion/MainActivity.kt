@@ -4,6 +4,7 @@ import ai.deepseek.dsh.link.WireValue
 import ai.deepseek.dsh.gateway.NativeObservedCapability as NativeCapability
 
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -66,8 +67,10 @@ import kotlinx.coroutines.sync.withLock
  * surface (nativization plan chapters 52 and 60 — Minimal Neumorphic only). */
 class MainActivity : ComponentActivity() {
     private val model: CompanionViewModel by viewModels()
+    internal val shareIntake: NativeShareIntake by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        shareIntake.onActivityCreated(intent, savedInstanceState != null, packageName)
         lifecycleScope.launch {
             CompanionRuntime.restore(filesDir)
             if (isFinishing || isDestroyed) return@launch
@@ -80,6 +83,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        shareIntake.receive(intent, packageName)
     }
 }
 
@@ -385,6 +394,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     val resourceSavePicker: NativeResourceSavePicker = viewModel()
     val saveContent = rememberNativeResourceSaveLauncher(resourceSavePicker)
     val fileAttachmentPicker: NativeFileAttachmentPicker = viewModel()
+    val shareIntake: NativeShareIntake = viewModel()
     val attachFile = rememberNativeFileAttachmentLauncher(fileAttachmentPicker)
     val saveResource: (NativeResourceState) -> Unit = { resource ->
         model.files.resource.saves.prepare(resource)?.let { saveContent(it, model.files.resource.saves) }
@@ -428,6 +438,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     }
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            NativeShareCard(shareIntake, model, capabilities, fileAttachmentPicker)
             NativeResourceSaveNotice(resourceSavePicker)
             if (fileAttachmentPicker.cameraCleanupFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_camera_cleanup_failed),
                 Modifier.testTag("camera-cleanup-error"), color = MaterialTheme.colorScheme.error)
@@ -455,6 +466,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            NativeShareCard(shareIntake, model, capabilities, fileAttachmentPicker)
             NativeHostControls(model, hosts)
             HostCapabilityDetails(description, model.generation) { descriptionRefresh++ }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

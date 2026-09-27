@@ -39,6 +39,8 @@ Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定
 
 选择 **+ → 相机**，通过已安装相机拍摄一张完整尺寸 JPEG。确认拍摄结果只把图片加入草稿，发送仍需显式操作。相机复用上述图片能力与本地限制，过大的 JPEG 会被拒绝。处理或取消后，应用清理自己的临时输出；清理失败保持可见。取消已打开的相机后，需等其结果返回才能再次选择附件。冷启动清理未完成拍摄，不恢复上传权限。[相机决定](../../.agents/notes/implemented/architecture/2026-09-27-android-camera-attachments.zh.md)拥有临时文件、回调生命周期及独立验收范围。
 
+从其他 Android 应用向伴随端分享文本、照片或文件，选择已配对 Host 和普通 Session，在 **接收分享** 卡片核对后选择 **添加到草稿**。新的待确认分享会收起输入键盘，便于核对目标。确认将完整批次追加到当前草稿，发送仍需单独操作。添加后若本地保存失败，只需重试保存输入，无需再次导入。已中断且尚未添加的内容需要显式重新分享。[分享决定](../../.agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md)拥有来源限制、确认与恢复语义。
+
 [丢确认场景](../web/tests/android-prompt-retry.e2e.ts)在真实 Host 准入后暂缓返回结果并终止 Android 进程。显式重试使用已保存的请求身份；已有日志回执时则直接清理待确认项，不再调用 prompt。两条路径都在再次进程重启后保留新文本。
 
 文件页提供与工件页共用的资源预览；工件页投影当前持久 `deliverables/presented` 声明。读取采用 Session 作用域的 `workspaceFiles/stat` 和 `readBytes`，窗口为 64 KiB，内容预算为 8 MiB。已知更大的文件只显示 256 字节前缀。显式重试续接已接受的同版本字节；版本变化会丢弃前缀并要求重新读取。UTF-8 文本、按签名识别的图片及未知二进制均为惰性呈现，并另有文本和像素预算。[资源决策](../../.agents/notes/implemented/architecture/2026-09-27-android-current-resource-reading.zh.md)拥有限制与退出语义；[安装应用场景](../web/tests/android-resource-adoption.e2e.ts)覆盖空文件、中文文件名、有界预览、中断和当前交付引用。
@@ -90,4 +92,4 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 
 [旧 Link 夹具](support/link-fixture-host.mjs)保留为历史协议测试，不能验收当前应用。当平台缺少 Ed25519 密钥生成时，应用使用捆绑的 `org.conscrypt:conscrypt-android`。实际 Native Remote 验收使用出厂 Host 组合和隔离的 Android 模拟器应用；摄像头扫描、物理设备、发布签名和平台互操作仍未通过资格验收。
 
-后台下载调度、自动缓存淘汰、断电持久性、物理设备及第三方 SAF 提供方资格，以及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。深链接、平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。
+后台下载调度、自动缓存淘汰、断电持久性、物理设备及第三方 SAF 提供方资格，以及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。深链接、跨平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。

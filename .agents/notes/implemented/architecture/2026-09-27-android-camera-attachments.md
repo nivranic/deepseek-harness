@@ -16,6 +16,8 @@ The [photo decision](2026-09-27-android-photo-attachments.md) owns image staging
 
 The Activity-owned picker keeps the original Host model, Session selection and capture authority across rotation. Camera callbacks are distinguished from Files and Photos callbacks, although both image sources use the same core image admission. The shared attachment reservation blocks model-level send and retry during capture, read, upload and cancellation cleanup. A changed Session generation or retired Host cannot adopt a late camera result. Cancelling a launched camera marks its result for discard. Output cleanup may finish first, but the picker retains the output name, registered launcher and occupied callback slot until the actual result is consumed. A later Files, Photos or Camera selection cannot begin during that wait. Cancellation before launch releases the picker after cleanup.
 
+The [share decision](2026-09-28-android-share-intake.md) owns external share delivery and batch adoption. A share arriving during capture leaves the camera's original ticket and callback ownership intact.
+
 ## Temporary output lifetime
 
 `NativeCameraFiles` is a process singleton; live output reads require the exact in-memory lease token. Capture allocation and finalization share a reservation so cancellation cannot miss a file whose allocation is still running. Successful intake retains the output until the owned read/upload job settles, then revokes its exact URI grant and removes that file. Cancellation, failed launch, invalid result and owner retirement also release the owned output. Local cleanup does not roll back immutable image bytes already stored by the Host.

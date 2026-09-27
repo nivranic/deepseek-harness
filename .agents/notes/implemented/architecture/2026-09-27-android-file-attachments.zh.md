@@ -44,4 +44,4 @@ Files 增量的验证记录为 62 个核心测试套件中的 373 个测试全�
 
 原生组合回归的四个文件、五个用例全部通过：文件附件、[输入持久化](../../../../apps/web/tests/android-input-persistence.e2e.ts)、两个[丢确认恢复用例](../../../../apps/web/tests/android-prompt-retry.e2e.ts)，以及[持久下载](../../../../apps/web/tests/android-download-adoption.e2e.ts)。这些结果仅验收所测模拟器和系统提供方。
 
-[照片决定](2026-09-27-android-photo-attachments.zh.md)拥有照片入口及其独立验证；上述 Files 证据不构成该扩展的验收。相机与分享 intent 入口、持久 URI 访问、后台上传调度和上传续传仍在本决定范围之外。物理设备、第三方文档提供方、真实模型使用文件及跨平台互操作仍未通过资格验证。
+[照片决定](2026-09-27-android-photo-attachments.zh.md)拥有照片入口及其独立验证；上述 Files 证据不构成该扩展的验收。[分享决定](2026-09-28-android-share-intake.zh.md)拥有传入 Intent 确认与原子批次采用。相机入口、持久 URI 访问、后台上传调度和上传续传仍在本决定范围之外。物理设备、第三方文档提供方、真实模型使用文件及跨平台互操作仍未通过资格验证。

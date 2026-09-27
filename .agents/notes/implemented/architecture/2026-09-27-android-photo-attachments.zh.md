@@ -46,4 +46,4 @@ Session Controller 在接收方普通 Session 内解析每个暂存回执，并�
 
 [照片场景](../../../../apps/web/tests/android-photo-attachments.e2e.ts)已在 Android 34 x86_64 模拟器通过，两个已安装 APK 的哈希与当前构建一致。系统 Photo Picker 与 SAF 形成图片/文件/图片的有序草稿，独立 Host 存储哈希与已知无元数据 PNG 和文件字节匹配。删除测试专属源照片并终止应用进程后，同一授权、回执、顺序和请求身份恢复，没有自动上传或提交。显式发送产生唯一用户来源消息，ImageBlock/FileBlock/ImageBlock 内容完整匹配；系统提示词快照元数据单独核对。Session 授权图片读取返回已核验的 PNG，Android 展示发送名称。
 
-Android UI 提供照片入口，不新增附件存储、Session 事件类型、自动修改重放或上传续传协议。Host 规范化保持权威，Android 进程恢复后仍显式呈现暂存回执过期。模型响应使用无密钥录制回放，不证明真实模型的图片理解。物理设备、第三方照片提供方、HEIC 转换及相机/分享 intent 入口仍不在已验收范围内。[相机决定](2026-09-27-android-camera-attachments.zh.md)拥有系统相机入口及其独立验证。
+Android UI 提供照片入口，不新增附件存储、Session 事件类型、自动修改重放或上传续传协议。Host 规范化保持权威，Android 进程恢复后仍显式呈现暂存回执过期。模型响应使用无密钥录制回放，不证明真实模型的图片理解。物理设备、第三方照片提供方及 HEIC 转换仍不在已验收范围内。[相机决定](2026-09-27-android-camera-attachments.zh.md)拥有系统相机入口；[分享决定](2026-09-28-android-share-intake.zh.md)拥有传入 Intent 确认与原子批次采用。各入口分别验证。

@@ -106,6 +106,7 @@ android {
 
     defaultConfig {
         applicationId = "com.deepseek.harness.companion"
+        manifestPlaceholders["dshApplicationLabel"] = "DSH Companion"
         minSdk = 33
         targetSdk = 36
         versionCode = productVersionCode
@@ -130,7 +131,10 @@ android {
     buildTypes {
         debug {
             // Device acceptance owns separate storage from the installed companion.
-            if (providers.gradleProperty("dshNativeAcceptance").isPresent) applicationIdSuffix = ".nativeacceptance"
+            if (providers.gradleProperty("dshNativeAcceptance").isPresent) {
+                applicationIdSuffix = ".nativeacceptance"
+                manifestPlaceholders["dshApplicationLabel"] = "DSH Companion (acceptance)"
+            }
         }
         release {
             isMinifyEnabled = true

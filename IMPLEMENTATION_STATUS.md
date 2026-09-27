@@ -22,9 +22,27 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android Share 显式确认与原子草稿采用（§36、§64）
+
+[当前来源记录](artifacts/upstream-first/android-share-intake-source.json)绑定 Android ACTION_SEND 与 ACTION_SEND_MULTIPLE 的文本、文件和图片接收。接收阶段只保留内存中的待确认载荷；读取提供方名称、MIME 和字节，以及 Host 上传，都在用户确认当前 Host 与普通 Session 后执行。纯文本和 URL 保持字面内容，不触发导航或自动发送。EXTRA_STREAM 优先于 ClipData；输入顺序及重复项保留，畸形或非 content URI、嵌套 Intent 和应用私有相机来源被拒绝。
+
+Activity 使用 singleTask 接收冷启动与 onNewIntent，已占用的入口明确拒绝新到分享，不替换当前提案。旋转保留同一个 intake owner；SavedState 只保存处置状态，进程恢复和历史启动不恢复 URI 授权或重放原始 Intent。新分享进入确认阶段时清除旧编辑焦点并收起键盘，使目标 Host、Session 和确认按钮可见；后续重组及上传不反复抢占焦点，允许用户继续编辑草稿。
+
+整个批次共用现有附件提交准入，依序暂存所有附件，在每个回执验证后一次性追加到最新草稿，并保持准入至本地检查点尝试结束。暂存过程中不产生部分草稿，模型层发送和重试被拒绝；最终采用保留期间的文本编辑、原有附件和待确认 prompt，且只更新一次请求身份。采用前失败不改变原草稿，Host 已保存的未引用对象可能保留。采用后保存失败只允许重试本地保存，不重新上传或追加；保存提示跟随同一输入存储实例。
+
+分享确认继续受当前角色、能力、Host 与 Session 世代、输入恢复状态和选择器占用约束。Files、Photos 与 Camera 回调所有权独立；选择或导入进行中不排队自动导入。每次接收最多 8 项、文本 UTF-8 最多 64 KiB，每原件 512 KiB，组合草稿 8 项，上传参数 JSON 1 MiB；参数预算不含签名 envelope，Host 独立限制完整请求。不申请持久 URI 权限，不删除提供方源文件，也不新增 Host 协议或输入存储版本。
+
+完整 Android core XML 核验为 406 项测试、66 个套件，无失败、错误和跳过。最终应用与 instrumentation APK 构建并安装成功，31 项安装态测试通过：Files/Photos 9 项、Camera 9 项、Share 入口 12 项、Activity 实际投递与旋转 1 项。测试驱动按 Activity 类跟踪重建，避免 ActivityScenario 用启动 Intent 过滤真实 setIntent 后的生命周期；冷启动 Intent 与后续投递分离，后者不携带清任务标志。
+
+真实 Android 34 x86_64 模拟器经系统 Files 与 Sharesheet 向隔离应用分享，两个安装包哈希匹配最终构建产物。查看或关闭提案不上传、不发送并保留草稿；纯文本显式采用不调用 Host。第二次上传的可控等待证明无部分草稿及模型层发送互斥，完成后保留上传期间的编辑与来源顺序。Host 图片及文件独立存储哈希匹配已知 PNG 和二进制源；场景核对源哈希后只删除测试自有文件。
+
+另一次分享待确认时实际终止进程，恢复已完成加密草稿、附件回执及相同 requestId，不重放接收、不上传、不发送。显式提交生成唯一原身份用户消息，图片与文件内容顺序准确。相关回归一次执行九文件十二项通过；随后局部键盘修复后的 Share 可见性场景与此前受 Windows ADB 套接字错误影响的下载采用场景两文件两项通过，各次结果分别记录，不累计重复用例。五张最终整屏截图已检查，确认目标信息完整可见、编辑仍可使用键盘，以及恢复和发送后的附件展示。模型输出使用 keyless 录制，不代表真实模型附件理解或物理设备资格。
+
+Host 类型检查、全量 lint、17 项快速文档检查、36 项 doc-sync、六项逐节追溯及 Gate 0 的终态日志分别绑定来源记录。before 归档保留 6838 项文件。Swift 附件采用、跨平台分享、深链接与前台恢复、过期回执、更大流式上传及 Host 限额协商继续开放；第三方发送方和提供方、物理设备和平台矩阵仍需独立证据。扫描器保持同机共享缓存资格，GO-2026-5932 未关闭。Session writer 保持 V3、completeRc 为 false，§36/§64 不授予整节完成。
+
 ## Android Camera 完整图片与临时输出生命周期（§36、§64）
 
-[当前来源记录](artifacts/upstream-first/android-camera-attachments-source.json)绑定 Android 系统相机完整 JPEG 输入、应用自有输出清理和图片草稿恢复。显式 + → 相机使用 AndroidX TakePicture，通过未导出的 FileProvider 仅授予单个私有临时输出的读写权限；不申请 CAMERA、广泛媒体权限或持久 URI 授权，也不使用返回缩略图作为附件。Camera 继续复用 core IMAGE、image-upload.stage.v1 与加密输入 v3，Host 协议及 Session 事件没有新增。
+[历史来源记录](artifacts/upstream-first/android-camera-attachments-source.json)绑定 Android 系统相机完整 JPEG 输入、应用自有输出清理和图片草稿恢复。显式 + → 相机使用 AndroidX TakePicture，通过未导出的 FileProvider 仅授予单个私有临时输出的读写权限；不申请 CAMERA、广泛媒体权限或持久 URI 授权，也不使用返回缩略图作为附件。Camera 继续复用 core IMAGE、image-upload.stage.v1 与加密输入 v3，Host 协议及 Session 事件没有新增。
 
 相机、照片和文件回调分别匹配原始来源；相机输出按 UUID 关联原 Host 模型和 Session 世代。旋转保留原票据，已启动相机取消后保留丢弃回调至系统结果实际消费，防止旧结果误投下一次选择或积累到 SavedState。恢复元数据只允许清理及丢弃旧结果，既不重开相机也不恢复上传权；结果先到与清理先完成两种顺序均有安装态 Registry 测试。
 

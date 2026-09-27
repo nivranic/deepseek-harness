@@ -6,9 +6,10 @@ import android.util.Base64
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
+import androidx.test.rule.ActivityTestRule
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.json.*
@@ -30,7 +31,9 @@ class NativeCompanionAcceptanceTest {
         }
     }
     @get:Rule(order = 1) val notifications = GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
-    @get:Rule(order = 2) val compose = createAndroidComposeRule<MainActivity>()
+    // ActivityScenario filters out lifecycle events after real share delivery changes getIntent().
+    @Suppress("DEPRECATION")
+    @get:Rule(order = 2) val compose = AndroidComposeTestRule(ActivityTestRule(MainActivity::class.java)) { it.activity }
 
     private fun waitFor(matcher: SemanticsMatcher) {
         compose.waitUntil(20_000) { compose.onAllNodes(matcher).fetchSemanticsNodes(false).isNotEmpty() }
@@ -80,6 +83,26 @@ class NativeCompanionAcceptanceTest {
         return descend(root)
     }
 
+    private fun chooserNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return emptyList()
+        if (root.packageName.toString() !in setOf("android", "com.android.intentresolver")) return emptyList()
+        fun descend(node: android.view.accessibility.AccessibilityNodeInfo): List<android.view.accessibility.AccessibilityNodeInfo> =
+            listOf(node) + (0 until node.childCount).flatMap { index -> node.getChild(index)?.let(::descend).orEmpty() }
+        return descend(root)
+    }
+
+    private fun longClickDocumentNode(node: android.view.accessibility.AccessibilityNodeInfo) {
+        check(node.isVisibleToUser && node.packageName.toString().endsWith(".documentsui"))
+        val bounds = android.graphics.Rect().also(node::getBoundsInScreen)
+        check(!bounds.isEmpty)
+        // The system file row exposes no accessibility long-click action.
+        val x = bounds.centerX(); val y = bounds.centerY()
+        val duration = android.view.ViewConfiguration.getLongPressTimeout() + 100
+        val result = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input touchscreen swipe $x $y $x $y $duration")
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(result).use { it.readBytes() }
+    }
+
     private fun attachmentJson(attachment: SessionAttachment) = buildJsonObject {
         put("type", if (attachment is SessionImageAttachment) "image" else "file")
         put("receiptId", attachment.receiptId); put("attachmentId", attachment.attachmentId)
@@ -89,6 +112,16 @@ class NativeCompanionAcceptanceTest {
             attachment.originalDimensions?.let { dimensions -> put("originalDimensions", buildJsonObject {
                 put("width", dimensions.width); put("height", dimensions.height)
             }) }
+        }
+    }
+
+    private fun assertShareReviewVisible() {
+        compose.waitUntil(20_000) {
+            androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)
+                ?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime()) == false
+        }
+        for (tag in listOf("share-target-host", "share-target-session", "share-add-to-draft", "share-dismiss")) {
+            compose.onNodeWithTag(tag).assertIsDisplayed()
         }
     }
 
@@ -354,6 +387,100 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("session-draft").performTextInput(command.getValue("text").jsonPrimitive.content)
                             }
                             "submitPromptDraft" -> compose.onNodeWithText("发送").performClick()
+                            "openSystemFileShare" -> {
+                                val names = command.getValue("names").jsonArray.map { it.jsonPrimitive.content }
+                                require(names.size in 1..2 && names.all { it.matches(Regex("dsh-native-share-[a-f0-9-]+-(image\\.png|file\\.bin)")) })
+                                stage = "share-open-downloads"
+                                compose.runOnIdle {
+                                    compose.activity.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW)
+                                        .setDataAndType(android.net.Uri.parse("content://com.android.providers.downloads.documents/root/downloads"), "vnd.android.document/root")
+                                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                                }
+                                stage = "share-select-first-source"
+                                compose.waitUntil(20_000) { documentNodes().any { it.text?.toString() == names.first() } }
+                                documentNodes().firstOrNull { it.contentDescription?.toString() in setOf("Cancel", "取消") }
+                                    ?.let(::clickDocumentNode)
+                                compose.waitUntil(20_000) { documentNodes().none { it.contentDescription?.toString() in setOf("Cancel", "取消") } }
+                                longClickDocumentNode(documentNodes().first { it.text?.toString() == names.first() })
+                                compose.waitUntil(20_000) { documentNodes().any { it.text?.toString() == "1 selected" } }
+                                for ((index, name) in names.drop(1).withIndex()) {
+                                    stage = "share-select-next-source"
+                                    compose.waitUntil(20_000) { documentNodes().any { it.text?.toString() == name } }
+                                    clickDocumentNode(documentNodes().first { it.text?.toString() == name })
+                                    compose.waitUntil(20_000) { documentNodes().any { it.text?.toString() == "${index + 2} selected" } }
+                                }
+                                fun share() = documentNodes().firstOrNull {
+                                    it.isVisibleToUser && (it.contentDescription?.toString() in setOf("Share", "分享", "共享") ||
+                                        it.text?.toString() in setOf("Share", "分享", "共享"))
+                                }
+                                stage = "share-open-chooser"
+                                compose.waitUntil(20_000) { share() != null }
+                                clickDocumentNode(checkNotNull(share()))
+                                stage = "share-find-acceptance-receiver"
+                                compose.waitUntil(20_000) { chooserNodes().any { it.text?.toString() == "DSH Companion (acceptance)" } }
+                                val bytes = ByteArrayOutputStream()
+                                val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+                                try { bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes) } finally { bitmap.recycle() }
+                                value = buildJsonObject {
+                                    put("package", chooserNodes().first().packageName.toString())
+                                    put("screenshot", Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                                }
+                            }
+                            "chooseShareReceiver" -> {
+                                val node = chooserNodes().first { it.text?.toString() == "DSH Companion (acceptance)" }
+                                clickDocumentNode(node)
+                                waitFor(hasTestTag("share-intake"))
+                                compose.waitUntil(20_000) { compose.activity.shareIntake.phase == NativeSharePhase.REVIEW }
+                                assertShareReviewVisible()
+                            }
+                            "deliverSharedText" -> {
+                                val text = command.getValue("text").jsonPrimitive.content
+                                compose.runOnIdle {
+                                    compose.activity.startActivity(android.content.Intent(android.content.Intent.ACTION_SEND)
+                                        .setClass(compose.activity, MainActivity::class.java).setType("text/plain")
+                                        .putExtra(android.content.Intent.EXTRA_TEXT, text))
+                                }
+                                waitFor(hasTestTag("share-intake"))
+                                compose.waitUntil(20_000) { compose.activity.shareIntake.phase == NativeSharePhase.REVIEW }
+                                assertShareReviewVisible()
+                            }
+                            "shareIntakeSnapshot" -> {
+                                compose.runOnIdle {
+                                    val intake = compose.activity.shareIntake
+                                    value = buildJsonObject {
+                                        put("phase", intake.phase.name); put("arrival", intake.arrival)
+                                        put("text", intake.payload?.text?.let(::JsonPrimitive) ?: JsonNull)
+                                        put("count", intake.payload?.items?.size ?: 0)
+                                    }
+                                }
+                            }
+                            "confirmSharedDraft" -> {
+                                waitFor(hasTestTag("share-add-to-draft") and isEnabled())
+                                compose.onNodeWithTag("share-add-to-draft").assertIsDisplayed().performClick()
+                            }
+                            "dismissSharedDraft" -> compose.onNodeWithTag("share-dismiss").assertIsDisplayed().performClick()
+                            "shareSourceNames" -> {
+                                check(compose.activity.shareIntake.phase == NativeSharePhase.IMPORTING)
+                                val items = checkNotNull(compose.activity.shareIntake.payload).items
+                                value = JsonArray(items.map { JsonPrimitive(checkNotNull(AndroidNativeFileAttachmentSource(
+                                    instrumentation.targetContext.contentResolver, it.uri).name())) })
+                            }
+                            "shareDraftSnapshot" -> {
+                                val model = companionModel().session
+                                val id = checkNotNull(model.open.value).sessionId
+                                val draft = model.input.value.drafts[id]
+                                value = buildJsonObject {
+                                    put("requestId", draft?.requestId?.let(::JsonPrimitive) ?: JsonNull)
+                                    put("text", draft?.text.orEmpty())
+                                    put("attachments", JsonArray(draft?.attachments.orEmpty().map(::attachmentJson)))
+                                }
+                            }
+                            "assertShareSubmissionBlocked" -> {
+                                check(compose.activity.shareIntake.phase == NativeSharePhase.IMPORTING)
+                                val model = companionModel().session
+                                runBlocking { check(!model.sendDraft()) }
+                                check(!model.sending.value && model.input.value.pendingPrompts.isEmpty())
+                            }
                             "openCamera" -> {
                                 waitFor(hasTestTag("session-attach") and isEnabled())
                                 compose.onNodeWithTag("session-attach").performClick()
@@ -889,7 +1016,11 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("file-content").assertDoesNotExist()
                             }
                             "recreate" -> {
-                                compose.activityRule.scenario.recreate()
+                                val previous = compose.activity
+                                compose.runOnIdle { previous.recreate() }
+                                compose.waitUntil(20_000) {
+                                    compose.activity !== previous && compose.activity.lifecycle.currentState == androidx.lifecycle.Lifecycle.State.RESUMED
+                                }
                                 waitFor(hasTestTag("native-repair"))
                                 compose.onNodeWithText("配对载荷（二维码内容）").assertDoesNotExist()
                             }
@@ -1089,11 +1220,17 @@ class NativeCompanionAcceptanceTest {
                             }
                             else -> error("unsupported UI command")
                         }
-                    } catch (_: Throwable) {
+                    } catch (error: Throwable) {
                         // Compose exceptions can embed the pairing field in the semantics tree.
                         failed = true
                         type = "error"
-                        value = buildJsonObject { put("code", "android-ui-operation-failed"); put("operation", stage) }
+                        value = buildJsonObject {
+                            put("code", "android-ui-operation-failed"); put("operation", stage)
+                            put("exception", error.javaClass.simpleName)
+                            put("frames", buildJsonArray {
+                                error.stackTrace.take(6).forEach { add("${it.className}.${it.methodName}:${it.lineNumber}") }
+                            })
+                        }
                     }
                     output.write(buildJsonObject { put("id", id); put("type", type); put("value", value) }.toString())
                     output.newLine(); output.flush()

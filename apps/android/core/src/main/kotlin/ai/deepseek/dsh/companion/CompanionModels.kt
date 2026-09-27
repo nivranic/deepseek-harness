@@ -252,10 +252,49 @@ class SessionModel(
         else SessionAttachmentAdmission().also { attachmentAdmission = it }
     }
 
+    /** Reserve only the reviewed Session generation, under the same lock as prompt and selection admission. */
+    internal fun reserveAttachment(sessionId: String, generation: Long): SessionAttachmentAdmission? = synchronized(submissionAdmission) {
+        if (!matchesAttachmentTarget(sessionId, generation)) null else reserveAttachment()
+    }
+
+    /** Whether the reviewed target still names the current Session observation rather than an earlier visit. */
+    internal fun matchesAttachmentTarget(sessionId: String, generation: Long): Boolean = synchronized(submissionAdmission) {
+        _open.value?.sessionId == sessionId && followGeneration == generation
+    }
+
     /** Only the exact retired operation can release its reservation. */
     internal fun releaseAttachment(admission: SessionAttachmentAdmission) = synchronized(submissionAdmission) {
         if (attachmentAdmission === admission) attachmentAdmission = null
     }
+
+    /** Append one complete shared batch to the latest draft without changing an unconfirmed prompt intent. */
+    internal fun appendSharedContent(request: NativeShareRequest, admission: SessionAttachmentAdmission,
+                                     attachments: List<SessionAttachment>, maxFiles: Int): NativeShareResult = synchronized(submissionAdmission) {
+        var result: NativeShareResult = NativeShareResult.NotAdopted(NativeShareIssue.STALE_TARGET)
+        if (attachmentAdmission !== admission || !matchesAttachmentTarget(request.sessionId, request.selectionGeneration)) return@synchronized result
+        inputs.update { current ->
+            if (!matchesAttachmentTarget(request.sessionId, request.selectionGeneration)) return@update current
+            val previous = current.drafts[request.sessionId]
+            val existing = previous?.attachments.orEmpty()
+            if (existing.size + attachments.size > maxFiles) {
+                result = NativeShareResult.NotAdopted(NativeShareIssue.ATTACHMENT_FAILED, NativeFileAttachmentIssue.TOO_MANY_FILES)
+                return@update current
+            }
+            val combined = existing + attachments
+            if (combined.map { it.receiptId }.distinct().size != combined.size) {
+                result = NativeShareResult.NotAdopted(NativeShareIssue.ATTACHMENT_FAILED,
+                    NativeFileAttachmentIssue.INVALID_FILE, ConnectionFailure.INVALID_RESPONSE)
+                return@update current
+            }
+            val text = listOf(previous?.text.orEmpty(), request.text).filter { it.isNotEmpty() }.joinToString("\n\n")
+            val draft = SessionDraft(text, "companion-${java.util.UUID.randomUUID()}", combined)
+            result = NativeShareResult.Adopted(draft.requestId, saved = false)
+            current.copy(drafts = current.drafts + (request.sessionId to draft))
+        }
+        result
+    }
+
+    private fun publishAttachmentTarget(value: OpenSession?) = synchronized(submissionAdmission) { _open.value = value }
 
     /** Keep each Session's text and files independently; an unchanged intent reuses its request id. */
     fun updateDraft(sessionId: String, text: String) {
@@ -466,7 +505,7 @@ class SessionModel(
         viewRequest.getAndSet(null)?.cancel()
         journal.close()
         _viewAnchor.value = null
-        followOwner.stop { _open.value = null }
+        followOwner.stop { publishAttachmentTarget(null) }
     }
 
     /** Close the open session after its follow stream has fully stopped. */
@@ -476,7 +515,7 @@ class SessionModel(
         view?.cancel()
         val reads = journal.close()
         _viewAnchor.value = null
-        followOwner.stopAndAwait { _open.value = null }
+        followOwner.stopAndAwait { publishAttachmentTarget(null) }
         withContext(NonCancellable) { reads.joinAll(); view?.join() }
     }
 
@@ -486,14 +525,14 @@ class SessionModel(
                 viewRequest.getAndSet(null)?.cancel()
                 val request = payload.getValue("request") as WireValue.ObjectValue
                 val target = request.entries.getValue("address") as WireValue.ObjectValue
-                followGeneration = generation
+                synchronized(submissionAdmission) { followGeneration = generation }
                 _viewAnchor.value = null
                 journal.reset(generation, sessionId, target)
                 follow(payload + ("request" to WireValue.ObjectValue(request.entries +
                     ("maxMessages" to WireValue.NumberValue(historyLimits.pageMessages.toDouble())))), generation)
             },
-            publish = { _deliveredFiles.value = emptyList(); _open.value = OpenSession(sessionId, DomainState()) },
-            invalidate = { _deliveredFiles.value = emptyList(); _open.value = null },
+            publish = { _deliveredFiles.value = emptyList(); publishAttachmentTarget(OpenSession(sessionId, DomainState())) },
+            invalidate = { _deliveredFiles.value = emptyList(); publishAttachmentTarget(null) },
         )
     }
 
