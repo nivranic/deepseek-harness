@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 原生扫描器源码与 Android 构建出处（§43、§56）
+
+[当前来源记录](artifacts/upstream-first/native-scanner-adoption-source.json)将共享 Go 支持扫描器、Android 构建器依赖闭包和三组 Python 测试纳入当前检出。扫描器运行行为保持固定 Gitleaks 规则、真实 canary、不可变字节及等待取消；应用仍拥有字段选择与交付，不引入另一套 Host 支持包服务。
+
+仓库入口 test:support-scanner 通过五项拒绝控制、二十项 Python 测试（Windows 目录符号链接一项跳过）、八项 Go 主测试及五个秘密输入子案例、模块完整性和 vet。门禁要求固定编译器、非空实际测试与校验数据库。构建器新增显式无凭据 HTTPS 模块代理；私有源码仍对照 Git，外部模块仍校验。JS 语法、lint、17 项快速文档、36 项 doc-sync、6 项逐节追踪及 Gate 0 通过。
+
+现有外部 AAR 未被替换。构建器要求源码与自身文件已提交且字节一致，因此当前提交产物重建与匹配安装验收是后续步骤。race 在启用 cgo 后因缺少 gcc 未执行成功；漏洞、真机、16 KiB 设备、Apple 和发布资格仍开放。Session writer 保持 V3，completeRc 为 false。
+
 ## Android Native Gateway 支持诊断（§42、§43、§67）
 
-[当前来源记录](artifacts/upstream-first/android-native-diagnostics-source.json)将支持导出接到当前 Native Gateway。密封变体区分原生与历史 Link；原生快照不做 I/O，按客户端代次记录 HTTP 回调与 mux 订阅所有权，模型重连次数保持独立。固定角色、能力白名单和失败分类排除身份、地址、凭据及任意远端字符串。刷新失败保留最近成功事实，关闭后的迟到完成不能恢复可用状态。
+[历史来源记录](artifacts/upstream-first/android-native-diagnostics-source.json)将支持导出接到当前 Native Gateway。密封变体区分原生与历史 Link；原生快照不做 I/O，按客户端代次记录 HTTP 回调与 mux 订阅所有权，模型重连次数保持独立。固定角色、能力白名单和失败分类排除身份、地址、凭据及任意远端字符串。刷新失败保留最近成功事实，关闭后的迟到完成不能恢复可用状态。
 
 核心 304 项测试、55 个套件通过。四项最终真实 Host 与已安装模拟器场景覆盖原生扫描导出、两种游标恢复和资源读取；诊断场景核验只读协商拒绝及恢复、逻辑 follow 重连计数与私有字段缺失，不发业务变更。类型、lint、17 项快速文档检查、36 项 doc-sync、6 项逐节追踪和 Gate 0 通过。源码与日志经过来源绑定，Session writer 保持 V3，completeRc 为 false。
 

@@ -6,6 +6,8 @@ Status: implemented
 
 ## 问题
 
+本记录标识从提交 `64fa63152b93b6898f95f4bda8eb6857dbb19848` 构建的历史外部 AAR。[当前候选构建器](2026-09-27-native-scanner-source-and-build-provenance.zh.md)使用显式代理输入并保留校验数据库验证；下述本地包装器不是它的执行策略。
+
 已提交的扫描器构建器（应用源中的 `scripts/build-mobile-support-scanner.py`）固定了工具链环境：`GOPROXY` 为私有文件代理加 `https://proxy.golang.org`，`GOSUMDB` 为 `sum.golang.org`。本机两者皆不可达（中国大陆网络）；此外，360 安全卫士的主动防御拒绝执行新链接出的 `gobind.exe`（内容启发式——改名副本同样被拒，而同目录的 `gomobile.exe` 可正常运行）。
 
 ## 当前上游边界
@@ -28,4 +30,4 @@ TLS MITM sumdb 代理（继承的 `HTTPS_PROXY` + `SSL_CERT_FILE` 使其技术�
 
 ## 后果
 
-产出的 AAR 回执 `staticVerification: PASS` 可信：构建器每项断言都原样执行。证据范围保持诚实——回执中 `deviceExecution: NOT_EXECUTED`（AAR 自身的运行时行为未被执行），尽管内嵌它的 APK 已在模拟器上安装并无崩溃启动。全部环境适配位于本地驱动脚本（`E:/Mix/tools/dsh-scanner-cache/run-scanner-build.py`），未进入任何已提交构建文件，并在 apps/android 双语 README 中记录。
+历史 AAR 回执记录 `staticVerification: PASS`：其构建器断言在未修改源码的情况下执行。不可变的 `deviceExecution: NOT_EXECUTED` 字段描述构建时证据；后续已安装扫描器执行属于独立应用证据。环境适配仍位于历史本地驱动（`E:/Mix/tools/dsh-scanner-cache/run-scanner-build.py`），不在已提交构建器文件中。本记录保留其出处，不据此验收新的候选构建。

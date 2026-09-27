@@ -6,6 +6,8 @@ English | [中文](2026-09-20-scanner-toolchain-host-accommodations.zh.md)
 
 ## Problem
 
+This record identifies the historical external AAR built from commit `64fa63152b93b6898f95f4bda8eb6857dbb19848`. The [current candidate builder](2026-09-27-native-scanner-source-and-build-provenance.md) uses explicit proxy inputs with checksum-database verification; the local wrapper below is not its execution policy.
+
 The committed scanner builder (`scripts/build-mobile-support-scanner.py` in the application source) pins its toolchain env: `GOPROXY` is the private file proxy plus `https://proxy.golang.org`, and `GOSUMDB` is `sum.golang.org`. This host can reach neither (mainland-China network); additionally, 360 安全卫士's active defense denies execution of the freshly linked `gobind.exe` (content heuristic — a renamed copy is denied too, while `gomobile.exe` from the same directory runs).
 
 ## Current upstream boundary
@@ -28,4 +30,4 @@ A TLS-MITM sumdb proxy (inherited `HTTPS_PROXY` + `SSL_CERT_FILE` make it techni
 
 ## Consequences
 
-The produced AAR's `staticVerification: PASS` receipt is trustworthy: every builder assertion executed unchanged. The evidence scope stays honest — `deviceExecution: NOT_EXECUTED` in the receipt (the AAR's own runtime behavior is unexercised) even though the APK embedding it installed and launched crash-free on an emulator. The accommodations live in the local driver (`E:/Mix/tools/dsh-scanner-cache/run-scanner-build.py`), not in any committed build file, and are recorded in the apps/android READMEs.
+The historical AAR receipt records `staticVerification: PASS`: its builder assertions executed without source changes. Its immutable `deviceExecution: NOT_EXECUTED` field describes build-time evidence; later installed scanner execution belongs to separate application evidence. The accommodations remain in the historical local driver (`E:/Mix/tools/dsh-scanner-cache/run-scanner-build.py`), outside committed builder files. This record preserves their provenance without qualifying a new candidate build.

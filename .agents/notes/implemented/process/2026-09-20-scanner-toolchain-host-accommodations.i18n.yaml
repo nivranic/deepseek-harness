@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.md
-2026-09-20-scanner-toolchain-host-accommodations.md: 12e714e784ddf4c04ec01d1e54cc8d678699870e
-2026-09-20-scanner-toolchain-host-accommodations.zh.md: 5cd725dc7f7341ddd8feb236924ebe362b6140c3
+2026-09-20-scanner-toolchain-host-accommodations.md: e7bad6cdcbea195c4c73c83661ea04e20079e735
+2026-09-20-scanner-toolchain-host-accommodations.zh.md: f23fd8e8d8525d883bb96796a98d3df129ae44a8

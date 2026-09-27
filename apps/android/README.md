@@ -56,16 +56,19 @@ Session, Workspace, and interaction observations reconnect only after transport 
 | `app/src/main/kotlin/ai/deepseek/dsh/companion/` | Migrated Compose shell: MainActivity, chat screen, notifications, Keystore cipher |
 | `support/link-fixture-host.mjs` | Host-side Link fixture for the emulator lane: pairs one device over pinned TLS, verifies Ed25519 request signatures, and refuses `workspaceFiles/read` with the classified `gateway/permission-denied` envelope; the committed `fixture-host-cert.pem`/`fixture-host-key.pem` are throwaway localhost fixture credentials, not product secrets |
 
+<a id="local-support-export"></a>
+## Local support export
+
+Support export labels current Native Gateway transport ownership separately from historical Link observations. HTTP callback counts and mux subscriptions belong to a client generation; model reconnect counters retain their own lifetime. Protocol facts and pairing roles remain last-known observations after refresh failure, never health or authorization guarantees. Capability fields use a fixed allowlist. The [diagnostic decision](../../.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.md) owns these rules; the [installed-app scenario](../web/tests/android-native-diagnostics.e2e.ts) exercises the existing scanner pipeline.
+
 ## Model Experience
 
 The companion displays Host-owned Session events and returns explicit human answers through the current Gateway. It does not execute a model locally or add a separate transcript. The keyless acceptance scenario replays recorded model output; it does not qualify a live provider.
 
-Support export labels current Native Gateway transport ownership separately from historical Link observations. HTTP callback counts and mux subscriptions belong to a client generation; model reconnect counters retain their own lifetime. Protocol facts and pairing roles remain last-known observations after refresh failure, never health or authorization guarantees. Capability fields use a fixed allowlist. The [diagnostic decision](../../.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.md) owns these rules; the [installed-app scenario](../web/tests/android-native-diagnostics.e2e.ts) exercises the existing scanner pipeline.
-
 <a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
 
-`:app:assembleDebug` requires a support-scanner AAR and verified receipt through `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE`. The current external AAR records source commit `64fa63152b93b6898f95f4bda8eb6857dbb19848`, which contains `native/support-scanner` and `scripts/build-mobile-support-scanner.py`; those source paths are absent from this checkout. Receipt admission and installed Gitleaks 8.30.1 scanning do not establish a reproducible build from the current candidate. Restoring a same-candidate scanner source/build chain remains a release requirement.
+`:app:assembleDebug` requires a support-scanner AAR and verified receipt through `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE`. The existing external AAR records source commit `64fa63152b93b6898f95f4bda8eb6857dbb19848`. The [scanner source and Android builder](../../native/support-scanner/README.md) are maintained in this checkout, but source tests do not replace that external artifact. A build from a committed current candidate, its receipt and matching installed-app evidence remain required before claiming same-candidate scanner reproducibility.
 
 The shell consumes the Gateway failure contract: refusals carry the failure envelope verbatim (code, message, structured details) out of unary results and stream failure frames, and presentation classifies every code through the shared `RemoteFailureClasses` mirror — known classes get class-level copy and a next action, codes outside the vocabulary stay opaque diagnostics (`GatewayFailurePresentation.kt`, covered by `GatewayFailurePresentationTest` and the envelope-preservation cases in `LinkClientTest`).
 

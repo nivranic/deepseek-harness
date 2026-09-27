@@ -56,16 +56,19 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 | `app/src/main/kotlin/ai/deepseek/dsh/companion/` | 迁入的 Compose 外壳：MainActivity、聊天屏、通知、Keystore cipher |
 | `support/link-fixture-host.mjs` | 模拟器 lane 的 Host 侧 Link 夹具：经 pinning TLS 配对一台设备、校验 Ed25519 请求签名，并以分类的 `gateway/permission-denied` 信封拒绝 `workspaceFiles/read`；随库提交的 `fixture-host-cert.pem`/`fixture-host-key.pem` 是一次性本地回环夹具凭证，不是产品机密 |
 
+<a id="local-support-export"></a>
+## 本地支持导出
+
+支持导出将当前 Native Gateway 传输所有权与历史 Link 观察分别标记。HTTP 回调计数与 mux 订阅属于客户端代次，模型重连计数保留各自生命周期。刷新失败后，协议事实与配对角色仍是最近已知观察，不能保证健康或授权。能力字段使用固定白名单。[诊断决策](../../.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.zh.md)拥有这些规则；[已安装应用场景](../web/tests/android-native-diagnostics.e2e.ts)验证既有扫描器流程。
+
 ## 模型体验
 
 伴随端展示 Host 持有的 Session 事件，通过当前 Gateway 返回显式的人类答案。它不在本地执行模型，也不增加独立的对话记录。无密钥验收场景回放录制的模型输出，不代表真实提供方已通过验收。
 
-支持导出将当前 Native Gateway 传输所有权与历史 Link 观察分别标记。HTTP 回调计数与 mux 订阅属于客户端代次，模型重连计数保留各自生命周期。刷新失败后，协议事实与配对角色仍是最近已知观察，不能保证健康或授权。能力字段使用固定白名单。[诊断决策](../../.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.zh.md)拥有这些规则；[已安装应用场景](../web/tests/android-native-diagnostics.e2e.ts)验证既有扫描器流程。
-
 <a id="known-limitations-and-deferred-work"></a>
 ## 已知限制与后续工作
 
-`:app:assembleDebug` 要求经 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 传入支持扫描器 AAR 及已核验回执。当前外部 AAR 记录的源码提交是 `64fa63152b93b6898f95f4bda8eb6857dbb19848`，该提交包含 `native/support-scanner` 与 `scripts/build-mobile-support-scanner.py`；这些源码路径不在当前检出中。回执准入和已安装的 Gitleaks 8.30.1 扫描不能证明可从当前候选源码复现构建。恢复同一候选源码中的扫描器源码与构建链仍是发布要求。
+`:app:assembleDebug` 要求经 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 传入支持扫描器 AAR 及已核验回执。既有外部 AAR 记录的源码提交是 `64fa63152b93b6898f95f4bda8eb6857dbb19848`。[扫描器源码与 Android 构建器](../../native/support-scanner/README.zh.md)已在当前检出中维护，但源码测试不会替换该外部产物。在宣称同候选扫描器可复现构建之前，仍需基于已提交的当前候选源码构建、保留回执并取得匹配的已安装应用证据。
 
 外壳已消费 Gateway 失败契约：拒绝异常原样携带失败信封（code、message、结构化 details）自单次调用结果与流失败帧透出，呈现侧经共享 `RemoteFailureClasses` 镜像分类——已知类别给出类别文案与下一步动作，词汇表之外的码保持不透明诊断（`GatewayFailurePresentation.kt`，由 `GatewayFailurePresentationTest` 与 `LinkClientTest` 的信封保留用例覆盖）。
 
