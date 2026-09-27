@@ -39,7 +39,9 @@ Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定
 
 文件页提供与工件页共用的资源预览；工件页投影当前持久 `deliverables/presented` 声明。读取采用 Session 作用域的 `workspaceFiles/stat` 和 `readBytes`，窗口为 64 KiB，内容预算为 8 MiB。已知更大的文件只显示 256 字节前缀。显式重试续接已接受的同版本字节；版本变化会丢弃前缀并要求重新读取。UTF-8 文本、按签名识别的图片及未知二进制均为惰性呈现，并另有文本和像素预算。[资源决策](../../.agents/notes/implemented/architecture/2026-09-27-android-current-resource-reading.zh.md)拥有限制与退出语义；[安装应用场景](../web/tests/android-resource-adoption.e2e.ts)覆盖空文件、中文文件名、有界预览、中断和当前交付引用。
 
-资源读取完成后，选择 **保存完整文件**，通过 Android 系统选择器创建文档。保存字节是该次完整读取的快照，包含零字节内容。取消选择器不写入；资源或 Host 退役使待处理选择失效。写入失败会尝试删除新建目标，清理失败另行提示。部分预览不提供完整文件保存操作。[保存决策](../../.agents/notes/implemented/architecture/2026-09-27-android-complete-resource-save.zh.md)拥有结果生命周期与清理规则；[系统选择器场景](../web/tests/android-resource-save.e2e.ts)独立核验保存字节。
+资源读取完成后，选择 **保存完整文件**，通过 Android 系统选择器创建文档。保存字节是该次完整读取的快照，包含零字节内容。取消选择器不写入；资源或 Host 退役使待处理选择失效。写入失败会尝试删除新建目标，清理失败另行提示。部分预览不能使用此快照保存操作。[保存决策](../../.agents/notes/implemented/architecture/2026-09-27-android-complete-resource-save.zh.md)拥有结果生命周期与清理规则；[系统选择器场景](../web/tests/android-resource-save.e2e.ts)独立核验保存字节。
+
+文件与 Artifact 预览还提供 **下载到此设备**、**暂停下载**、**继续下载**及 **保存已下载文件…**。再次打开同一资源时只恢复已有本地进度；继续网络读取始终需要显式操作，并重新核对 Host 版本。完整下载通过系统选择器保存，无需将整个文件保留在内存。确认 **移除本地下载** 只删除该资源的本地缓存内容与进度，Host 文件及已导出文件保持不变。下载失败保留已提交前缀；文件变化或本地下载不可读时，需移除后重新开始。[应用接入决定](../../.agents/notes/implemented/architecture/2026-09-27-android-persistent-download-adoption.zh.md)拥有这些控件及其验证边界。
 
 Session 页可显式加载较早历史，并使用 Web v1 格式复制或打开查看位置。打开时必须匹配当前已信任 Host，保留待发送输入，并定位持久锚点；不会新建 Session 或提交 prompt。分页使用初始日志截止点并保留并行实时记录，取消或迟到响应不能跨越观察代际。默认每次请求 50 条消息，最多保留 8 MiB 序列化记录；读取失败或达到上限时明确提示并允许手动重试。[查看位置决策](../../.agents/notes/implemented/architecture/2026-09-26-android-native-view-location.zh.md)拥有生命周期与限制；[原生场景](../web/tests/android-view-location.e2e.ts)检查 88 轮 Host Session 的较早锚点及 Web 兼容的复制结果。
 
@@ -64,7 +66,7 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 | `app/src/main/kotlin/ai/deepseek/dsh/companion/` | 迁入的 Compose 外壳：MainActivity、聊天屏、通知、Keystore cipher |
 | `support/link-fixture-host.mjs` | 模拟器 lane 的 Host 侧 Link 夹具：经 pinning TLS 配对一台设备、校验 Ed25519 请求签名，并以分类的 `gateway/permission-denied` 信封拒绝 `workspaceFiles/read`；随库提交的 `fixture-host-cert.pem`/`fixture-host-key.pem` 是一次性本地回环夹具凭证，不是产品机密 |
 
-core 下载设施通过独占锁持久保存经过认证、绑定主体与 Session 的分段。恢复只读取本地状态；显式继续重新核对文件版本，关闭等待网络与磁盘工作。应用尚未将该设施接入 Keystore 存储或下载控件。[检查点决定](../../.agents/notes/implemented/architecture/2026-09-27-android-download-checkpoints.zh.md)说明持久性、限制及集成缺口。
+应用将下载存储绑定到当前已验证的 Host 主体，并使用独立的 Android Keystore 密钥。限制为 64 KiB 窗口、每文件 1 GiB，以及最多保留 128 个下载的共享 2 GiB 加密缓存，并预留检查点空间。达到限制时拒绝写入；显式移除释放容量。资源替换与 Host 退役先等待传输及导出清理，再释放存储独占锁。[检查点决定](../../.agents/notes/implemented/architecture/2026-09-27-android-download-checkpoints.zh.md)拥有持久格式；[接入决定](../../.agents/notes/implemented/architecture/2026-09-27-android-persistent-download-adoption.zh.md)拥有应用生命周期与缓存限制。
 
 <a id="local-support-export"></a>
 ## 本地支持导出
@@ -84,4 +86,4 @@ core 下载设施通过独占锁持久保存经过认证、绑定主体与 Sessi
 
 [旧 Link 夹具](support/link-fixture-host.mjs)保留为历史协议测试，不能验收当前应用。当平台缺少 Ed25519 密钥生成时，应用使用捆绑的 `org.conscrypt:conscrypt-android`。实际 Native Remote 验收使用出厂 Host 组合和隔离的 Android 模拟器应用；摄像头扫描、物理设备、发布签名和平台互操作仍未通过资格验收。
 
-持久下载、SAF 导出及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。深链接、平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。
+后台下载调度、自动缓存淘汰、断电持久性、物理设备及第三方 SAF 提供方资格，以及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。深链接、平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。

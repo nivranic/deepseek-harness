@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-download-checkpoints.md
-2026-09-27-android-download-checkpoints.md: dd7217f1a7b40d21580334cc6d9c76c3dc7c772d
-2026-09-27-android-download-checkpoints.zh.md: 9e2ee2df573d6c015bfae165f68d05ffbfe80731
+2026-09-27-android-download-checkpoints.md: eb749e544fc358e732e62a5f2bb6b405cf7711f2
+2026-09-27-android-download-checkpoints.zh.md: 2b89c17f0d65ad69ac9f724642301ed6e4dda4bc

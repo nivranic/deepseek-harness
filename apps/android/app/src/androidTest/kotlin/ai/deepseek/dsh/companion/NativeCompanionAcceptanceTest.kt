@@ -313,16 +313,31 @@ class NativeCompanionAcceptanceTest {
                             }
                             "submitPromptDraft" -> compose.onNodeWithText("发送").performClick()
                             "openSession" -> {
+                                stage = "open-session-tab"
                                 compose.onNodeWithTag("native-tab-0").performClick()
                                 val sessionId = command.getValue("sessionId").jsonPrimitive.content
                                 val model = companionModel().session
+                                var openedBy = "already-open"
                                 if (model.open.value?.sessionId != sessionId) {
                                     if (model.open.value != null) compose.onNodeWithTag("session-return-list").performClick()
                                     val tag = "session-open-$sessionId"
-                                    waitFor(hasTestTag(tag))
-                                    compose.onNodeWithTag(tag).performScrollTo().performClick()
+                                    stage = "open-session-row-or-restored"
+                                    compose.waitUntil(20_000) {
+                                        model.open.value?.sessionId == sessionId || compose.onAllNodesWithTag(tag).fetchSemanticsNodes(false).isNotEmpty()
+                                    }
+                                    openedBy = "restored-during-wait"
+                                    if (model.open.value?.sessionId != sessionId) {
+                                        try { compose.onNodeWithTag(tag).performScrollTo().performClick(); openedBy = "row" }
+                                        catch (missingRow: AssertionError) {
+                                            // Restoration may remove the row between its observation and the UI action.
+                                            if (model.open.value?.sessionId != sessionId) throw missingRow
+                                        }
+                                    }
                                 }
+                                stage = "open-session-draft-ready"
                                 waitFor(hasTestTag("session-draft") and isEnabled())
+                                check(model.open.value?.sessionId == sessionId)
+                                value = buildJsonObject { put("openedBy", openedBy) }
                             }
                             "assertPromptDraft" -> {
                                 compose.onNodeWithTag("native-tab-0").performClick()
@@ -434,9 +449,10 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("resource-file-list").performScrollToNode(hasTestTag(tag))
                                 compose.onNodeWithTag(tag).performClick()
                             }
-                            "openResourceSave" -> {
-                                waitFor(hasTestTag("resource-save") and isEnabled())
-                                compose.onNodeWithTag("resource-save").performClick()
+                            "openResourceSave", "openDownloadSave" -> {
+                                val tag = if (op == "openDownloadSave") "download-save" else "resource-save"
+                                waitFor(hasTestTag(tag) and isEnabled())
+                                compose.onNodeWithTag(tag).performClick()
                                 compose.waitUntil(20_000) { documentNodes().any { it.isEditable } }
                                 value = buildJsonObject {
                                     put("filename", documentNodes().first { it.isEditable }.text.toString())
@@ -471,6 +487,44 @@ class NativeCompanionAcceptanceTest {
                                 waitFor(hasTestTag("resource-delivery-list"))
                                 compose.onNodeWithTag("resource-delivery-list").performScrollToNode(hasTestTag(tag))
                                 compose.onNodeWithTag(tag).performClick()
+                            }
+                            "resumeDownload", "pauseDownload", "removeDownload" -> {
+                                val tag = when (op) {
+                                    "resumeDownload" -> "download-resume"
+                                    "pauseDownload" -> "download-pause"
+                                    else -> "download-remove"
+                                }
+                                waitFor(hasTestTag(tag) and isEnabled())
+                                compose.onNodeWithTag(tag).performClick()
+                                if (op == "removeDownload") {
+                                    waitFor(hasTestTag("download-remove-confirm"))
+                                    compose.onNodeWithTag("download-remove-confirm").performClick()
+                                    val model = companionModel().downloads
+                                    compose.waitUntil(20_000) { !model.state.value.busy && model.state.value.controller == null }
+                                }
+                            }
+                            "assertNoDownload" -> {
+                                val model = companionModel()
+                                val target = checkNotNull(model.files.resource.state.value).target
+                                compose.waitUntil(20_000) { model.downloads.state.value.let { !it.busy && it.target == target && it.controller == null } }
+                                waitFor(hasTestTag("download-resume") and isEnabled())
+                                compose.onNodeWithTag("download-save").assertDoesNotExist()
+                            }
+                            "assertDownload" -> {
+                                val phase = NativeDownloadPhase.valueOf(command.getValue("phase").jsonPrimitive.content)
+                                val model = companionModel().downloads
+                                compose.waitUntil(20_000) { !model.state.value.busy && model.state.value.controller?.state?.value?.phase == phase }
+                                val state = checkNotNull(model.state.value.controller).state.value
+                                value = buildJsonObject {
+                                    put("phase", state.phase.name)
+                                    put("received", state.checkpoint?.receivedBytes ?: 0)
+                                    put("complete", state.checkpoint?.complete ?: false)
+                                }
+                                compose.onNodeWithTag("download-status").assertIsDisplayed()
+                                if (phase == NativeDownloadPhase.CHANGED || phase == NativeDownloadPhase.UNAVAILABLE) {
+                                    compose.onNodeWithTag("download-save").assertDoesNotExist()
+                                    compose.onNodeWithTag("download-resume").assertDoesNotExist()
+                                }
                             }
                             "assertResource" -> {
                                 val phase = NativeResourcePhase.valueOf(command.getValue("phase").jsonPrimitive.content)

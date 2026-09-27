@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.collectLatest
  * A replacement receives new models rather than cached data from the previous connection.
  */
 class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
-                        val inputs: CompanionInputState = CompanionInputState.memory()) {
+                        val inputs: CompanionInputState = CompanionInputState.memory(),
+                        downloadFiles: NativeDownloadFiles? = null) {
     private val lifetime = SupervisorJob(parent.coroutineContext[Job])
     private val scope = CoroutineScope(parent.coroutineContext + lifetime)
     private val ownedWire = object : WireDriving {
@@ -33,16 +34,19 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
     val session = SessionModel(ownedWire, scope, inputs = inputs)
     val interactions = InteractionModel(ownedWire, scope, inputs = inputs)
     val files = FilesModel(ownedWire, scope)
+    val downloads = NativeDownloadsModel(ownedWire, downloadFiles, scope, selected = { files.resource.state.value?.target == it })
     val subagents = SubagentsModel(ownedWire, scope)
     val pushes = PushModel(ownedWire, scope)
 
     init {
+        scope.launch { files.resource.state.map { it?.target }.distinctUntilChanged().collectLatest { downloads.select(it) } }
         scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collect { files.selectSession(it) } }
         scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collectLatest { subagents.selectParent(it) } }
     }
 
     /** Retire model work without closing the process transport or cancelling a Host task. */
     fun close() {
+        downloads.close()
         lifetime.cancel()
         session.close()
         interactions.stopWatching()
@@ -54,6 +58,6 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
     /** Wait for model requests and stream cleanup before publishing a different connection's UI state. */
     suspend fun closeAndAwait() {
         close()
-        withContext(NonCancellable) { subagents.closeAndAwait(); lifetime.join() }
+        withContext(NonCancellable) { subagents.closeAndAwait(); downloads.closeAndAwait(); lifetime.join() }
     }
 }

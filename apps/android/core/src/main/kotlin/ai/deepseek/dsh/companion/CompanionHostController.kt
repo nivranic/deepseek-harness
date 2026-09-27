@@ -38,6 +38,10 @@ class CompanionHostController(
     private var catalog = NativeHostCatalog()
     private val switchingWire = SwitchableWireDriving(UnselectedNativeWire())
     val wire: WireDriving get() = switchingWire
+    /** Non-secret identity for local principal-bound stores; callers capture it after READY adoption. */
+    val principal: CompanionInputPrincipal? get() = catalog.selected()?.let {
+        CompanionInputPrincipal(it.hostId, it.pinnedFingerprint, it.deviceId)
+    }
     var inputs: CompanionInputState = CompanionInputState.memory()
         private set
     private val mutableState = MutableStateFlow(NativeHostState())

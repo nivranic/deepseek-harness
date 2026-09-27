@@ -31,8 +31,8 @@ internal class NativeResourceDocument : ActivityResultContract<NativeResourceSav
 /** Owns only the newly created URI returned by ACTION_CREATE_DOCUMENT. */
 internal class AndroidNativeResourceDestination(private val resolver: ContentResolver, private val uri: Uri) : NativeResourceSaveDestination {
     init { require(uri.scheme == ContentResolver.SCHEME_CONTENT) }
-    override fun write(bytes: ByteArray) {
-        checkNotNull(resolver.openOutputStream(uri, "wt")).use { output -> output.write(bytes); output.flush() }
+    override fun write(content: NativeResourceContent) {
+        checkNotNull(resolver.openOutputStream(uri, "wt")).use { output -> content.copyTo(output::write); output.flush() }
     }
     override fun discard() { check(DocumentsContract.deleteDocument(resolver, uri)) }
 }
@@ -50,6 +50,11 @@ internal class NativeResourceSavePicker : ViewModel() {
     fun begin(source: NativeResourceState, saver: NativeResourceSaver): NativeResourceSaveRequest? {
         if (busy) return null
         val request = saver.prepare(source) ?: return null
+        return begin(request, saver)
+    }
+
+    fun begin(request: NativeResourceSaveRequest, saver: NativeResourceSaver): NativeResourceSaveRequest? {
+        if (busy) { saver.invalidate(); return null }
         pending = Pending(saver, request)
         hasHandledResult = false
         busy = true
@@ -97,14 +102,14 @@ internal class NativeResourceSavePicker : ViewModel() {
 
 /** Register at the application root so tab navigation and Host replacement cannot redirect a picker result. */
 @Composable
-internal fun rememberNativeResourceSaveLauncher(owner: NativeResourceSavePicker): (NativeResourceState, NativeResourceSaver) -> Unit {
+internal fun rememberNativeResourceSaveLauncher(owner: NativeResourceSavePicker): (NativeResourceSaveRequest, NativeResourceSaver) -> Unit {
     val resolver = LocalContext.current.contentResolver
     val launcher = rememberLauncherForActivityResult(NativeResourceDocument()) { uri ->
         if (uri != null && uri.scheme != ContentResolver.SCHEME_CONTENT) owner.invalidResult()
         else owner.complete(uri?.let { AndroidNativeResourceDestination(resolver, it) })
     }
-    return { source, saver ->
-        owner.begin(source, saver)?.let { request ->
+    return { request, saver ->
+        owner.begin(request, saver)?.let { request ->
             try { launcher.launch(request) }
             catch (_: android.content.ActivityNotFoundException) { owner.invalidResult() }
             catch (_: SecurityException) { owner.invalidResult() }

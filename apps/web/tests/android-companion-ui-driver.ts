@@ -1,9 +1,10 @@
 /** ADB-owned socket driver for the isolated Android acceptance application. */
+import { createHash, randomUUID } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
 import { spawn, execFile } from 'node:child_process'
-import { randomUUID } from 'node:crypto'
 import { connect, type Socket } from 'node:net'
 import { createInterface } from 'node:readline'
-import { open, unlink } from 'node:fs/promises'
+import { open, unlink, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -13,7 +14,7 @@ import type { DriverFrame } from './android-gateway-driver.ts'
 const exec = promisify(execFile)
 
 /**
- * Start instrumentation through a private forwarded socket on an explicitly selected emulator.
+ * Start instrumentation through a private forwarded socket after matching both installed APKs to current build bytes.
  * @param adb - Android platform-tools executable.
  * @param target - emulator serial; physical devices are refused.
  * @param hostPort - test-owned native Host TLS port, reversed into the emulator.
@@ -36,6 +37,7 @@ export async function startAndroidCompanionUiDriver(
   }
   const socketName = `dsh-native-${randomUUID()}`
   const run = (...command: string[]) => exec(adb, [...args, ...command], { windowsHide: true })
+  const installedApks: { packageName: string; sha256: string }[] = []
   let port: number
   const reversed = new Set<number>()
   const removeReverses = async () => {
@@ -47,6 +49,18 @@ export async function startAndroidCompanionUiDriver(
     if (failures.length) throw new AggregateError(failures, 'Android reverse forwarding cleanup failed')
   }
   try {
+    for (const [packageName, artifact] of [
+      ['com.deepseek.harness.companion.nativeacceptance', '../../android/app/build/outputs/apk/debug/app-debug.apk'],
+      ['com.deepseek.harness.companion.nativeacceptance.test', '../../android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk'],
+    ] as const) {
+      const expected = createHash('sha256').update(await readFile(fileURLToPath(new URL(artifact, import.meta.url)))).digest('hex')
+      const location = (await run('shell', 'pm', 'path', packageName)).stdout.trim()
+      const match = /^package:(\/data\/app\/[A-Za-z0-9_./~+=-]+\/base\.apk)$/u.exec(location)
+      if (!match) throw new Error('Expected one installed acceptance APK')
+      const observed = (await run('shell', 'sha256sum', match[1]!)).stdout.split(/\s+/u)[0]
+      if (observed !== expected) throw new Error(`Installed ${packageName} differs from its current build; install both acceptance APKs before running UI tests`)
+      installedApks.push({ packageName, sha256: expected })
+    }
     if (resetData) await run('shell', 'pm', 'clear', 'com.deepseek.harness.companion.nativeacceptance')
     for (const value of new Set([hostPort, ...additionalHostPorts])) {
       await run('reverse', `tcp:${value}`, `tcp:${value}`)
@@ -118,6 +132,7 @@ export async function startAndroidCompanionUiDriver(
       }
     }
     return {
+      installedApks,
       setHostReachable: async (reachable: boolean) => {
         if (retired) throw new Error('Android UI driver is retired')
         if (reachable === hostReachable) return

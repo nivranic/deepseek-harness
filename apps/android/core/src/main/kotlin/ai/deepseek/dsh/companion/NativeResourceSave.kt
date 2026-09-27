@@ -7,9 +7,14 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/** A complete source copied in bounded chunks. Consumers must discard their output if copying fails. */
+class NativeResourceContent internal constructor(private val copy: ((ByteArray) -> Unit) -> Unit) {
+    fun copyTo(write: (ByteArray) -> Unit) = copy(write)
+}
+
 /** A newly created, user-selected document. Both methods return only after their I/O has closed. */
 interface NativeResourceSaveDestination {
-    fun write(bytes: ByteArray)
+    fun write(content: NativeResourceContent)
     fun discard()
 }
 
@@ -24,8 +29,8 @@ class NativeResourceSaveRequest internal constructor(val filename: String, val m
 }
 
 /** Saves only complete accepted bytes. Selection changes cancel owned writes and reject late picker results. */
-class NativeResourceSaver(private val scope: CoroutineScope, private val current: () -> NativeResourceState?) {
-    private data class Selection(val request: NativeResourceSaveRequest, val source: NativeResourceState, val bytes: ByteArray)
+class NativeResourceSaver(private val scope: CoroutineScope, private val current: () -> NativeResourceState? = { null }) {
+    private data class Selection(val request: NativeResourceSaveRequest, val valid: () -> Boolean, val content: NativeResourceContent)
     private val lock = Any()
     private var generation = 0L
     private var pending: Selection? = null
@@ -39,11 +44,19 @@ class NativeResourceSaver(private val scope: CoroutineScope, private val current
         if (source.phase != NativeResourcePhase.READY) return null
         val content = source.content ?: return null
         if (source.descriptor == null || source.receivedBytes != content.size) return null
-        val name = source.target.path.substringAfterLast('/').substringAfterLast('\\')
+        val bytes = content.copyOf()
+        val type = nativeResourceMedia(bytes) ?: if (nativeResourceText(bytes) != null) "text/plain" else "application/octet-stream"
+        prepareContent(source.target.path, type, { current() === source }, NativeResourceContent { it(bytes) })
+    }
+
+    /** Own one complete disk source without retaining its bytes or persisting a destination approval. */
+    internal fun prepareContent(path: String, mediaType: String, valid: () -> Boolean,
+                                content: NativeResourceContent): NativeResourceSaveRequest? = synchronized(lock) {
+        if (scope.coroutineContext[Job]?.isActive == false || pending != null || jobs.isNotEmpty() || !valid()) return null
+        val name = path.substringAfterLast('/').substringAfterLast('\\')
             .filterNot { it.code < 32 || it.code == 127 }.takeIf { it.isNotBlank() && it !in setOf(".", "..") } ?: "download"
-        val type = nativeResourceMedia(content) ?: if (nativeResourceText(content) != null) "text/plain" else "application/octet-stream"
-        val request = NativeResourceSaveRequest(name, type)
-        pending = Selection(request, source, content.copyOf())
+        val request = NativeResourceSaveRequest(name, mediaType)
+        pending = Selection(request, valid, content)
         mutablePhase.value = NativeResourceSavePhase.CHOOSING
         request
     }
@@ -52,7 +65,7 @@ class NativeResourceSaver(private val scope: CoroutineScope, private val current
     suspend fun save(request: NativeResourceSaveRequest, destination: NativeResourceSaveDestination?): NativeResourceSavePhase {
         if (!request.consumed.compareAndSet(false, true)) return NativeResourceSavePhase.EXPIRED
         val task = synchronized(lock) {
-            val captured = pending?.takeIf { it.request === request && current() === it.source }
+            val captured = pending?.takeIf { it.request === request && it.valid() }
             if (pending?.request === request) pending = null
             val stamp = generation
             if (captured != null) mutablePhase.value = NativeResourceSavePhase.SAVING
@@ -66,12 +79,18 @@ class NativeResourceSaver(private val scope: CoroutineScope, private val current
                         else {
                             yield()
                             synchronized(lock) {
-                                if (generation != stamp || current() !== captured.source) throw CancellationException("resource selection retired")
+                                if (generation != stamp || !captured.valid()) throw CancellationException("resource selection retired")
                             }
-                            withContext(Dispatchers.IO) { currentCoroutineContext().ensureActive(); destination.write(captured.bytes) }
+                            withContext(Dispatchers.IO) {
+                                val context = currentCoroutineContext()
+                                context.ensureActive()
+                                destination.write(NativeResourceContent { write ->
+                                    captured.content.copyTo { bytes -> context.ensureActive(); write(bytes) }
+                                })
+                            }
                             currentCoroutineContext().ensureActive()
                             synchronized(lock) {
-                                if (generation != stamp || current() !== captured.source) throw CancellationException("resource selection retired")
+                                if (generation != stamp || !captured.valid()) throw CancellationException("resource selection retired")
                                 completed = true
                                 result = NativeResourceSavePhase.SAVED
                             }

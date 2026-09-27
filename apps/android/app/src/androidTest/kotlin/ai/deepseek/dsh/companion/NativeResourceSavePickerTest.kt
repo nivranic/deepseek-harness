@@ -37,7 +37,10 @@ class NativeResourceSavePickerTest {
         val writes = AtomicInteger()
         val deletes = AtomicInteger()
         val destination = object : NativeResourceSaveDestination {
-            override fun write(bytes: ByteArray) { assertArrayEquals(source.content, bytes); writes.incrementAndGet() }
+            override fun write(content: NativeResourceContent) {
+                val bytes = java.io.ByteArrayOutputStream(); content.copyTo(bytes::write)
+                assertArrayEquals(source.content, bytes.toByteArray()); writes.incrementAndGet()
+            }
             override fun discard() { deletes.incrementAndGet() }
         }
         try {
@@ -64,7 +67,7 @@ class NativeResourceSavePickerTest {
         val store = ViewModelStore().also { it.put("picker", owner) }
         val deletes = AtomicInteger()
         val destination = object : NativeResourceSaveDestination {
-            override fun write(bytes: ByteArray) { error("restored picker must not write") }
+            override fun write(content: NativeResourceContent) { error("restored picker must not write") }
             override fun discard() { deletes.incrementAndGet() }
         }
         try {

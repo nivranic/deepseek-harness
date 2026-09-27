@@ -22,9 +22,23 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 持久下载应用接入与系统文档导出（§35、§64）
+
+[当前来源记录](artifacts/upstream-first/android-download-adoption-source.json)绑定 Host 主体所属的 Android 下载模型、Keystore 加密存储和资源下载控件。选择资源只恢复本地检查点；用户显式开始或续传才读取 Host。资源替换与 Host 退役等待旧传输和导出清理后释放文件锁；显式移除只删除本地主体所属内容。聚合字节与条目配额限制应用私有下载存储，完整文件逐段解密写入系统选择器新建的文档，失败或取消清理该目标。
+
+351 项 core 测试、59 个套件无失败、错误或跳过，包含界面协程取消后的状态恢复、文件锁释放、已确认移除、损坏拒绝、配额拒绝及有界导出清理。单 Host 安装态场景已验证下载中断、Android 进程重启后的 PAUSED 恢复、显式续传、完整文件经系统选择器保存及独立目标字节核对；这些证据不授予断电恢复或第三方文档提供方资格。
+
+本轮验收前显式安装应用与 instrumentation APK，driver 核对实际安装包与本轮构建产物的 SHA-256；不匹配的安装包拒绝进入验收。前轮 checkpoint 的预览回归曾运行旧安装应用，不能据此归因到当轮重建 APK。本轮已显式安装 checkpoint 对应 APK 重跑原场景，[勘误观测](.artifacts/android-download-adoption-prior-apk-correction.json)与[重跑日志](.artifacts/android-download-adoption-prior-apk-regression.log)独立保留原始来源记录的事实边界。
+
+最终组合回归为 4 个文件、5 项测试通过，包含 3 个原生场景与 2 项 APK 准入测试；系统选择器安装态另有 3 项测试通过。双 Host 场景在相同 Session id 和资源路径下核对各自预览前缀与全部 workspaceFiles/readBytes 读取范围：A 中断后 B 从零开始，切回 A 恢复 128 KiB 的 PAUSED 检查点，显式续传只读取缺失范围，未增加另一 Host 的字节读取。该隔离场景不独立核对完整导出文件；完整 SAF 目标的 SHA-256 由单 Host 场景独立验证。
+
+保存中的 Host 切换、第三方文档提供方、物理及 16-KiB 设备、后台调度、磁盘自动淘汰和断电或回滚防护仍需对应证据。Camera/Photos/Files 附件、前台与推送恢复、深链接及 Swift 接入继续开放。Session writer 保持 V3，completeRc 为 false；不授予全节或整项目完成。
+
 ## Android 加密下载检查点与显式续传 core 设施（§35、§64）
 
-[当前来源记录](artifacts/upstream-first/android-download-checkpoint-source.json)绑定单一主体、Session 与资源的加密磁盘传输设施。独占锁限制同一传输的写入者；先同步分段、再原子替换加密检查点。恢复校验已提交前缀并忽略未提交尾部；显式续传重新核对描述，使用与预览共用的字节校验器。退役等待网络和磁盘完成后释放锁。
+勘误：本节原有“重建 APK 的真实 Host 资源预览回归通过”误将旧安装应用的结果归因到重建 APK；请以[本轮安装核验与纠正观测](.artifacts/android-download-adoption-prior-apk-correction.json)及[显式安装后的重跑日志](.artifacts/android-download-adoption-prior-apk-regression.log)为准，历史来源记录保持原样。
+
+[历史来源记录](artifacts/upstream-first/android-download-checkpoint-source.json)绑定单一主体、Session 与资源的加密磁盘传输设施。独占锁限制同一传输的写入者；先同步分段、再原子替换加密检查点。恢复校验已提交前缀并忽略未提交尾部；显式续传重新核对描述，使用与预览共用的字节校验器。退役等待网络和磁盘完成后释放锁。
 
 341 项 core 测试、58 个套件无失败或跳过，其中 15 项下载测试覆盖加密文件、主体和 Session 隔离、损坏拒绝、版本变化、同版本重试、暂停、有界复制及等待退役。独立 JVM 在分段同步后、检查点替换前突然退出，重新打开能恢复旧前缀并替换未提交尾部。重建 APK 的真实 Host 资源预览回归通过；Host 类型、lint、17 项快速文档、36 项 doc-sync、6 项追踪和 Gate 0 通过。
 

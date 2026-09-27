@@ -120,4 +120,20 @@
     <string name="native_resource_save_expired">资源选择已失效，请重新打开资源后保存。</string>
     <string name="native_resource_save_failed">文件保存失败，请重新选择保存位置。</string>
     <string name="native_resource_save_cleanup_failed">保存失败，目标可能留下不完整文件，请检查所选位置。</string>
+    <string name="native_download_restoring">正在读取本地下载进度…</string>
+    <string name="native_download_idle">可将完整文件下载到此设备，供稍后保存。</string>
+    <string name="native_download_running">正在下载完整文件…</string>
+    <string name="native_download_complete">已下载的完整版本可保存到所选位置。</string>
+    <string name="native_download_paused">下载已暂停，继续时会重新核对文件版本。</string>
+    <string name="native_download_failed">下载失败，已保留已完成部分。请检查连接和存储空间后重试。</string>
+    <string name="native_download_changed">Host 文件已变化。请移除旧下载后重新开始。</string>
+    <string name="native_download_unavailable">本地下载不可用。可移除此下载后重新开始。</string>
+    <string name="native_download_bytes">已存储 %1$d 字节</string>
+    <string name="native_download_total">已存储 %1$d / %2$d 字节</string>
+    <string name="native_download_start">下载到此设备</string>
+    <string name="native_download_resume">继续下载</string>
+    <string name="native_download_pause">暂停下载</string>
+    <string name="native_download_save">保存已下载文件…</string>
+    <string name="native_download_remove">移除本地下载</string>
+    <string name="native_download_remove_help">仅移除此设备保留的下载内容和进度，Host 文件及已保存到其他位置的文件不会改变。</string>
 </resources>

@@ -29,11 +29,12 @@ class NativeDownloadController(
     private val lifetime = SupervisorJob(parent.coroutineContext[Job])
     private val scope = CoroutineScope(parent.coroutineContext + lifetime)
     private var closed = false
+    val saves = NativeResourceSaver(scope)
     private val mutableState = MutableStateFlow(NativeDownloadState(NativeDownloadPhase.RESTORING))
     val state: StateFlow<NativeDownloadState> = mutableState
     private var active: Job = scope.launch(start = CoroutineStart.LAZY) {
         try {
-            val checkpoint = withContext(dispatcher) { store.load() }
+            val checkpoint = withContext(dispatcher) { val context = currentCoroutineContext(); store.load { context.ensureActive() } }
             publish(NativeDownloadState(if (checkpoint?.complete == true) NativeDownloadPhase.COMPLETE else NativeDownloadPhase.PAUSED, checkpoint))
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { publish(NativeDownloadState(NativeDownloadPhase.UNAVAILABLE)) }
@@ -47,6 +48,28 @@ class NativeDownloadController(
         true
     }
 
+    /** Finish local restoration before acting on an explicit user command. */
+    suspend fun awaitRestored() { val pending = synchronized(lock) { active }; pending.join() }
+
+    /** Capture only this complete checkpoint; removal and retirement invalidate its picker approval. */
+    fun prepareSave(selectionValid: () -> Boolean = { true }): NativeResourceSaveRequest? = synchronized(lock) {
+        val accepted = state.value
+        if (closed || !selectionValid() || accepted.phase != NativeDownloadPhase.COMPLETE) return null
+        saves.prepareContent(store.target.path, "application/octet-stream", { !closed && state.value === accepted && selectionValid() },
+            NativeResourceContent { write -> store.copyComplete(write) })
+    }
+
+    /** Explicit local removal never dispatches a Host mutation. Caller serializes this with selection and resume. */
+    suspend fun discard() = withContext(NonCancellable) {
+        pauseAndAwait()
+        saves.invalidateAndAwait()
+        synchronized(lock) { check(!closed); mutableState.value = NativeDownloadState(NativeDownloadPhase.RESTORING) }
+        try {
+            withContext(dispatcher) { store.discard() }
+            publish(NativeDownloadState(NativeDownloadPhase.PAUSED))
+        } catch (_: Exception) { publish(NativeDownloadState(NativeDownloadPhase.UNAVAILABLE)) }
+    }
+
     /** Cancellation awaits request and disk completion; a committed final window can restore as complete. */
     suspend fun pauseAndAwait() {
         val pending = synchronized(lock) { active.also { if (state.value.phase == NativeDownloadPhase.DOWNLOADING) it.cancel() } }
@@ -56,7 +79,7 @@ class NativeDownloadController(
     private suspend fun transfer() {
         var checkpoint: NativeDownloadCheckpoint? = null
         try {
-            try { checkpoint = withContext(dispatcher) { store.load() } }
+            try { checkpoint = withContext(dispatcher) { val context = currentCoroutineContext(); store.load { context.ensureActive() } } }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { publish(NativeDownloadState(NativeDownloadPhase.UNAVAILABLE)); return }
             if (checkpoint?.complete == true) {
@@ -101,9 +124,11 @@ class NativeDownloadController(
         synchronized(lock) {
             closed = true
             mutableState.value = NativeDownloadState(NativeDownloadPhase.CLOSED)
+            saves.invalidate()
             lifetime.cancel()
         }
         withContext(NonCancellable) {
+            saves.invalidateAndAwait()
             lifetime.join()
             withContext(dispatcher) { store.close() }
         }

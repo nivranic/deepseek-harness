@@ -34,14 +34,10 @@ class FileNativeDownloadStore(
     val target: NativeResourceTarget,
     private val cipher: CredentialsCipher,
     val limits: NativeDownloadLimits,
+    private val quota: NativeDownloadQuota? = null,
 ) : AutoCloseable {
-    private val identity = ByteArrayOutputStream().also { bytes -> DataOutputStream(bytes).use {
-        require(listOf(principal.hostId, principal.fingerprint, principal.deviceId, target.sessionId, target.path).all(String::isNotBlank))
-        it.writeUTF(principal.hostId); it.writeUTF(principal.fingerprint); it.writeUTF(principal.deviceId)
-        it.writeUTF(target.sessionId); it.writeUTF(target.path)
-    } }.toByteArray()
-    private val folder = File(directory, MessageDigest.getInstance("SHA-256").digest(identity)
-        .joinToString("") { "%02x".format(it.toInt() and 255) })
+    private val identity = downloadIdentity(principal, target)
+    private val folder = downloadFolder(directory, principal, target)
     private val checkpointFile = File(folder, "checkpoint.enc")
     private val frames = File(folder, "frames.enc")
     private val leaseChannel: FileChannel
@@ -57,10 +53,10 @@ class FileNativeDownloadStore(
     }
 
     /** Local-only recovery validates every committed frame; it never approves network continuation. */
-    @Synchronized fun load(): NativeDownloadCheckpoint? {
+    @Synchronized fun load(checkActive: () -> Unit = {}): NativeDownloadCheckpoint? {
         check(!closed)
         val record = readRecord() ?: return null
-        visit(record) { }
+        visit(record) { checkActive() }
         return record.checkpoint
     }
 
@@ -69,6 +65,7 @@ class FileNativeDownloadStore(
         check(!closed && readRecord() == null) { "download already exists or is closed" }
         require(descriptor.absolutePath.isNotBlank() && descriptor.version.isNotBlank())
         require(descriptor.bytes == null || descriptor.bytes in 0..limits.maxBytes) { "download exceeds its byte limit" }
+        quota?.requireRoom(131_072, newEntry = !checkpointFile.exists() && !frames.exists())
         RandomAccessFile(frames, "rw").use { it.setLength(0); it.fd.sync() }
         val record = Record(UUID.randomUUID().toString(), NativeDownloadCheckpoint(descriptor, 0, false), 0, 0)
         commit(record)
@@ -89,6 +86,7 @@ class FileNativeDownloadStore(
         } }.toByteArray()
         val sealed = cipher.seal(plain)
         require(sealed.size in 1..frameLimit)
+        quota?.requireRoom(sealed.size.toLong() + 4 + 65_536)
         val end = RandomAccessFile(frames, "rw").use {
             check(it.length() >= record.end) { "committed download data is missing" }
             it.setLength(record.end); it.seek(record.end)
@@ -97,6 +95,14 @@ class FileNativeDownloadStore(
         val next = record.copy(checkpoint = expected.copy(receivedBytes = total, complete = window.eof), count = record.count + 1, end = end)
         commit(next)
         return next.checkpoint
+    }
+
+    /** Explicit removal works even with unreadable metadata or unavailable keys; the lease remains owned. */
+    @Synchronized fun discard() {
+        check(!closed)
+        Files.deleteIfExists(checkpointFile.toPath())
+        Files.deleteIfExists(frames.toPath())
+        Files.newDirectoryStream(folder.toPath(), "checkpoint-*.tmp").use { paths -> paths.forEach { Files.delete(it) } }
     }
 
     /** Copy complete authenticated frames only. A consumer must discard its destination if any frame or write fails. */
@@ -194,3 +200,42 @@ private inline fun repeatLong(count: Long, action: (Long) -> Unit) {
     var index = 0L
     while (index < count) { action(index); index++ }
 }
+
+/** Cache limits include encrypted files and temporary checkpoint space. One application model owns writes at a time. */
+class NativeDownloadQuota(private val directory: File, private val maxDiskBytes: Long, private val maxEntries: Int) {
+    init { require(maxDiskBytes > 131_072 && maxEntries > 0) }
+    fun requireRoom(additional: Long, newEntry: Boolean = false) {
+        var size = 0L
+        if (directory.exists()) Files.walk(directory.toPath()).use { paths ->
+            paths.filter { Files.isRegularFile(it, java.nio.file.LinkOption.NOFOLLOW_LINKS) }.forEach {
+                size = Math.addExact(size, Files.size(it))
+            }
+        }
+        check(additional >= 0 && size <= maxDiskBytes - additional) { "download storage budget exhausted" }
+        if (newEntry) {
+            val entries = directory.listFiles()?.count { File(it, "checkpoint.enc").exists() || File(it, "frames.enc").exists() } ?: 0
+            check(entries < maxEntries) { "download entry limit reached" }
+        }
+    }
+}
+
+/** Factory bound to the active verified principal. Existence checks do not decrypt, create a key, or start network work. */
+class NativeDownloadFiles(private val directory: File, private val principal: CompanionInputPrincipal,
+                          private val cipher: CredentialsCipher, private val limits: NativeDownloadLimits,
+                          private val quota: NativeDownloadQuota) {
+    fun exists(target: NativeResourceTarget): Boolean = downloadFolder(directory, principal, target).let {
+        File(it, "checkpoint.enc").exists() || File(it, "frames.enc").exists()
+    }
+    fun open(target: NativeResourceTarget) = FileNativeDownloadStore(directory, principal, target, cipher, limits, quota)
+}
+
+private fun downloadIdentity(principal: CompanionInputPrincipal, target: NativeResourceTarget): ByteArray =
+    ByteArrayOutputStream().also { bytes -> DataOutputStream(bytes).use {
+        require(listOf(principal.hostId, principal.fingerprint, principal.deviceId, target.sessionId, target.path).all(String::isNotBlank))
+        it.writeUTF(principal.hostId); it.writeUTF(principal.fingerprint); it.writeUTF(principal.deviceId)
+        it.writeUTF(target.sessionId); it.writeUTF(target.path)
+    } }.toByteArray()
+
+private fun downloadFolder(directory: File, principal: CompanionInputPrincipal, target: NativeResourceTarget) =
+    File(directory, MessageDigest.getInstance("SHA-256").digest(downloadIdentity(principal, target))
+        .joinToString("") { "%02x".format(it.toInt() and 255) })

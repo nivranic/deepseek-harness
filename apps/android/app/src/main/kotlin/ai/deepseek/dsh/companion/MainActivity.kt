@@ -120,7 +120,7 @@ class CompanionViewModel : ViewModel() {
         private set
 
     private val transition = Mutex()
-    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs))
+    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles()))
     var generation by mutableStateOf(CompanionRuntime.generation)
         private set
     var pairingRequested by mutableStateOf(false)
@@ -132,6 +132,7 @@ class CompanionViewModel : ViewModel() {
     val session get() = models.session
     val interactions get() = models.interactions
     val files get() = models.files
+    val downloads get() = models.downloads
     val subagents get() = models.subagents
     val pushes get() = models.pushes
     val inputs get() = models.inputs
@@ -161,7 +162,7 @@ class CompanionViewModel : ViewModel() {
     }
 
     private fun publishModels() {
-        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs)
+        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles())
         generation = CompanionRuntime.generation
         paired = CompanionRuntime.restored
         pairingRequested = false
@@ -296,6 +297,15 @@ object CompanionRuntime {
         restored
     }
 
+    /** Storage selection captures the verified grant; signed requests remain owned by the matching model set. */
+    fun downloadFiles(): NativeDownloadFiles? {
+        if (!restored) return null
+        val principal = controller?.principal ?: return null
+        val directory = java.io.File(restoreDirectory ?: return null, "native-downloads")
+        return NativeDownloadFiles(directory, principal, AndroidKeystoreCipher("dsh-native-downloads"),
+            NativeDownloadLimits(64 * 1024, 1_073_741_824), NativeDownloadQuota(directory, 2_147_483_648, 128))
+    }
+
     private fun refreshLegacyAvailability(directory: java.io.File) {
         legacyImportAvailable = hostState.value.status == NativeHostStatus.EMPTY &&
             !java.io.File(directory, "native-hosts.enc").exists() && java.io.File(directory, "native-gateway-credentials.json").isFile
@@ -372,7 +382,13 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     val pushes = model.pushes
     val context = androidx.compose.ui.platform.LocalContext.current
     val resourceSavePicker: NativeResourceSavePicker = viewModel()
-    val saveResource = rememberNativeResourceSaveLauncher(resourceSavePicker)
+    val saveContent = rememberNativeResourceSaveLauncher(resourceSavePicker)
+    val saveResource: (NativeResourceState) -> Unit = { resource ->
+        model.files.resource.saves.prepare(resource)?.let { saveContent(it, model.files.resource.saves) }
+    }
+    val saveDownload: (NativeResourceTarget) -> Unit = { target ->
+        model.downloads.prepareSave(target)?.let { saveContent(it.first, it.second) }
+    }
     val selectedResource by model.files.resource.state.collectAsStateWithLifecycle()
     LaunchedEffect(model.generation, selectedResource?.target, selectedResource?.phase == NativeResourcePhase.LOADING) {
         resourceSavePicker.selectionChanged()
@@ -449,8 +465,8 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 1 -> ApprovalsTab(model)
                 2 -> PlanTab(model)
                 3 -> ToolsTab(model)
-                4 -> FilesTab(model, capabilities, resourceSavePicker.busy) { saveResource(it, model.files.resource.saves) }
-                5 -> ArtifactsTab(model, capabilities, resourceSavePicker.busy) { saveResource(it, model.files.resource.saves) }
+                4 -> FilesTab(model, capabilities, resourceSavePicker.busy, saveResource, saveDownload)
+                5 -> ArtifactsTab(model, capabilities, resourceSavePicker.busy, saveResource, saveDownload)
                 else -> SubagentsTab(model, capabilities)
             }
         }
@@ -922,7 +938,7 @@ fun DiffReview(change: FileChange) {
 }
 
 @Composable
-fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, saving: Boolean, save: (NativeResourceState) -> Unit) {
+fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, saving: Boolean, save: (NativeResourceState) -> Unit, saveDownload: (NativeResourceTarget) -> Unit) {
     val canFollow = capabilities.supports(NativeCapability.WORKSPACE_FOLLOW)
     val canList = capabilities.supports(NativeCapability.FILE_LIST)
     val canReadText = capabilities.supports(NativeCapability.FILE_TEXT)
@@ -945,7 +961,8 @@ fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, sa
     if (preview != null && canReadBytes) {
         NativeResourcePreview(preview, model.files.resource::retry,
             { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile,
-            save = { save(preview) }, saving = saving)
+            save = { save(preview) }, saving = saving,
+            download = { NativeDownloadControls(model.downloads, preview.target, saving) { saveDownload(preview.target) } })
         return
     }
     Column(Modifier.fillMaxSize()) {
@@ -1001,7 +1018,7 @@ fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, sa
 }
 
 @Composable
-fun ArtifactsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, saving: Boolean, save: (NativeResourceState) -> Unit) {
+fun ArtifactsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, saving: Boolean, save: (NativeResourceState) -> Unit, saveDownload: (NativeResourceTarget) -> Unit) {
     val canReadBytes = capabilities.supports(NativeCapability.FILE_STAT) && capabilities.supports(NativeCapability.FILE_BYTES)
     val open by model.session.open.collectAsStateWithLifecycle()
     val files by model.session.deliveredFiles.collectAsStateWithLifecycle()
@@ -1011,7 +1028,8 @@ fun ArtifactsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?
     if (canReadBytes && preview != null && preview.target.sessionId == open?.sessionId) {
         NativeResourcePreview(preview, model.files.resource::retry,
             { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile,
-            save = { save(preview) }, saving = saving)
+            save = { save(preview) }, saving = saving,
+            download = { NativeDownloadControls(model.downloads, preview.target, saving) { saveDownload(preview.target) } })
         return
     }
     LazyColumn(Modifier.fillMaxSize().testTag("resource-delivery-list")) {

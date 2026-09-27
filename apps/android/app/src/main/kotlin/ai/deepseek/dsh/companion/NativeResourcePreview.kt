@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun NativeResourcePreview(state: NativeResourceState, retry: () -> Unit, restart: () -> Unit, close: () -> Unit,
                           limits: NativeResourcePresentationLimits = NativeResourcePresentationLimits(64 * 1024, 4_000_000),
-                          save: (() -> Unit)? = null, saving: Boolean = false) {
+                          save: (() -> Unit)? = null, saving: Boolean = false, download: @Composable () -> Unit = {}) {
     val media = remember(state.prefix) { nativeResourceMedia(state.prefix) }
     val text = remember(state.content, media) { if (media == null) state.content?.let(::nativeResourceText) else null }
     val bytes = state.content
@@ -47,6 +47,7 @@ fun NativeResourcePreview(state: NativeResourceState, retry: () -> Unit, restart
                 Text(stringResource(R.string.native_resource_save))
             }
         }
+        download()
         when (state.phase) {
             NativeResourcePhase.LOADING -> Text(stringResource(R.string.native_resource_loading))
             NativeResourcePhase.PREVIEW -> Text(stringResource(R.string.native_resource_bounded_preview), Modifier.testTag("resource-bounded"))

@@ -16,7 +16,12 @@ private open class SaveDestination : NativeResourceSaveDestination {
     val writes = AtomicInteger()
     val discards = AtomicInteger()
     var content: ByteArray? = null
-    override fun write(bytes: ByteArray) { writes.incrementAndGet(); content = bytes.copyOf() }
+    override fun write(content: NativeResourceContent) {
+        writes.incrementAndGet()
+        val buffer = java.io.ByteArrayOutputStream()
+        content.copyTo(buffer::write)
+        this.content = buffer.toByteArray()
+    }
     override fun discard() { discards.incrementAndGet(); content = null }
 }
 
@@ -89,7 +94,10 @@ class NativeResourceSaveTest {
         val source = completeResource()
         val saver = NativeResourceSaver(backgroundScope) { source }
         val destination = object : SaveDestination() {
-            override fun write(bytes: ByteArray) { super.write(bytes.copyOf(2)); throw IOException("full") }
+            override fun write(content: NativeResourceContent) {
+                super.write(NativeResourceContent { write -> content.copyTo { write(it.copyOf(2)) } })
+                throw IOException("full")
+            }
         }
         assertEquals(NativeResourceSavePhase.FAILED, saver.save(assertNotNull(saver.prepare(source)), destination))
         assertNull(destination.content)
@@ -100,7 +108,7 @@ class NativeResourceSaveTest {
         val source = completeResource()
         val saver = NativeResourceSaver(backgroundScope) { source }
         val destination = object : SaveDestination() {
-            override fun write(bytes: ByteArray) { throw IOException("write denied") }
+            override fun write(content: NativeResourceContent) { throw IOException("write denied") }
             override fun discard() { throw IOException("delete denied") }
         }
         val request = assertNotNull(saver.prepare(source))
@@ -114,7 +122,7 @@ class NativeResourceSaveTest {
         val entered = CompletableDeferred<Unit>()
         val release = CountDownLatch(1)
         val destination = object : SaveDestination() {
-            override fun write(bytes: ByteArray) { entered.complete(Unit); release.await(); super.write(bytes) }
+            override fun write(content: NativeResourceContent) { entered.complete(Unit); release.await(); super.write(content) }
         }
         val request = assertNotNull(saver.prepare(source))
         val saving = async { saver.save(request, destination) }
