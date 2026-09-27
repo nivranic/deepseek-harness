@@ -896,11 +896,18 @@ fun FilesTab(model: CompanionViewModel) {
     val openSession by model.session.open.collectAsStateWithLifecycle()
     val openFile by model.files.openFile.collectAsStateWithLifecycle()
     val openFileError by model.files.openFileError.collectAsStateWithLifecycle()
+    val resource by model.files.resource.state.collectAsStateWithLifecycle()
     // The workspace list arrives over the follow stream; without this start
     // the tab renders entries of a stream nobody opened.
     LaunchedEffect(model.paired) { if (model.paired) model.files.start() }
     LaunchedEffect(openSession?.sessionId) { openSession?.let { model.files.selectSession(it.sessionId) } }
     LaunchedEffect(model.paired, selected) { model.files.list() }
+    val preview = resource
+    if (preview != null) {
+        NativeResourcePreview(preview, model.files.resource::retry,
+            { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile)
+        return
+    }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
@@ -933,7 +940,7 @@ fun FilesTab(model: CompanionViewModel) {
                     Button(onClick = { scope.launch { model.files.loadMore() } }) { Text("加载更多") }
                 }
             }
-        } else LazyColumn(Modifier.weight(1f)) {
+        } else LazyColumn(Modifier.weight(1f).testTag("resource-file-list")) {
             items(entries) { entry ->
                 RaisedCard(Modifier.testTag("file-entry-${entry.name}")) {
                     Text(if (entry.isDirectory) "📁 ${entry.name}" else "📄 ${entry.name}")
@@ -941,6 +948,9 @@ fun FilesTab(model: CompanionViewModel) {
                         Button(onClick = { model.files.openEntry(entry.name); scope.launch { model.files.list() } }) { Text(androidx.compose.ui.res.stringResource(R.string.native_open_directory)) }
                     } else {
                         Button(onClick = { scope.launch { model.files.readFile(entry.name) } }) { Text("查看") }
+                        Button(onClick = { model.files.previewFile(entry.name) }, modifier = Modifier.testTag("resource-open-${entry.name}")) {
+                            Text(androidx.compose.ui.res.stringResource(R.string.native_resource_preview))
+                        }
                     }
                 }
             }
@@ -951,22 +961,24 @@ fun FilesTab(model: CompanionViewModel) {
 @Composable
 fun ArtifactsTab(model: CompanionViewModel) {
     val open by model.session.open.collectAsStateWithLifecycle()
-    LazyColumn(Modifier.fillMaxSize()) {
-        items(open?.state?.artifacts ?: emptyList()) { artifact ->
+    val files by model.session.deliveredFiles.collectAsStateWithLifecycle()
+    val resource by model.files.resource.state.collectAsStateWithLifecycle()
+    val preview = resource
+    if (preview != null && preview.target.sessionId == open?.sessionId) {
+        NativeResourcePreview(preview, model.files.resource::retry,
+            { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile)
+        return
+    }
+    LazyColumn(Modifier.fillMaxSize().testTag("resource-delivery-list")) {
+        if (files.isEmpty()) item { Text(androidx.compose.ui.res.stringResource(R.string.native_resource_no_deliveries), Modifier.padding(16.dp)) }
+        items(files, key = { "${it.seq}:${it.index}" }) { file ->
             RaisedCard {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(artifact.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    Text(
-                        artifactStatusLabel(artifact.status),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = when (artifact.status) {
-                            "ready" -> DiffAddedColor
-                            "failed" -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.secondary
-                        },
-                    )
+                Text(file.path, style = MaterialTheme.typography.bodyLarge)
+                file.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                Button(onClick = { open?.let { model.files.previewPath(it.sessionId, file.path) } },
+                    modifier = Modifier.testTag("resource-delivery-${file.seq}-${file.index}")) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.native_resource_preview))
                 }
-                Text(artifact.kind, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
             }
         }
     }

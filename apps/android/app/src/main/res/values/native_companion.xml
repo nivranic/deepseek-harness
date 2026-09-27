@@ -48,4 +48,19 @@
     <string name="native_answer_custom">自定义回答</string>
     <string name="native_answer_submit">提交回答</string>
     <string name="native_pairing_restore_required">已有凭据无法用于当前原生连接，请重新配对。原凭据文件未删除。</string>
+    <string name="native_resource_preview">资源预览</string>
+    <string name="native_resource_close">关闭</string>
+    <string name="native_resource_progress">已接收 %1$d / %2$d 字节</string>
+    <string name="native_resource_progress_unknown">已接收 %1$d 字节，总大小未知</string>
+    <string name="native_resource_loading">正在读取资源…</string>
+    <string name="native_resource_bounded_preview">文件超过完整预览上限，仅显示有界字节前缀。</string>
+    <string name="native_resource_failed">资源读取失败，已保留本版本接收的内容。</string>
+    <string name="native_resource_retry">从断点重试</string>
+    <string name="native_resource_changed">文件版本已变化，请重新读取。</string>
+    <string name="native_resource_restart">重新读取</string>
+    <string name="native_resource_empty">空文件（0 字节）</string>
+    <string name="native_resource_image">资源图片</string>
+    <string name="native_resource_image_unavailable">图片无法解码或超过像素上限，显示字节预览。</string>
+    <string name="native_resource_text_limited">文本显示已达到字符上限。</string>
+    <string name="native_resource_no_deliveries">当前已加载历史中没有文件交付记录。</string>
 </resources>

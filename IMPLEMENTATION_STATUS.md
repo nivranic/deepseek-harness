@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 当前 File/Artifact 资源读取（§35、§67）
+
+[当前来源记录](artifacts/upstream-first/android-resource-adoption-source.json)将原生文件页与工件页接到同一个 Session 作用域资源读取器。工件引用来自当前 deliverables/presented 持久声明；已移除应用的退役 session/artifact 调用及按旧工件 id 缓存完整字节。路径与模型描述不授予权限。
+
+读取先 stat，再串行请求 64 KiB 字节窗口，默认内容保留预算 8 MiB，已知大文件只读取 256 字节前缀。响应验证偏移、版本、大小、规范 base64 和 EOF 进度；失败显式续传，版本变化丢弃前缀并要求重新读取。切换 Session 清空旧资源，模型退出等待取消清理。图片限制为四百万像素，文本显示限制为 65536 字符，其他内容为惰性字节预览。
+
+核心 299 项测试、54 个套件通过。八项最终真实 Host 场景覆盖资源、两种游标恢复、查看位置、输入进程恢复、多 Host 与两种丢确认重试；资源场景核验空文件、中文路径、图片解码完成态、文本上限、大文件前缀和中断/版本重启。Host 类型检查、lint、17 项快速文档门禁、36 项 doc-sync、6 项逐节追踪与 Gate 0 通过。生成文件和预置事件不代表真实模型、物理设备、持久下载、SAF 导出或全平台描述符验收，completeRc 为 false。
+
 ## Android 内存游标续传与窗口恢复（§25、§67）
 
-[当前来源记录](artifacts/upstream-first/android-cursor-resume-source.json)使 Android 同一内存日志所有者携带最后保留序号重开 follow。快照头必须匹配所选 Session；连续增量保留较早页面与历史可用状态，完整窗口的重叠记录必须一致。游标失去覆盖时采用服务端最新窗口，不拼接缺失区间。新模型或进程不复用只有游标而没有记录的状态。
+[历史来源记录](artifacts/upstream-first/android-cursor-resume-source.json)使 Android 同一内存日志所有者携带最后保留序号重开 follow。快照头必须匹配所选 Session；连续增量保留较早页面与历史可用状态，完整窗口的重叠记录必须一致。游标失去覆盖时采用服务端最新窗口，不拼接缺失区间。新模型或进程不复用只有游标而没有记录的状态。
 
 每次有效快照更新分页截止点并取消旧读取；迟到响应不能发布。矛盾记录、游标倒退和字节超限保留原窗口并停止自动重连；只有首帧通过验证才报告 OPEN。核心 288 项测试、53 个套件通过，包含 9 项新增游标与观察用例。
 

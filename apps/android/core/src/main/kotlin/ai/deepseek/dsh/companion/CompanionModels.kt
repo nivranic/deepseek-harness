@@ -1,8 +1,5 @@
 package ai.deepseek.dsh.companion
 
-import ai.deepseek.dsh.link.LinkArtifactFormat
-import ai.deepseek.dsh.link.LinkArtifactReadValue
-
 import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
@@ -300,11 +297,15 @@ class SessionModel(
     private val followOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
     private var followGeneration = 0L
+    private val _deliveredFiles = MutableStateFlow<List<NativeDeliveredFile>>(emptyList())
+    val deliveredFiles: StateFlow<List<NativeDeliveredFile>> = _deliveredFiles
     private val journal = NativeSessionJournal(wire, scope, historyLimits) { generation, id, records, replacement ->
         if (followOwner.isCurrent(generation)) {
             val current = _open.value
             if (current?.sessionId == id) {
                 records.forEach { acknowledgeRecordedPrompt(id, it) }
+                val delivered = nativeDeliveredFiles(records)
+                _deliveredFiles.value = if (replacement) delivered else _deliveredFiles.value + delivered
                 val values = JsonArray(records.map { it.toJsonElement() })
                 _open.value = current.copy(state = if (replacement) foldDomain(values) else foldInto(current.state, values))
             }
@@ -346,57 +347,6 @@ class SessionModel(
     val sessionDiagnostics: SessionDiagnostics
         get() = _open.value?.let { SessionDiagnostics.Selected(SessionProjectionCounts.capture(it.state)) }
             ?: SessionDiagnostics.Unselected
-
-    /** Decoded artifact content by reference id (filled by readArtifact). */
-    private val _artifactBytes = mutableMapOf<String, ByteArray>()
-
-    /** The decoded artifact content cache; companion panes render from it. */
-    val artifactBytes: Map<String, ByteArray> get() = _artifactBytes
-
-    /**
-     * Read one artifact the open session references over `session/artifact`
-     * and cache its decoded bytes (unbounded reads only — a paged read
-     * returns its range without caching); null when no session is open, the
-     * call fails, or the payload cannot be read.
-     * @param artifactId the reference identity from an artifact/created row.
-     * @param offset range start — UTF-16 code units for text artifacts, bytes
-     *   for bytes artifacts; null starts at zero.
-     * @param limit maximum returned units of the artifact format; null reads
-     *   through the end.
-     * @return the read value (id, kind, title, format, base64 data, truncated, size).
-     */
-    suspend fun readArtifact(artifactId: String, offset: Int? = null, limit: Int? = null): LinkArtifactReadValue? {
-        val sessionId = _open.value?.sessionId ?: return null
-        val fields = buildMap {
-            put("sessionId", WireValue.StringValue(sessionId))
-            put("artifactId", WireValue.StringValue(artifactId))
-            offset?.let { put("offset", WireValue.NumberValue(it.toDouble())) }
-            limit?.let { put("limit", WireValue.NumberValue(it.toDouble())) }
-        }
-        val value = try {
-            wire.call("session/artifact", mapOf("request" to WireValue.ObjectValue(fields)))
-        } catch (_: Exception) {
-            return null
-        }
-        val id = WireShape.string(value, "id") ?: return null
-        val kind = WireShape.string(value, "kind") ?: return null
-        val title = WireShape.string(value, "title") ?: return null
-        val format = WireShape.string(value, "format")
-            ?.let { raw -> LinkArtifactFormat.values().firstOrNull { it.wire == raw } } ?: return null
-        val data = WireShape.string(value, "data") ?: return null
-        val truncated = WireShape.boolean(value, "truncated") ?: return null
-        val size = WireShape.number(value, "size") ?: return null
-        if (limit == null) _artifactBytes[id] = java.util.Base64.getDecoder().decode(data)
-        return LinkArtifactReadValue(
-            id = id,
-            kind = kind,
-            title = title,
-            format = format,
-            data = data,
-            truncated = truncated,
-            size = size,
-        )
-    }
 
     /** Serialize explicit reads through `session/list`; cancellation leaves no failure and no request retries itself. */
     suspend fun loadSessions() = listRequest.withLock {
@@ -461,6 +411,7 @@ class SessionModel(
 
     /** Request follow shutdown without suspending synchronous UI disposal. */
     fun close() {
+        _deliveredFiles.value = emptyList()
         viewRequest.getAndSet(null)?.cancel()
         journal.close()
         _viewAnchor.value = null
@@ -469,6 +420,7 @@ class SessionModel(
 
     /** Close the open session after its follow stream has fully stopped. */
     suspend fun closeAndAwait() {
+        _deliveredFiles.value = emptyList()
         val view = viewRequest.getAndSet(null)
         view?.cancel()
         val reads = journal.close()
@@ -489,8 +441,8 @@ class SessionModel(
                 follow(payload + ("request" to WireValue.ObjectValue(request.entries +
                     ("maxMessages" to WireValue.NumberValue(historyLimits.pageMessages.toDouble())))), generation)
             },
-            publish = { _open.value = OpenSession(sessionId, DomainState()) },
-            invalidate = { _open.value = null },
+            publish = { _deliveredFiles.value = emptyList(); _open.value = OpenSession(sessionId, DomainState()) },
+            invalidate = { _deliveredFiles.value = emptyList(); _open.value = null },
         )
     }
 

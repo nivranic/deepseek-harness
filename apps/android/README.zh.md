@@ -31,6 +31,8 @@ Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定
 
 [丢确认场景](../web/tests/android-prompt-retry.e2e.ts)在真实 Host 准入后暂缓返回结果并终止 Android 进程。显式重试使用已保存的请求身份；已有日志回执时则直接清理待确认项，不再调用 prompt。两条路径都在再次进程重启后保留新文本。
 
+文件页提供与工件页共用的资源预览；工件页投影当前持久 `deliverables/presented` 声明。读取采用 Session 作用域的 `workspaceFiles/stat` 和 `readBytes`，窗口为 64 KiB，内容预算为 8 MiB。已知更大的文件只显示 256 字节前缀。显式重试续接已接受的同版本字节；版本变化会丢弃前缀并要求重新读取。UTF-8 文本、按签名识别的图片及未知二进制均为惰性呈现，并另有文本和像素预算。[资源决策](../../.agents/notes/implemented/architecture/2026-09-27-android-current-resource-reading.zh.md)拥有限制与退出语义；[安装应用场景](../web/tests/android-resource-adoption.e2e.ts)覆盖空文件、中文文件名、有界预览、中断和当前交付引用。
+
 Session 页可显式加载较早历史，并使用 Web v1 格式复制或打开查看位置。打开时必须匹配当前已信任 Host，保留待发送输入，并定位持久锚点；不会新建 Session 或提交 prompt。分页使用初始日志截止点并保留并行实时记录，取消或迟到响应不能跨越观察代际。默认每次请求 50 条消息，最多保留 8 MiB 序列化记录；读取失败或达到上限时明确提示并允许手动重试。[查看位置决策](../../.agents/notes/implemented/architecture/2026-09-26-android-native-view-location.zh.md)拥有生命周期与限制；[原生场景](../web/tests/android-view-location.e2e.ts)检查 88 轮 Host Session 的较早锚点及 Web 兼容的复制结果。
 
 Session 列表显示加载中、空列表和失败状态。刷新与重试都是显式读取；请求串行执行，取消后回到空闲，失败时保留最近成功的列表、固定诊断分类及 Gateway 拒绝 envelope。[列表恢复场景](../web/tests/android-session-list.e2e.ts)只断开自己的 Host 端口转发，恢复后手动重试，再撤销设备授权。打开 Session 前，发送与停止按钮保持禁用。
@@ -64,4 +66,4 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 
 [旧 Link 夹具](support/link-fixture-host.mjs)保留为历史协议测试，不能验收当前应用。当平台缺少 Ed25519 密钥生成时，应用使用捆绑的 `org.conscrypt:conscrypt-android`。实际 Native Remote 验收使用出厂 Host 组合和隔离的 Android 模拟器应用；摄像头扫描、物理设备、发布签名和平台互操作仍未通过资格验收。
 
-工件读取仍包含退役的 `session/artifact` 调用，需要迁移。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。原生传输诊断尚未填充旧 Link 诊断快照。深链接、平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。
+持久下载、SAF 导出及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。原生传输诊断尚未填充旧 Link 诊断快照。深链接、平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。

@@ -8,6 +8,7 @@
     "rewriteRelativeImportExtensions": false
   },
   "include": [
+    "apps/web/tests/android-resource-adoption.e2e.ts",
     "apps/web/tests/android-cursor-resume.e2e.ts",
     "apps/web/tests/validation-details.snapshot.ts",
     "apps/web/tests/checkpoint-order.snapshot.ts",

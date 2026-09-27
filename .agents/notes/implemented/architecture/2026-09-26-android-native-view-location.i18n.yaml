@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-26-android-native-view-location.md
-2026-09-26-android-native-view-location.md: 607ed9f5fde15a1f4209af8bc19292ff6d93e2f2
-2026-09-26-android-native-view-location.zh.md: 8daeed6e0d5c19e3dbe20b764be66b0b4488e512
+2026-09-26-android-native-view-location.md: b4fac1bdbe67e9e72415e14a6b695de86b9c805f
+2026-09-26-android-native-view-location.zh.md: f2a4568d7ce1d2da48bb27f661ce37e2674e958a

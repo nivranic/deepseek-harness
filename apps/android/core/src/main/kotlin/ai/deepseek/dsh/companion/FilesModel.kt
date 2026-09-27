@@ -16,6 +16,7 @@ class FilesModel(
     private val wire: WireDriving,
     private val scope: CoroutineScope,
     private val reconnectDelayMillis: Long = 1000,
+    resourceLimits: NativeResourceLimits = NativeResourceLimits(64 * 1024, 8 * 1024 * 1024, 256),
 ) {
     init { require(reconnectDelayMillis > 0) }
     private val _workspaces = MutableStateFlow<List<WorkspaceRow>>(emptyList())
@@ -40,6 +41,7 @@ class FilesModel(
     private val fileGeneration = AtomicLong()
     private val followOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
+    val resource = NativeResourceReader(wire, scope, resourceLimits)
 
     fun start() = followOwner.replaceAsync(create = { generation -> follow(generation) }, publish = {}, invalidate = {})
 
@@ -112,7 +114,7 @@ class FilesModel(
     }
 
     fun stop() { followOwner.stop {}; clearView() }
-    suspend fun stopAndAwait() { followOwner.stopAndAwait {}; clearView() }
+    suspend fun stopAndAwait() { followOwner.stopAndAwait {}; clearView(); resource.closeAndAwait() }
 
     /** Select only an observed Workspace; file scope is one of its recorded Session identities. */
     fun select(workspaceId: String?) {
@@ -181,6 +183,7 @@ class FilesModel(
     }
 
     suspend fun readFile(name: String) {
+        resource.close()
         val session = _selectedSession.value ?: return
         val path = (_directory.value + name).joinToString("/")
         val generation = viewGeneration.get()
@@ -216,7 +219,20 @@ class FilesModel(
         }
     }
 
-    fun closeFile() { fileGeneration.incrementAndGet(); _openFile.value = null; _openFileError.value = null }
+    /** Preview a directory entry through the same resource reader used by declared deliverables. */
+    fun previewFile(name: String) {
+        val session = _selectedSession.value ?: return
+        previewPath(session, (_directory.value + name).joinToString("/"))
+    }
+
+    /** Observe one explicit path under the selected Session's Host filesystem scope. */
+    fun previewPath(sessionId: String, path: String) {
+        selectSession(sessionId)
+        closeFile()
+        resource.open(sessionId, path)
+    }
+
+    fun closeFile() { fileGeneration.incrementAndGet(); _openFile.value = null; _openFileError.value = null; resource.close() }
 
     private data class Page(val text: String, val lines: Int, val eof: Boolean, val version: String, val bytes: Long?)
 

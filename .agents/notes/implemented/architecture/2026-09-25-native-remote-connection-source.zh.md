@@ -44,4 +44,4 @@ Android 输入由连接的模型共享，而非页签的 Compose 状态持有。
 
 ## 后果
 
-Host 入口可经普通 profile 组合挂载，出厂默认配置不开放网络监听器。测试覆盖身份持久化与并发创建、不换密钥的续期、无效存储身份、错误指纹、未签名请求、重放、权限不足、浏览器请求头拒绝、请求限制和关闭。Gateway 测试覆盖准入期间及业务流迭代期间的撤销。录制的 Host 场景通过 JVM 和隔离安装的 Compose 应用验证 Android 配对、结构化 Question 回复、Session 投影及两页 UTF-8 读取。验收应用使用独立存储，通过私有 ADB socket 接收配对数据。工件/Handoff 迁移、原生诊断、Swift 采用、Relay/发现集成和真机验收仍是独立工作，旧夹具通过不能证明这些能力。证书续期要求在过期前重启监听器。
+Host 入口可经普通 profile 组合挂载，出厂默认配置不开放网络监听器。测试覆盖身份持久化与并发创建、不换密钥的续期、无效存储身份、错误指纹、未签名请求、重放、权限不足、浏览器请求头拒绝、请求限制和关闭。Gateway 测试覆盖准入期间及业务流迭代期间的撤销。录制的 Host 场景通过 JVM 和隔离安装的 Compose 应用验证 Android 配对、结构化 Question 回复、Session 投影及两页 UTF-8 读取。验收应用使用独立存储，通过私有 ADB socket 接收配对数据。[资源决策](2026-09-27-android-current-resource-reading.zh.md)拥有当前文件与交付读取，[查看位置决策](2026-09-26-android-native-view-location.zh.md)拥有 Handoff。原生诊断、Swift 采用、Relay/发现集成和真机验收仍是独立工作，旧夹具通过不能证明这些能力。证书续期要求在过期前重启监听器。

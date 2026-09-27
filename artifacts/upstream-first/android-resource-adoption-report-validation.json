@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android current bounded resource and delivery reads; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-resource-adoption-source.json",
+    "sha256": "49ec7b03475ef455fbf831ffaf3c99059e5e401f0775a06a417dbb7bb293cc61"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9b0559906ff4dcc3b21a9c9e735bcef4a379b3c01e39638f790c1ecad674e147"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-resource-adoption-binding.json",
+    "sha256": "ae8e2afa868061296710e5ecc769104c6f30afc65e65a77f8021abe5bddc6ff3"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-resource-adoption-reports.mjs",
+      "sha256": "fc68abc51550ade9f5bc75c7791bc806e6eda50f94cd6d67eb23a5f6efc6b879"
+    },
+    {
+      "path": ".artifacts/capture-android-resource-adoption-validation.mjs",
+      "sha256": "adb597405e2697f4c297592cd272b54464723d4238bfe6635920ca41911240aa"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "16bde5303319190b184b5271e1c930f0416df6a131567ad363c7fcaeb88180cf"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8a0255ed02c9398df212c54eaf7bf975b1afec7cfd3f9a84f1cc0343d9c1be7e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-resource-adoption-binding.log",
+      "sha256": "8c786fa45419e228d9bdf9667b3c8a2547ebbe58af07c214b64964cf478ab8f5"
+    },
+    {
+      "path": ".artifacts/android-resource-adoption-audit-tests.log",
+      "sha256": "49b63d90fda2e42b9682a371f5f7c527e4d57df7f8ef2de3d866b7e31648c475"
+    },
+    {
+      "path": ".artifacts/android-resource-adoption-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-resource-adoption-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-resource-adoption-report-generation.log",
+      "sha256": "d3217692f2d8c85b68a506cf9cbab3c91e2a5f204196d2049e2c5ed0d379efdc"
+    }
+  ]
+}

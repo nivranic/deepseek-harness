@@ -252,6 +252,39 @@ class NativeCompanionAcceptanceTest {
                                 val digest = MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
                                 value = buildJsonObject { put("lines", 1001); put("digest", digest) }
                             }
+                            "previewResource" -> {
+                                compose.onNodeWithTag("native-tab-4").performClick()
+                                val tag = "resource-open-" + command.getValue("path").jsonPrimitive.content
+                                waitFor(hasTestTag("resource-file-list"))
+                                compose.onNodeWithTag("resource-file-list").performScrollToNode(hasTestTag(tag))
+                                compose.onNodeWithTag(tag).performClick()
+                            }
+                            "previewDelivery" -> {
+                                compose.onNodeWithTag("native-tab-5").performClick()
+                                val tag = "resource-delivery-${command.getValue("seq").jsonPrimitive.long}-${command.getValue("index").jsonPrimitive.int}"
+                                waitFor(hasTestTag("resource-delivery-list"))
+                                compose.onNodeWithTag("resource-delivery-list").performScrollToNode(hasTestTag(tag))
+                                compose.onNodeWithTag(tag).performClick()
+                            }
+                            "assertResource" -> {
+                                val phase = NativeResourcePhase.valueOf(command.getValue("phase").jsonPrimitive.content)
+                                val reader = companionModel().files.resource
+                                compose.waitUntil(20_000) { reader.state.value?.phase == phase }
+                                val tag = command["tag"]?.jsonPrimitive?.content
+                                if (tag != null) { waitFor(hasTestTag(tag)); compose.onNodeWithTag(tag).assertIsDisplayed() }
+                                command["textChars"]?.jsonPrimitive?.int?.let { count ->
+                                    check(compose.onNodeWithTag("resource-text").fetchSemanticsNode().config[SemanticsProperties.Text].single().text.length == count)
+                                }
+                                val state = checkNotNull(reader.state.value)
+                                value = buildJsonObject {
+                                    put("received", state.receivedBytes)
+                                    put("prefix", Base64.encodeToString(state.prefix, Base64.NO_WRAP))
+                                    state.content?.let { bytes -> put("sha256", MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }) }
+                                }
+                            }
+                            "retryResource" -> compose.onNodeWithTag("resource-retry").performClick()
+                            "restartResource" -> compose.onNodeWithTag("resource-restart").performClick()
+                            "closeResource" -> compose.onNodeWithTag("resource-close").performClick()
                             "screenshot" -> {
                                 check(paired)
                                 compose.onNodeWithText("配对载荷（二维码内容）").assertDoesNotExist()
