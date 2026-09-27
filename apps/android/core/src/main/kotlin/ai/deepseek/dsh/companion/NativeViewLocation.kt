@@ -9,9 +9,11 @@ data class NativeViewLocation(val hostId: String, val sessionId: String, val anc
 /** Each completed navigation has its own generation, including repeated jumps to the same sequence. */
 data class NativeViewAnchor(val generation: Long, val seq: Long)
 
-/** The existing Web v1 grammar, suitable for explicit clipboard and share actions. */
+/** The Web v1 viewing-position payload and its bounded Companion deep-link wrapper. */
 object NativeViewLocations {
     private const val prefix = "dsh-session-view.v1."
+    private const val deepLinkPrefix = "dsh-companion://session-view/"
+    private const val maxDeepLinkPayloadCharacters = 4096
     private const val maxSafeInteger = 9_007_199_254_740_991L
 
     /** Encode the same ordered ASCII JSON fields as the Web Client. */
@@ -46,6 +48,28 @@ object NativeViewLocations {
         require(!anchor.isString && number != null && number.isFinite() && number >= 0 && number <= maxSafeInteger.toDouble() &&
             number == kotlin.math.floor(number) && number.toRawBits() != (-0.0).toRawBits()) { "invalid session view anchor" }
         return NativeViewLocation(id("hostId"), id("sessionId"), number.toLong())
+    }
+
+    /**
+     * Wrap the Web v1 payload in the exact Companion URI without percent encoding.
+     * @param location Durable position to encode; its complete payload must fit 4096 characters.
+     * @return A deep link of at most 4125 characters, carrying no Host authorization.
+     */
+    fun encodeDeepLink(location: NativeViewLocation): String {
+        val encoded = encode(location)
+        require(encoded.length <= maxDeepLinkPayloadCharacters) { "session view location exceeds its limit" }
+        return deepLinkPrefix + encoded
+    }
+
+    /**
+     * Parse an exact Companion URI without trimming, URL decoding or navigation.
+     * @param raw Untrusted URI text, limited to 4125 characters including its 4096-character payload.
+     * @return Validated position; callers must still match the current trusted Host before opening it.
+     */
+    fun decodeDeepLink(raw: String): NativeViewLocation {
+        require(raw.length <= deepLinkPrefix.length + maxDeepLinkPayloadCharacters) { "session view deep link exceeds its limit" }
+        require(raw.startsWith(deepLinkPrefix)) { "session view deep link has an unknown grammar" }
+        return decode(raw.substring(deepLinkPrefix.length), maxDeepLinkPayloadCharacters)
     }
 
     /** Check the currently selected trusted Host before any Session request is made. */

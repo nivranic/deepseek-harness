@@ -34,6 +34,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,13 +69,20 @@ import kotlinx.coroutines.sync.withLock
 class MainActivity : ComponentActivity() {
     private val model: CompanionViewModel by viewModels()
     internal val shareIntake: NativeShareIntake by viewModels()
+    internal val viewLinkIntake: NativeViewLinkIntake by viewModels()
+    private val attachmentPicker: NativeFileAttachmentPicker by viewModels()
+    private var runtimeResolved = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shareIntake.onActivityCreated(intent, savedInstanceState != null, packageName)
+        viewLinkIntake.onActivityCreated(intent, savedInstanceState != null,
+            nativeViewLinkAdmission(model, runtimeResolved, attachmentPicker, shareIntake))
         lifecycleScope.launch {
             CompanionRuntime.restore(filesDir)
             if (isFinishing || isDestroyed) return@launch
             model.reconcileRuntime()
+            runtimeResolved = true
+            viewLinkIntake.admit(nativeViewLinkAdmission(model, true, attachmentPicker, shareIntake))
             if (!isFinishing && !isDestroyed) {
                 setContent {
                     CompanionTheme {
@@ -88,7 +96,8 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        shareIntake.receive(intent, packageName)
+        routeNativeIncomingIntent(intent, packageName, shareIntake, viewLinkIntake,
+            nativeViewLinkAdmission(model, runtimeResolved, attachmentPicker, shareIntake))
     }
 }
 
@@ -395,6 +404,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     val saveContent = rememberNativeResourceSaveLauncher(resourceSavePicker)
     val fileAttachmentPicker: NativeFileAttachmentPicker = viewModel()
     val shareIntake: NativeShareIntake = viewModel()
+    val viewLinkIntake: NativeViewLinkIntake = viewModel()
     val attachFile = rememberNativeFileAttachmentLauncher(fileAttachmentPicker)
     val saveResource: (NativeResourceState) -> Unit = { resource ->
         model.files.resource.saves.prepare(resource)?.let { saveContent(it, model.files.resource.saves) }
@@ -409,6 +419,11 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     var descriptionRefresh by remember(model.generation) { mutableStateOf(0) }
     val description = HostDescriptionObserver(CompanionRuntime.wire, active, model.generation, descriptionRefresh)
     val capabilities = description.snapshot?.takeUnless { it.closed }?.description?.capabilities
+    NativeViewLinkEffects(viewLinkIntake, model, description, fileAttachmentPicker, shareIntake) { tab = 0 }
+    val retryViewLink = {
+        descriptionRefresh++
+        viewLinkIntake.retry(nativeViewLinkAdmission(model, true, fileAttachmentPicker, shareIntake))
+    }
     // The chapter-70 runtime grant: Android 13+ asks for POST_NOTIFICATIONS
     // at runtime — once per process while the grant is missing — and the
     // answer lands in the projection the push chain reads.
@@ -438,6 +453,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     }
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            NativeViewLinkCard(viewLinkIntake, retryViewLink)
             NativeShareCard(shareIntake, model, capabilities, fileAttachmentPicker)
             NativeResourceSaveNotice(resourceSavePicker)
             if (fileAttachmentPicker.cameraCleanupFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_camera_cleanup_failed),
@@ -466,6 +482,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            NativeViewLinkCard(viewLinkIntake, retryViewLink)
             NativeShareCard(shareIntake, model, capabilities, fileAttachmentPicker)
             NativeHostControls(model, hosts)
             HostCapabilityDetails(description, model.generation) { descriptionRefresh++ }
@@ -764,27 +781,36 @@ private fun SessionViewLocationActions(model: CompanionViewModel, timeline: Lazy
     var importGeneration by remember(session) { mutableStateOf(0L) }
     var failed by remember(session) { mutableStateOf(false) }
     var copied by remember(session) { mutableStateOf(false) }
+    var copiedLink by remember(session) { mutableStateOf(false) }
     val copyLabel = androidx.compose.ui.res.stringResource(R.string.native_view_copy)
+    val copyLinkLabel = androidx.compose.ui.res.stringResource(R.string.native_view_link_copy)
     val visibleAnchor = timeline.layoutInfo.visibleItemsInfo.firstNotNullOfOrNull { row ->
         (row.key as? String)?.takeIf { it.startsWith("event-") }?.removePrefix("event-")?.toLongOrNull()
     }
+    fun copyLocation(deepLink: Boolean) {
+        val current = open ?: return
+        val selected = host.selected ?: return
+        val visible = visibleAnchor ?: return
+        val location = NativeViewLocation(selected.hostId, current.sessionId, visible)
+        val payload = if (deepLink) NativeViewLocations.encodeDeepLink(location) else NativeViewLocations.encode(location)
+        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText(if (deepLink) copyLinkLabel else copyLabel, payload))
+        copied = !deepLink; copiedLink = deepLink
+    }
     Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(enabled = host.status == NativeHostStatus.READY && visibleAnchor != null,
-            modifier = Modifier.testTag("session-view-copy"), onClick = {
-                val current = open ?: return@Button
-                val selected = host.selected ?: return@Button
-                val visible = visibleAnchor ?: return@Button
-                val payload = NativeViewLocations.encode(NativeViewLocation(selected.hostId, current.sessionId, visible))
-                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(copyLabel, payload))
-                copied = true
-            }) { Text(copyLabel) }
+            modifier = Modifier.testTag("session-view-copy"), onClick = { copyLocation(false) }) { Text(copyLabel) }
         Button(enabled = host.status == NativeHostStatus.READY, modifier = Modifier.testTag("session-view-import"),
-            onClick = { failed = false; copied = false; showImport = true }) {
+            onClick = { failed = false; copied = false; copiedLink = false; showImport = true }) {
             Text(androidx.compose.ui.res.stringResource(R.string.native_view_open))
         }
     }
+    TextButton(enabled = host.status == NativeHostStatus.READY && visibleAnchor != null,
+        modifier = Modifier.padding(horizontal = 12.dp).testTag("session-view-link-copy"), onClick = { copyLocation(true) }) {
+        Text(copyLinkLabel)
+    }
     if (copied) Text(androidx.compose.ui.res.stringResource(R.string.native_view_copied), Modifier.padding(horizontal = 16.dp))
+    if (copiedLink) Text(androidx.compose.ui.res.stringResource(R.string.native_view_link_copied), Modifier.padding(horizontal = 16.dp))
     if (showImport) AlertDialog(
         onDismissRequest = { importGeneration++; importJob?.cancel(); importing = false; showImport = false; encoded = "" },
         title = { Text(androidx.compose.ui.res.stringResource(R.string.native_view_open)) },

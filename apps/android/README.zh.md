@@ -51,6 +51,8 @@ Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定
 
 Session 页可显式加载较早历史，并使用 Web v1 格式复制或打开查看位置。打开时必须匹配当前已信任 Host，保留待发送输入，并定位持久锚点；不会新建 Session 或提交 prompt。分页使用初始日志截止点并保留并行实时记录，取消或迟到响应不能跨越观察代际。默认每次请求 50 条消息，最多保留 8 MiB 序列化记录；读取失败或达到上限时明确提示并允许手动重试。[查看位置决策](../../.agents/notes/implemented/architecture/2026-09-26-android-native-view-location.zh.md)拥有生命周期与限制；[原生场景](../web/tests/android-view-location.e2e.ts)检查 88 轮 Host Session 的较早锚点及 Web 兼容的复制结果。
 
+选择 **复制查看位置链接**，复制指向第一条可见持久记录的 Android 链接；既有复制操作仍输出原始 Web 载荷。打开新链接后，应用通过当前所选可信 Host 直接导航，无需再次确认。Host 不匹配、读取能力不可用，或正在处理分享、附件、发送时，应用显示失败；解决后需显式选择 **重试打开**。**停止定位** 会终止本次跳转，保留已经打开的 Session。[深链接决定](../../.agents/notes/implemented/architecture/2026-09-28-android-view-deep-links.zh.md)拥有 URI 格式、启动等待、查询归属与恢复规则。
+
 Session 列表显示加载中、空列表和失败状态。刷新与重试都是显式读取；请求串行执行，取消后回到空闲，失败时保留最近成功的列表、固定诊断分类及 Gateway 拒绝 envelope。[列表恢复场景](../web/tests/android-session-list.e2e.ts)只断开自己的 Host 端口转发，恢复后手动重试，再撤销设备授权。打开 Session 前，发送与停止按钮保持禁用。
 
 已保存 Host 选择器显示当前 Host 及其端点。添加另一 Host 保留已有条目；切换只恢复所选主体的输入。旧模型退出以及目录同时提交凭据与选择期间，业务控件保持隐藏。重新配对同一 Host 键会替换授权。[目录决策](../../.agents/notes/implemented/architecture/2026-09-26-android-saved-host-catalog.zh.md)拥有原子采纳、取消和失败语义；[双 Host 场景](../web/tests/android-host-roster.e2e.ts)核验同 id Session 隔离及当前 Host 请求分发。Host 任务继续运行，旧授权需操作员撤销。
@@ -92,4 +94,4 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 
 [旧 Link 夹具](support/link-fixture-host.mjs)保留为历史协议测试，不能验收当前应用。当平台缺少 Ed25519 密钥生成时，应用使用捆绑的 `org.conscrypt:conscrypt-android`。实际 Native Remote 验收使用出厂 Host 组合和隔离的 Android 模拟器应用；摄像头扫描、物理设备、发布签名和平台互操作仍未通过资格验收。
 
-后台下载调度、自动缓存淘汰、断电持久性、物理设备及第三方 SAF 提供方资格，以及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。深链接、跨平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。
+后台下载调度、自动缓存淘汰、断电持久性、物理设备及第三方 SAF 提供方资格，以及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。浏览器深链接分发、HTTPS App Links、跨平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。

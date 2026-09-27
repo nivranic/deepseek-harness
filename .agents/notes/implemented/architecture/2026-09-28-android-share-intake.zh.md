@@ -20,6 +20,8 @@ Intent 解析优先采用有序 `EXTRA_STREAM` 载荷；只有不存在该载荷
 
 传入文本限制为 64 KiB UTF-8，传入及合并后草稿的附件限制为 8 个，每个来源限制为 512 KiB，每次编码上传参数 JSON 限制为 1 MiB。JSON 限制不包含带签名的 RPC envelope；这些应用限制不与 Host 协商。确认后才在 I/O dispatcher 解析 MIME。声明为图片的来源必须解析为支持的 PNG、JPEG、WebP 或 GIF；未知或不支持的图片类型直接失败，不降级为通用文件。其他条目按提供方 MIME 选择图片或文件准入。解析后的类别必须受允许，应用才会查询名称或打开字节。
 
+[查看位置链接决定](2026-09-28-android-view-deep-links.zh.md)拥有 `ACTION_VIEW` 导航。分享收到的 URL 仍为文本。两个外部入口都不能替换对方的待处理操作；繁忙拒绝后，需要在既有工作结束时显式重试或重新投递。
+
 ## 原子采用到草稿
 
 `NativeFileAttachmentsModel.importShare()` 在整个有序批次中持有一个 `SessionAttachmentAdmission`。它复用普通附件入口的有界读取、编码上传及回执校验，不在条目之间释放准入占用。从提供方及 RPC 工作、原子采用，直到后续 `inputs.flush()` 检查点尝试结束，发送、重试和其他附件入口持续被阻止。取消等待所属工作结束；即使父级取消导致协程主体无法启动，完成处理仍会释放占用。

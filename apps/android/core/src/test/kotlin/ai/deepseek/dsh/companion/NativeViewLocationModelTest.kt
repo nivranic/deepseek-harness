@@ -1,7 +1,9 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.link.LinkClientException
 import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.*
 import kotlinx.serialization.json.Json
 import kotlin.test.*
@@ -28,24 +30,89 @@ class NativeViewLocationModelTest {
         model.closeAndAwait()
     }
 
-    @Test fun `wrong Host rejects before replacing the open Session or issuing a request`() = runTest {
+    @Test fun `wrong or missing Host rejects without reading or changing the current selection and input`() = runTest {
         val wire = FakeWire()
-        val model = SessionModel(wire, backgroundScope)
+        var streams = 0
+        val observed = object : WireDriving by wire {
+            override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> {
+                streams++
+                return wire.stream(endpoint, payload)
+            }
+        }
+        val inputs = CompanionInputState.memory()
+        val draft = SessionDraft("keep input", "intent")
+        inputs.update { it.copy(drafts = mapOf("old" to draft), pendingPrompts = mapOf("intent" to PendingPrompt("old", draft))) }
+        val model = SessionModel(observed, backgroundScope, inputs = inputs)
         model.openSession("old")
-        assertFailsWith<IllegalArgumentException> { model.openViewLocation(NativeViewLocation("other", "target", 0), "host") }
+        runCurrent()
+        val retained = inputs.state.value
+        val generation = model.selectionGeneration
+        assertEquals(1, streams)
+        for (selectedHost in listOf("host", null)) assertFailsWith<IllegalArgumentException> {
+            model.openViewLocation(NativeViewLocation("other", "target", 0), selectedHost)
+        }
         assertEquals("old", model.open.value!!.sessionId)
+        assertEquals(generation, model.selectionGeneration)
+        assertEquals(retained, inputs.state.value)
+        assertEquals(1, streams)
         assertTrue(wire.calls.isEmpty())
         model.closeAndAwait()
     }
 
-    @Test fun `closing while waiting for the first snapshot cancels the pending jump`() = runTest {
-        val model = SessionModel(FakeWire(), backgroundScope)
+    @Test fun `closing while waiting for the first snapshot cancels the jump without rolling back last Session`() = runTest {
+        val inputs = CompanionInputState.memory()
+        inputs.update { it.copy(lastSessionId = "old") }
+        val model = SessionModel(FakeWire(), backgroundScope, inputs = inputs)
         val opening = async { model.openViewLocation(NativeViewLocation("host", "session", 0), "host") }
         runCurrent()
+        assertEquals("session", inputs.state.value.lastSessionId)
         model.closeAndAwait()
         assertFailsWith<CancellationException> { opening.await() }
         assertNull(model.open.value)
         assertNull(model.viewAnchor.value)
+        assertEquals("session", inputs.state.value.lastSessionId)
+    }
+
+    @Test fun `caller cancellation keeps the selected Session observing without revealing an anchor`() = runTest {
+        val wire = FakeWire()
+        val inputs = CompanionInputState.memory()
+        val retained = CompanionInputSnapshot(drafts = mapOf("old" to SessionDraft("keep", "intent")), lastSessionId = "old")
+        inputs.update { retained }
+        val model = SessionModel(wire, backgroundScope, inputs = inputs)
+        val opening = async { model.openViewLocation(NativeViewLocation("host", "target", 0), "host") }
+        runCurrent()
+        opening.cancelAndJoin()
+        assertFailsWith<CancellationException> { opening.await() }
+        assertEquals("target", model.open.value?.sessionId)
+        assertEquals(retained.copy(lastSessionId = "target"), inputs.state.value)
+        wire.emit(value("""{"type":"snapshot","header":{"id":"target"},"cursor":0,"hasMore":false,"records":[${record(0)}]}"""))
+        runCurrent()
+        assertEquals(listOf(0L), model.state.items.map { it.seq })
+        assertNull(model.viewAnchor.value)
+        assertTrue(wire.calls.isEmpty())
+        model.closeAndAwait()
+    }
+
+    @Test fun `an unavailable anchor retains the target selection and input without submitting a prompt`() = runTest {
+        val wire = FakeWire()
+        val inputs = CompanionInputState.memory()
+        val retained = CompanionInputSnapshot(drafts = mapOf("target" to SessionDraft("keep", "intent")), lastSessionId = "old")
+        inputs.update { retained }
+        val navigationOwner = SupervisorJob(backgroundScope.coroutineContext[Job])
+        val model = SessionModel(wire, CoroutineScope(backgroundScope.coroutineContext + navigationOwner), inputs = inputs)
+        try {
+            val opening = async { runCatching { model.openViewLocation(NativeViewLocation("host", "target", 1), "host") } }
+            runCurrent()
+            wire.emit(value("""{"type":"snapshot","header":{"id":"target"},"cursor":0,"hasMore":false,"records":[${record(0)}]}"""))
+            assertIs<LinkClientException.BadWire>(opening.await().exceptionOrNull())
+            assertEquals("target", model.open.value?.sessionId)
+            assertEquals(retained.copy(lastSessionId = "target"), inputs.state.value)
+            assertNull(model.viewAnchor.value)
+            assertTrue(wire.calls.isEmpty())
+        } finally {
+            model.closeAndAwait()
+            navigationOwner.cancelAndJoin()
+        }
     }
 
     @Test fun `model retirement waits for cancelled page cleanup before returning`() = runTest {

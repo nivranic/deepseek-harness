@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-view-deep-links-source.json",
+    "sha256": "679a9823dc7a4d06c5e966725cbf61ba5fd4cc210645e493076ae77efa177bdc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6dbd7cdf812e34b83f23f1af810f5d7fe3d27baea5b0622ad992d40c6c49f648"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-view-deep-links-binding.mjs",
+    "sha256": "a9f77287985b699fa8fe24540899b8f18f0940e9870bd85ce7d7859f7a06a650"
+  }
+}

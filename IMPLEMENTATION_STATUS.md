@@ -22,9 +22,27 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 查看位置深链接与单次导航授权（§36、§57、§64）
+
+[当前来源记录](artifacts/upstream-first/android-view-deep-links-source.json)绑定 Android ACTION_VIEW 的只读查看位置入口。dsh-companion://session-view/ 包装现有 dsh-session-view.v1. 载荷；原始 URI 不做 trim、大小写修正或百分号解码，query、fragment、额外路径和畸形载荷被拒绝。裸载荷上限 4096 字符，完整 URI 上限 4125 字符。生产复制按钮使用当前可见持久事件的 seq，原有裸载荷复制入口保留。
+
+真正的新 VIEW 投递授权一次导航，不要求第二次确认。当前可信 Host id 必须完全匹配，SESSION_FOLLOW 足以允许 viewer 读取；入口不自动配对、切换 Host、上传、发送 prompt、创建 Session 或迁移运行时。冷启动可以等待本次 Runtime 恢复和能力观察；未配对、Host 不匹配、忙碌、能力失败或缺失、读取失败均终结本次尝试，就绪变化和普通前台刷新不能自动重试，用户明确重试或重新投递相同 URI 才产生新尝试。
+
+待确认或导入中的 Share 保留原提案并拒绝链接；WAITING 或 OPENING 的链接保留当前导航并拒绝新链接和 Share。导航捕获同一 SessionModel、Host key 与 Host generation，不因自身打开 Session 改变 Session generation 而误取消。取消等待本次 anchor 导航协程结束，共享 journal page 和 HTTP 请求由模型拥有；迟到分页不能发布已取消的 anchor 或 OPENED。已经打开的 Session、follow 和 lastSessionId 不回滚，草稿、附件、待确认 prompt 与 requestId 继续归属原 Session。正常的 Host 已接受回执调和仍会执行：已确认的 pending prompt 可移除，完整匹配且未编辑的草稿可清空，后续新编辑保留。输入处于 RESTORE_FAILED 时不更新 lastSessionId。
+
+旋转保留同一内存 owner 和 attempt。WAITING 在旧 composition 销毁取消尚未向 owner 发布时可以重新附着能力观察；已经发布的失败不能因重建复活。OPENING 保留原导航任务且不重复 follow。SavedState 只保存处置状态，不保存链接或导航票据；恢复旧 Intent 和携带 history 标志的冷、热投递均不重放。能力观察按 Host 世代及显式刷新 epoch 隔离，取消或失败不能把保留的 AVAILABLE 当作本次成功，查询结束而无可用结果直接失败。每次新尝试只清理编辑焦点并收起键盘一次。
+
+Android core XML 核验为 417 项测试、67 个套件，无失败、错误和跳过。新增安装态测试 17 项通过，覆盖解析、单次导航 owner、实际 Activity 冷热投递与旋转、能力观察隔离。另一次安装态回归通过 18 项：Share intake 12 项、Share Activity 1 项、既有 Host observer 2 项、能力详情 3 项。两次运行覆盖不同测试类。这些受控测试与真实隐式投递的模拟器 E2E 证据分别记录。
+
+真实 Host 深链场景通过 1 文件、1 用例：实际 VIEW/BROWSABLE 隐式投递能解析应用，viewer 在 88 轮 Session 中定位旧锚点；错误 Host 与畸形链接不发起 follow 或 page；Share 待确认时拒绝导航，关闭 Share 不自动重试；显式重试、重复新投递、分页失败后的手动恢复、OPENING 拒绝竞争 SEND 均通过。原查看位置、Share、输入恢复、Host 名册切换、诊断与操作能力另一次回归通过 6 文件、6 用例。场景未调用 prompt、upload、Session create 或旧运行时迁移，且未新增设备授权。
+
+已人工检查 wrong-host、older-anchor、restored-without-replay 和 cold-view-anchor 四张全屏截图，目标草稿、导航结果和操作入口可见；已安装 App 与测试 APK 哈希均与最终构建一致。进程终止场景采用 force-stop 后重新 MAIN 启动，限定证明该恢复路径不重放旧导航；它不等于实际 Android Recents 或低内存 saved-task 恢复。history 标志和恢复 owner 的行为由独立受控测试覆盖。自定义 scheme 包装不代表 HTTPS App Links 验证，也不授予任意浏览器分发、物理设备或其他平台外壳资格。
+
+Host typecheck、完整 lint、17 项文档快速检查、36 项 doc-sync、6 项规格追踪检查与 Gate 0 的逐项结果由来源记录绑定。before 归档固定为 6855 文件。本项覆盖 §36 查看位置复用、§57 的 Android deep link 子项与 §64 状态投影，不授予 Mobile Release 全验收。Swift 附件采用、跨平台分享与深链接、前台和 push 恢复、更大流式上传、回执过期与 Host 限额协商继续开放；扫描器保持同机共享缓存资格，GO-2026-5932 未关闭。Session writer 保持 V3，completeRc 为 false，§36/§57/§64 仍未整节验收。
+
 ## Android Share 显式确认与原子草稿采用（§36、§64）
 
-[当前来源记录](artifacts/upstream-first/android-share-intake-source.json)绑定 Android ACTION_SEND 与 ACTION_SEND_MULTIPLE 的文本、文件和图片接收。接收阶段只保留内存中的待确认载荷；读取提供方名称、MIME 和字节，以及 Host 上传，都在用户确认当前 Host 与普通 Session 后执行。纯文本和 URL 保持字面内容，不触发导航或自动发送。EXTRA_STREAM 优先于 ClipData；输入顺序及重复项保留，畸形或非 content URI、嵌套 Intent 和应用私有相机来源被拒绝。
+[历史来源记录](artifacts/upstream-first/android-share-intake-source.json)绑定 Android ACTION_SEND 与 ACTION_SEND_MULTIPLE 的文本、文件和图片接收。接收阶段只保留内存中的待确认载荷；读取提供方名称、MIME 和字节，以及 Host 上传，都在用户确认当前 Host 与普通 Session 后执行。纯文本和 URL 保持字面内容，不触发导航或自动发送。EXTRA_STREAM 优先于 ClipData；输入顺序及重复项保留，畸形或非 content URI、嵌套 Intent 和应用私有相机来源被拒绝。
 
 Activity 使用 singleTask 接收冷启动与 onNewIntent，已占用的入口明确拒绝新到分享，不替换当前提案。旋转保留同一个 intake owner；SavedState 只保存处置状态，进程恢复和历史启动不恢复 URI 授权或重放原始 Intent。新分享进入确认阶段时清除旧编辑焦点并收起键盘，使目标 Host、Session 和确认按钮可见；后续重组及上传不反复抢占焦点，允许用户继续编辑草稿。
 

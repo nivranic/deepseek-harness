@@ -20,12 +20,18 @@ const exec = promisify(execFile)
  * @param hostPort - test-owned native Host TLS port, reversed into the emulator.
  * @param resetData - clear this isolated application's test data; false preserves credentials for restart acceptance.
  * @param additionalHostPorts - other test-owned Host TLS ports used by saved-Host switching.
+ * @param startupViewLink - explicit VIEW launch for cold-start navigation acceptance; omitted for a normal launcher start.
  * @returns command access, controlled Host reachability, and awaited instrumentation/forward retirement.
  */
 export async function startAndroidCompanionUiDriver(
   adb: string, target: string, hostPort: number, resetData = true, additionalHostPorts: readonly number[] = [],
+  startupViewLink?: string,
 ) {
   if (!/^emulator-\d+$/.test(target)) throw new Error('UI acceptance requires an explicit emulator')
+  if (startupViewLink !== undefined && (startupViewLink.length > 4125
+    || !/^dsh-companion:\/\/session-view\/dsh-session-view\.v1\.[A-Za-z0-9_-]+$/u.test(startupViewLink))) {
+    throw new Error('Cold-start acceptance requires a bounded native view link')
+  }
   const args = ['-s', target]
   const leasePath = join(tmpdir(), `dsh-native-acceptance-${target}.lock`)
   const lease = await open(leasePath, 'wx', 0o600)
@@ -74,6 +80,7 @@ export async function startAndroidCompanionUiDriver(
   }
   const child = spawn(adb, [...args, 'shell', 'am', 'instrument', '-w', '-e', 'class',
     'ai.deepseek.dsh.companion.NativeCompanionAcceptanceTest', '-e', 'dshSocket', socketName,
+    ...(startupViewLink === undefined ? [] : ['-e', 'dshViewLink', startupViewLink]),
     'com.deepseek.harness.companion.nativeacceptance.test/androidx.test.runner.AndroidJUnitRunner'],
   { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
   let passed = false

@@ -33,7 +33,13 @@ class NativeCompanionAcceptanceTest {
     @get:Rule(order = 1) val notifications = GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
     // ActivityScenario filters out lifecycle events after real share delivery changes getIntent().
     @Suppress("DEPRECATION")
-    @get:Rule(order = 2) val compose = AndroidComposeTestRule(ActivityTestRule(MainActivity::class.java)) { it.activity }
+    @get:Rule(order = 2) val compose = AndroidComposeTestRule(object : ActivityTestRule<MainActivity>(MainActivity::class.java) {
+        override fun getActivityIntent(): android.content.Intent? {
+            val link = InstrumentationRegistry.getArguments().getString("dshViewLink") ?: return super.getActivityIntent()
+            return android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(link))
+                .addCategory(android.content.Intent.CATEGORY_BROWSABLE)
+        }
+    }) { it.activity }
 
     private fun waitFor(matcher: SemanticsMatcher) {
         compose.waitUntil(20_000) { compose.onAllNodes(matcher).fetchSemanticsNodes(false).isNotEmpty() }
@@ -803,6 +809,40 @@ class NativeCompanionAcceptanceTest {
                                     compose.onNodeWithTag("session-event-$seq").assertIsDisplayed()
                                     check(companionModel().session.viewAnchor.value?.seq == seq)
                                 }
+                            }
+                            "viewLinkSnapshot" -> {
+                                val session = companionModel().session
+                                compose.runOnIdle {
+                                    val owner = compose.activity.viewLinkIntake
+                                    value = buildJsonObject {
+                                        put("phase", owner.phase.name); put("arrival", owner.arrival); put("attempt", owner.attempt)
+                                        put("issue", owner.issue?.name?.let(::JsonPrimitive) ?: JsonNull)
+                                        put("incomingRejected", owner.incomingRejected)
+                                        put("sessionId", session.open.value?.sessionId?.let(::JsonPrimitive) ?: JsonNull)
+                                        put("anchor", session.viewAnchor.value?.seq?.let(::JsonPrimitive) ?: JsonNull)
+                                    }
+                                }
+                            }
+                            "awaitViewLink" -> {
+                                val expected = command.getValue("phase").jsonPrimitive.content
+                                compose.waitUntil(30_000) { compose.activity.viewLinkIntake.phase.name == expected }
+                                if (expected == "OPENED") {
+                                    val sessionId = command.getValue("sessionId").jsonPrimitive.content
+                                    val seq = command.getValue("anchor").jsonPrimitive.long
+                                    check(companionModel().session.open.value?.sessionId == sessionId)
+                                    waitFor(hasTestTag("session-event-$seq"))
+                                    compose.onNodeWithTag("session-event-$seq").assertIsDisplayed()
+                                    check(companionModel().session.viewAnchor.value?.seq == seq)
+                                }
+                            }
+                            "retryViewLink" -> compose.onNodeWithTag("view-link-retry").assertIsDisplayed().performClick()
+                            "cancelViewLink" -> compose.onNodeWithTag("view-link-cancel").assertIsDisplayed().performClick()
+                            "dismissViewLink" -> compose.onNodeWithTag("view-link-dismiss").assertIsDisplayed().performClick()
+                            "copyViewDeepLink" -> {
+                                compose.onNodeWithTag("session-view-link-copy").assertIsDisplayed().performClick()
+                                compose.waitForIdle()
+                                val clipboard = instrumentation.targetContext.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                value = JsonPrimitive(clipboard.primaryClip!!.getItemAt(0).text.toString())
                             }
                             "scrollSessionToLatest" -> {
                                 val model = companionModel().session

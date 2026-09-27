@@ -20,6 +20,8 @@ Intent parsing prefers the ordered `EXTRA_STREAM` payload; only its absence sele
 
 Incoming text is limited to 64 KiB of UTF-8, incoming and combined-draft attachments to 8, each source to 512 KiB, and each encoded upload-arguments JSON to 1 MiB. The JSON limit excludes the signed RPC envelope; these application limits are not negotiated with the Host. MIME resolution occurs on the I/O dispatcher after confirmation. A declared image must resolve to supported PNG, JPEG, WebP or GIF; unknown or unsupported image types fail instead of falling back to generic files. Other items use the provider MIME to choose image or file admission. The resolved kind must be allowed before the application queries its name or opens its bytes.
 
+The [view-link decision](2026-09-28-android-view-deep-links.md) owns `ACTION_VIEW` navigation. URLs received through Share remain text. Neither external entry replaces the other's pending operation; a busy refusal requires explicit retry or a new delivery after the existing work ends.
+
 ## Atomic draft adoption
 
 `NativeFileAttachmentsModel.importShare()` holds one `SessionAttachmentAdmission` across the entire ordered batch. It reuses bounded reads, encoded uploads and receipt validation from ordinary attachment intake without releasing admission between items. Send, retry and other attachment intake remain excluded through provider and RPC work, atomic adoption, and the subsequent `inputs.flush()` checkpoint attempt. Cancellation waits for owned work to settle; completion releases admission even when parent cancellation prevents the coroutine body from starting.

@@ -43,6 +43,7 @@ internal class NativeShareIntake(private val savedState: SavedStateHandle = Save
         private set
     var incomingRejected by mutableStateOf(false)
         private set
+    val occupied: Boolean get() = payload != null || active != null
 
     /** Rotation retains this instance; a reconstructed Activity never replays its original share Intent. */
     fun onActivityCreated(intent: Intent, restored: Boolean, ownPackage: String) {
