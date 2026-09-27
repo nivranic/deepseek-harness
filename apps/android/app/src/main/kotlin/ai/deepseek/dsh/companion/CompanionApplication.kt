@@ -7,6 +7,9 @@ import android.content.pm.PackageManager
 
 /** Build validation and process marking run before any Activity; no background history collection is started. */
 class CompanionApplication : Application() {
+    /** Notification request history belongs to this process, independently of Activities and Hosts. */
+    val notificationGrant: NotificationGrantController by lazy { NotificationGrantController(this) }
+
     lateinit var supportProduct: SupportProductIdentity
         private set
     var supportSource: SupportApplicationSource? = null

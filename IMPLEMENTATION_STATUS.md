@@ -22,9 +22,31 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 通知权限与系统设置返回（§50、§64）
+
+[当前来源记录](artifacts/upstream-first/android-notification-permission-source.json)绑定应用级通知权限请求与系统设置返回。CompanionApplication 以 lazy 属性拥有唯一 NotificationGrantController；requested 与 lastAnswer 属于当前进程，不属于 Host、Session、Activity 或 composition，也不写入持久偏好。首次未配对启动仍可请求权限，初次已 STARTED 注册与后续 ON_START 共用 refresh 后 claimRequest 的入口。准入在 launcher 调用前同步占位；重叠 consumer、重建、前台往返及启动失败不重置请求预算。
+
+系统应用级开关是展示权限的真值。回答回调只保留 lastAnswer 并重新查询系统，不能用历史回答覆盖当前开关。应用显示本地化的关闭状态和显式通知设置入口；Intent 只指向当前 applicationId。系统 Activity 不可达或拒绝打开时保留明确错误状态。生命周期 listener 在 NonCancellable 与 Dispatchers.Main.immediate 中移除并等待清理；权限刷新不请求 Host、不重配对、不重启健康 Push。
+
+最终安装态 receipt 通过 7 个 selector、18 项测试，日志中的实际 class/method 完成记录、唯一 OK 摘要及两份 APK 哈希均已核对。组成是 5 项实际 controller 测试、5 项生命周期测试（3 项真实系统权限路径、2 项注入 query/launcher 的 helper 路径），以及 8 项既有 Push 回归。真实 Allow、Deny 与弹窗打开时 Activity 重建均不使用预授规则；各生命周期方法在独立 instrumentation 前清理已停止的隔离测试包。HOME 后的返回通过显式 Activity Intent 完成，没有点击 launcher 或实际 Recents。精确 launcher 次数来自可控 helper，真实应用路径验证同一进程/controller、系统结果、渲染状态与未出现额外权限弹窗，两类证据不互相替代。
+
+最终权限 Host 场景通过 1 个文件、1 项测试，driver 正常退出码为 0；pending prompt 与后续编辑的不同草稿均完整比较。另一次组合运行通过 5 个文件、6 项测试，其中默认预授模式回归为 Push、View Deep Links、Cursor Resume、Input Persistence 四个文件、5 项测试。组合中的较早权限用例与最终单例重跑分别记录原因，不累计为独立覆盖。Host 场景从真实 Deny 开始，应用按钮打开本应用通知设置，活跃 instrumentation 的唯一 UiAutomation 根据系统 package、当前应用标题及总开关容器选择控件。实际系统开关授予权限后通过真实 Back 返回，测试不调用 controller.refresh、不执行 pm grant、不重启 driver 或用 MAIN 补成设置恢复。恢复前后比较 PID、controller、Host key/id/generation、Push/Session model、当前 Session 及完整 draft/pending。
+
+通知关闭期间真实 Host 请求 A 到达，系统无本应用通知；设置授予并返回、再旋转后仍不出现 A，随后真实 Host 请求 B 呈现最小化通知。两次请求复用审批类型，证据以阶段和接收数量区分，不声称通知载荷携带 eventId。健康 signed $events 订阅保持一次。setup 包含配对及一次被 fixture 拒绝的用户发送，建立非空 pending prompt；零 prompt、reply、cancel、upload、create、handoff 与 redeem 断言仅覆盖 callBaseline 后的恢复区间。两次 asked/decided(cancelled) 配对中的取消来自 fixture AbortSignal，不是 Android 发出的审批操作。
+
+六张最终截图均已逐张复核：真实未配对权限弹窗；拒绝与重建后的关闭状态条和新草稿；标题明确标识隔离应用的通知设置总开关关闭、开启状态；最小化审批通知；返回后关闭条消失且新草稿可见。完整 pending 由状态断言证明，不声称截图可见；频道行可见不计为频道测试。本轮只证明受测模拟器的应用级权限与同进程设置返回，不证明频道开关、设置撤权导致的进程死亡、拒绝跨进程持久化、物理设备、FCM/APNs、精确 Host/Session 通知目标或审批动作。正常 Host 已接受回执仍可调和匹配 pending 与未编辑草稿，后续新编辑不应被旧回执清除。
+
+本轮 Core 源码未改、Core 测试未重跑；Push 来源中的 427 项历史 Core 结果不计为本轮结果。旧 Push 的 Cursor 调查继续为 OPEN_UNCLASSIFIED，首个 resumed-window 错误的内部细节缺失，后续完整回归与限定采样未复现，均不构成原因分类或修复证明。[既有调查记录](.artifacts/android-push-foreground-cursor-investigation.json)与其 8 份日志继续独立绑定，不并入本轮通过计数。
+
+首轮 runner 已输出 18 项测试通过，但随后观察到 Windows lease 文件的 WinError 32 清理失败；保存目录中的 receipt 与用例日志不独立证明外层退出状态，因此不作为最终 runner 成功证据。runner 改为先关闭句柄再 unlink，最终 receipt 在清理完成后写入。注释纠正后的重编改变了测试 APK 字节，重编前安装态与 Host 结果保留为历史；最终安装态 receipt、独立安装哈希记录、Host installed-apks 和当前构建均已对齐同一对 APK。
+
+另外保留三次未通过的执行：ADB 在 sandbox 中不能创建 .android 目录；TSX 在 sandbox 中发生 uv_os_get_passwd ENOMEM；首次文档快速检查在新 Note 配对记录更新窗口出现 16 项通过、1 项 translation pairing 失败。它们作为独立观察绑定，不进入 PASS checks，也不被最终通过日志覆盖。
+
+最终 App 构建、Host 类型检查、Lint、报告生成器语法检查、17 项文档快速检查、36 项 doc-sync、6 项规格追踪测试与 Gate 0 均通过，各自日志独立绑定。before 归档固定为 6878 个文件。§50、§64 的其余状态、整节规格、Mobile Release 与跨平台验收继续开放；扫描器保持同机共享缓存资格，GO-2026-5932 未关闭，Session writer 保持 V3，completeRc 为 false。
+
 ## Android 同进程后台 Push 与通知前台恢复（§50、§64）
 
-[当前来源记录](artifacts/upstream-first/android-push-foreground-source.json)绑定 Android 在同一进程存活期间的后台 Push 观察与通知返回。HOME 不停止健康的 signed $events 生产流，也不解除通知收集。初次生命周期附着与后续 ON_START 共用 ensureWatching 准入；已经 STARTED 的 Activity 注册监听时补发同一次 ON_START，立即 EOF 或临时错误也不会在一次入口中重复启动。
+[历史来源记录](artifacts/upstream-first/android-push-foreground-source.json)绑定 Android 在同一进程存活期间的后台 Push 观察与通知返回。HOME 不停止健康的 signed $events 生产流，也不解除通知收集。初次生命周期附着与后续 ON_START 共用 ensureWatching 准入；已经 STARTED 的 Activity 注册监听时补发同一次 ON_START，立即 EOF 或临时错误也不会在一次入口中重复启动。
 
 完整结束的正常 EOF 或 canReconnectObservation 认可的临时异常允许下次前台入口恢复一次。资格根据原始异常及当前 generation 决定，OPENING、OPEN 和旧任务清理中不替换观察；权限、协议、TLS 身份错误、取消、显式 stop 与退休不自动恢复，也没有后台定时重试。StreamTransitionOwner 继续等待原任务清理并隔离迟到结果，Session、Workspace 与 Interaction 的生产流不因本项新增重启规则。
 

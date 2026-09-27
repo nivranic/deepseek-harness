@@ -1,4 +1,8 @@
 <resources>
+    <string name="native_notification_disabled">应用通知已关闭</string>
+    <string name="native_notification_settings">打开通知设置</string>
+    <string name="native_notification_request_failed">无法打开通知权限弹窗，请前往通知设置。</string>
+    <string name="native_notification_settings_failed">无法打开通知设置，请稍后重试。</string>
     <string name="native_subagents_title">当前会话的子代理</string>
     <string name="native_subagents_refresh">刷新列表</string>
     <string name="native_subagents_choose_parent">请先在会话页打开一个会话。</string>

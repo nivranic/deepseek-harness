@@ -65,6 +65,8 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 
 进程存活期间，伴随端在后台保留健康的 Push 观察，并在 Android 允许时呈现本地审批或 Question 通知。返回前台时，正常结束或临时失败的观察可以重新启动一次；永久失败和已退休模型保持停止。旋转保留生产流，每条通知只消费一次。点击通知打开当前应用，不选择其他 Host 或 Session，也不回答审批。[Push 恢复决定](../../.agents/notes/implemented/architecture/2026-09-28-android-push-foreground.zh.md)拥有恢复、最佳努力呈现及验证边界。FCM 投递、进程死亡后投递、真机后台限制及精确通知目标导航仍未通过资格验收。
 
+缺少通知权限时，应用在每个进程中最多请求一次，包括尚未配对时；是否显示弹窗由 Android 决定。拒绝后，**应用通知已关闭** 提供本应用的 **打开通知设置** 入口。返回时刷新系统开关，不重新配对或重放已消费通知。旋转保留请求历史。[通知权限决定](../../.agents/notes/implemented/architecture/2026-09-28-android-notification-permission.zh.md)拥有请求准入、设置失败及验证边界。应用级开关不能证明通知频道可用或通知必达，拒绝历史也不跨进程死亡持久化。
+
 | 文件 | 职责 |
 |---|---|
 | `contract/src/main/kotlin/ai/deepseek/dsh/contract/RemoteFailureClass.kt` | 镜像 TypeScript union 的封闭呈现类枚举 |

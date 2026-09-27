@@ -424,22 +424,20 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         descriptionRefresh++
         viewLinkIntake.retry(nativeViewLinkAdmission(model, true, fileAttachmentPicker, shareIntake))
     }
-    // The chapter-70 runtime grant: Android 13+ asks for POST_NOTIFICATIONS
-    // at runtime — once per process while the grant is missing — and the
-    // answer lands in the projection the push chain reads.
-    val grant = remember { NotificationGrantController(context) }
+    val grant = (context.applicationContext as CompanionApplication).notificationGrant
+    val notificationGrant by grant.state.collectAsStateWithLifecycle()
+    var notificationRequestUnavailable by remember { mutableStateOf(false) }
     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
     ) { answered -> grant.onUserAnswer(answered) }
-    LaunchedEffect(model.paired) {
-        grant.refresh()
-        if (grant.state.value.shouldRequest) {
-            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
+    NativeNotificationGrantObserver(grant,
+        request = { permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS) },
+        onRequestUnavailable = { notificationRequestUnavailable = true })
+    val openNotificationSettings = { context.startActivity(nativeNotificationSettingsIntent(context.packageName)) }
     NativePushObserver(pushes, active) { PushNotifications.present(context, it) }
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            NativeNotificationGrantNotice(notificationGrant, notificationRequestUnavailable, openNotificationSettings)
             NativeViewLinkCard(viewLinkIntake, retryViewLink)
             NativeShareCard(shareIntake, model, capabilities, fileAttachmentPicker)
             NativeResourceSaveNotice(resourceSavePicker)
@@ -469,6 +467,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            NativeNotificationGrantNotice(notificationGrant, notificationRequestUnavailable, openNotificationSettings)
             NativeViewLinkCard(viewLinkIntake, retryViewLink)
             NativeShareCard(shareIntake, model, capabilities, fileAttachmentPicker)
             NativeHostControls(model, hosts)

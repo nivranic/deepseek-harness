@@ -17,6 +17,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.Assume.assumeTrue
 import org.junit.rules.ExternalResource
+import org.junit.rules.TestRule
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 
@@ -30,7 +31,13 @@ class NativeCompanionAcceptanceTest {
             check(InstrumentationRegistry.getInstrumentation().targetContext.packageName.endsWith(".nativeacceptance"))
         }
     }
-    @get:Rule(order = 1) val notifications = GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
+    @get:Rule(order = 1) val notifications: TestRule = when (
+        InstrumentationRegistry.getArguments().getString("dshNotificationPermission")
+    ) {
+        null, "pregranted" -> GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
+        "runtime" -> TestRule { base, _ -> base }
+        else -> error("Unsupported notification permission test mode")
+    }
     // ActivityScenario filters out lifecycle events after real share delivery changes getIntent().
     @Suppress("DEPRECATION")
     @get:Rule(order = 2) val compose = AndroidComposeTestRule(object : ActivityTestRule<MainActivity>(MainActivity::class.java) {
@@ -43,6 +50,20 @@ class NativeCompanionAcceptanceTest {
 
     private fun waitFor(matcher: SemanticsMatcher) {
         compose.waitUntil(20_000) { compose.onAllNodes(matcher).fetchSemanticsNodes(false).isNotEmpty() }
+    }
+
+    /** The private driver owns accessibility query flags until its socket server retires. */
+    private fun withDriverServer(name: String, accept: (LocalServerSocket) -> Unit) {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val originalFlags = automation.serviceInfo.flags
+        automation.serviceInfo = automation.serviceInfo.apply {
+            flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+        }
+        try { LocalServerSocket(name).use(accept) }
+        finally {
+            automation.serviceInfo = automation.serviceInfo.apply { flags = originalFlags }
+        }
     }
 
     private fun companionModel(): CompanionViewModel {
@@ -103,6 +124,59 @@ class NativeCompanionAcceptanceTest {
             put("bodies", JsonArray(owned.map { JsonPrimitive(it.notification.extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString()) }))
             put("postTimes", JsonArray(owned.map { JsonPrimitive(it.postTime) }))
         }
+    }
+
+    private fun descendants(node: android.view.accessibility.AccessibilityNodeInfo): List<android.view.accessibility.AccessibilityNodeInfo> =
+        listOf(node) + (0 until node.childCount).flatMap { node.getChild(it)?.let(::descendants).orEmpty() }
+
+    private fun permissionDialogNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val root = instrumentation.uiAutomation.rootInActiveWindow ?: return emptyList()
+        if (root.packageName.toString() !in setOf("com.android.permissioncontroller", "com.google.android.permissioncontroller")) return emptyList()
+        val context = instrumentation.targetContext
+        val label = context.applicationInfo.loadLabel(context.packageManager).toString()
+        return descendants(root).takeIf { nodes -> nodes.any { it.text?.toString()?.contains(label) == true } }.orEmpty()
+    }
+
+    private fun notificationSettingsBar(): android.view.accessibility.AccessibilityNodeInfo? {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val root = instrumentation.uiAutomation.rootInActiveWindow ?: return null
+        if (root.packageName.toString() != "com.android.settings") return null
+        val context = instrumentation.targetContext
+        val label = context.applicationInfo.loadLabel(context.packageManager).toString()
+        val nodes = descendants(root)
+        if (nodes.none { it.viewIdResourceName == "com.android.settings:id/entity_header_title" && it.text?.toString() == label }) return null
+        val bar = nodes.singleOrNull { it.viewIdResourceName == "com.android.settings:id/main_switch_bar" } ?: return null
+        return bar.takeIf { descendants(it).any { child ->
+            child.viewIdResourceName == "com.android.settings:id/switch_text" && child.text?.toString()?.contains(label) == true
+        } }
+    }
+
+    /** Permission and settings windows use only the instrumentation's existing UiAutomation owner. */
+    private fun notificationPermissionSnapshot(): JsonObject {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        lateinit var projection: JsonObject
+        instrumentation.runOnMainSync {
+            val controller = (context.applicationContext as CompanionApplication).notificationGrant
+            val state = controller.state.value
+            projection = buildJsonObject {
+                put("pid", android.os.Process.myPid()); put("controller", System.identityHashCode(controller))
+                put("systemEnabled", PushNotifications.notificationsEnabled(context))
+                put("permission", context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED)
+                put("projectedEnabled", state.systemEnabled); put("requested", state.requested)
+                put("lastAnswer", state.lastAnswer?.let(::JsonPrimitive) ?: JsonNull)
+            }
+        }
+        val dialog = permissionDialogNodes()
+        val bar = notificationSettingsBar()
+        return JsonObject(projection + buildJsonObject {
+            put("dialog", dialog.isNotEmpty())
+            put("allow", dialog.any { it.viewIdResourceName?.endsWith(":id/permission_allow_button") == true })
+            put("deny", dialog.any { it.viewIdResourceName?.endsWith(":id/permission_deny_button") == true })
+            put("settings", bar != null)
+            put("settingsEnabled", bar?.let { descendants(it).singleOrNull { child -> child.viewIdResourceName == "android:id/switch_widget" }?.isChecked }?.let(::JsonPrimitive) ?: JsonNull)
+        })
     }
 
     private fun systemNotificationNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
@@ -221,7 +295,7 @@ class NativeCompanionAcceptanceTest {
         require(name.matches(Regex("dsh-native-[a-f0-9-]+")))
         var paired = false
         var failed = false
-        LocalServerSocket(name).use { server ->
+        withDriverServer(name) { server ->
             server.accept().use { socket ->
                 socket.soTimeout = 120_000
                 val input = socket.inputStream.bufferedReader(Charsets.UTF_8)
@@ -239,6 +313,30 @@ class NativeCompanionAcceptanceTest {
                         when (op) {
                             "foregroundSnapshot" -> value = foregroundSnapshot()
                             "pushNotificationSnapshot" -> value = pushNotificationSnapshot()
+                            "notificationPermissionSnapshot" -> value = notificationPermissionSnapshot()
+                            "answerNotificationPermission" -> {
+                                val action = command.getValue("answer").jsonPrimitive.content
+                                check(action in setOf("allow", "deny"))
+                                val button = permissionDialogNodes().single { it.viewIdResourceName?.endsWith(":id/permission_${action}_button") == true }
+                                check(button.isEnabled && button.isClickable && button.isVisibleToUser)
+                                check(button.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+                            }
+                            "openNotificationSettings" -> {
+                                compose.onNodeWithTag("native-notification-disabled").assertIsDisplayed()
+                                compose.onNodeWithTag("native-notification-settings").performClick()
+                            }
+                            "enableNotificationsInSettings" -> {
+                                val bar = checkNotNull(notificationSettingsBar())
+                                val switch = descendants(bar).single { it.viewIdResourceName == "android:id/switch_widget" }
+                                check(!switch.isChecked && bar.isEnabled && bar.isClickable && bar.isVisibleToUser)
+                                check(bar.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+                            }
+                            "assertNotificationEnabled" -> {
+                                compose.waitUntil(20_000) {
+                                    (instrumentation.targetContext.applicationContext as CompanionApplication).notificationGrant.state.value.systemEnabled
+                                }
+                                compose.onNodeWithTag("native-notification-disabled").assertDoesNotExist()
+                            }
                             "clearPushNotification" -> {
                                 val manager = instrumentation.targetContext.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
                                 manager.cancel(70)

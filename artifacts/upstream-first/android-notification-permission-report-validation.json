@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android process-owned notification permission and same-process app-settings Back recovery in sections 50 and 64; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-notification-permission-source.json",
+    "sha256": "aa7137e210c98d8e2a4492c2694710a3e6554ae6333627e10bf541d4973215e6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8cdd52470867cea2c1aaafcb54893f5f84385746ee2488f82967d6bb95ee6ddc"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-notification-permission-binding.json",
+    "sha256": "f6383461b9aa8163164768b21aa35543ed83d7d8c3fe540826d7eb17f958a6c6"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-notification-permission-reports.mjs",
+      "sha256": "830d3f9fb63a695a9d3d00f7440c7fac6aa2bf46d8be7943c2bc13ed91630830"
+    },
+    {
+      "path": ".artifacts/capture-android-notification-permission-validation.mjs",
+      "sha256": "5b052f749450c929206dc1718fcc0c3b66abe624fbe98dc5227f4a2e05c9f33f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "452ff56be81f299ba5f627ee6e56ff03611633ad6d45baf222f3e9d7e04d767e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "2b7222296642fe9784d97a99301575217bd2052a7fb2a35b479e3705e3c578e9"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-notification-permission-binding.log",
+      "sha256": "349d0786462ebfb98a1978aed2c6701b24c071259c36a7eb6ce9eca1eeb7790f"
+    },
+    {
+      "path": ".artifacts/android-notification-permission-audit-tests.log",
+      "sha256": "f664adc5ceb1db573e38729ca5feb9e2021b91bd2287525beaaab25496169cbd"
+    },
+    {
+      "path": ".artifacts/android-notification-permission-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-notification-permission-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-notification-permission-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

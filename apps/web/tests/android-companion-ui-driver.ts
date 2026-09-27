@@ -21,13 +21,16 @@ const exec = promisify(execFile)
  * @param resetData - clear this isolated application's test data; false preserves credentials for restart acceptance.
  * @param additionalHostPorts - other test-owned Host TLS ports used by saved-Host switching.
  * @param startupViewLink - explicit VIEW launch for cold-start navigation acceptance; omitted for a normal launcher start.
+ * @param notificationPermission - pregrant notifications by default, or exercise the real permission dialog on a fresh application.
  * @returns command access, controlled Host reachability, and awaited instrumentation/forward retirement.
  */
 export async function startAndroidCompanionUiDriver(
   adb: string, target: string, hostPort: number, resetData = true, additionalHostPorts: readonly number[] = [],
   startupViewLink?: string,
+  notificationPermission: 'pregranted' | 'runtime' = 'pregranted',
 ) {
   if (!/^emulator-\d+$/.test(target)) throw new Error('UI acceptance requires an explicit emulator')
+  if (notificationPermission === 'runtime' && !resetData) throw new Error('Runtime notification permission acceptance requires fresh application data')
   if (startupViewLink !== undefined && (startupViewLink.length > 4125
     || !/^dsh-companion:\/\/session-view\/dsh-session-view\.v1\.[A-Za-z0-9_-]+$/u.test(startupViewLink))) {
     throw new Error('Cold-start acceptance requires a bounded native view link')
@@ -67,7 +70,19 @@ export async function startAndroidCompanionUiDriver(
       if (observed !== expected) throw new Error(`Installed ${packageName} differs from its current build; install both acceptance APKs before running UI tests`)
       installedApks.push({ packageName, sha256: expected })
     }
-    if (resetData) await run('shell', 'pm', 'clear', 'com.deepseek.harness.companion.nativeacceptance')
+    if (resetData) {
+      const cleared = await run('shell', 'pm', 'clear', 'com.deepseek.harness.companion.nativeacceptance')
+      if (notificationPermission === 'runtime' && cleared.stdout.trim() !== 'Success') throw new Error('Runtime notification permission acceptance could not clear its application')
+    }
+    if (notificationPermission === 'runtime') {
+      await run('shell', 'pm', 'clear-permission-flags', 'com.deepseek.harness.companion.nativeacceptance',
+        'android.permission.POST_NOTIFICATIONS', 'user-set', 'user-fixed')
+      const details = (await run('shell', 'dumpsys', 'package', 'com.deepseek.harness.companion.nativeacceptance')).stdout
+      const permission = /^\s*android\.permission\.POST_NOTIFICATIONS: granted=(true|false), flags=\[([^\]]*)\]/mu.exec(details)
+      if (!permission || permission[1] !== 'false' || /USER_SET|USER_FIXED/u.test(permission[2]!)) {
+        throw new Error('Runtime notification permission baseline is not fresh')
+      }
+    }
     for (const value of new Set([hostPort, ...additionalHostPorts])) {
       await run('reverse', `tcp:${value}`, `tcp:${value}`)
       reversed.add(value)
@@ -81,6 +96,7 @@ export async function startAndroidCompanionUiDriver(
   const child = spawn(adb, [...args, 'shell', 'am', 'instrument', '-w', '-e', 'class',
     'ai.deepseek.dsh.companion.NativeCompanionAcceptanceTest', '-e', 'dshSocket', socketName,
     ...(startupViewLink === undefined ? [] : ['-e', 'dshViewLink', startupViewLink]),
+    '-e', 'dshNotificationPermission', notificationPermission,
     'com.deepseek.harness.companion.nativeacceptance.test/androidx.test.runner.AndroidJUnitRunner'],
   { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
   let passed = false
