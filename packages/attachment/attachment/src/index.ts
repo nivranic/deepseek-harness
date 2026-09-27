@@ -1,5 +1,6 @@
 /** Durable attachment storage seam (`ctx.attachments`). @module @deepseek-ai/dsh-attachment */
 
+import { Buffer } from 'node:buffer'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { admitEncodedFile as admitFileInput, admitEncodedImages } from './admission.ts'
 import { AttachmentError, isAttachmentError as matchesAttachmentError } from './error.ts'
@@ -74,18 +75,21 @@ export abstract class AttachmentStore extends Service {
    * @returns durable references in the exact input order.
    */
   protected validateImageBatch(inputs: readonly SaveImageAttachment[]): void {
-    const { maxImagesPerMessage, maxMessageImageBytes, mediaTypes } = this.imageLimits
-    if (inputs.length > maxImagesPerMessage) {
-      throw new AttachmentError('Image batch exceeds the configured image-count limit.', 'TOO_MANY_IMAGES')
-    }
-    const totalBytes = inputs.reduce((sum, input) => sum + input.data.byteLength, 0)
-    if (totalBytes > maxMessageImageBytes) {
-      throw new AttachmentError('Image batch exceeds the configured aggregate image-byte limit.', 'IMAGES_TOO_LARGE')
-    }
+    this.validateImageTotals(inputs.length, inputs.reduce((sum, input) => sum + input.data.byteLength, 0))
     for (const input of inputs) {
-      if (!mediaTypes.includes(input.mediaType)) {
+      if (!this.imageLimits.mediaTypes.includes(input.mediaType)) {
         throw new AttachmentError(`Image type ${input.mediaType} is not accepted by this deployment.`, 'UNSUPPORTED_IMAGE_TYPE')
       }
+    }
+  }
+
+  private validateImageTotals(count: number, originalBytes: number): void {
+    const { maxImagesPerMessage, maxMessageImageBytes } = this.imageLimits
+    if (count > maxImagesPerMessage) {
+      throw new AttachmentError('Image batch exceeds the configured image-count limit.', 'TOO_MANY_IMAGES')
+    }
+    if (originalBytes > maxMessageImageBytes) {
+      throw new AttachmentError('Image batch exceeds the configured aggregate image-byte limit.', 'IMAGES_TOO_LARGE')
     }
   }
 
@@ -105,24 +109,28 @@ export abstract class AttachmentStore extends Service {
 
   /**
    * Admit one Host prompt and replace each uploaded image with its durable reference.
-   * Text and durable file references pass through unchanged. A prompt without image parts performs no storage operation.
-   * @param content - prompt parts in message order after file receipt resolution.
+   * Inline and staged images share one count and original-byte budget, including repeated occurrences.
+   * Text and durable references pass through without storage; inline images validate together before any new write.
+   * @param content - prompt parts in message order after Host receipt resolution.
    * @returns admitted prompt parts in the same order as `content`.
    * @throws AttachmentError when the image batch is refused.
    */
   async admitPromptContent(
     content: readonly AttachmentAdmissionPart[],
   ): Promise<AdmittedPromptContentPart[]> {
-    if (content.every(part => part.type !== 'image')) {
-      return content.map(part => part.type === 'text'
-        ? { type: 'text', text: part.text }
-        : { type: 'file', attachment: part.attachment })
+    const images = content.filter(part => part.type === 'image' || part.type === 'staged-image')
+    if (images.some(part => part.type === 'staged-image')) {
+      this.validateImageTotals(images.length, images.reduce((sum, part) => sum + (
+        part.type === 'staged-image' ? part.originalBytes : Buffer.byteLength(part.data, 'base64')
+      ), 0))
     }
-    const refs = await admitEncodedImages(this, content.filter(part => part.type === 'image'))
+    const inline = content.filter(part => part.type === 'image')
+    const refs = inline.length === 0 ? [] : await admitEncodedImages(this, inline)
     let next = 0
     return content.map((part) => {
       if (part.type === 'text') return { type: 'text', text: part.text }
       if (part.type === 'file') return { type: 'file', attachment: part.attachment }
+      if (part.type === 'staged-image') return { type: 'image', attachment: part.attachment }
       return { type: 'image', attachment: refs[next++] as ImageAttachmentRef }
     })
   }

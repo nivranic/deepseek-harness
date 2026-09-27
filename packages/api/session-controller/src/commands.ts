@@ -8,7 +8,7 @@ import { AttachmentError } from '@deepseek-ai/dsh-attachment'
 import type {
   AttachmentAdmissionPart, FileAttachmentRef, ImageAttachmentRef,
 } from '@deepseek-ai/dsh-attachment'
-import type { FileUploadReceiptId } from '@deepseek-ai/dsh-client-file-upload/types'
+import type { FileUploadReceiptId, ImageUploadReceiptId } from '@deepseek-ai/dsh-client-file-upload/types'
 import type {} from '@deepseek-ai/dsh-client-file-upload'
 import {
   ReasoningEffortId, assistantStreamChunks, createUserMessage, freezeMessage,
@@ -356,7 +356,7 @@ export class SessionCommandController {
       rpcId: request.requestId,
       ...(clientTimeZone === undefined ? {} : { clientTimeZone }),
     }
-    const hasImage = request.content.some(part => part.type === 'image')
+    const hasImage = request.content.some(part => part.type === 'image' || part.type === 'staged-image')
     const admit = async (): Promise<SessionPromptValue> => {
       if (hasPromptRequest(agent, request.requestId)) return { accepted: true }
       try {
@@ -371,9 +371,10 @@ export class SessionCommandController {
             )
           }
         }
-        const admission = resolvePromptFileReceipts(
+        const admission = resolvePromptReceipts(
           request.content,
           receiptId => this.ctx.fileUploads.resolve(agent, receiptId),
+          receiptId => this.ctx.fileUploads.resolveImage(agent, receiptId),
         )
         const content = await this.ctx.attachments.admitPromptContent(admission.content)
         const message: UserMessage = createUserMessage({ content, source })
@@ -387,7 +388,7 @@ export class SessionCommandController {
         // Admission can await storage while another call inserts this request.
         // No await separates this final check from the durable inbox insertion.
         if (hasPromptRequest(agent, request.requestId)) return { accepted: true }
-        using binding = this.ctx.fileUploads.bindPrompt(agent, admission.receiptIds, request.requestId)
+        using binding = this.ctx.fileUploads.bindPrompt(agent, admission.receipts, request.requestId)
         if (request.mode === 'steer') agent.steer(message)
         else agent.followup(message)
         binding.commit()
@@ -612,12 +613,29 @@ export class SessionCommandController {
   }
 }
 
-function resolvePromptFileReceipts(
+function resolvePromptReceipts(
   content: SessionPromptRequest['content'],
   stagedFile: (receiptId: FileUploadReceiptId) => FileAttachmentRef | undefined,
-): { readonly content: AttachmentAdmissionPart[]; readonly receiptIds: readonly FileUploadReceiptId[] } {
-  const receiptIds = new Set<FileUploadReceiptId>()
+  stagedImage: (receiptId: ImageUploadReceiptId) => Extract<AttachmentAdmissionPart, { readonly type: 'staged-image' }> | undefined,
+): {
+  readonly content: AttachmentAdmissionPart[]
+  readonly receipts: { readonly files: readonly FileUploadReceiptId[]; readonly images: readonly ImageUploadReceiptId[] }
+} {
+  const files = new Set<FileUploadReceiptId>()
+  const images = new Set<ImageUploadReceiptId>()
   const resolved = content.map((part): AttachmentAdmissionPart => {
+    if (part.type === 'staged-image') {
+      const image = stagedImage(part.receiptId)
+      if (image === undefined) {
+        throw new RemoteError(
+          'session/attachment-invalid',
+          'Image was not uploaded for this session.',
+          { reason: 'IMAGE_NOT_STAGED' },
+        )
+      }
+      images.add(part.receiptId)
+      return image
+    }
     if (part.type !== 'file') return part
     const attachment = stagedFile(part.receiptId)
     if (attachment === undefined) {
@@ -627,10 +645,10 @@ function resolvePromptFileReceipts(
         { reason: 'FILE_NOT_STAGED' },
       )
     }
-    receiptIds.add(part.receiptId)
+    files.add(part.receiptId)
     return { type: 'file', attachment }
   })
-  return { content: resolved, receiptIds: [...receiptIds] }
+  return { content: resolved, receipts: { files: [...files], images: [...images] } }
 }
 
 function hasPromptRequest(agent: Agent, requestId: SessionRequestId): boolean {

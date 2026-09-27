@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 /** Content-provider metadata and streams are opened only by the owning model's I/O operation. */
 interface NativeFileAttachmentSource {
     fun name(): String?
+    fun mediaType(): String? = null
     fun open(): InputStream
 }
 
@@ -21,10 +22,13 @@ data class NativeFileAttachmentLimits(val maxFileBytes: Long, val maxEncodedArgs
 }
 
 /** Memory-only picker authority for one selected Session generation. Identity is consumed once. */
-class NativeFileSelection internal constructor(val sessionId: String, internal val generation: Long)
+class NativeFileSelection internal constructor(val sessionId: String, internal val generation: Long, val kind: NativeAttachmentKind,
+                                               internal val admission: SessionAttachmentAdmission)
+
+enum class NativeAttachmentKind { FILE, IMAGE }
 
 enum class NativeFileAttachmentPhase { IDLE, SELECTING, READING, UPLOADING, FAILED }
-enum class NativeFileAttachmentIssue { TOO_LARGE, TOO_MANY_FILES, INVALID_FILE, REQUEST_TOO_LARGE, SOURCE_FAILED, UPLOAD_FAILED, PERSISTENCE_FAILED }
+enum class NativeFileAttachmentIssue { TOO_LARGE, TOO_MANY_FILES, INVALID_FILE, UNSUPPORTED_IMAGE, REQUEST_TOO_LARGE, SOURCE_FAILED, UPLOAD_FAILED, PERSISTENCE_FAILED }
 data class NativeFileAttachmentState(val sessionId: String? = null, val phase: NativeFileAttachmentPhase = NativeFileAttachmentPhase.IDLE,
                                      val issue: NativeFileAttachmentIssue? = null, val failure: ConnectionFailure? = null,
                                      val refusal: GatewayFailureEnvelope? = null)
@@ -48,15 +52,26 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
     val state: StateFlow<NativeFileAttachmentState> = mutableState
     val maxFileBytes: Long get() = limits.maxFileBytes
 
+    init {
+        lifetime.invokeOnCompletion {
+            synchronized(lock) {
+                pending?.let { selection -> session.releaseAttachment(selection.admission) }
+                pending = null
+                if (!closed) mutableState.value = NativeFileAttachmentState(session.open.value?.sessionId)
+            }
+        }
+    }
+
     /** Capture the current selection before launching the picker, without reading or uploading bytes. */
-    fun prepare(): NativeFileSelection? = synchronized(lock) {
+    fun prepare(kind: NativeAttachmentKind = NativeAttachmentKind.FILE): NativeFileSelection? = synchronized(lock) {
         val id = session.open.value?.sessionId ?: return null
         if (closed || !lifetime.isActive || pending != null || active?.isCompleted == false || session.sending.value) return null
-        if ((inputs.state.value.drafts[id]?.files?.size ?: 0) >= limits.maxFiles) {
+        if ((inputs.state.value.drafts[id]?.attachments?.size ?: 0) >= limits.maxFiles) {
             mutableState.value = NativeFileAttachmentState(id, NativeFileAttachmentPhase.FAILED, NativeFileAttachmentIssue.TOO_MANY_FILES)
             return null
         }
-        NativeFileSelection(id, session.selectionGeneration).also {
+        val admission = session.reserveAttachment() ?: return null
+        NativeFileSelection(id, session.selectionGeneration, kind, admission).also {
             pending = it
             mutableState.value = NativeFileAttachmentState(id, NativeFileAttachmentPhase.SELECTING)
         }
@@ -65,6 +80,7 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
     fun cancelSelection(selection: NativeFileSelection) = synchronized(lock) {
         if (pending !== selection) return@synchronized
         pending = null
+        session.releaseAttachment(selection.admission)
         if (!closed) mutableState.value = NativeFileAttachmentState(session.open.value?.sessionId)
     }
 
@@ -73,12 +89,24 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
         if (pending !== selection) return completed()
         pending = null
         if (!valid(selection) || session.sending.value) {
+            session.releaseAttachment(selection.admission)
             if (!closed) mutableState.value = NativeFileAttachmentState(session.open.value?.sessionId)
             return completed()
         }
         mutableState.value = NativeFileAttachmentState(selection.sessionId, NativeFileAttachmentPhase.READING)
         scope.launch(start = CoroutineStart.LAZY) { upload(selection, source) }.also {
-            activeSelection = selection; active = it; it.start()
+            activeSelection = selection
+            active = it
+            // Completion also runs when cancellation prevents the coroutine body from starting.
+            it.invokeOnCompletion {
+                synchronized(lock) {
+                    session.releaseAttachment(selection.admission)
+                    if (!closed && activeSelection === selection && state.value.phase in setOf(NativeFileAttachmentPhase.READING, NativeFileAttachmentPhase.UPLOADING)) {
+                        mutableState.value = NativeFileAttachmentState(session.open.value?.sessionId)
+                    }
+                }
+            }
+            it.start()
         }
     }
 
@@ -98,10 +126,16 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
     fun cancel(): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) { cancelAndAwait() }
 
     suspend fun cancelAndAwait() {
-        val previous = synchronized(lock) { pending = null; active.also { it?.cancel() } }
-        withContext(NonCancellable) { previous?.join() }
+        val previous = synchronized(lock) {
+            pending?.let { session.releaseAttachment(it.admission) }
+            pending = null
+            active?.cancel()
+            active to activeSelection
+        }
+        withContext(NonCancellable) { previous.first?.join() }
         synchronized(lock) {
-            if (!closed && pending == null && active === previous) mutableState.value = NativeFileAttachmentState(session.open.value?.sessionId)
+            previous.second?.let { session.releaseAttachment(it.admission) }
+            if (!closed && pending == null && active === previous.first) mutableState.value = NativeFileAttachmentState(session.open.value?.sessionId)
         }
     }
 
@@ -116,6 +150,9 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
                 context.ensureActive()
                 val name = source.name()
                 if (name != null && name.isBlank()) throw Rejected(NativeFileAttachmentIssue.INVALID_FILE)
+                val mediaType = if (selection.kind == NativeAttachmentKind.IMAGE) {
+                    source.mediaType()?.takeIf { it in IMAGE_MEDIA_TYPES } ?: throw Rejected(NativeFileAttachmentIssue.UNSUPPORTED_IMAGE)
+                } else null
                 val bytes = source.open().use { input ->
                     val output = ByteArrayOutputStream()
                     val buffer = ByteArray(minOf(16_384L, limits.maxFileBytes + 1).toInt())
@@ -132,6 +169,7 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
                 }
                 val request = mutableMapOf<String, WireValue>("data" to WireValue.StringValue(Base64.getEncoder().encodeToString(bytes)))
                 if (name != null) request["name"] = WireValue.StringValue(name)
+                if (mediaType != null) request["mediaType"] = WireValue.StringValue(mediaType)
                 val args = mapOf("agentId" to WireValue.StringValue(selection.sessionId), "request" to WireValue.ObjectValue(request))
                 if (WireValue.ObjectValue(args).toJsonElement().toString().toByteArray(Charsets.UTF_8).size > limits.maxEncodedArgsBytes) {
                     throw Rejected(NativeFileAttachmentIssue.REQUEST_TOO_LARGE)
@@ -144,19 +182,14 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
                 mutableState.value = NativeFileAttachmentState(selection.sessionId, NativeFileAttachmentPhase.UPLOADING)
             }
             issue = NativeFileAttachmentIssue.UPLOAD_FAILED
-            val result = wire.call("fileUploads/upload", prepared.second)
+            val result = wire.call(if (selection.kind == NativeAttachmentKind.IMAGE) "fileUploads/uploadImage" else "fileUploads/upload", prepared.second)
             currentCoroutineContext().ensureActive()
-            val file = WireShape.objectValue(result, "file") ?: throw LinkClientException.BadWire("invalid file upload receipt")
-            fun text(value: WireValue, key: String) = WireShape.string(value, key)?.takeIf { it.isNotBlank() }
-                ?: throw LinkClientException.BadWire("invalid file upload receipt")
-            val size = WireShape.number(file, "bytes")
-            if (size != prepared.first.toDouble()) throw LinkClientException.BadWire("file upload byte count differs")
-            val attachment = SessionFileAttachment(text(result, "receiptId"), text(file, "attachmentId"), text(file, "name"), prepared.first.toLong())
+            val attachment = parseReceipt(result, selection.kind, prepared.first)
             issue = NativeFileAttachmentIssue.PERSISTENCE_FAILED
             synchronized(lock) {
                 if (!valid(selection)) return
-                if ((inputs.state.value.drafts[selection.sessionId]?.files?.size ?: 0) >= limits.maxFiles) throw Rejected(NativeFileAttachmentIssue.TOO_MANY_FILES)
-                if (!session.addFileAttachment(selection.sessionId, attachment)) throw LinkClientException.BadWire("file receipt was not adopted")
+                if ((inputs.state.value.drafts[selection.sessionId]?.attachments?.size ?: 0) >= limits.maxFiles) throw Rejected(NativeFileAttachmentIssue.TOO_MANY_FILES)
+                if (!session.addAttachment(selection.sessionId, attachment)) throw LinkClientException.BadWire("attachment receipt was not adopted")
             }
             inputs.flush()
             synchronized(lock) { if (valid(selection)) mutableState.value = NativeFileAttachmentState(selection.sessionId) }
@@ -180,13 +213,47 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
     fun close(): Deferred<Unit> = synchronized(lock) {
         retiring?.let { return it }
         closed = true
+        pending?.let { session.releaseAttachment(it.admission) }
         pending = null
         mutableState.value = NativeFileAttachmentState()
         lifetime.cancel()
-        scope.async(NonCancellable, start = CoroutineStart.LAZY) { lifetime.join() }.also { retiring = it; it.start() }
+        scope.async(NonCancellable, start = CoroutineStart.LAZY) {
+            lifetime.join()
+            synchronized(lock) { activeSelection?.let { session.releaseAttachment(it.admission) } }
+            Unit
+        }.also { retiring = it; it.start() }
     }
 
     suspend fun closeAndAwait() { withContext(NonCancellable) { close().await() } }
+    private fun parseReceipt(result: WireValue, kind: NativeAttachmentKind, sourceBytes: Int): SessionAttachment {
+        fun invalid(): Nothing = throw LinkClientException.BadWire("invalid attachment upload receipt")
+        fun text(value: WireValue, key: String) = WireShape.string(value, key)?.takeIf { it.isNotBlank() } ?: invalid()
+        fun number(value: WireValue, key: String, minimum: Long, maximum: Long): Long {
+            val found = WireShape.number(value, key) ?: invalid()
+            if (!found.isFinite() || found != kotlin.math.floor(found) || found < minimum.toDouble() || found > maximum.toDouble()) invalid()
+            return found.toLong()
+        }
+        val receiptId = text(result, "receiptId")
+        if (kind == NativeAttachmentKind.FILE) {
+            val file = WireShape.objectValue(result, "file") ?: invalid()
+            if (number(file, "bytes", 0, 9_007_199_254_740_991L) != sourceBytes.toLong()) invalid()
+            return SessionFileAttachment(receiptId, text(file, "attachmentId"), text(file, "name"), sourceBytes.toLong())
+        }
+        val image = WireShape.objectValue(result, "image") ?: invalid()
+        val fields = (image as? WireValue.ObjectValue)?.entries ?: invalid()
+        val mediaType = text(image, "mediaType").takeIf { it in IMAGE_MEDIA_TYPES } ?: invalid()
+        val name = if ("name" in fields) text(image, "name") else null
+        val original = if ("originalDimensions" in fields) {
+            val dimensions = WireShape.objectValue(image, "originalDimensions") ?: invalid()
+            SessionImageDimensions(number(dimensions, "width", 1, Int.MAX_VALUE.toLong()).toInt(),
+                number(dimensions, "height", 1, Int.MAX_VALUE.toLong()).toInt())
+        } else null
+        return SessionImageAttachment(receiptId, text(image, "attachmentId"), mediaType,
+            number(image, "bytes", 1, 9_007_199_254_740_991L), number(image, "width", 1, Int.MAX_VALUE.toLong()).toInt(),
+            number(image, "height", 1, Int.MAX_VALUE.toLong()).toInt(), name, original)
+    }
     private fun completed(): Job = Job().apply { complete() }
     private class Rejected(val issue: NativeFileAttachmentIssue) : Exception("file selection cannot be admitted")
+
+    private companion object { val IMAGE_MEDIA_TYPES = setOf("image/png", "image/jpeg", "image/webp", "image/gif") }
 }

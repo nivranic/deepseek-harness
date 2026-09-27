@@ -140,7 +140,7 @@ class CompanionInputStoreTest {
         val conflict = original.getValue("pendingPrompts").jsonArray.single().jsonObject
         val badPending = JsonArray(listOf(JsonObject(conflict + ("requestId" to JsonPrimitive("new-intent")))))
         val variants = listOf(
-            JsonObject(original + ("version" to JsonPrimitive(3))),
+            JsonObject(original + ("version" to JsonPrimitive(4))),
             JsonObject(original + ("extra" to JsonPrimitive(true))),
             JsonObject(original - "answers"),
             JsonObject(original + ("drafts" to duplicateDraft)),
@@ -155,7 +155,51 @@ class CompanionInputStoreTest {
         }
     }
 
-    @Test fun `version two requires file arrays on both draft and pending prompt rows`() {
+    @Test fun `mixed image metadata round trips and invalid image fields preserve the input bytes`() {
+        val folder = directory()
+        val store = FileCompanionInputStore(folder, principal, PlainCredentialsCipher, 16_384)
+        val image = SessionImageAttachment("image-receipt", "image-attachment", "image/png", 69, 1, 1, "红.png", SessionImageDimensions(2, 3))
+        val draft = SessionDraft("mixed", "mixed-request", listOf(SessionFileAttachment("file-receipt", "file-attachment", "one.txt", 1), image,
+            image.copy(receiptId = "unnamed", name = null, originalDimensions = null)))
+        val input = CompanionInputSnapshot(drafts = mapOf("session" to draft), pendingPrompts = mapOf(draft.requestId to PendingPrompt("session", draft)))
+        store.save(input)
+        assertEquals(input, store.load())
+        val file = folder.listFiles()!!.single()
+        val original = Json.parseToJsonElement(file.readText()).jsonObject
+        val row = original.getValue("drafts").jsonArray.single().jsonObject
+        val images = row.getValue("attachments").jsonArray
+        val imageJson = images[1].jsonObject
+        val changes = listOf("width" to JsonPrimitive(0), "height" to JsonPrimitive(1.5), "width" to JsonPrimitive("1"),
+            "bytes" to JsonPrimitive(0), "mediaType" to JsonPrimitive("image/heic"), "type" to JsonPrimitive("video"),
+            "originalDimensions" to buildJsonObject { put("width", -1); put("height", 1) })
+        for (changed in changes.map { JsonObject(imageJson + it) } + listOf(JsonObject(imageJson - "name"), JsonObject(imageJson - "originalDimensions"))) {
+            val replacement = JsonObject(row + ("attachments" to JsonArray(listOf(images[0], changed, images[2]))))
+            val bytes = JsonObject(original + ("drafts" to JsonArray(listOf(replacement)))).toString().toByteArray()
+            file.writeBytes(bytes)
+            assertFails { store.load() }
+            assertContentEquals(bytes, file.readBytes())
+        }
+    }
+
+    @Test fun `version two file rows remain untouched until explicit backup and reset`() = runTest {
+        val folder = directory()
+        val store = FileCompanionInputStore(folder, principal, PlainCredentialsCipher, 16_384)
+        store.save(CompanionInputSnapshot(drafts = mapOf("session" to SessionDraft("old", "request"))))
+        val file = folder.listFiles()!!.single()
+        val original = Json.parseToJsonElement(file.readText()).jsonObject
+        val legacy = JsonObject(original + ("version" to JsonPrimitive(2)) + listOf("drafts", "pendingPrompts").associateWith { collection ->
+            JsonArray(original.getValue(collection).jsonArray.map { JsonObject((it.jsonObject - "attachments") + ("files" to JsonArray(emptyList()))) })
+        }).toString().toByteArray()
+        file.writeBytes(legacy)
+        val state = CompanionInputState.restore(store, backgroundScope, StandardTestDispatcher(testScheduler))
+        assertEquals(InputPersistenceStatus.RESTORE_FAILED, state.persistence.value)
+        assertContentEquals(legacy, file.readBytes())
+        state.startFresh()
+        assertEquals(CompanionInputSnapshot(), store.load())
+        assertContentEquals(legacy, folder.listFiles()!!.single { it.name.contains(".unavailable-") }.readBytes())
+    }
+
+    @Test fun `version three requires ordered attachment arrays on both draft and pending prompt rows`() {
         val folder = directory()
         val store = FileCompanionInputStore(folder, principal, PlainCredentialsCipher, 16_384)
         val draft = SessionDraft("text only", "same-intent")
@@ -164,13 +208,13 @@ class CompanionInputStoreTest {
         store.save(input)
         val file = folder.listFiles()!!.single()
         val original = Json.parseToJsonElement(file.readText()).jsonObject
-        assertEquals(JsonPrimitive(2), original.getValue("version"))
+        assertEquals(JsonPrimitive(3), original.getValue("version"))
         assertEquals(input, store.load())
         for (collection in listOf("drafts", "pendingPrompts")) {
             val row = original.getValue(collection).jsonArray.single().jsonObject
-            assertEquals(JsonArray(emptyList()), row.getValue("files"))
-            val variants = listOf(JsonObject(row - "files"), JsonObject(row + ("files" to JsonNull)),
-                JsonObject(row + ("files" to JsonObject(emptyMap()))))
+            assertEquals(JsonArray(emptyList()), row.getValue("attachments"))
+            val variants = listOf(JsonObject(row - "attachments"), JsonObject(row + ("attachments" to JsonNull)),
+                JsonObject(row + ("attachments" to JsonObject(emptyMap()))))
             for (variant in variants) {
                 val bytes = JsonObject(original + (collection to JsonArray(listOf(variant)))).toString().toByteArray()
                 file.writeBytes(bytes)
@@ -188,7 +232,7 @@ class CompanionInputStoreTest {
         val original = Json.parseToJsonElement(file.readText()).jsonObject
         for (collection in listOf("drafts", "pendingPrompts")) {
             val row = original.getValue(collection).jsonArray.single().jsonObject
-            val attachment = row.getValue("files").jsonArray.first().jsonObject
+            val attachment = row.getValue("attachments").jsonArray.first().jsonObject
             val malformed = mutableListOf<JsonElement>(JsonNull,
                 JsonObject(attachment - "receiptId"), JsonObject(attachment + ("extra" to JsonPrimitive(true))))
             for (field in listOf("receiptId", "attachmentId", "name")) {
@@ -205,7 +249,7 @@ class CompanionInputStoreTest {
                 JsonArray(listOf(attachment, JsonObject(attachment + ("attachmentId" to JsonPrimitive("other-attachment"))))),
             )
             for (files in fileArrays) {
-                val variant = JsonObject(row + ("files" to files))
+                val variant = JsonObject(row + ("attachments" to files))
                 val bytes = JsonObject(original + (collection to JsonArray(listOf(variant)))).toString().toByteArray()
                 file.writeBytes(bytes)
                 assertFails { store.load() }
@@ -225,7 +269,7 @@ class CompanionInputStoreTest {
         val file = folder.listFiles()!!.single()
         val original = Json.parseToJsonElement(file.readText()).jsonObject
         val row = original.getValue("pendingPrompts").jsonArray.single().jsonObject
-        val files = row.getValue("files").jsonArray
+        val files = row.getValue("attachments").jsonArray
         val attachment = files.first().jsonObject
         val changedFiles = listOf(JsonArray(emptyList()), JsonArray(files.reversed())) +
             listOf("receiptId" to JsonPrimitive("other-receipt"), "attachmentId" to JsonPrimitive("other-attachment"),
@@ -233,7 +277,7 @@ class CompanionInputStoreTest {
                 JsonArray(listOf(JsonObject(attachment + change)) + files.drop(1))
             }
         for (changed in changedFiles) {
-            val pending = JsonObject(row + ("files" to changed))
+            val pending = JsonObject(row + ("attachments" to changed))
             val bytes = JsonObject(original + ("pendingPrompts" to JsonArray(listOf(pending)))).toString().toByteArray()
             file.writeBytes(bytes)
             assertFailsWith<IllegalArgumentException> { store.load() }
@@ -250,7 +294,7 @@ class CompanionInputStoreTest {
         val original = Json.parseToJsonElement(cipher.open(file.readBytes()).decodeToString()).jsonObject
         val legacy = JsonObject(original + ("version" to JsonPrimitive(1)) +
             listOf("drafts", "pendingPrompts").associateWith { collection ->
-                JsonArray(original.getValue(collection).jsonArray.map { JsonObject(it.jsonObject - "files") })
+                JsonArray(original.getValue(collection).jsonArray.map { JsonObject(it.jsonObject - "attachments") })
             })
         val previous = cipher.seal(legacy.toString().toByteArray())
         file.writeBytes(previous)

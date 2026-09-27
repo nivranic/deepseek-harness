@@ -31,7 +31,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android exports sc
         yield frame
         if (first) {
           await interrupt.promise
-          throw new RemoteError('gateway/host-not-ready', 'PRIVATE_REFUSAL_POISON', {})
+          throw new RemoteError('gateway/host-not-ready', 'PRIVATE_REFUSAL_POISON', { endpoint: 'session/follow', httpStatus: 503 })
         }
       }
     })()
@@ -40,7 +40,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android exports sc
   const spy = vi.spyOn(scaffold.ctx.typertGateway, 'invoke').mockImplementation(async (request) => {
     if (request.namespace === 'host' && request.method === 'negotiate') {
       negotiations++
-      if (refuse) throw new RemoteError('gateway/permission-denied', 'PRIVATE_REFUSAL_POISON', {})
+      if (refuse) throw new RemoteError('gateway/permission-denied', 'PRIVATE_REFUSAL_POISON', { endpoint: 'host/negotiate', httpStatus: 403 })
     }
     if (['prompt', 'create', 'handoff', 'cancel', 'reply'].includes(request.method)) mutations.push(`${request.namespace}/${request.method}`)
     return invoke(request)

@@ -91,7 +91,7 @@ class NativeFileAttachmentsLifecycleTest {
             assertEquals(NativeFileAttachmentIssue.PERSISTENCE_FAILED, model.state.value.issue)
             assertEquals(InputPersistenceStatus.WRITE_FAILED, inputs.persistence.value)
             val retained = inputs.state.value.drafts.getValue("selected")
-            assertEquals(listOf(SessionFileAttachment("receipt", "attachment", "file.bin", 1)), retained.files)
+            assertEquals(listOf(SessionFileAttachment("receipt", "attachment", "file.bin", 1)), retained.attachments)
             assertTrue(inputs.state.value.pendingPrompts.isEmpty())
             assertNull(saved)
             assertEquals(listOf("fileUploads/upload"), wire.calls.map { it.first })

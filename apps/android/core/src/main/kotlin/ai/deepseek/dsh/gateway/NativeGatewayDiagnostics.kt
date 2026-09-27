@@ -23,7 +23,7 @@ enum class NativeObservedCapability(val wire: String) {
     SESSION_LIST("session.list.v1"), SESSION_MANAGE("session.manage.v1"),
     WORKSPACE_FOLLOW("workspace.follow.v1"), FILE_STAT("workspace-files.stat.v1"),
     FILE_LIST("workspace-files.list.v1"), FILE_TEXT("workspace-files.read-text.v1"),
-    FILE_BYTES("workspace-files.read-bytes.v1"), FILE_UPLOAD("file-upload.stage.v1"),
+    FILE_BYTES("workspace-files.read-bytes.v1"), FILE_UPLOAD("file-upload.stage.v1"), IMAGE_UPLOAD("image-upload.stage.v1"),
     SUBAGENT_CATALOG("subagent.catalog.v1");
 
     companion object {
@@ -39,6 +39,7 @@ enum class NativeObservedCapability(val wire: String) {
             "workspaceFiles/read" -> FILE_TEXT
             "workspaceFiles/readBytes" -> FILE_BYTES
             "fileUploads/upload" -> FILE_UPLOAD
+            "fileUploads/uploadImage" -> IMAGE_UPLOAD
             "subagents/list" -> SUBAGENT_CATALOG
             // Gateway event transport and extension methods have no native-owned operation requirement here.
             else -> null

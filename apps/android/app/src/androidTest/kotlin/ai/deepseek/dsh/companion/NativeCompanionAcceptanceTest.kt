@@ -63,6 +63,27 @@ class NativeCompanionAcceptanceTest {
         error("system document action is not clickable")
     }
 
+    private fun photoNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return emptyList()
+        val owner = root.packageName.toString()
+        if (!owner.contains("providers.media") && !owner.contains("photopicker")) return emptyList()
+        fun descend(node: android.view.accessibility.AccessibilityNodeInfo): List<android.view.accessibility.AccessibilityNodeInfo> =
+            listOf(node) + (0 until node.childCount).flatMap { index -> node.getChild(index)?.let(::descend).orEmpty() }
+        return descend(root)
+    }
+
+    private fun attachmentJson(attachment: SessionAttachment) = buildJsonObject {
+        put("type", if (attachment is SessionImageAttachment) "image" else "file")
+        put("receiptId", attachment.receiptId); put("attachmentId", attachment.attachmentId)
+        put("name", attachment.name?.let(::JsonPrimitive) ?: JsonNull); put("bytes", attachment.bytes)
+        if (attachment is SessionImageAttachment) {
+            put("mediaType", attachment.mediaType); put("width", attachment.width); put("height", attachment.height)
+            attachment.originalDimensions?.let { dimensions -> put("originalDimensions", buildJsonObject {
+                put("width", dimensions.width); put("height", dimensions.height)
+            }) }
+        }
+    }
+
     @Test fun pairAnswerAndReadPages() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         check(instrumentation.targetContext.packageName.endsWith(".nativeacceptance"))
@@ -325,6 +346,87 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("session-draft").performTextInput(command.getValue("text").jsonPrimitive.content)
                             }
                             "submitPromptDraft" -> compose.onNodeWithText("发送").performClick()
+                            "stageTestPhoto" -> {
+                                val filename = command.getValue("name").jsonPrimitive.content
+                                require(filename.matches(Regex("dsh-native-photo-[A-Za-z0-9-]+\\.png")))
+                                val data = Base64.decode(command.getValue("data").jsonPrimitive.content, Base64.NO_WRAP)
+                                require(data.size in 8..524_288 && data.take(8) == listOf(137, 80, 78, 71, 13, 10, 26, 10).map(Int::toByte))
+                                val dateTaken = System.currentTimeMillis()
+                                val resolver = instrumentation.targetContext.contentResolver
+                                val properties = android.content.ContentValues().apply {
+                                    put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, filename)
+                                    put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
+                                    put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/DSHNativeAcceptance")
+                                    put(android.provider.MediaStore.Images.Media.DATE_TAKEN, dateTaken)
+                                    put(android.provider.MediaStore.Images.Media.IS_PENDING, 1)
+                                }
+                                val uri = checkNotNull(resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, properties))
+                                try {
+                                    checkNotNull(resolver.openOutputStream(uri, "w")).use { it.write(data) }
+                                    check(resolver.update(uri, android.content.ContentValues().apply {
+                                        put(android.provider.MediaStore.Images.Media.IS_PENDING, 0)
+                                    }, null, null) == 1)
+                                    check(instrumentation.targetContext.getSharedPreferences("native-test-photos", android.content.Context.MODE_PRIVATE)
+                                        .edit().putString(uri.toString(), filename).commit())
+                                } catch (failure: Exception) { resolver.delete(uri, null, null); throw failure }
+                                value = buildJsonObject { put("uri", uri.toString()); put("name", filename); put("dateTaken", dateTaken) }
+                            }
+                            "cleanupTestPhoto" -> {
+                                val uri = android.net.Uri.parse(command.getValue("uri").jsonPrimitive.content)
+                                val owned = instrumentation.targetContext.getSharedPreferences("native-test-photos", android.content.Context.MODE_PRIVATE)
+                                val filename = checkNotNull(owned.getString(uri.toString(), null))
+                                check(uri.scheme == "content" && uri.authority == "media" && filename.matches(Regex("dsh-native-photo-[A-Za-z0-9-]+\\.png")))
+                                check(instrumentation.targetContext.contentResolver.delete(uri, null, null) == 1)
+                                check(owned.edit().remove(uri.toString()).commit())
+                            }
+                            "openPhotoPicker" -> {
+                                waitFor(hasTestTag("session-attach") and isEnabled())
+                                compose.onNodeWithTag("session-attach").performClick()
+                                waitFor(hasTestTag("session-attach-photo"))
+                                compose.onNodeWithTag("session-attach-photo").performClick()
+                                compose.waitUntil(20_000) { photoNodes().isNotEmpty() }
+                                val bytes = ByteArrayOutputStream()
+                                val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+                                try { bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes) } finally { bitmap.recycle() }
+                                value = buildJsonObject {
+                                    put("screenshot", Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                                    put("package", photoNodes().first().packageName.toString())
+                                }
+                            }
+                            "finishPhotoPick" -> {
+                                val description = command["contentDescription"]?.jsonPrimitive?.content
+                                val index = command["index"]?.jsonPrimitive?.int ?: 0
+                                require(index >= 0)
+                                fun candidates() = photoNodes().filter { node ->
+                                    if (description != null) node.contentDescription?.toString() == description
+                                    else node.viewIdResourceName?.endsWith(":id/icon_thumbnail") == true ||
+                                        node.contentDescription?.toString()?.let { it.startsWith("Photo taken") || it.startsWith("拍摄于") } == true
+                                }
+                                compose.waitUntil(20_000) { candidates().size > index }
+                                clickDocumentNode(candidates()[index])
+                                compose.waitUntil(20_000) { photoNodes().isEmpty() }
+                                waitFor(hasTestTag("session-attach"))
+                                value = buildJsonObject { put("selected", true) }
+                            }
+                            "cancelPhotoPicker" -> {
+                                check(photoNodes().isNotEmpty())
+                                check(instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK))
+                                compose.waitUntil(20_000) { photoNodes().isEmpty() }
+                                waitFor(hasTestTag("session-attach") and isEnabled())
+                            }
+                            "assertMixedAttachments" -> {
+                                val model = companionModel()
+                                compose.waitUntil(20_000) { model.attachments.state.value.phase == NativeFileAttachmentPhase.IDLE }
+                                val sessionId = checkNotNull(model.session.open.value).sessionId
+                                val draft = model.session.input.value.drafts[sessionId]
+                                val attachments = draft?.attachments.orEmpty()
+                                for (attachment in attachments) compose.onNodeWithTag("session-attachment-${attachment.receiptId}").assertExists()
+                                value = buildJsonObject {
+                                    put("requestId", draft?.requestId?.let(::JsonPrimitive) ?: JsonNull)
+                                    put("text", draft?.text.orEmpty())
+                                    put("attachments", JsonArray(attachments.map(::attachmentJson)))
+                                }
+                            }
                             "openAttachmentPicker" -> {
                                 waitFor(hasTestTag("session-attach") and isEnabled())
                                 compose.onNodeWithTag("session-attach").performClick()
@@ -364,10 +466,10 @@ class NativeCompanionAcceptanceTest {
                                     file.jsonObject.getValue("name").jsonPrimitive.content to file.jsonObject.getValue("bytes").jsonPrimitive.long
                                 }
                                 compose.waitUntil(20_000) {
-                                    model.input.value.drafts[sessionId]?.files.orEmpty().map { it.name to it.bytes } == expected
+                                    model.input.value.drafts[sessionId]?.attachments.orEmpty().filterIsInstance<SessionFileAttachment>().map { it.name to it.bytes } == expected
                                 }
                                 val draft = model.input.value.drafts[sessionId]
-                                val files = draft?.files.orEmpty()
+                                val files = draft?.attachments.orEmpty().filterIsInstance<SessionFileAttachment>()
                                 for (file in files) compose.onNodeWithTag("session-attachment-${file.receiptId}").assertExists()
                                 value = buildJsonObject {
                                     put("requestId", draft?.requestId?.let(::JsonPrimitive) ?: JsonNull)
@@ -396,11 +498,11 @@ class NativeCompanionAcceptanceTest {
                                 check(model.inputs.persistence.value == InputPersistenceStatus.SAVED)
                                 val sessionId = checkNotNull(model.session.open.value).sessionId
                                 val draft = checkNotNull(model.session.input.value.drafts[sessionId])
-                                check(draft.files.isNotEmpty())
+                                check(draft.attachments.isNotEmpty())
                                 val stored = java.io.File(instrumentation.targetContext.filesDir, "native-input")
                                     .listFiles()!!.filter { it.extension == "state" }
                                 check(stored.isNotEmpty())
-                                val privateValues = (draft.files.flatMap { listOf(it.name, it.receiptId, it.attachmentId) } +
+                                val privateValues = (draft.attachments.flatMap { listOfNotNull(it.name, it.receiptId, it.attachmentId) } +
                                     listOf(draft.text, draft.requestId)).filter(String::isNotEmpty)
                                 for (file in stored) {
                                     val raw = file.readBytes().toString(Charsets.UTF_8)
@@ -498,8 +600,11 @@ class NativeCompanionAcceptanceTest {
                                 }
                             }
                             "scrollSessionToLatest" -> {
-                                val seq = companionModel().session.state.items.last().seq
-                                compose.onNodeWithTag("session-rows").performScrollToNode(hasTestTag("session-event-$seq"))
+                                val model = companionModel().session
+                                val open = checkNotNull(model.open.value)
+                                val seq = open.state.items.last().seq
+                                val pending = model.input.value.pendingPrompts.values.count { it.sessionId == open.sessionId }
+                                compose.onNodeWithTag("session-rows").performScrollToIndex(pending + open.state.items.lastIndex)
                                 compose.onNodeWithTag("session-event-$seq").assertIsDisplayed()
                             }
                             "copyViewLocation" -> {
@@ -615,6 +720,16 @@ class NativeCompanionAcceptanceTest {
                                 compose.waitUntil(20_000) { model.downloads.state.value.let { !it.busy && it.target == target && it.controller == null } }
                                 waitFor(hasTestTag("download-resume") and isEnabled())
                                 compose.onNodeWithTag("download-save").assertDoesNotExist()
+                            }
+                            "downloadProgress" -> {
+                                val model = companionModel().downloads.state.value
+                                val state = model.controller?.state?.value
+                                value = buildJsonObject {
+                                    put("busy", model.busy)
+                                    put("phase", state?.phase?.name?.let(::JsonPrimitive) ?: JsonNull)
+                                    put("received", state?.checkpoint?.receivedBytes ?: 0)
+                                    put("complete", state?.checkpoint?.complete ?: false)
+                                }
                             }
                             "assertDownload" -> {
                                 val phase = NativeDownloadPhase.valueOf(command.getValue("phase").jsonPrimitive.content)

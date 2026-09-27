@@ -106,10 +106,16 @@ export type PromptContentPart =
     readonly name?: string
   }
 
-/** Host prompt content whose file receipts are resolved and whose image bytes await admission. */
+/** Host prompt content after receipt resolution; original image sizes come only from validated uploads. */
 export type AttachmentAdmissionPart =
   | PromptContentPart
   | { readonly type: 'file'; readonly attachment: FileAttachmentRef }
+  | {
+    readonly type: 'staged-image'
+    readonly attachment: ImageAttachmentRef
+    /** Encoded byte length before normalization, retained by the Host that accepted the upload. */
+    readonly originalBytes: number
+  }
 
 /** Host-admitted prompt content with every attachment represented by its durable reference. */
 export type AdmittedPromptContentPart =

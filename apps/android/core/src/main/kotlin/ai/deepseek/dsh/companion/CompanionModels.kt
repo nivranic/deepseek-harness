@@ -243,11 +243,24 @@ class SessionModel(
     private val _sendFailure = MutableStateFlow<PromptSubmissionFailure?>(null)
     val sendFailure: StateFlow<PromptSubmissionFailure?> = _sendFailure
     private val sendLock = Mutex()
+    private val submissionAdmission = Any()
+    private var attachmentAdmission: SessionAttachmentAdmission? = null
+
+    /** Reserve prompt exclusion before a picker acquires authority; both admissions share one lock. */
+    internal fun reserveAttachment(): SessionAttachmentAdmission? = synchronized(submissionAdmission) {
+        if (_sending.value || attachmentAdmission != null) null
+        else SessionAttachmentAdmission().also { attachmentAdmission = it }
+    }
+
+    /** Only the exact retired operation can release its reservation. */
+    internal fun releaseAttachment(admission: SessionAttachmentAdmission) = synchronized(submissionAdmission) {
+        if (attachmentAdmission === admission) attachmentAdmission = null
+    }
 
     /** Keep each Session's text and files independently; an unchanged intent reuses its request id. */
     fun updateDraft(sessionId: String, text: String) {
         inputs.update { current ->
-            replaceDraft(current, sessionId, text, current.drafts[sessionId]?.files.orEmpty())
+            replaceDraft(current, sessionId, text, current.drafts[sessionId]?.attachments.orEmpty())
         }
         if (_sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
     }
@@ -257,14 +270,14 @@ class SessionModel(
      * @param attachment Accepted Host receipt and its display metadata.
      * @return Whether this receipt was added to the selected Session's draft.
      */
-    fun addFileAttachment(sessionId: String, attachment: SessionFileAttachment): Boolean {
+    fun addAttachment(sessionId: String, attachment: SessionAttachment): Boolean {
         if (_open.value?.sessionId != sessionId) return false
         var added = false
         inputs.update { current ->
             val draft = current.drafts[sessionId]
-            if (_open.value?.sessionId != sessionId || draft?.files?.any { it.receiptId == attachment.receiptId } == true) return@update current
+            if (_open.value?.sessionId != sessionId || draft?.attachments?.any { it.receiptId == attachment.receiptId } == true) return@update current
             added = true
-            replaceDraft(current, sessionId, draft?.text.orEmpty(), draft?.files.orEmpty() + attachment)
+            replaceDraft(current, sessionId, draft?.text.orEmpty(), draft?.attachments.orEmpty() + attachment)
         }
         if (added && _sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
         return added
@@ -274,20 +287,20 @@ class SessionModel(
      * @param sessionId Session whose composer owns the receipt.
      * @param receiptId Receipt to remove from the local draft; this does not delete the Host file.
      */
-    fun removeFileAttachment(sessionId: String, receiptId: String) {
+    fun removeAttachment(sessionId: String, receiptId: String) {
         if (_open.value?.sessionId != sessionId) return
         inputs.update { current ->
             val draft = current.drafts[sessionId] ?: return@update current
             if (_open.value?.sessionId != sessionId) return@update current
-            replaceDraft(current, sessionId, draft.text, draft.files.filterNot { it.receiptId == receiptId })
+            replaceDraft(current, sessionId, draft.text, draft.attachments.filterNot { it.receiptId == receiptId })
         }
         if (_sendFailure.value?.sessionId == sessionId) _sendFailure.value = null
     }
 
     private fun replaceDraft(current: CompanionInputSnapshot, sessionId: String, text: String,
-                             files: List<SessionFileAttachment>): CompanionInputSnapshot {
+                             files: List<SessionAttachment>): CompanionInputSnapshot {
         val draft = current.drafts[sessionId]
-        if (draft != null && draft.text == text && draft.files == files) return current
+        if (draft != null && draft.text == text && draft.attachments == files) return current
         return current.copy(drafts = if (text.isEmpty() && files.isEmpty()) current.drafts - sessionId
             else current.drafts + (sessionId to SessionDraft(text, "companion-${java.util.UUID.randomUUID()}", files)))
     }
@@ -495,9 +508,11 @@ class SessionModel(
 
     private suspend fun submitPrompt(sessionId: String, draft: SessionDraft, images: List<Pair<String, String>> = emptyList(),
                                      retainIntent: Boolean = false): Boolean {
-        if ((draft.text.isEmpty() && draft.files.isEmpty() && images.isEmpty()) || !sendLock.tryLock()) return false
+        synchronized(submissionAdmission) {
+            if ((draft.text.isEmpty() && draft.attachments.isEmpty() && images.isEmpty()) || attachmentAdmission != null || !sendLock.tryLock()) return false
+            _sending.value = true
+        }
         val requestId = draft.requestId
-        _sending.value = true
         _sendFailure.value = null
         try {
             if (retainIntent) {
@@ -506,8 +521,8 @@ class SessionModel(
             }
             val content = buildList {
                 add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("text"), "text" to WireValue.StringValue(draft.text))))
-                for (file in draft.files) {
-                    add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue("file"), "receiptId" to WireValue.StringValue(file.receiptId))))
+                for (file in draft.attachments) {
+                    add(WireValue.ObjectValue(mapOf("type" to WireValue.StringValue(when (file) { is SessionFileAttachment -> "file"; is SessionImageAttachment -> "staged-image" }), "receiptId" to WireValue.StringValue(file.receiptId))))
                 }
                 for ((base64, mediaType) in images) {
                     add(
@@ -546,8 +561,7 @@ class SessionModel(
                 (failure as? ai.deepseek.dsh.link.LinkClientException.Refused)?.let(GatewayFailureEnvelope::from))
             return false
         } finally {
-            _sending.value = false
-            sendLock.unlock()
+            synchronized(submissionAdmission) { _sending.value = false; sendLock.unlock() }
         }
     }
 

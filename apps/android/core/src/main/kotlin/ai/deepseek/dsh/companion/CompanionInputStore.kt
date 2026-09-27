@@ -31,7 +31,7 @@ interface CompanionInputStoring {
     fun preserveAndStartFresh()
 }
 
-/** An encrypted, bounded v2 document per principal. Older formats are rejected without rewriting their bytes.
+/** An encrypted, bounded v3 document per principal. Older formats are rejected without rewriting their bytes.
  * Replacement requires an atomic same-directory move.
  */
 class FileCompanionInputStore(
@@ -79,7 +79,7 @@ class FileCompanionInputStore(
     }
 
     private fun encode(snapshot: CompanionInputSnapshot) = buildJsonObject {
-        put("version", 2)
+        put("version", 3)
         put("principal", principalJson)
         put("drafts", JsonArray(snapshot.drafts.map { (sessionId, draft) -> promptJson(sessionId, draft) }))
         put("pendingPrompts", JsonArray(snapshot.pendingPrompts.map { (requestId, pending) ->
@@ -99,9 +99,16 @@ class FileCompanionInputStore(
 
     private fun promptJson(sessionId: String, draft: SessionDraft) = buildJsonObject {
         put("sessionId", sessionId); put("text", draft.text); put("requestId", draft.requestId)
-        put("files", JsonArray(draft.files.map { file -> buildJsonObject {
-            put("receiptId", file.receiptId); put("attachmentId", file.attachmentId)
-            put("name", file.name); put("bytes", file.bytes)
+        put("attachments", JsonArray(draft.attachments.map { attachment -> buildJsonObject {
+            put("type", if (attachment is SessionImageAttachment) "image" else "file")
+            put("receiptId", attachment.receiptId); put("attachmentId", attachment.attachmentId)
+            put("name", attachment.name?.let(::JsonPrimitive) ?: JsonNull); put("bytes", attachment.bytes)
+            if (attachment is SessionImageAttachment) {
+                put("mediaType", attachment.mediaType); put("width", attachment.width); put("height", attachment.height)
+                put("originalDimensions", attachment.originalDimensions?.let { dimensions -> buildJsonObject {
+                    put("width", dimensions.width); put("height", dimensions.height)
+                } } ?: JsonNull)
+            }
         } }))
     }
 
@@ -109,21 +116,43 @@ class FileCompanionInputStore(
         val root = Json.parseToJsonElement(bytes.decodeToString(throwOnInvalidSequence = true)).objectWith(
             "version", "principal", "drafts", "pendingPrompts", "answers", "lastSessionId")
         val version = root.getValue("version") as? JsonPrimitive
-        require(version != null && !version.isString && version.intOrNull == 2) { "unsupported input snapshot version" }
+        require(version != null && !version.isString && version.intOrNull == 3) { "unsupported input snapshot version" }
         require(root.getValue("principal").objectWith("hostId", "fingerprint", "deviceId") == principalJson) {
             "input snapshot belongs to another principal"
         }
         val intents = mutableMapOf<String, PendingPrompt>()
         fun prompt(element: JsonElement): PendingPrompt {
-            val row = element.objectWith("sessionId", "text", "requestId", "files")
-            val files = row.array("files").map { raw ->
-                val file = raw.objectWith("receiptId", "attachmentId", "name", "bytes")
+            val row = element.objectWith("sessionId", "text", "requestId", "attachments")
+            val files = row.array("attachments").map { raw ->
+                val kind = (raw as? JsonObject)?.text("type") ?: error("attachment object required")
+                val file = when (kind) {
+                    "file" -> raw.objectWith("type", "receiptId", "attachmentId", "name", "bytes")
+                    "image" -> raw.objectWith("type", "receiptId", "attachmentId", "name", "bytes", "mediaType", "width", "height", "originalDimensions")
+                    else -> error("unsupported attachment type")
+                }
                 val bytesValue = file.getValue("bytes") as? JsonPrimitive
                 val size = bytesValue?.longOrNull
                 require(bytesValue != null && !bytesValue.isString && size != null && size in 0..9_007_199_254_740_991L) {
                     "invalid file attachment size"
                 }
-                SessionFileAttachment(file.text("receiptId"), file.text("attachmentId"), file.text("name"), size)
+                if (kind == "file") SessionFileAttachment(file.text("receiptId"), file.text("attachmentId"), file.text("name"), size)
+                else {
+                    require(size > 0) { "invalid image attachment size" }
+                    val mediaType = file.text("mediaType")
+                    require(mediaType in setOf("image/png", "image/jpeg", "image/webp", "image/gif")) { "unsupported image media type" }
+                    fun dimension(value: JsonObject, key: String): Int {
+                        val item = value.getValue(key) as? JsonPrimitive
+                        val number = item?.intOrNull
+                        require(item != null && !item.isString && number != null && number > 0) { "invalid image dimensions" }
+                        return number
+                    }
+                    val original = file.getValue("originalDimensions").takeUnless { it == JsonNull }?.objectWith("width", "height")?.let {
+                        SessionImageDimensions(dimension(it, "width"), dimension(it, "height"))
+                    }
+                    SessionImageAttachment(file.text("receiptId"), file.text("attachmentId"), mediaType, size,
+                        dimension(file, "width"), dimension(file, "height"),
+                        file.getValue("name").takeUnless { it == JsonNull }?.stringValue(), original)
+                }
             }
             require(files.map { it.receiptId }.distinct().size == files.size) { "duplicate file receipt" }
             val pending = PendingPrompt(row.text("sessionId"),

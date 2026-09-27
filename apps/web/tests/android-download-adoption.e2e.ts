@@ -122,6 +122,13 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes en
     await capture('restored-paused.png')
     stage = 'complete-download'
     await command({ op: 'resumeDownload' })
+    await expect.poll(async () => {
+      const progress = await command({ op: 'downloadProgress' }) as { phase: string | null; received: number; complete: boolean }
+      if (progress.phase === 'FAILED' || progress.phase === 'CHANGED' || progress.phase === 'UNAVAILABLE') {
+        throw new Error(`Download stopped at ${progress.received} bytes with phase ${progress.phase}`)
+      }
+      return { received: progress.received, complete: progress.complete }
+    }, { timeout: 90_000 }).toEqual({ received: bytes.length, complete: true })
     expect(await command({ op: 'assertDownload', phase: 'COMPLETE' })).toMatchObject({ received: bytes.length, complete: true })
     expect(windows()[afterRestart]?.offset).toBe(262_144)
     await capture('complete.png')

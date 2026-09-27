@@ -254,7 +254,7 @@ function installControllers(
       ): Promise<AdmittedPromptContentPart[]> => {
         const admitted: AdmittedPromptContentPart[] = []
         for (const part of content) {
-          if (part.type === 'image') throw new Error('test did not configure image persistence')
+          if (part.type === 'image' || part.type === 'staged-image') throw new Error('test did not configure image persistence')
           admitted.push(part)
         }
         return admitted
@@ -265,6 +265,7 @@ function installControllers(
     ctx.provide('fileUploads', {
       registerAgentResolver: () => () => {},
       resolve: () => undefined,
+      resolveImage: () => undefined,
       bindPrompt: () => ({ commit: () => {}, [Symbol.dispose]: () => {} }),
       retirePrompt: () => {},
     } as never)

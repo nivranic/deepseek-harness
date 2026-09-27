@@ -2,9 +2,9 @@
 
 [English](attachment.md) | 中文
 
-附件 seam 将二进制图片和通用文件的所有权与会话日志分离。生产方把字节交给 [`ctx.attachments`](#ctxattachments--attachmentstore-abstract-seam)；只有对象完成持久化后，该服务才会发布不可变的内容寻址引用。会话事件和模型可见的附件块包含该引用及其元数据，绝不包含浏览器对象 URL、宿主临时路径、提供方 URL 或 base64 数据。独立的 [`ctx.fileUploads`](#ctxfileuploads--fileuploads) 服务把浏览器文件传输与暂存凭证绑定到接收方 Agent。
+附件 seam 将二进制图片和通用文件的所有权与会话日志分离。生产方把字节交给 [`ctx.attachments`](#ctxattachments--attachmentstore-abstract-seam)；只有对象完成持久化后，该服务才会发布不可变的内容寻址引用。会话事件和模型可见的附件块包含该引用及其元数据，绝不包含浏览器对象 URL、宿主临时路径、提供方 URL 或 base64 数据。独立的 [`ctx.fileUploads`](#ctxfileuploads--fileuploads) 服务把文件与图片上传以及暂存凭证绑定到接收方 Agent。
 
-未发送的浏览器草稿可以保留在内存中，原生客户端也可以将其暂存于操作系统临时存储。浏览器通用文件取得暂存 prompt 凭证前会完成持久化。宿主接受用户消息后，会先把消息中的图片移到 `<DSH_HOME>/attachments/v1` 下，再追加用户事件。结构化模型图片输出遵循同样的先持久化、后追加事件规则。
+未发送的浏览器草稿可以保留在内存中，原生客户端也可以将其暂存于操作系统临时存储。暂存文件与规范化图片在取得 prompt 凭证前完成持久化。内联图片在 prompt 准入期间持久化；每张被接受的图片均先存入 `<DSH_HOME>/attachments/v1`，再追加用户事件。结构化模型图片输出遵循同样的先持久化、后追加事件规则。
 
 来源：[`packages/attachment/attachment/src/types.ts`](../../packages/attachment/attachment/src/types.ts)
 
@@ -80,10 +80,16 @@ type PromptContentPart =
 ```
 
 ```ts type-equiv
-/** Host prompt content whose file receipts are resolved and whose image bytes await admission. */
+/** Host prompt content after receipt resolution; original image sizes come only from validated uploads. */
 type AttachmentAdmissionPart =
   | PromptContentPart
   | { readonly type: 'file'; readonly attachment: FileAttachmentRef }
+  | {
+    readonly type: 'staged-image'
+    readonly attachment: ImageAttachmentRef
+    /** Encoded byte length before normalization, retained by the Host that accepted the upload. */
+    readonly originalBytes: number
+  }
 ```
 
 ```ts type-equiv
@@ -157,7 +163,7 @@ interface RequestImageAttachment {
 }
 ```
 
-`saveImage()` 准备并原子提交提供方无关的规范化附件，然后直接返回 `ImageAttachmentRef`。`saveImages()` 在发布批次前为每个成员各准备一次经过验证的附件，因此校验拒绝不会留下部分对象，发布也不会重复解码或选择质量。`admitPromptContent()` 在文件凭证解析后接收完整且有序的 Host prompt，把 base64 图片上传替换为持久引用，并让持久文件引用原样通过。`admitEncodedImages()` 支持其他 wire 入口，把张数、聚合字节和有序批量准入交给 `saveImages()`。`admitEncodedFile()` 让编码协议适配器使用服务拥有的规范 base64 准入，`isAttachmentError()` 让这些适配器无需导入实现辅助函数即可识别稳定的附件错误。`readImage()` 校验来自已授权会话路径的规范化附件。`imageHostPath()` 只公开提供方所持对象的宿主位置，不判断当前工具执行环境能否读取它。`readImageRequest()` 按确切路由的像素和字节预算派生并缓存确定性请求版本。该版本包含编码字节和元数据，不包含执行环境路径。新条目在发布前完整解码，缓存命中只做有界元数据探测。调用方需要有序批次时，对单数方法使用 `Promise.all`。本地实现按需编码首选候选、合并相同请求身份的并发任务、允许每个等待方单独取消、没有等待方时停止共享任务，并通过实例级限流器限制全部变换，默认同时执行两项。该服务不规定保留策略：恢复和 fork 后的会话可能共享对象，因此基于引用的垃圾回收会延期实现，不与单个会话的删除绑定。
+`saveImage()` 准备并原子提交提供方无关的规范化附件，然后直接返回 `ImageAttachmentRef`。`saveImages()` 在发布批次前为每个成员各准备一次经过验证的附件，因此校验拒绝不会留下部分对象，发布也不会重复解码或选择质量。`admitPromptContent()` 在文件与图片凭证解析后接收完整且有序的 Host prompt。暂存与内联图片的每次出现共享张数及原始字节限制，在任何内联写入前完成检查；暂存大小取自 Host 保留的上传元数据，而非规范化引用。该方法把内联 base64 替换为持久引用，将暂存图片转换为相同的持久图片部分，并保留文件引用。`admitEncodedImages()` 支持其他 wire 入口，把张数、聚合字节和有序批量准入交给 `saveImages()`。`admitEncodedFile()` 让编码协议适配器使用服务拥有的规范 base64 准入，`isAttachmentError()` 让这些适配器无需导入实现辅助函数即可识别稳定的附件错误。`readImage()` 校验来自已授权会话路径的规范化附件。`imageHostPath()` 只公开提供方所持对象的宿主位置，不判断当前工具执行环境能否读取它。`readImageRequest()` 按确切路由的像素和字节预算派生并缓存确定性请求版本。该版本包含编码字节和元数据，不包含执行环境路径。新条目在发布前完整解码，缓存命中只做有界元数据探测。调用方需要有序批次时，对单数方法使用 `Promise.all`。本地实现按需编码首选候选、合并相同请求身份的并发任务、允许每个等待方单独取消、没有等待方时停止共享任务，并通过实例级限流器限制全部变换，默认同时执行两项。该服务不规定保留策略：恢复和 fork 后的会话可能共享对象，因此基于引用的垃圾回收会延期实现，不与单个会话的删除绑定。
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -191,8 +197,9 @@ async saveImages(inputs: readonly SaveImageAttachment[]): Promise<readonly Image
 
 /**
  * Admit one Host prompt and replace each uploaded image with its durable reference.
- * Text and durable file references pass through unchanged. A prompt without image parts performs no storage operation.
- * @param content - prompt parts in message order after file receipt resolution.
+ * Inline and staged images share one count and original-byte budget, including repeated occurrences.
+ * Text and durable references pass through without storage; inline images validate together before any new write.
+ * @param content - prompt parts in message order after Host receipt resolution.
  * @returns admitted prompt parts in the same order as `content`.
  * @throws AttachmentError when the image batch is refused.
  */
@@ -310,7 +317,17 @@ registerAgentResolver(resolve: AgentResolver): () => void
  * @param signal - caller cancellation before storage begins.
  * @returns the staged receipt and durable file reference.
  */
-@Remote('upload') upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue>
+@Remote('upload') async upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue>
+
+/**
+ * Validate and normalize one image, then stage its reference for a prompt in this Session.
+ * Cancellation before publication returns no receipt; immutable stored bytes may remain.
+ * @param agent - receiving ordinary Agent resolved from the Remote scope.
+ * @param request - canonical base64, declared media type, and optional display name.
+ * @param signal - caller cancellation; an ongoing image write is not interrupted.
+ * @returns the Session-scoped receipt and normalized image reference.
+ */
+@Remote('uploadImage') async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue>
 
 /**
  * Persist raw chunks for one Session without aggregating the upload.
@@ -328,14 +345,22 @@ async uploadStream(request: { readonly sessionId: SessionId readonly data: Async
 resolve(agent: Agent, receiptId: FileUploadReceiptId): FileAttachmentRef | undefined
 
 /**
+ * Resolve an image receipt with its trusted pre-normalization byte count.
+ * @param agent - receiving Agent.
+ * @param receiptId - authority minted by a completed image upload.
+ * @returns Host admission data, or undefined for an unknown, foreign, or file receipt.
+ */
+resolveImage( agent: Agent, receiptId: ImageUploadReceiptId, ): Extract<AttachmentAdmissionPart, { readonly type: 'staged-image' }> | undefined
+
+/**
  * Bind receipts while one prompt enters an Agent inbox.
  * Disposal restores every prior binding unless the caller commits successful delivery.
  * @param agent - receiving Agent.
- * @param receiptIds - distinct staged receipts referenced by the prompt.
+ * @param receipts - distinct file and image receipts referenced by the prompt.
  * @param requestId - prompt identity later observed in queue or history.
  * @returns binding kept after commit until queue or history observation retires its receipts.
  */
-bindPrompt( agent: Agent, receiptIds: readonly FileUploadReceiptId[], requestId: string, ): PromptFileBinding
+bindPrompt( agent: Agent, receipts: { readonly files: readonly FileUploadReceiptId[] readonly images: readonly ImageUploadReceiptId[] }, requestId: string, ): PromptFileBinding
 
 /**
  * Retire every receipt accepted by one removed queue occurrence.

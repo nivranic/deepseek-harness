@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android Photos picker and durable mixed attachment intents; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-photo-attachments-source.json",
+    "sha256": "a3d65b6e65c009bec86874fe49377c017f9cb30bae6f3f62a5799b71041d214d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7093ab8f5606fedea41703e980ba7691a3835ea11e8f1c324a0169d2c2aa3f8b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-photo-attachments-binding.json",
+    "sha256": "6dabe68410b425c34ad5a073244fae7dd283f7cb6ccfdfd7458b8bb9fa8618a7"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-photo-attachments-reports.mjs",
+      "sha256": "dc1b9d718b3a9b4ba57ab3873d99530b56af378965be509cbe9638729bc8add9"
+    },
+    {
+      "path": ".artifacts/capture-android-photo-attachments-validation.mjs",
+      "sha256": "0d48a2fc9916de80cb1873d060a547167fe1c3a40a9e882e9833de296c101426"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "aae70793000db904147ee45637d4e88b7bc97b43bdd7635bd1a3199e06a08309"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "535547a84d96914b35a81681d97f31b076832fd031ee5d7f756775a3f3b6c737"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-photo-attachments-binding.log",
+      "sha256": "9865ead5ff241d35719a5521cc132c4ce59d847e67fc61845b4b3bdb8b7098fa"
+    },
+    {
+      "path": ".artifacts/android-photo-attachments-audit-tests.log",
+      "sha256": "a513b699010004db45d7417a1c7fcb071e8af4c53db271bf2ea91cfc7162e462"
+    },
+    {
+      "path": ".artifacts/android-photo-attachments-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-photo-attachments-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-photo-attachments-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

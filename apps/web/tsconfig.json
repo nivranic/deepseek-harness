@@ -22,6 +22,7 @@
   // this client-registered project must not also hold them (one program
   // cannot see both sides of the cordis Context merges).
   "exclude": [
+    "tests/android-*.e2e.ts",
     "tests/validation-details.snapshot.ts",
     "tests/checkpoint-order.snapshot.ts",
     "tests/host-description.e2e.ts",

@@ -39,7 +39,7 @@ class NativeFileAttachmentsModelTest {
         val args = wire.calls.single().second
         assertEquals(WireValue.StringValue("selected"), args["agentId"])
         assertContentEquals(source.bytes, Base64.getDecoder().decode(WireShape.string(args.getValue("request"), "data")))
-        assertEquals(listOf(SessionFileAttachment("receipt", "attachment", "报告.bin", 4)), inputs.state.value.drafts["selected"]?.files)
+        assertEquals(listOf(SessionFileAttachment("receipt", "attachment", "报告.bin", 4)), inputs.state.value.drafts["selected"]?.attachments)
         assertEquals(NativeFileAttachmentPhase.IDLE, model.state.value.phase)
         model.closeAndAwait()
     }
@@ -54,7 +54,7 @@ class NativeFileAttachmentsModelTest {
         assertEquals(NativeFileAttachmentIssue.TOO_LARGE, model.state.value.issue)
         assertEquals(1, tooLarge.closes); assertTrue(wire.calls.isEmpty())
         model.accept(assertNotNull(model.prepare()), Source(ByteArray(0))).join()
-        assertEquals(0L, inputs.state.value.drafts["selected"]!!.files.single().bytes)
+        assertEquals(0L, inputs.state.value.drafts["selected"]!!.attachments.single().bytes)
         model.closeAndAwait()
     }
 
@@ -65,7 +65,7 @@ class NativeFileAttachmentsModelTest {
         val model = NativeFileAttachmentsModel(wire, session, inputs, backgroundScope, NativeFileAttachmentLimits(4, 64, 1), StandardTestDispatcher(testScheduler))
         model.accept(assertNotNull(model.prepare()), Source(byteArrayOf(1), "名".repeat(30))).join()
         assertEquals(NativeFileAttachmentIssue.REQUEST_TOO_LARGE, model.state.value.issue)
-        session.addFileAttachment("selected", SessionFileAttachment("first", "stored", "one", 1))
+        session.addAttachment("selected", SessionFileAttachment("first", "stored", "one", 1))
         assertNull(model.prepare())
         assertEquals(NativeFileAttachmentIssue.TOO_MANY_FILES, model.state.value.issue)
         assertTrue(wire.calls.isEmpty())

@@ -2,7 +2,7 @@ import { Context } from '@deepseek-ai/cordis'
 import AgentRegistry from '@deepseek-ai/dsh-agent'
 import { createInboxStub } from '@deepseek-ai/dsh-agent-loop-testkit'
 import type { Agent, ModelSelectionRef } from '@deepseek-ai/dsh-agent'
-import AttachmentStore, { AttachmentId } from '@deepseek-ai/dsh-attachment'
+import AttachmentStore, { AttachmentError, AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type {
   FileAttachmentRef, ImageAttachmentRef, SaveFileAttachment, SaveFileStreamAttachment,
 } from '@deepseek-ai/dsh-attachment'
@@ -12,13 +12,18 @@ import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import { createScope } from '@deepseek-ai/dsh-scope'
 import FileUploads from '@deepseek-ai/dsh-client-file-upload'
-import type { FileUploadReceiptId } from '@deepseek-ai/dsh-client-file-upload/types'
-import { describe, expect, it, vi } from 'vitest'
+import type { FileUploadReceiptId, ImageUploadReceiptId } from '@deepseek-ai/dsh-client-file-upload/types'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ApiSessionAgentController } from '../src/agent.ts'
 import { SessionCommandController } from '../src/commands.ts'
 import type { SessionRequestId } from '../src/types.ts'
 
 const SESSION = SessionId('upload-session')
+const contexts: Context[] = []
+
+afterEach(async () => {
+  await Promise.all(contexts.splice(0).map(ctx => ctx.fiber.dispose()))
+})
 
 async function uploadHarness(origin?: 'subagent'): Promise<{
   ctx: Context
@@ -31,8 +36,10 @@ async function uploadHarness(origin?: 'subagent'): Promise<{
   saveImages: ReturnType<typeof vi.fn>
   disposeAgent: () => void
   uploadRoute: (request: Request) => Promise<Response>
+  serializeImageAdmission: ReturnType<typeof vi.fn>
 }> {
   const ctx = new Context()
+  contexts.push(ctx)
   await ctx.plugin(SessionStore)
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(CommandRuntime)
@@ -70,7 +77,13 @@ async function uploadHarness(origin?: 'subagent'): Promise<{
   const saveImages = vi.fn((): Promise<readonly ImageAttachmentRef[]> =>
     Promise.reject(new Error('fixture did not expect image persistence')))
   ctx.provide('attachments', Object.setPrototypeOf(
-    { saveFile, saveFileStream, saveImages },
+    {
+      saveFile, saveFileStream, saveImages,
+      imageLimits: {
+        maxImageBytes: 4, maxImagesPerMessage: 2, maxMessageImageBytes: 4,
+        maxImagePixels: 4, maxImageDimension: 2, mediaTypes: ['image/png'],
+      },
+    },
     AttachmentStore.prototype,
   ) as never)
   let uploadRoute: ((request: Request) => Promise<Response>) | undefined
@@ -90,10 +103,11 @@ async function uploadHarness(origin?: 'subagent'): Promise<{
     current: { provider: 'fixture', model: 'fixture-model' },
     assembled: undefined,
   }
+  const serializeImageAdmission = vi.fn(<Value>(_agent: Agent, operation: () => Promise<Value>) => operation())
   const agents = {
     resolveAgent: () => Promise.resolve({ agent }),
     selectionFor: () => selection,
-    serializeImageAdmission: <Value>(_agent: Agent, operation: () => Promise<Value>) => operation(),
+    serializeImageAdmission,
   } as unknown as ApiSessionAgentController
   const uploads = new FileUploads(ctx)
   if (uploadRoute === undefined) throw new Error('file upload route was not registered')
@@ -108,6 +122,7 @@ async function uploadHarness(origin?: 'subagent'): Promise<{
     saveImages,
     disposeAgent,
     uploadRoute,
+    serializeImageAdmission,
   }
 }
 
@@ -511,5 +526,257 @@ describe('Session file uploads', () => {
         code: 'gateway/internal',
         message: 'failed to store file upload: Error: disk unavailable',
       })
+  })
+})
+
+const NORMALIZED_IMAGE: ImageAttachmentRef = {
+  attachmentId: AttachmentId(`sha256:${'ab'.repeat(32)}`),
+  mediaType: 'image/png', bytes: 1, width: 1, height: 1, name: 'photo.png',
+}
+
+async function stageImage(harness: Awaited<ReturnType<typeof uploadHarness>>, data = 'AAAA') {
+  harness.saveImages.mockResolvedValueOnce([NORMALIZED_IMAGE])
+  return harness.uploads.uploadImage(harness.agent, {
+    data, mediaType: 'image/png', name: 'photo.png',
+  }, new AbortController().signal)
+}
+
+describe('Session staged image uploads', () => {
+  it('returns normalized metadata and keeps the original byte count only on the Host', async () => {
+    const h = await uploadHarness()
+    const receipt = await stageImage(h)
+    expect(receipt).toEqual({ receiptId: expect.any(String) as string, image: NORMALIZED_IMAGE })
+    expect(h.saveImages).toHaveBeenCalledWith([{
+      data: Uint8Array.of(0, 0, 0), mediaType: 'image/png', name: 'photo.png',
+    }])
+    expect(h.uploads.resolveImage(h.agent, receipt.receiptId)).toEqual({
+      type: 'staged-image', attachment: NORMALIZED_IMAGE, originalBytes: 3,
+    })
+  })
+
+  it('rejects malformed bytes, provider failures, and a cancelled caller without publishing a receipt', async () => {
+    const h = await uploadHarness()
+    await expect(h.uploads.uploadImage(h.agent, {
+      data: 'AAA', mediaType: 'image/png',
+    }, new AbortController().signal)).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'INVALID_IMAGE_BASE64' },
+    })
+    expect(h.saveImages).not.toHaveBeenCalled()
+    const cancelled = new AbortController()
+    const reason = new Error('cancel image upload')
+    cancelled.abort(reason)
+    await expect(h.uploads.uploadImage(h.agent, {
+      data: 'AAAA', mediaType: 'image/png',
+    }, cancelled.signal)).rejects.toBe(reason)
+    expect(h.saveImages).not.toHaveBeenCalled()
+    h.saveImages.mockRejectedValueOnce(new AttachmentError('invalid raster', 'INVALID_IMAGE'))
+    await expect(h.uploads.uploadImage(h.agent, {
+      data: 'AAAA', mediaType: 'image/png',
+    }, new AbortController().signal)).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'INVALID_IMAGE' },
+    })
+    h.saveImages.mockRejectedValueOnce(new Error('disk unavailable'))
+    await expect(h.uploads.uploadImage(h.agent, {
+      data: 'AAAA', mediaType: 'image/png',
+    }, new AbortController().signal)).rejects.toMatchObject({ code: 'gateway/internal' })
+  })
+
+  it.each(['disposed', 'cancelled'] as const)('rejects an upload %s while its image is being stored', async (ending) => {
+    const h = await uploadHarness()
+    const saved = Promise.withResolvers<readonly ImageAttachmentRef[]>()
+    h.saveImages.mockReturnValueOnce(saved.promise)
+    const abort = new AbortController()
+    const reason = new Error('image upload cancelled')
+    const uploading = h.uploads.uploadImage(h.agent, { data: 'AAAA', mediaType: 'image/png' }, abort.signal)
+    await vi.waitFor(() => { expect(h.saveImages).toHaveBeenCalledOnce() })
+    if (ending === 'disposed') h.disposeAgent()
+    else abort.abort(reason)
+    saved.resolve([NORMALIZED_IMAGE])
+    if (ending === 'disposed') await expect(uploading).rejects.toMatchObject({ code: 'session/not-found' })
+    else await expect(uploading).rejects.toBe(reason)
+  })
+
+  it('rejects subagent image staging before storage', async () => {
+    const h = await uploadHarness('subagent')
+    await expect(h.uploads.uploadImage(h.agent, {
+      data: 'AAAA', mediaType: 'image/png',
+    }, new AbortController().signal)).rejects.toMatchObject({
+      code: 'subagent/attachment-invalid', details: { reason: 'SUBAGENT_IMAGE_UNSUPPORTED' },
+    })
+    expect(h.saveImages).not.toHaveBeenCalled()
+  })
+
+  it('rejects unknown, foreign, attachment-id, and file receipts before storing inline images', async () => {
+    const h = await uploadHarness()
+    const foreign = await uploadHarness()
+    const image = await stageImage(foreign)
+    const file = await h.uploads.upload(h.agent, { data: 'AAAA' }, new AbortController().signal)
+    for (const receiptId of ['missing', image.receiptId, image.image.attachmentId, file.receiptId]) {
+      await expect(h.controller.prompt(promptRequest([
+        { type: 'image', mediaType: 'image/png', data: 'AQ==' },
+        { type: 'staged-image', receiptId: receiptId as ImageUploadReceiptId },
+      ]))).rejects.toMatchObject({
+        code: 'session/attachment-invalid', details: { reason: 'IMAGE_NOT_STAGED' },
+      })
+    }
+    expect(h.saveImages).not.toHaveBeenCalled()
+    expect(h.followup).not.toHaveBeenCalled()
+    const own = await stageImage(h)
+    await expect(h.controller.prompt(promptRequest([
+      { type: 'file', receiptId: own.receiptId as unknown as FileUploadReceiptId },
+    ]))).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'FILE_NOT_STAGED' },
+    })
+  })
+
+  it('preserves mixed order and admits the exact combined original-byte limit', async () => {
+    const h = await uploadHarness()
+    const image = await stageImage(h)
+    const file = await h.uploads.upload(h.agent, { data: 'AAAA' }, new AbortController().signal)
+    const inline = { ...NORMALIZED_IMAGE, name: 'inline.png' }
+    h.saveImages.mockResolvedValueOnce([inline])
+    await h.controller.prompt(promptRequest([
+      { type: 'staged-image', receiptId: image.receiptId },
+      { type: 'file', receiptId: file.receiptId },
+      { type: 'text', text: 'compare' },
+      { type: 'image', mediaType: 'image/png', data: 'AQ==' },
+    ]))
+    expect(h.serializeImageAdmission).toHaveBeenCalledOnce()
+    expect((h.followup.mock.calls[0]?.[0] as UserMessage).content).toEqual([
+      { type: 'image', attachment: image.image },
+      { type: 'file', attachment: file.file },
+      { type: 'text', text: 'compare' },
+      { type: 'image', attachment: inline },
+    ])
+  })
+
+  it('counts every receipt occurrence and combines staged original bytes with inline bytes', async () => {
+    const h = await uploadHarness()
+    const image = await stageImage(h)
+    const part = { type: 'staged-image' as const, receiptId: image.receiptId }
+    for (const [content, reason] of [
+      [[part, part, part], 'TOO_MANY_IMAGES'],
+      [[part, part], 'IMAGES_TOO_LARGE'],
+      [[part, { type: 'image' as const, mediaType: 'image/png' as const, data: 'AQI=' }], 'IMAGES_TOO_LARGE'],
+    ] as const) {
+      await expect(h.controller.prompt(promptRequest(content))).rejects.toMatchObject({
+        code: 'session/attachment-invalid', details: { reason },
+      })
+    }
+    expect(h.saveImages).toHaveBeenCalledOnce()
+    expect(h.followup).not.toHaveBeenCalled()
+  })
+
+  it('preserves repeated staged images within the combined limits and inserts concurrent retries once', async () => {
+    const h = await uploadHarness()
+    const image = await stageImage(h, 'AQ==')
+    const file = await h.uploads.upload(h.agent, { data: 'AAAA' }, new AbortController().signal)
+    h.followup.mockImplementation((message: UserMessage) => {
+      h.agent.session.append('agent/inbox/spliced', { target: 'next-turn', start: 0, inserted: [message] })
+      h.agent.inbox.append('next-turn', message)
+    })
+    const request = promptRequest([
+      { type: 'staged-image', receiptId: image.receiptId },
+      { type: 'file', receiptId: file.receiptId },
+      { type: 'staged-image', receiptId: image.receiptId },
+    ])
+    await expect(Promise.all([h.controller.prompt(request), h.controller.prompt(request)]))
+      .resolves.toEqual([{ accepted: true }, { accepted: true }])
+    expect(h.followup).toHaveBeenCalledOnce()
+    expect(h.agent.inbox.nextTurn[0]?.content).toEqual([
+      { type: 'image', attachment: image.image },
+      { type: 'file', attachment: file.file },
+      { type: 'image', attachment: image.image },
+    ])
+    expect(h.saveImages).toHaveBeenCalledOnce()
+  })
+
+  it('checks the current model for a prompt containing only staged images', async () => {
+    const h = await uploadHarness()
+    const image = await stageImage(h)
+    vi.spyOn(h.ctx.llm, 'resolveModelInfo').mockResolvedValue({
+      provider: 'fixture', id: 'fixture-model', name: 'Fixture', inputModalities: ['text'],
+    })
+    await expect(h.controller.prompt(promptRequest([
+      { type: 'staged-image', receiptId: image.receiptId },
+    ]))).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'MODEL_DOES_NOT_SUPPORT_IMAGES' },
+    })
+    expect(h.serializeImageAdmission).toHaveBeenCalledOnce()
+    expect(h.followup).not.toHaveBeenCalled()
+    expect(h.uploads.resolveImage(h.agent, image.receiptId)).toBeDefined()
+  })
+
+  it.each(['observed', 'removed'] as const)('deduplicates an accepted prompt after its image receipt is %s', async (retirement) => {
+    const h = await uploadHarness()
+    const image = await stageImage(h)
+    h.followup.mockImplementation((message: UserMessage) => {
+      h.agent.session.append('agent/inbox/spliced', { target: 'next-turn', start: 0, inserted: [message] })
+      h.agent.inbox.append('next-turn', message)
+    })
+    const request = promptRequest([{ type: 'staged-image', receiptId: image.receiptId }])
+    await h.controller.prompt(request)
+    const message = h.followup.mock.calls[0]?.[0] as UserMessage
+    if (retirement === 'observed') {
+      h.agent.session.append('user/message', message, { surfaceOp: 'append' })
+      h.agent.inbox.remove(message.id)
+    } else {
+      h.controller.updateQueue({ sessionId: SESSION, itemId: message.id, action: { kind: 'remove' } })
+    }
+    expect(h.uploads.resolveImage(h.agent, image.receiptId)).toBeUndefined()
+    await expect(h.controller.prompt(request)).resolves.toEqual({ accepted: true })
+    await expect(h.controller.prompt({ ...request, requestId: 'different' as SessionRequestId })).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'IMAGE_NOT_STAGED' },
+    })
+    expect(h.followup).toHaveBeenCalledOnce()
+    expect(h.saveImages).toHaveBeenCalledOnce()
+  })
+
+  it.each([false, true])('restores the image receipt owner when delivery fails (previously bound: %s)', async (previouslyBound) => {
+    const h = await uploadHarness()
+    const image = await stageImage(h)
+    const file = await h.uploads.upload(h.agent, { data: 'AAAA' }, new AbortController().signal)
+    const content = [
+      { type: 'staged-image' as const, receiptId: image.receiptId },
+      { type: 'file' as const, receiptId: file.receiptId },
+    ]
+    if (previouslyBound) await h.controller.prompt(promptRequest(content))
+    h.followup.mockImplementationOnce(() => { throw new Error('busy') })
+    await expect(h.controller.prompt({
+      ...promptRequest(content), requestId: 'req-2' as SessionRequestId,
+    })).rejects.toMatchObject({ code: 'session/agent-busy' })
+    h.uploads.retirePrompt(h.agent, 'req-2')
+    expect(h.uploads.resolveImage(h.agent, image.receiptId)).toBeDefined()
+    expect(h.uploads.resolve(h.agent, file.receiptId)).toBeDefined()
+    h.uploads.retirePrompt(h.agent, 'req-1')
+    expect(h.uploads.resolveImage(h.agent, image.receiptId) !== undefined).toBe(!previouslyBound)
+    expect(h.uploads.resolve(h.agent, file.receiptId) !== undefined).toBe(!previouslyBound)
+  })
+
+  it('rejects a receipt retired while inline admission is pending', async () => {
+    const h = await uploadHarness()
+    const image = await stageImage(h)
+    const part = { type: 'staged-image' as const, receiptId: image.receiptId }
+    await h.controller.prompt(promptRequest([part]))
+    const saved = Promise.withResolvers<readonly ImageAttachmentRef[]>()
+    h.saveImages.mockReturnValueOnce(saved.promise)
+    const prompting = h.controller.prompt({
+      ...promptRequest([part, { type: 'image', mediaType: 'image/png', data: 'AQ==' }]),
+      requestId: 'req-2' as SessionRequestId,
+    })
+    await vi.waitFor(() => { expect(h.saveImages).toHaveBeenCalledTimes(2) })
+    h.uploads.retirePrompt(h.agent, 'req-1')
+    saved.resolve([NORMALIZED_IMAGE])
+    await expect(prompting).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'IMAGE_NOT_STAGED' },
+    })
+    expect(h.followup).toHaveBeenCalledOnce()
+  })
+
+  it('expires unsubmitted image receipts when their exact Session is disposed', async () => {
+    const h = await uploadHarness()
+    const image = await stageImage(h)
+    h.ctx.emit('session/disposed', h.agent.session)
+    expect(h.uploads.resolveImage(h.agent, image.receiptId)).toBeUndefined()
   })
 })

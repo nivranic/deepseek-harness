@@ -1,6 +1,6 @@
-/** Browser-safe request and receipt types for staged file uploads. */
+/** Browser-safe request and receipt types for staged file and image uploads. */
 
-import type { FileAttachmentRef } from '@deepseek-ai/dsh-attachment/types'
+import type { EncodedImageAttachment, FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment/types'
 import type { Branded } from '@deepseek-ai/dsh-brand'
 
 /** Canonical encoded upload accepted by the Remote fallback. */
@@ -20,6 +20,18 @@ export interface FileUploadValue {
 
 /** Host-minted authority for one staged file upload in one Agent scope. */
 export type FileUploadReceiptId = Branded<'file-upload-receipt-id'>
+
+/** Canonical image bytes and declared media type accepted by image staging. */
+export type EncodedImageUploadRequest = EncodedImageAttachment
+
+/** Normalized image and Host-minted authority for a later prompt in the receiving Session. */
+export interface ImageUploadValue {
+  readonly receiptId: ImageUploadReceiptId
+  readonly image: ImageAttachmentRef
+}
+
+/** Host-minted authority for one staged image in one Agent scope. */
+export type ImageUploadReceiptId = Branded<'image-upload-receipt-id'>
 
 /**
  * Fetch-shaped carrier installed by a page that owns its Host transport.

@@ -74,8 +74,8 @@ export type SessionProjectionValues = Partial<SessionProjectionMap>
 
 /**
  * Browser-submitted prompt content; the Host promotes image bytes to durable
- * references. File parts carry the opaque receipt returned by a preceding
- * `uploadFile` call on the same Session.
+ * references. File and staged-image parts carry opaque receipts returned by
+ * the corresponding FileUploads method in the same Session.
  */
 export type PromptContentPart =
   | { readonly type: 'text'; readonly text: string }
@@ -86,6 +86,7 @@ export type PromptContentPart =
     readonly name?: string
   }
   | { readonly type: 'file'; readonly receiptId: Branded<'file-upload-receipt-id'> }
+  | { readonly type: 'staged-image'; readonly receiptId: Branded<'image-upload-receipt-id'> }
 
 /** Complete model selection for one Session. */
 export interface ModelSelection {

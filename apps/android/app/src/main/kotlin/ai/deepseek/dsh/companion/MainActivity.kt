@@ -589,11 +589,12 @@ private fun MissingNativeCapability(capabilities: Set<NativeCapability>?) {
 
 @Composable
 internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?,
-                         fileAttachmentPicker: NativeFileAttachmentPicker, attachFile: (NativeFileAttachmentsModel) -> Unit) {
+                         fileAttachmentPicker: NativeFileAttachmentPicker, attachFile: (NativeFileAttachmentsModel, NativeAttachmentKind) -> Unit) {
     val canList = capabilities.supports(NativeCapability.SESSION_LIST)
     val canFollow = capabilities.supports(NativeCapability.SESSION_FOLLOW)
     val canControl = capabilities.supports(NativeCapability.SESSION_CONTROL)
     val canUpload = capabilities.supports(NativeCapability.FILE_UPLOAD)
+    val canUploadImages = capabilities.supports(NativeCapability.IMAGE_UPLOAD)
     val scope = rememberCoroutineScope()
     val sessions by model.session.sessions.collectAsStateWithLifecycle()
     val listState by model.session.listState.collectAsStateWithLifecycle()
@@ -603,7 +604,7 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
     val editable = persistence != InputPersistenceStatus.RESTORE_FAILED
     val sendFailure by model.session.sendFailure.collectAsStateWithLifecycle()
     val draft = open?.sessionId?.let { input.drafts[it]?.text }.orEmpty()
-    val attachedFiles = open?.sessionId?.let { input.drafts[it]?.files }.orEmpty()
+    val attachedFiles = open?.sessionId?.let { input.drafts[it]?.attachments }.orEmpty()
     val attachmentState by model.attachments.state.collectAsStateWithLifecycle()
     val attachmentBusy = attachmentState.phase in setOf(NativeFileAttachmentPhase.SELECTING,
         NativeFileAttachmentPhase.READING, NativeFileAttachmentPhase.UPLOADING)
@@ -676,7 +677,7 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
                     RaisedCard {
                         Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_unconfirmed))
                         Text(pending.draft.text)
-                        NativePendingFileAttachments(pending.draft.files)
+                        NativePendingFileAttachments(pending.draft.attachments)
                         Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_discard_notice), style = MaterialTheme.typography.bodySmall)
                         Row {
                             if (canControl) Button(enabled = !sending && !attachmentBusy && editable, onClick = { model.session.retryPrompt(pending.draft.requestId) }) {
@@ -706,16 +707,18 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
             Modifier.testTag("session-cancel-error").padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
         open?.sessionId?.let { sessionId ->
             NativeFileAttachmentCards(attachedFiles, editable && !sending && !attachmentBusy) {
-                model.session.removeFileAttachment(sessionId, it)
+                model.session.removeAttachment(sessionId, it)
             }
             NativeFileAttachmentNotice(model.attachments, attachmentState, sessionId, fileAttachmentPicker)
             if (!canUpload) Text(androidx.compose.ui.res.stringResource(R.string.native_attachment_unsupported),
                 Modifier.padding(horizontal = 12.dp).testTag("session-attachment-unavailable"), style = MaterialTheme.typography.bodySmall)
+            if (!canUploadImages) Text(androidx.compose.ui.res.stringResource(R.string.native_attachment_photo_unavailable),
+                Modifier.padding(horizontal = 12.dp).testTag("session-photo-unavailable"), style = MaterialTheme.typography.bodySmall)
         }
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (canControl && canUpload) NativeFileAttachmentAddButton(
+            if (canControl && (canUpload || canUploadImages)) NativeFileAttachmentAddButton(
                 enabled = open != null && editable && !sending && !attachmentBusy && !fileAttachmentPicker.busy,
-                select = { attachFile(model.attachments) })
+                allowFiles = canUpload, allowImages = canUploadImages, select = { attachFile(model.attachments, it) })
             OutlinedTextField(value = draft, onValueChange = { text -> open?.sessionId?.let { model.session.updateDraft(it, text) } },
                 label = { Text("发消息给宿主…") }, enabled = open != null && editable, modifier = Modifier.weight(1f).testTag("session-draft"))
             if (canControl) Button(modifier = Modifier.testTag("session-send"), onClick = {

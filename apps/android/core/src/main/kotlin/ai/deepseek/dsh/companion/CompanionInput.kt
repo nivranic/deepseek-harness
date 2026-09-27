@@ -1,10 +1,29 @@
 package ai.deepseek.dsh.companion
 
-/** A Host-staged file receipt retained with its display metadata; the receipt remains Session-scoped. */
-data class SessionFileAttachment(val receiptId: String, val attachmentId: String, val name: String, val bytes: Long)
+/** One ordered Host-staged attachment; its receipt remains Session-scoped. */
+sealed interface SessionAttachment {
+    val receiptId: String
+    val attachmentId: String
+    val name: String?
+    val bytes: Long
+}
+
+/** Identity-bearing exclusion between one attachment operation and prompt admission. */
+internal class SessionAttachmentAdmission
+
+data class SessionFileAttachment(override val receiptId: String, override val attachmentId: String,
+                                 override val name: String, override val bytes: Long) : SessionAttachment
+
+data class SessionImageDimensions(val width: Int, val height: Int)
+
+/** Normalized Host image metadata, independent of the selected source's encoded size and dimensions. */
+data class SessionImageAttachment(override val receiptId: String, override val attachmentId: String,
+                                  val mediaType: String, override val bytes: Long, val width: Int, val height: Int,
+                                  override val name: String? = null,
+                                  val originalDimensions: SessionImageDimensions? = null) : SessionAttachment
 
 /** One complete prompt intent. Retrying unchanged text and files retains its Host deduplication identity. */
-data class SessionDraft(val text: String, val requestId: String, val files: List<SessionFileAttachment> = emptyList())
+data class SessionDraft(val text: String, val requestId: String, val attachments: List<SessionAttachment> = emptyList())
 
 /** A failed prompt keeps its target and complete refusal separate from its diagnostic category. */
 data class PromptSubmissionFailure(val sessionId: String, val category: ConnectionFailure, val refusal: GatewayFailureEnvelope?)

@@ -1,5 +1,5 @@
 ---
-description: "Session-addressed browser file uploads with streaming intake, progress, cancellation, and staged receipts for later prompts."
+description: "Session-addressed file and image staging, with browser streaming intake, progress, cancellation, and receipts for later prompts."
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package lets browser features store a `Blob`, exact bytes, or a `ReadableStream<Uint8Array>` for one Session and receive an opaque receipt for a later prompt. Served pages send Blob and stream bodies without aggregating their bytes on the page thread; pages whose Host runs in another execution context supply a Fetch-shaped carrier before Cordis boots. Callers can observe consumed bytes and cancel an active operation. A stream body is consumed once and transfers ownership when it crosses a Worker boundary. The standalone `?fixture` page uses the generated Remote for replayable Blob and exact-byte inputs.
+Store files or normalized images for one Session and receive an opaque receipt for a later prompt. Browser file callers can send a `Blob`, exact bytes or a `ReadableStream<Uint8Array>`, observe progress and cancel active work. Served pages stream bodies without aggregating bytes on the page thread; pages whose Host runs elsewhere supply their own carrier. Image callers use encoded Remote staging. Receipts remain local to the receiving Host process and Session, while accepted messages retain durable attachment references.
 
 ## Table of Contents
 
@@ -26,6 +26,8 @@ This package lets browser features store a `Blob`, exact bytes, or a `ReadableSt
 ## Use this package
 
 Mount the package before a consumer that injects `fileUpload`, then call `ctx.fileUpload.upload(sessionId, body, name, signal, onProgress)`. The Session identity addresses both the raw route and generated Remote fallback; callers do not assemble either request.
+
+The Host also accepts `fileUploads/uploadImage({ data, mediaType, name? })` under `image-upload.stage.v1` with `prompt.send` permission. It validates and normalizes canonical base64 image input through the attachment service, returning `receiptId` and the normalized `image` reference for an ordered `staged-image` prompt part. This encoded Remote operation is independent of the browser file transport.
 
 File staging requires `file-upload.stage.v1` on the current Host. The Client captures the connection before reading bytes or starting either carrier; replacement or disposal cancels active work and rejects late receipts and progress. Capability support does not grant authorization, undo a completed Host upload, or make retry idempotent. Consumers decide whether to keep their browser-owned drafts for an explicit retry. Device permissions follow the section 21 table: staging requires `prompt.send`, because an upload participates in composing a later prompt. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
@@ -46,7 +48,7 @@ The package has no Cordis configuration fields. A `Blob` uses XMLHttpRequest ins
 
 The Client plugin provides `ctx.fileUpload`. Its `upload()` method receives the owning Session identity, assembles the raw route request, and invokes the generated Remote fallback for replayable inputs. The provider reads the optional pre-Cordis `__DSH_FILE_UPLOAD__` hook once. Without a hook, each non-fixture raw request owns a short-lived Worker and releases it after completion, failure, or cancellation. With the hook, the service sends the body through the page-owned Fetch carrier; the Web Worker runtime transfers stream bodies through its request frame and exposes them to the Host HTTP bridge as backpressured chunks.
 
-The Host plugin provides `ctx.fileUploads`. It owns the authenticated streaming route, encoded Remote fallback, command receipt resolver, and staged-receipt lifecycle; encoded admission, attachment-error recognition, and byte storage stay behind `ctx.attachments`. Receipt tables use the receiving Agent's Session object as their key. The Session Controller registers the resolver that can resume a cold ordinary Agent and consumes receipts during prompt admission. Prompt delivery holds each receipt binding in a disposable transaction: disposal restores the previous binding until successful delivery commits it, and queue or history observation then retires the committed receipt.
+The Host plugin provides `ctx.fileUploads`. It owns the authenticated streaming route, encoded Remote fallback, command receipt resolver, and staged-receipt lifecycle; encoded admission, attachment-error recognition, and byte storage stay behind `ctx.attachments`. File and image receipt tables use the receiving Agent's Session object as their key; the two receipt kinds cannot substitute for one another. Image receipts privately retain the source encoded byte count so prompt admission can combine staged and inline images under the original-byte budget. Normalized image metadata does not expose or replace that count. The Session Controller registers the resolver that can resume a cold ordinary Agent and consumes receipts during prompt admission. Prompt delivery holds each receipt binding in a disposable transaction: disposal restores the previous binding until successful delivery commits it, and queue or history observation then retires the committed receipt.
 
 | File | Role |
 |---|---|
@@ -87,6 +89,7 @@ None; this package neither assembles nor sends a provider request.
 
 These limits apply to the transport operation itself.
 
+- **Unsent receipts are process-local** — Host restart or owning Session disposal invalidates them. Removing a local draft does not remove stored bytes. Cancelling image staging before receipt publication may still leave immutable bytes; this service adds no storage rollback or garbage collection.
 - **Uploads are not resumable** — a failed or cancelled retry starts from the first byte.
 - **Stream bodies are one-shot** — transferring a `ReadableStream` locks the caller's object, so retry requires a newly created stream.
 - **Stream progress has no total** — callers receive consumed-byte counts because the stream API carries no byte length.

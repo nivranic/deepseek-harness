@@ -138,6 +138,12 @@
     <string name="native_download_remove_help">仅移除此设备保留的下载内容和进度，Host 文件及已保存到其他位置的文件不会改变。</string>
     <string name="native_capabilities_file_upload">上传文件附件</string>
     <string name="native_attachment_add">添加附件</string>
+    <string name="native_capabilities_image_upload">上传图片附件</string>
+    <string name="native_attachment_photo">照片</string>
+    <string name="native_attachment_image">图片</string>
+    <string name="native_attachment_image_detail">图片 · %1$s · %2$d×%3$d · %4$d 字节</string>
+    <string name="native_attachment_unsupported_image">暂不支持此图片格式，请选择 PNG、JPEG、WebP 或 GIF 图片。</string>
+    <string name="native_attachment_photo_unavailable">Host 尚未声明支持照片上传，请刷新连接能力。</string>
     <string name="native_attachment_plus">+</string>
     <string name="native_attachment_file">文件</string>
     <string name="native_attachment_remove">移除</string>

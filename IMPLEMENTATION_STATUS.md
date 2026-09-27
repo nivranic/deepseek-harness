@@ -22,9 +22,21 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android Photos 与有序混合附件意图（§36、§64）
+
+[当前来源记录](artifacts/upstream-first/android-photo-attachments-source.json)绑定 Host 图片暂存准入、Android 系统照片选择器及有序混合附件草稿。Photos 通过系统 ImageOnly 单选入口选图，Files 继续使用 SAF；两者共用选择票据、读取上传、取消和提交准入。Host 签发独立图片收据，提交时按整批图片数量及规范化前字节总量检查 inline 与 staged-image，最终保持普通 ImageBlock 语义和视觉模型检查。
+
+加密输入 v3 保存文本和单一有序文件/图片列表，草稿与待确认意图均保留原 Session、收据、元数据和 requestId。旧 v1/v2 文档严格拒绝且保留原字节，显式恢复保留备份；恢复不自动上传或发送。附件变化建立新意图，显式重试保留原意图，确切确认不清除较新编辑。选择和上传在模型入口持有发送准入许可，避免只靠界面禁用造成并发提交。
+
+本地每附件最多 512 KiB、每草稿最多 8 项，编码 RPC 参数 JSON 最多 1 MiB；参数预算不含签名 envelope，Host 独立限制完整请求。仅接收 PNG/JPEG/WebP/GIF，HEIC 和未知媒体类型明确拒绝；不新增广泛媒体权限、持久 URI 授权、原生流式上传或限额协商。图片可能被 Host 规范化，收据和最终图片引用不承诺保留原件字节。
+
+Host 9 个文件的 170 项定向测试通过；Android core 为 385 项、63 个套件，无失败、错误或跳过。9 项安装态选择器回调测试与真实系统选择器证据分别记录。真实 Android 34 x86_64 模拟器场景在两个已安装 APK 与本轮构建哈希一致后，通过系统 Photos/SAF 选择图片、文件、图片；独立读取 Host 存储，核对已知无元数据 PNG 和文件字节的 SHA-256。删除测试专属源照片并终止进程后，恢复同一 grant、有序收据和请求身份，无自动上传或 prompt；显式发送产生唯一原身份用户消息，ImageBlock/FileBlock/ImageBlock 顺序与完整意图一致。系统上下文消息单独核对，Session 授权图片回读和 Android 名称展示通过。
+
+最终安装态组合回归为 7 个文件、8 项测试通过，涵盖 Photos、Files、输入恢复、两种发送确认恢复、持久下载、原生诊断和查看位置。下载通过有界进度观测等待完成，继续核验原有完成状态、偏移及导出哈希。四张截图经检查。模型响应使用无密钥录制回放，不代表真实模型视觉理解通过。Camera、分享入口、Apple 接入、Host 重启后收据恢复、第三方提供方、更大流式上传、物理及跨平台矩阵仍开放。Session writer 保持 V3，completeRc 为 false，不授予全节或整项目完成。
+
 ## Android Files 选择器附件与完整草稿意图（§36、§64）
 
-[当前来源记录](artifacts/upstream-first/android-file-attachments-source.json)绑定 Android Composer 的显式 Files 入口、系统文档选择器与 Host 文件暂存上传。选择票据只消费一次，并绑定原 Host 模型、Session id 与打开世代；离开后重新打开同一 Session 不能恢复旧票据的权限。取消与退役等待内容流关闭和 RPC 清理，迟到回调不能把文件附到另一个目标。已经被 Host 接受的上传可能留下未引用文件，不承诺撤回 Host 存储。
+[历史来源记录](artifacts/upstream-first/android-file-attachments-source.json)绑定 Android Composer 的显式 Files 入口、系统文档选择器与 Host 文件暂存上传。选择票据只消费一次，并绑定原 Host 模型、Session id 与打开世代；离开后重新打开同一 Session 不能恢复旧票据的权限。取消与退役等待内容流关闭和 RPC 清理，迟到回调不能把文件附到另一个目标。已经被 Host 接受的上传可能留下未引用文件，不承诺撤回 Host 存储。
 
 加密输入文档升级为 v2，草稿和待确认发送均保存文本、文件收据、显示元数据及完整 requestId。文本或附件改变时建立新意图；显式重试保留原 Session、收据集合和请求身份，确切确认只清理已提交版本，保留较新编辑。旧 v1 文档严格拒绝且原始字节保留，只能通过显式恢复保留备份并开始空状态；没有自动迁移。上传本身不提交提示词，后续由用户明确发送，持久化恢复也不自动重传。
 

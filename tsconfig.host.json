@@ -8,11 +8,14 @@
     "rewriteRelativeImportExtensions": false
   },
   "include": [
+    "apps/web/tests/android-*.e2e.ts",
+    "packages/api/session-controller/src/client/view-location.ts",
     "apps/web/tests/android-operation-capabilities.e2e.ts",
     "apps/web/tests/android-subagent-timeline.e2e.ts",
     "apps/web/tests/android-resource-save.e2e.ts",
     "apps/web/tests/android-download-adoption.e2e.ts",
     "apps/web/tests/android-file-attachments.e2e.ts",
+    "apps/web/tests/android-photo-attachments.e2e.ts",
     "apps/web/tests/android-download-host-isolation.e2e.ts",
     "apps/web/tests/android-apk-admission.e2e.ts",
     "apps/web/tests/android-capability-presentation.e2e.ts",

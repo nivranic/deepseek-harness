@@ -76,8 +76,9 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android opens and 
     await command({ op: 'openViewLocation', payload: encoded, anchor })
     expect(unary.filter(method => method === 'session/page').length).toBeGreaterThan(2)
     await command({ op: 'assertPromptDraft', text: 'Retain unsent text across a view jump' })
-    stage = 'repeat-same-anchor'
+    stage = 'scroll-before-repeat'
     await command({ op: 'scrollSessionToLatest' })
+    stage = 'repeat-same-anchor'
     await command({ op: 'openViewLocation', payload: encoded, anchor })
     stage = 'copy-back-to-web'
     const copied = await command({ op: 'copyViewLocation' })

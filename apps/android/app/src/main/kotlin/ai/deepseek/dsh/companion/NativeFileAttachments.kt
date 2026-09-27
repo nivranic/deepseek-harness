@@ -8,6 +8,8 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -43,7 +45,11 @@ internal class AndroidNativeFileAttachmentSource(private val resolver: ContentRe
         if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
     }
     override fun open(): InputStream = resolver.openInputStream(uri) ?: throw IOException("Selected document is unavailable")
+    override fun mediaType(): String? = resolver.getType(uri)
 }
+
+/** AndroidX selects the system single-image picker or its platform-supported fallback. */
+internal fun nativePhotoPickerRequest() = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
 
 /** Keeps the original model and one selection across rotation. Process restoration has no upload authority. */
 internal class NativeFileAttachmentPicker : ViewModel() {
@@ -55,9 +61,9 @@ internal class NativeFileAttachmentPicker : ViewModel() {
     var busy by mutableStateOf(false)
         private set
 
-    fun begin(model: NativeFileAttachmentsModel): NativeFileSelection? {
+    fun begin(model: NativeFileAttachmentsModel, kind: NativeAttachmentKind = NativeAttachmentKind.FILE): NativeFileSelection? {
         if (pending != null) return null
-        val selection = model.prepare() ?: return null
+        val selection = model.prepare(kind) ?: return null
         pending = Pending(model, selection, model.state.value.sessionId)
         failure = null
         busy = true
@@ -65,8 +71,9 @@ internal class NativeFileAttachmentPicker : ViewModel() {
     }
 
     /** A duplicate or process-restored result has no captured selection and never opens the source. */
-    fun complete(source: NativeFileAttachmentSource?) {
+    fun complete(source: NativeFileAttachmentSource?, kind: NativeAttachmentKind = NativeAttachmentKind.FILE) {
         val selected = pending ?: return
+        if (selected.selection.kind != kind) return
         pending = null
         busy = false
         if (source == null || selected.cancelled) selected.model.cancelSelection(selected.selection)
@@ -74,8 +81,9 @@ internal class NativeFileAttachmentPicker : ViewModel() {
     }
 
     /** Invalid URIs and launch failures expose fixed local copy, never provider paths or exception messages. */
-    fun invalidResult() {
+    fun invalidResult(kind: NativeAttachmentKind = NativeAttachmentKind.FILE) {
         val selected = pending ?: return
+        if (selected.selection.kind != kind) return
         pending = null
         busy = false
         selected.model.cancelSelection(selected.selection)
@@ -102,23 +110,33 @@ internal class NativeFileAttachmentPicker : ViewModel() {
 
 /** The application root owns registration so a late result retains its original Host and Session owner. */
 @Composable
-internal fun rememberNativeFileAttachmentLauncher(owner: NativeFileAttachmentPicker): (NativeFileAttachmentsModel) -> Unit {
+internal fun rememberNativeFileAttachmentLauncher(owner: NativeFileAttachmentPicker): (NativeFileAttachmentsModel, NativeAttachmentKind) -> Unit {
     val resolver = LocalContext.current.contentResolver
     val launcher = rememberLauncherForActivityResult(NativeFileDocument()) { uri ->
         if (uri != null && uri.scheme != ContentResolver.SCHEME_CONTENT) owner.invalidResult()
         else owner.complete(uri?.let { AndroidNativeFileAttachmentSource(resolver, it) })
     }
-    return { model ->
-        if (owner.begin(model) != null) {
-            try { launcher.launch(Unit) }
-            catch (_: android.content.ActivityNotFoundException) { owner.invalidResult() }
-            catch (_: SecurityException) { owner.invalidResult() }
+    val photos = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null && uri.scheme != ContentResolver.SCHEME_CONTENT) owner.invalidResult(NativeAttachmentKind.IMAGE)
+        else owner.complete(uri?.let { AndroidNativeFileAttachmentSource(resolver, it) }, NativeAttachmentKind.IMAGE)
+    }
+    return { model, kind ->
+        if (owner.begin(model, kind) != null) {
+            try {
+                when (kind) {
+                    NativeAttachmentKind.FILE -> launcher.launch(Unit)
+                    NativeAttachmentKind.IMAGE -> photos.launch(nativePhotoPickerRequest())
+                }
+            }
+            catch (_: android.content.ActivityNotFoundException) { owner.invalidResult(kind) }
+            catch (_: SecurityException) { owner.invalidResult(kind) }
         }
     }
 }
 
 @Composable
-internal fun NativeFileAttachmentAddButton(enabled: Boolean, select: () -> Unit) {
+internal fun NativeFileAttachmentAddButton(enabled: Boolean, allowFiles: Boolean, allowImages: Boolean,
+                                          select: (NativeAttachmentKind) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val label = stringResource(R.string.native_attachment_add)
     Box {
@@ -127,15 +145,17 @@ internal fun NativeFileAttachmentAddButton(enabled: Boolean, select: () -> Unit)
             Text(stringResource(R.string.native_attachment_plus), style = MaterialTheme.typography.titleLarge)
         }
         DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(text = { Text(stringResource(R.string.native_attachment_file)) },
-                modifier = Modifier.testTag("session-attach-file"), onClick = { expanded = false; select() })
+            if (allowFiles) DropdownMenuItem(text = { Text(stringResource(R.string.native_attachment_file)) },
+                modifier = Modifier.testTag("session-attach-file"), onClick = { expanded = false; select(NativeAttachmentKind.FILE) })
+            if (allowImages) DropdownMenuItem(text = { Text(stringResource(R.string.native_attachment_photo)) },
+                modifier = Modifier.testTag("session-attach-photo"), onClick = { expanded = false; select(NativeAttachmentKind.IMAGE) })
         }
     }
 }
 
 /** Completed receipts remain part of the current draft until explicit removal or submission. */
 @Composable
-internal fun NativeFileAttachmentCards(files: List<SessionFileAttachment>, enabled: Boolean, remove: (String) -> Unit) {
+internal fun NativeFileAttachmentCards(files: List<SessionAttachment>, enabled: Boolean, remove: (String) -> Unit) {
     if (files.isEmpty()) return
     Column(Modifier.fillMaxWidth().heightIn(max = 176.dp).verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -143,8 +163,11 @@ internal fun NativeFileAttachmentCards(files: List<SessionFileAttachment>, enabl
             OutlinedCard(Modifier.fillMaxWidth().testTag("session-attachment-${file.receiptId}")) {
                 Row(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Column(Modifier.weight(1f)) {
-                        Text(file.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(stringResource(R.string.native_attachment_bytes, file.bytes), style = MaterialTheme.typography.bodySmall)
+                        Text(file.name ?: stringResource(R.string.native_attachment_image), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(when (file) {
+                            is SessionFileAttachment -> stringResource(R.string.native_attachment_bytes, file.bytes)
+                            is SessionImageAttachment -> stringResource(R.string.native_attachment_image_detail, file.mediaType, file.width, file.height, file.bytes)
+                        }, style = MaterialTheme.typography.bodySmall)
                     }
                     TextButton(onClick = { remove(file.receiptId) }, enabled = enabled,
                         modifier = Modifier.testTag("session-attachment-remove-${file.receiptId}")) {
@@ -158,9 +181,9 @@ internal fun NativeFileAttachmentCards(files: List<SessionFileAttachment>, enabl
 
 /** A pending prompt keeps its captured attachments visible without editing the submitted receipt set. */
 @Composable
-internal fun NativePendingFileAttachments(files: List<SessionFileAttachment>) {
+internal fun NativePendingFileAttachments(files: List<SessionAttachment>) {
     files.forEach { file ->
-        Text(stringResource(R.string.native_attachment_detail, file.name, file.bytes), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.native_attachment_detail, file.name ?: stringResource(R.string.native_attachment_image), file.bytes), style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -179,6 +202,7 @@ internal fun NativeFileAttachmentNotice(model: NativeFileAttachmentsModel, state
             NativeFileAttachmentIssue.TOO_LARGE -> R.string.native_attachment_too_large
             NativeFileAttachmentIssue.TOO_MANY_FILES -> R.string.native_attachment_too_many
             NativeFileAttachmentIssue.INVALID_FILE -> R.string.native_attachment_invalid
+            NativeFileAttachmentIssue.UNSUPPORTED_IMAGE -> R.string.native_attachment_unsupported_image
             NativeFileAttachmentIssue.REQUEST_TOO_LARGE -> R.string.native_attachment_request_too_large
             NativeFileAttachmentIssue.SOURCE_FAILED -> R.string.native_attachment_source_failed
             NativeFileAttachmentIssue.UPLOAD_FAILED -> R.string.native_attachment_upload_failed

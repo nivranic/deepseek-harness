@@ -113,7 +113,7 @@ for (const recovery of ['explicit-retry', 'recorded-receipt'] as const) {
       }
       expect((await driver.request({ op: 'assertNoPendingPrompt' })).type).toBe('ok')
       expect((await driver.request({ op: 'assertPromptDraft', text: newer })).type).toBe('ok')
-      const messages = events.filter(event => event.type === 'user/message' && event.data.source.kind === 'user')
+      const messages = events.filter(event => event.type === 'user/message').filter(event => event.data.source.kind === 'user')
       expect(messages).toHaveLength(1)
       expect(messages[0]?.data.source).toMatchObject({ kind: 'user', rpcId: pending.value })
       expect(events.flatMap(event => event.type === 'agent/inbox/spliced' ? event.data.inserted : [])).toHaveLength(1)

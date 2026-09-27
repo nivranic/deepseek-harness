@@ -484,8 +484,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async admitPromptContent( content: readonly AttachmentAdmissionPart[], ): Promise<AdmittedPromptContentPart[]>',
-        description: 'Admit one Host prompt and replace each uploaded image with its durable reference. Text and durable file references pass through unchanged. A prompt without image parts performs no storage operation.',
-        parameters: [{ name: 'content', description: 'prompt parts in message order after file receipt resolution.' }],
+        description: 'Admit one Host prompt and replace each uploaded image with its durable reference. Inline and staged images share one count and original-byte budget, including repeated occurrences. Text and durable references pass through without storage; inline images validate together before any new write.',
+        parameters: [{ name: 'content', description: 'prompt parts in message order after Host receipt resolution.' }],
         returns: 'admitted prompt parts in the same order as `content`.',
         throws: ['AttachmentError when the image batch is refused.'],
       },
@@ -972,10 +972,16 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'disposer removing this resolver.',
       },
       {
-        signature: '@Remote(\'upload\') upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue>',
+        signature: '@Remote(\'upload\') async upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue>',
         description: 'Persist one encoded upload and stage it under the Agent receiver selected by Typert.',
         parameters: [{ name: 'agent', description: 'receiving Agent resolved from the Remote Agent scope.' }, { name: 'request', description: 'canonical base64 bytes and optional display name.' }, { name: 'signal', description: 'caller cancellation before storage begins.' }],
         returns: 'the staged receipt and durable file reference.',
+      },
+      {
+        signature: '@Remote(\'uploadImage\') async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue>',
+        description: 'Validate and normalize one image, then stage its reference for a prompt in this Session. Cancellation before publication returns no receipt; immutable stored bytes may remain.',
+        parameters: [{ name: 'agent', description: 'receiving ordinary Agent resolved from the Remote scope.' }, { name: 'request', description: 'canonical base64, declared media type, and optional display name.' }, { name: 'signal', description: 'caller cancellation; an ongoing image write is not interrupted.' }],
+        returns: 'the Session-scoped receipt and normalized image reference.',
       },
       {
         signature: 'async uploadStream(request: { readonly sessionId: SessionId readonly data: AsyncIterable<Uint8Array> readonly signal?: AbortSignal readonly name?: string }): Promise<FileUploadValue>',
@@ -990,9 +996,15 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'durable file reference, or `undefined` for an unknown or foreign receipt.',
       },
       {
-        signature: 'bindPrompt( agent: Agent, receiptIds: readonly FileUploadReceiptId[], requestId: string, ): PromptFileBinding',
+        signature: 'resolveImage( agent: Agent, receiptId: ImageUploadReceiptId, ): Extract<AttachmentAdmissionPart, { readonly type: \'staged-image\' }> | undefined',
+        description: 'Resolve an image receipt with its trusted pre-normalization byte count.',
+        parameters: [{ name: 'agent', description: 'receiving Agent.' }, { name: 'receiptId', description: 'authority minted by a completed image upload.' }],
+        returns: 'Host admission data, or undefined for an unknown, foreign, or file receipt.',
+      },
+      {
+        signature: 'bindPrompt( agent: Agent, receipts: { readonly files: readonly FileUploadReceiptId[] readonly images: readonly ImageUploadReceiptId[] }, requestId: string, ): PromptFileBinding',
         description: 'Bind receipts while one prompt enters an Agent inbox. Disposal restores every prior binding unless the caller commits successful delivery.',
-        parameters: [{ name: 'agent', description: 'receiving Agent.' }, { name: 'receiptIds', description: 'distinct staged receipts referenced by the prompt.' }, { name: 'requestId', description: 'prompt identity later observed in queue or history.' }],
+        parameters: [{ name: 'agent', description: 'receiving Agent.' }, { name: 'receipts', description: 'distinct file and image receipts referenced by the prompt.' }, { name: 'requestId', description: 'prompt identity later observed in queue or history.' }],
         returns: 'binding kept after commit until queue or history observation retires its receipts.',
       },
       {
@@ -3907,7 +3919,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'AttachmentAdmissionPart',
-    declaration: 'export type AttachmentAdmissionPart = PromptContentPart | {\n    readonly type: \'file\';\n    readonly attachment: FileAttachmentRef;\n};',
+    declaration: 'export type AttachmentAdmissionPart = PromptContentPart | {\n    readonly type: \'file\';\n    readonly attachment: FileAttachmentRef;\n} | {\n    readonly type: \'staged-image\';\n    readonly attachment: ImageAttachmentRef;\n    readonly originalBytes: number;\n};',
   },
   {
     name: 'AttachmentError',
@@ -4430,6 +4442,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface EncodedImageAttachment {\n    mediaType: ImageMediaType;\n    data: string;\n    name?: string;\n}',
   },
   {
+    name: 'EncodedImageUploadRequest',
+    declaration: 'export type EncodedImageUploadRequest = EncodedImageAttachment;',
+  },
+  {
     name: 'EpochHeader',
     declaration: 'export interface EpochHeader {\n    config: LlmCallConfig;\n    adapterDefaults?: LlmCallConfigAdapterDefaults;\n    tools?: ToolSchema[];\n}',
   },
@@ -4616,6 +4632,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ImageRequestPolicy',
     declaration: 'export interface ImageRequestPolicy {\n    maxPixels: number;\n    maxBytes: number;\n}',
+  },
+  {
+    name: 'ImageUploadReceiptId',
+    declaration: 'export type ImageUploadReceiptId = Branded<\'image-upload-receipt-id\'>;',
+  },
+  {
+    name: 'ImageUploadValue',
+    declaration: 'export interface ImageUploadValue {\n    readonly receiptId: ImageUploadReceiptId;\n    readonly image: ImageAttachmentRef;\n}',
   },
   {
     name: 'ImageVariantId',

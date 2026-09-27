@@ -14,6 +14,7 @@ import kotlin.test.*
 class NativeFileDraftTest {
     private val first = SessionFileAttachment("receipt-first", "attachment-first", "报告.txt", 3)
     private val second = SessionFileAttachment("receipt-second", "attachment-second", "empty.bin", 0)
+    private val image = SessionImageAttachment("receipt-image", "attachment-image", "image/png", 69, 1, 1, "红.png")
     private val directories = mutableListOf<File>()
     private fun value(json: String) = WireValue.fromJsonElement(Json.parseToJsonElement(json))
     private fun accepted() = value("""{"accepted":true}""")
@@ -22,53 +23,83 @@ class NativeFileDraftTest {
 
     @AfterTest fun cleanup() { directories.forEach { it.deleteRecursively() } }
 
+    @Test fun `mixed receipt order survives retry with the same identity while acknowledgement protects newer edits`() = runTest {
+        val wire = FakeWire().apply { stub("session/prompt") { throw java.io.IOException("lost acknowledgement") } }
+        val model = SessionModel(wire, backgroundScope)
+        model.openSession("session")
+        model.updateDraft("session", "original")
+        listOf(first, image, second).forEach { model.addAttachment("session", it) }
+        val original = model.input.value.drafts.getValue("session")
+        assertFalse(model.sendDraft())
+        assertEquals(listOf("text", "file", "staged-image", "file"), content(wire.calls.single()).map { WireShape.string(it, "type") })
+        model.removeAttachment("session", image.receiptId)
+        model.updateDraft("session", "newer")
+        val newer = model.input.value.drafts.getValue("session")
+        assertNotEquals(original.requestId, newer.requestId)
+        wire.stub("session/prompt") { accepted() }
+        model.retryPrompt(original.requestId).join()
+        assertEquals(wire.calls.first(), wire.calls.last())
+        assertEquals(newer, model.input.value.drafts["session"])
+        assertTrue(model.input.value.pendingPrompts.isEmpty())
+    }
+
+    @Test fun `image-only intent sends its staged receipt without inline image data`() = runTest {
+        val wire = FakeWire().apply { stub("session/prompt") { accepted() } }
+        val model = SessionModel(wire, backgroundScope)
+        model.openSession("session"); model.addAttachment("session", image)
+        assertTrue(model.sendDraft())
+        assertEquals(listOf(value("""{"type":"text","text":""}"""),
+            value("""{"type":"staged-image","receiptId":"receipt-image"}""")), content(wire.calls.single()))
+        assertTrue(model.input.value.drafts.isEmpty())
+    }
+
     @Test fun `text and attachment edits preserve the other input and rotate only changed intent identities`() = runTest {
         val model = SessionModel(FakeWire(), backgroundScope)
         model.openSession("session")
         model.updateDraft("session", "keep text")
         val text = model.input.value.drafts.getValue("session")
-        assertTrue(model.addFileAttachment("session", first))
+        assertTrue(model.addAttachment("session", first))
         val attached = model.input.value.drafts.getValue("session")
         assertEquals(text.text, attached.text)
-        assertEquals(listOf(first), attached.files)
+        assertEquals(listOf(first), attached.attachments)
         assertNotEquals(text.requestId, attached.requestId)
         model.updateDraft("session", "keep text")
-        assertFalse(model.addFileAttachment("session", first))
-        model.removeFileAttachment("session", "absent")
+        assertFalse(model.addAttachment("session", first))
+        model.removeAttachment("session", "absent")
         assertEquals(attached, model.input.value.drafts["session"])
 
-        assertTrue(model.addFileAttachment("session", second))
+        assertTrue(model.addAttachment("session", second))
         val both = model.input.value.drafts.getValue("session")
         assertNotEquals(attached.requestId, both.requestId)
-        model.removeFileAttachment("session", first.receiptId)
+        model.removeAttachment("session", first.receiptId)
         val remaining = model.input.value.drafts.getValue("session")
         assertEquals("keep text", remaining.text)
-        assertEquals(listOf(second), remaining.files)
+        assertEquals(listOf(second), remaining.attachments)
         assertNotEquals(both.requestId, remaining.requestId)
         model.updateDraft("session", "")
         val fileOnly = model.input.value.drafts.getValue("session")
-        assertEquals(listOf(second), fileOnly.files)
+        assertEquals(listOf(second), fileOnly.attachments)
         assertEquals("", fileOnly.text)
         assertNotEquals(remaining.requestId, fileOnly.requestId)
-        model.removeFileAttachment("session", second.receiptId)
+        model.removeAttachment("session", second.receiptId)
         assertFalse("session" in model.input.value.drafts)
     }
 
     @Test fun `late attachments cannot enter another Session or change a retired composer`() = runTest {
         val wire = FakeWire()
         val model = SessionModel(wire, backgroundScope)
-        assertFalse(model.addFileAttachment("first", first))
+        assertFalse(model.addAttachment("first", first))
         model.openSession("first")
-        assertTrue(model.addFileAttachment("first", first))
+        assertTrue(model.addAttachment("first", first))
         val retained = model.input.value.drafts.getValue("first")
         model.openSession("second")
-        assertFalse(model.addFileAttachment("first", second))
-        model.removeFileAttachment("first", first.receiptId)
+        assertFalse(model.addAttachment("first", second))
+        model.removeAttachment("first", first.receiptId)
         assertEquals(retained, model.input.value.drafts["first"])
         assertFalse("second" in model.input.value.drafts)
         assertFalse(model.sendDraft())
         model.closeAndAwait()
-        assertFalse(model.addFileAttachment("second", second))
+        assertFalse(model.addAttachment("second", second))
         assertTrue(wire.calls.isEmpty())
     }
 
@@ -76,8 +107,8 @@ class NativeFileDraftTest {
         val wire = FakeWire().apply { stub("session/prompt") { accepted() } }
         val model = SessionModel(wire, backgroundScope)
         model.openSession("session")
-        model.addFileAttachment("session", first)
-        model.addFileAttachment("session", second)
+        model.addAttachment("session", first)
+        model.addAttachment("session", second)
         val original = model.input.value.drafts.getValue("session")
         assertTrue(model.sendDraft())
         assertEquals(original.requestId, WireShape.string(request(wire.calls.single()), "requestId"))
@@ -96,14 +127,14 @@ class NativeFileDraftTest {
         val model = SessionModel(wire, backgroundScope)
         model.openSession("first")
         model.updateDraft("first", "submitted")
-        model.addFileAttachment("first", first)
+        model.addAttachment("first", first)
         val original = model.input.value.drafts.getValue("first")
         val sending = async { model.sendDraft() }
         runCurrent()
-        model.addFileAttachment("first", second)
+        model.addAttachment("first", second)
         val newer = model.input.value.drafts.getValue("first")
         model.openSession("second")
-        model.addFileAttachment("second", second)
+        model.addAttachment("second", second)
         val foreign = model.input.value.drafts.getValue("second")
         reply.complete(accepted())
         assertTrue(sending.await())
@@ -123,7 +154,7 @@ class NativeFileDraftTest {
         val model = SessionModel(wire, backgroundScope, inputs = inputs)
         model.openSession("first")
         model.updateDraft("first", "original text")
-        model.addFileAttachment("first", first)
+        model.addAttachment("first", first)
         val original = model.input.value.drafts.getValue("first")
         wire.stub("session/prompt") {
             assertEquals(original, store.load()!!.pendingPrompts.getValue(original.requestId).draft)
@@ -133,7 +164,7 @@ class NativeFileDraftTest {
         runCurrent()
         assertFalse(model.sendDraft())
         model.updateDraft("first", "new text")
-        model.addFileAttachment("first", second)
+        model.addAttachment("first", second)
         val newer = model.input.value.drafts.getValue("first")
         inputs.flush()
         sending.cancelAndJoin()
@@ -170,7 +201,7 @@ class NativeFileDraftTest {
         }
         val model = SessionModel(wire, backgroundScope)
         model.openSession("session")
-        model.addFileAttachment("session", first)
+        model.addAttachment("session", first)
         val original = model.input.value.drafts.getValue("session")
         assertFalse(model.sendDraft())
         model.retryPrompt(original.requestId).join()

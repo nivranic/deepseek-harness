@@ -1,9 +1,11 @@
-/** Host file-upload service: streamed intake and Agent-scoped staged receipts. */
+/** Host file and image intake with Agent-scoped staged receipts. */
 
+import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { FileAttachmentRef } from '@deepseek-ai/dsh-attachment'
+import { admitEncodedImages } from '@deepseek-ai/dsh-attachment'
+import type { AttachmentAdmissionPart, FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import type { CommandFileReceiptResolver } from '@deepseek-ai/dsh-commands'
 import { scopeOf } from '@deepseek-ai/dsh-scope'
@@ -12,19 +14,25 @@ import { FILE_UPLOAD_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { handleFileUploadHttp } from './http-route.ts'
 import { FILE_UPLOAD_PATH } from './protocol.ts'
-import type { EncodedFileUploadRequest, FileUploadReceiptId, FileUploadValue } from './types.ts'
+import type {
+  EncodedFileUploadRequest, EncodedImageUploadRequest, FileUploadReceiptId, FileUploadValue,
+  ImageUploadReceiptId, ImageUploadValue,
+} from './types.ts'
 
 export type * from './types.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
-    /** Host storage and staged-receipt service for browser file uploads. */
+    /** Host storage and staged-receipt service for file and image uploads. */
     fileUploads: FileUploads
   }
 }
 
-interface StagedFileUpload {
-  readonly file: FileAttachmentRef
+type StagedUploadValue =
+  | { readonly kind: 'file'; readonly file: FileAttachmentRef }
+  | { readonly kind: 'image'; readonly image: ImageAttachmentRef; readonly originalBytes: number }
+
+type StagedUpload = StagedUploadValue & {
   /** Prompt that accepted this receipt; absent until successful admission. */
   requestId?: string
 }
@@ -58,7 +66,7 @@ class PromptFileBindingGuard implements PromptFileBinding {
 export class FileUploads extends TypertRemoteService {
   static inject = ['agents', 'attachments', 'commands', 'connection']
 
-  private readonly stagedFiles = new WeakMap<Session, Map<FileUploadReceiptId, StagedFileUpload>>()
+  private readonly stagedUploads = new WeakMap<Session, Map<FileUploadReceiptId | ImageUploadReceiptId, StagedUpload>>()
   private agentResolver: AgentResolver | undefined
 
   /** @param ctx - Host context carrying Agent, attachment, command, and Connection services. */
@@ -80,7 +88,7 @@ export class FileUploads extends TypertRemoteService {
       'file-upload: streaming route',
     )
     ctx.on('session/event', (session, event) => { this.observeSessionEvent(session, event) })
-    ctx.on('session/disposed', (session) => { this.stagedFiles.delete(session) })
+    ctx.on('session/disposed', (session) => { this.stagedUploads.delete(session) })
   }
 
   /**
@@ -104,12 +112,41 @@ export class FileUploads extends TypertRemoteService {
    * @returns the staged receipt and durable file reference.
    */
   @Remote('upload')
-  upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue> {
+  async upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue> {
     signal.throwIfAborted()
-    return this.commit(agent, async () => this.ctx.attachments.admitEncodedFile({
-      data: request.data,
-      ...(request.name === undefined ? {} : { name: request.name }),
+    const staged = await this.commit(agent, 'file', async () => ({
+      kind: 'file' as const,
+      file: await this.ctx.attachments.admitEncodedFile({
+        data: request.data,
+        ...(request.name === undefined ? {} : { name: request.name }),
+      }),
     }))
+    return { receiptId: staged.receiptId as FileUploadReceiptId, file: staged.upload.file }
+  }
+
+  /**
+   * Validate and normalize one image, then stage its reference for a prompt in this Session.
+   * Cancellation before publication returns no receipt; immutable stored bytes may remain.
+   * @param agent - receiving ordinary Agent resolved from the Remote scope.
+   * @param request - canonical base64, declared media type, and optional display name.
+   * @param signal - caller cancellation; an ongoing image write is not interrupted.
+   * @returns the Session-scoped receipt and normalized image reference.
+   */
+  @Remote('uploadImage')
+  async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue> {
+    signal.throwIfAborted()
+    const { data, mediaType, name } = request
+    const staged = await this.commit(agent, 'image', async () => {
+      const refs = await admitEncodedImages(this.ctx.attachments, [{
+        data, mediaType, ...(name === undefined ? {} : { name }),
+      }])
+      return {
+        kind: 'image' as const,
+        image: refs[0] as ImageAttachmentRef,
+        originalBytes: Buffer.byteLength(data, 'base64'),
+      }
+    }, signal)
+    return { receiptId: staged.receiptId as ImageUploadReceiptId, image: staged.upload.image }
   }
 
   /**
@@ -124,11 +161,15 @@ export class FileUploads extends TypertRemoteService {
     readonly name?: string
   }): Promise<FileUploadValue> {
     const agent = await this.resolveAgent(request.sessionId)
-    return this.commit(agent, async () => this.ctx.attachments.saveFileStream({
-      data: request.data,
-      ...(request.signal === undefined ? {} : { signal: request.signal }),
-      ...(request.name === undefined ? {} : { name: request.name }),
+    const staged = await this.commit(agent, 'file', async () => ({
+      kind: 'file' as const,
+      file: await this.ctx.attachments.saveFileStream({
+        data: request.data,
+        ...(request.signal === undefined ? {} : { signal: request.signal }),
+        ...(request.name === undefined ? {} : { name: request.name }),
+      }),
     }))
+    return { receiptId: staged.receiptId as FileUploadReceiptId, file: staged.upload.file }
   }
 
   /**
@@ -139,29 +180,54 @@ export class FileUploads extends TypertRemoteService {
    */
   resolve(agent: Agent, receiptId: FileUploadReceiptId): FileAttachmentRef | undefined {
     this.assertAgentScope(agent)
-    return this.stagedFiles.get(agent.session)?.get(receiptId)?.file
+    const upload = this.stagedUploads.get(agent.session)?.get(receiptId)
+    return upload?.kind === 'file' ? upload.file : undefined
+  }
+
+  /**
+   * Resolve an image receipt with its trusted pre-normalization byte count.
+   * @param agent - receiving Agent.
+   * @param receiptId - authority minted by a completed image upload.
+   * @returns Host admission data, or undefined for an unknown, foreign, or file receipt.
+   */
+  resolveImage(
+    agent: Agent,
+    receiptId: ImageUploadReceiptId,
+  ): Extract<AttachmentAdmissionPart, { readonly type: 'staged-image' }> | undefined {
+    this.assertAgentScope(agent)
+    const upload = this.stagedUploads.get(agent.session)?.get(receiptId)
+    return upload?.kind === 'image'
+      ? { type: 'staged-image', attachment: upload.image, originalBytes: upload.originalBytes }
+      : undefined
   }
 
   /**
    * Bind receipts while one prompt enters an Agent inbox.
    * Disposal restores every prior binding unless the caller commits successful delivery.
    * @param agent - receiving Agent.
-   * @param receiptIds - distinct staged receipts referenced by the prompt.
+   * @param receipts - distinct file and image receipts referenced by the prompt.
    * @param requestId - prompt identity later observed in queue or history.
    * @returns binding kept after commit until queue or history observation retires its receipts.
    */
   bindPrompt(
     agent: Agent,
-    receiptIds: readonly FileUploadReceiptId[],
+    receipts: {
+      readonly files: readonly FileUploadReceiptId[]
+      readonly images: readonly ImageUploadReceiptId[]
+    },
     requestId: string,
   ): PromptFileBinding {
     this.assertAgentScope(agent)
-    const staged = this.stagedFiles.get(agent.session)
-    const bound = receiptIds.map((receiptId) => {
+    const staged = this.stagedUploads.get(agent.session)
+    const binding = (receiptId: FileUploadReceiptId | ImageUploadReceiptId, kind: 'file' | 'image') => {
       const upload = staged?.get(receiptId)
-      if (upload === undefined) throw fileNotStaged()
+      if (upload?.kind !== kind) throw uploadNotStaged(kind)
       return { upload, previous: upload.requestId }
-    })
+    }
+    const bound = [
+      ...receipts.files.map(receiptId => binding(receiptId, 'file')),
+      ...receipts.images.map(receiptId => binding(receiptId, 'image')),
+    ]
     for (const { upload } of bound) upload.requestId = requestId
     return new PromptFileBindingGuard(() => {
       for (const { upload, previous } of bound) {
@@ -181,18 +247,23 @@ export class FileUploads extends TypertRemoteService {
     this.retire(agent.session, requestId)
   }
 
-  private async commit(agent: Agent, save: () => Promise<FileAttachmentRef>): Promise<FileUploadValue> {
-    this.assertOrdinaryAgent(agent)
-    let file: FileAttachmentRef
+  private async commit<Upload extends StagedUploadValue>(
+    agent: Agent,
+    kind: 'file' | 'image',
+    save: () => Promise<Upload>,
+    signal?: AbortSignal,
+  ): Promise<{ readonly receiptId: FileUploadReceiptId | ImageUploadReceiptId; readonly upload: Upload }> {
+    this.assertOrdinaryAgent(agent, kind)
+    let upload: Upload
     try {
-      file = await save()
+      upload = await save()
     } catch (error) {
       if (this.ctx.attachments.isAttachmentError(error)) {
         throw new RemoteError('session/attachment-invalid' as never, error.message, { reason: error.code } as never)
       }
       throw new RemoteError(
         'gateway/internal',
-        `failed to store file upload: ${String(error)}`,
+        `failed to store ${kind} upload: ${String(error)}`,
         {},
         { cause: error },
       )
@@ -200,18 +271,19 @@ export class FileUploads extends TypertRemoteService {
     if (this.ctx.agents.get(agent.id) !== agent) {
       throw new RemoteError(
         'session/not-found',
-        `session "${agent.id}" was disposed before its file upload completed`,
+        `session "${agent.id}" was disposed before its ${kind} upload completed`,
         { sessionId: agent.id },
       )
     }
-    let staged = this.stagedFiles.get(agent.session)
+    signal?.throwIfAborted()
+    let staged = this.stagedUploads.get(agent.session)
     if (staged === undefined) {
       staged = new Map()
-      this.stagedFiles.set(agent.session, staged)
+      this.stagedUploads.set(agent.session, staged)
     }
-    const receiptId = randomUUID() as FileUploadReceiptId
-    staged.set(receiptId, { file })
-    return { receiptId, file }
+    const receiptId = randomUUID() as FileUploadReceiptId | ImageUploadReceiptId
+    staged.set(receiptId, upload)
+    return { receiptId, upload }
   }
 
   private async resolveAgent(sessionId: SessionId): Promise<Agent> {
@@ -228,13 +300,13 @@ export class FileUploads extends TypertRemoteService {
     if (scopeOf(agent.ctx) !== agent) throw new Error('file-upload: operation requires the Agent\'s own scope')
   }
 
-  private assertOrdinaryAgent(agent: Agent): void {
+  private assertOrdinaryAgent(agent: Agent, kind: 'file' | 'image'): void {
     this.assertAgentScope(agent)
     if (agent.session.header.origin === 'subagent') {
       throw new RemoteError(
         'subagent/attachment-invalid' as never,
-        'subagent conversations do not accept file uploads',
-        { reason: 'SUBAGENT_FILE_UNSUPPORTED' } as never,
+        `subagent conversations do not accept ${kind} uploads`,
+        { reason: kind === 'file' ? 'SUBAGENT_FILE_UNSUPPORTED' : 'SUBAGENT_IMAGE_UNSUPPORTED' } as never,
       )
     }
   }
@@ -246,20 +318,20 @@ export class FileUploads extends TypertRemoteService {
   }
 
   private retire(session: Session, requestId: string): void {
-    const staged = this.stagedFiles.get(session)
+    const staged = this.stagedUploads.get(session)
     if (staged === undefined) return
     for (const [receiptId, upload] of staged) {
       if (upload.requestId === requestId) staged.delete(receiptId)
     }
-    if (staged.size === 0) this.stagedFiles.delete(session)
+    if (staged.size === 0) this.stagedUploads.delete(session)
   }
 }
 
-function fileNotStaged(): RemoteError {
+function uploadNotStaged(kind: 'file' | 'image'): RemoteError {
   return new RemoteError(
     'session/attachment-invalid' as never,
-    'File was not uploaded for this session.',
-    { reason: 'FILE_NOT_STAGED' } as never,
+    `${kind === 'file' ? 'File' : 'Image'} was not uploaded for this session.`,
+    { reason: kind === 'file' ? 'FILE_NOT_STAGED' : 'IMAGE_NOT_STAGED' } as never,
   )
 }
 

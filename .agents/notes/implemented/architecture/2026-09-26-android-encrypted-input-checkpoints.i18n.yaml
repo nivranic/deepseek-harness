@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.md
-2026-09-26-android-encrypted-input-checkpoints.md: f8482d378bc794ef4718fec191718f3253b98e35
-2026-09-26-android-encrypted-input-checkpoints.zh.md: 721a378c48618af64bb14452feaccfd973ecef7e
+2026-09-26-android-encrypted-input-checkpoints.md: 3e2abe1d1e02cfa3c8f1de183468d0e2ccf50a15
+2026-09-26-android-encrypted-input-checkpoints.zh.md: b362a0b137c2bcf885a72984914300d8ab7ecb24

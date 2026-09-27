@@ -464,6 +464,19 @@ describe('prompt and cancel errors', () => {
     expect(mock.log.requests('subagents/prompt')).toEqual([])
   })
 
+  it('rejects staged image receipts before calling a subagent continuation', async ({ mock, start }) => {
+    const session = await sessionBench(mock, start, SID, { address: CHILD, parentAvailable: true })
+    await session.open()
+    await expect(session.prompt([
+      { type: 'staged-image', receiptId: 'image-receipt' as never },
+      { type: 'text', text: 'continue' },
+    ], 'queue')).resolves.toMatchObject({
+      ok: false,
+      error: { code: 'subagent/attachment-invalid', details: { reason: 'SUBAGENT_IMAGE_UNSUPPORTED' } },
+    })
+    expect(mock.log.requests('subagents/prompt')).toEqual([])
+  })
+
   it('sends a one-shot address to the Host under the continuable marker', async ({ mock, start }) => {
     const session = await sessionBench(mock, start, SID, { address: { ...CHILD, mode: 'one-shot' } })
     mock.remote.subagents.prompt.mockResolvedValue(err(new RemoteError(

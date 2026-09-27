@@ -25,6 +25,7 @@ class NativeFileAttachmentPickerTest {
         val opens = AtomicInteger()
         val closes = AtomicInteger()
         override fun name(): String { names.incrementAndGet(); return "报告.bin" }
+        override fun mediaType(): String = "image/png"
         override fun open(): InputStream {
             opens.incrementAndGet()
             return object : ByteArrayInputStream(byteArrayOf(0, 127, -1)) {
@@ -40,17 +41,18 @@ class NativeFileAttachmentPickerTest {
         val uploads = AtomicInteger()
         val wire = object : WireDriving {
             override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
-                check(method == "fileUploads/upload") { "Picker test must not submit another Host operation" }
+                check(method in setOf("fileUploads/upload", "fileUploads/uploadImage")) { "Picker test must not submit another Host operation" }
                 check(WireShape.string(WireValue.ObjectValue(args), "agentId") == "session")
                 val request = checkNotNull(args["request"])
                 val bytes = Base64.getDecoder().decode(checkNotNull(WireShape.string(request, "data")))
                 val index = uploads.incrementAndGet()
                 return WireValue.fromJsonElement(buildJsonObject {
                     put("receiptId", "receipt-$index")
-                    put("file", buildJsonObject {
+                    put(if (method == "fileUploads/uploadImage") "image" else "file", buildJsonObject {
                         put("attachmentId", "attachment-$index")
                         put("name", checkNotNull(WireShape.string(request, "name")))
                         put("bytes", bytes.size)
+                        if (method == "fileUploads/uploadImage") { put("mediaType", "image/png"); put("width", 1); put("height", 1) }
                     })
                 })
             }
@@ -91,12 +93,62 @@ class NativeFileAttachmentPickerTest {
         assertNull(contract.parseResult(Activity.RESULT_OK, Intent().setData(uri).apply { clipData = multiple }))
     }
 
+    @Test fun photoContractRequestsOneImageThroughAndroidXPhotoPicker() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+        val request = nativePhotoPickerRequest()
+        assertEquals(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly, request.mediaType)
+        val intent = contract.createIntent(context, request)
+        assertEquals("image/*", intent.type)
+        assertFalse(intent.getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false))
+        assertNull(contract.parseResult(Activity.RESULT_CANCELED, Intent().setData(Uri.parse("content://picker-test/photo"))))
+    }
+
+    @Test fun photoAndFileCallbacksShareOneRetainedOwnerAndCannotConsumeEachOthersSelections() = runBlocking {
+        withFixture { fixture ->
+            assertNotNull(fixture.picker.begin(fixture.model, NativeAttachmentKind.IMAGE))
+            assertNull(fixture.picker.begin(fixture.model))
+            val retained = androidx.lifecycle.ViewModelProvider(fixture.store, androidx.lifecycle.ViewModelProvider.NewInstanceFactory())
+                .get("picker", NativeFileAttachmentPicker::class.java)
+            assertSame(fixture.picker, retained)
+            val source = Source()
+            retained.complete(source)
+            source.assertUntouched(); assertTrue(retained.busy)
+            retained.complete(source, NativeAttachmentKind.IMAGE)
+            while (fixture.model.state.value.phase != NativeFileAttachmentPhase.IDLE || fixture.inputs.state.value.drafts["session"]?.attachments?.size != 1) delay(10)
+            assertTrue(fixture.inputs.state.value.drafts.getValue("session").attachments.single() is SessionImageAttachment)
+            assertEquals(1, fixture.uploads.get())
+            val duplicate = Source()
+            retained.complete(duplicate, NativeAttachmentKind.IMAGE)
+            NativeFileAttachmentPicker().complete(duplicate, NativeAttachmentKind.IMAGE)
+            duplicate.assertUntouched()
+            assertEquals(1, fixture.uploads.get())
+        }
+    }
+
+    @Test fun cancelledAndRetiredPhotoSelectionsCannotReviveThroughFileCallbacksOrSessionReturn() = runBlocking {
+        withFixture { fixture ->
+            assertNotNull(fixture.picker.begin(fixture.model, NativeAttachmentKind.IMAGE))
+            fixture.picker.cancel(fixture.model)
+            assertTrue(fixture.picker.busy); assertNull(fixture.picker.begin(fixture.model))
+            val source = Source()
+            fixture.picker.complete(source)
+            assertTrue(fixture.picker.busy); source.assertUntouched()
+            fixture.picker.complete(source, NativeAttachmentKind.IMAGE)
+            assertFalse(fixture.picker.busy); source.assertUntouched()
+            assertNotNull(fixture.picker.begin(fixture.model, NativeAttachmentKind.IMAGE))
+            fixture.select("other-session"); fixture.select("session")
+            fixture.picker.complete(source, NativeAttachmentKind.IMAGE)
+            source.assertUntouched(); assertEquals(0, fixture.uploads.get())
+        }
+    }
+
     @Test fun duplicateAndRestoredResultsCannotReadOrUploadAgain() = runBlocking {
         withFixture { fixture ->
             val source = Source()
             assertNotNull(fixture.picker.begin(fixture.model))
             fixture.picker.complete(source)
-            while (fixture.model.state.value.phase != NativeFileAttachmentPhase.IDLE || fixture.inputs.state.value.drafts["session"]?.files?.size != 1) delay(10)
+            while (fixture.model.state.value.phase != NativeFileAttachmentPhase.IDLE || fixture.inputs.state.value.drafts["session"]?.attachments?.size != 1) delay(10)
             assertEquals(1, source.names.get()); assertEquals(1, source.opens.get()); assertEquals(1, source.closes.get())
             assertEquals(1, fixture.uploads.get())
             val duplicate = Source()
@@ -161,7 +213,7 @@ class NativeFileAttachmentPickerTest {
     @Test fun anEightFileDraftRefusesAnotherPickerWithoutReadingOrUploading() = runBlocking {
         withFixture { fixture ->
             repeat(8) { index ->
-                assertTrue(fixture.session.addFileAttachment("session", SessionFileAttachment("receipt-$index", "attachment-$index", "file-$index.bin", 0)))
+                assertTrue(fixture.session.addAttachment("session", SessionFileAttachment("receipt-$index", "attachment-$index", "file-$index.bin", 0)))
             }
             assertNull(fixture.picker.begin(fixture.model))
             assertFalse(fixture.picker.busy)
@@ -170,7 +222,7 @@ class NativeFileAttachmentPickerTest {
             fixture.picker.complete(source)
             source.assertUntouched()
             assertEquals(0, fixture.uploads.get())
-            assertEquals(8, fixture.inputs.state.value.drafts.getValue("session").files.size)
+            assertEquals(8, fixture.inputs.state.value.drafts.getValue("session").attachments.size)
         }
     }
 }
