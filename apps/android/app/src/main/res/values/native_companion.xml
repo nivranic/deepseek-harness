@@ -1,4 +1,20 @@
 <resources>
+    <string name="native_subagents_title">当前会话的子代理</string>
+    <string name="native_subagents_refresh">刷新列表</string>
+    <string name="native_subagents_choose_parent">请先在会话页打开一个会话。</string>
+    <string name="native_subagents_loading">正在读取子代理列表…</string>
+    <string name="native_subagents_failed">子代理列表读取失败，已有内容保留。请刷新重试。</string>
+    <string name="native_subagents_empty">此会话暂无子代理。</string>
+    <string name="native_subagents_corrupt">记录损坏，无法打开时间线。</string>
+    <string name="native_subagents_unsupported">记录版本不受支持。</string>
+    <string name="native_subagents_unavailable">记录暂不可用，请刷新重试。</string>
+    <string name="native_subagents_continuable">可继续的子代理</string>
+    <string name="native_subagents_one_shot">单次子代理</string>
+    <string name="native_subagents_open">打开时间线</string>
+    <string name="native_subagents_back">返回列表</string>
+    <string name="native_subagents_read_only">只读历史；此页不发送消息或控制子代理。</string>
+    <string name="native_subagents_history_loading">正在读取子会话历史…</string>
+    <string name="native_subagents_history_failed">子会话读取失败，已加载历史保留。</string>
     <string name="native_capabilities_title">连接能力</string>
     <string name="native_capabilities_checking">正在查询 Host…</string>
     <string name="native_capabilities_available">最近一次查询成功</string>

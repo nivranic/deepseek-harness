@@ -9,6 +9,19 @@ import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CompanionModelSetTest {
+    @Test fun `subagent parent follows the opened Session independently of list ordering`() = runTest {
+        val wire = FakeWire()
+        val models = CompanionModelSet(wire, backgroundScope)
+        models.session.openSession("chosen"); runCurrent()
+        assertEquals("chosen", models.subagents.listing.value.parentSessionId)
+        assertTrue(wire.calls.isEmpty(), "selection alone must not load a hidden catalog")
+        models.session.openSession("other"); runCurrent()
+        assertEquals("other", models.subagents.listing.value.parentSessionId)
+        models.session.closeAndAwait(); runCurrent()
+        assertNull(models.subagents.listing.value.parentSessionId)
+        models.closeAndAwait()
+    }
+
     @Test fun `retirement waits for a request started by a UI caller and refuses further dispatch`() = runTest {
         val entered = CompletableDeferred<Unit>()
         val cleanup = CompletableDeferred<Unit>()

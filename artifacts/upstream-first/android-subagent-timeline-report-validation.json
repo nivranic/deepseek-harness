@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android selected-parent read-only child history and observation retirement; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-subagent-timeline-source.json",
+    "sha256": "9474e0d8afc8472eeb9c77b56526831388dcb4767fbeee7d39ec7898444dd613"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "44d6c0e524af26c884da18a532dcfd745c549fb6ba28e94cd34671f34f0d6c16"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-subagent-timeline-binding.json",
+    "sha256": "ba4f78a0f337056a8d381331b3197864619b3b04c778fe4a6c2bdc110094b54d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-subagent-timeline-reports.mjs",
+      "sha256": "b62946990f7467af7a9163a961381f0000a92e7fdba8d6f566b52e832dce687a"
+    },
+    {
+      "path": ".artifacts/capture-android-subagent-timeline-validation.mjs",
+      "sha256": "fad9dcb9c5db0c391da52fd416345acfb6cb4b410cf550c5c58f364fc1271c69"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "86aa5b004d5107e9d1b48099261de3aab786dc29900ae474721167698fb01fb6"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "3ad1c7bd588c4d50679e4463590db5d3d7fafb27d4379911e11f645d2d7790d6"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-subagent-timeline-binding.log",
+      "sha256": "f6bf836838e81355d3f4b0c6e7fafc4b74f653701b8e070c32031217c69e63de"
+    },
+    {
+      "path": ".artifacts/android-subagent-timeline-audit-tests.log",
+      "sha256": "816a57fd60f22e8eba3235f9ef8f03df125b3c8c71061096d9926f09f4f8c0c9"
+    },
+    {
+      "path": ".artifacts/android-subagent-timeline-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-subagent-timeline-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-subagent-timeline-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

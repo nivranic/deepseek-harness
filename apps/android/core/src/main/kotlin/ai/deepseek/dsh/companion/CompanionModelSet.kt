@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collectLatest
 
 /** One connection's disposable UI state. Retiring it cancels model requests and observations;
  * the process-owned transport remains available for cancellation of a pairing change.
@@ -37,6 +38,7 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
 
     init {
         scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collect { files.selectSession(it) } }
+        scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collectLatest { subagents.selectParent(it) } }
     }
 
     /** Retire model work without closing the process transport or cancelling a Host task. */
@@ -45,12 +47,13 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
         session.close()
         interactions.stopWatching()
         files.stop()
+        subagents.close()
         pushes.stopWatching()
     }
 
     /** Wait for model requests and stream cleanup before publishing a different connection's UI state. */
     suspend fun closeAndAwait() {
         close()
-        withContext(NonCancellable) { lifetime.join() }
+        withContext(NonCancellable) { subagents.closeAndAwait(); lifetime.join() }
     }
 }

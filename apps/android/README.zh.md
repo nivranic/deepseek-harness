@@ -31,6 +31,8 @@ Host 传输场景为 [android-gateway.e2e.ts](../web/tests/android-gateway.e2e.t
 
 会话、文件与子代理操作分别依据其能力声明。已知不受支持的操作保持隐藏，自动查询停止；原生传输也会在发送前拒绝对已知操作的直接调用。观察关闭后，本地草稿与待确认输入仍保留，恢复支持不会自动提交。内建事件传输保持自身 API 协商规则。[操作决策](../../.agents/notes/implemented/architecture/2026-09-27-android-operation-capabilities.zh.md)定义映射及其与授权的区别；[已安装操作场景](../web/tests/android-operation-capabilities.e2e.ts)在服务端方法保持挂载时验证请求被抑制。
 
+子代理页列出当前打开 Session 的子会话。打开子项可读取已保存时间线、加载较早分页或在读取失败后重连；视图不提供消息输入框或停止操作。目录刷新失败保留该父会话的行，切换父会话会退役旧子会话观察。父 Agent 未运行不表示其已保存子会话不可读。[子视图决策](../../.agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.zh.md)拥有取消及替换规则；[已安装场景](../web/tests/android-subagent-timeline.e2e.ts)验证冷子会话读取、分页和父会话选择。
+
 Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定指纹及设备授权隔离。已保存输入与最后查看的普通 Session 可以跨进程重启恢复；恢复只开启观察。显式提交仍由模型持有，并等待输入保存。失败 prompt 独立保留原文和请求 id，不受新编辑影响。确认及匹配的 Host 回执仅清理已接受意图；关闭或修订后的 Question 移除过期答案。保存失败阻止提交并提供重试。不可读取的输入保持原样，直到用户显式备份并重建。[输入持久化决策](../../.agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.zh.md)拥有格式与恢复语义；[录制场景](../web/tests/android-input-persistence.e2e.ts)验证进程恢复和加密存储损坏。
 
 [丢确认场景](../web/tests/android-prompt-retry.e2e.ts)在真实 Host 准入后暂缓返回结果并终止 Android 进程。显式重试使用已保存的请求身份；已有日志回执时则直接清理待确认项，不再调用 prompt。两条路径都在再次进程重启后保留新文本。

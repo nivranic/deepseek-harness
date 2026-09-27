@@ -482,40 +482,43 @@ class CompanionModelTest {
             wire("""{"entries":[{"kind":"child","id":"sa-1","activity":"running","hasChildren":false,"mode":"continuable","label":"检索"},{"kind":"diagnostic","id":"sa-2","reason":"corrupt"}],"parentAvailable":true}""")
         }
         val model = SubagentsModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
-        model.load("p1")
-        assertEquals("ready", model.listState.value)
-        assertEquals(2, model.rows.value.size)
-        assertEquals("continuable", model.rows.value[0].mode)
-        assertEquals("corrupt", model.rows.value[1].reason)
+        model.selectParent("p1")
+        model.refresh()
+        assertEquals(SubagentListState.Ready, model.listing.value.state)
+        assertEquals(2, model.listing.value.rows.size)
+        assertEquals("continuable", model.listing.value.rows[0].mode)
+        assertEquals("corrupt", model.listing.value.rows[1].reason)
 
-        model.openChild("p1", model.rows.value[1])
+        assertFalse(model.openChild("p1", "sa-2"))
         assertNull(model.childTimeline.value, "a diagnostic row opens nothing")
-        model.openChild("p1", model.rows.value[0])
+        assertTrue(model.openChild("p1", "sa-1"))
         val child = model.childTimeline.value
         assertNotNull(child)
-        child!!.close()
-        model.closeChild()
+        model.closeChildAndAwait()
         assertNull(model.childTimeline.value)
+        model.closeAndAwait()
     }
 
     @Test fun cancelledSubagentRefreshRetainsRowsWithoutReportingFailure() = runTest {
         val wire = FakeWire()
-        wire.stub("subagents/list") { wire("""{"entries":[{"id":"child","mode":"continuable"}]}""") }
+        wire.stub("subagents/list") { wire("""{"entries":[{"kind":"child","id":"child","mode":"continuable","label":"Child","activity":"inactive"}],"parentAvailable":false}""") }
         val model = SubagentsModel(wire, backgroundScope)
-        model.load("parent")
+        model.selectParent("parent")
+        model.refresh()
         val entered = CompletableDeferred<Unit>()
         val settled = CompletableDeferred<Unit>()
         wire.stub("subagents/list") {
             entered.complete(Unit)
             try { awaitCancellation() } finally { settled.complete(Unit) }
         }
-        val loading = async { model.load("parent") }
+        val loading = async { model.refresh() }
         entered.await()
-        assertEquals("loading", model.listState.value)
+        assertEquals(SubagentListState.Loading, model.listing.value.state)
         loading.cancelAndJoin()
         assertTrue(settled.isCompleted)
-        assertEquals("idle", model.listState.value)
-        assertEquals(listOf("child"), model.rows.value.map { it.id })
+        assertEquals(SubagentListState.Idle, model.listing.value.state)
+        assertEquals(listOf("child"), model.listing.value.rows.map { it.id })
+        model.closeAndAwait()
     }
 }
 

@@ -64,6 +64,73 @@ class NativeCompanionAcceptanceTest {
                     var stage = op
                     try {
                         when (op) {
+                            "subagentCatalog" -> {
+                                compose.onNodeWithTag("native-tab-6").performClick()
+                                if (command["refresh"]?.jsonPrimitive?.boolean == true) {
+                                    waitFor(hasTestTag("native-subagent-refresh") and isEnabled())
+                                    compose.onNodeWithTag("native-subagent-refresh").performClick()
+                                }
+                                val model = companionModel().subagents
+                                val expected = command.getValue("state").jsonPrimitive.content
+                                when (expected) {
+                                    "ready" -> compose.waitUntil(20_000) { model.listing.value.state == SubagentListState.Ready }
+                                    "failed" -> waitFor(hasTestTag("native-subagent-list-error"))
+                                    "empty" -> waitFor(hasTestTag("native-subagent-empty"))
+                                    "no-parent" -> waitFor(hasTestTag("native-subagent-no-parent"))
+                                    else -> error("unknown catalog state")
+                                }
+                                command["rows"]?.jsonArray?.forEach { id ->
+                                    val tag = "subagent-row-${id.jsonPrimitive.content}"
+                                    compose.onNodeWithTag("native-subagent-list").performScrollToNode(hasTestTag(tag))
+                                    compose.onNodeWithTag(tag).assertIsDisplayed()
+                                }
+                                value = buildJsonObject {
+                                    val listing = model.listing.value
+                                    put("parent", listing.parentSessionId?.let(::JsonPrimitive) ?: JsonNull)
+                                    put("parentAvailable", listing.parentAvailable?.let(::JsonPrimitive) ?: JsonNull)
+                                    put("rows", JsonArray(listing.rows.map { JsonPrimitive(it.id) }))
+                                }
+                            }
+                            "openSubagent" -> {
+                                val child = command.getValue("child").jsonPrimitive.content
+                                val tag = "subagent-open-$child"
+                                compose.onNodeWithTag("native-subagent-list").performScrollToNode(hasTestTag(tag))
+                                compose.onNodeWithTag(tag).performClick()
+                                waitFor(hasTestTag("native-child-timeline"))
+                                val model = companionModel().subagents
+                                compose.waitUntil(20_000) { model.childTimeline.value?.let { it.row.id == child && it.history.value.ready } == true }
+                                for (control in listOf("session-draft", "session-send", "session-cancel")) {
+                                    compose.onNodeWithTag(control).assertDoesNotExist()
+                                }
+                                val text = command.getValue("text").jsonPrimitive.content
+                                compose.onNodeWithTag("native-child-rows").performScrollToNode(hasText(text, substring = true))
+                                compose.onNodeWithText(text, substring = true).assertIsDisplayed()
+                            }
+                            "childLoadOlder" -> {
+                                val view = checkNotNull(companionModel().subagents.childTimeline.value)
+                                val before = checkNotNull(view.open.value).state.items.first().seq
+                                compose.onNodeWithTag("native-child-load-older").performClick()
+                                compose.waitUntil(20_000) { !view.history.value.loading && view.open.value!!.state.items.first().seq < before }
+                                value = JsonPrimitive(view.open.value!!.state.items.first().seq)
+                            }
+                            "childBack" -> {
+                                val view = checkNotNull(companionModel().subagents.childTimeline.value)
+                                compose.onNodeWithTag("native-child-back").performClick()
+                                waitFor(hasTestTag("native-subagent-list"))
+                                compose.waitUntil(20_000) { view.open.value == null }
+                            }
+                            "childPageFailure" -> {
+                                val view = checkNotNull(companionModel().subagents.childTimeline.value)
+                                val before = checkNotNull(view.open.value).state.items.toList()
+                                compose.onNodeWithTag("native-child-load-older").performClick()
+                                waitFor(hasTestTag("native-child-error"))
+                                check(view.open.value!!.state.items == before)
+                            }
+                            "childReconnect" -> {
+                                compose.onNodeWithTag("native-child-reconnect").performClick()
+                                val view = checkNotNull(companionModel().subagents.childTimeline.value)
+                                compose.waitUntil(20_000) { view.history.value.ready && view.history.value.failure == null }
+                            }
                             "assertOperationVisibility" -> {
                                 compose.onNodeWithTag("native-tab-${command.getValue("tab").jsonPrimitive.int}").performClick()
                                 command["entry"]?.jsonPrimitive?.content?.let { path ->

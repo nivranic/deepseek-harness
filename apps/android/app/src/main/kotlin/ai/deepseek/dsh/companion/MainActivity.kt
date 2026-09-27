@@ -1025,23 +1025,59 @@ fun SubagentsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?
     val canList = capabilities.supports(NativeCapability.SUBAGENT_CATALOG)
     val canFollow = capabilities.supports(NativeCapability.SESSION_FOLLOW)
     val scope = rememberCoroutineScope()
-    val sessions by model.session.sessions.collectAsStateWithLifecycle()
-    val rows by model.subagents.rows.collectAsStateWithLifecycle()
-    LaunchedEffect(model.subagents, model.paired, sessions, canList) {
-        if (canList) sessions.firstOrNull()?.let { model.subagents.load(it.id) }
+    val selected by model.session.open.collectAsStateWithLifecycle()
+    val listing by model.subagents.listing.collectAsStateWithLifecycle()
+    val child by model.subagents.childTimeline.collectAsStateWithLifecycle()
+    val parent = selected?.sessionId
+    val current = listing.takeIf { it.parentSessionId == parent }
+    LaunchedEffect(model.subagents, parent, listing.parentSessionId, canList) {
+        if (canList && parent != null && listing.parentSessionId == parent) model.subagents.refresh()
     }
-    LaunchedEffect(model.subagents, canFollow) { if (!canFollow) model.subagents.closeChild() }
-    LazyColumn(Modifier.fillMaxSize()) {
+    LaunchedEffect(model.subagents, canFollow) { if (!canFollow) model.subagents.closeChildAndAwait() }
+    val view = child
+    if (canFollow && view != null && view.parentSessionId == parent) {
+        NativeSubagentTimeline(view) { scope.launch { model.subagents.closeChildAndAwait() } }
+        return
+    }
+    LazyColumn(Modifier.fillMaxSize().testTag("native-subagent-list")) {
+        item {
+            Row(Modifier.fillMaxWidth().padding(16.dp)) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_subagents_title), Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium)
+                if (canList && parent != null) Button(enabled = current?.state != SubagentListState.Loading,
+                    modifier = Modifier.testTag("native-subagent-refresh"), onClick = { scope.launch { model.subagents.refresh() } }) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.native_subagents_refresh))
+                }
+            }
+        }
+        if (parent == null) item {
+            Text(androidx.compose.ui.res.stringResource(R.string.native_subagents_choose_parent),
+                Modifier.padding(16.dp).testTag("native-subagent-no-parent"))
+        }
         if (!canList) item { MissingNativeCapability(capabilities) }
-        items(if (canList) rows else emptyList()) { row ->
-            RaisedCard {
+        if (canList && parent != null) when (current?.state) {
+            SubagentListState.Loading -> item { Text(androidx.compose.ui.res.stringResource(R.string.native_subagents_loading), Modifier.padding(16.dp)) }
+            is SubagentListState.Failed -> item { Text(androidx.compose.ui.res.stringResource(R.string.native_subagents_failed),
+                Modifier.padding(16.dp).testTag("native-subagent-list-error"), color = MaterialTheme.colorScheme.error) }
+            SubagentListState.Ready -> if (current.rows.isEmpty()) item {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_subagents_empty), Modifier.padding(16.dp).testTag("native-subagent-empty"))
+            }
+            SubagentListState.Idle, null -> Unit
+        }
+        items(if (canList) current?.rows.orEmpty() else emptyList(), key = { it.id }) { row ->
+            RaisedCard(Modifier.testTag("subagent-row-${row.id}")) {
                 Text(row.label ?: row.id, style = MaterialTheme.typography.bodyLarge)
-                Text(row.reason ?: row.mode ?: "", style = MaterialTheme.typography.bodySmall)
-                if (canFollow && row.mode != null) {
-                    Button(onClick = {
-                        val parent = sessions.firstOrNull()?.id ?: return@Button
-                        scope.launch { model.subagents.openChild(parent, row) }
-                    }) { Text("打开时间线") }
+                val detail = when (row.reason) {
+                    "corrupt" -> R.string.native_subagents_corrupt
+                    "unsupported" -> R.string.native_subagents_unsupported
+                    "unavailable" -> R.string.native_subagents_unavailable
+                    else -> if (row.mode == "continuable") R.string.native_subagents_continuable else R.string.native_subagents_one_shot
+                }
+                Text(androidx.compose.ui.res.stringResource(detail), style = MaterialTheme.typography.bodySmall)
+                if (canFollow && row.mode != null && parent != null) {
+                    Button(modifier = Modifier.testTag("subagent-open-${row.id}"), onClick = {
+                        scope.launch { model.subagents.openChild(parent, row.id) }
+                    }) { Text(androidx.compose.ui.res.stringResource(R.string.native_subagents_open)) }
                 }
             }
         }
