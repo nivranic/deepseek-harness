@@ -371,6 +371,12 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     val active = model.paired && !model.pairingRequested && !model.switching && hosts.status == NativeHostStatus.READY
     val pushes = model.pushes
     val context = androidx.compose.ui.platform.LocalContext.current
+    val resourceSavePicker: NativeResourceSavePicker = viewModel()
+    val saveResource = rememberNativeResourceSaveLauncher(resourceSavePicker)
+    val selectedResource by model.files.resource.state.collectAsStateWithLifecycle()
+    LaunchedEffect(model.generation, selectedResource?.target, selectedResource?.phase == NativeResourcePhase.LOADING) {
+        resourceSavePicker.selectionChanged()
+    }
     var descriptionRefresh by remember(model.generation) { mutableStateOf(0) }
     val description = HostDescriptionObserver(CompanionRuntime.wire, active, model.generation, descriptionRefresh)
     val capabilities = description.snapshot?.takeUnless { it.closed }?.description?.capabilities
@@ -403,6 +409,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     }
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            NativeResourceSaveNotice(resourceSavePicker)
             SupportExportAction(model::supportSnapshot)
             NativeHostControls(model, hosts)
             if (!model.switching && hosts.status !in setOf(NativeHostStatus.RESTORE_FAILED, NativeHostStatus.RETIREMENT_FAILED)) {
@@ -436,13 +443,14 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 }
             }
             InputPersistenceNotice(model)
+            NativeResourceSaveNotice(resourceSavePicker)
             when (tab) {
                 0 -> SessionsTab(model, capabilities)
                 1 -> ApprovalsTab(model)
                 2 -> PlanTab(model)
                 3 -> ToolsTab(model)
-                4 -> FilesTab(model, capabilities)
-                5 -> ArtifactsTab(model, capabilities)
+                4 -> FilesTab(model, capabilities, resourceSavePicker.busy) { saveResource(it, model.files.resource.saves) }
+                5 -> ArtifactsTab(model, capabilities, resourceSavePicker.busy) { saveResource(it, model.files.resource.saves) }
                 else -> SubagentsTab(model, capabilities)
             }
         }
@@ -914,7 +922,7 @@ fun DiffReview(change: FileChange) {
 }
 
 @Composable
-fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
+fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, saving: Boolean, save: (NativeResourceState) -> Unit) {
     val canFollow = capabilities.supports(NativeCapability.WORKSPACE_FOLLOW)
     val canList = capabilities.supports(NativeCapability.FILE_LIST)
     val canReadText = capabilities.supports(NativeCapability.FILE_TEXT)
@@ -936,7 +944,8 @@ fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
     val preview = resource
     if (preview != null && canReadBytes) {
         NativeResourcePreview(preview, model.files.resource::retry,
-            { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile)
+            { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile,
+            save = { save(preview) }, saving = saving)
         return
     }
     Column(Modifier.fillMaxSize()) {
@@ -992,7 +1001,7 @@ fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
 }
 
 @Composable
-fun ArtifactsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
+fun ArtifactsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?, saving: Boolean, save: (NativeResourceState) -> Unit) {
     val canReadBytes = capabilities.supports(NativeCapability.FILE_STAT) && capabilities.supports(NativeCapability.FILE_BYTES)
     val open by model.session.open.collectAsStateWithLifecycle()
     val files by model.session.deliveredFiles.collectAsStateWithLifecycle()
@@ -1001,7 +1010,8 @@ fun ArtifactsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?
     val preview = resource
     if (canReadBytes && preview != null && preview.target.sessionId == open?.sessionId) {
         NativeResourcePreview(preview, model.files.resource::retry,
-            { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile)
+            { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile,
+            save = { save(preview) }, saving = saving)
         return
     }
     LazyColumn(Modifier.fillMaxSize().testTag("resource-delivery-list")) {

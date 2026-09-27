@@ -45,9 +45,11 @@ class NativeResourceReader(private val wire: WireDriving, private val scope: Cor
     private var chunks = mutableListOf<ByteArray>()
     private val mutableState = MutableStateFlow<NativeResourceState?>(null)
     val state: StateFlow<NativeResourceState?> = mutableState
+    val saves = NativeResourceSaver(scope) { state.value }
 
     /** Begin a fresh observation without carrying bytes from another selection. */
     fun open(sessionId: String, path: String) = synchronized(lock) {
+        saves.invalidate()
         require(sessionId.isNotBlank() && path.isNotBlank())
         generation++
         active?.cancel()
@@ -66,11 +68,12 @@ class NativeResourceReader(private val wire: WireDriving, private val scope: Cor
 
     /** Cancel every owned request and return the jobs that a suspending owner must await. */
     fun close(): List<Job> = synchronized(lock) {
+        val saving = saves.invalidate()
         generation++
         active = null
         chunks = mutableListOf()
         mutableState.value = null
-        jobs.toList().also { pending -> pending.forEach { it.cancel() } }
+        jobs.toList().also { pending -> pending.forEach { it.cancel() } } + saving
     }
 
     suspend fun closeAndAwait() { val pending = close(); withContext(NonCancellable) { pending.joinAll() } }

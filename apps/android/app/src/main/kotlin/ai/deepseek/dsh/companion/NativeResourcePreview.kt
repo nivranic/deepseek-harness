@@ -19,7 +19,8 @@ import kotlinx.coroutines.withContext
 /** Shared inert resource preview for workspace entries and durable delivery declarations. */
 @Composable
 fun NativeResourcePreview(state: NativeResourceState, retry: () -> Unit, restart: () -> Unit, close: () -> Unit,
-                          limits: NativeResourcePresentationLimits = NativeResourcePresentationLimits(64 * 1024, 4_000_000)) {
+                          limits: NativeResourcePresentationLimits = NativeResourcePresentationLimits(64 * 1024, 4_000_000),
+                          save: (() -> Unit)? = null, saving: Boolean = false) {
     val media = remember(state.prefix) { nativeResourceMedia(state.prefix) }
     val text = remember(state.content, media) { if (media == null) state.content?.let(::nativeResourceText) else null }
     val bytes = state.content
@@ -41,6 +42,11 @@ fun NativeResourcePreview(state: NativeResourceState, retry: () -> Unit, restart
         Text(media ?: if (text != null) "text/plain" else "application/octet-stream", style = MaterialTheme.typography.labelSmall)
         Text(if (totalBytes == null) stringResource(R.string.native_resource_progress_unknown, state.receivedBytes)
             else stringResource(R.string.native_resource_progress, state.receivedBytes, totalBytes), Modifier.testTag("resource-progress"))
+        if (state.phase == NativeResourcePhase.READY && state.content != null && save != null) {
+            Button(onClick = save, enabled = !saving, modifier = Modifier.testTag("resource-save")) {
+                Text(stringResource(R.string.native_resource_save))
+            }
+        }
         when (state.phase) {
             NativeResourcePhase.LOADING -> Text(stringResource(R.string.native_resource_loading))
             NativeResourcePhase.PREVIEW -> Text(stringResource(R.string.native_resource_bounded_preview), Modifier.testTag("resource-bounded"))

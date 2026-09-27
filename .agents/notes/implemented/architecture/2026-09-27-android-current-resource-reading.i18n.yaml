@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-current-resource-reading.md
-2026-09-27-android-current-resource-reading.md: 8e7b57d44c101a1ffaa980430672f3e3c24536e7
-2026-09-27-android-current-resource-reading.zh.md: 5e5c55a5b3077f6f5ff496074248e70b74ffc07f
+2026-09-27-android-current-resource-reading.md: 6af690e958f64ca47eaddec8ab644c042fec6d52
+2026-09-27-android-current-resource-reading.zh.md: 53c5f592c5f93f34c21ea21618386261d3a06869

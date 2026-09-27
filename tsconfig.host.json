@@ -10,6 +10,7 @@
   "include": [
     "apps/web/tests/android-operation-capabilities.e2e.ts",
     "apps/web/tests/android-subagent-timeline.e2e.ts",
+    "apps/web/tests/android-resource-save.e2e.ts",
     "apps/web/tests/android-capability-presentation.e2e.ts",
     "apps/web/tests/android-resource-adoption.e2e.ts",
     "apps/web/tests/android-cursor-resume.e2e.ts",

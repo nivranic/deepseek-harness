@@ -4124,9 +4124,15 @@
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceReader.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDeliveredFiles.kt",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeResourceReaderTest.kt",
-        "apps/web/tests/android-resource-adoption.e2e.ts"
+        "apps/web/tests/android-resource-adoption.e2e.ts",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSave.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveAction.kt",
+        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeResourceSavePickerTest.kt",
+        "apps/web/tests/android-resource-save.e2e.ts",
+        ".agents/notes/implemented/architecture/2026-09-27-android-complete-resource-save.md"
       ],
-      "remaining": "Host 侧读取矩阵已齐：read 文本分页（maxBytes/maxLines/maxFileBytes 拒绝不截断、NUL 二进制标记、symlink 全拒）、readBytes 0 起字节窗口（Range）、stat 版本与字节数、list 上限截断、changes 观察（packages/api/workspace-files）；§34 共享 unified diff 渲染器已落地（见第 34 节行）。客户端呈现矩阵新增已知二进制后缀（32 个：压缩包/可执行/库/字体/数据库）的 builtin 完整字节事实卡：字节数+非文本提示、超 256 字节展示上限的余量标注、带偏移的十六进制行、0 字节显式空态，maxFileBytes 上限照常拒绝超大文件（packages/client/ui-sidebar-documentpreview/src/client/binary/；格式化 5 例 + 渲染 3 例 + 注册 2 例测试）。中断传输恢复矩阵已落地：Host 声明 workspace-files.read-bytes.v1 时，Preview 的完整字节读取按固定 1 MiB readBytes 窗口进行（packages/client/ui-sidebar-documentpreview/src/client/bytes/transfer.ts——base64 窗口解码+按序拼装为纯函数；face 持有读取世代），每个落定窗口更新已接收字节进度行；已接收字节后的失败保留前缀并提供「从断点继续」（从第一个缺失字节续传不重读），未收到字节的失败只提供从头重试；传输期间 Host 版本变化从零重启（拼接前缀会混合两个版本）、破坏窗口契约（offset 不符或空窗口非 eof）大声 gateway/internal 失败、tab 退役或世代替换后不再写入；无该能力时保持单次 readAll（测试 313：纯函数 6 + face 矩阵 8 + UI 横幅/续传 2 + rpc 窗口绑定 1 等新 17）。真机同候选验证仍开放。未知扩展名的 MIME 内容推断已接入：有 read-bytes 能力时读取前 64 字节识别 PNG/JPEG/GIF/WebP/BMP/ICO 或 ZIP，扩展名匹配与手动选择优先，失败或无匹配回退纯文本；完整字节再次确认签名，重新加载重新推断，关闭或替换世代丢弃迟到结果。同候选四平台真机验证仍未完成。 Android 文件与工件预览共用当前 workspaceFiles/stat 与 readBytes，以 Session 授权读取并保持路径、版本及大小一致；已删除应用的退役 session/artifact 读取及无界缓存，工件引用来自当前 deliverables/presented 持久声明。64 KiB 串行窗口、8 MiB 内容预算及 256 字节大文件前缀提供有界读取；失败显式续传，版本变化丢弃前缀并要求重新读取。图片和文本另有呈现上限，未知数据为惰性十六进制。取消请求保留至清理结束，切换 Session 清空旧资源。生成文件与当前事件的真实 Host 验收不等于真实模型、物理设备、SAF 导出、持久下载或全平台统一描述符完成；本节保持未完成。",
+      "remaining": "Host 侧读取矩阵已齐：read 文本分页（maxBytes/maxLines/maxFileBytes 拒绝不截断、NUL 二进制标记、symlink 全拒）、readBytes 0 起字节窗口（Range）、stat 版本与字节数、list 上限截断、changes 观察（packages/api/workspace-files）；§34 共享 unified diff 渲染器已落地（见第 34 节行）。客户端呈现矩阵新增已知二进制后缀（32 个：压缩包/可执行/库/字体/数据库）的 builtin 完整字节事实卡：字节数+非文本提示、超 256 字节展示上限的余量标注、带偏移的十六进制行、0 字节显式空态，maxFileBytes 上限照常拒绝超大文件（packages/client/ui-sidebar-documentpreview/src/client/binary/；格式化 5 例 + 渲染 3 例 + 注册 2 例测试）。中断传输恢复矩阵已落地：Host 声明 workspace-files.read-bytes.v1 时，Preview 的完整字节读取按固定 1 MiB readBytes 窗口进行（packages/client/ui-sidebar-documentpreview/src/client/bytes/transfer.ts——base64 窗口解码+按序拼装为纯函数；face 持有读取世代），每个落定窗口更新已接收字节进度行；已接收字节后的失败保留前缀并提供「从断点继续」（从第一个缺失字节续传不重读），未收到字节的失败只提供从头重试；传输期间 Host 版本变化从零重启（拼接前缀会混合两个版本）、破坏窗口契约（offset 不符或空窗口非 eof）大声 gateway/internal 失败、tab 退役或世代替换后不再写入；无该能力时保持单次 readAll（测试 313：纯函数 6 + face 矩阵 8 + UI 横幅/续传 2 + rpc 窗口绑定 1 等新 17）。真机同候选验证仍开放。未知扩展名的 MIME 内容推断已接入：有 read-bytes 能力时读取前 64 字节识别 PNG/JPEG/GIF/WebP/BMP/ICO 或 ZIP，扩展名匹配与手动选择优先，失败或无匹配回退纯文本；完整字节再次确认签名，重新加载重新推断，关闭或替换世代丢弃迟到结果。同候选四平台真机验证仍未完成。 Android 文件与工件预览共用当前 workspaceFiles/stat 与 readBytes，以 Session 授权读取并保持路径、版本及大小一致；已删除应用的退役 session/artifact 读取及无界缓存，工件引用来自当前 deliverables/presented 持久声明。64 KiB 串行窗口、8 MiB 内容预算及 256 字节大文件前缀提供有界读取；失败显式续传，版本变化丢弃前缀并要求重新读取。图片和文本另有呈现上限，未知数据为惰性十六进制。取消请求保留至清理结束，切换 Session 清空旧资源。生成文件与当前事件的真实 Host 验收不等于真实模型、物理设备、SAF 导出、持久下载或全平台统一描述符完成；本节保持未完成。 Android 已完整读取的 READY 资源可通过系统 ACTION_CREATE_DOCUMENT 保存快照，支持空文件、中文文件名及二进制；部分预览不提供完整文件保存。资源关闭、替换及 Host 退役使选择失效，写入取消等待 I/O 并清理新目标；清理失败单独提示，重复回调不能删除已保存文档。核心取消与重入测试、安装态回调测试和真实系统选择器独立字节核验覆盖该路径。持久大文件下载、崩溃恢复、第三方文档提供方和物理设备继续开放，不授予全节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -7661,9 +7667,15 @@
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/SubagentsModelTest.kt",
         "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeSubagentTimeline.kt",
         "apps/web/tests/android-subagent-timeline.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.md"
+        ".agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.md",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSave.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveAction.kt",
+        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeResourceSavePickerTest.kt",
+        "apps/web/tests/android-resource-save.e2e.ts",
+        ".agents/notes/implemented/architecture/2026-09-27-android-complete-resource-save.md"
       ],
-      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。 Android 子代理目录绑定当前打开的父会话，展示加载、失败、空与诊断状态；只读子时间线复用固定截点的有界历史分页。父会话切换与子视图替换等待旧跟随和分页清理，迟到结果按代次拒绝。315 项核心测试覆盖冷父可用性、取消、替换及关闭；真实 Host 安装态场景验证非首行父选择、冷子历史、失败保留与重连，不激活子 Agent 或发送业务写请求。普通父 Session follow 仍遵循 Host 的后台激活策略。嵌套浏览、子会话续写、跨平台及物理设备仍开放，不授予全节 PASS。",
+      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。 Android 子代理目录绑定当前打开的父会话，展示加载、失败、空与诊断状态；只读子时间线复用固定截点的有界历史分页。父会话切换与子视图替换等待旧跟随和分页清理，迟到结果按代次拒绝。315 项核心测试覆盖冷父可用性、取消、替换及关闭；真实 Host 安装态场景验证非首行父选择、冷子历史、失败保留与重连，不激活子 Agent 或发送业务写请求。普通父 Session follow 仍遵循 Host 的后台激活策略。嵌套浏览、子会话续写、跨平台及物理设备仍开放，不授予全节 PASS。 Android 已完整读取的 READY 资源可通过系统 ACTION_CREATE_DOCUMENT 保存快照，支持空文件、中文文件名及二进制；部分预览不提供完整文件保存。资源关闭、替换及 Host 退役使选择失效，写入取消等待 I/O 并清理新目标；清理失败单独提示，重复回调不能删除已保存文档。核心取消与重入测试、安装态回调测试和真实系统选择器独立字节核验覆盖该路径。持久大文件下载、崩溃恢复、第三方文档提供方和物理设备继续开放，不授予全节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

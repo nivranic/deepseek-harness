@@ -42,6 +42,14 @@ class NativeCompanionAcceptanceTest {
         return model
     }
 
+    private fun documentNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return emptyList()
+        if (!root.packageName.toString().endsWith(".documentsui")) return emptyList()
+        fun descend(node: android.view.accessibility.AccessibilityNodeInfo): List<android.view.accessibility.AccessibilityNodeInfo> =
+            listOf(node) + (0 until node.childCount).flatMap { index -> node.getChild(index)?.let(::descend).orEmpty() }
+        return descend(root)
+    }
+
     @Test fun pairAnswerAndReadPages() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         check(instrumentation.targetContext.packageName.endsWith(".nativeacceptance"))
@@ -426,6 +434,37 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("resource-file-list").performScrollToNode(hasTestTag(tag))
                                 compose.onNodeWithTag(tag).performClick()
                             }
+                            "openResourceSave" -> {
+                                waitFor(hasTestTag("resource-save") and isEnabled())
+                                compose.onNodeWithTag("resource-save").performClick()
+                                compose.waitUntil(20_000) { documentNodes().any { it.isEditable } }
+                                value = buildJsonObject {
+                                    put("filename", documentNodes().first { it.isEditable }.text.toString())
+                                    put("controls", JsonArray(documentNodes().filter { it.isClickable }.map { JsonPrimitive(it.viewIdResourceName ?: it.className.toString()) }))
+                                    val bytes = ByteArrayOutputStream()
+                                    val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+                                    try { bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes) } finally { bitmap.recycle() }
+                                    put("screenshot", Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                                }
+                            }
+                            "finishResourceSave" -> {
+                                val expected = command.getValue("filename").jsonPrimitive.content
+                                check(documentNodes().first { it.isEditable }.text.toString() == expected)
+                                val save = documentNodes().firstOrNull { it.isClickable && it.text?.toString() in setOf("SAVE", "Save", "保存") }
+                                    ?: error("system Save action unavailable")
+                                check(save.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
+                                val message = if (command["expired"]?.jsonPrimitive?.boolean == true) R.string.native_resource_save_expired else R.string.native_resource_saved
+                                waitFor(hasTestTag("resource-save-status") and hasText(instrumentation.targetContext.getString(message)))
+                            }
+                            "cancelResourceSave" -> {
+                                check(instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK))
+                                waitFor(hasTestTag("resource-save-status") and hasText(instrumentation.targetContext.getString(R.string.native_resource_save_cancelled)))
+                            }
+                            "retireResourceDuringPicker" -> {
+                                val model = companionModel()
+                                compose.runOnUiThread { model.files.closeFile() }
+                            }
+                            "assertNoResourceSave" -> compose.onNodeWithTag("resource-save").assertDoesNotExist()
                             "previewDelivery" -> {
                                 compose.onNodeWithTag("native-tab-5").performClick()
                                 val tag = "resource-delivery-${command.getValue("seq").jsonPrimitive.long}-${command.getValue("index").jsonPrimitive.int}"

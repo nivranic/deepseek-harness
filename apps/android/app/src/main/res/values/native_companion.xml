@@ -112,4 +112,12 @@
     <string name="native_resource_image_unavailable">图片无法解码或超过像素上限，显示字节预览。</string>
     <string name="native_resource_text_limited">文本显示已达到字符上限。</string>
     <string name="native_resource_no_deliveries">当前已加载历史中没有文件交付记录。</string>
+    <string name="native_resource_save">保存完整文件…</string>
+    <string name="native_resource_save_choosing">请选择文件保存位置。</string>
+    <string name="native_resource_saving">正在保存文件…</string>
+    <string name="native_resource_saved">文件已保存。</string>
+    <string name="native_resource_save_cancelled">已取消保存。</string>
+    <string name="native_resource_save_expired">资源选择已失效，请重新打开资源后保存。</string>
+    <string name="native_resource_save_failed">文件保存失败，请重新选择保存位置。</string>
+    <string name="native_resource_save_cleanup_failed">保存失败，目标可能留下不完整文件，请检查所选位置。</string>
 </resources>

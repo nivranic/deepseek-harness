@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 完整资源经系统选择器保存（§35、§64）
+
+[当前来源记录](artifacts/upstream-first/android-resource-save-source.json)绑定完整 READY 资源的用户选择目标保存。打开系统选择器前复制已接受字节并保留原 Host 保存器；仅向 ACTION_CREATE_DOCUMENT 提供文件名与检测 MIME，保存不增加 Host 读取或业务写请求。部分预览不提供完整文件保存。资源关闭、替换及 Host 退役使待处理选择失效，写入取消等待 I/O 与新目标清理；清理失败单独提示。
+
+326 项 core 测试、57 个套件无失败或跳过；三项安装态 Intent/回调所有权测试通过。真实 Host 场景实际驱动 Android 系统选择器，保存中文文本、空文件和二进制后独立读取目标字节，验证取消、失效目标清理与大文件前缀入口隐藏。资源读取、能力准入、子时间线三项相邻真实 Host 回归通过。五张终态截图确认系统选择器、保存、取消、失效及无旧提示的部分预览。
+
+Host 类型检查、lint、17 项快速文档、36 项 doc-sync、6 项逐节追踪及 Gate 0 通过。持久大文件下载、崩溃中传输恢复、选择器内杀进程、保存中双 Host 切换、第三方文档提供方与物理设备继续开放。应用与 APK 独立绑定、扫描器复用既有核验产物；Session writer 保持 V3，completeRc 为 false。
+
 ## Android 所选父会话的只读子时间线（§6、§25、§64）
 
-[当前来源记录](artifacts/upstream-first/android-subagent-timeline-source.json)绑定所选父会话目录、有界只读子时间线及观察退役。目录不再从列表首行推导父会话；父会话、读取状态和行原子发布，迟到及被替换的请求不能覆盖新目录。子视图仅暴露重连与较早分页，复用携带父会话/子会话/mode 地址的固定截点日志；替换和关闭等待旧跟随及分页清理。
+[历史来源记录](artifacts/upstream-first/android-subagent-timeline-source.json)绑定所选父会话目录、有界只读子时间线及观察退役。目录不再从列表首行推导父会话；父会话、读取状态和行原子发布，迟到及被替换的请求不能覆盖新目录。子视图仅暴露重连与较早分页，复用携带父会话/子会话/mode 地址的固定截点日志；替换和关闭等待旧跟随及分页清理。
 
 315 项 core 测试、56 个套件无失败或跳过，覆盖冷父可用性、目录错误、代次取消和等待中的子视图替换。已安装真实 Host 场景验证非首行父选择、冷子历史、分页拒绝与恢复、目录失败保留及父切换；三项相邻真实 Host 回归通过。五张截图确认只读内容和错误恢复控件。普通父 Session 跟随仍可按既有策略后台激活；直接子会话保持冷读取，不激活子 Agent、不发业务写请求。
 
