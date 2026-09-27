@@ -20,6 +20,8 @@ Native capability details reuse this fixed projection rather than exposing arbit
 
 The exporter permits only typed roles, fixed failure categories, negotiated protocol facts and a client-owned capability allowlist. Unknown capability names, Host and device identities, display labels, product strings from the Host, endpoints, pins, credentials, payloads, paths and exception messages never enter these diagnostic sections. The application still requires the existing scanner's exact-byte approval before delivery.
 
+The separate [native operation policy](2026-09-27-android-operation-capabilities.md) uses recognized capabilities for controls and pre-dispatch checks. Its Subagent catalog identifier also belongs to the fixed diagnostic allowlist; this does not change diagnostic privacy or turn observations into authorization.
+
 The [transport decision](2026-09-25-native-remote-connection-source.md) retains ownership of TLS, admission and retirement. The [module migration decision](2026-09-19-android-core-app-migration.md) retains its independent build and scanner-admission rationale. Neither is superseded. Scanner source provenance and current release limitations are owned by the [Android README](../../../../apps/android/README.md#known-limitations-and-deferred-work).
 
 ## Alternatives considered

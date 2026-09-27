@@ -127,11 +127,13 @@ class NativeGatewayClient private constructor(
 
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
         ensureNegotiated()
+        requireAdvertisedOperation(method)
         return rpc(method, args)
     }
 
     override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
         ensureNegotiated()
+        requireAdvertisedOperation(endpoint)
         val id = UUID.randomUUID().toString()
         val subscription = Subscription(endpoint, payload.toMap(), Channel(config.bufferedFramesPerStream))
         val owner = synchronized(lock) {
@@ -147,6 +149,17 @@ class NativeGatewayClient private constructor(
             synchronized(lock) {
                 if (owner.streams.remove(id) != null && owner.ready) owner.socket.send(NativeGatewayProtocol.cancel(id))
                 subscription.frames.cancel()
+            }
+        }
+    }
+
+    /** A stale UI callback cannot dispatch a known operation absent from the latest successful negotiation. */
+    private fun requireAdvertisedOperation(endpoint: String) = synchronized(lock) {
+        requireOpen()
+        NativeObservedCapability.forEndpoint(endpoint)?.let { capability ->
+            if (capability.wire !in checkNotNull(observedHost).capabilities) {
+                throw LinkClientException.Refused("host/capability-unavailable", "Host does not advertise the required capability",
+                    WireValue.ObjectValue(mapOf("capability" to WireValue.StringValue(capability.wire))))
             }
         }
     }

@@ -604,6 +604,9 @@ class SubagentsModel(private val wire: WireDriving, private val scope: Coroutine
                 )
             }
             _listState.value = "ready"
+        } catch (cancelled: CancellationException) {
+            _listState.value = "idle"
+            throw cancelled
         } catch (failure: Exception) {
             _listState.value = "failed:${failure.message}"
         }

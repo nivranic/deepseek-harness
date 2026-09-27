@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
@@ -495,6 +496,26 @@ class CompanionModelTest {
         child!!.close()
         model.closeChild()
         assertNull(model.childTimeline.value)
+    }
+
+    @Test fun cancelledSubagentRefreshRetainsRowsWithoutReportingFailure() = runTest {
+        val wire = FakeWire()
+        wire.stub("subagents/list") { wire("""{"entries":[{"id":"child","mode":"continuable"}]}""") }
+        val model = SubagentsModel(wire, backgroundScope)
+        model.load("parent")
+        val entered = CompletableDeferred<Unit>()
+        val settled = CompletableDeferred<Unit>()
+        wire.stub("subagents/list") {
+            entered.complete(Unit)
+            try { awaitCancellation() } finally { settled.complete(Unit) }
+        }
+        val loading = async { model.load("parent") }
+        entered.await()
+        assertEquals("loading", model.listState.value)
+        loading.cancelAndJoin()
+        assertTrue(settled.isCompleted)
+        assertEquals("idle", model.listState.value)
+        assertEquals(listOf("child"), model.rows.value.map { it.id })
     }
 }
 

@@ -29,6 +29,7 @@ class NativeGatewayDiagnosticsTest {
         val requests = AtomicInteger()
         var reads = 0
         @Volatile var result = "success"
+        @Volatile var capabilities = listOf("session.follow.v1", "private-capability-poison")
         @Volatile var entered: CountDownLatch? = null
         @Volatile var release: CountDownLatch? = null
         val executor = Executors.newCachedThreadPool()
@@ -64,7 +65,7 @@ class NativeGatewayDiagnosticsTest {
                         val response = when (result) {
                             "refused" -> """{"ok":false,"error":{"code":"gateway/permission-denied","message":"private refusal poison","details":{}}}"""
                             "invalid" -> """{"ok":true,"value":{}}"""
-                            else -> """{"ok":true,"value":{"hostId":"private-host-poison","displayName":"private-label-poison","productVersion":"private-version-poison","apiProtocolVersion":2,"runtimeMode":"full","sessionFormatVersion":999,"capabilities":["session.follow.v1","private-capability-poison"]}}"""
+                            else -> """{"ok":true,"value":{"hostId":"private-host-poison","displayName":"private-label-poison","productVersion":"private-version-poison","apiProtocolVersion":2,"runtimeMode":"full","sessionFormatVersion":999,"capabilities":${JsonArray(capabilities.map(::JsonPrimitive))}}}"""
                         }
                         val bytes = """{"type":"server-response","rpcId":$id,"result":$response}""".toByteArray()
                         try {
@@ -131,6 +132,38 @@ class NativeGatewayDiagnosticsTest {
             assertEquals(first.description, retired.description)
             assertEquals(1, fixture.reads)
             assertEquals(3, fixture.requests.get())
+        }
+    }
+
+    @Test fun `missing operation capabilities refuse before HTTP or mux dispatch and refresh changes availability`() = runBlocking {
+        Fixture().use { fixture ->
+            val client = fixture.client
+            client.describe()
+            for ((endpoint, capability) in listOf(
+                "session/list" to "session.list.v1", "session/prompt" to "session.control.v1",
+                "session/cancel" to "session.control.v1", "session/create" to "session.manage.v1",
+                "workspaceFiles/list" to "workspace-files.list.v1", "workspaceFiles/read" to "workspace-files.read-text.v1",
+                "workspaceFiles/stat" to "workspace-files.stat.v1", "workspaceFiles/readBytes" to "workspace-files.read-bytes.v1",
+                "subagents/list" to "subagent.catalog.v1",
+            )) {
+                val failure = assertFailsWith<LinkClientException.Refused> { client.call(endpoint) }
+                assertEquals("host/capability-unavailable", failure.code)
+                assertEquals(WireValue.ObjectValue(mapOf("capability" to WireValue.StringValue(capability))), failure.details)
+            }
+            assertFailsWith<LinkClientException.Refused> { client.stream("workspace/follow").collect() }
+            assertEquals(1, fixture.requests.get())
+            assertEquals(0, client.diagnosticSnapshot().value.registeredMuxStreams)
+            client.call("session/page")
+            assertEquals(2, fixture.requests.get())
+            fixture.capabilities = emptyList()
+            client.refreshHostDescription()
+            assertFailsWith<LinkClientException.Refused> { client.call("session/page") }
+            assertFailsWith<LinkClientException.Refused> { client.stream("session/follow").collect() }
+            assertEquals(3, fixture.requests.get())
+            fixture.capabilities = listOf("session.follow.v1")
+            client.refreshHostDescription()
+            client.call("session/page")
+            assertEquals(5, fixture.requests.get())
         }
     }
 

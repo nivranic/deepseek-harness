@@ -17,13 +17,32 @@ enum class NativeObservedRole(val wire: String) {
     }
 }
 
-/** Only these public capability identifiers may enter a diagnostic document. */
+/** Public capabilities recognized by the native companion and permitted in diagnostic documents. */
 enum class NativeObservedCapability(val wire: String) {
     SESSION_FOLLOW("session.follow.v1"), SESSION_CONTROL("session.control.v1"),
     SESSION_LIST("session.list.v1"), SESSION_MANAGE("session.manage.v1"),
     WORKSPACE_FOLLOW("workspace.follow.v1"), FILE_STAT("workspace-files.stat.v1"),
     FILE_LIST("workspace-files.list.v1"), FILE_TEXT("workspace-files.read-text.v1"),
     FILE_BYTES("workspace-files.read-bytes.v1"),
+    SUBAGENT_CATALOG("subagent.catalog.v1");
+
+    companion object {
+        /** Native-owned operations mirror their Remote owner's advertised method sets. */
+        internal fun forEndpoint(endpoint: String): NativeObservedCapability? = when (endpoint) {
+            "session/follow", "session/page" -> SESSION_FOLLOW
+            "session/control", "session/prompt", "session/updateQueue", "session/cancel" -> SESSION_CONTROL
+            "session/list" -> SESSION_LIST
+            "session/create", "session/rename", "session/fork" -> SESSION_MANAGE
+            "workspace/follow" -> WORKSPACE_FOLLOW
+            "workspaceFiles/stat" -> FILE_STAT
+            "workspaceFiles/list" -> FILE_LIST
+            "workspaceFiles/read" -> FILE_TEXT
+            "workspaceFiles/readBytes" -> FILE_BYTES
+            "subagents/list" -> SUBAGENT_CATALOG
+            // Gateway event transport and extension methods have no native-owned operation requirement here.
+            else -> null
+        }
+    }
 }
 
 /** Successful API 2/full negotiation with independent durable Session version; no Host identity fields. */

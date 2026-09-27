@@ -27,6 +27,10 @@
     <string name="native_capabilities_file_list">目录列表</string>
     <string name="native_capabilities_file_text">读取文本</string>
     <string name="native_capabilities_file_bytes">读取文件字节</string>
+    <string name="native_capabilities_subagent_catalog">子代理列表</string>
+    <string name="native_capabilities_waiting">尚未取得 Host 能力，请在连接能力中刷新。本地输入已保留。</string>
+    <string name="native_capabilities_operation_absent">Host 未声明支持此操作。本地输入已保留，可在连接能力中刷新。</string>
+    <string name="native_stop_unconfirmed">停止请求未确认，请检查任务状态后显式重试。</string>
     <string name="native_capabilities_refresh">刷新观察</string>
     <string name="native_history_load_older">加载更早记录</string>
     <string name="native_history_loading">正在加载历史…</string>

@@ -1,6 +1,7 @@
 package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.WireValue
+import ai.deepseek.dsh.gateway.NativeObservedCapability as NativeCapability
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -372,6 +373,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var descriptionRefresh by remember(model.generation) { mutableStateOf(0) }
     val description = HostDescriptionObserver(CompanionRuntime.wire, active, model.generation, descriptionRefresh)
+    val capabilities = description.snapshot?.takeUnless { it.closed }?.description?.capabilities
     // The chapter-70 runtime grant: Android 13+ asks for POST_NOTIFICATIONS
     // at runtime — once per process while the grant is missing — and the
     // answer lands in the projection the push chain reads.
@@ -435,13 +437,13 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
             }
             InputPersistenceNotice(model)
             when (tab) {
-                0 -> SessionsTab(model)
+                0 -> SessionsTab(model, capabilities)
                 1 -> ApprovalsTab(model)
                 2 -> PlanTab(model)
                 3 -> ToolsTab(model)
-                4 -> FilesTab(model)
-                5 -> ArtifactsTab(model)
-                else -> SubagentsTab(model)
+                4 -> FilesTab(model, capabilities)
+                5 -> ArtifactsTab(model, capabilities)
+                else -> SubagentsTab(model, capabilities)
             }
         }
     }
@@ -550,8 +552,19 @@ fun PairingScreen(model: CompanionViewModel) {
     }
 }
 
+private fun Set<NativeCapability>?.supports(capability: NativeCapability): Boolean = this?.contains(capability) == true
+
 @Composable
-fun SessionsTab(model: CompanionViewModel) {
+private fun MissingNativeCapability(capabilities: Set<NativeCapability>?) {
+    Text(androidx.compose.ui.res.stringResource(if (capabilities == null) R.string.native_capabilities_waiting
+        else R.string.native_capabilities_operation_absent), Modifier.padding(16.dp).testTag("native-operation-unavailable"))
+}
+
+@Composable
+fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
+    val canList = capabilities.supports(NativeCapability.SESSION_LIST)
+    val canFollow = capabilities.supports(NativeCapability.SESSION_FOLLOW)
+    val canControl = capabilities.supports(NativeCapability.SESSION_CONTROL)
     val scope = rememberCoroutineScope()
     val sessions by model.session.sessions.collectAsStateWithLifecycle()
     val listState by model.session.listState.collectAsStateWithLifecycle()
@@ -562,6 +575,7 @@ fun SessionsTab(model: CompanionViewModel) {
     val sendFailure by model.session.sendFailure.collectAsStateWithLifecycle()
     val draft = open?.sessionId?.let { input.drafts[it]?.text }.orEmpty()
     val sending by model.session.sending.collectAsStateWithLifecycle()
+    var cancelFailed by remember(model.session, open?.sessionId) { mutableStateOf(false) }
     val history by model.session.history.collectAsStateWithLifecycle()
     val anchor by model.session.viewAnchor.collectAsStateWithLifecycle()
     val timeline = rememberLazyListState()
@@ -575,19 +589,21 @@ fun SessionsTab(model: CompanionViewModel) {
             revealed = target
         }
     }
-    LaunchedEffect(model.session) {
-        model.session.loadSessions()
-        if (model.session.open.value == null) model.session.restoreSelection()
+    LaunchedEffect(model.session, canList, canFollow) {
+        if (!canFollow) model.session.closeAndAwait()
+        if (canList) model.session.loadSessions()
+        if (canFollow && model.session.open.value == null) model.session.restoreSelection()
     }
     Column(Modifier.fillMaxSize()) {
-        SessionViewLocationActions(model, timeline)
+        if (canFollow) SessionViewLocationActions(model, timeline)
+        if (!canList && open == null || !canFollow) MissingNativeCapability(capabilities)
         Row(Modifier.fillMaxWidth()) {
             Text(
                 open?.let { "已打开会话 ${it.sessionId}" } ?: "会话",
                 Modifier.weight(1f).padding(16.dp),
                 style = MaterialTheme.typography.titleMedium,
             )
-            if (open == null) Button(
+            if (open == null && canList) Button(
                 modifier = Modifier.testTag("session-list-refresh").padding(horizontal = 16.dp),
                 enabled = listState != SessionListState.Loading,
                 onClick = { scope.launch { model.session.loadSessions() } },
@@ -599,7 +615,7 @@ fun SessionsTab(model: CompanionViewModel) {
                 scope.launch { model.session.returnToList() }
             }) { Text(androidx.compose.ui.res.stringResource(R.string.native_session_return_list)) }
         }
-        if (open == null) when (val state = listState) {
+        if (open == null && canList) when (val state = listState) {
             SessionListState.Idle -> Unit
             SessionListState.Loading -> Text(androidx.compose.ui.res.stringResource(R.string.native_sessions_loading), Modifier.padding(16.dp))
             SessionListState.Ready -> if (sessions.isEmpty()) Text(androidx.compose.ui.res.stringResource(R.string.native_sessions_empty), Modifier.padding(16.dp))
@@ -607,7 +623,7 @@ fun SessionsTab(model: CompanionViewModel) {
                 Modifier.testTag("session-list-error").padding(16.dp), color = MaterialTheme.colorScheme.error)
         }
         if (open != null) {
-            if (history.hasMore) Button(modifier = Modifier.testTag("session-load-older"), enabled = !history.loading,
+            if (canFollow && history.hasMore) Button(modifier = Modifier.testTag("session-load-older"), enabled = !history.loading,
                 onClick = { scope.launch { model.session.loadOlderHistory() } }) {
                 Text(androidx.compose.ui.res.stringResource(if (history.loading) R.string.native_history_loading else R.string.native_history_load_older))
             }
@@ -616,10 +632,10 @@ fun SessionsTab(model: CompanionViewModel) {
         }
         LazyColumn(Modifier.weight(1f).testTag("session-rows"), state = timeline) {
             if (open == null) {
-                items(sessions) { row ->
+                items(if (canList) sessions else emptyList()) { row ->
                     RaisedCard {
                         Text(row.title, style = MaterialTheme.typography.bodyLarge)
-                        Button(modifier = Modifier.testTag("session-open-${row.id}"), onClick = { scope.launch { model.session.openSession(row.id) } }) { Text("打开") }
+                        if (canFollow) Button(modifier = Modifier.testTag("session-open-${row.id}"), onClick = { scope.launch { model.session.openSession(row.id) } }) { Text("打开") }
                     }
                 }
             } else {
@@ -629,7 +645,7 @@ fun SessionsTab(model: CompanionViewModel) {
                         Text(pending.draft.text)
                         Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_discard_notice), style = MaterialTheme.typography.bodySmall)
                         Row {
-                            Button(enabled = !sending && editable, onClick = { model.session.retryPrompt(pending.draft.requestId) }) {
+                            if (canControl) Button(enabled = !sending && editable, onClick = { model.session.retryPrompt(pending.draft.requestId) }) {
                                 Text(androidx.compose.ui.res.stringResource(R.string.native_prompt_retry))
                             }
                             Button(enabled = !sending && editable, onClick = { model.session.discardPending(pending.draft.requestId) }) {
@@ -651,13 +667,21 @@ fun SessionsTab(model: CompanionViewModel) {
                 ?: androidx.compose.ui.res.stringResource(R.string.native_prompt_failed)
             Text(detail, Modifier.testTag("session-send-error").padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
         }
+        if (open != null && !canControl) MissingNativeCapability(capabilities)
+        if (cancelFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_stop_unconfirmed),
+            Modifier.testTag("session-cancel-error").padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = draft, onValueChange = { text -> open?.sessionId?.let { model.session.updateDraft(it, text) } },
                 label = { Text("发消息给宿主…") }, enabled = open != null && editable, modifier = Modifier.weight(1f).testTag("session-draft"))
-            Button(onClick = {
+            if (canControl) Button(modifier = Modifier.testTag("session-send"), onClick = {
                 model.session.submitDraft()
             }, enabled = open != null && editable && draft.isNotEmpty() && !sending) { Text("发送") }
-            Button(enabled = open != null, onClick = { scope.launch { model.session.cancelActive() } }) { Text("停止") }
+            if (canControl) Button(modifier = Modifier.testTag("session-cancel"), enabled = open != null, onClick = { scope.launch {
+                cancelFailed = false
+                try { model.session.cancelActive() }
+                catch (cancelled: CancellationException) { throw cancelled }
+                catch (_: Exception) { cancelFailed = true }
+            } }) { Text("停止") }
         }
     }
 }
@@ -890,7 +914,11 @@ fun DiffReview(change: FileChange) {
 }
 
 @Composable
-fun FilesTab(model: CompanionViewModel) {
+fun FilesTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
+    val canFollow = capabilities.supports(NativeCapability.WORKSPACE_FOLLOW)
+    val canList = capabilities.supports(NativeCapability.FILE_LIST)
+    val canReadText = capabilities.supports(NativeCapability.FILE_TEXT)
+    val canReadBytes = capabilities.supports(NativeCapability.FILE_STAT) && capabilities.supports(NativeCapability.FILE_BYTES)
     val scope = rememberCoroutineScope()
     val directory by model.files.directory.collectAsStateWithLifecycle()
     val entries by model.files.entries.collectAsStateWithLifecycle()
@@ -899,20 +927,22 @@ fun FilesTab(model: CompanionViewModel) {
     val openFile by model.files.openFile.collectAsStateWithLifecycle()
     val openFileError by model.files.openFileError.collectAsStateWithLifecycle()
     val resource by model.files.resource.state.collectAsStateWithLifecycle()
-    // The workspace list arrives over the follow stream; without this start
-    // the tab renders entries of a stream nobody opened.
-    LaunchedEffect(model.paired) { if (model.paired) model.files.start() }
+    LaunchedEffect(model.files, model.paired, canFollow) { if (model.paired && canFollow) model.files.start() else model.files.stop() }
     LaunchedEffect(openSession?.sessionId) { openSession?.let { model.files.selectSession(it.sessionId) } }
-    LaunchedEffect(model.paired, selected) { model.files.list() }
+    LaunchedEffect(model.files, model.paired, selected, canList, canFollow) { if (canList) model.files.list() }
+    LaunchedEffect(model.files, canReadText, canReadBytes) {
+        if (!canReadText && model.files.openFile.value != null || !canReadBytes && model.files.resource.state.value != null) model.files.closeFile()
+    }
     val preview = resource
-    if (preview != null) {
+    if (preview != null && canReadBytes) {
         NativeResourcePreview(preview, model.files.resource::retry,
             { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile)
         return
     }
     Column(Modifier.fillMaxSize()) {
+        if (!canList || !canReadText && !canReadBytes) MissingNativeCapability(capabilities)
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = {
+            if (canList) Button(onClick = {
                 model.files.goUp()
                 model.files.closeFile()
                 scope.launch { model.files.list() }
@@ -923,7 +953,7 @@ fun FilesTab(model: CompanionViewModel) {
             Text(error, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
         }
         val file = openFile
-        if (file != null) {
+        if (file != null && canReadText) {
             Column(Modifier.weight(1f).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(file.path, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
@@ -943,14 +973,15 @@ fun FilesTab(model: CompanionViewModel) {
                 }
             }
         } else LazyColumn(Modifier.weight(1f).testTag("resource-file-list")) {
-            items(entries) { entry ->
+            items(if (canList) entries else emptyList()) { entry ->
                 RaisedCard(Modifier.testTag("file-entry-${entry.name}")) {
                     Text(if (entry.isDirectory) "📁 ${entry.name}" else "📄 ${entry.name}")
                     if (entry.isDirectory) {
                         Button(onClick = { model.files.openEntry(entry.name); scope.launch { model.files.list() } }) { Text(androidx.compose.ui.res.stringResource(R.string.native_open_directory)) }
                     } else {
-                        Button(onClick = { scope.launch { model.files.readFile(entry.name) } }) { Text("查看") }
-                        Button(onClick = { model.files.previewFile(entry.name) }, modifier = Modifier.testTag("resource-open-${entry.name}")) {
+                        if (canReadText) Button(onClick = { scope.launch { model.files.readFile(entry.name) } },
+                            modifier = Modifier.testTag("file-text-open-${entry.name}")) { Text("查看") }
+                        if (canReadBytes) Button(onClick = { model.files.previewFile(entry.name) }, modifier = Modifier.testTag("resource-open-${entry.name}")) {
                             Text(androidx.compose.ui.res.stringResource(R.string.native_resource_preview))
                         }
                     }
@@ -961,23 +992,26 @@ fun FilesTab(model: CompanionViewModel) {
 }
 
 @Composable
-fun ArtifactsTab(model: CompanionViewModel) {
+fun ArtifactsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
+    val canReadBytes = capabilities.supports(NativeCapability.FILE_STAT) && capabilities.supports(NativeCapability.FILE_BYTES)
     val open by model.session.open.collectAsStateWithLifecycle()
     val files by model.session.deliveredFiles.collectAsStateWithLifecycle()
     val resource by model.files.resource.state.collectAsStateWithLifecycle()
+    LaunchedEffect(model.files, canReadBytes) { if (!canReadBytes && model.files.resource.state.value != null) model.files.closeFile() }
     val preview = resource
-    if (preview != null && preview.target.sessionId == open?.sessionId) {
+    if (canReadBytes && preview != null && preview.target.sessionId == open?.sessionId) {
         NativeResourcePreview(preview, model.files.resource::retry,
             { model.files.previewPath(preview.target.sessionId, preview.target.path) }, model.files::closeFile)
         return
     }
     LazyColumn(Modifier.fillMaxSize().testTag("resource-delivery-list")) {
+        if (!canReadBytes) item { MissingNativeCapability(capabilities) }
         if (files.isEmpty()) item { Text(androidx.compose.ui.res.stringResource(R.string.native_resource_no_deliveries), Modifier.padding(16.dp)) }
         items(files, key = { "${it.seq}:${it.index}" }) { file ->
             RaisedCard {
                 Text(file.path, style = MaterialTheme.typography.bodyLarge)
                 file.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                Button(onClick = { open?.let { model.files.previewPath(it.sessionId, file.path) } },
+                if (canReadBytes) Button(onClick = { open?.let { model.files.previewPath(it.sessionId, file.path) } },
                     modifier = Modifier.testTag("resource-delivery-${file.seq}-${file.index}")) {
                     Text(androidx.compose.ui.res.stringResource(R.string.native_resource_preview))
                 }
@@ -987,19 +1021,23 @@ fun ArtifactsTab(model: CompanionViewModel) {
 }
 
 @Composable
-fun SubagentsTab(model: CompanionViewModel) {
+fun SubagentsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
+    val canList = capabilities.supports(NativeCapability.SUBAGENT_CATALOG)
+    val canFollow = capabilities.supports(NativeCapability.SESSION_FOLLOW)
     val scope = rememberCoroutineScope()
     val sessions by model.session.sessions.collectAsStateWithLifecycle()
     val rows by model.subagents.rows.collectAsStateWithLifecycle()
-    LaunchedEffect(model.paired, sessions) {
-        sessions.firstOrNull()?.let { model.subagents.load(it.id) }
+    LaunchedEffect(model.subagents, model.paired, sessions, canList) {
+        if (canList) sessions.firstOrNull()?.let { model.subagents.load(it.id) }
     }
+    LaunchedEffect(model.subagents, canFollow) { if (!canFollow) model.subagents.closeChild() }
     LazyColumn(Modifier.fillMaxSize()) {
-        items(rows) { row ->
+        if (!canList) item { MissingNativeCapability(capabilities) }
+        items(if (canList) rows else emptyList()) { row ->
             RaisedCard {
                 Text(row.label ?: row.id, style = MaterialTheme.typography.bodyLarge)
                 Text(row.reason ?: row.mode ?: "", style = MaterialTheme.typography.bodySmall)
-                if (row.mode != null) {
+                if (canFollow && row.mode != null) {
                     Button(onClick = {
                         val parent = sessions.firstOrNull()?.id ?: return@Button
                         scope.launch { model.subagents.openChild(parent, row) }

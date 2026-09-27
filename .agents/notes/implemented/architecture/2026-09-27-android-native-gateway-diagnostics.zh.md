@@ -20,6 +20,8 @@ Status: implemented
 
 导出器只允许类型化角色、固定失败分类、已协商协议事实及客户端拥有的能力白名单。未知能力名称、Host 与设备身份、显示标签、来自 Host 的产品字符串、端点、指纹、凭据、载荷、路径和异常消息均不会进入这些诊断节。应用仍要求既有扫描器批准精确字节后才允许交付。
 
+独立的[原生操作策略](2026-09-27-android-operation-capabilities.zh.md)将已识别能力用于操作呈现及发送前检查。其 Subagent catalog 标识也纳入固定诊断白名单；这不会改变诊断隐私规则，也不会把观察变为授权。
+
 [传输决策](2026-09-25-native-remote-connection-source.zh.md)继续拥有 TLS、准入和退休语义。[模块迁移决策](2026-09-19-android-core-app-migration.zh.md)保留独立的构建与扫描器准入理由。两者均未被取代。扫描器源码出处与当前发布限制由 [Android README](../../../../apps/android/README.zh.md#known-limitations-and-deferred-work)拥有。
 
 ## 考虑过的替代方案

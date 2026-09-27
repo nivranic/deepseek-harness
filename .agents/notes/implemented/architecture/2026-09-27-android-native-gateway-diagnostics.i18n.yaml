@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.md
-2026-09-27-android-native-gateway-diagnostics.md: b5d762ec67c80a01492fcd631963cd04fdbe09c9
-2026-09-27-android-native-gateway-diagnostics.zh.md: a48e1e827107d45775b3d0cec4d2537dc3a87d42
+2026-09-27-android-native-gateway-diagnostics.md: 1a08b448ba9fbd6f1b2a5bc7c44164faa6a4ca2e
+2026-09-27-android-native-gateway-diagnostics.zh.md: 21bfdf6a195164f6c0d6b617d60a5c1cbf40c380

@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 业务操作按协商能力呈现与发送（§13）
+
+[当前来源记录](artifacts/upstream-first/android-operation-capabilities-source.json)绑定会话列表/跟随/控制、文件列表/文本/资源及子代理入口的独立能力检查。界面不呈现已知不受支持的操作，也不启动对应自动查询；Native Gateway 对已知操作在 HTTP 发送和 mux 创建前再次核对最近成功协商，覆盖迟到回调及直接调用。内建事件传输不虚构能力标识，授权仍由 Host 逐请求判定。
+
+本地草稿、待确认身份与保存选择不会因能力变化删除，恢复支持只重新打开观察。子代理取消读取保留行并回到 idle，停止请求被拒绝显示未确认提示。支持导出加入固定 Subagent catalog 标识，不允许任意远端字符串。306 项 core 测试、55 个套件无失败和跳过；五项已安装测试及七项真实 Host 回归通过，实际截图确认操作隐藏/恢复及草稿保留。服务端方法保持挂载而声明变化，调用记录独立证明请求抑制。
+
+Host 类型检查已收录新场景，tsc、lint、17 项快速文档、36 项 doc-sync、6 项逐节追踪及 Gate 0 通过。应用源码与 APK 哈希单独绑定，没有沿用旧应用 source/tree 戳；扫描器仍来自已核验的 8ca9f6ebf33de3912292416b85f5b510c88de9a3，不声称新获同源码扫描器/应用资格。跨版本、多语言、物理设备和其他原生功能继续开放，completeRc 为 false。
+
 ## Android 当前 Host 能力观察详情（§12、§13）
 
-[当前来源记录](artifacts/upstream-first/android-capability-presentation-source.json)绑定连接能力详情、按 Host 代次隔离的前台观察器以及最终安装 APK。详情显示固定识别集合的最近成功声明、配对时角色和独立 API/Session 版本；没有观察不等于不支持，声明支持不等于当前授权或健康。打开和关闭详情不发请求，显式刷新和进入前台共用查询路径，切换 Host 关闭旧详情并隔离迟到完成。
+[历史来源记录](artifacts/upstream-first/android-capability-presentation-source.json)绑定连接能力详情、按 Host 代次隔离的前台观察器以及最终安装 APK。详情显示固定识别集合的最近成功声明、配对时角色和独立 API/Session 版本；没有观察不等于不支持，声明支持不等于当前授权或健康。打开和关闭详情不发请求，显式刷新和进入前台共用查询路径，切换 Host 关闭旧详情并隔离迟到完成。
 
 五项已安装 Compose 测试通过；真实 Host 能力拒绝/恢复与原生扫描诊断两个场景通过，最终严格类型化的能力场景另行通过。系统截图已核对成功、失败保留事实及可滚动内容；最初错误采到 Activity 的截图被排除。Host 类型检查已显式收录新场景，tsc、lint、17 项快速文档、36 项 doc-sync、6 项逐节追踪及 Gate 0 通过。
 

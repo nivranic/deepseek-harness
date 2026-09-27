@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.json.*
 import org.junit.Rule
 import org.junit.Test
@@ -63,6 +64,54 @@ class NativeCompanionAcceptanceTest {
                     var stage = op
                     try {
                         when (op) {
+                            "assertOperationVisibility" -> {
+                                compose.onNodeWithTag("native-tab-${command.getValue("tab").jsonPrimitive.int}").performClick()
+                                command["entry"]?.jsonPrimitive?.content?.let { path ->
+                                    val tag = "file-entry-$path"
+                                    waitFor(hasTestTag(tag))
+                                    compose.onNodeWithTag(tag).performScrollTo()
+                                }
+                                compose.waitForIdle()
+                                for ((tag, visible) in command.getValue("visible").jsonObject) {
+                                    if (visible.jsonPrimitive.boolean) {
+                                        waitFor(hasTestTag(tag))
+                                        compose.onNodeWithTag(tag).assertExists()
+                                    } else compose.onNodeWithTag(tag).assertDoesNotExist()
+                                }
+                            }
+                            "assertStoredPromptDraft" -> {
+                                val sessionId = command.getValue("sessionId").jsonPrimitive.content
+                                val expected = command.getValue("text").jsonPrimitive.content
+                                val model = companionModel()
+                                compose.runOnIdle { check(model.session.input.value.drafts[sessionId]?.text == expected) }
+                            }
+                            "probeUnsupportedOperations" -> {
+                                val codes = mutableListOf<String>()
+                                runBlocking {
+                                    kotlinx.coroutines.withTimeout(5_000) {
+                                        for (endpoint in command.getValue("calls").jsonArray) {
+                                            try {
+                                                CompanionRuntime.wire.call(endpoint.jsonPrimitive.content)
+                                                error("unsupported unary operation dispatched")
+                                            } catch (failure: ai.deepseek.dsh.link.LinkClientException.Refused) { codes.add(failure.code) }
+                                        }
+                                        for (endpoint in command.getValue("streams").jsonArray) {
+                                            try {
+                                                CompanionRuntime.wire.stream(endpoint.jsonPrimitive.content).collect { error("unsupported stream opened") }
+                                                error("unsupported stream completed")
+                                            } catch (failure: ai.deepseek.dsh.link.LinkClientException.Refused) { codes.add(failure.code) }
+                                        }
+                                    }
+                                }
+                                value = JsonArray(codes.map(::JsonPrimitive))
+                            }
+                            "expectCancelRefusal" -> {
+                                compose.onNodeWithTag("native-tab-0").performClick()
+                                waitFor(hasTestTag("session-cancel") and isEnabled())
+                                compose.onNodeWithTag("session-cancel").performClick()
+                                waitFor(hasTestTag("session-cancel-error"))
+                                compose.onNodeWithTag("session-cancel-error").assertIsDisplayed()
+                            }
                             "capabilityDetails" -> {
                                 check(paired)
                                 if (compose.onAllNodesWithTag("native-capabilities-state").fetchSemanticsNodes(false).isEmpty()) {
