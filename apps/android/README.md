@@ -64,6 +64,8 @@ Session, Workspace, and interaction observations reconnect only after transport 
 | `app/src/main/kotlin/ai/deepseek/dsh/companion/` | Migrated Compose shell: MainActivity, chat screen, notifications, Keystore cipher |
 | `support/link-fixture-host.mjs` | Host-side Link fixture for the emulator lane: pairs one device over pinned TLS, verifies Ed25519 request signatures, and refuses `workspaceFiles/read` with the classified `gateway/permission-denied` envelope; the committed `fixture-host-cert.pem`/`fixture-host-key.pem` are throwaway localhost fixture credentials, not product secrets |
 
+The core download facility persists authenticated, principal- and Session-bound windows under an exclusive lease. Restoration is local-only; explicit continuation revalidates the file version, and close awaits network and disk work. The application has not yet wired this facility to Keystore storage or download controls. The [checkpoint decision](../../.agents/notes/implemented/architecture/2026-09-27-android-download-checkpoints.md) owns durability, limits and integration gaps.
+
 <a id="local-support-export"></a>
 ## Local support export
 

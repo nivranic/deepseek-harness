@@ -64,6 +64,8 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 | `app/src/main/kotlin/ai/deepseek/dsh/companion/` | 迁入的 Compose 外壳：MainActivity、聊天屏、通知、Keystore cipher |
 | `support/link-fixture-host.mjs` | 模拟器 lane 的 Host 侧 Link 夹具：经 pinning TLS 配对一台设备、校验 Ed25519 请求签名，并以分类的 `gateway/permission-denied` 信封拒绝 `workspaceFiles/read`；随库提交的 `fixture-host-cert.pem`/`fixture-host-key.pem` 是一次性本地回环夹具凭证，不是产品机密 |
 
+core 下载设施通过独占锁持久保存经过认证、绑定主体与 Session 的分段。恢复只读取本地状态；显式继续重新核对文件版本，关闭等待网络与磁盘工作。应用尚未将该设施接入 Keystore 存储或下载控件。[检查点决定](../../.agents/notes/implemented/architecture/2026-09-27-android-download-checkpoints.zh.md)说明持久性、限制及集成缺口。
+
 <a id="local-support-export"></a>
 ## 本地支持导出
 

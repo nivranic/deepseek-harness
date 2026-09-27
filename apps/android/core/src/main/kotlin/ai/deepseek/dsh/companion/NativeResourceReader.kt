@@ -1,8 +1,6 @@
 package ai.deepseek.dsh.companion
 
-import ai.deepseek.dsh.link.LinkClientException
 import ai.deepseek.dsh.link.WireValue
-import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,10 +89,10 @@ class NativeResourceReader(private val wire: WireDriving, private val scope: Cor
             val initial = synchronized(lock) { state.value?.takeIf { stamp == generation } } ?: return
             val args = mapOf("workspaceFileScopeId" to WireValue.StringValue(initial.target.sessionId),
                 "path" to WireValue.StringValue(initial.target.path))
-            val observed = descriptor(wire.call("workspaceFiles/stat", args))
+            val observed = NativeResourceWire.descriptor(wire.call("workspaceFiles/stat", args))
             synchronized(lock) {
                 if (stamp != generation) return
-                if (initial.descriptor != null && initial.descriptor != observed) throw ResourceChanged()
+                if (initial.descriptor != null && initial.descriptor != observed) throw NativeResourceChanged()
                 mutableState.value = checkNotNull(state.value).copy(descriptor = observed)
             }
             val budget = if (observed.bytes != null && observed.bytes > limits.maxBufferedBytes) limits.previewBytes else limits.maxBufferedBytes
@@ -102,25 +100,16 @@ class NativeResourceReader(private val wire: WireDriving, private val scope: Cor
                 val current = synchronized(lock) { state.value?.takeIf { stamp == generation } } ?: return
                 val offset = current.receivedBytes
                 val length = minOf(limits.windowBytes, budget - offset)
-                if (length <= 0) invalid("resource read budget exhausted without a terminal state")
+                if (length <= 0) error("resource read budget exhausted without a terminal state")
                 val result = wire.call("workspaceFiles/readBytes", args + ("range" to WireValue.ObjectValue(mapOf(
                     "offset" to WireValue.NumberValue(offset.toDouble()), "length" to WireValue.NumberValue(length.toDouble()),
                 ))))
                 synchronized(lock) {
                     if (stamp != generation) return
-                    if (descriptor(result) != observed) throw ResourceChanged()
-                    if (integer(result, "offset") != offset.toLong()) invalid("resource byte offset differs")
-                    val eof = WireShape.boolean(result, "eof") ?: invalid("resource EOF is missing")
-                    val encoded = WireShape.string(result, "data") ?: invalid("resource bytes are missing")
-                    if (encoded.length.toLong() > ((length.toLong() + 2) / 3) * 4) invalid("resource window exceeds requested size")
-                    val bytes = try { Base64.getDecoder().decode(encoded) }
-                    catch (_: IllegalArgumentException) { invalid("resource base64 is invalid") }
-                    if (Base64.getEncoder().encodeToString(bytes) != encoded) invalid("resource base64 is not canonical")
-                    if (bytes.size > length || bytes.isEmpty() && !eof) invalid("resource window makes no bounded progress")
+                    val window = NativeResourceWire.window(result, observed, offset.toLong(), length)
+                    val bytes = window.bytes
+                    val eof = window.eof
                     val total = offset + bytes.size
-                    if (observed.bytes != null && (total > observed.bytes || eof != (total.toLong() == observed.bytes))) {
-                        invalid("resource EOF differs from its size")
-                    }
                     chunks.add(bytes)
                     val prefix = if (offset >= limits.previewBytes) current.prefix else join(minOf(total, limits.previewBytes))
                     val phase = if (eof) NativeResourcePhase.READY else if (total == budget) NativeResourcePhase.PREVIEW else NativeResourcePhase.LOADING
@@ -130,7 +119,7 @@ class NativeResourceReader(private val wire: WireDriving, private val scope: Cor
                 }
             }
         } catch (cancelled: CancellationException) { throw cancelled }
-        catch (_: ResourceChanged) {
+        catch (_: NativeResourceChanged) {
             synchronized(lock) {
                 if (stamp == generation) {
                     chunks.clear()
@@ -158,21 +147,4 @@ class NativeResourceReader(private val wire: WireDriving, private val scope: Cor
         return result
     }
 
-    private fun descriptor(value: WireValue): NativeFileDescriptor {
-        val path = WireShape.string(value, "absolutePath")?.takeIf(String::isNotBlank) ?: invalid("resource path is missing")
-        val version = WireShape.string(value, "version")?.takeIf(String::isNotBlank) ?: invalid("resource version is missing")
-        val fields = (value as? WireValue.ObjectValue)?.entries ?: invalid("resource descriptor required")
-        return NativeFileDescriptor(path, version, if (fields.containsKey("bytes")) integer(value, "bytes") else null)
-    }
-
-    private fun integer(value: WireValue, field: String): Long {
-        val number = WireShape.number(value, field) ?: invalid("resource $field is missing")
-        if (!number.isFinite() || number < 0 || number > 9_007_199_254_740_991.0 || number != kotlin.math.floor(number)) {
-            invalid("resource $field must be a nonnegative safe integer")
-        }
-        return number.toLong()
-    }
-
-    private class ResourceChanged : Exception()
-    private fun invalid(message: String): Nothing = throw LinkClientException.BadWire(message)
 }
