@@ -68,7 +68,7 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 <a id="known-limitations-and-deferred-work"></a>
 ## 已知限制与后续工作
 
-`:app:assembleDebug` 要求经 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 传入支持扫描器 AAR 及已核验回执。既有外部 AAR 记录的源码提交是 `64fa63152b93b6898f95f4bda8eb6857dbb19848`。[扫描器源码与 Android 构建器](../../native/support-scanner/README.zh.md)已在当前检出中维护，但源码测试不会替换该外部产物。在宣称同候选扫描器可复现构建之前，仍需基于已提交的当前候选源码构建、保留回执并取得匹配的已安装应用证据。
+`:app:assembleDebug` 要求经 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 传入支持扫描器 AAR 及已核验回执。[扫描器源码与 Android 构建器](../../native/support-scanner/README.zh.md)从精确的已提交源码生成资源。本机候选验收匹配扫描器与应用的 source/tree 身份、已安装 APK 与 JNI 哈希以及嵌入规则摘要。AAR 重复构建使用独立工作/输出目录，共享依赖缓存；已安装扫描器准入和当前 Native Gateway 支持导出在[实施状态](../../IMPLEMENTATION_STATUS.md)中分别记录证据。这不证明干净机器或跨平台可复现构建、发布签名或物理设备资格。
 
 外壳已消费 Gateway 失败契约：拒绝异常原样携带失败信封（code、message、结构化 details）自单次调用结果与流失败帧透出，呈现侧经共享 `RemoteFailureClasses` 镜像分类——已知类别给出类别文案与下一步动作，词汇表之外的码保持不透明诊断（`GatewayFailurePresentation.kt`，由 `GatewayFailurePresentationTest` 与 `LinkClientTest` 的信封保留用例覆盖）。
 

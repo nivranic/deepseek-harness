@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-scanner-candidate-source.json",
+    "sha256": "96dc1ef905e90eedd0d94ab4b3b46dca3b54382abb4d23539a2594ba4e2624f2"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a6a2b7c96facaf8f9e6bde9665ac3ba0f8a889538cf2d8d78d24451b2698543b"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-scanner-candidate-binding.mjs",
+    "sha256": "806593909e60d9d7218d8d57259c0514e04968866e6ba43a314f6035ed968b7d"
+  }
+}

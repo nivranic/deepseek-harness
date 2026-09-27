@@ -4,72 +4,47 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": ".agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.i18n.yaml",
-      "sha256": "f193714e5307d8e8c80170618c6cf3d576ba98568cc5fac6c83bdc6622e02eb0"
+      "path": ".agents/notes/implemented/process/2026-09-27-native-scanner-source-and-build-provenance.i18n.yaml",
+      "sha256": "6eddfeeb2e0f9f7e49eb45c0c2dacce24159e938d0e1c80653148bd7b9113857"
     },
     {
-      "path": ".agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.md",
-      "sha256": "b1596f9fbcf094f11608bcdeb816f76bcbac51a78f00db7fc4926c9fa58ce46e"
+      "path": ".agents/notes/implemented/process/2026-09-27-native-scanner-source-and-build-provenance.md",
+      "sha256": "9cd823f9782139f239f1ac34648e0c2669145accf40f4c6a55633f83e07f41c2"
     },
     {
-      "path": ".agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.zh.md",
-      "sha256": "c45c7b9a4eceb1bcac99757fe87cf818a0fff7bcb59c5d62a76669c72deb7995"
+      "path": ".agents/notes/implemented/process/2026-09-27-native-scanner-source-and-build-provenance.zh.md",
+      "sha256": "9536f8ffeb87a98e17517612a596b8ae0da30944599683cd1ee9cb46d530c57c"
     },
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "0d1201d6df4df104f5fad62b525c192faac3a8f746a5292451bddbdd40bb5321"
+      "sha256": "9adc35004a69bba20222b6f0088fb94f618d1661aa430b22411bdd773cacbc8c"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "e69f1ba23581bcb0e1eedf72b7531d61e74eb388f005541d064cc38a6cdf0683"
+      "sha256": "a959b203f3df562e4f0909257e6dc2443e414185f075c97c405c6bb96058ab3a"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "a3b7cada73f8291d72cc541b5dea8c744ec69a332664efd36901f31951257fb3"
+      "sha256": "acb326db0e5ef2d60c7922bd6c29f6768d06b4522f36ee4c76cc577eeca73da6"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "3acefa60f71ca33519dc089e5711aba4e08e9fd1f99f5a8b0c31baca99d459ea"
+      "sha256": "c127d2ae8686594a7a4a6b27b7bfa1dec829c3f6391768e0938b43c1ae2b98ec"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "7acb20257d0ac0a2c726bb6f63e6e5450fa5e54fc057c33ce1d9876252c1e147"
+      "sha256": "9aa271cf4985ecb265354c08d744d28e9b9219597a2c866553c839332d4936dd"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "2322b1ccf71162ce47702b9bfcb56c5140f89c92ecf97bbb634ecb97f8c2ced5"
+      "sha256": "58a70a73083747f96f946ab9fde467abf42f99133f95ae3f39c869f609d5d64e"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "5689cca5e85e6b20e0153b57a216a7f45e7a343f50719055b4a34914df9ecc50"
-    },
-    {
-      "path": "native/README.i18n.yaml",
-      "sha256": "a5de4168bd6a8b4ba22bc7a365877ae0af1d0b2a870af484e0548cdb687c5c1b"
-    },
-    {
-      "path": "native/README.md",
-      "sha256": "b8682a5fce480defbbd48a471f6af2a4f694db9efd71ff1420785715095d6991"
-    },
-    {
-      "path": "native/README.zh.md",
-      "sha256": "f22d4efe07182facb0b8e15577e5b92553a5b8d4f2ff66b6e23d92cc6efa6df0"
-    },
-    {
-      "path": "package.json",
-      "sha256": "25bb4b0a66d1c95192f42a668f44e27854f6d289d38638ec84190354b046aed2"
+      "sha256": "a6a2b7c96facaf8f9e6bde9665ac3ba0f8a889538cf2d8d78d24451b2698543b"
     }
   ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "scripts/test-support-scanner.mjs",
-      "sha256": "89bb16ea8d34ebd42a876ec566ae710dc1917a756c101d9c15ce11ce1887ccf2"
-    },
-    {
-      "path": "scripts/test-support-scanner.test.mjs",
-      "sha256": "7584e8563c81012418a84a241151a9cdc44120449c9a99848ee61a4d60af41ad"
-    }
-  ],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -8743,6 +8718,90 @@
     },
     {
       "status": "PASS",
+      "command": "committed Android scanner builder; source 8ca9f6ebf3 and explicit HTTPS module proxy",
+      "log": ".artifacts/native-scanner-candidate-build-first.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "same-source scanner build in independent work/output directories",
+      "log": ".artifacts/native-scanner-candidate-build-repeat.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "AAR and receipt byte comparison; independent work directories, shared dependency cache",
+      "log": ".artifacts/native-scanner-candidate-reproducibility.json",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "independent source, builder, ELF, modules, licenses and two tamper controls",
+      "log": ".artifacts/native-scanner-candidate-static-verification.json",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew -PdshNativeAcceptance :app:assembleDebug :app:assembleDebugAndroidTest with matching application/scanner source",
+      "log": ".artifacts/native-scanner-candidate-app-build.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "installed SupportExportNativeTest; two tests passed",
+      "log": ".artifacts/native-scanner-candidate-instrumentation.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "actual APK manifest, installed APK/JNI identity and rules hash verification",
+      "log": ".artifacts/native-scanner-candidate-app-verification.json",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest real Host Native Gateway scanned support export; one passed",
+      "log": ".artifacts/native-scanner-candidate-native-host.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "govulncheck v1.8.0 both JNI binaries; zero package/symbol findings and retained module-only OpenPGP advisory; one negative control",
+      "log": ".artifacts/native-scanner-candidate-security-verification.json",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --check artifacts/upstream-first/write-reports.mjs",
+      "log": ".artifacts/native-scanner-candidate-syntax.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/native-scanner-candidate-doc-quick.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/native-scanner-candidate-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs; six tests",
+      "log": ".artifacts/native-scanner-candidate-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/native-scanner-candidate-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -9473,7 +9532,207 @@
       ]
     }
   },
+  "nativeScannerCandidate": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json",
+    "scope": "Sections 43 and 56: same-source Android scanner and application candidate, two byte-identical AAR builds, independent artifact identity checks, installed JNI admission, real Native Gateway support export and binary symbol vulnerability analysis",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "limitations": [
+      "This is an artifact-qualification and documentation increment; product source remains committed candidate 8ca9f6ebf33de3912292416b85f5b510c88de9a3, tree d8daa8a8d08b3b5937855d83ed630836e2a482bb. The scanner and application are stamped with that same identity. No new runtime code or dependency version is introduced.",
+      "Two builds use the committed builder, Go 1.27.1, NDK 30.0.16248370, Java 17 and an explicit HTTPS module mirror with sum.golang.org retained. New separate work/output directories share the existing dependency cache. Both AARs and receipts are byte-identical: AAR 8132998 bytes, SHA256 7590f185193b9dd810b63d3309b68942b6fe6f6b5b95886142e8683a34fa0605; receipt SHA256 3e67a7d8716a9d680ce0151e24a76aa4995a06377cb405fbdcc6744b3f773e7f. This is same-host shared-cache repeatability, not clean-machine or cross-platform reproduction.",
+      "Independent artifact verification reconstructs committed source material, checks all four builder hashes, both arm64-v8a/x86_64 ELF libraries, sixty-two compiled module identities and seventy-two license files. A changed AAR byte and wrong source identity are rejected without touching the real outputs. The static receipts retain deviceExecution NOT_EXECUTED; installed execution is separate evidence.",
+      "The isolated debug APK builds and installs with the new AAR and matching application source/tree. Its actual manifest, installed APK hash ed06bab6632545f289bfcacd6fa7e75ff7636d7088647df38ea8433d4cb978c7, selected x86_64 JNI hash and Gitleaks rule digest match the local artifact and fixed default-rule source. Both packaged JNI libraries match the AAR. The prior external AAR remains untouched.",
+      "Two installed native tests pass: immutable exact-byte admission and real random credential rejection, cancellation before Run, and a complete support document with installed application source identity. One current real Host Native Gateway support-export scenario passes with the same installed candidate; it observes refusal/recovery and logical follow interruption without business mutations. This does not qualify physical devices, active native cancellation, full SAF delivery, crash collection or live models.",
+      "Govulncheck v1.8.0 scans both exact JNI binaries in binary/symbol mode against DB timestamp 2026-09-24T20:07:49Z. Both have zero package/symbol findings and one retained module-only GO-2026-5932 advisory for deprecated golang.org/x/crypto/openpgp. The Windows source dependency graph does not import that package; Android conclusions come from the binary scans. A simulated reached-symbol finding is rejected. No advisory was suppressed, no dependency was changed, and no claim of zero module vulnerabilities, race, CodeQL or release qualification is made.",
+      "Seventeen quick documentation gates, thirty-six doc-sync gates, JavaScript syntax, six traceability tests and Gate 0 pass. Runtime unit tests and broad lint were not repeated because no product source changed; existing source evidence remains bound historically and normal commit hooks lint the generated report. Before archive contains 6713 files and was created once. Session writer stays V3; completeRc=false."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Qualify clean-cache and cross-machine reproduction, signed release artifacts, race detection with a supported compiler, CodeQL and complete release governance. Retain module-only OpenPGP advisory GO-2026-5932; no affected package or symbol is reported in either current JNI binary.",
+        "Qualify physical and 16-KiB devices, native cancellation under active load, complete crash and SAF delivery, Apple bindings and cross-platform support bundles.",
+        "Continue Android capability presentation, persisted downloads, Camera/Photos, foreground/push recovery, deep links, Swift adoption and unresolved specification rows.",
+        "Whole-goal completeRc remains false. Remote publication and CI dispatch retain their separate approval blocker; no memory update, user-data migration or new handoff package."
+      ]
+    }
+  },
   "nativeScannerAdoption": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/native-scanner-candidate-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/native-scanner-adoption-source.json",
     "scope": "Sections 43 and 56: current-tree native Go support scanner source, committed Android builder provenance, explicit verified HTTPS dependency proxy and executed source gate with rejection controls",
@@ -24515,7 +24774,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/native-scanner-adoption-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/native-scanner-candidate-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -24998,7 +25257,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "5689cca5e85e6b20e0153b57a216a7f45e7a343f50719055b4a34914df9ecc50"
+        "sha256": "a6a2b7c96facaf8f9e6bde9665ac3ba0f8a889538cf2d8d78d24451b2698543b"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

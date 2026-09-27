@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 原生扫描器同候选构建与安装验收（§43、§56）
+
+[当前来源记录](artifacts/upstream-first/native-scanner-candidate-source.json)将扫描器和隔离 Android 应用绑定到同一个正式提交 8ca9f6ebf33de3912292416b85f5b510c88de9a3 及其源树。两次独立工作/输出目录构建得到相同 AAR 与回执字节，使用共享依赖缓存；AAR 为 8132998 字节，SHA256 为 7590f185193b9dd810b63d3309b68942b6fe6f6b5b95886142e8683a34fa0605。校验数据库保持启用，未使用历史环境改写器。
+
+独立检查对照提交源码、四个构建器、双 ABI、62 个模块和 72 份许可证，并拒绝被改动的产物与错误源码身份。设备 APK/JNI 哈希、规则摘要和 application source/tree 匹配；两项安装原生测试及一项真实 Host 诊断导出场景通过。静态构建回执不改写设备执行字段，安装证据单独记录。
+
+两个精确 JNI 二进制的 govulncheck v1.8.0 符号扫描无包级或符号级发现，各保留一项 GO-2026-5932 废弃 OpenPGP 模块提示；未隐藏提示，也不声称无漏洞。17 项快速文档、36 项 doc-sync、6 项逐节追踪及 Gate 0 通过。本轮无产品源码修改，不重复运行既有单测或宽泛 lint。干净缓存/跨机器重现、race、CodeQL、真机、16 KiB 设备、Apple 和发布签名仍开放，completeRc 为 false。
+
 ## 原生扫描器源码与 Android 构建出处（§43、§56）
 
-[当前来源记录](artifacts/upstream-first/native-scanner-adoption-source.json)将共享 Go 支持扫描器、Android 构建器依赖闭包和三组 Python 测试纳入当前检出。扫描器运行行为保持固定 Gitleaks 规则、真实 canary、不可变字节及等待取消；应用仍拥有字段选择与交付，不引入另一套 Host 支持包服务。
+[历史来源记录](artifacts/upstream-first/native-scanner-adoption-source.json)将共享 Go 支持扫描器、Android 构建器依赖闭包和三组 Python 测试纳入当前检出。扫描器运行行为保持固定 Gitleaks 规则、真实 canary、不可变字节及等待取消；应用仍拥有字段选择与交付，不引入另一套 Host 支持包服务。
 
 仓库入口 test:support-scanner 通过五项拒绝控制、二十项 Python 测试（Windows 目录符号链接一项跳过）、八项 Go 主测试及五个秘密输入子案例、模块完整性和 vet。门禁要求固定编译器、非空实际测试与校验数据库。构建器新增显式无凭据 HTTPS 模块代理；私有源码仍对照 Git，外部模块仍校验。JS 语法、lint、17 项快速文档、36 项 doc-sync、6 项逐节追踪及 Gate 0 通过。
 

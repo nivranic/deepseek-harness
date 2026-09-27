@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-09-27-native-scanner-source-and-build-provenance.md
-2026-09-27-native-scanner-source-and-build-provenance.md: 4783d2935a91bc531974cc215b44363cbb32c9fe
-2026-09-27-native-scanner-source-and-build-provenance.zh.md: 88110d717207f0b2ee5c43084a1d81655d1a50f4
+2026-09-27-native-scanner-source-and-build-provenance.md: f11aa33b64ab3ed5782eed5a0ca9200cadfe6008
+2026-09-27-native-scanner-source-and-build-provenance.zh.md: be74e26feb2d307af19f1a7158bca6ebf9216dbb
