@@ -429,6 +429,8 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             NativeResourceSaveNotice(resourceSavePicker)
+            if (fileAttachmentPicker.cameraCleanupFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_camera_cleanup_failed),
+                Modifier.testTag("camera-cleanup-error"), color = MaterialTheme.colorScheme.error)
             SupportExportAction(model::supportSnapshot)
             NativeHostControls(model, hosts)
             if (!model.switching && hosts.status !in setOf(NativeHostStatus.RESTORE_FAILED, NativeHostStatus.RETIREMENT_FAILED)) {
@@ -463,6 +465,8 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
             }
             InputPersistenceNotice(model)
             NativeResourceSaveNotice(resourceSavePicker)
+            if (fileAttachmentPicker.cameraCleanupFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_camera_cleanup_failed),
+                Modifier.testTag("camera-cleanup-error"), color = MaterialTheme.colorScheme.error)
             when (tab) {
                 0 -> SessionsTab(model, capabilities, fileAttachmentPicker, attachFile)
                 1 -> ApprovalsTab(model)
@@ -589,7 +593,7 @@ private fun MissingNativeCapability(capabilities: Set<NativeCapability>?) {
 
 @Composable
 internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapability>?,
-                         fileAttachmentPicker: NativeFileAttachmentPicker, attachFile: (NativeFileAttachmentsModel, NativeAttachmentKind) -> Unit) {
+                         fileAttachmentPicker: NativeFileAttachmentPicker, attachFile: (NativeFileAttachmentsModel, NativeAttachmentOrigin) -> Unit) {
     val canList = capabilities.supports(NativeCapability.SESSION_LIST)
     val canFollow = capabilities.supports(NativeCapability.SESSION_FOLLOW)
     val canControl = capabilities.supports(NativeCapability.SESSION_CONTROL)
@@ -607,7 +611,7 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
     val attachedFiles = open?.sessionId?.let { input.drafts[it]?.attachments }.orEmpty()
     val attachmentState by model.attachments.state.collectAsStateWithLifecycle()
     val attachmentBusy = attachmentState.phase in setOf(NativeFileAttachmentPhase.SELECTING,
-        NativeFileAttachmentPhase.READING, NativeFileAttachmentPhase.UPLOADING)
+        NativeFileAttachmentPhase.READING, NativeFileAttachmentPhase.UPLOADING, NativeFileAttachmentPhase.CLEANING)
     val sending by model.session.sending.collectAsStateWithLifecycle()
     var cancelFailed by remember(model.session, open?.sessionId) { mutableStateOf(false) }
     val history by model.session.history.collectAsStateWithLifecycle()

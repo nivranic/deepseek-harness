@@ -37,6 +37,8 @@ Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定
 
 在 Session 输入区选择 **+ → 文件**，通过系统文档选择器选择一个文件；选择 **+ → 照片**，通过 Android Photo Picker 选择一张图片。文件与图片共用一个有序、可移除的附件列表；消息可以只含附件而不含文本。选择、读取和上传期间禁用发送及待确认消息重试。移除卡片只修改本地草稿。应用限制每份草稿最多 8 个附件、每个源文件最多 512 KiB；这些本地限制不与 Host 协商。文件与照片入口分别要求 `file-upload.stage.v1` 和 `image-upload.stage.v1`。照片接受 PNG、JPEG、WebP 和 GIF，拒绝 HEIC。恢复回执不会自动上传或发送；替换过期回执前，需要显式丢弃未确认意图。[文件决定](../../.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md)拥有文档选择器入口；[照片决定](../../.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md)拥有图片入口、混合顺序与验证边界。
 
+选择 **+ → 相机**，通过已安装相机拍摄一张完整尺寸 JPEG。确认拍摄结果只把图片加入草稿，发送仍需显式操作。相机复用上述图片能力与本地限制，过大的 JPEG 会被拒绝。处理或取消后，应用清理自己的临时输出；清理失败保持可见。取消已打开的相机后，需等其结果返回才能再次选择附件。冷启动清理未完成拍摄，不恢复上传权限。[相机决定](../../.agents/notes/implemented/architecture/2026-09-27-android-camera-attachments.zh.md)拥有临时文件、回调生命周期及独立验收范围。
+
 [丢确认场景](../web/tests/android-prompt-retry.e2e.ts)在真实 Host 准入后暂缓返回结果并终止 Android 进程。显式重试使用已保存的请求身份；已有日志回执时则直接清理待确认项，不再调用 prompt。两条路径都在再次进程重启后保留新文本。
 
 文件页提供与工件页共用的资源预览；工件页投影当前持久 `deliverables/presented` 声明。读取采用 Session 作用域的 `workspaceFiles/stat` 和 `readBytes`，窗口为 64 KiB，内容预算为 8 MiB。已知更大的文件只显示 256 字节前缀。显式重试续接已接受的同版本字节；版本变化会丢弃前缀并要求重新读取。UTF-8 文本、按签名识别的图片及未知二进制均为惰性呈现，并另有文本和像素预算。[资源决策](../../.agents/notes/implemented/architecture/2026-09-27-android-current-resource-reading.zh.md)拥有限制与退出语义；[安装应用场景](../web/tests/android-resource-adoption.e2e.ts)覆盖空文件、中文文件名、有界预览、中断和当前交付引用。

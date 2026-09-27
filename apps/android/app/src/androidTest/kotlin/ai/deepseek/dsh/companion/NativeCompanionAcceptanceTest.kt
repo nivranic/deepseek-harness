@@ -72,6 +72,14 @@ class NativeCompanionAcceptanceTest {
         return descend(root)
     }
 
+    private fun cameraNodes(): List<android.view.accessibility.AccessibilityNodeInfo> {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return emptyList()
+        if (root.packageName.toString() != "com.android.camera2") return emptyList()
+        fun descend(node: android.view.accessibility.AccessibilityNodeInfo): List<android.view.accessibility.AccessibilityNodeInfo> =
+            listOf(node) + (0 until node.childCount).flatMap { index -> node.getChild(index)?.let(::descend).orEmpty() }
+        return descend(root)
+    }
+
     private fun attachmentJson(attachment: SessionAttachment) = buildJsonObject {
         put("type", if (attachment is SessionImageAttachment) "image" else "file")
         put("receiptId", attachment.receiptId); put("attachmentId", attachment.attachmentId)
@@ -346,6 +354,76 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("session-draft").performTextInput(command.getValue("text").jsonPrimitive.content)
                             }
                             "submitPromptDraft" -> compose.onNodeWithText("发送").performClick()
+                            "openCamera" -> {
+                                waitFor(hasTestTag("session-attach") and isEnabled())
+                                compose.onNodeWithTag("session-attach").performClick()
+                                waitFor(hasTestTag("session-attach-camera"))
+                                compose.onNodeWithTag("session-attach-camera").performClick()
+                                compose.waitUntil(20_000) { cameraNodes().isNotEmpty() }
+                                val bytes = ByteArrayOutputStream()
+                                val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+                                try { bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes) } finally { bitmap.recycle() }
+                                value = buildJsonObject {
+                                    put("package", cameraNodes().first().packageName.toString())
+                                    put("screenshot", Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                                }
+                            }
+                            "finishCameraCapture" -> {
+                                fun shutter() = cameraNodes().firstOrNull {
+                                    it.viewIdResourceName == "com.android.camera2:id/shutter_button" && it.isEnabled && it.isVisibleToUser
+                                }
+                                compose.waitUntil(20_000) { shutter() != null }
+                                clickDocumentNode(checkNotNull(shutter()))
+                                fun done() = cameraNodes().firstOrNull {
+                                    it.viewIdResourceName in setOf("com.android.camera2:id/done_button", "com.android.camera2:id/btn_done") && it.isEnabled && it.isVisibleToUser
+                                }
+                                compose.waitUntil(20_000) { done() != null }
+                                clickDocumentNode(checkNotNull(done()))
+                                compose.waitUntil(20_000) { cameraNodes().isEmpty() }
+                                waitFor(hasTestTag("session-attach"))
+                            }
+                            "cancelCamera" -> {
+                                check(cameraNodes().isNotEmpty())
+                                check(instrumentation.uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK))
+                                compose.waitUntil(20_000) { cameraNodes().isEmpty() }
+                                waitFor(hasTestTag("session-attach") and isEnabled())
+                            }
+                            "cameraTemporaryFiles" -> {
+                                val root = java.io.File(instrumentation.targetContext.cacheDir, "native-camera/captures")
+                                val files = root.listFiles().orEmpty().sortedBy { it.name }
+                                value = JsonArray(files.map { file ->
+                                    check(file.canonicalFile.parentFile == root.canonicalFile && file.isFile)
+                                    check(file.name.matches(Regex("capture-[a-f0-9-]+\\.jpg")))
+                                    val bytes = file.readBytes()
+                                    val dimensions = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                                    android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, dimensions)
+                                    buildJsonObject {
+                                        put("name", file.name); put("bytes", bytes.size)
+                                        put("sha256", MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) })
+                                        put("width", dimensions.outWidth); put("height", dimensions.outHeight)
+                                    }
+                                })
+                            }
+                            "decodeCameraImage" -> {
+                                val bytes = Base64.decode(command.getValue("data").jsonPrimitive.content, Base64.NO_WRAP)
+                                require(bytes.size in 1..1_048_576)
+                                val metadata = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, metadata)
+                                check(metadata.outWidth > 0 && metadata.outHeight > 0)
+                                value = buildJsonObject {
+                                    put("width", metadata.outWidth); put("height", metadata.outHeight); put("mediaType", metadata.outMimeType)
+                                }
+                            }
+                            "assertAttachmentSendBlocked" -> {
+                                val model = companionModel().session
+                                check(companionModel().attachments.state.value.phase == NativeFileAttachmentPhase.UPLOADING)
+                                compose.onNodeWithText("发送").assertIsNotEnabled()
+                                val id = checkNotNull(model.open.value).sessionId
+                                val draft = checkNotNull(model.input.value.drafts[id])
+                                runBlocking { check(!model.sendDraft()) }
+                                check(!model.sending.value && model.input.value.pendingPrompts.isEmpty())
+                                check(model.input.value.drafts[id] == draft)
+                            }
                             "stageTestPhoto" -> {
                                 val filename = command.getValue("name").jsonPrimitive.content
                                 require(filename.matches(Regex("dsh-native-photo-[A-Za-z0-9-]+\\.png")))

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android Camera owned output and staged image intents; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-camera-attachments-source.json",
+    "sha256": "f73f424a30e6cdab5bf81ba9b66acd39f9384b82b611f8a568cf7aaf9c331708"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8e8df70dd2d0a673d582705da86f1dadde4afc931ba2069a0fc249a2c2463650"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-camera-attachments-binding.json",
+    "sha256": "3c618192268beaf8c71c4dbeef32bb1c90831fb59d90c01bcb5c8bceef64a890"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-camera-attachments-reports.mjs",
+      "sha256": "bb62f90b772525eec6cf8c76bd7e4ee6ae32eccf0b10a14f004eb5a0d5ae423b"
+    },
+    {
+      "path": ".artifacts/capture-android-camera-attachments-validation.mjs",
+      "sha256": "e40d5ffbbbc94adb61242ec275ddc8aa74cc54c6522850b727e4424b4f12acff"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c9e6bbf274211379ced5729df53bd4696406e3f00863138c362d462cbbeb7caa"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "9608df3846610f5bf7237ba85fa412b3cf3bd4b3a7efe471eede33139434ea1a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-camera-attachments-binding.log",
+      "sha256": "2b33b895b642c7eca5c1ed209641361f3cd69f01983fffbf359f6eed96977902"
+    },
+    {
+      "path": ".artifacts/android-camera-attachments-audit-tests.log",
+      "sha256": "e8a43a2ac370e8fd646ac88ea07bc938dc3261b9794f196b207a03d4e39e3b4e"
+    },
+    {
+      "path": ".artifacts/android-camera-attachments-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-camera-attachments-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-camera-attachments-report-generation.log",
+      "sha256": "d3217692f2d8c85b68a506cf9cbab3c91e2a5f204196d2049e2c5ed0d379efdc"
+    }
+  ]
+}

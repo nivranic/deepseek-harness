@@ -22,9 +22,25 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android Camera 完整图片与临时输出生命周期（§36、§64）
+
+[当前来源记录](artifacts/upstream-first/android-camera-attachments-source.json)绑定 Android 系统相机完整 JPEG 输入、应用自有输出清理和图片草稿恢复。显式 + → 相机使用 AndroidX TakePicture，通过未导出的 FileProvider 仅授予单个私有临时输出的读写权限；不申请 CAMERA、广泛媒体权限或持久 URI 授权，也不使用返回缩略图作为附件。Camera 继续复用 core IMAGE、image-upload.stage.v1 与加密输入 v3，Host 协议及 Session 事件没有新增。
+
+相机、照片和文件回调分别匹配原始来源；相机输出按 UUID 关联原 Host 模型和 Session 世代。旋转保留原票据，已启动相机取消后保留丢弃回调至系统结果实际消费，防止旧结果误投下一次选择或积累到 SavedState。恢复元数据只允许清理及丢弃旧结果，既不重开相机也不恢复上传权；结果先到与清理先完成两种顺序均有安装态 Registry 测试。
+
+应用只清理专属规范化缓存路径中的 UUID 文件，拒绝中间目录或输出文件的符号链接逃逸，保留目录外哨兵与无关名称。清理撤销精确 URI 权限后删除输出；外部进程已打开的文件描述符不受强制关闭保证。读取、上传及清理共用提交准入，清理结束前模型层发送和重试均被拒绝；清理失败明确显示，取消及 Host 退役等到所拥有工作结束。SAF 和 Photos 源文件不被删除，Host 已保存的不可变未引用图片也不承诺回滚。
+
+本地仍限制每原件 512 KiB、每草稿 8 项以及 UTF-8 上传参数 JSON 1 MiB；参数预算不含签名 envelope，Host 独立限制完整请求。过大拍照直接拒绝，不静默压缩或改用缩略图；原生流式上传和 Host 限额协商仍未提供。
+
+完整 Android core XML 核验为 390 项测试、64 个套件，失败、错误和跳过均为零；两个 APK 构建及安装成功。18 项安装态测试通过，其中 Files/Photos 9 项、Camera 9 项。真实 Android 34 x86_64 系统相机场景在核对两个安装包哈希后通过：1392×1856 完整 JPEG 的临时文件独立哈希匹配上传字节，Host 规范化图片通过独立存储哈希和 Android 解码核对；取消保留草稿且无 Host 调用，上传等待期间模型层拒绝发送。
+
+另一次相机选择尚未返回时实际终止 Android 进程，恢复同一 grant、已完成图片收据与 requestId，清理孤儿输出且不自动上传或发送。显式提交形成唯一原身份用户消息，ImageBlock 与原意图一致；Session 授权图片回读和 Android 名称展示通过。最终回归分两次执行：Camera、Photos、Files、输入恢复、两种发送确认恢复、原生诊断和查看位置共七文件八项通过；持久下载采用另一个文件一项通过。四张 Camera 截图已检查。模型回复是 keyless 录制，不代表真实视觉理解或物理相机验收。
+
+Host 类型检查、全量 lint、17 项快速文档检查、36 项 doc-sync、六项逐节追溯测试及 Gate 0 通过。新增 before 归档包含 6827 项文件。share intent、Apple 附件采用、过期收据恢复、第三方相机与提供方、更大流式上传、真实设备和跨平台矩阵继续开放；扫描器仍是同机共享缓存资格，GO-2026-5932 未关闭。Session writer 保持 V3、completeRc 为 false，§36/§64 不授予整节完成。
+
 ## Android Photos 与有序混合附件意图（§36、§64）
 
-[当前来源记录](artifacts/upstream-first/android-photo-attachments-source.json)绑定 Host 图片暂存准入、Android 系统照片选择器及有序混合附件草稿。Photos 通过系统 ImageOnly 单选入口选图，Files 继续使用 SAF；两者共用选择票据、读取上传、取消和提交准入。Host 签发独立图片收据，提交时按整批图片数量及规范化前字节总量检查 inline 与 staged-image，最终保持普通 ImageBlock 语义和视觉模型检查。
+[历史来源记录](artifacts/upstream-first/android-photo-attachments-source.json)绑定 Host 图片暂存准入、Android 系统照片选择器及有序混合附件草稿。Photos 通过系统 ImageOnly 单选入口选图，Files 继续使用 SAF；两者共用选择票据、读取上传、取消和提交准入。Host 签发独立图片收据，提交时按整批图片数量及规范化前字节总量检查 inline 与 staged-image，最终保持普通 ImageBlock 语义和视觉模型检查。
 
 加密输入 v3 保存文本和单一有序文件/图片列表，草稿与待确认意图均保留原 Session、收据、元数据和 requestId。旧 v1/v2 文档严格拒绝且保留原字节，显式恢复保留备份；恢复不自动上传或发送。附件变化建立新意图，显式重试保留原意图，确切确认不清除较新编辑。选择和上传在模型入口持有发送准入许可，避免只靠界面禁用造成并发提交。
 

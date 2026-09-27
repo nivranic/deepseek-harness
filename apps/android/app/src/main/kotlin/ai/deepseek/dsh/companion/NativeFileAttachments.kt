@@ -24,6 +24,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.*
 import java.io.IOException
 import java.io.InputStream
 
@@ -51,29 +54,128 @@ internal class AndroidNativeFileAttachmentSource(private val resolver: ContentRe
 /** AndroidX selects the system single-image picker or its platform-supported fallback. */
 internal fun nativePhotoPickerRequest() = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
 
+internal enum class NativeAttachmentOrigin { FILES, PHOTOS, CAMERA }
+
 /** Keeps the original model and one selection across rotation. Process restoration has no upload authority. */
-internal class NativeFileAttachmentPicker : ViewModel() {
+internal class NativeFileAttachmentPicker(private val savedState: SavedStateHandle = SavedStateHandle()) : ViewModel() {
     private data class Pending(val model: NativeFileAttachmentsModel, val selection: NativeFileSelection,
-                               val sessionId: String?, val cancelled: Boolean = false)
+                               val sessionId: String?, val origin: NativeAttachmentOrigin, val cancelled: Boolean = false,
+                               val camera: NativeCameraOutput? = null, val launched: Boolean = false)
     private data class Failure(val model: NativeFileAttachmentsModel, val sessionId: String?)
     private var pending: Pending? = null
     private var failure by mutableStateOf<Failure?>(null)
-    var busy by mutableStateOf(false)
+    private var cameraOwner: Pair<NativeFileAttachmentsModel, NativeFileSelection>? = null
+    private var restorationStarted = false
+    private var restorationCleanup = false
+    private var awaitingCameraResult = savedState.get<Boolean>(CAMERA_AWAITING) == true
+    var cameraName by mutableStateOf(savedState.get<String>(CAMERA_NAME))
+        private set
+    var cameraCleanupFailed by mutableStateOf(false)
+        private set
+    var busy by mutableStateOf(cameraName != null)
         private set
 
     fun begin(model: NativeFileAttachmentsModel, kind: NativeAttachmentKind = NativeAttachmentKind.FILE): NativeFileSelection? {
-        if (pending != null) return null
-        val selection = model.prepare(kind) ?: return null
-        pending = Pending(model, selection, model.state.value.sessionId)
+        return begin(model, if (kind == NativeAttachmentKind.FILE) NativeAttachmentOrigin.FILES else NativeAttachmentOrigin.PHOTOS)
+    }
+
+    private fun begin(model: NativeFileAttachmentsModel, origin: NativeAttachmentOrigin, cleanup: (() -> Unit)? = null): NativeFileSelection? {
+        if (pending != null || busy) return null
+        val selection = model.prepare(if (origin == NativeAttachmentOrigin.FILES) NativeAttachmentKind.FILE else NativeAttachmentKind.IMAGE, cleanup) ?: return null
+        pending = Pending(model, selection, model.state.value.sessionId, origin)
         failure = null
         busy = true
         return selection
     }
 
+    fun beginCamera(model: NativeFileAttachmentsModel, files: NativeCameraFiles): NativeCameraOutput? {
+        val reservation = NativeCameraReservation()
+        val selection = begin(model, NativeAttachmentOrigin.CAMERA, reservation::close) ?: return null
+        cameraOwner = model to selection
+        var output: NativeCameraOutput? = null
+        try {
+            output = reservation.create(files)
+            pending = pending?.copy(camera = output)
+            cameraName = output.name
+            savedState[CAMERA_NAME] = output.name
+        } catch (_: Exception) { cameraLaunchFailed(cameraName) }
+        val name = output?.name
+        viewModelScope.launch {
+            selection.awaitReleased()
+            if (cameraOwner?.second === selection) {
+                cameraOwner = null
+                val awaitingResult = pending?.let { it.selection === selection && it.launched } == true
+                if (!awaitingResult && pending?.selection === selection) pending = null
+                if (selection.cleanupFailed) cameraCleanupFailed = true
+                else if (!awaitingResult && cameraName == name) clearCameraName()
+                busy = pending != null
+            }
+        }
+        return output
+    }
+
+    /** Only an in-memory selection can launch; restored names never authorize another camera intent. */
+    fun takeCameraLaunch(name: String): Uri? {
+        val selected = pending?.takeIf { it.origin == NativeAttachmentOrigin.CAMERA && it.camera?.name == name && !it.launched && !it.cancelled } ?: return null
+        pending = selected.copy(launched = true)
+        awaitingCameraResult = true
+        savedState[CAMERA_AWAITING] = true
+        return selected.camera?.uri
+    }
+
+    fun completeCamera(name: String?, succeeded: Boolean) {
+        val selected = pending?.takeIf { it.origin == NativeAttachmentOrigin.CAMERA && it.camera?.name == name }
+        if (selected == null) {
+            if (cameraName != name || !awaitingCameraResult || cameraOwner != null) return
+            consumeCameraResult()
+            if (restorationStarted && !restorationCleanup && !cameraCleanupFailed) clearCameraName()
+            busy = !restorationStarted || restorationCleanup
+            return
+        }
+        consumeCameraResult()
+        pending = null
+        if (!succeeded || selected.cancelled) selected.model.cancelSelection(selected.selection)
+        else selected.model.accept(selected.selection, checkNotNull(selected.camera))
+        busy = cameraOwner != null
+        if (!busy && !selected.selection.cleanupFailed && cameraName == name) clearCameraName()
+    }
+
+    fun cameraLaunchFailed(name: String?) {
+        val selected = pending?.takeIf { it.origin == NativeAttachmentOrigin.CAMERA && (it.camera?.name == name || it.camera == null) } ?: return
+        consumeCameraResult()
+        pending = null
+        selected.model.cancelSelection(selected.selection)
+        failure = Failure(selected.model, selected.sessionId)
+        busy = cameraOwner != null
+        if (!busy && !selected.selection.cleanupFailed && cameraName == name) clearCameraName()
+    }
+
+    /** Cleanup metadata survives process restoration, without reconstructing a model or selection ticket. */
+    fun restoreCamera(files: NativeCameraFiles) {
+        cameraCleanupFailed = cameraCleanupFailed || files.orphanCleanupFailed
+        if (restorationStarted) return
+        restorationStarted = true
+        val name = cameraName?.takeIf { cameraOwner == null && pending == null } ?: return
+        busy = true
+        restorationCleanup = true
+        viewModelScope.launch {
+            val cleaned = withContext(NonCancellable + Dispatchers.IO) {
+                try { files.cleanupRestored(name); true } catch (_: Exception) { false }
+            }
+            restorationCleanup = false
+            if (cleaned && cameraName == name && !awaitingCameraResult) clearCameraName()
+            if (!cleaned) cameraCleanupFailed = true
+            busy = pending != null || cameraOwner != null || awaitingCameraResult
+        }
+    }
+
+    private fun consumeCameraResult() { awaitingCameraResult = false; savedState.remove<Boolean>(CAMERA_AWAITING) }
+    private fun clearCameraName() { cameraName = null; savedState.remove<String>(CAMERA_NAME); consumeCameraResult() }
+
     /** A duplicate or process-restored result has no captured selection and never opens the source. */
     fun complete(source: NativeFileAttachmentSource?, kind: NativeAttachmentKind = NativeAttachmentKind.FILE) {
         val selected = pending ?: return
-        if (selected.selection.kind != kind) return
+        if (selected.origin != if (kind == NativeAttachmentKind.FILE) NativeAttachmentOrigin.FILES else NativeAttachmentOrigin.PHOTOS) return
         pending = null
         busy = false
         if (source == null || selected.cancelled) selected.model.cancelSelection(selected.selection)
@@ -83,7 +185,7 @@ internal class NativeFileAttachmentPicker : ViewModel() {
     /** Invalid URIs and launch failures expose fixed local copy, never provider paths or exception messages. */
     fun invalidResult(kind: NativeAttachmentKind = NativeAttachmentKind.FILE) {
         val selected = pending ?: return
-        if (selected.selection.kind != kind) return
+        if (selected.origin != if (kind == NativeAttachmentKind.FILE) NativeAttachmentOrigin.FILES else NativeAttachmentOrigin.PHOTOS) return
         pending = null
         busy = false
         selected.model.cancelSelection(selected.selection)
@@ -93,7 +195,7 @@ internal class NativeFileAttachmentPicker : ViewModel() {
     fun failedFor(model: NativeFileAttachmentsModel, sessionId: String): Boolean =
         failure?.let { it.model === model && it.sessionId == sessionId } == true
 
-    /** Keep a cancelled picker occupied until its callback arrives so it cannot consume another selection. */
+    /** A launched picker retains its callback until the cancelled result is discarded. */
     fun cancel(model: NativeFileAttachmentsModel) {
         pending?.takeIf { it.model === model }?.let {
             pending = it.copy(cancelled = true)
@@ -104,14 +206,34 @@ internal class NativeFileAttachmentPicker : ViewModel() {
 
     override fun onCleared() {
         pending?.let { it.model.cancelSelection(it.selection) }
+        cameraOwner?.first?.cancel()
         pending = null
+    }
+
+    private companion object {
+        const val CAMERA_NAME = "native-camera-output"
+        const val CAMERA_AWAITING = "native-camera-awaiting-result"
     }
 }
 
 /** The application root owns registration so a late result retains its original Host and Session owner. */
 @Composable
-internal fun rememberNativeFileAttachmentLauncher(owner: NativeFileAttachmentPicker): (NativeFileAttachmentsModel, NativeAttachmentKind) -> Unit {
-    val resolver = LocalContext.current.contentResolver
+internal fun rememberNativeFileAttachmentLauncher(owner: NativeFileAttachmentPicker): (NativeFileAttachmentsModel, NativeAttachmentOrigin) -> Unit {
+    val context = LocalContext.current
+    val resolver = context.contentResolver
+    val cameraFiles = remember(context.applicationContext) { NativeCameraFiles.get(context) }
+    LaunchedEffect(owner, cameraFiles) { owner.restoreCamera(cameraFiles) }
+    val cameraName = owner.cameraName
+    key(cameraName) {
+        val camera = rememberLauncherForActivityResult(NativeCameraPicture()) { succeeded -> owner.completeCamera(cameraName, succeeded) }
+        LaunchedEffect(cameraName) {
+            cameraName?.let(owner::takeCameraLaunch)?.let { uri ->
+                try { camera.launch(uri) }
+                catch (_: android.content.ActivityNotFoundException) { owner.cameraLaunchFailed(cameraName) }
+                catch (_: SecurityException) { owner.cameraLaunchFailed(cameraName) }
+            }
+        }
+    }
     val launcher = rememberLauncherForActivityResult(NativeFileDocument()) { uri ->
         if (uri != null && uri.scheme != ContentResolver.SCHEME_CONTENT) owner.invalidResult()
         else owner.complete(uri?.let { AndroidNativeFileAttachmentSource(resolver, it) })
@@ -120,8 +242,10 @@ internal fun rememberNativeFileAttachmentLauncher(owner: NativeFileAttachmentPic
         if (uri != null && uri.scheme != ContentResolver.SCHEME_CONTENT) owner.invalidResult(NativeAttachmentKind.IMAGE)
         else owner.complete(uri?.let { AndroidNativeFileAttachmentSource(resolver, it) }, NativeAttachmentKind.IMAGE)
     }
-    return { model, kind ->
-        if (owner.begin(model, kind) != null) {
+    return { model, origin ->
+        val kind = if (origin == NativeAttachmentOrigin.FILES) NativeAttachmentKind.FILE else NativeAttachmentKind.IMAGE
+        if (origin == NativeAttachmentOrigin.CAMERA) owner.beginCamera(model, cameraFiles)
+        else if (owner.begin(model, kind) != null) {
             try {
                 when (kind) {
                     NativeAttachmentKind.FILE -> launcher.launch(Unit)
@@ -136,7 +260,7 @@ internal fun rememberNativeFileAttachmentLauncher(owner: NativeFileAttachmentPic
 
 @Composable
 internal fun NativeFileAttachmentAddButton(enabled: Boolean, allowFiles: Boolean, allowImages: Boolean,
-                                          select: (NativeAttachmentKind) -> Unit) {
+                                          select: (NativeAttachmentOrigin) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val label = stringResource(R.string.native_attachment_add)
     Box {
@@ -146,9 +270,11 @@ internal fun NativeFileAttachmentAddButton(enabled: Boolean, allowFiles: Boolean
         }
         DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
             if (allowFiles) DropdownMenuItem(text = { Text(stringResource(R.string.native_attachment_file)) },
-                modifier = Modifier.testTag("session-attach-file"), onClick = { expanded = false; select(NativeAttachmentKind.FILE) })
+                modifier = Modifier.testTag("session-attach-file"), onClick = { expanded = false; select(NativeAttachmentOrigin.FILES) })
             if (allowImages) DropdownMenuItem(text = { Text(stringResource(R.string.native_attachment_photo)) },
-                modifier = Modifier.testTag("session-attach-photo"), onClick = { expanded = false; select(NativeAttachmentKind.IMAGE) })
+                modifier = Modifier.testTag("session-attach-photo"), onClick = { expanded = false; select(NativeAttachmentOrigin.PHOTOS) })
+            if (allowImages) DropdownMenuItem(text = { Text(stringResource(R.string.native_attachment_camera)) },
+                modifier = Modifier.testTag("session-attach-camera"), onClick = { expanded = false; select(NativeAttachmentOrigin.CAMERA) })
         }
     }
 }
@@ -198,6 +324,7 @@ internal fun NativeFileAttachmentNotice(model: NativeFileAttachmentsModel, state
         NativeFileAttachmentPhase.SELECTING -> R.string.native_attachment_selecting
         NativeFileAttachmentPhase.READING -> R.string.native_attachment_reading
         NativeFileAttachmentPhase.UPLOADING -> R.string.native_attachment_uploading
+        NativeFileAttachmentPhase.CLEANING -> R.string.native_camera_cleaning
         NativeFileAttachmentPhase.FAILED -> when (current?.issue) {
             NativeFileAttachmentIssue.TOO_LARGE -> R.string.native_attachment_too_large
             NativeFileAttachmentIssue.TOO_MANY_FILES -> R.string.native_attachment_too_many
@@ -207,6 +334,7 @@ internal fun NativeFileAttachmentNotice(model: NativeFileAttachmentsModel, state
             NativeFileAttachmentIssue.SOURCE_FAILED -> R.string.native_attachment_source_failed
             NativeFileAttachmentIssue.UPLOAD_FAILED -> R.string.native_attachment_upload_failed
             NativeFileAttachmentIssue.PERSISTENCE_FAILED -> R.string.native_attachment_persistence_failed
+            NativeFileAttachmentIssue.CLEANUP_FAILED -> R.string.native_camera_cleanup_failed
             null -> R.string.native_attachment_upload_failed
         }
         NativeFileAttachmentPhase.IDLE, null -> null

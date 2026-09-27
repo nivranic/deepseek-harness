@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-camera-attachments-source.json",
+    "sha256": "f73f424a30e6cdab5bf81ba9b66acd39f9384b82b611f8a568cf7aaf9c331708"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8e8df70dd2d0a673d582705da86f1dadde4afc931ba2069a0fc249a2c2463650"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-camera-attachments-binding.mjs",
+    "sha256": "da707f6c27790524ba09acd9047fa801ae5b9b5d76420b3fbfe5b4c409b3b80f"
+  }
+}

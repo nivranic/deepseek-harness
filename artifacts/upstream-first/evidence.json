@@ -4,274 +4,74 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
-      "path": ".agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.i18n.yaml",
-      "sha256": "c4ce6da69cfa2cd22d1da7730bf93f0c1d5f2b8d3ce22bbfa0f0aef4d5e1ee3e"
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.i18n.yaml",
+      "sha256": "566732592d92340ecdcb3d59fd9c45e7f81f6a9ae5080933fca795ae540e9ba3"
     },
     {
-      "path": ".agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.md",
-      "sha256": "3fc65cc8dd061ad2c64bc783118c1706beafdc3d86adf28fca96e83dbc134f10"
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md",
+      "sha256": "63ff44beb6960f8a58ae0a571e521af9839a472628d8687aad9c3becd97b804d"
     },
     {
-      "path": ".agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.zh.md",
-      "sha256": "ed3c7211dcb57d0548b887fb246f43cdc17c5eaa9270cd15e59708fe5f7e55ed"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.i18n.yaml",
-      "sha256": "ecb5eed668b9f426604f7e43b597e77287d45dcbd303809b1f42f8a325417147"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md",
-      "sha256": "505ca2a8df28f71b267afcf438ebe6ab8202a0ef91ad1c9236a3f02187ce1cb6"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md",
-      "sha256": "fdf73dd56c6efbf83317bdfe3f568c86ad08278f6478530fb2dbc0cc8f5132e4"
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md",
+      "sha256": "c8787d079f65d0ed0c420f6e01440d32433693722a0cb05ad9912e5682958a40"
     },
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "aae70793000db904147ee45637d4e88b7bc97b43bdd7635bd1a3199e06a08309"
+      "sha256": "c9e6bbf274211379ced5729df53bd4696406e3f00863138c362d462cbbeb7caa"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "093fab53ad24a13c34925bac04e8e90ed7a606832fb70d4361530b91606954c5"
+      "sha256": "31db26cef3727f10aa71e407aa0d604407d30eab915dc90feffa50539fc16398"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "f8abd5d1928b35acee8371b84d009f28e7345d9cd60ed794d2b82962223226ec"
+      "sha256": "a3da3fa18b99ea77ae1d41ea461c5b8e560c9f0ec3ecc29de60e75a7353b5b77"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "2f26fa23ced3b2b09a14cefdc09c7d6c78ef92e9c90684dca7bd694f8c6cf279"
+      "sha256": "4223651e4884febcabc2fbdf9fc5256b43e909dccb42c745ca73097873656f87"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "4d6d4b5fbfd4d88e0c038e5063d2ac8e3388ae2674ca793aa237c1102114d521"
+      "sha256": "c66b05847d945a80f58a6df147461515f45b9b1add5b6017bb13e64bebea0abf"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentPickerTest.kt",
-      "sha256": "b57a3e0d3103fba947fb88eae442ba3c4d7a488745a7190fabff5aa20ccd1838"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
-      "sha256": "ac0d0f35d43dde1b7fde5c17df6580612d488eb016ccefd956010a9a485cacfd"
+      "path": "apps/android/app/src/main/AndroidManifest.xml",
+      "sha256": "9ebb12d7793c0d4f781921d4195671983823f0c6c67af1345c906331cd046e94"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "d68c9267bdc436f80229730d2adb2c049107c2f1285b7be30165e51bc7304f09"
+      "sha256": "134e86d9ef4595de7879fc611c212fe7b0c3ba04a8cf5a5e5b05de1bfd752a96"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachments.kt",
-      "sha256": "8f60b512fcf91d385ccc92353f9fea6db602f3b7eaee0293cfc92438a4cc1890"
+      "sha256": "aac0092bad7e2da48fee7df877111e9dc44fbc62f01b50b5f429624f56df49fd"
     },
     {
       "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "10ffed932a82c7ee0946a546d312a44906a1e982991a501f5c6b0a80f0aadcff"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-      "sha256": "bf7ead0dcfbb9673209f2178b31ac915a657479ddf7f3559fbb514809a59e12c"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputStore.kt",
-      "sha256": "6a11bb7e439f2296d517b0be0312a746f8df18f44ee33505156c17ce544f5535"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-      "sha256": "28804950bbd752622199d803acae4d8c238fd8adc793d3a84d741f3ee09b4b5d"
+      "sha256": "6eb03b83bd61b20e7507cb3ff7060fa77c989fbd19dc3e6a66a204600be4f799"
     },
     {
       "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt",
-      "sha256": "6ed1c101b0daa822f748e6d51feef59d264b3ced32c6e6dec180ab368decb342"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-      "sha256": "9d8c70d5beb0e92b6df5f4d024aab05b115c026d78ebf82b3642e6d32129c4f7"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputStoreTest.kt",
-      "sha256": "03857a9c6158d95319edbf9efba92fc5397d9317c42b4463ea9b8ab409091220"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsLifecycleTest.kt",
-      "sha256": "4f049b4c1275664565af7a49197b1451b8001c63ee0676dbae0b0544b0bcde7c"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt",
-      "sha256": "ff950713a5372c7d5e462dbe4371a533e7ac0aeae4e436058cb6024774d5f1bc"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileDraftTest.kt",
-      "sha256": "bf9ac7f6c0a993f924b4b1b99eada91fe579209735d6e88e14adb0b71eb8e868"
-    },
-    {
-      "path": "apps/android/core/src/test/resources/support-native-gateway.json",
-      "sha256": "ae24f8067202e99ba496196090f008940450c4603c2338ee8c3f28e4e18ea9ae"
-    },
-    {
-      "path": "apps/web/tests/android-download-adoption.e2e.ts",
-      "sha256": "8175e9739fff3265ecc068f3405c913fcbb1c1f4ecc53ac2cd5468c680bc932e"
-    },
-    {
-      "path": "apps/web/tests/android-native-diagnostics.e2e.ts",
-      "sha256": "7ea6b9e87bbda2448652c18c524a10b1bc46ead84a340b5aeb78228b56935466"
-    },
-    {
-      "path": "apps/web/tests/android-prompt-retry.e2e.ts",
-      "sha256": "a2e5bee8a6297ba9194f2bd6eb4882b5f97dd0476b891a34b5d0a63099729418"
-    },
-    {
-      "path": "apps/web/tests/android-view-location.e2e.ts",
-      "sha256": "fa4fc3754ba05f8cf2d8dfa26fc9552bd79e1c46997e30d85efd3588711d7b07"
-    },
-    {
-      "path": "apps/web/tsconfig.json",
-      "sha256": "0ea45962d146a0508146b1cb002c96d4458f5c65567924a7d1f601911b17aa9d"
+      "sha256": "31b85500db78fd165a95cd42efc063853ad21d1410edbd3be5d723ff74addc51"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "c97ff1de3a7aad61b2273e604e364d6402062f1ed05b28a0bb40a37bb414ea16"
+      "sha256": "87dd37ed553d75afca68ed8f789fb2a8c898bcd5567d61d3291ad0478250d290"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "845ac735c2257e34b551d7add56709868d638e180b286e626601ca2a1d115ef7"
+      "sha256": "36567be455ece9393e281646ecbf7fe26ce00689c96959352c246fe92bd48baf"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "7093ab8f5606fedea41703e980ba7691a3835ea11e8f1c324a0169d2c2aa3f8b"
-    },
-    {
-      "path": "docs/event-producer-consumer.i18n.yaml",
-      "sha256": "4c944fccbf42f48846cdcf14c16cb8f2ce89c81be8e70bad3951998ed17fc832"
-    },
-    {
-      "path": "docs/event-producer-consumer.md",
-      "sha256": "aa4711714ba2822e7830f40b6a114a0f749660f2cbaeacfe7ad0a0adb28bada0"
-    },
-    {
-      "path": "docs/event-producer-consumer.zh.md",
-      "sha256": "fc8ed4677f53ce1755460c190aff58491fa86d61a23cc9105bef80c58532c1e5"
-    },
-    {
-      "path": "docs/subsystems/attachment.i18n.yaml",
-      "sha256": "b3493b92bf757efd575d136ba4f352af7bffc45ac6cf810ef96e6bb64dfe5891"
-    },
-    {
-      "path": "docs/subsystems/attachment.md",
-      "sha256": "2a21d2d01f208d56a3ecdcc7b7ac3957b61fee50a7ff853f33726055b72ed0ff"
-    },
-    {
-      "path": "docs/subsystems/attachment.zh.md",
-      "sha256": "e380af781ec132dda23874f6ed7054bd479e61c6094a7e551c09d5502fcfc0b0"
-    },
-    {
-      "path": "packages/api/session-controller/README.i18n.yaml",
-      "sha256": "37a229013fff69f1e21924686c059b4c563fe660c8defe6ae6709cfbf32f6511"
-    },
-    {
-      "path": "packages/api/session-controller/README.md",
-      "sha256": "c3b19cdb56dce2624f358889524b3d3e74c1f73aa7804cc6f9af6b67aa8752d6"
-    },
-    {
-      "path": "packages/api/session-controller/README.zh.md",
-      "sha256": "139ec59b900a3fa21352d8225bacabcdb3e643bdc82783e2a72e95d6263f4995"
-    },
-    {
-      "path": "packages/api/session-controller/src/client/sessions/session.ts",
-      "sha256": "e87a9369a762328d5be23a94b2bb98f2b93becb4d19ddbf33262beeacbf50dbd"
-    },
-    {
-      "path": "packages/api/session-controller/src/commands.ts",
-      "sha256": "1ead262851a67cf5fa548ae61a9e84fe2d0b341b75dd41c3ed5293e56843ec50"
-    },
-    {
-      "path": "packages/api/session-controller/src/types.ts",
-      "sha256": "eb24210f846044e97da9aae02feff5813fb8d6265298abbea9dc11581e7d0f13"
-    },
-    {
-      "path": "packages/api/session-controller/tests/client-contract.client.spec.ts",
-      "sha256": "f8218f3a78c11f52273d7d153a50d3a5d29097bb0b30b1d705d9cad67513a6de"
-    },
-    {
-      "path": "packages/api/session-controller/tests/commands-upload-file.host.spec.ts",
-      "sha256": "66b109134a9e0508168a270319b5635be921a0edbbe2ad54716b0834ec7381e3"
-    },
-    {
-      "path": "packages/api/session-controller/tests/session.client.spec.ts",
-      "sha256": "1353c08e0e2b1813d38affaa7c2f644802a9f86f300951a634c63e2f70e59782"
-    },
-    {
-      "path": "packages/api/session-controller/tests/test-remote.ts",
-      "sha256": "0f5969d2f55f72794a48e203ebf01556e9e7016a2f35e11302c98f797e0ddd4a"
-    },
-    {
-      "path": "packages/attachment/attachment/README.i18n.yaml",
-      "sha256": "18a9f3a9c249b95c0c5056d6815c8bdd98605c950de464a410a5c4cdd0c172cd"
-    },
-    {
-      "path": "packages/attachment/attachment/README.md",
-      "sha256": "e6458aadb807f74ec6c19e9b26a3d31367432d0189dbf48f2ed133719d3d0e8c"
-    },
-    {
-      "path": "packages/attachment/attachment/README.zh.md",
-      "sha256": "bbb05077c667e388a60a405e234653d0d7a063a0ab71c0e30dd19bc7ceeaa005"
-    },
-    {
-      "path": "packages/attachment/attachment/src/index.ts",
-      "sha256": "84e4f092da6f4158a8e53ac5b5fde1e417f56b22abd918f68fcf570d8e036759"
-    },
-    {
-      "path": "packages/attachment/attachment/src/types.ts",
-      "sha256": "6f4790a7fa8cf6979fc710b5f6b6f7ad3e736c2d613dcf5e3486b80299cf2955"
-    },
-    {
-      "path": "packages/attachment/attachment/tests/admission.spec.ts",
-      "sha256": "86a9c86d2fe9fe0ec870d31e5c12cc09cbdeaabdac1fa369634b9688aee3f76e"
-    },
-    {
-      "path": "packages/client/file-upload/README.i18n.yaml",
-      "sha256": "0155f9d2b97dfedeb179bf3ced2fcdf87e6a6b0c9d9ba567a252173f2c925b4d"
-    },
-    {
-      "path": "packages/client/file-upload/README.md",
-      "sha256": "5ed13291b58174bb16e4e0b1000b485b45ba3d2f77848127de94195436de9b5f"
-    },
-    {
-      "path": "packages/client/file-upload/README.zh.md",
-      "sha256": "191c110466a8334e5f028cb2a2b3d9e9270f29297a0b49f2b5dbe531dc491816"
-    },
-    {
-      "path": "packages/client/file-upload/src/capabilities.ts",
-      "sha256": "9526d619e1fcd9c0e6f86bf1a403705a2b05eda7814576602fe16c5dbac88ada"
-    },
-    {
-      "path": "packages/client/file-upload/src/index.ts",
-      "sha256": "a3040375841887cbe8e51c1f19281a435ad5ddfbf79e8e14783703882f935191"
-    },
-    {
-      "path": "packages/client/file-upload/src/types.ts",
-      "sha256": "dace6fd75ccbbd03e4f6981259871026d3a9e6c3948ecead4fac2112d2cf50ba"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-      "sha256": "cb35f93393c6d3cfa2c49079919e7edef616a87acfa3b918346aa537b2eb23cb"
-    },
-    {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "ea41f8c13aef057003d0b42b075b30f399dfb4037c62b2921ff4a32e0b975281"
-    },
-    {
-      "path": "scripts/gen-cordis-catalog.ts",
-      "sha256": "d4f7eaaa2084385778979dd54399b7b56667226c904c579506b311f1dbf8a49b"
-    },
-    {
-      "path": "tsconfig.host.json",
-      "sha256": "c13fbfff1aee595b5f48459b73e3ef81dd4b063553c201e06fa79e0c6d38d49f"
+      "sha256": "8e8df70dd2d0a673d582705da86f1dadde4afc931ba2069a0fc249a2c2463650"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/android-photo-attachments.e2e.ts",
-      "sha256": "5d9fb5e808fa40cebbedab102841b7c9c29ff0047d60ea010754ff49baaac1d2"
+      "path": "apps/web/tests/android-camera-attachments.e2e.ts",
+      "sha256": "35caed4ef97365d51a2b7e42bc640698bd04bd40793c907eef20988f2ef019fd"
     }
   ],
   "validationStatus": "PASS",
@@ -9559,6 +9359,72 @@
     },
     {
       "status": "PASS",
+      "command": "gradlew -PdshNativeAcceptance :core:test :app:assembleDebug :app:assembleDebugAndroidTest; 390 tests / 64 suites",
+      "log": ".artifacts/android-camera-attachments-build-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest web replay: Camera, Photos, Files, input recovery, two prompt retry cases, diagnostics and view location; seven files / eight passed",
+      "log": ".artifacts/android-camera-attachments-native-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest web replay: android-download-adoption.e2e.ts; one file / one passed",
+      "log": ".artifacts/android-camera-attachments-downloads.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "adb am instrument NativeFileAttachmentPickerTest, NativeCameraCaptureTest; 18 installed callback and owned-output cases passed",
+      "log": ".artifacts/android-camera-attachments-picker.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -p tsconfig.host.json --noEmit; all Android acceptance roots",
+      "log": ".artifacts/android-camera-attachments-types-final.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --import tsx/esm scripts/run-oxlint.ts .",
+      "log": ".artifacts/android-camera-attachments-lint.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/android-camera-attachments-doc-quick.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/android-camera-attachments-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs; six tests",
+      "log": ".artifacts/android-camera-attachments-traceability.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/android-camera-attachments-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --check artifacts/upstream-first/write-reports.mjs",
+      "log": ".artifacts/android-camera-attachments-syntax.log",
+      "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -10289,7 +10155,240 @@
       ]
     }
   },
+  "androidCameraAttachments": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json",
+    "scope": "Sections 36 and 64: Android full-size system Camera intake, owned-output cleanup and process-recovery image receipts; all-platform attachment acceptance remains open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "limitations": [
+      "The explicit Camera action delegates full-size capture to the installed system camera with a narrowly scoped unexported FileProvider and temporary read/write URI grants. The application requests no CAMERA or broad media permission. Files, Photos and Camera have distinct result origins; Camera capture names bind callbacks to their original selection.",
+      "Camera owns only UUID-named files in its canonical private cache directory. Owned cleanup revokes URI grants before exact deletion, refuses symlink escapes, and never deletes SAF or Photo Picker source documents. Revocation cannot force another process to close a file descriptor already opened by that process.",
+      "The existing attachment admission remains held until read, upload and owned-output cleanup settle. Cancellation, launch failure, stale Session, parent cancellation and retirement share one finalizer, including cancellation before the upload body starts. Cleanup failures are explicit; Host immutable bytes already stored may remain unreferenced.",
+      "Activity recreation retains the same pending owner. Saved state retains cleanup metadata only, and cold-process cleanup retires orphan output without restoring model tickets or reading/uploading sources. Completed encrypted v3 image receipts, mixed draft order and request identity retain their existing semantics.",
+      "Camera uses the existing core IMAGE kind and fileUploads/uploadImage. Each source remains limited to 512 KiB, eight combined attachments and 1 MiB of argument JSON excluding the signed envelope. Oversized captures are refused; there is no thumbnail fallback, native streaming, image resizing or negotiated Host budget.",
+      "Core XML reports 390 tests across 64 suites with zero failures, errors or skips. Installed callback and owned-output tests pass 18 cases. These controlled tests are separate from the stock-camera emulator scenario.",
+      "The actual Android 34 x86_64 emulator scenario matches installed APK hashes to current artifacts, launches com.android.camera2 and tests cancel, full-size capture and cleanup. A barrier at the Host upload keeps the app-owned JPEG available for independent filesystem hashing; its bytes match the upload request and its dimensions exceed thumbnail size. Independent normalized Host storage hashing matches the durable image reference.",
+      "Terminating the app with a second Camera selection pending restores the same grant and completed image draft, removes the orphan output and performs no upload or prompt. Explicit send records one user-origin ImageBlock with the original request identity; Session-authorized image reading returns the stored bytes and Android displays the sent image name.",
+      "The final installed regression covers Camera, Photos, Files, input recovery, both prompt acknowledgement recovery cases, Native Gateway diagnostics and view location in seven files with eight passing cases. Persistent download adoption passes its separate one-file one-case run. Four Camera screenshots are inspected. Recorded keyless model replies prove composition and transcript behavior, not live visual understanding or physical-camera qualification.",
+      "Typecheck, full lint, 17 quick documentation gates, 36 doc-sync gates, six traceability cases and Gate 0 pass. Host code is unchanged by this increment; the prior Photos record owns its Host/Client build and Host-test evidence. Scanner qualification remains same-host/shared-cache with GO-2026-5932 open. Session writer V3 and completeRc=false persist; whole-section acceptance remains open."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Continue Android share-intent intake and Swift attachment adoption. Qualify larger streamed uploads, upload retry/receipt expiry recovery and Host limit negotiation without changing Host-owned authorization.",
+        "Continue foreground/push recovery, deep links, remaining requirement matrices and cross-platform verification. Physical cameras, third-party camera/document providers, live-model attachment use and Host-restart receipt recovery remain unqualified.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "androidPhotoAttachments": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/android-camera-attachments-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/android-photo-attachments-source.json",
     "scope": "Sections 36 and 64: Host image staging, Android Photos and ordered mixed attachment intents, installed system-picker and process-recovery acceptance; all-platform attachment acceptance remains open",
@@ -27253,7 +27352,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/android-photo-attachments-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/android-camera-attachments-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -27736,7 +27835,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "7093ab8f5606fedea41703e980ba7691a3835ea11e8f1c324a0169d2c2aa3f8b"
+        "sha256": "8e8df70dd2d0a673d582705da86f1dadde4afc931ba2069a0fc249a2c2463650"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
