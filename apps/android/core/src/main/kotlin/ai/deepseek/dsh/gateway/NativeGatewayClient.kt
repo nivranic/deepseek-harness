@@ -1,6 +1,8 @@
 package ai.deepseek.dsh.gateway
 
 import ai.deepseek.dsh.companion.WireDriving
+import ai.deepseek.dsh.companion.WireDiagnosticSnapshot
+import ai.deepseek.dsh.companion.ConnectionFailure
 import ai.deepseek.dsh.link.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -40,6 +42,11 @@ class NativeGatewayClient private constructor(
     private var identity: LinkCredentials? = initialIdentity
     private val negotiation = Mutex()
     @Volatile private var observedHost: NativeHostDescription? = null
+    private var descriptionState = NativeDescriptionState.NOT_REQUESTED
+    private var descriptionFailure: ConnectionFailure? = null
+    private var protocolObservation: NativeProtocolObservation? = null
+    private var startedHttpCalls = 0L
+    private var finishedHttpCalls = 0L
     private val trust = LinkPinning.trustManager(pin)
     private val transport = OkHttpClient.Builder()
         .sslSocketFactory(LinkPinning.sslContext(trust).socketFactory, trust)
@@ -69,6 +76,12 @@ class NativeGatewayClient private constructor(
     /** Last successful negotiated observation; refresh never grants business permissions. */
     fun hostDescription(): NativeHostDescription? = observedHost
 
+    override fun diagnosticSnapshot(): WireDiagnosticSnapshot.Native = synchronized(lock) {
+        WireDiagnosticSnapshot.Native(NativeGatewayDiagnosticSnapshot(closed, calls.size,
+            startedHttpCalls, finishedHttpCalls, mux?.streams?.size ?: 0, retiringMuxes.size,
+            NativeObservedRole.from(identity?.role), descriptionState, descriptionFailure, protocolObservation))
+    }
+
     override suspend fun refreshHostDescription() {
         try { describe() }
         catch (_: LinkClientException) {
@@ -79,11 +92,32 @@ class NativeGatewayClient private constructor(
 
     /** Negotiate API 2 and check the pinned Host identity before exposing business operations. */
     suspend fun describe(): NativeHostDescription = negotiation.withLock {
-        val credentials = currentIdentity()
-        val value = rpc("host/negotiate", mapOf("supportedApiProtocolVersions" to
-            WireValue.ArrayValue(listOf(WireValue.NumberValue(2.0)))))
-        NativeHostDescription.parse(value, credentials.hostId).also { description ->
-            synchronized(lock) { requireOpen(); observedHost = description }
+        synchronized(lock) {
+            requireOpen()
+            descriptionState = NativeDescriptionState.CHECKING
+            descriptionFailure = null
+        }
+        try {
+            val credentials = currentIdentity()
+            val value = rpc("host/negotiate", mapOf("supportedApiProtocolVersions" to
+                WireValue.ArrayValue(listOf(WireValue.NumberValue(2.0)))))
+            NativeHostDescription.parse(value, credentials.hostId).also { description ->
+                synchronized(lock) {
+                    requireOpen()
+                    observedHost = description
+                    protocolObservation = NativeProtocolObservation(description.sessionFormatVersion,
+                        NativeObservedCapability.entries.filter { it.wire in description.capabilities }.toSet())
+                    descriptionState = NativeDescriptionState.AVAILABLE
+                }
+            }
+        } catch (failure: Exception) {
+            synchronized(lock) {
+                if (!closed) {
+                    descriptionState = if (failure is CancellationException) NativeDescriptionState.CANCELLED else NativeDescriptionState.FAILED
+                    descriptionFailure = ConnectionFailure.from(failure)
+                }
+            }
+            throw failure
         }
     }
 
@@ -201,12 +235,22 @@ class NativeGatewayClient private constructor(
     private suspend fun execute(request: Request): String = suspendCancellableCoroutine { continuation ->
         val call = synchronized(lock) {
             requireOpen()
-            transport.newCall(request).also { calls[it] = CompletableDeferred() }
+            transport.newCall(request).also {
+                calls[it] = CompletableDeferred()
+                if (startedHttpCalls != Long.MAX_VALUE) startedHttpCalls++
+            }
         }
         continuation.invokeOnCancellation { call.cancel() }
         fun finish(result: Result<String>) {
             try { if (continuation.isActive) continuation.resumeWith(result) }
-            finally { synchronized(lock) { calls.remove(call)?.complete(Unit) } }
+            finally {
+                synchronized(lock) {
+                    calls.remove(call)?.let {
+                        if (finishedHttpCalls != Long.MAX_VALUE) finishedHttpCalls++
+                        it.complete(Unit)
+                    }
+                }
+            }
         }
         try {
             call.enqueue(object : Callback {
@@ -240,6 +284,7 @@ class NativeGatewayClient private constructor(
         synchronized(lock) {
             if (closed) return
             closed = true
+            descriptionState = NativeDescriptionState.RETIRED
             observedHost = null
             calls.keys.forEach(Call::cancel)
             mux?.let { retireMux(it, LinkClientException.Carrier(0, "native client is closed")) }

@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android Native Gateway 支持诊断（§42、§43、§67）
+
+[当前来源记录](artifacts/upstream-first/android-native-diagnostics-source.json)将支持导出接到当前 Native Gateway。密封变体区分原生与历史 Link；原生快照不做 I/O，按客户端代次记录 HTTP 回调与 mux 订阅所有权，模型重连次数保持独立。固定角色、能力白名单和失败分类排除身份、地址、凭据及任意远端字符串。刷新失败保留最近成功事实，关闭后的迟到完成不能恢复可用状态。
+
+核心 304 项测试、55 个套件通过。四项最终真实 Host 与已安装模拟器场景覆盖原生扫描导出、两种游标恢复和资源读取；诊断场景核验只读协商拒绝及恢复、逻辑 follow 重连计数与私有字段缺失，不发业务变更。类型、lint、17 项快速文档检查、36 项 doc-sync、6 项逐节追踪和 Gate 0 通过。源码与日志经过来源绑定，Session writer 保持 V3，completeRc 为 false。
+
+当前扫描器 AAR 来自固定历史提交，其源码及构建器不在当前检出；字节扫描通过不构成同候选源码可复现构建。物理设备、崩溃采集、四平台支持包、完整能力呈现和发布资格仍开放。
+
 ## Android 当前 File/Artifact 资源读取（§35、§67）
 
-[当前来源记录](artifacts/upstream-first/android-resource-adoption-source.json)将原生文件页与工件页接到同一个 Session 作用域资源读取器。工件引用来自当前 deliverables/presented 持久声明；已移除应用的退役 session/artifact 调用及按旧工件 id 缓存完整字节。路径与模型描述不授予权限。
+[历史来源记录](artifacts/upstream-first/android-resource-adoption-source.json)将原生文件页与工件页接到同一个 Session 作用域资源读取器。工件引用来自当前 deliverables/presented 持久声明；已移除应用的退役 session/artifact 调用及按旧工件 id 缓存完整字节。路径与模型描述不授予权限。
 
 读取先 stat，再串行请求 64 KiB 字节窗口，默认内容保留预算 8 MiB，已知大文件只读取 256 字节前缀。响应验证偏移、版本、大小、规范 base64 和 EOF 进度；失败显式续传，版本变化丢弃前缀并要求重新读取。切换 Session 清空旧资源，模型退出等待取消清理。图片限制为四百万像素，文本显示限制为 65536 字符，其他内容为惰性字节预览。
 

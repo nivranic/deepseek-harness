@@ -1,6 +1,5 @@
 package ai.deepseek.dsh.companion
 
-import ai.deepseek.dsh.link.LinkDiagnosticSnapshot
 import ai.deepseek.dsh.link.LinkDescriptionState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +58,7 @@ data class SupportProductIdentity(val version: String, val buildNumber: Long, va
 /** Captured from the current owners before encoding or scanning; reading it performs no I/O. */
 data class SupportLocalSnapshot(
     val identityRestored: Boolean,
-    val link: LinkDiagnosticSnapshot?,
+    val wire: WireDiagnosticSnapshot?,
     val connections: ConnectionSnapshots,
     val session: SessionDiagnostics,
     val nativeExits: ProcessExitDiagnostics,
@@ -156,50 +155,56 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
         put("localIdentity", buildJsonObject {
             put("producer", "CompanionRuntime"); put("observation", "current"); put("restored", snapshot.identityRestored)
         })
-        put("transport", buildJsonObject {
-            put("producer", "LinkClient"); put("observation", if (snapshot.link == null) "unavailable" else "current")
-            snapshot.link?.requests?.let {
-                put("closed", it.closed); put("pendingRequests", it.pendingRequests)
-                put("startedRequests", it.startedRequests); put("finishedRequests", it.finishedRequests)
-                put("countsSaturated", it.startedRequests == Long.MAX_VALUE || it.finishedRequests == Long.MAX_VALUE)
+        when (val wire = snapshot.wire) {
+            is WireDiagnosticSnapshot.Native -> putNativeDiagnostics(wire.value)
+            is WireDiagnosticSnapshot.LegacyLink, null -> {
+                val link = (wire as? WireDiagnosticSnapshot.LegacyLink)?.value
+                put("transport", buildJsonObject {
+                    put("producer", if (link == null) "WireDriving" else "LinkClient"); put("observation", if (link == null) "unavailable" else "current")
+                    link?.requests?.let {
+                        put("closed", it.closed); put("pendingRequests", it.pendingRequests)
+                        put("startedRequests", it.startedRequests); put("finishedRequests", it.finishedRequests)
+                        put("countsSaturated", it.startedRequests == Long.MAX_VALUE || it.finishedRequests == Long.MAX_VALUE)
+                    }
+                })
+                put("role", buildJsonObject {
+                    put("producer", if (link == null) "WireDriving" else "LinkCredentials")
+                    val role = link?.lastKnownRole
+                    put("observation", if (role == null) "unavailable" else "last-known")
+                    role?.let { put("value", it.wire) }
+                })
+                val description = link?.description
+                val descriptionObservation = when {
+                    description != null -> "last-known"
+                    link?.descriptionState == LinkDescriptionState.FAILED -> "failed"
+                    else -> "unavailable"
+                }
+                put("protocol", buildJsonObject {
+                    put("producer", if (link == null) "WireDriving" else "LinkClient.describe"); put("observation", descriptionObservation)
+                    put("queryState", link?.descriptionState?.wire ?: "unavailable")
+                    link?.descriptionFailure?.let { put("failure", it.wire) }
+                    description?.let {
+                        put("linkProtocolVersion", it.linkProtocolVersion); put("contractVersion", it.contractVersion)
+                        put("sessionFormatVersion", it.sessionFormatVersion); put("runtimeClass", it.runtimeClass.wire)
+                        put("allowRemoteApproval", it.allowRemoteApproval)
+                    }
+                })
+                put("capabilities", buildJsonObject {
+                    put("producer", if (link == null) "WireDriving" else "LinkClient.describe"); put("observation", descriptionObservation)
+                    description?.capabilities?.let {
+                        put("session", buildJsonObject {
+                            put("list", it.session.list); put("history", it.session.history); put("follow", it.session.follow)
+                            put("prompt", it.session.prompt); put("cancel", it.session.cancel)
+                        })
+                        put("workspace", buildJsonObject { put("follow", it.workspace.follow) })
+                        put("interaction", buildJsonObject { put("approval", it.interaction.approval); put("question", it.interaction.question) })
+                    }
+                })
             }
-        })
+        }
         put("connections", snapshot.connections.toJson())
         put("session", snapshot.session.toJson())
         put("nativeExits", snapshot.nativeExits.toJson())
-        put("role", buildJsonObject {
-            put("producer", "LinkCredentials")
-            val role = snapshot.link?.lastKnownRole
-            put("observation", if (role == null) "unavailable" else "last-known")
-            role?.let { put("value", it.wire) }
-        })
-        val description = snapshot.link?.description
-        val descriptionObservation = when {
-            description != null -> "last-known"
-            snapshot.link?.descriptionState == LinkDescriptionState.FAILED -> "failed"
-            else -> "unavailable"
-        }
-        put("protocol", buildJsonObject {
-            put("producer", "LinkClient.describe"); put("observation", descriptionObservation)
-            put("queryState", snapshot.link?.descriptionState?.wire ?: "unavailable")
-            snapshot.link?.descriptionFailure?.let { put("failure", it.wire) }
-            description?.let {
-                put("linkProtocolVersion", it.linkProtocolVersion); put("contractVersion", it.contractVersion)
-                put("sessionFormatVersion", it.sessionFormatVersion); put("runtimeClass", it.runtimeClass.wire)
-                put("allowRemoteApproval", it.allowRemoteApproval)
-            }
-        })
-        put("capabilities", buildJsonObject {
-            put("producer", "LinkClient.describe"); put("observation", descriptionObservation)
-            description?.capabilities?.let {
-                put("session", buildJsonObject {
-                    put("list", it.session.list); put("history", it.session.history); put("follow", it.session.follow)
-                    put("prompt", it.session.prompt); put("cancel", it.session.cancel)
-                })
-                put("workspace", buildJsonObject { put("follow", it.workspace.follow) })
-                put("interaction", buildJsonObject { put("approval", it.interaction.approval); put("question", it.interaction.question) })
-            }
-        })
         put("scanner", buildJsonObject {
             put("version", scanner.version); put("rulesDigest", scanner.rulesDigest)
             put("sourceSha", scanner.sourceSha); put("nativeSha256", scanner.nativeSha256)

@@ -22,7 +22,7 @@ Upstream-First 的 Android 线在新 `apps/android` Gradle 构建上只有 `cont
 
 ## 契约
 
-在 `apps/android` 下 `gradlew :contract:test :core:test` 在 JVM 上运行契约 schema 测试与迁入的领域测试（不需要 Android SDK）。`:app` 用 Android SDK（`ANDROID_HOME`）完成配置；`:app:assembleDebug` 由 `verifyScannerResources` 门禁——需要支持扫描器 AAR（从 `native/support-scanner` 经 Go + NDK 构建）及其回执，通过 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 传入。该门禁是历史供应链控制，原样保留。
+在 `apps/android` 下 `gradlew :contract:test :core:test` 在 JVM 上运行契约 schema 测试与迁入的领域测试（不需要 Android SDK）。`:app` 用 Android SDK（`ANDROID_HOME`）完成配置；`:app:assembleDebug` 由 `verifyScannerResources` 门禁——需要支持扫描器 AAR（源码出处见 [Android 限制](../../../../apps/android/README.zh.md#known-limitations-and-deferred-work)）及其回执，通过 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 传入。该门禁是历史供应链控制，原样保留。
 
 ## 持久化
 

@@ -11,6 +11,7 @@ import ai.deepseek.dsh.link.LinkCapabilities
 import ai.deepseek.dsh.link.LinkSessionCapabilities
 import ai.deepseek.dsh.link.LinkWorkspaceCapabilities
 import ai.deepseek.dsh.link.LinkInteractionCapabilities
+import ai.deepseek.dsh.gateway.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -36,8 +37,31 @@ class SupportExportTest {
         LinkCapabilities(LinkSessionCapabilities(true, true, true, true, true), LinkWorkspaceCapabilities(true), LinkInteractionCapabilities(false, true)))
     private val link = LinkDiagnosticSnapshot(LinkRequestSnapshot(false, 2, 5, 3), LinkDeviceRole.CONTROLLER,
         LinkDescriptionState.AVAILABLE, null, protocol)
-    private val snapshot = SupportLocalSnapshot(true, link, ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable, ProcessExitDiagnostics.Unavailable, applicationSource)
+    private val snapshot = SupportLocalSnapshot(true, WireDiagnosticSnapshot.LegacyLink(link), ConnectionSnapshots.unavailable, SessionDiagnostics.Unavailable, ProcessExitDiagnostics.Unavailable, applicationSource)
     private val policy = SupportExportPolicy(1024 * 1024, 10_000)
+
+    @Test fun nativeFactsUseDistinctProducersAndKeepLastKnownDescriptionAfterFailure() {
+        val native = NativeGatewayDiagnosticSnapshot(false, 2, 5, 3, 4, 1, NativeObservedRole.COLLABORATOR,
+            NativeDescriptionState.FAILED, ConnectionFailure.REFUSED,
+            NativeProtocolObservation(999, setOf(NativeObservedCapability.SESSION_FOLLOW, NativeObservedCapability.FILE_BYTES)))
+        val bytes = encodeSupportDocument(product, snapshot.copy(wire = WireDiagnosticSnapshot.Native(native)), identity, policy.maximumBytes)
+        val expected = requireNotNull(javaClass.getResourceAsStream("/support-native-gateway.json")).use { it.readBytes() }
+        assertContentEquals(expected, bytes)
+        val value = Json.parseToJsonElement(bytes.decodeToString()).jsonObject
+        assertEquals("\"last-known\"", value["protocol"]!!.jsonObject["observation"].toString())
+        assertEquals("2", value["protocol"]!!.jsonObject["apiProtocolVersion"].toString())
+        assertEquals("999", value["protocol"]!!.jsonObject["sessionFormatVersion"].toString())
+        assertFalse(bytes.decodeToString().contains("Link"))
+        for (state in listOf(NativeDescriptionState.NOT_REQUESTED, NativeDescriptionState.FAILED, NativeDescriptionState.RETIRED)) {
+            val missing = native.copy(description = null, descriptionState = state, startedHttpCalls = Long.MAX_VALUE)
+            val unavailable = Json.parseToJsonElement(encodeSupportDocument(product,
+                snapshot.copy(wire = WireDiagnosticSnapshot.Native(missing)), identity, policy.maximumBytes).decodeToString()).jsonObject
+            assertEquals("\"NativeGatewayClient.describe\"", unavailable["protocol"]!!.jsonObject["producer"].toString())
+            assertFalse(unavailable["protocol"]!!.jsonObject.containsKey("apiProtocolVersion"))
+            assertFalse(unavailable["capabilities"]!!.jsonObject.containsKey("supported"))
+            assertEquals("true", unavailable["transport"]!!.jsonObject["countsSaturated"].toString())
+        }
+    }
 
     @Test fun projectsLocalFactsWithoutClaimingHealthOrAuthorization() {
         val bytes = encodeSupportDocument(product, snapshot, identity, policy.maximumBytes)
@@ -64,8 +88,8 @@ class SupportExportTest {
     }
 
     @Test fun failedDescriptionDoesNotRetainCapabilityOrProtocolValues() {
-        val unavailable = snapshot.copy(link = link.copy(descriptionState = LinkDescriptionState.FAILED,
-            descriptionFailure = LinkDescriptionFailure.REFUSED, description = null))
+        val unavailable = snapshot.copy(wire = WireDiagnosticSnapshot.LegacyLink(link.copy(descriptionState = LinkDescriptionState.FAILED,
+            descriptionFailure = LinkDescriptionFailure.REFUSED, description = null)))
         val value = Json.parseToJsonElement(encodeSupportDocument(product, unavailable, identity, policy.maximumBytes).decodeToString()).jsonObject
         assertEquals("\"failed\"", value["protocol"]!!.jsonObject["observation"].toString())
         assertEquals("\"refused\"", value["protocol"]!!.jsonObject["failure"].toString())
@@ -125,7 +149,7 @@ class SupportExportTest {
             override fun register(summary: ByteArray) {}
             override fun read(maximumRecords: Int): List<ProcessExitRecord> = emptyList()
         }).capture()
-        val captured = snapshot.copy(identityRestored = false, link = null, connections = ConnectionSnapshots(session.connectionSnapshot,
+        val captured = snapshot.copy(identityRestored = false, wire = null, connections = ConnectionSnapshots(session.connectionSnapshot,
             interactions.connectionSnapshot, files.connectionSnapshot, pushes.connectionSnapshot), session = session.sessionDiagnostics, nativeExits = exits)
         session.closeAndAwait(); interactions.stopWatchingAndAwait(); files.stopAndAwait(); pushes.stopWatchingAndAwait()
         assertEquals(ConnectionState.STOPPED, session.connectionSnapshot.state)

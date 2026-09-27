@@ -22,7 +22,7 @@ Rewriting the domain fold against the new contract immediately was rejected: it 
 
 ## Contract
 
-`gradlew :contract:test :core:test` from `apps/android` runs the contract schema tests and the migrated domain tests on the JVM (no Android SDK). `:app` configures with the Android SDK (`ANDROID_HOME`); `:app:assembleDebug` is gated by `verifyScannerResources`, which requires the support-scanner AAR (built from `native/support-scanner` via Go + NDK) plus its receipt through `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE`. The gate is the historical supply-chain control, carried over unmodified.
+`gradlew :contract:test :core:test` from `apps/android` runs the contract schema tests and the migrated domain tests on the JVM (no Android SDK). `:app` configures with the Android SDK (`ANDROID_HOME`); `:app:assembleDebug` is gated by `verifyScannerResources`, which requires the support-scanner AAR (source provenance is recorded in the [Android limitations](../../../../apps/android/README.md#known-limitations-and-deferred-work)) plus its receipt through `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE`. The gate is the historical supply-chain control, carried over unmodified.
 
 ## Persistence
 

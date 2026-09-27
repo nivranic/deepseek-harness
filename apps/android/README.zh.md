@@ -60,10 +60,15 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 
 伴随端展示 Host 持有的 Session 事件，通过当前 Gateway 返回显式的人类答案。它不在本地执行模型，也不增加独立的对话记录。无密钥验收场景回放录制的模型输出，不代表真实提供方已通过验收。
 
+支持导出将当前 Native Gateway 传输所有权与历史 Link 观察分别标记。HTTP 回调计数与 mux 订阅属于客户端代次，模型重连计数保留各自生命周期。刷新失败后，协议事实与配对角色仍是最近已知观察，不能保证健康或授权。能力字段使用固定白名单。[诊断决策](../../.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.zh.md)拥有这些规则；[已安装应用场景](../web/tests/android-native-diagnostics.e2e.ts)验证既有扫描器流程。
+
+<a id="known-limitations-and-deferred-work"></a>
 ## 已知限制与后续工作
 
-`:app:assembleDebug` 由 `verifyScannerResources` 门禁：支持扫描器 AAR 必须从 `native/support-scanner`（经 `scripts/build-mobile-support-scanner.py` 的 Go + Android NDK 链）构建，并通过 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 与回执传入。本机已完成该链路（Go 1.27.1、经 sdkmanager 安装的 NDK 30.0.16248370）：AAR 静态核验 PASS 并带回执，`:app:assembleDebug` 通过门禁，APK 已在本地模拟器 AVD 上安装并启动（`MainActivity` 处于 resumed、无崩溃；日志与截图见 `.artifacts/scanner-aar-*.log`）。不可达的 sum/proxy 端点经由 goproxy.cn 镜像预置模块缓存、预置 go.sum、子进程 `GOSUMDB=off` 绕开（内容完整性仍由 ziphash 缓存、`go mod verify` 与构建器的来源断言保证），gomobile 工具采用剥离符号链接（360 主动防御启发式拦截默认 gobind 二进制）。外壳已消费 Gateway 失败契约：拒绝异常原样携带失败信封（code、message、结构化 details）自单次调用结果与流失败帧透出，呈现侧经共享 `RemoteFailureClasses` 镜像分类——已知类别给出类别文案与下一步动作，词汇表之外的码保持不透明诊断（`GatewayFailurePresentation.kt`，由 `GatewayFailurePresentationTest` 与 `LinkClientTest` 的信封保留用例覆盖）。
+`:app:assembleDebug` 要求经 `DSH_ANDROID_SCANNER_DIRECTORY`/`DSH_ANDROID_SCANNER_SOURCE` 传入支持扫描器 AAR 及已核验回执。当前外部 AAR 记录的源码提交是 `64fa63152b93b6898f95f4bda8eb6857dbb19848`，该提交包含 `native/support-scanner` 与 `scripts/build-mobile-support-scanner.py`；这些源码路径不在当前检出中。回执准入和已安装的 Gitleaks 8.30.1 扫描不能证明可从当前候选源码复现构建。恢复同一候选源码中的扫描器源码与构建链仍是发布要求。
+
+外壳已消费 Gateway 失败契约：拒绝异常原样携带失败信封（code、message、结构化 details）自单次调用结果与流失败帧透出，呈现侧经共享 `RemoteFailureClasses` 镜像分类——已知类别给出类别文案与下一步动作，词汇表之外的码保持不透明诊断（`GatewayFailurePresentation.kt`，由 `GatewayFailurePresentationTest` 与 `LinkClientTest` 的信封保留用例覆盖）。
 
 [旧 Link 夹具](support/link-fixture-host.mjs)保留为历史协议测试，不能验收当前应用。当平台缺少 Ed25519 密钥生成时，应用使用捆绑的 `org.conscrypt:conscrypt-android`。实际 Native Remote 验收使用出厂 Host 组合和隔离的 Android 模拟器应用；摄像头扫描、物理设备、发布签名和平台互操作仍未通过资格验收。
 
-持久下载、SAF 导出及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。原生传输诊断尚未填充旧 Link 诊断快照。深链接、平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。
+持久下载、SAF 导出及全平台 File/Artifact 描述符验收仍开放。未接入当前应用的 Lite Handoff 辅助类保留为历史运行时传输测试，不用于查看位置 Handoff。深链接、平台分享路由及 Swift 查看位置采用仍未通过验收；原生读取通过不代表所有标签页均已兼容。

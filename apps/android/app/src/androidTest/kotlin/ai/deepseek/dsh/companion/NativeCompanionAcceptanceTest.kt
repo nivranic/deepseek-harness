@@ -63,6 +63,26 @@ class NativeCompanionAcceptanceTest {
                     var stage = op
                     try {
                         when (op) {
+                            "supportDocument" -> {
+                                val model = companionModel()
+                                command["minimumAttempts"]?.jsonPrimitive?.long?.let { attempts ->
+                                    compose.waitUntil(20_000) {
+                                        model.session.connectionSnapshot.let { it.attempts >= attempts && it.state == ConnectionState.OPEN }
+                                    }
+                                }
+                                if (command["refresh"]?.jsonPrimitive?.boolean == true) {
+                                    runBlocking { CompanionRuntime.wire.refreshHostDescription() }
+                                }
+                                lateinit var snapshot: SupportLocalSnapshot
+                                compose.runOnIdle { snapshot = model.supportSnapshot() }
+                                val context = instrumentation.targetContext
+                                val application = context.applicationContext as CompanionApplication
+                                val approved = runBlocking {
+                                    SupportDocumentExporter(AndroidSupportScanner(context), SupportExportPolicy(1024 * 1024, 10_000))
+                                        .prepare(application.supportProduct, snapshot)
+                                }
+                                value = Json.parseToJsonElement(approved.copyBytes().decodeToString())
+                            }
                             "pair" -> {
                                 waitFor(hasText("配对载荷（二维码内容）"))
                                 compose.onNodeWithText("配对载荷（二维码内容）").performTextInput(command.getValue("payload").toString())

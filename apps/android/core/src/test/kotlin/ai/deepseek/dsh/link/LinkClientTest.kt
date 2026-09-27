@@ -650,7 +650,7 @@ class LinkClientTest {
         val wire = LinkWireDriving(client)
         wire.refreshHostDescription()
         val before = reads
-        val observed = wire.diagnosticSnapshot()
+        val observed = wire.diagnosticSnapshot().value
         assertEquals(LinkDescriptionState.AVAILABLE, observed.descriptionState)
         assertEquals(1.0, observed.description!!.contractVersion)
         assertEquals(LinkObservedRuntimeClass.UNRECOGNIZED, observed.description.runtimeClass)
@@ -660,7 +660,7 @@ class LinkClientTest {
         server.removeContext("/link/describe")
         server.createContext("/link/describe") { exchange -> respond(exchange, 403, """{"error":"forbidden","message":"private refusal"}""") }
         wire.refreshHostDescription()
-        val refused = wire.diagnosticSnapshot()
+        val refused = wire.diagnosticSnapshot().value
         assertEquals(LinkDescriptionState.FAILED, refused.descriptionState)
         assertEquals(LinkDescriptionFailure.REFUSED, refused.descriptionFailure)
         assertEquals(null, refused.description)

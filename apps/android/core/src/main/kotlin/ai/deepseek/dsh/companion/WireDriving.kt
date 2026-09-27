@@ -4,11 +4,17 @@ import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.atomic.AtomicReference
 
+/** Transport-specific observations cannot be interpreted as another transport's counters or protocol. */
+sealed interface WireDiagnosticSnapshot {
+    data class Native(val value: ai.deepseek.dsh.gateway.NativeGatewayDiagnosticSnapshot) : WireDiagnosticSnapshot
+    data class LegacyLink(val value: ai.deepseek.dsh.link.LinkDiagnosticSnapshot) : WireDiagnosticSnapshot
+}
+
 /** The wire surface the companion models drive — the Kotlin mirror of the
  * Swift `CompanionWireDriving`; the app selects the pinned Native Gateway client. */
 interface WireDriving : AutoCloseable {
-    /** Stateless and unpaired wires have no local Link metadata owner. */
-    fun diagnosticSnapshot(): ai.deepseek.dsh.link.LinkDiagnosticSnapshot? = null
+    /** Pure local observation; stateless and unpaired wires have no diagnostic owner. */
+    fun diagnosticSnapshot(): WireDiagnosticSnapshot? = null
 
     /** Refresh an owned Host observation; stateless wires have no query to perform. */
     suspend fun refreshHostDescription() = Unit
@@ -40,7 +46,7 @@ class SwitchableWireDriving(initial: WireDriving) : WireDriving {
     private var closed = false
 
     override fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot? = delegate.get().requestSnapshot()
-    override fun diagnosticSnapshot(): ai.deepseek.dsh.link.LinkDiagnosticSnapshot? = delegate.get().diagnosticSnapshot()
+    override fun diagnosticSnapshot(): WireDiagnosticSnapshot? = delegate.get().diagnosticSnapshot()
     override suspend fun refreshHostDescription() = delegate.get().refreshHostDescription()
 
     /** Route subsequent calls and streams through [next], retiring the previous wire. */
@@ -96,7 +102,7 @@ class SwitchableWireDriving(initial: WireDriving) : WireDriving {
 /** The wire over one paired [ai.deepseek.dsh.link.LinkClient]. */
 class LinkWireDriving(private val client: ai.deepseek.dsh.link.LinkClient) : WireDriving {
     override fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot = client.requestSnapshot()
-    override fun diagnosticSnapshot(): ai.deepseek.dsh.link.LinkDiagnosticSnapshot = client.diagnosticSnapshot()
+    override fun diagnosticSnapshot(): WireDiagnosticSnapshot.LegacyLink = WireDiagnosticSnapshot.LegacyLink(client.diagnosticSnapshot())
 
     override suspend fun refreshHostDescription() {
         try { client.describe() }

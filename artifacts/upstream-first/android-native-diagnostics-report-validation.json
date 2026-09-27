@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android Native Gateway scanned support diagnostics; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-native-diagnostics-source.json",
+    "sha256": "f1e03ebba3a74c3ced114941f4fad58eaa5aa90607c7621a3d62fb74473106a7"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1acbe62df96736857a71c5f86547333c41af2b8e53f453acb5029411e69477c2"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-native-diagnostics-binding.json",
+    "sha256": "2fab47680088a4961e538a307bb85f861271a4fbb1c899d514c03018fc318f80"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-native-diagnostics-reports.mjs",
+      "sha256": "3646f1fd6887f905911a698e2943d842b8b4a5d582c317a986fa0278095b6838"
+    },
+    {
+      "path": ".artifacts/capture-android-native-diagnostics-validation.mjs",
+      "sha256": "bc5566c209488d13e2ab0569435a6cacd6ad14545e6ff59efcac6d42ce56d415"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "2e18ba28996ea82b970ee049a3ae223afb82541114d6dee4cb113b81a225002e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "419636b3f8f392cfb62bd0ab81aafcbc4235df6331dc8673a321b007478391bc"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-native-diagnostics-binding.log",
+      "sha256": "e02ba56c60bf4e46b74493544b246058b1030d8d85b2a753c90e742e426ca327"
+    },
+    {
+      "path": ".artifacts/android-native-diagnostics-audit-tests.log",
+      "sha256": "4798156448864f896019550c68e1ef1ca17c506aa5b0833c800c5d373aa08eb8"
+    },
+    {
+      "path": ".artifacts/android-native-diagnostics-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-native-diagnostics-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-native-diagnostics-report-generation.log",
+      "sha256": "b1452aea890d5af844662d91e8c8287be37d69ceddd8d36d6be229d6bcae1980"
+    }
+  ]
+}
