@@ -27,6 +27,8 @@ Host 传输场景为 [android-gateway.e2e.ts](../web/tests/android-gateway.e2e.t
 
 ## 理解实现
 
+在当前 Host 下打开 **连接能力**，查看最近成功查询的能力声明、配对时角色以及彼此独立的 API/Session 版本。列表仅覆盖客户端固定识别的能力；未出现表示该次观察未声明支持，不表示权限被拒绝。进入前台或显式刷新时查询 Host。刷新失败保留已有事实并显示失败提示；切换 Host 关闭旧详情，隔离迟到查询。观察不证明当前权限或健康，也不控制业务操作入口。[已安装能力场景](../web/tests/android-capability-presentation.e2e.ts)验证拒绝与显式恢复。
+
 Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定指纹及设备授权隔离。已保存输入与最后查看的普通 Session 可以跨进程重启恢复；恢复只开启观察。显式提交仍由模型持有，并等待输入保存。失败 prompt 独立保留原文和请求 id，不受新编辑影响。确认及匹配的 Host 回执仅清理已接受意图；关闭或修订后的 Question 移除过期答案。保存失败阻止提交并提供重试。不可读取的输入保持原样，直到用户显式备份并重建。[输入持久化决策](../../.agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.zh.md)拥有格式与恢复语义；[录制场景](../web/tests/android-input-persistence.e2e.ts)验证进程恢复和加密存储损坏。
 
 [丢确认场景](../web/tests/android-prompt-retry.e2e.ts)在真实 Host 准入后暂缓返回结果并终止 Android 进程。显式重试使用已保存的请求身份；已有日志回执时则直接清理待确认项，不再调用 prompt。两条路径都在再次进程重启后保留新文本。

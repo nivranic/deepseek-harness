@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 当前 Host 能力观察详情（§12、§13）
+
+[当前来源记录](artifacts/upstream-first/android-capability-presentation-source.json)绑定连接能力详情、按 Host 代次隔离的前台观察器以及最终安装 APK。详情显示固定识别集合的最近成功声明、配对时角色和独立 API/Session 版本；没有观察不等于不支持，声明支持不等于当前授权或健康。打开和关闭详情不发请求，显式刷新和进入前台共用查询路径，切换 Host 关闭旧详情并隔离迟到完成。
+
+五项已安装 Compose 测试通过；真实 Host 能力拒绝/恢复与原生扫描诊断两个场景通过，最终严格类型化的能力场景另行通过。系统截图已核对成功、失败保留事实及可滚动内容；最初错误采到 Activity 的截图被排除。Host 类型检查已显式收录新场景，tsc、lint、17 项快速文档、36 项 doc-sync、6 项逐节追踪及 Gate 0 通过。
+
+本轮应用从当前工作树构建，不使用旧提交的应用 source/tree 戳；APK 字节与源码哈希分别绑定，扫描器 AAR 仍来自已核验的 8ca9f6ebf33de3912292416b85f5b510c88de9a3，不声称重新取得同源码应用/扫描器资格。完整能力驱动操作呈现、当前权限、物理设备、横屏及大字体仍开放，completeRc 为 false。
+
 ## 原生扫描器同候选构建与安装验收（§43、§56）
 
-[当前来源记录](artifacts/upstream-first/native-scanner-candidate-source.json)将扫描器和隔离 Android 应用绑定到同一个正式提交 8ca9f6ebf33de3912292416b85f5b510c88de9a3 及其源树。两次独立工作/输出目录构建得到相同 AAR 与回执字节，使用共享依赖缓存；AAR 为 8132998 字节，SHA256 为 7590f185193b9dd810b63d3309b68942b6fe6f6b5b95886142e8683a34fa0605。校验数据库保持启用，未使用历史环境改写器。
+[历史来源记录](artifacts/upstream-first/native-scanner-candidate-source.json)将扫描器和隔离 Android 应用绑定到同一个正式提交 8ca9f6ebf33de3912292416b85f5b510c88de9a3 及其源树。两次独立工作/输出目录构建得到相同 AAR 与回执字节，使用共享依赖缓存；AAR 为 8132998 字节，SHA256 为 7590f185193b9dd810b63d3309b68942b6fe6f6b5b95886142e8683a34fa0605。校验数据库保持启用，未使用历史环境改写器。
 
 独立检查对照提交源码、四个构建器、双 ABI、62 个模块和 72 份许可证，并拒绝被改动的产物与错误源码身份。设备 APK/JNI 哈希、规则摘要和 application source/tree 匹配；两项安装原生测试及一项真实 Host 诊断导出场景通过。静态构建回执不改写设备执行字段，安装证据单独记录。
 

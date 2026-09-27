@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android current Host capability observation presentation and installed acceptance; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-capability-presentation-source.json",
+    "sha256": "b6dd96faa1d96abb75a1012b0260822d35d9b431dc1000f4488c35759f84d2cc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a0e08840725082b13f070c64c1b8bc131f79135460def4671c0ccfa437323e11"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-capability-presentation-binding.json",
+    "sha256": "a1115fb78e7ed18b87ee3c0101aff6938f83a2c4e1dd9cdcf8bd6a49cfcbc720"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-capability-presentation-reports.mjs",
+      "sha256": "2092a16f131678e8fca30d434b128b52d9d8c6cb914e652ed4b9e381dc8b43b2"
+    },
+    {
+      "path": ".artifacts/capture-android-capability-presentation-validation.mjs",
+      "sha256": "cfdff567a74c073da5e831678e404f47f2c0db5bc750a8fedaa74939588a531b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "6150c843c68423cc4a2ccbe88dcd3c51339b2bcc34c65f4b0263cc66f536b7c1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "412612f4a1f3cca2b7a48c1cf2b09d80cdd2d869d35d26e88b34799ef2224420"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-capability-presentation-binding.log",
+      "sha256": "bb715a0d5139c361db38581fc43f8c891506ba01dae239abae1e5b44604a628b"
+    },
+    {
+      "path": ".artifacts/android-capability-presentation-audit-tests.log",
+      "sha256": "6fcb335c226ce1542cb3315719b708e5c270c47b4b9f517186a69e2dd3edb045"
+    },
+    {
+      "path": ".artifacts/android-capability-presentation-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-capability-presentation-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-capability-presentation-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

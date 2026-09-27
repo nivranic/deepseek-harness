@@ -63,6 +63,37 @@ class NativeCompanionAcceptanceTest {
                     var stage = op
                     try {
                         when (op) {
+                            "capabilityDetails" -> {
+                                check(paired)
+                                if (compose.onAllNodesWithTag("native-capabilities-state").fetchSemanticsNodes(false).isEmpty()) {
+                                    compose.onNodeWithTag("native-capabilities-open").performClick()
+                                }
+                                if (command["refresh"]?.jsonPrimitive?.boolean == true) {
+                                    waitFor(hasTestTag("native-capabilities-refresh") and isEnabled())
+                                    compose.onNodeWithTag("native-capabilities-refresh").performClick()
+                                }
+                                val expected = when (command.getValue("state").jsonPrimitive.content) {
+                                    "available" -> R.string.native_capabilities_available
+                                    "failed" -> R.string.native_capabilities_failed
+                                    else -> error("unknown expected capability state")
+                                }
+                                waitFor(hasTestTag("native-capabilities-state") and hasText(instrumentation.targetContext.getString(expected)))
+                                val texts = compose.onAllNodes(hasAnyAncestor(hasTestTag("native-capabilities-content")), useUnmergedTree = true)
+                                    .fetchSemanticsNodes().flatMap { it.config.getOrElse(SemanticsProperties.Text) { emptyList() } }.map { it.text }
+                                value = buildJsonObject {
+                                    put("texts", JsonArray(texts.map(::JsonPrimitive)))
+                                    if (command["screenshot"]?.jsonPrimitive?.boolean == true) {
+                                        val bytes = ByteArrayOutputStream()
+                                        compose.waitForIdle()
+                                        // Dialogs have their own Android window; Compose root capture reads the Activity underneath.
+                                        val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+                                        try { bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes) }
+                                        finally { bitmap.recycle() }
+                                        put("screenshot", Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                                    }
+                                }
+                            }
+                            "closeCapabilityDetails" -> compose.onNodeWithTag("native-capabilities-close").performClick()
                             "supportDocument" -> {
                                 val model = companionModel()
                                 command["minimumAttempts"]?.jsonPrimitive?.long?.let { attempts ->

@@ -370,7 +370,8 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     val active = model.paired && !model.pairingRequested && !model.switching && hosts.status == NativeHostStatus.READY
     val pushes = model.pushes
     val context = androidx.compose.ui.platform.LocalContext.current
-    HostDescriptionObserver(CompanionRuntime.wire, active)
+    var descriptionRefresh by remember(model.generation) { mutableStateOf(0) }
+    val description = HostDescriptionObserver(CompanionRuntime.wire, active, model.generation, descriptionRefresh)
     // The chapter-70 runtime grant: Android 13+ asks for POST_NOTIFICATIONS
     // at runtime — once per process while the grant is missing — and the
     // answer lands in the projection the push chain reads.
@@ -425,6 +426,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             NativeHostControls(model, hosts)
+            HostCapabilityDetails(description, model.generation) { descriptionRefresh++ }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Column(Modifier.weight(1f)) { SupportExportAction(model::supportSnapshot) }
                 Button(modifier = Modifier.testTag("native-repair"), onClick = { scope.launch { model.beginPairing() } }) {

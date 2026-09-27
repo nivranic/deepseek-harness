@@ -2088,9 +2088,13 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostDescriptionObserver.kt",
+        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetailsNativeTest.kt",
+        "apps/web/tests/android-capability-presentation.e2e.ts"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。 Android 连接能力详情现显示固定识别集合的最近成功声明、配对时角色和独立 API/Session 版本。前台与显式刷新复用查询观察器；失败保留事实并标记，旧代次迟到结果不能覆盖新 Host，切换关闭旧详情。五项已安装 Compose 测试及真实 Host 拒绝/恢复场景通过，语义期望与实际弹窗截图已检查。该视图只提供观察信息，不覆盖完整能力集合、业务入口可见性、当前权限或物理设备，不授予本节完整 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2208,9 +2212,13 @@
         "apps/web/tests/android-input-persistence.e2e.ts",
         "apps/web/tests/android-prompt-retry.e2e.ts",
         "packages/client/connection/src/http-bridge.ts",
-        "packages/client/connection/tests/http-bridge.host.spec.ts"
+        "packages/client/connection/tests/http-bridge.host.spec.ts",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostDescriptionObserver.kt",
+        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetailsNativeTest.kt",
+        "apps/web/tests/android-capability-presentation.e2e.ts"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。Android 输入现按 Host id、固定指纹与设备授权独立加密保存，显式提交先完成保存；原待确认请求与新草稿分别保留。已保存的 Question 答案、请求身份和 last Session 经不同进程恢复，观察不会自动提交。损坏密文或缺失密钥保留原文件，显式恢复先保留字节一致副本；读操作不创建密钥。跨 Host 体验、物理设备、突然断电及整节其余验收仍开放，本节不因此取得完整 PASS。 真实 Host 现已验证 Android 在 prompt 准入后丢失确认并退出：显式重试沿用原 requestId，只处理一次；已有 user-message 回执时恢复直接清理待确认项，不额外发送。新草稿在再次进程重启后保留。共享 HTTP 桥接取消断开后的迟到响应体并退出背压等待，修复退出挂起；不由此授予全节验收。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。Android 输入现按 Host id、固定指纹与设备授权独立加密保存，显式提交先完成保存；原待确认请求与新草稿分别保留。已保存的 Question 答案、请求身份和 last Session 经不同进程恢复，观察不会自动提交。损坏密文或缺失密钥保留原文件，显式恢复先保留字节一致副本；读操作不创建密钥。跨 Host 体验、物理设备、突然断电及整节其余验收仍开放，本节不因此取得完整 PASS。 真实 Host 现已验证 Android 在 prompt 准入后丢失确认并退出：显式重试沿用原 requestId，只处理一次；已有 user-message 回执时恢复直接清理待确认项，不额外发送。新草稿在再次进程重启后保留。共享 HTTP 桥接取消断开后的迟到响应体并退出背压等待，修复退出挂起；不由此授予全节验收。 Android 连接能力详情现显示固定识别集合的最近成功声明、配对时角色和独立 API/Session 版本。前台与显式刷新复用查询观察器；失败保留事实并标记，旧代次迟到结果不能覆盖新 Host，切换关闭旧详情。五项已安装 Compose 测试及真实 Host 拒绝/恢复场景通过，语义期望与实际弹窗截图已检查。该视图只提供观察信息，不覆盖完整能力集合、业务入口可见性、当前权限或物理设备，不授予本节完整 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
