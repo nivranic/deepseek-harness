@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 原生图片上传预算：与文件同源的完整请求体准入
+
+[当前来源记录](artifacts/upstream-first/native-image-upload-budget-source.json)把完整请求体预算准入扩展到 uploadImage：Native 客户端对每个显式图片上传通过同一已验证 Native 客户端读取接收监听器预算一次，校验后在构造 HTTP 调用前对最终发送的完整 UTF-8 字节做拒绝判定，超限映射 REQUEST_TOO_LARGE，不重试、不追加 receipt、不替换草稿与 pending。输入区照片操作同时要求 image-upload.stage.v1 与 native-remote.http-request-budget.v1，仅缺预算能力时提示缺少 Host 上传限制而非图片支持。support export 夹具补记 native-remote.http-request-budget.v1 能力行：该行由文件预算增量引入，其过滤单测轮（57/7）未覆盖全量 SupportExportTest，本次全量 Core 首次暴露并修复。
+
+验证：全量 core:test 450 用例 0 失败（含 UploadBudget 9 用例：每次显式图片上传新预算、超一字节 POST 前拒绝、拒绝或能力缺失的 Host 阻断而非回退无上限请求体、prompt 不查询）；已安装图片预算场景 1/1（1280 字节 padded PNG 编码参数在 2048 内而完整签名请求体超限，本地拒绝时预算恰好读 1 次、图片 POST 0、草稿保留；删除被拒来源照片后小图显式发送成功，Host 存储与会话授权读取字节匹配，唯一持久用户消息含单个 ImageBlock；两次相同且已收束的 HTTP 计数快照与冻结 invoke 账本并发护栏）；回归 Photos（照片门控变更必需）、Files、receipt 恢复、分享采纳 4/4；typecheck、oxlint 0/0、test:docs 17、doc-sync 36、审计 19/19、Gate 0 PASS。三张计划截图经视觉通道实际查看：拒绝错误行与保留草稿、单图片附件条目含详情行、唯一消息与清空输入区均与预期一致。
+
+局限：本地检查仍是 advisory，Host 或反向代理的更严拒绝仍为权威；图片批次、流式与断点续传、物理设备与真机、Swift runtime、第三方发送方仍在文件预算决策的既有开放边界。
+
 ## Android 原生上传预算：完整请求体本地预检
 
-[当前来源记录](artifacts/upstream-first/native-upload-budget-source.json)为原生 fileUploads/upload 增加完整请求体预算：Gateway 公开 createDeviceConnection 工厂，使每个 Native HTTPS 监听器在自己的 Cordis 调用上下文中路由 RPC 与流；nativeRemote/httpRequestBudget 以 view 权限返回该监听器实际 buffered body 上限（capability native-remote.http-request-budget.v1）。Android 在每次显式文件上传前读取一次预算，对最终发送的同一份 UTF-8 JSON 字节做 inclusive 比较，超限在构造 HTTP 调用前本地拒绝并映射 REQUEST_TOO_LARGE，不追加 receipt、不清空草稿与 pending；Host 侧 413 与权限拒绝保持独立有效，预算查询失败不回退默认值也不跨请求缓存。
+[历史来源记录](artifacts/upstream-first/native-upload-budget-source.json)为原生 fileUploads/upload 增加完整请求体预算：Gateway 公开 createDeviceConnection 工厂，使每个 Native HTTPS 监听器在自己的 Cordis 调用上下文中路由 RPC 与流；nativeRemote/httpRequestBudget 以 view 权限返回该监听器实际 buffered body 上限（capability native-remote.http-request-budget.v1）。Android 在每次显式文件上传前读取一次预算，对最终发送的同一份 UTF-8 JSON 字节做 inclusive 比较，超限在构造 HTTP 调用前本地拒绝并映射 REQUEST_TOO_LARGE，不追加 receipt、不清空草稿与 pending；Host 侧 413 与权限拒绝保持独立有效，预算查询失败不回退默认值也不跨请求缓存。
 
 验证：真实 Host 完整边界 3/3（B−1/B 成功、B+1 被真实 bridge 以 HTTP 413 拒绝、viewer/revoked 不能上传且无存储副作用）；catalog 主入口 3 written 且兼容入口 --check 全部 up to date；Host 与 Client 双面构建；已安装 SAF 场景 1/1（1280 字节文件 args 在预算内而完整 body 超限被本地拒绝、草稿与 pending 保留，显式丢弃后 8 字节文件显式发送成功且只产生一条持久用户消息；两次相同且已收束的 HTTP 计数快照与冻结 invoke 账本防止把已发出但被 413 拒绝的请求误报为零 POST）；Files、附件 receipt 恢复、分享采纳回归 3/3；Core 57/7（含 UploadBudget 7、HttpRequestBudget 3）；typecheck、oxlint 0/0、test:docs 17、doc-sync 36、审计 19/19、Gate 0 PASS。三张计划截图经视觉通道实际查看：拒绝红幅与保留草稿、小文件就绪、唯一消息与清空输入区均与预期一致。
 

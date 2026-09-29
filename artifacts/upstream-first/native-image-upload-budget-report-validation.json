@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the native image upload complete-body budget increment: uploadImage budget read through the verified native client, local pre-send refusal on the final UTF-8 JSON bytes and Photos capability gating; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-image-upload-budget-source.json",
+    "sha256": "4133a4d26cd688bca371993cb90dcb7f2a7a19f80a88b8cc60acaa16b2201dda"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4d51b38c0782ccbcffa2cb595510cdfc6bcc6af362e48d70b2b42caf1616d4bc"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-image-upload-budget-binding.json",
+    "sha256": "8ea1c6f6f14c0abef93fbfe19e511010532480d10bdc439127db34aa1867483c"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-image-upload-budget-reports.mjs",
+      "sha256": "fb2b05e8709b37e3e98f12d07b6075fb6c38ff902ae80ecb11fefe8b85f010e5"
+    },
+    {
+      "path": ".artifacts/capture-native-image-upload-budget-validation.mjs",
+      "sha256": "27b9d0b95a6b41b2f70f0d67dc7951b059615e6cb0372f25930898a8e280ad31"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "e85c57da834c30c831e005cbcf1c7e1e62908142bf6e28a43bb721b6b2d87d3f"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "177701821393c8b776b615ef9ad50eeaff538e072bf69863196a8394df796e55"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-image-upload-budget-binding.log",
+      "sha256": "103f60240a3bfe2c585f3084d71073848001ed5a2000d5ab0fafb8c1994032b5"
+    },
+    {
+      "path": ".artifacts/native-image-upload-budget-audit-final.log",
+      "sha256": "c55dbaf1d34534583d205a14a305123fdbee095ff66538561a74ad5c8fd1407e"
+    },
+    {
+      "path": ".artifacts/native-image-upload-budget-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/native-image-upload-budget-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-image-upload-budget-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ Android 在本地限制源文件字节和编码后的上传参数，但 Native H
 
 每次显式 `fileUploads/upload` 时，Android client 先准入已知的文件上传和预算 capability，再从同一个已验证 Native client 读取预算，并校验它是正 safe integer。随后只创建一次 RPC 身份、一次新鲜 admission 和一个最终 UTF-8 字节数组；client 在创建 HTTP 调用前拒绝超预算的完整请求体，通过时发送已经检查的同一份字节且不重试。此路径没有预算缓存、二次序列化、自动重试或默认 Host 上限。实际观察到的本地请求体超限与编码参数超限一样映射为附件模型的 `REQUEST_TOO_LARGE`；非法或失败的预算发现保留其既有失败分类。
 
-预算观察不预留容量，也不授予上传权限。Host 继续执行实际字节限制和当前设备授权，更小的代理上限或变化后的 Host 配置仍可拒绝已通过本地检查的请求。本地 512 KiB 源文件、1 MiB 编码参数和八项附件限制仍是独立约束。transport 检查覆盖所有 `fileUploads/upload` 调用者，包括文件分享。图片上传保留独立路径；查询或上传失败不能替换 pending 意图，也不能部分采纳分享批次，恢复操作是用户显式重新选择来源。
+预算观察不预留容量，也不授予上传权限。Host 继续执行实际字节限制和当前设备授权，更小的代理上限或变化后的 Host 配置仍可拒绝已通过本地检查的请求。本地 512 KiB 源文件、1 MiB 编码参数和八项附件限制仍是独立约束。transport 检查覆盖所有 `fileUploads/upload` 调用者，包括文件分享。[图片预算决策](2026-09-29-native-image-upload-budget.zh.md)把同一准入扩展到 `fileUploads/uploadImage`；查询或上传失败不能替换 pending 意图，也不能部分采纳分享批次，恢复操作是用户显式重新选择来源。
 
 ## Alternatives considered
 

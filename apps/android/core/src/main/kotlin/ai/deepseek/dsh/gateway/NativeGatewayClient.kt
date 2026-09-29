@@ -129,7 +129,7 @@ class NativeGatewayClient private constructor(
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
         ensureNegotiated()
         requireAdvertisedOperation(method)
-        val budget = if (method == "fileUploads/upload") {
+        val budget = if (method == "fileUploads/upload" || method == "fileUploads/uploadImage") {
             requireAdvertisedOperation("nativeRemote/httpRequestBudget")
             NativeHttpRequestBudget.parse(rpc("nativeRemote/httpRequestBudget", emptyMap()))
         } else null

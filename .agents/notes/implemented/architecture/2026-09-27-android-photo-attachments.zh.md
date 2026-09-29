@@ -10,7 +10,7 @@ Status: implemented
 
 ## 决策
 
-Session 控制与 `image-upload.stage.v1` 均已声明时，Session 输入区提供 **+ → 照片**；**+ → 文件** 独立要求同时具备 `file-upload.stage.v1` 与 `native-remote.http-request-budget.v1`。照片入口通过 AndroidX `PickVisualMedia(ImageOnly)` 请求一张图片。文件与照片共用一个活动选择持有者，因此取消、Activity 重建、Session 替换和 Host 退役遵循[文件附件决定](2026-09-27-android-file-attachments.zh.md)中的一次性授权。应用不取得持久 URI 授权，也不保存源 URI；进程恢复不能重新打开或上传所选来源。
+Session 控制、`image-upload.stage.v1` 与 `native-remote.http-request-budget.v1` 均已声明时，Session 输入区提供 **+ → 照片**；[图片预算决定](2026-09-29-native-image-upload-budget.zh.md)持有该预算要求及其能力缺失提示。**+ → 文件** 独立要求同时具备 `file-upload.stage.v1` 与 `native-remote.http-request-budget.v1`。照片入口通过 AndroidX `PickVisualMedia(ImageOnly)` 请求一张图片。文件与照片共用一个活动选择持有者，因此取消、Activity 重建、Session 替换和 Host 退役遵循[文件附件决定](2026-09-27-android-file-attachments.zh.md)中的一次性授权。应用不取得持久 URI 授权，也不保存源 URI；进程恢复不能重新打开或上传所选来源。
 
 Android 接受 PNG、JPEG、WebP 和 GIF 源 MIME 类型；未知类型和 HEIC 直接拒绝，不进行转换。应用限制每个源文件最多 512 KiB、混合草稿最多 8 个附件、UTF-8 上传参数 JSON 最多 1 MiB。JSON 限制不包含带签名的 RPC envelope，这些限制也不与 Host 协商。读取与上传保持为显式、有界的工作；阻塞的内容提供方可能延长取消清理。共享的 `SessionAttachmentAdmission` 占用在选择、读取、上传及取消清理期间，从模型入口拒绝发送与重试。所属任务或生命周期完成后释放占用，包括协程主体启动前已被取消的情况。
 

@@ -613,7 +613,7 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
     val canFollow = capabilities.supports(NativeCapability.SESSION_FOLLOW)
     val canControl = capabilities.supports(NativeCapability.SESSION_CONTROL)
     val canUpload = capabilities.supports(NativeCapability.FILE_UPLOAD) && capabilities.supports(NativeCapability.HTTP_REQUEST_BUDGET)
-    val canUploadImages = capabilities.supports(NativeCapability.IMAGE_UPLOAD)
+    val canUploadImages = capabilities.supports(NativeCapability.IMAGE_UPLOAD) && capabilities.supports(NativeCapability.HTTP_REQUEST_BUDGET)
     val scope = rememberCoroutineScope()
     val sessions by model.session.sessions.collectAsStateWithLifecycle()
     val listState by model.session.listState.collectAsStateWithLifecycle()
@@ -737,7 +737,9 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
                 if (capabilities.supports(NativeCapability.FILE_UPLOAD)) R.string.native_attachment_budget_unavailable
                 else R.string.native_attachment_unsupported),
                 Modifier.padding(horizontal = 12.dp).testTag("session-attachment-unavailable"), style = MaterialTheme.typography.bodySmall)
-            if (!canUploadImages) Text(androidx.compose.ui.res.stringResource(R.string.native_attachment_photo_unavailable),
+            if (!canUploadImages) Text(androidx.compose.ui.res.stringResource(
+                if (capabilities.supports(NativeCapability.IMAGE_UPLOAD)) R.string.native_attachment_photo_budget_unavailable
+                else R.string.native_attachment_photo_unavailable),
                 Modifier.padding(horizontal = 12.dp).testTag("session-photo-unavailable"), style = MaterialTheme.typography.bodySmall)
         }
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

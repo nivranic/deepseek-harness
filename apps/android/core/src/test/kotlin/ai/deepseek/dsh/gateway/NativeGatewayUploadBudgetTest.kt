@@ -121,6 +121,7 @@ class NativeGatewayUploadBudgetTest {
 
         fun count(method: String) = requests.count { it.method == method }
         fun upload() = requests.last { it.method == "fileUploads/upload" }
+        fun image() = requests.last { it.method == "fileUploads/uploadImage" }
         fun holdBudget() { entered = CountDownLatch(1); release = CountDownLatch(1); responseFinished = CountDownLatch(1) }
         suspend fun awaitBudget() = withContext(Dispatchers.IO) { assertTrue(entered!!.await(5, TimeUnit.SECONDS)) }
         suspend fun releaseBudget() {
@@ -229,18 +230,49 @@ class NativeGatewayUploadBudgetTest {
         }
     }
 
-    @Test fun `image and prompt operations do not query the file budget and a Host upload refusal is not retried`() = runBlocking {
+    @Test fun `prompt operations do not query the upload budget and a Host upload refusal is not retried`() = runBlocking {
         Fixture().use { fixture ->
-            fixture.capabilities = listOf("image-upload.stage.v1", "session.control.v1")
-            fixture.client.call("fileUploads/uploadImage", args())
+            fixture.capabilities = listOf("file-upload.stage.v1", "native-remote.http-request-budget.v1", "session.control.v1")
+            fixture.client.describe()
             fixture.client.call("session/prompt", mapOf("text" to WireValue.StringValue("旧".repeat(700))))
             assertEquals(0, fixture.count("nativeRemote/httpRequestBudget"))
-            fixture.capabilities = listOf("file-upload.stage.v1", "native-remote.http-request-budget.v1")
-            fixture.client.describe()
             fixture.uploadStatus = 413
             assertEquals(413, assertFailsWith<LinkClientException.Carrier> { fixture.client.call("fileUploads/upload", args()) }.status)
             assertEquals(1, fixture.count("nativeRemote/httpRequestBudget"))
             assertEquals(1, fixture.count("fileUploads/upload"))
+        }
+    }
+
+    @Test fun `each explicit image upload queries a fresh budget and rejects the complete body over it before the POST`() = runBlocking {
+        Fixture().use { fixture ->
+            fixture.capabilities = listOf("image-upload.stage.v1", "native-remote.http-request-budget.v1", "session.control.v1")
+            fixture.client.call("fileUploads/uploadImage", args())
+            val bytes = fixture.image().body.size
+            fixture.budgetJson = "{\"maxRequestBodyBytes\":$bytes,\"extension\":true}"
+            fixture.client.call("fileUploads/uploadImage", args())
+            assertEquals(bytes, fixture.image().body.size)
+            assertEquals(WireValue.ObjectValue(args()).toJsonElement(), fixture.image().json.getValue("payload").jsonObject["args"])
+            fixture.budgetJson = "{\"maxRequestBodyBytes\":${bytes - 1}}"
+            val failure = assertFailsWith<NativeHttpRequestTooLarge> { fixture.client.call("fileUploads/uploadImage", args()) }
+            assertEquals(bytes.toLong(), failure.actualBodyBytes)
+            assertEquals(bytes - 1L, failure.maxRequestBodyBytes)
+            assertEquals(3, fixture.count("nativeRemote/httpRequestBudget"))
+            assertEquals(2, fixture.count("fileUploads/uploadImage"))
+            assertEquals(0, fixture.count("fileUploads/upload"))
+            fixture.requests.forEach(fixture::assertSigned)
+        }
+    }
+
+    @Test fun `image uploads without the budget capability are blocked instead of falling back to an unbounded body`() = runBlocking {
+        Fixture().use { fixture ->
+            fixture.capabilities = listOf("image-upload.stage.v1", "session.control.v1")
+            fixture.client.describe()
+            val failure = assertFailsWith<LinkClientException.Refused> { fixture.client.call("fileUploads/uploadImage", args()) }
+            assertEquals("host/capability-unavailable", failure.code)
+            assertEquals(WireValue.ObjectValue(mapOf("capability" to WireValue.StringValue("native-remote.http-request-budget.v1"))), failure.details)
+            assertEquals(1, fixture.requests.size)
+            assertEquals(0, fixture.count("nativeRemote/httpRequestBudget"))
+            assertEquals(0, fixture.count("fileUploads/uploadImage"))
         }
     }
 

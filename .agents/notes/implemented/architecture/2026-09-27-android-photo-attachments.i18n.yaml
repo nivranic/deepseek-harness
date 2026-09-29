@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md
-2026-09-27-android-photo-attachments.md: 542e50c94c9f280c5554dcb84c5983cbaf614002
-2026-09-27-android-photo-attachments.zh.md: 7666592d37d144b6b7e6463282384c38cbc5318b
+2026-09-27-android-photo-attachments.md: 7182a9278c44fc772c1cd1e8d1852e1c60fe5720
+2026-09-27-android-photo-attachments.zh.md: da84c35ac61a91ee0a93f288995d7afb69bf58de
