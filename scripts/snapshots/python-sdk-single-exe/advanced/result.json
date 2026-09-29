@@ -136,6 +136,8 @@
           },
           "system": "{{system}}",
           "tools": [
+            "artifact_create",
+            "artifact_read",
             "cordis_define",
             "cordis_inspect_list",
             "cordis_inspect_query",
@@ -577,6 +579,8 @@
           },
           "system": "{{system}}",
           "tools": [
+            "artifact_create",
+            "artifact_read",
             "cordis_define",
             "cordis_inspect_list",
             "cordis_inspect_query",
@@ -1461,6 +1465,8 @@
           },
           "system": "{{system}}",
           "tools": [
+            "artifact_create",
+            "artifact_read",
             "cordis_define",
             "cordis_inspect_list",
             "cordis_inspect_query",
@@ -1811,6 +1817,8 @@
               },
               "system": "{{system}}",
               "tools": [
+                "artifact_create",
+                "artifact_read",
                 "cordis_define",
                 "cordis_inspect_list",
                 "cordis_inspect_query",
@@ -2396,6 +2404,8 @@
               },
               "system": "{{system}}",
               "tools": [
+                "artifact_create",
+                "artifact_read",
                 "cordis_define",
                 "cordis_inspect_list",
                 "cordis_inspect_query",
@@ -3140,6 +3150,8 @@
               },
               "system": "{{system}}",
               "tools": [
+                "artifact_create",
+                "artifact_read",
                 "cordis_define",
                 "cordis_inspect_list",
                 "cordis_inspect_query",
@@ -3917,6 +3929,8 @@
               },
               "system": "{{system}}",
               "tools": [
+                "artifact_create",
+                "artifact_read",
                 "cordis_define",
                 "cordis_inspect_list",
                 "cordis_inspect_query",
@@ -4557,6 +4571,8 @@
               },
               "system": "{{system}}",
               "tools": [
+                "artifact_create",
+                "artifact_read",
                 "cordis_define",
                 "cordis_inspect_list",
                 "cordis_inspect_query",

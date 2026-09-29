@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "taskId": "G1-ANDROID-APP",
+  "status": "PASS",
+  "evidenceLevel": "E4",
+  "sourceHead": "4c2e8f4616df4c0154d3fe49a9a9611384cdafb5",
+  "recordedAt": "2026-09-05T02:28:09.490Z",
+  "runner": {
+    "os": "Windows 11",
+    "targetSdk": 35,
+    "okhttp": "5.3.2",
+    "androidGradlePlugin": "8.7.3",
+    "gradle": "8.14",
+    "sdkEnvironment": "ANDROID_HOME and ANDROID_SDK_ROOT point to existing E:/Android_Studio_SDK; API 35 installed with the already accepted SDK license",
+    "java": "17.0.11",
+    "kotlin": "2.1.20",
+    "minSdk": 33,
+    "compileSdk": 35
+  },
+  "originalFailure": {
+    "exitCode": 1,
+    "evidenceSource": "Observed Gradle tool output in this continuation; no persistent log was captured for the first invocation",
+    "sourceHead": "454d26a0b7346d8ec65313f2b4ab113308f5b48a",
+    "reason": "okhttp-android:5.5.0 requires minCompileSdk 37; app compileSdk 35 and AGP 8.7.3 cannot consume that Android variant",
+    "command": "gradle --no-daemon -p apps/android :app:assembleDebug",
+    "classification": "PRODUCT_DEPENDENCY_INCOMPATIBILITY",
+    "failedTask": ":app:checkDebugAarMetadata"
+  },
+  "resolution": {
+    "scope": "固定 OkHttp 5.3.2、修正 Compose ARGB 构造与配对前 PushModel 启动、加入真实 Activity instrumentation 及对应 CI。",
+    "preCommitExecution": "装配与首次 instrumentation 的确切源文件随后固化于 1b181627。后续检查点只调整 Node 测试和 fixtures。最新真实 Host 与 Kotlin 验收执行于干净的 9fcde39df0；后续两处测试修正的差异单独记录。",
+    "metadataObserved": {
+      "5.3.2": 1,
+      "5.4.0": 36,
+      "5.5.0": 37
+    },
+    "change": "Pin the shared OkHttp dependency to 5.3.2"
+  },
+  "checks": [
+    {
+      "exitCode": 0,
+      "evidenceLevel": "E3",
+      "name": "Android app debug assembly",
+      "status": "PASS",
+      "command": "gradle --no-daemon -p apps/android :app:assembleDebug",
+      "actionableTasks": 37
+    },
+    {
+      "exitCode": 0,
+      "evidenceLevel": "E3",
+      "name": "Complete pure-JVM core",
+      "status": "PASS",
+      "command": "gradle --no-daemon -p apps/android :core:test --rerun-tasks",
+      "counts": {
+        "tests": 125,
+        "suites": 28,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "status": "PASS",
+      "name": "APK signature",
+      "command": "apksigner verify --verbose apps/android/app/build/outputs/apk/debug/app-debug.apk",
+      "signing": "local debug signing, no production credential"
+    },
+    {
+      "status": "PASS",
+      "failedGates": 0,
+      "name": "Quick documentation",
+      "passedGates": 15,
+      "command": "pnpm --config.verify-deps-before-run=false run test:docs"
+    },
+    {
+      "evidenceLevel": "E4",
+      "command": "gradle --no-daemon -p apps/android :app:connectedDebugAndroidTest",
+      "artifact": ".artifacts/g1-resume-20260905/android-startup.png",
+      "runner": "Dedicated API 34 x86_64 Pixel 6 AVD using WHPX",
+      "status": "PASS",
+      "name": "Unpaired Android activity startup",
+      "preconditions": "Notification permission granted by the test; waits for asynchronous credential restoration",
+      "tests": 1,
+      "failures": 0
+    },
+    {
+      "name": "真实 Host 与生产 Kotlin 客户端的共享验收",
+      "status": "PASS",
+      "evidenceLevel": "E4",
+      "sourceHead": "9fcde39df023c9dad790f41e6fc46c931e88898e",
+      "runner": "Windows 11 / JDK 17.0.11 / Gradle 8.14",
+      "passedSteps": 13,
+      "command": "node --require ./.artifacts/g1-rec-tsx-userinfo-preload.cjs ./node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts apps/cli/tests/link-native-acceptance.e2e.ts --no-file-parallelism --retry=0 --reporter=verbose",
+      "driver": [
+        "gradle",
+        "--no-daemon",
+        "-p",
+        "apps/android",
+        ":core:nativeAcceptance"
+      ],
+      "artifact": {
+        "path": "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+        "sha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a"
+      },
+      "log": {
+        "path": ".artifacts/g1-resume-20260905/host-kotlin-9fcde39.log",
+        "sha256": "0243c1db3b96dd3b0079296ee8e03d4278ed024197107362f15b5b1ef7b021b4"
+      },
+      "recovery": {
+        "preFaultSeq": 82,
+        "recoverySnapshotCursor": 93,
+        "repeatedSnapshotCursor": 93,
+        "offlineSeqCount": 11,
+        "recoverySnapshotHasMore": false,
+        "followReplacementCount": 2,
+        "eventReplacementCount": 2,
+        "projectionItemCount": 78,
+        "projectionPlanActive": false,
+        "projectionTodoCount": 0,
+        "projectionGoalCount": 0,
+        "projectionToolCallCount": 0,
+        "projectionImageCount": 0,
+        "projectionArtifactCount": 0,
+        "projectionEqualAfterRepeatedReconnect": true,
+        "beforeRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+        "afterRepeatedReconnectProjectionSha256": "bb9ed48a835d9aff4aaf935fd9fb2a803622e4919b13ab9a2a9dcbfec9b8e15f",
+        "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+      },
+      "carryForward": {
+        "candidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+        "changedFiles": [
+          "packages/api/session-controller/tests/commands-artifact.host.spec.ts",
+          "packages/artifact/artifact-local/tests/artifact-local.spec.ts"
+        ],
+        "qualification": "后续只修正两处测试：错误包装断言及夹具对 protected Context 的访问；产品运行源码与 native app tree 未变，不冒称在新 SHA 上重跑 native acceptance。"
+      }
+    }
+  ],
+  "apkManifest": {
+    "version": 3,
+    "artifactType": {
+      "type": "APK",
+      "kind": "Directory"
+    },
+    "applicationId": "com.deepseek.harness.companion",
+    "variantName": "debug",
+    "elements": [
+      {
+        "type": "SINGLE",
+        "filters": [],
+        "attributes": [],
+        "versionCode": 1,
+        "versionName": "0.1.0",
+        "outputFile": "app-debug.apk"
+      }
+    ],
+    "elementType": "File",
+    "minSdkVersionForDexing": 33
+  },
+  "artifacts": [
+    {
+      "path": ".artifacts/g1-resume-20260905/app-debug-4c2e8f4616df4c0154d3fe49a9a9611384cdafb5.apk",
+      "sha256": "b0ca5c6b3b8baf9e8bb0d0cda90e26f0695abe2195f85ce525171cf75ab45ea4",
+      "bytes": 25311046
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/output-metadata-final.json",
+      "sha256": "9f3f18de9d07b70554ac4e0932b89401d70f27aaa868f295a2ba6b338699e325",
+      "bytes": 414
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-core.log",
+      "sha256": "cfe49050371eb38680a9edb2daf5122e52b61be3b13236a70ad35cbf23a8c5e2",
+      "bytes": 25047
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-startup-before.log",
+      "sha256": "4bf501da0dea2850792ada5d07025cf71bd625f351469b544120b281b782fb4d",
+      "bytes": 12334
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-startup-after.log",
+      "sha256": "23357793cf52653d70355e8af2f90b3c6dedb12bdb8a7123f215016bcf466cd2",
+      "bytes": 11814
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-startup-pass.log",
+      "sha256": "45c463ab3ff1a63298c1f26d16618118cb5311556fc20be355fec96b6dd00a27",
+      "bytes": 4990
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-instrumentation.xml",
+      "sha256": "1d4c151430e608bd6901dc88314803e817cdd22cf18fc92db597a55df8f10c63",
+      "bytes": 550
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-launch.log",
+      "sha256": "677b755e29ed1b33640f74fce387229b45f7b99614590d3bfa53ff407b09d2bc",
+      "bytes": 249
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-startup.png",
+      "sha256": "c20e0fe4be0ce64fdab71f6e5cbbedf41a4eef5d9e2707aba69818d2e2e6e436",
+      "bytes": 75514
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-window-pass.xml",
+      "sha256": "fdd36d6be82d60c532e51843db57917984cbbea92b58f9521b2de6077d5db586",
+      "bytes": 5727
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/android-crash-after.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/apk-signature-final.log",
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09",
+      "bytes": 351
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/host-kotlin-final.log",
+      "sha256": "9013cb051e22f88c71a654426cbf17ab4114dd44c4b01b25a53d6c7a770579f5",
+      "bytes": 844
+    },
+    {
+      "path": "artifacts/verification/gate-1/acceptance/kotlin-4c2e8f4616df4c0154d3fe49a9a9611384cdafb5.json",
+      "sha256": "75f9169df6f0cd09f9bbca5abb9981d5ef936e97d05ba064d65e236674ba0a94",
+      "bytes": 2062
+    },
+    {
+      "path": "artifacts/verification/gate-1/acceptance/kotlin-9fcde39df023c9dad790f41e6fc46c931e88898e.json",
+      "sha256": "90b1ef96cf3c7c68c88e50f38c335d52dadc79c182e1a4021dcffd7bc7361d0a"
+    },
+    {
+      "path": ".artifacts/g1-resume-20260905/host-kotlin-9fcde39.log",
+      "sha256": "0243c1db3b96dd3b0079296ee8e03d4278ed024197107362f15b5b1ef7b021b4"
+    }
+  ],
+  "limitations": [
+    "App assembly, APK signature and API 34 unpaired startup are verified. No emulator-to-Host pairing or physical-device network acceptance was executed.",
+    "The instrumented startup test pre-grants notification permission; permission refusal remains in the physical-device plan.",
+    "Kotlin real-Host acceptance runs the production core on JDK 17 and does not validate Android-specific crypto or TLS providers.",
+    "Swift user-skipped execution and remote candidate CI remain open.",
+    "Android CI now contains a pinned emulator action; that remote action was not executed in this continuation."
+  ],
+  "startupFailures": [
+    {
+      "cause": "32-bit ARGB ULong interpreted as Compose packed color",
+      "log": ".artifacts/g1-resume-20260905/android-startup-before.log",
+      "result": "FAIL",
+      "exception": "ArrayIndexOutOfBoundsException in Color.getColorSpace-impl",
+      "stage": "Original theme"
+    },
+    {
+      "cause": "PushModel subscription admitted before pairing",
+      "log": ".artifacts/g1-resume-20260905/android-startup-after.log",
+      "result": "FAIL",
+      "exception": "IllegalStateException: not paired",
+      "stage": "After color correction"
+    },
+    {
+      "cause": "Android notification dialog pauses the activity; deterministic test grants that permission before launch",
+      "log": ".artifacts/g1-resume-20260905/android-startup-verified.log",
+      "result": "FAIL",
+      "stage": "Test environment synchronization"
+    }
+  ],
+  "realDevicePlan": {
+    "ownerRole": "Android validation",
+    "evidenceRequired": [
+      "Candidate source SHA and APK SHA256",
+      "Device API/ABI and test case verdicts without personal device identifiers",
+      "Privacy-safe Host and Client acceptance/recovery output",
+      "Crash/ANR verdict and UI capture without pairing secrets"
+    ],
+    "status": "READY_NOT_EXECUTED",
+    "matrix": [
+      "Android API 33 minimum supported device",
+      "Android API 35 target platform device",
+      "Android API 36 forward compatibility device"
+    ],
+    "cases": [
+      "Fresh QR/manual pairing, incorrect pin refusal and revoked-device refusal using the Android provider",
+      "Same ordered 13-step Host corpus through the installed App, including approval and authoritative recovery",
+      "Rotate, background, force-stop, cold-start, Wi-Fi change and offline resume while Host authority remains alive",
+      "Grant and deny notifications; verify no payload content appears in local notifications"
+    ]
+  },
+  "latestCandidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+  "sourceBinding": {
+    "committedAppInput": "1b181627e7c723dedb04d5ca429ee17b8701b0c3",
+    "appTree": "4440c01184ae3fc8ae6d1f54b88850d560ba118c",
+    "latestCandidate": "c73daa2c6960afb9bfad5bc16edcef1ee2614b27",
+    "sameAppTree": true,
+    "qualification": "装配与 instrumentation 的实际输入固化于 1b181627；后来仅测试/fixture 修正，Android app tree 未变。"
+  }
+}

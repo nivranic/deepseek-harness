@@ -28,7 +28,7 @@ kind: "package-bundle"
 
 ### 设计概念
 
-该 bundle 是一层补丁而非代码：它插入的每一行都是既有包的组合，本包唯一的代码是 `desktop-runtime` 粘合插件。storage 栈与投影缓存来自 `dsh-base`；桌面叠层的 workspace 与 message-feedback 行消费这一共享 `storageDomain` 服务。桌面载体以共享 `/api` 链、`/dsh-stream` 上的 Gateway Remote 流、客户端插件组合 bundle，以及传输引导加启动清单注入的 dist 应答渲染端的特权协议 fetch；Typert 网关行来自 base 层，经 connection 服务的共享 fetch 处理器分发。
+该 bundle 是一层补丁而非代码：它插入的每一行都是既有包的组合，本包唯一的代码是 `desktop-runtime` 粘合插件。storage 栈与投影缓存来自 `dsh-base`；桌面叠层的 workspace 与 message-feedback 行消费这一共享 `storageDomain` 服务。叠层禁用 base 的进程级模型可见行，包括 `dsh-artifact`；完整 preset 为每个 agent 重新挂载这些行，`minimal` 省略产物工具，`dsh-artifact-local` 则作为宿主共享服务保持挂载。桌面载体以共享 `/api` 链、`/dsh-stream` 上的 Gateway Remote 流、客户端插件组合 bundle，以及传输引导加启动清单注入的 dist 应答渲染端的特权协议 fetch；Typert 网关行来自 base 层，经 connection 服务的共享 fetch 处理器分发。
 
 ### 组合映射
 
@@ -50,7 +50,7 @@ kind: "package-bundle"
 <details>
 <summary>维护者的工作上下文——点击展开</summary>
 
-桌面 exe 由 `apps/desktop` 经 `scripts/build-desktop-release.ts` 构建；窗口标题按设计跟随活跃会话。
+桌面 exe 由 [`scripts/build-desktop-exe.ts`](../../../scripts/build-desktop-exe.ts) 从已构建的 `apps/desktop` 产物打包。打包过程独占仓库外的一份临时目录，并在成功或失败后移除它。未签名候选在安装器收集之前嵌入[应用发布标识](../../../docs/development/product-release-identity.zh.md#platform-consumers)。窗口标题按设计跟随活跃会话。
 
 </details>
 

@@ -31,6 +31,8 @@ Connection 拥有 request correlation、`/api` carrier、trust check、精确 Fe
 
 内部 `$events` logical stream 是 Connection generation source。它的 opening `ready` frame 携带用于路径显示的 Host home，并在 Host listener 已挂载、任何 controller 开始 baseline read 之前建立 generation。`ctx.remote.$on()` 把 allowlist 内的普通 event 交付给 root Client Context，并把 scoped waterfall event 交付给已解析的 Session Context；waterfall listener 可以返回结果、调用 `next()` 或拒绝。
 
+`ConnectionDiagnosticSnapshot` 是 `ctx.connection.diagnosticSnapshot()` 返回的不含负载的值：generation 生命周期状态、尝试和中断计数，以及饱和标记。其范围是最新 controller 的生命周期。[Connection 参考](../../packages/client/connection/README.zh.md#connection-generation)定义观测和退役语义；[桌面诊断](../../packages/host/electron-ipc/README.zh.md#diagnostics-export)在导出前验证捕获的渲染端值。
+
 ## Client models
 
 每个 API controller 包都拥有配对的 Host face 与 Client face。Host 侧拥有权威 mutation 与 stream 生产；Client 侧基于相同的生成 wire type 维护 identity 稳定、与 React 无关的 model，并公开 observable snapshot 与 command。UI 包消费这些 Client service，不在 component store 中复制 transport state。

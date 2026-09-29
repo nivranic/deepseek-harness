@@ -24,17 +24,18 @@
  */
 
 import { createHash, randomBytes } from 'node:crypto'
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createRequire } from 'node:module'
 import { release, type as osType } from 'node:os'
 import { dirname, isAbsolute, join } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { pathToFileURL } from 'node:url'
 import { Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Entry } from '@deepseek-ai/cordis-plugin-loader'
-import type { IndexInjection } from '@deepseek-ai/dsh-host-webserver'
+import type { IndexInjection, WebServer } from '@deepseek-ai/dsh-host-webserver'
 import { optionalStringArray, stripClientSuffix } from './client/manifest.ts'
+import { locateModulePackage } from './package-manifest.ts'
 import type { HostRuntimeInfo, WebBootBatch, WebBootBatchPhase, WebBootEntry, WebBootGraph } from './client/manifest.ts'
 
 export { stripClientSuffix } from './client/manifest.ts'
@@ -609,24 +610,33 @@ export class ClientModuleRegistry extends Service {
     }
 
     // The HTTP carrier: bundle route and boot-row index listener. A webServer
-    // present at construction binds synchronously (the composition-contract
-    // observers read it); one appearing later rebinds through the watcher. A
-    // webless surface (the desktop app) serves both through its own carrier
-    // over the reads below, and the binding never runs.
-    let carrierBound = false
-    const bindCarrier = (): void => {
-      if (carrierBound || ctx.get('webServer') === undefined) return
-      carrierBound = true
-      ctx.effect(
-        () => ctx.webServer.register({ kind: 'prefix', path: '/plugins', handler: this.serveBundle }),
+    // present at construction binds synchronously (the composition observers
+    // read it); once dependencies settle, the injection fiber takes ownership
+    // so a removed or replaced provider tears down and rebinds both effects. A
+    // webless surface serves both through its own carrier over the reads below,
+    // and no HTTP binding runs.
+    const bindCarrier = (owner: Context, webServer: WebServer): (() => void) => {
+      const disposeRoute = owner.effect(
+        () => webServer.register({ kind: 'prefix', path: '/plugins', handler: this.serveBundle }),
         'client-modules: bundle route',
       )
-      ctx.on('webserver/index-inject', (table) => {
+      const disposeIndex = owner.on('webserver/index-inject', (table) => {
         table.push(...bootInjections(this.composed))
       })
+      return () => {
+        disposeIndex()
+        void disposeRoute()
+      }
     }
-    bindCarrier()
-    ctx.inject(['webServer'], bindCarrier)
+    const initialWebServer = ctx.get('webServer')
+    let disposeInitialBinding = initialWebServer === undefined
+      ? undefined
+      : bindCarrier(ctx, initialWebServer)
+    ctx.inject(['webServer'], (webCtx) => {
+      disposeInitialBinding?.()
+      disposeInitialBinding = undefined
+      bindCarrier(webCtx, webCtx.webServer)
+    })
   }
 
   /**
@@ -865,7 +875,7 @@ export class ClientModuleRegistry extends Service {
         const moduleUrl = loaderName.startsWith('file:')
           ? loaderName
           : isAbsolute(loaderName) ? pathToFileURL(loaderName).href : new URL(loaderName, baseUrl).href
-        return this.nearestPackage(moduleUrl)
+        return locateModulePackage(moduleUrl)
       }
       try {
         return {
@@ -888,33 +898,7 @@ export class ClientModuleRegistry extends Service {
       // the name is permanently not a client row.
       return undefined
     }
-    return this.nearestPackage(moduleUrl, expectedPackageName)
-  }
-
-  private nearestPackage(
-    moduleUrl: string,
-    expectedPackageName?: string,
-  ): { path: string; packageName: string } | undefined {
-    if (!moduleUrl.startsWith('file:')) return undefined
-    let dir = dirname(fileURLToPath(moduleUrl))
-    while (true) {
-      const candidate = join(dir, 'package.json')
-      if (existsSync(candidate)) {
-        try {
-          const name = (JSON.parse(readFileSync(candidate, 'utf8')) as { name?: unknown }).name
-          if (typeof name === 'string' && (expectedPackageName === undefined || name === expectedPackageName)) {
-            return { path: candidate, packageName: name }
-          }
-        } catch {
-          // An unreadable or malformed intermediate manifest cannot own the
-          // module; keep walking toward the declaring package root.
-        }
-      }
-      const parent = dirname(dir)
-      if (parent === dir) break
-      dir = parent
-    }
-    return undefined
+    return locateModulePackage(moduleUrl, expectedPackageName)
   }
 
   private sourceKey(loaderName: string, baseUrl: string): string {

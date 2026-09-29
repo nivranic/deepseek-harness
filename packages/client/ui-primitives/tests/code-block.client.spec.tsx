@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { CodeBlock as LocalizedCodeBlock } from '../src/markdown/CodeBlock.tsx'
-import { highlightToHtml } from '../src/markdown/highlight.ts'
+import { highlightToHtml, subscribeGrammarLoaded } from '../src/markdown/highlight.ts'
 import { markdownLabels } from './labels.client.ts'
 
 function CodeBlock(props: Omit<ComponentProps<typeof LocalizedCodeBlock>, 'copyLabel' | 'copiedLabel'>) {
@@ -42,13 +42,31 @@ describe('highlightToHtml', () => {
     'xml', 'lua',
   ]
 
-  it('lazily loads every read-card grammar: plain first, highlighted after load', async () => {
-    // First touch returns the plain fallback (undefined) and starts the import.
-    for (const alias of LAZY_ALIASES) expect(highlightToHtml('x', alias)).toBeUndefined()
-    // Once every grammar has registered, the same call highlights.
-    await vi.waitFor(() => {
-      for (const alias of LAZY_ALIASES) expect(highlightToHtml('x', alias)).toContain('shiki')
-    }, { timeout: 5_000 })
+  describe('lazy read-card grammars', () => {
+    const loaded = new Map(LAZY_ALIASES.map(alias => [alias, Promise.withResolvers<string>()]))
+    const pending = new Set(LAZY_ALIASES)
+    let unsubscribe: (() => void) | undefined
+
+    beforeAll(() => {
+      unsubscribe = subscribeGrammarLoaded(() => {
+        for (const alias of pending) {
+          const html = highlightToHtml('x', alias)
+          if (html !== undefined) {
+            pending.delete(alias)
+            loaded.get(alias)!.resolve(html)
+          }
+        }
+      })
+      // Cold admission precedes every asynchronous registration, including embedded grammars.
+      for (const alias of LAZY_ALIASES) expect(highlightToHtml('x', alias)).toBeUndefined()
+    })
+
+    afterAll(() => { unsubscribe?.() })
+
+    it.each(LAZY_ALIASES)('renders %s after its grammar notification', async (alias) => {
+      expect(await loaded.get(alias)!.promise).toContain('shiki')
+      expect(highlightToHtml('x', alias)).toContain('shiki')
+    })
   })
 })
 

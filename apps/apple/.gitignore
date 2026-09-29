@@ -1,1 +1,3 @@
 Companion.xcodeproj/
+.build/
+.swiftpm/

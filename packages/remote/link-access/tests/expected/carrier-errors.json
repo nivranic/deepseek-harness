@@ -1,0 +1,42 @@
+[
+  {
+    "name": "pairing-parser",
+    "status": 400,
+    "json": {
+      "error": "bad-pairing-request",
+      "message": "Invalid pairing request"
+    }
+  },
+  {
+    "name": "unary-parser",
+    "status": 400,
+    "json": {
+      "error": "bad-request",
+      "message": "Invalid RPC request"
+    }
+  },
+  {
+    "name": "stream-parser",
+    "status": 400,
+    "json": {
+      "error": "bad-stream-request",
+      "message": "Invalid stream request"
+    }
+  },
+  {
+    "name": "host-identity",
+    "status": 500,
+    "json": {
+      "error": "internal",
+      "message": "Internal carrier failure"
+    }
+  },
+  {
+    "name": "pairing-store",
+    "status": 400,
+    "json": {
+      "error": "bad-pairing-request",
+      "message": "Invalid pairing request"
+    }
+  }
+]

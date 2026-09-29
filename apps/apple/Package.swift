@@ -16,8 +16,18 @@ let package = Package(
     products: [
         .library(name: "SharedAppleRemoteCore", targets: ["SharedAppleRemoteCore"]),
         .library(name: "CompanionUI", targets: ["CompanionUI"]),
+        .library(name: "DirectHostRuntime", targets: ["DirectHostRuntime"]),
+        .library(name: "SupportExportCore", targets: ["SupportExportCore"]),
+        .executable(name: "HostRuntimeSupervisor", targets: ["HostRuntimeSupervisor"]),
+        .executable(name: "LinkNativeAcceptance", targets: ["LinkNativeAcceptance"]),
     ],
     targets: [
+        .executableTarget(name: "HostRuntimeSupervisor", path: "Sources/HostRuntimeSupervisor"),
+        .target(name: "SupportExportCore", path: "Sources/SupportExportCore"),
+        .testTarget(name: "SupportExportCoreTests", dependencies: ["SupportExportCore"]),
+        .target(name: "DirectHostRuntime", dependencies: ["SupportExportCore"], path: "Sources/DirectHostRuntime"),
+        .testTarget(name: "DirectHostRuntimeTests", dependencies: ["DirectHostRuntime", "SupportExportCore"],
+                    path: "Tests/DirectHostRuntimeTests", resources: [.copy("Fixtures")]),
         .target(
             name: "SharedAppleRemoteCore",
             path: "Sources/SharedAppleRemoteCore"
@@ -32,8 +42,13 @@ let package = Package(
         ),
         .target(
             name: "CompanionUI",
-            dependencies: ["SharedAppleRemoteCore"],
+            dependencies: ["SharedAppleRemoteCore", "SupportExportCore"],
             path: "Sources/CompanionUI"
+        ),
+        .executableTarget(
+            name: "LinkNativeAcceptance",
+            dependencies: ["CompanionUI", "SharedAppleRemoteCore"],
+            path: "Tests/LinkNativeAcceptance"
         ),
         .target(
             name: "LiteRuntime",
@@ -49,7 +64,7 @@ let package = Package(
         ),
         .testTarget(
             name: "CompanionUITests",
-            dependencies: ["CompanionUI", "SharedAppleRemoteCore"],
+            dependencies: ["CompanionUI", "SharedAppleRemoteCore", "SupportExportCore"],
             path: "Tests/CompanionUITests",
             resources: [
                 .copy("Fixtures"),

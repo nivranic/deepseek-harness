@@ -28,6 +28,8 @@ PackageModel 识别 Cordis service、event、`@typert object` 引用对象和 `@
 
 ## Verification contract
 
+目录的 [JSDoc 解析器](../../../../packages/typert/generator/src/jsdoc.ts) 保留段落、列表、已识别标签和内联链接文本，不重复扫描重叠的空白或未闭合链接前缀。标签识别保留缺失标签与空描述的区别，使目录完整性检查继续拒绝缺少文档的 API 成员。解析器回归测试在具有固定期限的子进程中处理长畸形注释；即使进程内计时器无法中断同步解析，该期限仍能终止子进程。下述全仓目录比较固定文档与 `tool-cordis` 消费的生成文本。
+
 提交内的小型双 face project 对完整类型模型及其源码声明索引做 snapshot。全仓分批分析与直接聚焦分析必须为相同 face 生成模型等价的 `FaceModel` 与 `TypeGraph`。类型级全集和运行时集合比较保证每种 node、target、declaration 与 member discriminant 都来自真实 TypeScript syntax；字段语义矩阵覆盖所有 keyword、type operator、literal value 类目，以及泛型、参数、tuple、mapped modifier、import attributes、abstract、predicate 和 enum initializer 的各个状态。
 
 `SyntaxZoo` 中每个 property 的源码类型经 TypeScript printer 标准化后，必须与 TypeGraph 渲染结果逐项相等，随后所有渲染 declaration 再交给 TypeScript 编译。这一层检查节点内部信息是否无损，包括无插值 template literal、带 type argument 的 type query 和受约束 `infer`，不以 discriminant 覆盖或代码覆盖率代替结构等价。

@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import SessionStore from '@deepseek-ai/dsh-session'
+import SessionStore, { Session, SessionId } from '@deepseek-ai/dsh-session'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import { ArtifactId } from '../src/index.ts'
 import * as ArtifactInvariant from '../src/invariant.ts'
@@ -16,6 +16,17 @@ async function setup(): Promise<Context> {
 }
 
 describe('artifact event invariants', () => {
+  it('seeds the existing log when a session first appears through an event', async () => {
+    const ctx = await setup()
+    const session = Session.create(SessionId('externally-created'))
+    session.append('turn/start', { turn: 1 })
+    const created = session.append('artifact/created', { id: ArtifactId('art-1'), kind: 'report', title: 'R', format: 'text' })
+    expect(() => { ctx.emit('session/event', session, created) }).not.toThrow()
+    const end = session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    ctx.emit('session/event', session, end)
+    expect(() => { ctx.emit('session/event', session, created) }).toThrow(/outside any open turn/)
+    await ctx.fiber.dispose()
+  })
   it('accepts a created/ready pair inside an open turn', async () => {
     const ctx = await setup()
     const session = ctx.sessions.create()
@@ -27,7 +38,8 @@ describe('artifact event invariants', () => {
   })
 
   it.each([
-    ['empty id', { id: '', kind: 'report', title: 'R', format: 'text' }, /non-empty string/],
+    ['empty id', { id: '', kind: 'report', title: 'R', format: 'text' }, /artifact-id grammar/],
+    ['non-portable id', { id: '../outside', kind: 'report', title: 'R', format: 'text' }, /artifact-id grammar/],
     ['padded kind', { id: ArtifactId('art-1'), kind: ' report', title: 'R', format: 'text' }, /already trimmed/],
     ['empty title', { id: ArtifactId('art-1'), kind: 'report', title: '', format: 'text' }, /non-empty and already trimmed/],
     ['numeric kind', { id: ArtifactId('art-1'), kind: 3, title: 'R', format: 'text' }, /already trimmed/],
@@ -43,7 +55,8 @@ describe('artifact event invariants', () => {
   it.each([
     ['unknown status', { id: ArtifactId('art-1'), status: 'weird' }, /unknown status/],
     ['numeric status', { id: ArtifactId('art-1'), status: 1 }, /unknown status/],
-    ['empty id', { id: '', status: 'ready' }, /non-empty string/],
+    ['empty id', { id: '', status: 'ready' }, /artifact-id grammar/],
+    ['non-portable id', { id: 'art-safe:stream', status: 'ready' }, /artifact-id grammar/],
   ])('rejects an incoherent status event (%s)', async (_label, data, message) => {
     const ctx = await setup()
     const session = ctx.sessions.create()

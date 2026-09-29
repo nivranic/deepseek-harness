@@ -1,0 +1,81 @@
+{
+  "taskId": "G1-RC",
+  "status": "PASS",
+  "commit": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+  "startedFrom": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+  "branch": "codex/goal-mode-full-implementation",
+  "baselineSnapshot": "dev@90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+  "baselineMatchesCurrentHead": true,
+  "remote": {
+    "name": "origin",
+    "sanitized": "https://github.com/nivranic/deepseek-harness.git"
+  },
+  "refs": {
+    "dev": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+    "originDev": "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+    "master": "dd6322d604e00eec1ba5e0c8541159906a21094a",
+    "originMaster": "dd6322d604e00eec1ba5e0c8541159906a21094a",
+    "mergeBase": "cd5ef8148158c3a752a658978873241fdf8e2bbc"
+  },
+  "divergence": {
+    "devAheadOfMaster": 157,
+    "masterAheadOfDev": 351
+  },
+  "worktrees": {
+    "source": {
+      "branch": "dev",
+      "preservedDirtyEntries": [
+        {
+          "path": "IMPLEMENTATION_VERIFICATION_V2.md",
+          "status": "untracked",
+          "owner": "user"
+        }
+      ]
+    },
+    "implementation": {
+      "path": ".worktrees/goal-mode-full-implementation",
+      "cleanBeforeEvidenceWrite": true
+    }
+  },
+  "commands": [
+    "git status --porcelain=v2 --branch",
+    "git worktree list --porcelain",
+    "git show-ref --heads",
+    "git show-ref --verify refs/remotes/origin/dev",
+    "git show-ref --verify refs/remotes/origin/master",
+    "git rev-parse HEAD",
+    "git merge-base HEAD dev",
+    "git merge-base HEAD master",
+    "git rev-list --left-right --count dev...master",
+    "git log --oneline --no-merges 90ef8b197fe2aa38cc40917cd157077a8d1dc6b9..HEAD"
+  ],
+  "tests": [],
+  "artifacts": [
+    "artifacts/verification/gate-1/implementation-baseline.json",
+    "docs/plans/2026-09-02-gate-1-correctness-repair.md",
+    "docs/plans/2026-09-02-gate-1-correctness-repair.zh.md",
+    "docs/plans/2026-09-02-gate-1-correctness-repair.i18n.yaml"
+  ],
+  "logs": [],
+  "changedFiles": [
+    "artifacts/verification/gate-1/implementation-baseline.json",
+    "docs/plans/2026-09-02-gate-1-correctness-repair.md",
+    "docs/plans/2026-09-02-gate-1-correctness-repair.zh.md"
+  ],
+  "acceptance": [
+    "Current HEAD equals the verification snapshot.",
+    "The implementation branch starts from the verified dev commit.",
+    "The implementation worktree was clean before evidence creation.",
+    "The original user-owned verification report remains unmodified and untracked.",
+    "The dev/master divergence and merge-base are recorded."
+  ],
+  "knownLimitations": [
+    "Git branch protection and required checks remain unverified until G1-CI."
+  ],
+  "notExecuted": [],
+  "nextDependencies": [
+    "G1-COMP",
+    "G1-DOC",
+    "G1-PRIV"
+  ]
+}

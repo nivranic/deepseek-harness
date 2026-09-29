@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-session-telemetry` captures session activity for outbound reporting: it projects session events into telemetry records, lets a deployment redact them, and hands them to a reporting backend that implements its contract. Deployments do not load this package directly — they load exactly one backend (the shipped OpenTelemetry backend is `dsh-session-telemetry-otel`), which registers `ctx.sessionTelemetry` and composes the capture coordinator. The seam owns capture, redaction, and the sharing disclosure; batching, retry, queueing, and loss policy belong to the backend's SDK and stop at `emit()`. Every mounted backend discloses its deployment-selected sharing policy so acknowledgement surfaces can report whether and how a session is shared. The contract and capture behavior come first; the implementation internals live in a collapsible developer section below.
+`dsh-session-telemetry` captures privacy-safe session diagnostics for outbound reporting: it turns Session events into bounded metadata, removes every payload and workspace path, lets a deployment reduce the record further, and hands it to a reporting backend. Deployments load exactly one backend (the shipped OpenTelemetry backend is `dsh-session-telemetry-otel`), which registers `ctx.sessionTelemetry` and composes the capture coordinator. The seam owns capture, the mandatory privacy projection, further redaction, and the sharing disclosure; batching, retry, queueing, and loss policy belong to the backend SDK after `emit()`. Every mounted backend discloses its deployment-selected policy so acknowledgement surfaces can report whether and how diagnostics are shared.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-As a deployment, choose a backend, mount it, and add redaction rules when records must not leave the process as captured. As a backend author, implement the three-member contract and compose the coordinator with a capture mode.
+As a deployment, choose a backend and mode; add a `session-telemetry/record` listener only when the built-in privacy projection must be reduced further. As a backend author, implement the private sink contract and compose the coordinator with a capture mode.
 
 ### Choosing and mounting a backend
 
@@ -33,11 +33,11 @@ Load exactly one backend plugin; it registers `ctx.sessionTelemetry` with the ca
 
 ### The backend contract
 
-A backend implements three members: `emit(record)` must be a non-blocking enqueue because it runs synchronously on the session-event path; optional `flush()` is a fire-and-forget hint after a turn ends, which most backends omit in favor of their SDK's own batching schedule; `shutdown()` drains queued records and resolves when the SDK stops, and disposal awaits it. A backend that implements `flush()` must order concurrent flushes with the final `shutdown()` drain.
+The coordinator receives a private `SessionTelemetrySink` with three members: `emit(record)` is a non-blocking enqueue on the session-event path; optional `flush()` is a fire-and-forget turn-end hint; `shutdown()` drains queued records and reaches quiescence. `ctx.sessionTelemetry` exposes only the backend-independent `sharing` disclosure, so other plugins cannot inject arbitrary outbound records or drive provider shutdown.
 
 ### What gets captured
 
-Capture runs in one of two modes. `live` capture follows session events as they are appended, replays already-live sessions at mount time, and records lifecycle markers; `on-demand` capture reads the canonical session log only when the backend requests a prefix through `captureSession(session, throughSeq?)`. Ledger records mirror session events one to one except for one projection: only the first `assistant/chunk` of each `(turn, step)` ships, so `seq` gaps on the wire are routine and never a loss signal. Each record carries the event's complete data, minimal identity attributes, and a pre-mapped severity (`error` for `tool/result.isError`, `turn/end` error reasons, and `agent-error`; `info` otherwise).
+Capture runs in one of two modes. `live` capture follows appended events, replays already-live sessions at mount time, and records lifecycle markers; `on-demand` capture reads a canonical-log prefix through `captureSession(session, throughSeq?)`. Ledger records retain event time, type, sequence, bounded enum/numeric diagnostics, and fixed error class; Session content, model-produced tool names, system prompts, tool arguments/results, arbitrary error names/codes/messages, feedback text, and workspace paths are absent. The coordinator pseudonymizes Session ids through the anonymous-identity owner before any extension sees a record. Only the first `assistant/chunk` of each `(turn, step)` ships, so `seq` gaps are routine and never a loss signal.
 
 ### The sharing disclosure
 
@@ -49,7 +49,7 @@ Every backend discloses its deployment-selected sharing policy through the seam'
 
 <a id="the-redact-waterfall"></a>
 
-Every outbound record passes the `sessionTelemetry/record` waterfall immediately after projection. This package ships no rules: with no listener mounted, records reach the backend exactly as captured, so exported data is as clean as the rules a deployment mounts. Listeners stack by transforming `next()`'s return value; a throwing listener withholds that one record fail-closed. Redaction applies to the outbound copy only — the canonical session log is never rewritten.
+Every outbound record passes the `session-telemetry/record` waterfall after mandatory projection and Session-id pseudonymization. The candidate and its attributes are frozen. Listeners stack by transforming `next()`, but the coordinator accepts only original attributes whose keys and values remain unchanged; additions, rewrites, and aliases are discarded. A listener can therefore remove fields or choose a valid severity but cannot introduce outbound data, and a throwing listener withholds that record fail-closed. The canonical session log is never rewritten.
 
 -----
 
@@ -74,7 +74,7 @@ The seam is built on one boundary: the harness's aspect ends at `emit()`. Captur
 
 ### Capture flow
 
-Live capture registers, through the composing fiber's effects: `session/created` adopts the session and replays its log from the handoff cursor; `session/event` projects, deep-copies, redacts, and hands off with zero I/O; `session/flush` forwards the optional hint and returns void so the loop's awaited parallel never waits on telemetry; `session/disposed` captures the session's `shutdown` marker and retires it; `agent/error` is the one live-bus relay, because the session-event vocabulary intentionally has no operational-error record. Disposal captures shutdown markers for still-live sessions, then awaits the backend's `shutdown()`. On-demand capture registers only the disposal effect and reads the canonical log on request. Every synchronous handler runs inside containment so a failing backend or rule can never starve other listeners or reach the agent loop.
+Live capture registers, through the composing fiber's effects: `session/created` adopts the session and replays its log from the handoff cursor; `session/event` projects privacy-safe fields and hands off with zero I/O after the identity was resolved at construction; `session/flush` forwards the optional hint without making the loop wait; `session/disposed` captures the session's `shutdown` marker and retires it; `agent/error` relays only a fixed error class. Disposal captures shutdown markers for still-live sessions, then awaits the sink's `shutdown()`. On-demand capture registers only the disposal effect and reads the canonical log on request. Every synchronous handler contains backend and policy failures.
 
 ### The handoff cursor
 
@@ -91,6 +91,7 @@ Read these pages when the seam contract is not enough. They move from the shippe
 
 - [OpenTelemetry telemetry backend](../session-telemetry-otel/README.md) — the shipped backend deployments load, with mode and exporter configuration.
 - [Session telemetry subsystem](../../../docs/subsystems/session-telemetry.md) — the capability split and type declarations.
+- [Telemetry privacy inventory](../../../docs/subsystems/session-telemetry.md#privacy-inventory) — every DSH-controlled outbound value and excluded sensitive class.
 - [Session telemetry revival decision](../../../.agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.md) — rationale, trade-offs, and rejected alternatives.
 - [Session package map](../README.md) — adjacent persistence, projection, title, and telemetry packages.
 
@@ -113,8 +114,8 @@ None; the package neither assembles nor sends a provider request.
 These limits define the delivery and data-protection guarantees a deployment gets. They are current package constraints.
 
 - **Best-effort delivery** — the cursor marks handed-off, not delivered; a session torn down inside a reload window cannot be re-adopted, and whatever sits in a backend queue at crash time is lost. A durable outbox (spool, per-sink cursors, at-least-once) is deferred until a deployment states a crash-loss requirement.
-- **No built-in redaction rules** — with no `sessionTelemetry/record` listener mounted, records leave the process exactly as captured, including any credentials embedded in file contents or command output; a deployment exporting to a shared collector owns its rule set.
-- **On-demand redaction uses current state** — uncaptured events exist only in the canonical session log; a later `captureSession()` deep-copies and redacts their current values with the policy mounted at that time, and there is no capture-time telemetry snapshot or durable pre-capture spool.
+- **The privacy projection is deliberately sparse** — plugin-owned events expose only type, sequence, time, severity, and pseudonymous Session correlation until their owner adds an explicit safe diagnostic field.
+- **On-demand policy uses current state** — uncaptured events exist only in the canonical session log; a later `captureSession()` applies the current privacy projection and reduction listeners, with no capture-time telemetry snapshot or durable pre-capture spool.
 
 <a id="dev-note"></a>
 ### Dev Note

@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`dsh-session-telemetry-otel` 通过 OpenTelemetry 日志投递会话记录，是[会话遥测 seam](../session-telemetry/README.zh.md) 的后端，也是部署方唯一要加载的条目。其 `mode` 决定会话记录是跟随实时流、仅在记录反馈时释放，还是留在本地：`FULL` 把每条记录立即交给 OTel SDK，`FEEDBACK_ONLY` 在 `feedback/record` 落地时回放权威日志，`DISABLED`（默认值）不构造任何内容也不共享任何内容。上传模式会原样组合 OTel JS SDK——`LoggerProvider` → `BatchLogRecordProcessor` → OTLP/HTTP 日志导出器——并把每条记录映射到 `logger.emit()`，因此批处理、重试、排队与丢失策略都遵循 SDK。记录携带 seam 脱敏 waterfall（瀑布式事件）返回的完整事件数据，因此向可信边界之外导出的部署方要挂载自己的脱敏规则。模式、配置与导出面在前；实现内部细节放在下方可折叠的开发者章节中。
+`dsh-session-telemetry-otel` 通过 OpenTelemetry 日志投递隐私安全诊断信息，是部署方为[会话遥测 seam](../session-telemetry/README.zh.md) 加载的唯一条目。其 `mode` 决定记录是跟随实时流、仅在记录反馈时释放，还是留在本地：`FULL` 把每条记录立即交给 OTel，`FEEDBACK_ONLY` 在 `feedback/record` 落地时回放权威日志前缀，`DISABLED` 不构造捕获或上报流水线，也不共享任何内容。上传模式原样组合 OTel JS SDK 并把每条记录映射到 `logger.emit()`，因此批处理、重试、排队与丢失策略都遵循 SDK。owner 级投影会在本后端看到记录之前排除 Session 载荷与 workspace 路径。
 
 ## 目录
 
@@ -25,7 +25,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-当部署方需要通过 OpenTelemetry 日志导出会话记录时挂载此插件。选择一个模式、给导出器一个端点，并决定是否在 seam 上挂载脱敏规则。
+当部署方需要通过 OpenTelemetry 日志导出隐私安全的 Session 诊断信息时挂载此插件。显式选择上传模式并提供导出端点；省略模式时数据留在本地。
 
 ### 模式
 
@@ -61,11 +61,11 @@ kind: "package-reference"
 | `exporter`、`processor` | — | 原样传给 SDK 导出器与批处理器 |
 | `shutdownTimeoutMillis` | `3,000` | SDK 完整关闭序列的外层截止时间 |
 
-生成的[配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-session-telemetry-otel)是每个受支持字段的穷尽式真源。上传授权采用显式许可，且为 fail-closed：通过直接构造传入未知模式时会在读取传输配置前失败，只有 `FULL` 接受对 `ctx.sessionTelemetry.emit()` 的直接调用，`FEEDBACK_ONLY` 只把权威日志中已存储的精确 `feedback/record` 对象视为同意。
+生成的[配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-session-telemetry-otel)是每个受支持字段的穷尽式真源。上传授权采用显式许可且为 fail-closed：随附 base 与直接构造都默认 `DISABLED`，未知模式会在读取传输配置前失败，`FEEDBACK_ONLY` 只响应权威日志中已存储的精确 `feedback/record` 对象。`ctx.sessionTelemetry` 没有公开 emit 或 shutdown 操作。
 
 ### 哪些数据会离开本机
 
-在上传模式中，记录携带 seam 的 `sessionTelemetry/record` waterfall 返回的完整 `event.data`——消息内容、工具参数与结果、系统提示词与工具 schema、todo 文本、压缩（compaction）摘要、反馈文本，以及会话 `cwd`。提供方凭据绝不会出现：适配器的 API key 是构造函数参数而非会话事件，因此它们在结构上就不存在于日志中，也就不存在于遥测中。`DISABLED` 不构造 SDK 流水线，也不把任何捕获内容交给后端。
+上传模式发送事件时间／类型／序号、严重级别、有界的轮次／步骤／结果字段、工具错误状态、固定错误类别与生命周期操作。Resource 发送产品名／版本、`os.type`、`host.arch` 与派生的 harness home 匿名 `user.id`。匿名 identity owner 会在脱敏 waterfall 或本后端看到记录前，把原始 Session 与父 Session id 转换为稳定的 HMAC-SHA-256 假名；其私有根种子与 Session 密钥绝不会离开该包。每条 SDK 记录都使用 `ROOT_CONTEXT`，因此环境中的活动 span 无法添加 trace 或 span 关联。日志 body 不携带值或内容，但 OTLP JSON 编码器仍可能序列化一个空的 `body: {}` 对象。消息内容、推理、系统提示词／工具 schema、模型产生的工具名、工具参数／结果、反馈文本、任意错误名／代码／消息、workspace 路径、源代码、文件内容、trace id、span id 与 trace flags 均不会到达导出器。权威[隐私清单](../../../docs/subsystems/session-telemetry.zh.md#privacy-inventory)涵盖 DSH 控制的内容值、Resource 与记录 attributes，以及静态插桩作用域元数据。
 
 ### 失败与关闭
 
@@ -83,7 +83,7 @@ kind: "package-reference"
 
 ### 设计理念
 
-后端是对 OTel JS SDK 的薄适配层：它拥有捕获模式、资源身份与一个外层关闭截止时间，其余全部原样透传。两个插桩作用域区分记录通道——ledger 记录挂在 `@deepseek-ai/dsh-session-telemetry-otel` 下，运维记录挂在 `@deepseek-ai/dsh-session-telemetry-otel/ops` 下——使接收端可以在不累加它们的情况下对运维记录告警。资源身份携带 `service.name`/`service.version`（来自 `dsh-llm` 的 `APP_IDENTITY`）以及本包的匿名 `user.id`（来自 `$DSH_HOME/.anonymous-user-id`），按导出批次携带一次，而非逐条记录。
+后端是对 OTel JS SDK 的薄适配层：它拥有捕获模式、派生 Resource 身份的发布与外层关闭截止时间。匿名 identity 包拥有私有根种子与 Session id 假名化；捕获协调器交给本后端的标识符已经假名化。静态的 `@deepseek-ai/dsh-session-telemetry-otel` 与 `@deepseek-ai/dsh-session-telemetry-otel/ops` 插桩作用域分别承载 ledger 与运维记录；两者都携带包清单版本。Resource 身份携带 `service.name`／`service.version`、`os.type`、`host.arch` 与派生的匿名 `user.id`；它们按导出批次携带一次，而非逐条记录。
 
 ### 源码地图
 
@@ -93,11 +93,11 @@ kind: "package-reference"
 
 ### 捕获接线
 
-`FULL` 以 `live` 模式组装协调器，并放行直接服务调用；`FEEDBACK_ONLY` 以 `on-demand` 模式组装协调器，给协调器一个私有后端能力，并且只对权威日志中精确的反馈记录触发 `captureSession(session, event.seq)`；`DISABLED` 除了在 `feedback/record` 上发出警告外不注册任何内容。后端刻意不实现 `flush()`：常规 flush 由批处理器负责，把提示转发给 `forceFlush()` 会成为并发 flush 的唯一来源，而它与关闭排空的交互没有文档。
+`FULL` 以 `live` 模式组装协调器；`FEEDBACK_ONLY` 以 `on-demand` 模式组装协调器，并且只对权威日志中精确的反馈记录触发 `captureSession(session, event.seq)`；`DISABLED` 只注册本地反馈警告。协调器接收私有 sink，而 `ctx.sessionTelemetry` 只暴露 `sharing`。后端刻意不实现 `flush()`，因为常规 flush 由批处理器负责。
 
 ### 字段映射
 
-每条 seam 记录映射为一条 SDK 日志记录：`time` 与 `severity` 变为 SDK 的时间戳与严重级别字段，`body` 与 `attributes` 原样照搬；确切字段映射见 [`src/index.ts`](src/index.ts)。在 `FULL` 中，接收端可通过缺少 `shutdown` 记录检测崩溃——该标记在会话自身 dispose（资源释放）或应用关闭时发出，标记之后出现更多事件说明遥测发生了重载。在 `FEEDBACK_ONLY` 中，已释放的前缀通常不包含随后的 `shutdown` 标记，因此缺少该标记不是崩溃信号。
+每条 seam 记录映射为一条 body 不携带值或内容的 SDK 日志记录：`time` 与 `severity` 变为 SDK 字段，已经假名化的隐私安全 attributes 原样携带，显式 `ROOT_CONTEXT` 会阻止隐式继承 trace context。OTLP JSON 编码器可能用空对象表示这种缺省。在 `FULL` 中，接收端可通过缺少 `shutdown` 记录检测崩溃；在 `FEEDBACK_ONLY` 中，已释放前缀通常没有后续标记，因此缺少标记不是崩溃信号。
 
 </details>
 

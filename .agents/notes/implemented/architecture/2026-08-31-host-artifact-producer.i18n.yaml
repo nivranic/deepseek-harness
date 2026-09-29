@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.md
-2026-08-31-host-artifact-producer.md: 5ca97d0b15d69aa8ebc92adb9ee2f5617df14afc
-2026-08-31-host-artifact-producer.zh.md: c971ba3f79261a98079ff443420d626669f12bec
+2026-08-31-host-artifact-producer.md: 77d3bc72d1fd36502598379616091d977ec471f5
+2026-08-31-host-artifact-producer.zh.md: b335fbdc78f3d91c936c617c1c538ca4540fd1f6

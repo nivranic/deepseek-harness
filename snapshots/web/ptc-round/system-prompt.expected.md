@@ -57,6 +57,26 @@ Program-only SDK bindings:
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue }
 
 interface ToolArgsMap {
+  /** Create one durable artifact — a first-class output file the user keeps (a report, a design document, a patch, a generated dataset, a binary file such as an image). Give it a short `kind` tag (e.g. markdown, report, patch, json, png), a human-facing `title`, and the COMPLETE content in this call — as `content` text, or as raw bytes base64-encoded in `data`; exactly one of the two. The artifact is stored durably and journaled as a reference you can cite by id; do not use it for scratch text that belongs in your reply, and do not split one artifact across calls. */
+  artifact_create: {
+    /** Short kind tag, e.g. markdown, report, patch, json, png. */
+    kind: string;
+    /** Human-facing artifact title. */
+    title: string;
+    /** The COMPLETE artifact content as text. Exactly one of content or data. */
+    content?: string;
+    /** The COMPLETE artifact bytes, base64-encoded. Exactly one of content or data. */
+    data?: string;
+  } & Record<string, JsonValue>;
+  /** Read one artifact back by its reference id. Returns the content exactly as created, plus the kind and title when the calling session journaled the artifact. A text artifact returns its `content` (whole by default, or one UTF-16 range with offset and limit); a bytes artifact returns base64 `data` (whole by default, or one byte range). Reading does not modify the artifact. */
+  artifact_read: {
+    /** The artifact reference id an artifact_create result reported. */
+    id: string;
+    /** Range start — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0. */
+    offset?: number;
+    /** Maximum returned units of the artifact format; omitted reads through the end. */
+    limit?: number;
+  } & Record<string, JsonValue>;
   /** Ask the user a concise question when you need confirmation, a choice, or missing information before proceeding. Send one or more questions, each with a stable id that will be echoed in the answer. */
   ask_user_question: {
     /** Questions to ask the user before continuing. */
@@ -295,6 +315,23 @@ interface ToolArgsMap {
 }
 
 interface ToolOutputMap {
+  artifact_create: {
+    id: string;
+    kind: string;
+    title: string;
+    format: "text" | "bytes";
+    status: "ready";
+  };
+  artifact_read: {
+    id: string;
+    kind?: string;
+    title?: string;
+    format: "text" | "bytes";
+    content?: string;
+    data?: string;
+    truncated: boolean;
+    size: number;
+  };
   ask_user_question: {
     answers: {
       id: string;

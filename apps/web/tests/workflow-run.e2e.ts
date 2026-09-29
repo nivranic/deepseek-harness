@@ -32,6 +32,8 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
   let page: Page
   let tripwire: ReturnType<typeof watchConsole>
   let prompt: string
+  const childAtStop = Promise.withResolvers<undefined>()
+  const releaseChild = Promise.withResolvers<undefined>()
 
   const waitForParentSettlement = (): Promise<SessionId> => new Promise((resolve, reject) => {
     let dispose = (): void => {}
@@ -56,6 +58,13 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
       paceMs: 50,
       compareReplaySession: false,
     })
+    // The local child is navigable only while its workflow member is active.
+    // Hold settlement through the live UI checks, independently of browser speed.
+    scaffold.ctx.on('agent/turn-stopping', async ({ agent }) => {
+      if (agent.session.header.origin !== 'subagent') return
+      childAtStop.resolve(undefined)
+      await releaseChild.promise
+    })
     browser = await chromium.launch()
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
@@ -65,6 +74,7 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
   }, 120_000)
 
   afterAll(async () => {
+    releaseChild.resolve(undefined)
     await browser?.close()
     await scaffold?.close()
   })
@@ -90,6 +100,7 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
     expect(await phaseDisclosure.evaluate(element => getComputedStyle(element).cursor)).toBe('pointer')
     const member = page.getByRole('button', { name: /^Open Reply with exactly the word/ })
     await member.waitFor({ timeout: 15_000 })
+    await childAtStop.promise
 
     await phaseDisclosure.click()
     expect(await phaseDisclosure.getAttribute('aria-expanded')).toBe('false')
@@ -160,6 +171,7 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
 
     const sessions = page.getByRole('tree', { name: 'Sessions' })
     await sessions.getByRole('treeitem', { name: /Use the workflow tool exactly/ }).click()
+    releaseChild.resolve(undefined)
     await settled
     await expandTurnProcesses(page)
     await page.locator('[data-workflow-run][data-run-status="completed"]').waitFor()

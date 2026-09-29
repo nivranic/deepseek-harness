@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "security-and-ci-followup",
+  "recordedAt": "2026-09-05T21:00:31.750240+00:00",
+  "sourceHead": "24eff39f77372b2174341ec6703927e566b5a605",
+  "commits": {
+    "userText": "1746243eb095a85ff9b74f261885412b95c22dee",
+    "lspCancellation": "24eff39f77372b2174341ec6703927e566b5a605"
+  },
+  "sourceSha256": {
+    "packages/client/ui-primitives/src/user-text.tsx": "d328f03a8b9ec7241621f7a473f213a2296a3f41b4a37f20c65eda39387b4768",
+    "packages/client/ui-primitives/tests/user-text.client.spec.tsx": "cbcd24b73c55519d8bac86a0f463bc4d3cfb7c220971e757b97d91c61cb991d3",
+    "packages/lsp/lsp-stdio/tests/instance.spec.ts": "6769c97e0274177df1d7e76c781e45e355aa871f85be1a373591b68673f4100a"
+  },
+  "inputMaterialization": "Local checks used pre-commit worktree bytes. Linux received an explicit synchronized file list and retained an older Git HEAD. No fresh-candidate remote acceptance is inferred from these checks.",
+  "candidate": {
+    "sha": "121a78470e3ee8d18515a152dc7f2a8e0f4c7573",
+    "ciEvidence": "artifacts/verification/gate-2/ci-evidence-121a78470e.json",
+    "mandatoryStatus": "PASS",
+    "independentWindowsCoverage": "FAIL",
+    "windowsFailure": "LSP honors-cancel test aborted before request admission; the only uncovered file was lsp-stdio/src/instance.ts. Earlier cache/catalog/Inspector repairs passed. The previous workflow-worker-thread coverage gap did not recur; its process-exit cause remains unproven.",
+    "supplyRun": 33989933318,
+    "receipts": {
+      "javascript-typescript": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-javascript-typescript-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "62b95a39eb653b194af986cd561c4049501d2196ed8dedc5c0aa4c9cc2d1a6b3",
+        "status": "FAIL",
+        "findingCount": 86,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 86,
+        "reviewedFindings": 0
+      },
+      "java-kotlin": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-java-kotlin-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "d3c8dd3ccbed8184ef22357d9f5f672a60b8d4034e09118a4adb3caeb5841dfc",
+        "status": "FAIL",
+        "findingCount": 6,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 6,
+        "reviewedFindings": 0
+      },
+      "python": {
+        "path": "artifacts/verification/gate-2/acceptance/sast-python-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "355568086ffa9250b79a83506d30021dc58492e58dfed1cae27bd0f7f4f0ec7c",
+        "status": "PASS",
+        "findingCount": 0,
+        "analysisComplete": true,
+        "blockingDiagnostics": [],
+        "unreviewedFindings": 0,
+        "reviewedFindings": 0
+      },
+      "secrets": {
+        "path": "artifacts/verification/gate-2/acceptance/secrets-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "ac0a0c418c9a52cc39add96eb6b3dcd56a26b203ade5413a456a3cc74b8aedfc",
+        "status": "PASS"
+      },
+      "dependencies": {
+        "path": "artifacts/verification/gate-2/acceptance/dependencies-121a78470e3ee8d18515a152dc7f2a8e0f4c7573.json",
+        "sha256": "43e3f879947b46e0bf7fa71bb865f234a60612e9bfe39184fdf7d2a1482976d5",
+        "status": "FAIL"
+      },
+      "swift": {
+        "status": "PENDING",
+        "jobId": 101370243530,
+        "observation": "Still compiling Apple apps at collection time. The de346 Swift SAST PASS is historical, not acceptance for this candidate."
+      }
+    }
+  },
+  "userText": {
+    "windows": {
+      "tests": 24,
+      "suites": 2,
+      "coverage": {
+        "statements": "64/64",
+        "branches": "53/53",
+        "functions": "5/5",
+        "lines": "53/53"
+      },
+      "command": "pnpm exec vitest run packages/client/ui-primitives/tests/user-text.client.spec.tsx packages/client/ui-primitives/tests/user-text-styles.client.spec.ts --coverage --coverage.include=packages/client/ui-primitives/src/user-text.tsx"
+    },
+    "equivalence": {
+      "base": "121a78470e3ee8d18515a152dc7f2a8e0f4c7573",
+      "cases": 25000,
+      "seed": "0x514ab2",
+      "status": "PASS",
+      "comparison": "Complete rendered markup with identical CSS and icon stubs; actual styles and icon rendering belong to the owning Vitest cases.",
+      "sourceSha256": "d328f03a8b9ec7241621f7a473f213a2296a3f41b4a37f20c65eda39387b4768",
+      "overlapExample": {
+        "before": "<span class=\"chip\" data-ref-chip=\"file\" title=\"@[broken](dsh-session:@[inner\">[broken](dsh-session:@[inner</span><span class=\"plain\"> label](dsh-session:x)</span>",
+        "after": "<span class=\"chip\" data-ref-chip=\"file\" title=\"@[broken](dsh-session:@[inner\">[broken](dsh-session:@[inner</span><span class=\"plain\"> label](dsh-session:x)</span>"
+      }
+    },
+    "browser": {
+      "status": "PASS",
+      "browser": "152.0.7977.83",
+      "base": "121a78470e3ee8d18515a152dc7f2a8e0f4c7573",
+      "scope": "Isolated component harness over actual source/CSS/icons; no full application or backend acceptance claim.",
+      "display": {
+        "equalMarkup": true,
+        "text": "看看 会话 /plan 与 a.ts 和 a b.md",
+        "chips": [
+          {
+            "kind": "session",
+            "title": "@[会话](dsh-session:x)",
+            "display": "inline-flex"
+          },
+          {
+            "kind": "skill",
+            "title": "/plan",
+            "display": "inline-flex"
+          },
+          {
+            "kind": "file",
+            "title": "@src/a.ts",
+            "display": "inline-flex"
+          },
+          {
+            "kind": "file",
+            "title": "@\"a b.md\"",
+            "display": "inline-flex"
+          }
+        ],
+        "blockChildren": 0
+      },
+      "performance": [
+        {
+          "name": "wire",
+          "size": 16000,
+          "beforeMs": 7.5,
+          "afterMs": 1.300000011920929
+        },
+        {
+          "name": "wire",
+          "size": 32000,
+          "beforeMs": 25.799999997019768,
+          "afterMs": 1.4000000059604645
+        },
+        {
+          "name": "punctuation",
+          "size": 16000,
+          "beforeMs": 0,
+          "afterMs": 0.10000000894069672
+        },
+        {
+          "name": "punctuation",
+          "size": 32000,
+          "beforeMs": 0.09999999403953552,
+          "afterMs": 0
+        },
+        {
+          "name": "uri",
+          "size": 8000,
+          "beforeMs": 325.20000000298023,
+          "afterMs": 3.5999999940395355
+        }
+      ],
+      "pageErrors": []
+    },
+    "screenshot": {
+      "path": "artifacts/verification/gate-2/acceptance/user-text-browser-121a.png",
+      "sha256": "f8b348147d39b326d7f8e39c869cc65ea97ebe4b56c71d693c5117a0e4df595b"
+    },
+    "scope": "Only wire discovery and punctuation trimming have linear scans. Recall-label lookup and range sorting retain their own costs. Browser proof is an isolated real-component harness, not full app/backend acceptance. New candidate CodeQL must confirm removal of the two selected findings."
+  },
+  "lspCancellation": {
+    "negativeControl": {
+      "status": "EXPECTED_FAIL",
+      "initializeDelayMs": 600,
+      "oldWaitMs": 300,
+      "assertion": "Expected instance.dead false; actual true. The current test was restored before positive verification."
+    },
+    "windowsNode": "24.19.0",
+    "windows": {
+      "passed": 67,
+      "skipped": 1,
+      "suites": 3,
+      "coverage": {
+        "statements": "103/103",
+        "branches": "33/33",
+        "functions": "27/27",
+        "lines": "91/91"
+      },
+      "command": "vitest run packages/lsp/lsp-stdio/tests/instance.spec.ts packages/lsp/lsp-stdio/tests/lifecycle.spec.ts packages/lsp/lsp-stdio/tests/provider.spec.ts --coverage --coverage.include=packages/lsp/lsp-stdio/src/instance.ts"
+    },
+    "limitations": [
+      "A prior Windows full-package run had 3 host.spec.ts EPERM symlink failures, 146 pass and 2 skip. Those path helper tests do not own instance lifecycle branches and were run successfully in Linux.",
+      "Instance-only and instance/provider coverage selections passed tests but lacked branches owned by lifecycle.spec.ts; the final selection includes that owner.",
+      "Product source and cancellation grace were not modified."
+    ]
+  },
+  "linux": {
+    "node": "22.22.1",
+    "passed": 175,
+    "skipped": 0,
+    "suites": 9,
+    "coverageSources": [
+      "packages/client/ui-primitives/src/user-text.tsx",
+      "packages/lsp/lsp-stdio/src/instance.ts"
+    ],
+    "coveragePercent": 100,
+    "command": "vitest run packages/client/ui-primitives/tests/user-text.client.spec.tsx packages/client/ui-primitives/tests/user-text-styles.client.spec.ts packages/lsp/lsp-stdio/tests --coverage --coverage.include=packages/client/ui-primitives/src/user-text.tsx --coverage.include=packages/lsp/lsp-stdio/src/instance.ts",
+    "testDocs": "15/15",
+    "docSync": "32/32",
+    "lint": {
+      "warnings": 0,
+      "errors": 0
+    }
+  },
+  "remaining": [
+    "Six unreviewed Kotlin Noise findings and nonce exhaustion across Node/Kotlin/Swift.",
+    "Remaining JavaScript SAST findings and new candidate scan confirmation.",
+    "Dependency scanning remains unaccepted; Dependency graph failure is not waived.",
+    "Android API 36, SBOM/provenance, RC and the rest of Gate 2-4 remain incomplete."
+  ],
+  "privateLogSha256": {
+    "user-text-linear-tests.log": "36fa32e5577bbbfc80037ca11108ebbe238cd57ec507b449195879276e39d4db",
+    "user-text-browser.log": "52febe631b5f578dedafdb2608bcdd228219abab4eaa1de31649aa1a2779efc9",
+    "lsp-cancel-negative-control.log": "6104c77454203b03b53ca98d186429716793d4eb849938b0f97b694fc265e41a",
+    "lsp-cancel-lifecycle-coverage.log": "27c52ef6c76995d748145be842ad7d83e3ed3adb47e0e82680cd0a90c7eefee4",
+    "lsp-cancel-final-coverage.log": "67b324d462a5e605712e8840eecabb75a14595e132d827178ee78fb9c660647d",
+    "ui-lsp-linux-tests.log": "d6ff3e48defa2c493bf903487ed6e7968a402370f12fe44fbddf042f6072ffa7",
+    "ui-lsp-linux-docs.log": "d772ee2618990640f169589ca2e075a128526ceb207379e4d9ae2a928a976d9e",
+    "ui-lsp-linux-doc-sync.log": "f9b1a08e5faf8022968a6e854158ea95ae0778d3bf336d2d751859b86559fb8b",
+    "ui-lsp-linux-lint.log": "84d12acd2a609590b42b7da299a1a506ebd26b04b81ab3cf3443e6ecd28f9913"
+  },
+  "unresolvedNonceEvidence": "artifacts/verification/gate-2/noise-nonce-reproduction-121a.json"
+}

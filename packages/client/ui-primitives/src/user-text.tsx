@@ -12,8 +12,8 @@ import type { ReactNode } from 'react'
 import { ReferenceIcon } from './ReferenceIcon.tsx'
 import css from './user-text.module.css'
 
-/** The wire form a session chip serializes to; label is the display text. */
-const SESSION_WIRE_RE = /@\[([^\]\n]+)\]\(dsh-session:[^)\s]+\)/gu
+/** The display grammar accepts any nonempty URI payload without whitespace or `)`. */
+const SESSION_WIRE_MIDDLE = '](dsh-session:'
 
 interface DecorationRange {
   readonly start: number
@@ -33,16 +33,29 @@ interface DecorationRange {
  */
 export function projectUserText(text: string, sessionLabels: readonly string[]): ReactNode {
   const ranges: DecorationRange[] = []
-  SESSION_WIRE_RE.lastIndex = 0
-  let wire: RegExpExecArray | null
-  while ((wire = SESSION_WIRE_RE.exec(text)) !== null) {
-    ranges.push({
-      start: wire.index,
-      end: wire.index + wire[0].length,
-      label: wire[0],
-      kind: 'session',
-      display: wire[1] as string, // non-optional capture in SESSION_WIRE_RE
-    })
+  let start = text.indexOf('@[')
+  let labelEnd = -1
+  let uriEnd = -1
+  while (start >= 0) {
+    const labelStart = start + 2
+    // Nested unfinished candidates share delimiters; neither suffix is rescanned.
+    if (labelEnd < labelStart) {
+      labelEnd = labelStart
+      while (labelEnd < text.length && text[labelEnd] !== ']' && text[labelEnd] !== '\n') labelEnd++
+    }
+    let next = labelStart
+    if (labelEnd > labelStart && text.startsWith(SESSION_WIRE_MIDDLE, labelEnd)) {
+      const uriStart = labelEnd + SESSION_WIRE_MIDDLE.length
+      if (uriEnd < uriStart) {
+        uriEnd = uriStart
+        while (uriEnd < text.length && text[uriEnd] !== ')' && !/\s/u.test(text.charAt(uriEnd))) uriEnd++
+      }
+      if (uriEnd > uriStart && text[uriEnd] === ')') {
+        next = uriEnd + 1
+        ranges.push({ start, end: next, label: text.slice(start, next), kind: 'session', display: text.slice(labelStart, labelEnd) })
+      }
+    }
+    start = text.indexOf('@[', next)
   }
   for (const rawLabel of [...new Set(sessionLabels)].sort((a, b) => b.length - a.length)) {
     const label = `@${rawLabel}`
@@ -57,9 +70,11 @@ export function projectUserText(text: string, sessionLabels: readonly string[]):
   while ((m = re.exec(text)) !== null) {
     const tokenStart = m.index + (m[1] as string).length // (^|\s) captures '' at line start
     const rawLabel = m[2] as string // non-optional alternation capture
-    const label = rawLabel.startsWith('@"')
-      ? rawLabel
-      : rawLabel.replace(/[.,;:!?，。；：！？]+$/gu, '')
+    let labelLength = rawLabel.length
+    if (!rawLabel.startsWith('@"')) {
+      while (/[.,;:!?，。；：！？]/u.test(rawLabel.charAt(labelLength - 1))) labelLength--
+    }
+    const label = rawLabel.slice(0, labelLength)
     if (label.length <= 1) continue
     ranges.push({ start: tokenStart, end: tokenStart + label.length, label, kind: 'plain' })
   }

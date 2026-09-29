@@ -14,9 +14,9 @@ import type { DeviceId, PairedDevice } from '@deepseek-ai/dsh-device-trust'
 import type { LinkAccessService } from '@deepseek-ai/dsh-link-access'
 import { Remote, TypertRemoteFailure, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { z } from 'zod'
-import type { LinkDeviceValue, LinkPairingValue, LinkStatusValue } from './types.ts'
+import type { LinkDeviceValue, LinkDiagnosticsValue, LinkPairingValue, LinkStatusValue } from './types.ts'
 
-export type { LinkDeviceValue, LinkError, LinkPairingValue, LinkStatusValue } from './types.ts'
+export type { LinkDeviceValue, LinkDiagnosticsValue, LinkError, LinkPairingValue, LinkStatusValue } from './types.ts'
 
 /** Wire-boundary shape of one revoke request; an empty id never reaches the store. */
 const linkRevokeRequestSchema = z.object({ deviceId: z.string().min(1) })
@@ -75,6 +75,17 @@ export class LinkController extends TypertRemoteService {
       allowRemoteApproval: link.isRemoteApprovalAllowed(),
       deviceCount: devices.length,
     }
+  }
+
+  /**
+   * Read fixed-field Link observations for a local support collector. This is
+   * an unscanned projection, not an export or a complete Support Bundle.
+   * @returns listener state and the carrier's advertised protocol facts, without identity or error text.
+   * @throws TypertRemoteFailure when no link carrier is mounted.
+   */
+  @Remote
+  async diagnostics(): Promise<LinkDiagnosticsValue> {
+    return this.link().diagnostics()
   }
 
   /**

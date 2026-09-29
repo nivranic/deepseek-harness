@@ -54,11 +54,12 @@ export const Config: z<Config> = z.object({
  */
 export class SqliteStorageBackend implements StorageBackend {
   /** The key-value facet; the only shape this backend serves. */
-  readonly kv: KvFacet = { open: descriptor => this.openUnit(descriptor) }
+  readonly kv: KvFacet = { open: (descriptor, onBackendClose) => this.openUnit(descriptor, onBackendClose) }
 
   private readonly ready: Promise<DatabaseSync>
   /** Open (or still-opening) units by name; presence is the double-open guard. */
   private readonly units = new Map<string, Promise<SqliteKvUnit>>()
+  private readonly owners = new Map<string, () => Promise<void>>()
   private closing: Promise<void> | undefined
 
   /**
@@ -72,7 +73,7 @@ export class SqliteStorageBackend implements StorageBackend {
     this.ready.catch(() => {})
   }
 
-  private openUnit(descriptor: KvUnitDescriptor): Promise<KvUnit> {
+  private openUnit(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit> {
     if (this.closing !== undefined) {
       return Promise.reject(new StorageError('closed', 'sqlite storage backend is closed'))
     }
@@ -91,7 +92,11 @@ export class SqliteStorageBackend implements StorageBackend {
     // name rejects instead of racing past the guard during the awaits below.
     const pending = this.materializeUnit(descriptor)
     this.units.set(descriptor.name, pending)
-    pending.catch(() => this.units.delete(descriptor.name))
+    if (onBackendClose !== undefined) this.owners.set(descriptor.name, onBackendClose)
+    pending.catch(() => {
+      this.units.delete(descriptor.name)
+      this.owners.delete(descriptor.name)
+    })
     return pending
   }
 
@@ -119,6 +124,7 @@ export class SqliteStorageBackend implements StorageBackend {
     }
     return new SqliteKvUnit(db, descriptor, () => {
       this.units.delete(descriptor.name)
+      this.owners.delete(descriptor.name)
     })
   }
 
@@ -141,28 +147,34 @@ export class SqliteStorageBackend implements StorageBackend {
       // every unit call, so there is nothing left to release here.
       return
     }
-    for (const pending of [...this.units.values()]) {
+    const results = await Promise.allSettled([...this.units].map(async ([name, pending]) => {
       const unit = await pending.catch(() => undefined)
-      await unit?.close()
-    }
+      try {
+        await this.owners.get(name)?.()
+      } finally {
+        await unit?.close()
+      }
+    }))
     db.close()
+    const failures = results.filter(result => result.status === 'rejected')
+    if (failures.length > 0) throw new AggregateError(failures.map(result => result.reason as unknown), 'SQLite unit teardown failed')
   }
 }
 
 /**
  * Register the SQLite backend as `sqlite` on the storage hub. The disposer
- * unregisters the name first, then closes the backend.
+ * withdraws the service, unregisters the name, then closes the backend after its unit owners.
  * @param ctx - Plugin context (must inject `storage`).
  * @param config - Validated plugin configuration.
  */
 export function apply(ctx: Context, config: Config) {
   const backend = new SqliteStorageBackend(config)
-  ctx.effect(() => {
+  ctx.effect(function* () {
     const dispose = ctx.storage.backend.register('sqlite', backend)
-    return async () => {
+    yield async () => {
       dispose()
       await backend.close()
     }
+    yield ctx.provide(storageBackendServiceKey('sqlite'), backend)
   }, 'storage-sqlite.registerBackend')
-  ctx.provide(storageBackendServiceKey('sqlite'), backend)
 }

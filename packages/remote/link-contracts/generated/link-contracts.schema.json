@@ -1,0 +1,1835 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeepSeek Harness Link Contract",
+  "x-dsh-contractVersion": 1,
+  "x-dsh-protocol": {
+    "linkProtocolVersion": 1,
+    "sessionFormatVersion": 0,
+    "rpc": {
+      "requestArguments": "payload.args",
+      "voidSuccess": "ok-with-omitted-value",
+      "failure": "structured-error"
+    },
+    "stream": {
+      "requestArguments": "args",
+      "frames": [
+        "value",
+        "error"
+      ],
+      "cancellation": "transport-abort"
+    },
+    "remoteEvents": {
+      "downlink": [
+        "ready",
+        "emit",
+        "waterfall",
+        "cancel"
+      ],
+      "resultOutcomes": [
+        "next",
+        "result",
+        "rejected"
+      ],
+      "clientIdentity": "ready.clientId"
+    },
+    "sequence": {
+      "event": "monotonic-seq",
+      "cursor": "highest-included-seq",
+      "replay": "ignore-seq-at-or-below-cursor"
+    },
+    "compatibility": {
+      "unknownOptionalFields": "ignore",
+      "unknownEventTypes": "preserve",
+      "missingRequiredFields": "reject"
+    },
+    "routes": {
+      "pair": "/link/pair",
+      "describe": "/link/describe",
+      "unaryPrefix": "/api/",
+      "streamPrefix": "/link/stream/",
+      "remoteEventStream": "$events",
+      "remoteEventResult": "$events/result"
+    },
+    "authenticationHeaders": {
+      "deviceId": "x-dsh-device-id",
+      "timestamp": "x-dsh-timestamp",
+      "signature": "x-dsh-signature"
+    }
+  },
+  "$defs": {
+    "LinkDeviceRole": {
+      "type": "string",
+      "enum": [
+        "observer",
+        "controller",
+        "administrator"
+      ]
+    },
+    "LinkError": {
+      "type": "string",
+      "enum": [
+        "link-unavailable",
+        "link-disabled",
+        "bad-request"
+      ]
+    },
+    "LinkJsonValue": true,
+    "LinkPairRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "deviceName": {
+          "type": "string"
+        },
+        "devicePublicKey": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "deviceName",
+        "devicePublicKey"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRpcPayload": {
+      "type": "object",
+      "properties": {
+        "args": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "args"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRpcRequestEnvelope": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "client-request"
+        },
+        "rpcId": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/LinkRpcPayload"
+        }
+      },
+      "required": [
+        "type",
+        "rpcId",
+        "method",
+        "payload"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRpcError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRpcResult": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "value": true,
+        "error": {
+          "$ref": "#/$defs/LinkRpcError"
+        }
+      },
+      "required": [
+        "ok"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRpcResponseEnvelope": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "server-response"
+        },
+        "rpcId": {
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/LinkRpcResult"
+        }
+      },
+      "required": [
+        "type",
+        "rpcId",
+        "result"
+      ],
+      "additionalProperties": true
+    },
+    "LinkStreamRequest": {
+      "type": "object",
+      "properties": {
+        "args": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "args"
+      ],
+      "additionalProperties": true
+    },
+    "LinkStreamFrameKind": {
+      "type": "string",
+      "enum": [
+        "v",
+        "e"
+      ]
+    },
+    "LinkStreamFrame": {
+      "type": "object",
+      "properties": {
+        "k": {
+          "$ref": "#/$defs/LinkStreamFrameKind"
+        },
+        "v": true,
+        "c": {
+          "type": "string"
+        },
+        "m": {
+          "type": "string"
+        },
+        "d": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "k"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventFrameKind": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "emit",
+        "waterfall",
+        "cancel"
+      ]
+    },
+    "LinkRemoteEventOutcomeKind": {
+      "type": "string",
+      "enum": [
+        "next",
+        "result",
+        "rejected"
+      ]
+    },
+    "LinkRemoteEventHostInfo": {
+      "type": "object",
+      "properties": {
+        "home": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "home"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventReadyFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ready"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "host": {
+          "$ref": "#/$defs/LinkRemoteEventHostInfo"
+        }
+      },
+      "required": [
+        "type",
+        "clientId",
+        "host"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventEmitFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "emit"
+        },
+        "event": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": true
+        }
+      },
+      "required": [
+        "type",
+        "event",
+        "args"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventWaterfallFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "waterfall"
+        },
+        "event": {
+          "type": "string"
+        },
+        "eventId": {
+          "type": "string"
+        },
+        "agentId": {
+          "type": "string"
+        },
+        "request": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "type",
+        "event",
+        "eventId",
+        "agentId",
+        "request"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventCancelFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "cancel"
+        },
+        "eventId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "eventId"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventRejection": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "details": true
+      },
+      "required": [
+        "name",
+        "message"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventOutcome": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/LinkRemoteEventOutcomeKind"
+        },
+        "value": true,
+        "error": {
+          "$ref": "#/$defs/LinkRemoteEventRejection"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": true
+    },
+    "LinkRemoteEventResult": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string"
+        },
+        "eventId": {
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/LinkRemoteEventOutcome"
+        }
+      },
+      "required": [
+        "clientId",
+        "eventId",
+        "outcome"
+      ],
+      "additionalProperties": true
+    },
+    "LinkSessionEventRecord": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "number"
+        },
+        "time": {
+          "type": "number"
+        },
+        "data": true,
+        "sourceEventSeqs": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "surfaceOp": true
+      },
+      "required": [
+        "type",
+        "seq",
+        "time",
+        "data"
+      ],
+      "additionalProperties": true
+    },
+    "LinkSessionSnapshotFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "snapshot"
+        },
+        "header": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "cursor": {
+          "type": "number"
+        },
+        "records": {
+          "type": "array",
+          "items": true
+        },
+        "hasMore": {
+          "type": "boolean"
+        },
+        "projections": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "type",
+        "header",
+        "cursor",
+        "records",
+        "hasMore",
+        "projections"
+      ],
+      "additionalProperties": true
+    },
+    "LinkPairingPayload": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "kind": {
+          "const": "dsh-link-pairing"
+        },
+        "hostId": {
+          "type": "string"
+        },
+        "hostName": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "spkiFingerprint": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "v",
+        "kind",
+        "hostId",
+        "hostName",
+        "endpoint",
+        "spkiFingerprint",
+        "code",
+        "expiresAt"
+      ],
+      "additionalProperties": true
+    },
+    "LinkPairResponse": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string"
+        },
+        "hostId": {
+          "type": "string"
+        },
+        "hostName": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/LinkDeviceRole"
+        },
+        "linkProtocolVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "deviceId",
+        "hostId",
+        "hostName",
+        "role",
+        "linkProtocolVersion"
+      ],
+      "additionalProperties": true
+    },
+    "LinkSessionCapabilities": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "boolean"
+        },
+        "history": {
+          "type": "boolean"
+        },
+        "follow": {
+          "type": "boolean"
+        },
+        "prompt": {
+          "type": "boolean"
+        },
+        "cancel": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "list",
+        "history",
+        "follow",
+        "prompt",
+        "cancel"
+      ],
+      "additionalProperties": true
+    },
+    "LinkWorkspaceCapabilities": {
+      "type": "object",
+      "properties": {
+        "follow": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "follow"
+      ],
+      "additionalProperties": true
+    },
+    "LinkInteractionCapabilities": {
+      "type": "object",
+      "properties": {
+        "approval": {
+          "type": "boolean"
+        },
+        "question": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "approval",
+        "question"
+      ],
+      "additionalProperties": true
+    },
+    "LinkCapabilities": {
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/$defs/LinkSessionCapabilities"
+        },
+        "workspace": {
+          "$ref": "#/$defs/LinkWorkspaceCapabilities"
+        },
+        "interaction": {
+          "$ref": "#/$defs/LinkInteractionCapabilities"
+        }
+      },
+      "required": [
+        "session",
+        "workspace",
+        "interaction"
+      ],
+      "additionalProperties": true
+    },
+    "LinkHostDescription": {
+      "type": "object",
+      "properties": {
+        "linkProtocolVersion": {
+          "type": "number"
+        },
+        "contractVersion": {
+          "type": "number"
+        },
+        "hostVersion": {
+          "type": "string"
+        },
+        "hostId": {
+          "type": "string"
+        },
+        "hostName": {
+          "type": "string"
+        },
+        "runtimeClass": {
+          "type": "string"
+        },
+        "sessionFormatVersion": {
+          "type": "number"
+        },
+        "allowRemoteApproval": {
+          "type": "boolean"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/LinkCapabilities"
+        }
+      },
+      "required": [
+        "linkProtocolVersion",
+        "contractVersion",
+        "hostVersion",
+        "hostId",
+        "hostName",
+        "runtimeClass",
+        "sessionFormatVersion",
+        "allowRemoteApproval",
+        "capabilities"
+      ],
+      "additionalProperties": true
+    },
+    "LinkCarrierStatus": {
+      "type": "object",
+      "properties": {
+        "listening": {
+          "type": "boolean"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "spkiFingerprint": {
+          "type": "string"
+        },
+        "bindError": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "listening"
+      ],
+      "additionalProperties": true
+    },
+    "LinkDeviceRecord": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/LinkDeviceRole"
+        },
+        "createdAt": {
+          "type": "number"
+        },
+        "lastSeenAt": {
+          "type": "number"
+        },
+        "revokedAt": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "deviceId",
+        "name",
+        "role",
+        "createdAt"
+      ],
+      "additionalProperties": true
+    },
+    "LinkAdminStatus": {
+      "type": "object",
+      "properties": {
+        "listening": {
+          "type": "boolean"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "spkiFingerprint": {
+          "type": "string"
+        },
+        "bindError": {
+          "type": "string"
+        },
+        "hostName": {
+          "type": "string"
+        },
+        "allowRemoteApproval": {
+          "type": "boolean"
+        },
+        "deviceCount": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "listening",
+        "hostName",
+        "allowRemoteApproval",
+        "deviceCount"
+      ],
+      "additionalProperties": true
+    },
+    "LinkSessionEventKind": {
+      "type": "string",
+      "enum": [
+        "turn/start",
+        "turn/end",
+        "step/start",
+        "step/end",
+        "user/message",
+        "assistant/chunk",
+        "assistant/message",
+        "tool/call",
+        "tool/result",
+        "artifact/created",
+        "artifact/status",
+        "plan/mode",
+        "todo/write",
+        "goal/change",
+        "session/end-seed"
+      ]
+    },
+    "LinkChunkRowKind": {
+      "type": "string",
+      "enum": [
+        "chunkrow/text-chunks",
+        "chunkrow/reasoning-chunks",
+        "chunkrow/tool-call-chunks"
+      ]
+    },
+    "LinkArtifactStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "ready",
+        "failed"
+      ]
+    },
+    "LinkArtifactFormat": {
+      "type": "string",
+      "enum": [
+        "text",
+        "bytes"
+      ]
+    },
+    "LinkTodoStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed"
+      ]
+    },
+    "LinkTurnEndReasonKind": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "aborted",
+        "blocked",
+        "error",
+        "max-tokens",
+        "interrupted"
+      ]
+    },
+    "LinkGoalOperation": {
+      "type": "string",
+      "enum": [
+        "create",
+        "edit",
+        "pause",
+        "resume",
+        "complete",
+        "block",
+        "clear"
+      ]
+    },
+    "LinkGoalPhase": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "blocked",
+        "complete"
+      ]
+    },
+    "LinkTodoItem": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/LinkTodoStatus"
+        }
+      },
+      "required": [
+        "content",
+        "status"
+      ],
+      "additionalProperties": true
+    },
+    "LinkTodoWriteData": {
+      "type": "object",
+      "properties": {
+        "todos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkTodoItem"
+          }
+        }
+      },
+      "required": [
+        "todos"
+      ],
+      "additionalProperties": true
+    },
+    "LinkArtifactCreatedData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "format": {
+          "$ref": "#/$defs/LinkArtifactFormat"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "format"
+      ],
+      "additionalProperties": true
+    },
+    "LinkArtifactStatusData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/LinkArtifactStatus"
+        }
+      },
+      "required": [
+        "id",
+        "status"
+      ],
+      "additionalProperties": true
+    },
+    "LinkPlanModeData": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "active"
+      ],
+      "additionalProperties": true
+    },
+    "LinkGoalBlockReason": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": true
+    },
+    "LinkGoalSnapshot": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "number"
+        },
+        "objective": {
+          "type": "string"
+        },
+        "phase": {
+          "$ref": "#/$defs/LinkGoalPhase"
+        },
+        "blockedReason": {
+          "$ref": "#/$defs/LinkGoalBlockReason"
+        },
+        "maxGoalRounds": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "objective",
+        "phase",
+        "maxGoalRounds"
+      ],
+      "additionalProperties": true
+    },
+    "LinkGoalChangeData": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "goal/change"
+        },
+        "version": {
+          "const": 1
+        },
+        "operation": {
+          "$ref": "#/$defs/LinkGoalOperation"
+        },
+        "goal": {
+          "$ref": "#/$defs/LinkGoalSnapshot"
+        },
+        "roundsStarted": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "number"
+        },
+        "clearedAt": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "version",
+        "operation"
+      ],
+      "additionalProperties": true
+    },
+    "LinkTurnStartData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "turn"
+      ],
+      "additionalProperties": true
+    },
+    "LinkTurnEndReason": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/LinkTurnEndReasonKind"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": true
+    },
+    "LinkTurnEndData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "reason": {
+          "$ref": "#/$defs/LinkTurnEndReason"
+        }
+      },
+      "required": [
+        "turn",
+        "reason"
+      ],
+      "additionalProperties": true
+    },
+    "LinkStepSpanData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "turn",
+        "step"
+      ],
+      "additionalProperties": true
+    },
+    "LinkMessageSource": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "plugin": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "callId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": true
+    },
+    "LinkContentBlock": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "toolCallId": {
+          "type": "string"
+        },
+        "isError": {
+          "type": "boolean"
+        },
+        "attachment": {
+          "$ref": "#/$defs/LinkImageAttachmentRef"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkContentBlock"
+          }
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
+    "LinkUserMessageData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "role": {
+          "const": "user"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkContentBlock"
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/LinkMessageSource"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "content",
+        "source"
+      ],
+      "additionalProperties": true
+    },
+    "LinkStreamChunk": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "index": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
+    "LinkAssistantChunkData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "chunk": {
+          "$ref": "#/$defs/LinkStreamChunk"
+        }
+      },
+      "required": [
+        "turn",
+        "step",
+        "chunk"
+      ],
+      "additionalProperties": true
+    },
+    "LinkTokenUsage": {
+      "type": "object",
+      "properties": {
+        "inputTokens": {
+          "type": "number"
+        },
+        "outputTokens": {
+          "type": "number"
+        },
+        "totalTokens": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "inputTokens",
+        "outputTokens"
+      ],
+      "additionalProperties": true
+    },
+    "LinkAssistantMessage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "role": {
+          "const": "assistant"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkContentBlock"
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/LinkMessageSource"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "content",
+        "source"
+      ],
+      "additionalProperties": true
+    },
+    "LinkAssistantMessageData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "message": {
+          "$ref": "#/$defs/LinkAssistantMessage"
+        },
+        "usage": {
+          "$ref": "#/$defs/LinkTokenUsage"
+        },
+        "interrupted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "turn",
+        "step",
+        "message"
+      ],
+      "additionalProperties": true
+    },
+    "LinkToolCallData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "callId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "arguments": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "turn",
+        "step",
+        "callId",
+        "name",
+        "arguments"
+      ],
+      "additionalProperties": true
+    },
+    "LinkToolError": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "code"
+      ],
+      "additionalProperties": true
+    },
+    "LinkToolResultMessage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "role": {
+          "const": "user"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkContentBlock"
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/LinkMessageSource"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "content",
+        "source"
+      ],
+      "additionalProperties": true
+    },
+    "LinkToolResultData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "message": {
+          "$ref": "#/$defs/LinkToolResultMessage"
+        },
+        "error": {
+          "$ref": "#/$defs/LinkToolError"
+        }
+      },
+      "required": [
+        "turn",
+        "step",
+        "message"
+      ],
+      "additionalProperties": true
+    },
+    "LinkTextChunksData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "index": {
+          "type": "number"
+        },
+        "dt": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "texts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "turn",
+        "step",
+        "index",
+        "dt",
+        "texts"
+      ],
+      "additionalProperties": true
+    },
+    "LinkToolCallChunksData": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "index": {
+          "type": "number"
+        },
+        "dt": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "turn",
+        "step",
+        "index",
+        "dt",
+        "id",
+        "args"
+      ],
+      "additionalProperties": true
+    },
+    "LinkFileEntryType": {
+      "type": "string",
+      "enum": [
+        "file",
+        "directory",
+        "other"
+      ]
+    },
+    "LinkFileEntry": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/LinkFileEntryType"
+        },
+        "size": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "additionalProperties": true
+    },
+    "LinkFileListValue": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkFileEntry"
+          }
+        }
+      },
+      "required": [
+        "path",
+        "entries"
+      ],
+      "additionalProperties": true
+    },
+    "LinkSubagentActivity": {
+      "type": "string",
+      "enum": [
+        "running",
+        "inactive"
+      ]
+    },
+    "LinkSubagentMode": {
+      "type": "string",
+      "enum": [
+        "one-shot",
+        "continuable"
+      ]
+    },
+    "LinkSubagentDiagnosticReason": {
+      "type": "string",
+      "enum": [
+        "corrupt",
+        "unsupported",
+        "unavailable"
+      ]
+    },
+    "LinkSubagentEntry": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "child"
+        },
+        "id": {
+          "type": "string"
+        },
+        "activity": {
+          "$ref": "#/$defs/LinkSubagentActivity"
+        },
+        "hasChildren": {
+          "type": "boolean"
+        },
+        "mode": {
+          "$ref": "#/$defs/LinkSubagentMode"
+        },
+        "label": {
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/LinkSubagentDiagnosticReason"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "additionalProperties": true
+    },
+    "LinkSubagentCatalog": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkSubagentEntry"
+          }
+        },
+        "parentAvailable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "entries",
+        "parentAvailable"
+      ],
+      "additionalProperties": true
+    },
+    "LinkFileReadValue": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "size": {
+          "type": "number"
+        },
+        "mediaType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "truncated",
+        "size",
+        "mediaType"
+      ],
+      "additionalProperties": true
+    },
+    "LinkImageMediaType": {
+      "type": "string",
+      "enum": [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif"
+      ]
+    },
+    "LinkImageDimensions": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "additionalProperties": true
+    },
+    "LinkImageAttachmentRef": {
+      "type": "object",
+      "properties": {
+        "attachmentId": {
+          "type": "string"
+        },
+        "mediaType": {
+          "$ref": "#/$defs/LinkImageMediaType"
+        },
+        "bytes": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "originalDimensions": {
+          "$ref": "#/$defs/LinkImageDimensions"
+        }
+      },
+      "required": [
+        "attachmentId",
+        "mediaType",
+        "bytes",
+        "width",
+        "height"
+      ],
+      "additionalProperties": true
+    },
+    "LinkArtifactReadValue": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "format": {
+          "$ref": "#/$defs/LinkArtifactFormat"
+        },
+        "data": {
+          "type": "string"
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "size": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "format",
+        "data",
+        "truncated",
+        "size"
+      ],
+      "additionalProperties": true
+    },
+    "LinkHandoffContextRole": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ]
+    },
+    "LinkHandoffContextRow": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/LinkHandoffContextRole"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "text"
+      ],
+      "additionalProperties": true
+    },
+    "LinkHandoffTodo": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "status"
+      ],
+      "additionalProperties": true
+    },
+    "LinkHandoffArtifactRef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/LinkArtifactStatus"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "status"
+      ],
+      "additionalProperties": true
+    },
+    "LinkHandoffProvenance": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "at": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "deviceId",
+        "platform",
+        "at"
+      ],
+      "additionalProperties": true
+    },
+    "LinkHandoffRuntime": {
+      "type": "string",
+      "enum": [
+        "lite"
+      ]
+    },
+    "LinkHandoffSnapshot": {
+      "type": "object",
+      "properties": {
+        "sourceSessionId": {
+          "type": "string"
+        },
+        "sourceRuntime": {
+          "$ref": "#/$defs/LinkHandoffRuntime"
+        },
+        "requestedCapability": {
+          "type": "string"
+        },
+        "recentContext": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkHandoffContextRow"
+          }
+        },
+        "planActive": {
+          "type": "boolean"
+        },
+        "todo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkHandoffTodo"
+          }
+        },
+        "artifactRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LinkHandoffArtifactRef"
+          }
+        },
+        "modelPreference": {
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/LinkHandoffProvenance"
+        }
+      },
+      "required": [
+        "sourceSessionId",
+        "sourceRuntime",
+        "requestedCapability",
+        "recentContext",
+        "planActive",
+        "todo",
+        "artifactRefs",
+        "provenance"
+      ],
+      "additionalProperties": true
+    },
+    "LinkHandoffValue": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sessionId"
+      ],
+      "additionalProperties": true
+    },
+    "LinkAttachmentReadValue": {
+      "type": "object",
+      "properties": {
+        "attachment": {
+          "$ref": "#/$defs/LinkImageAttachmentRef"
+        },
+        "data": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment",
+        "data"
+      ],
+      "additionalProperties": true
+    },
+    "LinkPromptImagePart": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "image"
+        },
+        "mediaType": {
+          "$ref": "#/$defs/LinkImageMediaType"
+        },
+        "data": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "mediaType",
+        "data"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

@@ -3,6 +3,7 @@
 import { attributionHeaders, LlmError } from '@deepseek-ai/dsh-llm'
 import type { ImageMediaType } from '@deepseek-ai/dsh-attachment'
 import { DeepSeekFileId } from './file-id.ts'
+import { filesEndpoint } from './files-endpoint.ts'
 import type { DeepSeekFileId as DeepSeekFileIdType } from './file-id.ts'
 
 /** Minimum provider-supported file lifetime. */
@@ -134,7 +135,7 @@ export class DeepSeekFilesClient {
    * @param options - endpoint, API-key snapshot, and optional test transport.
    */
   constructor(options: FilesApiOptions) {
-    this.baseURL = options.baseURL.replace(/\/+$/u, '')
+    this.baseURL = filesEndpoint(options.baseURL)
     this.apiKey = options.apiKey
     this.fetchImpl = options.fetch ?? globalThis.fetch
   }

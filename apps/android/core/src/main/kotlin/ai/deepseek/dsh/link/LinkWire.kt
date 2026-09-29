@@ -67,7 +67,9 @@ data class LinkRequestEnvelope(val rpcId: String, val method: String, val args: 
         put("type", "client-request")
         put("rpcId", rpcId)
         put("method", method)
-        put("payload", buildJsonObject { args.forEach { (key, value) -> put(key, value.toJsonElement()) } })
+        put("payload", buildJsonObject {
+            put("args", buildJsonObject { args.forEach { (key, value) -> put(key, value.toJsonElement()) } })
+        })
     }
 }
 
@@ -92,13 +94,14 @@ data class LinkResult(
     }
 }
 
-/** One whole server response: `{ type, result }`. */
-data class LinkResponseEnvelope(val type: String, val result: LinkResult) {
+/** One whole server response: `{ type, rpcId, result }`. */
+data class LinkResponseEnvelope(val type: String, val rpcId: String, val result: LinkResult) {
     companion object {
         fun fromJsonElement(element: JsonElement): LinkResponseEnvelope {
             val obj = element.jsonObject
             return LinkResponseEnvelope(
                 type = obj["type"]?.jsonPrimitive?.takeIf { it.isString }?.content ?: "",
+                rpcId = obj["rpcId"]?.jsonPrimitive?.takeIf { it.isString }?.content ?: "",
                 result = LinkResult.fromJsonElement(obj["result"] ?: JsonObject(emptyMap())),
             )
         }
@@ -106,13 +109,13 @@ data class LinkResponseEnvelope(val type: String, val result: LinkResult) {
 }
 
 /** One NDJSON Remote-stream frame: `{"k":"v","v":…}` or `{"k":"e",…}`. */
-data class LinkStreamFrame(val kind: String, val value: WireValue?, val code: String?, val message: String?) {
+data class DecodedLinkStreamFrame(val kind: String, val value: WireValue?, val code: String?, val message: String?) {
     val isFailure: Boolean get() = kind == "e"
 
     companion object {
-        fun fromJsonElement(element: JsonElement): LinkStreamFrame {
+        fun fromJsonElement(element: JsonElement): DecodedLinkStreamFrame {
             val obj = element.jsonObject
-            return LinkStreamFrame(
+            return DecodedLinkStreamFrame(
                 kind = obj["k"]?.jsonPrimitive?.takeIf { it.isString }?.content ?: "",
                 value = obj["v"]?.let { WireValue.fromJsonElement(it) },
                 code = obj["c"]?.jsonPrimitive?.takeIf { it.isString }?.content,

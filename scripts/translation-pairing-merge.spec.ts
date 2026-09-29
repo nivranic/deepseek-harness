@@ -261,7 +261,8 @@ function expectMergedPair(fixture: Fixture): void {
   )
 }
 
-describe('translation pairing merge composition', { timeout: 15_000 }, () => {
+// Real Git histories and driver processes share the heavy CI lane's 90-second budget.
+describe('translation pairing merge composition', { timeout: 90_000 }, () => {
   it('rejects a pairing-record path outside the repository', () => {
     const fixture = createFixture(false)
 

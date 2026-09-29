@@ -40,6 +40,8 @@ Client source 声明类型化 Runtime、Console 和只读 Sources 能力。`Runt
 
 两个插件面运行同一份浏览器安全 Cordis collector。它把可达 Context 与 Fiber 对象转换成有版本的 `CordisTreeSnapshot`；Worker 存储这份与 CDP 无关的表示，并把每个 Host 或 Client source 投影到 Elements 面板。
 
+Worker 在启用 Runtime 前订阅 Console 事件。每个已连接 Client 在有序 source socket 上处理完先前的 Console 控制消息后确认 session 就绪；`Runtime.enable` 等待这些回复，之后加入的 Client 也只在自身回复后发布 context。断连或达到配置的 Runtime deadline 会拒绝待完成的就绪请求。独立的 Cordis 树快照不依赖 Runtime 激活。
+
 <a id="configuration"></a>
 ## 配置
 

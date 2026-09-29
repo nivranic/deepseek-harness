@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-relay-rendezvous-foundation.md
-2026-08-31-relay-rendezvous-foundation.md: 1593e1d6d0e7973993741ba1936277a70bfed92f
-2026-08-31-relay-rendezvous-foundation.zh.md: 9d55c12ecad117f43dfd71731fca2f5ecc230e29
+2026-08-31-relay-rendezvous-foundation.md: fc70f1e060f6088faf9e4441575b480a55899488
+2026-08-31-relay-rendezvous-foundation.zh.md: 8e5673a49b1c7ac475ada3ec1793f3e88719ed99

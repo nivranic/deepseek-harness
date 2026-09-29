@@ -16,6 +16,8 @@ Web 壳的启动 HTML 需要三类注入：client-modules 的引导协议（`__M
 
 `tapIndex`/`applyIndexTaps` 保留为原始 HTML 变换的逃生口，在行渲染之后执行；内部消费者全部迁走。
 
+served 渲染器只定位一次开始标签前缀，再查找其后的第一个 `>`。重复的未闭合前缀因此不会触发对剩余文档的重叠扫描。该方式保留已有的文本插入位置和片段回退行为；完整 HTML 解析器会改变这些位置并重新序列化无关标记。有时限的子进程回归可以中断同步查找失败，Loader 组合则固定注入顺序与渲染输出。
+
 ## Consequences
 
 - client-modules 与 ui-theme 不再各自正则改 HTML；worker 侧 `readBootPayload` 的 `ctx.get` 手掏（clientModules、settings、theme 常量 loader.load）删除；页面侧 `installModuleLoaderFacade`、`applyBootTheme`、`PARSER_PRELOAD_IDS` 三份重抄退役。

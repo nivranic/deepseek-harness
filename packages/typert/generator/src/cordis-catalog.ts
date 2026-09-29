@@ -7,6 +7,7 @@
 
 import { WorkspaceAnalyzer, WorkspaceCaches } from './analyzer.ts'
 import { childTypeNodeIds } from './model.ts'
+import { parseJsDoc } from './jsdoc.ts'
 import { TypeGraphRenderer } from './renderer.ts'
 import type {
   FaceModel,
@@ -412,121 +413,6 @@ export function collectEvents(scanRoot: string, policy: CordisCatalogPolicy): Ev
  */
 export function collectServices(scanRoot: string, policy: CordisCatalogPolicy): ServiceEntry[] {
   return [...projectCordisCatalog(scanRoot, policy).model.services]
-}
-
-interface ParsedJsDoc {
-  readonly doc: string
-  readonly params: ReadonlyMap<string, string>
-  readonly returns: string | null
-  readonly throws: readonly string[]
-  readonly deprecated: boolean
-}
-
-function parseJsDoc(raw: string): ParsedJsDoc {
-  const lines = raw
-    .replace(/^\/\*\*/, '')
-    .replace(/\*\/$/, '')
-    .split('\n')
-    .map(line => line.replace(/^\s*\*?\s?/, '').replace(/\s+$/, ''))
-  const blocks: string[] = []
-  let paragraph: string[] = []
-  let list: string[] = []
-  let item: string[] = []
-  let inTags = false
-  const join = (parts: readonly string[]): string => parts.join(' ').replace(/\s+/g, ' ').trim()
-  const flushItem = (): void => {
-    if (item.length > 0) list.push(join(item))
-    item = []
-  }
-  const flushList = (): void => {
-    flushItem()
-    if (list.length > 0) blocks.push(list.join('\n'))
-    list = []
-  }
-  const flushParagraph = (): void => {
-    flushList()
-    if (paragraph.length > 0) blocks.push(join(paragraph))
-    paragraph = []
-  }
-  for (const line of lines) {
-    const tagLine = line.trimStart()
-    if (tagLine.startsWith('@')) {
-      flushParagraph()
-      inTags = true
-      continue
-    }
-    if (inTags) continue
-    if (line.trim() === '') {
-      flushParagraph()
-      continue
-    }
-    if (/^-\s+/.test(line)) {
-      flushItem()
-      if (paragraph.length > 0) {
-        blocks.push(join(paragraph))
-        paragraph = []
-      }
-      item.push(line)
-      continue
-    }
-    if (item.length > 0) item.push(line)
-    else paragraph.push(line)
-  }
-  flushParagraph()
-
-  const params = new Map<string, string>()
-  let returns: string | null = null
-  const throws: string[] = []
-  let deprecated = false
-  let sink: ((text: string) => void) | undefined
-  for (const line of lines) {
-    if (/^@deprecated(?:\s|$)/.test(line)) {
-      deprecated = true
-      sink = undefined
-      continue
-    }
-    const param = /^@param\s+(\[?[\w$]+\]?)\s*(?:[-—–]\s*)?(.*)$/.exec(line)
-    if (param !== null) {
-      const name = (param[1] ?? '').replace(/^\[|\]$/g, '')
-      let value = param[2] ?? ''
-      params.set(name, value)
-      sink = (text) => {
-        value = value === '' ? text : `${value} ${text}`
-        params.set(name, value)
-      }
-      continue
-    }
-    const returnsTag = /^@returns?(?:\s+[-—–]?\s*(.*))?$/.exec(line)
-    if (returnsTag !== null) {
-      let value = returnsTag[1] ?? ''
-      returns = value
-      sink = (text) => {
-        value = value === '' ? text : `${value} ${text}`
-        returns = value
-      }
-      continue
-    }
-    const throwsTag = /^@throws?(?:\s+[-—–]?\s*(.*))?$/.exec(line)
-    if (throwsTag !== null) {
-      let value = throwsTag[1] ?? ''
-      throws.push(value)
-      const index = throws.length - 1
-      sink = (text) => {
-        value = value === '' ? text : `${value} ${text}`
-        throws[index] = value
-      }
-      continue
-    }
-    if (line.startsWith('@') || line.trim() === '') sink = undefined
-    else sink?.(line.trim())
-  }
-  return {
-    doc: blocks.join('\n\n').replace(/\{@link\s+([^}]+)\}/g, '$1').trim(),
-    params,
-    returns,
-    throws,
-    deprecated,
-  }
 }
 
 function checkParams(

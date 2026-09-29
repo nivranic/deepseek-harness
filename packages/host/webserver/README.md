@@ -50,6 +50,8 @@ Set `compression: 'gzip'` to wrap eligible socket-backed responses without chang
 
 Index startup inputs are two layers. `collectIndexInjections()` gathers a fresh injection table — one `webserver/index-inject` emit per call, each subscriber pushing its current rows — and `renderIndex(html)` renders those rows into the index.html body before applying the raw `tapIndex(transform)` transforms in registration order. A `script-preload` row renders an advisory classic-script preload link. Static deployments carry the same rows in their boot payload. `applyIndexTaps(html)` applies only the raw transforms; it is the escape hatch for markup no row expresses.
 
+Opening-tag lookup remains linear for repeated unclosed `head` or `body` prefixes. It uses case-insensitive tag names and the first following `>`; it does not parse HTML attributes, comments or scripts. A missing complete opening tag makes head rows prepend and body rows append.
+
 ### Behavior under failure
 
 A listen failure (for example EADDRINUSE) rejects plugin initialization with the bind diagnostic. An HTTP request whose handler throws is answered 400 — or the socket destroyed when headers are already out — and logged as a warning; it never exits the process. An upgrade-handler exception or upgraded-socket transport error logs a warning and destroys its socket.

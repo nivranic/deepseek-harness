@@ -1,0 +1,3 @@
+- button "Settings":
+  - img
+  - text: Settings

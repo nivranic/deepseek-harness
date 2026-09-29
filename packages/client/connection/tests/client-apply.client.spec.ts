@@ -61,7 +61,9 @@ async function mount(): Promise<ConnectionHandle> {
 describe('connection client apply', () => {
   it('treats a runtime without browser location as local', async () => {
     delete (globalThis as Win).location
-    expect((await mount()).isLoopback).toBe(true)
+    const handle = await mount()
+    expect(handle.isLoopback).toBe(true)
+    expect(handle.diagnosticSnapshot()).toEqual({ state: 'idle', attempts: 0, interruptions: 0, countsSaturated: false })
   })
 
   it('mounts ctx.connection and identifies a loopback page', async () => {
@@ -151,9 +153,11 @@ describe('connection client apply', () => {
     })
     first.stop()
     expect(handle.generation.getSnapshot()?.host.home).toBe('/h')
+    expect(handle.diagnosticSnapshot()).toEqual({ state: 'connected', attempts: 1, interruptions: 0, countsSaturated: false })
 
     second.stop()
     generation.end()
+    await vi.waitFor(() => { expect(handle.diagnosticSnapshot().state).toBe('stopped') })
   })
 
   it('does not announce a generation synchronously stopped by a generation subscriber', async () => {

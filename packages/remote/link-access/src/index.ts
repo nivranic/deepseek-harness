@@ -5,9 +5,9 @@
  * allowlist, and dispatches onto the existing Typert gateway surface — unary
  * RPC through the Connection shared `/api` fetch handler and Remote streams
  * through `typertGateway.wireStream` as NDJSON, the same adapter pair the
- * desktop carrier uses. The carrier owns no session, workspace, or approval
- * state; revoking a device in the trust store cuts its authorization on the
- * next request.
+ * desktop carrier uses. Device Trust owns persisted resource grants, while
+ * Session, Workspace, and Gateway owners retain business and pending-event
+ * state. Revocation cuts the next request and closes that device's event stream.
  * @module @deepseek-ai/dsh-link-access
  */
 
@@ -24,17 +24,33 @@ import type { ConnectionFetchHandler } from '@deepseek-ai/dsh-client-connection'
 // Activates the typertGateway Context merge used by the stream route.
 import type {} from '@deepseek-ai/dsh-api-gateway'
 import {
+  DeviceSessionGrantId,
   DeviceTrustError,
+  DeviceWorkspaceGrantId,
+  type DeviceAccess,
   type DeviceId,
   type PairedDevice,
 } from '@deepseek-ai/dsh-device-trust'
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import { SESSION_FORMAT_VERSION } from '@deepseek-ai/dsh-session/types'
 import z from '@deepseek-ai/schemastery'
+import {
+  authorizeScopedRequest,
+  delegateLinkEventGeneration,
+  filterLinkStreamValue,
+  filterLinkUnaryResponse,
+  interactionCorrelation,
+  linkRpcSucceeded,
+  parseScopedRpcArgs,
+  projectLinkRemoteEvent,
+  scopedStreamArgs,
+  type LinkEventGeneration,
+} from './authorization.ts'
 import { ensureHostTlsMaterial } from './tls.ts'
 import {
   DEFAULT_LINK_ENDPOINTS,
   LINK_API_PREFIX,
+  LINK_CONTRACT_VERSION,
   LINK_DEFAULT_MAX_REQUEST_BODY_BYTES,
   LINK_DESCRIBE_PATH,
   LINK_DEVICE_ID_HEADER,
@@ -49,11 +65,14 @@ import {
   linkSigningInput,
   pairingEndpoint,
   parseLinkPairRequest,
+  resolveLinkEndpointScope,
   type LinkCarrierStatus,
+  type LinkDiagnosticsSnapshot,
   type LinkEndpointAccess,
   type LinkEndpointInput,
   type LinkHostDescription,
   type LinkPairingPayload,
+  type LinkProtocolDescription,
 } from './protocol.ts'
 
 const require = createRequire(import.meta.url)
@@ -73,6 +92,14 @@ interface CarrierState {
   readonly spkiFingerprint: string
 }
 
+/** Resource grants assigned to every device paired under one carrier configuration. */
+export interface LinkPairingAccessConfig {
+  /** Session identities paired devices may reach, or every Session. */
+  sessions: 'all' | string[]
+  /** Workspace identities paired devices may reach, or every Workspace. */
+  workspaces: 'all' | string[]
+}
+
 /** Plugin configuration. */
 export interface LinkAccessConfig {
   /** Bind the TLS carrier at load. Remote access stays off until this or the runtime switch enables it. */
@@ -88,13 +115,15 @@ export interface LinkAccessConfig {
   dshHome?: string
   /**
    * The complete remote endpoint allowlist, replacing the default surface.
-   * Every row states its invocation kind and minimum device role.
+   * Every row states its invocation kind, minimum device role, and resource policy.
    */
   endpoints?: LinkEndpointInput[]
   /** Independent switch for answering remote approvals and questions; `Can prompt` never implies this. */
   allowRemoteApproval?: boolean
   /** Role granted to devices at pairing. Default `controller` (an ordinary phone). */
   pairingRole?: 'observer' | 'controller'
+  /** Session and Workspace grants persisted for each newly paired device; defaults to both `all`. */
+  pairingAccess?: LinkPairingAccessConfig
   /** Pairing code lifetime in seconds. */
   pairingTtlSeconds?: number
   /** Accepted request-timestamp skew in seconds. */
@@ -113,9 +142,24 @@ export const Config: z<LinkAccessConfig> = z.object({
     endpoint: z.string(),
     kind: z.union(['unary', 'stream'] as const),
     minRole: z.union(['observer', 'controller'] as const),
+    scope: z.union([
+      'unscoped',
+      'session-collection',
+      'session',
+      'session-address',
+      'session-resource',
+      'workspace-collection',
+      'workspace-path',
+      'remote-events',
+      'interaction',
+    ] as const),
   })).default(DEFAULT_LINK_ENDPOINTS),
   allowRemoteApproval: z.boolean().default(false),
   pairingRole: z.union(['observer', 'controller'] as const).default('controller'),
+  pairingAccess: z.object({
+    sessions: z.union([z.const('all'), z.array(z.string().min(1))]),
+    workspaces: z.union([z.const('all'), z.array(z.string().min(1))]),
+  }).default({ sessions: 'all', workspaces: 'all' }),
   pairingTtlSeconds: z.natural().min(30).max(3600).default(300),
   clockSkewSeconds: z.natural().min(30).max(3600).default(300),
   maxRequestBodyBytes: z.natural().min(1).default(LINK_DEFAULT_MAX_REQUEST_BODY_BYTES),
@@ -135,6 +179,7 @@ interface ResolvedLinkAccessConfig extends LinkAccessConfig {
   readonly endpoints: LinkEndpointInput[]
   readonly allowRemoteApproval: boolean
   readonly pairingRole: 'observer' | 'controller'
+  readonly pairingAccess: LinkPairingAccessConfig
   readonly pairingTtlSeconds: number
   readonly clockSkewSeconds: number
   readonly maxRequestBodyBytes: number
@@ -149,8 +194,8 @@ declare module '@deepseek-ai/cordis' {
 
 /**
  * The native remote access carrier service: TLS listener, device
- * authentication, remote endpoint authorization, and the pairing ingress
- * over the existing gateway surface.
+ * authentication, endpoint and resource-scope authorization, pre-socket
+ * projection, and pairing ingress over the existing gateway surface.
  * @typert service linkAccess
  */
 export class LinkAccessService extends Service {
@@ -161,6 +206,7 @@ export class LinkAccessService extends Service {
   private allowRemoteApproval: boolean
   private hostName: string
   private readonly pairingRole: 'observer' | 'controller'
+  private readonly pairingAccess: DeviceAccess
   private readonly pairingTtlSeconds: number
   private readonly clockSkewMs: number
   private readonly maxRequestBodyBytes: number
@@ -169,6 +215,7 @@ export class LinkAccessService extends Service {
   private readonly bindHome: string | undefined
   private readonly sharedFetch: ConnectionFetchHandler
   private readonly lastTouch = new Map<DeviceId, number>()
+  private readonly eventGenerations = new Map<string, LinkEventGeneration>()
   private carrierPromise: Promise<CarrierState> | undefined
   private carrierObserved: Promise<CarrierState | undefined> = Promise.resolve(undefined)
   private carrierQueue: Promise<void> = Promise.resolve()
@@ -187,6 +234,7 @@ export class LinkAccessService extends Service {
     this.allowRemoteApproval = resolved.allowRemoteApproval
     this.hostName = hostname()
     this.pairingRole = resolved.pairingRole
+    this.pairingAccess = pairingAccessFromConfig(resolved.pairingAccess)
     this.pairingTtlSeconds = resolved.pairingTtlSeconds
     this.clockSkewMs = resolved.clockSkewSeconds * 1000
     this.maxRequestBodyBytes = resolved.maxRequestBodyBytes
@@ -194,6 +242,7 @@ export class LinkAccessService extends Service {
     this.bindPort = resolved.port
     this.bindHome = resolved.dshHome
     this.sharedFetch = ctx.connection.createSharedFetchHandler('/api')
+    ctx.on('device-trust/revoked', (deviceId) => { this.closeRevokedDevice(deviceId) })
     if (resolved.enabled) void this.beginCarrier()
     ctx.effect(() => async () => {
       await this.setCarrierEnabled(false)
@@ -234,6 +283,20 @@ export class LinkAccessService extends Service {
     }
   }
 
+  /**
+   * Observe listener state and advertised protocol facts for a local diagnostic collector.
+   * Reading does not bind the listener, issue pairing material, or read the trust store.
+   * @returns a fresh fixed-field snapshot; listener failures contain no exception text.
+   */
+  async diagnostics(): Promise<LinkDiagnosticsSnapshot> {
+    const carrier = await this.carrierStatus()
+    return {
+      schemaVersion: 1,
+      listenerState: carrier.bindError !== undefined ? 'failed' : carrier.listening ? 'listening' : 'stopped',
+      protocol: describeProtocol(this.allowRemoteApproval),
+    }
+  }
+
   /** The device-facing host name; the OS hostname until {@link LinkAccessService.setDeviceName} overrides it.
    * @returns the host name carried in pairing payloads and descriptions.
    */
@@ -259,9 +322,13 @@ export class LinkAccessService extends Service {
 
   /**
    * Flip the independent remote-approval switch without touching the carrier.
+   * Disabling delegates every delivered Link interaction back to the Host chain.
    * @param value - whether paired controllers may answer interactions.
    */
   setAllowRemoteApproval(value: boolean): void {
+    if (this.allowRemoteApproval && !value) {
+      for (const generation of this.eventGenerations.values()) this.delegateGeneration(generation)
+    }
     this.allowRemoteApproval = value
   }
 
@@ -311,12 +378,21 @@ export class LinkAccessService extends Service {
   }
 
   /**
-   * Revoke one paired device; its next request is refused.
+   * Revoke one paired device; its next request is refused and its active
+   * Remote Event generation is delegated and closed.
    * @param deviceId - identity of the device to revoke.
    * @returns the device record after revocation, or `undefined` when unknown.
    */
   async revokeDevice(deviceId: DeviceId): Promise<PairedDevice | undefined> {
     return this.ctx.deviceTrust.revoke(deviceId)
+  }
+
+  private closeRevokedDevice(deviceId: DeviceId): void {
+    for (const generation of this.eventGenerations.values()) {
+      if (generation.deviceId !== deviceId) continue
+      this.delegateGeneration(generation)
+      generation.abort(new Error('link access: paired device was revoked'))
+    }
   }
 
   private beginCarrier(): Promise<CarrierState> {
@@ -343,6 +419,7 @@ export class LinkAccessService extends Service {
     if (current === undefined) return
     const state = await current.catch(() => undefined)
     if (state === undefined) return
+    for (const generation of this.eventGenerations.values()) this.delegateGeneration(generation)
     state.server.closeAllConnections()
     await closeServer(state.server)
     this.carrierObserved = Promise.resolve(undefined)
@@ -401,9 +478,8 @@ export class LinkAccessService extends Service {
         return
       }
       respond(res, 404, { error: 'not-found' })
-    } catch (error) {
-      /* v8 ignore next 2 -- defensive: every route owns its failures; this guard only contains a carrier bug. */
-      respond(res, 500, { error: 'internal', message: messageOf(error) })
+    } catch {
+      respond(res, 500, { error: 'internal', message: 'Internal carrier failure' })
     }
   }
 
@@ -417,8 +493,8 @@ export class LinkAccessService extends Service {
     let request: ReturnType<typeof parseLinkPairRequest>
     try {
       request = parseLinkPairRequest(parseJson(body))
-    } catch (error) {
-      respond(res, 400, { error: 'bad-pairing-request', message: messageOf(error) })
+    } catch {
+      respond(res, 400, { error: 'bad-pairing-request', message: 'Invalid pairing request' })
       return
     }
     try {
@@ -426,12 +502,13 @@ export class LinkAccessService extends Service {
         request.code,
         { name: request.deviceName, publicKeySpki: request.devicePublicKey },
         this.pairingRole,
+        this.pairingAccess,
       )
       const identity = await this.ctx.deviceTrust.hostIdentity()
       respond(res, 200, {
         deviceId: device.deviceId,
         hostId: identity.hostId,
-        hostName: hostname(),
+        hostName: this.hostName,
         role: device.role,
         linkProtocolVersion: LINK_PROTOCOL_VERSION,
       })
@@ -441,7 +518,7 @@ export class LinkAccessService extends Service {
         respond(res, 403, { error: 'pairing-rejected', message: error.message })
         return
       }
-      respond(res, 400, { error: 'bad-pairing-request', message: messageOf(error) })
+      respond(res, 400, { error: 'bad-pairing-request', message: 'Invalid pairing request' })
     }
   }
 
@@ -475,6 +552,46 @@ export class LinkAccessService extends Service {
       respond(res, 403, { error: 'forbidden', reason: refusal })
       return
     }
+    const access = this.table.get(endpoint) as LinkEndpointAccess
+    let interaction: { readonly generation: LinkEventGeneration; readonly eventId: string } | undefined
+    if (access.scope !== 'unscoped' && access.scope !== 'session-collection') {
+      let args: Readonly<Record<string, unknown>>
+      try {
+        args = parseScopedRpcArgs(body, endpoint)
+      } catch {
+        respond(res, 400, { error: 'bad-request', message: 'Invalid RPC request' })
+        return
+      }
+      if (access.scope === 'interaction') {
+        const correlation = interactionCorrelation(args)
+        if (correlation === undefined) {
+          respond(res, 403, { error: 'forbidden', reason: 'interaction' })
+          return
+        }
+        const generation = this.eventGenerations.get(correlation.clientId)
+        if (generation === undefined || generation.deviceId !== device.deviceId) {
+          respond(res, 403, { error: 'forbidden', reason: 'client-generation' })
+          return
+        }
+        if (!generation.eventIds.has(correlation.eventId)
+          || generation.claims.has(correlation.eventId)
+          || !this.ctx.typertGateway.wireStream.isRemoteEventDeliveryPending(
+            correlation.clientId,
+            correlation.eventId,
+          )) {
+          respond(res, 403, { error: 'forbidden', reason: 'interaction' })
+          return
+        }
+        generation.claims.add(correlation.eventId)
+        interaction = { generation, eventId: correlation.eventId }
+      } else {
+        const scopeRefusal = authorizeScopedRequest(endpoint, access.scope, args, device.access)
+        if (scopeRefusal !== undefined) {
+          respond(res, 403, { error: 'forbidden', reason: scopeRefusal })
+          return
+        }
+      }
+    }
     this.touchSoon(device)
     const abort = new AbortController()
     res.once('close', () => {
@@ -489,8 +606,19 @@ export class LinkAccessService extends Service {
       ...body.length > 0 && canSendBody ? { body: body.toString('utf8') } : {},
       signal: abort.signal,
     })
-    const response = await this.sharedFetch.fetch(request)
-    await pumpResponse(res, response)
+    let response: Response
+    try {
+      response = await this.sharedFetch.fetch(request)
+    } catch (error) {
+      interaction?.generation.claims.delete(interaction.eventId)
+      throw error
+    }
+    if (interaction !== undefined) {
+      interaction.generation.claims.delete(interaction.eventId)
+      if (await linkRpcSucceeded(response.clone())) interaction.generation.eventIds.delete(interaction.eventId)
+    }
+    const projected = await filterLinkUnaryResponse(endpoint, response, device.access)
+    await pumpResponse(res, projected)
   }
 
   private async handleStream(req: IncomingMessage, res: ServerResponse, pathname: string): Promise<void> {
@@ -518,9 +646,23 @@ export class LinkAccessService extends Service {
     let payload: unknown
     try {
       payload = parseJson(body)
-    } catch (error) {
-      respond(res, 400, { error: 'bad-stream-request', message: messageOf(error) })
+    } catch {
+      respond(res, 400, { error: 'bad-stream-request', message: 'Invalid stream request' })
       return
+    }
+    const access = this.table.get(endpoint) as LinkEndpointAccess
+    if (access.scope !== 'unscoped' && access.scope !== 'session-collection'
+      && access.scope !== 'workspace-collection' && access.scope !== 'remote-events') {
+      const args = scopedStreamArgs(payload)
+      if (args === undefined) {
+        respond(res, 400, { error: 'bad-stream-request', message: 'stream payload has no named args object' })
+        return
+      }
+      const scopeRefusal = authorizeScopedRequest(endpoint, access.scope, args, device.access)
+      if (scopeRefusal !== undefined) {
+        respond(res, 403, { error: 'forbidden', reason: scopeRefusal })
+        return
+      }
     }
     this.touchSoon(device)
     const lifetime = new AbortController()
@@ -531,10 +673,32 @@ export class LinkAccessService extends Service {
       'content-type': 'application/x-ndjson; charset=utf-8',
       'cache-control': 'no-store',
     })
+    let generation: LinkEventGeneration | undefined
     try {
       const source = await this.ctx.typertGateway.wireStream.open(endpoint, payload, lifetime.signal)
       for await (const item of source) {
-        await writeFrame(res, { k: 'v', v: item })
+        let projected: unknown
+        if (access.scope === 'remote-events') {
+          const event = projectLinkRemoteEvent(item, {
+            device,
+            generation,
+            allowRemoteApproval: this.allowRemoteApproval,
+            isClientActive: clientId => this.eventGenerations.has(clientId),
+            delegate: (clientId, eventId) => {
+              this.ctx.typertGateway.wireStream.delegateRemoteEventDelivery(clientId, eventId)
+            },
+            abort: (reason) => { lifetime.abort(reason) },
+          })
+          if (event.generation !== undefined) {
+            generation = event.generation
+            this.eventGenerations.set(generation.clientId, generation)
+          }
+          projected = event.value
+        } else {
+          projected = filterLinkStreamValue(endpoint, item, device.access)
+        }
+        if (projected === undefined) continue
+        await writeFrame(res, { k: 'v', v: projected })
         if (lifetime.signal.aborted) return
       }
     } catch (error) {
@@ -543,8 +707,17 @@ export class LinkAccessService extends Service {
         await writeFrame(res, { k: 'e', c: failure.code, m: failure.message, d: failure.details })
       }
     } finally {
+      if (generation !== undefined && this.eventGenerations.get(generation.clientId) === generation) {
+        this.eventGenerations.delete(generation.clientId)
+      }
       res.end()
     }
+  }
+
+  private delegateGeneration(generation: LinkEventGeneration): void {
+    delegateLinkEventGeneration(generation, (clientId, eventId) => {
+      this.ctx.typertGateway.wireStream.delegateRemoteEventDelivery(clientId, eventId)
+    })
   }
 
   /**
@@ -611,18 +784,37 @@ function endpointTable(inputs: readonly LinkEndpointInput[]): ReadonlyMap<string
     // allowlist lists it.
     table.set(input.endpoint, {
       ...input,
+      scope: resolveLinkEndpointScope(input.endpoint, input.scope),
       ...(input.endpoint === REMOTE_INTERACTION_ANSWER_ENDPOINT ? { approval: true as const } : {}),
     })
   }
   return table
 }
 
+function pairingAccessFromConfig(config: LinkPairingAccessConfig): DeviceAccess {
+  return {
+    sessions: config.sessions === 'all'
+      ? 'all'
+      : config.sessions.map(DeviceSessionGrantId),
+    workspaces: config.workspaces === 'all'
+      ? 'all'
+      : config.workspaces.map(DeviceWorkspaceGrantId),
+  }
+}
+
 function describeHost(hostId: string, hostName: string, allowRemoteApproval: boolean): LinkHostDescription {
   return {
-    linkProtocolVersion: LINK_PROTOCOL_VERSION,
+    ...describeProtocol(allowRemoteApproval),
     hostVersion: HOST_VERSION,
     hostId,
     hostName,
+  }
+}
+
+function describeProtocol(allowRemoteApproval: boolean): LinkProtocolDescription {
+  return {
+    linkProtocolVersion: LINK_PROTOCOL_VERSION,
+    contractVersion: LINK_CONTRACT_VERSION,
     runtimeClass: 'full',
     sessionFormatVersion: SESSION_FORMAT_VERSION,
     allowRemoteApproval,

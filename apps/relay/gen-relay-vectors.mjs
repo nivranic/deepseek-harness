@@ -5,24 +5,25 @@
  * cipher states seal a spread of payloads in both directions. The Kotlin
  * and Apple Noise ports must reproduce these bytes exactly (handshake
  * messages, session id, channel binding, split keys, and frames) — that
- * byte-level agreement is the cross-implementation interop proof, since
- * no CI lane runs the node service. Run: `node gen-relay-vectors.mjs`,
+ * byte-level agreement complements the real HTTP corpus in the repository
+ * test gate. Run: `node gen-relay-vectors.mjs`,
  * then copy the JSON into the two native test bundles (paths in the
  * footer it prints).
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { createCipheriv } from 'node:crypto'
 import { NoiseHandshake, NoiseCipherState, encodeFrame } from './noise.mjs'
 
 const EMPTY = Buffer.alloc(0)
 const hex = buf => Buffer.from(buf).toString('hex')
 
 // Deterministic scalars (any 32 bytes is a clamped-valid X25519 scalar).
-const INITIATOR_STATIC = Buffer.from(range(32), i => (i + 1))
-const RESPONDER_STATIC = Buffer.from(range(32), i => (i + 101))
-const INITIATOR_EPHEMERAL = Buffer.from(range(32), i => (i + 201))
-const RESPONDER_EPHEMERAL = Buffer.from(range(32), i => (i + 251))
+const INITIATOR_STATIC = Buffer.from(range(32).map(i => i + 1))
+const RESPONDER_STATIC = Buffer.from(range(32).map(i => i + 101))
+const INITIATOR_EPHEMERAL = Buffer.from(range(32).map(i => i + 201))
+const RESPONDER_EPHEMERAL = Buffer.from(range(32).map(i => i + 251))
 
 function range(n) { return Array.from({ length: n }, (_, i) => i) }
 
@@ -57,6 +58,27 @@ const C2_PAYLOADS = [
 const seal = (state, payloads) => payloads.map(payload =>
   ({ payload: hex(payload), frame: hex(state.encryptWithAd(EMPTY, payload)) }))
 
+const boundaryKey = initiatorSide.send.key
+const boundaryAd = Buffer.from('Noise nonce boundary', 'utf8')
+const boundaryPayload = Buffer.from('same plaintext at distinct nonces', 'utf8')
+const boundaryNonces = [0n, 1n, (1n << 53n) - 1n, 1n << 53n, (1n << 53n) + 1n, (1n << 63n) - 1n, 1n << 63n, (1n << 64n) - 2n]
+const nonceBoundaries = boundaryNonces.map(counter => {
+  // Independent byte-wise nonce construction checks the reference state's UInt64 encoding.
+  const nonce = Buffer.from([0, 0, 0, 0, ...range(8).map(index => Number((counter >> BigInt(8 * index)) & 0xffn))])
+  const cipher = createCipheriv('chacha20-poly1305', boundaryKey, nonce, { authTagLength: 16 })
+  cipher.setAAD(boundaryAd)
+  const frame = Buffer.concat([cipher.update(boundaryPayload), cipher.final(), cipher.getAuthTag()])
+  const sender = new NoiseCipherState(boundaryKey)
+  const receiver = new NoiseCipherState(boundaryKey)
+  sender.n = counter
+  receiver.n = counter
+  if (!sender.encryptWithAd(boundaryAd, boundaryPayload).equals(frame)
+    || !receiver.decryptWithAd(boundaryAd, frame).equals(boundaryPayload)) {
+    throw new Error('nonce boundary vector failed its independent round trip')
+  }
+  return { counter: counter.toString(), nonce: hex(nonce), frame: hex(frame) }
+})
+
 const vectors = {
   protocolName: 'Noise_XX_25519_ChaChaPoly_SHA256',
   note: 'Fixed-key vectors from the node reference implementation (apps/relay/noise.mjs); every port reproduces these bytes exactly.',
@@ -84,6 +106,12 @@ const vectors = {
   framing: {
     single: hex(encodeFrame(Buffer.from(range(16)))),
     doubled: hex(Buffer.concat([encodeFrame(EMPTY), encodeFrame(Buffer.from([9, 8, 7]))])),
+  },
+  nonceBoundaries: {
+    key: hex(boundaryKey),
+    ad: hex(boundaryAd),
+    payload: hex(boundaryPayload),
+    vectors: nonceBoundaries,
   },
 }
 

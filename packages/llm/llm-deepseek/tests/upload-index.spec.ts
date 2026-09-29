@@ -15,6 +15,12 @@ describe('DeepSeekUploadIndex', () => {
       .toBe(deepSeekFileScope('https://api.deepseek.com', 'key'))
   })
 
+  it('keeps distinct interior endpoint spellings in separate credential scopes', () => {
+    const endpoint = 'https://example.test/' + '/'.repeat(16_384) + 'v1'
+    expect(deepSeekFileScope(`${endpoint}///`, 'key')).toBe(deepSeekFileScope(endpoint, 'key'))
+    expect(deepSeekFileScope(endpoint, 'key')).not.toBe(deepSeekFileScope('https://example.test/v1', 'key'))
+  })
+
   it('isolates API-key namespaces and reuses only records above the refresh margin', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'dsh-upload-index-'))
     const index = new DeepSeekUploadIndex(join(dir, 'index.json'))

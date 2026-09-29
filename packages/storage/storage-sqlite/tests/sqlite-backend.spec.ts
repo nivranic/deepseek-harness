@@ -250,6 +250,47 @@ describe('sqlite backend specifics', () => {
     await expect(backend.kv!.open(DESCRIPTOR)).rejects.toMatchObject({ code: 'closed' })
   })
 
+  it('keeps the database open until dependent consumers finish their writes during root disposal', async () => {
+    const path = await freshDbPath()
+    const ctx = new Context()
+    const release = Promise.withResolvers<undefined>()
+    const disposing = Promise.withResolvers<undefined>()
+    let pending: Promise<void> | undefined
+    try {
+      await ctx.plugin(Storage)
+      await ctx.plugin(StorageSqlite, { path })
+      await ctx.inject(['storage', storageBackendServiceKey('sqlite')], async (consumer) => {
+        const unit = await consumer.storage.backend.get('sqlite').kv!.open(DESCRIPTOR)
+        const writing = release.promise.then(() => unit.putRecord('records', 'last', { n: 42 }))
+        pending = writing
+        consumer.effect(() => async () => {
+          disposing.resolve(undefined)
+          try {
+            await writing
+          } finally {
+            await unit.close()
+          }
+        }, 'test.writeAndClose')
+      })
+      const closing = ctx.fiber.dispose()
+      await disposing.promise
+      release.resolve(undefined)
+      await closing
+      if (pending === undefined) throw new Error('consumer did not start its write')
+      await pending
+      const reopened = backendAt(path)
+      try {
+        const unit = await reopened.kv.open(DESCRIPTOR)
+        expect((await unit.loadAll()).tables.records).toEqual({ last: { n: 42 } })
+      } finally {
+        await reopened.close()
+      }
+    } finally {
+      release.resolve(undefined)
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('rejects an unparsable global slot with malformed-medium', async () => {
     const path = await freshDbPath()
     const backend = backendAt(path)

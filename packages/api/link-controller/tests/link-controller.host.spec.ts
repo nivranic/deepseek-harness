@@ -2,7 +2,7 @@
 
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
-import type { LinkCarrierStatus, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
+import type { LinkCarrierStatus, LinkDiagnosticsSnapshot, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { PairedDevice } from '@deepseek-ai/dsh-device-trust'
 import { TypertRemoteFailure } from '@deepseek-ai/dsh-typert-protocol'
 import { LinkController } from '../src/index.ts'
@@ -27,6 +27,7 @@ const DEVICES: PairedDevice[] = [
     createdAt: 100,
     lastSeenAt: 200,
     revokedAt: undefined,
+    access: { sessions: 'all', workspaces: 'all' },
   },
   {
     deviceId: 'device-2' as PairedDevice['deviceId'],
@@ -36,6 +37,7 @@ const DEVICES: PairedDevice[] = [
     createdAt: 300,
     lastSeenAt: undefined,
     revokedAt: 400,
+    access: { sessions: [], workspaces: [] },
   },
 ]
 
@@ -78,6 +80,29 @@ function failureOf(promise: Promise<unknown>): Promise<TypertRemoteFailure> {
 }
 
 describe('api-link-controller host owner', () => {
+  it('serves the carrier diagnostic projection and refuses a missing carrier', async () => {
+    const ctx = new Context()
+    const snapshot: LinkDiagnosticsSnapshot = {
+      schemaVersion: 1, listenerState: 'failed',
+      protocol: {
+        linkProtocolVersion: 1, contractVersion: 1, sessionFormatVersion: 0, runtimeClass: 'full',
+        allowRemoteApproval: false,
+        capabilities: {
+          session: { list: true, history: true, follow: true, prompt: true, cancel: true },
+          workspace: { follow: true }, interaction: { approval: false, question: false },
+        },
+      },
+    }
+    const controller = new LinkController(ctx)
+    try {
+      expect((await failureOf(controller.diagnostics())).failure.code).toBe('link-unavailable')
+      ctx.provide('linkAccess', { diagnostics: (): Promise<LinkDiagnosticsSnapshot> => Promise.resolve(snapshot) } as never)
+      await expect(controller.diagnostics()).resolves.toEqual(snapshot)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('projects carrier status, identity, and the device count', async () => {
     const { ctx, controller } = mountController({
       carrier: { listening: true, endpoint: PAIRING.endpoint, spkiFingerprint: PAIRING.spkiFingerprint },

@@ -5,7 +5,7 @@
  * Spawned rather than imported, because the gate's oracle is NODE's ESM loader:
  * whether a built bundle imports is judged by `await import(file)` there.
  * Vitest replaces that loader with vite's module runner, which imports files
- * Node cannot — a `.css` import resolves, and koffi loads a second time — so an
+ * Node cannot — a `.css` import resolves — so an
  * in-process run measures a different loader and reports the pinned baseline
  * exemptions as stale. A gate whose verdict depends on how it was launched is
  * not a gate.

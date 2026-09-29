@@ -50,6 +50,7 @@ async function mount(initialGeneration?: ConnectionGeneration): Promise<Bench> {
   let generation = initialGeneration
   const connection: ConnectionHandle = {
     isLoopback: true,
+    diagnosticSnapshot: () => { throw new Error('unexpected diagnostic request') },
     generation: {
       getSnapshot: () => generation,
       subscribe: (listener) => {

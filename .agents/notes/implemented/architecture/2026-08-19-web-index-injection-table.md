@@ -16,6 +16,8 @@ One table, two renderers: the served form's `webServer.renderIndex(html)` render
 
 `tapIndex`/`applyIndexTaps` survive as the raw-HTML escape hatch, applied after row rendering; every internal consumer moved to the event.
 
+The served renderer locates an opening-tag prefix once and then searches for its first `>`. Repeated unclosed prefixes therefore cannot trigger overlapping scans of the remaining document. This preserves the existing text-based insertion positions and fragment fallbacks; a full HTML parser would change those positions and serialize unrelated markup. Bounded child-process regressions can interrupt synchronous lookup failures, while the Loader composition fixes injection order and rendered output.
+
 ## Consequences
 
 - client-modules and ui-theme no longer regex-edit HTML; the worker's `readBootPayload` service-poking (`clientModules`, `settings`, theme constants through `loader.load`) is deleted; the page-side `installModuleLoaderFacade`, `applyBootTheme`, and `PARSER_PRELOAD_IDS` re-implementations retire.

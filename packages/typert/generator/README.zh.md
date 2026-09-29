@@ -76,6 +76,7 @@ files:
 | [`src/workspace.ts`](src/workspace.ts) | `WorkspaceTypertGenerator`：发现、生成、导出与文件清单校验 |
 | [`src/tsdown-plugin.ts`](src/tsdown-plugin.ts) | tsdown 插件面：装饰器降低与产物生成 |
 | [`src/cordis-catalog.ts`](src/cordis-catalog.ts) | 生成 Cordis 目录所用的目录投影 |
+| [`src/jsdoc.ts`](src/jsdoc.ts) | 目录投影内部的正文与标签解析器 |
 
 ### 分析与 face
 

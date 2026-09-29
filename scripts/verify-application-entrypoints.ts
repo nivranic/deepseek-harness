@@ -1,7 +1,7 @@
 /**
- * Enforce dsh profiles as the only supported Node application launcher.
- * Vendor CLIs, build tools, and test tools are explicit classifications
- * rather than implicit holes.
+ * Enforce dsh profiles as the only supported Harness Node application launcher.
+ * Vendor CLIs, deployment infrastructure, build tools, and test tools are
+ * explicit classifications rather than implicit holes.
  */
 
 import { existsSync, globSync, readFileSync } from 'node:fs'
@@ -29,9 +29,15 @@ const MANIFEST_BIN_ALLOWLIST = new Map<string, ManifestBin>([
   ['packages/experimental/webworker-packer/package.json', { 'dsh-pack-vfs-image': './bin.js' }],
 ])
 
-/** Every executable in a Node application workspace has one explicit role. */
+/**
+ * Every shebang-marked Node source has an explicit application,
+ * infrastructure, build, or test role.
+ */
 const EXECUTABLE_SOURCE_ALLOWLIST = new Map<string, string>([
   ['apps/cli/src/bin.ts', 'supported dsh application launcher'],
+  ['apps/relay/gen-relay-vectors.mjs', 'build-only relay interoperability vector generator'],
+  ['apps/relay/selftest.mjs', 'test-only relay protocol driver'],
+  ['apps/relay/server.mjs', 'non-authoritative relay deployment infrastructure'],
   ['packages/context/time-context/tests/fixtures/driver.ts', 'test-only subprocess driver'],
   ['packages/experimental/webworker-packer/bin.js', 'private build-only wrapper'],
   ['packages/experimental/webworker-packer/src/bin.ts', 'private build-only implementation'],
@@ -114,7 +120,7 @@ function executableSourceViolations(root: string): string[] {
     const source = readFileSync(resolve(root, path), 'utf8')
     if (!source.startsWith('#!')) continue
     if (!EXECUTABLE_SOURCE_ALLOWLIST.has(path)) {
-      failures.push(`${path}: executable source has no application/build/test classification`)
+      failures.push(`${path}: executable source has no application/infrastructure/build/test classification`)
     }
   }
   return failures
@@ -188,6 +194,6 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(p
     for (const failure of failures) console.error(`  ${failure}`)
     process.exitCode = 1
   } else {
-    console.log('verify-application-entrypoints: dsh is the only supported Node application launcher.')
+    console.log('verify-application-entrypoints: dsh is the only supported Harness Node application launcher.')
   }
 }

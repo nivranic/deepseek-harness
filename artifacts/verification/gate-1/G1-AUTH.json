@@ -1,0 +1,180 @@
+{
+  "taskId": "G1-AUTH",
+  "status": "PASS",
+  "commit": "ec56ccbef6fda1919cd4fd871e2ed04cc202205b",
+  "startedFrom": "ec56ccbef6fda1919cd4fd871e2ed04cc202205b",
+  "commands": [
+    "pnpm exec vitest run --coverage --coverage.include=packages/remote/link-access/src/** packages/remote/link-access/tests",
+    "pnpm exec vitest run --coverage --coverage.include=packages/remote/device-trust/src/** packages/remote/device-trust/tests/device-trust.spec.ts",
+    "pnpm exec vitest run --coverage --coverage.include=packages/api/gateway/src/** packages/api/gateway/tests",
+    "pnpm exec vitest run packages/remote/device-trust/tests packages/remote/link-access/tests packages/api/gateway/tests/gateway-stream.host.spec.ts packages/api/link-controller/tests/link-controller.host.spec.ts packages/remote/link-client/tests/link-client.spec.ts",
+    "npm run build:lib:host",
+    "pnpm exec vitest run --config vitest.e2e.config.ts apps/cli/tests/link-session-slice.e2e.ts",
+    "npm run verify-cordis-catalog",
+    "npm run verify-config-catalog",
+    "npm run verify-export-jsdoc",
+    "npm run verify-scoped-events",
+    "npm run lint:contracts-ready",
+    "npm run test:docs",
+    "pnpm run doc-sync",
+    "git diff --check"
+  ],
+  "tests": [
+    {
+      "name": "Link Access package coverage",
+      "result": "PASS",
+      "testFiles": 4,
+      "passed": 127,
+      "failed": 0,
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "name": "Device Trust package coverage",
+      "result": "PASS",
+      "passed": 11,
+      "failed": 0,
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "name": "Gateway package coverage",
+      "result": "PASS",
+      "testFiles": 8,
+      "passed": 266,
+      "failed": 0,
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "name": "Final authorization-focused regression",
+      "result": "PASS",
+      "testFiles": 8,
+      "passed": 175,
+      "failed": 0
+    },
+    {
+      "name": "Built Host Session slice acceptance",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "observed": [
+        "allowed Session is visible",
+        "denied Session is hidden",
+        "denied Attachment is refused",
+        "denied Workspace path is refused"
+      ]
+    },
+    {
+      "name": "Host library build",
+      "result": "PASS"
+    },
+    {
+      "name": "Generated catalog and public API freshness",
+      "result": "PASS",
+      "checks": [
+        "verify-cordis-catalog",
+        "verify-config-catalog",
+        "verify-export-jsdoc",
+        "verify-scoped-events"
+      ]
+    },
+    {
+      "name": "Contract-ready lint",
+      "result": "PASS"
+    },
+    {
+      "name": "Documentation quick aggregate",
+      "result": "PASS",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "name": "Documentation full aggregate",
+      "result": "HOST_ENVIRONMENT",
+      "passed": 31,
+      "failed": 1,
+      "reason": "Windows denied the test-only symlink creation in scripts/project-doc-site.spec.ts with EPERM; every repository-content gate passed."
+    }
+  ],
+  "artifacts": [
+    "artifacts/verification/gate-1/G1-AUTH.json",
+    "packages/remote/link-access/src/authorization.ts",
+    "packages/remote/link-access/tests/authorization.spec.ts"
+  ],
+  "changedFiles": [
+    ".agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.md",
+    ".agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.zh.md",
+    ".agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.i18n.yaml",
+    "apps/cli/tests/link-session-slice.e2e.ts",
+    "docs/config-catalog.md",
+    "docs/config-catalog.zh.md",
+    "docs/config-catalog.i18n.yaml",
+    "docs/subsystems/remote-link.md",
+    "docs/subsystems/remote-link.zh.md",
+    "docs/subsystems/remote-link.i18n.yaml",
+    "packages/api/gateway/README.md",
+    "packages/api/gateway/README.zh.md",
+    "packages/api/gateway/README.i18n.yaml",
+    "packages/api/gateway/src/index.ts",
+    "packages/api/gateway/src/types.ts",
+    "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+    "packages/api/link-controller/tests/link-controller.host.spec.ts",
+    "packages/extensions/tool-cordis/src/api-catalog.ts",
+    "packages/remote/device-trust/README.md",
+    "packages/remote/device-trust/README.zh.md",
+    "packages/remote/device-trust/README.i18n.yaml",
+    "packages/remote/device-trust/src/index.ts",
+    "packages/remote/device-trust/src/schema.ts",
+    "packages/remote/device-trust/tests/device-trust.spec.ts",
+    "packages/remote/link-access/README.md",
+    "packages/remote/link-access/README.zh.md",
+    "packages/remote/link-access/README.i18n.yaml",
+    "packages/remote/link-access/src/authorization.ts",
+    "packages/remote/link-access/src/index.ts",
+    "packages/remote/link-access/src/protocol.ts",
+    "packages/remote/link-access/tests/authorization.spec.ts",
+    "packages/remote/link-access/tests/carrier.spec.ts",
+    "packages/remote/link-access/tests/link-harness.ts",
+    "packages/remote/link-access/tests/protocol.spec.ts",
+    "packages/remote/link-client/tests/link-client.spec.ts",
+    "scripts/gen-cordis-catalog.ts"
+  ],
+  "acceptance": [
+    "Device Trust persists separately branded Session and Workspace grants with each paired device; pairing code consumption, device creation, and grant insertion commit atomically.",
+    "Product endpoints carry fixed non-overridable resource policies, and custom endpoints must declare unscoped access explicitly.",
+    "Session, Workspace, resource, path, and interaction checks run before the existing business owners; Session and Workspace collections plus Remote Event values are filtered before socket output.",
+    "Artifact, Attachment, and Workspace path membership remain owned by their existing controllers after the paired-device top-level grant check.",
+    "Remote interaction answers require controller role, the independent approval switch, the device-owned authoritative Host clientId, pending delivery, and Session access.",
+    "Gateway remains the sole pending interaction owner; Link Access only checks pending delivery, claims one attempt, or delegates to the existing waterfall.",
+    "Approval disable, device revocation, and carrier stop delegate retained interactions; ordinary disconnect preserves Gateway pending state for reconnect replay.",
+    "A committed direct Device Trust revocation emits device-trust/revoked and closes the matching active Link event generation.",
+    "Observer mutation, unauthorized Session, Workspace, resource, path, stale generation, duplicate interaction, disabled approval, and revoked-device paths are denied by tests."
+  ],
+  "knownLimitations": [
+    "The Windows host cannot create the documentation test symlink without Developer Mode or elevated symlink privilege. No product code or documentation was changed to mask that host limitation.",
+    "One carrier restart test observed an ASN.1 read failure while seven tsx checks were launched concurrently under sandbox pressure; the isolated test and the complete eight-file suite both passed serially, so no TLS behavior was changed.",
+    "This task intentionally implements only the current Remote endpoint Session, Workspace, Interaction, resource, and path scopes; complex enterprise RBAC remains deferred."
+  ],
+  "notExecuted": [
+    {
+      "item": "scripts/project-doc-site.spec.ts symlink case",
+      "status": "NOT_EXECUTED",
+      "reason": "HOST_ENVIRONMENT",
+      "details": "Windows returned EPERM when the test attempted to create a symlink. The failure is independent of repository content."
+    }
+  ],
+  "nextDependencies": [
+    "G1-PRIV",
+    "G1-E2E",
+    "G1-MULTI",
+    "G1-REC",
+    "G1-CI"
+  ]
+}

@@ -16,6 +16,8 @@ Two hard blockers sat in the way. All 217 workspace manifests set `private: true
 
 ## Decision
 
+Native application version projections follow the [application release identity](2026-09-05-product-release-identity.md); they extend dsh version planning without changing the independent publication sequences below.
+
 ### Three independent sequences
 
 `packages/`, `vendor/`, and `native/` each have one bump sequence and one publication, sharing no version, no trigger, and no waiting. Releasing dsh does not republish vendor; releasing vendor does not republish native.

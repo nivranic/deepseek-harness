@@ -1,0 +1,41 @@
+# Agent Note: Reproducible Android release build inputs
+
+Status: implemented
+
+English | [中文](2026-09-06-android-release-foundation.zh.md)
+
+## Problem
+
+An externally provisioned Gradle version and a debug APK do not establish how an optimized release bundle builds. JVM tests also cannot detect Android SDK compatibility failures or missing classes after shrinking.
+
+## Decision
+
+The [Android project](../../../../apps/android/README.md) commits the Gradle 8.14 wrapper and the official distribution SHA-256. Both Android CI and Kotlin security analysis invoke that wrapper with JDK 17 and install the exact compile SDK. API 36 is the compile and target level; minimum API 33 remains supported. The [compiler and security-analysis decision](2026-09-06-android-codeql-inputs.md) continues to own the Kotlin/AGP pairing and extraction requirements.
+
+Release builds use R8, Android's optimized default rules, and resource shrinking. The pinned bundletool validates the resulting AAB. The workflow rejects JAR signature entries and requires a nonempty R8 mapping before preserving both files with SHA-256 checksums. Upload follows successful validation and uses no signing credentials.
+
+Release signing defaults to `unsigned`. The `keystore` mode accepts a complete environment-supplied file, store password, alias, and key password. Configuration rejects unknown modes, incomplete input, non-absolute or unreadable files, and signing fields supplied to unsigned builds. The build script does not print credential values or put them in process arguments. Gradle owns actual key validation and signing; a signed artifact still needs its own certificate and installation evidence.
+
+The [AAB inventory scanner](../../../../scripts/release/android_sbom.py) invokes the project's AGP protobuf reader on the actual bundle. Embedded artifact digests select exact Maven inputs; POM inheritance supplies declared licenses. Every packaged file receives a digest, native libraries require an exact AAR owner, and verified R8 mapping and DEX markers bind classes to Maven/project inputs or class-level synthesis records. Verbatim Java class resources also require their Maven bytes. Reverification repeats input collection and compares the full CycloneDX document and inventory receipt. Compiler/scanner identities and evidence remain portable; output directories are new-only.
+
+The [candidate producer](../../../../docs/development/release-candidate.md#android-production) derives its installable release APK from the retained unsigned AAB instead of rebuilding a separately signed release. DEX and native digests must match, while the generated public certificate identifies an ephemeral emulator-only key. Native alignment, real device runtime, pairing UI, installed bytes and completed removal are required observations. Hosted-runner guards exclude persistent development devices; private files are removed before success evidence is written. The workflow action revision and upstream pin registry are checked together across the actual workflow corpus.
+
+## Alternatives considered
+
+The scanner resolves the absolute, operator-selected Java and Android SDK locations before hashing tool bytes, matching its Node executable resolution. Toolchain managers can expose these locations through aliases. Bundle, mapping, Maven-cache and project-class inputs retain link rejection; resolving every input would erase that distinction.
+
+- A runner-installed Gradle version leaves local builds dependent on an unrecorded executable.
+- Debug assembly omits the shrinking and bundle paths exercised by release builds.
+- A successful unsigned bundle cannot stand in for an installed release application or a signed distribution.
+- Falling back to unsigned output after partial signing configuration would conceal a failed signing request.
+- A Gradle resolution report alone does not establish packaged file bytes, transformed class ownership, or the retained R8 mapping. Counting nonempty SBOM components cannot prove inventory completeness.
+
+## Consequences
+
+The startup lane selects Google's API 36 `google_apis_ps16k` x86_64 image and checks `ro.build.version.sdk` and `getconf PAGE_SIZE` on the running device before launching instrumentation. Its pinned emulator action accepts the 16 KiB image identifier; availability in Google's SDK index alone does not establish action input support. An image name or a successful compile does not establish the device's API or page size. The observation rejects mismatches and failed queries, preserves only numeric device properties, and refuses to overwrite an earlier receipt. Workflow tests execute the actual launch command and prove that API 35, 4 KiB pages, or an adb failure prevents instrumentation. This debug startup evidence remains separate from release installation and native-library alignment validation.
+
+The wrapper verifies its downloaded distribution and CI checks its JAR through the Gradle setup action. Build inputs are pinned without claiming byte-for-byte reproducible outputs. Debug instrumentation, release device startup, production signing, package SBOM, and candidate provenance remain separate evidence requirements. R8 mapping is retained alongside its exact AAB; neither is promoted automatically.
+
+The existing candidate-integrity decision remains active: [platform verification](2026-09-06-candidate-artifact-integrity.md) requires a complete source-bound receipt. The Android producer assembles that receipt only after actual packaging, inventory and device observations succeed. Synthetic rejection tests and a locally inspected AAB cannot replace hosted device acceptance or a complete four-platform candidate.
+
+Scanner tests exercise malformed embedded metadata, graph and license failures, changed native/class resources, mapping integrity, and omitted evidence. The actual-release suite generates and reverifies the bundle inventory through AGP, R8, dexdump and the complete CycloneDX 1.6 schema. Base-only support and file-level hashing of transformed resources remain explicit limits; the scanner does not infer legal clearance or resource input ownership from a filename.

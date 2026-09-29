@@ -100,8 +100,8 @@ export interface Win32ProcessBindings {
   getStdHandle(stdHandle: number): NativePtr
 }
 
-/** Koffi STARTUPINFOW layout. */
-export const STARTUPINFOW = koffi.struct('DSH_STARTUPINFOW', {
+/** Module-owned Koffi STARTUPINFOW layout; anonymous types permit independent module generations. */
+export const STARTUPINFOW = koffi.struct({
   cb: 'uint32',
   lpReserved: 'str16',
   lpDesktop: 'str16',
@@ -122,8 +122,8 @@ export const STARTUPINFOW = koffi.struct('DSH_STARTUPINFOW', {
   hStdError: PVOID,
 })
 
-/** Koffi PROCESS_INFORMATION layout. */
-export const PROCESS_INFORMATION = koffi.struct('DSH_PROCESS_INFORMATION', {
+/** Module-owned Koffi PROCESS_INFORMATION layout. */
+export const PROCESS_INFORMATION = koffi.struct({
   hProcess: PVOID,
   hThread: PVOID,
   dwProcessId: 'uint32',

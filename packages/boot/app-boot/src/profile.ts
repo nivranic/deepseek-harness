@@ -28,7 +28,7 @@ import {
   existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, rmdirSync,
   statSync, symlinkSync, unlinkSync, writeFileSync,
 } from 'node:fs'
-import { basename, dirname, join, relative, resolve } from 'node:path'
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { withFileLock } from '@deepseek-ai/dsh-atomic-write'
 import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
@@ -194,7 +194,7 @@ autoInstallPeers: false
 
 /**
  * Initialize a profile directory: manifest, empty user patch layer, and the
- * pnpm settings out-of-tree plugins need. Existing files are never touched,
+ * pnpm settings out-of-tree plugins need. Exclusive creation preserves existing files,
  * so re-running is a no-op on an initialized profile.
  * @param dir - the profile directory from {@link resolveProfileDir}.
  * @param bundles - the initial `dsh.profile.bundles` layer list.
@@ -206,20 +206,24 @@ export function initProfile(
   patchReload: ProfilePatchReload = DEFAULT_PROFILE_PATCH_RELOAD,
 ): void {
   mkdirSync(dir, { recursive: true })
-  const manifestPath = join(dir, 'package.json')
-  if (!existsSync(manifestPath)) {
-    const manifest: ProfileManifest & { private: boolean } = {
-      name: `dsh-profile-${basename(dir)}`,
-      private: true,
-      dependencies: {},
-      dsh: { profile: { bundles: [...bundles], patchReload } },
-    }
-    writeFileSync(manifestPath, JSON.stringify(manifest, undefined, 2) + '\n')
+  const manifest: ProfileManifest & { private: boolean } = {
+    name: `dsh-profile-${basename(dir)}`,
+    private: true,
+    dependencies: {},
+    dsh: { profile: { bundles: [...bundles], patchReload } },
   }
-  const patchPath = join(dir, PROFILE_PATCH_FILENAME)
-  if (!existsSync(patchPath)) writeFileSync(patchPath, PROFILE_PATCH_TEMPLATE)
-  const workspacePath = join(dir, 'pnpm-workspace.yaml')
-  if (!existsSync(workspacePath)) writeFileSync(workspacePath, PROFILE_PNPM_WORKSPACE)
+  createProfileFile(join(dir, 'package.json'), JSON.stringify(manifest, undefined, 2) + '\n')
+  createProfileFile(join(dir, PROFILE_PATCH_FILENAME), PROFILE_PATCH_TEMPLATE)
+  createProfileFile(join(dir, 'pnpm-workspace.yaml'), PROFILE_PNPM_WORKSPACE)
+}
+
+/** Preserve any entry that already occupies a profile file's final path. */
+function createProfileFile(path: string, content: string): void {
+  try {
+    writeFileSync(path, content, { flag: 'wx' })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+  }
 }
 
 function readModuleProxyRecord(link: string): ModuleProxyRecord | undefined {
@@ -508,10 +512,26 @@ function profileDependencyNames(manifest: ProfileManifest): string[] {
   return [...Object.keys(manifest.dependencies ?? {}), ...Object.keys(manifest.peerDependencies ?? {})]
 }
 
+/** The deployed node_modules containing the application, or a standalone application's own dependencies. */
+function installationModulesDirectory(installAnchor: string): string {
+  for (let directory = dirname(installAnchor); dirname(directory) !== directory; directory = dirname(directory)) {
+    if (basename(directory) === 'node_modules') return directory
+  }
+  return join(dirname(installAnchor), 'node_modules')
+}
+
 /** Resolve the installation generation that every profile must find through the fallback directory. */
 function resolveModuleFallbackEntries(
   installAnchor: string,
 ): { entries: ModuleFallbackEntry[]; packageNames: ReadonlySet<string> } {
+  const packaged = isPackagedExecutable()
+  const modulesDirectory = installationModulesDirectory(installAnchor)
+  // SEA can retain stat-only records for build-machine ancestors; those are not deployed dependencies.
+  const outsideInstallation = (candidate: string): boolean => {
+    if (!packaged) return false
+    const path = relative(modulesDirectory, candidate)
+    return path === '..' || path.startsWith(`..${sep}`) || isAbsolute(path)
+  }
   const appManifest = readModuleFallbackManifest(installAnchor)
   const links = new Map<string, string>()
   /* v8 ignore next -- a real app manifest always declares its name */
@@ -526,7 +546,7 @@ function resolveModuleFallbackEntries(
     /* v8 ignore next -- a real app manifest always declares dependencies */
     for (const dep of profileDependencyNames(next.manifest)) {
       if (links.has(dep)) continue
-      const dir = packageDirFromAnchor(next.anchor, dep)
+      const dir = packageDirFromAnchor(next.anchor, dep, outsideInstallation)
       // A declared-but-uninstalled dependency cannot be a loader-visible
       // plugin; skip it rather than fail the whole boot.
       if (dir === undefined) continue
@@ -535,7 +555,7 @@ function resolveModuleFallbackEntries(
       queue.push({ anchor: manifestPath, manifest: readModuleFallbackManifest(manifestPath) })
     }
   }
-  const entries = !isPackagedExecutable()
+  const entries = !packaged
     ? [...links].map(([packageName, packageDir]) => ({ kind: 'symlink' as const, packageName, packageDir }))
     : [...links].flatMap(([packageName, packageDir]) => {
       const source = packageProxySource(packageName, packageDir)

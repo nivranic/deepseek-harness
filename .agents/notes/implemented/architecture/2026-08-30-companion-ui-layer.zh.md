@@ -10,12 +10,12 @@ Phase 2 方案（E:\11585 方案，第 58–59、73 章）要求伴侣端的应�
 
 ## Decision
 
-第二个 SwiftPM 库 target `CompanionUI`（iOS 17+/macOS 14+，SwiftUI 与 Observation 宏）让每个屏幕都只是两个 `@Observable` view model 的薄函数，view model 只依赖 `CompanionWireDriving` 协议——一次单次调用、一次流，形状与载体完全一致——真实适配器包装 `LinkClient`。`RemoteSessionViewModel` 以真实端点名跑会话切片（`session/list`、`session/follow` 的先快照后事件折叠与游标跟踪、queue 模式的 `session/prompt`、`session/cancel`），并在丢失后从最后游标重订阅 follow 流——与参考客户端一致，连流的干净结束也按丢失处理。`InteractionViewModel` 监听 `$events`，把审批/提问转发收进收件箱，以网关的精确 outcome 形状（`{kind:'result', value:'allowed-once'|'rejected'|'cancelled'}`）经 `$events/result` 应答，宿主拒绝（通常是独立审批开关关闭）以收件箱状态呈现而非丢卡片。主题是单一 `CompanionTheme` 令牌集：两风格读同名令牌，`resolve` 在系统不支持或开启减少透明度/增强对比度时把液态玻璃换成简约拟态，`CardSurface`/`CompanionButtonStyle` 是仅有的两个风格感知表面——任何组件都不按风格分支。Plan/Todo/Goal 面板在 `PlanTodoGoalSourcing` 协议后渲染，其生产源在会话事件契约模型存在之前保持为空，而不是猜测线缆形状。XCTest 以可编程假线缆覆盖 view model（投影、折叠、游标、prompt/cancel 参数、应答 outcome、拒绝保留）与五个降级规则用例。
+第二个 SwiftPM 库 target `CompanionUI`（iOS 17+/macOS 14+，SwiftUI 与 Observation 宏）让每个屏幕都只是 `@Observable` view model 的薄函数，view model 只依赖 `CompanionWireDriving`——一次 unary call 与一条和 carrier 精确同形的 stream——真实适配器包装 `LinkClient`。`RemoteSessionViewModel` 拥有单一 follow task。打开或 reconnect 会取消并等待前一 task，分配新 generation 身份，并禁止已退役 generation 发布；非预期失败与正常结束都会先 backoff，再从权威快照重开，stop 取消 backoff 时不会新建 generation。同一模型驱动生成的会话事件折叠，为 timeline、plan、todo、goal、tools、attachments、artifacts 与 subagent address 供数据。`InteractionViewModel` 拥有单一 `$events` task：重复 start 保持幂等，restart 取消并等待前一 task，每代只从 Host `ready.clientId` 取得应答身份，断流后经 backoff 自动重开。它把审批/提问转发收进收件箱，以 Gateway 的生成式 outcome 字段经 `$events/result` 应答，并把 Host 拒绝保留为收件箱状态，而非丢卡片。主题仍是单一 `CompanionTheme` 令牌集：两风格读同名令牌，`resolve` 在系统不支持或开启减少透明度/增强对比度时把液态玻璃换成简约拟态，组件不按风格分支。XCTest 覆盖 replacement 顺序、stale-generation suppression、自动 retry、backoff 期取消、生成的会话折叠、prompt/cancel 与 interaction 参数、拒绝保留与降级规则。
 
 ## Consequences
 
-伴侣端应用壳现在只是两个库之上的薄 Xcode 宿主，壳以下全部编写并测试完毕——但本机仍无法编译：与核心同样的 macOS 车道注意事项适用，而 view model 断言编码的线缆形状，TS 侧的 fixture 漂移门禁与载体级切片 e2e 已经证明。通用时间线投影展示记录/事件类型与提取文本；精细的逐事件渲染（以及 Plan/Todo/Goal 生产源）等待把会话事件词汇表扩进 `dsh-link-contracts`——那正是下一个契约增量的自然方向。
+伴侣端应用壳仍是两个库之上的薄 Xcode 宿主。单 task ownership 让 stream replacement 可等待，也防止已取消 task 与当前 generation 竞争。真实 Host 验收中断 active follow 与 `$events` generation，并要求这些生产 retry loop 各发布恰好一代 replacement；生成 fixture 与 fake-wire 测试不能替代该平台结果。没有 Swift/Xcode 的 Windows 宿主把原生编译与执行记为 `NOT_EXECUTED`，Apple 车道拥有这些结果。
 
 ## Alternatives considered
 
-把 view model 放进应用壳被否：壳必须薄，且这层必须能在任何车道上测试。在 Swift 里手写完整会话事件映射与填 plan 源被否的理由相同——猜测线缆形状正是契约流水线要防的事。按风格分叉组件（玻璃/拟态两棵视图树）违反用户"单一令牌集"的规则；降级完全活在 `resolve` 里。
+把 view model 放进应用壳被否：壳必须薄，且这层必须能在任何已有车道上测试。在 Swift 里手写 Session-event map 被否，因为猜测 wire field 正是生成 contract pipeline 要防的事。只取消并覆盖 task reference、却不等待前一 task 被否，因为旧 stream 可能在 replacement 后发布，或在 stop 后仍存活。按风格分叉组件（玻璃/拟态两棵视图树）违反单一令牌集规则；降级活在 `resolve` 里。

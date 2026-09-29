@@ -1,16 +1,26 @@
-import { createToolResultMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createAssistantMessage, createToolResultMessage, createUserMessage, ToolCallId } from '@deepseek-ai/dsh-llm'
 /**
  * Coordinator semantics against a bare fake backend — the RFC's named unit
  * tier for the seam: adoption (fresh, seeded, re-adoption via the handoff
- * cursor), the fixed chunk projection, deep-copy isolation, turn-latency and
+ * cursor), the fixed privacy projection, frozen-record isolation, turn-latency and
  * dispose-ordering pins, failure containment, and the `agent/error` relay.
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
-import SessionStore, { SessionId, type Session, type SessionEvent } from '@deepseek-ai/dsh-session'
+import SessionStore, {
+  SESSION_FORMAT_VERSION,
+  SessionId,
+  type Session,
+  type SessionEvent,
+} from '@deepseek-ai/dsh-session'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import { getOrCreateAnonymousIdentity } from '@deepseek-ai/dsh-anonymous-user-id'
 import {
+  SessionTelemetryBackend,
   SessionTelemetryCoordinator,
   type SessionTelemetrySink,
   type SessionTelemetryCapture,
@@ -59,6 +69,28 @@ class FakeBackend implements SessionTelemetrySink {
   }
 }
 
+function testSessionPseudonym(id: string): string {
+  return getOrCreateAnonymousIdentity().pseudonymizeSessionId(id)
+}
+
+const telemetryHome = mkdtempSync(join(tmpdir(), 'dsh-session-telemetry-'))
+const previousDshHome = process.env.DSH_HOME
+
+beforeAll(() => {
+  process.env.DSH_HOME = telemetryHome
+})
+
+afterAll(() => {
+  if (previousDshHome === undefined) delete process.env.DSH_HOME
+  else process.env.DSH_HOME = previousDshHome
+  rmSync(telemetryHome, { recursive: true, force: true })
+})
+
+/** Minimal registered service proving the public backend surface. */
+class FakeRegisteredBackend extends SessionTelemetryBackend {
+  override readonly sharing = 'disabled'
+}
+
 async function setup(
   backend: FakeBackend = new FakeBackend(),
   capture: SessionTelemetryCapture = 'live',
@@ -88,19 +120,23 @@ function appendTurn(session: Session): void {
 }
 
 describe('SessionTelemetryCoordinator capture', () => {
-  it('hands every appended event over with envelope identity and cloned body', async () => {
+  it('hands every appended event over with envelope identity and no payload', async () => {
     const { ctx, backend } = await setup()
     const session = liveSession(ctx, 'cap')
     appendTurn(session)
 
     const start = backend.ledger()[0]!
     const message = backend.ledger()[1]!
-    expect(start.attributes).toMatchObject({ 'session.id': 'cap', 'event.type': 'turn/start', 'event.seq': 0 })
+    expect(start.attributes).toMatchObject({
+      'session.id': testSessionPseudonym('cap'),
+      'event.type': 'turn/start',
+      'event.seq': 0,
+    })
     expect(start.time).toBe(session.events[0]!.time)
     expect(start.severity).toBe('info')
     expect(message.attributes['event.seq']).toBe(1)
-    // Deep-copy isolation: mutating the handed-off body never reaches the log.
-    ;(message.body as { content: { text: string }[] }).content[0]!.text = 'tampered'
+    expect(message.attributes['message.source']).toBe('user')
+    expect(message).not.toHaveProperty('body')
     const logged = session.events[1] as SessionEvent<'user/message'>
     expect(logged.data.content[0]).toMatchObject({ text: 'hello' })
   })
@@ -111,9 +147,211 @@ describe('SessionTelemetryCoordinator capture', () => {
     const session = ctx.sessions.create(SessionId('child'), { meta: { cwd: '/tmp/proj', parentSession: parent } })
     appendTurn(session)
     for (const record of backend.ledger()) {
-      expect(record.attributes['session.cwd']).toBe('/tmp/proj')
-      expect(record.attributes['session.parent_id']).toBe('parent')
+      expect(record.attributes).not.toHaveProperty('session.cwd')
+      expect(record.attributes['session.parent_id']).toBe(testSessionPseudonym('parent'))
     }
+  })
+
+  it('projects bounded diagnostics without exporting core-event payloads', async () => {
+    const { ctx, backend } = await setup()
+    const session = liveSession(ctx, 'diagnostics')
+    session.append('step/start', { turn: 2, step: 3 })
+    session.append('step/end', { turn: 2, step: 3 })
+    session.append('assistant/message', {
+      turn: 2,
+      step: 3,
+      message: createAssistantMessage({
+        content: [{ type: 'text', text: 'private-assistant-text' }],
+        source: { provider: 'private-provider', model: 'private-model' },
+      }),
+      interrupted: true,
+    }, { surfaceOp: 'append' })
+    session.append('assistant/message', {
+      turn: 2,
+      step: 4,
+      message: createAssistantMessage({
+        content: [],
+        source: { provider: 'private-provider', model: 'private-model' },
+      }),
+    }, { surfaceOp: 'append' })
+    session.append('tool/call', {
+      turn: 2,
+      step: 4,
+      callId: ToolCallId('private-call-id'),
+      name: 'private-tool-name',
+      arguments: '{"token":"private-tool-arguments"}',
+    })
+    session.append('tool/result', {
+      turn: 2,
+      step: 4,
+      message: createToolResultMessage({
+        callId: ToolCallId('private-call-id'),
+        content: [{ type: 'text', text: 'private-tool-result' }],
+        isError: true,
+      }),
+      error: { name: 'private-tool-error-name', code: 'private-tool-error-code' },
+      meta: { source: 'private-source-content' },
+    }, { surfaceOp: 'append' })
+    session.append('request/header', {
+      header: {
+        config: { provider: 'private-provider', model: 'private-model' },
+        system: 'private-system-prompt',
+      },
+      reason: 'change',
+      startsSeries: true,
+    })
+    session.append('request/header', {
+      header: { config: { provider: 'private-provider', model: 'private-model' } },
+      reason: 'resume',
+    })
+    session.append('request/context', {
+      provider: 'private-provider',
+      model: 'private-model',
+      contextWindow: 64_000,
+    })
+    session.append('turn/end', {
+      turn: 2,
+      reason: {
+        kind: 'error',
+        error: { message: 'private-turn-error-message', code: 'private-turn-error-code' },
+      },
+    })
+
+    const attributes = backend.ledger().map(record => record.attributes)
+    expect(attributes).toEqual([
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'step/start', 'event.seq': 0, turn: 2, step: 3,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'step/end', 'event.seq': 1, turn: 2, step: 3,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'assistant/message', 'event.seq': 2,
+        turn: 2, step: 3, 'assistant.interrupted': true,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'assistant/message', 'event.seq': 3,
+        turn: 2, step: 4, 'assistant.interrupted': false,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'tool/call', 'event.seq': 4,
+        turn: 2, step: 4,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'tool/result', 'event.seq': 5,
+        turn: 2, step: 4, 'tool.is_error': true,
+        'error.class': 'CustomError',
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'request/header', 'event.seq': 6,
+        'request.reason': 'change', 'request.starts_series': true,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'request/header', 'event.seq': 7,
+        'request.reason': 'resume', 'request.starts_series': false,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'request/context', 'event.seq': 8,
+      },
+      {
+        'session.id': testSessionPseudonym('diagnostics'),
+        'event.type': 'turn/end', 'event.seq': 9,
+        turn: 2, 'turn.outcome': 'error',
+      },
+    ])
+    const outbound = JSON.stringify(backend.ledger())
+    for (const secret of [
+      'private-assistant-text',
+      'private-provider',
+      'private-model',
+      'private-call-id',
+      'private-tool-name',
+      'private-tool-arguments',
+      'private-tool-result',
+      'private-tool-error-name',
+      'private-tool-error-code',
+      'private-source-content',
+      'private-system-prompt',
+      'private-turn-error-message',
+      'private-turn-error-code',
+    ]) expect(outbound).not.toContain(secret)
+  })
+
+  it('omits malformed numeric diagnostics encountered after a persisted restore', async () => {
+    const backend = new FakeBackend()
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    const id = SessionId('restored-malformed-diagnostics')
+    const session = ctx.sessions.prepare(id, {
+      seed: [{ type: 'session/end-seed', seq: 0, time: 1, data: {} }],
+      meta: { version: SESSION_FORMAT_VERSION, id, createdAt: 1 },
+      seedSource: 'persistence',
+    })
+    ctx.sessions.enter(session)
+    ctx.sessions.announce(session)
+    session.append('step/start', {
+      turn: 'private-turn-index' as unknown as number,
+      step: -1,
+    })
+    session.append('step/end', {
+      turn: -1,
+      step: 'private-step-index' as unknown as number,
+    })
+    await ctx.plugin({
+      name: 'restored-malformed-telemetry',
+      inject: ['sessions'],
+      apply: (inner: Context) => void new SessionTelemetryCoordinator(inner, backend),
+    })
+
+    expect(backend.ledger().map(record => record.attributes)).toEqual([
+      {
+        'session.id': testSessionPseudonym('restored-malformed-diagnostics'),
+        'event.type': 'step/start',
+        'event.seq': 1,
+      },
+      {
+        'session.id': testSessionPseudonym('restored-malformed-diagnostics'),
+        'event.type': 'step/end',
+        'event.seq': 2,
+      },
+    ])
+
+    const agent = { id: 'restored-agent', session } as Agent
+    ctx.emit('agent/error', {
+      agent,
+      turn: -1,
+      step: 'private-agent-step-index' as unknown as number,
+      error: new Error('private-agent-error-detail'),
+    })
+    const ops = backend.records.find(record => record.channel === 'ops')!
+    expect(ops.attributes).toEqual({
+      'telemetry.op': 'agent-error',
+      'session.id': testSessionPseudonym('restored-malformed-diagnostics'),
+      'error.class': 'Error',
+    })
+    expect(JSON.stringify(backend.records)).not.toContain('private-')
+  })
+
+  it('maps extended diagnostic enums to a fixed sentinel', async () => {
+    const { ctx, backend } = await setup()
+    const session = liveSession(ctx, 'extended-enum')
+    session.append('user/message', createUserMessage({
+      content: [{ type: 'text', text: 'private-extension-payload' }],
+      source: { kind: 'private-extension-kind' } as never,
+    }), { surfaceOp: 'append' })
+
+    expect(backend.ledger()[0]!.attributes['message.source']).toBe('extension')
+    expect(JSON.stringify(backend.records)).not.toContain('private-extension-kind')
+    expect(JSON.stringify(backend.records)).not.toContain('private-extension-payload')
   })
 
   it('maps outcome flags to severity, unknown types falling through as info', async () => {
@@ -123,7 +361,7 @@ describe('SessionTelemetryCoordinator capture', () => {
     session.append('tool/result', {
       turn: 1, step: 1,
       message: createToolResultMessage({
-        callId: 'c1' as never,
+        callId: ToolCallId('c1'),
         content: [],
         isError: true,
       }),
@@ -131,7 +369,7 @@ describe('SessionTelemetryCoordinator capture', () => {
     session.append('tool/result', {
       turn: 1, step: 1,
       message: createToolResultMessage({
-        callId: 'c2' as never,
+        callId: ToolCallId('c2'),
         content: [],
         isError: false,
       }),
@@ -148,14 +386,15 @@ describe('SessionTelemetryCoordinator capture', () => {
     ])
   })
 
-  it('passes unknown merged event types through unchanged', async () => {
+  it('keeps unknown merged event payloads private', async () => {
     const { ctx, backend } = await setup()
     const session = liveSession(ctx)
     session.append('telemetry-test/opaque', { payload: { nested: ['a', 'b'] } })
     const record = backend.ledger()[0]!
     expect(record.attributes['event.type']).toBe('telemetry-test/opaque')
     expect(record.severity).toBe('info')
-    expect(record.body).toEqual({ payload: { nested: ['a', 'b'] } })
+    expect(record).not.toHaveProperty('body')
+    expect(JSON.stringify(record)).not.toContain('nested')
   })
 
   it('ships only the first chunk of each (turn, step), per session', async () => {
@@ -169,16 +408,47 @@ describe('SessionTelemetryCoordinator capture', () => {
     chunk(a, 1, 2, 'a12-first')
     chunk(b, 1, 1, 'b11-first')
     chunk(b, 1, 1, 'b11-second')
-    const shipped = backend.ledger().map(r => [r.attributes['session.id'], (r.body as { chunk: { text: string } }).chunk.text])
+    const shipped = backend.ledger().map(r => [r.attributes['session.id'], r.attributes['event.seq']])
     expect(shipped).toEqual([
-      ['a', 'a11-first'],
-      ['a', 'a12-first'],
-      ['b', 'b11-first'],
+      [testSessionPseudonym('a'), 0],
+      [testSessionPseudonym('a'), 2],
+      [testSessionPseudonym('b'), 0],
     ])
   })
 })
 
+describe('SessionTelemetryBackend service surface', () => {
+  it('registers only the sharing disclosure on the public service', async () => {
+    const ctx = new Context()
+    await ctx.plugin(FakeRegisteredBackend)
+
+    expect(ctx.sessionTelemetry).toBeInstanceOf(FakeRegisteredBackend)
+    expect(ctx.sessionTelemetry.sharing).toBe('disabled')
+    expect('emit' in ctx.sessionTelemetry).toBe(false)
+    expect('flush' in ctx.sessionTelemetry).toBe(false)
+    expect('shutdown' in ctx.sessionTelemetry).toBe(false)
+  })
+})
+
 describe('SessionTelemetryCoordinator on-demand capture', () => {
+  it('projects the constructor-owned end-seed marker without replaying seed content', async () => {
+    const { ctx, backend, coordinator } = await setup(new FakeBackend(), 'on-demand')
+    const donor = liveSession(ctx, 'seed-donor')
+    donor.append('turn/start', { turn: 1 })
+    const seeded = ctx.sessions.create(SessionId('seed-projection'), {
+      seed: [...donor.events],
+      meta: {},
+    })
+
+    coordinator.captureSession(seeded)
+
+    expect(backend.ledger().map(record => record.attributes)).toEqual([{
+      'session.id': testSessionPseudonym('seed-projection'),
+      'event.type': 'session/end-seed',
+      'event.seq': 1,
+    }])
+  })
+
   it('captures one canonical-log prefix at a time without following later events', async () => {
     const { ctx, backend, coordinator } = await setup(new FakeBackend(), 'on-demand')
     const session = liveSession(ctx, 'on-demand-prefix')
@@ -207,18 +477,21 @@ describe('SessionTelemetryCoordinator on-demand capture', () => {
     const { ctx, backend, coordinator } = await setup(new FakeBackend(), 'on-demand')
     const session = liveSession(ctx, 'on-demand-redacted')
     session.append('turn/start', { turn: 1 })
-    const disposeRule = ctx.on('session-telemetry/record', (_record, next) => ({
-      ...next(),
-      body: { scrubbed: true },
-    }))
+    const disposeRule = ctx.on('session-telemetry/record', (_record, next) => {
+      const record = next()
+      return {
+        ...record,
+        attributes: { 'event.type': record.attributes['event.type']! },
+      }
+    })
 
     coordinator.captureSession(session)
-    expect(backend.ledger()[0]!.body).toEqual({ scrubbed: true })
+    expect(backend.ledger()[0]!.attributes).toEqual({ 'event.type': 'turn/start' })
     disposeRule()
 
     session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
     coordinator.captureSession(session)
-    expect(backend.ledger()[1]!.body).toEqual({ turn: 1, reason: { kind: 'completed' } })
+    expect(backend.ledger()[1]!.attributes).toMatchObject({ turn: 1, 'turn.outcome': 'completed' })
   })
 
   it('contains each backend failure independently while replaying a prefix', async () => {
@@ -294,10 +567,16 @@ describe('SessionTelemetryCoordinator adoption', () => {
     ctx.sessions.announce(child)
 
     const seqs = backend.ledger().map(r => [r.attributes['session.id'], r.attributes['event.seq']])
-    expect(seqs).toEqual(expect.arrayContaining([['seed-parent', 0], ['seed-parent', 1]]))
+    expect(seqs).toEqual(expect.arrayContaining([
+      [testSessionPseudonym('seed-parent'), 0],
+      [testSessionPseudonym('seed-parent'), 1],
+    ]))
     // 2 end-seed, 3 turn/end: both this lifecycle's own writes, while
     // inherited 0-1 stay with the parent stream.
-    expect(seqs.filter(([id]) => id === 'seeded')).toEqual([['seeded', 2], ['seeded', 3]])
+    expect(seqs.filter(([id]) => id === testSessionPseudonym('seeded'))).toEqual([
+      [testSessionPseudonym('seeded'), 2],
+      [testSessionPseudonym('seeded'), 3],
+    ])
   })
 
   it('resume shape: a full-log seed exports only its own end-seed and rebuilds the chunk projection', async () => {
@@ -314,7 +593,7 @@ describe('SessionTelemetryCoordinator adoption', () => {
       apply: (inner: Context) => void new SessionTelemetryCoordinator(inner, backend),
     })
     const ofResumed = () => backend.ledger()
-      .filter(r => r.attributes['session.id'] === 'resumed')
+      .filter(r => r.attributes['session.id'] === testSessionPseudonym('resumed'))
       .map(r => r.attributes['event.seq'])
     // Nothing inherited is re-exported; seq 2 is this session's own first
     // write — the end-seed event its constructor appended after the seed.
@@ -344,8 +623,9 @@ describe('SessionTelemetryCoordinator adoption', () => {
       apply: (inner: Context) => void new SessionTelemetryCoordinator(inner, backend),
     })
     child.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
-    const record = backend.ledger().find(r => r.attributes['session.id'] === 'stitch-child')!
-    expect(record.attributes['session.parent_id']).toBe('stitch-parent')
+    const record = backend.ledger().find(r =>
+      r.attributes['session.id'] === testSessionPseudonym('stitch-child'))!
+    expect(record.attributes['session.parent_id']).toBe(testSessionPseudonym('stitch-parent'))
     expect(record.attributes['session.seed_length']).toBe(2)
   })
 
@@ -480,7 +760,10 @@ describe('SessionTelemetryCoordinator lifecycle and containment', () => {
     expect(backend.calls).toEqual(['emit:shutdown', 'emit:shutdown', 'shutdown'])
     expect(backend.shutdownResolved).toBe(true)
     const ops = backend.records.filter(r => r.channel === 'ops')
-    expect(ops.map(r => r.attributes['session.id']).sort()).toEqual(['s1', 's2'])
+    expect(ops.map(r => r.attributes['session.id']).sort()).toEqual([
+      testSessionPseudonym('s1'),
+      testSessionPseudonym('s2'),
+    ].sort())
     expect(ops.every(r => r.attributes['telemetry.op'] === 'shutdown' && r.severity === 'info')).toBe(true)
     expect(ops.every(r => !('event.seq' in r.attributes) && !('event.type' in r.attributes))).toBe(true)
   })
@@ -499,11 +782,14 @@ describe('SessionTelemetryCoordinator lifecycle and containment', () => {
     }, { inject: ['sessions'] }))
     await owner.dispose()
     const atEdge = backend.records.filter(r => r.channel === 'ops')
-    expect(atEdge.map(r => r.attributes['session.id'])).toEqual(['ephemeral'])
+    expect(atEdge.map(r => r.attributes['session.id'])).toEqual([testSessionPseudonym('ephemeral')])
     expect(atEdge[0]!.attributes['telemetry.op']).toBe('shutdown')
     await fiber.dispose()
     const ops = backend.records.filter(r => r.channel === 'ops')
-    expect(ops.map(r => r.attributes['session.id'])).toEqual(['ephemeral', 'survivor'])
+    expect(ops.map(r => r.attributes['session.id'])).toEqual([
+      testSessionPseudonym('ephemeral'),
+      testSessionPseudonym('survivor'),
+    ])
   })
 
   it('warns instead of throwing when backend shutdown fails', async () => {
@@ -529,9 +815,10 @@ describe('SessionTelemetryCoordinator lifecycle and containment', () => {
   })
 
   it.each([
-    ['Error values', new TypeError('adapter exploded'), 'TypeError', 'adapter exploded'],
-    ['non-Error values', 'plain failure', 'Error', 'plain failure'],
-  ])('relays agent/error %s as an ops record with normalized identity', async (_label, error, name, message) => {
+    ['Error values', new TypeError('adapter exploded'), 'TypeError'],
+    ['non-Error values', 'plain failure', 'Error'],
+    ['custom names', Object.assign(new Error('private agent failure'), { name: 'private-agent-error-name' }), 'CustomError'],
+  ])('relays agent/error %s as an ops record with normalized identity', async (_label, error, name) => {
     const { ctx, backend } = await setup()
     const session = liveSession(ctx, 'erring')
     // Only the members the relay reads; the full Agent surface is irrelevant here.
@@ -541,12 +828,15 @@ describe('SessionTelemetryCoordinator lifecycle and containment', () => {
     expect(record.severity).toBe('error')
     expect(record.attributes).toMatchObject({
       'telemetry.op': 'agent-error',
-      'session.id': 'erring',
-      'agent.id': 'agent-1',
-      'error.name': name,
+      'session.id': testSessionPseudonym('erring'),
+      'error.class': name,
       turn: 3,
       step: 2,
     })
-    expect(record.body).toEqual({ name, message })
+    expect(record).not.toHaveProperty('body')
+    expect(JSON.stringify(record)).not.toContain('adapter exploded')
+    expect(JSON.stringify(record)).not.toContain('plain failure')
+    expect(JSON.stringify(record)).not.toContain('private-agent-error-name')
+    expect(JSON.stringify(record)).not.toContain('private agent failure')
   })
 })

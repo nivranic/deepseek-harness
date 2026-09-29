@@ -14,6 +14,9 @@ export function parseClientRuntimeCommand(value: unknown): ClientRuntimeCommand 
     throw new Error('inspector protocol: Client Runtime command must have an op')
   }
   switch (value.op) {
+    case 'enable':
+      exactKeys(value, ['op'], 'enable command')
+      return { op: 'enable' }
     case 'evaluate': {
       exactKeys(value, [
         'op', 'expression', 'objectGroup', 'includeCommandLineAPI', 'silent', 'returnByValue',

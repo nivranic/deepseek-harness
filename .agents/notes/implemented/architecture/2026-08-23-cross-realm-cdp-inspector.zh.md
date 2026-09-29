@@ -42,6 +42,8 @@ JavaScript exception 是携带 `exceptionDetails` 的成功 Runtime response；t
 
 Client Console observer 保持原始页面调用行为，并为每个已启用的 DevTools session 异步发出一份 event。每个 session 把 argument 序列化到自己的 `console` object group，因此断联、Runtime disable 或 `Runtime.discardConsoleEntries` 可以释放一条连接而不使其他连接失效。Context 与 Fiber argument 使用和求值结果相同的语义引用及 DOM 反向映射。
 
+Runtime 就绪确认复用现有的关联请求所有者。Worker 先挂好 Console listener，再在同一条有序 source socket 上发送 Console enable 与 Runtime `enable` 请求。回复确认 Client 已处理先前的控制消息并初始化 session；仅发送控制消息无法在不同 realm 之间建立这个顺序。初始 `Runtime.enable` 与之后的 synthetic context 发布均等待回复，超时、取消和断连处理与其他 Runtime 命令相同。独立树快照继续独立投递，因此重连 Client 的树替换可能先于 Runtime context 就绪到达。
+
 Client 从组装后的 web boot graph 发现本包 `lib/client.js` 的 URL。`Debugger.enable` 通过类型化 source operation 读取 metadata，`Debugger.getScriptSource` 重组有界 base64 chunk；source map 保持在公布的 URL 上可用。Client script breakpoint、step 与 call-frame 操作明确不受支持，因为页面 JavaScript 无法暂停自身 realm 后继续处理控制消息。target-wide pause 与 resume 继续控制 Host debugger。
 
 ## Host 调试
@@ -81,6 +83,7 @@ wrapper 把标准化 Request 交给原 fetch，通过独立采集任务读取 re
 - Console 在 Host context 求值并接收 Host console event。
 - Console 列出 Host 与 Client context；Client 求值、属性、函数调用、Promise await 与释放操作维持 RemoteObject 身份，且不在 realm 或 DevTools 连接之间共享对象。
 - Host 与 Client Console event 使用相同 projector；Client argument 按 DevTools 连接隔离，Cordis argument 可以解析到 Elements node。
+- 扣住 Client 控制流时，Runtime 不得提前返回成功；放行后一次 Console 调用到达两个 session。断连拒绝待完成的就绪请求，之后加入的 Client 在独立树可读时仍等待 context 发布。
 - Sources 接收 Host script 与构建后的 Client bundle；Client source 读取采用分块传输，active debugging 明确失败，而 Host 仍可被断点暂停、求值 call frame 并 resume。
 - Host paused scope 与 call-frame result 使用和 Runtime 求值相同的 connection-local RemoteObject table。
 - Network 回放 `Network.enable` 前的请求，并无遗漏、无重复地推送后续请求。

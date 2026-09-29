@@ -275,6 +275,11 @@ export function gatesForMode(selected: Mode): Gate[] {
 
 function ciSharedStaticGates(): Gate[] {
   return [
+    pnpmScript('product-identity', 'verify-product-identity', { label: 'product identity' }),
+    pnpmScript('rc-policy', 'verify-rc-policy', { label: 'RC policy' }),
+    pnpmScript('release-checklist', 'verify-release-checklist', { label: 'release checklist' }),
+    pnpmScript('workflow-security', 'verify-workflow-security', { label: 'workflow security' }),
+    pnpmScript('required-checks', 'verify-required-checks', { label: 'required checks' }),
     pnpmScript('runtime-closure', 'verify-runtime-closure', { label: 'runtime closure' }),
     pnpmScript('application-entrypoints', 'verify-application-entrypoints', { label: 'application entrypoints' }),
     pnpmScript('constraints', 'constraints'),
@@ -669,6 +674,11 @@ function hygieneLeafGates(options: { artifactNeeds?: string[] } = {}): Gate[] {
     pnpmScript('rescope-vendor', 'rescope-vendor:check', { label: 'vendor rescope' }),
     pnpmScript('knip', 'knip'),
     pnpmScript('link-contracts', 'verify-link-contracts', { label: 'link contracts' }),
+    pnpmScript('product-identity', 'verify-product-identity', { label: 'product identity' }),
+    pnpmScript('rc-policy', 'verify-rc-policy', { label: 'RC policy' }),
+    pnpmScript('release-checklist', 'verify-release-checklist', { label: 'release checklist' }),
+    pnpmScript('workflow-security', 'verify-workflow-security', { label: 'workflow security' }),
+    pnpmScript('required-checks', 'verify-required-checks', { label: 'required checks' }),
     pnpmScript('publint', 'publint', artifactOptions),
     pnpmScript('constraints', 'constraints'),
     pnpmScript('application-entrypoints', 'verify-application-entrypoints', { label: 'application entrypoints' }),

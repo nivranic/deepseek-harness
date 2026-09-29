@@ -12,6 +12,124 @@ enum class LinkError(val wire: String) {
     LINK_DISABLED("link-disabled"),
     BAD_REQUEST("bad-request"),
 }
+sealed class LinkJsonValue {
+    data class StringValue(val value: String) : LinkJsonValue()
+    data class NumberValue(val value: Double) : LinkJsonValue()
+    data class BoolValue(val value: Boolean) : LinkJsonValue()
+    data object NullValue : LinkJsonValue()
+    data class ArrayValue(val items: List<LinkJsonValue>) : LinkJsonValue()
+    data class ObjectValue(val entries: Map<String, LinkJsonValue>) : LinkJsonValue()
+}
+data class LinkPairRequest(
+    val code: String,
+    val deviceName: String,
+    val devicePublicKey: String,
+)
+data class LinkRpcPayload(
+    val args: Map<String, LinkJsonValue>,
+)
+data class LinkRpcRequestEnvelope(
+    val type: String, // constant "client-request"
+    val rpcId: String,
+    val method: String,
+    val payload: LinkRpcPayload,
+)
+data class LinkRpcError(
+    val code: String,
+    val message: String,
+    val details: Map<String, LinkJsonValue>,
+)
+data class LinkRpcResult(
+    val ok: Boolean,
+    val value: LinkJsonValue? = null,
+    val error: LinkRpcError? = null,
+)
+data class LinkRpcResponseEnvelope(
+    val type: String, // constant "server-response"
+    val rpcId: String,
+    val result: LinkRpcResult,
+)
+data class LinkStreamRequest(
+    val args: Map<String, LinkJsonValue>,
+)
+enum class LinkStreamFrameKind(val wire: String) {
+    V("v"),
+    E("e"),
+}
+data class LinkStreamFrame(
+    val k: LinkStreamFrameKind,
+    val v: LinkJsonValue? = null,
+    val c: String? = null,
+    val m: String? = null,
+    val d: Map<String, LinkJsonValue>? = null,
+)
+enum class LinkRemoteEventFrameKind(val wire: String) {
+    READY("ready"),
+    EMIT("emit"),
+    WATERFALL("waterfall"),
+    CANCEL("cancel"),
+}
+enum class LinkRemoteEventOutcomeKind(val wire: String) {
+    NEXT("next"),
+    RESULT("result"),
+    REJECTED("rejected"),
+}
+data class LinkRemoteEventHostInfo(
+    val home: String,
+)
+data class LinkRemoteEventReadyFrame(
+    val type: String, // constant "ready"
+    val clientId: String,
+    val host: LinkRemoteEventHostInfo,
+)
+data class LinkRemoteEventEmitFrame(
+    val type: String, // constant "emit"
+    val event: String,
+    val args: List<LinkJsonValue>,
+)
+data class LinkRemoteEventWaterfallFrame(
+    val type: String, // constant "waterfall"
+    val event: String,
+    val eventId: String,
+    val agentId: String,
+    val request: Map<String, LinkJsonValue>,
+)
+data class LinkRemoteEventCancelFrame(
+    val type: String, // constant "cancel"
+    val eventId: String,
+)
+data class LinkRemoteEventRejection(
+    val name: String,
+    val message: String,
+    val code: String? = null,
+    val details: LinkJsonValue? = null,
+)
+data class LinkRemoteEventOutcome(
+    val kind: LinkRemoteEventOutcomeKind,
+    val value: LinkJsonValue? = null,
+    val error: LinkRemoteEventRejection? = null,
+)
+data class LinkRemoteEventResult(
+    val clientId: String,
+    val eventId: String,
+    val outcome: LinkRemoteEventOutcome,
+)
+data class LinkSessionEventRecord(
+    val type: String,
+    val seq: Double,
+    val time: Double,
+    val data: LinkJsonValue,
+    val sourceEventSeqs: List<Double>? = null,
+    val surfaceOp: LinkJsonValue? = null,
+)
+data class LinkSessionSnapshotFrame(
+    val type: String, // constant "snapshot"
+    val header: Map<String, LinkJsonValue>,
+    val cursor: Double,
+    val records: List<LinkJsonValue>,
+    val hasMore: Boolean,
+    val projections: Map<String, LinkJsonValue>,
+)
 data class LinkPairingPayload(
     val v: Double, // constant 1
     val kind: String, // constant "dsh-link-pairing"
@@ -50,6 +168,7 @@ data class LinkCapabilities(
 )
 data class LinkHostDescription(
     val linkProtocolVersion: Double,
+    val contractVersion: Double,
     val hostVersion: String,
     val hostId: String,
     val hostName: String,

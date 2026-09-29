@@ -36,7 +36,7 @@ Persistence deliberately treats `create(meta)` as a live registration: JSONL cre
 
 ## Standard configuration options
 
-The advisory LLM catalog now serves another automation consumer without becoming request validation. ACP exposes a provider-grouped `model` select whose opaque values retain the provider/model pair, plus a dependent `reasoning_effort` select from the resolved exact model. A model with efforts but no adapter-configured default includes `Provider default`, which preserves omission and lets the provider choose. New, resume, and set responses return the complete state. Adapter topology events emit `config_option_update`; per-session mutations serialize in receive order. The configured ACP provider/model remains the initial selection, and unlisted configured routes are synthesized into the returned choices instead of being rejected.
+The advisory LLM catalog now serves another automation consumer without becoming request validation. ACP exposes a provider-grouped `model` select whose opaque values retain the provider/model pair, plus a dependent `reasoning_effort` select from the resolved exact model. A model with efforts but no adapter-configured default includes `Provider default`, which preserves omission and lets the provider choose. New, resume, and set responses return the complete state. Adapter topology events emit `config_option_update` only when the complete options differ from the last new, resume, or set response, or queued update; per-session mutations serialize in receive order. Configurable-provider directory changes can leave the advertised model options unchanged, so registry events alone do not justify a wire notification. The configured ACP provider/model remains the initial selection, and unlisted configured routes are synthesized into the returned choices instead of being rejected.
 
 ## Standard MCP mapping
 
@@ -48,7 +48,7 @@ ACP clients are trusted controllers: a stdio declaration authorizes process exec
 
 ## Semantic update projection
 
-Only committed durable facts reach `session/update`. Assistant text/images become `agent_message_chunk`; reasoning becomes `agent_thought_chunk`; tool calls/results become generic `tool_call` and `tool_call_update`; known measured context pressure and capacity become `usage_update`; adapter topology changes become `config_option_update`. Durable message ids and tool-call ids preserve correlation. The canonical DSH tool name is the standard tool-call title.
+Execution updates in `session/update` project committed durable facts; configuration updates project the current session options. Assistant text/images become `agent_message_chunk`; reasoning becomes `agent_thought_chunk`; tool calls/results become generic `tool_call` and `tool_call_update`; known measured context pressure and capacity become `usage_update`; changed adapter options become `config_option_update`. Durable message ids and tool-call ids preserve correlation. The canonical DSH tool name is the standard tool-call title.
 
 The per-session chain serializes all updates and drains before prompt completion. A tool-call notification drains before a permission request refers to it. Raw model deltas, retry attempts, cards, terminal state, diffs, locations, plans, titles, todos, and unsupported content stay off the wire.
 
@@ -68,7 +68,7 @@ The per-session chain serializes all updates and drains before prompt completion
 
 ## Verification
 
-Focused tests cover exact capability advertisement without private metadata; model/reasoning choices, invalid and concurrent mutation, topology updates, and image-route pinning; stdio/HTTP MCP setup, declaration rollback, scope isolation, resume, and disposal; list pagination, canonical workspace checks, active conflicts, close/resume, and restart recovery; message/thought/tool/usage order and ids; tool-before-permission order; standard stop reasons; request and session cancellation; and connection-loss teardown.
+Focused tests cover exact capability advertisement without private metadata; model/reasoning choices, invalid and concurrent mutation, topology updates, unchanged-option suppression during creation and after selection, and image-route pinning; stdio/HTTP MCP setup, declaration rollback, scope isolation, resume, and disposal; list pagination, canonical workspace checks, active conflicts, close/resume, and restart recovery; message/thought/tool/usage order and ids; tool-before-permission order; standard stop reasons; request and session cancellation; and connection-loss teardown.
 
 A generic keyless conformance test boots the real ACP demo twice and uses only the public ACP SDK to select a model and reasoning effort, attach an MCP server, execute a tool turn, observe standard updates, close, restart, list, resume, and cancel. It contains no integration-specific names, dependencies, metadata, or environment behavior.
 

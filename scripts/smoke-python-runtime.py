@@ -712,7 +712,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--scenario",
-        choices=("all", "sdk-default", "sdk-custom", "sdk-minimal", "sdk-fs-search", "sdk-mcp", "sdk-snapshot", "sdk-restart", "sdk-profile-plugin", "sdk-live", "direct"),
+        choices=("all", "sdk-default", "sdk-custom", "sdk-minimal", "sdk-fs-search", "sdk-mcp", "sdk-snapshot", "sdk-restart", "sdk-profile-plugin", "sdk-live", "direct", "web"),
         default="all",
     )
     parser.add_argument("--exe", type=Path)
@@ -731,12 +731,18 @@ def main() -> None:
         parser.error("--scenario sdk-profile-plugin requires --installed-wheel")
     if args.installed_wheel:
         args.exe = assert_installed_wheel_environment()
-    if args.scenario in {"all", "sdk-custom", "sdk-minimal", "sdk-fs-search", "sdk-snapshot", "sdk-restart", "direct"} and args.exe is None:
+        smoke_installed_dsh_cli(args.exe)
+    if args.scenario in {"all", "sdk-custom", "sdk-minimal", "sdk-fs-search", "sdk-snapshot", "sdk-restart", "direct", "web"} and args.exe is None:
         parser.error("--exe is required for custom, minimal, snapshot, and direct scenarios")
     if args.update_snapshots and args.scenario not in {"all", "sdk-minimal", "sdk-snapshot", "sdk-restart"}:
         parser.error("--update-snapshots requires --scenario sdk-minimal, sdk-snapshot, sdk-restart, or all")
     if args.exe is not None and not args.exe.is_file():
         parser.error(f"runtime executable does not exist: {args.exe}")
+
+    if args.scenario == "web":
+        subprocess.run([sys.executable, str(Path(__file__).with_name("smoke-packaged-web.py")),
+                        "--exe", str(args.exe.resolve())], check=True)
+        return
 
     if args.scenario == "sdk-live":
         smoke_sdk_live()
@@ -823,6 +829,27 @@ def assert_installed_wheel_environment() -> Path:
     if not any(Path(file).name == executable.name for file in runtime_files):
         raise AssertionError(f"runtime executable is absent from installed distribution records: {executable}")
     return executable
+
+
+def smoke_installed_dsh_cli(executable: Path) -> None:
+    """Compare installed CLI output and failure status with the same native executable."""
+    dsh = Path(sysconfig.get_path("scripts")) / ("dsh.exe" if IS_WINDOWS else "dsh")
+    with tempfile.TemporaryDirectory(prefix="dsh-installed-cli-") as temporary:
+        root = Path(temporary).resolve()
+        environment = {**os.environ, "DSH_HOME": str(root / "home")}
+        for argument, expected_code in (("--version", 0), ("--help", 0), ("--invalid-option", 1)):
+            results = [
+                subprocess.run(
+                    [str(command), argument], cwd=root, env=environment,
+                    capture_output=True, check=False, timeout=60,
+                )
+                for command in (executable, dsh)
+            ]
+            native, installed = results
+            assert native.returncode == expected_code, (argument, native.returncode, native.stderr)
+            assert native.stdout if expected_code == 0 else native.stderr, argument
+            assert installed.returncode == native.returncode, (argument, installed.returncode, native.returncode)
+            assert (installed.stdout, installed.stderr) == (native.stdout, native.stderr), argument
 
 
 def smoke_sdk_live() -> None:
@@ -1131,12 +1158,14 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
             cwd=root,
             env=environment,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             check=False,
         )
         if installed.returncode != 0:
             raise AssertionError(
                 f"Python-installed dsh could not add the external profile plugin: "
+                f"returncode={installed.returncode} "
                 f"stdout={installed.stdout!r} stderr={installed.stderr!r}"
             )
         manifest = json.loads((dsh_home / "profiles" / "sdk" / "package.json").read_text())
@@ -1395,10 +1424,11 @@ class RuntimePeer:
 
 
 def assert_session_log(sessions: Path, cwd: Path, *expected_texts: str) -> None:
+    """Read persisted UTF-8 JSONL independently of the host locale."""
     logs = list(sessions.rglob("*.jsonl"))
     if len(logs) != 1:
         raise AssertionError(f"expected one JSONL session log under {sessions}, found {logs}")
-    lines = logs[0].read_text().splitlines()
+    lines = logs[0].read_text(encoding="utf-8").splitlines()
     header = json.loads(lines[0])
     if header.get("cwd") != str(cwd):
         raise AssertionError(f"session header cwd is not absolute/canonical: {header}")

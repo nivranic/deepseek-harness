@@ -86,6 +86,25 @@ export interface TypertGatewayWireStream {
   ) => Promise<AsyncIterable<unknown>>
 
   /**
+   * Check whether one Client generation still owns a pending Remote Event delivery.
+   * Carriers use this immediately before accepting an interaction result; the
+   * Gateway remains the sole owner of pending-event state.
+   * @param clientId - Host-issued identity from the generation's ready frame.
+   * @param eventId - pending delivery identity returned by that generation.
+   * @returns whether the exact delivery remains pending.
+   */
+  readonly isRemoteEventDeliveryPending: (clientId: string, eventId: string) => boolean
+
+  /**
+   * Delegate one delivery that a carrier intentionally withheld from its Client.
+   * This removes the Client from the pending waterfall exactly like a `next`
+   * outcome and resumes the Host chain after every delivery delegates.
+   * @param clientId - Host-issued identity from the generation's ready frame.
+   * @param eventId - pending delivery identity withheld by the carrier.
+   */
+  readonly delegateRemoteEventDelivery: (clientId: string, eventId: string) => void
+
+  /**
    * Convert a stream failure to the carrier-safe Remote failure fields.
    * @param error - failure raised while opening or consuming a stream.
    * @returns stable code, message, and details for the Client.

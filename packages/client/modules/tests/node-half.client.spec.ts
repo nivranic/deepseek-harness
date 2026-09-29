@@ -9,7 +9,12 @@ import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
 import { Context, type Fiber } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { renderIndexInjections, type WebServer, type WebRoute } from '@deepseek-ai/dsh-host-webserver'
+import {
+  renderIndexInjections,
+  type IndexInjection,
+  type WebServer,
+  type WebRoute,
+} from '@deepseek-ai/dsh-host-webserver'
 import * as modulesClient from '../src/client/index.ts'
 import { ClientModuleRegistry, bootInjections, orderByModuleGraph } from '../src/index.ts'
 import type { ClientModuleLoaderTarget, WebBootEntry, WebBootGraph } from '../src/client/index.ts'
@@ -55,6 +60,24 @@ function writeBuiltPackage(packageName: string, client: Record<string, unknown>)
   const clientPath = writePackage(packageName, { dsh: { client: { platform: 'web', ...client } } })
   mkdirSync(dirname(clientPath), { recursive: true })
   writeFileSync(clientPath, 'module.exports = {}\n')
+}
+
+/** A managed runtime fallback imports its source module but carries no client declaration or bundle bytes. */
+function writeModuleFallback(
+  packageName: string, target: string, overrides: Record<string, unknown> = {}, label = 'fallback',
+): string {
+  root ??= realpathSync(mkdtempSync(join(tmpdir(), 'dsh-client-modules-')))
+  const directory = join(root, label, ...packageName.split('/'))
+  mkdirSync(directory, { recursive: true })
+  const entry = join(directory, 'entry-0.js')
+  writeFileSync(entry, `export * from ${JSON.stringify(target)}\n`)
+  writeFileSync(join(directory, 'package.json'), JSON.stringify({
+    name: packageName,
+    exports: { '.': './entry-0.js' },
+    dsh: { moduleFallback: { targets: { '.': target } } },
+    ...overrides,
+  }))
+  return pathToFileURL(entry).href
 }
 
 /** Construct the node-half service and capture its plugin-bundle route. */
@@ -240,6 +263,86 @@ describe('HTML bootstrap facade', () => {
 })
 
 describe('client bundle activation', () => {
+  it('binds a later webServer and rebinds after its provider is replaced', async () => {
+    const packageName = '@fixture/delayed-webserver'
+    writeBuiltPackage(packageName, {})
+    const ctx = new Context()
+    ctx.baseUrl = pathToFileURL(root!).href + '/'
+    ctx.provide('loader', {
+      *entries() {
+        yield {
+          options: { name: packageName },
+          fiber: {},
+          disabled: false,
+          parent: { tree: { ctx: { baseUrl: ctx.baseUrl } } },
+        }
+      },
+    })
+
+    const modulesFiber = ctx.plugin(ClientModuleRegistry)
+    await modulesFiber.await()
+    expect(ctx.get('clientModules')).toBeDefined()
+
+    const createCarrier = (): { routes: WebRoute[]; server: WebServer } => {
+      const routes: WebRoute[] = []
+      const server: Pick<WebServer, 'port' | 'register' | 'tapIndex'> = {
+        port: 0,
+        register: (route) => {
+          routes.push(route)
+          return () => {
+            const index = routes.indexOf(route)
+            if (index !== -1) routes.splice(index, 1)
+          }
+        },
+        tapIndex: () => () => {},
+      }
+      return { routes, server: server as WebServer }
+    }
+    const renderIndex = (): string => {
+      const rows: IndexInjection[] = []
+      ctx.emit('webserver/index-inject', rows)
+      return renderIndexInjections('<html><head></head><body></body></html>', rows)
+    }
+    const provideCarrier = (server: WebServer) => ctx.plugin((providerCtx) => {
+      providerCtx.provide('webServer', server)
+    })
+
+    try {
+      expect(renderIndex()).not.toContain('window.__ModuleLoader__=')
+
+      const first = createCarrier()
+      const firstFiber = provideCarrier(first.server)
+      await firstFiber.await()
+      await vi.waitFor(() => {
+        expect(first.routes.map(route => route.path)).toEqual(['/plugins'])
+        expect(renderIndex()).toContain('window.__ModuleLoader__=')
+      })
+
+      await firstFiber.dispose()
+      await vi.waitFor(() => {
+        expect(first.routes).toEqual([])
+        expect(renderIndex()).not.toContain('window.__ModuleLoader__=')
+      })
+
+      const second = createCarrier()
+      const secondFiber = provideCarrier(second.server)
+      await secondFiber.await()
+      await vi.waitFor(() => {
+        expect(second.routes.map(route => route.path)).toEqual(['/plugins'])
+        expect(renderIndex()).toContain('window.__ModuleLoader__=')
+      })
+
+      await modulesFiber.dispose()
+      await vi.waitFor(() => {
+        expect(second.routes).toEqual([])
+        expect(renderIndex()).not.toContain('window.__ModuleLoader__=')
+      })
+      await secondFiber.dispose()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it.each(['v1', 'v2'] as const)(
     'resolves %s package metadata from the owning entry tree',
     (version) => {
@@ -272,6 +375,49 @@ describe('client bundle activation', () => {
     },
   )
 
+  it('loads the canonical client declaration and bytes through a packaged module fallback', async () => {
+    const clientPath = writePackage(MODULES_ID)
+    mkdirSync(dirname(clientPath), { recursive: true })
+    writeFileSync(clientPath, 'window.__ModuleLoader__.load({id:"canonical-client"})\n')
+    const hostPath = join(dirname(clientPath), 'index.js')
+    writeFileSync(hostPath, 'export default {}\n')
+    const first = writeModuleFallback(MODULES_ID, pathToFileURL(hostPath).href)
+    const nested = writeModuleFallback(MODULES_ID, first, {}, 'nested-fallback')
+    const internal = { version: 'v2' as const, resolveSync: () => ({ format: 'module' as const, url: nested }) }
+    const { service } = constructWithRoute([MODULES_ID], {
+      internal: internal as unknown as NonNullable<Context['loader']['internal']>,
+    })
+    expect(service.clientPath(MODULES_ID)).toBe(clientPath)
+    expect(service.graph().entries.map(entry => entry.id)).toEqual([MODULES_ID])
+    const batch = service.graph().batches.find(row => row.phase === 'bootstrap')!
+    expect(bootInjections(service.graph())).toContainEqual({ kind: 'script-src', placement: 'head', src: batch.url })
+    expect(await service.bundleFetch(new Request('http://fixture.test' + batch.url)).text()).toContain('canonical-client')
+  })
+
+  it.each([
+    { dsh: { moduleFallback: null } },
+    { dsh: { moduleFallback: 'invalid' } },
+    { dsh: { moduleFallback: { targets: null } } },
+    { dsh: { moduleFallback: { targets: [] } } },
+    { exports: null }, { exports: 'invalid' }, { exports: [] },
+    { exports: { '.': 42 } }, { exports: { '.': 'entry-0.js' } },
+    { exports: { '.': './different.js' } },
+    { exports: { '.': './entry-0.js', './alias': './entry-0.js' } },
+    { dsh: { moduleFallback: { targets: {} } } },
+    { dsh: { moduleFallback: { targets: { '.': 42 } } } },
+    { dsh: { moduleFallback: { targets: { '.': 'https://example.test/module.js' } } } },
+  ])('rejects malformed managed fallback metadata %j', (overrides) => {
+    const proxy = writeModuleFallback(MODULES_ID, pathToFileURL(join(tmpdir(), 'unowned-module.js')).href, overrides)
+    expect(() => construct([proxy])).toThrow('managed module fallback')
+  })
+
+  it('rejects cyclic and unowned module fallback targets', () => {
+    const proxy = writeModuleFallback(MODULES_ID, pathToFileURL(join(tmpdir(), 'unowned-module.js')).href)
+    expect(() => construct([proxy])).toThrow('target has no owning package')
+    writeModuleFallback(MODULES_ID, proxy)
+    expect(() => construct([proxy])).toThrow('fallback cycle')
+  })
+
   it('derives the browser module id from a file entry owning manifest', () => {
     const packageName = '@fixture/file-entry'
     const clientPath = writePackage(packageName)
@@ -284,6 +430,21 @@ describe('client bundle activation', () => {
 
     expect(service.clientPath(packageName)).toBe(clientPath)
     expect(service.graph().entries.map(entry => entry.id)).toEqual([packageName])
+  })
+
+  it.each([undefined, null, 'not-a-declaration'])('ignores file packages without client metadata %j', (dsh) => {
+    const path = writePackage('@fixture/plain-module', { dsh })
+    expect(construct([pathToFileURL(path).href]).graph().entries).toEqual([])
+  })
+
+  it.each(['node:fs', 'mismatched-package'])('does not borrow client metadata from %s', (target) => {
+    const path = writePackage('@fixture/different-package')
+    const url = target === 'node:fs' ? target : pathToFileURL(path).href
+    const internal = { version: 'v2' as const, resolveSync: () => ({ format: 'module' as const, url }) }
+    const { service } = constructWithRoute([MODULES_ID], {
+      internal: internal as unknown as NonNullable<Context['loader']['internal']>,
+    })
+    expect(service.graph().entries).toEqual([])
   })
 
   it.each(['relative', 'absolute'] as const)(

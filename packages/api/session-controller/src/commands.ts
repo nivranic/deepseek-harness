@@ -5,7 +5,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { Agent, ModelSelection as AgentModelSelection } from '@deepseek-ai/dsh-agent'
 import { PresetMountError, UnknownPresetError } from '@deepseek-ai/dsh-agent-presets'
 import { AttachmentError, admitEncodedImages } from '@deepseek-ai/dsh-attachment'
-import { ArtifactId } from '@deepseek-ai/dsh-artifact'
+import { parseArtifactId, type ArtifactId } from '@deepseek-ai/dsh-artifact'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import {
   ReasoningEffortId, createUserMessage, freezeMessage,
@@ -409,7 +409,7 @@ export class SessionCommandController {
    * artifact/created event), the resource channel serves the bytes. The
    * journaled format picks the paging unit — UTF-16 code units for text,
    * bytes for raw — and `data` is base64 of that range either way.
-   * @param request - Session and artifact identities used for authorization.
+   * @param request - Session identity and portable artifact id used for authorization.
    * @returns the reference metadata and base64-encoded content range.
    */
   async artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue> {
@@ -426,8 +426,18 @@ export class SessionCommandController {
         {},
       )
     }
+    let artifactId: ArtifactId
+    try {
+      artifactId = parseArtifactId(request.artifactId)
+    } catch {
+      reject(
+        'artifact-error',
+        'Artifact id is not portable.',
+        { reason: 'ARTIFACT_ID_INVALID' },
+      )
+    }
     const created = source.events.findLast((event): event is SessionEvent<'artifact/created'> =>
-      event.type === 'artifact/created' && event.data.id === request.artifactId)
+      event.type === 'artifact/created' && event.data.id === artifactId)
     if (created === undefined) {
       reject(
         'artifact-error',
@@ -437,7 +447,7 @@ export class SessionCommandController {
     }
     let stored: Uint8Array | null
     try {
-      stored = await this.ctx.artifacts.get(ArtifactId(request.artifactId))
+      stored = await this.ctx.artifacts.get(artifactId)
     } catch (error) {
       reject(
         'internal',

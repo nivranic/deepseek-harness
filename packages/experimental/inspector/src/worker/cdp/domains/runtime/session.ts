@@ -88,6 +88,7 @@ export class RuntimeDomainSession {
   close(): void {
     if (this.closed) return
     this.closed = true
+    this.enabled = false
     this.unsubscribeRealms()
     for (const dispose of this.consoleDisposers.values()) dispose()
     this.consoleDisposers.clear()
@@ -197,9 +198,9 @@ export class RuntimeDomainSession {
   private async enable(): Promise<object> {
     this.enabled = true
     try {
-      await Promise.all(this.realms.all().map(async (realm) => { await runtimeBackend(realm).enable() }))
-      for (const realm of this.realms.all()) {
-        this.attachConsole(realm)
+      const realms = this.realms.all()
+      await Promise.all(realms.map(realm => this.prepareRealm(realm)))
+      for (const realm of realms) {
         this.announce(realm)
       }
       return {}
@@ -407,9 +408,8 @@ export class RuntimeDomainSession {
   private receiveRealm(event: InspectorRealmSessionEvent): void {
     if (event.type === 'opened') {
       if (this.enabled) {
-        void runtimeBackend(event.session).enable().then(
+        void this.prepareRealm(event.session).then(
           () => {
-            this.attachConsole(event.session)
             this.announce(event.session)
           },
           () => { event.session.close() },
@@ -423,6 +423,11 @@ export class RuntimeDomainSession {
     this.destroy(event.session)
   }
 
+  private async prepareRealm(realm: InspectorRealmSession): Promise<void> {
+    this.attachConsole(realm)
+    await runtimeBackend(realm).enable()
+  }
+
   private attachConsole(realm: InspectorRealmSession): void {
     if (realm.console.state === 'unsupported' || this.consoleDisposers.has(realm.descriptor.realmId)) return
     this.consoleDisposers.set(realm.descriptor.realmId, realm.console.backend.subscribe((event) => {
@@ -433,6 +438,7 @@ export class RuntimeDomainSession {
 
   private announce(realm: InspectorRealmSession): void {
     if (!this.enabled || realm.context.kind !== 'synthetic' || this.announcedContexts.has(realm.context.id)) return
+    if (this.realms.byContextId(realm.context.id) !== realm) return
     this.announcedContexts.add(realm.context.id)
     this.transport.send({
       method: 'Runtime.executionContextCreated',

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "scope": "release-foundation",
+  "engineering": [
+    { "id": "G2-VERSION", "ownerRole": "release", "evidenceOwner": "product-identity", "definitionOfDone": "All four packaged platforms report the selected version, build, channel and source." },
+    { "id": "G2-CHANNEL", "ownerRole": "release", "evidenceOwner": "distribution-policy", "definitionOfDone": "Distribution advancement and protected channel promotion reject invalid versions and unauthorized changes." },
+    { "id": "G2-CI", "ownerRole": "quality", "evidenceOwner": "candidate-ci", "definitionOfDone": "The latest mandatory PR checks pass with independently verified source, workflow and execution freshness." },
+    { "id": "G2-SUPPLY", "ownerRole": "security", "evidenceOwner": "candidate-security", "definitionOfDone": "Required source and packaged scans, dependency review, SBOM and provenance pass for this candidate under the reviewed policy." },
+    { "id": "G2-WIN", "ownerRole": "windows", "evidenceOwner": "windows-acceptance", "definitionOfDone": "Installer and portable startup, update feed, checksum rejection and failed-update recovery pass on a disposable Windows runner." },
+    { "id": "G2-MAC", "ownerRole": "macos", "evidenceOwner": "macos-acceptance", "definitionOfDone": "The packaged Full Host starts and recovers, and subprocess, detached group, PTY and helper-death cleanup leaves no owned process." },
+    { "id": "G2-MACSIGN", "ownerRole": "security", "evidenceOwner": "macos-signing-dry-run", "definitionOfDone": "Nested executable inventory, minimal entitlements, Hardened Runtime and notarization/stapling preparation pass without production submission." },
+    { "id": "G2-IOS", "ownerRole": "apple-mobile", "evidenceOwner": "ios-acceptance", "definitionOfDone": "Identity, privacy and SDK inventory, signing abstraction, archive and export validation pass with uploads disabled." },
+    { "id": "G2-AND", "ownerRole": "android", "evidenceOwner": "android-acceptance", "definitionOfDone": "Reproducible toolchain, release AAB, R8 mapping, signing abstraction and actual API 36 / 16 KiB candidate acceptance pass." },
+    { "id": "G2-CRASH", "ownerRole": "runtime", "evidenceOwner": "product-diagnostics", "definitionOfDone": "Versioned runtime, Windows, macOS, iOS and Android crash/ANR collectors preserve collection completeness and privacy." },
+    { "id": "G2-SUPPORT", "ownerRole": "runtime", "evidenceOwner": "support-export", "definitionOfDone": "Every required support producer, offline secret scan, consent, cancel and exact-byte save path passes for each supported platform." },
+    { "id": "G2-MIG", "ownerRole": "runtime", "evidenceOwner": "storage-migration", "definitionOfDone": "Session, settings, trust and native storage use versioned backup-first forward migration with corruption recovery and explicit downgrade limits." },
+    { "id": "G2-COMPAT", "ownerRole": "quality", "evidenceOwner": "compatibility-corpus", "definitionOfDone": "The N/N-1 Host/client corpus covers additive fields, unknown capabilities/events and major/session mismatches." },
+    { "id": "G2-ROLL", "ownerRole": "release", "evidenceOwner": "recovery-rehearsal", "definitionOfDone": "Platform rehearsals distinguish updater rollback, forward fix, feature kill and migration recovery; store redistribution is not local binary rollback." },
+    { "id": "G2-GOV", "ownerRole": "release", "evidenceOwner": "release-checklist", "definitionOfDone": "Complete engineering DoD, owner roles and evidence owners feed a source-bound Go/No-Go command; external manual actions cannot waive engineering failures." },
+    { "id": "G2-RC", "ownerRole": "release", "evidenceOwner": "candidate-artifacts", "definitionOfDone": "One source produces all four platform candidates with verified bytes, manifests, checksums, SBOM, provenance and authenticated platform execution." }
+  ],
+  "production": [
+    { "id": "PROD-SIGN", "ownerRole": "security", "evidenceOwner": "production-signing", "definitionOfDone": "Authorized production signing through a protected environment; secret values never enter the checklist." },
+    { "id": "PROD-NOTARY", "ownerRole": "release", "evidenceOwner": "apple-notarization", "definitionOfDone": "Authorized external notarization submission and ticket retrieval through a protected environment." },
+    { "id": "PROD-STORES", "ownerRole": "release", "evidenceOwner": "store-submission", "definitionOfDone": "Authorized TestFlight, Play, Microsoft Store or App Store mutation after engineering preparation." },
+    { "id": "PROD-PUBLISH", "ownerRole": "release", "evidenceOwner": "artifact-publication", "definitionOfDone": "Authorized publication or promotion of already verified immutable artifacts." },
+    { "id": "PROD-ROLLOUT", "ownerRole": "release", "evidenceOwner": "production-rollout", "definitionOfDone": "Authorized production rollout or pause under the retained rollout policy." },
+    { "id": "PROD-IDENTITY", "ownerRole": "security", "evidenceOwner": "developer-identity-submission", "definitionOfDone": "Authorized external developer identity or account submission; account values are not collected here." }
+  ]
+}

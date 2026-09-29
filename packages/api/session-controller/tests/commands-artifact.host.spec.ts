@@ -36,6 +36,16 @@ async function expectFailure(operation: Promise<unknown>, code: string): Promise
 }
 
 describe('Session artifact authorization', () => {
+  it('refuses a resource read when the authorizing journal cannot be read', async () => {
+    const get = vi.fn(() => Promise.resolve(new Uint8Array()))
+    const { ctx, controller, sessionId } = await persistedController([], { get })
+    vi.spyOn(ctx.sessionPersistence, 'borrowSession').mockRejectedValue(new Error('journal unavailable'))
+    const operation = controller.artifact({ sessionId, artifactId: 'art-1' })
+    await expect(operation).rejects.toMatchObject({ failure: { code: 'internal' } })
+    await expect(operation).rejects.toThrow(/artifact authorization unavailable.*journal unavailable/u)
+    expect(get).not.toHaveBeenCalled()
+    await ctx.fiber.dispose()
+  })
   it('serves the journaled metadata and the channel bytes for a referenced id', async () => {
     const { ctx, controller, sessionId } = await persistedController(
       [createdEvent(0, 'art-1', 'report', '迁移报告')],
@@ -64,6 +74,19 @@ describe('Session artifact authorization', () => {
       { get: () => Promise.resolve(new Uint8Array()) },
     )
     await expectFailure(controller.artifact({ sessionId, artifactId: 'art-other' }), 'artifact-error')
+    await ctx.fiber.dispose()
+  })
+
+  it('rejects a referenced non-portable id before calling the artifact channel', async () => {
+    const get = vi.fn(() => Promise.resolve(new Uint8Array()))
+    const { ctx, controller, sessionId } = await persistedController(
+      [createdEvent(0, '../outside', 'report', 'R')],
+      { get },
+    )
+    await expect(controller.artifact({ sessionId, artifactId: '../outside' })).rejects.toMatchObject({
+      failure: { code: 'artifact-error', details: { reason: 'ARTIFACT_ID_INVALID' } },
+    })
+    expect(get).not.toHaveBeenCalled()
     await ctx.fiber.dispose()
   })
 
@@ -102,6 +125,9 @@ describe('Session artifact authorization', () => {
       [createdEvent(0, 'art-bin', 'png', '图标', 'bytes')],
       { get: () => Promise.resolve(raw) },
     )
+    await expect(controller.artifact({ sessionId, artifactId: 'art-bin' })).resolves.toMatchObject({
+      data: Buffer.from(raw).toString('base64'), size: raw.length, truncated: false,
+    })
     await expect(controller.artifact({ sessionId, artifactId: 'art-bin', offset: 2, limit: 3 }))
       .resolves.toEqual({
         id: 'art-bin',

@@ -218,6 +218,7 @@ export class LinkClient {
    * Open one allowlisted Remote stream over NDJSON. Reconnect semantics are
    * the caller's: a new `openStream` call on the same endpoint produces a
    * fresh generation, exactly like the browser carrier's stream restart.
+   * UTF-8 text is preserved across response data chunks before NDJSON parsing.
    * @param endpoint - Gateway Remote stream endpoint, for example `session/follow` or `$events`.
    * @param args - named wire arguments.
    * @param signal - cancels the stream; iteration ends without error.
@@ -265,7 +266,8 @@ export class LinkClient {
     }
     const lines = new LineQueue()
     let ended = false
-    response.on('data', (chunk) => { lines.push((chunk as Buffer).toString('utf8')) })
+    response.setEncoding('utf8')
+    response.on('data', (chunk: string) => { lines.push(chunk) })
     response.on('end', () => {
       ended = true
       lines.end()

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.2-alpha.1",
+  "marketingVersion": "0.1.2",
+  "buildNumber": 1,
+  "channel": "dev",
+  "windowsFileVersion": "0.1.2.1",
+  "appleBuildVersion": "1.0.1"
+}

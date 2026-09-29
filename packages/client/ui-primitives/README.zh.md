@@ -35,6 +35,8 @@ kind: "package-library"
 
 `MarkdownText` 渲染不可信的 GFM 与 TeX 公式、阻止不安全的链接与图片，并可把已解析的文件提及转换为显式控件。回复流式输出时，它冻结已完成的块，并从保存的 Shiki grammar state 为不断增长的 fence 增量高亮；最终渲染使用相同的 span 树（[增量渲染器](../../../.agents/notes/implemented/architecture/2026-08-06-web-markdown-incremental-ast-renderer.zh.md)、[流式 fence 高亮](../../../.agents/notes/implemented/feature/2026-08-20-web-streaming-fence-highlight.zh.md)）。`TerminalBlock`、`ReadBlock`、`DiffBlock`、`SearchBlock` 与 `WebBlock` 把对应的工具结果意图渲染为带复制控件、溢出处理及适用时 ANSI 处理的卡片。`JsonTree` 与 `JsonBlock` 以只读方式检查 JSON 值；`MessageText` 仍是用户创作内容的字面文本原语。
 
+`projectUserText` 为已发送的用户文本添加 inline session、file、folder 与 skill chip，同时保留日志文本。同一起点的 wire 引用优先于 recall 标签和普通 token。其展示语法将标签保持为字面值，不解码 URI payload；格式不完整的输入仍可按普通 token 展示。[线性引用扫描](../../../.agents/notes/implemented/bug-fix/2026-09-06-linear-reference-path-scans.zh.md) 为长输入的 wire 发现与标点裁剪提供耗时上界，保留 chip 文本、title 和重叠顺序。
+
 ### 本地化文案
 
 这些原子组件无法读取应用 locale，因此每段面向用户的文案都必须通过 label prop 提供。`HoverCard`、`TerminalBlock`、`JsonTree`、`CodeBlock`、`MarkdownText`、`JsonBlock`、`ConnectionBanner`、`Modal`、`DiffBlock`、`ReadBlock`、`SearchBlock` 与 `WebBlock` 接收完整的本地化 label。本包不拥有语言回退；遗漏会导致类型检查失败，各功能会把带类型的 `t` 席位映射到 primitive 的 label 接口。

@@ -1,10 +1,9 @@
 /**
  * Capture coordinator for the telemetry capability. Live capture subscribes to
  * the session firehose plus the one live-bus relay (`agent/error`). Both
- * capture paths apply the fixed chunk projection, build logical records, and
- * run each through the
- * `session-telemetry/record` waterfall (deployment-mounted redaction rules;
- * pass-through when none), then hands the result to the backend. Live capture
+ * capture paths apply the fixed chunk projection, build privacy-safe records,
+ * and run each through the `session-telemetry/record` waterfall for optional
+ * further reduction, then hand the result to the backend. Live capture
  * follows the session firehose; on-demand capture replays the canonical log
  * only when requested. Every synchronous handler is self-contained so a
  * failing backend can never starve other subscribers (cordis `emit` is
@@ -17,6 +16,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import { getOrCreateAnonymousIdentity, type AnonymousIdentity } from '@deepseek-ai/dsh-anonymous-user-id'
 import type { SessionTelemetrySink, SessionTelemetryRecord, SessionTelemetrySeverity } from './index.ts'
 
 /** Whether capture follows live events or reads the canonical log only when requested. */
@@ -66,6 +66,8 @@ export class SessionTelemetryCoordinator {
   private readonly adopted = new Set<Session>()
   /** Per session, the `turn:step` keys whose first chunk already shipped; rebuilt from the log on re-adoption. */
   private readonly chunkSeen = new WeakMap<Session, Set<string>>()
+  /** Home-scoped, in-memory pseudonymizer resolved once before hot-path capture. */
+  private readonly identity: AnonymousIdentity
   /**
    * @param ctx - the composing backend's context; listeners bind to its fiber.
    * @param backend - the backend receiving records; owned elsewhere, never disposed here beyond `shutdown()` forwarding.
@@ -76,6 +78,7 @@ export class SessionTelemetryCoordinator {
     private readonly backend: SessionTelemetrySink,
     capture: SessionTelemetryCapture = 'live',
   ) {
+    this.identity = getOrCreateAnonymousIdentity()
     if (capture === 'live') {
       ctx.on('session/created', (session) => {
         this.adopt(session)
@@ -85,7 +88,7 @@ export class SessionTelemetryCoordinator {
       ctx.on('session/disposed', (session) => {
         this.contain(() => {
           if (!this.adopted.delete(session)) return
-          this.deliver(session, { record: this.redact(shutdownRecord(session)) })
+          this.deliver(session, { record: this.redact(shutdownRecord(session, this.identity)) })
         })
       })
       ctx.on('session/event', (session, event) => {
@@ -114,7 +117,7 @@ export class SessionTelemetryCoordinator {
       // teardown, so capture the marker before the backend quiesces.
       for (const session of this.adopted) {
         this.contain(() => {
-          this.deliver(session, { record: this.redact(shutdownRecord(session)) })
+          this.deliver(session, { record: this.redact(shutdownRecord(session, this.identity)) })
         })
       }
       try {
@@ -193,25 +196,43 @@ export class SessionTelemetryCoordinator {
         channel: 'ledger',
         time: event.time,
         severity: severityOf(event),
-        attributes: identityOf(session, event),
-        // The canonical event object is mutable and the backend serializes
-        // later; append-time validation guarantees this clone cannot throw.
-        body: structuredClone(event.data),
+        attributes: {
+          ...identityOf(session, event, this.identity),
+          ...diagnosticsOf(event),
+        },
       }),
       seq: event.seq,
     })
   }
 
   /**
-   * Run the `session-telemetry/record` waterfall at capture time. The innermost `next`
-   * passes the record through unchanged — this package ships no rules; exported
-   * data is as clean as the listeners a deployment mounts. Callers run inside
+   * Run the `session-telemetry/record` waterfall at capture time over a frozen
+   * mandatory projection, then intersect its attributes with the original
+   * key/value set. Listeners can remove fields and choose a valid severity but
+   * cannot add, rewrite, or recover discarded Session content. Callers run inside
    * {@link contain}, so a throwing rule withholds the record instead of
    * reaching the loop (fail-closed). On-demand capture invokes this waterfall
    * while reading the canonical session log, not when the event was appended.
    */
   private redact(record: SessionTelemetryRecord): SessionTelemetryRecord {
-    return this.ctx.waterfall('session-telemetry/record', record, () => record)
+    const original: SessionTelemetryRecord = Object.freeze({
+      ...record,
+      attributes: Object.freeze({ ...record.attributes }),
+    })
+    const candidate = this.ctx.waterfall('session-telemetry/record', original, () => original)
+    const attributes: Record<string, string | number | boolean> = {}
+    for (const [key, value] of Object.entries(original.attributes)) {
+      if (Object.hasOwn(candidate.attributes, key) && candidate.attributes[key] === value) {
+        attributes[key] = value
+      }
+    }
+    const candidateSeverity = candidate.severity
+    return Object.freeze({
+      channel: original.channel,
+      time: original.time,
+      severity: isSeverity(candidateSeverity) ? candidateSeverity : original.severity,
+      attributes: Object.freeze(attributes),
+    })
   }
 
   /** Hand one redacted record to the backend, then advance its ledger cursor. */
@@ -227,7 +248,7 @@ export class SessionTelemetryCoordinator {
 
   /** Relay one `agent/error` bus emission as an `agent-error` operational record. */
   private relayAgentError(agent: Agent, turn: number, step: number, error: unknown): void {
-    const detail = errorDetail(error)
+    const errorClass = errorClassOfThrown(error)
     this.deliver(agent.session, {
       record: this.redact({
         channel: 'ops',
@@ -235,13 +256,10 @@ export class SessionTelemetryCoordinator {
         severity: 'error',
         attributes: {
           'telemetry.op': 'agent-error',
-          'session.id': String(agent.session.id),
-          'agent.id': agent.id,
-          'error.name': detail.name,
-          turn,
-          step,
+          'session.id': this.identity.pseudonymizeSessionId(String(agent.session.id)),
+          'error.class': errorClass,
+          ...turnStepAttributes(turn, step),
         },
-        body: detail,
       }),
     })
   }
@@ -271,13 +289,15 @@ export class SessionTelemetryCoordinator {
  * Build the per-session clean-exit marker: emitted at the session's own
  * disposal edge, or at coordinator dispose for sessions still alive then.
  */
-function shutdownRecord(session: Session): SessionTelemetryRecord {
+function shutdownRecord(session: Session, identity: AnonymousIdentity): SessionTelemetryRecord {
   return {
     channel: 'ops',
     time: Date.now(),
     severity: 'info',
-    attributes: { 'telemetry.op': 'shutdown', 'session.id': String(session.id) },
-    body: { op: 'shutdown' },
+    attributes: {
+      'telemetry.op': 'shutdown',
+      'session.id': identity.pseudonymizeSessionId(String(session.id)),
+    },
   }
 }
 
@@ -296,24 +316,135 @@ function severityOf(event: SessionEvent): SessionTelemetrySeverity {
   }
 }
 
-/** Normalize the live bus's arbitrary thrown value into the stable operational-record shape. */
-function errorDetail(error: unknown): { name: string; message: string } {
+/** Normalize the live bus's arbitrary thrown value into a safe error class. */
+function errorClassOfThrown(error: unknown): TelemetryErrorClass {
   const normalized = error instanceof Error ? error : new Error(String(error))
-  return { name: normalized.name, message: normalized.message }
+  return errorClassOf(normalized.name)
 }
 
-/** Build the minimal identity attributes: envelope plus self-contained header facts. */
-function identityOf(session: Session, event: SessionEvent): Record<string, string | number> {
+/** Build pseudonymous Session, event, and fork correlation attributes; never workspace paths. */
+function identityOf(
+  session: Session,
+  event: SessionEvent,
+  identity: AnonymousIdentity,
+): Record<string, string | number> {
   const attributes: Record<string, string | number> = {
-    'session.id': String(session.id),
+    'session.id': identity.pseudonymizeSessionId(String(session.id)),
     'event.type': event.type,
     'event.seq': event.seq,
   }
-  const { cwd, parentSession, seedLength } = session.header
-  if (cwd !== undefined) attributes['session.cwd'] = cwd
-  if (parentSession !== undefined) attributes['session.parent_id'] = String(parentSession)
+  const { parentSession, seedLength } = session.header
+  if (parentSession !== undefined) {
+    attributes['session.parent_id'] = identity.pseudonymizeSessionId(String(parentSession))
+  }
   // The durable fork boundary: a forked stream starts here, and its prefix
   // lives in the parent's stream — receivers stitch on (parent_id, seed_length).
   if (seedLength !== undefined) attributes['session.seed_length'] = seedLength
   return attributes
+}
+
+/**
+ * Project the closed core vocabulary onto bounded diagnostic fields; unknown
+ * plugin events add nothing beyond Session, type, and sequence correlation.
+ */
+function diagnosticsOf(event: SessionEvent): Record<string, string | number | boolean> {
+  switch (event.type) {
+    case 'turn/start':
+      return turnStepAttributes(event.data.turn)
+    case 'turn/end':
+      return {
+        ...turnStepAttributes(event.data.turn),
+        'turn.outcome': safeEnum(event.data.reason.kind, TURN_OUTCOMES),
+      }
+    case 'step/start':
+    case 'step/end':
+      return turnStepAttributes(event.data.turn, event.data.step)
+    case 'user/message':
+      return { 'message.source': safeEnum(event.data.source.kind, MESSAGE_SOURCES) }
+    case 'assistant/chunk':
+      return {
+        ...turnStepAttributes(event.data.turn, event.data.step),
+        'assistant.chunk_type': safeEnum(event.data.chunk.type, CHUNK_TYPES),
+      }
+    case 'assistant/message':
+      return {
+        ...turnStepAttributes(event.data.turn, event.data.step),
+        'assistant.interrupted': event.data.interrupted === true,
+      }
+    case 'tool/call':
+      return turnStepAttributes(event.data.turn, event.data.step)
+    case 'tool/result':
+      return {
+        ...turnStepAttributes(event.data.turn, event.data.step),
+        'tool.is_error': event.data.message.content[0].isError === true,
+        ...(event.data.error === undefined
+          ? {}
+          : { 'error.class': errorClassOf(event.data.error.name) }),
+      }
+    case 'request/header':
+      return {
+        'request.reason': safeEnum(event.data.reason, REQUEST_REASONS),
+        'request.starts_series': event.data.startsSeries === true,
+      }
+    case 'request/context':
+    case 'session/end-seed':
+      return {}
+    default:
+      // Merge-extensible event types are privacy-opaque until their owner adds
+      // an explicit safe projection here; their type, seq, and time remain.
+      return {}
+  }
+}
+
+/** Keep persisted or live turn/step fields within the fixed numeric diagnostic domain. */
+function turnStepAttributes(turn: number, step?: number): Record<string, number> {
+  const attributes: Record<string, number> = {}
+  if (Number.isSafeInteger(turn) && turn >= 0) attributes['turn'] = turn
+  if (step !== undefined && Number.isSafeInteger(step) && step >= 0) attributes['step'] = step
+  return attributes
+}
+
+/** Accept only the three fixed severity values returned by a reduction listener. */
+function isSeverity(value: unknown): value is SessionTelemetrySeverity {
+  return value === 'info' || value === 'warn' || value === 'error'
+}
+
+const TURN_OUTCOMES = new Set(['completed', 'aborted', 'blocked', 'error', 'max-tokens', 'interrupted'])
+const MESSAGE_SOURCES = new Set(['user', 'plugin', 'model', 'tool'])
+const CHUNK_TYPES = new Set(['block-start', 'text-delta', 'reasoning-delta', 'tool-call-delta', 'block-end', 'usage', 'finish'])
+const REQUEST_REASONS = new Set(['initial', 'resume', 'change', 'series'])
+
+type TelemetryErrorClass =
+  | 'Error'
+  | 'TypeError'
+  | 'RangeError'
+  | 'ReferenceError'
+  | 'SyntaxError'
+  | 'URIError'
+  | 'EvalError'
+  | 'AggregateError'
+  | 'AbortError'
+  | 'CustomError'
+
+/** Map a possibly extended enum value onto a fixed diagnostic vocabulary. */
+function safeEnum(value: string, allowed: ReadonlySet<string>): string {
+  return allowed.has(value) ? value : 'extension'
+}
+
+/** Map writable or plugin-defined error names onto fixed built-in classes. */
+function errorClassOf(name: string): TelemetryErrorClass {
+  switch (name) {
+    case 'Error':
+    case 'TypeError':
+    case 'RangeError':
+    case 'ReferenceError':
+    case 'SyntaxError':
+    case 'URIError':
+    case 'EvalError':
+    case 'AggregateError':
+    case 'AbortError':
+      return name
+    default:
+      return 'CustomError'
+  }
 }

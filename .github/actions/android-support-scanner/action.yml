@@ -1,0 +1,29 @@
+name: Build Android support scanner
+description: Build and inspect the current checkout's scanner before native application compilation.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      with:
+        go-version: '1.27.1'
+        cache: false
+    - name: Build the committed scanner and inspect both ABIs
+      shell: bash
+      run: |
+        source_sha=$(git rev-parse HEAD)
+        api=$(python3 -c 'import json; print(json.load(open("native/support-scanner/build.json"))["androidApi"])')
+        ndk=$(python3 -c 'import json; print(json.load(open("native/support-scanner/build.json"))["androidNdkVersion"])')
+        "${ANDROID_HOME:?Android SDK root is required}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-$api" "ndk;$ndk"
+        python3 -B scripts/build-mobile-support-scanner.py \
+          --source-sha "$source_sha" --go "$(command -v go)" \
+          --android-sdk "$ANDROID_HOME" --android-ndk "$ANDROID_HOME/ndk/$ndk" --java-home "$JAVA_HOME" \
+          --cache "$RUNNER_TEMP/application-scanner-cache" --work-dir "$RUNNER_TEMP/application-scanner-work" \
+          --output "$RUNNER_TEMP/application-scanner-artifact"
+        export GOENV=off GOWORK=off GOVCS='*:off' GOSUMDB=sum.golang.org
+        export GOCACHE="$RUNNER_TEMP/application-scanner-cache/gocache"
+        export GOMODCACHE="$RUNNER_TEMP/application-scanner-cache/modcache"
+        for abi in arm64-v8a x86_64; do
+          go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -mode=binary "$RUNNER_TEMP/application-scanner-work/$abi.so"
+        done
+        echo "DSH_ANDROID_SCANNER_SOURCE=$source_sha" >> "$GITHUB_ENV"
+        echo "DSH_ANDROID_SCANNER_DIRECTORY=$RUNNER_TEMP/application-scanner-artifact" >> "$GITHUB_ENV"

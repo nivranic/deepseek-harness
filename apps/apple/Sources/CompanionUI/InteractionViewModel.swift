@@ -52,7 +52,11 @@ public final class InteractionViewModel {
     public private(set) var clientId: String = ""
 
     private let wire: any CompanionWireDriving
+    private let connectionDiagnostics = CompanionConnectionDiagnostics()
+    /// Current event subscription ownership; an open carrier does not grant approval authority.
+    public var connectionSnapshot: CompanionConnectionSnapshot { connectionDiagnostics.snapshot }
     private var watchTask: Task<Void, Never>?
+    private var watching = false
 
     /// - Parameter wire: the wire driver; tests pass a fake.
     public init(wire: any CompanionWireDriving) {
@@ -66,32 +70,62 @@ public final class InteractionViewModel {
     }
 
     /// Open the `$events` stream and collect forwarded interactions. The
-    /// stream resubscribes on loss, minting a fresh clientId each time so
-    /// the host's correlation never crosses subscriptions.
+    /// stream resubscribes on loss and waits for each generation's Host-owned
+    /// ready frame before an answer can use its client identity. Repeated
+    /// starts are idempotent; a start after stop awaits the prior task.
     public func startWatching() async {
-        watchTask?.cancel()
-        let freshId = "companion-\(UUID().uuidString)"
-        clientId = freshId
+        guard !watching else { return }
+        watching = true
+        if let previous = watchTask {
+            connectionDiagnostics.stop()
+            previous.cancel()
+            await previous.value
+        }
+        guard watching else { return }
+        let wire = self.wire
+        let connection = connectionDiagnostics
+        let token = connection.begin(reconnecting: false)
         watchTask = Task { [weak self] in
-            guard let self else { return }
-            do {
-                let frames = try await self.wire.stream("$events", payload: [:])
-                for try await frame in frames {
-                    self.collect(frame)
+            defer { connection.finished(token) }
+            while !Task.isCancelled {
+                guard self != nil else { return }
+                self?.clientId = ""
+                connection.attempt(token)
+                do {
+                    let frames = try await wire.stream("$events", payload: [:])
+                    connection.opened(token)
+                    for try await frame in frames {
+                        try Task.checkCancellation()
+                        guard let self else { return }
+                        self.collect(frame)
+                    }
+                    connection.interrupted(token, error: nil)
+                } catch is CancellationError {
+                    return
+                } catch {
+                    connection.interrupted(token, error: error)
                 }
-                await self.restart()
-            } catch is CancellationError {
-                // Deliberate stop.
-            } catch {
-                await self.restart()
+                guard !Task.isCancelled else { return }
+                self?.clientId = ""
+                connection.retrying(token)
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch is CancellationError {
+                    return
+                } catch {
+                    return
+                }
             }
         }
     }
 
     /// Stop watching; the inbox stays for review but no new events arrive.
+    /// A later start waits for cancellation to complete before opening another generation.
     public func stopWatching() {
+        watching = false
+        connectionDiagnostics.stop()
         watchTask?.cancel()
-        watchTask = nil
+        clientId = ""
     }
 
     /// Answer one pending interaction.
@@ -99,6 +133,10 @@ public final class InteractionViewModel {
         answering = true
         lastRefusal = nil
         defer { answering = false }
+        guard !clientId.isEmpty else {
+            lastRefusal = "Remote Event stream is not ready."
+            return
+        }
         do {
             _ = try await wire.call("$events/result", args: [
                 "clientId": .string(clientId),
@@ -116,33 +154,36 @@ public final class InteractionViewModel {
 
     // MARK: - Internals
 
-    private func restart() async {
-        guard watchTask != nil else { return }
-        try? await Task.sleep(for: .seconds(1))
-        guard watchTask != nil else { return }
-        await startWatching()
-    }
-
     /// Collect one `$events` frame's interactions.
     func collect(_ frame: WireValue) {
-        // Delivered events carry the host's payload under `event`; the
-        // interaction kinds the companion answers arrive as approval or
-        // question forwards. Unknown frames leave the inbox untouched.
+        let frameType = WireShape.string(frame, field: "type") ?? ""
+        if frameType == "ready" {
+            clientId = WireShape.string(frame, field: "clientId") ?? ""
+            return
+        }
+        if frameType == "cancel" {
+            guard let eventId = WireShape.string(frame, field: "eventId") else { return }
+            inbox.removeAll { $0.id == eventId }
+            return
+        }
+        guard frameType == "waterfall",
+              let id = WireShape.string(frame, field: "eventId"),
+              let agentId = WireShape.string(frame, field: "agentId"),
+              !agentId.isEmpty,
+              let request = WireShape.object(frame, field: "request")
+        else { return }
         let eventName = WireShape.string(frame, field: "event") ?? ""
         let isApproval = eventName.contains("approval")
         let isQuestion = eventName.contains("question")
         guard isApproval || isQuestion else { return }
-        let id = WireShape.string(frame, field: "eventId")
-            ?? WireShape.string(frame, field: "id")
-            ?? "\(inbox.count)"
-        let sessionId = WireShape.string(frame, field: "sessionId") ?? ""
-        let payload = WireShape.object(frame, field: "event") ?? frame
-        let title = WireShape.string(payload, field: "title") ?? (isApproval ? "Approval requested" : "Question asked")
-        let detail = Self.detailText(of: payload)
+        let title = WireShape.string(request, field: "title")
+            ?? WireShape.string(request, field: "toolName")
+            ?? (isApproval ? "Approval requested" : "Question asked")
+        let detail = Self.detailText(of: request)
         let pending = PendingInteraction(
             id: id,
             kind: isApproval ? .approval : .question,
-            sessionId: sessionId,
+            sessionId: agentId,
             title: title,
             detail: detail
         )
@@ -154,6 +195,7 @@ public final class InteractionViewModel {
 
     /// Best-effort visible text of a forwarded interaction payload.
     private static func detailText(of value: WireValue) -> String {
+        if let reason = WireShape.string(value, field: "reason") { return reason }
         if let text = WireShape.string(value, field: "text") { return text }
         for field in ["content", "message"] {
             if let nested = WireShape.object(value, field: field),

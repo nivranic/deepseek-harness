@@ -124,6 +124,10 @@ vendor manifest 守卫检查 `vendor/*/src` 下的改动是否连同对应的 `v
 
 ### CI 门禁
 
+原生应用打包共用[应用发布标识](development/product-release-identity.zh.md)，生成输入与源码卫生检查一同验证。
+
+[Workflow 安全](development/workflow-security.zh.md) 拥有不可变 Action 引用与显式 token 权限，并由同一源码聚合检查。
+
 keyless [CI 工作流](../.github/workflows/ci.yml) 将独立门禁分组到若干宽粒度 lane，并在受支持的 Node 版本上运行一组较小的兼容性检查。产物消费方在各自 lane 内等待一次 build。单独的真实 API 工作流按其配置的 worker 上限运行 `pnpm run test:e2e`。当前门禁和 job 清单以 [scripts/run-gates.ts](../scripts/run-gates.ts) 和工作流文件为准。
 
 ### 日常命令

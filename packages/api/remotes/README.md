@@ -31,6 +31,8 @@ The Client assembly mounts Commands, credentials, settings, Goal, dynamic Cordis
 
 This package owns no physical transport or Host service discovery. It projects the application selection into generated Remote contributions and an independent Host event source per Client; API Gateway owns endpoints, carriers, cancellation, and reconnection. Its Client face can be reused by Web or a future TUI that provides the same React-free `ctx.remote` contract.
 
+The assembly also mounts the generated `desktopSupport` contribution from the [desktop Host exporter](../../host/electron-ipc/README.md#diagnostics-export). Mounting its Client methods does not provide a native save handler or grant paired devices access; the desktop composition and Link authorization retain those decisions.
+
 -----
 
 <a id="forwarded-host-events"></a>

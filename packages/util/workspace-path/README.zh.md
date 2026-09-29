@@ -9,7 +9,7 @@ kind: "package-library"
 
 ## 概述
 
-供 Workspace 相关客户端和控制器包共享、可在浏览器使用的路径辅助函数。该包负责拼接 Workspace 相对路径、缩写用于展示的 POSIX 主目录，以及从 POSIX 或 Windows 路径提取 Workspace 标题；它不提供 Cordis service，也不持有运行时状态。
+供 Workspace 相关客户端和控制器包共享、可在浏览器使用的路径辅助函数。该包负责拼接 Workspace 相对路径、缩写用于展示的 POSIX 主目录，以及从 POSIX 或 Windows 路径提取 Workspace 标题；处理时间随输入长度线性增长。它不提供 Cordis service，也不持有运行时状态。
 
 ## 目录
 

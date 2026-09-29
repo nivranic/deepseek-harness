@@ -54,6 +54,8 @@ Two fields: the database path and the journal mode. `:memory:` opens an in-proce
 
 ### Observable behavior
 
+Backend close waits for each unit's `onBackendClose` owner callback before releasing units and the database. Domain owners drain accepted writes, including prerequisites, during direct close and whole-application teardown. Rejected owner callbacks still release all units and the database, then report an aggregate error.
+
 Missing directories and database files are created owner-only (`0o700`/`0o600`); an existing database keeps its modes. A unit whose stored format version differs from its descriptor rejects `version-mismatch`, and a database stamped with a physical layout version other than the current one rejects outright — no migration, pre-release stance. Failures carry stable `StorageError` codes, and writes are durable once resolved.
 
 -----

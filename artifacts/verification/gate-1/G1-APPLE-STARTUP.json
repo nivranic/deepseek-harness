@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "evidenceLevel": "E4",
+  "recordedAt": "2026-09-05T08:05:29.431Z",
+  "candidateHead": "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6",
+  "executionCommit": "22912379f538c604f2de9f2e19b2ad23f5bd59ec",
+  "tree": "1783d4cd28c57b3763da5b5f83b8a4f4b47b5cfe",
+  "parents": [
+    "90ef8b197fe2aa38cc40917cd157077a8d1dc6b9",
+    "d72930ed61a51fa4392fb6a7dd1c1cf9cab118a6"
+  ],
+  "runner": "macos-latest",
+  "workflow": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330",
+  "job": "https://github.com/nivranic/deepseek-harness/actions/runs/33952403330/job/101269522536",
+  "artifact": {
+    "name": "g1-apple-startup-33952403330-1",
+    "id": 9965463129,
+    "sizeBytes": 399473,
+    "contents": [
+      "Startup.xcresult",
+      "screenshots"
+    ]
+  },
+  "test": "CompanionStartupTests/testUnpairedStartupRendersPairing()",
+  "assertions": [
+    "App foreground",
+    "pairing title visible",
+    "device name field exists",
+    "empty pairing button disabled"
+  ],
+  "screenshot": {
+    "path": "artifacts/verification/gate-1/apple-startup/unpaired-d72930ed61.png",
+    "sha256": "7ade1a66507ace6ec3863c4d0f0175b0db51d5da8a0155674ca4d50fabe072b8",
+    "inspected": true
+  },
+  "limitations": [
+    "Simulator unpaired startup only; App-to-Host pairing, real-device networks, Release signing and installation remain separate acceptance."
+  ]
+}

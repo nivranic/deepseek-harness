@@ -87,11 +87,17 @@ describe('module identity through the loader', () => {
     expect(require('events')).toBe(require('node:events'))
     expect(require('fs')).toBe(require('node:fs'))
     expect(require('tty')).toBe(require('node:tty'))
+    expect(require('https')).toBe(require('node:https'))
   })
 
   it('reports that worker file descriptors are not terminals', () => {
     const tty = loaderRequire()('tty') as { isatty(fd: number): boolean }
     expect(tty.isatty(2)).toBe(false)
+  })
+
+  it('loads the SEA detector through the worker table without claiming a native executable', () => {
+    const sea = loaderRequire()('node:sea') as { isSea(): boolean }
+    expect(sea.isSea()).toBe(false)
   })
 
   it('keeps class identity across those specifiers', () => {

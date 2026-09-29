@@ -4,6 +4,8 @@ English | [中文](README.zh.md)
 
 Native source and public packages maintained with DeepSeek Harness. The [`landlock-run/` workspace](landlock-run/README.md) owns the Landlock self-restrict-then-exec launcher consumed by the harness, including its architecture, three-package npm family, platform support, development workflow, and [release procedure](landlock-run/docs/release.md).
 
+The [`support-scanner/` Go library](support-scanner/README.md) admits immutable diagnostic bytes with pinned upstream rules and joined cancellation. Its README owns the mobile integration limits and verification commands.
+
 ## Workspace and release boundary
 
 `landlock-run/` and its packages belong to the repository's root pnpm workspace and lockfile. Harness consumers use the current workspace entry package during development and CI, so a launcher contract change and its consumer update can land and be tested together.

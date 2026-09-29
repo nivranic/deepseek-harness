@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Built-artifact smoke for the first generated Remote: plain Node boots the
+ * Built-artifact smoke for generated Remotes: plain Node boots the
  * Host and Browser bundle handoffs, then crosses the shared `/api` HTTP route.
  */
 
@@ -22,13 +22,15 @@ const requiredArtifacts = [
   'packages/core/session/lib/index.js',
   'packages/goal/goal/lib/index.js',
   'packages/goal/goal/lib/typert.host.js',
+  'packages/host/electron-ipc/lib/index.js',
+  'packages/host/electron-ipc/lib/typert.host.js',
   'packages/api/gateway/lib/client.js',
   'packages/api/gateway/lib/index.js',
   'packages/typert/registry/lib/client.js',
   'packages/typert/registry/lib/index.js',
 ].every(path => existsSync(artifact(path)))
 
-describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
+describe.skipIf(!requiredArtifacts)('Goal and desktop Remote built LIB chain', () => {
   it('runs root and Agent-scoped calls through generated bundles and real HTTP', async () => {
     const urls = Object.fromEntries(Object.entries({
       agent: 'packages/core/agent/lib/index.js',
@@ -38,6 +40,8 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       connectionHost: 'packages/client/connection/lib/index.js',
       goal: 'packages/goal/goal/lib/index.js',
       goalTypert: 'packages/goal/goal/lib/typert.host.js',
+      desktopSupport: 'packages/host/electron-ipc/lib/index.js',
+      desktopSupportTypert: 'packages/host/electron-ipc/lib/typert.host.js',
       registryClient: 'packages/typert/registry/lib/client.js',
       registryHost: 'packages/typert/registry/lib/index.js',
       remotesClient: 'packages/api/remotes/lib/client.js',
@@ -54,6 +58,8 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       const { default: TypertRemoteService } = await import(urls.apiGatewayHost)
       const { default: GoalService } = await import(urls.goal)
       const { TYPERT } = await import(urls.goalTypert)
+      const { DesktopSupport, Config: DesktopConfig } = await import(urls.desktopSupport)
+      const { TYPERT: desktopTypert } = await import(urls.desktopSupportTypert)
       const { default: TypertRegistry } = await import(urls.registryHost)
       const { Session, SessionId } = await import(urls.session)
 
@@ -83,6 +89,8 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       await host.plugin(TypertRemoteService)
       await host.plugin(GoalService)
       host.typert.register(TYPERT)
+      new DesktopSupport(host, DesktopConfig.parse({}))
+      host.typert.register(desktopTypert)
 
       const makeAgent = rawId => {
         const session = new Session(SessionId(rawId))
@@ -187,6 +195,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       const agentContext = client.extend({ builtAgentId: scopedAgent.id })
       const scopedResult = await agentContext.remote.goals.create({ objective: 'scoped goal', maxGoalRounds: 3 })
       const result = {
+        desktopSupport: (await client.remote.desktopSupport.export(undefined)).value,
         invalidRejected,
         rootResult: rootResult.value,
         rootEdit: rootEdit.value,
@@ -209,6 +218,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
     const result = await runPlainNode(script)
     expect(result.exitCode, `stderr:\n${result.stderr}`).toBe(0)
     const output = JSON.parse(result.stdout.trim().split('\n').at(-1) ?? '{}') as {
+      desktopSupport: { status: 'failed'; reason: 'unavailable' }
       invalidRejected: boolean
       rootResult: { ref: { id: string; revision: number } }
       rootEdit: { objective: string; revision: number }
@@ -219,6 +229,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       scopedEvents: number
     }
     expect(output).toMatchObject({
+      desktopSupport: { status: 'failed', reason: 'unavailable' },
       invalidRejected: true,
       rootResult: { ref: { revision: 1 } },
       rootEdit: { objective: 'edited root goal', revision: 2 },

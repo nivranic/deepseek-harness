@@ -30,6 +30,8 @@ The [client shell layering note](2026-08-15-client-shells-and-dynamic-packages.m
 
 The web kernel remains framework-free and imports no dynamic package value. Modules is itself a dynamic row, but the host parser delivers its factory before the Vite main module. The HTML-installed `__ModuleLoader__` facade uses that factory to construct the module system when the kernel calls `create()`. Every other dynamic row belongs to an application combo script; static React, Cordis, and UI library identities come from the shell seed.
 
+The host resolves client metadata from the package that owns the Loader's imported module. Executable installations expose real ESM proxies that import embedded modules and preserve their single Node module instance; those proxies carry `dsh.moduleFallback.targets`, not copied client metadata or resources. The client locator follows the exact resolved proxy export to its original package and rejects broken or cyclic mappings. Serving from the original package preserves the relationship between its declaration and bundle bytes without extracting another dependency tree. The [packaged profile runtime note](2026-08-23-python-sdk-dsh-profile-runtime.md) owns proxy generation.
+
 ### One module system, one plugin governor
 
 The browser mirrors the host's division of labor. `dsh-client-modules` (`ClientModuleSystem`) takes the module-system seat that Node's internal ESM loader holds host-side; the same vendored `@cordisjs/plugin-loader` keeps the governance seat on both sides. The line between them in one sentence: **the module system owns module identity and bytes — how code arrives, registers, and becomes an exports; the Loader owns plugin lifecycle — when a plugin mounts, what it waits for, and how it is torn down.**

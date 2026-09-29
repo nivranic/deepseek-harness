@@ -327,6 +327,17 @@ function startStartupProfile(fixture: StartupFixture, args: readonly string[]) {
 }
 
 describe.skipIf(!existsSync(dshBin))('dsh BUILT bin (node lib/bin.js, no tsx)', () => {
+  it.each([false, true])('rejects private SEA bootstrap selection under plain Node with IPC=%s', async (ipc) => {
+    const result = await execa(process.execPath, [dshBin, '--version'], {
+      env: { DSH_SUBPROCESS_BOOTSTRAP: '1' }, ipc,
+      timeout: SPAWN_TIMEOUT_MS, killSignal: 'SIGKILL', reject: false,
+    })
+    expect(result.timedOut).toBe(false)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toBe('')
+    expect(result.stderr).toContain('requires an owned Windows SEA IPC launch')
+  }, SPAWN_TIMEOUT_MS + 5000)
+
   it('requires --profile and rejects removed commands', async () => {
     const bare = await runBuiltBin()
     expect(bare.code).toBe(1)
@@ -689,6 +700,23 @@ describe.skipIf(!existsSync(dshBin))('dsh BUILT bin (node lib/bin.js, no tsx)', 
       rmSync(fixture.home, { recursive: true, force: true })
     }
   }, SPAWN_TIMEOUT_MS + 30_000)
+
+  it.skipIf(process.platform !== 'win32')('owns Windows descendants after the requested program exits through a loaded profile', async () => {
+    const fixture = createProfileLifecycleFixture()
+    const bundle = join(fixture.home, 'profiles', 'lifecycle', 'node_modules', 'dsh-lifecycle-bundle')
+    const plugin = join(bundle, 'plugin.mjs')
+    writeFileSync(plugin, readFileSync(new URL('./fixtures/windows-owned-subprocess.mjs', import.meta.url)))
+    writeFileSync(join(bundle, 'cordis.patch.yml'), yaml.dump([{ insert: [
+      { id: 'owned-processes', name: '@deepseek-ai/dsh-subprocess-local' },
+      { id: 'verify-job', name: pathToFileURL(plugin).href, config: { node: process.execPath } },
+    ] }]))
+    try {
+      const result = await runBuiltBin(['--profile', 'lifecycle'], { DSH_HOME: fixture.home })
+      expect(result.code, result.stderr).toBe(0)
+      expect(result.stderr).toBe('')
+      expect(JSON.parse(result.stdout)).toEqual({ exitCode: 7, retained: true, terminated: true })
+    } finally { rmSync(fixture.home, { recursive: true, force: true }) }
+  }, SPAWN_TIMEOUT_MS + 5000)
 
   it('fully settles a custom profile, hot-reloads its patch layer with removal reverting, and disposes on a signal', async () => {
     const fixture = createProfileLifecycleFixture()

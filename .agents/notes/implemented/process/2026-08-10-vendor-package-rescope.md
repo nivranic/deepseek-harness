@@ -42,6 +42,8 @@ Markdown splits along what a reader does with it. Every fence follows the rename
 
 ## Alternatives considered
 
+The codemod pins the text it owns rather than surrounding publication policy or formatting, so documentation can maintain those independently. Product-value exemptions name both the file and the literal's syntax position; a file-wide exemption would also conceal package-reference regressions. The acceptance tests retain upstream-name refusal fixtures and exercise current documentation in both directions.
+
 **Keep the upstream names and exclude `vendor/` from publication.** Rejected because every harness package declares `cordis` as a peer dependency, so an installed `@deepseek-ai/dsh-*` would have no resolvable framework.
 
 **Rename only at pack time.** Rejected because the published names would disagree with the source tree, every module specifier would have to be rewritten inside the publish path, and no local run could reproduce what was published.

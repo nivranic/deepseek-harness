@@ -17,6 +17,15 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, createPrivate
 const PROTOCOL_NAME = 'Noise_XX_25519_ChaChaPoly_SHA256'
 const TAG = 16
 const KEY = 32
+const MAX_NONCE = (1n << 64n) - 1n
+
+/** The traffic key must be retired before another message can be processed. */
+export class NoiseNonceExhaustedError extends Error {
+  constructor() {
+    super('Noise nonce exhausted')
+    this.name = 'NoiseNonceExhaustedError'
+  }
+}
 
 /** Wraps one raw X25519 scalar into the PKCS#8 DER node:crypto imports. */
 const X25519_PKCS8_PREFIX = Buffer.from('302e020100300506032b656e04220420', 'hex')
@@ -51,8 +60,9 @@ function hkdf2(chainingKey, ikm) {
 
 /** The 12-byte Noise ChaChaPoly nonce: 4 zero bytes then the counter little-endian. */
 function nonce(counter) {
+  if (counter >= MAX_NONCE) throw new NoiseNonceExhaustedError()
   const buf = Buffer.alloc(12)
-  buf.writeBigUInt64LE(BigInt(counter), 4)
+  buf.writeBigUInt64LE(counter, 4)
   return buf
 }
 
@@ -75,7 +85,7 @@ function open(key, counter, ad, ciphertext) {
 export class NoiseCipherState {
   constructor(key) {
     this.key = key
-    this.n = 0
+    this.n = 0n
   }
 
   get hasKey() {
@@ -85,14 +95,14 @@ export class NoiseCipherState {
   /** §4.2 EncryptWithAd: AEAD under the current counter, then increment. */
   encryptWithAd(ad, plaintext) {
     const ciphertext = seal(this.key, this.n, ad, plaintext)
-    this.n += 1
+    this.n += 1n
     return ciphertext
   }
 
   /** §4.2 DecryptWithAd: open under the current counter, then increment. */
   decryptWithAd(ad, ciphertext) {
     const plaintext = open(this.key, this.n, ad, ciphertext)
-    this.n += 1
+    this.n += 1n
     return plaintext
   }
 }
@@ -118,7 +128,7 @@ export class NoiseHandshake {
     this.ck = Buffer.from(PROTOCOL_NAME, 'utf8')
     this.h = Buffer.from(PROTOCOL_NAME, 'utf8')
     this.key = undefined
-    this.n = 0
+    this.n = 0n
   }
 
   /** §4.1 MixHash: fold one value into the transcript hash. */
@@ -131,13 +141,13 @@ export class NoiseHandshake {
     const [ck, tempKey] = hkdf2(this.ck, ikm)
     this.ck = ck
     this.key = tempKey
-    this.n = 0
+    this.n = 0n
   }
 
   /** §4.6 EncryptAndHash: AEAD under the transcript hash when keyed. */
   #encryptAndHash(plaintext) {
     const ciphertext = this.key === undefined ? plaintext : seal(this.key, this.n, this.h, plaintext)
-    if (this.key !== undefined) this.n += 1
+    if (this.key !== undefined) this.n += 1n
     this.#mixHash(ciphertext)
     return ciphertext
   }
@@ -145,7 +155,7 @@ export class NoiseHandshake {
   /** §4.6 DecryptAndHash: the receiving mirror of {@link #encryptAndHash}. */
   #decryptAndHash(ciphertext) {
     const plaintext = this.key === undefined ? ciphertext : open(this.key, this.n, this.h, ciphertext)
-    if (this.key !== undefined) this.n += 1
+    if (this.key !== undefined) this.n += 1n
     this.#mixHash(ciphertext)
     return plaintext
   }

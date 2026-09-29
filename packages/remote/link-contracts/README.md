@@ -1,5 +1,5 @@
 ---
-description: "Executable contract for the remote link wire vocabulary: zod schemas pinned to the protocol types, golden fixtures, and the generator emitting the cross-language manifest, Swift, and Kotlin models native companions are checked against."
+description: "Executable contract for the remote link wire vocabulary: protocol-pinned zod schemas, golden fixtures, and generated JSON Schema, manifest, Swift, and Kotlin models."
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-link-contracts` is the single source of truth native companions compile against: one declarative table names every wire type of the link vocabulary — pairing payload, pair response, host description with its capability objects, carrier status, device record, the administration status row, and the companion-rendered session-event payloads (turn and step spans, user and assistant messages, tool calls and results, packed chunk rows, plan/todo/goal state), the workspace-file browse values, the subagent catalog, and the attachment surface (durable image references, the `session/attachment` read value, inline prompt image uploads), plus the artifact read value (`session/artifact`) — and one golden fixture per entry fixes the exact wire bytes. The zod schemas are pinned to the TypeScript protocol types at compile time, so a wire-type change fails typecheck here first; the generator then emits the language-neutral manifest with fixture checksums plus Swift `Codable` and Kotlin data models, and a drift gate fails CI until regenerated artifacts are committed.
+`dsh-link-contracts` is the single source of truth native companions compile against. One declarative source graph names the authenticated unary envelope (`payload.args`), NDJSON stream request and value/error frames, Remote Event ready/emit/waterfall/cancel/result vocabulary, durable Session sequence and snapshot cursor semantics, pairing and host-description values, companion-rendered Session payloads, workspace-file values, subagent values, attachments, artifacts, and handoff values. Golden fixtures pin every semantic variant, including successful void results and structured rejections. Protocol-pinned zod schemas reject missing required fields while ignoring JSON-safe unknown optional fields; the generator emits a machine-readable JSON Schema, a language-neutral manifest with checksums and compatibility rules, Swift `Codable`, and Kotlin models. The drift gate fails CI until every derivative is regenerated from that same graph.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-The generator runs from the repository root (it also syncs the `apps/apple` copies); the drift gate rides the `hygiene` aggregate.
+The generator runs from the repository root (it also syncs the Apple and Android copies); the drift gate rides the `hygiene` aggregate.
 
 ```sh
 pnpm run gen-link-contracts      # regenerate manifest + Swift + Kotlin + conformance scenarios
@@ -33,7 +33,7 @@ pnpm run verify-link-contracts   # fail when committed artifacts are stale
 
 ### Observable behavior
 
-A wire-type change surfaces twice: the zod schemas stop satisfying the protocol types (typecheck), and the regenerated manifest, Swift, or Kotlin text stops matching the committed files (the drift gate). The generator also syncs the Swift models and the fixture JSONs into `apps/apple`, where the Shared Apple Remote Core and its fixture-replay tests consume them under the same gate. Fixtures round-trip through the schemas in the unit suite, and every emitted checksum names the fixture it pins, so a companion's decoder test can rely on the same bytes.
+A wire-type change surfaces twice: the zod schemas stop satisfying the protocol types (typecheck), and the regenerated JSON Schema, manifest, Swift, Kotlin, or fixture text stops matching the committed files (the drift gate). The manifest carries independent `protocolVersion`, `contractVersion`, and `sessionFormatVersion` axes, the authenticated routes and headers, supported capabilities, compatibility rules, and recovery semantics. Generated fixtures are consumed by the real Gateway and TLS carrier tests before the same bytes are copied into both native test trees.
 
 -----
 
@@ -43,8 +43,10 @@ A wire-type change surfaces twice: the zod schemas stop satisfying the protocol 
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-- **Table, not reflection.** The declarative table in `src/index.ts` names every type, field, kind, constant, and optionality explicitly; the emitter stays pure string work with no filesystem access, so the drift gate compares byte-for-byte.
-- **Three pins per type.** Protocol interface (the real contract), zod schema (`satisfies z.ZodType<…>`), and fixture (`satisfies` the interface) — any drift between them is a compile error before it is a gate failure.
+- **Graph, not reflection.** The declarative graph in `src/index.ts` names every type, field, kind, constant, optionality, fixture variant, route, header, capability, version, and compatibility rule explicitly; the emitter stays pure string work with no filesystem access, so the drift gate compares byte-for-byte.
+- **Four pins per type.** Protocol interface, zod schema (`satisfies z.ZodType<…>`), fixture (`satisfies` the interface), and generated JSON Schema — typed drift fails before or during the generator gate.
+- **JSON pass-through stays explicit.** Recursive JSON values reject `undefined`, non-finite values, negative zero, bigint, symbols, functions, and cycles. Unknown optional object fields are accepted and discarded, missing required or invalid discriminant fields remain errors, and the Host parser separately rejects reserved fields from another outcome variant.
+- **Recovery is recorded, not invented by a client.** Session event sequence numbers are monotonic, snapshot `cursor` is the highest included sequence, and replay ignores records at or below that cursor. Stream cancellation is the transport abort rather than another wire frame.
 - **Const fields stay fields.** Version and kind constants emit as documented scalar fields, not hardcoded decoder branches, so a protocol bump changes the manifest diff visibly.
 - **Session events pin the host vocabulary.** Each event-payload fixture satisfies the real `SessionEventMap` member (the plugin merges for `plan/mode`, `todo/write`, and `goal/change` included), so a host-side payload change fails typecheck here first; `sessionEvents`/`chunkRows` tags on a row must be values of the `LinkSessionEventKind`/`LinkChunkRowKind` enums, and the emitter rejects any other tag.
 - **Lite Behavior Spec.** `foldLiteDomain` is the reference fold of an on-device Native Harness Lite runtime's lifecycle events (prompt, streaming, cancel, tool call/result, plan, todo, artifact, provider and network errors, handoff — plan chapters 33/34/63) into its domain state; `generated/lite-conformance/<id>.json` pairs each golden keyless event sequence with the derived expected state under the same drift gate, ready for the Swift and Kotlin Lite runtimes to replay. Behavior compatible, never implementation identical.
@@ -55,12 +57,12 @@ A wire-type change surfaces twice: the zod schemas stop satisfying the protocol 
 | File | Role |
 |---|---|
 | [`src/index.ts`](src/index.ts) | Type table, fixtures, zod schemas pinned to the protocol types |
-| [`src/generate.ts`](src/generate.ts) | Pure emitter for the manifest, Swift, and Kotlin artifacts |
+| [`src/generate.ts`](src/generate.ts) | Pure emitter for the JSON Schema, manifest, Swift, and Kotlin artifacts |
 | [`src/companion-fold.ts`](src/companion-fold.ts) | Reference domain-state fold over follow records |
 | [`src/lite-spec.ts`](src/lite-spec.ts) | Lite Behavior Spec: event vocabulary, reference fold, golden scenarios |
 | [`src/companion-scenarios.ts`](src/companion-scenarios.ts) | Golden conformance scenarios and their emitter |
 | [`src/invariant.ts`](src/invariant.ts) | Invariant companion (no runtime invariant: pure contract library) |
-| [`generated/`](generated/) | Emitted manifest, Swift, Kotlin, fixtures, and conformance scenarios — never hand-edited |
+| [`generated/`](generated/) | Emitted JSON Schema, manifest, Swift, Kotlin, fixtures, and conformance scenarios — never hand-edited |
 
 </details>
 
@@ -78,7 +80,7 @@ A wire-type change surfaces twice: the zod schemas stop satisfying the protocol 
 <a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
 
-- **Emitting models only, no transport** — the artifacts are decoders and encoders; networking, storage, and UI arrive with the Phase 2 companion apps.
+- **No socket or lifecycle ownership** — the contract defines carrier bytes and recovery rules, but the Gateway, TLS carrier, and native clients continue to own dispatch, sockets, authentication, reconnect scheduling, storage, and UI.
 - **Closed event subset** — the table models the companion-rendered session events, not the merge-extensible `SessionEventMap` at large; unknown event tags stay wire-valid and render generically, and variant fields beyond the modeled ones (for example a turn-end error chain) are ignored by the generated decoders.
 - **Numbers as doubles** — timestamps and versions emit as floating-point scalars in both languages; exact integer handling arrives if a wire value ever exceeds double precision.
 

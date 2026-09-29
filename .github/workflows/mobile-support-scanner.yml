@@ -1,0 +1,163 @@
+name: Mobile support scanner
+
+on:
+  pull_request:
+    paths:
+      - 'native/support-scanner/**'
+      - 'scripts/build-mobile-support-scanner.py'
+      - 'scripts/build-apple-support-scanner.py'
+      - 'scripts/verify-apple-support-scanner.py'
+      - 'scripts/stage-apple-support-scanner.py'
+      - 'scripts/release/apple_scanner_*.py'
+      - 'scripts/release/test_apple_scanner_*.py'
+      - 'scripts/release/fixtures/apple-scanner/**'
+      - 'scripts/release/mobile_scanner_*.py'
+      - 'scripts/release/test_mobile_scanner_*.py'
+      - '.github/workflows/mobile-support-scanner.yml'
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full immutable source commit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-support-scanner-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  android:
+    name: Android scanner AAR and license inventory
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      DSH_SCANNER_SOURCE: ${{ inputs.source_sha || github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_SCANNER_SOURCE }}
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify committed source and packaging rejection paths
+        run: |
+          test "$(git rev-parse HEAD)" = "$DSH_SCANNER_SOURCE"
+          python3 -B -m unittest discover -s scripts/release -p 'test_mobile_scanner_*.py' -v
+      - name: Install the pinned Android compiler inputs
+        run: |
+          api=$(python3 -c 'import json; print(json.load(open("native/support-scanner/build.json"))["androidApi"])')
+          ndk=$(python3 -c 'import json; print(json.load(open("native/support-scanner/build.json"))["androidNdkVersion"])')
+          "${ANDROID_HOME:?Android SDK root is required}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-$api" "ndk;$ndk"
+      - name: Build and verify the scanner AAR
+        run: |
+          ndk=$(python3 -c 'import json; print(json.load(open("native/support-scanner/build.json"))["androidNdkVersion"])')
+          python3 -B scripts/build-mobile-support-scanner.py \
+            --source-sha "$DSH_SCANNER_SOURCE" \
+            --go "$(command -v go)" \
+            --android-sdk "$ANDROID_HOME" \
+            --android-ndk "$ANDROID_HOME/ndk/$ndk" \
+            --java-home "$JAVA_HOME" \
+            --cache "$RUNNER_TEMP/mobile-scanner-cache" \
+            --work-dir "$RUNNER_TEMP/mobile-scanner-work" \
+            --output "$RUNNER_TEMP/mobile-scanner-artifact"
+      - name: Check native scanner vulnerabilities
+        run: |
+          export GOENV=off GOWORK=off GOVCS='*:off' GOSUMDB=sum.golang.org
+          export GOCACHE="$RUNNER_TEMP/mobile-scanner-cache/gocache"
+          export GOMODCACHE="$RUNNER_TEMP/mobile-scanner-cache/modcache"
+          for abi in arm64-v8a x86_64; do
+            go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -mode=binary "$RUNNER_TEMP/mobile-scanner-work/$abi.so"
+          done
+      - name: Preserve verified scanner resources
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mobile-support-scanner-android-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mobile-scanner-artifact/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  apple:
+    name: Apple scanner frameworks and Swift native acceptance
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      DSH_SCANNER_SOURCE: ${{ inputs.source_sha || github.event.pull_request.head.sha || github.sha }}
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DSH_SCANNER_SOURCE }}
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Verify source and packaging rejection paths
+        run: |
+          test "$(git rev-parse HEAD)" = "$DSH_SCANNER_SOURCE"
+          python3 -B -m unittest discover -s scripts/release -p 'test_mobile_scanner_*.py' -v
+          python3 -B -m unittest discover -s scripts/release -p 'test_apple_scanner_*.py' -v
+      - name: Build and verify the scanner XCFramework
+        run: |
+          python3 -B scripts/build-apple-support-scanner.py \
+            --source-sha "$DSH_SCANNER_SOURCE" --go "$(command -v go)" \
+            --developer-dir "$DEVELOPER_DIR" --cache "$RUNNER_TEMP/apple-scanner-cache" \
+            --work-dir "$RUNNER_TEMP/apple-scanner-work" --output "$RUNNER_TEMP/apple-scanner-artifact"
+      - name: Execute Swift scanner bindings on macOS and iOS simulator
+        run: |
+          python3 -B scripts/verify-apple-support-scanner.py \
+            --directory "$RUNNER_TEMP/apple-scanner-artifact" --work-dir "$RUNNER_TEMP/apple-scanner-work" \
+            --developer-dir "$DEVELOPER_DIR" --go "$(command -v go)" --output "$RUNNER_TEMP/apple-scanner-native"
+      - name: Check linked native scanner vulnerabilities
+        run: |
+          export GOENV=off GOWORK=off GOVCS='*:off' GOSUMDB=sum.golang.org
+          export GOCACHE="$RUNNER_TEMP/apple-scanner-cache/gocache"
+          export GOMODCACHE="$RUNNER_TEMP/apple-scanner-cache/modcache"
+          for target in macos ios-simulator; do
+            go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -mode=binary "$RUNNER_TEMP/apple-scanner-native/$target"
+          done
+      - name: Stage verified Apple application resources
+        run: |
+          python3 -B scripts/stage-apple-support-scanner.py \
+            --source-sha "$DSH_SCANNER_SOURCE" --directory "$RUNNER_TEMP/apple-scanner-artifact" \
+            --framework "$RUNNER_TEMP/apple-scanner-work/SupportScanner.xcframework" \
+            --verification "$RUNNER_TEMP/apple-scanner-native/verification.json" \
+            --output "$RUNNER_TEMP/apple-scanner-staged"
+      - name: Preserve verified Apple scanner resources
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mobile-support-scanner-apple-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/apple-scanner-artifact/
+            ${{ runner.temp }}/apple-scanner-native/verification.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Preserve Apple application staging receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: apple-scanner-staging-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/apple-scanner-staged/staging.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Preserve Apple scanner failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mobile-support-scanner-apple-failure-${{ env.DSH_SCANNER_SOURCE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/apple-scanner-work/*.log
+            ${{ runner.temp }}/apple-scanner-native/*.stdout
+            ${{ runner.temp }}/apple-scanner-native/*.stderr
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "gate": "Gate 1",
+  "status": "PASS",
+  "decision": "CLOSED",
+  "canEnterGate2": true,
+  "isWaiver": false,
+  "sourceHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+  "recordedAt": "2026-09-05T14:25:50.994Z",
+  "localWork": "MANDATORY_ACCEPTANCE_VERIFIED",
+  "completed": [
+    "Android App 装配、启动修复及模拟器首屏回归",
+    "原五项便携 runner 阻断",
+    "17 文件覆盖率缺口与完整 coverage 门禁",
+    "真实 Host 与 Kotlin 的 13 步验收",
+    "Swift real Host 13/13 with recovery and all three Xcode shell builds at 6dbbcf74570e53c30b823d2f529499c8b4a1bafd",
+    "iOS installed first-screen XCTest passed at d72930ed61; same merge tree as Swift and Kotlin acceptance",
+    "Apple embedded product identity and simulator first screen passed at 53cd3e79ad; Linux coverage/static and all consumer snapshots passed"
+  ],
+  "remaining": [],
+  "authorization": {
+    "push": "AUTHORIZED",
+    "createPullRequest": "AUTHORIZED_DRAFT_BASE_DEV",
+    "reopenSwiftValidation": "AUTHORIZED",
+    "formalGateWaiver": "TEMPORARY_APPLE_ENVIRONMENT_DEFERRAL_AUTHORIZED"
+  },
+  "proposedAction": {
+    "remote": "origin",
+    "branch": "codex/goal-mode-full-implementation",
+    "base": "dev",
+    "pullRequest": "draft",
+    "merge": false,
+    "release": false,
+    "qualification": "推送、draft PR 与 Swift/Apple 复验均已明确授权；Apple 环境依赖按临时延期处理。"
+  },
+  "verification": {
+    "jsonRecords": 11,
+    "checksumReferences": 51,
+    "markdownFileLinks": 44,
+    "taskCounts": {
+      "PASS": 13,
+      "PARTIAL": 0
+    },
+    "mainWorkspaceUnchanged": true
+  },
+  "previousAuthorization": {
+    "push": "NOT_AUTHORIZED",
+    "createPullRequest": "NOT_AUTHORIZED",
+    "reopenSwiftValidation": "NOT_AUTHORIZED",
+    "formalGateWaiver": "NOT_AUTHORIZED"
+  },
+  "platformDeferral": "artifacts/verification/gate-1/G1-APPLE-DEFERRAL.json",
+  "canPrepareGate2": true,
+  "entryPolicy": "所有 Gate 1 必要条件已在不可变候选 906d193595 上满足。Apple 环境延期未用于本次准入；独立 Windows 文档测试超时继续单独修复。",
+  "remoteEvidence": "artifacts/verification/gate-1/G1-REMOTE-PR.json",
+  "openIndependentObservations": [
+    {
+      "candidateHead": "906d19359588584ffe154d9abe8aea752e7b743a",
+      "status": "FAIL",
+      "mandatory": false,
+      "job": 101316923755,
+      "failure": "translation-pairing-merge.spec.ts clean text fallback took 16153 ms; its suite forced 15000 ms despite the heavy lane specifying 90000 ms.",
+      "repairCommit": "7a786c8572cea834b560308b062dd6187404697a",
+      "localRepair": {
+        "status": "PASS",
+        "runner": "Windows Node 24.19.0",
+        "tests": 2,
+        "timingsMs": [
+          7274,
+          9574
+        ],
+        "log": ".artifacts/g1-resume-20260905/pairing-merge-budget.log"
+      },
+      "remoteRepair": "PENDING",
+      "log": ".artifacts/g1-resume-20260905/windows-coverage-906d.log"
+    }
+  ],
+  "evidence": "artifacts/verification/gate-2/ci-evidence-906d193595.json",
+  "qualification": "Gate 1 accepts immutable candidate 906d193595 using the workflow-owned mandatory policy. Independent Windows coverage remains FAIL due to a documentation Git integration timeout; it is retained and repaired separately, not reported as PASS."
+}

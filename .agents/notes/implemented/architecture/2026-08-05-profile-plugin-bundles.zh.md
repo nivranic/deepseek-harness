@@ -18,6 +18,8 @@ Status: implemented
 
 两项配套重构：webserver 内置的静态 dist 服务改为单一所有者的**回退席位**（`registerFallback`／`applyIndexTaps`），SPA 服务器提取到 `@deepseek-ai/dsh-host-frontend-static`，使 web 组合包以组合的方式持有自己的 dist，而不是靠启动器代码；[dsh CLI 个人配置决策](../feature/2026-07-20-dsh-cli-personal-config.zh.md)的个人 overlay 机制（`loadPersonalPatches`、`$DSH_HOME/config.yaml`）改为面向逐 profile 与 home 级的 `cordis.patch.yml` 层（`loadOptionalPatches`、接受文件名的 `watchUserPatches`），取代该笔记的各入口模式与文件位置，同时保留其 Harness home 根目录、patch 语义与响亮失败的解析。
 
+Profile 初始化通过排他创建文件来保留用户拥有的配置。先检查文件是否存在，无法防止后续写入覆盖另一写入者刚创建的 manifest、用户 patch 或 pnpm 设置；排他创建还会拒绝跟随既有悬空符号链接。只有 `EEXIST` 表示路径已由其他目录项占用；权限与 I/O 错误继续上报。[初始化回归测试](../../../../packages/boot/app-boot/tests/profile-initialization.spec.ts) 将真实的竞争文件创建插入初始化器写入之前，保留悬空链接且不创建其目标，并要求其他写入错误保持可见。
+
 ## Alternatives considered
 
 - **依赖扫描加部分 `patchOrder`**（最初的草案）：扫描 `dependencies` 找出组合包、未列出者按字母序排列，会产生两个真源和一条隐式决胜规则；一份显式有序的 `dsh.profile.bundles` 列表更小、完全确定。在 profile 内直接 `pnpm add` 只会安装一个库，不激活任何 patch——行为显式，没有暗中扫描。

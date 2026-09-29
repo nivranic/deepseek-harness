@@ -2,52 +2,99 @@
   "protocolName": "Noise_XX_25519_ChaChaPoly_SHA256",
   "note": "Fixed-key vectors from the node reference implementation (apps/relay/noise.mjs); every port reproduces these bytes exactly.",
   "keys": {
-    "initiatorStatic": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "responderStatic": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "initiatorEphemeral": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-    "responderEphemeral": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+    "initiatorStatic": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+    "responderStatic": "65666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f8081828384",
+    "initiatorEphemeral": "c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8",
+    "responderEphemeral": "fbfcfdfeff000102030405060708090a0b0c0d0e0f101112131415161718191a"
   },
   "handshake": {
-    "msg1": "8f40c5adb68f25624ae5b214ea767a6ec94d829d3d7b5e1ad1ba6f3e2138285f",
-    "msg2": "8f40c5adb68f25624ae5b214ea767a6ec94d829d3d7b5e1ad1ba6f3e2138285fb867898f59f9f907247cadc5efcf2f2d76273727c3a1dea4472269c94adc8e3d3ced883ed823eb4c11549212e0e63112a7dc2bfecc382fb2edbe25986cc4c107",
-    "msg3": "75f6dc388c5a5e2c09bd454ed7a71de2df21d9e26369e3e0f244e7dd58a45b8674d5a0d5840312cc5330b3892c534dc9772df0f805024b6944f821bd9195bd98",
-    "sessionIdAfterMsg2": "41236382121b77d7f665c505f52ddcdd3038dfad026f844a109fa0abb792433b",
-    "channelBindingAfterMsg3": "26c0d94b43c9d0acb7285865c9f1534d04ce8bfff2c0553897e7588af534d2f6"
+    "msg1": "4c29f4996985e80d247e80b70303824592ff9fbad74904ea7c3d2bda24e51c12",
+    "msg2": "13773cb958b5ad0962511e4e18296a491936086315a0e29d7f4ae88123aee72c53c2c1f160e897338971bb8263c867aa4403bbbf45990bff5e1a7200d3bfc078a8fd209292eb68dadc2af8bc4ddeb15eb1cf4190616cfc63e24dde2d34aa8e8c",
+    "msg3": "10fc0234043d9fdada693e926c443fcb9eee25c24f37c68e2f027d378468392cdc4481bf97c132c7c06923e48cbcaf4fd01a1c211fe3a0dcc7831bbbc6fdd02f",
+    "sessionIdAfterMsg2": "a7ec68b25c1437003d967dd32923e84b6f2eba7035e41a6a154804822e603d31",
+    "channelBindingAfterMsg3": "296c874589025377b0a9ef659b005f6898ee434a3bfc50f55ff6e63c978c6bb8"
   },
   "transport": {
-    "c1Key": "75d59f69bb14ed33c275b7a8144cbfcc75a91ff9ef6b6ff569edb43269fd5ddb",
+    "c1Key": "6d892af5af5438bb8a9cc56034862c13277e323ac4e31a0fe08ad838721c2c5d",
     "c1Frames": [
       {
         "payload": "",
-        "frame": "01d12a0cfc80c05fabe293afdadfa3e3"
+        "frame": "55d7f5fd42eca0e22bbd3f56f33d437b"
       },
       {
         "payload": "7b22746f6b656e223a2272742d616363742d70686f6e65227d",
-        "frame": "47e628835f71d8f25514e4aa451f1ac6c36b00cf31d82d96631d6a6a7041d8c1b10154cc79bbf09847"
+        "frame": "8c9e3a522d99f973ce2e3e4f6397915af29fb33a4209eb702a8dbd1fa7cf8df5654a5cc0ea71836591"
       },
       {
         "payload": "7b226b696e64223a227461736b2d636f6d706c65746564222c2273657373696f6e4964223a22e4bc9ae8af9d2d31222c227475726e223a337d",
-        "frame": "c35436750ead39a8712f6a06473086d8eb5f44f806fbf35f0a9e7f08457603a4734a3d4425f0d3df45f45c972464a531f14372262cbdfcce83d41bd4aa594a18e94c96daa0a7bd21e1"
+        "frame": "6ad5672489ddc7be57d3fa8c32d967dcf75f00e047607e5b6151e15f28fd97abcf76eaa2c6cb7dae0451d89b765b9a1f412fdf52a2f9c82fea330993c44359d8433bf8d8e64695981c"
       }
     ],
-    "c2Key": "1213cdca9662c6b17eb25e25de885aeef689e15bc35af05f912fcefa66fc96c5",
+    "c2Key": "ffe6d9fc3d4240afe5cd9933c7ce89982b76621e4e35065e9e3a57cc2eed6873",
     "c2Frames": [
       {
         "payload": "7b226f6b223a747275657d",
-        "frame": "894977ca98a29e02a2515cbed6df870922f3d99e2ef1dbafdf6621"
+        "frame": "ee489ac28426e6713c041f968cdb8d0a9652bb4eb957f095811125"
       },
       {
         "payload": "7b2264656c697665726564223a327d",
-        "frame": "2969b68571c6765864def3b91496f04aea6f4dfa5fc44f7fb9ec45cc215bf3"
+        "frame": "5ce06e63cae952f0b654dca984679f944da3e8123e93d67f182f4ccad60384"
       },
       {
         "payload": "",
-        "frame": "48f0e1273157d97c9516a502cac9d4df"
+        "frame": "b5841723778a3ce7660cee335032bad1"
       }
     ]
   },
   "framing": {
     "single": "0010000102030405060708090a0b0c0d0e0f",
     "doubled": "00000003090807"
+  },
+  "nonceBoundaries": {
+    "key": "6d892af5af5438bb8a9cc56034862c13277e323ac4e31a0fe08ad838721c2c5d",
+    "ad": "4e6f697365206e6f6e636520626f756e64617279",
+    "payload": "73616d6520706c61696e746578742061742064697374696e6374206e6f6e636573",
+    "vectors": [
+      {
+        "counter": "0",
+        "nonce": "000000000000000000000000",
+        "frame": "dfbf9b989a40d4acad9770df2c198d22715b4975adaa1d0847e6baf0ec8fbfe44f314d660ce07ae6bb378b5993004597b2"
+      },
+      {
+        "counter": "1",
+        "nonce": "000000000100000000000000",
+        "frame": "84dd2358668cfb309d62385e3682d258f292a73b5e13e73c343cfa2355a608eb503a8e5536ecdb33abeb8a01d3c2680743"
+      },
+      {
+        "counter": "9007199254740991",
+        "nonce": "00000000ffffffffffff1f00",
+        "frame": "1b66deb9204cd925891b781a1b28f40a899d81a2b88919796f7fdfd95cc9a3fb2505eaca3d07cff339ddd4a876dae7870d"
+      },
+      {
+        "counter": "9007199254740992",
+        "nonce": "000000000000000000002000",
+        "frame": "01cab629646ac80c2addefdb590f687dde4fe9802b072e7315b61842c79ede804d25155ac9ba6247873c431c272ece6d85"
+      },
+      {
+        "counter": "9007199254740993",
+        "nonce": "000000000100000000002000",
+        "frame": "931f8f2a79614259636208945c295b1a552739689170337956313a81c6ec9e7d506f6fa06a9edbd2590bf95a0bc6c16b85"
+      },
+      {
+        "counter": "9223372036854775807",
+        "nonce": "00000000ffffffffffffff7f",
+        "frame": "18abf495d9390e0657343bd335c1373baa95dd647ba28509d6822ce59469cff8a36edb33bafde6fef5252209de5cda1631"
+      },
+      {
+        "counter": "9223372036854775808",
+        "nonce": "000000000000000000000080",
+        "frame": "7716ce1ba51c11eaf84a14d7e1c2f5a2b885a8766c9c29f274a6a86a67a038e53ac025c06972969d6eea978a9ac27d6c11"
+      },
+      {
+        "counter": "18446744073709551614",
+        "nonce": "00000000feffffffffffffff",
+        "frame": "641c7256329bf98f40d7c2a21ac3cf2e716f6cb33828f83ea8e45f035f8b3c3abbede4814621a104492531420f6ea8dd33"
+      }
+    ]
   }
 }

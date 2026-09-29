@@ -7,6 +7,7 @@
     { "path": "../../../vendor/cordis" },
     { "path": "../../artifact/artifact" },
     { "path": "../../util/atomic-write" },
-    { "path": "../../util/home-paths" }
+    { "path": "../../util/home-paths" },
+    { "path": "../../runtime-diagnostics/invariants" }
   ]
 }

@@ -1,7 +1,6 @@
 # Test-only composition: session-telemetry-otel through the real Loader/app
-# path, exporting to the mock OTLP collector the driver starts (url via env).
-# The redact-rule entry models a deployment mounting its own scrub rule on the
-# session-telemetry/record waterfall — the seam itself ships no rules.
+# path, exporting the owner-level privacy projection to the mock OTLP collector
+# the driver starts (url via env).
 - id: logger-console
   name: '@deepseek-ai/cordis-plugin-logger-console'
   config:
@@ -12,9 +11,6 @@
 
 - id: cli-mock-llm
   name: '../../../../test-support/loader-smoke/tests/fixtures/cli-mock-llm.ts'
-
-- id: telemetry-redact-rule
-  name: './telemetry-redact-rule.ts'
 
 # Managed child-process groups required by the bash executor.
 - id: subprocess

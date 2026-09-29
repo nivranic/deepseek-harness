@@ -2,7 +2,7 @@
 
 [English](session-telemetry.md) | 中文
 
-对外的会话上报拆分为一项[能力 seam](../capability-seams.zh.md)：Service Definition 与捕获协调器（[dsh-session-telemetry](../../packages/session/session-telemetry)，`ctx.sessionTelemetry`）拥有捕获点、固定分片投影、`session-telemetry/record` 脱敏 waterfall（瀑布式事件）、handoff 游标与最小后端约定；部署方加载的 Service Provider（[dsh-session-telemetry-otel](../../packages/session/session-telemetry-otel)）则是原样配置的 OpenTelemetry JS SDK 日志流水线。它是一项可选能力，不属于 agent loop（智能体循环）主干，这里也没有任何内容会进入模型请求。边界公理（harness 的职责止于 `emit()`；批处理、重试、排队与丢失策略都属于上报 SDK）连同被否决的替代方案，均已在[复活 Agent Note](../../.agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.zh.md)中定案；捕获点、游标与投影的约定见 [Service Definition README](../../packages/session/session-telemetry/README.zh.md)。
+对外会话上报是一项[能力 seam](../capability-seams.zh.md)：Service Definition 与协调器（[dsh-session-telemetry](../../packages/session/session-telemetry)，`ctx.sessionTelemetry`）拥有捕获、强制隐私投影、分片投影、进一步脱敏 waterfall（瀑布式事件）、handoff 游标与私有 sink 约定；Service Provider（[dsh-session-telemetry-otel](../../packages/session/session-telemetry-otel)）拥有 OTel 流水线与网络交接。这项可选能力绝不会进入模型请求。私有 sink 的 `emit()` 之后，批处理、重试、排队与丢失归上报 SDK；[隐私决定](../../.agents/notes/implemented/architecture/2026-09-02-privacy-safe-session-telemetry.zh.md)拥有授权与数据最小化理由。
 
 源码：[`packages/session/session-telemetry/src/index.ts`](../../packages/session/session-telemetry/src/index.ts)
 
@@ -22,39 +22,53 @@ type SessionTelemetrySeverity = 'info' | 'warn' | 'error'
 
 ```ts type-equiv
 /**
- * One logical record handed to a backend — the capture contract's whole outbound
- * vocabulary. Ledger records mirror session-log events one-to-one;
- * operational records (`channel: 'ops'`) carry the two signals with no log
+ * One privacy-safe logical record handed to a backend. Ledger records retain
+ * session-event timing, type, sequence, outcome, and bounded diagnostic fields;
+ * they never contain the event payload or workspace path.
+ *
+ * Operational records (`channel: 'ops'`) carry the two signals with no log
  * home (`agent-error`, `shutdown`) and deliberately omit `event.seq`-style
  * identity so they can never be mistaken for ledger rows.
  */
 interface SessionTelemetryRecord {
   /** Ledger (session-log mirror) or ops (operational signal) channel; backends keep the two under separate instrumentation scopes. */
-  channel: 'ledger' | 'ops'
+  readonly channel: 'ledger' | 'ops'
   /** Unix epoch milliseconds — the source event's append time for ledger records, the emission time for ops records. */
-  time: number
+  readonly time: number
   /** Pre-mapped alerting severity; see {@link SessionTelemetrySeverity}. */
-  severity: SessionTelemetrySeverity
+  readonly severity: SessionTelemetrySeverity
   /**
-   * Identity attributes, deliberately minimal: ledger records carry
-   * `session.id`, `event.type`, `event.seq`, plus `session.cwd` /
-   * `session.parent_id` / `session.seed_length` when the header has them;
-   * ops records carry `telemetry.op`, `session.id`, and (for `agent-error`)
-   * `agent.id`, `turn`, `step`, `error.name`. Anything recoverable from the
-   * body is intentionally NOT duplicated here.
+   * Bounded diagnostic attributes. Ledger records carry `session.id`,
+   * `event.type`, `event.seq`, optional fork correlation, and an allowlisted
+   * set of numeric, boolean, enum, and fixed error-class fields. Ops records carry
+   * `telemetry.op`, `session.id`, and, for `agent-error`, `turn`, `step`, and
+   * `error.class`. The coordinator uses the anonymous-identity owner to
+   * pseudonymize Session ids before any reduction listener runs; no attribute
+   * contains a workspace path or free-form payload.
    */
-  attributes: Record<string, string | number>
-  /**
-   * The complete payload: a deep copy of the session event's `data` for
-   * ledger records (JSON-serializable by `Session.append`'s own
-   * validation), or the op payload for ops records. Never mutated after
-   * handoff.
-   */
-  body: unknown
+  readonly attributes: Readonly<Record<string, string | number | boolean>>
 }
 ```
 
-每个 `(turn, step)` 只发出第一条 `assistant/chunk`，即「流已开始」的信号；其余分片在捕获时丢弃，因此传输中的 `seq` 缺口是常态，绝不是数据丢失的信号。其他所有[会话事件](session.zh.md)类型都会完整透传，包括该 seam 从未听说过、由插件合并进来的事件类型。投递是尽力而为的：游标标记的是「已交接」而非「已送达」，记录可能丢失（崩溃、重载窗口）也可能重复（无游标的重新接管、SDK 重试），因此接收端对 ledger 记录基于 `(session.id, event.seq)` 去重；ops 记录刻意省略这类标识——它们是用于告警的信号，而非用于累加的条目，重复被容忍而非被去重。
+每个 `(turn, step)` 只发出第一条 `assistant/chunk`；其余分片在捕获时丢弃，因此 `seq` 缺口是常态，绝不是数据丢失信号。未知的插件合并事件只暴露记录时间、假名化 Session 身份、事件类型与序号，直到其 owner 添加显式安全投影。投递是尽力而为的：记录可能丢失或重复，因此接收端基于已假名化的 `(session.id, event.seq)` 对 ledger 记录去重；ops 记录容忍重复。
+
+<a id="privacy-inventory"></a>
+## 隐私清单
+
+随附 base 默认 `DISABLED`；只有显式 `FULL` 或 `FEEDBACK_ONLY` 才会构造导出器，任何非空 `DSH_TELEMETRY_DISABLED` 都会在加载前禁用该配置项。已启用记录的日志 body 不携带值或内容；OTLP JSON 编码器可能把这种缺省表示为空的 `body: {}` 对象。下表穷尽列出 DSH 控制的内容值及 Resource 或日志记录 attributes，并明确计入静态插桩作用域元数据。SDK 协议封装、`droppedAttributesCount` 等簿记字段和部署方提供的导出器选项不在清单范围内：
+
+| 位置 | 字段 |
+|---|---|
+| OTel Resource attributes | `service.name`、`service.version`、`os.type`、`host.arch`、派生的匿名 `user.id` |
+| 插桩作用域元数据 | Ledger 名称 `@deepseek-ai/dsh-session-telemetry-otel`、ops 名称 `@deepseek-ai/dsh-session-telemetry-otel/ops`，以及两者都携带的包清单版本 |
+| DSH 设置的记录值 | 源事件或操作时间、相同的观测时间、映射后的严重级别数字／文本，以及不携带值或内容的 body |
+| Ledger 记录 attributes | HMAC 假名化的 `session.id` 与可选 `session.parent_id`、`event.type`、`event.seq`、可选 `session.seed_length` |
+| 安全诊断记录 attributes | `turn`、`step`、`turn.outcome`、`message.source`、`assistant.chunk_type`、`assistant.interrupted`、`tool.is_error`、`request.reason`、`request.starts_series`、固定的 `error.class` |
+| Ops 记录 attributes | `telemetry.op`、假名化的 `session.id`、可选 `turn`、`step`、固定的 `error.class` |
+
+OTel 提供方会把每条 SDK 日志记录显式绑定到 `ROOT_CONTEXT`；同一进程中其他插桩工具安装的活动 span 无法把 `traceId`、`spanId` 或 trace flags 添加到这份清单。
+
+封闭诊断枚举使用固定值，并把未来扩展映射为 `extension`；错误名称映射为固定的内置类别集合，并以 `CustomError` 兜底。导出器绝不会收到消息或推理内容、系统提示词、工具 schema、模型产生的工具名、工具参数／结果、反馈文本、任意错误名／代码／消息、源代码、文件内容、todo 或压缩文本、workspace 路径、原始 Session id、私有匿名 identity 根种子或 Session 密钥，以及 `agent.id`。权威 Session 日志保持完整并留在本地。`session-telemetry/record` 监听器收到的标识符已经假名化，也不会收到任何被排除的载荷。
 
 ## 共享披露
 
@@ -122,7 +136,7 @@ interface SessionTelemetrySink {
 
 ## 脱敏 waterfall：`session-telemetry/record`
 
-每条记录在投影与 `emit()` 之间都要经过 `session-telemetry/record` [waterfall](../cordis-primer.zh.md#cordis-waterfall-semantics)（[事件条目](#session-telemetryrecord--waterfall)）。seam 自身不带任何规则：未挂载监听器时，记录以捕获时的原样到达后端；导出数据能干净到什么程度，恰恰取决于部署方挂载了什么规则。监听器通过变换 `next()` 的返回值来堆叠；不调用 `next()` 就返回，即替换其下方的全部逻辑；抛出异常的监听器会在协调器的隔离范围内以 fail-closed 方式扣下这一条记录。脱敏只作用于导出副本；权威会话日志永不改写。
+每条记录都在强制隐私投影和 Session id 假名化之后经过 `session-telemetry/record` [waterfall](../cordis-primer.zh.md#cordis-waterfall-semantics)（[事件条目](#session-telemetryrecord--waterfall)）。协调器会在分发前冻结候选记录，返回后只保留键和值均未改变的原始属性；新增、别名复制与改写会被丢弃，有效的 severity 改动可以保留。监听器因此只能通过变换 `next()` 或返回更严格的记录来删除字段；监听器抛出异常时，该记录会以 fail-closed 方式被扣下。权威 Session 日志永不改写。
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -136,24 +150,7 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 
 ### `ctx.sessionTelemetry` — `SessionTelemetryBackend` (abstract seam)
 
-Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `telemetry` key throws on a duplicate, cordis' standard behavior. A backend composes a SessionTelemetryCoordinator in its constructor to install the capture side.
-
-```ts cordis-catalog
-/**
- * See {@link SessionTelemetrySink.emit} — that declaration is the contract's one home.
- * @param record - the logical record to report; owned by the backend after the call.
- */
-abstract emit(record: SessionTelemetryRecord): void
-
-/** See {@link SessionTelemetrySink.flush}. */
-flush?(): void
-
-/**
- * See {@link SessionTelemetrySink.shutdown}.
- * @returns resolves when the backend's pipeline has quiesced.
- */
-abstract shutdown(): Promise<void>
-```
+Loadable form of the backend contract: one implementation per context — the cordis `Service` registration under the `sessionTelemetry` key throws on a duplicate, cordis' standard behavior. A backend composes a SessionTelemetryCoordinator in its constructor to install the capture side.
 
 Source: [`packages/session/session-telemetry/src/index.ts`](../../packages/session/session-telemetry/src/index.ts)
 
@@ -165,25 +162,26 @@ Source: [`packages/session/session-telemetry/src/index.ts`](../../packages/sessi
 
 #### `session-telemetry/record` — waterfall
 
-Transform one outbound record before it reaches the backend. This waterfall is the Service Definition's redaction extension point. It ships NO rules of its own: the innermost `next()` passes the record through unchanged, and with no listener mounted records reach the backend as captured, so exported data is exactly as clean as the rules a deployment mounts. Listeners stack by transforming `next()`'s return value; returning without `next()` replaces everything beneath. Dispatched synchronously on the capture hot path inside the coordinator's containment: a throwing listener withholds that one record (fail-closed) and never reaches the agent loop. Live capture dispatches at append time; on-demand capture dispatches while reading the canonical log. Redaction applies to the exported copy only; the canonical session log is never rewritten.
+Further reduce one frozen privacy-safe record before it reaches the backend. Session identities are already pseudonymous, and the coordinator has removed Session content, prompts, tool names, arguments and results, arbitrary error details, and workspace paths. Listeners stack by transforming `next()`'s return value. After the waterfall, the coordinator keeps only original attributes whose keys and values remain unchanged; additions and rewrites are discarded, while a valid severity change survives. Returning without `next()` can therefore remove fields but cannot inject data or rewrite record identity. Dispatched synchronously on the capture hot path inside containment: a throwing listener withholds that one record and never reaches the agent loop. Live capture dispatches at append time; on-demand capture dispatches while reading the canonical log. The canonical Session log is never rewritten.
 
 ```ts cordis-catalog
 /**
- * Transform one outbound record before it reaches the backend. This
- * waterfall is the Service Definition's redaction extension point. It ships NO rules
- * of its own: the
- * innermost `next()` passes the record through unchanged, and with no
- * listener mounted records reach the backend as captured, so exported
- * data is exactly as clean as the rules a deployment mounts. Listeners
- * stack by transforming `next()`'s return value; returning without
- * `next()` replaces everything beneath. Dispatched synchronously on the
- * capture hot path inside the coordinator's containment: a throwing
- * listener withholds that one record (fail-closed) and never reaches the
- * agent loop. Live capture dispatches at append time; on-demand capture
- * dispatches while reading the canonical log. Redaction applies to the
- * exported copy only; the canonical session log is never rewritten.
- * @param record - the candidate record, already the coordinator's own deep
- *   copy; listeners return a (possibly new) record and must not mutate it.
+ * Further reduce one frozen privacy-safe record before it reaches the
+ * backend. Session identities are already pseudonymous, and the
+ * coordinator has removed Session content, prompts, tool names, arguments
+ * and results, arbitrary error details, and workspace paths. Listeners
+ * stack by transforming `next()`'s return value. After the waterfall, the
+ * coordinator keeps only original attributes whose keys and values remain
+ * unchanged; additions and rewrites are discarded, while a valid severity
+ * change survives. Returning without `next()` can therefore remove fields
+ * but cannot inject data or rewrite record identity. Dispatched
+ * synchronously on the capture hot path inside containment: a throwing
+ * listener withholds that one record and never reaches the agent loop.
+ * Live capture dispatches at append time; on-demand capture dispatches
+ * while reading the canonical log. The canonical Session log is never
+ * rewritten.
+ * @param record - the frozen candidate record; listeners return a possibly
+ *   stricter copy and must not mutate it.
  * @mode waterfall
  */
 'session-telemetry/record'(record: SessionTelemetryRecord, next: () => SessionTelemetryRecord): SessionTelemetryRecord

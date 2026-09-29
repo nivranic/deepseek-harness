@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "kind": "sast",
+  "candidateSha": "d28a442df621173dfd9f559446f9e7a963e7dfff",
+  "treeSha": "c4e60850395dbd99ccbb683d30562c058c258174",
+  "action": "github/codeql-action/analyze",
+  "actionSha": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+  "registrySha256": "cec22b35ba74a01150bc1e40f20abb3f31180f69ac4d56a48dac794189d8ba23",
+  "scanner": "CodeQL",
+  "language": "swift",
+  "reports": [
+    {
+      "sha256": "daeeb1a2cad0d30968a05dffb153edfa91dd55b845cb1de5286f37667e80033f",
+      "version": "2.26.4",
+      "rules": 28,
+      "structure": {
+        "driverRuleCount": 0,
+        "extensionRuleCounts": [
+          28
+        ],
+        "resultsPresent": true,
+        "resultCount": 1
+      }
+    }
+  ],
+  "findings": [
+    {
+      "rule": "swift/weak-password-hashing",
+      "locations": [
+        {
+          "path": "apps/apple/Sources/SharedAppleRemoteCore/LinkSigning.swift",
+          "line": 22
+        }
+      ]
+    }
+  ],
+  "findingCount": 1,
+  "analysisComplete": true,
+  "blockingDiagnostics": []
+}

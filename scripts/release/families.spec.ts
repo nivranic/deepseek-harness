@@ -1,6 +1,6 @@
 /** Release family discovery, publish order, tag naming, and the bump judgements. */
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -53,18 +53,32 @@ describe('release families', () => {
     const root = mkdtempSync(join(tmpdir(), 'dsh-release-version-'))
     roots.push(root)
     write(join(root, 'package.json'), '{"version":"0.0.1"}\n')
+    write(join(root, 'release/product.json'), '{"schemaVersion":1,"buildNumber":2,"channel":"dev"}\n')
     write(join(root, 'packages/experimental/prototype/package.json'), '{"version":"0.0.1","private":true}\n')
     write(join(root, 'packages/core/unselected/package.json'), '{"version":"0.0.1"}\n')
 
     const dsh = releaseFamily('dsh')
     const published = member('packages/core/published', '@deepseek-ai/dsh-published')
-    const { planned } = planShared(dsh, root, [published], '0.0.2')
+    const { planned, identity } = planShared(dsh, root, [published], '0.0.2')
+    expect(identity).toMatchObject({ version: '0.0.2', buildNumber: 2, windowsFileVersion: '0.0.2.2' })
 
     expect(planned.map(entry => ({ path: entry.manifestPath, tag: entry.tag }))).toEqual([
       { path: 'package.json', tag: undefined },
       { path: 'packages/core/published/package.json', tag: 'dsh-v0.0.2' },
       { path: 'packages/experimental/prototype/package.json', tag: undefined },
     ])
+  })
+
+  it('rejects a channel/version mismatch before changing release inputs', () => {
+    const root = mkdtempSync(join(tmpdir(), 'dsh-release-version-'))
+    roots.push(root)
+    const manifest = '{"version":"0.0.1"}\n'
+    write(join(root, 'package.json'), manifest)
+    write(join(root, 'release/product.json'), '{"schemaVersion":1,"buildNumber":2,"channel":"stable"}\n')
+    const published = member('packages/core/published', '@deepseek-ai/dsh-published')
+    expect(() => planShared(releaseFamily('dsh'), root, [published], '0.0.2-rc.1')).toThrow('channel')
+    expect(readFileSync(join(root, 'package.json'), 'utf8')).toBe(manifest)
+    expect(existsSync(join(root, 'release/product.generated.json'))).toBe(false)
   })
 
   it('names one tag for the whole dsh family and one per vendored package', () => {

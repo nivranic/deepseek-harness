@@ -44,6 +44,8 @@ export const coverageExemptHeavySuites: readonly CoverageExemptSuite[] = [
     filter: 'packages/experimental/webworker-runtime/tests/',
     exclude: 'packages/experimental/webworker-runtime/tests/**',
   },
+  // Whole-workspace lexical TypeScript analysis executes only scripts/ and the compiler.
+  { filter: 'scripts/gen-client-catalog.spec.ts', exclude: 'scripts/gen-client-catalog.spec.ts' },
   // Real child-process fixtures over scripts/ sources, which coverage never measures.
   { filter: 'scripts/install-lefthook.spec.ts', exclude: 'scripts/install-lefthook.spec.ts' },
   { filter: 'scripts/oxlint-contract.spec.ts', exclude: 'scripts/oxlint-contract.spec.ts' },

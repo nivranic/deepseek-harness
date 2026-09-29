@@ -18,4 +18,4 @@ Android Lite 运行时只能经替身提供方驱动回合：没有东西会说 
 
 ## 考虑过的替代方案
 
-用 OkHttp 做传输被否决——core 模块保持 JDK 栈纯 JVM（与 `LinkWire` 同一选择），OkHttp 决策已归应用层（随钉扎而来）。经生成契约模型解析被否决——提供方消费的是契约表不拥有的第三方线缆形状；本地 JsonElement 解码让这条边界显式。
+Lite 提供方不采用 OkHttp——它保留 JDK `HttpClient`，因为它没有使 [Android Link 传输](2026-09-02-android-link-transport-and-stream-ownership.zh.md)选择 OkHttp 的私有 Host pin 与 reconnect owner 要求。经生成契约模型解析被否决——提供方消费的是契约表不拥有的第三方线缆形状；本地 JsonElement 解码让这条边界显式。

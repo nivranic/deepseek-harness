@@ -186,8 +186,8 @@ describe.skipIf(process.platform === 'win32')('terminal-bash real shell', () => 
       text: `bash -c 'exec </dev/tty; printf "%s" "$BASHPID" > "$1"; printf "WAITING\\n"; read -r answer; printf "ANSWER=%s\\n" "$answer"' dsh "${readerPidFile}"`,
       submit: true,
     })
-    await waitForOutput(waiting, 'WAITING')
     const result = await waiting.done
+    expect(result.viewport).toContain('WAITING')
     const readerPid = Number(readFileSync(readerPidFile, 'utf8'))
     expect(readerPid).toBeGreaterThan(0)
     expect(result.waitReason).toBe(canReadLinuxProcessSyscall(readerPid) ? 'stdin_read' : 'inferred_idle')
@@ -321,12 +321,14 @@ describe.skipIf(!hasPwsh)('terminal-bash pwsh real shell', () => {
     process.env.DSH_TEST_SECRET = 'must-not-leak'
     try {
       const { ctx, root, agent } = await harness('danger-full-access', {
-        idleSilenceMs: 300,
+        idleSilenceMs: 5_000,
         handoffGraceMs: 300,
         timeoutMs: 8_000,
       }, 'pwsh')
       const created = await ctx.terminals.spawn(agent, { type: 'shell', name: 'main', cwd: root })
-      expect(created.motd).toContain('dsh> ')
+      // Readiness is backend stdin evidence; prompt bytes arrive through the retained output.
+      await expect.poll(() => ctx.terminals.read(agent, created.sessionId, { offset: 0, count: 40 }).text)
+        .toContain('dsh> ')
 
       const first = ctx.terminals.startSend(agent, created.sessionId, {
         text: '$env:KEEP = "ok"; Set-Location /',

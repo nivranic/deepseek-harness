@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "recordKind": "privacy-safe-acceptance-summary",
+  "status": "PASS",
+  "language": "kotlin",
+  "corpusSha256": "d9f35c1592a5731b8819ddc295ddc2f522840d8973513f31adeb7aca183ba6d9",
+  "hostCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+  "clientCommit": "ac42842c38142e13859da4981f9a820906f5ec6b",
+  "linkProtocolVersion": 1,
+  "contractVersion": 1,
+  "sessionFormatVersion": 0,
+  "steps": [
+    {
+      "id": "pair",
+      "status": "PASS"
+    },
+    {
+      "id": "connect",
+      "status": "PASS"
+    },
+    {
+      "id": "describe",
+      "status": "PASS"
+    },
+    {
+      "id": "list",
+      "status": "PASS"
+    },
+    {
+      "id": "open",
+      "status": "PASS"
+    },
+    {
+      "id": "history",
+      "status": "PASS"
+    },
+    {
+      "id": "follow",
+      "status": "PASS"
+    },
+    {
+      "id": "prompt",
+      "status": "PASS"
+    },
+    {
+      "id": "stream",
+      "status": "PASS"
+    },
+    {
+      "id": "approval",
+      "status": "PASS"
+    },
+    {
+      "id": "cancel",
+      "status": "PASS"
+    },
+    {
+      "id": "reconnect",
+      "status": "PASS"
+    },
+    {
+      "id": "revoke",
+      "status": "PASS"
+    }
+  ],
+  "recovery": {
+    "preFaultSeq": 81,
+    "recoverySnapshotCursor": 92,
+    "repeatedSnapshotCursor": 92,
+    "offlineSeqCount": 11,
+    "recoverySnapshotHasMore": false,
+    "followReplacementCount": 2,
+    "eventReplacementCount": 2,
+    "projectionItemCount": 77,
+    "projectionPlanActive": false,
+    "projectionTodoCount": 0,
+    "projectionGoalCount": 0,
+    "projectionToolCallCount": 0,
+    "projectionImageCount": 0,
+    "projectionArtifactCount": 0,
+    "projectionEqualAfterRepeatedReconnect": true,
+    "beforeRepeatedReconnectProjectionSha256": "e23d23a6a88d50176b08993b13ce67fcfba5fa0f34d26bfefc30cb2dfa73e215",
+    "afterRepeatedReconnectProjectionSha256": "e23d23a6a88d50176b08993b13ce67fcfba5fa0f34d26bfefc30cb2dfa73e215",
+    "projectionDigestEncoding": "SHA-256 of UTF-8 Node.js JSON.stringify output after JSON.parse, preserving parsed property order"
+  }
+}
