@@ -2,82 +2,8 @@
   "schemaVersion": 1,
   "candidateSha": "a80e0216bcc4f5b61f61286f050bd7a4611e0953",
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
-  "candidateTrackedChanges": [
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.i18n.yaml",
-      "sha256": "934b41c69f6038cb9cde1ab228aef44e738a126b394cfd6531190e28cc8b5581"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md",
-      "sha256": "553e40b28a0808eba947cece56c59803fb3325448237ebbb2617830f3a3b6a53"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md",
-      "sha256": "11f2ec08cc93a67690dfb34666cd593cb1186c605ada46009d9dee53ef3f7cab"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-28-native-http-upload-budget.i18n.yaml",
-      "sha256": "0c71cff760ef641f3198135b476f7a333856c7be5788bb60fc0075b76fa5f23f"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-28-native-http-upload-budget.md",
-      "sha256": "05001e5b2331ce38256d9bea50fd515670d1121e90e323f78f4bdf35eefbc8b9"
-    },
-    {
-      "path": ".agents/notes/implemented/architecture/2026-09-28-native-http-upload-budget.zh.md",
-      "sha256": "0c2b71429ee3a34f747a855b42df4b79345ef89571117bca99dd8e246b2c4870"
-    },
-    {
-      "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "e85c57da834c30c831e005cbcf1c7e1e62908142bf6e28a43bb721b6b2d87d3f"
-    },
-    {
-      "path": "apps/android/README.i18n.yaml",
-      "sha256": "90e684f31497833db6390ecfda9316840bbe4392a0e5971f680ffa5633c28909"
-    },
-    {
-      "path": "apps/android/README.md",
-      "sha256": "102452bcd66448f4b41bc089ce3860fd734d6379609babb89ab314e901888a34"
-    },
-    {
-      "path": "apps/android/README.zh.md",
-      "sha256": "5ee1878d3b6dde412884482f25c7598a1e7ba025785e267f9db8323a0a806781"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "796f75a5173608f59dafefdf5c84a3ed67c97f950a2503db5195c72d9870914d"
-    },
-    {
-      "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "78ee024f2c9d8de6377e5cd3de1569affc4c010fa25512b3e91c8fe33ebe6cee"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt",
-      "sha256": "bd899e42975fa0e7ece8b544612090a56e582eb3c219f618679450e1ec03b0f5"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/gateway/NativeGatewayUploadBudgetTest.kt",
-      "sha256": "fe9c3a8229923cb279bb0950e8bfc35d1604b9e98747b701e443cdce197c561e"
-    },
-    {
-      "path": "apps/android/core/src/test/resources/support-native-gateway.json",
-      "sha256": "009a8e6ebd2c355ce22f73b93120a03565dae6ca1d8503bd813f78a27e214f5c"
-    },
-    {
-      "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "a879348217d151b636fb3e39266b97f374a283e18b1d118f1a13d6898c13c34e"
-    },
-    {
-      "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "4d51b38c0782ccbcffa2cb595510cdfc6bcc6af362e48d70b2b42caf1616d4bc"
-    }
-  ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "apps/web/tests/android-native-image-upload-budget.e2e.ts",
-      "sha256": "5916294024f54392c72e87d4e4cdb77711a0646dd00fc046200328301ad7310f"
-    }
-  ],
+  "candidateTrackedChanges": [],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
